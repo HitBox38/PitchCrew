@@ -1,0 +1,21 @@
+{
+  "name": "@pitchcrew/orchestrator",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": "./src/server.ts",
+  "dependencies": {
+    "@pitchcrew/adapters": "workspace:*",
+    "@pitchcrew/board": "workspace:*",
+    "@pitchcrew/core": "workspace:*",
+    "@pitchcrew/mcp": "workspace:*",
+    "@pitchcrew/packet": "workspace:*",
+    "express": "^5.2.1",
+    "tsx": "4.23.15",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "vite": "8.3.1"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "name": "pitchcrew",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --import tsx packages/orchestrator/src/cli.ts --dev",
+    "desktop": "pnpm --filter @pitchcrew/desktop build && node scripts/desktop.mjs",
+    "desktop:prod": "pnpm build && node scripts/desktop.mjs --production",
+    "build": "pnpm --filter @pitchcrew/ui build && pnpm --filter @pitchcrew/desktop build",
+    "start": "node --import tsx packages/orchestrator/src/cli.ts",
+    "test": "vitest run",
+    "test:desktop": "pnpm build && node scripts/desktop-smoke.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "oxlint --deny-warnings packages scripts vitest.config.ts",
+    "format": "oxfmt --write .",
+    "format:check": "oxfmt --check .",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "electron": "44.5.1",
+    "oxfmt": "0.71.0",
+    "oxlint": "1.86.0",
+    "tsx": "4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "5.0.3"
+  },
+  "engines": {
+    "node": "^22.18.0 || ^24.11.0 || >=26.0.0"
+  },
+  "packageManager": "pnpm@11.22.0"
+}

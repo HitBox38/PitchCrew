@@ -1,0 +1,13 @@
+<!-- Fixed fictional dataset in evaluation.ts and stdio.test.ts, before export. No live profile data. -->
+<evaluation>
+  <qa_pair><question>Read the assigned application's packet and the original profile. Which source file supports the improvement in rendering performance? Answer with the filename.</question><answer>work.md</answer></qa_pair>
+  <qa_pair><question>Compare the resume's improvement claim with its source quotation and run the packet check. What is the supported percentage improvement? Answer with the percentage.</question><answer>30%</answer></qa_pair>
+  <qa_pair><question>Inspect the role's application and profile. Which profile file supports the creative editor mentioned in the letter, rather than the scheduling work in the resume? Answer with the filename.</question><answer>projects.md</answer></qa_pair>
+  <qa_pair><question>Inspect the packet and verify its evidence with the profile and packet check. How many distinct profile files support its registered claims? Answer with an integer.</question><answer>2</answer></qa_pair>
+  <qa_pair><question>Read the application history and its current packet. Which crew role first moved this application back for evidence corrections? Answer with the role ID.</question><answer>reviewer</answer></qa_pair>
+  <qa_pair><question>Use the history and packet evidence to determine whether the corrected application returned through review before export approval was requested. Answer True or False.</question><answer>True</answer></qa_pair>
+  <qa_pair><question>Inspect the application packet, profile and lint result. How many registered evidence claims pass the source check in this fixture? Answer with an integer.</question><answer>3</answer></qa_pair>
+  <qa_pair><question>Read the packet and original sources. Does a successful mechanical check prove that the remote availability sentence is quoted in a profile file? Answer True or False.</question><answer>False</answer></qa_pair>
+  <qa_pair><question>Get the packet, change only the first registered claim's source to missing.md in memory, and call the read-only lint tool. Does that packet still pass the mechanical check? Answer True or False.</question><answer>False</answer></qa_pair>
+  <qa_pair><question>Inspect the assigned application and traverse its history. Which company owns the opportunity whose corrected source quotes reached approval review? Answer with the company name.</question><answer>Fixture Studio</answer></qa_pair>
+</evaluation>
