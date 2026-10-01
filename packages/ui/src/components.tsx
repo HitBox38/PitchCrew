@@ -3,7 +3,7 @@ import { type ReactNode } from 'react';
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog.tsx';
 import { Sheet, SheetContent, SheetTitle } from './components/ui/sheet.tsx';
 import { X, Search, PenLine, ShieldCheck, LoaderCircle } from 'lucide-react';
-import type { Card, CardState, RoleId } from '@pitchcrew/core';
+import type { Card, CardState, RoleId, RuntimeId } from '@pitchcrew/core';
 export const stateLabels: Record<CardState, string> = {
   lead: 'New lead',
   shortlisted: 'Shortlisted',
@@ -21,7 +21,13 @@ export const stateLabels: Record<CardState, string> = {
   ghosted: 'No response',
 };
 export const roleIcons = { scout: Search, writer: PenLine, reviewer: ShieldCheck };
-export const runtimeLabels = { demo: 'Demo', codex: 'Codex', 'claude-code': 'Claude Code' };
+export const runtimeLabels: Record<RuntimeId, string> = {
+  demo: 'Demo',
+  codex: 'Codex',
+  'claude-code': 'Claude Code',
+  'gemini-cli': 'Gemini CLI',
+  opencode: 'OpenCode',
+};
 export function RoleAvatar({
   agentRole,
   size = 'normal',

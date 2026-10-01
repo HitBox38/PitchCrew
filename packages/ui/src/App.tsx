@@ -525,8 +525,8 @@ export function App() {
                 ))}
               </div>
               <p className="info-note">
-                Demo makes deterministic drafts without calling a model. Claude Code and Codex run
-                under your own CLI login, and only when you start a run.
+                Demo makes deterministic drafts without calling a model. Other runtimes use your own
+                CLI login, and only run when you start them.
               </p>
             </>
           ) : null}

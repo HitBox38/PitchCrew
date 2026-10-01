@@ -46,13 +46,15 @@ export async function runCli(
   context: RunContext,
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
+  env: Record<string, string> = {},
 ): Promise<RunResult> {
+  if (context.signal.aborted) throw new Error('Run cancelled.');
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, ...context.mcp.env },
+      env: { ...process.env, ...context.mcp.env, ...env },
     });
     let buffer = '',
       result = '',
@@ -72,14 +74,15 @@ export async function runCli(
       kill();
     }, 180000);
     context.signal.addEventListener('abort', kill, { once: true });
-    child.stdout.on('data', (chunk: Buffer) => {
-      bytes += chunk.length;
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk: string) => {
+      bytes += Buffer.byteLength(chunk);
       if (bytes > 4_000_000) {
         error = 'Runtime output exceeded its limit.';
         kill();
         return;
       }
-      buffer += chunk.toString();
+      buffer += chunk;
       let end: number;
       while ((end = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, end);

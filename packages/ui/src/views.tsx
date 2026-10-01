@@ -509,7 +509,7 @@ export function RoleSettings({
           value={model}
           onChange={(e) => setModel(e.target.value)}
           maxLength={100}
-          placeholder="Your runtime’s model name"
+          placeholder={runtime === 'opencode' ? 'provider/model' : 'Your runtime’s model name'}
           disabled={runtime === 'demo'}
         />
       </label>

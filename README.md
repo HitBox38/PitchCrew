@@ -1,6 +1,6 @@
 ﻿# Pitchcrew
 
-A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, or Codex. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
+A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, or OpenCode. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
 **Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, and track your applications. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
 
@@ -42,7 +42,16 @@ pnpm desktop:prod
 
 **Demo makes no AI calls.** Its fit scores are keyword examples and its drafts reuse profile bullets; they need personalization before use. Loading examples is explicit and refuses to overwrite an existing profile.
 
-In **Your crew**, select a runtime, optional model, instructions, and whether a role is enabled. Claude Code and Codex must already be installed on PATH and signed in using their own CLIs. Detection runs only `--version`; starting a real role is an explicit action and may use your provider account. Real provider executions have not been exercised during this MVP's verification.
+In **Your crew**, select a runtime, optional model, instructions, and whether a role is enabled. Real runtimes must already be installed on PATH and signed in using their own CLIs. Detection runs only `--version`; starting a real role is an explicit action and may use your provider account. Real provider executions have not been exercised during automated verification.
+
+| Runtime                                                | Executable | Model setting                              |
+| ------------------------------------------------------ | ---------- | ------------------------------------------ |
+| Claude Code                                            | `claude`   | CLI model name, or empty for its default   |
+| Codex                                                  | `codex`    | CLI model name, or empty for its default   |
+| [Gemini CLI](https://geminicli.com/docs/cli/headless/) | `gemini`   | CLI model name, or empty for its default   |
+| [OpenCode](https://opencode.ai/docs/cli/)              | `opencode` | `provider/model`, or empty for its default |
+
+Gemini CLI uses per-run system settings to disable built-in tools, extensions, skills and hooks, and allow only Pitchcrew MCP. OpenCode uses an isolated configuration directory, a fresh session, `--pure` to disable external plugins, and permissions that deny every tool except `pitchcrew_*`. Automatic session sharing is disabled. OpenCode's user configuration (including custom provider definitions) is not loaded; built-in providers use the CLI's existing sign-in or environment configuration. These adapters target Gemini CLI 0.62 and OpenCode 1.18; older versions may need an upgrade. Neither adapter reads or copies provider credentials.
 
 ## Your data
 
@@ -75,7 +84,7 @@ pnpm dev
 | `core`         | Strict TypeScript contracts, Zod validation, card transitions                     |
 | `board`        | SQLite event log, projections, exact-payload approval tokens                      |
 | `orchestrator` | Loopback daemon, explicit role launches, cancellation, scoped run capabilities    |
-| `adapters`     | Demo and headless Claude Code/Codex process integrations                          |
+| `adapters`     | Demo and headless Claude Code/Codex/Gemini CLI/OpenCode process integrations      |
 | `mcp`          | Official SDK stdio server, card/profile/history/lint tools, approval-gated export |
 | `packet`       | Source-quote and word-cap checks, versioned Markdown files                        |
 | `ui`           | React, shadcn/ui, Tailwind, locally bundled fonts, Vite                           |
@@ -104,6 +113,6 @@ Tests use fictional fixtures and temporary workspaces. They cover transitions, a
 
 ## MVP boundaries
 
-Discovery is manual and roles launch on demand. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. OpenCode and other runtimes are future adapters. Desktop installers and auto-updates are also deferred.
+Discovery is manual and roles launch on demand. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Additional runtimes, desktop installers and auto-updates are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.
