@@ -1,6 +1,6 @@
 ﻿# Pitchcrew
 
-A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, or OpenCode. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
+A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, or Cursor Agent. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
 **Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, and track your applications. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
 
@@ -44,14 +44,20 @@ pnpm desktop:prod
 
 In **Your crew**, select a runtime, optional model, instructions, and whether a role is enabled. Real runtimes must already be installed on PATH and signed in using their own CLIs. Detection runs only `--version`; starting a real role is an explicit action and may use your provider account. Real provider executions have not been exercised during automated verification.
 
-| Runtime                                                | Executable | Model setting                              |
-| ------------------------------------------------------ | ---------- | ------------------------------------------ |
-| Claude Code                                            | `claude`   | CLI model name, or empty for its default   |
-| Codex                                                  | `codex`    | CLI model name, or empty for its default   |
-| [Gemini CLI](https://geminicli.com/docs/cli/headless/) | `gemini`   | CLI model name, or empty for its default   |
-| [OpenCode](https://opencode.ai/docs/cli/)              | `opencode` | `provider/model`, or empty for its default |
+| Runtime                                                                                                        | Executable     | Model setting                              |
+| -------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------ |
+| Claude Code                                                                                                    | `claude`       | CLI model name, or empty for its default   |
+| Codex                                                                                                          | `codex`        | CLI model name, or empty for its default   |
+| [Gemini CLI](https://geminicli.com/docs/cli/headless/)                                                         | `gemini`       | CLI model name, or empty for its default   |
+| [OpenCode](https://opencode.ai/docs/cli/)                                                                      | `opencode`     | `provider/model`, or empty for its default |
+| [GitHub Copilot CLI](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference) | `copilot`      | CLI model name, or empty for its default   |
+| [Cursor Agent](https://cursor.com/docs/cli/reference/parameters)                                               | `cursor-agent` | CLI model name, or empty for its default   |
 
 Gemini CLI uses per-run system settings to disable built-in tools, extensions, skills and hooks, and allow only Pitchcrew MCP. OpenCode uses an isolated configuration directory, a fresh session, `--pure` to disable external plugins, and permissions that deny every tool except `pitchcrew_*`. Automatic session sharing is disabled. OpenCode's user configuration (including custom provider definitions) is not loaded; built-in providers use the CLI's existing sign-in or environment configuration. These adapters target Gemini CLI 0.62 and OpenCode 1.18; older versions may need an upgrade. Neither adapter reads or copies provider credentials.
+
+GitHub Copilot CLI receives an isolated `COPILOT_HOME`, only `pitchcrew/*` tools available, built-in MCP disabled, hooks disabled in run settings, and session export disabled. Its native keychain or native authentication environment must supply sign-in; fallback tokens stored in the user's Copilot configuration file are not imported. This adapter targets Copilot CLI 1.0.91.
+
+Cursor Agent receives isolated CLI settings and project MCP configuration, an explicit permission allowlist for `Mcp(pitchcrew:*)`, and denials for shell, file reads/writes and web fetching. It runs without `--force` or automatic tool review. MCP server approval permits connection; it does not bypass tool permissions. Cursor Agent 2026.09.26 or newer is required: older builds do not isolate global MCP discovery, so they appear unavailable with upgrade instructions. Native credential/data locations remain unchanged. Runtime-managed enterprise policies and account extensions remain subject to the runtime's behavior. These integrations have subprocess contract coverage; live provider runs have not been verified.
 
 ## Your data
 
@@ -79,16 +85,16 @@ pnpm dev
 
 ## Architecture
 
-| Package        | Responsibility                                                                    |
-| -------------- | --------------------------------------------------------------------------------- |
-| `core`         | Strict TypeScript contracts, Zod validation, card transitions                     |
-| `board`        | SQLite event log, projections, exact-payload approval tokens                      |
-| `orchestrator` | Loopback daemon, explicit role launches, cancellation, scoped run capabilities    |
-| `adapters`     | Demo and headless Claude Code/Codex/Gemini CLI/OpenCode process integrations      |
-| `mcp`          | Official SDK stdio server, card/profile/history/lint tools, approval-gated export |
-| `packet`       | Source-quote and word-cap checks, versioned Markdown files                        |
-| `ui`           | React, shadcn/ui, Tailwind, locally bundled fonts, Vite                           |
-| `desktop`      | Sandboxed Electron host for the shared renderer                                   |
+| Package        | Responsibility                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------- |
+| `core`         | Strict TypeScript contracts, Zod validation, card transitions                                 |
+| `board`        | SQLite event log, projections, exact-payload approval tokens                                  |
+| `orchestrator` | Loopback daemon, explicit role launches, cancellation, scoped run capabilities                |
+| `adapters`     | Demo and headless Claude Code/Codex/Gemini CLI/OpenCode/Copilot CLI/Cursor Agent integrations |
+| `mcp`          | Official SDK stdio server, card/profile/history/lint tools, approval-gated export             |
+| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                    |
+| `ui`           | React, shadcn/ui, Tailwind, locally bundled fonts, Vite                                       |
+| `desktop`      | Sandboxed Electron host for the shared renderer                                               |
 
 Agent tools are scoped to the assigned card. Agents cannot approve actions, modify roles, or use another role's runtime session. Approval binds the exact packet and is consumed once in the MCP export gate. A revised packet requires a fresh approval. The daemon recovers interrupted runs and releases their card claims after restart.
 

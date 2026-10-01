@@ -58,10 +58,14 @@ describe('local daemon workflow', () => {
       'codex',
       'gemini-cli',
       'opencode',
+      'copilot-cli',
+      'cursor-agent',
     ]);
     for (const [id, runtime, model] of [
       ['scout', 'gemini-cli', 'fixture-model'],
       ['writer', 'opencode', 'example/fixture-model'],
+      ['reviewer', 'copilot-cli', 'fixture-model'],
+      ['scout', 'cursor-agent', 'fixture-model'],
     ] as const) {
       const settings = { runtime, model, enabled: true, instructions: 'Fictional role settings.' };
       const saved = await request<Role>(`/roles/${id}`, 'PUT', settings);

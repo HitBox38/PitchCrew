@@ -519,7 +519,7 @@ export function App() {
                     </div>
                     {runtime.version ? <small>{runtime.version}</small> : null}
                     <span className={`badge ${runtime.available ? 'success' : ''}`}>
-                      {runtime.available ? 'Available' : 'Not installed'}
+                      {runtime.available ? 'Available' : 'Unavailable'}
                     </span>
                   </div>
                 ))}

@@ -35,7 +35,15 @@ export const transitions: Record<CardState, CardState[]> = {
 export function assertTransition(from: CardState, to: CardState) {
   if (!transitions[from].includes(to)) throw new Error(`Cannot move ${from} to ${to}.`);
 }
-export const runtimeIds = ['demo', 'claude-code', 'codex', 'gemini-cli', 'opencode'] as const;
+export const runtimeIds = [
+  'demo',
+  'claude-code',
+  'codex',
+  'gemini-cli',
+  'opencode',
+  'copilot-cli',
+  'cursor-agent',
+] as const;
 export type RuntimeId = (typeof runtimeIds)[number];
 export const roleIds = ['scout', 'writer', 'reviewer'] as const;
 export type RoleId = (typeof roleIds)[number];

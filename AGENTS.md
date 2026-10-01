@@ -8,7 +8,7 @@ A local-first job-search app with a crew of role agents. Pitchcrew starts runtim
 
 ## Status
 
-Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer runs, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code, Codex, Gemini CLI and OpenCode adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
+Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer runs, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI and Cursor Agent adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
 
 ## Stack
 
@@ -33,6 +33,8 @@ packages/
     src/codex/
     src/gemini-cli/
     src/opencode/
+    src/copilot-cli/
+    src/cursor-agent/
   mcp/            # stdio tools and shared export gate
   packet/         # source quotation checks, word caps, versioned Markdown files
   ui/             # shared React renderer, shadcn components in src/components/ui

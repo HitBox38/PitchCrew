@@ -27,6 +27,8 @@ export const runtimeLabels: Record<RuntimeId, string> = {
   'claude-code': 'Claude Code',
   'gemini-cli': 'Gemini CLI',
   opencode: 'OpenCode',
+  'copilot-cli': 'GitHub Copilot CLI',
+  'cursor-agent': 'Cursor Agent',
 };
 export function RoleAvatar({
   agentRole,

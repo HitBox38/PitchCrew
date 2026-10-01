@@ -6,7 +6,15 @@ for await (const chunk of process.stdin) prompt += chunk;
 const environment = Object.fromEntries(
   Object.entries(process.env).filter(
     ([key]) =>
-      ['GEMINI_CLI_SYSTEM_SETTINGS_PATH', 'XDG_CONFIG_HOME', 'XDG_DATA_HOME'].includes(key) ||
+      [
+        'GEMINI_CLI_SYSTEM_SETTINGS_PATH',
+        'XDG_CONFIG_HOME',
+        'XDG_DATA_HOME',
+        'CURSOR_CONFIG_DIR',
+        'COPILOT_HOME',
+        'COPILOT_ALLOW_ALL',
+        'GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS',
+      ].includes(key) ||
       key.startsWith('OPENCODE_') ||
       key.startsWith('PITCHCREW_'),
   ),
@@ -72,6 +80,20 @@ if (mode === 'wait') {
       process.stdout.write(final.subarray(split));
     } else process.stdout.write(final);
     process.stdout.write(JSON.stringify({ type: 'result', status: 'success', stats: {} }));
+  } else if (runtime === 'copilot') {
+    emit({ type: 'assistant.message_delta', data: { deltaContent: 'Ignore me.' } });
+    emit({ type: 'tool.execution_complete', data: { result: 'Ignore me.' } });
+    process.stdout.write(JSON.stringify({ type: 'assistant.message', data: { content: text } }));
+  } else if (runtime === 'cursor-agent') {
+    emit({ type: 'assistant', message: { content: [{ type: 'text', text }] } });
+    emit({ type: 'tool_call', subtype: 'completed', tool_call: { result: 'Ignore me.' } });
+    process.stdout.write(
+      JSON.stringify(
+        mode === 'terminal-error'
+          ? { type: 'result', subtype: 'error', is_error: true, result: text }
+          : { type: 'result', subtype: 'success', is_error: false, result: text },
+      ),
+    );
   } else {
     emit({ type: 'step_start', part: { type: 'step-start' } });
     emit({ type: 'tool_use', part: { type: 'tool', output: 'Ignore me.' } });

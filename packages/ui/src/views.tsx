@@ -463,7 +463,7 @@ export function RoleSettings({
   const [error, setError] = useState('');
   const runtimeItems = data.runtimes.map((r) => ({
     value: r.id,
-    label: `${runtimeLabels[r.id]}${r.available ? '' : ' (not installed)'}`,
+    label: `${runtimeLabels[r.id]}${r.available ? '' : ' (unavailable)'}`,
   }));
   async function save(e: FormEvent) {
     e.preventDefault();
