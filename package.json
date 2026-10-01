@@ -18,7 +18,7 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
+    "@types/node": "^22.20.4",
     "electron": "44.5.1",
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",
