@@ -1,5 +1,11 @@
 import { Textarea } from './components/ui/textarea.tsx';
-import { NativeSelect, NativeSelectOption } from './components/ui/native-select.tsx';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './components/ui/select.tsx';
 import { Checkbox } from './components/ui/checkbox.tsx';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs.tsx';
 import { Input } from './components/ui/input.tsx';
@@ -474,20 +480,22 @@ export function RoleSettings({
   return (
     <form className="form" onSubmit={(e) => void save(e)}>
       <p className="modal-intro">{role.description}</p>
-      <label>
-        Runtime
-        <NativeSelect
-          value={runtime}
-          onChange={(e) => setRuntime(e.target.value as Role['runtime'])}
-        >
-          {data.runtimes.map((r) => (
-            <NativeSelectOption value={r.id} key={r.id}>
-              {runtimeLabels[r.id]}
-              {r.available ? '' : ' (not installed)'}
-            </NativeSelectOption>
-          ))}
-        </NativeSelect>
-      </label>
+      <div className="field">
+        <label htmlFor={`${role.id}-runtime`}>Runtime</label>
+        <Select value={runtime} onValueChange={(value) => setRuntime(value as Role['runtime'])}>
+          <SelectTrigger id={`${role.id}-runtime`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent position="popper" sideOffset={6}>
+            {data.runtimes.map((r) => (
+              <SelectItem value={r.id} key={r.id}>
+                {runtimeLabels[r.id]}
+                {r.available ? '' : ' (not installed)'}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <label>
         Model <span className="optional">leave empty for the CLI default</span>
         <Input

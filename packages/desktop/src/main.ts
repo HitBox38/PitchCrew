@@ -17,7 +17,7 @@ function createWindow() {
     minWidth: 860,
     minHeight: 620,
     title: 'Pitchcrew',
-    backgroundColor: '#f5f6f8',
+    backgroundColor: '#f1eadd',
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,

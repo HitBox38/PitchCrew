@@ -2,7 +2,7 @@
 
 Pitchcrew is a personal job-search workbench. The same React renderer opens in a browser or a sandboxed Electron window; both use a daemon bound to 127.0.0.1.
 
-Visual tokens: canvas #f5f6f8, surface #ffffff, text #243042, muted #667085, crew violet #6558d9, success #268367. Typography: locally bundled Manrope for headings and Source Sans 3 for body text. Violet is reserved for actions and crew identity. Left-aligned navigation and a spacious horizontal pipeline make application progress the main visual.
+Visual language: claymorphism merged with wabi-sabi. Surfaces are soft, puffy clay (an inner highlight from the top left, an inner shade and a diffuse drop shadow to the bottom right; inputs and tracks are pressed in). The canvas is warm washi paper with grain and fibre texture, radii are slightly asymmetric so nothing looks machine-perfect, and a kintsugi gold seam is the single decorative accent. Tokens: paper #f1eadd, clay surface #f7f2e9, ink #3a322b, muted #6b6054, terracotta #a65638 (actions only), moss #5b6c45 (success, Reviewer), aizome indigo #4c5f7e (Scout), plum #7d5470 (Writer), ochre #8f6420 (awaiting approval), gold #c39a3e (kintsugi). Typography: locally bundled Fraunces (soft, wonky axes) for headings and Source Sans 3 for body text. Left-aligned navigation and a spacious horizontal pipeline make application progress the main visual.
 
 ```
 navigation | page heading / add opportunity
@@ -15,7 +15,7 @@ The board is the product's organizing structure. Cards show company, role, worki
 
 Packages: core (contracts and transitions), board (SQLite events and projections), adapters (demo, Claude Code, Codex), packet (evidence validation and files), mcp (role-scoped tools), orchestrator (HTTP daemon and run scheduling), ui (shared renderer), desktop (Electron host).
 
-UI interactions use shadcn/ui source components: buttons, text inputs, native selects, checkboxes, tabs, dialogs, and side sheets. Radix provides focus trapping and keyboard behavior. Styling keeps the workbench identity through shared Tailwind theme tokens and scoped CSS. Fonts are bundled locally, with no third-party font requests.
+UI interactions use shadcn/ui source components: buttons, text inputs, selects, checkboxes, tabs, dialogs, and side sheets. Radix provides focus trapping and keyboard behavior. Styling keeps the workbench identity through shared Tailwind theme tokens and scoped CSS. Fonts are bundled locally, with no third-party font requests.
 
 Tooling uses Oxlint, Oxfmt, Vite's Oxc React transforms, and Rolldown. tsdown builds the Electron main process. TypeScript remains the type checker; ESLint and Prettier are absent.
 
