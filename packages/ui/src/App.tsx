@@ -36,6 +36,9 @@ const InboxView = lazy(() => views().then((m) => ({ default: m.InboxView })));
 const CommandPalette = lazy(() =>
   import('./command-palette.tsx').then((m) => ({ default: m.CommandPalette })),
 );
+const ConnectorSettings = lazy(() =>
+  import('./connector-settings.tsx').then((m) => ({ default: m.ConnectorSettings })),
+);
 const ChatView = lazy(() => import('./chat-view.tsx').then((m) => ({ default: m.ChatView })));
 const closedStates = ['rejected', 'withdrawn', 'ghosted'];
 const stages = [
@@ -521,6 +524,9 @@ export function App() {
                   />
                 ))}
               </div>
+              <Suspense fallback={<p className="quiet">Loading connectors…</p>}>
+                <ConnectorSettings data={data} action={action} working={working} />
+              </Suspense>
               <h2 className="subheading">Runtimes on this machine</h2>
               <div className="runtime-list">
                 {data.runtimes.map((runtime) => (

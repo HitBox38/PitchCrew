@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { expect, it } from 'vitest';
+import { expect, it, vi } from 'vitest';
 import { runCli, parseResult, chatCli } from '../src/process.ts';
 import { cardInput, type RunContext } from '@pitchcrew/core';
 const context: RunContext = {
@@ -54,4 +54,20 @@ it('normalizes a chat subprocess without a card or a provider account', async ()
     (event) => (typeof event.result === 'string' ? event.result : null),
   );
   expect(result).toEqual({ reply: 'Fixture conversational response.' });
+});
+
+it('does not pass connector OAuth configuration to provider subprocesses', async () => {
+  vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_SECRET', 'fixture-secret');
+  try {
+    const result = await runCli(
+      process.execPath,
+      [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url)), '--check-env'],
+      context,
+      'test',
+      (event) => (typeof event.result === 'string' ? event.result : null),
+    );
+    expect(result).toMatchObject({ reasons: ['absent'] });
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });

@@ -1,4 +1,4 @@
-import { capabilityLabels } from './agent-capabilities.ts';
+import { capabilityLabels, capabilityDefaults } from './agent-capabilities.ts';
 import { Textarea } from './components/ui/textarea.tsx';
 import {
   Select,
@@ -461,9 +461,7 @@ export function RoleSettings({
   const [model, setModel] = useState(role.model);
   const [enabled, setEnabled] = useState(role.enabled);
   const [instructions, setInstructions] = useState(role.instructions);
-  const [capabilities, setCapabilities] = useState(
-    role.capabilities ?? { messageAgents: true, invokeAgents: true, manageWorkflow: true },
-  );
+  const [capabilities, setCapabilities] = useState({ ...capabilityDefaults, ...role.capabilities });
   const [error, setError] = useState('');
   const runtimeItems = data.runtimes.map((r) => ({
     value: r.id,

@@ -8,7 +8,7 @@ A local-first job-search app with a crew of role agents. Pitchcrew starts runtim
 
 ## Status
 
-Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persistent role and crew chats with AI Elements, bounded agent-triggered follow-ups, user-approved role change proposals, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code and Codex adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
+Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persistent role and crew chats with AI Elements, bounded agent-triggered follow-ups, user-approved role change proposals, source-backed Markdown packets, approval-gated local export, manual application tracking, and role-scoped read-only GitHub/Google Workspace connectors. Demo is deterministic. Claude Code and Codex adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
 
 ## Stack
 
@@ -18,7 +18,7 @@ Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persi
 - React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
 - Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier.
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
-- Electron uses a paper-themed draggable title bar with native macOS traffic lights and Windows/Linux window-control overlays. Its sandboxed CommonJS preload synchronizes the renderer theme through a main-frame, origin-checked IPC channel without exposing Electron APIs to the page.
+- Electron uses a paper-themed draggable title bar with native macOS traffic lights and Windows/Linux window-control overlays. Its sandboxed CommonJS preload synchronizes the renderer theme through a main-frame, origin-checked IPC channel without exposing Electron APIs to the page. Explicit Google PKCE sign-in links with a loopback callback open in the system browser through a narrow main-process URL allowlist; other external navigation is denied.
 - Vitest for unit, HTTP workflow, adapter contract, and actual MCP stdio tests.
 
 ## Layout
@@ -32,7 +32,7 @@ packages/
     src/demo/
     src/claude-code/
     src/codex/
-  mcp/            # stdio tools and shared export gate
+  mcp/            # stdio tools, read-only connector clients/auth and shared export gate
   packet/         # source quotation checks, word caps, versioned Markdown files
   ui/             # shared React renderer, shadcn components in src/components/ui
   desktop/        # sandboxed Electron main process
@@ -65,9 +65,10 @@ The UI has hot reload; restart the daemon after backend changes. The default dat
 
 - **Role.** A stored Scout, Writer, or Reviewer configuration with runtime, model, enabled flag, instructions and agent capabilities. Settings produce AGENTS.md and CLAUDE.md under the data directory. Each run gets an isolated subfolder and MCP configuration. Change instructions and capabilities through Crew settings or approve an agent’s proposal in chat; generated files are refreshed on startup.
 - **Chat and crew tasks.** User messages launch isolated chat turns. Agents can message roles, invoke themselves or others, and update the attached job through scoped board tools. Follow-ups wait for their parent to finish, obey enabled roles/capabilities and the card state machine, and are capped at six per user-started chain. Cancelling a run stops its chain. Interrupted queued work is marked failed on restart.
+- **Connector.** GitHub fine-grained tokens and Google Desktop OAuth provide read-only repository, Gmail, Drive/Docs, Sheets and Calendar access through the scoped MCP gateway. Accounts connect in Crew settings; each service is disabled per role until the user enables it. Credentials live outside the repo in connectors/credentials.json, never in board events, snapshots, prompts or MCP configuration. Google OAuth client environment variables are filtered from role CLI environments. Disconnect aborts requests and removes local credentials; provider revocation is separate. External content is untrusted data; packet evidence still requires verified local profile quotations. See [docs/connectors.md](docs/connectors.md).
 - **Runtime adapter.** Implements detect(), run(context) and chat(context), parses CLI output into validated RunResult or ChatResult values and emits progress messages. Provider-specific commands belong only in adapters.
 - **Board.** One card per application. Allowed transitions live in core. Agents coordinate through persistent board state; launches start with user actions and can continue through bounded board-backed agent tasks.
-- **Event log.** Every card, role, run, approval, message, proposal and task update appends a versioned event and changes its projection atomically. Rebuild replays events in order.
+- **Event log.** Version 3 adds optional connector capabilities; versions 1 and 2 remain decodable and replayable. Every card, role, run, approval, message, proposal and task update appends a versioned event and changes its projection atomically. Rebuild replays events in order.
 - **Profile.** User Markdown files under the data directory's profile folder. Registered packet claims must be exact supported quotations. Mechanical lint is not a complete semantic fact checker.
 - **Packet.** Versioned resume.md, cover_letter.md, form_answers.md, note.md and claims.json. The job post is stored on its card. PDF generation is deferred.
 - **Approval.** Exact packet snapshot and SHA-256 digest bound to a card and export action. It is single-use; export calls enter the shared MCP gate. Agents have no approval tool. Successfully exported current packets allow users to record manual submissions.

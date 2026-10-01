@@ -1,6 +1,6 @@
 import { Check, CircleCheck, Clock3, GitBranch, SlidersHorizontal, X } from 'lucide-react';
 import type { AgentTask, Role, RoleProposal, Snapshot } from '@pitchcrew/core';
-import { capabilityLabels } from './agent-capabilities.ts';
+import { capabilityLabels, capabilityDefaults } from './agent-capabilities.ts';
 import { RoleAvatar, timeAgo } from './components.tsx';
 import { Button } from './components/ui/button.tsx';
 import { MessageResponse } from './components/ai-elements/message.tsx';
@@ -92,7 +92,8 @@ export function ChatWork({
                   <ul className="chat-capability-changes">
                     {Object.entries(proposal.changes.capabilities).map(([key, enabled]) => {
                       const before =
-                        current.capabilities?.[key as keyof typeof capabilityLabels] ?? true;
+                        current.capabilities?.[key as keyof typeof capabilityLabels] ??
+                        capabilityDefaults[key as keyof typeof capabilityLabels];
                       return (
                         <li key={key}>
                           <span>{capabilityLabels[key as keyof typeof capabilityLabels]}</span>
@@ -214,7 +215,9 @@ export function ChatWork({
           </div>
           <ul>
             {Object.entries(capabilityLabels).map(([key, label]) => {
-              const enabled = role.capabilities?.[key as keyof typeof capabilityLabels] ?? true;
+              const enabled =
+                role.capabilities?.[key as keyof typeof capabilityLabels] ??
+                capabilityDefaults[key as keyof typeof capabilityLabels];
               return (
                 <li key={key}>
                   <span>{label}</span>
