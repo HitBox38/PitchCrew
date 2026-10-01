@@ -39,10 +39,7 @@ export function RoleAvatar({
 export function Brand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="brand">
-      <svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
-        <rect width="40" height="40" rx="11" fill="currentColor" />
-        <path d="M12 29V12h9a8 8 0 0 1 0 16h-3v-6h3a2 2 0 0 0 0-4h-3v11z" fill="white" />
-      </svg>
+      <img src="/favicon.svg" width="26" height="26" alt="" aria-hidden="true" />
       {!compact ? <span>pitchcrew</span> : null}
     </div>
   );

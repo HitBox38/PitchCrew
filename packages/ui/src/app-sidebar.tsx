@@ -137,10 +137,7 @@ export function AppSidebar({
               onClick={() => onNavigate('board')}
             >
               <span className="brand-mark" aria-hidden="true">
-                <svg viewBox="0 0 40 40">
-                  <rect width="40" height="40" rx="11" fill="currentColor" />
-                  <path d="M12 29V12h9a8 8 0 0 1 0 16h-3v-6h3a2 2 0 0 0 0-4h-3v11z" fill="white" />
-                </svg>
+                <img src="/favicon.svg" width="32" height="32" alt="" />
               </span>
               <span className="brand-text">
                 <strong>pitchcrew</strong>

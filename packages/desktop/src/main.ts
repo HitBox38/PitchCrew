@@ -1,6 +1,7 @@
-import { app, BrowserWindow, nativeTheme, session } from 'electron';
+import { app, BrowserWindow, nativeImage, nativeTheme, session } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 app.setName('Pitchcrew');
 if (process.env.PITCHCREW_SMOKE_FILE)
   app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
@@ -10,6 +11,9 @@ if (new URL(url).hostname !== '127.0.0.1')
 const primaryInstance = app.requestSingleInstanceLock();
 if (!primaryInstance) app.quit();
 let window: BrowserWindow | null = null;
+const appIcon = nativeImage.createFromPath(
+  fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
+);
 function createWindow() {
   window = new BrowserWindow({
     width: 1440,
@@ -17,6 +21,7 @@ function createWindow() {
     minWidth: 860,
     minHeight: 620,
     title: 'Pitchcrew',
+    icon: appIcon,
     // Matches the renderer's paper colour so the window never flashes before first paint.
     backgroundColor: nativeTheme.shouldUseDarkColors ? '#1a1b1e' : '#f2f1ec',
     autoHideMenuBar: true,
@@ -47,6 +52,7 @@ function createWindow() {
           smokeFile,
           JSON.stringify({
             ...result,
+            iconLoaded: !appIcon.isEmpty(),
             nodeIntegration: false,
             contextIsolation: true,
             sandbox: true,
@@ -62,6 +68,7 @@ function createWindow() {
 }
 if (primaryInstance)
   void app.whenReady().then(() => {
+    if (process.platform === 'darwin') app.dock?.setIcon(appIcon);
     session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
       callback(false),
     );

@@ -46,6 +46,7 @@ pnpm install
 pnpm dev          # daemon + hot-reloading UI at http://127.0.0.1:4417
 pnpm desktop      # build Electron main process; reuse or launch development daemon
 pnpm build        # UI and Electron main bundles
+pnpm icon:build   # regenerate Electron's PNG from the canonical favicon SVG
 pnpm start        # daemon serving built UI
 pnpm desktop:prod # build and launch Electron with built UI
 pnpm test         # fixtures, loopback HTTP and MCP; no external provider calls

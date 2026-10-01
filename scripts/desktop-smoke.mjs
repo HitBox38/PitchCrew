@@ -50,6 +50,7 @@ try {
     result.apiStatus !== 200 ||
     result.requireType !== 'undefined' ||
     result.roles !== 3 ||
+    !result.iconLoaded ||
     !result.uiReady
   )
     throw new Error('Electron renderer/daemon check failed.');

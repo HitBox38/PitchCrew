@@ -1,1 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><rect width="48" height="48" rx="14" fill="#3b5583"/><path d="M14 32V15h10a8 8 0 0 1 0 16h-4v-6h4a2 2 0 0 0 0-4h-4v11z" fill="white"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" role="img" aria-labelledby="title desc">
+  <title id="title">Pitchcrew — Crew P</title>
+  <desc id="desc">Three separate clay pieces in Scout teal, indigo, and Writer plum assemble into a P.</desc>
+  <defs>
+    <linearGradient id="paper" x1="45" y1="21" x2="215" y2="231" gradientUnits="userSpaceOnUse"><stop stop-color="#FFFDF8"/><stop offset=".6" stop-color="#F2F1EC"/><stop offset="1" stop-color="#DDDED8"/></linearGradient>
+    <linearGradient id="teal" x1="75" y1="68" x2="114" y2="191" gradientUnits="userSpaceOnUse"><stop stop-color="#649594"/><stop offset=".55" stop-color="#2F6A69"/><stop offset="1" stop-color="#245251"/></linearGradient>
+    <linearGradient id="blue" x1="112" y1="63" x2="184" y2="126" gradientUnits="userSpaceOnUse"><stop stop-color="#718AB1"/><stop offset=".5" stop-color="#3A5482"/><stop offset="1" stop-color="#2A3F66"/></linearGradient>
+    <linearGradient id="plum" x1="114" y1="125" x2="178" y2="157" gradientUnits="userSpaceOnUse"><stop stop-color="#A07CA2"/><stop offset=".65" stop-color="#76517A"/><stop offset="1" stop-color="#5D3B61"/></linearGradient>
+    <filter id="shadow" x="0" y="0" width="256" height="256" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB"><feDropShadow dx="0" dy="7" stdDeviation="5" flood-color="#292D35" flood-opacity=".16"/></filter>
+    <path id="stem" d="M77 72C77 67 81 63 86 63H100C105 63 109 67 109 72V184C109 189 105 193 100 193H86C81 193 77 189 77 184V72Z"/>
+    <path id="bowl" d="M116 63H139C168 63 186 82 186 108V117H155V108C155 97 149 92 138 92H116V63Z"/>
+    <path id="return" d="M155 124H185C180 145 164 158 139 158H116V129H138C146 129 151 127 155 124Z"/>
+  </defs>
+  <g filter="url(#shadow)">
+    <rect x="20" y="24" width="216" height="216" rx="55" fill="#C9CBC5"/>
+    <rect x="20" y="16" width="216" height="216" rx="55" fill="url(#paper)" stroke="#FCFCF9" stroke-width="2"/>
+    <g transform="translate(0 5)" opacity=".18" fill="#252B38"><use href="#stem"/><use href="#bowl"/><use href="#return"/></g>
+    <use href="#stem" transform="translate(0 2)" fill="#204847"/>
+    <use href="#bowl" transform="translate(0 2)" fill="#263A5E"/>
+    <use href="#return" transform="translate(0 2)" fill="#503155"/>
+    <use href="#stem" fill="url(#teal)"/><use href="#bowl" fill="url(#blue)"/><use href="#return" fill="url(#plum)"/>
+    <path d="M80 183V73C80 69 82 66 86 66H100M119 66H138C155 66 168 73 175 84M119 132H138" stroke="white" stroke-opacity=".4" stroke-width="2" stroke-linecap="round"/>
+  </g>
+</svg>
