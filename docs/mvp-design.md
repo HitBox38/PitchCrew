@@ -5,17 +5,19 @@ Pitchcrew is a personal job-search workbench. The same React renderer opens in a
 Visual language: claymorphism and wabi-sabi used as materials rather than decoration. Paper: the page, sheets and documents are flat rice paper with grain and hairline edges. Clay: only things you press (buttons, job cards, the active tab or nav item, the select) have volume; pipeline columns are trays pressed into the paper. Wabi-sabi: natural dye colours, radii a hair off symmetric, and no ornaments, slogans or fake controls. Copy is plain and specific, and summaries come from board data. Tokens: paper #f2f1ec, surface #f8f7f3, sumi ink #2b2d31, muted #61646b, aizome indigo #3a5482 (actions only), teal #2f6a69 (Scout), plum #76517a (Writer), moss #53673d (success, Reviewer), ochre #82601c (awaiting approval), rose #9f4757 (closed). Dark mode follows the system by default; a System / Light / Dark switch in the sidebar overrides it and is remembered in the browser. public/theme.js applies the choice before the first paint, and every colour, shadow and texture is a token redefined under :root[data-theme='dark'], so clay keeps a faint top-left rim and the dyes are lifted for contrast. Typography: locally bundled Fraunces for headings and Source Sans 3 for body text. Left-aligned navigation and a spacious horizontal pipeline make application progress the main visual.
 
 ```
-navigation     | page heading + data summary / add job
-crew status    | pipeline / closed toggle, filter
-data directory | pipeline trays / job cards
-               | recent board events
+sidebar (shadcn)            | toggle · running roles
+  search ⌘K · new job N     | page heading + data summary / add job
+  board › stages · crew …   | pipeline / closed toggle, filter
+  crew status · actions     | pipeline trays / job cards
+  recently opened           | recent board events
+  theme · data folder       |
 ```
 
 The board is the product's organizing structure. Cards show company, role, location and salary, fit, owner or state. A detail sheet contains the packet and immutable history. Empty states offer add-an-opportunity and explicitly labeled example-data actions. No fictional data is presented as a live job search.
 
 Packages: core (contracts and transitions), board (SQLite events and projections), adapters (demo, Claude Code, Codex), packet (evidence validation and files), mcp (role-scoped tools), orchestrator (HTTP daemon and run scheduling), ui (shared renderer), desktop (Electron host).
 
-UI interactions use shadcn/ui source components: buttons, text inputs, selects, checkboxes, tabs, dialogs, and side sheets. Radix provides focus trapping and keyboard behavior. Styling keeps the workbench identity through shared Tailwind theme tokens and scoped CSS. Fonts are bundled locally, with no third-party font requests.
+The sidebar is the shadcn Sidebar: it collapses to an icon rail with tooltips (⌘B/Ctrl+B, the toggle or the edge rail), remembers that state in a sidebar_state cookie, and becomes a sheet below 768px. It holds search (a cmdk command palette over views, jobs, roles and actions, ⌘K/Ctrl+K), new job (N), workspace navigation with counts and a collapsible list of pipeline stages that scroll to and highlight their column, crew status with a Configure / Pause menu, recently opened jobs (kept in localStorage), a theme menu, and the data folder with copy-path. UI interactions use shadcn/ui source components: buttons, text inputs, selects, checkboxes, tabs, dialogs, side sheets, sidebar, command, dropdown menus, tooltips and kbd. Radix provides focus trapping and keyboard behavior. Styling keeps the workbench identity through shared Tailwind theme tokens and scoped CSS. Fonts are bundled locally, with no third-party font requests.
 
 Tooling uses Oxlint, Oxfmt, Vite's Oxc React transforms, and Rolldown. tsdown builds the Electron main process. TypeScript remains the type checker; ESLint and Prettier are absent.
 

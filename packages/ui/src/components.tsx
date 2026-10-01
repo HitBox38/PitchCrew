@@ -2,8 +2,7 @@ import { Button } from './components/ui/button.tsx';
 import { type ReactNode } from 'react';
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog.tsx';
 import { Sheet, SheetContent, SheetTitle } from './components/ui/sheet.tsx';
-import { X, Search, PenLine, ShieldCheck, LoaderCircle, Monitor, Sun, Moon } from 'lucide-react';
-import type { ThemeChoice } from './theme.ts';
+import { X, Search, PenLine, ShieldCheck, LoaderCircle } from 'lucide-react';
 import type { Card, CardState, RoleId } from '@pitchcrew/core';
 export const stateLabels: Record<CardState, string> = {
   lead: 'New lead',
@@ -46,36 +45,6 @@ export function Brand({ compact = false }: { compact?: boolean }) {
       </svg>
       {!compact ? <span>pitchcrew</span> : null}
     </div>
-  );
-}
-const themeOptions = [
-  { id: 'system', label: 'Match system', icon: Monitor },
-  { id: 'light', label: 'Light', icon: Sun },
-  { id: 'dark', label: 'Dark', icon: Moon },
-] as const;
-export function ThemeSwitch({
-  value,
-  onChange,
-}: {
-  value: ThemeChoice;
-  onChange: (value: ThemeChoice) => void;
-}) {
-  return (
-    <fieldset className="theme-switch">
-      <legend className="sr-only">Colour theme</legend>
-      {themeOptions.map((option) => (
-        <Button
-          key={option.id}
-          className={value === option.id ? 'active' : ''}
-          aria-pressed={value === option.id}
-          aria-label={option.label}
-          title={option.label}
-          onClick={() => onChange(option.id)}
-        >
-          <option.icon size={14} />
-        </Button>
-      ))}
-    </fieldset>
   );
 }
 export function Modal({

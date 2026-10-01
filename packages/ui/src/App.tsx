@@ -2,11 +2,6 @@ import { Input } from './components/ui/input.tsx';
 import { Button } from './components/ui/button.tsx';
 import { useCallback, useEffect, useState } from 'react';
 import {
-  LayoutDashboard,
-  Users,
-  Inbox,
-  FileUser,
-  Activity,
   Plus,
   Search,
   ArrowRight,
@@ -24,26 +19,14 @@ import {
   Modal,
   RoleAvatar,
   runtimeLabels,
-  ThemeSwitch,
   timeAgo,
 } from './components.tsx';
 import { useTheme } from './theme.ts';
+import { SidebarInset, SidebarProvider, SidebarTrigger } from './components/ui/sidebar.tsx';
+import { AppSidebar, viewTitles, type View } from './app-sidebar.tsx';
+import { CommandPalette } from './command-palette.tsx';
+import { modKey, useShortcuts } from './shortcuts.ts';
 import { AddOpportunity, CardDetails, RoleSettings, ProfileView, InboxView } from './views.tsx';
-type View = 'board' | 'crew' | 'inbox' | 'profile' | 'activity';
-const navigation = [
-  { id: 'board', label: 'Board', icon: LayoutDashboard },
-  { id: 'crew', label: 'Crew', icon: Users },
-  { id: 'inbox', label: 'Inbox', icon: Inbox },
-  { id: 'profile', label: 'Profile', icon: FileUser },
-  { id: 'activity', label: 'Activity', icon: Activity },
-] as const;
-const viewTitles = {
-  board: 'Board',
-  crew: 'Crew',
-  inbox: 'Inbox',
-  profile: 'Profile',
-  activity: 'Activity',
-};
 const closedStates = ['rejected', 'withdrawn', 'ghosted'];
 const stages = [
   {
@@ -82,6 +65,17 @@ const stages = [
     empty: 'Record a submission after you apply.',
   },
 ];
+const recentKey = 'pitchcrew-recent-jobs';
+function readRecent(): string[] {
+  try {
+    const saved: unknown = JSON.parse(localStorage.getItem(recentKey) ?? '[]');
+    return Array.isArray(saved) ? saved.filter((id) => typeof id === 'string').slice(0, 5) : [];
+  } catch {
+    return [];
+  }
+}
+// The shadcn sidebar remembers its expanded state in a sidebar_state cookie.
+const sidebarOpen = !document.cookie.split('; ').includes('sidebar_state=false');
 export type Action = (
   path: string,
   method?: string,
@@ -100,6 +94,18 @@ export function App() {
   const [query, setQuery] = useState('');
   const [showClosed, setShowClosed] = useState(false);
   const [theme, setTheme] = useTheme();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [recentIds, setRecentIds] = useState(readRecent);
+  const [flashStage, setFlashStage] = useState<string | null>(null);
+  useShortcuts({ search: () => setPaletteOpen(true), newJob: () => setAdd(true) });
+  useEffect(() => {
+    if (!flashStage) return;
+    document
+      .getElementById(`stage-${flashStage}`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    const timer = setTimeout(() => setFlashStage(null), 1400);
+    return () => clearTimeout(timer);
+  }, [flashStage]);
   const reload = useCallback(async () => {
     const next = await api<Snapshot>('/snapshot');
     setData(next);
@@ -151,6 +157,33 @@ export function App() {
     setView(next);
     setSelectedId(null);
   };
+  const openCard = (id: string) => {
+    setSelectedId(id);
+    setRecentIds((ids) => {
+      const next = [id, ...ids.filter((other) => other !== id)].slice(0, 5);
+      try {
+        localStorage.setItem(recentKey, JSON.stringify(next));
+      } catch {
+        /* Recents are a convenience; ignore unavailable storage. */
+      }
+      return next;
+    });
+  };
+  const jumpToStage = (id: string) => {
+    setView('board');
+    setShowClosed(false);
+    setQuery('');
+    setFlashStage(id);
+  };
+  const copyDirectory = () => {
+    if (!data) return;
+    navigator.clipboard.writeText(data.dataDirectory).then(
+      () => setToast('Copied the data folder path'),
+      () => setToast(`Data folder: ${data.dataDirectory}`),
+    );
+  };
+  const checkRuntimes = () =>
+    act('/runtimes/detect', 'POST', undefined, 'Checked installed runtimes');
   if (!data)
     return (
       <div className="boot">
@@ -212,66 +245,70 @@ export function App() {
     ) : (
       `${data.events.length} events, newest first. The log is append-only.`
     );
+  const stageLinks = stages.map((stage) => ({
+    id: stage.id,
+    label: stage.label,
+    color: stage.color,
+    count: data.cards.filter((c) => stage.states.includes(c.state)).length,
+  }));
+  const recentCards = recentIds
+    .map((id) => data.cards.find((card) => card.id === id))
+    .filter((card) => card !== undefined);
+  const toggleRole = (role: Role) =>
+    act(
+      `/roles/${role.id}`,
+      'PUT',
+      {
+        runtime: role.runtime,
+        model: role.model,
+        enabled: !role.enabled,
+        instructions: role.instructions,
+      },
+      `${role.name} ${role.enabled ? 'paused' : 'resumed'}`,
+    );
   return (
-    <div className="app-shell">
+    <SidebarProvider defaultOpen={sidebarOpen}>
       <a className="skip-link" href="#main">
         Skip to content
       </a>
-      <aside className="sidebar">
-        <Brand />
-        <nav aria-label="Main navigation">
-          {navigation.map((item) => {
-            const count = item.id === 'board' ? active.length : item.id === 'inbox' ? pending : 0;
-            return (
-              <Button
-                key={item.id}
-                className={`nav-item ${view === item.id ? 'selected' : ''}`}
-                aria-label={item.label}
-                title={item.label}
-                onClick={() => go(item.id)}
-                aria-current={view === item.id ? 'page' : undefined}
-              >
-                <item.icon size={17} />
-                <span>{item.label}</span>
-                {count ? (
-                  <span className={`nav-count ${item.id === 'inbox' ? 'attention' : ''}`}>
-                    {count}
-                  </span>
-                ) : null}
-              </Button>
-            );
-          })}
-        </nav>
-        <section className="sidebar-crew" aria-labelledby="sidebar-crew-heading">
-          <h2 id="sidebar-crew-heading">Crew</h2>
-          {data.roles.map((role) => (
-            <Button
-              key={role.id}
-              className={`sidebar-role ${!role.enabled ? 'paused' : ''}`}
-              onClick={() => setRoleId(role.id)}
-              title={`${role.name} settings`}
-            >
-              <RoleAvatar agentRole={role.id} size="small" />
-              <span>
-                <strong>{role.name}</strong>
-                <small>{roleStatus(role)}</small>
-              </span>
-              {running.some((r) => r.roleId === role.id) ? (
-                <LoaderCircle size={13} className="spin" aria-label="Running" />
-              ) : null}
-            </Button>
-          ))}
-        </section>
-        <ThemeSwitch value={theme} onChange={setTheme} />
-        <p className="sidebar-footer" title={data.dataDirectory}>
-          Saved locally in{' '}
-          <code>
-            <bdi>{data.dataDirectory}</bdi>
-          </code>
-        </p>
-      </aside>
-      <div className="main-shell">
-        <main id="main" tabIndex={-1}>
+      <AppSidebar
+        view={view}
+        onNavigate={go}
+        stages={stageLinks}
+        onStage={jumpToStage}
+        counts={{ inbox: pending, profile: data.profile.length }}
+        roles={data.roles}
+        roleStatus={roleStatus}
+        runningRoles={running.map((r) => r.roleId)}
+        onConfigureRole={setRoleId}
+        onToggleRole={toggleRole}
+        recent={recentCards}
+        onOpenCard={openCard}
+        onSearch={() => setPaletteOpen(true)}
+        onAddJob={() => setAdd(true)}
+        theme={theme}
+        onTheme={setTheme}
+        dataDirectory={data.dataDirectory}
+        onCopyDirectory={copyDirectory}
+        working={working}
+      />
+      <SidebarInset id="main" tabIndex={-1}>
+        <div className="page-toolbar">
+          <SidebarTrigger title={`Toggle sidebar (${modKey}B)`} />
+          {running.length ? (
+            <output className="run-status">
+              <LoaderCircle size={13} className="spin" />
+              {running
+                .map((run) => {
+                  const role = data.roles.find((r) => r.id === run.roleId);
+                  const card = data.cards.find((c) => c.id === run.cardId);
+                  return `${role?.name ?? run.roleId} on ${card?.company ?? 'a job'}`;
+                })
+                .join(', ')}
+            </output>
+          ) : null}
+        </div>
+        <div className="page">
           <header className="page-heading">
             <div>
               <h1>{viewTitles[view]}</h1>
@@ -282,13 +319,7 @@ export function App() {
                 <Plus size={16} /> Add job
               </Button>
             ) : view === 'crew' ? (
-              <Button
-                className="button"
-                disabled={working}
-                onClick={() =>
-                  act('/runtimes/detect', 'POST', undefined, 'Checked installed runtimes')
-                }
-              >
+              <Button className="button" disabled={working} onClick={checkRuntimes}>
                 <RefreshCw size={14} /> Check runtimes
               </Button>
             ) : null}
@@ -389,7 +420,7 @@ export function App() {
                   <div className="closed-grid">
                     {closed.length ? (
                       closed.map((card) => (
-                        <JobCard key={card.id} card={card} onOpen={() => setSelectedId(card.id)} />
+                        <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
                       ))
                     ) : (
                       <EmptyState
@@ -403,7 +434,11 @@ export function App() {
                     {stages.map((stage) => {
                       const cards = filtered.filter((c) => stage.states.includes(c.state));
                       return (
-                        <section className={`pipeline-column ${stage.color}`} key={stage.id}>
+                        <section
+                          className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
+                          id={`stage-${stage.id}`}
+                          key={stage.id}
+                        >
                           <div className="column-heading">
                             <span className="stage-dot" />
                             <h2>{stage.label}</h2>
@@ -420,11 +455,7 @@ export function App() {
                           </div>
                           <div className="column-cards">
                             {cards.map((card) => (
-                              <JobCard
-                                key={card.id}
-                                card={card}
-                                onOpen={() => setSelectedId(card.id)}
-                              />
+                              <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
                             ))}
                             {!cards.length ? (
                               <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
@@ -490,7 +521,7 @@ export function App() {
             </>
           ) : null}
           {view === 'inbox' ? (
-            <InboxView data={data} action={action} working={working} onOpen={setSelectedId} />
+            <InboxView data={data} action={action} working={working} onOpen={openCard} />
           ) : null}
           {view === 'profile' ? (
             <ProfileView data={data} action={action} working={working} />
@@ -517,8 +548,21 @@ export function App() {
               </ol>
             </section>
           ) : null}
-        </main>
-      </div>
+        </div>
+      </SidebarInset>
+      <CommandPalette
+        open={paletteOpen}
+        onOpenChange={setPaletteOpen}
+        cards={data.cards}
+        roles={data.roles}
+        onNavigate={go}
+        onOpenCard={openCard}
+        onConfigureRole={setRoleId}
+        onAddJob={() => setAdd(true)}
+        onCheckRuntimes={checkRuntimes}
+        onTheme={setTheme}
+        onCopyDirectory={copyDirectory}
+      />
       {toast ? (
         <output className="toast">
           <span>{toast}</span>
@@ -555,7 +599,7 @@ export function App() {
           />
         </Modal>
       ) : null}
-    </div>
+    </SidebarProvider>
   );
 }
 function CrewCard({
