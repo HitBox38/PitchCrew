@@ -143,7 +143,7 @@ export function AddOpportunity({
           <Button type="button" className="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button className="button primary" disabled={working}>
+          <Button type="submit" className="button primary" disabled={working}>
             {working ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />} Add job
           </Button>
         </div>
@@ -461,6 +461,10 @@ export function RoleSettings({
   const [enabled, setEnabled] = useState(role.enabled);
   const [instructions, setInstructions] = useState(role.instructions);
   const [error, setError] = useState('');
+  const runtimeItems = data.runtimes.map((r) => ({
+    value: r.id,
+    label: `${runtimeLabels[r.id]}${r.available ? '' : ' (not installed)'}`,
+  }));
   async function save(e: FormEvent) {
     e.preventDefault();
     try {
@@ -480,15 +484,20 @@ export function RoleSettings({
       <p className="modal-intro">{role.description}</p>
       <div className="field">
         <label htmlFor={`${role.id}-runtime`}>Runtime</label>
-        <Select value={runtime} onValueChange={(value) => setRuntime(value as Role['runtime'])}>
+        <Select
+          value={runtime}
+          onValueChange={(value: Role['runtime'] | null) => {
+            if (value) setRuntime(value);
+          }}
+          items={runtimeItems}
+        >
           <SelectTrigger id={`${role.id}-runtime`}>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent position="popper" sideOffset={6}>
-            {data.runtimes.map((r) => (
-              <SelectItem value={r.id} key={r.id}>
-                {runtimeLabels[r.id]}
-                {r.available ? '' : ' (not installed)'}
+          <SelectContent alignItemWithTrigger={false} sideOffset={6}>
+            {runtimeItems.map((item) => (
+              <SelectItem value={item.value} key={item.value}>
+                {item.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -505,8 +514,8 @@ export function RoleSettings({
         />
       </label>
       <label className="checkbox-label">
-        <Checkbox checked={enabled} onCheckedChange={(value) => setEnabled(value === true)} />{' '}
-        Enable this role
+        <Checkbox checked={enabled} onCheckedChange={(checked) => setEnabled(checked)} /> Enable
+        this role
       </label>
       <label>
         Role instructions
@@ -529,7 +538,7 @@ export function RoleSettings({
         <Button className="button" type="button" onClick={onClose}>
           Cancel
         </Button>
-        <Button className="button primary" disabled={working}>
+        <Button type="submit" className="button primary" disabled={working}>
           <Check size={15} /> Save settings
         </Button>
       </div>
@@ -578,7 +587,7 @@ export function ProfileView({
                 maxLength={100}
                 required
               />
-              <Button className="button primary small" disabled={working}>
+              <Button type="submit" className="button primary small" disabled={working}>
                 Save
               </Button>
             </div>

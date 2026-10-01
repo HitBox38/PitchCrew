@@ -15,7 +15,7 @@ Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer ru
 - Strict TypeScript, Node 22.18+ or 24.11+ (supported LTS), pnpm 11 workspaces. Follow pnpm-lock.yaml and root engines.
 - SQLite through better-sqlite3; versioned append-only events and projections.
 - Official TypeScript MCP SDK with stdio transport and per-run capabilities.
-- React and shadcn/ui (Radix primitives), Tailwind, Vite 8, shared browser/Electron renderer.
+- React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
 - Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier.
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
 - Vitest for unit, HTTP workflow, adapter contract, and actual MCP stdio tests.

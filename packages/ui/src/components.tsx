@@ -66,7 +66,7 @@ export function Modal({
           if (!open) onClose();
         }}
       >
-        <SheetContent className="modal drawer" showCloseButton={false} aria-describedby={undefined}>
+        <SheetContent className="modal drawer" showCloseButton={false}>
           <div className="modal-heading">
             <SheetTitle>{title}</SheetTitle>
             <Button
@@ -89,7 +89,7 @@ export function Modal({
         if (!open) onClose();
       }}
     >
-      <DialogContent className="modal" showCloseButton={false} aria-describedby={undefined}>
+      <DialogContent className="modal" showCloseButton={false}>
         <div className="modal-heading">
           <DialogTitle>{title}</DialogTitle>
           <Button

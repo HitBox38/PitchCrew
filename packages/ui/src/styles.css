@@ -3,6 +3,16 @@
 
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
+/* State variants used by the shadcn Base UI components, as in shadcn/tailwind.css. */
+@custom-variant data-open (&:where([data-open]:not([data-open='false'])));
+@custom-variant data-closed (&:where([data-closed]:not([data-closed='false'])));
+@custom-variant data-checked (&:where([data-checked]:not([data-checked='false'])));
+@custom-variant data-unchecked (&:where([data-unchecked]:not([data-unchecked='false'])));
+@custom-variant data-disabled (&:where([data-disabled]:not([data-disabled='false'])));
+@custom-variant data-active (&:where([data-active]:not([data-active='false'])));
+@custom-variant data-horizontal (&:where([data-orientation='horizontal']));
+@custom-variant data-vertical (&:where([data-orientation='vertical']));
+
 /*
  * Materials, not decoration.
  * Paper: the page, sheets and documents are flat rice paper with grain and hairline edges.
@@ -342,13 +352,13 @@ time,
 [data-slot='sidebar-menu-action'] > svg {
   color: var(--muted);
 }
-[data-slot='sidebar-menu-button'][data-active='true'] {
+[data-slot='sidebar-menu-button'][data-active] {
   color: var(--ink);
   font-weight: 600;
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
-[data-slot='sidebar-menu-button'][data-active='true'] > svg {
+[data-slot='sidebar-menu-button'][data-active] > svg {
   color: var(--primary);
 }
 [data-collapsible='icon'] [data-slot='sidebar-menu-button'][data-size='lg'] {
@@ -441,7 +451,7 @@ time,
 .stage-toggle > svg {
   transition: transform 0.2s var(--ease);
 }
-.stage-toggle[data-state='open'] > svg {
+.stage-toggle[data-panel-open] > svg {
   transform: rotate(90deg);
 }
 .stage-link {
@@ -1456,7 +1466,7 @@ h1 {
   background: var(--clay-fill-hover);
   box-shadow: var(--clay-hover);
 }
-[data-slot='select-trigger'][data-state='open'] {
+[data-slot='select-trigger'][data-popup-open] {
   box-shadow: var(--clay-sunken);
   background: var(--sunken-fill);
 }
@@ -1522,7 +1532,7 @@ h1 {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
-.form [data-slot='checkbox'][data-state='checked'] {
+.form [data-slot='checkbox'][data-checked] {
   background: var(--glaze-fill);
   color: #fff;
   box-shadow: var(--glaze);

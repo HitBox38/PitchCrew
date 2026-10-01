@@ -44,6 +44,7 @@ import {
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
@@ -168,42 +169,40 @@ export function AppSidebar({
           <SidebarGroupLabel>Workspace</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <Collapsible asChild defaultOpen className="group/collapsible">
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    tooltip="Board"
-                    isActive={view === 'board'}
-                    aria-current={view === 'board' ? 'page' : undefined}
-                    onClick={() => onNavigate('board')}
-                  >
-                    <LayoutDashboard />
-                    <span>Board</span>
-                  </SidebarMenuButton>
-                  <CollapsibleTrigger asChild>
-                    <SidebarMenuAction className="stage-toggle" aria-label="Show pipeline stages">
-                      <ChevronRight />
-                    </SidebarMenuAction>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {stages.map((stage) => (
-                        <SidebarMenuSubItem key={stage.id}>
-                          <SidebarMenuSubButton asChild>
-                            <button
-                              type="button"
-                              className={`stage-link ${stage.color}`}
-                              onClick={() => onStage(stage.id)}
-                            >
-                              <span className="stage-dot" aria-hidden="true" />
-                              <span>{stage.label}</span>
-                              <span className="stage-count">{stage.count}</span>
-                            </button>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </SidebarMenuItem>
+              <Collapsible defaultOpen className="group/collapsible" render={<SidebarMenuItem />}>
+                <SidebarMenuButton
+                  tooltip="Board"
+                  isActive={view === 'board'}
+                  aria-current={view === 'board' ? 'page' : undefined}
+                  onClick={() => onNavigate('board')}
+                >
+                  <LayoutDashboard />
+                  <span>Board</span>
+                </SidebarMenuButton>
+                <CollapsibleTrigger
+                  render={
+                    <SidebarMenuAction className="stage-toggle" aria-label="Show pipeline stages" />
+                  }
+                >
+                  <ChevronRight />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {stages.map((stage) => (
+                      <SidebarMenuSubItem key={stage.id}>
+                        <SidebarMenuSubButton
+                          render={(props) => <button type="button" {...props} />}
+                          className={`stage-link ${stage.color}`}
+                          onClick={() => onStage(stage.id)}
+                        >
+                          <span className="stage-dot" aria-hidden="true" />
+                          <span>{stage.label}</span>
+                          <span className="stage-count">{stage.count}</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
               </Collapsible>
               {(['crew', 'inbox', 'profile', 'activity'] as const).map((id) => {
                 const Icon = viewIcons[id];
@@ -254,23 +253,25 @@ export function AppSidebar({
                       ) : null}
                     </SidebarMenuButton>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <SidebarMenuAction aria-label={`${role.name} actions`}>
-                          <MoreHorizontal />
-                        </SidebarMenuAction>
+                      <DropdownMenuTrigger
+                        render={<SidebarMenuAction aria-label={`${role.name} actions`} />}
+                      >
+                        <MoreHorizontal />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent side="right" align="start" className="menu">
-                        <DropdownMenuLabel>{role.name}</DropdownMenuLabel>
-                        <DropdownMenuItem onSelect={() => onConfigureRole(role.id)}>
-                          <SlidersHorizontal /> Configure…
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          disabled={working || running}
-                          onSelect={() => onToggleRole(role)}
-                        >
-                          {role.enabled ? <Pause /> : <Play />}
-                          {role.enabled ? 'Pause role' : 'Resume role'}
-                        </DropdownMenuItem>
+                        <DropdownMenuGroup>
+                          <DropdownMenuLabel>{role.name}</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => onConfigureRole(role.id)}>
+                            <SlidersHorizontal /> Configure…
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={working || running}
+                            onClick={() => onToggleRole(role)}
+                          >
+                            {role.enabled ? <Pause /> : <Play />}
+                            {role.enabled ? 'Pause role' : 'Resume role'}
+                          </DropdownMenuItem>
+                        </DropdownMenuGroup>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </SidebarMenuItem>
@@ -307,23 +308,21 @@ export function AppSidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton tooltip="Theme">
-                  <ThemeIcon />
-                  <span>Theme</span>
-                  <span className="menu-value">
-                    {themeOptions.find((option) => option.id === theme)!.label}
-                  </span>
-                </SidebarMenuButton>
+              <DropdownMenuTrigger render={<SidebarMenuButton tooltip="Theme" />}>
+                <ThemeIcon />
+                <span>Theme</span>
+                <span className="menu-value">
+                  {themeOptions.find((option) => option.id === theme)!.label}
+                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="end" className="menu">
-                <DropdownMenuLabel>Theme</DropdownMenuLabel>
                 <DropdownMenuRadioGroup
                   value={theme}
-                  onValueChange={(value) => onTheme(value as ThemeChoice)}
+                  onValueChange={(value: ThemeChoice) => onTheme(value)}
                 >
+                  <DropdownMenuLabel>Theme</DropdownMenuLabel>
                   {themeOptions.map((option) => (
-                    <DropdownMenuRadioItem key={option.id} value={option.id}>
+                    <DropdownMenuRadioItem key={option.id} value={option.id} closeOnClick>
                       <option.icon /> {option.label}
                     </DropdownMenuRadioItem>
                   ))}
@@ -333,22 +332,26 @@ export function AppSidebar({
           </SidebarMenuItem>
           <SidebarMenuItem>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg" className="data-button" tooltip="Data folder">
-                  <span className="local-dot" aria-hidden="true" />
-                  <span className="data-text">
-                    <strong>Saved on this device</strong>
-                    <code>
-                      <bdi>{dataDirectory}</bdi>
-                    </code>
-                  </span>
-                </SidebarMenuButton>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton size="lg" className="data-button" tooltip="Data folder" />
+                }
+              >
+                <span className="local-dot" aria-hidden="true" />
+                <span className="data-text">
+                  <strong>Saved on this device</strong>
+                  <code>
+                    <bdi>{dataDirectory}</bdi>
+                  </code>
+                </span>
               </DropdownMenuTrigger>
               <DropdownMenuContent side="right" align="end" className="menu data-menu">
-                <DropdownMenuLabel>Data folder</DropdownMenuLabel>
-                <p className="data-path">{dataDirectory}</p>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel>Data folder</DropdownMenuLabel>
+                  <p className="data-path">{dataDirectory}</p>
+                </DropdownMenuGroup>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={onCopyDirectory}>
+                <DropdownMenuItem onClick={onCopyDirectory}>
                   <Copy /> Copy path
                 </DropdownMenuItem>
               </DropdownMenuContent>
