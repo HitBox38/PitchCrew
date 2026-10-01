@@ -2,6 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { packetSchema, roleIds, roleChanges } from '@pitchcrew/core';
+import { connectorTools } from './connectors/tools.ts';
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
 if (!url || !token || new URL(url).hostname !== '127.0.0.1')
@@ -158,4 +159,33 @@ server.registerTool(
   },
   (input) => call('workflow', input),
 );
+server.registerTool(
+  'pitchcrew_list_connectors',
+  {
+    description:
+      'List connector tools permitted for your role and their connection status. Ask the user to connect accounts or enable capabilities in Your crew when needed.',
+    inputSchema: {},
+    annotations: readOnly,
+  },
+  () => call('connector_access'),
+);
+// Discover permissions using only the scoped capability, never connector credentials.
+const access = await call('connector_access');
+const allowed = new Set(
+  'structuredContent' in access && Array.isArray(access.structuredContent?.tools)
+    ? (access.structuredContent.tools as string[])
+    : [],
+);
+for (const [name, tool] of Object.entries(connectorTools)) {
+  if (!allowed.has(name)) continue;
+  server.registerTool(
+    name,
+    {
+      description: tool.description,
+      inputSchema: tool.schema,
+      annotations: { ...readOnly, openWorldHint: true },
+    },
+    (input: Record<string, unknown>) => call('connector', { tool: name, input }),
+  );
+}
 await server.connect(new StdioServerTransport());

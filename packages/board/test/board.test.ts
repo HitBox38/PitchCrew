@@ -34,6 +34,9 @@ describe('event-sourced board', () => {
     // Append a retained v1 event to model a workspace created before chat support.
     const legacy = { ...board.events()[0], version: 1 };
     board.db.prepare('INSERT INTO events(json) VALUES (?)').run(JSON.stringify(legacy));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 2 }));
     const message = {
       id: 'fixture-message',
       threadId: 'scout' as const,
@@ -52,7 +55,8 @@ describe('event-sourced board', () => {
     expect(board.get('message', message.id)).toEqual(message);
     expect(events.some((e) => e.version === 1)).toBe(true);
     expect(events.some((e) => e.version === 2)).toBe(true);
-    expect(() => decodeEvent('{"version":3}')).toThrow('Unsupported');
+    expect(events.some((e) => e.version === 3)).toBe(true);
+    expect(() => decodeEvent('{"version":4}')).toThrow('Unsupported');
   });
   it('prevents event deletion and rewriting at the database layer', () => {
     const board = create();

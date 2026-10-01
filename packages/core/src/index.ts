@@ -64,12 +64,22 @@ export const capabilitySchema = z.object({
   messageAgents: z.boolean(),
   invokeAgents: z.boolean(),
   manageWorkflow: z.boolean(),
+  github: z.boolean().optional(),
+  gmail: z.boolean().optional(),
+  drive: z.boolean().optional(),
+  calendar: z.boolean().optional(),
+  sheets: z.boolean().optional(),
 });
 export type AgentCapabilities = z.infer<typeof capabilitySchema>;
 export const defaultCapabilities: AgentCapabilities = {
   messageAgents: true,
   invokeAgents: true,
   manageWorkflow: true,
+  github: false,
+  gmail: false,
+  drive: false,
+  calendar: false,
+  sheets: false,
 };
 export interface Run {
   id: string;
@@ -144,7 +154,7 @@ export interface Approval {
 }
 export interface BoardEvent {
   id: number;
-  version: 1 | 2;
+  version: 1 | 2 | 3;
   kind: 'card' | 'role' | 'run' | 'approval' | 'message' | 'proposal' | 'task';
   entityId: string;
   actor: string;
@@ -175,6 +185,16 @@ export interface Snapshot {
   messages: ChatMessage[];
   proposals: RoleProposal[];
   tasks: AgentTask[];
+  connectors: ConnectorStatus[];
+}
+export interface ConnectorStatus {
+  id: 'github' | 'google';
+  connected: boolean;
+  account: string;
+  services: string[];
+  configured: boolean;
+  pending: boolean;
+  error: string;
 }
 export const rolePatch = z.object({
   runtime: z.enum(runtimeIds),
@@ -221,7 +241,7 @@ export const chatResultSchema = z.object({ reply: z.string().trim().min(1).max(1
 export type ChatResult = z.infer<typeof chatResultSchema>;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
-  if (event.version !== 1 && event.version !== 2)
+  if (event.version !== 1 && event.version !== 2 && event.version !== 3)
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
 }

@@ -44,6 +44,10 @@ pnpm desktop:prod
 
 In **Your crew**, select a runtime, optional model, instructions, agent capabilities, and whether a role is enabled. Claude Code and Codex must already be installed on PATH and signed in using their own CLIs. Detection runs only `--version`; chat turns and workflow runs may use your provider account, including agent-requested follow-ups. Real provider executions have not been exercised during this MVP's verification.
 
+## Connect GitHub and Google Workspace
+
+In **Your crew → Connected accounts**, connect GitHub with a fine-grained token or Google Workspace with Desktop OAuth browser sign-in. Then enable GitHub, Gmail, Drive/Docs, Calendar or Sheets in each role’s settings. Access defaults to disabled. Agents can use these read-only MCP tools for company research, portfolio evidence, recruiter email and interview preparation in both chat and card workflows. Sending mail, editing files and posting still require future approval-gated tools. See [connector setup and available tools](docs/connectors.md).
+
 ## Chat with your crew
 
 Open **Chat** or click a role in the sidebar. Talk privately with Scout, Writer or Reviewer, or join the **Crew conversation** to see agent messages and handoffs. Attach a job to give a turn application context. AI Elements provides the conversation, Markdown messages and composer in Pitchcrew’s visual style.
@@ -59,6 +63,7 @@ By default, everything is stored outside the repository:
 ```text
 ~/.pitchcrew/
   pitchcrew.db                    # SQLite projections and append-only event log
+  connectors/credentials.json    # local GitHub/Google connector credentials
   profile/*.md                   # factual source notes
   roles/<role>/AGENTS.md          # instructions managed in Crew settings
   roles/<role>/CLAUDE.md          # imports AGENTS.md
@@ -78,16 +83,16 @@ pnpm dev
 
 ## Architecture
 
-| Package        | Responsibility                                                                                |
-| -------------- | --------------------------------------------------------------------------------------------- |
-| `core`         | Strict TypeScript contracts, Zod validation, card transitions                                 |
-| `board`        | SQLite event log, projections, exact-payload approval tokens                                  |
-| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities              |
-| `adapters`     | Demo and headless Claude Code/Codex process integrations                                      |
-| `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, approval-gated export |
-| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                    |
-| `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                          |
-| `desktop`      | Sandboxed Electron host for the shared renderer                                               |
+| Package        | Responsibility                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                               |
+| `board`        | SQLite event log, projections, exact-payload approval tokens                                                        |
+| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities                                    |
+| `adapters`     | Demo and headless Claude Code/Codex process integrations                                                            |
+| `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export |
+| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                          |
+| `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                                                |
+| `desktop`      | Sandboxed Electron host for the shared renderer                                                                     |
 
 Agent application tools are scoped to the attached card; conversation reads are scoped to the role’s own chat and the shared crew chat. Messages, proposals and follow-up tasks are persisted in the board. Agents cannot approve actions, apply their own role changes, or use another role's runtime session. Approval binds the exact packet and is consumed once in the MCP export gate. A revised packet requires a fresh approval. The daemon recovers interrupted runs, releases their card claims, and marks interrupted queued tasks failed after restart.
 

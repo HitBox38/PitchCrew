@@ -104,6 +104,17 @@ export async function createDaemon(options: { directory: string; port: number; d
     ),
   );
   app.post('/api/runtimes/detect', async (_req, res) => res.json(await service.detect()));
+  app.post('/api/connectors/github/connect', async (req, res) =>
+    res.json(await service.connectors.connectGithub(req.body)),
+  );
+  app.post('/api/connectors/google/connect', async (req, res) =>
+    res.json(await service.connectors.connectGoogle(req.body)),
+  );
+  app.post('/api/connectors/:id/disconnect', async (req, res) =>
+    res.json(
+      await service.connectors.disconnect(z.enum(['github', 'google']).parse(req.params.id)),
+    ),
+  );
   app.put('/api/profile', async (req, res) => {
     const body = z
       .object({ name: z.string().max(100), content: z.string().max(50000) })
@@ -147,6 +158,8 @@ export async function createDaemon(options: { directory: string; port: number; d
         reason: z.string().max(2000).optional(),
         changes: z.unknown().optional(),
         state: z.enum(['shortlisted', 'changes_requested']).optional(),
+        tool: z.string().max(100).optional(),
+        input: z.unknown().optional(),
       })
       .parse(req.body);
     res.json(await service.agentCall(token, body.action, body));

@@ -2169,7 +2169,8 @@ h1 {
   display: grid;
   grid-template-columns: 232px minmax(0, 1fr);
   min-height: 560px;
-  height: calc(100dvh - 172px);
+  /* Leave room for the page heading, bottom padding and optional desktop title bar. */
+  height: calc(100dvh - 185px - var(--desktop-titlebar-height, 0px));
   max-height: 1000px;
   background: var(--surface);
   border: 1px solid var(--border-strong);
@@ -3164,4 +3165,31 @@ h1 {
     flex-wrap: wrap;
     gap: 3px 8px;
   }
+}
+
+.connector-settings {
+  margin-top: 2rem;
+}
+.connector-settings > .quiet {
+  margin-bottom: 1rem;
+}
+.connector-row > div {
+  flex: 1;
+  min-width: 0;
+}
+.connector-row p {
+  overflow-wrap: anywhere;
+}
+.connector-authorization {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.connector-authorization a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
 }

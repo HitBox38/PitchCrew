@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, session } from 'electron';
+import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, session, shell } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isGoogleAuthorizationUrl } from './external-url.ts';
 app.setName('Pitchcrew');
 if (process.env.PITCHCREW_SMOKE_FILE)
   app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
@@ -66,7 +67,15 @@ function createWindow() {
   window.once('ready-to-show', () => window?.show());
   window.on('enter-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', true));
   window.on('leave-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', false));
-  window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
+  window.webContents.setWindowOpenHandler(({ url: target }) => {
+    if (
+      window &&
+      new URL(window.webContents.mainFrame.url).origin === new URL(url).origin &&
+      isGoogleAuthorizationUrl(target)
+    )
+      void shell.openExternal(target).catch(() => {});
+    return { action: 'deny' };
+  });
   window.webContents.on('will-navigate', (event, target) => {
     if (new URL(target).origin !== new URL(url).origin) event.preventDefault();
   });
