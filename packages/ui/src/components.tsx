@@ -1,5 +1,5 @@
 import { Button } from './components/ui/button.tsx';
-import { type ReactNode } from 'react';
+import { type ReactNode, useId } from 'react';
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog.tsx';
 import { Sheet, SheetContent, SheetTitle } from './components/ui/sheet.tsx';
 import {
@@ -46,10 +46,18 @@ export function RoleAvatar({
   );
 }
 export function Brand({ compact = false }: { compact?: boolean }) {
+  const glaze = useId();
   return (
     <div className="brand">
       <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
-        <rect width="40" height="40" rx="12" fill="currentColor" />
+        <defs>
+          <radialGradient id={glaze} cx="30%" cy="22%" r="85%">
+            <stop offset="0" stopColor="#7d96c2" />
+            <stop offset="0.55" stopColor="currentColor" />
+            <stop offset="1" stopColor="#273a5f" />
+          </radialGradient>
+        </defs>
+        <rect width="40" height="40" rx="12" fill={`url(#${glaze})`} />
         <path d="M12 29V12h9a8 8 0 0 1 0 16h-3v-6h3a2 2 0 0 0 0-4h-3v11z" fill="white" />
       </svg>
       {!compact ? (
