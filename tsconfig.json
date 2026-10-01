@@ -12,8 +12,7 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "types": ["node"],
-    "baseUrl": ".",
-    "paths": { "@/*": ["packages/ui/src/*"] }
+    "paths": { "@/*": ["./packages/ui/src/*"] }
   },
   "include": ["packages/**/*.ts", "packages/**/*.tsx", "vitest.config.ts"]
 }
