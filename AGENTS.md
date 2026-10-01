@@ -85,7 +85,7 @@ These must stay true. A change that breaks one is a bug even if tests pass.
 
 ## Card states
 
-The authoritative transition graph is packages/core/src/index.ts. Typical flow:
+The authoritative transition graph is packages/core/src/states.ts, kept free of zod so the UI can import it from @pitchcrew/core/states (Oxlint allows only type imports of @pitchcrew/core in the UI). Typical flow:
 
 ```text
 lead -> shortlisted -> drafting -> in_review -> agreed -> awaiting_approval

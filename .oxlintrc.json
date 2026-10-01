@@ -9,5 +9,24 @@
       { "controlComponents": ["Input", "Textarea", "NativeSelect", "Checkbox"] }
     ]
   },
-  "ignorePatterns": ["**/dist/**", "**/node_modules/**", ".agents/**"]
+  "ignorePatterns": ["**/dist/**", "**/node_modules/**", ".agents/**"],
+  "overrides": [
+    {
+      "files": ["packages/ui/src/**"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@pitchcrew/core",
+                "allowTypeImports": true,
+                "message": "The UI may only import types from @pitchcrew/core; use @pitchcrew/core/states for runtime values so zod stays out of the bundle."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

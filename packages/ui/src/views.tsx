@@ -28,7 +28,7 @@ import {
   FileCheck,
 } from 'lucide-react';
 import type { Card, CardState, Packet, Role, Snapshot } from '@pitchcrew/core';
-import { transitions } from '@pitchcrew/core';
+import { transitions } from '@pitchcrew/core/states';
 import type { Action } from './App.tsx';
 import {
   CompanyMark,

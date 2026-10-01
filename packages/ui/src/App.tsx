@@ -1,6 +1,6 @@
 import { Input } from './components/ui/input.tsx';
 import { Button } from './components/ui/button.tsx';
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import {
   Plus,
   Search,
@@ -24,9 +24,17 @@ import {
 import { useTheme } from './theme.ts';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from './components/ui/sidebar.tsx';
 import { AppSidebar, viewTitles, type View } from './app-sidebar.tsx';
-import { CommandPalette } from './command-palette.tsx';
 import { modKey, useShortcuts } from './shortcuts.ts';
-import { AddOpportunity, CardDetails, RoleSettings, ProfileView, InboxView } from './views.tsx';
+// Views, dialogs and the command palette load on first use to keep the entry chunk small.
+const views = () => import('./views.tsx');
+const AddOpportunity = lazy(() => views().then((m) => ({ default: m.AddOpportunity })));
+const CardDetails = lazy(() => views().then((m) => ({ default: m.CardDetails })));
+const RoleSettings = lazy(() => views().then((m) => ({ default: m.RoleSettings })));
+const ProfileView = lazy(() => views().then((m) => ({ default: m.ProfileView })));
+const InboxView = lazy(() => views().then((m) => ({ default: m.InboxView })));
+const CommandPalette = lazy(() =>
+  import('./command-palette.tsx').then((m) => ({ default: m.CommandPalette })),
+);
 const closedStates = ['rejected', 'withdrawn', 'ghosted'];
 const stages = [
   {
@@ -95,6 +103,8 @@ export function App() {
   const [showClosed, setShowClosed] = useState(false);
   const [theme, setTheme] = useTheme();
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [paletteMounted, setPaletteMounted] = useState(false);
+  if (paletteOpen && !paletteMounted) setPaletteMounted(true);
   const [recentIds, setRecentIds] = useState(readRecent);
   const [flashStage, setFlashStage] = useState<string | null>(null);
   useShortcuts({ search: () => setPaletteOpen(true), newJob: () => setAdd(true) });
@@ -520,12 +530,14 @@ export function App() {
               </p>
             </>
           ) : null}
-          {view === 'inbox' ? (
-            <InboxView data={data} action={action} working={working} onOpen={openCard} />
-          ) : null}
-          {view === 'profile' ? (
-            <ProfileView data={data} action={action} working={working} />
-          ) : null}
+          <Suspense fallback={null}>
+            {view === 'inbox' ? (
+              <InboxView data={data} action={action} working={working} onOpen={openCard} />
+            ) : null}
+            {view === 'profile' ? (
+              <ProfileView data={data} action={action} working={working} />
+            ) : null}
+          </Suspense>
           {view === 'activity' ? (
             <section className="activity-panel">
               <ol className="activity-list">
@@ -550,19 +562,23 @@ export function App() {
           ) : null}
         </div>
       </SidebarInset>
-      <CommandPalette
-        open={paletteOpen}
-        onOpenChange={setPaletteOpen}
-        cards={data.cards}
-        roles={data.roles}
-        onNavigate={go}
-        onOpenCard={openCard}
-        onConfigureRole={setRoleId}
-        onAddJob={() => setAdd(true)}
-        onCheckRuntimes={checkRuntimes}
-        onTheme={setTheme}
-        onCopyDirectory={copyDirectory}
-      />
+      {paletteMounted ? (
+        <Suspense fallback={null}>
+          <CommandPalette
+            open={paletteOpen}
+            onOpenChange={setPaletteOpen}
+            cards={data.cards}
+            roles={data.roles}
+            onNavigate={go}
+            onOpenCard={openCard}
+            onConfigureRole={setRoleId}
+            onAddJob={() => setAdd(true)}
+            onCheckRuntimes={checkRuntimes}
+            onTheme={setTheme}
+            onCopyDirectory={copyDirectory}
+          />
+        </Suspense>
+      ) : null}
       {toast ? (
         <output className="toast">
           <span>{toast}</span>
@@ -575,30 +591,32 @@ export function App() {
           </Button>
         </output>
       ) : null}
-      {add ? (
-        <AddOpportunity action={action} working={working} onClose={() => setAdd(false)} />
-      ) : null}
-      {selected ? (
-        <CardDetails
-          card={selected}
-          data={data}
-          action={action}
-          working={working}
-          onClose={() => setSelectedId(null)}
-          onInbox={() => go('inbox')}
-        />
-      ) : null}
-      {selectedRole ? (
-        <Modal title={`${selectedRole.name} settings`} onClose={() => setRoleId(null)}>
-          <RoleSettings
-            role={selectedRole}
+      <Suspense fallback={null}>
+        {add ? (
+          <AddOpportunity action={action} working={working} onClose={() => setAdd(false)} />
+        ) : null}
+        {selected ? (
+          <CardDetails
+            card={selected}
             data={data}
             action={action}
             working={working}
-            onClose={() => setRoleId(null)}
+            onClose={() => setSelectedId(null)}
+            onInbox={() => go('inbox')}
           />
-        </Modal>
-      ) : null}
+        ) : null}
+        {selectedRole ? (
+          <Modal title={`${selectedRole.name} settings`} onClose={() => setRoleId(null)}>
+            <RoleSettings
+              role={selectedRole}
+              data={data}
+              action={action}
+              working={working}
+              onClose={() => setRoleId(null)}
+            />
+          </Modal>
+        ) : null}
+      </Suspense>
     </SidebarProvider>
   );
 }
