@@ -7,6 +7,9 @@ import { copilotCli } from './copilot-cli/index.ts';
 import { cursorAgent } from './cursor-agent/index.ts';
 import { goose } from './goose/index.ts';
 import { kiroCli } from './kiro-cli/index.ts';
+import { grok } from './grok/index.ts';
+import { pi } from './pi/index.ts';
+import { ohMyPi } from './oh-my-pi/index.ts';
 import type { RuntimeAdapter, RuntimeId } from '@pitchcrew/core';
 export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   demo,
@@ -18,4 +21,7 @@ export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   'cursor-agent': cursorAgent,
   goose,
   'kiro-cli': kiroCli,
+  grok,
+  pi,
+  'oh-my-pi': ohMyPi,
 };

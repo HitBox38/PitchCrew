@@ -45,6 +45,9 @@ export const runtimeIds = [
   'cursor-agent',
   'goose',
   'kiro-cli',
+  'grok',
+  'pi',
+  'oh-my-pi',
 ] as const;
 export type RuntimeId = (typeof runtimeIds)[number];
 export const roleIds = ['scout', 'writer', 'reviewer'] as const;

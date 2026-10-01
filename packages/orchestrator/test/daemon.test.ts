@@ -62,6 +62,9 @@ describe('local daemon workflow', () => {
       'cursor-agent',
       'goose',
       'kiro-cli',
+      'grok',
+      'pi',
+      'oh-my-pi',
     ]);
     for (const [id, runtime, model] of [
       ['scout', 'gemini-cli', 'fixture-model'],
@@ -70,6 +73,9 @@ describe('local daemon workflow', () => {
       ['scout', 'cursor-agent', 'fixture-model'],
       ['writer', 'goose', 'openai/fixture-model'],
       ['reviewer', 'kiro-cli', 'fixture-model'],
+      ['scout', 'grok', 'fixture-model'],
+      ['writer', 'pi', 'example/fixture-model'],
+      ['reviewer', 'oh-my-pi', 'example/fixture-model'],
     ] as const) {
       const settings = { runtime, model, enabled: true, instructions: 'Fictional role settings.' };
       const saved = await request<Role>(`/roles/${id}`, 'PUT', settings);

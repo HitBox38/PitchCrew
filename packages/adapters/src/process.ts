@@ -3,6 +3,22 @@ import { promisify } from 'node:util';
 import type { RuntimeHealth, RuntimeId, RunContext, RunResult } from '@pitchcrew/core';
 import { runResultSchema } from '@pitchcrew/core';
 const exec = promisify(execFile);
+export function requireCliVersion(
+  health: RuntimeHealth,
+  minimum: readonly number[],
+  command: string,
+): RuntimeHealth {
+  if (!health.available) return health;
+  const match = health.version.match(/(?:^|[^\d])(\d+)\.(\d+)\.(\d+)\b/);
+  const version = match?.slice(1).map(Number);
+  const difference = version?.map((part, i) => part - minimum[i]).find((part) => part !== 0);
+  if (version && (difference === undefined || difference > 0)) return health;
+  return {
+    ...health,
+    available: false,
+    detail: `${command} ${minimum.join('.')} or newer is required for scoped MCP runs. Upgrade ${command} and retry.`,
+  };
+}
 export function terminateCli(child: ChildProcess) {
   if (process.platform === 'win32' && child.pid)
     spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {

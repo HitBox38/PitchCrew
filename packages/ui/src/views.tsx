@@ -510,7 +510,7 @@ export function RoleSettings({
           onChange={(e) => setModel(e.target.value)}
           maxLength={100}
           placeholder={
-            runtime === 'opencode' || runtime === 'goose'
+            ['opencode', 'goose', 'pi', 'oh-my-pi'].includes(runtime)
               ? 'provider/model'
               : 'Your runtime’s model name'
           }

@@ -1,6 +1,6 @@
 ﻿# Pitchcrew
 
-A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, or Kiro CLI. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
+A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
 **Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, and track your applications. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
 
@@ -54,6 +54,9 @@ In **Your crew**, select a runtime, optional model, instructions, and whether a 
 | [Cursor Agent](https://cursor.com/docs/cli/reference/parameters)                                               | `cursor-agent` | CLI model name, or empty for its default         |
 | [Goose](https://block.github.io/goose/docs/guides/goose-cli-commands/)                                         | `goose`        | `provider/model`, or native environment defaults |
 | [Kiro CLI](https://kiro.dev/docs/cli/acp/)                                                                     | `kiro-cli`     | CLI model name, or empty for its default         |
+| [Grok Build](https://docs.x.ai/build/cli)                                                                      | `grok`         | CLI model name, or empty for its default         |
+| [Pi](https://github.com/earendil-works/pi)                                                                     | `pi`           | `provider/model`, or empty for its default       |
+| [oh-my-pi](https://github.com/can1357/oh-my-pi)                                                                | `omp`          | `provider/model`, or empty for its default       |
 
 Gemini CLI uses per-run system settings to disable built-in tools, extensions, skills and hooks, and allow only Pitchcrew MCP. OpenCode uses an isolated configuration directory, a fresh session, `--pure` to disable external plugins, and permissions that deny every tool except `pitchcrew_*`. Automatic session sharing is disabled. OpenCode's user configuration (including custom provider definitions) is not loaded; built-in providers use the CLI's existing sign-in or environment configuration. These adapters target Gemini CLI 0.62 and OpenCode 1.18; older versions may need an upgrade. Neither adapter reads or copies provider credentials.
 
@@ -64,6 +67,14 @@ Cursor Agent receives isolated CLI settings and project MCP configuration, an ex
 Goose uses an isolated `GOOSE_PATH_ROOT` and an explicit recipe containing only Pitchcrew MCP, with no saved session. Its user configuration, plugins and hooks are not imported. Set the model to `provider/model` using `openai`, `anthropic`, `google`, `ollama` or `openrouter`; alternatively, set `GOOSE_PROVIDER` and `GOOSE_MODEL` in the daemon environment. Providers that launch another agent CLI are excluded because they can expose tools outside this recipe. Native keyring/environment authentication stays with Goose; file-based credentials in the user configuration are not imported. This adapter targets Goose 1.44.0.
 
 Kiro CLI runs one fresh ACP session using the V2 engine and an isolated `KIRO_HOME`. The generated custom agent exposes and trusts only `@pitchcrew/*`, disables external MCP discovery and powers, and has no resources or hooks. Pitchcrew declines ACP permission requests and provides no filesystem or terminal client capabilities. Configure native headless authentication using `KIRO_API_KEY` in the daemon environment; existing login files are not imported. This adapter targets Kiro CLI 2.26.1. See [Kiro headless authentication](https://kiro.dev/docs/cli/headless/).
+
+Grok Build uses an isolated `GROK_HOME`, a fresh headless session and only its native MCP search/call helpers. Only Pitchcrew MCP is configured and permitted; native file reads (including file-backed MCP arguments) are denied. Built-in shell, editing, web and subagent tools are excluded, and memory, compatibility discovery and automatic updates are disabled. Set `XAI_API_KEY` in the daemon environment; existing login files are not imported. The adapter requires the official xAI Grok Build CLI 1.0.45 or newer.
+
+Pi requires version 1.0.0 or newer from the current `earendil-works/pi` project, which includes native MCP support. It receives an isolated `PI_CODING_AGENT_DIR` and loads only the built-in MCP extension with direct Pitchcrew tool exposure. Built-in tools, ambient extensions, skills, prompt templates, context files and session persistence are disabled. Older Pi packages without native MCP support appear unavailable with upgrade instructions.
+
+oh-my-pi requires `omp` 18.4.9 or newer. It receives isolated configuration and data paths, waits for Pitchcrew MCP discovery, and exposes only the five scoped MCP tools. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data directory must be on the same drive as the user home so OMP's native configuration-root resolution can isolate the run.
+
+Pi and oh-my-pi inherit their CLI's native provider authentication environment (for example, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`). User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime's default or use `provider/model`. Pitchcrew never reads, copies or stores these credentials.
 
 These integrations have subprocess contract coverage; live provider runs have not been verified.
 

@@ -9,6 +9,7 @@ if (runtime === 'goose') {
   const promptPath = args[args.indexOf('--params') + 1].slice('pitchcrew_prompt='.length);
   prompt = JSON.parse('"' + (await readFile(promptPath, 'utf8')) + '"');
 }
+if (runtime === 'grok') prompt = await readFile(args[args.indexOf('--prompt-file') + 1], 'utf8');
 const environment = Object.fromEntries(
   Object.entries(process.env).filter(
     ([key]) =>
@@ -16,15 +17,29 @@ const environment = Object.fromEntries(
         'GEMINI_CLI_SYSTEM_SETTINGS_PATH',
         'XDG_CONFIG_HOME',
         'XDG_DATA_HOME',
+        'XDG_STATE_HOME',
+        'XDG_CACHE_HOME',
         'CURSOR_CONFIG_DIR',
         'COPILOT_HOME',
         'GOOSE_PATH_ROOT',
         'GOOSE_ADDITIONAL_CONFIG_FILES',
         'GOOSE_MODE',
         'GOOSE_SYSTEM_PROMPT_FILE_PATH',
+        'GROK_HOME',
+        'GROK_CONFIG',
+        'GROK_CONFIG_PATH',
+        'GROK_AGENT',
+        'PI_CODING_AGENT_DIR',
+        'PI_CODING_AGENT_SESSION_DIR',
+        'PI_CONFIG_DIR',
+        'OMP_PROFILE',
+        'PI_PROFILE',
+        'PI_OFFLINE',
+        'OMP_MCP_REQUIRE_READY',
         'COPILOT_ALLOW_ALL',
         'GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS',
       ].includes(key) ||
+      /^GROK_(CLAUDE|CURSOR)_(SKILLS|RULES|AGENTS|MCPS|HOOKS)_ENABLED$/.test(key) ||
       key.startsWith('OPENCODE_') ||
       key.startsWith('PITCHCREW_'),
   ),
@@ -40,7 +55,88 @@ if (mode === 'wait') {
   const text = roleResult(prompt, mode);
   const emit = (event) => process.stdout.write(JSON.stringify(event) + '\n');
   process.stdout.write('CLI startup message\n');
-  if (runtime === 'gemini') {
+  if (runtime === 'pi' || runtime === 'omp') {
+    emit({
+      type: 'message_update',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'text', text: 'Ignore this partial answer.' }],
+      },
+    });
+    emit({
+      type: 'message_end',
+      message: {
+        role: 'assistant',
+        stopReason: 'toolUse',
+        content: [{ type: 'text', text: 'Checking the board.' }],
+      },
+    });
+    emit({
+      type: 'tool_execution_end',
+      result: { content: [{ type: 'text', text: 'Ignore me.' }] },
+    });
+    const answer = {
+      role: 'assistant',
+      stopReason: 'stop',
+      content: [
+        { type: 'thinking', thinking: 'Ignore me.' },
+        { type: 'text', text },
+      ],
+    };
+    emit({ type: 'message_end', message: answer });
+    if (mode === 'missing-terminal') process.exit(0);
+    const final = Buffer.from(
+      JSON.stringify({
+        type: 'agent_end',
+        messages:
+          mode === 'empty-terminal'
+            ? []
+            : [
+                { role: 'user', content: 'Ignore me.' },
+                {
+                  ...answer,
+                  stopReason:
+                    mode === 'terminal-error' ? 'error' : mode === 'truncated' ? 'length' : 'stop',
+                },
+              ],
+      }),
+    );
+    const split = final.indexOf(Buffer.from('é')) + 1;
+    if (split > 0) {
+      process.stdout.write(final.subarray(0, split));
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      process.stdout.write(final.subarray(split));
+    } else process.stdout.write(final);
+    if (mode === 'late-error') {
+      process.stdout.write('\n');
+      emit({ type: 'error', message: 'Fixture late failure.' });
+    }
+  } else if (runtime === 'grok') {
+    emit({ type: 'text', data: 'Checking the board.' });
+    emit({ type: 'tool_call', toolName: 'pitchcrew__pitchcrew_get_card' });
+    emit({ type: 'thought', data: 'Ignore me.' });
+    emit({ type: 'tool_call_update', rawOutput: 'Ignore me.' });
+    emit({ type: 'text', data: text.slice(0, 12) });
+    const delta = Buffer.from(JSON.stringify({ type: 'text', data: text.slice(12) }) + '\n');
+    const split = delta.indexOf(Buffer.from('é')) + 1;
+    if (split > 0) {
+      process.stdout.write(delta.subarray(0, split));
+      await new Promise((resolve) => setTimeout(resolve, 20));
+      process.stdout.write(delta.subarray(split));
+    } else process.stdout.write(delta);
+    if (mode === 'missing-terminal') process.exit(0);
+    if (mode === 'max-turns') emit({ type: 'max_turns_reached' });
+    process.stdout.write(
+      JSON.stringify({
+        type: 'end',
+        stopReason: mode === 'terminal-error' ? 'max_tokens' : 'end_turn',
+      }),
+    );
+    if (mode === 'late-error') {
+      process.stdout.write('\n');
+      emit({ type: 'error', message: 'Fixture late failure.' });
+    }
+  } else if (runtime === 'gemini') {
     emit({ type: 'init', session_id: 'fictional-session' });
     emit({ type: 'message', role: 'user', content: 'Ignore me.' });
     emit({ type: 'message', role: 'assistant', content: 'Checking the board.', delta: true });

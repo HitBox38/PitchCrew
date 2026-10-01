@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
-import { runCli, parseResult } from '../src/process.ts';
+import { runCli, parseResult, requireCliVersion } from '../src/process.ts';
 import { cardInput, type RunContext } from '@pitchcrew/core';
 const context: RunContext = {
   card: {
@@ -44,4 +44,25 @@ it('rejects a role-mismatched structured response', () => {
   expect(() => parseResult('{"role":"reviewer","passed":true,"feedback":[]}', context)).toThrow(
     'wrong role',
   );
+});
+it('requires a recognizable runtime version with the scoped-tool capabilities', () => {
+  const health = { id: 'pi' as const, available: true, version: 'pi v1.0.0', detail: 'Installed.' };
+  expect(requireCliVersion(health, [1, 0, 0], 'pi')).toBe(health);
+  expect(requireCliVersion({ ...health, version: '0.99.0' }, [1, 0, 0], 'pi').available).toBe(
+    false,
+  );
+  expect(requireCliVersion({ ...health, version: 'unrecognized' }, [1, 0, 0], 'pi').available).toBe(
+    false,
+  );
+  expect(requireCliVersion({ ...health, version: '18.4.8' }, [18, 4, 9], 'omp').available).toBe(
+    false,
+  );
+  expect(requireCliVersion({ ...health, version: '18.5.0' }, [18, 4, 9], 'omp').available).toBe(
+    true,
+  );
+  expect(
+    requireCliVersion({ ...health, version: 'grok 1.0.44' }, [1, 0, 45], 'grok').available,
+  ).toBe(false);
+  const missing = { ...health, available: false };
+  expect(requireCliVersion(missing, [1, 0, 0], 'pi')).toBe(missing);
 });

@@ -1,5 +1,5 @@
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import { homedir, tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -47,7 +47,16 @@ vi.mock('../src/acp.ts', async (importOriginal) => {
 
 const directories: string[] = [];
 async function contextFor(
-  runtime: 'gemini-cli' | 'opencode' | 'copilot-cli' | 'cursor-agent' | 'goose' | 'kiro-cli',
+  runtime:
+    | 'gemini-cli'
+    | 'opencode'
+    | 'copilot-cli'
+    | 'cursor-agent'
+    | 'goose'
+    | 'kiro-cli'
+    | 'grok'
+    | 'pi'
+    | 'oh-my-pi',
   mode = '',
 ): Promise<RunContext> {
   if (runtime === 'goose') vi.stubEnv('GOOSE_PROVIDER', 'openai');
@@ -114,6 +123,9 @@ describe.each([
   'cursor-agent',
   'goose',
   'kiro-cli',
+  'grok',
+  'pi',
+  'oh-my-pi',
 ] as const)('%s adapter', (runtime) => {
   it('detects its executable through the side-effect-free version helper', async () => {
     const command = {
@@ -123,6 +135,9 @@ describe.each([
       'cursor-agent': 'cursor-agent',
       goose: 'goose',
       'kiro-cli': 'kiro-cli',
+      grok: 'grok',
+      pi: 'pi',
+      'oh-my-pi': 'omp',
     }[runtime];
     expect(await adapters[runtime].detect()).toMatchObject({ id: runtime, available: true });
     expect(detectCli).toHaveBeenCalledWith(runtime, command);
@@ -259,6 +274,90 @@ describe.each([
           timeout: 60,
         },
       ]);
+    } else if (runtime === 'grok') {
+      expect(request.args).toContain('--no-auto-update');
+      expect(request.args).toContain('--verbatim');
+      expect(request.args).not.toContain('--always-approve');
+      expect(request.args[request.args.indexOf('--tools') + 1].split(',')).toEqual([
+        'GrokBuild:search_tool',
+        'GrokBuild:use_tool',
+      ]);
+      expect(request.args[request.args.indexOf('--allow') + 1]).toBe('MCPTool(pitchcrew__*)');
+      expect(request.args[request.args.indexOf('--permission-mode') + 1]).toBe('dontAsk');
+      expect(request.args[request.args.indexOf('--deny') + 1]).toBe('Read(**)');
+      const home = request.environment.GROK_HOME;
+      expect(home.startsWith(context.directory)).toBe(true);
+      const config = await readFile(join(home, 'config.toml'), 'utf8');
+      expect(config).toContain(`command = ${JSON.stringify(context.mcp.command)}`);
+      expect(config).toContain(`args = ${JSON.stringify(context.mcp.args)}`);
+      expect(config).toContain('trace_upload = false');
+      expect(config).toContain('[claude_compat]\nimported = true');
+      expect(config).toContain('[skills]\nignore = ');
+      expect(request.environment.GROK_CONFIG).toBeUndefined();
+      expect(request.environment.GROK_CONFIG_PATH).toBeUndefined();
+      for (const vendor of ['CLAUDE', 'CURSOR'])
+        for (const feature of ['SKILLS', 'RULES', 'AGENTS', 'MCPS', 'HOOKS'])
+          expect(request.environment[`GROK_${vendor}_${feature}_ENABLED`]).toBe('0');
+    } else if (runtime === 'pi') {
+      expect(request.args).toContain('--no-session');
+      expect(request.args).toContain('--no-builtin-tools');
+      expect(request.args).not.toContain('--no-tools');
+      expect(request.args).toContain('--no-extensions');
+      expect(request.args[request.args.indexOf('--extension') + 1]).toBe('builtin:mcp');
+      expect(request.args).toContain('--no-context-files');
+      expect(request.args).toContain('--no-approve');
+      expect(request.environment.PI_CODING_AGENT_DIR.startsWith(context.directory)).toBe(true);
+      const config = JSON.parse(
+        await readFile(join(request.environment.PI_CODING_AGENT_DIR, 'mcp.json'), 'utf8'),
+      );
+      expect(config).toEqual({
+        autoEnableCodemode: false,
+        mcpServers: { pitchcrew: { ...context.mcp, exposure: 'direct' } },
+      });
+    } else if (runtime === 'oh-my-pi') {
+      expect(request.args).toContain('--no-session');
+      expect(request.args).toContain('--no-tools');
+      expect(request.args).toContain('--no-extensions');
+      expect(request.args).toContain('--no-title');
+      expect(request.args).not.toContain('--yolo');
+      expect(request.args[request.args.indexOf('--tools') + 1].split(',')).toEqual([
+        'mcp__pitchcrew_get_card',
+        'mcp__pitchcrew_read_profile',
+        'mcp__pitchcrew_get_history',
+        'mcp__pitchcrew_lint_packet',
+        'mcp__pitchcrew_export_packet',
+      ]);
+      const home = request.environment.PI_CODING_AGENT_DIR;
+      expect(home.startsWith(context.directory)).toBe(true);
+      expect(resolve(homedir(), request.environment.PI_CONFIG_DIR)).toBe(
+        join(context.directory, 'omp-home'),
+      );
+      expect(request.environment.OMP_PROFILE).toBe('');
+      expect(request.environment.PI_PROFILE).toBe('');
+      expect(request.environment.OMP_MCP_REQUIRE_READY).toBe('1');
+      const settings = JSON.parse(await readFile(join(home, 'config.yml'), 'utf8'));
+      expect(settings.mcp.enableProjectConfig).toBe(false);
+      expect(settings.autolearn.enabled).toBe(false);
+      expect(settings.memory.backend).toBe('off');
+      expect(settings.goal.enabled).toBe(false);
+      expect(settings.compaction.experimentalContextManagement).toBe(false);
+      for (const key of ['XDG_DATA_HOME', 'XDG_STATE_HOME', 'XDG_CACHE_HOME'])
+        expect(request.environment[key].startsWith(context.directory)).toBe(true);
+      expect(settings.disabledProviders).toEqual(
+        expect.arrayContaining([
+          'claude',
+          'codex',
+          'cursor',
+          'gemini',
+          'mcp-json',
+          'agent-plugins',
+          'omp-plugins',
+        ]),
+      );
+      expect(settings.disabledProviders).not.toContain('native');
+      expect(JSON.parse(await readFile(join(home, 'mcp.json'), 'utf8'))).toEqual({
+        mcpServers: { pitchcrew: { type: 'stdio', ...context.mcp } },
+      });
     } else {
       expect(request.args).toContain('acp');
       expect(request.args).not.toContain('--trust-all-tools');
@@ -439,4 +538,27 @@ describe('Kiro ACP boundary', () => {
       error: { code: -32601, message: 'Pitchcrew does not provide this client capability.' },
     });
   });
+});
+
+describe.each(['grok', 'pi', 'oh-my-pi'] as const)('%s terminal validation', (runtime) => {
+  it.each(['terminal-error', 'missing-terminal', 'late-error'])(
+    'rejects %s after a valid assistant message',
+    async (mode) => {
+      await expect(adapters[runtime].run(await contextFor(runtime, mode))).rejects.toThrow(
+        'valid structured result',
+      );
+    },
+  );
+});
+describe.each(['pi', 'oh-my-pi'] as const)('%s native agent completion', (runtime) => {
+  it.each(['truncated', 'empty-terminal'])('rejects %s agent_end output', async (mode) => {
+    await expect(adapters[runtime].run(await contextFor(runtime, mode))).rejects.toThrow(
+      'valid structured result',
+    );
+  });
+});
+it('rejects Grok max-turns exhaustion even if the CLI subsequently emits end_turn', async () => {
+  await expect(adapters.grok.run(await contextFor('grok', 'max-turns'))).rejects.toThrow(
+    'valid structured result',
+  );
 });

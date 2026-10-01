@@ -31,6 +31,9 @@ export const runtimeLabels: Record<RuntimeId, string> = {
   'cursor-agent': 'Cursor Agent',
   goose: 'Goose',
   'kiro-cli': 'Kiro CLI',
+  grok: 'Grok Build',
+  pi: 'Pi',
+  'oh-my-pi': 'oh-my-pi',
 };
 export function RoleAvatar({
   agentRole,
