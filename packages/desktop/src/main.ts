@@ -1,4 +1,4 @@
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, nativeTheme, session } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 app.setName('Pitchcrew');
@@ -17,7 +17,8 @@ function createWindow() {
     minWidth: 860,
     minHeight: 620,
     title: 'Pitchcrew',
-    backgroundColor: '#f2f1ed',
+    // Matches the renderer's paper colour so the window never flashes before first paint.
+    backgroundColor: nativeTheme.shouldUseDarkColors ? '#1a1b1e' : '#f2f1ec',
     autoHideMenuBar: true,
     webPreferences: {
       nodeIntegration: false,

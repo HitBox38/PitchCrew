@@ -24,8 +24,10 @@ import {
   Modal,
   RoleAvatar,
   runtimeLabels,
+  ThemeSwitch,
   timeAgo,
 } from './components.tsx';
+import { useTheme } from './theme.ts';
 import { AddOpportunity, CardDetails, RoleSettings, ProfileView, InboxView } from './views.tsx';
 type View = 'board' | 'crew' | 'inbox' | 'profile' | 'activity';
 const navigation = [
@@ -97,6 +99,7 @@ export function App() {
   const [roleId, setRoleId] = useState<RoleId | null>(null);
   const [query, setQuery] = useState('');
   const [showClosed, setShowClosed] = useState(false);
+  const [theme, setTheme] = useTheme();
   const reload = useCallback(async () => {
     const next = await api<Snapshot>('/snapshot');
     setData(next);
@@ -259,6 +262,7 @@ export function App() {
             </Button>
           ))}
         </section>
+        <ThemeSwitch value={theme} onChange={setTheme} />
         <p className="sidebar-footer" title={data.dataDirectory}>
           Saved locally in{' '}
           <code>

@@ -1,6 +1,8 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
 /*
  * Materials, not decoration.
  * Paper: the page, sheets and documents are flat rice paper with grain and hairline edges.
@@ -43,8 +45,10 @@
   --ink-soft: #484b52;
   --muted: #61646b;
   --faint: #97999f;
-  --border: rgb(43 45 49 / 0.11);
-  --border-strong: rgb(43 45 49 / 0.18);
+  /* Ink-coloured overlay channels for hover tints and hairlines */
+  --tint: 43 45 49;
+  --border: rgb(var(--tint) / 0.11);
+  --border-strong: rgb(var(--tint) / 0.18);
   --primary: #3a5482;
   --primary-deep: #2a3f66;
   --primary-soft: #e0e6f0;
@@ -86,6 +90,15 @@
     inset -4px -6px 10px rgb(8 16 40 / 0.22);
   --glaze-pressed: 0 1px 1px rgb(26 38 66 / 0.16), inset 3px 4px 9px rgb(8 16 40 / 0.32);
   --sheet: 0 1px 2px rgb(30 34 44 / 0.04), 0 0 0 1px var(--border);
+  --pop: 0 2px 4px rgb(20 22 30 / 0.06), 0 16px 40px rgb(20 22 30 / 0.16);
+  --rim: rgb(255 255 255 / 0.9);
+  --orb-light: rgb(255 255 255 / 0.8);
+  --overlay: rgb(26 28 34 / 0.24);
+  --inverse: #2b2d31;
+  --on-inverse: #f4f3ef;
+  --on-inverse-muted: #b9bac0;
+  --error-ink: #843846;
+  --scrollbar: #c4c5c8;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   --motion:
     transform 0.18s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease),
@@ -101,6 +114,82 @@
   font-synthesis: none;
   background-color: var(--paper);
   background-image: var(--grain), var(--fibres);
+}
+/*
+ * Dark: sumi ink at night. Surfaces get lighter as they rise, clay keeps its top-left
+ * light as a faint rim, and the dyes are lifted so text stays readable.
+ */
+:root[data-theme='dark'] {
+  --paper: #1a1b1e;
+  --paper-deep: #141518;
+  --surface: #222327;
+  --surface-bright: #2a2b30;
+  --ink: #e9e7e1;
+  --ink-soft: #c8c6c0;
+  --muted: #9d9ca1;
+  --faint: #6c6c72;
+  --tint: 236 234 228;
+  --border: rgb(var(--tint) / 0.09);
+  --border-strong: rgb(var(--tint) / 0.16);
+  --primary: #93abd8;
+  --primary-deep: #b8c9ec;
+  --primary-soft: rgb(147 171 216 / 0.16);
+  --teal: #84c0bc;
+  --teal-soft: rgb(132 192 188 / 0.14);
+  --moss: #a9c28a;
+  --moss-soft: rgb(169 194 138 / 0.14);
+  --plum: #cda7d0;
+  --plum-soft: rgb(205 167 208 / 0.15);
+  --ochre: #dcb86c;
+  --ochre-soft: rgb(220 184 108 / 0.15);
+  --rose: #e6939f;
+  --rose-soft: rgb(230 147 159 / 0.15);
+  --clay-fill: linear-gradient(160deg, #303136 0%, #28292d 55%, #232428 100%);
+  --clay-fill-hover: linear-gradient(160deg, #37383d 0%, #2e2f34 55%, #27282c 100%);
+  --sunken-fill: linear-gradient(160deg, #101113 0%, #141518 40%, #17181b 100%);
+  --glaze-fill: linear-gradient(170deg, #5a75a6 0%, #435e8f 55%, #374f7b 100%);
+  --glaze-fill-hover: linear-gradient(170deg, #6380b2 0%, #4a6698 55%, #3d5683 100%);
+  --drop-sm: 0 1px 1px rgb(0 0 0 / 0.35), 0 2px 4px rgb(0 0 0 / 0.25), 0 6px 12px rgb(0 0 0 / 0.2);
+  --drop:
+    0 1px 1px rgb(0 0 0 / 0.3), 0 3px 6px rgb(0 0 0 / 0.25), 0 10px 20px rgb(0 0 0 / 0.25),
+    0 20px 34px rgb(0 0 0 / 0.2);
+  --volume:
+    inset 0 1px 0 rgb(255 255 255 / 0.09), inset 4px 6px 12px rgb(255 255 255 / 0.025),
+    inset -5px -7px 14px rgb(0 0 0 / 0.25);
+  --volume-sm:
+    inset 0 1px 0 rgb(255 255 255 / 0.08), inset 2px 3px 6px rgb(255 255 255 / 0.025),
+    inset -3px -4px 7px rgb(0 0 0 / 0.25);
+  --clay-sunken:
+    inset 0 1px 2px rgb(0 0 0 / 0.45), inset 3px 4px 8px rgb(0 0 0 / 0.3),
+    inset -2px -2px 6px rgb(255 255 255 / 0.02), 0 1px 0 rgb(255 255 255 / 0.05);
+  --glaze:
+    0 1px 1px rgb(0 0 0 / 0.4), 0 3px 6px rgb(0 0 0 / 0.3), 0 8px 14px rgb(0 0 0 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.22), inset 3px 5px 9px rgb(255 255 255 / 0.06),
+    inset -4px -6px 10px rgb(0 0 0 / 0.25);
+  --glaze-pressed: 0 1px 1px rgb(0 0 0 / 0.4), inset 3px 4px 9px rgb(0 0 0 / 0.4);
+  --sheet: 0 1px 2px rgb(0 0 0 / 0.3), 0 0 0 1px var(--border);
+  --pop: 0 2px 6px rgb(0 0 0 / 0.35), 0 18px 44px rgb(0 0 0 / 0.5);
+  --rim: rgb(255 255 255 / 0.07);
+  --orb-light: rgb(255 255 255 / 0.14);
+  --overlay: rgb(0 0 0 / 0.5);
+  --inverse: #ebe9e3;
+  --on-inverse: #1c1d20;
+  --on-inverse-muted: #5d5e64;
+  --error-ink: #f2b3bd;
+  --scrollbar: #3b3c41;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .025 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}
+:root[data-theme='dark'] .brand {
+  color: #4a6698;
+}
+:root[data-theme='dark'] .role-avatar,
+:root[data-theme='dark'] .company-mark {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 var(--orb-light),
+    inset -2px -3px 5px rgb(0 0 0 / 0.3);
 }
 * {
   box-sizing: border-box;
@@ -178,7 +267,7 @@ time,
   font-variant-numeric: tabular-nums;
 }
 * {
-  scrollbar-color: #c4c5c8 transparent;
+  scrollbar-color: var(--scrollbar) transparent;
   scrollbar-width: thin;
 }
 
@@ -192,11 +281,11 @@ time,
   flex-shrink: 0;
   color: var(--tone);
   background:
-    radial-gradient(circle at 32% 26%, rgb(255 255 255 / 0.8) 0%, transparent 50%), var(--tone-soft);
+    radial-gradient(circle at 32% 26%, var(--orb-light) 0%, transparent 50%), var(--tone-soft);
   border-radius: 50%;
   box-shadow:
     0 1px 2px rgb(30 34 44 / 0.12),
-    inset 0 1px 0 rgb(255 255 255 / 0.8),
+    inset 0 1px 0 var(--orb-light),
     inset -2px -3px 5px color-mix(in srgb, var(--tone) 14%, transparent);
 }
 
@@ -263,7 +352,7 @@ nav {
   color: var(--muted);
 }
 .nav-item:hover {
-  background: rgb(43 45 49 / 0.045);
+  background: rgb(var(--tint) / 0.045);
   color: var(--ink);
 }
 .nav-item.selected,
@@ -325,7 +414,7 @@ nav {
   transition: var(--motion);
 }
 .sidebar-role:hover {
-  background: rgb(43 45 49 / 0.045);
+  background: rgb(var(--tint) / 0.045);
 }
 .sidebar-role > span:not(.role-avatar) {
   display: flex;
@@ -351,8 +440,42 @@ nav {
   color: var(--primary);
   flex-shrink: 0;
 }
-.sidebar-footer {
+.theme-switch {
+  min-width: 0;
+  border: 0;
   margin-top: auto;
+  align-self: flex-start;
+  margin-left: 10px;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--sunken-fill);
+  border-radius: 10px 11px 10px 9px;
+  box-shadow: var(--clay-sunken);
+}
+.theme-switch button {
+  width: 28px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 7px 8px 7px 6px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--muted);
+  box-shadow: none;
+  transition: var(--motion);
+}
+.theme-switch button:hover {
+  background: transparent;
+  color: var(--ink);
+}
+.theme-switch button.active {
+  color: var(--ink);
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.sidebar-footer {
   padding: 0 10px;
   font-size: 11px;
   line-height: 1.5;
@@ -472,7 +595,7 @@ h1 {
 }
 .icon-button:hover {
   color: var(--ink);
-  background: rgb(43 45 49 / 0.06);
+  background: rgb(var(--tint) / 0.06);
 }
 .text-button {
   display: inline-flex;
@@ -738,7 +861,7 @@ h1 {
 }
 .tags span {
   border-radius: 6px;
-  background: rgb(43 45 49 / 0.055);
+  background: rgb(var(--tint) / 0.055);
   color: var(--ink-soft);
   font-size: 11.5px;
   padding: 1px 6px;
@@ -754,6 +877,7 @@ h1 {
 }
 .fit {
   color: var(--muted);
+  white-space: nowrap;
   font-size: 12px;
   display: flex;
   gap: 7px;
@@ -768,7 +892,7 @@ h1 {
   width: 34px;
   height: 5px;
   border-radius: 3px;
-  background: rgb(43 45 49 / 0.08);
+  background: rgb(var(--tint) / 0.08);
   box-shadow: inset 0 1px 1px rgb(30 34 44 / 0.1);
   overflow: hidden;
 }
@@ -783,13 +907,14 @@ h1 {
 }
 .state-pill {
   --tone: var(--ink-soft);
-  --tone-soft: rgb(43 45 49 / 0.06);
+  --tone-soft: rgb(var(--tint) / 0.06);
   font-size: 11.5px;
   font-weight: 600;
   border-radius: 6px;
   padding: 1px 7px;
   color: var(--tone);
   background: var(--tone-soft);
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
 }
@@ -903,8 +1028,8 @@ h1 {
   height: 22px;
   padding: 0 7px;
   border-radius: 11px;
-  background: var(--ink);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
   font-size: 11px;
   font-weight: 600;
 }
@@ -1057,7 +1182,7 @@ h1 {
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
-  background: rgb(43 45 49 / 0.06);
+  background: rgb(var(--tint) / 0.06);
   border: 0;
   border-radius: 6px;
   padding: 2px 8px;
@@ -1131,7 +1256,7 @@ h1 {
 }
 [data-slot='dialog-overlay'],
 [data-slot='sheet-overlay'] {
-  background: rgb(26 28 34 / 0.24);
+  background: var(--overlay);
 }
 .modal {
   display: block;
@@ -1140,9 +1265,8 @@ h1 {
   border: 0;
   border-radius: 18px 20px 19px 17px;
   box-shadow:
-    0 2px 4px rgb(20 22 30 / 0.06),
-    0 16px 40px rgb(20 22 30 / 0.16),
-    inset 0 1px 0 rgb(255 255 255 / 0.9);
+    var(--pop),
+    inset 0 1px 0 var(--rim);
   padding: 22px 24px 24px;
   width: min(580px, calc(100vw - 32px));
   max-height: 90vh;
@@ -1253,8 +1377,7 @@ h1 {
   color: var(--ink);
   box-shadow:
     0 0 0 1px var(--border),
-    0 4px 8px rgb(20 22 30 / 0.06),
-    0 14px 30px rgb(20 22 30 / 0.12);
+    var(--pop);
 }
 [data-slot='select-content'] [data-slot='select-item'] {
   padding: 7px 32px 7px 10px;
@@ -1264,7 +1387,7 @@ h1 {
   cursor: pointer;
 }
 [data-slot='select-item'][data-highlighted] {
-  background: rgb(43 45 49 / 0.06);
+  background: rgb(var(--tint) / 0.06);
 }
 [data-slot='select-item'] svg {
   color: var(--primary);
@@ -1312,7 +1435,7 @@ h1 {
 }
 .form-error {
   background: var(--rose-soft);
-  color: #843846;
+  color: var(--error-ink);
   font-size: 13px;
   padding: 9px 12px;
   border-radius: 9px;
@@ -1329,12 +1452,10 @@ h1 {
   bottom: 20px;
   right: 22px;
   z-index: 100;
-  background: var(--ink);
-  color: #f4f3ef;
+  background: var(--inverse);
+  color: var(--on-inverse);
   border-radius: 12px 13px 12px 11px;
-  box-shadow:
-    0 4px 10px rgb(20 22 30 / 0.16),
-    0 14px 30px rgb(20 22 30 / 0.16);
+  box-shadow: var(--pop);
   padding: 9px 8px 9px 14px;
   display: flex;
   align-items: center;
@@ -1346,11 +1467,11 @@ h1 {
   animation: toast-in 0.22s var(--ease);
 }
 .toast .icon-button {
-  color: #b9bac0;
+  color: var(--on-inverse-muted);
 }
 .toast .icon-button:hover {
-  color: #fff;
-  background: rgb(255 255 255 / 0.1);
+  color: var(--on-inverse);
+  background: color-mix(in srgb, var(--on-inverse) 12%, transparent);
 }
 @keyframes toast-in {
   from {
@@ -1481,8 +1602,7 @@ h1 {
   margin-top: 16px;
   box-shadow:
     0 0 0 1px var(--border),
-    0 2px 3px rgb(30 34 44 / 0.05),
-    0 8px 18px rgb(30 34 44 / 0.05);
+    var(--drop-sm);
 }
 .evidence {
   display: flex;
@@ -1593,7 +1713,7 @@ h1 {
   transition: var(--motion);
 }
 .profile-file:hover {
-  background: rgb(43 45 49 / 0.045);
+  background: rgb(var(--tint) / 0.045);
   color: var(--ink);
 }
 .profile-file.selected,
@@ -1672,7 +1792,7 @@ h1 {
   padding: 10px 12px;
   font-size: 13px;
   color: var(--ink-soft);
-  background: rgb(43 45 49 / 0.035);
+  background: rgb(var(--tint) / 0.035);
 }
 .approval-preview summary {
   cursor: pointer;
@@ -1740,7 +1860,7 @@ h1 {
 }
 .error-banner {
   background: var(--rose-soft);
-  color: #843846;
+  color: var(--error-ink);
   font-size: 13px;
   border-radius: 10px;
   padding: 9px 12px;
@@ -1758,8 +1878,8 @@ h1 {
   position: fixed;
   top: -100px;
   left: 236px;
-  background: var(--ink);
-  color: #fff;
+  background: var(--inverse);
+  color: var(--on-inverse);
   border-radius: 8px;
   padding: 8px 12px;
   z-index: 200;
@@ -1802,6 +1922,11 @@ h1 {
   .sidebar-footer,
   .nav-item > span:not(.nav-count) {
     display: none;
+  }
+  .theme-switch {
+    flex-direction: column;
+    margin-left: 0;
+    align-self: center;
   }
   .nav-item {
     justify-content: center;
