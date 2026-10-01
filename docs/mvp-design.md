@@ -2,16 +2,16 @@
 
 Pitchcrew is a personal job-search workbench. The same React renderer opens in a browser or a sandboxed Electron window; both use a daemon bound to 127.0.0.1.
 
-Visual language: claymorphism merged with wabi-sabi. Raised surfaces are smooth clay volumes: a curved gradient fill lit from the top left, a specular rim, inner highlight and shade, and layered soft drop shadows; inputs and tracks are pressed in, and pressable elements spring on hover and press. The canvas is neutral rice paper with grain and fibre texture, radii are slightly asymmetric, and a kintsugi gold seam is the single decorative accent. Tokens: paper #f2f1ed, clay surface #f6f5f1, sumi ink #2c2e33, muted #62656c, aizome indigo #3b5583 (actions only), teal #2f6b6a (Scout), plum #78527a (Writer), moss #54683e (success, Reviewer), ochre #85601b (awaiting approval), rose #a04858 (closed), gold #c39a3e (kintsugi). Typography: locally bundled Fraunces (soft, wonky axes) for headings and Source Sans 3 for body text. Left-aligned navigation and a spacious horizontal pipeline make application progress the main visual.
+Visual language: claymorphism and wabi-sabi used as materials rather than decoration. Paper: the page, sheets and documents are flat rice paper with grain and hairline edges. Clay: only things you press (buttons, job cards, the active tab or nav item, the select) have volume; pipeline columns are trays pressed into the paper. Wabi-sabi: natural dye colours, radii a hair off symmetric, and no ornaments, slogans or fake controls. Copy is plain and specific, and summaries come from board data. Tokens: paper #f2f1ec, surface #f8f7f3, sumi ink #2b2d31, muted #61646b, aizome indigo #3a5482 (actions only), teal #2f6a69 (Scout), plum #76517a (Writer), moss #53673d (success, Reviewer), ochre #82601c (awaiting approval), rose #9f4757 (closed). Typography: locally bundled Fraunces for headings and Source Sans 3 for body text. Left-aligned navigation and a spacious horizontal pipeline make application progress the main visual.
 
 ```
-navigation | page heading / add opportunity
-           | search / stage filters
-           | pipeline columns / application cards
-           | crew availability / recent board events
+navigation     | page heading + data summary / add job
+crew status    | pipeline / closed toggle, filter
+data directory | pipeline trays / job cards
+               | recent board events
 ```
 
-The board is the product's organizing structure. Cards show company, role, working arrangement, fit, owner, and the next useful action. A detail sheet contains the packet and immutable history. Empty states offer add-an-opportunity and explicitly labeled example-data actions. No fictional data is presented as a live job search.
+The board is the product's organizing structure. Cards show company, role, location and salary, fit, owner or state. A detail sheet contains the packet and immutable history. Empty states offer add-an-opportunity and explicitly labeled example-data actions. No fictional data is presented as a live job search.
 
 Packages: core (contracts and transitions), board (SQLite events and projections), adapters (demo, Claude Code, Codex), packet (evidence validation and files), mcp (role-scoped tools), orchestrator (HTTP daemon and run scheduling), ui (shared renderer), desktop (Electron host).
 

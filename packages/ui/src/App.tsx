@@ -1,6 +1,6 @@
 import { Input } from './components/ui/input.tsx';
 import { Button } from './components/ui/button.tsx';
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   LayoutDashboard,
   Users,
@@ -10,20 +10,10 @@ import {
   Plus,
   Search,
   ArrowRight,
-  ArrowUpRight,
-  ShieldCheck,
-  CircleCheck,
-  Play,
   RefreshCw,
-  Monitor,
-  LockKeyhole,
   LoaderCircle,
   X,
-  ChevronRight,
   SlidersHorizontal,
-  Layers,
-  Target,
-  BriefcaseBusiness,
 } from 'lucide-react';
 import type { Snapshot, Role, RoleId } from '@pitchcrew/core';
 import { api } from './api.ts';
@@ -39,34 +29,55 @@ import {
 import { AddOpportunity, CardDetails, RoleSettings, ProfileView, InboxView } from './views.tsx';
 type View = 'board' | 'crew' | 'inbox' | 'profile' | 'activity';
 const navigation = [
-  { id: 'board', label: 'Application board', icon: LayoutDashboard },
-  { id: 'crew', label: 'Your crew', icon: Users },
-  { id: 'inbox', label: 'Approval inbox', icon: Inbox },
-  { id: 'profile', label: 'Your profile', icon: FileUser },
+  { id: 'board', label: 'Board', icon: LayoutDashboard },
+  { id: 'crew', label: 'Crew', icon: Users },
+  { id: 'inbox', label: 'Inbox', icon: Inbox },
+  { id: 'profile', label: 'Profile', icon: FileUser },
   { id: 'activity', label: 'Activity', icon: Activity },
 ] as const;
 const viewTitles = {
-  board: 'Application board',
-  crew: 'Your crew',
-  inbox: 'Approval inbox',
-  profile: 'Your profile',
+  board: 'Board',
+  crew: 'Crew',
+  inbox: 'Inbox',
+  profile: 'Profile',
   activity: 'Activity',
 };
+const closedStates = ['rejected', 'withdrawn', 'ghosted'];
 const stages = [
-  { id: 'lead', label: 'Leads', states: ['lead'], color: 'slate' },
-  { id: 'shortlisted', label: 'Shortlisted', states: ['shortlisted'], color: 'blue' },
+  {
+    id: 'lead',
+    label: 'Leads',
+    states: ['lead'],
+    color: 'slate',
+    empty: 'Add a job post to start.',
+  },
+  {
+    id: 'shortlisted',
+    label: 'Shortlisted',
+    states: ['shortlisted'],
+    color: 'blue',
+    empty: 'Shortlist a lead once Scout has read it.',
+  },
   {
     id: 'drafts',
-    label: 'In progress',
+    label: 'Drafting',
     states: ['drafting', 'in_review', 'changes_requested'],
     color: 'violet',
+    empty: 'Writer’s drafts and Reviewer’s notes land here.',
   },
-  { id: 'ready', label: 'Ready to go', states: ['agreed', 'awaiting_approval'], color: 'orange' },
+  {
+    id: 'ready',
+    label: 'Ready',
+    states: ['agreed', 'awaiting_approval'],
+    color: 'orange',
+    empty: 'Reviewed packets wait here for your approval.',
+  },
   {
     id: 'applied',
     label: 'Applied',
     states: ['submitted', 'screening', 'interviewing', 'offer'],
     color: 'green',
+    empty: 'Record a submission after you apply.',
   },
 ];
 export type Action = (
@@ -147,18 +158,57 @@ export function App() {
             Try again
           </Button>
         ) : (
-          <LoaderCircle className="spin" size={24} />
+          <LoaderCircle className="spin" size={22} />
         )}
       </div>
     );
-  const active = data.cards.filter((c) => !['rejected', 'withdrawn', 'ghosted'].includes(c.state));
+  const active = data.cards.filter((c) => !closedStates.includes(c.state));
+  const strong = data.cards.filter((c) => c.fit !== null && c.fit >= 80).length;
   const filtered = data.cards.filter((c) =>
     `${c.company} ${c.title} ${c.location} ${c.tags.join(' ')}`
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
-  const closed = filtered.filter((c) => ['rejected', 'withdrawn', 'ghosted'].includes(c.state));
+  const closed = filtered.filter((c) => closedStates.includes(c.state));
   const running = data.runs.filter((r) => r.status === 'running');
+  const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
+  const roleStatus = (role: Role) => {
+    if (!role.enabled) return 'Paused';
+    const run = running.find((r) => r.roleId === role.id);
+    if (!run) return runtimeLabels[role.runtime];
+    const card = data.cards.find((c) => c.id === run.cardId);
+    return card ? `Working on ${card.company}` : 'Working';
+  };
+  const summary =
+    view === 'board' ? (
+      data.cards.length ? (
+        <>
+          <strong>{active.length}</strong> active, <strong>{strong}</strong> with a strong fit
+          {pending ? (
+            <>
+              , <strong>{pending}</strong> waiting on your approval
+            </>
+          ) : null}
+          .
+        </>
+      ) : (
+        'Nothing on the board yet.'
+      )
+    ) : view === 'crew' ? (
+      'Pick a runtime for each role. A run only starts when you start it from a card.'
+    ) : view === 'inbox' ? (
+      pending ? (
+        <>
+          <strong>{pending}</strong> {pending === 1 ? 'export is' : 'exports are'} waiting on you.
+        </>
+      ) : (
+        'Nothing is waiting on you.'
+      )
+    ) : view === 'profile' ? (
+      'Writer only quotes from these notes, and Reviewer checks every claim against them.'
+    ) : (
+      `${data.events.length} events, newest first. The log is append-only.`
+    );
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main">
@@ -166,397 +216,273 @@ export function App() {
       </a>
       <aside className="sidebar">
         <Brand />
-        <div className="workspace-label">
-          <span className="workspace-icon">
-            <BriefcaseBusiness size={16} />
-          </span>
-          <div>
-            <strong>My workspace</strong>
-            <span>Personal job search</span>
-          </div>
-          <ChevronRight size={14} />
-        </div>
         <nav aria-label="Main navigation">
-          {navigation.map((item) => (
+          {navigation.map((item) => {
+            const count = item.id === 'board' ? active.length : item.id === 'inbox' ? pending : 0;
+            return (
+              <Button
+                key={item.id}
+                className={`nav-item ${view === item.id ? 'selected' : ''}`}
+                aria-label={item.label}
+                title={item.label}
+                onClick={() => go(item.id)}
+                aria-current={view === item.id ? 'page' : undefined}
+              >
+                <item.icon size={17} />
+                <span>{item.label}</span>
+                {count ? (
+                  <span className={`nav-count ${item.id === 'inbox' ? 'attention' : ''}`}>
+                    {count}
+                  </span>
+                ) : null}
+              </Button>
+            );
+          })}
+        </nav>
+        <section className="sidebar-crew" aria-labelledby="sidebar-crew-heading">
+          <h2 id="sidebar-crew-heading">Crew</h2>
+          {data.roles.map((role) => (
             <Button
-              key={item.id}
-              className={`nav-item ${view === item.id ? 'selected' : ''}`}
-              aria-label={item.label}
-              title={item.label}
-              onClick={() => go(item.id)}
-              aria-current={view === item.id ? 'page' : undefined}
+              key={role.id}
+              className={`sidebar-role ${!role.enabled ? 'paused' : ''}`}
+              onClick={() => setRoleId(role.id)}
+              title={`${role.name} settings`}
             >
-              <item.icon size={19} />
-              <span>{item.label}</span>
-              {item.id === 'inbox' && pending ? <span className="nav-count">{pending}</span> : null}
+              <RoleAvatar agentRole={role.id} size="small" />
+              <span>
+                <strong>{role.name}</strong>
+                <small>{roleStatus(role)}</small>
+              </span>
+              {running.some((r) => r.roleId === role.id) ? (
+                <LoaderCircle size={13} className="spin" aria-label="Running" />
+              ) : null}
             </Button>
           ))}
-        </nav>
-        <div className="sidebar-note">
-          <span className="note-graphic">
-            <Layers size={22} />
-            <span className="little-star">✦</span>
-          </span>
-          <strong>
-            A little teamwork.
-            <br />A bigger next chapter.
-          </strong>
-          <p>
-            Your crew does the groundwork.
-            <br />
-            You make the next move.
-          </p>
-          <Button onClick={() => go('crew')}>
-            Meet your crew <ArrowRight size={14} />
-          </Button>
-        </div>
-        <div className="sidebar-footer">
-          <span className="local-dot" />
-          <span>Local workspace</span>
-          <LockKeyhole size={13} />
-        </div>
+        </section>
+        <p className="sidebar-footer" title={data.dataDirectory}>
+          Saved locally in{' '}
+          <code>
+            <bdi>{data.dataDirectory}</bdi>
+          </code>
+        </p>
       </aside>
       <div className="main-shell">
-        <header className="topbar">
-          <span className="breadcrumb">
-            Workspace <ChevronRight size={13} /> <strong>{viewTitles[view]}</strong>
-          </span>
-          <span className="connection">
-            <span className="local-dot" />
-            {running.length
-              ? `${running.length} role${running.length > 1 ? 's' : ''} working`
-              : 'All systems ready'}
-          </span>
-          <Button
-            className="profile-badge"
-            onClick={() => go('profile')}
-            aria-label="Open your profile"
-          >
-            <FileUser size={18} />
-          </Button>
-        </header>
         <main id="main" tabIndex={-1}>
-          <div className="page-heading">
+          <header className="page-heading">
             <div>
               <h1>{viewTitles[view]}</h1>
-              <p>
-                {view === 'board'
-                  ? 'Good opportunities. Thoughtful applications. Your next chapter.'
-                  : view === 'crew'
-                    ? 'Different strengths. One shared goal. Make the crew your own.'
-                    : view === 'inbox'
-                      ? 'You decide what happens next. Every action starts with your approval.'
-                      : view === 'profile'
-                        ? 'Your experience is the source of truth for every application.'
-                        : 'Every move your crew makes, in one place.'}
-              </p>
+              <p>{summary}</p>
             </div>
-            {view === 'board' ? (
+            {view === 'board' && data.cards.length ? (
               <Button className="button primary" onClick={() => setAdd(true)}>
-                <Plus size={17} /> Add opportunity
+                <Plus size={16} /> Add job
               </Button>
             ) : view === 'crew' ? (
               <Button
                 className="button"
                 disabled={working}
                 onClick={() =>
-                  act('/runtimes/detect', 'POST', undefined, 'Runtime availability refreshed')
+                  act('/runtimes/detect', 'POST', undefined, 'Checked installed runtimes')
                 }
               >
-                <RefreshCw size={15} /> Check runtimes
+                <RefreshCw size={14} /> Check runtimes
               </Button>
             ) : null}
-          </div>
+          </header>
           {error ? (
             <div role="alert" className="error-banner">
-              Connection interrupted: {error}
+              Lost connection to the local daemon: {error}
             </div>
           ) : null}
           {view === 'board' ? (
-            <>
-              <div className="metrics">
-                <Metric
-                  icon={<Layers size={18} />}
-                  value={active.length}
-                  label="Active opportunities"
-                />
-                <Metric
-                  icon={<Target size={18} />}
-                  value={data.cards.filter((c) => c.fit !== null && c.fit >= 80).length}
-                  label="Strong matches"
-                />
-                <Metric
-                  icon={<ShieldCheck size={18} />}
-                  value={pending}
-                  label="Need your approval"
-                />
-                <Metric
-                  icon={<BriefcaseBusiness size={18} />}
-                  value={
-                    data.cards.filter((c) => ['interviewing', 'offer'].includes(c.state)).length
-                  }
-                  label="In conversation"
-                />
-              </div>
-              <div className="board-toolbar">
-                <div className="view-switch">
-                  <Button
-                    className={!showClosed ? 'active' : ''}
-                    onClick={() => setShowClosed(false)}
-                  >
-                    <LayoutDashboard size={15} /> Pipeline
+            !data.cards.length ? (
+              <section className="welcome">
+                <h2>Start with a job post</h2>
+                <p>
+                  Add a listing you’re considering. The crew works on it one step at a time, and
+                  only when you ask.
+                </p>
+                <ol className="welcome-steps">
+                  <li>
+                    <RoleAvatar agentRole="scout" size="small" />
+                    <span>
+                      <strong>Scout</strong> reads the post and scores the fit against your profile.
+                    </span>
+                  </li>
+                  <li>
+                    <RoleAvatar agentRole="writer" size="small" />
+                    <span>
+                      <strong>Writer</strong> drafts a resume, cover letter and form answers,
+                      quoting only your notes.
+                    </span>
+                  </li>
+                  <li>
+                    <RoleAvatar agentRole="reviewer" size="small" />
+                    <span>
+                      <strong>Reviewer</strong> checks every claim against those notes.
+                    </span>
+                  </li>
+                  <li>
+                    <span className="step-you">You</span>
+                    <span>
+                      approve the exact packet before it’s exported to a folder. Nothing is
+                      submitted for you.
+                    </span>
+                  </li>
+                </ol>
+                <div className="welcome-actions">
+                  <Button className="button primary" onClick={() => setAdd(true)}>
+                    <Plus size={16} /> Add job
                   </Button>
                   <Button
-                    className={showClosed ? 'active' : ''}
-                    onClick={() => setShowClosed(true)}
+                    className="button"
+                    disabled={working}
+                    onClick={() =>
+                      act('/examples', 'POST', undefined, 'Loaded example jobs (demo runtime)')
+                    }
                   >
-                    Closed <span>{data.cards.length - active.length}</span>
+                    {working ? <LoaderCircle size={14} className="spin" /> : null} Load example data
                   </Button>
                 </div>
-                <div className="search-input">
-                  <Search size={16} />
-                  <Input
-                    aria-label="Search opportunities"
-                    placeholder="Search opportunities…"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                  />
-                  {query ? (
+              </section>
+            ) : (
+              <>
+                <div className="board-toolbar">
+                  <div className="view-switch">
                     <Button
-                      className="icon-button"
-                      onClick={() => setQuery('')}
-                      aria-label="Clear search"
+                      className={!showClosed ? 'active' : ''}
+                      onClick={() => setShowClosed(false)}
                     >
-                      <X size={14} />
-                    </Button>
-                  ) : null}
-                </div>
-                <span className="board-count">{filtered.length} opportunities</span>
-              </div>
-              {!data.cards.length ? (
-                <div className="welcome">
-                  <div className="welcome-art" aria-hidden="true">
-                    <span className="art-line" />
-                    <RoleAvatar agentRole="scout" size="large" />
-                    <RoleAvatar agentRole="writer" size="large" />
-                    <RoleAvatar agentRole="reviewer" size="large" />
-                    <span className="art-spark">✦</span>
-                  </div>
-                  <span className="welcome-label">Your crew is ready when you are</span>
-                  <h2>
-                    Great things start
-                    <br />
-                    with a first opportunity.
-                  </h2>
-                  <p>
-                    Add a role you’re excited about. Your crew will help you
-                    <br className="desktop-break" /> find the fit, tell your story, and get it
-                    ready.
-                  </p>
-                  <div className="welcome-actions">
-                    <Button className="button primary" onClick={() => setAdd(true)}>
-                      <Plus size={16} /> Add your first opportunity
+                      Pipeline
                     </Button>
                     <Button
-                      className="button"
-                      disabled={working}
-                      onClick={() =>
-                        act(
-                          '/examples',
-                          'POST',
-                          undefined,
-                          'Loaded fictional examples with the demo runtime',
-                        )
-                      }
+                      className={showClosed ? 'active' : ''}
+                      onClick={() => setShowClosed(true)}
                     >
-                      {working ? <LoaderCircle size={15} className="spin" /> : <Play size={15} />}{' '}
-                      Try an example board
+                      Closed <span>{data.cards.length - active.length}</span>
                     </Button>
                   </div>
-                  <div className="welcome-steps">
-                    <span>
-                      <Search size={15} /> Find your fit
-                    </span>
-                    <ChevronRight size={13} />
-                    <span>
-                      <FileUser size={15} /> Tell your story
-                    </span>
-                    <ChevronRight size={13} />
-                    <span>
-                      <ShieldCheck size={15} /> Make your move
-                    </span>
-                  </div>
-                </div>
-              ) : showClosed ? (
-                <div className="closed-grid">
-                  {closed.length ? (
-                    closed.map((card) => (
-                      <JobCard key={card.id} card={card} onOpen={() => setSelectedId(card.id)} />
-                    ))
-                  ) : (
-                    <EmptyState
-                      title="Nothing closed yet"
-                      description="Rejected, withdrawn, and unanswered applications appear here."
+                  <div className="search-input">
+                    <Search size={15} />
+                    <Input
+                      aria-label="Search jobs"
+                      placeholder="Filter by company, title, tag"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
                     />
-                  )}
-                </div>
-              ) : (
-                <div className="pipeline" aria-label="Application pipeline">
-                  {stages.map((stage) => {
-                    const cards = filtered.filter((c) => stage.states.includes(c.state));
-                    return (
-                      <section className={`pipeline-column ${stage.color}`} key={stage.id}>
-                        <div className="column-heading">
-                          <span className="stage-dot" />
-                          <h2>{stage.label}</h2>
-                          <span className="column-count">{cards.length}</span>
-                          {stage.id === 'lead' ? (
-                            <Button
-                              className="icon-button"
-                              aria-label="Add a new lead"
-                              onClick={() => setAdd(true)}
-                            >
-                              <Plus size={15} />
-                            </Button>
-                          ) : null}
-                        </div>
-                        <div className="column-cards">
-                          {cards.map((card) => (
-                            <JobCard
-                              key={card.id}
-                              card={card}
-                              onOpen={() => setSelectedId(card.id)}
-                            />
-                          ))}
-                          {!cards.length ? (
-                            <div className="column-empty">
-                              {query
-                                ? 'No matching opportunities'
-                                : stage.id === 'lead'
-                                  ? 'Your next possibility starts here'
-                                  : stage.id === 'shortlisted'
-                                    ? 'Keep the roles worth exploring'
-                                    : stage.id === 'drafts'
-                                      ? 'Your crew’s work lands here'
-                                      : stage.id === 'ready'
-                                        ? 'Reviewed and ready for you'
-                                        : 'Your next chapter is on its way'}
-                            </div>
-                          ) : null}
-                        </div>
-                      </section>
-                    );
-                  })}
-                </div>
-              )}
-              <div className="board-bottom">
-                <section className="crew-summary">
-                  <div className="section-heading">
-                    <h2>Your crew, at a glance</h2>
-                    <Button className="text-button" onClick={() => go('crew')}>
-                      Manage crew <ArrowUpRight size={14} />
-                    </Button>
-                  </div>
-                  <div className="crew-summary-list">
-                    {data.roles.map((role) => (
+                    {query ? (
                       <Button
-                        key={role.id}
-                        onClick={() => setRoleId(role.id)}
-                        className="crew-summary-role"
+                        className="icon-button"
+                        onClick={() => setQuery('')}
+                        aria-label="Clear search"
                       >
-                        <RoleAvatar agentRole={role.id} />
-                        <span>
-                          <strong>{role.name}</strong>
-                          <small>{runtimeLabels[role.runtime]}</small>
-                        </span>
-                        <span className={`role-status ${!role.enabled ? 'paused' : ''}`}>
-                          <span />
-                          {!role.enabled
-                            ? 'Paused'
-                            : running.some((r) => r.roleId === role.id)
-                              ? 'Working'
-                              : 'Ready'}
-                        </span>
+                        <X size={14} />
                       </Button>
-                    ))}
+                    ) : null}
                   </div>
-                </section>
-                <section className="recent-activity">
-                  <div className="section-heading">
-                    <h2>Recent activity</h2>
-                    <Button className="text-button" onClick={() => go('activity')}>
-                      View all <ArrowUpRight size={14} />
-                    </Button>
+                </div>
+                {showClosed ? (
+                  <div className="closed-grid">
+                    {closed.length ? (
+                      closed.map((card) => (
+                        <JobCard key={card.id} card={card} onOpen={() => setSelectedId(card.id)} />
+                      ))
+                    ) : (
+                      <EmptyState
+                        title="Nothing closed"
+                        description="Rejected, withdrawn and unanswered applications end up here."
+                      />
+                    )}
                   </div>
-                  {data.events
-                    .filter((e) => e.kind !== 'role')
-                    .slice(0, 2)
-                    .map((event) => (
-                      <div className="recent-event" key={event.id}>
-                        <CircleCheck size={16} />
-                        <span>{event.message}</span>
-                        <time>{timeAgo(event.createdAt)}</time>
-                      </div>
-                    ))}
-                  {!data.events.some((e) => e.kind !== 'role') ? (
-                    <p className="quiet">A fresh start. Your crew’s activity will show up here.</p>
-                  ) : null}
-                </section>
-              </div>
-              <div className="page-footnote">
-                <LockKeyhole size={13} /> Your workspace stays on this device. Nothing is sent
-                without your say.
-              </div>
-            </>
+                ) : (
+                  <div className="pipeline" aria-label="Application pipeline">
+                    {stages.map((stage) => {
+                      const cards = filtered.filter((c) => stage.states.includes(c.state));
+                      return (
+                        <section className={`pipeline-column ${stage.color}`} key={stage.id}>
+                          <div className="column-heading">
+                            <span className="stage-dot" />
+                            <h2>{stage.label}</h2>
+                            <span className="column-count">{cards.length}</span>
+                            {stage.id === 'lead' ? (
+                              <Button
+                                className="icon-button"
+                                aria-label="Add a job"
+                                onClick={() => setAdd(true)}
+                              >
+                                <Plus size={15} />
+                              </Button>
+                            ) : null}
+                          </div>
+                          <div className="column-cards">
+                            {cards.map((card) => (
+                              <JobCard
+                                key={card.id}
+                                card={card}
+                                onOpen={() => setSelectedId(card.id)}
+                              />
+                            ))}
+                            {!cards.length ? (
+                              <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
+                            ) : null}
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                )}
+                {recent.length ? (
+                  <section className="recent">
+                    <div className="section-heading">
+                      <h2>Recent</h2>
+                      <Button className="text-button" onClick={() => go('activity')}>
+                        All activity <ArrowRight size={13} />
+                      </Button>
+                    </div>
+                    <ul>
+                      {recent.map((event) => (
+                        <li key={event.id}>
+                          <span>{event.message}</span>
+                          <time dateTime={event.createdAt}>{timeAgo(event.createdAt)}</time>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : null}
+              </>
+            )
           ) : null}
           {view === 'crew' ? (
             <>
-              <div className="callout">
-                <span className="callout-icon">
-                  <Users size={21} />
-                </span>
-                <div>
-                  <strong>A crew that works your way</strong>
-                  <p>
-                    Pick a runtime for each role. Your installed CLIs handle their own sign-in;
-                    Pitchcrew gives them a shared board.
-                  </p>
-                </div>
-                <span className="badge">3 specialist roles</span>
-              </div>
               <div className="crew-grid">
                 {data.roles.map((role) => (
                   <CrewCard
                     key={role.id}
                     role={role}
-                    active={running.some((r) => r.roleId === role.id)}
+                    status={roleStatus(role)}
                     onConfigure={() => setRoleId(role.id)}
                   />
                 ))}
               </div>
-              <h2 className="subheading">Available runtimes</h2>
+              <h2 className="subheading">Runtimes on this machine</h2>
               <div className="runtime-list">
                 {data.runtimes.map((runtime) => (
                   <div className="runtime-row" key={runtime.id}>
-                    <Monitor size={22} />
                     <div>
                       <strong>{runtimeLabels[runtime.id]}</strong>
                       <p>{runtime.detail}</p>
                     </div>
+                    {runtime.version ? <small>{runtime.version}</small> : null}
                     <span className={`badge ${runtime.available ? 'success' : ''}`}>
                       {runtime.available ? 'Available' : 'Not installed'}
                     </span>
-                    {runtime.version ? <small>{runtime.version}</small> : null}
                   </div>
                 ))}
               </div>
-              <div className="info-note">
-                <ShieldCheck size={17} />
-                <p>
-                  The demo runtime makes deterministic drafts without AI calls. Selecting Claude
-                  Code or Codex uses your CLI’s account when you explicitly start a run.
-                </p>
-              </div>
+              <p className="info-note">
+                Demo makes deterministic drafts without calling a model. Claude Code and Codex run
+                under your own CLI login, and only when you start a run.
+              </p>
             </>
           ) : null}
           {view === 'inbox' ? (
@@ -567,39 +493,24 @@ export function App() {
           ) : null}
           {view === 'activity' ? (
             <section className="activity-panel">
-              <div className="section-heading">
-                <h2>Workspace history</h2>
-                <span className="badge">Append-only event log</span>
-              </div>
-              <div className="activity-list">
+              <ol className="activity-list">
                 {data.events.map((event) => (
-                  <div className="activity-row" key={event.id}>
-                    <span className={`event-dot ${event.kind}`}>
-                      {event.kind === 'run' ? (
-                        <Play size={14} />
-                      ) : event.kind === 'approval' ? (
-                        <ShieldCheck size={14} />
-                      ) : event.kind === 'role' ? (
-                        <Users size={14} />
-                      ) : (
-                        <Layers size={14} />
-                      )}
+                  <li className={`activity-row ${event.kind}`} key={event.id}>
+                    <time dateTime={event.createdAt} title={event.createdAt}>
+                      {timeAgo(event.createdAt)}
+                    </time>
+                    <span className="activity-message">{event.message}</span>
+                    <span className="activity-actor">
+                      {event.actor === 'user'
+                        ? 'You'
+                        : event.actor === 'demo'
+                          ? 'Demo runtime'
+                          : event.actor}
+                      <span className="activity-kind">{event.kind}</span>
                     </span>
-                    <div>
-                      <strong>{event.message}</strong>
-                      <p>
-                        {event.actor === 'user'
-                          ? 'You'
-                          : event.actor === 'demo'
-                            ? 'Demo runtime'
-                            : event.actor}{' '}
-                        <span>•</span> {event.kind}
-                      </p>
-                    </div>
-                    <time dateTime={event.createdAt}>{timeAgo(event.createdAt)}</time>
-                  </div>
+                  </li>
                 ))}
-              </div>
+              </ol>
             </section>
           ) : null}
         </main>
@@ -612,7 +523,7 @@ export function App() {
             onClick={() => setToast('')}
             aria-label="Dismiss notification"
           >
-            <X size={16} />
+            <X size={15} />
           </Button>
         </output>
       ) : null}
@@ -643,44 +554,43 @@ export function App() {
     </div>
   );
 }
-function Metric({ icon, value, label }: { icon: ReactNode; value: number; label: string }) {
-  return (
-    <div className="metric">
-      <span className="metric-icon">{icon}</span>
-      <div>
-        <strong>{value}</strong>
-        <span>{label}</span>
-      </div>
-    </div>
-  );
-}
 function CrewCard({
   role,
-  active,
+  status,
   onConfigure,
 }: {
   role: Role;
-  active: boolean;
+  status: string;
   onConfigure: () => void;
 }) {
   return (
-    <section className="crew-card">
+    <section className={`crew-card ${role.id}`}>
       <div className="crew-card-top">
         <RoleAvatar agentRole={role.id} size="large" />
-        <span className={`role-status ${!role.enabled ? 'paused' : ''}`}>
-          <span />
-          {role.enabled ? (active ? 'Working' : 'Ready') : 'Paused'}
-        </span>
+        <div>
+          <h2>{role.name}</h2>
+          <span className={`role-status ${!role.enabled ? 'paused' : ''}`}>
+            {role.enabled ? 'Enabled' : 'Paused'}
+          </span>
+        </div>
       </div>
-      <h2>{role.name}</h2>
       <p>{role.description}</p>
-      <div className="crew-runtime">
-        <Monitor size={15} />
-        {runtimeLabels[role.runtime]}
-        <span>{role.model || 'Default model'}</span>
-      </div>
+      <dl className="crew-runtime">
+        <div>
+          <dt>Runtime</dt>
+          <dd>{runtimeLabels[role.runtime]}</dd>
+        </div>
+        <div>
+          <dt>Model</dt>
+          <dd>{role.model || 'CLI default'}</dd>
+        </div>
+        <div>
+          <dt>Now</dt>
+          <dd>{status.startsWith('Working') ? status : 'Idle'}</dd>
+        </div>
+      </dl>
       <Button className="button" onClick={onConfigure}>
-        <SlidersHorizontal size={15} /> Configure role
+        <SlidersHorizontal size={14} /> Configure
       </Button>
     </section>
   );

@@ -68,16 +68,18 @@ export function AddOpportunity({
             .map((s) => s.trim())
             .filter(Boolean),
         },
-        'Opportunity added to your board',
+        'Job added',
       );
       onClose();
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not add opportunity.');
+      setError(e instanceof Error ? e.message : 'Could not add the job.');
     }
   }
   return (
-    <Modal title="A new opportunity" onClose={onClose}>
-      <p className="modal-intro">Found something interesting? Give your crew a place to start.</p>
+    <Modal title="Add a job post" onClose={onClose}>
+      <p className="modal-intro">
+        Scout works from the description, so paste it in if you have it.
+      </p>
       <form onSubmit={(e) => void submit(e)} className="form">
         <div className="form-row">
           <label>
@@ -124,7 +126,7 @@ export function AddOpportunity({
           <Textarea
             name="description"
             rows={5}
-            placeholder="Paste the job description so your crew can understand the role."
+            placeholder="Paste the full listing"
             maxLength={20000}
           />
         </label>
@@ -142,8 +144,7 @@ export function AddOpportunity({
             Cancel
           </Button>
           <Button className="button primary" disabled={working}>
-            {working ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />} Add
-            opportunity
+            {working ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />} Add job
           </Button>
         </div>
       </form>
@@ -188,7 +189,7 @@ export function CardDetails({
           ? 'reviewer'
           : null;
   return (
-    <Modal title="Opportunity details" onClose={onClose} drawer>
+    <Modal title="Job" onClose={onClose} drawer>
       <div className="detail-company">
         <CompanyMark name={card.company} />
         <div>
@@ -253,7 +254,7 @@ export function CardDetails({
                 disabled={working}
                 className="button"
                 onClick={() =>
-                  act(`/cards/${card.id}/move`, { state: 'shortlisted' }, 'Opportunity shortlisted')
+                  act(`/cards/${card.id}/move`, { state: 'shortlisted' }, 'Shortlisted')
                 }
               >
                 Shortlist <ArrowRight size={15} />
@@ -267,7 +268,7 @@ export function CardDetails({
                   act(
                     `/cards/${card.id}/approval`,
                     undefined,
-                    'Packet is waiting in your approval inbox',
+                    'Approval requested; it’s in your inbox',
                   )
                 }
               >
@@ -307,7 +308,7 @@ export function CardDetails({
       ) : null}
       {failed && !run ? <p className="form-error">Last run: {failed.message}</p> : null}
       <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)}>
-        <TabsList className="detail-tabs" aria-label="Opportunity sections">
+        <TabsList className="detail-tabs" aria-label="Job sections">
           {(['overview', 'packet', 'history'] as const).map((name) => (
             <TabsTrigger key={name} value={name}>
               {name === 'overview' ? (
@@ -329,11 +330,8 @@ export function CardDetails({
                   <span key={tag}>{tag}</span>
                 ))}
               </div>
-              <h3>About the opportunity</h3>
-              <p className="prewrap">
-                {card.description ||
-                  'Add job details when creating an opportunity to give your crew more context.'}
-              </p>
+              <h3>Description</h3>
+              <p className="prewrap">{card.description || 'No description was added.'}</p>
               {card.feedback.length ? (
                 <>
                   <h3>{card.state === 'lead' ? 'Scout notes' : 'Review notes'}</h3>
@@ -344,8 +342,8 @@ export function CardDetails({
                   </ul>
                 </>
               ) : null}
-              <h3>Track the next step</h3>
-              <p className="quiet">Update outcomes after you take action outside Pitchcrew.</p>
+              <h3>Outcome</h3>
+              <p className="quiet">Record what happened after you applied.</p>
               <div className="tracking-actions">
                 {transitions[card.state]
                   .filter(
@@ -398,10 +396,10 @@ export function CardDetails({
                   ))}
                 </div>
                 <pre className="packet-document">{card.packet[document]}</pre>
-                <h3>Evidence trail</h3>
+                <h3>Sources</h3>
                 <p className="quiet">
-                  Exact quotations checked against your profile. The reviewer also checks the full
-                  packet.
+                  Each claim quotes your profile notes word for word. Reviewer reads the whole
+                  packet as well.
                 </p>
                 {card.packet.claims.map((claim, i) => (
                   <div className="evidence" key={i}>
@@ -415,8 +413,8 @@ export function CardDetails({
               </>
             ) : (
               <EmptyState
-                title="Your story is still taking shape"
-                description="Shortlist this opportunity and start the writer to create its application packet."
+                title="No packet yet"
+                description="Shortlist this job, then run Writer to draft one."
               />
             )
           ) : (
@@ -556,7 +554,7 @@ export function ProfileView({
   async function save(e: FormEvent) {
     e.preventDefault();
     try {
-      await action('/profile', 'PUT', { name, content }, 'Profile notes saved locally');
+      await action('/profile', 'PUT', { name, content }, 'Saved');
       setError('');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save profile.');
@@ -564,18 +562,6 @@ export function ProfileView({
   }
   return (
     <>
-      <div className="callout">
-        <span className="callout-icon">
-          <ShieldCheck size={22} />
-        </span>
-        <div>
-          <strong>Real experience. No invented achievements.</strong>
-          <p>
-            Your writer uses these notes, and your reviewer checks claims against them. Start with a
-            name and factual bullet points.
-          </p>
-        </div>
-      </div>
       <div className="profile-layout">
         <section className="profile-editor">
           <form onSubmit={(e) => void save(e)}>
@@ -593,7 +579,7 @@ export function ProfileView({
                 required
               />
               <Button className="button primary small" disabled={working}>
-                Save notes
+                Save
               </Button>
             </div>
             <label className="sr-only" htmlFor="profile-content">
@@ -615,7 +601,7 @@ export function ProfileView({
           </form>
         </section>
         <aside className="profile-aside">
-          <h3>Your source files</h3>
+          <h3>Notes</h3>
           {data.profile.length ? (
             data.profile.map((file) => (
               <Button
@@ -631,7 +617,7 @@ export function ProfileView({
               </Button>
             ))
           ) : (
-            <p className="quiet">Save your first note to get started.</p>
+            <p className="quiet">No notes saved yet.</p>
           )}
           <Button
             className="text-button"
@@ -643,10 +629,10 @@ export function ProfileView({
             <Plus size={14} /> New note
           </Button>
           <div className="profile-tip">
-            <h3>What makes a good note?</h3>
+            <h3>Writing useful notes</h3>
             <p>
-              Write specific facts about your work, projects, and skills. Include numbers only when
-              you can verify them.
+              One fact per bullet: what you built, for whom, and what changed. Only include numbers
+              you could back up in an interview.
             </p>
             <p>
               The demo writer uses your bullet points verbatim. Real runtimes can tailor the
@@ -658,7 +644,11 @@ export function ProfileView({
       <div className="data-location">
         <FolderOpen size={17} />
         <span>
-          Stored on this device in <code>{data.dataDirectory}\profile</code>
+          Stored in{' '}
+          <code>
+            {data.dataDirectory}
+            {data.dataDirectory.includes('\\') ? '\\' : '/'}profile
+          </code>
         </span>
       </div>
     </>
@@ -688,13 +678,13 @@ export function InboxView({
     <>
       <div className="inbox-tabs">
         <Button className={tab === 'pending' ? 'active' : ''} onClick={() => setTab('pending')}>
-          For your review{' '}
+          Waiting{' '}
           <span>
             {data.approvals.filter((a) => ['pending', 'approved'].includes(a.status)).length}
           </span>
         </Button>
         <Button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>
-          Decision history
+          Decided
         </Button>
       </div>
       {approvals.length ? (
@@ -704,9 +694,6 @@ export function InboxView({
             return (
               <section key={approval.id} className="approval-card">
                 <div className="approval-heading">
-                  <span className="approval-icon">
-                    <Download size={21} />
-                  </span>
                   <div>
                     <h2>Export application packet</h2>
                     <p>
@@ -729,7 +716,7 @@ export function InboxView({
                 </p>
                 <details className="approval-preview">
                   <summary>
-                    <FileText size={15} /> Review the exact packet
+                    <FileText size={15} /> Show the packet
                   </summary>
                   {Object.entries(approval.packet)
                     .filter(([key]) => key !== 'claims')
@@ -748,7 +735,7 @@ export function InboxView({
                 </details>
                 <div className="approval-footer">
                   <Button className="text-button" onClick={() => onOpen(card.id)}>
-                    Open opportunity <ArrowRight size={14} />
+                    Open job <ArrowRight size={14} />
                   </Button>
                   <span className="subtle">{timeAgo(approval.createdAt)}</span>
                   {approval.status === 'pending' ? (
@@ -809,21 +796,18 @@ export function InboxView({
         </div>
       ) : (
         <EmptyState
-          title={tab === 'pending' ? 'You’re all caught up' : 'Your decisions will appear here'}
+          title={tab === 'pending' ? 'Nothing to approve' : 'No decisions yet'}
           description={
             tab === 'pending'
-              ? 'Once your reviewer agrees on a packet, request approval from its opportunity card.'
-              : 'Approved exports and rejected requests are recorded in your workspace history.'
+              ? 'When Reviewer agrees on a packet, request approval from the job’s card.'
+              : 'Approved exports and rejections are kept here.'
           }
         />
       )}
-      <div className="info-note">
-        <ShieldCheck size={17} />
-        <p>
-          Approval applies to this exact packet and can be used once. This MVP exports locally; it
-          does not send emails or submit applications.
-        </p>
-      </div>
+      <p className="info-note">
+        An approval is bound to one exact packet and works for a single export. Pitchcrew only
+        writes files to this machine; it never emails or submits anything for you.
+      </p>
     </>
   );
 }

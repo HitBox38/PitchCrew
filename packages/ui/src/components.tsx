@@ -1,17 +1,8 @@
 import { Button } from './components/ui/button.tsx';
-import { type ReactNode, useId } from 'react';
+import { type ReactNode } from 'react';
 import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog.tsx';
 import { Sheet, SheetContent, SheetTitle } from './components/ui/sheet.tsx';
-import {
-  X,
-  Search,
-  PenLine,
-  ShieldCheck,
-  MapPin,
-  ArrowUpRight,
-  LoaderCircle,
-  MoreHorizontal,
-} from 'lucide-react';
+import { X, Search, PenLine, ShieldCheck, LoaderCircle } from 'lucide-react';
 import type { Card, CardState, RoleId } from '@pitchcrew/core';
 export const stateLabels: Record<CardState, string> = {
   lead: 'New lead',
@@ -46,25 +37,13 @@ export function RoleAvatar({
   );
 }
 export function Brand({ compact = false }: { compact?: boolean }) {
-  const glaze = useId();
   return (
     <div className="brand">
-      <svg viewBox="0 0 40 40" width="34" height="34" aria-hidden="true">
-        <defs>
-          <radialGradient id={glaze} cx="30%" cy="22%" r="85%">
-            <stop offset="0" stopColor="#7d96c2" />
-            <stop offset="0.55" stopColor="currentColor" />
-            <stop offset="1" stopColor="#273a5f" />
-          </radialGradient>
-        </defs>
-        <rect width="40" height="40" rx="12" fill={`url(#${glaze})`} />
+      <svg viewBox="0 0 40 40" width="26" height="26" aria-hidden="true">
+        <rect width="40" height="40" rx="11" fill="currentColor" />
         <path d="M12 29V12h9a8 8 0 0 1 0 16h-3v-6h3a2 2 0 0 0 0-4h-3v11z" fill="white" />
       </svg>
-      {!compact ? (
-        <span>
-          pitchcrew<span className="brand-dot">.</span>
-        </span>
-      ) : null}
+      {!compact ? <span>pitchcrew</span> : null}
     </div>
   );
 }
@@ -146,30 +125,31 @@ export function JobCard({ card, onOpen }: { card: Card; onOpen: () => void }) {
     >
       <div className="job-top">
         <CompanyMark name={card.company} />
-        <div>
-          <strong>{card.company}</strong>
-          <span>{card.sample ? 'Example opportunity' : 'Your opportunity'}</span>
-        </div>
-        <MoreHorizontal size={17} className="job-more" aria-hidden="true" />
+        <strong>{card.company}</strong>
+        {card.sample ? <span className="sample-tag">example</span> : null}
       </div>
       <h3>{card.title}</h3>
-      <div className="job-location">
-        <MapPin size={13} aria-hidden="true" />
-        {card.location || 'Location unspecified'}
-      </div>
-      {card.salary ? <div className="salary">{card.salary}</div> : null}
-      <div className="tags">
-        {card.tags.slice(0, 3).map((tag) => (
-          <span key={tag}>{tag}</span>
-        ))}
-      </div>
+      <p className="job-location">
+        {card.location || 'Location not given'}
+        {card.salary ? <span> · {card.salary}</span> : null}
+      </p>
+      {card.tags.length ? (
+        <div className="tags">
+          {card.tags.slice(0, 3).map((tag) => (
+            <span key={tag}>{tag}</span>
+          ))}
+        </div>
+      ) : null}
       <div className="job-bottom">
         {card.fit !== null ? (
           <span className={`fit ${card.fit >= 80 ? 'high' : ''}`}>
-            <span /> {card.fit}% fit
+            <span className="fit-meter" aria-hidden="true">
+              <span style={{ width: `${card.fit}%` }} />
+            </span>
+            {card.fit}% fit
           </span>
         ) : (
-          <span className="subtle">Ready for Scout</span>
+          <span className="subtle">Not scored</span>
         )}
         {card.owner ? (
           <span className="owner">
@@ -194,9 +174,6 @@ export function EmptyState({
 }) {
   return (
     <div className="empty-state">
-      <div className="empty-icon">
-        <ArrowUpRight size={25} />
-      </div>
       <h3>{title}</h3>
       <p>{description}</p>
       {children}
