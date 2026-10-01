@@ -1,6 +1,6 @@
 ﻿# Pitchcrew
 
-A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, or Codex. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
+A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
 **Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, track your applications, and chat with each role or follow the crew conversation. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
 
@@ -42,7 +42,41 @@ pnpm desktop:prod
 
 **Demo makes no AI calls.** Its fit scores are keyword examples and its drafts reuse profile bullets; they need personalization before use. Loading examples is explicit and refuses to overwrite an existing profile.
 
-In **Your crew**, select a runtime, optional model, instructions, agent capabilities, and whether a role is enabled. Claude Code and Codex must already be installed on PATH and signed in using their own CLIs. Detection runs only `--version`; chat turns and workflow runs may use your provider account, including agent-requested follow-ups. Real provider executions have not been exercised during this MVP's verification.
+In **Your crew**, select a runtime, optional model, instructions, agent capabilities, and whether a role is enabled. Real runtimes must already be installed on PATH with their native authentication configured. Detection runs only `--version`; chat turns and workflow runs may use your provider account, including bounded agent-requested follow-ups. Real provider executions have not been exercised during automated verification.
+
+| Runtime                                                                                                        | Executable     | Model setting                                    |
+| -------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
+| Claude Code                                                                                                    | `claude`       | CLI model name, or empty for its default         |
+| Codex                                                                                                          | `codex`        | CLI model name, or empty for its default         |
+| [Gemini CLI](https://geminicli.com/docs/cli/headless/)                                                         | `gemini`       | CLI model name, or empty for its default         |
+| [OpenCode](https://opencode.ai/docs/cli/)                                                                      | `opencode`     | `provider/model`, or empty for its default       |
+| [GitHub Copilot CLI](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference) | `copilot`      | CLI model name, or empty for its default         |
+| [Cursor Agent](https://cursor.com/docs/cli/reference/parameters)                                               | `cursor-agent` | CLI model name, or empty for its default         |
+| [Goose](https://block.github.io/goose/docs/guides/goose-cli-commands/)                                         | `goose`        | `provider/model`, or native environment defaults |
+| [Kiro CLI](https://kiro.dev/docs/cli/acp/)                                                                     | `kiro-cli`     | CLI model name, or empty for its default         |
+| [Grok Build](https://docs.x.ai/build/cli)                                                                      | `grok`         | CLI model name, or empty for its default         |
+| [Pi](https://github.com/earendil-works/pi)                                                                     | `pi`           | `provider/model`, or empty for its default       |
+| [oh-my-pi](https://github.com/can1357/oh-my-pi)                                                                | `omp`          | `provider/model`, or empty for its default       |
+
+Gemini CLI uses per-run system settings to disable built-in tools, extensions, skills and hooks, and allow only Pitchcrew MCP. OpenCode uses an isolated configuration directory, a fresh session, `--pure` to disable external plugins, and permissions that deny every tool except `pitchcrew_*`. Automatic session sharing is disabled. OpenCode's user configuration (including custom provider definitions) is not loaded; built-in providers use the CLI's existing sign-in or environment configuration. These adapters target Gemini CLI 0.62 and OpenCode 1.18; older versions may need an upgrade. Neither adapter reads or copies provider credentials.
+
+GitHub Copilot CLI receives an isolated `COPILOT_HOME`, only `pitchcrew/*` tools available, built-in MCP disabled, hooks disabled in run settings, and session export disabled. Its native keychain or native authentication environment must supply sign-in; fallback tokens stored in the user's Copilot configuration file are not imported. This adapter targets Copilot CLI 1.0.91.
+
+Cursor Agent receives isolated CLI settings and project MCP configuration, an explicit permission allowlist for `Mcp(pitchcrew:*)`, and denials for shell, file reads/writes and web fetching. It runs without `--force` or automatic tool review. MCP server approval permits connection; it does not bypass tool permissions. Cursor Agent 2026.09.26 or newer is required: older builds do not isolate global MCP discovery, so they appear unavailable with upgrade instructions. Native credential/data locations remain unchanged. Runtime-managed enterprise policies and account extensions remain subject to the runtime's behavior.
+
+Goose uses an isolated `GOOSE_PATH_ROOT` and an explicit recipe containing only Pitchcrew MCP, with no saved session. Its user configuration, plugins and hooks are not imported. Set the model to `provider/model` using `openai`, `anthropic`, `google`, `ollama` or `openrouter`; alternatively, set `GOOSE_PROVIDER` and `GOOSE_MODEL` in the daemon environment. Providers that launch another agent CLI are excluded because they can expose tools outside this recipe. Native keyring/environment authentication stays with Goose; file-based credentials in the user configuration are not imported. This adapter targets Goose 1.44.0.
+
+Kiro CLI runs one fresh ACP session using the V2 engine and an isolated `KIRO_HOME`. The generated custom agent exposes and trusts only `@pitchcrew/*`, disables external MCP discovery and powers, and has no resources or hooks. Pitchcrew declines ACP permission requests and provides no filesystem or terminal client capabilities. Configure native headless authentication using `KIRO_API_KEY` in the daemon environment; existing login files are not imported. This adapter targets Kiro CLI 2.26.1. See [Kiro headless authentication](https://kiro.dev/docs/cli/headless/).
+
+Grok Build uses an isolated `GROK_HOME`, a fresh headless session and only its native MCP search/call helpers. Only Pitchcrew MCP is configured and permitted; native file reads (including file-backed MCP arguments) are denied. Built-in shell, editing, web and subagent tools are excluded, and memory, compatibility discovery and automatic updates are disabled. Set `XAI_API_KEY` in the daemon environment; existing login files are not imported. The adapter requires the official xAI Grok Build CLI 1.0.45 or newer.
+
+Pi requires version 1.0.0 or newer from the current `earendil-works/pi` project, which includes native MCP support. It receives an isolated `PI_CODING_AGENT_DIR` and loads only the built-in MCP extension with direct Pitchcrew tool exposure. Built-in tools, ambient extensions, skills, prompt templates, context files and session persistence are disabled. Older Pi packages without native MCP support appear unavailable with upgrade instructions.
+
+oh-my-pi requires `omp` 18.4.9 or newer. It receives isolated configuration and data paths, waits for Pitchcrew MCP discovery, and exposes only the five scoped MCP tools. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data directory must be on the same drive as the user home so OMP's native configuration-root resolution can isolate the run.
+
+Pi and oh-my-pi inherit their CLI's native provider authentication environment (for example, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`). User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime's default or use `provider/model`. Pitchcrew never reads, copies or stores these credentials.
+
+These integrations have subprocess contract coverage; live provider runs have not been verified.
 
 ## Connect GitHub and Google Workspace
 
@@ -52,7 +86,7 @@ In **Your crew → Connected accounts**, connect GitHub with a fine-grained toke
 
 Open **Chat** or click a role in the sidebar. Talk privately with Scout, Writer or Reviewer, or join the **Crew conversation** to see agent messages and handoffs. Attach a job to give a turn application context. AI Elements provides the conversation, Markdown messages and composer in Pitchcrew’s visual style.
 
-Claude Code and Codex can use board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
+Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
 
 Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions.
 
@@ -88,7 +122,7 @@ pnpm dev
 | `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                               |
 | `board`        | SQLite event log, projections, exact-payload approval tokens                                                        |
 | `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities                                    |
-| `adapters`     | Demo and headless Claude Code/Codex process integrations                                                            |
+| `adapters`     | Demo and native CLI/ACP runtime integrations                                                                        |
 | `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export |
 | `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                          |
 | `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                                                |
@@ -117,6 +151,6 @@ Tests use fictional fixtures and temporary workspaces. They cover transitions, a
 
 ## MVP boundaries
 
-Discovery is manual. Roles launch from user chat/workflow actions and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. OpenCode and other runtimes are future adapters. Desktop installers and auto-updates are also deferred.
+Discovery is manual. Roles launch from user chat/workflow actions and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Desktop installers, auto-updates and further runtimes are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.

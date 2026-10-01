@@ -537,14 +537,14 @@ export function App() {
                     </div>
                     {runtime.version ? <small>{runtime.version}</small> : null}
                     <span className={`badge ${runtime.available ? 'success' : ''}`}>
-                      {runtime.available ? 'Available' : 'Not installed'}
+                      {runtime.available ? 'Available' : 'Unavailable'}
                     </span>
                   </div>
                 ))}
               </div>
               <p className="info-note">
-                Demo makes deterministic drafts without calling a model. Claude Code and Codex run
-                under your own CLI login for conversations and job workflows.
+                Demo makes deterministic drafts without calling a model. Other runtimes use their
+                native authentication for conversations and job workflows.
               </p>
             </>
           ) : null}

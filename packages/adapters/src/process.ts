@@ -1,8 +1,76 @@
-import { spawn, execFile } from 'node:child_process';
+import { spawn, execFile, type ChildProcess } from 'node:child_process';
 import { promisify } from 'node:util';
-import type { RuntimeHealth, RuntimeId, RunContext, RunResult, ChatContext } from '@pitchcrew/core';
+import type {
+  RuntimeAdapter,
+  RuntimeHealth,
+  RuntimeId,
+  RunContext,
+  RunResult,
+  ChatContext,
+} from '@pitchcrew/core';
 import { runResultSchema, chatResultSchema, defaultCapabilities } from '@pitchcrew/core';
 const exec = promisify(execFile);
+export function withChat(adapter: {
+  id: RuntimeId;
+  detect(): Promise<RuntimeHealth>;
+  launch(context: RunContext | ChatContext, prompt: string): Promise<string>;
+}): RuntimeAdapter {
+  return {
+    id: adapter.id,
+    detect: () => adapter.detect(),
+    run: async (context) =>
+      parseWorkflowResult(await adapter.launch(context, promptFor(context)), context),
+    chat: async (context) =>
+      chatResultSchema.parse(
+        JSON.parse(cleanResult(await adapter.launch(context, chatPromptFor(context)))),
+      ),
+  };
+}
+export function runtimeEnvironment(
+  context: RunContext | ChatContext,
+  env: Record<string, string | undefined> = {},
+) {
+  return {
+    ...Object.fromEntries(
+      Object.entries(process.env).filter(([key]) => !key.startsWith('PITCHCREW_GOOGLE_')),
+    ),
+    ...context.mcp.env,
+    ...env,
+  };
+}
+export function parseWorkflowResult(text: string, context: RunContext): RunResult {
+  try {
+    return parseResult(text, context);
+  } catch {
+    throw new Error(
+      'The runtime did not return a valid structured result. Check its model/sign-in and retry.',
+    );
+  }
+}
+export function requireCliVersion(
+  health: RuntimeHealth,
+  minimum: readonly number[],
+  command: string,
+): RuntimeHealth {
+  if (!health.available) return health;
+  const match = health.version.match(/(?:^|[^\d])(\d+)\.(\d+)\.(\d+)\b/);
+  const version = match?.slice(1).map(Number);
+  const difference = version?.map((part, i) => part - minimum[i]).find((part) => part !== 0);
+  if (version && (difference === undefined || difference > 0)) return health;
+  return {
+    ...health,
+    available: false,
+    detail: `${command} ${minimum.join('.')} or newer is required for scoped MCP runs. Upgrade ${command} and retry.`,
+  };
+}
+export function terminateCli(child: ChildProcess) {
+  if (process.platform === 'win32' && child.pid)
+    spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+      windowsHide: true,
+      stdio: 'ignore',
+    });
+  else child.kill('SIGTERM');
+}
 export async function detectCli(id: RuntimeId, command: string): Promise<RuntimeHealth> {
   try {
     const { stdout } = await exec(command, ['--version'], { timeout: 5000, windowsHide: true });
@@ -10,14 +78,14 @@ export async function detectCli(id: RuntimeId, command: string): Promise<Runtime
       id,
       available: true,
       version: stdout.trim().slice(0, 100),
-      detail: 'Installed. Sign-in is managed by the CLI.',
+      detail: 'Installed. Authentication is managed by the CLI.',
     };
   } catch {
     return {
       id,
       available: false,
       version: '',
-      detail: `Install ${command} and sign in with its CLI to connect.`,
+      detail: `Install ${command} and configure its native authentication to connect.`,
     };
   }
 }
@@ -61,15 +129,20 @@ export async function runCli(
   context: RunContext,
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
+  env: Record<string, string | undefined> = {},
 ): Promise<RunResult> {
-  return parseResult(await runCliText(command, args, context, prompt, extract), context);
+  return parseWorkflowResult(
+    await runCliText(command, args, context, prompt, extract, env),
+    context,
+  );
 }
-async function runCliText(
+export async function runCliText(
   command: string,
   args: string[],
   context: RunContext | ChatContext,
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
+  env: Record<string, string | undefined> = {},
 ): Promise<string> {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   return new Promise((resolve, reject) => {
@@ -77,39 +150,28 @@ async function runCliText(
       cwd: context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: {
-        ...Object.fromEntries(
-          Object.entries(process.env).filter(([key]) => !key.startsWith('PITCHCREW_GOOGLE_')),
-        ),
-        ...context.mcp.env,
-      },
+      env: runtimeEnvironment(context, env),
     });
     let buffer = '',
       result = '',
       error = '',
       bytes = 0;
     let timedOut = false;
-    const kill = () => {
-      if (process.platform === 'win32' && child.pid)
-        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
-          windowsHide: true,
-          stdio: 'ignore',
-        });
-      else child.kill('SIGTERM');
-    };
+    const kill = () => terminateCli(child);
     const timer = setTimeout(() => {
       timedOut = true;
       kill();
     }, 180000);
     context.signal.addEventListener('abort', kill, { once: true });
-    child.stdout.on('data', (chunk: Buffer) => {
-      bytes += chunk.length;
+    child.stdout.setEncoding('utf8');
+    child.stdout.on('data', (chunk: string) => {
+      bytes += Buffer.byteLength(chunk);
       if (bytes > 4_000_000) {
         error = 'Runtime output exceeded its limit.';
         kill();
         return;
       }
-      buffer += chunk.toString();
+      buffer += chunk;
       let end: number;
       while ((end = buffer.indexOf('\n')) >= 0) {
         const line = buffer.slice(0, end);

@@ -8,7 +8,7 @@ A local-first job-search app with a crew of role agents. Pitchcrew starts runtim
 
 ## Status
 
-Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persistent role and crew chats with AI Elements, bounded agent-triggered follow-ups, user-approved role change proposals, source-backed Markdown packets, approval-gated local export, manual application tracking, and role-scoped read-only GitHub/Google Workspace connectors. Demo is deterministic. Claude Code and Codex adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
+Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persistent role and crew chats with AI Elements, bounded agent-triggered follow-ups, user-approved role change proposals, source-backed Markdown packets, approval-gated local export, manual application tracking, and role-scoped read-only GitHub/Google Workspace connectors. Demo is deterministic. Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi and oh-my-pi adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
 
 ## Stack
 
@@ -32,6 +32,15 @@ packages/
     src/demo/
     src/claude-code/
     src/codex/
+    src/gemini-cli/
+    src/opencode/
+    src/copilot-cli/
+    src/cursor-agent/
+    src/goose/
+    src/kiro-cli/
+    src/grok/
+    src/pi/
+    src/oh-my-pi/
   mcp/            # stdio tools, read-only connector clients/auth and shared export gate
   packet/         # source quotation checks, word caps, versioned Markdown files
   ui/             # shared React renderer, shadcn components in src/components/ui
@@ -82,7 +91,7 @@ These must stay true. A change that breaks one is a bug even if tests pass.
 3. **Agents coordinate through the board only.** Internal messages and invocations are persisted board entities with scoped MCP tools; no adapter-to-adapter messaging and no shared runtime sessions across roles.
 4. **Events are append-only and stay decodable.** Never rewrite or delete stored events. Schema changes add a new version and retain a decoder for every old version.
 5. **Health checks have no side effects.** detect() never signs in, creates a session or spends tokens.
-6. **Credentials stay with the runtime.** Pitchcrew never reads, copies or stores provider tokens. Adapters rely on the CLI's own login.
+6. **Credentials stay with the runtime.** Pitchcrew never reads, copies or stores provider tokens. Adapters rely on the CLI's native authentication, including its environment configuration.
 7. **The daemon binds to 127.0.0.1 only.** Keep origin/Host checks and user-session/run-capability boundaries intact.
 8. **User data never enters the repo.** Profile notes, packets and DB live outside it. Tests use fictional fixtures and checked temporary cleanup paths.
 9. **Rules change only with user approval.** Agents propose their own instruction/capability changes in chat and never apply them directly. Only user settings or an explicit user decision on a proposal updates roles; rules.yaml is deferred.

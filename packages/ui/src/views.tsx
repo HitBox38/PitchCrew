@@ -465,7 +465,7 @@ export function RoleSettings({
   const [error, setError] = useState('');
   const runtimeItems = data.runtimes.map((r) => ({
     value: r.id,
-    label: `${runtimeLabels[r.id]}${r.available ? '' : ' (not installed)'}`,
+    label: `${runtimeLabels[r.id]}${r.available ? '' : ' (unavailable)'}`,
   }));
   async function save(e: FormEvent) {
     e.preventDefault();
@@ -511,7 +511,11 @@ export function RoleSettings({
           value={model}
           onChange={(e) => setModel(e.target.value)}
           maxLength={100}
-          placeholder="Your runtime’s model name"
+          placeholder={
+            ['opencode', 'goose', 'pi', 'oh-my-pi'].includes(runtime)
+              ? 'provider/model'
+              : 'Your runtime’s model name'
+          }
           disabled={runtime === 'demo'}
         />
       </label>

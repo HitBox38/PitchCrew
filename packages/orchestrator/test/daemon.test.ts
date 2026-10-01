@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import { createDaemon } from '../src/server.ts';
-import type { Approval, Card, Run, Snapshot } from '@pitchcrew/core';
+import type { Approval, Card, Role, Run, Snapshot } from '@pitchcrew/core';
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
 async function setup(port: number) {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
@@ -51,6 +51,42 @@ async function finish(request: <T>(path: string) => Promise<{ result: T }>, id: 
   throw new Error('Run did not finish.');
 }
 describe('local daemon workflow', () => {
+  it('exposes the new runtimes and persists their role settings through event replay', async () => {
+    const { daemon, request } = await setup(14420);
+    const { result: snapshot } = await request<Snapshot>('/snapshot');
+    expect(snapshot.runtimes.map((runtime) => runtime.id)).toEqual([
+      'demo',
+      'claude-code',
+      'codex',
+      'gemini-cli',
+      'opencode',
+      'copilot-cli',
+      'cursor-agent',
+      'goose',
+      'kiro-cli',
+      'grok',
+      'pi',
+      'oh-my-pi',
+    ]);
+    for (const [id, runtime, model] of [
+      ['scout', 'gemini-cli', 'fixture-model'],
+      ['writer', 'opencode', 'example/fixture-model'],
+      ['reviewer', 'copilot-cli', 'fixture-model'],
+      ['scout', 'cursor-agent', 'fixture-model'],
+      ['writer', 'goose', 'openai/fixture-model'],
+      ['reviewer', 'kiro-cli', 'fixture-model'],
+      ['scout', 'grok', 'fixture-model'],
+      ['writer', 'pi', 'example/fixture-model'],
+      ['reviewer', 'oh-my-pi', 'example/fixture-model'],
+    ] as const) {
+      const settings = { runtime, model, enabled: true, instructions: 'Fictional role settings.' };
+      const saved = await request<Role>(`/roles/${id}`, 'PUT', settings);
+      expect(saved.response.status).toBe(200);
+      expect(saved.result).toMatchObject(settings);
+      daemon.service.board.rebuild();
+      expect(daemon.service.board.get<Role>('role', id)).toMatchObject(settings);
+    }
+  });
   it('runs a source-backed application through review, approval, export and manual tracking', async () => {
     const { request, directory } = await setup(14417);
     await request('/profile', 'PUT', {
