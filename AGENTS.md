@@ -18,6 +18,7 @@ Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer ru
 - React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
 - Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier.
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
+- Electron uses a paper-themed draggable title bar with native macOS traffic lights and Windows/Linux window-control overlays. Its sandboxed CommonJS preload synchronizes the renderer theme through a main-frame, origin-checked IPC channel without exposing Electron APIs to the page.
 - Vitest for unit, HTTP workflow, adapter contract, and actual MCP stdio tests.
 
 ## Layout

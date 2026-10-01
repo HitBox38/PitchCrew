@@ -54,6 +54,21 @@ try {
     !result.uiReady
   )
     throw new Error('Electron renderer/daemon check failed.');
+  if (
+    !result.themeSourceRestored ||
+    result.chrome?.length !== 2 ||
+    !result.chrome.every(
+      (chrome) =>
+        chrome.platform === process.platform &&
+        chrome.height === 40 &&
+        chrome.sidebarTop === 40 &&
+        chrome.dragRegion === 'drag' &&
+        !chrome.overflow &&
+        chrome.nativeTheme === chrome.theme &&
+        chrome.background === (chrome.theme === 'dark' ? 'rgb(26, 27, 30)' : 'rgb(242, 241, 236)'),
+    )
+  )
+    throw new Error('Electron title bar theme/layout check failed.');
   console.log(
     JSON.stringify(
       { check: 'passed', ...result, evidence, screenshot: `${evidence}.png` },

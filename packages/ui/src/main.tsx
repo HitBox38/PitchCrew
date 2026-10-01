@@ -8,6 +8,9 @@ import { App } from './App.tsx';
 import './styles.css';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
+    <div className="desktop-titlebar" aria-hidden="true">
+      <span>Pitchcrew</span>
+    </div>
     <App />
   </React.StrictMode>,
 );
