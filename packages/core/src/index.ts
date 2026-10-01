@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { runtimeIds, type CardState, type RoleId, type RuntimeId } from './states.ts';
+import { runtimeIds, roleIds, type CardState, type RoleId, type RuntimeId } from './states.ts';
 
 export * from './states.ts';
 export const cardInput = z.object({
@@ -58,16 +58,78 @@ export interface Role {
   model: string;
   enabled: boolean;
   instructions: string;
+  capabilities?: AgentCapabilities;
 }
+export const capabilitySchema = z.object({
+  messageAgents: z.boolean(),
+  invokeAgents: z.boolean(),
+  manageWorkflow: z.boolean(),
+});
+export type AgentCapabilities = z.infer<typeof capabilitySchema>;
+export const defaultCapabilities: AgentCapabilities = {
+  messageAgents: true,
+  invokeAgents: true,
+  manageWorkflow: true,
+};
 export interface Run {
   id: string;
-  cardId: string;
+  cardId: string | null;
   roleId: RoleId;
   runtime: RuntimeId;
   status: 'running' | 'completed' | 'failed' | 'cancelled';
   message: string;
   startedAt: string;
   finishedAt: string | null;
+  mode?: 'workflow' | 'chat';
+  rootRunId?: string;
+  taskId?: string;
+  threadId?: RoleId | 'crew';
+}
+export interface ChatMessage {
+  id: string;
+  threadId: RoleId | 'crew';
+  from: RoleId | 'user' | 'system';
+  to: RoleId | 'user' | 'crew';
+  content: string;
+  cardId: string | null;
+  runId: string | null;
+  createdAt: string;
+}
+export const chatInput = z.object({
+  content: z.string().trim().min(1).max(8000),
+  cardId: z.uuid().nullable().default(null),
+  threadId: z.union([z.enum(roleIds), z.literal('crew')]).optional(),
+});
+export const roleChanges = z
+  .object({
+    instructions: z.string().max(12000).optional(),
+    capabilities: capabilitySchema.optional(),
+  })
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, 'Propose at least one change.');
+export interface RoleProposal {
+  id: string;
+  roleId: RoleId;
+  runId: string;
+  reason: string;
+  changes: z.infer<typeof roleChanges>;
+  status: 'pending' | 'applied' | 'rejected';
+  createdAt: string;
+}
+export interface AgentTask {
+  id: string;
+  parentRunId: string;
+  rootRunId: string;
+  roleId: RoleId;
+  cardId: string | null;
+  mode: 'chat' | 'workflow';
+  trigger: 'message' | 'invoke';
+  threadId: RoleId | 'crew';
+  content: string;
+  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+  runId: string | null;
+  error: string;
+  createdAt: string;
 }
 export interface Approval {
   id: string;
@@ -82,12 +144,12 @@ export interface Approval {
 }
 export interface BoardEvent {
   id: number;
-  version: 1;
-  kind: 'card' | 'role' | 'run' | 'approval';
+  version: 1 | 2;
+  kind: 'card' | 'role' | 'run' | 'approval' | 'message' | 'proposal' | 'task';
   entityId: string;
   actor: string;
   message: string;
-  data: Card | Role | Run | Approval;
+  data: Card | Role | Run | Approval | ChatMessage | RoleProposal | AgentTask;
   createdAt: string;
 }
 export interface ProfileFile {
@@ -110,12 +172,16 @@ export interface Snapshot {
   runtimes: RuntimeHealth[];
   dataDirectory: string;
   demoAvailable: boolean;
+  messages: ChatMessage[];
+  proposals: RoleProposal[];
+  tasks: AgentTask[];
 }
 export const rolePatch = z.object({
   runtime: z.enum(runtimeIds),
   model: z.string().trim().max(100),
   enabled: z.boolean(),
   instructions: z.string().max(12000),
+  capabilities: capabilitySchema.optional(),
 });
 export const runResultSchema = z.discriminatedUnion('role', [
   z.object({
@@ -139,14 +205,23 @@ export interface RunContext {
   mcp: { command: string; args: string[]; env: Record<string, string> };
   signal: AbortSignal;
   onMessage: (message: string) => void;
+  request?: string;
 }
 export interface RuntimeAdapter {
   id: RuntimeId;
   detect(): Promise<RuntimeHealth>;
   run(context: RunContext): Promise<RunResult>;
+  chat(context: ChatContext): Promise<ChatResult>;
 }
+export interface ChatContext extends Omit<RunContext, 'card'> {
+  card: Card | null;
+  messages: ChatMessage[];
+}
+export const chatResultSchema = z.object({ reply: z.string().trim().min(1).max(12000) });
+export type ChatResult = z.infer<typeof chatResultSchema>;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
-  if (event.version !== 1) throw new Error(`Unsupported event version: ${event.version}`);
+  if (event.version !== 1 && event.version !== 2)
+    throw new Error(`Unsupported event version: ${event.version}`);
   return event;
 }

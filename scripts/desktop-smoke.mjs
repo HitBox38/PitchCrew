@@ -31,7 +31,12 @@ try {
     }
     if (!ready) throw new Error('The smoke-test daemon did not start.');
   }
-  const env = { ...process.env, PITCHCREW_URL: url, PITCHCREW_SMOKE_FILE: evidence };
+  const env = {
+    ...process.env,
+    PITCHCREW_URL: url,
+    PITCHCREW_SMOKE_FILE: evidence,
+    PITCHCREW_SMOKE_CHAT: process.env.PITCHCREW_URL ? '0' : '1',
+  };
   delete env.ELECTRON_RUN_AS_NODE;
   desktop = spawn(electron, [resolve('packages/desktop/dist/main.mjs')], {
     env,
@@ -51,7 +56,9 @@ try {
     result.requireType !== 'undefined' ||
     result.roles !== 3 ||
     !result.iconLoaded ||
-    !result.uiReady
+    !result.uiReady ||
+    (!process.env.PITCHCREW_URL &&
+      (!result.chatReady || !result.chatResponded || !result.chatTabsReady))
   )
     throw new Error('Electron renderer/daemon check failed.');
   if (

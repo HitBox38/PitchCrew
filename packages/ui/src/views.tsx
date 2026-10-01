@@ -1,3 +1,4 @@
+import { capabilityLabels } from './agent-capabilities.ts';
 import { Textarea } from './components/ui/textarea.tsx';
 import {
   Select,
@@ -460,6 +461,9 @@ export function RoleSettings({
   const [model, setModel] = useState(role.model);
   const [enabled, setEnabled] = useState(role.enabled);
   const [instructions, setInstructions] = useState(role.instructions);
+  const [capabilities, setCapabilities] = useState(
+    role.capabilities ?? { messageAgents: true, invokeAgents: true, manageWorkflow: true },
+  );
   const [error, setError] = useState('');
   const runtimeItems = data.runtimes.map((r) => ({
     value: r.id,
@@ -471,7 +475,7 @@ export function RoleSettings({
       await action(
         `/roles/${role.id}`,
         'PUT',
-        { runtime, model, enabled, instructions },
+        { runtime, model, enabled, instructions, capabilities },
         `${role.name} settings saved`,
       );
       onClose();
@@ -526,8 +530,23 @@ export function RoleSettings({
           maxLength={12000}
         />
       </label>
+      <fieldset className="role-capabilities">
+        <legend>Agent capabilities</legend>
+        {Object.entries(capabilityLabels).map(([key, label]) => (
+          <label className="checkbox-label" key={key}>
+            <Checkbox
+              checked={capabilities[key as keyof typeof capabilities]}
+              onCheckedChange={(checked) =>
+                setCapabilities((current) => ({ ...current, [key]: checked }))
+              }
+            />
+            {label}
+          </label>
+        ))}
+      </fieldset>
       <p className="quiet">
-        Runs start when you choose an action on a card. Automatic schedules are coming later.
+        Crew follow-ups run after the current turn finishes, with at most six per chain. Agents
+        propose instruction and capability changes for you to apply in chat.
       </p>
       {error ? (
         <p role="alert" className="form-error">

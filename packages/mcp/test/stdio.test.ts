@@ -12,10 +12,10 @@ import { packet, profile } from './fixtures/evaluation.ts';
 it('connects the real stdio server to a scoped daemon and preserves approval boundaries', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
-  const daemon = await createDaemon({ directory, port: 14421 });
+  const daemon = await createDaemon({ directory, port: 14431 });
   const client = new Client({ name: 'pitchcrew-contract-test', version: '1.0.0' });
   try {
-    await new Promise<void>((resolve) => daemon.http.listen(14421, '127.0.0.1', resolve));
+    await new Promise<void>((resolve) => daemon.http.listen(14431, '127.0.0.1', resolve));
     for (const file of profile) await daemon.service.saveProfile(file.name, file.content);
     const board = daemon.service.board;
     const card = board.createCard(
@@ -42,6 +42,21 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     board.move(card.id, 'agreed', 'reviewer');
     const approval = board.requestApproval(card.id);
     // A deterministic capability fixture avoids launching or spending tokens on a provider CLI.
+    board.record(
+      'run',
+      {
+        id: 'fixture',
+        cardId: card.id,
+        roleId: 'reviewer',
+        runtime: 'demo',
+        status: 'running',
+        message: 'Fixture capability',
+        startedAt: '',
+        finishedAt: null,
+      },
+      'reviewer',
+      'Fixture run',
+    );
     const token = 'fixture-run-capability';
     daemon.service.capabilities.set(token, {
       runId: 'fixture',
@@ -68,13 +83,43 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     });
     await client.connect(transport);
     const listed = await client.listTools();
-    expect(listed.tools.map((tool) => tool.name).sort()).toEqual([
-      'pitchcrew_export_packet',
-      'pitchcrew_get_card',
-      'pitchcrew_get_history',
-      'pitchcrew_lint_packet',
-      'pitchcrew_read_profile',
-    ]);
+    expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
+      [
+        'pitchcrew_export_packet',
+        'pitchcrew_get_card',
+        'pitchcrew_get_history',
+        'pitchcrew_lint_packet',
+        'pitchcrew_read_profile',
+        'pitchcrew_read_messages',
+        'pitchcrew_message_agent',
+        'pitchcrew_invoke_agent',
+        'pitchcrew_propose_role_changes',
+        'pitchcrew_change_workflow',
+      ].sort(),
+    );
+    const proposed = await client.callTool({
+      name: 'pitchcrew_propose_role_changes',
+      arguments: {
+        reason: 'Use stricter evidence checks.',
+        changes: { instructions: 'Check every registered quotation.' },
+      },
+    });
+    expect(proposed.structuredContent).toMatchObject({
+      proposal: { roleId: 'reviewer', status: 'pending' },
+    });
+    const messaged = await client.callTool({
+      name: 'pitchcrew_message_agent',
+      arguments: { roleId: 'writer', content: 'Please explain your evidence sources.' },
+    });
+    expect(messaged.structuredContent).toMatchObject({
+      task: { roleId: 'writer', status: 'queued', mode: 'chat' },
+    });
+    const messages = await client.callTool({ name: 'pitchcrew_read_messages', arguments: {} });
+    expect(messages.structuredContent).toMatchObject({
+      messages: expect.arrayContaining([
+        expect.objectContaining({ threadId: 'crew', from: 'reviewer', to: 'writer' }),
+      ]),
+    });
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
     expect(current.structuredContent).toMatchObject({
       card: { id: card.id, packet, state: 'awaiting_approval' },

@@ -7,6 +7,7 @@ import {
   LayoutDashboard,
   LoaderCircle,
   Monitor,
+  MessageSquare,
   Moon,
   MoreHorizontal,
   Pause,
@@ -57,10 +58,11 @@ import { CompanyMark, RoleAvatar } from './components.tsx';
 import type { ThemeChoice } from './theme.ts';
 import { modKey } from './shortcuts.ts';
 
-export type View = 'board' | 'crew' | 'inbox' | 'profile' | 'activity';
+export type View = 'board' | 'crew' | 'chat' | 'inbox' | 'profile' | 'activity';
 export const viewIcons = {
   board: LayoutDashboard,
   crew: Users,
+  chat: MessageSquare,
   inbox: Inbox,
   profile: FileUser,
   activity: Activity,
@@ -68,6 +70,7 @@ export const viewIcons = {
 export const viewTitles: Record<View, string> = {
   board: 'Board',
   crew: 'Crew',
+  chat: 'Chat',
   inbox: 'Inbox',
   profile: 'Profile',
   activity: 'Activity',
@@ -93,6 +96,7 @@ export function AppSidebar({
   roleStatus,
   runningRoles,
   onConfigureRole,
+  onChatRole,
   onToggleRole,
   recent,
   onOpenCard,
@@ -113,6 +117,7 @@ export function AppSidebar({
   roleStatus: (role: Role) => string;
   runningRoles: RoleId[];
   onConfigureRole: (id: RoleId) => void;
+  onChatRole: (id: RoleId) => void;
   onToggleRole: (role: Role) => void;
   recent: Card[];
   onOpenCard: (id: string) => void;
@@ -201,7 +206,7 @@ export function AppSidebar({
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </Collapsible>
-              {(['crew', 'inbox', 'profile', 'activity'] as const).map((id) => {
+              {(['chat', 'crew', 'inbox', 'profile', 'activity'] as const).map((id) => {
                 const Icon = viewIcons[id];
                 const count = counts[id] ?? 0;
                 return (
@@ -238,7 +243,7 @@ export function AppSidebar({
                       size="lg"
                       className={`crew-button ${role.enabled ? '' : 'paused'}`}
                       tooltip={`${role.name}: ${roleStatus(role)}`}
-                      onClick={() => onConfigureRole(role.id)}
+                      onClick={() => onChatRole(role.id)}
                     >
                       <RoleAvatar agentRole={role.id} size="small" />
                       <span className="crew-text">
@@ -258,6 +263,9 @@ export function AppSidebar({
                       <DropdownMenuContent side="right" align="start" className="menu">
                         <DropdownMenuGroup>
                           <DropdownMenuLabel>{role.name}</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => onChatRole(role.id)}>
+                            <MessageSquare /> Chat
+                          </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onConfigureRole(role.id)}>
                             <SlidersHorizontal /> Configure…
                           </DropdownMenuItem>

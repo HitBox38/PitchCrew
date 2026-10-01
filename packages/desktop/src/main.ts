@@ -78,7 +78,37 @@ function createWindow() {
     window.webContents.once('did-finish-load', async () => {
       try {
         const result = await window!.webContents.executeJavaScript(
-          `(async()=>{const response=await fetch('/api/snapshot',{headers:{'x-pitchcrew-client':'ui'}});const snapshot=await response.json();for(let i=0;i<50&&!document.querySelector('main');i++)await new Promise(r=>setTimeout(r,100));return {title:document.title,requireType:typeof require,apiStatus:response.status,cards:snapshot.cards.length,roles:snapshot.roles.length,uiReady:!!document.querySelector('main')};})()`,
+          `(async () => {
+            const response = await fetch('/api/snapshot', { headers: { 'x-pitchcrew-client': 'ui' } });
+            const snapshot = await response.json();
+            const waitFor = async (test) => {
+              for (let i = 0; i < 80; i++) {
+                if (test()) return true;
+                await new Promise((resolve) => setTimeout(resolve, 100));
+              }
+              return false;
+            };
+            const uiReady = await waitFor(() => !!document.querySelector('main'));
+            let chatReady = null, chatResponded = null, chatTabsReady = null;
+            if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
+              if (!snapshot.roles.every((role) => role.runtime === 'demo' && role.enabled)) throw new Error('Chat smoke test requires an isolated demo workspace.');
+              [...document.querySelectorAll('button')].find((button) => button.textContent === 'Chat')?.click();
+              chatReady = await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
+              [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
+              await waitFor(() => !!document.querySelector('textarea')?.value);
+              document.querySelector('textarea')?.form?.requestSubmit();
+              chatResponded = await waitFor(() => document.querySelector('.chat-transcript')?.textContent.includes('This is a demo reply.'));
+              [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
+              const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));
+              document.querySelector('.chat-thread .role-avatar.writer')?.closest('button')?.click();
+              const writerReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('textarea[aria-label="Message Writer"]') && !!document.querySelector('.chat-empty'));
+              document.querySelector('.chat-thread .role-avatar.scout')?.closest('button')?.click();
+              await waitFor(() => !!document.querySelector('.chat-work-content'));
+              [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Conversation'))?.click();
+              chatTabsReady = workReady && writerReady && await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-transcript'));
+            }
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady };
+          })()`,
         );
         const chrome = [];
         const initialTheme = nativeTheme.themeSource;

@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { packetSchema } from '@pitchcrew/core';
+import { packetSchema, roleIds, roleChanges } from '@pitchcrew/core';
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
 if (!url || !token || new URL(url).hostname !== '127.0.0.1')
@@ -96,5 +96,66 @@ server.registerTool(
     annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
   },
   ({ approvalId }) => call('export', { approvalId }),
+);
+server.registerTool(
+  'pitchcrew_read_messages',
+  {
+    title: 'Read conversations',
+    description: 'Read your own user chat and the visible crew conversation.',
+    inputSchema: {},
+    annotations: readOnly,
+  },
+  () => call('messages'),
+);
+server.registerTool(
+  'pitchcrew_message_agent',
+  {
+    title: 'Message a crew member',
+    description:
+      'Persist a visible crew message and queue a reply from that role after this run finishes. Six follow-ups maximum per user-started chain.',
+    inputSchema: { roleId: z.enum(roleIds), content: z.string().trim().min(1).max(8000) },
+    annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+  },
+  (input) => call('message', input),
+);
+server.registerTool(
+  'pitchcrew_invoke_agent',
+  {
+    title: 'Invoke a role',
+    description:
+      'Queue yourself or another role after this run completes. Chat continues the crew conversation; workflow runs operate only on the attached card and must follow its state machine. Six follow-ups maximum per chain.',
+    inputSchema: {
+      roleId: z.enum(roleIds),
+      content: z.string().trim().min(1).max(8000),
+      mode: z.enum(['chat', 'workflow']),
+    },
+    annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+  },
+  (input) => call('invoke', input),
+);
+server.registerTool(
+  'pitchcrew_propose_role_changes',
+  {
+    title: 'Propose changes to your role',
+    description:
+      'Propose your own instructions or capabilities. The user reviews and applies them in chat. This tool does not change permissions or rules.',
+    inputSchema: { reason: z.string().trim().min(1).max(2000), changes: roleChanges },
+    annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+  },
+  (input) => call('propose', input),
+);
+server.registerTool(
+  'pitchcrew_change_workflow',
+  {
+    title: 'Update attached job workflow',
+    description:
+      'Shortlist a lead or request changes to a packet. Cannot bypass drafting, review, export approval or manual submission. Rejects changes while the card has an active workflow run.',
+    inputSchema: {
+      state: z.enum(['shortlisted', 'changes_requested']),
+      reason: z.string().trim().min(1).max(2000),
+    },
+    annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+  },
+  (input) => call('workflow', input),
 );
 await server.connect(new StdioServerTransport());

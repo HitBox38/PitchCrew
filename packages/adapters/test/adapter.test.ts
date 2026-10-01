@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
-import { runCli, parseResult } from '../src/process.ts';
+import { runCli, parseResult, chatCli } from '../src/process.ts';
 import { cardInput, type RunContext } from '@pitchcrew/core';
 const context: RunContext = {
   card: {
@@ -44,4 +44,14 @@ it('rejects a role-mismatched structured response', () => {
   expect(() => parseResult('{"role":"reviewer","passed":true,"feedback":[]}', context)).toThrow(
     'wrong role',
   );
+});
+
+it('normalizes a chat subprocess without a card or a provider account', async () => {
+  const result = await chatCli(
+    process.execPath,
+    [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url)), '--chat'],
+    { ...context, card: null, messages: [], request: 'Say hello.' },
+    (event) => (typeof event.result === 'string' ? event.result : null),
+  );
+  expect(result).toEqual({ reply: 'Fixture conversational response.' });
 });

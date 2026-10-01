@@ -51,7 +51,7 @@ export class Board {
     return this.db.transaction(() => {
       const event: BoardEvent = {
         id: 0,
-        version: 1,
+        version: 2,
         kind,
         entityId: data.id,
         data,
@@ -204,7 +204,9 @@ export class Board {
     })();
   }
   hasActiveRun(cardId: string) {
-    return this.list<Run>('run').some((run) => run.cardId === cardId && run.status === 'running');
+    return this.list<Run>('run').some(
+      (run) => run.cardId === cardId && run.status === 'running' && run.mode !== 'chat',
+    );
   }
   seedRoles() {
     const definitions: Role[] = [
