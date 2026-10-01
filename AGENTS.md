@@ -8,7 +8,7 @@ A local-first job-search app with a crew of role agents. Pitchcrew starts runtim
 
 ## Status
 
-Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer runs, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code and Codex adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
+Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persistent role and crew chats with AI Elements, bounded agent-triggered follow-ups, user-approved role change proposals, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code and Codex adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
 
 ## Stack
 
@@ -62,10 +62,11 @@ The UI has hot reload; restart the daemon after backend changes. The default dat
 
 ## Core concepts
 
-- **Role.** A stored Scout, Writer, or Reviewer configuration with runtime, model, enabled flag and instructions. Settings produce AGENTS.md and CLAUDE.md under the data directory. Each run gets an isolated subfolder and MCP configuration. Change instructions through Crew settings; generated files are refreshed on startup.
-- **Runtime adapter.** Implements detect() and run(context), parses CLI output into a validated RunResult and emits progress messages. Provider-specific commands belong only in adapters.
-- **Board.** One card per application. Allowed transitions live in core. Agents coordinate through persistent board state; launches are explicit user actions.
-- **Event log.** Every card, role, run and approval update appends a versioned event and changes its projection atomically. Rebuild replays events in order.
+- **Role.** A stored Scout, Writer, or Reviewer configuration with runtime, model, enabled flag, instructions and agent capabilities. Settings produce AGENTS.md and CLAUDE.md under the data directory. Each run gets an isolated subfolder and MCP configuration. Change instructions and capabilities through Crew settings or approve an agent’s proposal in chat; generated files are refreshed on startup.
+- **Chat and crew tasks.** User messages launch isolated chat turns. Agents can message roles, invoke themselves or others, and update the attached job through scoped board tools. Follow-ups wait for their parent to finish, obey enabled roles/capabilities and the card state machine, and are capped at six per user-started chain. Cancelling a run stops its chain. Interrupted queued work is marked failed on restart.
+- **Runtime adapter.** Implements detect(), run(context) and chat(context), parses CLI output into validated RunResult or ChatResult values and emits progress messages. Provider-specific commands belong only in adapters.
+- **Board.** One card per application. Allowed transitions live in core. Agents coordinate through persistent board state; launches start with user actions and can continue through bounded board-backed agent tasks.
+- **Event log.** Every card, role, run, approval, message, proposal and task update appends a versioned event and changes its projection atomically. Rebuild replays events in order.
 - **Profile.** User Markdown files under the data directory's profile folder. Registered packet claims must be exact supported quotations. Mechanical lint is not a complete semantic fact checker.
 - **Packet.** Versioned resume.md, cover_letter.md, form_answers.md, note.md and claims.json. The job post is stored on its card. PDF generation is deferred.
 - **Approval.** Exact packet snapshot and SHA-256 digest bound to a card and export action. It is single-use; export calls enter the shared MCP gate. Agents have no approval tool. Successfully exported current packets allow users to record manual submissions.
@@ -76,13 +77,13 @@ These must stay true. A change that breaks one is a bug even if tests pass.
 
 1. **No outward action without approval.** Anything that sends, submits, posts or emails must go through a gated MCP tool checking an unused approval bound to the exact payload. The check belongs in MCP, not in prompts or UI. The MVP has no such outward connector; local export also uses this gate.
 2. **Provider code stays in packages/adapters/.** The orchestrator, board and UI see only the runtime interface and normalized results/progress.
-3. **Agents coordinate through the board only.** No adapter-to-adapter messaging and no shared runtime sessions across roles.
+3. **Agents coordinate through the board only.** Internal messages and invocations are persisted board entities with scoped MCP tools; no adapter-to-adapter messaging and no shared runtime sessions across roles.
 4. **Events are append-only and stay decodable.** Never rewrite or delete stored events. Schema changes add a new version and retain a decoder for every old version.
 5. **Health checks have no side effects.** detect() never signs in, creates a session or spends tokens.
 6. **Credentials stay with the runtime.** Pitchcrew never reads, copies or stores provider tokens. Adapters rely on the CLI's own login.
 7. **The daemon binds to 127.0.0.1 only.** Keep origin/Host checks and user-session/run-capability boundaries intact.
 8. **User data never enters the repo.** Profile notes, packets and DB live outside it. Tests use fictional fixtures and checked temporary cleanup paths.
-9. **Rules change only with user approval.** Future coaches propose rule/instruction changes through the inbox and never write them directly. Currently only explicit user settings update role instructions; rules.yaml is deferred.
+9. **Rules change only with user approval.** Agents propose their own instruction/capability changes in chat and never apply them directly. Only user settings or an explicit user decision on a proposal updates roles; rules.yaml is deferred.
 
 ## Card states
 

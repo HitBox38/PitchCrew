@@ -9,6 +9,14 @@ export const demo: RuntimeAdapter = {
     version: 'Built in',
     detail: 'Deterministic example workflow. No AI calls.',
   }),
+  async chat(context) {
+    context.onMessage('Preparing a deterministic demo reply.');
+    await setTimeout(350, undefined, { signal: context.signal });
+    const latest = context.request ?? context.messages.at(-1)?.content ?? '';
+    return {
+      reply: `I’m ${context.role.name}. ${context.role.description}\n\n${context.card ? `We’re discussing ${context.card.title} at ${context.card.company}. The application is ${context.card.state.replaceAll('_', ' ')}.` : 'Attach a job to discuss its workflow, or ask about my role and capabilities.'}\n\nYou said: “${latest}”\n\nThis is a demo reply. Use Claude Code or Codex for conversational reasoning and tool actions.`,
+    };
+  },
   async run(context) {
     context.onMessage('Running the deterministic demo workflow.');
     await setTimeout(850, undefined, { signal: context.signal });

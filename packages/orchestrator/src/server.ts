@@ -92,6 +92,17 @@ export async function createDaemon(options: { directory: string; port: number; d
   app.put('/api/roles/:id', async (req, res) =>
     res.json(await service.configureRole(z.enum(roleIds).parse(req.params.id), req.body)),
   );
+  app.post('/api/roles/:id/chat', async (req, res) =>
+    res.status(202).json(await service.sendChat(z.enum(roleIds).parse(req.params.id), req.body)),
+  );
+  app.post('/api/proposals/:id/decide', async (req, res) =>
+    res.json(
+      await service.decideProposal(
+        req.params.id,
+        z.object({ approved: z.boolean() }).parse(req.body).approved,
+      ),
+    ),
+  );
   app.post('/api/runtimes/detect', async (_req, res) => res.json(await service.detect()));
   app.put('/api/profile', async (req, res) => {
     const body = z
@@ -130,6 +141,12 @@ export async function createDaemon(options: { directory: string; port: number; d
         approvalId: z.uuid().optional(),
         beforeEventId: z.number().int().positive().optional(),
         limit: z.number().int().min(1).max(200).optional(),
+        roleId: z.enum(roleIds).optional(),
+        content: z.string().max(8000).optional(),
+        mode: z.enum(['chat', 'workflow']).optional(),
+        reason: z.string().max(2000).optional(),
+        changes: z.unknown().optional(),
+        state: z.enum(['shortlisted', 'changes_requested']).optional(),
       })
       .parse(req.body);
     res.json(await service.agentCall(token, body.action, body));
