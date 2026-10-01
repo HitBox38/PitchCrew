@@ -43,6 +43,8 @@ export const runtimeIds = [
   'opencode',
   'copilot-cli',
   'cursor-agent',
+  'goose',
+  'kiro-cli',
 ] as const;
 export type RuntimeId = (typeof runtimeIds)[number];
 export const roleIds = ['scout', 'writer', 'reviewer'] as const;

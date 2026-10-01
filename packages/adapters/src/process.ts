@@ -1,8 +1,16 @@
-import { spawn, execFile } from 'node:child_process';
+import { spawn, execFile, type ChildProcess } from 'node:child_process';
 import { promisify } from 'node:util';
 import type { RuntimeHealth, RuntimeId, RunContext, RunResult } from '@pitchcrew/core';
 import { runResultSchema } from '@pitchcrew/core';
 const exec = promisify(execFile);
+export function terminateCli(child: ChildProcess) {
+  if (process.platform === 'win32' && child.pid)
+    spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
+      windowsHide: true,
+      stdio: 'ignore',
+    });
+  else child.kill('SIGTERM');
+}
 export async function detectCli(id: RuntimeId, command: string): Promise<RuntimeHealth> {
   try {
     const { stdout } = await exec(command, ['--version'], { timeout: 5000, windowsHide: true });
@@ -10,14 +18,14 @@ export async function detectCli(id: RuntimeId, command: string): Promise<Runtime
       id,
       available: true,
       version: stdout.trim().slice(0, 100),
-      detail: 'Installed. Sign-in is managed by the CLI.',
+      detail: 'Installed. Authentication is managed by the CLI.',
     };
   } catch {
     return {
       id,
       available: false,
       version: '',
-      detail: `Install ${command} and sign in with its CLI to connect.`,
+      detail: `Install ${command} and configure its native authentication to connect.`,
     };
   }
 }
@@ -46,7 +54,7 @@ export async function runCli(
   context: RunContext,
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
-  env: Record<string, string> = {},
+  env: Record<string, string | undefined> = {},
 ): Promise<RunResult> {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   return new Promise((resolve, reject) => {
@@ -61,14 +69,7 @@ export async function runCli(
       error = '',
       bytes = 0;
     let timedOut = false;
-    const kill = () => {
-      if (process.platform === 'win32' && child.pid)
-        spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
-          windowsHide: true,
-          stdio: 'ignore',
-        });
-      else child.kill('SIGTERM');
-    };
+    const kill = () => terminateCli(child);
     const timer = setTimeout(() => {
       timedOut = true;
       kill();

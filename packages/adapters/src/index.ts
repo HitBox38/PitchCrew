@@ -5,6 +5,8 @@ import { geminiCli } from './gemini-cli/index.ts';
 import { opencode } from './opencode/index.ts';
 import { copilotCli } from './copilot-cli/index.ts';
 import { cursorAgent } from './cursor-agent/index.ts';
+import { goose } from './goose/index.ts';
+import { kiroCli } from './kiro-cli/index.ts';
 import type { RuntimeAdapter, RuntimeId } from '@pitchcrew/core';
 export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   demo,
@@ -14,4 +16,6 @@ export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   opencode,
   'copilot-cli': copilotCli,
   'cursor-agent': cursorAgent,
+  goose,
+  'kiro-cli': kiroCli,
 };

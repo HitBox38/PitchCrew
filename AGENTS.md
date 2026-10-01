@@ -8,7 +8,7 @@ A local-first job-search app with a crew of role agents. Pitchcrew starts runtim
 
 ## Status
 
-Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer runs, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI and Cursor Agent adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
+Working MVP with a shared browser/Electron UI, explicit Scout/Writer/Reviewer runs, source-backed Markdown packets, approval-gated local export, and manual application tracking. Demo is deterministic. Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose and Kiro CLI adapters are implemented; live provider runs are not part of automated verification. Scheduling, automatic discovery, PDFs, outreach, submission, and custom roles are deferred.
 
 ## Stack
 
@@ -35,6 +35,8 @@ packages/
     src/opencode/
     src/copilot-cli/
     src/cursor-agent/
+    src/goose/
+    src/kiro-cli/
   mcp/            # stdio tools and shared export gate
   packet/         # source quotation checks, word caps, versioned Markdown files
   ui/             # shared React renderer, shadcn components in src/components/ui
@@ -82,7 +84,7 @@ These must stay true. A change that breaks one is a bug even if tests pass.
 3. **Agents coordinate through the board only.** No adapter-to-adapter messaging and no shared runtime sessions across roles.
 4. **Events are append-only and stay decodable.** Never rewrite or delete stored events. Schema changes add a new version and retain a decoder for every old version.
 5. **Health checks have no side effects.** detect() never signs in, creates a session or spends tokens.
-6. **Credentials stay with the runtime.** Pitchcrew never reads, copies or stores provider tokens. Adapters rely on the CLI's own login.
+6. **Credentials stay with the runtime.** Pitchcrew never reads, copies or stores provider tokens. Adapters rely on the CLI's native authentication, including its environment configuration.
 7. **The daemon binds to 127.0.0.1 only.** Keep origin/Host checks and user-session/run-capability boundaries intact.
 8. **User data never enters the repo.** Profile notes, packets and DB live outside it. Tests use fictional fixtures and checked temporary cleanup paths.
 9. **Rules change only with user approval.** Future coaches propose rule/instruction changes through the inbox and never write them directly. Currently only explicit user settings update role instructions; rules.yaml is deferred.

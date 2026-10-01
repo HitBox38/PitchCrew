@@ -29,6 +29,8 @@ export const runtimeLabels: Record<RuntimeId, string> = {
   opencode: 'OpenCode',
   'copilot-cli': 'GitHub Copilot CLI',
   'cursor-agent': 'Cursor Agent',
+  goose: 'Goose',
+  'kiro-cli': 'Kiro CLI',
 };
 export function RoleAvatar({
   agentRole,

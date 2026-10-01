@@ -1,8 +1,14 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
+
+import { roleResult } from './role-result.mjs';
 
 const [runtime, ...args] = process.argv.slice(2);
 let prompt = '';
 for await (const chunk of process.stdin) prompt += chunk;
+if (runtime === 'goose') {
+  const promptPath = args[args.indexOf('--params') + 1].slice('pitchcrew_prompt='.length);
+  prompt = JSON.parse('"' + (await readFile(promptPath, 'utf8')) + '"');
+}
 const environment = Object.fromEntries(
   Object.entries(process.env).filter(
     ([key]) =>
@@ -12,6 +18,10 @@ const environment = Object.fromEntries(
         'XDG_DATA_HOME',
         'CURSOR_CONFIG_DIR',
         'COPILOT_HOME',
+        'GOOSE_PATH_ROOT',
+        'GOOSE_ADDITIONAL_CONFIG_FILES',
+        'GOOSE_MODE',
+        'GOOSE_SYSTEM_PROMPT_FILE_PATH',
         'COPILOT_ALLOW_ALL',
         'GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS',
       ].includes(key) ||
@@ -27,25 +37,7 @@ if (mode === 'wait') {
   process.stderr.write('Fixture sign-in failed.');
   process.exitCode = 1;
 } else {
-  const role = prompt.match(/You are Pitchcrew's (scout|writer|reviewer)/)?.[1];
-  const packet = {
-    resume: '# Fictional Candidate\n- Built café interfaces.',
-    coverLetter: 'Built café interfaces.',
-    formAnswers: '',
-    note: '',
-    claims: [
-      { claim: 'Built café interfaces.', source: 'profile.md', quote: 'Built café interfaces.' },
-    ],
-  };
-  const result =
-    mode === 'wrong-role'
-      ? { role: 'reviewer', passed: true, feedback: [] }
-      : role === 'writer'
-        ? { role, packet }
-        : role === 'reviewer'
-          ? { role, passed: true, feedback: [] }
-          : { role: 'scout', fit: 87, reasons: ['Fixture result'] };
-  const text = mode === 'invalid' ? 'This is not JSON.' : JSON.stringify(result);
+  const text = roleResult(prompt, mode);
   const emit = (event) => process.stdout.write(JSON.stringify(event) + '\n');
   process.stdout.write('CLI startup message\n');
   if (runtime === 'gemini') {
@@ -80,6 +72,39 @@ if (mode === 'wait') {
       process.stdout.write(final.subarray(split));
     } else process.stdout.write(final);
     process.stdout.write(JSON.stringify({ type: 'result', status: 'success', stats: {} }));
+  } else if (runtime === 'goose') {
+    emit({
+      type: 'message',
+      message: { role: 'user', content: [{ type: 'text', text: 'Ignore me.' }] },
+    });
+    emit({
+      type: 'message',
+      message: { role: 'assistant', content: [{ type: 'text', text: 'Checking the board.' }] },
+    });
+    emit({
+      type: 'message',
+      message: {
+        role: 'assistant',
+        content: [{ type: 'toolRequest', toolCall: { name: 'pitchcrew_get_card' } }],
+      },
+    });
+    emit({
+      type: 'message',
+      message: {
+        role: 'assistant',
+        content: [
+          { type: 'thinking', thinking: 'Ignore me.' },
+          { type: 'text', text: text.slice(0, 12) },
+        ],
+      },
+    });
+    emit({
+      type: 'message',
+      message: { role: 'assistant', content: [{ type: 'text', text: text.slice(12) }] },
+    });
+    if (mode === 'missing-terminal') process.exit(0);
+    emit({ type: 'complete', total_tokens: 0 });
+    if (mode === 'terminal-error') emit({ type: 'error', error: 'Fixture terminal failure.' });
   } else if (runtime === 'copilot') {
     emit({ type: 'assistant.message_delta', data: { deltaContent: 'Ignore me.' } });
     emit({ type: 'tool.execution_complete', data: { result: 'Ignore me.' } });
