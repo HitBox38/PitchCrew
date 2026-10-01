@@ -1,6 +1,6 @@
 import { fileURLToPath } from 'node:url';
-import { expect, it } from 'vitest';
-import { runCli, parseResult, requireCliVersion } from '../src/process.ts';
+import { expect, it, vi } from 'vitest';
+import { runCli, parseResult, requireCliVersion, chatCli } from '../src/process.ts';
 import { cardInput, type RunContext } from '@pitchcrew/core';
 const context: RunContext = {
   card: {
@@ -65,4 +65,30 @@ it('requires a recognizable runtime version with the scoped-tool capabilities', 
   ).toBe(false);
   const missing = { ...health, available: false };
   expect(requireCliVersion(missing, [1, 0, 0], 'pi')).toBe(missing);
+});
+
+it('normalizes a chat subprocess without a card or a provider account', async () => {
+  const result = await chatCli(
+    process.execPath,
+    [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url)), '--chat'],
+    { ...context, card: null, messages: [], request: 'Say hello.' },
+    (event) => (typeof event.result === 'string' ? event.result : null),
+  );
+  expect(result).toEqual({ reply: 'Fixture conversational response.' });
+});
+
+it('does not pass connector OAuth configuration to provider subprocesses', async () => {
+  vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_SECRET', 'fixture-secret');
+  try {
+    const result = await runCli(
+      process.execPath,
+      [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url)), '--check-env'],
+      context,
+      'test',
+      (event) => (typeof event.result === 'string' ? event.result : null),
+    );
+    expect(result).toMatchObject({ reasons: ['absent'] });
+  } finally {
+    vi.unstubAllEnvs();
+  }
 });

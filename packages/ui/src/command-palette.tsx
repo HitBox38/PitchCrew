@@ -1,4 +1,4 @@
-import { Copy, PanelLeft, Plus, RefreshCw, SlidersHorizontal } from 'lucide-react';
+import { Copy, PanelLeft, Plus, RefreshCw, SlidersHorizontal, MessageSquare } from 'lucide-react';
 import type { Card, Role, RoleId } from '@pitchcrew/core';
 import {
   CommandDialog,
@@ -24,6 +24,7 @@ export function CommandPalette({
   onNavigate,
   onOpenCard,
   onConfigureRole,
+  onChatRole,
   onAddJob,
   onCheckRuntimes,
   onTheme,
@@ -36,6 +37,7 @@ export function CommandPalette({
   onNavigate: (view: View) => void;
   onOpenCard: (id: string) => void;
   onConfigureRole: (id: RoleId) => void;
+  onChatRole: (id: RoleId) => void;
   onAddJob: () => void;
   onCheckRuntimes: () => void;
   onTheme: (theme: ThemeChoice) => void;
@@ -91,13 +93,20 @@ export function CommandPalette({
         ) : null}
         <CommandGroup heading="Crew">
           {roles.map((role) => (
-            <CommandItem
-              key={role.id}
-              value={`configure ${role.name}`}
-              onSelect={run(() => onConfigureRole(role.id))}
-            >
-              <SlidersHorizontal /> Configure {role.name}
-            </CommandItem>
+            <div key={role.id}>
+              <CommandItem
+                value={`chat talk ${role.name}`}
+                onSelect={run(() => onChatRole(role.id))}
+              >
+                <MessageSquare /> Chat with {role.name}
+              </CommandItem>
+              <CommandItem
+                value={`configure ${role.name}`}
+                onSelect={run(() => onConfigureRole(role.id))}
+              >
+                <SlidersHorizontal /> Configure {role.name}
+              </CommandItem>
+            </div>
           ))}
         </CommandGroup>
         <CommandSeparator />

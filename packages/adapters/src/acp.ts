@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
-import type { RunContext, RunResult } from '@pitchcrew/core';
-import { parseResult, terminateCli } from './process.ts';
+import type { RunContext, RunResult, ChatContext } from '@pitchcrew/core';
+import { parseWorkflowResult, terminateCli, runtimeEnvironment } from './process.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
 export async function runAcp(
@@ -10,13 +10,22 @@ export async function runAcp(
   prompt: string,
   env: Record<string, string> = {},
 ): Promise<RunResult> {
+  return parseWorkflowResult(await runAcpText(command, args, context, prompt, env), context);
+}
+export async function runAcpText(
+  command: string,
+  args: string[],
+  context: RunContext | ChatContext,
+  prompt: string,
+  env: Record<string, string> = {},
+): Promise<string> {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, ...context.mcp.env, ...env },
+      env: runtimeEnvironment(context, env),
     });
     let buffer = '',
       stderr = '',
@@ -25,13 +34,13 @@ export async function runAcp(
     let bytes = 0,
       settled = false,
       expectedId = 1;
-    let completed: RunResult | undefined;
+    let completed: string | undefined;
     let failure: Error | undefined;
     const send = (message: Record<string, unknown>) => {
       if (!settled && !child.stdin.destroyed)
         child.stdin.write(JSON.stringify({ jsonrpc: '2.0', ...message }) + '\n');
     };
-    const stop = (error?: Error, result?: RunResult) => {
+    const stop = (error?: Error, result?: string) => {
       if (settled || failure || completed) return;
       failure = error;
       completed = result;
@@ -121,15 +130,8 @@ export async function runAcp(
           );
           return;
         }
-        try {
-          stop(undefined, parseResult(assistant, context));
-        } catch {
-          stop(
-            new Error(
-              'The runtime did not return a valid structured result. Check its model/sign-in and retry.',
-            ),
-          );
-        }
+        if (!assistant) stop(new Error('The runtime returned no assistant answer.'));
+        else stop(undefined, assistant);
       }
     };
     child.stdout.setEncoding('utf8');

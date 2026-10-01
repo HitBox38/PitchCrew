@@ -2,7 +2,7 @@
 
 A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
-**Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, and track your applications. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
+**Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, track your applications, and chat with each role or follow the crew conversation. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
 
 ## Run
 
@@ -42,7 +42,7 @@ pnpm desktop:prod
 
 **Demo makes no AI calls.** Its fit scores are keyword examples and its drafts reuse profile bullets; they need personalization before use. Loading examples is explicit and refuses to overwrite an existing profile.
 
-In **Your crew**, select a runtime, optional model, instructions, and whether a role is enabled. Real runtimes must already be installed on PATH with their native authentication configured. Detection runs only `--version`; starting a real role is an explicit action and may use your provider account. Real provider executions have not been exercised during automated verification.
+In **Your crew**, select a runtime, optional model, instructions, agent capabilities, and whether a role is enabled. Real runtimes must already be installed on PATH with their native authentication configured. Detection runs only `--version`; chat turns and workflow runs may use your provider account, including bounded agent-requested follow-ups. Real provider executions have not been exercised during automated verification.
 
 | Runtime                                                                                                        | Executable     | Model setting                                    |
 | -------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
@@ -78,6 +78,18 @@ Pi and oh-my-pi inherit their CLI's native provider authentication environment (
 
 These integrations have subprocess contract coverage; live provider runs have not been verified.
 
+## Connect GitHub and Google Workspace
+
+In **Your crew → Connected accounts**, connect GitHub with a fine-grained token or Google Workspace with Desktop OAuth browser sign-in. Then enable GitHub, Gmail, Drive/Docs, Calendar or Sheets in each role’s settings. Access defaults to disabled. Agents can use these read-only MCP tools for company research, portfolio evidence, recruiter email and interview preparation in both chat and card workflows. Sending mail, editing files and posting still require future approval-gated tools. See [connector setup and available tools](docs/connectors.md).
+
+## Chat with your crew
+
+Open **Chat** or click a role in the sidebar. Talk privately with Scout, Writer or Reviewer, or join the **Crew conversation** to see agent messages and handoffs. Attach a job to give a turn application context. AI Elements provides the conversation, Markdown messages and composer in Pitchcrew’s visual style.
+
+Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
+
+Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions.
+
 ## Your data
 
 By default, everything is stored outside the repository:
@@ -85,6 +97,7 @@ By default, everything is stored outside the repository:
 ```text
 ~/.pitchcrew/
   pitchcrew.db                    # SQLite projections and append-only event log
+  connectors/credentials.json    # local GitHub/Google connector credentials
   profile/*.md                   # factual source notes
   roles/<role>/AGENTS.md          # instructions managed in Crew settings
   roles/<role>/CLAUDE.md          # imports AGENTS.md
@@ -104,18 +117,18 @@ pnpm dev
 
 ## Architecture
 
-| Package        | Responsibility                                                                    |
-| -------------- | --------------------------------------------------------------------------------- |
-| `core`         | Strict TypeScript contracts, Zod validation, card transitions                     |
-| `board`        | SQLite event log, projections, exact-payload approval tokens                      |
-| `orchestrator` | Loopback daemon, explicit role launches, cancellation, scoped run capabilities    |
-| `adapters`     | Demo and native CLI/ACP runtime integrations                                      |
-| `mcp`          | Official SDK stdio server, card/profile/history/lint tools, approval-gated export |
-| `packet`       | Source-quote and word-cap checks, versioned Markdown files                        |
-| `ui`           | React, shadcn/ui, Tailwind, locally bundled fonts, Vite                           |
-| `desktop`      | Sandboxed Electron host for the shared renderer                                   |
+| Package        | Responsibility                                                                                                      |
+| -------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                               |
+| `board`        | SQLite event log, projections, exact-payload approval tokens                                                        |
+| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities                                    |
+| `adapters`     | Demo and native CLI/ACP runtime integrations                                                                        |
+| `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export |
+| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                          |
+| `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                                                |
+| `desktop`      | Sandboxed Electron host for the shared renderer                                                                     |
 
-Agent tools are scoped to the assigned card. Agents cannot approve actions, modify roles, or use another role's runtime session. Approval binds the exact packet and is consumed once in the MCP export gate. A revised packet requires a fresh approval. The daemon recovers interrupted runs and releases their card claims after restart.
+Agent application tools are scoped to the attached card; conversation reads are scoped to the role’s own chat and the shared crew chat. Messages, proposals and follow-up tasks are persisted in the board. Agents cannot approve actions, apply their own role changes, or use another role's runtime session. Approval binds the exact packet and is consumed once in the MCP export gate. A revised packet requires a fresh approval. The daemon recovers interrupted runs, releases their card claims, and marks interrupted queued tasks failed after restart.
 
 The UI polls the daemon every two seconds. HTTP APIs use a local session, application header, origin checks, and host checks. Production assets use a content security policy. Electron disables Node integration, isolates the renderer, and denies permissions and external navigation.
 
@@ -134,10 +147,10 @@ pnpm check          # lint, typecheck, tests, build
 pnpm test:desktop   # built UI + isolated Electron renderer/daemon smoke test
 ```
 
-Tests use fictional fixtures and temporary workspaces. They cover transitions, append-only history and projection replay, stale/reused approvals, evidence checks, concurrent claims, cancellation, HTTP boundaries, mock CLI parsing, and the real MCP stdio connection. They make no paid provider calls. The desktop test saves a screenshot and JSON evidence in a temporary directory.
+Tests use fictional fixtures and temporary workspaces. They cover transitions, append-only history and projection replay, stale/reused approvals, evidence checks, concurrent claims, cancellation, HTTP boundaries, mock CLI parsing, and the real MCP stdio connection. They make no paid provider calls. The desktop test sends a demo chat through the production renderer and saves a screenshot and JSON evidence in a temporary directory.
 
 ## MVP boundaries
 
-Discovery is manual and roles launch on demand. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Desktop installers, auto-updates and further runtimes are deferred.
+Discovery is manual. Roles launch from user chat/workflow actions and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Desktop installers, auto-updates and further runtimes are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.

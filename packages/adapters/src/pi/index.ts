@@ -1,13 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, requireCliVersion, runCli } from '../process.ts';
+import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
 import { piResultExtractor } from './result.ts';
 
-export const pi: RuntimeAdapter = {
+export const pi = withChat({
   id: 'pi',
   detect: async () => requireCliVersion(await detectCli('pi', 'pi'), [1, 0, 0], 'pi'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const agentDir = join(context.directory, 'pi-home');
     await mkdir(agentDir, { recursive: true });
@@ -36,10 +35,10 @@ export const pi: RuntimeAdapter = {
       '--offline',
     ];
     if (context.role.model) args.push('--model', context.role.model);
-    return runCli('pi', args, context, promptFor(context), piResultExtractor(), {
+    return runCliText('pi', args, context, prompt, piResultExtractor(), {
       PI_CODING_AGENT_DIR: agentDir,
       PI_CODING_AGENT_SESSION_DIR: join(agentDir, 'sessions'),
       PI_OFFLINE: '1',
     });
   },
-};
+});

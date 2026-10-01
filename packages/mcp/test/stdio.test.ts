@@ -6,16 +6,16 @@ import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { createDaemon } from '../../orchestrator/src/server.ts';
-import { cardInput } from '@pitchcrew/core';
+import { cardInput, defaultCapabilities, type Role } from '@pitchcrew/core';
 import { packet, profile } from './fixtures/evaluation.ts';
 
 it('connects the real stdio server to a scoped daemon and preserves approval boundaries', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
-  const daemon = await createDaemon({ directory, port: 14421 });
+  const daemon = await createDaemon({ directory, port: 14431 });
   const client = new Client({ name: 'pitchcrew-contract-test', version: '1.0.0' });
   try {
-    await new Promise<void>((resolve) => daemon.http.listen(14421, '127.0.0.1', resolve));
+    await new Promise<void>((resolve) => daemon.http.listen(14431, '127.0.0.1', resolve));
     for (const file of profile) await daemon.service.saveProfile(file.name, file.content);
     const board = daemon.service.board;
     const card = board.createCard(
@@ -42,6 +42,21 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     board.move(card.id, 'agreed', 'reviewer');
     const approval = board.requestApproval(card.id);
     // A deterministic capability fixture avoids launching or spending tokens on a provider CLI.
+    board.record(
+      'run',
+      {
+        id: 'fixture',
+        cardId: card.id,
+        roleId: 'reviewer',
+        runtime: 'demo',
+        status: 'running',
+        message: 'Fixture capability',
+        startedAt: '',
+        finishedAt: null,
+      },
+      'reviewer',
+      'Fixture run',
+    );
     const token = 'fixture-run-capability';
     daemon.service.capabilities.set(token, {
       runId: 'fixture',
@@ -68,13 +83,44 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     });
     await client.connect(transport);
     const listed = await client.listTools();
-    expect(listed.tools.map((tool) => tool.name).sort()).toEqual([
-      'pitchcrew_export_packet',
-      'pitchcrew_get_card',
-      'pitchcrew_get_history',
-      'pitchcrew_lint_packet',
-      'pitchcrew_read_profile',
-    ]);
+    expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
+      [
+        'pitchcrew_export_packet',
+        'pitchcrew_list_connectors',
+        'pitchcrew_get_card',
+        'pitchcrew_get_history',
+        'pitchcrew_lint_packet',
+        'pitchcrew_read_profile',
+        'pitchcrew_read_messages',
+        'pitchcrew_message_agent',
+        'pitchcrew_invoke_agent',
+        'pitchcrew_propose_role_changes',
+        'pitchcrew_change_workflow',
+      ].sort(),
+    );
+    const proposed = await client.callTool({
+      name: 'pitchcrew_propose_role_changes',
+      arguments: {
+        reason: 'Use stricter evidence checks.',
+        changes: { instructions: 'Check every registered quotation.' },
+      },
+    });
+    expect(proposed.structuredContent).toMatchObject({
+      proposal: { roleId: 'reviewer', status: 'pending' },
+    });
+    const messaged = await client.callTool({
+      name: 'pitchcrew_message_agent',
+      arguments: { roleId: 'writer', content: 'Please explain your evidence sources.' },
+    });
+    expect(messaged.structuredContent).toMatchObject({
+      task: { roleId: 'writer', status: 'queued', mode: 'chat' },
+    });
+    const messages = await client.callTool({ name: 'pitchcrew_read_messages', arguments: {} });
+    expect(messages.structuredContent).toMatchObject({
+      messages: expect.arrayContaining([
+        expect.objectContaining({ threadId: 'crew', from: 'reviewer', to: 'writer' }),
+      ]),
+    });
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
     expect(current.structuredContent).toMatchObject({
       card: { id: card.id, packet, state: 'awaiting_approval' },
@@ -136,6 +182,93 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
   } finally {
     await client.close();
     await daemon.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+it('discovers permitted connector tools over stdio and rechecks role permissions on every call', async () => {
+  const { vi } = await import('vitest');
+  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
+  const daemon = await createDaemon({ directory, port: 14432 });
+  const client = new Client({ name: 'connector-contract-test', version: '1.0.0' });
+  const token = 'fixture-connector-capability';
+  const controller = new AbortController();
+  const connectorCall = vi
+    .spyOn(daemon.service.connectors, 'call')
+    .mockResolvedValue({ text: 'Fixture project' });
+  try {
+    await new Promise<void>((resolve) => daemon.http.listen(14432, '127.0.0.1', resolve));
+    const current = daemon.service.board.get<Role>('role', 'scout');
+    await daemon.service.configureRole('scout', {
+      ...current,
+      capabilities: { ...defaultCapabilities, github: true },
+    });
+    daemon.service.capabilities.set(token, {
+      runId: 'connector-fixture',
+      cardId: null,
+      roleId: 'scout',
+    });
+    daemon.service.controllers.set('connector-fixture', controller);
+    await client.connect(
+      new StdioClientTransport({
+        command: process.execPath,
+        args: [
+          '--import',
+          import.meta.resolve('tsx'),
+          fileURLToPath(new URL('../src/cli.ts', import.meta.url)),
+        ],
+        env: { PITCHCREW_DAEMON_URL: daemon.url, PITCHCREW_RUN_TOKEN: token },
+        stderr: 'pipe',
+      }),
+    );
+    const listed = (await client.listTools()).tools;
+    expect(listed.some((t) => t.name === 'github_read_file')).toBe(true);
+    expect(listed.some((t) => t.name.startsWith('gmail_'))).toBe(false);
+    expect(listed.find((t) => t.name === 'github_read_file')?.annotations).toMatchObject({
+      readOnlyHint: true,
+      openWorldHint: true,
+    });
+    const input = { owner: 'fixture', repo: 'portfolio', path: 'README.md' };
+    expect(
+      (await client.callTool({ name: 'github_read_file', arguments: input })).structuredContent,
+    ).toMatchObject({ text: 'Fixture project' });
+    expect(connectorCall).toHaveBeenCalledWith('github_read_file', input, controller.signal);
+    const discovery = await client.callTool({ name: 'pitchcrew_list_connectors', arguments: {} });
+    expect(discovery.structuredContent).toMatchObject({
+      connectors: [expect.objectContaining({ id: 'github', connected: false })],
+    });
+    const post = async (action: string, tool: string) =>
+      fetch(`${daemon.url}/api/agent`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action, tool, input: {} }),
+      });
+    expect((await post('connector', 'gmail_search_messages')).status).toBe(400);
+    expect((await post('connector', 'github_create_issue')).status).toBe(400);
+    expect((await post('connect_github', 'github_read_file')).status).toBe(400);
+    expect(connectorCall).toHaveBeenCalledTimes(1);
+    // Emulate revocation in stored settings to prove a discovered tool cannot bypass a current permission check.
+    daemon.service.board.record(
+      'role',
+      { ...current, capabilities: defaultCapabilities },
+      'user',
+      'Disabled GitHub fixture access',
+    );
+    expect((await client.callTool({ name: 'github_read_file', arguments: input })).isError).toBe(
+      true,
+    );
+    expect(connectorCall).toHaveBeenCalledTimes(1);
+    controller.abort();
+    expect(
+      (await client.callTool({ name: 'pitchcrew_list_connectors', arguments: {} })).isError,
+    ).toBe(true);
+  } finally {
+    connectorCall.mockRestore();
+    daemon.service.controllers.delete('connector-fixture');
+    daemon.service.capabilities.delete(token);
+    await client.close();
+    await daemon.close();
+    expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
     await rm(directory, { recursive: true, force: true });
   }
 });

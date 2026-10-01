@@ -31,11 +31,32 @@ describe('event-sourced board', () => {
     const board = create();
     const id = reviewed(board);
     const original = board.get<Card>('card', id);
+    // Append a retained v1 event to model a workspace created before chat support.
+    const legacy = { ...board.events()[0], version: 1 };
+    board.db.prepare('INSERT INTO events(json) VALUES (?)').run(JSON.stringify(legacy));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 2 }));
+    const message = {
+      id: 'fixture-message',
+      threadId: 'scout' as const,
+      from: 'user' as const,
+      to: 'scout' as const,
+      content: 'Fixture chat',
+      cardId: null,
+      runId: null,
+      createdAt: '',
+    };
+    board.record('message', message, 'user', 'Fixture chat');
     const events = board.events();
     board.rebuild();
     expect(board.get('card', id)).toEqual(original);
     expect(board.events()).toEqual(events);
-    expect(() => decodeEvent('{"version":2}')).toThrow('Unsupported');
+    expect(board.get('message', message.id)).toEqual(message);
+    expect(events.some((e) => e.version === 1)).toBe(true);
+    expect(events.some((e) => e.version === 2)).toBe(true);
+    expect(events.some((e) => e.version === 3)).toBe(true);
+    expect(() => decodeEvent('{"version":4}')).toThrow('Unsupported');
   });
   it('prevents event deletion and rewriting at the database layer', () => {
     const board = create();

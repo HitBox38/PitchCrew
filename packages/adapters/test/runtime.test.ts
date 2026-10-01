@@ -5,8 +5,8 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cardInput, runResultSchema, type RunContext } from '@pitchcrew/core';
 import { adapters } from '../src/index.ts';
-import { runAcp } from '../src/acp.ts';
-import { detectCli, runCli } from '../src/process.ts';
+import { runAcp, runAcpText } from '../src/acp.ts';
+import { detectCli, runCliText } from '../src/process.ts';
 
 // Keep the subprocess runner real; replace only the provider executable with a fictional fixture.
 vi.mock('../src/process.ts', async (importOriginal) => {
@@ -19,9 +19,9 @@ vi.mock('../src/process.ts', async (importOriginal) => {
       version: '2026.09.26-fixture',
       detail: command,
     })),
-    runCli: vi.fn((...args: Parameters<typeof actual.runCli>) => {
+    runCliText: vi.fn((...args: Parameters<typeof actual.runCliText>) => {
       const [command, flags, ...rest] = args;
-      return actual.runCli(
+      return actual.runCliText(
         process.execPath,
         [fileURLToPath(new URL('./fixtures/runtime-cli.mjs', import.meta.url)), command, ...flags],
         ...rest,
@@ -37,6 +37,14 @@ vi.mock('../src/acp.ts', async (importOriginal) => {
     runAcp: vi.fn((...args: Parameters<typeof actual.runAcp>) => {
       const [, flags, ...rest] = args;
       return actual.runAcp(
+        process.execPath,
+        [fileURLToPath(new URL('./fixtures/acp-cli.mjs', import.meta.url)), ...flags],
+        ...rest,
+      );
+    }),
+    runAcpText: vi.fn((...args: Parameters<typeof actual.runAcpText>) => {
+      const [, flags, ...rest] = args;
+      return actual.runAcpText(
         process.execPath,
         [fileURLToPath(new URL('./fixtures/acp-cli.mjs', import.meta.url)), ...flags],
         ...rest,
@@ -141,8 +149,9 @@ describe.each([
     }[runtime];
     expect(await adapters[runtime].detect()).toMatchObject({ id: runtime, available: true });
     expect(detectCli).toHaveBeenCalledWith(runtime, command);
-    expect(runCli).not.toHaveBeenCalled();
+    expect(runCliText).not.toHaveBeenCalled();
     expect(runAcp).not.toHaveBeenCalled();
+    expect(runAcpText).not.toHaveBeenCalled();
   });
   it('normalizes provider events and passes the model, prompt and scoped MCP configuration', async () => {
     const context = await contextFor(runtime);
@@ -374,6 +383,36 @@ describe.each([
       expect(agent.resources).toEqual([]);
     }
   });
+  it.each([false, true])('returns a chat reply with an attached card: %s', async (attached) => {
+    const context = await contextFor(runtime);
+    const chat = {
+      ...context,
+      card: attached ? context.card : null,
+      request: 'Fictional current request',
+      messages: [],
+    };
+    expect(await adapters[runtime].chat(chat)).toEqual({
+      reply: 'Fixture conversational café response.',
+    });
+    const request = await requestFor(context);
+    expect(request.prompt).toContain('Fictional current request');
+    expect(request.prompt).toContain(`Attached card: ${JSON.stringify(chat.card)}`);
+    expect(request.environment.PITCHCREW_RUN_TOKEN).toBe('fictional-token');
+  });
+  it('rejects workflow-shaped or malformed chat responses', async () => {
+    for (const mode of ['wrong-role', 'invalid']) {
+      const context = await contextFor(runtime, mode);
+      await expect(
+        adapters[runtime].chat({ ...context, card: null, messages: [] }),
+      ).rejects.toThrow();
+    }
+  });
+  it('filters connector OAuth configuration from its launch environment', async () => {
+    vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_SECRET', 'fictional-connector-secret');
+    const context = await contextFor(runtime);
+    await adapters[runtime].run(context);
+    expect((await requestFor(context)).environment.PITCHCREW_GOOGLE_CLIENT_SECRET).toBeUndefined();
+  });
   it('uses the CLI default when no model is configured', async () => {
     const context = await contextFor(runtime);
     await adapters[runtime].run(context);
@@ -416,7 +455,7 @@ describe.each([
     const context = await contextFor(runtime);
     context.signal = AbortSignal.abort();
     await expect(adapters[runtime].run(context)).rejects.toThrow('Run cancelled');
-    expect(runCli).not.toHaveBeenCalled();
+    expect(runCliText).not.toHaveBeenCalled();
     expect(runAcp).not.toHaveBeenCalled();
   });
 });
@@ -433,7 +472,7 @@ describe('Cursor completion and isolation', () => {
       available: false,
       detail: expect.stringContaining('Upgrade cursor-agent'),
     });
-    expect(runCli).not.toHaveBeenCalled();
+    expect(runCliText).not.toHaveBeenCalled();
   });
   it('rejects older CLI builds before starting a provider run', async () => {
     vi.mocked(detectCli).mockResolvedValueOnce({
@@ -445,7 +484,7 @@ describe('Cursor completion and isolation', () => {
     await expect(adapters['cursor-agent'].run(await contextFor('cursor-agent'))).rejects.toThrow(
       '2026.09.26 or newer',
     );
-    expect(runCli).not.toHaveBeenCalled();
+    expect(runCliText).not.toHaveBeenCalled();
   });
   it('rejects a failed terminal event even after a valid assistant response', async () => {
     await expect(
@@ -473,13 +512,13 @@ describe('Goose completion and provider selection', () => {
     const context = await contextFor('goose');
     vi.stubEnv('GOOSE_PROVIDER', provider);
     await expect(adapters.goose.run(context)).rejects.toThrow('Choose a Goose provider/model');
-    expect(runCli).not.toHaveBeenCalled();
+    expect(runCliText).not.toHaveBeenCalled();
   });
   it('rejects a CLI provider in the model setting even with an API environment default', async () => {
     const context = await contextFor('goose');
     context.role.model = 'claude-code/fixture-model';
     await expect(adapters.goose.run(context)).rejects.toThrow('Choose a Goose provider/model');
-    expect(runCli).not.toHaveBeenCalled();
+    expect(runCliText).not.toHaveBeenCalled();
   });
   it('accepts provider/model while preserving model names that contain slashes', async () => {
     const context = await contextFor('goose');

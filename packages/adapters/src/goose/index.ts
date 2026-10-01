@@ -1,12 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, runCli } from '../process.ts';
+import { detectCli, withChat, runCliText } from '../process.ts';
 
-export const goose: RuntimeAdapter = {
+export const goose = withChat({
   id: 'goose',
   detect: () => detectCli('goose', 'goose'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const separator = context.role.model.indexOf('/');
     const qualified = separator > 0 && separator < context.role.model.length - 1;
@@ -24,7 +23,7 @@ export const goose: RuntimeAdapter = {
     const promptPath = join(context.directory, 'goose-prompt.txt');
     // Recipe templates are rendered before JSON decoding. Encode the file parameter for
     // its JSON string slot so job/profile text is never compiled as template source.
-    await writeFile(promptPath, JSON.stringify(promptFor(context)).slice(1, -1), { mode: 0o600 });
+    await writeFile(promptPath, JSON.stringify(prompt).slice(1, -1), { mode: 0o600 });
     await writeFile(
       recipePath,
       JSON.stringify({
@@ -76,7 +75,7 @@ export const goose: RuntimeAdapter = {
     }
     let assistant = '',
       failed = false;
-    return runCli(
+    return runCliText(
       'goose',
       args,
       context,
@@ -114,4 +113,4 @@ export const goose: RuntimeAdapter = {
       },
     );
   },
-};
+});

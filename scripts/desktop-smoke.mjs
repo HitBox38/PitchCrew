@@ -31,7 +31,12 @@ try {
     }
     if (!ready) throw new Error('The smoke-test daemon did not start.');
   }
-  const env = { ...process.env, PITCHCREW_URL: url, PITCHCREW_SMOKE_FILE: evidence };
+  const env = {
+    ...process.env,
+    PITCHCREW_URL: url,
+    PITCHCREW_SMOKE_FILE: evidence,
+    PITCHCREW_SMOKE_CHAT: process.env.PITCHCREW_URL ? '0' : '1',
+  };
   delete env.ELECTRON_RUN_AS_NODE;
   desktop = spawn(electron, [resolve('packages/desktop/dist/main.mjs')], {
     env,
@@ -50,9 +55,27 @@ try {
     result.apiStatus !== 200 ||
     result.requireType !== 'undefined' ||
     result.roles !== 3 ||
-    !result.uiReady
+    !result.iconLoaded ||
+    !result.uiReady ||
+    (!process.env.PITCHCREW_URL &&
+      (!result.chatReady || !result.chatResponded || !result.chatTabsReady))
   )
     throw new Error('Electron renderer/daemon check failed.');
+  if (
+    !result.themeSourceRestored ||
+    result.chrome?.length !== 2 ||
+    !result.chrome.every(
+      (chrome) =>
+        chrome.platform === process.platform &&
+        chrome.height === 40 &&
+        chrome.sidebarTop === 40 &&
+        chrome.dragRegion === 'drag' &&
+        !chrome.overflow &&
+        chrome.nativeTheme === chrome.theme &&
+        chrome.background === (chrome.theme === 'dark' ? 'rgb(26, 27, 30)' : 'rgb(242, 241, 236)'),
+    )
+  )
+    throw new Error('Electron title bar theme/layout check failed.');
   console.log(
     JSON.stringify(
       { check: 'passed', ...result, evidence, screenshot: `${evidence}.png` },

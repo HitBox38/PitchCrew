@@ -1,7 +1,8 @@
 import { mkdtemp, rm, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { adapters } from '@pitchcrew/adapters';
 import { createDaemon } from '../src/server.ts';
 import type { Approval, Card, Role, Run, Snapshot } from '@pitchcrew/core';
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
@@ -29,6 +30,7 @@ async function setup(port: number) {
   return { daemon, directory, request };
 }
 afterEach(async () => {
+  vi.restoreAllMocks();
   for (const { daemon, directory } of resources.splice(0)) {
     await daemon.close();
     const prefix = resolve(tmpdir(), 'pitchcrew-test-');
@@ -197,5 +199,363 @@ describe('local daemon workflow', () => {
       await new Promise((resolve) => setTimeout(resolve, 20));
     await expect(daemon.service.agentCall(token, 'profile', {})).rejects.toThrow('expired');
     expect(daemon.service.board.get<Run>('run', run.id).status).toBe('cancelled');
+  });
+});
+
+async function waitForSnapshot(
+  request: <T>(path: string) => Promise<{ result: T }>,
+  predicate: (snapshot: Snapshot) => boolean,
+) {
+  for (let i = 0; i < 150; i++) {
+    const { result } = await request<Snapshot>('/snapshot');
+    if (predicate(result)) return result;
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  }
+  throw new Error('Crew did not reach the expected state.');
+}
+
+describe('agent conversations and crew actions', () => {
+  it('persists role chats without a job/profile, isolates conversations, and rejects overlapping sends', async () => {
+    const { daemon, request } = await setup(14422);
+    const results = await Promise.all([
+      request<Run>('/roles/scout/chat', 'POST', { content: 'Help me understand your role.' }),
+      request<Run>('/roles/scout/chat', 'POST', { content: 'A competing message.' }),
+    ]);
+    expect(results.map((r) => r.response.status).sort()).toEqual([202, 400]);
+    const run = results.find((r) => r.response.status === 202)!.result;
+    expect(run).toMatchObject({ mode: 'chat', cardId: null, roleId: 'scout' });
+    const token = [...daemon.service.capabilities.keys()][0];
+    expect(
+      (await request('/agent', 'POST', { action: 'card' }, { authorization: `Bearer ${token}` }))
+        .response.status,
+    ).toBe(400);
+    expect(
+      (await request('/roles/writer/chat', 'POST', { content: 'Private writer context.' })).response
+        .status,
+    ).toBe(202);
+    const context = await daemon.service.agentCall(token, 'messages', {});
+    expect(context.messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ content: 'Help me understand your role.' }),
+      ]),
+    );
+    expect(context.messages).not.toEqual(
+      expect.arrayContaining([expect.objectContaining({ content: 'Private writer context.' })]),
+    );
+    const snapshot = await finish(request, run.id);
+    expect(snapshot.messages.filter((m) => m.threadId === 'scout')).toHaveLength(2);
+    expect(snapshot.messages.find((m) => m.from === 'scout')?.content).toContain('demo reply');
+    await waitForSnapshot(request, (s) => s.runs.every((r) => r.status !== 'running'));
+    daemon.service.board.rebuild();
+    expect((await request<Snapshot>('/snapshot')).result.messages).toHaveLength(4);
+    await expect(daemon.service.agentCall(token, 'messages', {})).rejects.toThrow('expired');
+    expect(
+      (await request('/roles/scout/chat', 'POST', { content: 'bad thread', threadId: 'writer' }))
+        .response.status,
+    ).toBe(400);
+  });
+
+  it('uses scoped tools for visible messages, self-invocation, workflow handoffs and approved role changes', async () => {
+    const { daemon, request, directory } = await setup(14423);
+    await request('/profile', 'PUT', {
+      name: 'profile.md',
+      content: '# Example Candidate\n\n- Built React interfaces.',
+    });
+    const { result: card } = await request<Card>('/cards', 'POST', {
+      company: 'Fixture Co',
+      title: 'React Engineer',
+    });
+    const { result: other } = await request<Card>('/cards', 'POST', {
+      company: 'Other Fixture',
+      title: 'Engineer',
+    });
+    const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
+      content: 'Shortlist this job and coordinate a draft and review.',
+      cardId: card.id,
+    });
+    const token = [...daemon.service.capabilities.keys()][0];
+    const agent = <T>(body: unknown) =>
+      request<T>('/agent', 'POST', body, { authorization: `Bearer ${token}` });
+    expect(
+      (
+        await agent({
+          action: 'workflow',
+          state: 'shortlisted',
+          reason: 'A strong match for this profile.',
+          cardId: other.id,
+        })
+      ).response.status,
+    ).toBe(200);
+    expect(daemon.service.board.get<Card>('card', other.id).state).toBe('lead');
+    expect(daemon.service.board.get<Card>('card', card.id).state).toBe('shortlisted');
+    const proposalResult = await agent<{ proposal: import('@pitchcrew/core').RoleProposal }>({
+      action: 'propose',
+      reason: 'Focus future evaluations on accessibility.',
+      changes: {
+        instructions: 'Evaluate accessibility roles first.',
+        capabilities: { messageAgents: true, invokeAgents: false, manageWorkflow: false },
+      },
+    });
+    expect(proposalResult.response.status).toBe(200);
+    const proposal = proposalResult.result.proposal;
+    expect(
+      daemon.service.board.get<import('@pitchcrew/core').Role>('role', 'scout').instructions,
+    ).not.toBe(proposal.changes.instructions);
+    expect(
+      (await request(`/proposals/${proposal.id}/decide`, 'POST', { approved: true })).response
+        .status,
+    ).toBe(400);
+    expect(
+      (
+        await agent({
+          action: 'invoke',
+          roleId: 'writer',
+          mode: 'workflow',
+          content: 'Draft a source-backed packet.',
+        })
+      ).response.status,
+    ).toBe(200);
+    expect(
+      (
+        await agent({
+          action: 'invoke',
+          roleId: 'reviewer',
+          mode: 'workflow',
+          content: 'Review the writer’s packet.',
+        })
+      ).response.status,
+    ).toBe(200);
+    expect(
+      (
+        await agent({
+          action: 'message',
+          roleId: 'reviewer',
+          content: 'Tell me how you check evidence.',
+        })
+      ).response.status,
+    ).toBe(200);
+    expect(
+      (
+        await agent({
+          action: 'invoke',
+          roleId: 'scout',
+          mode: 'chat',
+          content: 'Summarize your plan.',
+        })
+      ).response.status,
+    ).toBe(200);
+    const snapshot = await waitForSnapshot(
+      request,
+      (s) => s.tasks.length === 4 && s.tasks.every((t) => t.status === 'completed'),
+    );
+    expect(snapshot.cards.find((c) => c.id === card.id)?.state).toBe('agreed');
+    expect(snapshot.tasks.every((t) => t.rootRunId === run.id && t.cardId === card.id)).toBe(true);
+    expect(snapshot.messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          threadId: 'crew',
+          from: 'scout',
+          to: 'reviewer',
+          content: 'Tell me how you check evidence.',
+        }),
+        expect.objectContaining({ threadId: 'crew', from: 'reviewer', to: 'scout' }),
+        expect.objectContaining({ threadId: 'crew', from: 'scout', to: 'scout' }),
+      ]),
+    );
+    const decisions = await Promise.all([
+      request(`/proposals/${proposal.id}/decide`, 'POST', { approved: true }),
+      request(`/proposals/${proposal.id}/decide`, 'POST', { approved: true }),
+    ]);
+    expect(decisions.map((r) => r.response.status).sort()).toEqual([200, 400]);
+    expect(await readFile(join(directory, 'roles/scout/AGENTS.md'), 'utf8')).toContain(
+      'Evaluate accessibility roles first.',
+    );
+    const { result: next } = await request<Run>('/roles/scout/chat', 'POST', {
+      content: 'Try a disabled capability.',
+      cardId: card.id,
+    });
+    const nextToken = [...daemon.service.capabilities.entries()].find(
+      ([, c]) => c.runId === next.id,
+    )![0];
+    await expect(
+      daemon.service.agentCall(nextToken, 'invoke', {
+        roleId: 'writer',
+        content: 'Try',
+        mode: 'workflow',
+      }),
+    ).rejects.toThrow('disabled');
+    const approval = daemon.service.board.requestApproval(card.id);
+    daemon.service.board.decideApproval(approval.id, true);
+    await expect(
+      daemon.service.agentCall(nextToken, 'workflow', {
+        state: 'changes_requested',
+        reason: 'Revise it.',
+      }),
+    ).rejects.toThrow('disabled');
+    await finish(request, next.id);
+    const { result: reviewerChat } = await request<Run>('/roles/reviewer/chat', 'POST', {
+      content: 'Request revision.',
+      cardId: card.id,
+    });
+    const reviewerToken = [...daemon.service.capabilities.entries()].find(
+      ([, c]) => c.runId === reviewerChat.id,
+    )![0];
+    await daemon.service.agentCall(reviewerToken, 'workflow', {
+      state: 'changes_requested',
+      reason: 'Personalize the letter.',
+    });
+    expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('rejected');
+    await expect(daemon.service.exportPacket(approval.id)).rejects.toThrow('unused approval');
+  });
+
+  it('bounds recursive follow-ups and cancels the chain without launching queued work', async () => {
+    const { daemon, request } = await setup(14424);
+    const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
+      content: 'Plan a discussion.',
+    });
+    const token = [...daemon.service.capabilities.keys()][0];
+    for (let i = 0; i < 6; i++)
+      await daemon.service.agentCall(token, 'invoke', {
+        roleId: 'scout',
+        content: `Follow-up ${i}`,
+        mode: 'chat',
+      });
+    await expect(
+      daemon.service.agentCall(token, 'message', {
+        roleId: 'writer',
+        content: 'Seventh follow-up',
+      }),
+    ).rejects.toThrow('six follow-up limit');
+    await request(`/runs/${run.id}/cancel`, 'POST');
+    await expect(daemon.service.agentCall(token, 'messages', {})).rejects.toThrow('expired');
+    const snapshot = await waitForSnapshot(request, (s) =>
+      s.runs.every((r) => r.status !== 'running'),
+    );
+    expect(snapshot.runs).toHaveLength(1);
+    expect(snapshot.runs[0].status).toBe('cancelled');
+    expect(snapshot.tasks.every((t) => t.status === 'cancelled')).toBe(true);
+    expect(snapshot.messages.some((m) => m.from === 'scout' && m.to === 'user')).toBe(false);
+  });
+
+  it('recovers interrupted chats and queued invocations on startup', async () => {
+    const { daemon } = await setup(14425);
+    daemon.service.board.record(
+      'run',
+      {
+        id: 'interrupted-chat',
+        cardId: null,
+        roleId: 'scout',
+        runtime: 'demo',
+        mode: 'chat',
+        status: 'running',
+        message: '',
+        startedAt: '',
+        finishedAt: null,
+      },
+      'scout',
+      'Fixture interrupted chat',
+    );
+    daemon.service.board.record(
+      'task',
+      {
+        id: 'interrupted-task',
+        parentRunId: 'interrupted-chat',
+        rootRunId: 'interrupted-chat',
+        roleId: 'writer',
+        cardId: null,
+        mode: 'chat',
+        trigger: 'message',
+        threadId: 'crew',
+        content: 'Retry safely',
+        status: 'queued',
+        runId: null,
+        error: '',
+        createdAt: '',
+      },
+      'scout',
+      'Fixture interrupted task',
+    );
+    await daemon.service.initialize();
+    const snapshot = await daemon.service.snapshot();
+    expect(snapshot.runs[0].status).toBe('failed');
+    expect(snapshot.tasks[0].status).toBe('failed');
+    expect(daemon.service.controllers.size).toBe(0);
+  });
+});
+
+it('bounds an actual recursive self-invocation chain across descendant chat turns', async () => {
+  const { request } = await setup(14426);
+  vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
+    const response = await fetch(`${context.mcp.env.PITCHCREW_DAEMON_URL}/api/agent`, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${context.mcp.env.PITCHCREW_RUN_TOKEN}`,
+      },
+      body: JSON.stringify({
+        action: 'invoke',
+        roleId: context.role.id,
+        mode: 'chat',
+        content: 'Continue the fixture discussion.',
+      }),
+    });
+    const result = (await response.json()) as { error?: string };
+    return { reply: response.ok ? 'Queued the next fixture turn.' : result.error! };
+  });
+  const { result: root } = await request<Run>('/roles/scout/chat', 'POST', {
+    content: 'Start a recursive fixture.',
+  });
+  const snapshot = await waitForSnapshot(
+    request,
+    (s) =>
+      s.runs.length === 7 &&
+      s.runs.every((r) => r.status === 'completed') &&
+      s.tasks.every((t) => t.status === 'completed'),
+  );
+  expect(snapshot.tasks).toHaveLength(6);
+  expect(snapshot.tasks.every((t) => t.rootRunId === root.id)).toBe(true);
+  expect(snapshot.messages.at(-1)?.content).toContain('six follow-up limit');
+});
+
+describe('connector account settings', () => {
+  it('requires a local user session for account changes and never gives agents a connection action', async () => {
+    const { daemon, request } = await setup(14433);
+    const connect = vi.spyOn(daemon.service.connectors, 'connectGithub').mockResolvedValue([]);
+    const disconnect = vi.spyOn(daemon.service.connectors, 'disconnect').mockResolvedValue([]);
+    for (const path of [
+      '/connectors/github/connect',
+      '/connectors/google/connect',
+      '/connectors/github/disconnect',
+    ]) {
+      expect(
+        (
+          await fetch(`${daemon.url}/api${path}`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: '{}',
+          })
+        ).status,
+      ).toBe(403);
+      expect(
+        (await request(path, 'POST', {}, { origin: 'https://evil.example' })).response.status,
+      ).toBe(403);
+    }
+    expect(connect).not.toHaveBeenCalled();
+    expect(
+      (await request('/connectors/github/connect', 'POST', { token: 'fixture-token' })).response
+        .status,
+    ).toBe(200);
+    expect(connect).toHaveBeenCalledWith({ token: 'fixture-token' });
+    expect((await request('/connectors/github/disconnect', 'POST', {})).response.status).toBe(200);
+    expect(disconnect).toHaveBeenCalledWith('github');
+    expect((await request('/connectors/arbitrary/disconnect', 'POST', {})).response.status).toBe(
+      400,
+    );
+    const snapshot = (await request<Snapshot>('/snapshot')).result;
+    expect(snapshot.connectors).toHaveLength(2);
+    expect(JSON.stringify(snapshot)).not.toContain('fixture-token');
+    expect(snapshot.roles.every((r) => !r.capabilities?.github && !r.capabilities?.gmail)).toBe(
+      true,
+    );
   });
 });

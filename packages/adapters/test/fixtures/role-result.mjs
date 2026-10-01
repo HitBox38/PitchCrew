@@ -12,10 +12,12 @@ export function roleResult(prompt, mode) {
   const result =
     mode === 'wrong-role'
       ? { role: 'reviewer', passed: true, feedback: [] }
-      : role === 'writer'
-        ? { role, packet }
-        : role === 'reviewer'
-          ? { role, passed: true, feedback: [] }
-          : { role: 'scout', fit: 87, reasons: ['Fixture result'] };
+      : prompt.includes('Return ONLY JSON: {"reply"')
+        ? { reply: 'Fixture conversational café response.' }
+        : role === 'writer'
+          ? { role, packet }
+          : role === 'reviewer'
+            ? { role, passed: true, feedback: [] }
+            : { role: 'scout', fit: 87, reasons: ['Fixture result'] };
   return mode === 'invalid' ? 'This is not JSON.' : JSON.stringify(result);
 }

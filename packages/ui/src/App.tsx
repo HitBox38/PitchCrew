@@ -9,6 +9,7 @@ import {
   LoaderCircle,
   X,
   SlidersHorizontal,
+  MessageSquare,
 } from 'lucide-react';
 import type { Snapshot, Role, RoleId } from '@pitchcrew/core';
 import { api } from './api.ts';
@@ -35,6 +36,10 @@ const InboxView = lazy(() => views().then((m) => ({ default: m.InboxView })));
 const CommandPalette = lazy(() =>
   import('./command-palette.tsx').then((m) => ({ default: m.CommandPalette })),
 );
+const ConnectorSettings = lazy(() =>
+  import('./connector-settings.tsx').then((m) => ({ default: m.ConnectorSettings })),
+);
+const ChatView = lazy(() => import('./chat-view.tsx').then((m) => ({ default: m.ChatView })));
 const closedStates = ['rejected', 'withdrawn', 'ghosted'];
 const stages = [
   {
@@ -92,6 +97,7 @@ export type Action = (
 ) => Promise<unknown>;
 export function App() {
   const [data, setData] = useState<Snapshot | null>(null);
+  const [chatThread, setChatThread] = useState<RoleId | 'crew'>('scout');
   const [view, setView] = useState<View>('board');
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
@@ -167,6 +173,10 @@ export function App() {
     setView(next);
     setSelectedId(null);
   };
+  const openChat = (id: RoleId) => {
+    setChatThread(id);
+    go('chat');
+  };
   const openCard = (id: string) => {
     setSelectedId(id);
     setRecentIds((ids) => {
@@ -241,7 +251,9 @@ export function App() {
         'Nothing on the board yet.'
       )
     ) : view === 'crew' ? (
-      'Pick a runtime for each role. A run only starts when you start it from a card.'
+      'Configure how each role works, then start a conversation or a job workflow.'
+    ) : view === 'chat' ? (
+      'Talk with a role, follow crew exchanges, and shape how your agents work.'
     ) : view === 'inbox' ? (
       pending ? (
         <>
@@ -273,6 +285,7 @@ export function App() {
         model: role.model,
         enabled: !role.enabled,
         instructions: role.instructions,
+        capabilities: role.capabilities,
       },
       `${role.name} ${role.enabled ? 'paused' : 'resumed'}`,
     );
@@ -291,6 +304,7 @@ export function App() {
         roleStatus={roleStatus}
         runningRoles={running.map((r) => r.roleId)}
         onConfigureRole={setRoleId}
+        onChatRole={openChat}
         onToggleRole={toggleRole}
         recent={recentCards}
         onOpenCard={openCard}
@@ -312,13 +326,13 @@ export function App() {
                 .map((run) => {
                   const role = data.roles.find((r) => r.id === run.roleId);
                   const card = data.cards.find((c) => c.id === run.cardId);
-                  return `${role?.name ?? run.roleId} on ${card?.company ?? 'a job'}`;
+                  return `${role?.name ?? run.roleId} ${run.mode === 'chat' ? 'is replying' : `on ${card?.company ?? 'a job'}`}`;
                 })
                 .join(', ')}
             </output>
           ) : null}
         </div>
-        <div className="page">
+        <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
           <header className="page-heading">
             <div>
               <h1>{viewTitles[view]}</h1>
@@ -506,9 +520,13 @@ export function App() {
                     role={role}
                     status={roleStatus(role)}
                     onConfigure={() => setRoleId(role.id)}
+                    onChat={() => openChat(role.id)}
                   />
                 ))}
               </div>
+              <Suspense fallback={<p className="quiet">Loading connectors…</p>}>
+                <ConnectorSettings data={data} action={action} working={working} />
+              </Suspense>
               <h2 className="subheading">Runtimes on this machine</h2>
               <div className="runtime-list">
                 {data.runtimes.map((runtime) => (
@@ -526,11 +544,22 @@ export function App() {
               </div>
               <p className="info-note">
                 Demo makes deterministic drafts without calling a model. Other runtimes use their
-                native authentication, and only run when you start them.
+                native authentication for conversations and job workflows.
               </p>
             </>
           ) : null}
-          <Suspense fallback={null}>
+          <Suspense fallback={<p className="quiet">Opening view…</p>}>
+            {view === 'chat' ? (
+              <ChatView
+                data={data}
+                thread={chatThread}
+                onThread={setChatThread}
+                onConfigure={setRoleId}
+                onOpenCard={openCard}
+                action={action}
+                working={working}
+              />
+            ) : null}
             {view === 'inbox' ? (
               <InboxView data={data} action={action} working={working} onOpen={openCard} />
             ) : null}
@@ -572,6 +601,7 @@ export function App() {
             onNavigate={go}
             onOpenCard={openCard}
             onConfigureRole={setRoleId}
+            onChatRole={openChat}
             onAddJob={() => setAdd(true)}
             onCheckRuntimes={checkRuntimes}
             onTheme={setTheme}
@@ -624,10 +654,12 @@ function CrewCard({
   role,
   status,
   onConfigure,
+  onChat,
 }: {
   role: Role;
   status: string;
   onConfigure: () => void;
+  onChat: () => void;
 }) {
   return (
     <section className={`crew-card ${role.id}`}>
@@ -655,6 +687,9 @@ function CrewCard({
           <dd>{status.startsWith('Working') ? status : 'Idle'}</dd>
         </div>
       </dl>
+      <Button className="button primary" onClick={onChat}>
+        <MessageSquare size={14} /> Chat
+      </Button>
       <Button className="button" onClick={onConfigure}>
         <SlidersHorizontal size={14} /> Configure
       </Button>

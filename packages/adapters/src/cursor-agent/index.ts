@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter, RuntimeHealth } from '@pitchcrew/core';
-import { detectCli, promptFor, runCli } from '../process.ts';
+import type { RuntimeHealth } from '@pitchcrew/core';
+import { detectCli, withChat, runCliText } from '../process.ts';
 
 async function detectCursorAgent(): Promise<RuntimeHealth> {
   const health = await detectCli('cursor-agent', 'cursor-agent');
@@ -18,10 +18,10 @@ async function detectCursorAgent(): Promise<RuntimeHealth> {
   return health;
 }
 
-export const cursorAgent: RuntimeAdapter = {
+export const cursorAgent = withChat({
   id: 'cursor-agent',
   detect: detectCursorAgent,
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const health = await detectCursorAgent();
     if (!health.available) throw new Error(health.detail);
@@ -61,11 +61,11 @@ export const cursorAgent: RuntimeAdapter = {
       context.directory,
     ];
     if (context.role.model) args.push('--model', context.role.model);
-    return runCli(
+    return runCliText(
       'cursor-agent',
       args,
       context,
-      promptFor(context),
+      prompt,
       (event) => {
         // Intermediate assistant messages are not a completed run.
         if (event.type !== 'result') return null;
@@ -81,4 +81,4 @@ export const cursorAgent: RuntimeAdapter = {
       },
     );
   },
-};
+});

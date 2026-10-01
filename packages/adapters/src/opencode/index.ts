@@ -1,12 +1,11 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, runCli } from '../process.ts';
+import { detectCli, withChat, runCliText } from '../process.ts';
 
-export const opencode: RuntimeAdapter = {
+export const opencode = withChat({
   id: 'opencode',
   detect: () => detectCli('opencode', 'opencode'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'opencode-config');
     await mkdir(configDirectory, { recursive: true });
@@ -29,11 +28,11 @@ export const opencode: RuntimeAdapter = {
     };
     const args = ['run', '--pure', '--format', 'json', '--agent', 'pitchcrew'];
     if (context.role.model) args.push('--model', context.role.model);
-    return runCli(
+    return runCliText(
       'opencode',
       args,
       context,
-      promptFor(context),
+      prompt,
       (event) => {
         const part = event.part as { type?: string; text?: string } | undefined;
         return event.type === 'text' && part?.type === 'text' && typeof part.text === 'string'
@@ -55,4 +54,4 @@ export const opencode: RuntimeAdapter = {
       },
     );
   },
-};
+});

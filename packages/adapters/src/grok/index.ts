@@ -1,18 +1,17 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import { homedir } from 'node:os';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, requireCliVersion, runCli } from '../process.ts';
+import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
 
-export const grok: RuntimeAdapter = {
+export const grok = withChat({
   id: 'grok',
   detect: async () => requireCliVersion(await detectCli('grok', 'grok'), [1, 0, 45], 'grok'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const grokHome = join(context.directory, 'grok-home');
     const promptPath = join(context.directory, 'grok-prompt.txt');
     await mkdir(grokHome, { recursive: true });
-    await writeFile(promptPath, promptFor(context), { mode: 0o600 });
+    await writeFile(promptPath, prompt, { mode: 0o600 });
     // JSON strings and arrays are valid TOML basic strings/arrays for these generated fields.
     await writeFile(
       join(grokHome, 'config.toml'),
@@ -65,7 +64,7 @@ export const grok: RuntimeAdapter = {
     if (context.role.model) args.push('--model', context.role.model);
     let assistant = '',
       failed = false;
-    return runCli(
+    return runCliText(
       'grok',
       args,
       context,
@@ -97,4 +96,4 @@ export const grok: RuntimeAdapter = {
       },
     );
   },
-};
+});

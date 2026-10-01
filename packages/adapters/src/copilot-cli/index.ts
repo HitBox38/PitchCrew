@@ -1,12 +1,11 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, runCli } from '../process.ts';
+import { detectCli, withChat, runCliText } from '../process.ts';
 
-export const copilotCli: RuntimeAdapter = {
+export const copilotCli = withChat({
   id: 'copilot-cli',
   detect: () => detectCli('copilot-cli', 'copilot'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'copilot-config');
     await mkdir(configDirectory, { recursive: true });
@@ -44,11 +43,11 @@ export const copilotCli: RuntimeAdapter = {
       'PITCHCREW_RUN_TOKEN',
     ];
     if (context.role.model) args.push('--model', context.role.model);
-    return runCli(
+    return runCliText(
       'copilot',
       args,
       context,
-      promptFor(context),
+      prompt,
       (event) => {
         const data = event.data as { content?: string } | undefined;
         return event.type === 'assistant.message' && typeof data?.content === 'string'
@@ -69,4 +68,4 @@ export const copilotCli: RuntimeAdapter = {
       },
     );
   },
-};
+});

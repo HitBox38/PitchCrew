@@ -1,14 +1,13 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import { homedir } from 'node:os';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, requireCliVersion, runCli } from '../process.ts';
+import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
 import { piResultExtractor } from '../pi/result.ts';
 
-export const ohMyPi: RuntimeAdapter = {
+export const ohMyPi = withChat({
   id: 'oh-my-pi',
   detect: async () => requireCliVersion(await detectCli('oh-my-pi', 'omp'), [18, 4, 9], 'omp'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configRoot = join(context.directory, 'omp-home');
     const agentDir = join(configRoot, 'agent');
@@ -76,7 +75,7 @@ export const ohMyPi: RuntimeAdapter = {
       '--no-prewalk',
     ];
     if (context.role.model) args.push('--model', context.role.model);
-    return runCli('omp', args, context, promptFor(context), piResultExtractor(), {
+    return runCliText('omp', args, context, prompt, piResultExtractor(), {
       PI_CODING_AGENT_DIR: agentDir,
       PI_CONFIG_DIR: configDir,
       XDG_DATA_HOME: join(configRoot, 'data'),
@@ -90,4 +89,4 @@ export const ohMyPi: RuntimeAdapter = {
       OMP_MCP_TIMEOUT_MS: '30000',
     });
   },
-};
+});

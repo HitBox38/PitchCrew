@@ -1,12 +1,11 @@
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor, runCli } from '../process.ts';
+import { detectCli, withChat, runCliText } from '../process.ts';
 
-export const geminiCli: RuntimeAdapter = {
+export const geminiCli = withChat({
   id: 'gemini-cli',
   detect: () => detectCli('gemini-cli', 'gemini'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const settingsPath = join(context.directory, 'gemini-settings.json');
     // System settings take precedence over user/project settings without moving CLI credentials.
@@ -37,11 +36,11 @@ export const geminiCli: RuntimeAdapter = {
     ];
     if (context.role.model) args.push('--model', context.role.model);
     let response = '';
-    return runCli(
+    return runCliText(
       'gemini',
       args,
       context,
-      promptFor(context),
+      prompt,
       (event) => {
         // Discard assistant commentary before a tool call; the next turn is the final candidate.
         if (event.type === 'tool_use') response = '';
@@ -57,4 +56,4 @@ export const geminiCli: RuntimeAdapter = {
       { GEMINI_CLI_SYSTEM_SETTINGS_PATH: settingsPath },
     );
   },
-};
+});

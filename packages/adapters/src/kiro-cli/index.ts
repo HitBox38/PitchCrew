@@ -1,13 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeAdapter } from '@pitchcrew/core';
-import { detectCli, promptFor } from '../process.ts';
-import { runAcp } from '../acp.ts';
+import { detectCli, withChat } from '../process.ts';
+import { runAcpText } from '../acp.ts';
 
-export const kiroCli: RuntimeAdapter = {
+export const kiroCli = withChat({
   id: 'kiro-cli',
   detect: () => detectCli('kiro-cli', 'kiro-cli'),
-  async run(context) {
+  async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const kiroHome = join(context.directory, 'kiro-home');
     const agentsDirectory = join(kiroHome, 'agents');
@@ -37,11 +36,11 @@ export const kiroCli: RuntimeAdapter = {
       '@pitchcrew/*',
     ];
     if (context.role.model) args.push('--model', context.role.model);
-    return runAcp('kiro-cli', args, context, promptFor(context), {
+    return runAcpText('kiro-cli', args, context, prompt, {
       // Headless authentication uses the CLI's KIRO_API_KEY environment, never copied here.
       KIRO_HOME: kiroHome,
       KIRO_CHAT_LOG_FILE: join(kiroHome, 'runtime.log'),
       KIRO_LOG_NO_COLOR: '1',
     });
   },
-};
+});
