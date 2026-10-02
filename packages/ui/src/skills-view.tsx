@@ -48,13 +48,23 @@ export function SkillsView({
   const [starter, setStarter] = useState<BaseSkill | null>(null);
   const [deleting, setDeleting] = useState<Skill | null>(null);
   const [error, setError] = useState('');
+  const agentCreators = new Map(
+    data.skillProposals
+      .filter((proposal) => proposal.status === 'applied' && proposal.skillId)
+      .map((proposal) => [
+        proposal.skillId,
+        data.roles.find((role) => role.id === proposal.roleId)?.name ?? proposal.roleId,
+      ]),
+  );
+  const creator = (skill: Skill) =>
+    skill.source?.repository.split('/')[0] ?? agentCreators.get(skill.id) ?? 'You';
   const skills = data.skills.filter(
     (skill) =>
       (filter === 'all' ||
         (filter === 'shared'
           ? skill.scope === 'all'
           : skill.scope === 'all' || skill.roleIds.includes(filter))) &&
-      `${skill.name} ${skill.description} ${skill.content}`
+      `${skill.name} ${skill.description} ${skill.content} ${creator(skill)} ${skill.source?.repository ?? ''}`
         .toLowerCase()
         .includes(query.toLowerCase()),
   );
@@ -152,6 +162,7 @@ export function SkillsView({
                 {skill.description ? <p>{skill.description}</p> : null}
                 {starterNote(skill) ? <p className="quiet">{starterNote(skill)}</p> : null}
                 <div className="skill-meta">
+                  <span>Made by {creator(skill)}</span>
                   <span className="badge">{assignment(skill, data.roles)}</span>
                   {skill.source ? <span className="badge">skills.sh</span> : null}
                   <span>Updated {timeAgo(skill.updatedAt)}</span>
@@ -211,6 +222,8 @@ export function SkillsView({
                 <div>
                   <h3>{item.name}</h3>
                   <p>{item.description}</p>
+                  <span className="quiet skill-source">Made by {item.source.split('/')[0]}</span>
+                  <br />
                   <span className="quiet skill-source">{item.source}</span>
                   {item.note ? <p className="quiet">{item.note}</p> : null}
                 </div>
@@ -239,6 +252,7 @@ export function SkillsView({
               : editing.id
           }
           skill={typeof editing === 'string' ? null : editing}
+          creator={typeof editing === 'string' ? 'You' : creator(editing)}
           importing={editing === 'import'}
           starter={editing === 'import' ? starter : null}
           roles={data.roles}
@@ -279,6 +293,7 @@ export function SkillsView({
 }
 function SkillEditor({
   skill,
+  creator,
   roles,
   initialRole,
   importing,
@@ -288,6 +303,7 @@ function SkillEditor({
   onClose,
 }: {
   skill: Skill | null;
+  creator: string;
   roles: Role[];
   initialRole: RoleId | null;
   importing: boolean;
@@ -419,6 +435,9 @@ function SkillEditor({
               </section>
             ) : null}
             <section className="role-settings-section" aria-label="Skill details">
+              {source || !importing ? (
+                <p className="quiet">Made by {source?.repository.split('/')[0] ?? creator}</p>
+              ) : null}
               <label htmlFor="skill-name">Name</label>
               <Input
                 id="skill-name"
