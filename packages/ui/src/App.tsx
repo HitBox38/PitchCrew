@@ -1,3 +1,6 @@
+import { AnimatePresence, LayoutGroup } from 'motion/react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from './motion.tsx';
 import { Input } from './components/ui/input.tsx';
 import { Button } from './components/ui/button.tsx';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
@@ -90,6 +93,7 @@ export type Action = (
   success?: string | ((result: unknown) => string),
 ) => Promise<unknown>;
 export function App() {
+  const reduced = useAppReducedMotion();
   const [data, setData] = useState<Snapshot | null>(null);
   const chatState = useRef<ChatStreamState | null>(null);
   useEffect(
@@ -125,12 +129,14 @@ export function App() {
   useShortcuts({ search: () => setPaletteOpen(true), newJob: () => setAdd(true) });
   useEffect(() => {
     if (!flashStage) return;
-    document
-      .getElementById(`stage-${flashStage}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    document.getElementById(`stage-${flashStage}`)?.scrollIntoView({
+      behavior: reduced ? 'instant' : 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
     const timer = setTimeout(() => setFlashStage(null), 1400);
     return () => clearTimeout(timer);
-  }, [flashStage]);
+  }, [flashStage, reduced]);
   const reload = useCallback(async () => {
     const next = await api<Snapshot>('/snapshot');
     setData({ ...next, ...chatState.current });
@@ -343,7 +349,12 @@ export function App() {
             </output>
           ) : null}
         </div>
-        <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
+        <m.div
+          key={view}
+          initial={reduced ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`page ${view === 'chat' ? 'chat-page' : ''}`}
+        >
           <header className="page-heading">
             <div>
               <h1>{viewTitles[view]}</h1>
@@ -452,54 +463,68 @@ export function App() {
                   </div>
                 </div>
                 {showClosed ? (
-                  <div className="closed-grid">
-                    {closed.length ? (
-                      closed.map((card) => (
-                        <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                      ))
-                    ) : (
-                      <EmptyState
-                        title="Nothing closed"
-                        description="Rejected, withdrawn and unanswered applications end up here."
-                      />
-                    )}
-                  </div>
+                  <LayoutGroup id="closed-jobs">
+                    <m.div layout className="closed-grid">
+                      <AnimatePresence initial={false}>
+                        {closed.length ? (
+                          closed.map((card) => (
+                            <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
+                          ))
+                        ) : (
+                          <EmptyState
+                            title="Nothing closed"
+                            description="Rejected, withdrawn and unanswered applications end up here."
+                          />
+                        )}
+                      </AnimatePresence>
+                    </m.div>
+                  </LayoutGroup>
                 ) : (
-                  <div className="pipeline" aria-label="Application pipeline">
-                    {stages.map((stage) => {
-                      const cards = filtered.filter((c) => stage.states.includes(c.state));
-                      return (
-                        <section
-                          className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
-                          id={`stage-${stage.id}`}
-                          key={stage.id}
-                        >
-                          <div className="column-heading">
-                            <span className="stage-dot" />
-                            <h2>{stage.label}</h2>
-                            <span className="column-count">{cards.length}</span>
-                            {stage.id === 'lead' ? (
-                              <Button
-                                className="icon-button"
-                                aria-label="Add a job"
-                                onClick={() => setAdd(true)}
-                              >
-                                <Plus size={15} />
-                              </Button>
-                            ) : null}
-                          </div>
-                          <div className="column-cards">
-                            {cards.map((card) => (
-                              <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                            ))}
-                            {!cards.length ? (
-                              <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
-                            ) : null}
-                          </div>
-                        </section>
-                      );
-                    })}
-                  </div>
+                  <LayoutGroup id="pipeline-jobs">
+                    <m.div layoutScroll className="pipeline" aria-label="Application pipeline">
+                      {stages.map((stage) => {
+                        const cards = filtered.filter((c) => stage.states.includes(c.state));
+                        return (
+                          <section
+                            className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
+                            id={`stage-${stage.id}`}
+                            key={stage.id}
+                          >
+                            <div className="column-heading">
+                              <span className="stage-dot" />
+                              <h2>{stage.label}</h2>
+                              <span className="column-count">{cards.length}</span>
+                              {stage.id === 'lead' ? (
+                                <Button
+                                  className="icon-button"
+                                  aria-label="Add a job"
+                                  onClick={() => setAdd(true)}
+                                >
+                                  <Plus size={15} />
+                                </Button>
+                              ) : null}
+                            </div>
+                            <div className="column-cards">
+                              <AnimatePresence initial={false}>
+                                {cards.map((card) => (
+                                  <JobCard
+                                    key={card.id}
+                                    card={card}
+                                    onOpen={() => openCard(card.id)}
+                                  />
+                                ))}
+                              </AnimatePresence>
+                              {!cards.length ? (
+                                <p className="column-empty">
+                                  {query ? 'No matches.' : stage.empty}
+                                </p>
+                              ) : null}
+                            </div>
+                          </section>
+                        );
+                      })}
+                    </m.div>
+                  </LayoutGroup>
                 )}
                 {recent.length ? (
                   <section className="recent">
@@ -609,7 +634,7 @@ export function App() {
               </ol>
             </section>
           ) : null}
-        </div>
+        </m.div>
       </SidebarInset>
       {paletteMounted ? (
         <Suspense fallback={null}>
@@ -629,47 +654,63 @@ export function App() {
           />
         </Suspense>
       ) : null}
-      {toast ? (
-        <output className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}>
-          <span>{toast}</span>
-          <Button
-            className="icon-button"
-            onClick={() => setToast('')}
-            aria-label="Dismiss notification"
+      <AnimatePresence>
+        {toast ? (
+          <m.output
+            key="notification"
+            initial={{ opacity: 0, y: reduced ? 0 : 12, scale: reduced ? 1 : 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: reduced ? 0 : 8 }}
+            className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}
           >
-            <X size={15} />
-          </Button>
-        </output>
-      ) : null}
+            <span>{toast}</span>
+            <Button
+              className="icon-button"
+              onClick={() => setToast('')}
+              aria-label="Dismiss notification"
+            >
+              <X size={15} />
+            </Button>
+          </m.output>
+        ) : null}
+      </AnimatePresence>
       <Suspense fallback={null}>
-        {add ? (
-          <AddOpportunity action={action} working={working} onClose={() => setAdd(false)} />
-        ) : null}
-        {selected ? (
-          <CardDetails
-            card={selected}
-            data={data}
-            action={action}
-            working={working}
-            onClose={() => setSelectedId(null)}
-            onInbox={() => go('inbox')}
-          />
-        ) : null}
-        {selectedRole ? (
-          <RoleSettings
-            key={selectedRole.id}
-            onManageSkills={() => {
-              setSkillFilter(selectedRole.id);
-              setRoleId(null);
-              go('skills');
-            }}
-            role={selectedRole}
-            data={data}
-            action={action}
-            working={working}
-            onClose={() => setRoleId(null)}
-          />
-        ) : null}
+        <AnimatePresence>
+          {add ? (
+            <AddOpportunity
+              key="add-job"
+              action={action}
+              working={working}
+              onClose={() => setAdd(false)}
+            />
+          ) : null}
+          {selected ? (
+            <CardDetails
+              key={selected.id}
+              card={selected}
+              data={data}
+              action={action}
+              working={working}
+              onClose={() => setSelectedId(null)}
+              onInbox={() => go('inbox')}
+            />
+          ) : null}
+          {selectedRole ? (
+            <RoleSettings
+              key={selectedRole.id}
+              onManageSkills={() => {
+                setSkillFilter(selectedRole.id);
+                setRoleId(null);
+                go('skills');
+              }}
+              role={selectedRole}
+              data={data}
+              action={action}
+              working={working}
+              onClose={() => setRoleId(null)}
+            />
+          ) : null}
+        </AnimatePresence>
       </Suspense>
     </SidebarProvider>
   );

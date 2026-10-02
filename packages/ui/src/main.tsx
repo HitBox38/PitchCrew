@@ -5,12 +5,15 @@ import '@fontsource-variable/fraunces/full-italic.css';
 import '@fontsource/source-sans-3/latin-400.css';
 import '@fontsource/source-sans-3/latin-600.css';
 import { App } from './App.tsx';
+import { AppMotion } from './motion.tsx';
 import './styles.css';
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <div className="desktop-titlebar" aria-hidden="true">
       <span>Pitchcrew</span>
     </div>
-    <App />
+    <AppMotion>
+      <App />
+    </AppMotion>
   </React.StrictMode>,
 );

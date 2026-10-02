@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { BookOpen, Check, LoaderCircle, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import type { Role, RoleId, Skill, SkillPreview, Snapshot } from '@pitchcrew/core';
 import {
@@ -242,52 +243,55 @@ export function SkillsView({
             ))}
         </ul>
       </details>
-      {editing ? (
-        <SkillEditor
-          key={
-            typeof editing === 'string'
-              ? editing === 'import'
-                ? (starter?.name ?? editing)
-                : editing
-              : editing.id
-          }
-          skill={typeof editing === 'string' ? null : editing}
-          creator={typeof editing === 'string' ? 'You' : creator(editing)}
-          importing={editing === 'import'}
-          starter={editing === 'import' ? starter : null}
-          roles={data.roles}
-          initialRole={filter !== 'all' && filter !== 'shared' ? filter : null}
-          action={action}
-          working={working}
-          onClose={() => setEditing(null)}
-        />
-      ) : null}
-      {deleting ? (
-        <Modal
-          title="Delete skill"
-          onClose={() => {
-            if (!working) setDeleting(null);
-          }}
-        >
-          <p>
-            Delete <strong>{deleting.name}</strong> for {assignment(deleting, data.roles)}? Future
-            runs will stop using it. Active runs keep their current skills.
-          </p>
-          {error ? (
-            <p className="form-error" role="alert">
-              {error}
+      <AnimatePresence>
+        {editing ? (
+          <SkillEditor
+            key={
+              typeof editing === 'string'
+                ? editing === 'import'
+                  ? (starter?.name ?? editing)
+                  : editing
+                : editing.id
+            }
+            skill={typeof editing === 'string' ? null : editing}
+            creator={typeof editing === 'string' ? 'You' : creator(editing)}
+            importing={editing === 'import'}
+            starter={editing === 'import' ? starter : null}
+            roles={data.roles}
+            initialRole={filter !== 'all' && filter !== 'shared' ? filter : null}
+            action={action}
+            working={working}
+            onClose={() => setEditing(null)}
+          />
+        ) : null}
+        {deleting ? (
+          <Modal
+            key="delete-skill"
+            title="Delete skill"
+            onClose={() => {
+              if (!working) setDeleting(null);
+            }}
+          >
+            <p>
+              Delete <strong>{deleting.name}</strong> for {assignment(deleting, data.roles)}? Future
+              runs will stop using it. Active runs keep their current skills.
             </p>
-          ) : null}
-          <div className="form-footer">
-            <Button className="button" disabled={working} onClick={() => setDeleting(null)}>
-              Cancel
-            </Button>
-            <Button className="button danger" disabled={working} onClick={() => void remove()}>
-              <Trash2 size={15} /> Delete skill
-            </Button>
-          </div>
-        </Modal>
-      ) : null}
+            {error ? (
+              <p className="form-error" role="alert">
+                {error}
+              </p>
+            ) : null}
+            <div className="form-footer">
+              <Button className="button" disabled={working} onClick={() => setDeleting(null)}>
+                Cancel
+              </Button>
+              <Button className="button danger" disabled={working} onClick={() => void remove()}>
+                <Trash2 size={15} /> Delete skill
+              </Button>
+            </div>
+          </Modal>
+        ) : null}
+      </AnimatePresence>
     </section>
   );
 }

@@ -4,6 +4,9 @@ import { Dialog, DialogContent, DialogTitle } from './components/ui/dialog.tsx';
 import { Sheet, SheetContent, SheetTitle } from './components/ui/sheet.tsx';
 import { X, Search, PenLine, ShieldCheck, LoaderCircle } from 'lucide-react';
 import type { Card, CardState, RoleId, RuntimeId } from '@pitchcrew/core';
+import * as m from 'motion/react-m';
+import { useMotionValue, useSpring } from 'motion/react';
+import { claySpring, useAppReducedMotion } from './motion.tsx';
 export const stateLabels: Record<CardState, string> = {
   lead: 'New lead',
   shortlisted: 'Shortlisted',
@@ -127,8 +130,39 @@ export function CompanyMark({ name }: { name: string }) {
   );
 }
 export function JobCard({ card, onOpen }: { card: Card; onOpen: () => void }) {
+  const reduced = useAppReducedMotion();
+  const tiltX = useMotionValue(0);
+  const tiltY = useMotionValue(0);
+  const rotateX = useSpring(tiltX, claySpring);
+  const rotateY = useSpring(tiltY, claySpring);
   return (
     <Button
+      render={
+        <m.button
+          layout="position"
+          layoutId={`job-${card.id}`}
+          initial={reduced ? false : { opacity: 0, scale: 0.97 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: reduced ? 1 : 0.97 }}
+          whileHover={reduced ? undefined : { y: -4 }}
+          whileTap={reduced ? undefined : { y: 0, scale: 0.985 }}
+          style={{
+            rotateX: reduced ? 0 : rotateX,
+            rotateY: reduced ? 0 : rotateY,
+            transformPerspective: 900,
+          }}
+          onPointerMove={(event) => {
+            if (reduced || event.pointerType !== 'mouse') return;
+            const rect = event.currentTarget.getBoundingClientRect();
+            tiltX.set((0.5 - (event.clientY - rect.top) / rect.height) * 4);
+            tiltY.set(((event.clientX - rect.left) / rect.width - 0.5) * 4);
+          }}
+          onPointerLeave={() => {
+            tiltX.set(0);
+            tiltY.set(0);
+          }}
+        />
+      }
       className="job-card"
       onClick={onOpen}
       aria-label={`Open ${card.title} at ${card.company}`}

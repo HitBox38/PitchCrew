@@ -1,4 +1,7 @@
 import { useRef, useState } from 'react';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from './motion.tsx';
 import {
   ArrowRight,
   BriefcaseBusiness,
@@ -31,6 +34,7 @@ import {
   ConversationScrollButton,
 } from './components/ai-elements/conversation.tsx';
 import { Message, MessageContent, MessageResponse } from './components/ai-elements/message.tsx';
+const AnimatedMessage = m.create(Message);
 import {
   PromptInput,
   PromptInputBody,
@@ -105,6 +109,7 @@ export function ChatView({
   action: Action;
   working: boolean;
 }) {
+  const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [drafts, setDrafts] = useState<Partial<Record<ChatThread, string>>>({});
   const [jobs, setJobs] = useState<Partial<Record<ChatThread, string>>>({});
@@ -396,66 +401,70 @@ export function ChatView({
                       </div>
                     </ConversationEmptyState>
                   ) : null}
-                  {messages.map((message, index) => {
-                    const job = data.cards.find((c) => c.id === message.cardId);
-                    const streaming = streamingIds.has(message.id);
-                    return (
-                      <Fragment key={message.id}>
-                        {index === 0 ||
-                        new Date(messages[index - 1].createdAt).toDateString() !==
-                          new Date(message.createdAt).toDateString() ? (
-                          <div className="chat-day">
-                            <span>{messageDay(message.createdAt)}</span>
-                          </div>
-                        ) : null}
-                        <Message
-                          from={message.from === 'user' ? 'user' : 'assistant'}
-                          className={`chat-message ${message.from === 'system' ? 'chat-system' : ''}`}
-                        >
-                          <div className="chat-message-meta">
-                            {message.from !== 'user' && message.from !== 'system' ? (
-                              <RoleAvatar agentRole={message.from} size="small" />
-                            ) : null}
-                            <strong>{name(message.from)}</strong>
-                            {thread === 'crew' && message.to !== 'crew' ? (
-                              <span className="chat-route">
-                                <ArrowRight size={12} /> {name(message.to)}
+                  <AnimatePresence initial={false}>
+                    {messages.map((message, index) => {
+                      const job = data.cards.find((c) => c.id === message.cardId);
+                      const streaming = streamingIds.has(message.id);
+                      return (
+                        <Fragment key={message.id}>
+                          {index === 0 ||
+                          new Date(messages[index - 1].createdAt).toDateString() !==
+                            new Date(message.createdAt).toDateString() ? (
+                            <div className="chat-day">
+                              <span>{messageDay(message.createdAt)}</span>
+                            </div>
+                          ) : null}
+                          <AnimatedMessage
+                            initial={{ opacity: 0, y: reduced ? 0 : 8 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            from={message.from === 'user' ? 'user' : 'assistant'}
+                            className={`chat-message ${message.from === 'system' ? 'chat-system' : ''}`}
+                          >
+                            <div className="chat-message-meta">
+                              {message.from !== 'user' && message.from !== 'system' ? (
+                                <RoleAvatar agentRole={message.from} size="small" />
+                              ) : null}
+                              <strong>{name(message.from)}</strong>
+                              {thread === 'crew' && message.to !== 'crew' ? (
+                                <span className="chat-route">
+                                  <ArrowRight size={12} /> {name(message.to)}
+                                </span>
+                              ) : null}
+                              <time
+                                dateTime={message.createdAt}
+                                title={new Date(message.createdAt).toLocaleString()}
+                              >
+                                {timeAgo(message.createdAt)}
+                              </time>
+                            </div>
+                            <MessageContent className="chat-message-content" aria-busy={streaming}>
+                              <MessageResponse
+                                mode={streaming ? 'streaming' : 'static'}
+                                isAnimating={streaming}
+                                components={noRemoteImages}
+                              >
+                                {message.content}
+                              </MessageResponse>
+                            </MessageContent>
+                            {streaming ? (
+                              <span className="chat-stream-status">
+                                <LoaderCircle size={12} className="spin" /> Replying…
                               </span>
                             ) : null}
-                            <time
-                              dateTime={message.createdAt}
-                              title={new Date(message.createdAt).toLocaleString()}
-                            >
-                              {timeAgo(message.createdAt)}
-                            </time>
-                          </div>
-                          <MessageContent className="chat-message-content" aria-busy={streaming}>
-                            <MessageResponse
-                              mode={streaming ? 'streaming' : 'static'}
-                              isAnimating={streaming}
-                              components={noRemoteImages}
-                            >
-                              {message.content}
-                            </MessageResponse>
-                          </MessageContent>
-                          {streaming ? (
-                            <span className="chat-stream-status">
-                              <LoaderCircle size={12} className="spin" /> Replying…
-                            </span>
-                          ) : null}
-                          {job ? (
-                            <Button
-                              variant="ghost"
-                              className="chat-job-link"
-                              onClick={() => onOpenCard(job.id)}
-                            >
-                              <BriefcaseBusiness size={12} /> {job.company} · {job.title}
-                            </Button>
-                          ) : null}
-                        </Message>
-                      </Fragment>
-                    );
-                  })}
+                            {job ? (
+                              <Button
+                                variant="ghost"
+                                className="chat-job-link"
+                                onClick={() => onOpenCard(job.id)}
+                              >
+                                <BriefcaseBusiness size={12} /> {job.company} · {job.title}
+                              </Button>
+                            ) : null}
+                          </AnimatedMessage>
+                        </Fragment>
+                      );
+                    })}
+                  </AnimatePresence>
                 </ConversationContent>
                 <ConversationScrollButton className="button chat-scroll" />
               </Conversation>

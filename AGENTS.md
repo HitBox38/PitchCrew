@@ -16,6 +16,7 @@ Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persi
 - SQLite through better-sqlite3; versioned append-only events and projections.
 - Official TypeScript MCP SDK with stdio transport and per-run capabilities.
 - React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
+- Motion for React supplies spring presses, pointer-driven clay card tilt, board layout changes, view and panel transitions, and new chat message reveals. The shared `AppMotion` provider loads Motion features and respects system reduced motion; pointer-driven effects also use its reduced-motion context. Base UI retains dialog semantics and focus management.
 - Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier.
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
 - Electron uses a paper-themed draggable title bar with native macOS traffic lights and Windows/Linux window-control overlays. Its sandboxed CommonJS preload synchronizes the renderer theme through a main-frame, origin-checked IPC channel without exposing Electron APIs to the page. Explicit Google PKCE sign-in links with a loopback callback open in the system browser through a narrow main-process URL allowlist; other external navigation is denied.
