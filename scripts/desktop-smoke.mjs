@@ -62,7 +62,7 @@ try {
     result.roles !== 3 ||
     !result.iconLoaded ||
     !result.uiReady ||
-    !result.notificationBridgeReady ||
+    !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
       (!result.chatReady ||
         !result.chatResponded ||

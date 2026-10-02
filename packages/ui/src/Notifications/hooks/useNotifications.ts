@@ -10,21 +10,16 @@ const preferencesKey = 'pitchcrew-notifications-preferences-v1';
 const isIds = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((id) => typeof id === 'string');
 const isPreferences = (value: unknown): value is NotificationPreferences =>
-  !!value &&
-  typeof value === 'object' &&
-  'sound' in value &&
-  typeof value.sound === 'boolean' &&
-  'desktop' in value &&
-  typeof value.desktop === 'boolean';
+  !!value && typeof value === 'object' && 'sound' in value && typeof value.sound === 'boolean';
 
 export function useNotifications() {
   const data = useWorkspaceStore((s) => s.data);
   const navigate = useNavigate();
   const items = useMemo(() => (data ? collectNotifications(data) : []), [data]);
   const [read, setRead] = useState(() => readStored(readKey, [] as string[], isIds));
-  const [preferences, setPreferences] = useState(() =>
-    readStored(preferencesKey, { sound: true, desktop: true }, isPreferences),
-  );
+  const [preferences, setPreferences] = useState(() => ({
+    sound: readStored(preferencesKey, { sound: true }, isPreferences).sound,
+  }));
   const [open, setOpen] = useState(false);
   const [latest, setLatest] = useState<CrewNotification | null>(null);
   const seen = useRef(new NotificationTracker());
@@ -60,9 +55,6 @@ export function useNotifications() {
       window.removeEventListener('keydown', unlock);
     };
   }, []);
-  useEffect(() =>
-    window.pitchcrewNotifications?.onOpen((id, target) => openNotification({ id, target })),
-  );
   useEffect(() => {
     if (!data) return;
     const fresh = seen.current.update(items);
@@ -70,10 +62,6 @@ export function useNotifications() {
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;
     setLatest(priority);
     if (preferences.sound) playNotificationSound(priority.kind);
-    if (preferences.desktop)
-      fresh.forEach((item) =>
-        window.pitchcrewNotifications?.show({ ...item, body: item.body.slice(0, 240) }),
-      );
   }, [data, items, preferences]);
   const latestExists = !!latest && items.some((item) => item.id === latest.id);
   useEffect(() => {

@@ -22,16 +22,6 @@ export function NotificationControls({
         />{' '}
         Sounds
       </label>
-      {window.pitchcrewNotifications ? (
-        <label>
-          <input
-            type="checkbox"
-            checked={preferences.desktop}
-            onChange={(e) => onPreferences({ ...preferences, desktop: e.target.checked })}
-          />{' '}
-          Desktop alerts
-        </label>
-      ) : null}
       <Button className="button" disabled={!unread} onClick={onReadAll}>
         Mark all read
       </Button>

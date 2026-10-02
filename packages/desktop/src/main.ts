@@ -2,7 +2,6 @@ import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, session, shell }
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isGoogleAuthorizationUrl } from './external-url.ts';
-import { installNotifications } from './notifications.ts';
 import { installSmokeCheck } from './smoke.ts';
 
 app.setName('Pitchcrew');
@@ -17,7 +16,6 @@ let window: BrowserWindow | null = null;
 const appIcon = nativeImage.createFromPath(
   fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
 );
-installNotifications(() => window, new URL(url).origin, appIcon);
 // Keep these colours in sync with the renderer's paper and ink tokens.
 const chromeColors = {
   light: { color: '#f2f1ec', symbolColor: '#2b2d31' },

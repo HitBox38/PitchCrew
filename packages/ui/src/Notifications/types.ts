@@ -8,13 +8,4 @@ export interface CrewNotification {
 }
 export interface NotificationPreferences {
   sound: boolean;
-  desktop: boolean;
-}
-declare global {
-  interface Window {
-    pitchcrewNotifications?: {
-      show: (notification: CrewNotification) => void;
-      onOpen: (listener: (id: string, target: CrewNotification['target']) => void) => () => void;
-    };
-  }
 }

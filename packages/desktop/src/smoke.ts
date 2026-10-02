@@ -20,7 +20,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null;
-            const notificationBridgeReady = typeof window.pitchcrewNotifications?.show === 'function' && typeof window.pitchcrewNotifications?.onOpen === 'function';
+            const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'demo' && role.enabled)) throw new Error('Chat smoke test requires an isolated demo workspace.');
               document.querySelector('a[href="/chat"]')?.click();
@@ -42,10 +42,10 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               const notificationsVisible = await waitFor(() => document.querySelector('.notification-list')?.textContent.includes('Scout sent a message'));
               [...document.querySelectorAll('.notification-controls button')].find((button) => button.textContent === 'Mark all read')?.click();
               const notificationsRead = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 0 unread');
-              const desktopAlertsVisible = document.querySelector('.notification-controls')?.textContent.includes('Desktop alerts');
+              const inAppControlsOnly = !document.querySelector('.notification-controls')?.textContent.includes('Desktop alerts');
               [...document.querySelectorAll('.notification-panel button')].find((button) => button.textContent === 'Close')?.click();
               const notificationsClosed = await waitFor(() => !document.querySelector('[role="dialog"]'));
-              notificationPanelReady = unreadReady && notificationsVisible && notificationsRead && desktopAlertsVisible && notificationsClosed;
+              notificationPanelReady = unreadReady && notificationsVisible && notificationsRead && inAppControlsOnly && notificationsClosed;
               chatStreamingUpdates = partials.size;
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
               const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));
@@ -84,7 +84,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
 
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationBridgeReady, notificationPanelReady };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady };
           })()`,
         );
         const chrome = [];
