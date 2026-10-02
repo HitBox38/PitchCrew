@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Bell, MessageCircle } from 'lucide-react';
+import { NotificationLink } from './NotificationLink.tsx';
+import { NotificationIcon } from './NotificationIcon.tsx';
 import type { CrewNotification } from '../types.ts';
 
 export function NotificationList({
@@ -20,10 +20,15 @@ export function NotificationList({
   return (
     <ul className="notification-list">
       {items.map((item) => (
-        <li key={item.id} data-unread={!read.includes(item.id)}>
-          <Button className="notification-link" onClick={() => onOpen(item)}>
+        <li
+          key={item.id}
+          className="notification-context"
+          data-context={item.context}
+          data-unread={!read.includes(item.id)}
+        >
+          <NotificationLink item={item} onOpen={onOpen} className="notification-link">
             <span className="notification-item-heading">
-              {item.kind === 'attention' ? <Bell size={15} /> : <MessageCircle size={15} />}
+              <NotificationIcon context={item.context} />
               <strong>{item.title}</strong>
             </span>
             <span>{item.body.slice(0, 240)}</span>
@@ -31,7 +36,7 @@ export function NotificationList({
               {item.kind === 'attention' ? 'Needs your attention · ' : ''}
               <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString()}</time>
             </small>
-          </Button>
+          </NotificationLink>
         </li>
       ))}
     </ul>

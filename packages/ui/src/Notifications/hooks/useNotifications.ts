@@ -1,8 +1,14 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { useNavigate } from '@tanstack/react-router';
+import { createToastManager } from '@/components/ui/toast/index.tsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { playNotificationSound, unlockNotificationAudio } from '../audio.ts';
-import { collectNotifications, readStored, saveStored, NotificationTracker } from '../helpers.ts';
+import {
+  collectNotifications,
+  readStored,
+  saveStored,
+  NotificationTracker,
+  notificationToastOptions,
+} from '../helpers.ts';
 import type { CrewNotification, NotificationPreferences } from '../types.ts';
 
 const readKey = 'pitchcrew-notifications-read-v1';
@@ -14,14 +20,18 @@ const isPreferences = (value: unknown): value is NotificationPreferences =>
 
 export function useNotifications() {
   const data = useWorkspaceStore((s) => s.data);
-  const navigate = useNavigate();
+  const [toastManager] = useState(() => createToastManager<CrewNotification>());
+  const activeToasts = useRef(new Set<string>());
   const items = useMemo(() => (data ? collectNotifications(data) : []), [data]);
   const [read, setRead] = useState(() => readStored(readKey, [] as string[], isIds));
   const [preferences, setPreferences] = useState(() => ({
     sound: readStored(preferencesKey, { sound: true }, isPreferences).sound,
   }));
-  const [open, setOpen] = useState(false);
-  const [latest, setLatest] = useState<CrewNotification | null>(null);
+  const [open, setPanelOpen] = useState(false);
+  const setOpen = (value: boolean) => {
+    if (value) toastManager.close();
+    setPanelOpen(value);
+  };
   const seen = useRef(new NotificationTracker());
   const unread = items.filter((item) => !read.includes(item.id));
   const markRead = (ids: string[]) =>
@@ -29,10 +39,8 @@ export function useNotifications() {
   const openNotification = (item: Pick<CrewNotification, 'id' | 'target'>) => {
     markRead([item.id]);
     setOpen(false);
-    setLatest(null);
+    toastManager.close(item.id);
     useWorkspaceStore.getState().closePanels();
-    if (item.target === '/inbox') void navigate({ to: '/inbox' });
-    else void navigate({ to: '/chat/$thread', params: { thread: item.target.slice(6) } });
   };
   useEffect(() => {
     saveStored(readKey, read);
@@ -57,18 +65,26 @@ export function useNotifications() {
   }, []);
   useEffect(() => {
     if (!data) return;
+    const currentIds = new Set(items.map((item) => item.id));
+    for (const id of activeToasts.current) {
+      if (!currentIds.has(id)) {
+        toastManager.close(id);
+        activeToasts.current.delete(id);
+      }
+    }
     const fresh = seen.current.update(items);
     if (!fresh.length) return;
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;
-    setLatest(priority);
+    if (!open)
+      fresh.toReversed().forEach((item) => {
+        activeToasts.current.add(item.id);
+        toastManager.add({
+          ...notificationToastOptions(item),
+          onRemove: () => activeToasts.current.delete(item.id),
+        });
+      });
     if (preferences.sound) playNotificationSound(priority.kind);
-  }, [data, items, preferences]);
-  const latestExists = !!latest && items.some((item) => item.id === latest.id);
-  useEffect(() => {
-    if (!latest) return;
-    const timer = setTimeout(() => setLatest(null), latest.kind === 'attention' ? 12000 : 6000);
-    return () => clearTimeout(timer);
-  }, [latest]);
+  }, [data, items, preferences, open, toastManager]);
   return {
     items,
     unread,
@@ -78,8 +94,7 @@ export function useNotifications() {
     setPreferences,
     open,
     setOpen,
-    latest: latestExists ? latest : null,
-    setLatest,
+    toastManager,
     openNotification,
   };
 }

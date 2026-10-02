@@ -5,10 +5,11 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
   const roleName = (id: string) => data.roles.find((r) => r.id === id)?.name ?? id;
   const notifications: CrewNotification[] = data.messages
     .filter((m) => m.from !== 'user' && m.from !== 'system')
-    .map((m) => ({
+    .map<CrewNotification>((m) => ({
       id: `message:${m.id}`,
       kind: m.notification ?? 'message',
-      title: `${roleName(m.from)}${m.notification === 'attention' ? ' needs your input' : ' sent a message'}`,
+      context: m.notification === 'attention' ? 'input' : 'message',
+      title: `${roleName(m.from)}${m.notification === 'attention' ? ' needs your answer' : ' sent a message'}`,
       body: m.content,
       target: `/chat/${m.threadId}` as CrewNotification['target'],
       createdAt: m.createdAt,
@@ -18,6 +19,7 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
     notifications.push({
       id: `approval:${a.id}`,
       kind: 'attention',
+      context: 'packet_approval',
       title: 'Packet approval needed',
       body: `Review the packet${card ? ` for ${card.company}` : ''} before exporting.`,
       target: '/inbox',
@@ -28,18 +30,30 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
     notifications.push({
       id: `computer:${a.id}`,
       kind: 'attention',
+      context: 'browser_approval',
       title: `${roleName(a.roleId)} needs browser approval`,
       body: a.reason,
       target: '/inbox',
       createdAt: a.createdAt,
     });
-  for (const p of [...data.proposals, ...data.skillProposals].filter((p) => p.status === 'pending'))
+  for (const p of data.proposals.filter((p) => p.status === 'pending'))
     notifications.push({
       id: `proposal:${p.id}`,
       kind: 'attention',
-      title: `${roleName(p.roleId)} has a proposal`,
+      context: 'role_proposal',
+      title: `${roleName(p.roleId)} suggests a role change`,
       body: p.reason,
-      target: `/chat/${'threadId' in p ? p.threadId : p.roleId}`,
+      target: `/chat/${p.roleId}`,
+      createdAt: p.createdAt,
+    });
+  for (const p of data.skillProposals.filter((p) => p.status === 'pending'))
+    notifications.push({
+      id: `proposal:${p.id}`,
+      kind: 'attention',
+      context: 'skill_proposal',
+      title: `${roleName(p.roleId)} suggests a skill`,
+      body: p.reason,
+      target: `/chat/${p.threadId ?? p.roleId}`,
       createdAt: p.createdAt,
     });
   return notifications
@@ -75,4 +89,24 @@ export class NotificationTracker {
     items.forEach((item) => this.seen!.add(item.id));
     return fresh;
   }
+}
+
+export function notificationPreview(body: string) {
+  const text = body.replace(/\s+/g, ' ').trim();
+  if (text.length <= 96) return text;
+  const excerpt = text.slice(0, 95);
+  const lastSpace = excerpt.lastIndexOf(' ');
+  return `${lastSpace > 60 ? excerpt.slice(0, lastSpace) : excerpt}…`;
+}
+
+export function notificationToastOptions(item: CrewNotification) {
+  return {
+    id: item.id,
+    title: item.title,
+    description: item.kind === 'attention' ? notificationPreview(item.body) : undefined,
+    type: item.kind === 'attention' ? 'warning' : 'info',
+    timeout: item.kind === 'attention' ? 12000 : 6000,
+    priority: 'low' as const,
+    data: item,
+  };
 }

@@ -7,6 +7,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet/index.tsx';
+import { Toaster } from '@/components/ui/toast/index.tsx';
 import { Bell } from 'lucide-react';
 import { NotificationControls } from './components/NotificationControls.tsx';
 import { NotificationToast } from './components/NotificationToast.tsx';
@@ -16,7 +17,13 @@ import { useNotifications } from './hooks/useNotifications.ts';
 export function Notifications() {
   const state = useNotifications();
   return (
-    <>
+    <Toaster
+      toastManager={state.toastManager}
+      limit={3}
+      renderToast={(toast) => (
+        <NotificationToast key={toast.id} toast={toast} onOpen={state.openNotification} />
+      )}
+    >
       <Sheet open={state.open} onOpenChange={state.setOpen}>
         <SheetTrigger
           render={
@@ -47,12 +54,6 @@ export function Notifications() {
           <NotificationList items={state.items} read={state.read} onOpen={state.openNotification} />
         </SheetContent>
       </Sheet>
-      <NotificationToast
-        item={state.latest}
-        hidden={state.open}
-        onOpen={state.openNotification}
-        onDismiss={() => state.setLatest(null)}
-      />
-    </>
+    </Toaster>
   );
 }

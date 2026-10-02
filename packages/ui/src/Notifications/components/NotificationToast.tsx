@@ -1,39 +1,48 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { X } from 'lucide-react';
+import {
+  Toast,
+  ToastClose,
+  ToastContent,
+  ToastDescription,
+  ToastTitle,
+  type ToastObject,
+} from '@/components/ui/toast/index.tsx';
+import { notificationPresentation } from '../constants.ts';
+import { NotificationIcon } from './NotificationIcon.tsx';
 import type { CrewNotification } from '../types.ts';
+import { NotificationLink } from './NotificationLink.tsx';
 
 export function NotificationToast({
-  item,
-  hidden,
+  toast,
   onOpen,
-  onDismiss,
 }: {
-  item: CrewNotification | null;
-  hidden: boolean;
+  toast: ToastObject<CrewNotification>;
   onOpen: (item: CrewNotification) => void;
-  onDismiss: () => void;
 }) {
+  const item = toast.data;
+  if (!item) return null;
   return (
-    <>
-      <output className="sr-only" aria-live="polite">
-        {item ? `${item.title}. ${item.body}` : ''}
-      </output>
-      {item && !hidden ? (
-        <div className={`crew-notification crew-notification-${item.kind}`}>
-          <Button className="notification-link" onClick={() => onOpen(item)}>
-            <strong>{item.title}</strong>
-            <span>{item.body.slice(0, 240)}</span>
-            <small>{item.target === '/inbox' ? 'Review in Inbox' : 'Open conversation'}</small>
-          </Button>
-          <Button
-            className="icon-button"
-            aria-label="Dismiss crew notification"
-            onClick={onDismiss}
+    <Toast
+      toast={toast}
+      className="notification-context"
+      data-context={item.context}
+      data-kind={item.kind}
+      swipeDirection={['right', 'down']}
+    >
+      <ToastContent>
+        <NotificationIcon context={item.context} />
+        <div className="ui-toast-text">
+          <ToastTitle />
+          {item.kind === 'attention' ? <ToastDescription /> : null}
+          <NotificationLink
+            item={item}
+            onOpen={onOpen}
+            className={`ui-toast-link ${item.kind === 'attention' ? 'button small' : 'text-button'}`}
           >
-            <X size={15} />
-          </Button>
+            {notificationPresentation[item.context].action}
+          </NotificationLink>
         </div>
-      ) : null}
-    </>
+        <ToastClose />
+      </ToastContent>
+    </Toast>
   );
 }
