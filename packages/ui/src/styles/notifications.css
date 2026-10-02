@@ -26,3 +26,123 @@
   color: var(--on-inverse);
   background: color-mix(in srgb, var(--on-inverse) 12%, transparent);
 }
+
+.notification-bell {
+  margin-left: auto;
+  position: relative;
+}
+.notification-count {
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 9px;
+  background: var(--inverse);
+  color: var(--on-inverse);
+  font-size: 10px;
+}
+.notification-panel {
+  width: min(440px, 100vw);
+  max-width: 440px;
+  background: var(--paper);
+  color: var(--ink);
+  padding: 24px;
+}
+.notification-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+.notification-controls label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.notification-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  flex: 1;
+}
+.notification-list li {
+  border-bottom: 1px solid var(--border);
+}
+.notification-list li[data-unread='true'] {
+  border-left: 3px solid var(--ink);
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+.notification-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  gap: 6px;
+  padding: 14px;
+  height: auto;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-weight: 400;
+}
+.notification-link span {
+  font-size: 13px;
+  line-height: 1.5;
+}
+.notification-link small {
+  font-size: 11px;
+  opacity: 0.7;
+}
+.notification-item-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.notification-empty {
+  padding: 24px 0;
+}
+
+.notification-link {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 6px;
+}
+.notification-link:hover {
+  background: color-mix(in srgb, var(--ink) 7%, transparent);
+}
+.notification-link:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+}
+.notification-list {
+  overscroll-behavior: contain;
+}
+
+.notification-context {
+  --notification-accent: var(--primary);
+}
+.notification-context[data-context='input'] {
+  --notification-accent: var(--ochre);
+}
+.notification-context[data-context='packet_approval'],
+.notification-context[data-context='browser_approval'] {
+  --notification-accent: var(--teal);
+}
+.notification-context[data-context='role_proposal'],
+.notification-context[data-context='skill_proposal'] {
+  --notification-accent: var(--plum);
+}
+.notification-context-icon {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 8px 9px 8px 7px;
+  color: var(--notification-accent);
+  background: color-mix(in srgb, var(--notification-accent) 12%, transparent);
+}
+.notification-list li[data-unread='true'] {
+  border-left-color: var(--notification-accent);
+}

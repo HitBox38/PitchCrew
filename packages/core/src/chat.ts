@@ -10,6 +10,7 @@ export interface ChatMessage {
   cardId: string | null;
   runId: string | null;
   createdAt: string;
+  notification?: 'message' | 'attention';
 }
 export interface ChatStreamState {
   messages: ChatMessage[];

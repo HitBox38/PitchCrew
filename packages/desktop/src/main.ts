@@ -63,6 +63,8 @@ function createWindow() {
       contextIsolation: true,
       sandbox: true,
       webSecurity: true,
+      autoplayPolicy: 'no-user-gesture-required',
+      backgroundThrottling: false,
     },
   });
   window.once('ready-to-show', () => window?.show());

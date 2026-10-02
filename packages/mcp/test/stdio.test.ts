@@ -93,12 +93,20 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_read_profile',
         'pitchcrew_read_messages',
         'pitchcrew_message_agent',
+        'pitchcrew_notify_user',
         'pitchcrew_invoke_agent',
         'pitchcrew_propose_role_changes',
         'pitchcrew_propose_skill',
         'pitchcrew_change_workflow',
       ].sort(),
     );
+    const notified = await client.callTool({
+      name: 'pitchcrew_notify_user',
+      arguments: { kind: 'attention', content: 'Which fictional profile should I review?' },
+    });
+    expect(notified.structuredContent).toMatchObject({
+      message: { from: 'reviewer', to: 'user', notification: 'attention' },
+    });
     const proposed = await client.callTool({
       name: 'pitchcrew_propose_role_changes',
       arguments: {

@@ -84,6 +84,7 @@ export interface CrewContext {
     cardId: string | null,
     runId: string | null,
     id?: string,
+    notification?: ChatMessage['notification'],
   ): ChatMessage;
   sendChat(roleId: RoleId, data: unknown): Promise<Run>;
   startChatRun(

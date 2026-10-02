@@ -19,7 +19,8 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
-            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null;
+            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null;
+            const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'demo' && role.enabled)) throw new Error('Chat smoke test requires an isolated demo workspace.');
               document.querySelector('a[href="/chat"]')?.click();
@@ -35,6 +36,25 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               document.querySelector('textarea')?.form?.requestSubmit();
               chatResponded = await waitFor(() => [...document.querySelectorAll('.chat-message-content[aria-busy="false"]')].some((message) => message.textContent.includes('This is a demo reply.')));
               observer.disconnect();
+              const toastVisible = await waitFor(() => !!document.querySelector('[data-slot="toast"]'));
+              const viewport = document.querySelector('[data-slot="toast-viewport"]');
+              viewport?.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+              await new Promise((resolve) => setTimeout(resolve, 6500));
+              const hoverPaused = !!document.querySelector('[data-slot="toast"]:not([data-ending-style])');
+              window.dispatchEvent(new KeyboardEvent('keydown', { key: 'F6', bubbles: true }));
+              viewport?.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: document.body }));
+              await new Promise((resolve) => setTimeout(resolve, 6500));
+              const focusPaused = !!document.querySelector('[data-slot="toast"]:not([data-ending-style])') && viewport?.contains(document.activeElement);
+              const bell = document.querySelector('.notification-bell');
+              const unreadReady = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 1 unread');
+              bell?.click();
+              const notificationsVisible = await waitFor(() => document.querySelector('.notification-list')?.textContent.includes('Scout sent a message'));
+              [...document.querySelectorAll('.notification-controls button')].find((button) => button.textContent === 'Mark all read')?.click();
+              const notificationsRead = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 0 unread');
+              const inAppControlsOnly = !document.querySelector('.notification-controls')?.textContent.includes('Desktop alerts');
+              [...document.querySelectorAll('.notification-panel button')].find((button) => button.textContent === 'Close')?.click();
+              const notificationsClosed = await waitFor(() => !document.querySelector('[role="dialog"]'));
+              notificationPanelReady = unreadReady && notificationsVisible && notificationsRead && inAppControlsOnly && notificationsClosed;
               chatStreamingUpdates = partials.size;
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
               const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));
@@ -72,8 +92,20 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               document.querySelector('a[href="/chat"]')?.click();
               await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
 
+              await Promise.all(['scout', 'writer', 'reviewer'].map((role) => fetch('/api/roles/' + role + '/chat', {
+                method: 'POST', headers: { 'content-type': 'application/json', 'x-pitchcrew-client': 'ui' },
+                body: JSON.stringify({ content: 'Fictional notification stack check.' }),
+              })));
+              const stackReady = await waitFor(() => document.querySelectorAll('[data-slot="toast"]:not([data-ending-style]):not([data-limited])').length === 3);
+              const scoutLink = document.querySelector('[data-slot="toast"] a[href="/chat/scout"]');
+              const linksReady = document.querySelectorAll('[data-slot="toast"] a[href^="/chat/"]').length === 3;
+              scoutLink?.click();
+              const navigationReady = await waitFor(() => location.pathname === '/chat/scout' && document.querySelector('.notification-bell')?.getAttribute('aria-label') === 'Notifications, 2 unread');
+              document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
+              const dismissed = await waitFor(() => !document.querySelector('[data-slot="toast"]'));
+              notificationToastReady = toastVisible && hoverPaused && focusPaused && stackReady && linksReady && navigationReady && dismissed;
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady };
           })()`,
         );
         const chrome = [];

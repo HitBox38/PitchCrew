@@ -62,13 +62,16 @@ try {
     result.roles !== 3 ||
     !result.iconLoaded ||
     !result.uiReady ||
+    !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
       (!result.chatReady ||
         !result.chatResponded ||
         !result.chatTabsReady ||
         result.chatStreamingUpdates < 2 ||
         !result.routerHistoryReady ||
-        !result.featurePanelsReady))
+        !result.featurePanelsReady ||
+        !result.notificationPanelReady ||
+        !result.notificationToastReady))
   )
     throw new Error('Electron renderer/daemon check failed.');
   if (

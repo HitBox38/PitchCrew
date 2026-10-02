@@ -48,6 +48,7 @@ export function addMessage(
   cardId: string | null,
   runId: string | null,
   id: string = randomUUID(),
+  notification?: ChatMessage['notification'],
 ): ChatMessage {
   const message: ChatMessage = {
     id,
@@ -58,6 +59,7 @@ export function addMessage(
     cardId,
     runId,
     createdAt: new Date().toISOString(),
+    ...(notification ? { notification } : {}),
   };
   this.board.record('message', message, from, `${from === 'user' ? 'You' : from} messaged ${to}`);
   this.publishChat(true);
