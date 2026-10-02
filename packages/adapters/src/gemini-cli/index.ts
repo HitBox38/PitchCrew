@@ -4,6 +4,13 @@ import { detectCli, withChat, runCliText } from '../process.ts';
 
 export const geminiCli = withChat({
   id: 'gemini-cli',
+  // https://geminicli.com/docs/cli/model/
+  models: [
+    { value: 'auto', label: 'Auto' },
+    { value: 'pro', label: 'Pro' },
+    { value: 'flash', label: 'Flash' },
+    { value: 'flash-lite', label: 'Flash Lite' },
+  ],
   detect: () => detectCli('gemini-cli', 'gemini'),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');

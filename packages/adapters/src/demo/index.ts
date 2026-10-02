@@ -3,6 +3,7 @@ import type { RuntimeAdapter, Packet } from '@pitchcrew/core';
 import { lintPacket } from '@pitchcrew/packet';
 export const demo: RuntimeAdapter = {
   id: 'demo',
+  models: [],
   detect: async () => ({
     id: 'demo',
     available: true,

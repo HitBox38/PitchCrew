@@ -10,7 +10,9 @@ import {
 import { Checkbox } from './components/ui/checkbox.tsx';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './components/ui/tabs.tsx';
 import { Input } from './components/ui/input.tsx';
+import { ModelField } from './model-picker.tsx';
 import { Button } from './components/ui/button.tsx';
+import { Sheet, SheetContent, SheetTitle, SheetDescription } from './components/ui/sheet.tsx';
 import { useState, type FormEvent } from 'react';
 import {
   Plus,
@@ -35,6 +37,7 @@ import {
   CompanyMark,
   EmptyState,
   Modal,
+  RoleAvatar,
   runtimeLabels,
   stateLabels,
   timeAgo,
@@ -467,8 +470,11 @@ export function RoleSettings({
     value: r.id,
     label: `${runtimeLabels[r.id]}${r.available ? '' : ' (unavailable)'}`,
   }));
+  const runtimeCatalog = data.runtimes.find((item) => item.id === runtime)!;
+  const runtimeAvailable = runtimeCatalog.available;
   async function save(e: FormEvent) {
     e.preventDefault();
+    if (working || !runtimeAvailable) return;
     try {
       await action(
         `/roles/${role.id}`,
@@ -482,88 +488,147 @@ export function RoleSettings({
     }
   }
   return (
-    <form className="form" onSubmit={(e) => void save(e)}>
-      <p className="modal-intro">{role.description}</p>
-      <div className="field">
-        <label htmlFor={`${role.id}-runtime`}>Runtime</label>
-        <Select
-          value={runtime}
-          onValueChange={(value: Role['runtime'] | null) => {
-            if (value) setRuntime(value);
-          }}
-          items={runtimeItems}
-        >
-          <SelectTrigger id={`${role.id}-runtime`}>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent alignItemWithTrigger={false} sideOffset={6}>
-            {runtimeItems.map((item) => (
-              <SelectItem value={item.value} key={item.value}>
-                {item.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <label>
-        Model <span className="optional">leave empty for the CLI default</span>
-        <Input
-          value={model}
-          onChange={(e) => setModel(e.target.value)}
-          maxLength={100}
-          placeholder={
-            ['opencode', 'goose', 'pi', 'oh-my-pi'].includes(runtime)
-              ? 'provider/model'
-              : 'Your runtime’s model name'
-          }
-          disabled={runtime === 'demo'}
-        />
-      </label>
-      <label className="checkbox-label">
-        <Checkbox checked={enabled} onCheckedChange={(checked) => setEnabled(checked)} /> Enable
-        this role
-      </label>
-      <label>
-        Role instructions
-        <Textarea
-          rows={8}
-          value={instructions}
-          onChange={(e) => setInstructions(e.target.value)}
-          maxLength={12000}
-        />
-      </label>
-      <fieldset className="role-capabilities">
-        <legend>Agent capabilities</legend>
-        {Object.entries(capabilityLabels).map(([key, label]) => (
-          <label className="checkbox-label" key={key}>
-            <Checkbox
-              checked={capabilities[key as keyof typeof capabilities]}
-              onCheckedChange={(checked) =>
-                setCapabilities((current) => ({ ...current, [key]: checked }))
-              }
-            />
-            {label}
-          </label>
-        ))}
-      </fieldset>
-      <p className="quiet">
-        Crew follow-ups run after the current turn finishes, with at most six per chain. Agents
-        propose instruction and capability changes for you to apply in chat.
-      </p>
-      {error ? (
-        <p role="alert" className="form-error">
-          {error}
-        </p>
-      ) : null}
-      <div className="form-footer">
-        <Button className="button" type="button" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit" className="button primary" disabled={working}>
-          <Check size={15} /> Save settings
-        </Button>
-      </div>
-    </form>
+    <Sheet
+      open
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      <SheetContent className="role-settings-panel" showCloseButton={false}>
+        <header className="role-settings-heading">
+          <RoleAvatar agentRole={role.id} size="large" />
+          <div>
+            <SheetTitle>{role.name} settings</SheetTitle>
+            <SheetDescription>{role.description}</SheetDescription>
+          </div>
+          <Button
+            variant="ghost"
+            className="icon-button"
+            onClick={onClose}
+            aria-label="Close agent settings"
+          >
+            <X size={20} />
+          </Button>
+        </header>
+        <form className="form role-settings-form" onSubmit={(e) => void save(e)}>
+          <div className="role-settings-body">
+            <section
+              className="role-settings-section"
+              aria-labelledby={`${role.id}-runtime-heading`}
+            >
+              <h3 id={`${role.id}-runtime-heading`}>Runtime and model</h3>
+              <div className="form-row">
+                <div className="field">
+                  <label htmlFor={`${role.id}-runtime`}>Runtime</label>
+                  <Select
+                    value={runtime}
+                    onValueChange={(value: Role['runtime'] | null) => {
+                      if (value && value !== runtime) {
+                        setRuntime(value);
+                        setModel('');
+                      }
+                    }}
+                    items={runtimeItems}
+                  >
+                    <SelectTrigger id={`${role.id}-runtime`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent alignItemWithTrigger={false} sideOffset={6}>
+                      {runtimeItems.map((item) => (
+                        <SelectItem value={item.value} key={item.value}>
+                          {item.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <ModelField
+                  key={runtime}
+                  id={`${role.id}-model`}
+                  runtime={runtime}
+                  available={runtimeAvailable}
+                  initialCatalog={runtimeCatalog}
+                  value={model}
+                  onValueChange={setModel}
+                />
+              </div>
+              <label className="checkbox-label">
+                <Checkbox checked={enabled} onCheckedChange={(checked) => setEnabled(checked)} />
+                Enable this role
+              </label>
+            </section>
+            <section
+              className="role-settings-section"
+              aria-labelledby={`${role.id}-instructions-heading`}
+            >
+              <h3 id={`${role.id}-instructions-heading`}>
+                <label htmlFor={`${role.id}-instructions`}>Role instructions</label>
+              </h3>
+              <p className="quiet">Describe how {role.name} should approach its work.</p>
+              <Textarea
+                id={`${role.id}-instructions`}
+                rows={10}
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
+                maxLength={12000}
+              />
+            </section>
+            <section
+              className="role-settings-section"
+              aria-labelledby={`${role.id}-capabilities-heading`}
+            >
+              <h3 id={`${role.id}-capabilities-heading`}>Agent capabilities</h3>
+              {[
+                {
+                  title: 'Crew coordination',
+                  entries: Object.entries(capabilityLabels).slice(0, 3),
+                },
+                { title: 'Connected services', entries: Object.entries(capabilityLabels).slice(3) },
+              ].map((group) => (
+                <fieldset className="role-settings-capabilities" key={group.title}>
+                  <legend>{group.title}</legend>
+                  {group.entries.map(([key, label]) => (
+                    <label className="checkbox-label" key={key}>
+                      <Checkbox
+                        checked={capabilities[key as keyof typeof capabilities]}
+                        onCheckedChange={(checked) =>
+                          setCapabilities((current) => ({ ...current, [key]: checked }))
+                        }
+                      />
+                      {label}
+                    </label>
+                  ))}
+                </fieldset>
+              ))}
+              <p className="quiet">
+                Crew follow-ups run after the current turn finishes, with at most six per chain.
+                Agents propose instruction and capability changes for you to apply in chat.
+              </p>
+            </section>
+          </div>
+          <footer className="role-settings-footer">
+            {error ? (
+              <p role="alert" className="form-error">
+                {error}
+              </p>
+            ) : null}
+            <div className="role-settings-actions">
+              <Button className="button" type="button" onClick={onClose}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                className="button primary"
+                disabled={working || !runtimeAvailable}
+              >
+                {working ? <LoaderCircle size={15} className="spin" /> : <Check size={15} />}
+                Save settings
+              </Button>
+            </div>
+          </footer>
+        </form>
+      </SheetContent>
+    </Sheet>
   );
 }
 export function ProfileView({

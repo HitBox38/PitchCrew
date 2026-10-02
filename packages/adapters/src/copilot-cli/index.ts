@@ -1,10 +1,27 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { detectCli, withChat, runCliText } from '../process.ts';
+import { copilotModelArgs, readCopilotModels } from './models.ts';
 
 export const copilotCli = withChat({
   id: 'copilot-cli',
+  // https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference#supported-models
+  models: [
+    { value: 'auto', label: 'Auto' },
+    { value: 'claude-sonnet-4.6', label: 'Claude Sonnet 4.6' },
+    { value: 'claude-opus-5.5', label: 'Claude Opus 5.5' },
+    { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5' },
+    { value: 'gpt-6-astra', label: 'GPT-6 Astra' },
+    { value: 'gpt-6-sol', label: 'GPT-6 Sol' },
+    { value: 'gpt-6-luna', label: 'GPT-6 Luna' },
+    { value: 'gpt-5.4', label: 'GPT-5.4' },
+    { value: 'gpt-5.3-codex', label: 'GPT-5.3 Codex' },
+    { value: 'gemini-3.5-flash', label: 'Gemini 3.5 Flash' },
+    { value: 'gemini-3.6-flash', label: 'Gemini 3.6 Flash' },
+    { value: 'gemini-3.7-flash', label: 'Gemini 3.7 Flash' },
+  ],
   detect: () => detectCli('copilot-cli', 'copilot'),
+  listModels: (signal) => readCopilotModels('copilot', copilotModelArgs, signal),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'copilot-config');

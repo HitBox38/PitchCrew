@@ -29,6 +29,15 @@ function extract(event: Record<string, unknown>): string | null {
 }
 export const claudeCode: RuntimeAdapter = {
   id: 'claude-code',
+  // Runtime aliases follow the CLI's model configuration without pinning versions.
+  // https://code.claude.com/docs/en/model-config
+  models: [
+    { value: 'sonnet', label: 'Sonnet' },
+    { value: 'opus', label: 'Opus' },
+    { value: 'haiku', label: 'Haiku' },
+    { value: 'fable', label: 'Fable' },
+    { value: 'best', label: 'Best available' },
+  ],
   detect: () => detectCli('claude-code', 'claude'),
   run: (context) => runCli('claude', argsFor(context), context, promptFor(context), extract),
   chat: (context) => chatCli('claude', argsFor(context), context, extract),

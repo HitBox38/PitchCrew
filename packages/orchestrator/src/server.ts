@@ -5,7 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { roleIds, states } from '@pitchcrew/core';
+import { roleIds, runtimeIds, states } from '@pitchcrew/core';
 import { CrewService, ensureDirectory } from './service.ts';
 const uiRoot = fileURLToPath(new URL('../../ui/', import.meta.url));
 export async function createDaemon(options: { directory: string; port: number; dev?: boolean }) {
@@ -104,6 +104,10 @@ export async function createDaemon(options: { directory: string; port: number; d
     ),
   );
   app.post('/api/runtimes/detect', async (_req, res) => res.json(await service.detect()));
+  app.post('/api/runtimes/:id/models', async (req, res) => {
+    const { refresh } = z.object({ refresh: z.boolean().default(false) }).parse(req.body ?? {});
+    res.json(await service.runtimeModels(z.enum(runtimeIds).parse(req.params.id), refresh));
+  });
   app.post('/api/connectors/github/connect', async (req, res) =>
     res.json(await service.connectors.connectGithub(req.body)),
   );

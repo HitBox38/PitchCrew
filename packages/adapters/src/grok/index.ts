@@ -2,10 +2,18 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join, parse } from 'node:path';
 import { homedir } from 'node:os';
 import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
+import { modelListCommand, parseGrokModels } from '../model-discovery.ts';
 
 export const grok = withChat({
   id: 'grok',
+  // https://docs.x.ai/build/settings
+  models: [
+    { value: 'grok-build', label: 'Grok Build' },
+    { value: 'grok-4.7', label: 'Grok 4.7' },
+  ],
   detect: async () => requireCliVersion(await detectCli('grok', 'grok'), [1, 0, 45], 'grok'),
+  listModels: async (signal) =>
+    parseGrokModels(await modelListCommand('grok', ['--no-auto-update', 'models'], signal)),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const grokHome = join(context.directory, 'grok-home');

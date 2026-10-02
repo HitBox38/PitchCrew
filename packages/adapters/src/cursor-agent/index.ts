@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { RuntimeHealth } from '@pitchcrew/core';
 import { detectCli, withChat, runCliText } from '../process.ts';
+import { modelListCommand, parseCursorModels } from '../model-discovery.ts';
 
 async function detectCursorAgent(): Promise<RuntimeHealth> {
   const health = await detectCli('cursor-agent', 'cursor-agent');
@@ -20,7 +21,22 @@ async function detectCursorAgent(): Promise<RuntimeHealth> {
 
 export const cursorAgent = withChat({
   id: 'cursor-agent',
+  // Cursor's model IDs include its own reasoning presets, unlike other CLIs.
+  // https://cursor.com/docs/cli/reference/parameters (--list-models)
+  models: [
+    { value: 'auto', label: 'Auto' },
+    { value: 'composer-2.5', label: 'Composer 2.5' },
+    { value: 'composer-2.5-fast', label: 'Composer 2.5 Fast' },
+    { value: 'claude-sonnet-5-5-medium', label: 'Claude Sonnet 5.5 Medium' },
+    { value: 'claude-opus-5-5-medium', label: 'Claude Opus 5.5 Medium' },
+    { value: 'gpt-5.6-sol-high', label: 'GPT-5.6 Sol High' },
+    { value: 'gpt-5.6-luna-high', label: 'GPT-5.6 Luna High' },
+    { value: 'gemini-3.7-flash-high', label: 'Gemini 3.7 Flash High' },
+    { value: 'grok-4.7-medium', label: 'Grok 4.7 Medium' },
+  ],
   detect: detectCursorAgent,
+  listModels: async (signal) =>
+    parseCursorModels(await modelListCommand('cursor-agent', ['--list-models'], signal)),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const health = await detectCursorAgent();

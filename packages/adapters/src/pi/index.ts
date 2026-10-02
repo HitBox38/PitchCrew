@@ -2,10 +2,21 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
 import { piResultExtractor } from './result.ts';
+import { apiModels } from '../models.ts';
+import { modelListCommand, parsePiModels } from '../model-discovery.ts';
 
 export const pi = withChat({
   id: 'pi',
+  models: apiModels,
   detect: async () => requireCliVersion(await detectCli('pi', 'pi'), [1, 0, 0], 'pi'),
+  listModels: async (signal) =>
+    parsePiModels(
+      await modelListCommand(
+        'pi',
+        ['--list-models', '--no-extensions', '--no-skills', '--no-context-files', '--no-session'],
+        signal,
+      ),
+    ),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const agentDir = join(context.directory, 'pi-home');

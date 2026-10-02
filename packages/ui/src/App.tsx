@@ -13,15 +13,7 @@ import {
 } from 'lucide-react';
 import type { Snapshot, Role, RoleId } from '@pitchcrew/core';
 import { api } from './api.ts';
-import {
-  Brand,
-  EmptyState,
-  JobCard,
-  Modal,
-  RoleAvatar,
-  runtimeLabels,
-  timeAgo,
-} from './components.tsx';
+import { Brand, EmptyState, JobCard, RoleAvatar, runtimeLabels, timeAgo } from './components.tsx';
 import { useTheme } from './theme.ts';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from './components/ui/sidebar.tsx';
 import { AppSidebar, viewTitles, type View } from './app-sidebar.tsx';
@@ -610,7 +602,7 @@ export function App() {
         </Suspense>
       ) : null}
       {toast ? (
-        <output className="toast">
+        <output className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}>
           <span>{toast}</span>
           <Button
             className="icon-button"
@@ -636,15 +628,14 @@ export function App() {
           />
         ) : null}
         {selectedRole ? (
-          <Modal title={`${selectedRole.name} settings`} onClose={() => setRoleId(null)}>
-            <RoleSettings
-              role={selectedRole}
-              data={data}
-              action={action}
-              working={working}
-              onClose={() => setRoleId(null)}
-            />
-          </Modal>
+          <RoleSettings
+            key={selectedRole.id}
+            role={selectedRole}
+            data={data}
+            action={action}
+            working={working}
+            onClose={() => setRoleId(null)}
+          />
         ) : null}
       </Suspense>
     </SidebarProvider>

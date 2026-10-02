@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { Board, digestPacket } from '@pitchcrew/board';
-import { adapters } from '@pitchcrew/adapters';
+import { adapters, discoverModels, suggestedModels } from '@pitchcrew/adapters';
 import {
   cardInput,
   rolePatch,
@@ -19,7 +19,9 @@ import {
   type RoleId,
   type Run,
   type RunResult,
-  type RuntimeHealth,
+  type RuntimeInfo,
+  type RuntimeId,
+  type RuntimeModelCatalog,
   type Snapshot,
   type Approval,
   type ProfileFile,
@@ -45,7 +47,13 @@ export class CrewService {
   private closing = false;
   private readonly configuring = new Set<RoleId>();
   private readonly deciding = new Set<string>();
-  runtimes: RuntimeHealth[] = [];
+  runtimes: RuntimeInfo[] = [];
+  private readonly modelCatalogs = new Map<
+    RuntimeId,
+    { catalog: RuntimeModelCatalog; expiresAt: number }
+  >();
+  private readonly modelRequests = new Map<RuntimeId, Promise<RuntimeModelCatalog>>();
+  private readonly modelController = new AbortController();
   constructor(
     readonly directory: string,
     readonly daemonUrl: string,
@@ -95,8 +103,49 @@ export class CrewService {
     await this.detect();
   }
   async detect() {
-    this.runtimes = await Promise.all(Object.values(adapters).map((adapter) => adapter.detect()));
+    this.runtimes = await Promise.all(
+      Object.values(adapters).map(async (adapter) => {
+        const health = await adapter.detect();
+        const cached = this.modelCatalogs.get(adapter.id);
+        return {
+          ...health,
+          ...(health.available && cached && cached.expiresAt > Date.now()
+            ? cached.catalog
+            : suggestedModels(adapter)),
+        };
+      }),
+    );
     return this.runtimes;
+  }
+  async runtimeModels(id: RuntimeId, refresh = false): Promise<RuntimeModelCatalog> {
+    if (this.closing) throw new Error('The workspace is closing.');
+    const cached = this.modelCatalogs.get(id);
+    if (!refresh && cached && cached.expiresAt > Date.now()) return cached.catalog;
+    const pending = this.modelRequests.get(id);
+    if (pending) return pending;
+    const request = (async () => {
+      if (refresh) {
+        const health = await adapters[id].detect();
+        this.runtimes = this.runtimes.map((runtime) =>
+          runtime.id === id ? { ...runtime, ...health } : runtime,
+        );
+      }
+      return discoverModels(
+        adapters[id],
+        this.runtimes.some((runtime) => runtime.id === id && runtime.available),
+        this.modelController.signal,
+      );
+    })()
+      .then((catalog) => {
+        this.modelCatalogs.set(id, { catalog, expiresAt: Date.now() + 5 * 60 * 1000 });
+        this.runtimes = this.runtimes.map((runtime) =>
+          runtime.id === id ? { ...runtime, ...catalog } : runtime,
+        );
+        return catalog;
+      })
+      .finally(() => this.modelRequests.delete(id));
+    this.modelRequests.set(id, request);
+    return request;
   }
   async snapshot(): Promise<Snapshot> {
     return {
@@ -900,8 +949,10 @@ export class CrewService {
   }
   async close() {
     this.closing = true;
-    await this.connectors.close();
+    this.modelController.abort();
     for (const controller of this.controllers.values()) controller.abort();
+    await Promise.allSettled(this.modelRequests.values());
+    await this.connectors.close();
     for (let i = 0; i < 100 && (this.controllers.size || this.draining); i++)
       await new Promise((resolve) => setTimeout(resolve, 25));
     if (this.controllers.size || this.draining) throw new Error('Some runs did not stop in time.');

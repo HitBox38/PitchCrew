@@ -11,6 +11,7 @@ import { grok } from './grok/index.ts';
 import { pi } from './pi/index.ts';
 import { ohMyPi } from './oh-my-pi/index.ts';
 import type { RuntimeAdapter, RuntimeId } from '@pitchcrew/core';
+export { discoverModels, suggestedModels } from './model-discovery.ts';
 export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   demo,
   'claude-code': claudeCode,

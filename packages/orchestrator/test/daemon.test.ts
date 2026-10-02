@@ -4,7 +4,15 @@ import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import { createDaemon } from '../src/server.ts';
-import type { Approval, Card, Role, Run, Snapshot } from '@pitchcrew/core';
+import type {
+  Approval,
+  Card,
+  Role,
+  Run,
+  Snapshot,
+  RuntimeModelCatalog,
+  RuntimeModel,
+} from '@pitchcrew/core';
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
 async function setup(port: number) {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
@@ -51,6 +59,105 @@ async function finish(request: <T>(path: string) => Promise<{ result: T }>, id: 
   throw new Error('Run did not finish.');
 }
 describe('local daemon workflow', () => {
+  it('discovers models on demand, caches and refreshes them without provider calls or board events', async () => {
+    vi.spyOn(adapters.opencode, 'detect').mockResolvedValue({
+      id: 'opencode',
+      available: true,
+      version: 'fixture',
+      detail: 'Fixture runtime',
+    });
+    const list = vi
+      .spyOn(adapters.opencode, 'listModels')
+      .mockResolvedValue([{ value: 'fixture/live-one', label: 'Live One' }]);
+    const { daemon, request } = await setup(14434);
+    expect(list).not.toHaveBeenCalled();
+    const eventsBefore = daemon.service.board.events();
+    const { result: initial } = await request<RuntimeModelCatalog>(
+      '/runtimes/opencode/models',
+      'POST',
+      {},
+    );
+    expect(initial).toMatchObject({
+      modelSource: 'runtime',
+      models: [{ value: 'fixture/live-one', label: 'Live One' }],
+    });
+    expect(
+      (await request<Snapshot>('/snapshot')).result.runtimes.find(
+        (runtime) => runtime.id === 'opencode',
+      ),
+    ).toMatchObject(initial);
+    expect(
+      (await request<RuntimeModelCatalog>('/runtimes/opencode/models', 'POST', {})).result,
+    ).toEqual(initial);
+    expect(list).toHaveBeenCalledOnce();
+    list.mockResolvedValueOnce([{ value: 'fixture/live-two', label: 'Live Two' }]);
+    expect(
+      (await request<RuntimeModelCatalog>('/runtimes/opencode/models', 'POST', { refresh: true }))
+        .result.models,
+    ).toEqual([{ value: 'fixture/live-two', label: 'Live Two' }]);
+    expect(list).toHaveBeenCalledTimes(2);
+    list.mockRejectedValueOnce(new Error('fixture-private-diagnostic'));
+    const { result: fallback } = await request<RuntimeModelCatalog>(
+      '/runtimes/opencode/models',
+      'POST',
+      { refresh: true },
+    );
+    expect(fallback).toMatchObject({ modelSource: 'fallback', models: adapters.opencode.models });
+    expect(JSON.stringify(fallback)).not.toContain('fixture-private-diagnostic');
+    expect(
+      (await request<RuntimeModelCatalog>('/runtimes/claude-code/models', 'POST', {})).result
+        .modelSource,
+    ).toBe('fallback');
+    expect(
+      (await request<RuntimeModelCatalog>('/runtimes/demo/models', 'POST', {})).result,
+    ).toMatchObject({ modelSource: 'none', models: [] });
+    expect((await request('/runtimes/invalid/models', 'POST', {})).response.status).toBe(400);
+    expect(
+      (
+        await request(
+          '/runtimes/opencode/models',
+          'POST',
+          {},
+          { origin: 'https://example.invalid' },
+        )
+      ).response.status,
+    ).toBe(403);
+    expect(daemon.service.board.events()).toEqual(eventsBefore);
+  });
+
+  it('deduplicates concurrent model discovery and reloads expired catalogs', async () => {
+    vi.spyOn(adapters.opencode, 'detect').mockResolvedValue({
+      id: 'opencode',
+      available: true,
+      version: 'fixture',
+      detail: 'Fixture runtime',
+    });
+    let resolveModels!: (models: RuntimeModel[]) => void;
+    const list = vi.spyOn(adapters.opencode, 'listModels').mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveModels = resolve;
+        }),
+    );
+    const { request } = await setup(14435);
+    const first = request<RuntimeModelCatalog>('/runtimes/opencode/models', 'POST', {});
+    const second = request<RuntimeModelCatalog>('/runtimes/opencode/models', 'POST', {});
+    await vi.waitFor(() => expect(list).toHaveBeenCalledOnce());
+    resolveModels([{ value: 'fixture/live', label: 'Live' }]);
+    expect((await first).result).toEqual((await second).result);
+    expect(list).toHaveBeenCalledOnce();
+    list.mockResolvedValueOnce([]);
+    const now = Date.now();
+    vi.spyOn(Date, 'now').mockReturnValue(now + 5 * 60 * 1000 + 1);
+    const { result: expired } = await request<RuntimeModelCatalog>(
+      '/runtimes/opencode/models',
+      'POST',
+      {},
+    );
+    expect(expired).toMatchObject({ modelSource: 'runtime', models: [] });
+    expect(list).toHaveBeenCalledTimes(2);
+  });
+
   it('exposes the new runtimes and persists their role settings through event replay', async () => {
     const { daemon, request } = await setup(14420);
     const { result: snapshot } = await request<Snapshot>('/snapshot');
@@ -68,6 +175,36 @@ describe('local daemon workflow', () => {
       'pi',
       'oh-my-pi',
     ]);
+    for (const runtime of snapshot.runtimes) {
+      if (runtime.id === 'demo') {
+        expect(runtime.models).toEqual([]);
+        continue;
+      }
+      // Every runtime's public catalog must survive adapter normalization and detection.
+      expect(runtime.models.length, runtime.id).toBeGreaterThan(0);
+      const values = runtime.models.map((model) => model.value);
+      expect(new Set(values).size, runtime.id).toBe(values.length);
+      for (const model of runtime.models) {
+        expect(model.value.trim(), runtime.id).not.toBe('');
+        expect(model.label.trim(), runtime.id).not.toBe('');
+        expect(model.value.length, runtime.id).toBeLessThanOrEqual(100);
+      }
+    }
+    // Choices from every catalog round-trip unchanged, including provider/model selectors.
+    for (const runtime of snapshot.runtimes.filter((runtime) => runtime.id !== 'demo')) {
+      const model = runtime.models[0].value;
+      const settings = {
+        runtime: runtime.id,
+        model,
+        enabled: true,
+        instructions: 'Fictional role settings.',
+      };
+      const saved = await request<Role>('/roles/scout', 'PUT', settings);
+      expect(saved.response.status, runtime.id).toBe(200);
+      expect(saved.result).toMatchObject(settings);
+      daemon.service.board.rebuild();
+      expect(daemon.service.board.get<Role>('role', 'scout')).toMatchObject(settings);
+    }
     for (const [id, runtime, model] of [
       ['scout', 'gemini-cli', 'fixture-model'],
       ['writer', 'opencode', 'example/fixture-model'],

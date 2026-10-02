@@ -12,11 +12,15 @@ import { runResultSchema, chatResultSchema, defaultCapabilities } from '@pitchcr
 const exec = promisify(execFile);
 export function withChat(adapter: {
   id: RuntimeId;
+  models: RuntimeAdapter['models'];
+  listModels?: RuntimeAdapter['listModels'];
   detect(): Promise<RuntimeHealth>;
   launch(context: RunContext | ChatContext, prompt: string): Promise<string>;
 }): RuntimeAdapter {
   return {
     id: adapter.id,
+    models: adapter.models,
+    listModels: adapter.listModels,
     detect: () => adapter.detect(),
     run: async (context) =>
       parseWorkflowResult(await adapter.launch(context, promptFor(context)), context),
@@ -30,11 +34,13 @@ export function runtimeEnvironment(
   context: RunContext | ChatContext,
   env: Record<string, string | undefined> = {},
 ) {
+  return cliEnvironment({ ...context.mcp.env, ...env });
+}
+export function cliEnvironment(env: Record<string, string | undefined> = {}) {
   return {
     ...Object.fromEntries(
       Object.entries(process.env).filter(([key]) => !key.startsWith('PITCHCREW_GOOGLE_')),
     ),
-    ...context.mcp.env,
     ...env,
   };
 }

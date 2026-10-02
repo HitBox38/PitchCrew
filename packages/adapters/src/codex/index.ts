@@ -1,5 +1,6 @@
 import type { RuntimeAdapter, RunContext, ChatContext } from '@pitchcrew/core';
 import { detectCli, promptFor, runCli, chatCli } from '../process.ts';
+import { codexModelArgs, readCodexModels } from './models.ts';
 function argsFor(context: RunContext | ChatContext) {
   const args = [
     'exec',
@@ -39,7 +40,18 @@ function extract(event: Record<string, unknown>): string | null {
 }
 export const codex: RuntimeAdapter = {
   id: 'codex',
+  // https://learn.chatgpt.com/docs/models
+  models: [
+    { value: 'gpt-6.1-sol', label: 'GPT-6.1 Sol' },
+    { value: 'gpt-6-astra', label: 'GPT-6 Astra' },
+    { value: 'gpt-6-sol', label: 'GPT-6 Sol' },
+    { value: 'gpt-6-luna', label: 'GPT-6 Luna' },
+    { value: 'gpt-5.6-sol', label: 'GPT-5.6 Sol' },
+    { value: 'gpt-5.6-terra', label: 'GPT-5.6 Terra' },
+    { value: 'gpt-5.6-luna', label: 'GPT-5.6 Luna' },
+  ],
   detect: () => detectCli('codex', 'codex'),
+  listModels: (signal) => readCodexModels('codex', codexModelArgs, signal),
   run: (context) => runCli('codex', argsFor(context), context, promptFor(context), extract),
   chat: (context) => chatCli('codex', argsFor(context), context, extract),
 };

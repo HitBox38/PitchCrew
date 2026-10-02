@@ -1,9 +1,12 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { detectCli, withChat, runCliText } from '../process.ts';
+import { apiModels } from '../models.ts';
 
 export const goose = withChat({
   id: 'goose',
+  // These suggestions use only providers allowed by the scoped Goose launcher.
+  models: apiModels,
   detect: () => detectCli('goose', 'goose'),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');

@@ -2,10 +2,22 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { detectCli, withChat } from '../process.ts';
 import { runAcpText } from '../acp.ts';
+import { modelListCommand, parseKiroModels } from '../model-discovery.ts';
 
 export const kiroCli = withChat({
   id: 'kiro-cli',
+  // https://kiro.dev/docs/models/
+  models: [
+    { value: 'auto', label: 'Auto' },
+    { value: 'claude-sonnet-4.6', label: 'Claude Sonnet 4.6' },
+    { value: 'claude-opus-4.6', label: 'Claude Opus 4.6' },
+    { value: 'claude-haiku-4.5', label: 'Claude Haiku 4.5' },
+  ],
   detect: () => detectCli('kiro-cli', 'kiro-cli'),
+  listModels: async (signal) =>
+    parseKiroModels(
+      await modelListCommand('kiro-cli', ['chat', '--list-models', '--format', 'json'], signal),
+    ),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const kiroHome = join(context.directory, 'kiro-home');

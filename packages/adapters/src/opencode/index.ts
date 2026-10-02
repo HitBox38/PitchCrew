@@ -1,10 +1,15 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import { detectCli, withChat, runCliText } from '../process.ts';
+import { apiModels } from '../models.ts';
+import { modelListCommand, parseOpenCodeModels } from '../model-discovery.ts';
 
 export const opencode = withChat({
   id: 'opencode',
+  models: apiModels,
   detect: () => detectCli('opencode', 'opencode'),
+  listModels: async (signal) =>
+    parseOpenCodeModels(await modelListCommand('opencode', ['models', '--pure'], signal)),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'opencode-config');

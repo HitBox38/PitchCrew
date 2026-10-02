@@ -172,6 +172,16 @@ export interface RuntimeHealth {
   version: string;
   detail: string;
 }
+export interface RuntimeModel {
+  value: string;
+  label: string;
+}
+export interface RuntimeModelCatalog {
+  models: readonly RuntimeModel[];
+  modelSource: 'runtime' | 'fallback' | 'none';
+  modelDetail: string;
+}
+export interface RuntimeInfo extends RuntimeHealth, RuntimeModelCatalog {}
 export interface Snapshot {
   cards: Card[];
   roles: Role[];
@@ -179,7 +189,7 @@ export interface Snapshot {
   approvals: Approval[];
   events: BoardEvent[];
   profile: ProfileFile[];
-  runtimes: RuntimeHealth[];
+  runtimes: RuntimeInfo[];
   dataDirectory: string;
   demoAvailable: boolean;
   messages: ChatMessage[];
@@ -229,6 +239,8 @@ export interface RunContext {
 }
 export interface RuntimeAdapter {
   id: RuntimeId;
+  models: readonly RuntimeModel[];
+  listModels?(signal?: AbortSignal): Promise<readonly RuntimeModel[]>;
   detect(): Promise<RuntimeHealth>;
   run(context: RunContext): Promise<RunResult>;
   chat(context: ChatContext): Promise<ChatResult>;

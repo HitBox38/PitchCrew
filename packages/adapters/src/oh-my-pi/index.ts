@@ -3,10 +3,15 @@ import { isAbsolute, join, relative } from 'node:path';
 import { homedir } from 'node:os';
 import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
 import { piResultExtractor } from '../pi/result.ts';
+import { apiModels } from '../models.ts';
+import { modelListCommand, parseOmpModels } from '../model-discovery.ts';
 
 export const ohMyPi = withChat({
   id: 'oh-my-pi',
+  models: apiModels,
   detect: async () => requireCliVersion(await detectCli('oh-my-pi', 'omp'), [18, 4, 9], 'omp'),
+  listModels: async (signal) =>
+    parseOmpModels(await modelListCommand('omp', ['models', '--json', '--no-extensions'], signal)),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configRoot = join(context.directory, 'omp-home');
