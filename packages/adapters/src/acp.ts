@@ -1,6 +1,7 @@
 import { spawn } from 'node:child_process';
 import type { RunContext, RunResult, ChatContext } from '@pitchcrew/core';
 import { parseWorkflowResult, terminateCli, runtimeEnvironment } from './process.ts';
+import { replyPreview } from './streaming.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
 export async function runAcp(
@@ -20,6 +21,7 @@ export async function runAcpText(
   env: Record<string, string> = {},
 ): Promise<string> {
   if (context.signal.aborted) throw new Error('Run cancelled.');
+  const preview = replyPreview(context);
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: context.directory,
@@ -82,13 +84,18 @@ export async function runAcpText(
           | undefined;
         if (!sessionId || params?.sessionId !== sessionId) return;
         const update = params.update;
-        if (update?.sessionUpdate === 'tool_call') assistant = '';
+        if (update?.sessionUpdate === 'tool_call') {
+          assistant = '';
+          preview('');
+        }
         if (
           update?.sessionUpdate === 'agent_message_chunk' &&
           update.content?.type === 'text' &&
           typeof update.content.text === 'string'
-        )
+        ) {
           assistant += update.content.text;
+          preview(assistant);
+        }
         return;
       }
       if (event.id !== expectedId) return;

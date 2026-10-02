@@ -20,6 +20,7 @@ export async function createDaemon(options: { directory: string; port: number; d
   const app = express();
   app.disable('x-powered-by');
   const sessions = new Set<string>();
+  const chatStreams = new Set<express.Response>();
   const http = createServer(app);
   app.use((req, res, next) => {
     if (req.headers.host !== `127.0.0.1:${options.port}`) {
@@ -69,6 +70,44 @@ export async function createDaemon(options: { directory: string; port: number; d
   app.use(express.json({ limit: '1mb' }));
   app.get('/api/health', (_req, res) => res.json({ app: 'pitchcrew', version: '0.1.0' }));
   app.get('/api/snapshot', async (_req, res) => res.json(await service.snapshot()));
+  // Fetch-based SSE preserves the UI session cookie AND custom client header.
+  app.get('/api/chat/stream', (_req, res) => {
+    chatStreams.add(res);
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.flushHeaders();
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let blocked = false;
+    let messagesChanged = true;
+    const send = () => {
+      timer = undefined;
+      if (blocked || res.destroyed) return;
+      blocked = !res.write(`data: ${JSON.stringify(service.chatUpdate(messagesChanged))}\n\n`);
+      messagesChanged = false;
+    };
+    // Coalesce fast token bursts, and retain only the latest state for slow clients.
+    const schedule = () => {
+      if (!timer && !blocked && !res.destroyed) timer = setTimeout(send, 40);
+    };
+    const unsubscribe = service.subscribeChat((changed) => {
+      messagesChanged ||= changed;
+      schedule();
+    });
+    res.on('drain', () => {
+      blocked = false;
+      schedule();
+    });
+    const heartbeat = setInterval(() => {
+      if (!blocked && !res.destroyed) blocked = !res.write(': heartbeat\n\n');
+    }, 15000);
+    res.on('close', () => {
+      chatStreams.delete(res);
+      unsubscribe();
+      clearTimeout(timer);
+      clearInterval(heartbeat);
+    });
+    send();
+  });
   app.post('/api/cards', (req, res) => res.status(201).json(service.createCard(req.body)));
   app.post('/api/cards/:id/move', (req, res) =>
     res.json(
@@ -199,6 +238,7 @@ export async function createDaemon(options: { directory: string; port: number; d
     service,
     url,
     async close() {
+      for (const stream of chatStreams) stream.destroy();
       await service.close();
       await vite?.close();
       await new Promise<void>((resolve, reject) => {

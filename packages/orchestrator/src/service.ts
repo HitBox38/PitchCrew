@@ -26,6 +26,8 @@ import {
   type Approval,
   type ProfileFile,
   type ChatMessage,
+  type ChatStreamState,
+  type ChatStreamUpdate,
   type RoleProposal,
   type AgentTask,
 } from '@pitchcrew/core';
@@ -42,6 +44,28 @@ export class CrewService {
     { runId: string; cardId: string | null; roleId: RoleId }
   >();
   readonly controllers = new Map<string, AbortController>();
+  private readonly streamingMessages = new Map<string, ChatMessage>();
+  private readonly chatListeners = new Set<(messagesChanged: boolean) => void>();
+  chatState(): ChatStreamState {
+    return {
+      messages: this.board.list<ChatMessage>('message'),
+      streamingMessages: [...this.streamingMessages.values()],
+    };
+  }
+  chatUpdate(includeMessages: boolean): ChatStreamUpdate {
+    return includeMessages
+      ? this.chatState()
+      : { streamingMessages: [...this.streamingMessages.values()] };
+  }
+  subscribeChat(listener: (messagesChanged: boolean) => void) {
+    this.chatListeners.add(listener);
+    return () => {
+      this.chatListeners.delete(listener);
+    };
+  }
+  private publishChat(messagesChanged = false) {
+    for (const listener of this.chatListeners) listener(messagesChanged);
+  }
   private draining = false;
   private drainAgain = false;
   private closing = false;
@@ -159,6 +183,7 @@ export class CrewService {
       dataDirectory: this.directory,
       demoAvailable: !this.board.list<Card>('card').some((c) => c.sample),
       messages: this.board.list<ChatMessage>('message'),
+      streamingMessages: [...this.streamingMessages.values()],
       proposals: this.board.list<RoleProposal>('proposal'),
       tasks: this.board.list<AgentTask>('task'),
       connectors: this.connectors.status(),
@@ -471,8 +496,11 @@ export class CrewService {
     const rootRunId = run.rootRunId ?? run.id;
     for (const sibling of this.board
       .list<Run>('run')
-      .filter((r) => (r.rootRunId ?? r.id) === rootRunId))
+      .filter((r) => (r.rootRunId ?? r.id) === rootRunId)) {
       this.controllers.get(sibling.id)?.abort();
+      this.streamingMessages.delete(sibling.id);
+    }
+    this.publishChat();
     for (const task of this.board
       .list<AgentTask>('task')
       .filter((t) => t.rootRunId === rootRunId && t.status === 'queued'))
@@ -490,9 +518,10 @@ export class CrewService {
     content: string,
     cardId: string | null,
     runId: string | null,
+    id: string = randomUUID(),
   ) {
     const message: ChatMessage = {
-      id: randomUUID(),
+      id,
       threadId,
       from,
       to,
@@ -502,6 +531,7 @@ export class CrewService {
       createdAt: new Date().toISOString(),
     };
     this.board.record('message', message, from, `${from === 'user' ? 'You' : from} messaged ${to}`);
+    this.publishChat(true);
     return message;
   }
   async sendChat(roleId: RoleId, data: unknown) {
@@ -546,6 +576,17 @@ export class CrewService {
     this.capabilities.set(token, { runId: run.id, cardId, roleId });
     this.board.record('run', run, roleId, `${role.name} started a chat turn`);
     if (!task) this.addMessage(threadId, 'user', roleId, content, cardId, run.id);
+    const reply: ChatMessage = {
+      id: randomUUID(),
+      threadId,
+      from: roleId,
+      to: task ? this.board.get<Run>('run', task.parentRunId).roleId : 'user',
+      content: '',
+      cardId,
+      runId: run.id,
+      createdAt: new Date().toISOString(),
+    };
+    let acceptingReply = true;
     const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
     // Start in the background; HTTP returns the run so the user can cancel setup or execution.
     void (async () => {
@@ -571,6 +612,13 @@ export class CrewService {
             env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
           },
           signal: controller.signal,
+          onReply: (text) => {
+            if (!acceptingReply || controller.signal.aborted || this.closing) return;
+            if (text)
+              this.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
+            else this.streamingMessages.delete(run.id);
+            this.publishChat();
+          },
           onMessage: (message) => {
             const current = this.board.get<Run>('run', run.id);
             if (!controller.signal.aborted)
@@ -578,15 +626,10 @@ export class CrewService {
           },
         }),
       );
+      acceptingReply = false;
       if (controller.signal.aborted) throw new Error('Run cancelled.');
-      this.addMessage(
-        threadId,
-        roleId,
-        task ? this.board.get<Run>('run', task.parentRunId).roleId : 'user',
-        result.reply,
-        cardId,
-        run.id,
-      );
+      this.streamingMessages.delete(run.id);
+      this.addMessage(threadId, roleId, reply.to, result.reply, cardId, run.id, reply.id);
       this.board.record(
         'run',
         {
@@ -600,6 +643,8 @@ export class CrewService {
       );
     })()
       .catch((error: unknown) => {
+        acceptingReply = false;
+        this.streamingMessages.delete(run.id);
         const message = error instanceof Error ? error.message : 'Chat failed.';
         this.board.record(
           'run',

@@ -9,6 +9,7 @@ import type {
   ChatContext,
 } from '@pitchcrew/core';
 import { runResultSchema, chatResultSchema, defaultCapabilities } from '@pitchcrew/core';
+import { chatEventStream } from './streaming.ts';
 const exec = promisify(execFile);
 export function withChat(adapter: {
   id: RuntimeId;
@@ -151,6 +152,7 @@ export async function runCliText(
   env: Record<string, string | undefined> = {},
 ): Promise<string> {
   if (context.signal.aborted) throw new Error('Run cancelled.');
+  const stream = chatEventStream(context);
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: context.directory,
@@ -184,8 +186,12 @@ export async function runCliText(
         buffer = buffer.slice(end + 1);
         try {
           const event = JSON.parse(line) as Record<string, unknown>;
+          stream.event(event);
           const text = extract(event);
-          if (text) result = text;
+          if (text) {
+            result = text;
+            stream.replace(text);
+          }
         } catch {
           /* CLIs may print a non-JSON startup line. */
         }
@@ -216,8 +222,13 @@ export async function runCliText(
       }
       if (buffer.trim()) {
         try {
-          const text = extract(JSON.parse(buffer) as Record<string, unknown>);
-          if (text) result = text;
+          const event = JSON.parse(buffer) as Record<string, unknown>;
+          stream.event(event);
+          const text = extract(event);
+          if (text) {
+            result = text;
+            stream.replace(text);
+          }
         } catch {
           /* No final complete JSON event. */
         }

@@ -71,6 +71,7 @@ export const cursorAgent = withChat({
       '--print',
       '--output-format',
       'stream-json',
+      ...('messages' in context ? ['--stream-partial-output'] : []),
       '--trust',
       '--approve-mcps',
       '--workspace',

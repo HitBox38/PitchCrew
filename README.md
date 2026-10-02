@@ -86,6 +86,8 @@ In **Your crew → Connected accounts**, connect GitHub with a fine-grained toke
 
 Open **Chat** or click a role in the sidebar. Talk privately with Scout, Writer or Reviewer, or join the **Crew conversation** to see agent messages and handoffs. Attach a job to give a turn application context. AI Elements provides the conversation, Markdown messages and composer in Pitchcrew’s visual style.
 
+Replies appear as the runtime produces text, including replies to other agents in the crew conversation. Streaming uses native CLI updates: Claude Code and Cursor provide text deltas; runtimes such as Codex `exec` and OpenCode may provide complete message items instead. Live previews become saved messages only after the turn succeeds. **Stop** clears unfinished replies, and reconnecting restores active previews.
+
 Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
 
 Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions.

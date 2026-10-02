@@ -1,6 +1,6 @@
 import { Input } from './components/ui/input.tsx';
 import { Button } from './components/ui/button.tsx';
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Plus,
   Search,
@@ -11,8 +11,9 @@ import {
   SlidersHorizontal,
   MessageSquare,
 } from 'lucide-react';
-import type { Snapshot, Role, RoleId } from '@pitchcrew/core';
+import type { Snapshot, Role, RoleId, ChatStreamState } from '@pitchcrew/core';
 import { api } from './api.ts';
+import { subscribeChatStream } from './chat-stream.ts';
 import { Brand, EmptyState, JobCard, RoleAvatar, runtimeLabels, timeAgo } from './components.tsx';
 import { useTheme } from './theme.ts';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from './components/ui/sidebar.tsx';
@@ -89,6 +90,20 @@ export type Action = (
 ) => Promise<unknown>;
 export function App() {
   const [data, setData] = useState<Snapshot | null>(null);
+  const chatState = useRef<ChatStreamState | null>(null);
+  useEffect(
+    () =>
+      subscribeChatStream(
+        (state) => {
+          chatState.current = state;
+          setData((current) => (current ? { ...current, ...state } : current));
+        },
+        () => {
+          chatState.current = null;
+        },
+      ),
+    [],
+  );
   const [chatThread, setChatThread] = useState<RoleId | 'crew'>('scout');
   const [view, setView] = useState<View>('board');
   const [error, setError] = useState('');
@@ -116,7 +131,7 @@ export function App() {
   }, [flashStage]);
   const reload = useCallback(async () => {
     const next = await api<Snapshot>('/snapshot');
-    setData(next);
+    setData({ ...next, ...chatState.current });
     setError('');
   }, []);
   useEffect(() => {
@@ -126,7 +141,7 @@ export function App() {
       try {
         const snapshot = await api<Snapshot>('/snapshot');
         if (active) {
-          setData(snapshot);
+          setData({ ...snapshot, ...chatState.current });
           setError('');
         }
       } catch (e) {

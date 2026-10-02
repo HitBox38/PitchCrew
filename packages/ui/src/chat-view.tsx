@@ -116,7 +116,10 @@ export function ChatView({
   const [error, setError] = useState('');
   const roleId = thread === 'crew' ? recipient : thread;
   const role = data.roles.find((r) => r.id === roleId)!;
-  const messages = data.messages.filter((m) => m.threadId === thread);
+  const streamingIds = new Set(data.streamingMessages.map((message) => message.id));
+  const messages = [...data.messages, ...data.streamingMessages].filter(
+    (m) => m.threadId === thread,
+  );
   const running = data.runs.filter(
     (r) => r.status === 'running' && (thread === 'crew' || r.roleId === roleId),
   );
@@ -386,6 +389,7 @@ export function ChatView({
                   ) : null}
                   {messages.map((message, index) => {
                     const job = data.cards.find((c) => c.id === message.cardId);
+                    const streaming = streamingIds.has(message.id);
                     return (
                       <Fragment key={message.id}>
                         {index === 0 ||
@@ -416,11 +420,20 @@ export function ChatView({
                               {timeAgo(message.createdAt)}
                             </time>
                           </div>
-                          <MessageContent className="chat-message-content">
-                            <MessageResponse mode="static" components={noRemoteImages}>
+                          <MessageContent className="chat-message-content" aria-busy={streaming}>
+                            <MessageResponse
+                              mode={streaming ? 'streaming' : 'static'}
+                              isAnimating={streaming}
+                              components={noRemoteImages}
+                            >
                               {message.content}
                             </MessageResponse>
                           </MessageContent>
+                          {streaming ? (
+                            <span className="chat-stream-status">
+                              <LoaderCircle size={12} className="spin" /> Replying…
+                            </span>
+                          ) : null}
                           {job ? (
                             <Button
                               variant="ghost"

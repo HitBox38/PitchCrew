@@ -58,7 +58,10 @@ try {
     !result.iconLoaded ||
     !result.uiReady ||
     (!process.env.PITCHCREW_URL &&
-      (!result.chatReady || !result.chatResponded || !result.chatTabsReady))
+      (!result.chatReady ||
+        !result.chatResponded ||
+        !result.chatTabsReady ||
+        result.chatStreamingUpdates < 2))
   )
     throw new Error('Electron renderer/daemon check failed.');
   if (
