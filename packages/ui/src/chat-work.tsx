@@ -5,7 +5,7 @@ import { RoleAvatar, timeAgo } from './components.tsx';
 import { Button } from './components/ui/button.tsx';
 import { MessageResponse } from './components/ai-elements/message.tsx';
 import type { ChatThread } from './chat-view.tsx';
-import type { Action } from './App.tsx';
+import type { Action } from './workspace-store.ts';
 
 const noRemoteImages = { img: ({ alt }: { alt?: string }) => <span>{alt || 'Image'}</span> };
 const taskLabels: Record<AgentTask['status'], string> = {

@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import type { Card, CardState, Packet, Role, Snapshot } from '@pitchcrew/core';
 import { transitions } from '@pitchcrew/core/states';
-import type { Action } from './App.tsx';
+import type { Action } from './workspace-store.ts';
 import {
   CompanyMark,
   EmptyState,

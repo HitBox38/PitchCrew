@@ -1,12 +1,13 @@
 import { timeAgo } from './components.tsx';
-import { useWorkspace } from './workspace-context.tsx';
+import { useWorkspaceStore } from './workspace-store.ts';
 
 export function ActivityPage() {
-  const { data } = useWorkspace();
+  const events = useWorkspaceStore((state) => state.data?.events);
+  if (!events) return null;
   return (
     <section className="activity-panel">
       <ol className="activity-list">
-        {data.events.map((event) => (
+        {events.map((event) => (
           <li className={`activity-row ${event.kind}`} key={event.id}>
             <time dateTime={event.createdAt} title={event.createdAt}>
               {timeAgo(event.createdAt)}
