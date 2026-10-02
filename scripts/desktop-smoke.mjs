@@ -66,7 +66,8 @@ try {
       (!result.chatReady ||
         !result.chatResponded ||
         !result.chatTabsReady ||
-        result.chatStreamingUpdates < 2))
+        result.chatStreamingUpdates < 2 ||
+        !result.routerHistoryReady))
   )
     throw new Error('Electron renderer/daemon check failed.');
   if (

@@ -1,6 +1,8 @@
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
+import * as m from 'motion/react-m';
+import { claySpring, useAppReducedMotion } from '@/motion';
 
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -38,10 +40,28 @@ function Button({
   className,
   variant = 'default',
   size = 'default',
+  render,
   ...props
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  const reduced = useAppReducedMotion();
   return (
     <ButtonPrimitive
+      render={
+        render ?? (
+          <m.button
+            whileHover={
+              !reduced &&
+              !props.disabled &&
+              typeof className === 'string' &&
+              className.split(' ').includes('button')
+                ? { y: -1 }
+                : undefined
+            }
+            whileTap={!reduced && !props.disabled ? { scale: 0.97, y: 0 } : undefined}
+            transition={claySpring}
+          />
+        )
+      }
       data-slot="button"
       data-variant={variant}
       data-size={size}

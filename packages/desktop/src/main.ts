@@ -98,11 +98,11 @@ function createWindow() {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
-            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null;
+            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null;
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'demo' && role.enabled)) throw new Error('Chat smoke test requires an isolated demo workspace.');
-              [...document.querySelectorAll('button')].find((button) => button.textContent === 'Chat')?.click();
-              chatReady = await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
+              document.querySelector('a[href="/chat"]')?.click();
+              chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
               await waitFor(() => !!document.querySelector('textarea')?.value);
               const partials = new Set();
@@ -121,10 +121,14 @@ function createWindow() {
               const writerReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('textarea[aria-label="Message Writer"]') && !!document.querySelector('.chat-empty'));
               document.querySelector('.chat-thread .role-avatar.scout')?.closest('button')?.click();
               await waitFor(() => !!document.querySelector('.chat-work-content'));
+              history.back();
+              const backReady = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('textarea[aria-label="Message Writer"]'));
+              history.forward();
+              routerHistoryReady = backReady && await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('.chat-work-content'));
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Conversation'))?.click();
               chatTabsReady = workReady && writerReady && await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-transcript'));
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady };
           })()`,
         );
         const chrome = [];

@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from '@/motion';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { cn } from '@/lib/utils';
 import { XIcon } from 'lucide-react';
@@ -26,9 +28,17 @@ function DialogClose({ ...props }: DialogPrimitive.Close.Props) {
 function DialogOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
   return (
     <DialogPrimitive.Backdrop
+      render={
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        />
+      }
       data-slot="dialog-overlay"
       className={cn(
-        'fixed inset-0 isolate z-50 bg-black/50 data-closed:animate-out data-closed:fade-out-0 data-open:animate-in data-open:fade-in-0',
+        'fixed inset-0 isolate z-50 bg-black/50 data-closed:animate-out data-closed:fade-out-0',
         className,
       )}
       {...props}
@@ -44,13 +54,30 @@ function DialogContent({
 }: DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
 }) {
+  const reduced = useAppReducedMotion();
   return (
     <DialogPortal>
       <DialogOverlay />
       <DialogPrimitive.Popup
+        render={
+          <m.div
+            initial={
+              reduced
+                ? { opacity: 0 }
+                : { opacity: 0, y: 12, scale: 0.96, rotateX: -3, transformPerspective: 1000 }
+            }
+            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+            exit={{
+              opacity: 0,
+              y: reduced ? 0 : 8,
+              scale: reduced ? 1 : 0.98,
+              transition: { duration: 0.16 },
+            }}
+          />
+        }
         data-slot="dialog-content"
         className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 outline-none data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 sm:max-w-lg',
+          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 outline-none data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 sm:max-w-lg',
           className,
         )}
         {...props}

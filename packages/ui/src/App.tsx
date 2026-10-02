@@ -1,77 +1,32 @@
-import { Input } from './components/ui/input.tsx';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from './motion.tsx';
+import { Outlet, useMatches, useNavigate, useRouter } from '@tanstack/react-router';
+import { WorkspaceContext } from './workspace-context.tsx';
+import type { Action } from './workspace-context.tsx';
+export type { Action } from './workspace-context.tsx';
+import { viewPaths } from './navigation.ts';
+import type { ChatThread, View } from './navigation.ts';
+import { closedStates, stages } from './board-stages.ts';
 import { Button } from './components/ui/button.tsx';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Plus,
-  Search,
-  ArrowRight,
-  RefreshCw,
-  LoaderCircle,
-  X,
-  SlidersHorizontal,
-  MessageSquare,
-} from 'lucide-react';
+import { Plus, RefreshCw, LoaderCircle, X } from 'lucide-react';
 import type { Snapshot, Role, RoleId, ChatStreamState } from '@pitchcrew/core';
 import { api } from './api.ts';
 import { subscribeChatStream } from './chat-stream.ts';
-import { Brand, EmptyState, JobCard, RoleAvatar, runtimeLabels, timeAgo } from './components.tsx';
+import { Brand, runtimeLabels } from './components.tsx';
 import { useTheme } from './theme.ts';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from './components/ui/sidebar.tsx';
-import { AppSidebar, viewTitles, type View } from './app-sidebar.tsx';
+import { AppSidebar, viewTitles } from './app-sidebar.tsx';
 import { modKey, useShortcuts } from './shortcuts.ts';
 // Views, dialogs and the command palette load on first use to keep the entry chunk small.
 const views = () => import('./views.tsx');
 const AddOpportunity = lazy(() => views().then((m) => ({ default: m.AddOpportunity })));
 const CardDetails = lazy(() => views().then((m) => ({ default: m.CardDetails })));
 const RoleSettings = lazy(() => views().then((m) => ({ default: m.RoleSettings })));
-const ProfileView = lazy(() => views().then((m) => ({ default: m.ProfileView })));
-const InboxView = lazy(() => views().then((m) => ({ default: m.InboxView })));
 const CommandPalette = lazy(() =>
   import('./command-palette.tsx').then((m) => ({ default: m.CommandPalette })),
 );
-const ConnectorSettings = lazy(() =>
-  import('./connector-settings.tsx').then((m) => ({ default: m.ConnectorSettings })),
-);
-const SkillsView = lazy(() => import('./skills-view.tsx').then((m) => ({ default: m.SkillsView })));
-const ChatView = lazy(() => import('./chat-view.tsx').then((m) => ({ default: m.ChatView })));
-const closedStates = ['rejected', 'withdrawn', 'ghosted'];
-const stages = [
-  {
-    id: 'lead',
-    label: 'Leads',
-    states: ['lead'],
-    color: 'slate',
-    empty: 'Add a job post to start.',
-  },
-  {
-    id: 'shortlisted',
-    label: 'Shortlisted',
-    states: ['shortlisted'],
-    color: 'blue',
-    empty: 'Shortlist a lead once Scout has read it.',
-  },
-  {
-    id: 'drafts',
-    label: 'Drafting',
-    states: ['drafting', 'in_review', 'changes_requested'],
-    color: 'violet',
-    empty: 'Writer’s drafts and Reviewer’s notes land here.',
-  },
-  {
-    id: 'ready',
-    label: 'Ready',
-    states: ['agreed', 'awaiting_approval'],
-    color: 'orange',
-    empty: 'Reviewed packets wait here for your approval.',
-  },
-  {
-    id: 'applied',
-    label: 'Applied',
-    states: ['submitted', 'screening', 'interviewing', 'offer'],
-    color: 'green',
-    empty: 'Record a submission after you apply.',
-  },
-];
 const recentKey = 'pitchcrew-recent-jobs';
 function readRecent(): string[] {
   try {
@@ -81,15 +36,8 @@ function readRecent(): string[] {
     return [];
   }
 }
-// The shadcn sidebar remembers its expanded state in a sidebar_state cookie.
-const sidebarOpen = !document.cookie.split('; ').includes('sidebar_state=false');
-export type Action = (
-  path: string,
-  method?: string,
-  body?: unknown,
-  success?: string | ((result: unknown) => string),
-) => Promise<unknown>;
 export function App() {
+  const reduced = useAppReducedMotion();
   const [data, setData] = useState<Snapshot | null>(null);
   const chatState = useRef<ChatStreamState | null>(null);
   useEffect(
@@ -105,9 +53,14 @@ export function App() {
       ),
     [],
   );
-  const [chatThread, setChatThread] = useState<RoleId | 'crew'>('scout');
-  const [view, setView] = useState<View>('board');
-  const [skillFilter, setSkillFilter] = useState<RoleId | 'all' | 'shared'>('all');
+  const navigate = useNavigate();
+  const router = useRouter();
+  const view = useMatches({
+    select: (matches) => matches.findLast((match) => match.staticData.view)?.staticData.view,
+  });
+  const [sidebarOpen] = useState(
+    () => !document.cookie.split('; ').includes('sidebar_state=false'),
+  );
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [working, setWorking] = useState(false);
@@ -123,14 +76,17 @@ export function App() {
   const [recentIds, setRecentIds] = useState(readRecent);
   const [flashStage, setFlashStage] = useState<string | null>(null);
   useShortcuts({ search: () => setPaletteOpen(true), newJob: () => setAdd(true) });
-  useEffect(() => {
-    if (!flashStage) return;
-    document
-      .getElementById(`stage-${flashStage}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-    const timer = setTimeout(() => setFlashStage(null), 1400);
-    return () => clearTimeout(timer);
-  }, [flashStage]);
+  useEffect(
+    () =>
+      router.subscribe('onBeforeNavigate', ({ fromLocation, toLocation }) => {
+        if (fromLocation?.href === toLocation.href) return;
+        setSelectedId(null);
+        setRoleId(null);
+        setAdd(false);
+        setPaletteOpen(false);
+      }),
+    [router],
+  );
   const reload = useCallback(async () => {
     const next = await api<Snapshot>('/snapshot');
     setData({ ...next, ...chatState.current });
@@ -181,12 +137,12 @@ export function App() {
   const selected = data?.cards.find((c) => c.id === selectedId);
   const selectedRole = data?.roles.find((r) => r.id === roleId);
   const go = (next: View) => {
-    setView(next);
+    void navigate({ to: viewPaths[next] });
     setSelectedId(null);
   };
-  const openChat = (id: RoleId) => {
-    setChatThread(id);
-    go('chat');
+  const openChat = (thread: ChatThread) => {
+    void navigate({ to: '/chat/$thread', params: { thread } });
+    setSelectedId(null);
   };
   const openCard = (id: string) => {
     setSelectedId(id);
@@ -201,7 +157,7 @@ export function App() {
     });
   };
   const jumpToStage = (id: string) => {
-    setView('board');
+    go('board');
     setShowClosed(false);
     setQuery('');
     setFlashStage(id);
@@ -231,14 +187,7 @@ export function App() {
     );
   const active = data.cards.filter((c) => !closedStates.includes(c.state));
   const strong = data.cards.filter((c) => c.fit !== null && c.fit >= 80).length;
-  const filtered = data.cards.filter((c) =>
-    `${c.company} ${c.title} ${c.location} ${c.tags.join(' ')}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
-  const closed = filtered.filter((c) => closedStates.includes(c.state));
   const running = data.runs.filter((r) => r.status === 'running');
-  const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
   const roleStatus = (role: Role) => {
     if (!role.enabled) return 'Paused';
     const run = running.find((r) => r.roleId === role.id);
@@ -278,8 +227,10 @@ export function App() {
       'Give the whole crew shared skills, or tailor them to individual agents.'
     ) : view === 'profile' ? (
       'Writer only quotes from these notes, and Reviewer checks every claim against them.'
-    ) : (
+    ) : view === 'activity' ? (
       `${data.events.length} events, newest first. The log is append-only.`
+    ) : (
+      'Check the address or return to Board.'
     );
   const stageLinks = stages.map((stage) => ({
     id: stage.id,
@@ -304,422 +255,174 @@ export function App() {
       `${role.name} ${role.enabled ? 'paused' : 'resumed'}`,
     );
   return (
-    <SidebarProvider defaultOpen={sidebarOpen}>
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <AppSidebar
-        view={view}
-        onNavigate={go}
-        stages={stageLinks}
-        onStage={jumpToStage}
-        counts={{ inbox: pending, profile: data.profile.length }}
-        roles={data.roles}
-        roleStatus={roleStatus}
-        runningRoles={running.map((r) => r.roleId)}
-        onConfigureRole={setRoleId}
-        onChatRole={openChat}
-        onToggleRole={toggleRole}
-        recent={recentCards}
-        onOpenCard={openCard}
-        onSearch={() => setPaletteOpen(true)}
-        onAddJob={() => setAdd(true)}
-        theme={theme}
-        onTheme={setTheme}
-        dataDirectory={data.dataDirectory}
-        onCopyDirectory={copyDirectory}
-        working={working}
-      />
-      <SidebarInset id="main" tabIndex={-1}>
-        <div className="page-toolbar">
-          <SidebarTrigger title={`Toggle sidebar (${modKey}B)`} />
-          {running.length ? (
-            <output className="run-status">
-              <LoaderCircle size={13} className="spin" />
-              {running
-                .map((run) => {
-                  const role = data.roles.find((r) => r.id === run.roleId);
-                  const card = data.cards.find((c) => c.id === run.cardId);
-                  return `${role?.name ?? run.roleId} ${run.mode === 'chat' ? 'is replying' : `on ${card?.company ?? 'a job'}`}`;
-                })
-                .join(', ')}
-            </output>
-          ) : null}
-        </div>
-        <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
-          <header className="page-heading">
-            <div>
-              <h1>{viewTitles[view]}</h1>
-              <p>{summary}</p>
-            </div>
-            {view === 'board' && data.cards.length ? (
-              <Button className="button primary" onClick={() => setAdd(true)}>
-                <Plus size={16} /> Add job
-              </Button>
-            ) : view === 'crew' ? (
-              <Button className="button" disabled={working} onClick={checkRuntimes}>
-                <RefreshCw size={14} /> Check runtimes
-              </Button>
+    <WorkspaceContext
+      value={{
+        data,
+        action,
+        working,
+        act,
+        go,
+        openCard,
+        openChat,
+        setRoleId,
+        setAdd,
+        roleStatus,
+        query,
+        setQuery,
+        showClosed,
+        setShowClosed,
+        flashStage,
+        setFlashStage,
+      }}
+    >
+      <SidebarProvider defaultOpen={sidebarOpen}>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <AppSidebar
+          view={view}
+          stages={stageLinks}
+          onStage={jumpToStage}
+          counts={{ inbox: pending, profile: data.profile.length }}
+          roles={data.roles}
+          roleStatus={roleStatus}
+          runningRoles={running.map((r) => r.roleId)}
+          onConfigureRole={setRoleId}
+          onChatRole={openChat}
+          onToggleRole={toggleRole}
+          recent={recentCards}
+          onOpenCard={openCard}
+          onSearch={() => setPaletteOpen(true)}
+          onAddJob={() => setAdd(true)}
+          theme={theme}
+          onTheme={setTheme}
+          dataDirectory={data.dataDirectory}
+          onCopyDirectory={copyDirectory}
+          working={working}
+        />
+        <SidebarInset id="main" tabIndex={-1}>
+          <div className="page-toolbar">
+            <SidebarTrigger title={`Toggle sidebar (${modKey}B)`} />
+            {running.length ? (
+              <output className="run-status">
+                <LoaderCircle size={13} className="spin" />
+                {running
+                  .map((run) => {
+                    const role = data.roles.find((r) => r.id === run.roleId);
+                    const card = data.cards.find((c) => c.id === run.cardId);
+                    return `${role?.name ?? run.roleId} ${run.mode === 'chat' ? 'is replying' : `on ${card?.company ?? 'a job'}`}`;
+                  })
+                  .join(', ')}
+              </output>
             ) : null}
-          </header>
-          {error ? (
-            <div role="alert" className="error-banner">
-              Lost connection to the local daemon: {error}
-            </div>
-          ) : null}
-          {view === 'board' ? (
-            !data.cards.length ? (
-              <section className="welcome">
-                <h2>Start with a job post</h2>
-                <p>
-                  Add a listing you’re considering. The crew works on it one step at a time, and
-                  only when you ask.
-                </p>
-                <ol className="welcome-steps">
-                  <li>
-                    <RoleAvatar agentRole="scout" size="small" />
-                    <span>
-                      <strong>Scout</strong> reads the post and scores the fit against your profile.
-                    </span>
-                  </li>
-                  <li>
-                    <RoleAvatar agentRole="writer" size="small" />
-                    <span>
-                      <strong>Writer</strong> drafts a resume, cover letter and form answers,
-                      quoting only your notes.
-                    </span>
-                  </li>
-                  <li>
-                    <RoleAvatar agentRole="reviewer" size="small" />
-                    <span>
-                      <strong>Reviewer</strong> checks every claim against those notes.
-                    </span>
-                  </li>
-                  <li>
-                    <span className="step-you">You</span>
-                    <span>
-                      approve the exact packet before it’s exported to a folder. Nothing is
-                      submitted for you.
-                    </span>
-                  </li>
-                </ol>
-                <div className="welcome-actions">
-                  <Button className="button primary" onClick={() => setAdd(true)}>
-                    <Plus size={16} /> Add job
-                  </Button>
-                  <Button
-                    className="button"
-                    disabled={working}
-                    onClick={() =>
-                      act('/examples', 'POST', undefined, 'Loaded example jobs (demo runtime)')
-                    }
-                  >
-                    {working ? <LoaderCircle size={14} className="spin" /> : null} Load example data
-                  </Button>
-                </div>
-              </section>
-            ) : (
-              <>
-                <div className="board-toolbar">
-                  <div className="view-switch">
-                    <Button
-                      className={!showClosed ? 'active' : ''}
-                      onClick={() => setShowClosed(false)}
-                    >
-                      Pipeline
-                    </Button>
-                    <Button
-                      className={showClosed ? 'active' : ''}
-                      onClick={() => setShowClosed(true)}
-                    >
-                      Closed <span>{data.cards.length - active.length}</span>
-                    </Button>
-                  </div>
-                  <div className="search-input">
-                    <Search size={15} />
-                    <Input
-                      aria-label="Search jobs"
-                      placeholder="Filter by company, title, tag"
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                    />
-                    {query ? (
-                      <Button
-                        className="icon-button"
-                        onClick={() => setQuery('')}
-                        aria-label="Clear search"
-                      >
-                        <X size={14} />
-                      </Button>
-                    ) : null}
-                  </div>
-                </div>
-                {showClosed ? (
-                  <div className="closed-grid">
-                    {closed.length ? (
-                      closed.map((card) => (
-                        <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                      ))
-                    ) : (
-                      <EmptyState
-                        title="Nothing closed"
-                        description="Rejected, withdrawn and unanswered applications end up here."
-                      />
-                    )}
-                  </div>
-                ) : (
-                  <div className="pipeline" aria-label="Application pipeline">
-                    {stages.map((stage) => {
-                      const cards = filtered.filter((c) => stage.states.includes(c.state));
-                      return (
-                        <section
-                          className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
-                          id={`stage-${stage.id}`}
-                          key={stage.id}
-                        >
-                          <div className="column-heading">
-                            <span className="stage-dot" />
-                            <h2>{stage.label}</h2>
-                            <span className="column-count">{cards.length}</span>
-                            {stage.id === 'lead' ? (
-                              <Button
-                                className="icon-button"
-                                aria-label="Add a job"
-                                onClick={() => setAdd(true)}
-                              >
-                                <Plus size={15} />
-                              </Button>
-                            ) : null}
-                          </div>
-                          <div className="column-cards">
-                            {cards.map((card) => (
-                              <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                            ))}
-                            {!cards.length ? (
-                              <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
-                            ) : null}
-                          </div>
-                        </section>
-                      );
-                    })}
-                  </div>
-                )}
-                {recent.length ? (
-                  <section className="recent">
-                    <div className="section-heading">
-                      <h2>Recent</h2>
-                      <Button className="text-button" onClick={() => go('activity')}>
-                        All activity <ArrowRight size={13} />
-                      </Button>
-                    </div>
-                    <ul>
-                      {recent.map((event) => (
-                        <li key={event.id}>
-                          <span>{event.message}</span>
-                          <time dateTime={event.createdAt}>{timeAgo(event.createdAt)}</time>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ) : null}
-              </>
-            )
-          ) : null}
-          {view === 'crew' ? (
-            <>
-              <div className="crew-grid">
-                {data.roles.map((role) => (
-                  <CrewCard
-                    key={role.id}
-                    role={role}
-                    status={roleStatus(role)}
-                    onConfigure={() => setRoleId(role.id)}
-                    onChat={() => openChat(role.id)}
-                  />
-                ))}
-              </div>
-              <Suspense fallback={<p className="quiet">Loading connectors…</p>}>
-                <ConnectorSettings data={data} action={action} working={working} />
-              </Suspense>
-              <h2 className="subheading">Runtimes on this machine</h2>
-              <div className="runtime-list">
-                {data.runtimes.map((runtime) => (
-                  <div className="runtime-row" key={runtime.id}>
-                    <div>
-                      <strong>{runtimeLabels[runtime.id]}</strong>
-                      <p>{runtime.detail}</p>
-                    </div>
-                    {runtime.version ? <small>{runtime.version}</small> : null}
-                    <span className={`badge ${runtime.available ? 'success' : ''}`}>
-                      {runtime.available ? 'Available' : 'Unavailable'}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="info-note">
-                Demo makes deterministic drafts without calling a model. Other runtimes use their
-                native authentication for conversations and job workflows.
-              </p>
-            </>
-          ) : null}
-          <Suspense fallback={<p className="quiet">Opening view…</p>}>
-            {view === 'chat' ? (
-              <ChatView
-                data={data}
-                thread={chatThread}
-                onThread={setChatThread}
-                onConfigure={setRoleId}
-                onOpenCard={openCard}
-                action={action}
-                working={working}
-              />
-            ) : null}
-            {view === 'inbox' ? (
-              <InboxView data={data} action={action} working={working} onOpen={openCard} />
-            ) : null}
-            {view === 'skills' ? (
-              <SkillsView
-                data={data}
-                action={action}
-                working={working}
-                filter={skillFilter}
-                onFilter={setSkillFilter}
-              />
-            ) : null}
-            {view === 'profile' ? (
-              <ProfileView data={data} action={action} working={working} />
-            ) : null}
-          </Suspense>
-          {view === 'activity' ? (
-            <section className="activity-panel">
-              <ol className="activity-list">
-                {data.events.map((event) => (
-                  <li className={`activity-row ${event.kind}`} key={event.id}>
-                    <time dateTime={event.createdAt} title={event.createdAt}>
-                      {timeAgo(event.createdAt)}
-                    </time>
-                    <span className="activity-message">{event.message}</span>
-                    <span className="activity-actor">
-                      {event.actor === 'user'
-                        ? 'You'
-                        : event.actor === 'demo'
-                          ? 'Demo runtime'
-                          : event.actor}
-                      <span className="activity-kind">{event.kind}</span>
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            </section>
-          ) : null}
-        </div>
-      </SidebarInset>
-      {paletteMounted ? (
-        <Suspense fallback={null}>
-          <CommandPalette
-            open={paletteOpen}
-            onOpenChange={setPaletteOpen}
-            cards={data.cards}
-            roles={data.roles}
-            onNavigate={go}
-            onOpenCard={openCard}
-            onConfigureRole={setRoleId}
-            onChatRole={openChat}
-            onAddJob={() => setAdd(true)}
-            onCheckRuntimes={checkRuntimes}
-            onTheme={setTheme}
-            onCopyDirectory={copyDirectory}
-          />
-        </Suspense>
-      ) : null}
-      {toast ? (
-        <output className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}>
-          <span>{toast}</span>
-          <Button
-            className="icon-button"
-            onClick={() => setToast('')}
-            aria-label="Dismiss notification"
+          </div>
+          <m.div
+            key={view}
+            initial={reduced ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`page ${view === 'chat' ? 'chat-page' : ''}`}
           >
-            <X size={15} />
-          </Button>
-        </output>
-      ) : null}
-      <Suspense fallback={null}>
-        {add ? (
-          <AddOpportunity action={action} working={working} onClose={() => setAdd(false)} />
+            <header className="page-heading">
+              <div>
+                <h1>{view ? viewTitles[view] : 'Page not found'}</h1>
+                <p>{summary}</p>
+              </div>
+              {view === 'board' && data.cards.length ? (
+                <Button className="button primary" onClick={() => setAdd(true)}>
+                  <Plus size={16} /> Add job
+                </Button>
+              ) : view === 'crew' ? (
+                <Button className="button" disabled={working} onClick={checkRuntimes}>
+                  <RefreshCw size={14} /> Check runtimes
+                </Button>
+              ) : null}
+            </header>
+            {error ? (
+              <div role="alert" className="error-banner">
+                Lost connection to the local daemon: {error}
+              </div>
+            ) : null}
+            <Suspense fallback={<p className="quiet">Opening view…</p>}>
+              <Outlet />
+            </Suspense>
+          </m.div>
+        </SidebarInset>
+        {paletteMounted ? (
+          <Suspense fallback={null}>
+            <CommandPalette
+              open={paletteOpen}
+              onOpenChange={setPaletteOpen}
+              cards={data.cards}
+              roles={data.roles}
+              onNavigate={go}
+              onOpenCard={openCard}
+              onConfigureRole={setRoleId}
+              onChatRole={openChat}
+              onAddJob={() => setAdd(true)}
+              onCheckRuntimes={checkRuntimes}
+              onTheme={setTheme}
+              onCopyDirectory={copyDirectory}
+            />
+          </Suspense>
         ) : null}
-        {selected ? (
-          <CardDetails
-            card={selected}
-            data={data}
-            action={action}
-            working={working}
-            onClose={() => setSelectedId(null)}
-            onInbox={() => go('inbox')}
-          />
-        ) : null}
-        {selectedRole ? (
-          <RoleSettings
-            key={selectedRole.id}
-            onManageSkills={() => {
-              setSkillFilter(selectedRole.id);
-              setRoleId(null);
-              go('skills');
-            }}
-            role={selectedRole}
-            data={data}
-            action={action}
-            working={working}
-            onClose={() => setRoleId(null)}
-          />
-        ) : null}
-      </Suspense>
-    </SidebarProvider>
-  );
-}
-function CrewCard({
-  role,
-  status,
-  onConfigure,
-  onChat,
-}: {
-  role: Role;
-  status: string;
-  onConfigure: () => void;
-  onChat: () => void;
-}) {
-  return (
-    <section className={`crew-card ${role.id}`}>
-      <div className="crew-card-top">
-        <RoleAvatar agentRole={role.id} size="large" />
-        <div>
-          <h2>{role.name}</h2>
-          <span className={`role-status ${!role.enabled ? 'paused' : ''}`}>
-            {role.enabled ? 'Enabled' : 'Paused'}
-          </span>
-        </div>
-      </div>
-      <p>{role.description}</p>
-      <dl className="crew-runtime">
-        <div>
-          <dt>Runtime</dt>
-          <dd>{runtimeLabels[role.runtime]}</dd>
-        </div>
-        <div>
-          <dt>Model</dt>
-          <dd>{role.model || 'CLI default'}</dd>
-        </div>
-        <div>
-          <dt>Now</dt>
-          <dd>{status.startsWith('Working') ? status : 'Idle'}</dd>
-        </div>
-      </dl>
-      <Button className="button primary" onClick={onChat}>
-        <MessageSquare size={14} /> Chat
-      </Button>
-      <Button className="button" onClick={onConfigure}>
-        <SlidersHorizontal size={14} /> Configure
-      </Button>
-    </section>
+        <AnimatePresence>
+          {toast ? (
+            <m.output
+              key="notification"
+              initial={{ opacity: 0, y: reduced ? 0 : 12, scale: reduced ? 1 : 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: reduced ? 0 : 8 }}
+              className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}
+            >
+              <span>{toast}</span>
+              <Button
+                className="icon-button"
+                onClick={() => setToast('')}
+                aria-label="Dismiss notification"
+              >
+                <X size={15} />
+              </Button>
+            </m.output>
+          ) : null}
+        </AnimatePresence>
+        <Suspense fallback={null}>
+          <AnimatePresence>
+            {add ? (
+              <AddOpportunity
+                key="add-job"
+                action={action}
+                working={working}
+                onClose={() => setAdd(false)}
+              />
+            ) : null}
+            {selected ? (
+              <CardDetails
+                key={selected.id}
+                card={selected}
+                data={data}
+                action={action}
+                working={working}
+                onClose={() => setSelectedId(null)}
+                onInbox={() => go('inbox')}
+              />
+            ) : null}
+            {selectedRole ? (
+              <RoleSettings
+                key={selectedRole.id}
+                onManageSkills={() => {
+                  void navigate({ to: '/skills', search: { filter: selectedRole.id } });
+                  setRoleId(null);
+                }}
+                role={selectedRole}
+                data={data}
+                action={action}
+                working={working}
+                onClose={() => setRoleId(null)}
+              />
+            ) : null}
+          </AnimatePresence>
+        </Suspense>
+      </SidebarProvider>
+    </WorkspaceContext>
   );
 }
