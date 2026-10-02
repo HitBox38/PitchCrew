@@ -8,7 +8,12 @@ import { z } from 'zod';
 import { roleIds, runtimeIds, states } from '@pitchcrew/core';
 import { CrewService, ensureDirectory } from './service.ts';
 const uiRoot = fileURLToPath(new URL('../../ui/', import.meta.url));
-export async function createDaemon(options: { directory: string; port: number; dev?: boolean }) {
+export async function createDaemon(options: {
+  directory: string;
+  port: number;
+  dev?: boolean;
+  seedSkills?: boolean;
+}) {
   await ensureDirectory(options.directory);
   const url = `http://127.0.0.1:${options.port}`;
   const service = new CrewService(
@@ -16,7 +21,7 @@ export async function createDaemon(options: { directory: string; port: number; d
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
   );
-  await service.initialize();
+  await service.initialize(options.seedSkills ?? true);
   const app = express();
   app.disable('x-powered-by');
   const sessions = new Set<string>();
@@ -131,12 +136,30 @@ export async function createDaemon(options: { directory: string; port: number; d
   app.put('/api/roles/:id', async (req, res) =>
     res.json(await service.configureRole(z.enum(roleIds).parse(req.params.id), req.body)),
   );
+  app.post('/api/skills', (req, res) => res.status(201).json(service.saveSkill(req.body)));
+  app.post('/api/skills/starter/retry', async (_req, res) =>
+    res.json(await service.seedStarterSkills()),
+  );
+  app.post('/api/skills/preview', async (req, res) => {
+    const { url } = z.object({ url: z.string() }).parse(req.body);
+    res.json(await service.previewSkill(url));
+  });
+  app.put('/api/skills/:id', (req, res) => res.json(service.saveSkill(req.body, req.params.id)));
+  app.delete('/api/skills/:id', (req, res) => res.json(service.deleteSkill(req.params.id)));
   app.post('/api/roles/:id/chat', async (req, res) =>
     res.status(202).json(await service.sendChat(z.enum(roleIds).parse(req.params.id), req.body)),
   );
   app.post('/api/proposals/:id/decide', async (req, res) =>
     res.json(
       await service.decideProposal(
+        req.params.id,
+        z.object({ approved: z.boolean() }).parse(req.body).approved,
+      ),
+    ),
+  );
+  app.post('/api/skill-proposals/:id/decide', (req, res) =>
+    res.json(
+      service.decideSkillProposal(
         req.params.id,
         z.object({ approved: z.boolean() }).parse(req.body).approved,
       ),
@@ -200,6 +223,7 @@ export async function createDaemon(options: { directory: string; port: number; d
         mode: z.enum(['chat', 'workflow']).optional(),
         reason: z.string().max(2000).optional(),
         changes: z.unknown().optional(),
+        suggestion: z.unknown().optional(),
         state: z.enum(['shortlisted', 'changes_requested']).optional(),
         tool: z.string().max(100).optional(),
         input: z.unknown().optional(),

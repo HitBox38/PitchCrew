@@ -44,6 +44,10 @@ pnpm desktop:prod
 
 In **Your crew**, select a runtime, optional model, instructions, agent capabilities, and whether a role is enabled. Every real runtime uses the same searchable model picker with a CLI default option. Opening settings or changing the runtime loads its native model catalog where supported; results are cached for five minutes, and **Refresh models** forces a new check. The field labels runtime results and suggested fallbacks separately. Claude Code, Gemini CLI and Goose use curated suggestions; unavailable or failing runtimes also fall back to suggestions. Runtime catalogs reflect what the CLI reports, not a guarantee of model access. Changing runtimes resets the model to CLI default; Demo does not use a model. Provider-qualified choices save the full `provider/model` value, and existing saved model names remain visible even when outside the catalog. Real runtimes must already be installed on PATH with their native authentication configured. Health detection runs only `--version`; model discovery never starts a conversation or inference turn. Chat turns and workflow runs may use your provider account, including bounded agent-requested follow-ups. Real provider executions have not been exercised during automated verification. See [model discovery](docs/model-discovery.md) for runtime support.
 
+Open **Skills** to add reusable Markdown instructions, edit their name, description or content, and delete them. Assign a skill to **All agents** or choose Scout, Writer and/or Reviewer. Each skill shows who made it: its GitHub source owner, the agent behind a custom suggestion, or **You** for skills you create. Search by skill or creator, or filter by agent; individual agent views also show shared skills. Role settings show the skills that apply to that agent and link to the library. Every new chat or workflow run receives its assigned skills, including agent-requested follow-ups. Edits and deletion affect future runs; active runs keep their starting snapshot. Skills are stored in the local board with append-only history and copied into each run as `skills/<skill-id>/SKILL.md`. Managed skills use the shared runtime prompt, so they work even when a CLI’s ambient skill discovery is disabled. Demo stays deterministic. Choose **Import from skills.sh**, paste a public GitHub-backed skill URL such as `https://skills.sh/owner/repository/skill-name`, then **Load skill** to review its Markdown and choose its agents before saving. Imported skills show their source and offer **Load latest instructions** when editing; loading alone never updates the saved skill. Imports read public GitHub trees and immutable blobs without credentials or a CLI installer. Every load resolves the latest GitHub HEAD; only immutable blob contents are cached. Supplied hashes never select a version. Imports check up to 20 definitions with matching folders first. Only SKILL.md instructions are included; supporting scripts, assets, private repositories and non-GitHub sources are deferred.
+
+The ten starter skills are loaded automatically on workspace startup: cover-letter, humanizer, resume-bullet-writer, unslop, view-pdf, article-writing, grilling, research, writing-fragments and writing-shape. Writing skills default to Writer, research and questioning to Scout, and humanizer/PDF review to Reviewer. Edit their content or assignment, or delete them on **Skills**; removed starters stay removed across restarts. Existing skills are preserved. New imports and startup loads always fetch the latest source, with no lockfile hash pinning. Catalog imports use the listed GitHub path; article-writing now uses its renamed repository, `affaan-m/ECC`, and the previous URL remains supported. Missing or offline sources appear on the Skills page with **Retry missing starter skills**; retries preserve deletions. view-pdf requires separate viewer tooling. Individual skills allow 50,000 characters, with a 60,000-character total per agent. **Starter skills → Import** can restore a removed skill manually. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports, including in isolated automated tests.
+
 | Runtime                                                                                                        | Executable     | Model setting                                    |
 | -------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
 | Claude Code                                                                                                    | `claude`       | CLI model name, or empty for its default         |
@@ -90,7 +94,7 @@ Replies appear as the runtime produces text, including replies to other agents i
 
 Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
 
-Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions.
+Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions. They can also discuss skills with you or each other and suggest adding a custom Markdown skill or a public GitHub-backed skills.sh URL. Open **Crew work → Suggested skills** to inspect the reason, assignment, source and full instructions, then choose **Add skill** or **Decline**. Each run can make at most three skill suggestions. Adding a suggestion saves the exact reviewed snapshot for future runs; it does not fetch a new upstream version.
 
 ## Your data
 
@@ -104,6 +108,7 @@ By default, everything is stored outside the repository:
   roles/<role>/AGENTS.md          # instructions managed in Crew settings
   roles/<role>/CLAUDE.md          # imports AGENTS.md
   roles/<role>/runs/<run-id>/     # isolated runtime working folders
+    skills/<skill-id>/SKILL.md    # snapshots of assigned Markdown skills
   packets/<card-id>/try-*/        # immutable Markdown packet versions and claims.json
 ```
 
@@ -115,7 +120,7 @@ $env:PITCHCREW_PORT = '4418'
 pnpm dev
 ```
 
-`PITCHCREW_HOME` must be outside this repository. Edit role instructions through Crew settings; the daemon regenerates instruction files from stored settings on startup. Profile files can also be edited directly while no roles are running.
+`PITCHCREW_HOME` must be outside this repository. Manage skills through the Skills page. Edit role instructions through Crew settings; the daemon regenerates instruction files from stored settings on startup. Profile files can also be edited directly while no roles are running.
 
 ## Architecture
 

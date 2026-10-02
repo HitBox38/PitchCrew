@@ -453,12 +453,14 @@ export function RoleSettings({
   action,
   working,
   onClose,
+  onManageSkills,
 }: {
   role: Role;
   data: Snapshot;
   action: Action;
   working: boolean;
   onClose: () => void;
+  onManageSkills: () => void;
 }) {
   const [runtime, setRuntime] = useState(role.runtime);
   const [model, setModel] = useState(role.model);
@@ -604,6 +606,30 @@ export function RoleSettings({
                 Crew follow-ups run after the current turn finishes, with at most six per chain.
                 Agents propose instruction and capability changes for you to apply in chat.
               </p>
+            </section>
+            <section
+              className="role-settings-section"
+              aria-labelledby={`${role.id}-skills-heading`}
+            >
+              <h3 id={`${role.id}-skills-heading`}>Skills</h3>
+              <p className="quiet">
+                Shared skills and skills assigned to {role.name} apply to new runs.
+              </p>
+              <ul className="role-skill-list">
+                {data.skills
+                  .filter((skill) => skill.scope === 'all' || skill.roleIds.includes(role.id))
+                  .map((skill) => (
+                    <li key={skill.id}>
+                      <strong>{skill.name}</strong>
+                      <span className="badge">
+                        {skill.scope === 'all' ? 'All agents' : role.name}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+              <Button className="button" onClick={onManageSkills}>
+                Manage skills
+              </Button>
             </section>
           </div>
           <footer className="role-settings-footer">

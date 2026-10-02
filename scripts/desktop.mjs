@@ -23,7 +23,8 @@ if (!(await alive())) {
     { cwd: root, stdio: 'inherit', windowsHide: true },
   );
   let ready = false;
-  for (let i = 0; i < 60; i++) {
+  // First startup may spend up to 30 seconds loading starter skills, then detect runtimes.
+  for (let i = 0; i < 90; i++) {
     if (await alive()) {
       ready = true;
       break;

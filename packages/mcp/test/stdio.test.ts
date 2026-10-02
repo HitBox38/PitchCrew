@@ -12,7 +12,7 @@ import { packet, profile } from './fixtures/evaluation.ts';
 it('connects the real stdio server to a scoped daemon and preserves approval boundaries', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
-  const daemon = await createDaemon({ directory, port: 14431 });
+  const daemon = await createDaemon({ directory, port: 14431, seedSkills: false });
   const client = new Client({ name: 'pitchcrew-contract-test', version: '1.0.0' });
   try {
     await new Promise<void>((resolve) => daemon.http.listen(14431, '127.0.0.1', resolve));
@@ -95,6 +95,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_message_agent',
         'pitchcrew_invoke_agent',
         'pitchcrew_propose_role_changes',
+        'pitchcrew_propose_skill',
         'pitchcrew_change_workflow',
       ].sort(),
     );
@@ -108,6 +109,30 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(proposed.structuredContent).toMatchObject({
       proposal: { roleId: 'reviewer', status: 'pending' },
     });
+    const suggested = await client.callTool({
+      name: 'pitchcrew_propose_skill',
+      arguments: {
+        reason: 'Use a shared evidence checklist.',
+        suggestion: {
+          kind: 'custom',
+          skill: {
+            name: 'Evidence checklist',
+            content: 'Verify each quote against the profile.',
+            scope: 'all',
+            roleIds: [],
+          },
+        },
+      },
+    });
+    expect(suggested.structuredContent).toMatchObject({
+      proposal: {
+        roleId: 'reviewer',
+        threadId: 'crew',
+        status: 'pending',
+        skill: { name: 'Evidence checklist' },
+      },
+    });
+    expect((await daemon.service.snapshot()).skills).toEqual([]);
     const messaged = await client.callTool({
       name: 'pitchcrew_message_agent',
       arguments: { roleId: 'writer', content: 'Please explain your evidence sources.' },
@@ -189,7 +214,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
 it('discovers permitted connector tools over stdio and rechecks role permissions on every call', async () => {
   const { vi } = await import('vitest');
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
-  const daemon = await createDaemon({ directory, port: 14432 });
+  const daemon = await createDaemon({ directory, port: 14432, seedSkills: false });
   const client = new Client({ name: 'connector-contract-test', version: '1.0.0' });
   const token = 'fixture-connector-capability';
   const controller = new AbortController();

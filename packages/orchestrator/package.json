@@ -12,6 +12,7 @@
     "@pitchcrew/packet": "workspace:*",
     "express": "^5.2.1",
     "tsx": "4.23.15",
+    "yaml": "^2.9.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {

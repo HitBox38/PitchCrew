@@ -12,7 +12,12 @@ let desktop;
 try {
   if (!process.env.PITCHCREW_URL) {
     daemon = spawn(process.execPath, ['--import', 'tsx', 'packages/orchestrator/src/cli.ts'], {
-      env: { ...process.env, PITCHCREW_HOME: join(directory, 'workspace'), PITCHCREW_PORT: port },
+      env: {
+        ...process.env,
+        PITCHCREW_HOME: join(directory, 'workspace'),
+        PITCHCREW_PORT: port,
+        PITCHCREW_SEED_SKILLS: '0',
+      },
       stdio: 'inherit',
       windowsHide: true,
     });

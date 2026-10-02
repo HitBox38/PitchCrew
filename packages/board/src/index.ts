@@ -51,7 +51,7 @@ export class Board {
     return this.db.transaction(() => {
       const event: BoardEvent = {
         id: 0,
-        version: 3,
+        version: 5,
         kind,
         entityId: data.id,
         data,

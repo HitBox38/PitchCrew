@@ -1,5 +1,5 @@
 import { Check, CircleCheck, Clock3, GitBranch, SlidersHorizontal, X } from 'lucide-react';
-import type { AgentTask, Role, RoleProposal, Snapshot } from '@pitchcrew/core';
+import type { AgentTask, Role, RoleProposal, SkillProposal, Snapshot } from '@pitchcrew/core';
 import { capabilityLabels, capabilityDefaults } from './agent-capabilities.ts';
 import { RoleAvatar, timeAgo } from './components.tsx';
 import { Button } from './components/ui/button.tsx';
@@ -20,6 +20,7 @@ export function ChatWork({
   thread,
   role,
   proposals,
+  skillProposals,
   tasks,
   action,
   working,
@@ -30,6 +31,7 @@ export function ChatWork({
   thread: ChatThread;
   role: Role;
   proposals: RoleProposal[];
+  skillProposals: SkillProposal[];
   tasks: AgentTask[];
   action: Action;
   working: boolean;
@@ -143,6 +145,86 @@ export function ChatWork({
       <section className="chat-work-section">
         <div className="chat-work-heading">
           <div>
+            <h3>Suggested skills</h3>
+            <p>Review skills your agents recommend adding.</p>
+          </div>
+          {skillProposals.length ? (
+            <span className="chat-count">{skillProposals.length}</span>
+          ) : null}
+        </div>
+        {skillProposals.length ? (
+          skillProposals.map((proposal) => (
+            <article
+              className="chat-proposal"
+              key={proposal.id}
+              aria-label={`${name(proposal.roleId)} suggested ${proposal.skill.name}`}
+            >
+              <header>
+                <RoleAvatar agentRole={proposal.roleId} />
+                <div>
+                  <h4>{proposal.skill.name}</h4>
+                  <time dateTime={proposal.createdAt}>
+                    {name(proposal.roleId)} suggested {timeAgo(proposal.createdAt)}
+                  </time>
+                </div>
+                <span className="chat-review-label">Needs your review</span>
+              </header>
+              <MessageResponse mode="static" components={noRemoteImages}>
+                {proposal.reason}
+              </MessageResponse>
+              {proposal.skill.description ? <p>{proposal.skill.description}</p> : null}
+              <p className="quiet">
+                Assigned to:{' '}
+                {proposal.skill.scope === 'all'
+                  ? 'All agents'
+                  : proposal.skill.roleIds.map(name).join(', ')}
+              </p>
+              {proposal.skill.source ? (
+                <p className="quiet skill-source">
+                  From {proposal.skill.source.url}
+                  <br />
+                  Only Markdown instructions are included.
+                </p>
+              ) : null}
+              <details>
+                <summary>Review skill instructions</summary>
+                <pre className="suggested-skill-content">{proposal.skill.content}</pre>
+              </details>
+              <footer>
+                <p>Applies to new runs after you add it.</p>
+                <div>
+                  <Button
+                    className="button"
+                    disabled={working}
+                    onClick={() =>
+                      act(`/skill-proposals/${proposal.id}/decide`, { approved: false })
+                    }
+                  >
+                    <X size={14} /> Decline
+                  </Button>
+                  <Button
+                    className="button primary"
+                    disabled={working}
+                    onClick={() =>
+                      act(`/skill-proposals/${proposal.id}/decide`, { approved: true })
+                    }
+                  >
+                    <Check size={14} /> Add skill
+                  </Button>
+                </div>
+              </footer>
+            </article>
+          ))
+        ) : (
+          <div className="chat-work-empty">
+            <CircleCheck size={18} />
+            <p>No skills waiting for your review. Ask an agent to suggest one.</p>
+          </div>
+        )}
+      </section>
+      <section className="chat-work-section">
+        <div className="chat-work-heading">
+          <div>
             <h3>Crew follow-ups</h3>
             <p>See what the crew has queued and completed.</p>
           </div>
@@ -229,7 +311,8 @@ export function ChatWork({
             })}
           </ul>
           <p className="chat-approval-note">
-            Agents propose instruction and capability changes. You decide whether to apply them.
+            Agents propose instruction and capability changes and suggest skills. You decide whether
+            to apply them.
           </p>
         </section>
       ) : null}

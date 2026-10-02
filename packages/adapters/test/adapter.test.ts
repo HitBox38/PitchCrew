@@ -1,6 +1,13 @@
 import { fileURLToPath } from 'node:url';
 import { expect, it, vi } from 'vitest';
-import { runCli, parseResult, requireCliVersion, chatCli } from '../src/process.ts';
+import {
+  runCli,
+  parseResult,
+  requireCliVersion,
+  chatCli,
+  promptFor,
+  chatPromptFor,
+} from '../src/process.ts';
 import { cardInput, type RunContext } from '@pitchcrew/core';
 const context: RunContext = {
   card: {
@@ -115,4 +122,33 @@ it('does not pass connector OAuth configuration to provider subprocesses', async
   } finally {
     vi.unstubAllEnvs();
   }
+});
+
+it('includes managed skills in both workflow and chat prompts without granting capabilities', () => {
+  const skills = [
+    {
+      id: 'fixture-skill',
+      name: 'Evidence checklist',
+      description: 'Use when reviewing claims.',
+      content: 'Compare every claim with an exact source quotation.',
+      scope: 'all' as const,
+      roleIds: [],
+      createdAt: '',
+      updatedAt: '',
+      deletedAt: null,
+    },
+  ];
+  const workflow = promptFor({ ...context, skills });
+  const chat = chatPromptFor({ ...context, skills, card: null, messages: [] });
+  for (const prompt of [workflow, chat]) {
+    expect(prompt).toContain(context.role.instructions);
+    expect(prompt).toContain(skills[0].name);
+    expect(prompt).toContain(skills[0].description);
+    expect(prompt).toContain(skills[0].content);
+    expect(prompt).toContain('do not grant tools');
+    expect(prompt).toContain('Never send externally');
+    expect(prompt).toContain('pitchcrew_propose_skill');
+    expect(prompt).toContain('skills.sh');
+  }
+  expect(promptFor(context)).not.toContain('Assigned skills');
 });

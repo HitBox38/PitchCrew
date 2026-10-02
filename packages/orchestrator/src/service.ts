@@ -7,6 +7,9 @@ import { adapters, discoverModels, suggestedModels } from '@pitchcrew/adapters';
 import {
   cardInput,
   rolePatch,
+  skillInput,
+  skillSuggestionInput,
+  skillsShUrl,
   runResultSchema,
   chatInput,
   chatResultSchema,
@@ -16,6 +19,8 @@ import {
   type Card,
   type CardState,
   type Role,
+  type Skill,
+  type SkillProposal,
   type RoleId,
   type Run,
   type RunResult,
@@ -35,6 +40,8 @@ import { lintPacket, readProfile, writePacket } from '@pitchcrew/packet';
 import { exportApprovedPacket } from '@pitchcrew/mcp';
 import { ConnectorManager, connectorTools, getConnectorTool } from '@pitchcrew/mcp/connectors';
 import { exampleProfile, examples } from '../test/fixtures/examples.ts';
+import { skillDirectory } from './skills-directory.ts';
+import { baseSkills, baseSkillUrl, type BaseSkill } from '@pitchcrew/core/base-skills';
 
 export class CrewService {
   board: Board;
@@ -78,6 +85,8 @@ export class CrewService {
   >();
   private readonly modelRequests = new Map<RuntimeId, Promise<RuntimeModelCatalog>>();
   private readonly modelController = new AbortController();
+  private starterSkillErrors: Snapshot['starterSkillErrors'] = [];
+  private starterRequest?: Promise<Snapshot['starterSkillErrors']>;
   constructor(
     readonly directory: string,
     readonly daemonUrl: string,
@@ -87,7 +96,7 @@ export class CrewService {
     this.connectors = new ConnectorManager(directory);
     this.board.seedRoles();
   }
-  async initialize() {
+  async initialize(seedSkills = true) {
     await this.connectors.initialize();
     for (const folder of ['profile', 'roles', 'packets'])
       await mkdir(join(this.directory, folder), { recursive: true });
@@ -124,6 +133,7 @@ export class CrewService {
         'Recovered interrupted crew task',
       );
     for (const role of this.board.list<Role>('role')) await this.writeRole(role);
+    if (seedSkills) await this.seedStarterSkills();
     await this.detect();
   }
   async detect() {
@@ -172,13 +182,18 @@ export class CrewService {
     return request;
   }
   async snapshot(): Promise<Snapshot> {
+    // Finish filesystem reads before collecting board state, so no run can advance between entities.
+    const profile = await readProfile(this.directory);
     return {
       cards: this.board.list<Card>('card'),
       roles: this.board.list<Role>('role'),
+      skills: this.skills(),
+      starterSkillErrors: this.starterSkillErrors,
+      skillProposals: this.board.list<SkillProposal>('skill_proposal'),
       runs: this.board.list<Run>('run').slice(-50).reverse(),
       approvals: this.board.list<Approval>('approval').reverse(),
       events: this.board.events(),
-      profile: await readProfile(this.directory),
+      profile,
       runtimes: this.runtimes,
       dataDirectory: this.directory,
       demoAvailable: !this.board.list<Card>('card').some((c) => c.sample),
@@ -188,6 +203,139 @@ export class CrewService {
       tasks: this.board.list<AgentTask>('task'),
       connectors: this.connectors.status(),
     };
+  }
+  skills(roleId?: RoleId): Skill[] {
+    return this.board
+      .list<Skill>('skill')
+      .filter(
+        (skill) =>
+          !skill.deletedAt && (!roleId || skill.scope === 'all' || skill.roleIds.includes(roleId)),
+      );
+  }
+  private hasStarterSkill(starter: BaseSkill) {
+    // Tombstones count too: a user's deletion must survive startup and retries.
+    return this.board
+      .list<Skill>('skill')
+      .some(
+        (skill) =>
+          skill.name.toLowerCase() === starter.name.toLowerCase() ||
+          (skill.source &&
+            [starter.source, ...(starter.sourceAliases ?? [])].some(
+              (source) => source.toLowerCase() === skill.source!.repository.toLowerCase(),
+            ) &&
+            skill.source.path === starter.skillPath),
+      );
+  }
+  async seedStarterSkills() {
+    if (this.closing) throw new Error('The workspace is closing.');
+    if (this.starterRequest) return this.starterRequest;
+    this.starterRequest = (async () => {
+      const results = await Promise.all(
+        baseSkills.map(async (starter) => {
+          if (this.hasStarterSkill(starter)) return null;
+          try {
+            const preview = await this.previewSkill(baseSkillUrl(starter));
+            if (this.closing) throw new Error('The workspace is closing.');
+            // A user may have added or removed this skill while its source was loading.
+            if (!this.hasStarterSkill(starter))
+              this.saveSkill(
+                {
+                  ...preview,
+                  description:
+                    preview.description === '>' ? starter.description : preview.description,
+                  scope: 'roles',
+                  roleIds: starter.defaultRoles,
+                },
+                undefined,
+                'system',
+              );
+            return null;
+          } catch (error) {
+            return {
+              name: starter.name,
+              error: (error instanceof Error
+                ? error.message
+                : 'Could not load the starter skill.'
+              ).slice(0, 500),
+            };
+          }
+        }),
+      );
+      this.starterSkillErrors = results.filter(
+        (result): result is { name: string; error: string } => result !== null,
+      );
+      return this.starterSkillErrors;
+    })().finally(() => {
+      this.starterRequest = undefined;
+    });
+    return this.starterRequest;
+  }
+  async previewSkill(url: string) {
+    if (this.closing) throw new Error('The workspace is closing.');
+    return skillDirectory.preview(skillsShUrl.parse(url), this.modelController.signal);
+  }
+  saveSkill(data: unknown, id?: string, actor: 'user' | 'system' = 'user') {
+    const parsed = skillInput.parse(data);
+    const current = id ? this.board.get<Skill>('skill', z.uuid().parse(id)) : undefined;
+    if (current?.deletedAt) throw new Error('This skill has been deleted.');
+    const now = new Date().toISOString();
+    const skill: Skill = {
+      ...parsed,
+      ...(current?.source && !parsed.source ? { source: current.source } : {}),
+      id: current?.id ?? randomUUID(),
+      createdAt: current?.createdAt ?? now,
+      updatedAt: now,
+      deletedAt: null,
+    };
+    const next = [...this.skills().filter((item) => item.id !== skill.id), skill];
+    if (next.length > 100) throw new Error('You can store up to 100 skills.');
+    for (const roleId of roleIds) {
+      const size = next
+        .filter((item) => item.scope === 'all' || item.roleIds.includes(roleId))
+        .reduce(
+          (total, item) => total + item.name.length + item.description.length + item.content.length,
+          0,
+        );
+      if (size > 60000)
+        throw new Error(`Skills for ${roleId} must total at most 60,000 characters.`);
+    }
+    this.board.record(
+      'skill',
+      skill,
+      actor,
+      `${actor === 'system' ? 'Loaded starter' : current ? 'Updated' : 'Added'} skill: ${skill.name}`,
+    );
+    return skill;
+  }
+  deleteSkill(id: string) {
+    const skill = this.board.get<Skill>('skill', z.uuid().parse(id));
+    if (skill.deletedAt) throw new Error('This skill has been deleted.');
+    const now = new Date().toISOString();
+    this.board.record(
+      'skill',
+      { ...skill, deletedAt: now, updatedAt: now },
+      'user',
+      `Deleted skill: ${skill.name}`,
+    );
+    return { ok: true };
+  }
+  private async writeRunInstructions(dir: string, role: Role, skills: Skill[]) {
+    await mkdir(dir, { recursive: true });
+    for (const skill of skills) {
+      const skillDir = join(dir, 'skills', skill.id);
+      await mkdir(skillDir, { recursive: true });
+      await writeFile(
+        join(skillDir, 'SKILL.md'),
+        `---\nname: ${JSON.stringify(skill.name)}\ndescription: ${JSON.stringify(skill.description)}\n---\n\n${skill.content}\n`,
+        'utf8',
+      );
+    }
+    await writeFile(
+      join(dir, 'AGENTS.md'),
+      `${role.instructions}\n\n## Assigned skills\n\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n\n${skill.content}`).join('\n\n')}\n`,
+      'utf8',
+    );
+    await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
   }
   async writeRole(role: Role) {
     const dir = join(this.directory, 'roles', role.id);
@@ -326,6 +474,7 @@ export class CrewService {
     )
       throw new Error('Wait for this role’s chat turn to finish.');
     const role = this.board.get<Role>('role', roleId);
+    const skills = this.skills(roleId);
     const card = this.board.get<Card>('card', cardId);
     if (!role.enabled) throw new Error('Enable this role in Crew first.');
     if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
@@ -354,9 +503,7 @@ export class CrewService {
       ...(task ? { rootRunId: task.rootRunId, taskId: task.id } : {}),
     };
     const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
-    await mkdir(dir, { recursive: true });
-    await writeFile(join(dir, 'AGENTS.md'), role.instructions, 'utf8');
-    await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
+    await this.writeRunInstructions(dir, role, skills);
     if (
       this.closing ||
       (task &&
@@ -386,6 +533,7 @@ export class CrewService {
     const context = {
       card: this.board.get<Card>('card', cardId),
       role,
+      skills,
       request: task?.content,
       profile,
       directory: dir,
@@ -550,6 +698,7 @@ export class CrewService {
   ) {
     if (this.closing) throw new Error('The daemon is stopping.');
     const role = this.board.get<Role>('role', roleId);
+    const skills = this.skills(roleId);
     if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
     if (!role.enabled) throw new Error('Enable this role in Crew first.');
     if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
@@ -590,9 +739,7 @@ export class CrewService {
     const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
     // Start in the background; HTTP returns the run so the user can cancel setup or execution.
     void (async () => {
-      await mkdir(dir, { recursive: true });
-      await writeFile(join(dir, 'AGENTS.md'), role.instructions, 'utf8');
-      await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
+      await this.writeRunInstructions(dir, role, skills);
       if (controller.signal.aborted) throw new Error('Run cancelled.');
       const messages = this.board
         .list<ChatMessage>('message')
@@ -602,6 +749,7 @@ export class CrewService {
         await adapters[role.runtime].chat({
           card,
           role,
+          skills,
           messages,
           request: content,
           profile: await readProfile(this.directory),
@@ -698,6 +846,34 @@ export class CrewService {
     } finally {
       this.deciding.delete(id);
     }
+  }
+  decideSkillProposal(id: string, approved: boolean) {
+    return this.board.db.transaction(() => {
+      const proposal = this.board.get<SkillProposal>('skill_proposal', z.uuid().parse(id));
+      if (proposal.status !== 'pending') throw new Error('This proposal has already been decided.');
+      // Save the reviewed snapshot; approving never fetches a potentially changed remote file.
+      const skill = approved ? this.saveSkill(proposal.skill) : null;
+      const next: SkillProposal = {
+        ...proposal,
+        status: approved ? 'applied' : 'rejected',
+        skillId: skill?.id ?? null,
+      };
+      this.board.record(
+        'skill_proposal',
+        next,
+        'user',
+        `${approved ? 'Added' : 'Declined'} suggested skill: ${proposal.skill.name}`,
+      );
+      this.addMessage(
+        proposal.threadId,
+        'system',
+        proposal.threadId,
+        `${approved ? 'Added' : 'Declined'} the suggested skill “${proposal.skill.name}”.${approved ? ' It applies to new runs.' : ''}`,
+        null,
+        null,
+      );
+      return next;
+    })();
   }
   private enqueue(
     capability: { runId: string; cardId: string | null; roleId: RoleId },
@@ -936,6 +1112,59 @@ export class CrewService {
         proposal,
         capability.roleId,
         `${role.name} proposed changes to its settings`,
+      );
+      return { proposal };
+    }
+    if (action === 'propose_skill') {
+      const input = z
+        .object({ reason: z.string().trim().min(1).max(2000), suggestion: skillSuggestionInput })
+        .parse(data);
+      const proposalCount = () =>
+        this.board.list<SkillProposal>('skill_proposal').filter((p) => p.runId === capability.runId)
+          .length;
+      if (proposalCount() >= 3) throw new Error('Three skill suggestions maximum per run.');
+      const skill =
+        input.suggestion.kind === 'custom'
+          ? skillInput.parse(input.suggestion.skill)
+          : skillInput.parse({
+              ...(await skillDirectory.preview(
+                input.suggestion.url,
+                this.controllers.get(capability.runId)?.signal,
+              )),
+              ...input.suggestion.assignment,
+            });
+      if (
+        this.closing ||
+        this.capabilities.get(token) !== capability ||
+        this.controllers.get(capability.runId)?.signal.aborted
+      )
+        throw new Error('Run capability is invalid or expired.');
+      if (proposalCount() >= 3) throw new Error('Three skill suggestions maximum per run.');
+      const run = this.board.get<Run>('run', capability.runId);
+      const proposal: SkillProposal = {
+        id: randomUUID(),
+        roleId: capability.roleId,
+        runId: capability.runId,
+        threadId: run.threadId ?? 'crew',
+        reason: input.reason,
+        skill,
+        status: 'pending',
+        skillId: null,
+        createdAt: new Date().toISOString(),
+      };
+      this.board.record(
+        'skill_proposal',
+        proposal,
+        capability.roleId,
+        `${role.name} suggested adding skill: ${skill.name}`,
+      );
+      this.addMessage(
+        proposal.threadId,
+        capability.roleId,
+        proposal.threadId,
+        `I suggest adding the skill “${skill.name}”. ${input.reason}\n\nReview its instructions and assignment in Crew work before adding it.`,
+        capability.cardId,
+        capability.runId,
       );
       return { proposal };
     }

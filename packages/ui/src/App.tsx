@@ -32,6 +32,7 @@ const CommandPalette = lazy(() =>
 const ConnectorSettings = lazy(() =>
   import('./connector-settings.tsx').then((m) => ({ default: m.ConnectorSettings })),
 );
+const SkillsView = lazy(() => import('./skills-view.tsx').then((m) => ({ default: m.SkillsView })));
 const ChatView = lazy(() => import('./chat-view.tsx').then((m) => ({ default: m.ChatView })));
 const closedStates = ['rejected', 'withdrawn', 'ghosted'];
 const stages = [
@@ -106,6 +107,7 @@ export function App() {
   );
   const [chatThread, setChatThread] = useState<RoleId | 'crew'>('scout');
   const [view, setView] = useState<View>('board');
+  const [skillFilter, setSkillFilter] = useState<RoleId | 'all' | 'shared'>('all');
   const [error, setError] = useState('');
   const [toast, setToast] = useState('');
   const [working, setWorking] = useState(false);
@@ -269,6 +271,8 @@ export function App() {
       ) : (
         'Nothing is waiting on you.'
       )
+    ) : view === 'skills' ? (
+      'Give the whole crew shared skills, or tailor them to individual agents.'
     ) : view === 'profile' ? (
       'Writer only quotes from these notes, and Reviewer checks every claim against them.'
     ) : (
@@ -570,6 +574,15 @@ export function App() {
             {view === 'inbox' ? (
               <InboxView data={data} action={action} working={working} onOpen={openCard} />
             ) : null}
+            {view === 'skills' ? (
+              <SkillsView
+                data={data}
+                action={action}
+                working={working}
+                filter={skillFilter}
+                onFilter={setSkillFilter}
+              />
+            ) : null}
             {view === 'profile' ? (
               <ProfileView data={data} action={action} working={working} />
             ) : null}
@@ -645,6 +658,11 @@ export function App() {
         {selectedRole ? (
           <RoleSettings
             key={selectedRole.id}
+            onManageSkills={() => {
+              setSkillFilter(selectedRole.id);
+              setRoleId(null);
+              go('skills');
+            }}
             role={selectedRole}
             data={data}
             action={action}
