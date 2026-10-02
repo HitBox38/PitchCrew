@@ -4,13 +4,15 @@ import '@fontsource-variable/fraunces/full.css';
 import '@fontsource-variable/fraunces/full-italic.css';
 import '@fontsource/source-sans-3/latin-400.css';
 import '@fontsource/source-sans-3/latin-600.css';
-import { App } from './App.tsx';
+import { RouterProvider } from '@tanstack/react-router';
+import { createAppRouter } from './router.tsx';
 import './styles.css';
+const router = createAppRouter();
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <div className="desktop-titlebar" aria-hidden="true">
       <span>Pitchcrew</span>
     </div>
-    <App />
+    <RouterProvider router={router} />
   </React.StrictMode>,
 );
