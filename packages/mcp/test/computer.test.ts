@@ -1,9 +1,9 @@
+import { Board } from '@pitchcrew/board';
+import { type BrowserSnapshot, type ComputerApproval, browserActionSchema } from '@pitchcrew/core';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
-import { Board } from '@pitchcrew/board';
-import { type ComputerApproval, type BrowserSnapshot, browserActionSchema } from '@pitchcrew/core';
 import { ComputerManager, assertPublicUrl, publicAddress } from '../src/computer.ts';
 
 const resources: { board: Board; manager: ComputerManager; directory: string }[] = [];

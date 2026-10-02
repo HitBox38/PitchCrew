@@ -1,7 +1,8 @@
-import { mkdir, readFile, readdir, writeFile, rename } from 'node:fs/promises';
-import { join } from 'node:path';
-import { randomUUID } from 'node:crypto';
 import type { Packet, ProfileFile } from '@pitchcrew/core';
+import { randomUUID } from 'node:crypto';
+import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+
 export async function readProfile(directory: string): Promise<ProfileFile[]> {
   const path = join(directory, 'profile');
   await mkdir(path, { recursive: true });

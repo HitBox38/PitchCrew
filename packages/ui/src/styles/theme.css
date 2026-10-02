@@ -1,0 +1,198 @@
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+/* State variants used by the shadcn Base UI components, as in shadcn/tailwind.css. */
+@custom-variant data-open (&:where([data-open]:not([data-open='false'])));
+@custom-variant data-closed (&:where([data-closed]:not([data-closed='false'])));
+@custom-variant data-checked (&:where([data-checked]:not([data-checked='false'])));
+@custom-variant data-unchecked (&:where([data-unchecked]:not([data-unchecked='false'])));
+@custom-variant data-disabled (&:where([data-disabled]:not([data-disabled='false'])));
+@custom-variant data-active (&:where([data-active]:not([data-active='false'])));
+@custom-variant data-horizontal (&:where([data-orientation='horizontal']));
+@custom-variant data-vertical (&:where([data-orientation='vertical']));
+/*
+ * Materials, not decoration.
+ * Paper: the page, sheets and documents are flat rice paper with grain and hairline edges.
+ * Clay: only things you press (buttons, job cards, the active tab) have volume. Pipeline
+ * columns are trays pressed into the paper; cards sit in them.
+ * Wabi-sabi: natural dye colours, radii a hair off symmetric, and nothing ornamental.
+ */
+@theme inline {
+  --color-background: var(--paper);
+  --color-foreground: var(--ink);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--ink);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--ink);
+  --color-primary: var(--primary);
+  --color-primary-foreground: #fff;
+  --color-secondary: var(--paper-deep);
+  --color-secondary-foreground: var(--ink);
+  --color-muted: var(--paper-deep);
+  --color-muted-foreground: var(--muted);
+  --color-accent: var(--primary-soft);
+  --color-accent-foreground: var(--primary-deep);
+  --color-destructive: var(--rose);
+  --color-border: var(--border);
+  --color-input: var(--border);
+  --color-ring: var(--primary);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--ink);
+  --color-sidebar-primary: var(--primary);
+  --color-sidebar-primary-foreground: #fff;
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--ink);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --font-sans: 'Source Sans 3', sans-serif;
+  --font-serif: 'Fraunces Variable', Georgia, serif;
+}
+:root {
+  --paper: #f2f1ec;
+  --paper-deep: #e8e6df;
+  --surface: #f8f7f3;
+  --surface-bright: #fdfcf9;
+  --ink: #2b2d31;
+  --ink-soft: #484b52;
+  --muted: #61646b;
+  --faint: #97999f;
+  /* Ink-coloured overlay channels for hover tints and hairlines */
+  --tint: 43 45 49;
+  --border: rgb(var(--tint) / 0.11);
+  --border-strong: rgb(var(--tint) / 0.18);
+  --primary: #3a5482;
+  --primary-deep: #2a3f66;
+  --primary-soft: #e0e6f0;
+  --teal: #2f6a69;
+  --teal-soft: #d9e9e6;
+  --moss: #53673d;
+  --moss-soft: #e1e8d4;
+  --plum: #76517a;
+  --plum-soft: #ece1ec;
+  --ochre: #82601c;
+  --ochre-soft: #f2e8cf;
+  --rose: #9f4757;
+  --rose-soft: #f4e0e2;
+  /* Clay is lit from the top left */
+  --clay-fill: linear-gradient(160deg, var(--surface-bright) 0%, var(--surface) 55%, #f0efea 100%);
+  --clay-fill-hover: linear-gradient(160deg, #fff 0%, #fafaf7 55%, #f2f1ec 100%);
+  --sunken-fill: linear-gradient(160deg, #e3e1da 0%, var(--paper-deep) 40%, #ebe9e3 100%);
+  --glaze-fill: linear-gradient(170deg, #4d6896 0%, #3a5482 55%, #324a74 100%);
+  --glaze-fill-hover: linear-gradient(170deg, #55709e 0%, #405b8a 55%, #36507b 100%);
+  --drop-sm:
+    0 1px 1px rgb(30 34 44 / 0.06), 0 2px 4px rgb(30 34 44 / 0.05), 0 6px 12px rgb(30 34 44 / 0.05);
+  --drop:
+    0 1px 1px rgb(30 34 44 / 0.05), 0 3px 6px rgb(30 34 44 / 0.05),
+    0 10px 20px rgb(30 34 44 / 0.06), 0 20px 34px rgb(30 34 44 / 0.05);
+  --volume:
+    inset 0 1px 0 rgb(255 255 255 / 0.95), inset 4px 6px 12px rgb(255 255 255 / 0.6),
+    inset -5px -7px 14px rgb(30 34 44 / 0.05);
+  --volume-sm:
+    inset 0 1px 0 rgb(255 255 255 / 0.95), inset 2px 3px 6px rgb(255 255 255 / 0.7),
+    inset -3px -4px 7px rgb(30 34 44 / 0.06);
+  --clay: var(--drop-sm), var(--volume-sm);
+  --clay-hover: var(--drop), var(--volume);
+  --clay-sunken:
+    inset 0 1px 2px rgb(30 34 44 / 0.07), inset 3px 4px 8px rgb(30 34 44 / 0.07),
+    inset -3px -3px 7px rgb(255 255 255 / 0.75), 0 1px 0 rgb(255 255 255 / 0.85);
+  --glaze:
+    0 1px 1px rgb(26 38 66 / 0.18), 0 3px 6px rgb(26 38 66 / 0.14), 0 8px 14px rgb(26 38 66 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.28), inset 3px 5px 9px rgb(255 255 255 / 0.1),
+    inset -4px -6px 10px rgb(8 16 40 / 0.22);
+  --glaze-pressed: 0 1px 1px rgb(26 38 66 / 0.16), inset 3px 4px 9px rgb(8 16 40 / 0.32);
+  --sheet: 0 1px 2px rgb(30 34 44 / 0.04), 0 0 0 1px var(--border);
+  --pop: 0 2px 4px rgb(20 22 30 / 0.06), 0 16px 40px rgb(20 22 30 / 0.16);
+  --rim: rgb(255 255 255 / 0.9);
+  --orb-light: rgb(255 255 255 / 0.8);
+  --overlay: rgb(26 28 34 / 0.24);
+  --inverse: #2b2d31;
+  --on-inverse: #f4f3ef;
+  --on-inverse-muted: #b9bac0;
+  --error-ink: #843846;
+  --scrollbar: #c4c5c8;
+  --sidebar: var(--paper-deep);
+  --sidebar-accent: rgb(var(--tint) / 0.055);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--primary);
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --motion:
+    transform 0.18s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease),
+    color 0.15s;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .31 0 0 0 0 .33 0 0 0 .065 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .41 0 0 0 0 .43 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  --font-mono:
+    ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  font-family: 'Source Sans 3', sans-serif;
+  color: var(--ink);
+  color-scheme: light;
+  font-synthesis: none;
+  background-color: var(--paper);
+  background-image: var(--grain), var(--fibres);
+}
+/*
+ * Dark: sumi ink at night. Surfaces get lighter as they rise, clay keeps its top-left
+ * light as a faint rim, and the dyes are lifted so text stays readable.
+ */
+:root[data-theme='dark'] {
+  --paper: #1a1b1e;
+  --paper-deep: #141518;
+  --surface: #222327;
+  --surface-bright: #2a2b30;
+  --ink: #e9e7e1;
+  --ink-soft: #c8c6c0;
+  --muted: #9d9ca1;
+  --faint: #6c6c72;
+  --tint: 236 234 228;
+  --border: rgb(var(--tint) / 0.09);
+  --border-strong: rgb(var(--tint) / 0.16);
+  --primary: #93abd8;
+  --primary-deep: #b8c9ec;
+  --primary-soft: rgb(147 171 216 / 0.16);
+  --teal: #84c0bc;
+  --teal-soft: rgb(132 192 188 / 0.14);
+  --moss: #a9c28a;
+  --moss-soft: rgb(169 194 138 / 0.14);
+  --plum: #cda7d0;
+  --plum-soft: rgb(205 167 208 / 0.15);
+  --ochre: #dcb86c;
+  --ochre-soft: rgb(220 184 108 / 0.15);
+  --rose: #e6939f;
+  --rose-soft: rgb(230 147 159 / 0.15);
+  --clay-fill: linear-gradient(160deg, #303136 0%, #28292d 55%, #232428 100%);
+  --clay-fill-hover: linear-gradient(160deg, #37383d 0%, #2e2f34 55%, #27282c 100%);
+  --sunken-fill: linear-gradient(160deg, #101113 0%, #141518 40%, #17181b 100%);
+  --glaze-fill: linear-gradient(170deg, #5a75a6 0%, #435e8f 55%, #374f7b 100%);
+  --glaze-fill-hover: linear-gradient(170deg, #6380b2 0%, #4a6698 55%, #3d5683 100%);
+  --drop-sm: 0 1px 1px rgb(0 0 0 / 0.35), 0 2px 4px rgb(0 0 0 / 0.25), 0 6px 12px rgb(0 0 0 / 0.2);
+  --drop:
+    0 1px 1px rgb(0 0 0 / 0.3), 0 3px 6px rgb(0 0 0 / 0.25), 0 10px 20px rgb(0 0 0 / 0.25),
+    0 20px 34px rgb(0 0 0 / 0.2);
+  --volume:
+    inset 0 1px 0 rgb(255 255 255 / 0.09), inset 4px 6px 12px rgb(255 255 255 / 0.025),
+    inset -5px -7px 14px rgb(0 0 0 / 0.25);
+  --volume-sm:
+    inset 0 1px 0 rgb(255 255 255 / 0.08), inset 2px 3px 6px rgb(255 255 255 / 0.025),
+    inset -3px -4px 7px rgb(0 0 0 / 0.25);
+  --clay-sunken:
+    inset 0 1px 2px rgb(0 0 0 / 0.45), inset 3px 4px 8px rgb(0 0 0 / 0.3),
+    inset -2px -2px 6px rgb(255 255 255 / 0.02), 0 1px 0 rgb(255 255 255 / 0.05);
+  --glaze:
+    0 1px 1px rgb(0 0 0 / 0.4), 0 3px 6px rgb(0 0 0 / 0.3), 0 8px 14px rgb(0 0 0 / 0.2),
+    inset 0 1px 0 rgb(255 255 255 / 0.22), inset 3px 5px 9px rgb(255 255 255 / 0.06),
+    inset -4px -6px 10px rgb(0 0 0 / 0.25);
+  --glaze-pressed: 0 1px 1px rgb(0 0 0 / 0.4), inset 3px 4px 9px rgb(0 0 0 / 0.4);
+  --sheet: 0 1px 2px rgb(0 0 0 / 0.3), 0 0 0 1px var(--border);
+  --pop: 0 2px 6px rgb(0 0 0 / 0.35), 0 18px 44px rgb(0 0 0 / 0.5);
+  --rim: rgb(255 255 255 / 0.07);
+  --orb-light: rgb(255 255 255 / 0.14);
+  --overlay: rgb(0 0 0 / 0.5);
+  --inverse: #ebe9e3;
+  --on-inverse: #1c1d20;
+  --on-inverse-muted: #5d5e64;
+  --error-ink: #f2b3bd;
+  --scrollbar: #3b3c41;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .025 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}

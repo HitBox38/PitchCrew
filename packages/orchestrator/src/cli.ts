@@ -1,7 +1,8 @@
 import { homedir } from 'node:os';
-import { join, resolve, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDaemon } from './server.ts';
+
 const port = Number(process.env.PITCHCREW_PORT ?? 4417);
 if (!Number.isInteger(port) || port < 1024 || port > 65535)
   throw new Error('PITCHCREW_PORT must be between 1024 and 65535.');

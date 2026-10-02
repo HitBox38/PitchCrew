@@ -1,12 +1,12 @@
+import type { RuntimeModel } from '@pitchcrew/core';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import type { RuntimeModel } from '@pitchcrew/core';
-import { cliEnvironment, terminateCli } from '../process.ts';
 import {
   modelDiscoveryMaxBytes,
   modelDiscoveryTimeout,
   normalizeModels,
 } from '../model-discovery.ts';
+import { cliEnvironment, terminateCli } from '../process.ts';
 
 // https://learn.chatgpt.com/docs/app-server#list-models-modellist
 // Initialize a private stdio connection, list models, then exit. No thread or turn is created.

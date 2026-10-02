@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { SkillDirectory } from '../src/skills-directory.ts';
+
 const sha = 'a'.repeat(40);
 const otherSha = 'b'.repeat(40);
 const url = 'https://skills.sh/fictional/crew-skills/evidence-checklist';

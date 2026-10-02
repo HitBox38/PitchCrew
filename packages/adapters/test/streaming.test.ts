@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
 import type { ChatContext, RuntimeId } from '@pitchcrew/core';
+import { describe, expect, it, vi } from 'vitest';
 import { chatEventStream, partialReply } from '../src/streaming.ts';
 
 describe('structured reply previews', () => {

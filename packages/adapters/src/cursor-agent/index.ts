@@ -1,8 +1,8 @@
+import type { RuntimeHealth } from '@pitchcrew/core';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { RuntimeHealth } from '@pitchcrew/core';
-import { detectCli, withChat, runCliText } from '../process.ts';
 import { modelListCommand, parseCursorModels } from '../model-discovery.ts';
+import { detectCli, runCliText, withChat } from '../process.ts';
 
 async function detectCursorAgent(): Promise<RuntimeHealth> {
   const health = await detectCli('cursor-agent', 'cursor-agent');

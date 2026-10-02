@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import { createMemoryHistory } from '@tanstack/react-router';
-import { createAppRouter } from '../src/router.tsx';
+import { describe, expect, it } from 'vitest';
+import { createAppRouter } from '../src/router.ts';
 
 async function setup(path: string) {
   const history = createMemoryHistory({ initialEntries: [path] });

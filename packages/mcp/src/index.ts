@@ -1,6 +1,7 @@
 import type { Board } from '@pitchcrew/board';
 import type { Approval } from '@pitchcrew/core';
 import { writePacket } from '@pitchcrew/packet';
+
 // All export callers enter the same MCP gate. No UI/HTTP code consumes tokens directly.
 export async function exportApprovedPacket(board: Board, directory: string, approvalId: string) {
   const approval = board.get<Approval>('approval', approvalId);

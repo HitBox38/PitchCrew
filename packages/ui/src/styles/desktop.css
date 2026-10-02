@@ -1,0 +1,45 @@
+/* Desktop chrome uses the same paper as the workspace, with native OS controls. */
+.desktop-titlebar {
+  display: none;
+}
+:root[data-desktop] {
+  --desktop-titlebar-height: 40px;
+}
+:root[data-desktop] .desktop-titlebar {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--desktop-titlebar-height);
+  padding: 0 160px;
+  background-color: var(--paper);
+  background-image: var(--grain), var(--fibres);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+  user-select: none;
+  -webkit-app-region: drag;
+}
+:root[data-desktop] #root {
+  padding-top: var(--desktop-titlebar-height);
+}
+:root[data-desktop] [data-slot='sidebar-wrapper'],
+:root[data-desktop] .boot {
+  min-height: calc(100svh - var(--desktop-titlebar-height));
+}
+:root[data-desktop] [data-slot='sidebar-container'] {
+  top: var(--desktop-titlebar-height);
+  height: calc(100svh - var(--desktop-titlebar-height));
+}
+:root[data-desktop] .skip-link:focus {
+  top: calc(var(--desktop-titlebar-height) + 10px);
+}
+:root[data-desktop='darwin'][data-fullscreen='true'] {
+  --desktop-titlebar-height: 0px;
+}
+:root[data-desktop='darwin'][data-fullscreen='true'] .desktop-titlebar {
+  display: none;
+}

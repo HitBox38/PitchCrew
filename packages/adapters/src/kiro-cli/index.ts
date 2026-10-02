@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { detectCli, withChat } from '../process.ts';
 import { runAcpText } from '../acp.ts';
 import { modelListCommand, parseKiroModels } from '../model-discovery.ts';
+import { detectCli, withChat } from '../process.ts';
 
 export const kiroCli = withChat({
   id: 'kiro-cli',

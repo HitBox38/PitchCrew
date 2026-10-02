@@ -1,0 +1,59 @@
+.activity-panel {
+  background: var(--surface);
+  border-radius: 18px 19px 17px 18px;
+  box-shadow: var(--sheet);
+  padding: 6px 22px;
+  max-width: 980px;
+}
+.activity-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13.5px;
+}
+.activity-row:last-child {
+  border: 0;
+}
+.activity-row time {
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.activity-message {
+  display: flex;
+  gap: 9px;
+  align-items: baseline;
+}
+.activity-message::before {
+  content: '';
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--faint);
+  transform: translateY(-2px);
+}
+.activity-row.run .activity-message::before {
+  background: var(--teal);
+}
+.activity-row.approval .activity-message::before {
+  background: var(--ochre);
+}
+.activity-row.role .activity-message::before {
+  background: var(--plum);
+}
+.activity-actor {
+  color: var(--muted);
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+.activity-kind {
+  margin-left: 8px;
+  color: var(--faint);
+}
+[data-slot='dialog-overlay'],
+[data-slot='sheet-overlay'] {
+  background: var(--overlay);
+}

@@ -1,12 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { cardInput, defaultCapabilities, type Role } from '@pitchcrew/core';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { createDaemon } from '../../orchestrator/src/server.ts';
-import { cardInput, defaultCapabilities, type Role } from '@pitchcrew/core';
 import { packet, profile } from './fixtures/evaluation.ts';
 
 it('connects the real stdio server to a scoped daemon and preserves approval boundaries', async () => {

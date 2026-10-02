@@ -143,6 +143,8 @@ Agent application tools are scoped to the attached card; conversation reads are 
 
 The UI polls the daemon every two seconds. HTTP APIs use a local session, application header, origin checks, and host checks. Production assets use a content security policy. Electron disables Node integration, isolates the renderer, and denies permissions and external navigation.
 
+See [Code organization](docs/code-organization.md) for feature folders, component boundaries and backend module ownership.
+
 ## Tooling and verification
 
 **Oxlint** replaces ESLint, and **Oxfmt** handles formatting. Vite 8 / its React plugin use Oxc transforms and Rolldown; **tsdown** builds the Electron main process with Rolldown. TypeScript remains the type checker.

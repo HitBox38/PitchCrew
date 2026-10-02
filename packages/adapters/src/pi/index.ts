@@ -1,9 +1,9 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
-import { piResultExtractor } from './result.ts';
-import { apiModels } from '../models.ts';
 import { modelListCommand, parsePiModels } from '../model-discovery.ts';
+import { apiModels } from '../models.ts';
+import { detectCli, requireCliVersion, runCliText, withChat } from '../process.ts';
+import { piResultExtractor } from './result.ts';
 
 export const pi = withChat({
   id: 'pi',

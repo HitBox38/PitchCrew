@@ -1,0 +1,141 @@
+.crew-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.crew-card {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  background: var(--surface);
+  border-radius: 18px 19px 17px 18px;
+  box-shadow: var(--sheet);
+}
+.crew-card-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.crew-card h2 {
+  font-size: 20px;
+  line-height: 1.2;
+}
+.crew-card > p {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin: 12px 0 16px;
+}
+.crew-runtime {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: 4px 22px;
+  padding: 12px 0;
+  margin-top: auto;
+  margin-bottom: 16px;
+  border-block: 1px solid var(--border);
+}
+.crew-runtime dt {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.crew-runtime dd {
+  font-size: 13px;
+  font-weight: 600;
+}
+.crew-card .button {
+  align-self: flex-start;
+}
+.role-avatar {
+  --tone: var(--teal);
+  --tone-soft: var(--teal-soft);
+  width: 32px;
+  height: 32px;
+}
+.role-avatar.writer {
+  --tone: var(--plum);
+  --tone-soft: var(--plum-soft);
+}
+.role-avatar.reviewer {
+  --tone: var(--moss);
+  --tone-soft: var(--moss-soft);
+}
+.role-avatar.small {
+  width: 22px;
+  height: 22px;
+}
+.role-avatar.large {
+  width: 42px;
+  height: 42px;
+}
+.role-status {
+  font-size: 12px;
+  color: var(--moss);
+  font-weight: 600;
+}
+.role-status.paused {
+  color: var(--muted);
+}
+.subheading {
+  font-size: 18px;
+  margin: 36px 0 12px;
+}
+.runtime-list {
+  background: var(--surface);
+  border-radius: 16px 17px 15px 16px;
+  box-shadow: var(--sheet);
+  overflow: hidden;
+}
+.runtime-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.runtime-row:last-child {
+  border: 0;
+}
+.runtime-row strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.runtime-row p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.runtime-row small {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: var(--font-mono);
+}
+.runtime-row > .badge {
+  flex-shrink: 0;
+}
+.runtime-row div + .badge {
+  margin-left: auto;
+}
+.badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  background: rgb(var(--tint) / 0.06);
+  border: 0;
+  border-radius: 6px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+.badge.success {
+  color: var(--moss);
+  background: var(--moss-soft);
+}
+.info-note {
+  max-width: 72ch;
+  margin: 18px 2px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}

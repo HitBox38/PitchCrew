@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { detectCli, withChat, runCliText } from '../process.ts';
 import { apiModels } from '../models.ts';
+import { detectCli, runCliText, withChat } from '../process.ts';
 
 export const goose = withChat({
   id: 'goose',

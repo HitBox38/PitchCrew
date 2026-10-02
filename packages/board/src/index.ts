@@ -1,248 +1,76 @@
-import Database from 'better-sqlite3';
-import { randomUUID, createHash } from 'node:crypto';
 import {
-  assertTransition,
-  decodeEvent,
+  type Approval,
+  type BoardEvent,
   type Card,
   type CardInput,
   type CardState,
-  type Role,
-  type Run,
-  type Approval,
-  type BoardEvent,
   type Packet,
 } from '@pitchcrew/core';
+import { createBoardContext } from './board/context.ts';
+import type { BoardContext } from './board/types.ts';
 
-export function digestPacket(cardId: string, packet: Packet) {
-  return createHash('sha256')
-    .update(JSON.stringify({ cardId, action: 'export_packet', packet }))
-    .digest('hex');
-}
+export { digestPacket } from './board/helpers.ts';
 export class Board {
-  readonly db: Database.Database;
+  private readonly context: BoardContext;
   constructor(filename: string) {
-    this.db = new Database(filename);
-    this.db.pragma('journal_mode = WAL');
-    this.db.pragma('busy_timeout = 5000');
-    this.db
-      .exec(`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, json TEXT NOT NULL);
-      CREATE TABLE IF NOT EXISTS entities (kind TEXT NOT NULL, id TEXT NOT NULL, json TEXT NOT NULL, PRIMARY KEY(kind,id));
-      CREATE TRIGGER IF NOT EXISTS events_no_update BEFORE UPDATE ON events BEGIN SELECT RAISE(ABORT,'Events are append-only'); END;
-      CREATE TRIGGER IF NOT EXISTS events_no_delete BEFORE DELETE ON events BEGIN SELECT RAISE(ABORT,'Events are append-only'); END;`);
+    this.context = createBoardContext(filename);
   }
-  close() {
-    this.db.close();
+  get db() {
+    return this.context.db;
+  }
+  close(): void {
+    return this.context.close();
   }
   list<T>(kind: BoardEvent['kind']): T[] {
-    return (
-      this.db.prepare('SELECT json FROM entities WHERE kind = ? ORDER BY rowid').all(kind) as {
-        json: string;
-      }[]
-    ).map((x) => JSON.parse(x.json) as T);
+    return this.context.list<T>(kind);
   }
   get<T>(kind: BoardEvent['kind'], id: string): T {
-    const row = this.db
-      .prepare('SELECT json FROM entities WHERE kind = ? AND id = ?')
-      .get(kind, id) as { json: string } | undefined;
-    if (!row) throw new Error(`${kind} not found.`);
-    return JSON.parse(row.json) as T;
+    return this.context.get<T>(kind, id);
   }
-  record(kind: BoardEvent['kind'], data: BoardEvent['data'], actor: string, message: string) {
-    return this.db.transaction(() => {
-      const event: BoardEvent = {
-        id: 0,
-        version: 6,
-        kind,
-        entityId: data.id,
-        data,
-        actor,
-        message,
-        createdAt: new Date().toISOString(),
-      };
-      const row = this.db.prepare('INSERT INTO events(json) VALUES (?)').run(JSON.stringify(event));
-      this.db
-        .prepare(
-          'INSERT INTO entities(kind,id,json) VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET json=excluded.json',
-        )
-        .run(kind, data.id, JSON.stringify(data));
-      return { ...event, id: Number(row.lastInsertRowid) };
-    })();
+  record(
+    kind: BoardEvent['kind'],
+    data: BoardEvent['data'],
+    actor: string,
+    message: string,
+  ): BoardEvent {
+    return this.context.record(kind, data, actor, message);
   }
-  events(limit = 100): BoardEvent[] {
-    return (
-      this.db.prepare('SELECT id,json FROM events ORDER BY id DESC LIMIT ?').all(limit) as {
-        id: number;
-        json: string;
-      }[]
-    ).map((row) => ({ ...decodeEvent(row.json), id: row.id }));
+  events(limit?: number): BoardEvent[] {
+    return this.context.events(limit);
   }
-  history(entityId: string, before = Number.MAX_SAFE_INTEGER, limit = 100): BoardEvent[] {
-    return (
-      this.db
-        .prepare(
-          "SELECT id,json FROM events WHERE json_extract(json,'$.entityId') = ? AND id < ? ORDER BY id DESC LIMIT ?",
-        )
-        .all(entityId, before, limit) as { id: number; json: string }[]
-    ).map((row) => ({ ...decodeEvent(row.json), id: row.id }));
+  history(entityId: string, before?: number, limit?: number): BoardEvent[] {
+    return this.context.history(entityId, before, limit);
   }
-  rebuild() {
-    this.db.transaction(() => {
-      this.db.exec('DELETE FROM entities');
-      const rows = this.db.prepare('SELECT json FROM events ORDER BY id').all() as {
-        json: string;
-      }[];
-      for (const row of rows) {
-        const e = decodeEvent(row.json);
-        this.db
-          .prepare(
-            'INSERT INTO entities(kind,id,json) VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET json=excluded.json',
-          )
-          .run(e.kind, e.entityId, JSON.stringify(e.data));
-      }
-    })();
+  rebuild(): void {
+    return this.context.rebuild();
   }
-  createCard(input: CardInput, sample = false) {
-    const now = new Date().toISOString();
-    const card: Card = {
-      ...input,
-      id: randomUUID(),
-      state: 'lead',
-      fit: null,
-      owner: null,
-      packet: null,
-      feedback: [],
-      createdAt: now,
-      updatedAt: now,
-      sample,
-    };
-    this.record('card', card, 'user', `Added ${card.company} to the board`);
-    return card;
+  createCard(input: CardInput, sample?: boolean): Card {
+    return this.context.createCard(input, sample);
   }
   updateCard(
     id: string,
     patch: Partial<Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner'>>,
     actor: string,
     message: string,
-  ) {
-    const card = { ...this.get<Card>('card', id), ...patch, updatedAt: new Date().toISOString() };
-    this.record('card', card, actor, message);
-    return card;
+  ): Card {
+    return this.context.updateCard(id, patch, actor, message);
   }
-  move(id: string, state: CardState, actor: string, message?: string) {
-    const card = this.get<Card>('card', id);
-    assertTransition(card.state, state);
-    const next = { ...card, state, updatedAt: new Date().toISOString() };
-    this.record('card', next, actor, message ?? `Moved to ${state.replaceAll('_', ' ')}`);
-    return next;
+  move(id: string, state: CardState, actor: string, message?: string): Card {
+    return this.context.move(id, state, actor, message);
   }
-  requestApproval(cardId: string) {
-    return this.db.transaction(() => {
-      const card = this.get<Card>('card', cardId);
-      if (card.state !== 'agreed' || !card.packet)
-        throw new Error('A reviewed packet is required before requesting approval.');
-      const approval: Approval = {
-        id: randomUUID(),
-        cardId,
-        action: 'export_packet',
-        packet: card.packet,
-        digest: digestPacket(cardId, card.packet),
-        status: 'pending',
-        createdAt: new Date().toISOString(),
-        decidedAt: null,
-      };
-      this.record('approval', approval, 'user', 'Requested approval to export packet');
-      this.move(cardId, 'awaiting_approval', 'user');
-      return approval;
-    })();
+  requestApproval(cardId: string): Approval {
+    return this.context.requestApproval(cardId);
   }
-  decideApproval(id: string, approved: boolean) {
-    return this.db.transaction(() => {
-      const approval = this.get<Approval>('approval', id);
-      if (approval.status !== 'pending') throw new Error('This approval has already been decided.');
-      const card = this.get<Card>('card', approval.cardId);
-      if (
-        !card.packet ||
-        card.state !== 'awaiting_approval' ||
-        digestPacket(card.id, card.packet) !== approval.digest
-      )
-        throw new Error('The packet changed. Request a new approval.');
-      const next: Approval = {
-        ...approval,
-        status: approved ? 'approved' : 'rejected',
-        decidedAt: new Date().toISOString(),
-      };
-      this.record(
-        'approval',
-        next,
-        'user',
-        approved ? 'Approved local packet export' : 'Rejected packet export',
-      );
-      if (!approved) this.move(approval.cardId, 'agreed', 'user');
-      return next;
-    })();
+  decideApproval(id: string, approved: boolean): Approval {
+    return this.context.decideApproval(id, approved);
   }
-  consumeApproval(id: string, cardId: string, digest: string) {
-    return this.db.transaction(() => {
-      const approval = this.get<Approval>('approval', id);
-      const card = this.get<Card>('card', cardId);
-      if (
-        approval.status !== 'approved' ||
-        approval.cardId !== cardId ||
-        approval.digest !== digest ||
-        card.state !== 'awaiting_approval' ||
-        !card.packet ||
-        digestPacket(cardId, card.packet) !== digest
-      )
-        throw new Error('An unused approval for this exact packet is required.');
-      this.record(
-        'approval',
-        { ...approval, status: 'consumed' },
-        'mcp',
-        'Consumed approval for local export',
-      );
-      return approval.packet;
-    })();
+  consumeApproval(id: string, cardId: string, digest: string): Packet {
+    return this.context.consumeApproval(id, cardId, digest);
   }
-  hasActiveRun(cardId: string) {
-    return this.list<Run>('run').some(
-      (run) => run.cardId === cardId && run.status === 'running' && run.mode !== 'chat',
-    );
+  hasActiveRun(cardId: string): boolean {
+    return this.context.hasActiveRun(cardId);
   }
-  seedRoles() {
-    const definitions: Role[] = [
-      {
-        id: 'scout',
-        name: 'Scout',
-        description: 'Find the fit before you invest the time.',
-        runtime: 'demo',
-        model: '',
-        enabled: true,
-        instructions:
-          'Evaluate the provided job against the profile. Explain the fit. Never invent jobs or qualifications.',
-      },
-      {
-        id: 'writer',
-        name: 'Writer',
-        description: 'Turn your experience into a clear application.',
-        runtime: 'demo',
-        model: '',
-        enabled: true,
-        instructions:
-          'Write a tailored application packet. Every factual claim must appear verbatim in a profile source and include a source and quote. Never invent achievements.',
-      },
-      {
-        id: 'reviewer',
-        name: 'Reviewer',
-        description: 'Keep every claim grounded in your profile.',
-        runtime: 'demo',
-        model: '',
-        enabled: true,
-        instructions:
-          'Check every statement in the packet against the profile. Reject unverifiable claims and explain required changes. Review independently.',
-      },
-    ];
-    if (!this.list<Role>('role').length)
-      for (const role of definitions)
-        this.record('role', role, 'system', `Initialized ${role.name}`);
+  seedRoles(): void {
+    return this.context.seedRoles();
   }
 }

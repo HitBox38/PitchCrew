@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+
 export type ThemeChoice = 'system' | 'light' | 'dark';
 // Keep in sync with public/theme.js, which applies the theme before the first paint.
 const storageKey = 'pitchcrew-theme';

@@ -1,0 +1,12 @@
+import type { CommandShortcutProps } from '@/components/ui/command/types.ts';
+import { cn } from '@/lib/utils';
+
+export function CommandShortcut({ className, ...props }: CommandShortcutProps) {
+  return (
+    <span
+      data-slot="command-shortcut"
+      className={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)}
+      {...props}
+    />
+  );
+}

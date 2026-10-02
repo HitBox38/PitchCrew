@@ -1,0 +1,103 @@
+.chat-compose {
+  padding: 15px 25px 13px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.chat-prompt,
+.chat-compose-hint,
+.chat-compose > .form-error {
+  max-width: 766px;
+  margin-inline: auto;
+}
+.chat-prompt [data-slot='input-group'] {
+  border: 1px solid var(--border-strong);
+  border-radius: 13px;
+  background: var(--surface-bright);
+  box-shadow: var(--clay-sunken);
+}
+.chat-textarea {
+  font-size: 15px;
+  min-height: 64px;
+  max-height: 150px;
+  padding: 14px 16px 7px;
+  line-height: 1.6;
+}
+.chat-prompt-footer {
+  align-items: flex-end;
+  padding: 7px 10px 10px;
+  gap: 10px;
+}
+.chat-context-tools {
+  flex-wrap: wrap;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+}
+.chat-context-select {
+  max-width: 250px;
+  height: 30px;
+  padding: 5px 8px;
+  font-size: 12px;
+  border: 1px solid transparent;
+  background: var(--paper);
+  box-shadow: none;
+}
+.chat-context-select > [data-slot='select-value'] {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-context-select.attached {
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+.chat-context-select:hover {
+  border-color: var(--border);
+}
+.chat-select-prefix {
+  color: var(--muted);
+}
+.chat-job-menu {
+  max-width: min(430px, calc(100vw - 32px));
+}
+.chat-job-menu [data-slot='select-item'] > span {
+  white-space: normal;
+}
+.chat-attached-state {
+  padding: 4px 6px;
+  height: auto;
+  font-size: 11px;
+  color: var(--muted);
+}
+.chat-send {
+  width: auto;
+  height: 32px;
+  padding: 0 11px;
+  gap: 6px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.chat-compose-hint {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 9px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.chat-compose-hint > span:last-child {
+  white-space: nowrap;
+}
+.chat-scroll {
+  width: 32px;
+  height: 32px;
+  background: var(--surface-bright);
+  box-shadow: var(--pop);
+}
+.chat-work-panel {
+  min-height: 0;
+  overflow-y: auto;
+}

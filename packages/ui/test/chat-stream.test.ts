@@ -1,6 +1,6 @@
+import type { ChatStreamState } from '@pitchcrew/core';
 import { expect, it, vi } from 'vitest';
 import { readChatStream } from '../src/chat-stream.ts';
-import type { ChatStreamState } from '@pitchcrew/core';
 
 it('reads split SSE frames and UTF-8 text, ignoring heartbeats', async () => {
   const states: ChatStreamState[] = [

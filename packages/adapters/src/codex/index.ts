@@ -1,6 +1,7 @@
-import type { RuntimeAdapter, RunContext, ChatContext } from '@pitchcrew/core';
-import { detectCli, promptFor, runCli, chatCli } from '../process.ts';
+import type { ChatContext, RunContext, RuntimeAdapter } from '@pitchcrew/core';
+import { chatCli, detectCli, promptFor, runCli } from '../process.ts';
 import { codexModelArgs, readCodexModels } from './models.ts';
+
 function argsFor(context: RunContext | ChatContext) {
   const args = [
     'exec',

@@ -1,9 +1,9 @@
-import { chromium } from 'playwright';
+import { Board } from '@pitchcrew/board';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { chromium } from 'playwright';
 import { expect, it } from 'vitest';
-import { Board } from '@pitchcrew/board';
 import { ComputerManager, createBrowserDriver } from '../src/computer.ts';
 
 it('drives a real Chromium form through the approval gate without making external requests', async () => {

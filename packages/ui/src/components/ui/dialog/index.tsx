@@ -1,0 +1,10 @@
+export { Dialog } from './components/Dialog.tsx';
+export { DialogClose } from './components/DialogClose.tsx';
+export { DialogContent } from './components/DialogContent.tsx';
+export { DialogDescription } from './components/DialogDescription.tsx';
+export { DialogFooter } from './components/DialogFooter.tsx';
+export { DialogHeader } from './components/DialogHeader.tsx';
+export { DialogOverlay } from './components/DialogOverlay.tsx';
+export { DialogPortal } from './components/DialogPortal.tsx';
+export { DialogTitle } from './components/DialogTitle.tsx';
+export { DialogTrigger } from './components/DialogTrigger.tsx';

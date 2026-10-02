@@ -1,5 +1,6 @@
 // Kept free of schema dependencies so the browser can render the catalog directly.
 import type { RoleId } from './states.ts';
+
 export const skillContentLimit = 50000;
 export interface BaseSkill {
   name: string;

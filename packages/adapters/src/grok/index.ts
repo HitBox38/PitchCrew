@@ -1,8 +1,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { join, parse } from 'node:path';
 import { homedir } from 'node:os';
-import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
+import { join, parse } from 'node:path';
 import { modelListCommand, parseGrokModels } from '../model-discovery.ts';
+import { detectCli, requireCliVersion, runCliText, withChat } from '../process.ts';
 
 export const grok = withChat({
   id: 'grok',

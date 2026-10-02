@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import { isGoogleAuthorizationUrl } from '../src/external-url.ts';
+
 it('opens only Google PKCE authorization URLs with a loopback Pitchcrew callback', () => {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.search = new URLSearchParams({

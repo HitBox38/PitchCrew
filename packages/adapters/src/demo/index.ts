@@ -1,6 +1,7 @@
-import { setTimeout } from 'node:timers/promises';
-import type { RuntimeAdapter, Packet } from '@pitchcrew/core';
+import type { Packet, RuntimeAdapter } from '@pitchcrew/core';
 import { lintPacket } from '@pitchcrew/packet';
+import { setTimeout } from 'node:timers/promises';
+
 export const demo: RuntimeAdapter = {
   id: 'demo',
   models: [],

@@ -1,0 +1,166 @@
+.modal {
+  display: block;
+  background-color: var(--surface);
+  background-image: var(--grain);
+  border: 0;
+  border-radius: 18px 20px 19px 17px;
+  box-shadow:
+    var(--pop),
+    inset 0 1px 0 var(--rim);
+  padding: 22px 24px 24px;
+  width: min(580px, calc(100vw - 32px));
+  max-height: 90vh;
+  overflow-y: auto;
+  gap: 0;
+  max-width: none;
+  color: var(--ink);
+}
+.modal-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+.modal-heading h2 {
+  font-size: 20px;
+}
+.modal-intro {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.55;
+  margin-bottom: 20px;
+}
+.drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  transform: none;
+  width: min(620px, 100vw);
+  max-width: 100vw;
+  height: 100vh;
+  max-height: 100vh;
+  border-radius: 18px 0 0 18px;
+  padding: 22px 28px;
+}
+.role-settings-panel {
+  width: min(680px, 100vw);
+  max-width: none;
+  height: 100dvh;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 18px 0 0 18px;
+  background-color: var(--surface);
+  background-image: var(--grain);
+  color: var(--ink);
+  box-shadow: var(--pop);
+}
+.role-settings-heading {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+  padding: 24px 28px;
+  border-bottom: 1px solid var(--border);
+}
+.role-settings-heading > div {
+  flex: 1;
+  min-width: 0;
+}
+.role-settings-heading .role-avatar,
+.role-settings-heading .icon-button {
+  flex-shrink: 0;
+}
+.role-settings-heading h2 {
+  font-size: 24px;
+  line-height: 1.3;
+}
+.role-settings-heading p {
+  margin-top: 4px;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.form.role-settings-form {
+  flex: 1;
+  min-height: 0;
+  gap: 0;
+}
+.role-settings-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 24px 28px 32px;
+}
+.role-settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.role-settings-section + .role-settings-section {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+.role-settings-section h3 {
+  font-size: 18px;
+  line-height: 1.4;
+}
+.form.role-settings-form h3 label {
+  font: inherit;
+  color: inherit;
+}
+.role-settings-section h3 + .quiet {
+  margin-top: -8px;
+}
+.role-settings-section .form-row > .field {
+  min-width: 0;
+}
+.role-settings-section .field > label,
+.role-settings-section .model-field-heading {
+  min-height: 24px;
+  justify-content: center;
+}
+.role-settings-section .model-field-heading {
+  justify-content: space-between;
+}
+.role-settings-section .optional {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.form.role-settings-form textarea {
+  min-height: 230px;
+}
+.role-settings-capabilities {
+  display: grid;
+  gap: 12px;
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.role-settings-capabilities legend {
+  padding: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.role-settings-capabilities [data-slot='checkbox'] {
+  flex-shrink: 0;
+}
+.role-settings-footer {
+  flex-shrink: 0;
+  padding: 16px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.role-settings-footer .form-error {
+  margin-bottom: 12px;
+}
+.role-settings-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}

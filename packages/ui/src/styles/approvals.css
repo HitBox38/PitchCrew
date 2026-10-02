@@ -1,0 +1,86 @@
+.approval-card {
+  background: var(--surface);
+  border-radius: 18px 19px 17px 18px;
+  box-shadow: var(--sheet);
+  padding: 20px 22px;
+}
+.approval-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.approval-heading h2 {
+  font-size: 18px;
+}
+.approval-heading p {
+  font-size: 13.5px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.approval-heading .badge {
+  margin-left: auto;
+}
+.approval-description {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  margin: 12px 0 14px;
+}
+.approval-preview {
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--ink-soft);
+  background: rgb(var(--tint) / 0.035);
+}
+.approval-preview summary {
+  cursor: pointer;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-weight: 600;
+  list-style: none;
+}
+.approval-preview summary::-webkit-details-marker {
+  display: none;
+}
+.approval-preview summary::after {
+  content: 'Show';
+  margin-left: auto;
+  color: var(--primary);
+  font-size: 12.5px;
+}
+.approval-preview[open] summary::after {
+  content: 'Hide';
+}
+.approval-preview h3 {
+  font-size: 14px;
+  margin: 16px 0 6px;
+  text-transform: capitalize;
+}
+.approval-preview pre {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.approval-footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 16px;
+}
+.approval-footer .subtle {
+  margin-right: auto;
+}
+.export-location {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 12.5px;
+  color: var(--moss);
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+}

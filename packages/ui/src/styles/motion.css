@@ -1,0 +1,8 @@
+/* Motion owns physical movement; CSS owns the clay lighting and shadows. */
+[data-slot='button'] {
+  transition-property: color, background-color, border-color, box-shadow, opacity;
+}
+[data-slot='dialog-content'],
+[data-slot='sheet-content'] {
+  transition-property: none;
+}

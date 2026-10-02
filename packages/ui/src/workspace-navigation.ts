@@ -1,7 +1,7 @@
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useNavigate } from '@tanstack/react-router';
-import { viewPaths } from './navigation.ts';
 import type { ChatThread, View } from './navigation.ts';
-import { useWorkspaceStore } from './workspace-store.ts';
+import { viewPaths } from './navigation.ts';
 
 export function useWorkspaceNavigation() {
   const navigate = useNavigate();

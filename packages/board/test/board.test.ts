@@ -1,7 +1,8 @@
+import { cardInput, decodeEvent, type Card } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Board, digestPacket } from '../src/index.ts';
-import { cardInput, decodeEvent, type Card } from '@pitchcrew/core';
 import { packet } from './fixtures/packet.ts';
+
 const boards: Board[] = [];
 function create() {
   const board = new Board(':memory:');

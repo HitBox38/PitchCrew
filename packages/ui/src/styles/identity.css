@@ -1,0 +1,32 @@
+/* Identity orbs: the only round, shaded objects (roles and companies) */
+.role-avatar,
+.company-mark {
+  --tone: var(--primary);
+  --tone-soft: var(--primary-soft);
+  display: inline-grid;
+  place-items: center;
+  flex-shrink: 0;
+  color: var(--tone);
+  background:
+    radial-gradient(circle at 32% 26%, var(--orb-light) 0%, transparent 50%), var(--tone-soft);
+  border-radius: 50%;
+  box-shadow:
+    0 1px 2px rgb(30 34 44 / 0.12),
+    inset 0 1px 0 var(--orb-light),
+    inset -2px -3px 5px color-mix(in srgb, var(--tone) 14%, transparent);
+}
+.brand {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  color: var(--primary);
+}
+.brand > img {
+  width: 26px;
+  height: 26px;
+}
+.brand > span {
+  font-size: 21px;
+  color: var(--ink);
+  letter-spacing: -0.4px;
+}

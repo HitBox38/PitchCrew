@@ -1,0 +1,57 @@
+/* Command palette */
+[data-slot='dialog-content'].command-palette {
+  border: 0;
+  border-radius: 16px 17px 16px 15px;
+  background: var(--surface-bright);
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--pop);
+  max-width: min(620px, calc(100vw - 32px));
+}
+.command-palette [cmdk-input]:focus-visible {
+  outline: none;
+}
+.command-palette [cmdk-group-heading] {
+  font-size: 12px;
+  font-weight: 600;
+}
+.command-palette [cmdk-item] {
+  border-radius: 9px;
+  cursor: pointer;
+}
+.command-palette [cmdk-item] .company-mark {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+}
+.command-job {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.command-job small {
+  margin-left: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.page-heading {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  justify-content: space-between;
+  margin-bottom: 26px;
+}
+h1 {
+  font-size: 30px;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+.page-heading p {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.page-heading p strong {
+  color: var(--ink);
+  font-weight: 600;
+}

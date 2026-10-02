@@ -1,12 +1,12 @@
+import type { RuntimeModel } from '@pitchcrew/core';
 import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
-import type { RuntimeModel } from '@pitchcrew/core';
-import { cliEnvironment, terminateCli } from '../process.ts';
 import {
   modelDiscoveryMaxBytes,
   modelDiscoveryTimeout,
   normalizeModels,
 } from '../model-discovery.ts';
+import { cliEnvironment, terminateCli } from '../process.ts';
 
 // Native Copilot SDK transport: Content-Length framed JSON-RPC, with no session.create/send.
 // https://github.com/github/copilot-sdk/blob/main/nodejs/src/client.ts

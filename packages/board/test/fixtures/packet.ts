@@ -1,4 +1,5 @@
 import type { Packet } from '@pitchcrew/core';
+
 export const packet: Packet = {
   resume: '# Example candidate\n\nBuilt React interfaces.',
   coverLetter: 'Built React interfaces.',

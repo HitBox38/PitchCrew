@@ -1,6 +1,6 @@
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { detectCli, withChat, runCliText } from '../process.ts';
+import { detectCli, runCliText, withChat } from '../process.ts';
 
 export const geminiCli = withChat({
   id: 'gemini-cli',

@@ -1,6 +1,6 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { detectCli, withChat, runCliText } from '../process.ts';
+import { detectCli, runCliText, withChat } from '../process.ts';
 import { copilotModelArgs, readCopilotModels } from './models.ts';
 
 export const copilotCli = withChat({

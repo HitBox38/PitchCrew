@@ -1,4 +1,5 @@
 import type { Packet, ProfileFile } from '@pitchcrew/core';
+
 export const profile: ProfileFile[] = [
   {
     name: 'work.md',

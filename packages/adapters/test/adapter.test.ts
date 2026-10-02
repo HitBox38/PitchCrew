@@ -1,14 +1,15 @@
+import { cardInput, type RunContext } from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { expect, it, vi } from 'vitest';
 import {
-  runCli,
-  parseResult,
-  requireCliVersion,
   chatCli,
-  promptFor,
   chatPromptFor,
+  parseResult,
+  promptFor,
+  requireCliVersion,
+  runCli,
 } from '../src/process.ts';
-import { cardInput, type RunContext } from '@pitchcrew/core';
+
 const context: RunContext = {
   card: {
     ...cardInput.parse({ company: 'Example', title: 'Engineer' }),

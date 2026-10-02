@@ -1,7 +1,7 @@
-import { parseDocument } from 'yaml';
-import { z } from 'zod';
 import { skillInput, skillsShUrl, type SkillPreview } from '@pitchcrew/core';
 import { baseSkills, skillContentLimit } from '@pitchcrew/core/base-skills';
+import { parseDocument } from 'yaml';
+import { z } from 'zod';
 
 const treeSchema = z.object({
   truncated: z.boolean(),

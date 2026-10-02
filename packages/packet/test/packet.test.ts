@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
-import { lintPacket } from '../src/index.ts';
 import { packet } from '../../board/test/fixtures/packet.ts';
+import { lintPacket } from '../src/index.ts';
+
 it('checks source existence, exact evidence and packet inclusion', () => {
   const profile = [{ name: 'profile.md', content: '- Built React interfaces.' }];
   expect(lintPacket(packet, profile)).toEqual([]);

@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from 'node:fs/promises';
-import { isAbsolute, join, relative } from 'node:path';
 import { homedir } from 'node:os';
-import { detectCli, withChat, requireCliVersion, runCliText } from '../process.ts';
-import { piResultExtractor } from '../pi/result.ts';
-import { apiModels } from '../models.ts';
+import { isAbsolute, join, relative } from 'node:path';
 import { modelListCommand, parseOmpModels } from '../model-discovery.ts';
+import { apiModels } from '../models.ts';
+import { piResultExtractor } from '../pi/result.ts';
+import { detectCli, requireCliVersion, runCliText, withChat } from '../process.ts';
 
 export const ohMyPi = withChat({
   id: 'oh-my-pi',

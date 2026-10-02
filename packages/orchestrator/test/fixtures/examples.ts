@@ -1,4 +1,5 @@
 import type { CardInput } from '@pitchcrew/core';
+
 export const exampleProfile =
   '# Alex Morgan (example candidate)\n\n- Built accessible React and TypeScript interfaces for a scheduling product.\n- Created reusable UI components and documented their interaction patterns.\n- Improved application responsiveness by profiling rendering and reducing unnecessary updates.\n- Collaborated with designers and backend engineers to ship product features.\n';
 export const examples: CardInput[] = [

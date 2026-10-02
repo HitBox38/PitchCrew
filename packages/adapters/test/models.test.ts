@@ -1,18 +1,18 @@
+import type { RuntimeAdapter } from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it, vi } from 'vitest';
-import type { RuntimeAdapter } from '@pitchcrew/core';
+import { readCodexModels } from '../src/codex/models.ts';
+import { readCopilotModels } from '../src/copilot-cli/models.ts';
 import {
   discoverModels,
   modelListCommand,
   parseCursorModels,
+  parseGrokModels,
+  parseKiroModels,
+  parseOmpModels,
   parseOpenCodeModels,
   parsePiModels,
-  parseOmpModels,
-  parseKiroModels,
-  parseGrokModels,
 } from '../src/model-discovery.ts';
-import { readCodexModels } from '../src/codex/models.ts';
-import { readCopilotModels } from '../src/copilot-cli/models.ts';
 import { withChat } from '../src/process.ts';
 
 const fixture = fileURLToPath(new URL('./fixtures/models-cli.mjs', import.meta.url));

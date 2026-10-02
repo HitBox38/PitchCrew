@@ -18,7 +18,7 @@ Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persi
 - React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
 - Motion for React supplies spring presses, pointer-driven clay card tilt, board layout changes, view and panel transitions, and new chat message reveals. The shared `AppMotion` provider loads Motion features and respects system reduced motion; pointer-driven effects also use its reduced-motion context. Base UI retains dialog semantics and focus management.
 - TanStack Router with a typed code-based route tree and browser history for both renderers. The shared workspace shell stays mounted around lazy page outlets. Board lives at `/`; other views use named paths, chat threads use `/chat/<thread>`, and skill assignments use `/skills?filter=<assignment>`. The daemon serves the SPA entry for deep links in development and production.
-- Zustand owns the renderer workspace snapshot, shared UI state and API actions in `packages/ui/src/workspace-store.ts`. Pages use selectors; the mounted shell owns polling and chat-stream cleanup. Route state stays in TanStack Router; component-only form state stays local.
+- Zustand owns the renderer workspace snapshot, shared UI state and API actions in `packages/ui/src/WorkspaceStore/index.ts`. Pages use selectors; the mounted shell owns polling and chat-stream cleanup. Route state stays in TanStack Router; component-only form state stays local.
 - Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier.
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
 - Electron uses a paper-themed draggable title bar with native macOS traffic lights and Windows/Linux window-control overlays. Its sandboxed CommonJS preload synchronizes the renderer theme through a main-frame, origin-checked IPC channel without exposing Electron APIs to the page. Explicit Google PKCE sign-in links with a loopback callback open in the system browser through a narrow main-process URL allowlist; other external navigation is denied.
@@ -51,6 +51,15 @@ packages/
 scripts/          # desktop launcher and isolated desktop smoke test
 docs/             # design decisions
 ```
+
+## Code organization
+
+- Keep React component files at most 100 lines after formatting. `pnpm lint` checks every production TSX file.
+- Put each feature in a named folder with `index.tsx` as its public entry, `components/` for sections, `hooks/` for state/effects, and `__tests__/` for colocated tests. Use `types.ts`, `helpers.ts`, `constants.ts` and `api.ts` when the feature needs them; do not create empty placeholders.
+- Keep components focused on rendering. Put pure transformations in helpers, network operations in API modules, and reusable stateful behavior in hooks. Name handlers as actions; reserve `use` prefixes for hooks.
+- Share repeated domain labels, formatting and status calculations under `packages/ui/src/lib/`. Keep shadcn and AI Elements families under `components/ui/` and `components/ai-elements/` with explicit public exports.
+- Backend entry points preserve their public contracts and compose private modules by domain: `board/`, orchestrator `crew/` and `http/`, adapter `process/`, MCP `tools/`, connector `auth/` and computer modules. Keep transactions and approval checks together.
+- Styles live in ordered feature files under `packages/ui/src/styles/`; `styles.css` preserves their cascade order. See [docs/code-organization.md](docs/code-organization.md).
 
 ## Commands
 

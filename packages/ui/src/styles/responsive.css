@@ -1,0 +1,178 @@
+.boot {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  color: var(--primary);
+}
+.boot p {
+  color: var(--muted);
+  font-size: 14px;
+}
+.error-banner {
+  background: var(--rose-soft);
+  color: var(--error-ink);
+  font-size: 13px;
+  border-radius: 10px;
+  padding: 9px 12px;
+  margin-bottom: 18px;
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.skip-link {
+  position: fixed;
+  top: -100px;
+  left: 12px;
+  background: var(--inverse);
+  color: var(--on-inverse);
+  border-radius: 8px;
+  padding: 8px 12px;
+  z-index: 200;
+}
+.skip-link:focus {
+  top: 10px;
+}
+@media (max-width: 1100px) {
+  .page {
+    padding: 6px 24px 40px;
+  }
+  .crew-grid {
+    grid-template-columns: 1fr;
+    max-width: 640px;
+  }
+  .profile-layout {
+    grid-template-columns: minmax(0, 1fr) 200px;
+  }
+  .runtime-row small {
+    display: none;
+  }
+}
+@media (max-width: 760px) {
+  .page {
+    padding: 4px 16px 32px;
+  }
+  .page-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  h1 {
+    font-size: 26px;
+  }
+  .board-toolbar {
+    flex-wrap: wrap;
+  }
+  .search-input {
+    order: 2;
+    width: 100%;
+    margin-left: 0;
+  }
+  .pipeline {
+    grid-template-columns: repeat(5, 236px);
+  }
+  .pipeline-column {
+    min-height: 320px;
+  }
+  .welcome {
+    padding: 22px 18px 24px;
+  }
+  .welcome-actions {
+    flex-wrap: wrap;
+  }
+  .crew-runtime {
+    grid-template-columns: repeat(2, auto);
+  }
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+  .profile-aside {
+    order: -1;
+  }
+  .profile-tip {
+    display: none;
+  }
+  .profile-file {
+    display: inline-flex;
+    width: auto;
+  }
+  .runtime-row {
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    padding: 13px 14px;
+  }
+  .approval-heading {
+    flex-wrap: wrap;
+  }
+  .approval-heading .badge {
+    margin-left: 0;
+  }
+  .approval-footer {
+    flex-wrap: wrap;
+  }
+  .approval-footer .subtle {
+    display: none;
+  }
+  .approval-footer .text-button {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+  .activity-panel {
+    padding: 4px 14px;
+  }
+  .activity-row {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+  .activity-actor {
+    grid-column: 2;
+  }
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .modal {
+    padding: 18px;
+  }
+  .drawer {
+    border-radius: 0;
+    padding: 18px 16px;
+  }
+  .role-settings-panel {
+    border-radius: 0;
+  }
+  .role-settings-heading {
+    padding: 20px 18px;
+  }
+  .role-settings-body {
+    padding: 20px 18px 28px;
+  }
+  .role-settings-footer {
+    padding: 14px 18px;
+  }
+  .toast {
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  .job-card:hover,
+  .button:not(:disabled):hover,
+  .button:not(:disabled):active {
+    transform: none;
+  }
+}
