@@ -1,6 +1,14 @@
-import { ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
 
-// Keep Electron APIs in the isolated preload; the page only sees layout attributes.
+// Expose only the notification operations, never the underlying Electron APIs.
+contextBridge.exposeInMainWorld('pitchcrewNotifications', {
+  show: (notification: unknown) => ipcRenderer.send('pitchcrew:notify', notification),
+  onOpen: (listener: (id: string, target: string) => void) => {
+    const handler = (_event: unknown, id: string, target: string) => listener(id, target);
+    ipcRenderer.on('pitchcrew:notification-open', handler);
+    return () => ipcRenderer.removeListener('pitchcrew:notification-open', handler);
+  },
+});
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
   root.dataset.desktop = process.platform;

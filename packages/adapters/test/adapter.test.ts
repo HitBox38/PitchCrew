@@ -150,6 +150,8 @@ it('includes managed skills in both workflow and chat prompts without granting c
     expect(prompt).toContain('exact-action user approval');
     expect(prompt).toContain('pitchcrew_computer_execute');
     expect(prompt).toContain('pitchcrew_propose_skill');
+    expect(prompt).toContain('pitchcrew_notify_user');
+    expect(prompt).toContain('Notifications never authorize actions');
     expect(prompt).toContain('skills.sh');
   }
   expect(promptFor(context)).not.toContain('Assigned skills');

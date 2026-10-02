@@ -9,7 +9,7 @@ import { lintPacket, readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
 import { computerAction } from './gateway/computer.ts';
 import { connectorAccess, connectorAction } from './gateway/connectors.ts';
-import { queueMessage, readMessages } from './gateway/messages.ts';
+import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
 import type { CrewContext } from './types.ts';
@@ -30,6 +30,7 @@ export async function agentCall(
     return computerAction.call(this, capability, token, action, data);
   if (action === 'connector_access') return connectorAccess.call(this, permissions);
   if (action === 'connector') return connectorAction.call(this, capability, permissions, data);
+  if (action === 'notify_user') return notifyUser.call(this, capability, data);
   if (action === 'messages') return readMessages.call(this, capability);
   if (action === 'message' || action === 'invoke')
     return queueMessage.call(this, capability, permissions, action, data);

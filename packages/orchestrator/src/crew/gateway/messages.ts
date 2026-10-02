@@ -42,3 +42,34 @@ export async function queueMessage(
     ),
   };
 }
+
+export function notifyUser(
+  this: CrewContext,
+  capability: RunCapability,
+  data: Record<string, unknown>,
+): Record<string, unknown> {
+  const input = z
+    .object({
+      content: z.string().trim().min(1).max(8000),
+      kind: z.enum(['message', 'attention']),
+      action: z.literal('notify_user').optional(),
+    })
+    .strict()
+    .parse(data);
+  const messages = this.board.list<ChatMessage>('message');
+  if (messages.filter((m) => m.runId === capability.runId && m.notification).length >= 3)
+    throw new Error('Three user notifications maximum per run.');
+  const run = this.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
+  return {
+    message: this.addMessage(
+      run.threadId ?? capability.roleId,
+      capability.roleId,
+      'user',
+      input.content,
+      capability.cardId,
+      capability.runId,
+      undefined,
+      input.kind,
+    ),
+  };
+}

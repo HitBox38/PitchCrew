@@ -1,3 +1,4 @@
+import { Notifications } from '@/Notifications/index.tsx';
 import type { WorkspaceToolbarProps } from '@/App/types.ts';
 import { SidebarTrigger } from '@/components/ui/sidebar/components/SidebarTrigger.tsx';
 import { modKey } from '@/shortcuts.ts';
@@ -19,6 +20,7 @@ export function WorkspaceToolbar({ running, data }: WorkspaceToolbarProps) {
             .join(', ')}
         </output>
       ) : null}
+      <Notifications />
     </div>
   );
 }

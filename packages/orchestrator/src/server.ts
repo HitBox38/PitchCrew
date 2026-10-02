@@ -64,6 +64,7 @@ export async function createDaemon(options: {
         limit: z.number().int().min(1).max(200).optional(),
         roleId: z.enum(roleIds).optional(),
         content: z.string().max(8000).optional(),
+        kind: z.enum(['message', 'attention']).optional(),
         mode: z.enum(['chat', 'workflow']).optional(),
         reason: z.string().max(2000).optional(),
         changes: z.unknown().optional(),

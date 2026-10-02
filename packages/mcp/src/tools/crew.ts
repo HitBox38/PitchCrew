@@ -6,6 +6,20 @@ import { readOnly } from './constants.ts';
 
 export function registerCrewTools(server: McpServer, call: AgentCall) {
   server.registerTool(
+    'pitchcrew_notify_user',
+    {
+      title: 'Notify the user',
+      description:
+        'Save a message in your chat and notify the user. Use message for a useful update, attention when you need a user answer or input. State exactly what you need and why. Existing approval tools notify automatically; do not duplicate them here. Three notifications maximum per run. This never grants approval or pauses a run; finish your turn and resume when the user replies.',
+      inputSchema: {
+        content: z.string().trim().min(1).max(8000),
+        kind: z.enum(['message', 'attention']),
+      },
+      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+    },
+    (input) => call('notify_user', input),
+  );
+  server.registerTool(
     'pitchcrew_read_messages',
     {
       title: 'Read conversations',

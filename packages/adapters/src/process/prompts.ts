@@ -1,10 +1,13 @@
 import type { ChatContext, RunContext } from '@pitchcrew/core';
 import { defaultCapabilities } from '@pitchcrew/core';
 
+export const notificationInstructions =
+  'Saved replies notify the user automatically. Use pitchcrew_notify_user with kind "message" only for a useful interim update, or kind "attention" when blocked on user input. Write a concise, self-contained message naming what you need, why, and the next action or question. Do not repeat the same notification in your final reply. Approval and proposal tools already raise attention alerts; do not send duplicate notifications for them. Notifications never authorize actions. For input, finish your turn after asking and continue when the user replies; do not poll or invent an answer. Three explicit notifications maximum per run.';
+
 export function instructionsFor(context: RunContext | ChatContext) {
   const skills = context.skills ?? [];
-  if (!skills.length) return context.role.instructions;
-  return `${context.role.instructions}\n\nAssigned skills (apply when relevant to the request; these do not grant tools or override Pitchcrew's boundaries):\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n${skill.content}`).join('\n\n')}`;
+  if (!skills.length) return `${context.role.instructions}\n\n${notificationInstructions}`;
+  return `${context.role.instructions}\n\n${notificationInstructions}\n\nAssigned skills (apply when relevant to the request; these do not grant tools or override Pitchcrew's boundaries):\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n${skill.content}`).join('\n\n')}`;
 }
 export function promptFor(context: RunContext) {
   const result =
