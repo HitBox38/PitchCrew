@@ -8,7 +8,12 @@ import { z } from 'zod';
 import { roleIds, runtimeIds, states } from '@pitchcrew/core';
 import { CrewService, ensureDirectory } from './service.ts';
 const uiRoot = fileURLToPath(new URL('../../ui/', import.meta.url));
-export async function createDaemon(options: { directory: string; port: number; dev?: boolean }) {
+export async function createDaemon(options: {
+  directory: string;
+  port: number;
+  dev?: boolean;
+  seedSkills?: boolean;
+}) {
   await ensureDirectory(options.directory);
   const url = `http://127.0.0.1:${options.port}`;
   const service = new CrewService(
@@ -16,7 +21,7 @@ export async function createDaemon(options: { directory: string; port: number; d
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
   );
-  await service.initialize();
+  await service.initialize(options.seedSkills ?? true);
   const app = express();
   app.disable('x-powered-by');
   const sessions = new Set<string>();
@@ -93,11 +98,12 @@ export async function createDaemon(options: { directory: string; port: number; d
     res.json(await service.configureRole(z.enum(roleIds).parse(req.params.id), req.body)),
   );
   app.post('/api/skills', (req, res) => res.status(201).json(service.saveSkill(req.body)));
+  app.post('/api/skills/starter/retry', async (_req, res) =>
+    res.json(await service.seedStarterSkills()),
+  );
   app.post('/api/skills/preview', async (req, res) => {
-    const { url, refresh } = z
-      .object({ url: z.string(), refresh: z.boolean().default(false) })
-      .parse(req.body);
-    res.json(await service.previewSkill(url, refresh));
+    const { url } = z.object({ url: z.string() }).parse(req.body);
+    res.json(await service.previewSkill(url));
   });
   app.put('/api/skills/:id', (req, res) => res.json(service.saveSkill(req.body, req.params.id)));
   app.delete('/api/skills/:id', (req, res) => res.json(service.deleteSkill(req.params.id)));

@@ -39,6 +39,7 @@ import { exportApprovedPacket } from '@pitchcrew/mcp';
 import { ConnectorManager, connectorTools, getConnectorTool } from '@pitchcrew/mcp/connectors';
 import { exampleProfile, examples } from '../test/fixtures/examples.ts';
 import { skillDirectory } from './skills-directory.ts';
+import { baseSkills, baseSkillUrl, type BaseSkill } from '@pitchcrew/core/base-skills';
 
 export class CrewService {
   board: Board;
@@ -60,6 +61,8 @@ export class CrewService {
   >();
   private readonly modelRequests = new Map<RuntimeId, Promise<RuntimeModelCatalog>>();
   private readonly modelController = new AbortController();
+  private starterSkillErrors: Snapshot['starterSkillErrors'] = [];
+  private starterRequest?: Promise<Snapshot['starterSkillErrors']>;
   constructor(
     readonly directory: string,
     readonly daemonUrl: string,
@@ -69,7 +72,7 @@ export class CrewService {
     this.connectors = new ConnectorManager(directory);
     this.board.seedRoles();
   }
-  async initialize() {
+  async initialize(seedSkills = true) {
     await this.connectors.initialize();
     for (const folder of ['profile', 'roles', 'packets'])
       await mkdir(join(this.directory, folder), { recursive: true });
@@ -106,6 +109,7 @@ export class CrewService {
         'Recovered interrupted crew task',
       );
     for (const role of this.board.list<Role>('role')) await this.writeRole(role);
+    if (seedSkills) await this.seedStarterSkills();
     await this.detect();
   }
   async detect() {
@@ -160,6 +164,7 @@ export class CrewService {
       cards: this.board.list<Card>('card'),
       roles: this.board.list<Role>('role'),
       skills: this.skills(),
+      starterSkillErrors: this.starterSkillErrors,
       skillProposals: this.board.list<SkillProposal>('skill_proposal'),
       runs: this.board.list<Run>('run').slice(-50).reverse(),
       approvals: this.board.list<Approval>('approval').reverse(),
@@ -182,11 +187,69 @@ export class CrewService {
           !skill.deletedAt && (!roleId || skill.scope === 'all' || skill.roleIds.includes(roleId)),
       );
   }
-  async previewSkill(url: string, refresh = false) {
-    if (this.closing) throw new Error('The workspace is closing.');
-    return skillDirectory.preview(skillsShUrl.parse(url), this.modelController.signal, refresh);
+  private hasStarterSkill(starter: BaseSkill) {
+    // Tombstones count too: a user's deletion must survive startup and retries.
+    return this.board
+      .list<Skill>('skill')
+      .some(
+        (skill) =>
+          skill.name.toLowerCase() === starter.name.toLowerCase() ||
+          (skill.source &&
+            [starter.source, ...(starter.sourceAliases ?? [])].some(
+              (source) => source.toLowerCase() === skill.source!.repository.toLowerCase(),
+            ) &&
+            skill.source.path === starter.skillPath),
+      );
   }
-  saveSkill(data: unknown, id?: string) {
+  async seedStarterSkills() {
+    if (this.closing) throw new Error('The workspace is closing.');
+    if (this.starterRequest) return this.starterRequest;
+    this.starterRequest = (async () => {
+      const results = await Promise.all(
+        baseSkills.map(async (starter) => {
+          if (this.hasStarterSkill(starter)) return null;
+          try {
+            const preview = await this.previewSkill(baseSkillUrl(starter));
+            if (this.closing) throw new Error('The workspace is closing.');
+            // A user may have added or removed this skill while its source was loading.
+            if (!this.hasStarterSkill(starter))
+              this.saveSkill(
+                {
+                  ...preview,
+                  description:
+                    preview.description === '>' ? starter.description : preview.description,
+                  scope: 'roles',
+                  roleIds: starter.defaultRoles,
+                },
+                undefined,
+                'system',
+              );
+            return null;
+          } catch (error) {
+            return {
+              name: starter.name,
+              error: (error instanceof Error
+                ? error.message
+                : 'Could not load the starter skill.'
+              ).slice(0, 500),
+            };
+          }
+        }),
+      );
+      this.starterSkillErrors = results.filter(
+        (result): result is { name: string; error: string } => result !== null,
+      );
+      return this.starterSkillErrors;
+    })().finally(() => {
+      this.starterRequest = undefined;
+    });
+    return this.starterRequest;
+  }
+  async previewSkill(url: string) {
+    if (this.closing) throw new Error('The workspace is closing.');
+    return skillDirectory.preview(skillsShUrl.parse(url), this.modelController.signal);
+  }
+  saveSkill(data: unknown, id?: string, actor: 'user' | 'system' = 'user') {
     const parsed = skillInput.parse(data);
     const current = id ? this.board.get<Skill>('skill', z.uuid().parse(id)) : undefined;
     if (current?.deletedAt) throw new Error('This skill has been deleted.');
@@ -214,8 +277,8 @@ export class CrewService {
     this.board.record(
       'skill',
       skill,
-      'user',
-      `${current ? 'Updated' : 'Added'} skill: ${skill.name}`,
+      actor,
+      `${actor === 'system' ? 'Loaded starter' : current ? 'Updated' : 'Added'} skill: ${skill.name}`,
     );
     return skill;
   }

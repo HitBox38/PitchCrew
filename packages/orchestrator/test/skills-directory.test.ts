@@ -27,7 +27,7 @@ function fixture(raw = text, path = 'skills/evidence-checklist/SKILL.md') {
   return { fetcher, directory: new SkillDirectory(fetcher) };
 }
 describe('skills.sh Markdown imports', () => {
-  it('reads public immutable blobs, parses folded frontmatter, caches sources and refreshes on demand', async () => {
+  it('resolves latest HEAD on every load and reuses only unchanged immutable blobs', async () => {
     const { directory, fetcher } = fixture();
     const preview = await directory.preview(url);
     expect(preview).toMatchObject({
@@ -53,13 +53,57 @@ describe('skills.sh Markdown imports', () => {
       ...preview,
       source: { ...preview.source, fetchedAt: expect.any(String) },
     });
-    expect(fetcher).toHaveBeenCalledTimes(2);
-    await directory.preview(url, undefined, true);
     expect(fetcher).toHaveBeenCalledTimes(3);
+    const latest = text.replace(
+      'Verify exact profile quotes.',
+      'Check newly updated instructions.',
+    );
+    fetcher.mockImplementation(async (input) =>
+      String(input).includes('/git/trees/')
+        ? Response.json({
+            truncated: false,
+            tree: [
+              {
+                path: 'skills/evidence-checklist/SKILL.md',
+                sha: otherSha,
+                type: 'blob',
+                mode: '100644',
+                size: Buffer.byteLength(latest),
+              },
+            ],
+          })
+        : Response.json({
+            sha: otherSha,
+            encoding: 'base64',
+            size: Buffer.byteLength(latest),
+            content: Buffer.from(latest).toString('base64'),
+          }),
+    );
+    const changed = await directory.preview(url);
+    expect(changed.content).toContain('newly updated');
+    expect(changed.source?.blobSha).toBe(otherSha);
+    expect(fetcher).toHaveBeenCalledTimes(5);
+    expect(
+      fetcher.mock.calls.filter(([input]) => String(input).includes('/git/trees/HEAD')),
+    ).toHaveLength(3);
   });
   it('finds skills when their directory name differs from frontmatter and prioritizes matching folders', async () => {
     const { directory } = fixture(text, 'skills/checklist/SKILL.md');
     expect((await directory.preview(url)).name).toBe('evidence-checklist');
+  });
+  it('resolves a renamed catalog repository to its current source without following redirects', async () => {
+    const { directory, fetcher } = fixture(
+      '---\nname: article-writing\n---\nFictional article instructions.',
+      'skills/article-writing/SKILL.md',
+    );
+    const skill = await directory.preview(
+      'https://skills.sh/affaan-m/everything-claude-code/article-writing',
+    );
+    expect(skill.source?.repository).toBe('affaan-m/ECC');
+    for (const [url, options] of fetcher.mock.calls) {
+      expect(String(url)).toContain('/repos/affaan-m/ECC/');
+      expect(options?.redirect).toBe('error');
+    }
   });
   it.each([
     'http://skills.sh/fictional/crew-skills/evidence-checklist',

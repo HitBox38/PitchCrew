@@ -10,7 +10,12 @@ const root = fileURLToPath(new URL('../../../', import.meta.url));
 const repoRelative = relative(root, directory);
 if (!repoRelative.startsWith('..') && !repoRelative.includes(':'))
   throw new Error('PITCHCREW_HOME must be outside the repository.');
-const daemon = await createDaemon({ directory, port, dev: process.argv.includes('--dev') });
+const daemon = await createDaemon({
+  directory,
+  port,
+  dev: process.argv.includes('--dev'),
+  seedSkills: process.env.PITCHCREW_SEED_SKILLS !== '0',
+});
 daemon.http.on('error', async (error) => {
   console.error(error.message);
   await daemon.close();

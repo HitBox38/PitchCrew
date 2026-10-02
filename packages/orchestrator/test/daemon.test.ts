@@ -4,6 +4,7 @@ import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import * as packet from '@pitchcrew/packet';
+import { baseSkills, baseSkillUrl, type BaseSkill } from '@pitchcrew/core/base-skills';
 import { createDaemon } from '../src/server.ts';
 import { skillDirectory } from '../src/skills-directory.ts';
 import type {
@@ -19,9 +20,9 @@ import type {
   SkillProposal,
 } from '@pitchcrew/core';
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
-async function setup(port: number) {
+async function setup(port: number, seedSkills = false) {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
-  const daemon = await createDaemon({ directory, port });
+  const daemon = await createDaemon({ directory, port, seedSkills });
   resources.push({ daemon, directory });
   await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
   const response = await fetch(daemon.url);
@@ -650,7 +651,7 @@ describe('agent conversations and crew actions', () => {
       'scout',
       'Fixture interrupted task',
     );
-    await daemon.service.initialize();
+    await daemon.service.initialize(false);
     const snapshot = await daemon.service.snapshot();
     expect(snapshot.runs[0].status).toBe('failed');
     expect(snapshot.tasks[0].status).toBe('failed');
@@ -780,7 +781,7 @@ describe('managed agent skills', () => {
         .every((event) => event.version === 5 && event.actor === 'user'),
     ).toBe(true);
     daemon.service.board.rebuild();
-    await daemon.service.initialize();
+    await daemon.service.initialize(false);
     expect((await request<Snapshot>('/snapshot')).result.skills).toEqual([updated]);
     expect(daemon.service.board.events()).toEqual(events);
     expect(daemon.service.board.get<Skill>('skill', shared.id).deletedAt).not.toBeNull();
@@ -957,6 +958,154 @@ const directorySkill: SkillPreview = {
     fetchedAt: '2026-10-02T00:00:00.000Z',
   },
 };
+function starterFixture(
+  starter: BaseSkill,
+  content = `Fictional instructions for ${starter.name}.`,
+): SkillPreview {
+  return {
+    name: starter.name,
+    description: 'Use this fictional fixture when relevant.',
+    content,
+    source: {
+      url: baseSkillUrl(starter),
+      repository: starter.source,
+      path: starter.skillPath,
+      blobSha: 'a'.repeat(40),
+      fetchedAt: '2026-10-02T00:00:00.000Z',
+    },
+  };
+}
+describe('starter skills at workspace startup', () => {
+  it('loads defaults before the first snapshot and respects edits, renames and deletions on restart and replay', async () => {
+    const preview = vi
+      .spyOn(skillDirectory, 'preview')
+      .mockImplementation(async (url) =>
+        starterFixture(baseSkills.find((item) => baseSkillUrl(item) === url)!),
+      );
+    const { daemon, request } = await setup(14447, true);
+    const snapshot = (await request<Snapshot>('/snapshot')).result;
+    expect(snapshot.skills).toHaveLength(10);
+    expect(snapshot.starterSkillErrors).toEqual([]);
+    expect(preview).toHaveBeenCalledTimes(10);
+    for (const starter of baseSkills)
+      expect(snapshot.skills.find((skill) => skill.name === starter.name)).toMatchObject({
+        scope: 'roles',
+        roleIds: starter.defaultRoles,
+      });
+    const cover = snapshot.skills.find((skill) => skill.name === 'cover-letter')!;
+    const humanizer = snapshot.skills.find((skill) => skill.name === 'humanizer')!;
+    expect(
+      (
+        await request(`/skills/${cover.id}`, 'PUT', {
+          name: 'My application style',
+          description: cover.description,
+          content: 'User edited instructions.',
+          scope: cover.scope,
+          roleIds: cover.roleIds,
+        })
+      ).response.status,
+    ).toBe(200);
+    await request(`/skills/${humanizer.id}`, 'DELETE');
+    const article = snapshot.skills.find((skill) => skill.name === 'article-writing')!;
+    daemon.service.saveSkill(
+      {
+        name: 'My renamed article skill',
+        description: article.description,
+        content: article.content,
+        scope: article.scope,
+        roleIds: article.roleIds,
+        source: {
+          ...article.source!,
+          repository: 'affaan-m/everything-claude-code',
+          url: 'https://skills.sh/affaan-m/everything-claude-code/article-writing',
+        },
+      },
+      article.id,
+    );
+    daemon.service.deleteSkill(article.id);
+    daemon.service.board.rebuild();
+    await daemon.service.initialize(true);
+    expect(preview).toHaveBeenCalledTimes(10);
+    expect(daemon.service.skills()).toHaveLength(8);
+    expect(daemon.service.skills().find((skill) => skill.id === cover.id)?.content).toBe(
+      'User edited instructions.',
+    );
+    expect(daemon.service.skills().some((skill) => skill.name === 'humanizer')).toBe(false);
+    expect(
+      daemon.service.board.events().filter((event) => event.message.startsWith('Loaded starter')),
+    ).toHaveLength(10);
+  });
+  it('starts with partial failures and retries latest sources without restoring a deleted starter', async () => {
+    let unavailable = true;
+    const preview = vi.spyOn(skillDirectory, 'preview').mockImplementation(async (url) => {
+      const starter = baseSkills.find((item) => baseSkillUrl(item) === url)!;
+      if (starter.name === 'research' && unavailable) throw new Error('Upstream file unavailable.');
+      return starterFixture(
+        starter,
+        unavailable ? 'First version.' : 'Latest source instructions.',
+      );
+    });
+    const { daemon, request } = await setup(14448, true);
+    expect(daemon.service.skills()).toHaveLength(9);
+    expect((await daemon.service.snapshot()).starterSkillErrors).toEqual([
+      { name: 'research', error: 'Upstream file unavailable.' },
+    ]);
+    const cover = daemon.service.skills().find((skill) => skill.name === 'cover-letter')!;
+    await request(`/skills/${cover.id}`, 'DELETE');
+    unavailable = false;
+    expect((await request('/skills/starter/retry', 'POST')).response.status).toBe(200);
+    expect(preview).toHaveBeenCalledTimes(11);
+    expect((await daemon.service.snapshot()).starterSkillErrors).toEqual([]);
+    expect(daemon.service.skills().find((skill) => skill.name === 'research')?.content).toBe(
+      'Latest source instructions.',
+    );
+    expect(daemon.service.skills().some((skill) => skill.id === cover.id)).toBe(false);
+    expect(daemon.service.skills().find((skill) => skill.name === 'humanizer')?.content).toBe(
+      'First version.',
+    );
+    expect(
+      (
+        await request('/skills/starter/retry', 'POST', undefined, {
+          origin: 'https://example.invalid',
+        })
+      ).response.status,
+    ).toBe(403);
+  });
+  it('does not overwrite or resurrect a user skill added and removed during concurrent loading', async () => {
+    const { daemon } = await setup(14449);
+    const starter = baseSkills.find((item) => item.name === 'humanizer')!;
+    let release!: (preview: SkillPreview) => void;
+    const pending = new Promise<SkillPreview>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(skillDirectory, 'preview').mockImplementation(async (url) =>
+      url === baseSkillUrl(starter)
+        ? pending
+        : starterFixture(baseSkills.find((item) => baseSkillUrl(item) === url)!),
+    );
+    const first = daemon.service.seedStarterSkills();
+    const second = daemon.service.seedStarterSkills();
+    const userSkill = daemon.service.saveSkill({
+      ...starterFixture(starter),
+      scope: 'roles',
+      roleIds: ['reviewer'],
+    });
+    daemon.service.deleteSkill(userSkill.id);
+    release(starterFixture(starter));
+    await Promise.all([first, second]);
+    expect(daemon.service.skills()).toHaveLength(9);
+    expect(
+      daemon.service.board.list<Skill>('skill').filter((skill) => skill.name === 'humanizer'),
+    ).toHaveLength(1);
+  });
+  it('remains usable offline and reports source errors without storing placeholder instructions', async () => {
+    vi.spyOn(skillDirectory, 'preview').mockRejectedValue(new Error('Offline fixture.'));
+    const { daemon } = await setup(14450, true);
+    const snapshot = await daemon.service.snapshot();
+    expect(snapshot.skills).toEqual([]);
+    expect(snapshot.starterSkillErrors).toHaveLength(10);
+  });
+});
 describe('directory imports and skill suggestions', () => {
   it('previews sources without installing, preserves provenance and refreshes imported skill content', async () => {
     const { daemon, request } = await setup(14440);
@@ -983,9 +1132,7 @@ describe('directory imports and skill suggestions', () => {
     preview.mockResolvedValue(changed);
     const { result: refreshed } = await request<SkillPreview>('/skills/preview', 'POST', {
       url: directorySkill.source!.url,
-      refresh: true,
     });
-    expect(preview.mock.calls.at(-1)![2]).toBe(true);
     expect(daemon.service.skills()[0].content).toBe(directorySkill.content);
     await request(`/skills/${installed.id}`, 'PUT', {
       ...refreshed,

@@ -296,6 +296,7 @@ export interface RuntimeModelCatalog {
 }
 export interface RuntimeInfo extends RuntimeHealth, RuntimeModelCatalog {}
 export interface Snapshot {
+  starterSkillErrors: { name: string; error: string }[];
   cards: Card[];
   roles: Role[];
   skills: Skill[];

@@ -3514,6 +3514,24 @@ h1 {
   border-top: 1px solid var(--border);
   padding-top: 24px;
 }
+.starter-skill-errors {
+  margin: 20px 0;
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow-wrap: anywhere;
+}
+.starter-skill-errors h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+}
+.starter-skill-errors ul {
+  padding-left: 20px;
+  font-size: 13px;
+  line-height: 1.6;
+  margin-bottom: 16px;
+}
 .starter-skills > summary {
   cursor: pointer;
   font-size: 18px;

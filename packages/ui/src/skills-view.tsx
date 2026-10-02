@@ -25,6 +25,11 @@ function assignment(skill: Skill, roles: Role[]) {
         .map((role) => role.name)
         .join(', ');
 }
+function starterNote(skill: Skill) {
+  return baseSkills.find(
+    (item) => item.source === skill.source?.repository && item.skillPath === skill.source.path,
+  )?.note;
+}
 export function SkillsView({
   data,
   action,
@@ -111,6 +116,32 @@ export function SkillsView({
         Skills are reusable Markdown instructions. Agent views include shared skills. Updates apply
         to the next chat or job run.
       </p>
+      {data.starterSkillErrors?.length ? (
+        <div className="starter-skill-errors" aria-live="polite">
+          <h3>Some starter skills could not be loaded</h3>
+          <ul>
+            {data.starterSkillErrors.map((item) => (
+              <li key={item.name}>
+                <strong>{item.name}</strong>: {item.error}
+              </li>
+            ))}
+          </ul>
+          <Button
+            className="button small"
+            disabled={working}
+            onClick={() =>
+              void action(
+                '/skills/starter/retry',
+                'POST',
+                undefined,
+                'Retried starter skills',
+              ).catch(() => {})
+            }
+          >
+            Retry missing starter skills
+          </Button>
+        </div>
+      ) : null}
       {skills.length ? (
         <ul className="skill-library">
           {skills.map((skill) => (
@@ -119,6 +150,7 @@ export function SkillsView({
               <div className="skill-summary">
                 <h2>{skill.name}</h2>
                 {skill.description ? <p>{skill.description}</p> : null}
+                {starterNote(skill) ? <p className="quiet">{starterNote(skill)}</p> : null}
                 <div className="skill-meta">
                   <span className="badge">{assignment(skill, data.roles)}</span>
                   {skill.source ? <span className="badge">skills.sh</span> : null}
@@ -164,8 +196,8 @@ export function SkillsView({
           Starter skills <span className="quiet">{baseSkills.length} suggestions</span>
         </summary>
         <p className="quiet">
-          A curated starting list for applications, research and writing. Load a skill, review its
-          instructions, then choose which agents use it.
+          These skills are loaded when your workspace starts. You can edit or remove them above, or
+          import a starter again after removing it.
         </p>
         <ul className="starter-skill-library">
           {baseSkills
@@ -184,16 +216,14 @@ export function SkillsView({
                 </div>
                 <Button
                   className="button small"
-                  aria-label={
-                    item.unavailable ? `${item.name} source unavailable` : `Import ${item.name}`
-                  }
-                  disabled={working || item.unavailable}
+                  aria-label={`Import ${item.name}`}
+                  disabled={working}
                   onClick={() => {
                     setStarter(item);
                     setEditing('import');
                   }}
                 >
-                  {item.unavailable ? 'Source unavailable' : 'Import'}
+                  Import
                 </Button>
               </li>
             ))}
@@ -270,10 +300,10 @@ function SkillEditor({
   const [description, setDescription] = useState(skill?.description ?? starter?.description ?? '');
   const [content, setContent] = useState(skill?.content ?? '');
   const [scope, setScope] = useState<'all' | 'roles'>(
-    skill?.scope ?? (initialRole ? 'roles' : 'all'),
+    skill?.scope ?? (initialRole || starter ? 'roles' : 'all'),
   );
   const [roleIds, setRoleIds] = useState<RoleId[]>(
-    skill?.roleIds ?? (initialRole ? [initialRole] : []),
+    skill?.roleIds ?? (initialRole ? [initialRole] : (starter?.defaultRoles ?? [])),
   );
   const [error, setError] = useState('');
   const [source, setSource] = useState(skill?.source);
@@ -291,7 +321,7 @@ function SkillEditor({
       const preview = await api<SkillPreview>(
         '/skills/preview',
         'POST',
-        { url, refresh: !!skill },
+        { url },
         controller.signal,
       );
       if (controller.signal.aborted) return;

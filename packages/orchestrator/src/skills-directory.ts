@@ -48,10 +48,6 @@ function definition(text: string) {
 
 // Only public GitHub objects are read. No CLI installer, credentials, redirects or repository code.
 export class SkillDirectory {
-  private readonly trees = new Map<
-    string,
-    { expiresAt: number; value: z.infer<typeof treeSchema> }
-  >();
   private readonly blobs = new Map<string, string>();
   constructor(private readonly fetcher: typeof fetch = (...args) => fetch(...args)) {}
   private async read(url: string, maxBytes: number, signal: AbortSignal) {
@@ -94,32 +90,31 @@ export class SkillDirectory {
     }
     return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
   }
-  async preview(value: string, parentSignal?: AbortSignal, refresh = false): Promise<SkillPreview> {
+  async preview(value: string, parentSignal?: AbortSignal): Promise<SkillPreview> {
     const url = new URL(skillsShUrl.parse(value));
     const [owner, repo, slug] = url.pathname.split('/').filter(Boolean);
-    const repository = `${owner}/${repo}`;
+    const requestedRepository = `${owner}/${repo}`;
     const starter = baseSkills.find(
-      (skill) => skill.source.toLowerCase() === repository.toLowerCase() && skill.name === slug,
+      (skill) =>
+        [skill.source, ...(skill.sourceAliases ?? [])].some(
+          (source) => source.toLowerCase() === requestedRepository.toLowerCase(),
+        ) && skill.name.toLowerCase() === slug.toLowerCase(),
     );
+    const repository = starter?.source ?? requestedRepository;
     const signal = parentSignal
       ? AbortSignal.any([parentSignal, AbortSignal.timeout(30000)])
       : AbortSignal.timeout(30000);
     signal.throwIfAborted();
-    let tree = this.trees.get(repository);
-    if (refresh || !tree || tree.expiresAt <= Date.now()) {
-      const result = treeSchema.parse(
-        await this.read(
-          `https://api.github.com/repos/${repository}/git/trees/HEAD?recursive=1`,
-          2000000,
-          signal,
-        ),
-      );
-      if (result.truncated) throw new Error('This skill repository is too large to import.');
-      tree = { value: result, expiresAt: Date.now() + 5 * 60 * 1000 };
-      if (this.trees.size >= 10) this.trees.delete(this.trees.keys().next().value!);
-      this.trees.set(repository, tree);
-    }
-    const candidates = tree.value.tree.filter(
+    // Resolve HEAD on every load. Only immutable blob contents may be reused.
+    const tree = treeSchema.parse(
+      await this.read(
+        `https://api.github.com/repos/${repository}/git/trees/HEAD?recursive=1`,
+        2000000,
+        signal,
+      ),
+    );
+    if (tree.truncated) throw new Error('This skill repository is too large to import.');
+    const candidates = tree.tree.filter(
       (file) =>
         file.type === 'blob' &&
         ['100644', '100755'].includes(file.mode) &&
