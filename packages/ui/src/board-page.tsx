@@ -1,3 +1,6 @@
+import { AnimatePresence, LayoutGroup } from 'motion/react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from './motion.tsx';
 import { useEffect } from 'react';
 import { Plus, Search, X, LoaderCircle, ArrowRight } from 'lucide-react';
 import { Input } from './components/ui/input.tsx';
@@ -7,6 +10,7 @@ import { useWorkspace } from './workspace-context.tsx';
 import { closedStates, stages } from './board-stages.ts';
 
 export function BoardPage() {
+  const reduced = useAppReducedMotion();
   const {
     data,
     working,
@@ -31,12 +35,14 @@ export function BoardPage() {
   const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
   useEffect(() => {
     if (!flashStage) return;
-    document
-      .getElementById(`stage-${flashStage}`)
-      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    document.getElementById(`stage-${flashStage}`)?.scrollIntoView({
+      behavior: reduced ? 'instant' : 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
     const timer = setTimeout(() => setFlashStage(null), 1400);
     return () => clearTimeout(timer);
-  }, [flashStage, setFlashStage]);
+  }, [flashStage, setFlashStage, reduced]);
   return (
     <>
       {!data.cards.length ? (
@@ -120,54 +126,62 @@ export function BoardPage() {
             </div>
           </div>
           {showClosed ? (
-            <div className="closed-grid">
-              {closed.length ? (
-                closed.map((card) => (
-                  <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                ))
-              ) : (
-                <EmptyState
-                  title="Nothing closed"
-                  description="Rejected, withdrawn and unanswered applications end up here."
-                />
-              )}
-            </div>
+            <LayoutGroup id="closed-jobs">
+              <m.div layout className="closed-grid">
+                <AnimatePresence initial={false}>
+                  {closed.length ? (
+                    closed.map((card) => (
+                      <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
+                    ))
+                  ) : (
+                    <EmptyState
+                      title="Nothing closed"
+                      description="Rejected, withdrawn and unanswered applications end up here."
+                    />
+                  )}
+                </AnimatePresence>
+              </m.div>
+            </LayoutGroup>
           ) : (
-            <div className="pipeline" aria-label="Application pipeline">
-              {stages.map((stage) => {
-                const cards = filtered.filter((c) => stage.states.includes(c.state));
-                return (
-                  <section
-                    className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
-                    id={`stage-${stage.id}`}
-                    key={stage.id}
-                  >
-                    <div className="column-heading">
-                      <span className="stage-dot" />
-                      <h2>{stage.label}</h2>
-                      <span className="column-count">{cards.length}</span>
-                      {stage.id === 'lead' ? (
-                        <Button
-                          className="icon-button"
-                          aria-label="Add a job"
-                          onClick={() => setAdd(true)}
-                        >
-                          <Plus size={15} />
-                        </Button>
-                      ) : null}
-                    </div>
-                    <div className="column-cards">
-                      {cards.map((card) => (
-                        <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                      ))}
-                      {!cards.length ? (
-                        <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
-                      ) : null}
-                    </div>
-                  </section>
-                );
-              })}
-            </div>
+            <LayoutGroup id="pipeline-jobs">
+              <m.div layoutScroll className="pipeline" aria-label="Application pipeline">
+                {stages.map((stage) => {
+                  const cards = filtered.filter((c) => stage.states.includes(c.state));
+                  return (
+                    <section
+                      className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
+                      id={`stage-${stage.id}`}
+                      key={stage.id}
+                    >
+                      <div className="column-heading">
+                        <span className="stage-dot" />
+                        <h2>{stage.label}</h2>
+                        <span className="column-count">{cards.length}</span>
+                        {stage.id === 'lead' ? (
+                          <Button
+                            className="icon-button"
+                            aria-label="Add a job"
+                            onClick={() => setAdd(true)}
+                          >
+                            <Plus size={15} />
+                          </Button>
+                        ) : null}
+                      </div>
+                      <div className="column-cards">
+                        <AnimatePresence initial={false}>
+                          {cards.map((card) => (
+                            <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
+                          ))}
+                        </AnimatePresence>
+                        {!cards.length ? (
+                          <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
+                        ) : null}
+                      </div>
+                    </section>
+                  );
+                })}
+              </m.div>
+            </LayoutGroup>
           )}
           {recent.length ? (
             <section className="recent">

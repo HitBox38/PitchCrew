@@ -1,3 +1,6 @@
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from './motion.tsx';
 import { Outlet, useMatches, useNavigate, useRouter } from '@tanstack/react-router';
 import { WorkspaceContext } from './workspace-context.tsx';
 import type { Action } from './workspace-context.tsx';
@@ -34,6 +37,7 @@ function readRecent(): string[] {
   }
 }
 export function App() {
+  const reduced = useAppReducedMotion();
   const [data, setData] = useState<Snapshot | null>(null);
   const chatState = useRef<ChatStreamState | null>(null);
   useEffect(
@@ -309,7 +313,12 @@ export function App() {
               </output>
             ) : null}
           </div>
-          <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
+          <m.div
+            key={view}
+            initial={reduced ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`page ${view === 'chat' ? 'chat-page' : ''}`}
+          >
             <header className="page-heading">
               <div>
                 <h1>{view ? viewTitles[view] : 'Page not found'}</h1>
@@ -333,7 +342,7 @@ export function App() {
             <Suspense fallback={<p className="quiet">Opening view…</p>}>
               <Outlet />
             </Suspense>
-          </div>
+          </m.div>
         </SidebarInset>
         {paletteMounted ? (
           <Suspense fallback={null}>
@@ -353,46 +362,62 @@ export function App() {
             />
           </Suspense>
         ) : null}
-        {toast ? (
-          <output className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}>
-            <span>{toast}</span>
-            <Button
-              className="icon-button"
-              onClick={() => setToast('')}
-              aria-label="Dismiss notification"
+        <AnimatePresence>
+          {toast ? (
+            <m.output
+              key="notification"
+              initial={{ opacity: 0, y: reduced ? 0 : 12, scale: reduced ? 1 : 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: reduced ? 0 : 8 }}
+              className={`toast ${selectedRole ? 'toast-above-settings' : ''}`}
             >
-              <X size={15} />
-            </Button>
-          </output>
-        ) : null}
+              <span>{toast}</span>
+              <Button
+                className="icon-button"
+                onClick={() => setToast('')}
+                aria-label="Dismiss notification"
+              >
+                <X size={15} />
+              </Button>
+            </m.output>
+          ) : null}
+        </AnimatePresence>
         <Suspense fallback={null}>
-          {add ? (
-            <AddOpportunity action={action} working={working} onClose={() => setAdd(false)} />
-          ) : null}
-          {selected ? (
-            <CardDetails
-              card={selected}
-              data={data}
-              action={action}
-              working={working}
-              onClose={() => setSelectedId(null)}
-              onInbox={() => go('inbox')}
-            />
-          ) : null}
-          {selectedRole ? (
-            <RoleSettings
-              key={selectedRole.id}
-              onManageSkills={() => {
-                void navigate({ to: '/skills', search: { filter: selectedRole.id } });
-                setRoleId(null);
-              }}
-              role={selectedRole}
-              data={data}
-              action={action}
-              working={working}
-              onClose={() => setRoleId(null)}
-            />
-          ) : null}
+          <AnimatePresence>
+            {add ? (
+              <AddOpportunity
+                key="add-job"
+                action={action}
+                working={working}
+                onClose={() => setAdd(false)}
+              />
+            ) : null}
+            {selected ? (
+              <CardDetails
+                key={selected.id}
+                card={selected}
+                data={data}
+                action={action}
+                working={working}
+                onClose={() => setSelectedId(null)}
+                onInbox={() => go('inbox')}
+              />
+            ) : null}
+            {selectedRole ? (
+              <RoleSettings
+                key={selectedRole.id}
+                onManageSkills={() => {
+                  void navigate({ to: '/skills', search: { filter: selectedRole.id } });
+                  setRoleId(null);
+                }}
+                role={selectedRole}
+                data={data}
+                action={action}
+                working={working}
+                onClose={() => setRoleId(null)}
+              />
+            ) : null}
+          </AnimatePresence>
         </Suspense>
       </SidebarProvider>
     </WorkspaceContext>

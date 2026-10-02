@@ -16,6 +16,7 @@ Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persi
 - SQLite through better-sqlite3; versioned append-only events and projections.
 - Official TypeScript MCP SDK with stdio transport and per-run capabilities.
 - React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
+- Motion for React supplies spring presses, pointer-driven clay card tilt, board layout changes, view and panel transitions, and new chat message reveals. The shared `AppMotion` provider loads Motion features and respects system reduced motion; pointer-driven effects also use its reduced-motion context. Base UI retains dialog semantics and focus management.
 - TanStack Router with a typed code-based route tree and browser history for both renderers. The shared workspace shell stays mounted around lazy page outlets. Board lives at `/`; other views use named paths, chat threads use `/chat/<thread>`, and skill assignments use `/skills?filter=<assignment>`. The daemon serves the SPA entry for deep links in development and production.
 - Oxlint for linting and Oxfmt for formatting. Do not add ESLint or Prettier.
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
