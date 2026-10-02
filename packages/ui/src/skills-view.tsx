@@ -9,7 +9,7 @@ import {
   type BaseSkill,
 } from '@pitchcrew/core/base-skills';
 import { api } from './api.ts';
-import type { Action } from './App.tsx';
+import type { Action } from './workspace-store.ts';
 import { EmptyState, Modal, RoleAvatar, timeAgo } from './components.tsx';
 import { Button } from './components/ui/button.tsx';
 import { Checkbox } from './components/ui/checkbox.tsx';

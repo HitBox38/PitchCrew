@@ -6,7 +6,9 @@ import { Plus, Search, X, LoaderCircle, ArrowRight } from 'lucide-react';
 import { Input } from './components/ui/input.tsx';
 import { Button } from './components/ui/button.tsx';
 import { EmptyState, JobCard, RoleAvatar, timeAgo } from './components.tsx';
-import { useWorkspace } from './workspace-context.tsx';
+import { useShallow } from 'zustand/react/shallow';
+import { useWorkspaceStore } from './workspace-store.ts';
+import { useWorkspaceNavigation } from './workspace-navigation.ts';
 import { closedStates, stages } from './board-stages.ts';
 
 export function BoardPage() {
@@ -15,7 +17,6 @@ export function BoardPage() {
     data,
     working,
     act,
-    go,
     openCard,
     setAdd,
     query,
@@ -24,15 +25,22 @@ export function BoardPage() {
     setShowClosed,
     flashStage,
     setFlashStage,
-  } = useWorkspace();
-  const active = data.cards.filter((c) => !closedStates.includes(c.state));
-  const filtered = data.cards.filter((c) =>
-    `${c.company} ${c.title} ${c.location} ${c.tags.join(' ')}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
+  } = useWorkspaceStore(
+    useShallow((state) => ({
+      data: state.data,
+      working: state.working,
+      act: state.act,
+      openCard: state.openCard,
+      setAdd: state.setAdd,
+      query: state.query,
+      setQuery: state.setQuery,
+      showClosed: state.showClosed,
+      setShowClosed: state.setShowClosed,
+      flashStage: state.flashStage,
+      setFlashStage: state.setFlashStage,
+    })),
   );
-  const closed = filtered.filter((c) => closedStates.includes(c.state));
-  const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
+  const { go } = useWorkspaceNavigation();
   useEffect(() => {
     if (!flashStage) return;
     document.getElementById(`stage-${flashStage}`)?.scrollIntoView({
@@ -43,6 +51,15 @@ export function BoardPage() {
     const timer = setTimeout(() => setFlashStage(null), 1400);
     return () => clearTimeout(timer);
   }, [flashStage, setFlashStage, reduced]);
+  if (!data) return null;
+  const active = data.cards.filter((c) => !closedStates.includes(c.state));
+  const filtered = data.cards.filter((c) =>
+    `${c.company} ${c.title} ${c.location} ${c.tags.join(' ')}`
+      .toLowerCase()
+      .includes(query.toLowerCase()),
+  );
+  const closed = filtered.filter((c) => closedStates.includes(c.state));
+  const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
   return (
     <>
       {!data.cards.length ? (

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { ExternalLink, Link, Unplug } from 'lucide-react';
 import type { Snapshot } from '@pitchcrew/core';
-import type { Action } from './App.tsx';
+import type { Action } from './workspace-store.ts';
 import { Modal } from './components.tsx';
 import { Button } from './components/ui/button.tsx';
 import { Input } from './components/ui/input.tsx';

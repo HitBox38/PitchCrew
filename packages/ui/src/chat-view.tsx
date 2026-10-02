@@ -14,7 +14,7 @@ import {
   Users,
 } from 'lucide-react';
 import type { ChatMessage, RoleId, Snapshot } from '@pitchcrew/core';
-import type { Action } from './App.tsx';
+import type { Action } from './workspace-store.ts';
 import { RoleAvatar, runtimeLabels, stateLabels, timeAgo } from './components.tsx';
 import { Fragment } from 'react';
 import { ChatWork } from './chat-work.tsx';

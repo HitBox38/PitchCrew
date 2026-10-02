@@ -1,6 +1,6 @@
 import type { ComputerApproval } from '@pitchcrew/core';
 import { Button } from './components/ui/button.tsx';
-import type { Action } from './App.tsx';
+import type { Action } from './workspace-store.ts';
 
 export function ComputerApprovals({
   approvals,

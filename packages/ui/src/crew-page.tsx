@@ -3,14 +3,32 @@ import { MessageSquare, SlidersHorizontal } from 'lucide-react';
 import type { Role } from '@pitchcrew/core';
 import { Button } from './components/ui/button.tsx';
 import { RoleAvatar, runtimeLabels } from './components.tsx';
-import { useWorkspace } from './workspace-context.tsx';
+import { useShallow } from 'zustand/react/shallow';
+import { useWorkspaceStore } from './workspace-store.ts';
+import { useWorkspaceNavigation } from './workspace-navigation.ts';
 
 const ConnectorSettings = lazy(() =>
   import('./connector-settings.tsx').then((m) => ({ default: m.ConnectorSettings })),
 );
 
 export function CrewPage() {
-  const { data, action, working, roleStatus, setRoleId, openChat } = useWorkspace();
+  const { data, action, working, setRoleId } = useWorkspaceStore(
+    useShallow((state) => ({
+      data: state.data,
+      action: state.action,
+      working: state.working,
+      setRoleId: state.setRoleId,
+    })),
+  );
+  const { openChat } = useWorkspaceNavigation();
+  if (!data) return null;
+  const roleStatus = (role: Role) => {
+    if (!role.enabled) return 'Paused';
+    const run = data.runs.find((run) => run.status === 'running' && run.roleId === role.id);
+    if (!run) return runtimeLabels[role.runtime];
+    const card = data.cards.find((card) => card.id === run.cardId);
+    return card ? `Working on ${card.company}` : 'Working';
+  };
   return (
     <>
       <div className="crew-grid">
