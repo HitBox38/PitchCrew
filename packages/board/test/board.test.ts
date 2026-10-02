@@ -53,6 +53,9 @@ describe('event-sourced board', () => {
     board.db
       .prepare('INSERT INTO events(json) VALUES (?)')
       .run(JSON.stringify({ ...legacy, version: 4 }));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 5 }));
     board.record('message', message, 'user', 'Fixture chat');
     const events = board.events();
     board.rebuild();
@@ -64,7 +67,8 @@ describe('event-sourced board', () => {
     expect(events.some((e) => e.version === 3)).toBe(true);
     expect(events.some((e) => e.version === 4)).toBe(true);
     expect(events.some((e) => e.version === 5)).toBe(true);
-    expect(() => decodeEvent('{"version":6}')).toThrow('Unsupported');
+    expect(events.some((e) => e.version === 6)).toBe(true);
+    expect(() => decodeEvent('{"version":7}')).toThrow('Unsupported');
   });
   it('prevents event deletion and rewriting at the database layer', () => {
     const board = create();

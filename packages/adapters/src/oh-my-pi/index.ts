@@ -68,7 +68,16 @@ export const ohMyPi = withChat({
       '--no-session',
       '--no-tools',
       '--tools',
-      ['get_card', 'read_profile', 'get_history', 'lint_packet', 'export_packet']
+      [
+        'get_card',
+        'read_profile',
+        'get_history',
+        'lint_packet',
+        'export_packet',
+        ...(context.role.capabilities?.computerUse
+          ? ['computer_inspect', 'computer_request', 'computer_execute']
+          : []),
+      ]
         .map((name) => `mcp__pitchcrew_${name}`)
         .join(','),
       '--no-extensions',

@@ -146,7 +146,8 @@ it('includes managed skills in both workflow and chat prompts without granting c
     expect(prompt).toContain(skills[0].description);
     expect(prompt).toContain(skills[0].content);
     expect(prompt).toContain('do not grant tools');
-    expect(prompt).toContain('Never send externally');
+    expect(prompt).toContain('exact-action user approval');
+    expect(prompt).toContain('pitchcrew_computer_execute');
     expect(prompt).toContain('pitchcrew_propose_skill');
     expect(prompt).toContain('skills.sh');
   }

@@ -7,6 +7,7 @@ export const capabilityLabels = {
   drive: 'Search Drive and read files and Docs',
   calendar: 'Read Google Calendar events',
   sheets: 'Read Google Sheets ranges',
+  computerUse: 'Use a local browser with approval for each interaction',
 };
 
 export const capabilityDefaults = {
@@ -18,4 +19,5 @@ export const capabilityDefaults = {
   drive: false,
   calendar: false,
   sheets: false,
+  computerUse: false,
 };

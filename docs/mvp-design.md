@@ -23,7 +23,7 @@ The sidebar is the shadcn Sidebar: it collapses to an icon rail with tooltips (�
 
 Tooling uses Oxlint, Oxfmt, Vite's Oxc React transforms, and Rolldown. tsdown builds the Electron main process. TypeScript remains the type checker; ESLint and Prettier are absent.
 
-MVP flow: add lead → scout evaluates → shortlist → writer drafts → reviewer requests changes or agrees → request local export approval → approve/reject → export packet. Track manually submitted applications and interviews. Export is deliberately local; there is no sending or submitting connector in the MVP.
+MVP flow: add lead → scout evaluates → shortlist → writer drafts → reviewer requests changes or agrees → request local export approval → approve/reject → export packet. Track manually submitted applications and interviews. Export is deliberately local; read-only connectors do not send or submit. Opt-in [local browser computer use](computer-use.md) now supports individual user-approved form interactions.
 
 Real runtime launches begin with user chat or workflow actions and may continue through bounded board-backed crew tasks. Provider CLIs receive isolated role folders and scoped MCP tools; their own sign-in stays with the CLI. No shared runtime sessions. Demo is deterministic and labeled. Scheduler support and automatic discovery are deferred.
 

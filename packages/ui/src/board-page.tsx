@@ -75,8 +75,8 @@ export function BoardPage() {
             <li>
               <span className="step-you">You</span>
               <span>
-                approve the exact packet before it’s exported to a folder. Nothing is submitted for
-                you.
+                approve the exact packet before it’s exported to a folder. Browser interactions
+                require your approval.
               </span>
             </li>
           </ol>
