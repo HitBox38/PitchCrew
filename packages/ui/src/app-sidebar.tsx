@@ -20,6 +20,10 @@ import {
   Users,
 } from 'lucide-react';
 import type { Card, Role, RoleId } from '@pitchcrew/core';
+import { Link } from '@tanstack/react-router';
+import { viewPaths } from './navigation.ts';
+import type { View } from './navigation.ts';
+export type { View } from './navigation.ts';
 import {
   Sidebar,
   SidebarContent,
@@ -59,7 +63,6 @@ import { CompanyMark, RoleAvatar } from './components.tsx';
 import type { ThemeChoice } from './theme.ts';
 import { modKey } from './shortcuts.ts';
 
-export type View = 'board' | 'crew' | 'chat' | 'inbox' | 'profile' | 'skills' | 'activity';
 export const viewIcons = {
   board: LayoutDashboard,
   crew: Users,
@@ -91,7 +94,6 @@ export interface StageLink {
 }
 export function AppSidebar({
   view,
-  onNavigate,
   stages,
   onStage,
   counts,
@@ -111,8 +113,7 @@ export function AppSidebar({
   onCopyDirectory,
   working,
 }: {
-  view: View;
-  onNavigate: (view: View) => void;
+  view: View | undefined;
   stages: StageLink[];
   onStage: (id: string) => void;
   counts: Partial<Record<View, number>>;
@@ -142,7 +143,7 @@ export function AppSidebar({
               size="lg"
               className="brand-button"
               tooltip="Board"
-              onClick={() => onNavigate('board')}
+              render={<Link to="/" />}
             >
               <span className="brand-mark" aria-hidden="true">
                 <img src="/favicon.svg" width="32" height="32" alt="" />
@@ -179,7 +180,7 @@ export function AppSidebar({
                   tooltip="Board"
                   isActive={view === 'board'}
                   aria-current={view === 'board' ? 'page' : undefined}
-                  onClick={() => onNavigate('board')}
+                  render={<Link to="/" />}
                 >
                   <LayoutDashboard />
                   <span>Board</span>
@@ -218,7 +219,7 @@ export function AppSidebar({
                       tooltip={count ? `${viewTitles[id]} (${count})` : viewTitles[id]}
                       isActive={view === id}
                       aria-current={view === id ? 'page' : undefined}
-                      onClick={() => onNavigate(id)}
+                      render={<Link to={viewPaths[id]} />}
                     >
                       <Icon />
                       <span>{viewTitles[id]}</span>
@@ -246,7 +247,7 @@ export function AppSidebar({
                       size="lg"
                       className={`crew-button ${role.enabled ? '' : 'paused'}`}
                       tooltip={`${role.name}: ${roleStatus(role)}`}
-                      onClick={() => onChatRole(role.id)}
+                      render={<Link to="/chat/$thread" params={{ thread: role.id }} />}
                     >
                       <RoleAvatar agentRole={role.id} size="small" />
                       <span className="crew-text">
