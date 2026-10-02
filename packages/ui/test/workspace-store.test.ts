@@ -15,6 +15,7 @@ const snapshot: Snapshot = {
   skillProposals: [],
   runs: [],
   approvals: [],
+  computerApprovals: [],
   events: [],
   profile: [],
   runtimes: [],
@@ -61,6 +62,45 @@ afterEach(() => {
 });
 
 describe('workspace store', () => {
+  it('refreshes browser approval decisions without losing streamed replies', async () => {
+    const approval: Snapshot['computerApprovals'][number] = {
+      id: 'approval-fixture',
+      runId: 'run-fixture',
+      roleId: 'scout',
+      cardId: null,
+      action: { kind: 'navigate', url: 'https://example.com/jobs' },
+      reason: 'Inspect a fictional listing',
+      page: { url: 'about:blank', title: '', text: '', screenshot: '', digest: 'page-fixture' },
+      digest: 'action-fixture',
+      status: 'pending',
+      error: '',
+      createdAt: '',
+      decidedAt: null,
+    };
+    vi.mocked(api).mockResolvedValue({ ...snapshot, computerApprovals: [approval] });
+    const store = createWorkspaceStore();
+    stop = store.getState().startSync();
+    await vi.advanceTimersByTimeAsync(0);
+    const [onState] = vi.mocked(subscribeChatStream).mock.calls[0]!;
+    onState(stream);
+    expect(store.getState().data?.computerApprovals).toEqual([approval]);
+    const decided = { ...approval, status: 'approved' as const };
+    vi.mocked(api)
+      .mockResolvedValueOnce(decided)
+      .mockResolvedValueOnce({
+        ...snapshot,
+        computerApprovals: [decided],
+      });
+    await store.getState().action('/computer-approvals/approval-fixture/decide', 'POST', {
+      approved: true,
+    });
+    expect(api).toHaveBeenCalledWith('/computer-approvals/approval-fixture/decide', 'POST', {
+      approved: true,
+    });
+    expect(store.getState().data?.computerApprovals).toEqual([decided]);
+    expect(store.getState().data?.streamingMessages).toEqual([message]);
+  });
+
   it('preserves early and newer streamed replies across polling and action reloads', async () => {
     const initial = deferred<Snapshot>();
     vi.mocked(api).mockReturnValueOnce(initial.promise);

@@ -76,7 +76,7 @@ Grok Build uses an isolated `GROK_HOME`, a fresh headless session and only its n
 
 Pi requires version 1.0.0 or newer from the current `earendil-works/pi` project, which includes native MCP support. It receives an isolated `PI_CODING_AGENT_DIR` and loads only the built-in MCP extension with direct Pitchcrew tool exposure. Built-in tools, ambient extensions, skills, prompt templates, context files and session persistence are disabled. Older Pi packages without native MCP support appear unavailable with upgrade instructions.
 
-oh-my-pi requires `omp` 18.4.9 or newer. It receives isolated configuration and data paths, waits for Pitchcrew MCP discovery, and exposes only the five scoped MCP tools. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data directory must be on the same drive as the user home so OMP's native configuration-root resolution can isolate the run.
+oh-my-pi requires `omp` 18.4.9 or newer. It receives isolated configuration and data paths, waits for Pitchcrew MCP discovery, and exposes the five application MCP tools plus the three browser tools when computer use is enabled. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data directory must be on the same drive as the user home so OMP's native configuration-root resolution can isolate the run.
 
 Pi and oh-my-pi inherit their CLI's native provider authentication environment (for example, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`). User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime's default or use `provider/model`. Pitchcrew never reads, copies or stores these credentials.
 
@@ -95,6 +95,10 @@ Replies appear as the runtime produces text, including replies to other agents i
 Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
 
 Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions. They can also discuss skills with you or each other and suggest adding a custom Markdown skill or a public GitHub-backed skills.sh URL. Open **Crew work → Suggested skills** to inspect the reason, assignment, source and full instructions, then choose **Add skill** or **Decline**. Each run can make at most three skill suggestions. Adding a suggestion saves the exact reviewed snapshot for future runs; it does not fetch a new upstream version.
+
+## Use a local browser
+
+Install Chromium with `pnpm browser:install`, then enable **Computer use** in a role's settings. Ask the agent to work on an application in chat. It opens a dedicated browser on this computer and can inspect pages, navigate, fill fields, select options, press keys, click and upload exported Markdown packet files. Review every interaction in **Inbox**, including the final submit click. Approvals bind the exact action and current page, work once, and expire when the run ends. Sign in manually in the dedicated window when needed. Attach the job card for packet uploads. Record the application outcome after verifying the website confirmation. See [computer use](docs/computer-use.md) for tools, boundaries and limitations.
 
 ## Your data
 
@@ -124,16 +128,16 @@ pnpm dev
 
 ## Architecture
 
-| Package        | Responsibility                                                                                                      |
-| -------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                               |
-| `board`        | SQLite event log, projections, exact-payload approval tokens                                                        |
-| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities                                    |
-| `adapters`     | Demo and native CLI/ACP runtime integrations                                                                        |
-| `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export |
-| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                          |
-| `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                                                |
-| `desktop`      | Sandboxed Electron host for the shared renderer                                                                     |
+| Package        | Responsibility                                                                                                                               |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                                                        |
+| `board`        | SQLite event log, projections, exact-payload approval tokens and browser action approvals                                                    |
+| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities                                                             |
+| `adapters`     | Demo and native CLI/ACP runtime integrations                                                                                                 |
+| `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export and browser interactions |
+| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                                                   |
+| `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                                                                         |
+| `desktop`      | Sandboxed Electron host for the shared renderer                                                                                              |
 
 Agent application tools are scoped to the attached card; conversation reads are scoped to the role’s own chat and the shared crew chat. Messages, proposals and follow-up tasks are persisted in the board. Agents cannot approve actions, apply their own role changes, or use another role's runtime session. Approval binds the exact packet and is consumed once in the MCP export gate. A revised packet requires a fresh approval. The daemon recovers interrupted runs, releases their card claims, and marks interrupted queued tasks failed after restart.
 
@@ -148,6 +152,7 @@ pnpm lint
 pnpm format
 pnpm format:check
 pnpm typecheck
+pnpm browser:install # install Chromium once for browser tools and tests
 pnpm test
 pnpm build
 pnpm check          # lint, typecheck, tests, build
@@ -158,6 +163,6 @@ Tests use fictional fixtures and temporary workspaces. They cover transitions, a
 
 ## MVP boundaries
 
-Discovery is manual. Roles launch from user chat/workflow actions and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, application submitter, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Desktop installers, auto-updates and further runtimes are deferred.
+Discovery is manual. Roles launch from user chat/workflow actions and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.

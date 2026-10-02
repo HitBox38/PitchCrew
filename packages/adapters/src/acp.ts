@@ -1,6 +1,11 @@
 import { spawn } from 'node:child_process';
 import type { RunContext, RunResult, ChatContext } from '@pitchcrew/core';
-import { parseWorkflowResult, terminateCli, runtimeEnvironment } from './process.ts';
+import {
+  parseWorkflowResult,
+  terminateCli,
+  runtimeEnvironment,
+  runtimeTimeLimit,
+} from './process.ts';
 import { replyPreview } from './streaming.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
@@ -53,8 +58,9 @@ export async function runAcpText(
       stop(new Error('Run cancelled.'));
     };
     const timer = setTimeout(
-      () => stop(new Error('Runtime exceeded the three-minute limit.')),
-      180000,
+      () =>
+        stop(new Error(`Runtime exceeded the ${runtimeTimeLimit(context) / 60000}-minute limit.`)),
+      runtimeTimeLimit(context),
     );
     context.signal.addEventListener('abort', abort, { once: true });
     const receive = (event: Record<string, unknown>) => {

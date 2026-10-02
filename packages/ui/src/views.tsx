@@ -1,3 +1,4 @@
+import { ComputerApprovals } from './computer-approvals.tsx';
 import { capabilityLabels, capabilityDefaults } from './agent-capabilities.ts';
 import { Textarea } from './components/ui/textarea.tsx';
 import {
@@ -585,7 +586,11 @@ export function RoleSettings({
                   title: 'Crew coordination',
                   entries: Object.entries(capabilityLabels).slice(0, 3),
                 },
-                { title: 'Connected services', entries: Object.entries(capabilityLabels).slice(3) },
+                {
+                  title: 'Connected services',
+                  entries: Object.entries(capabilityLabels).slice(3, 8),
+                },
+                { title: 'Computer use', entries: Object.entries(capabilityLabels).slice(8) },
               ].map((group) => (
                 <fieldset className="role-settings-capabilities" key={group.title}>
                   <legend>{group.title}</legend>
@@ -792,6 +797,11 @@ export function InboxView({
       ? ['pending', 'approved'].includes(a.status)
       : ['rejected', 'consumed'].includes(a.status),
   );
+  const computerApprovals = data.computerApprovals.filter((a) =>
+    tab === 'pending'
+      ? ['pending', 'approved'].includes(a.status)
+      : !['pending', 'approved'].includes(a.status),
+  );
   const act = (path: string, body?: unknown, success?: string) => {
     void action(path, 'POST', body, success).catch(() => {});
   };
@@ -801,13 +811,20 @@ export function InboxView({
         <Button className={tab === 'pending' ? 'active' : ''} onClick={() => setTab('pending')}>
           Waiting{' '}
           <span>
-            {data.approvals.filter((a) => ['pending', 'approved'].includes(a.status)).length}
+            {data.approvals.filter((a) => ['pending', 'approved'].includes(a.status)).length +
+              data.computerApprovals.filter((a) => ['pending', 'approved'].includes(a.status))
+                .length}
           </span>
         </Button>
         <Button className={tab === 'history' ? 'active' : ''} onClick={() => setTab('history')}>
           Decided
         </Button>
       </div>
+      {computerApprovals.length ? (
+        <div className="approval-list">
+          <ComputerApprovals approvals={computerApprovals} action={action} working={working} />
+        </div>
+      ) : null}
       {approvals.length ? (
         <div className="approval-list">
           {approvals.map((approval) => {
@@ -915,7 +932,7 @@ export function InboxView({
             );
           })}
         </div>
-      ) : (
+      ) : !computerApprovals.length ? (
         <EmptyState
           title={tab === 'pending' ? 'Nothing to approve' : 'No decisions yet'}
           description={
@@ -924,10 +941,10 @@ export function InboxView({
               : 'Approved exports and rejections are kept here.'
           }
         />
-      )}
+      ) : null}
       <p className="info-note">
-        An approval is bound to one exact packet and works for a single export. Pitchcrew only
-        writes files to this machine; it never emails or submits anything for you.
+        Export approvals bind one exact packet. Browser approvals allow one exact interaction on the
+        reviewed page and expire when the run ends.
       </p>
     </>
   );

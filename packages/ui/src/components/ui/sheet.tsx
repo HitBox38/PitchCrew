@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import * as m from 'motion/react-m';
+import { useAppReducedMotion } from '@/motion';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { cn } from '@/lib/utils';
 import { XIcon } from 'lucide-react';
@@ -24,9 +26,17 @@ function SheetPortal({ ...props }: SheetPrimitive.Portal.Props) {
 function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
+      render={
+        <m.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.18 }}
+        />
+      }
       data-slot="sheet-overlay"
       className={cn(
-        'fixed inset-0 z-50 bg-black/50 data-closed:animate-out data-closed:fade-out-0 data-open:animate-in data-open:fade-in-0',
+        'fixed inset-0 z-50 bg-black/50 data-closed:animate-out data-closed:fade-out-0',
         className,
       )}
       {...props}
@@ -44,22 +54,41 @@ function SheetContent({
   side?: 'top' | 'right' | 'bottom' | 'left';
   showCloseButton?: boolean;
 }) {
+  const reduced = useAppReducedMotion();
   return (
     <SheetPortal>
       <SheetOverlay />
       <SheetPrimitive.Popup
+        render={
+          <m.div
+            initial={
+              reduced
+                ? { opacity: 0 }
+                : {
+                    opacity: 0,
+                    x: side === 'right' ? 48 : side === 'left' ? -48 : 0,
+                    y: side === 'top' ? -48 : side === 'bottom' ? 48 : 0,
+                  }
+            }
+            animate={{ opacity: 1, x: 0, y: 0 }}
+            exit={{
+              opacity: 0,
+              x: reduced ? 0 : side === 'right' ? 32 : side === 'left' ? -32 : 0,
+              y: reduced ? 0 : side === 'top' ? -32 : side === 'bottom' ? 32 : 0,
+              transition: { duration: 0.18 },
+            }}
+          />
+        }
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition ease-in-out data-closed:animate-out data-closed:duration-300 data-open:animate-in data-open:duration-500',
+          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg transition ease-in-out data-closed:animate-out data-closed:duration-300',
           side === 'right' &&
-            'inset-y-0 right-0 h-full w-3/4 border-l data-closed:slide-out-to-right data-open:slide-in-from-right sm:max-w-sm',
+            'inset-y-0 right-0 h-full w-3/4 border-l data-closed:slide-out-to-right sm:max-w-sm',
           side === 'left' &&
-            'inset-y-0 left-0 h-full w-3/4 border-r data-closed:slide-out-to-left data-open:slide-in-from-left sm:max-w-sm',
-          side === 'top' &&
-            'inset-x-0 top-0 h-auto border-b data-closed:slide-out-to-top data-open:slide-in-from-top',
-          side === 'bottom' &&
-            'inset-x-0 bottom-0 h-auto border-t data-closed:slide-out-to-bottom data-open:slide-in-from-bottom',
+            'inset-y-0 left-0 h-full w-3/4 border-r data-closed:slide-out-to-left sm:max-w-sm',
+          side === 'top' && 'inset-x-0 top-0 h-auto border-b data-closed:slide-out-to-top',
+          side === 'bottom' && 'inset-x-0 bottom-0 h-auto border-t data-closed:slide-out-to-bottom',
           className,
         )}
         {...props}
