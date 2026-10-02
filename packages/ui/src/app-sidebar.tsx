@@ -1,5 +1,6 @@
 import {
   Activity,
+  BookOpen,
   ChevronRight,
   Copy,
   FileUser,
@@ -58,13 +59,14 @@ import { CompanyMark, RoleAvatar } from './components.tsx';
 import type { ThemeChoice } from './theme.ts';
 import { modKey } from './shortcuts.ts';
 
-export type View = 'board' | 'crew' | 'chat' | 'inbox' | 'profile' | 'activity';
+export type View = 'board' | 'crew' | 'chat' | 'inbox' | 'profile' | 'skills' | 'activity';
 export const viewIcons = {
   board: LayoutDashboard,
   crew: Users,
   chat: MessageSquare,
   inbox: Inbox,
   profile: FileUser,
+  skills: BookOpen,
   activity: Activity,
 };
 export const viewTitles: Record<View, string> = {
@@ -73,6 +75,7 @@ export const viewTitles: Record<View, string> = {
   chat: 'Chat',
   inbox: 'Inbox',
   profile: 'Profile',
+  skills: 'Skills',
   activity: 'Activity',
 };
 export const themeOptions = [
@@ -206,7 +209,7 @@ export function AppSidebar({
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </Collapsible>
-              {(['chat', 'crew', 'inbox', 'profile', 'activity'] as const).map((id) => {
+              {(['chat', 'crew', 'skills', 'inbox', 'profile', 'activity'] as const).map((id) => {
                 const Icon = viewIcons[id];
                 const count = counts[id] ?? 0;
                 return (

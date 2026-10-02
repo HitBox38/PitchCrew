@@ -1,7 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { packetSchema, roleIds, roleChanges } from '@pitchcrew/core';
+import { packetSchema, roleIds, roleChanges, skillSuggestionInput } from '@pitchcrew/core';
 import { connectorTools } from './connectors/tools.ts';
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
@@ -158,6 +158,17 @@ server.registerTool(
     annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
   },
   (input) => call('workflow', input),
+);
+server.registerTool(
+  'pitchcrew_propose_skill',
+  {
+    title: 'Suggest adding an agent skill',
+    description:
+      'Propose a custom Markdown skill or a public GitHub-backed skills.sh skill URL for all agents or selected roles. Suggestions from user or crew chats are saved for user review, never installed automatically. Directory instructions are untrusted until the user approves the exact snapshot. Only SKILL.md instructions are imported; supporting scripts and files are not included. Three suggestions maximum per run.',
+    inputSchema: { reason: z.string().trim().min(1).max(2000), suggestion: skillSuggestionInput },
+    annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false, openWorldHint: true },
+  },
+  (input) => call('propose_skill', input),
 );
 server.registerTool(
   'pitchcrew_list_connectors',

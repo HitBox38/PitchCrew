@@ -127,12 +127,17 @@ export function ChatView({
   const proposals = data.proposals.filter(
     (p) => (thread === 'crew' || p.roleId === thread) && p.status === 'pending',
   );
+  const skillProposals = data.skillProposals.filter(
+    (p) => (thread === 'crew' || p.roleId === thread) && p.status === 'pending',
+  );
   const tasks = data.tasks
     .filter((t) => thread === 'crew' || t.roleId === thread)
     .slice(-12)
     .reverse();
   const attention =
-    proposals.length + tasks.filter((task) => ['queued', 'running'].includes(task.status)).length;
+    proposals.length +
+    skillProposals.length +
+    tasks.filter((task) => ['queued', 'running'].includes(task.status)).length;
   const jobItems = [
     { value: '', label: 'Attach a job' },
     ...data.cards.map((card) => ({ value: card.id, label: `${card.company} · ${card.title}` })),
@@ -184,9 +189,13 @@ export function ChatView({
         </div>
         {data.roles.map((item) => {
           const latest = data.messages.findLast((m) => m.threadId === item.id);
-          const reviewCount = data.proposals.filter(
-            (proposal) => proposal.roleId === item.id && proposal.status === 'pending',
-          ).length;
+          const reviewCount =
+            data.proposals.filter(
+              (proposal) => proposal.roleId === item.id && proposal.status === 'pending',
+            ).length +
+            data.skillProposals.filter(
+              (proposal) => proposal.roleId === item.id && proposal.status === 'pending',
+            ).length;
           const active = data.runs.some((r) => r.roleId === item.id && r.status === 'running');
           return (
             <Button
@@ -446,6 +455,7 @@ export function ChatView({
                 thread={thread}
                 role={role}
                 proposals={proposals}
+                skillProposals={skillProposals}
                 tasks={tasks}
                 action={action}
                 working={working}

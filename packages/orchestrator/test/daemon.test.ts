@@ -3,7 +3,9 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
+import * as packet from '@pitchcrew/packet';
 import { createDaemon } from '../src/server.ts';
+import { skillDirectory } from '../src/skills-directory.ts';
 import type {
   Approval,
   Card,
@@ -12,6 +14,9 @@ import type {
   Snapshot,
   RuntimeModelCatalog,
   RuntimeModel,
+  Skill,
+  SkillPreview,
+  SkillProposal,
 } from '@pitchcrew/core';
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
 async function setup(port: number) {
@@ -59,6 +64,39 @@ async function finish(request: <T>(path: string) => Promise<{ result: T }>, id: 
   throw new Error('Run did not finish.');
 }
 describe('local daemon workflow', () => {
+  it('keeps board entities and their events consistent when work changes during profile reads', async () => {
+    const { daemon } = await setup(14446);
+    const card = daemon.service.board.createCard({
+      company: 'Snapshot Fixture',
+      title: 'Engineer',
+      url: '',
+      description: '',
+      location: '',
+      salary: '',
+      tags: [],
+    });
+    let release!: (files: []) => void;
+    const reading = new Promise<[]>((resolve) => {
+      release = resolve;
+    });
+    vi.spyOn(packet, 'readProfile').mockReturnValueOnce(reading);
+    const pending = daemon.service.snapshot();
+    daemon.service.board.move(card.id, 'shortlisted', 'user');
+    daemon.service.addMessage(
+      'crew',
+      'user',
+      'crew',
+      'The fixture is now shortlisted.',
+      card.id,
+      null,
+    );
+    release([]);
+    const snapshot = await pending;
+    const event = snapshot.events.find((item) => item.entityId === card.id)!;
+    expect(snapshot.cards.find((item) => item.id === card.id)?.state).toBe('shortlisted');
+    expect(event.data).toMatchObject({ state: 'shortlisted' });
+    expect(snapshot.messages.at(-1)?.content).toBe('The fixture is now shortlisted.');
+  });
   it('discovers models on demand, caches and refreshes them without provider calls or board events', async () => {
     vi.spyOn(adapters.opencode, 'detect').mockResolvedValue({
       id: 'opencode',
@@ -694,5 +732,520 @@ describe('connector account settings', () => {
     expect(snapshot.roles.every((r) => !r.capabilities?.github && !r.capabilities?.gmail)).toBe(
       true,
     );
+  });
+});
+
+describe('managed agent skills', () => {
+  const sharedInput = {
+    name: 'Clear writing',
+    description: 'Use when explaining a job.',
+    content: 'Use concise sentences backed by profile evidence.',
+    scope: 'all',
+    roleIds: [],
+  };
+  it('creates, updates and deletes skills with replayable events and user-only access', async () => {
+    const { daemon, request } = await setup(14436);
+    expect((await request<Snapshot>('/snapshot')).result.skills).toEqual([]);
+    const { response, result: shared } = await request<Skill>('/skills', 'POST', sharedInput);
+    expect(response.status).toBe(201);
+    const { result: individual } = await request<Skill>('/skills', 'POST', {
+      ...sharedInput,
+      name: 'Review checklist',
+      scope: 'roles',
+      roleIds: ['reviewer'],
+    });
+    const { result: updated } = await request<Skill>(`/skills/${individual.id}`, 'PUT', {
+      ...sharedInput,
+      name: 'Updated checklist',
+      scope: 'roles',
+      roleIds: ['writer', 'reviewer'],
+    });
+    expect(updated).toMatchObject({
+      id: individual.id,
+      createdAt: individual.createdAt,
+      roleIds: ['writer', 'reviewer'],
+    });
+    expect(daemon.service.skills('scout').map((skill) => skill.id)).toEqual([shared.id]);
+    expect(daemon.service.skills('writer').map((skill) => skill.id)).toEqual([
+      shared.id,
+      individual.id,
+    ]);
+    expect((await request(`/skills/${shared.id}`, 'DELETE')).response.status).toBe(200);
+    expect((await request<Snapshot>('/snapshot')).result.skills).toEqual([updated]);
+    const events = daemon.service.board.events();
+    expect(events.filter((event) => event.kind === 'skill')).toHaveLength(4);
+    expect(
+      events
+        .filter((event) => event.kind === 'skill')
+        .every((event) => event.version === 5 && event.actor === 'user'),
+    ).toBe(true);
+    daemon.service.board.rebuild();
+    await daemon.service.initialize();
+    expect((await request<Snapshot>('/snapshot')).result.skills).toEqual([updated]);
+    expect(daemon.service.board.events()).toEqual(events);
+    expect(daemon.service.board.get<Skill>('skill', shared.id).deletedAt).not.toBeNull();
+    expect((await request(`/skills/${shared.id}`, 'PUT', sharedInput)).response.status).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, scope: 'roles', roleIds: [] })).response
+        .status,
+    ).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, roleIds: ['scout'] })).response.status,
+    ).toBe(400);
+    expect(
+      (
+        await request('/skills', 'POST', {
+          ...sharedInput,
+          scope: 'roles',
+          roleIds: ['scout', 'scout'],
+        })
+      ).response.status,
+    ).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, content: '  ' })).response.status,
+    ).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, scope: 'roles', roleIds: ['unknown'] }))
+        .response.status,
+    ).toBe(400);
+    expect(
+      (await request('/skills', 'POST', sharedInput, { origin: 'https://example.invalid' }))
+        .response.status,
+    ).toBe(403);
+    const unauthenticated = await fetch(`${daemon.url}/api/skills`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer fixture-agent-token' },
+      body: JSON.stringify(sharedInput),
+    });
+    expect(unauthenticated.status).toBe(403);
+    expect(daemon.service.board.events()).toEqual(events);
+  });
+  it('passes only assigned skills to chat and workflow runtimes and writes isolated Markdown copies', async () => {
+    const { daemon, directory, request } = await setup(14437);
+    const { result: shared } = await request<Skill>('/skills', 'POST', sharedInput);
+    const { result: writerSkill } = await request<Skill>('/skills', 'POST', {
+      ...sharedInput,
+      name: 'Writer method',
+      scope: 'roles',
+      roleIds: ['writer'],
+    });
+    const chat = vi.spyOn(adapters.demo, 'chat');
+    for (const roleId of ['scout', 'writer', 'reviewer'] as const) {
+      const { result: run } = await request<Run>(`/roles/${roleId}/chat`, 'POST', {
+        content: 'Use the assigned skills.',
+      });
+      await finish(request, run.id);
+      const context = chat.mock.calls.at(-1)![0];
+      expect(context.skills).toEqual(roleId === 'writer' ? [shared, writerSkill] : [shared]);
+      const folder = join(directory, 'roles', roleId, 'runs', run.id);
+      const instructions = await readFile(join(folder, 'AGENTS.md'), 'utf8');
+      expect(instructions).toContain(shared.content);
+      expect(instructions.includes(writerSkill.name)).toBe(roleId === 'writer');
+      expect(await readFile(join(folder, 'skills', shared.id, 'SKILL.md'), 'utf8')).toContain(
+        shared.name,
+      );
+      if (roleId !== 'writer')
+        await expect(
+          readFile(join(folder, 'skills', writerSkill.id, 'SKILL.md')),
+        ).rejects.toThrow();
+    }
+    await daemon.service.saveProfile(
+      'profile.md',
+      '# Fictional profile\n\nI built fictional software.',
+    );
+    const card = daemon.service.createCard({ company: 'Fictional Co', title: 'Engineer' });
+    const workflow = vi.spyOn(adapters.demo, 'run');
+    const run = await daemon.service.startRun(card.id, 'scout');
+    await finish(request, run.id);
+    expect(workflow.mock.calls.at(-1)![0].skills).toEqual([shared]);
+    expect(
+      await readFile(join(directory, 'roles', 'scout', 'runs', run.id, 'AGENTS.md'), 'utf8'),
+    ).toContain(shared.content);
+  });
+  it('keeps active skill snapshots intact while edits and deletion affect subsequent runs', async () => {
+    const { directory, request } = await setup(14438);
+    const { result: skill } = await request<Skill>('/skills', 'POST', sharedInput);
+    let complete!: (result: { reply: string }) => void;
+    const chat = vi.spyOn(adapters.demo, 'chat').mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        }),
+    );
+    const { result: active } = await request<Run>('/roles/scout/chat', 'POST', {
+      content: 'Use the skill.',
+    });
+    await vi.waitFor(() => expect(chat).toHaveBeenCalledOnce());
+    await request(`/skills/${skill.id}`, 'PUT', {
+      ...sharedInput,
+      content: 'Updated instructions for future runs.',
+    });
+    expect(chat.mock.calls[0][0].skills).toEqual([skill]);
+    complete({ reply: 'Fixture completed.' });
+    await finish(request, active.id);
+    const firstInstructions = await readFile(
+      join(directory, 'roles', 'scout', 'runs', active.id, 'AGENTS.md'),
+      'utf8',
+    );
+    expect(firstInstructions).toContain(sharedInput.content);
+    expect(firstInstructions).not.toContain('Updated instructions');
+    const { result: next } = await request<Run>('/roles/scout/chat', 'POST', {
+      content: 'Use the update.',
+    });
+    await finish(request, next.id);
+    expect(chat.mock.calls[1][0].skills?.[0].content).toBe('Updated instructions for future runs.');
+    await request(`/skills/${skill.id}`, 'DELETE');
+    const { result: last } = await request<Run>('/roles/scout/chat', 'POST', {
+      content: 'No more skill.',
+    });
+    await finish(request, last.id);
+    expect(chat.mock.calls[2][0].skills).toEqual([]);
+    expect(
+      await readFile(join(directory, 'roles', 'scout', 'runs', active.id, 'AGENTS.md'), 'utf8'),
+    ).toBe(firstInstructions);
+  });
+  it('bounds the total assigned instructions without appending rejected updates', async () => {
+    const { daemon, request } = await setup(14439);
+    for (let index = 0; index < 4; index++)
+      expect(
+        (
+          await request('/skills', 'POST', {
+            ...sharedInput,
+            name: `Skill ${index}`,
+            content: 'a'.repeat(12000),
+          })
+        ).response.status,
+      ).toBe(201);
+    const events = daemon.service.board.events();
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(12000) })).response
+        .status,
+    ).toBe(400);
+    expect(daemon.service.board.events()).toEqual(events);
+  });
+  it('stores and replays larger writing skills while retaining individual and role limits', async () => {
+    const { daemon, request } = await setup(14445);
+    const { result: skill, response } = await request<Skill>('/skills', 'POST', {
+      ...sharedInput,
+      content: 'a'.repeat(50000),
+    });
+    expect(response.status).toBe(201);
+    daemon.service.board.rebuild();
+    expect(daemon.service.skills()[0].content).toBe(skill.content);
+    const events = daemon.service.board.events();
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(50001) })).response
+        .status,
+    ).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(10000) })).response
+        .status,
+    ).toBe(400);
+    expect(daemon.service.board.events()).toEqual(events);
+  });
+});
+
+const directorySkill: SkillPreview = {
+  name: 'evidence-checklist',
+  description: 'Check each profile quotation.',
+  content: '# Evidence checklist\n\nCheck every claim against an exact profile quote.',
+  source: {
+    url: 'https://skills.sh/fictional/crew-skills/evidence-checklist',
+    repository: 'fictional/crew-skills',
+    path: 'skills/evidence-checklist/SKILL.md',
+    blobSha: 'a'.repeat(40),
+    fetchedAt: '2026-10-02T00:00:00.000Z',
+  },
+};
+describe('directory imports and skill suggestions', () => {
+  it('previews sources without installing, preserves provenance and refreshes imported skill content', async () => {
+    const { daemon, request } = await setup(14440);
+    const preview = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(directorySkill);
+    const events = daemon.service.board.events();
+    const { result: loaded, response } = await request<SkillPreview>('/skills/preview', 'POST', {
+      url: directorySkill.source!.url,
+    });
+    expect(response.status).toBe(200);
+    expect(loaded).toEqual(directorySkill);
+    expect((await request<Snapshot>('/snapshot')).result.skills).toEqual([]);
+    expect(daemon.service.board.events()).toEqual(events);
+    const { result: installed } = await request<Skill>('/skills', 'POST', {
+      ...loaded,
+      scope: 'roles',
+      roleIds: ['writer'],
+    });
+    expect(installed.source).toEqual(directorySkill.source);
+    const changed = {
+      ...directorySkill,
+      content: 'Changed upstream instructions.',
+      source: { ...directorySkill.source!, blobSha: 'b'.repeat(40) },
+    };
+    preview.mockResolvedValue(changed);
+    const { result: refreshed } = await request<SkillPreview>('/skills/preview', 'POST', {
+      url: directorySkill.source!.url,
+      refresh: true,
+    });
+    expect(preview.mock.calls.at(-1)![2]).toBe(true);
+    expect(daemon.service.skills()[0].content).toBe(directorySkill.content);
+    await request(`/skills/${installed.id}`, 'PUT', {
+      ...refreshed,
+      scope: 'roles',
+      roleIds: ['writer'],
+    });
+    expect(daemon.service.skills()[0]).toMatchObject({
+      content: changed.content,
+      source: changed.source,
+    });
+    await request(`/skills/${installed.id}`, 'PUT', {
+      name: installed.name,
+      description: installed.description,
+      content: 'Locally edited instructions.',
+      scope: 'roles',
+      roleIds: ['writer'],
+    });
+    expect(daemon.service.skills()[0].source).toEqual(changed.source);
+    const count = preview.mock.calls.length;
+    expect(
+      (await request('/skills/preview', 'POST', { url: 'http://127.0.0.1/private' })).response
+        .status,
+    ).toBe(400);
+    expect(preview).toHaveBeenCalledTimes(count);
+    expect(
+      (
+        await request(
+          '/skills/preview',
+          'POST',
+          { url: directorySkill.source!.url },
+          { origin: 'https://example.invalid' },
+        )
+      ).response.status,
+    ).toBe(403);
+  });
+  it('persists suggestions in private and agent-to-agent chats and adds only the exact user-approved snapshot', async () => {
+    const { daemon, request } = await setup(14441);
+    const preview = vi.spyOn(skillDirectory, 'preview').mockResolvedValue(directorySkill);
+    vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
+      const token = context.mcp.env.PITCHCREW_RUN_TOKEN;
+      if (context.role.id === 'scout') {
+        await daemon.service.agentCall(token, 'propose_skill', {
+          reason: 'Keep shared explanations concise.',
+          suggestion: {
+            kind: 'custom',
+            skill: {
+              name: 'Clear explanations',
+              description: '',
+              content: 'Use short sentences.',
+              scope: 'all',
+              roleIds: [],
+            },
+          },
+        });
+        await daemon.service.agentCall(token, 'message', {
+          roleId: 'writer',
+          content: 'Would a profile evidence skill help our application work?',
+        });
+      } else if (context.role.id === 'writer') {
+        await daemon.service.agentCall(token, 'propose_skill', {
+          reason: 'Our crew discussion identified a useful evidence checklist.',
+          suggestion: {
+            kind: 'skills-sh',
+            url: directorySkill.source!.url,
+            assignment: { scope: 'roles', roleIds: ['writer', 'reviewer'] },
+          },
+        });
+      }
+      return { reply: 'I suggested a skill for the user to review.' };
+    });
+    await request('/roles/scout/chat', 'POST', {
+      content: 'Suggest skills and discuss them with Writer.',
+    });
+    const before = await waitForSnapshot(
+      request,
+      (snapshot) =>
+        snapshot.skillProposals.length === 2 &&
+        snapshot.runs.every((run) => run.status !== 'running'),
+    );
+    expect(before.skills).toEqual([]);
+    const custom = before.skillProposals.find((proposal) => proposal.roleId === 'scout')!;
+    const imported = before.skillProposals.find((proposal) => proposal.roleId === 'writer')!;
+    expect(custom).toMatchObject({ threadId: 'scout', status: 'pending' });
+    expect(imported).toMatchObject({
+      threadId: 'crew',
+      status: 'pending',
+      skill: { ...directorySkill, scope: 'roles', roleIds: ['writer', 'reviewer'] },
+    });
+    expect(before.messages).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          threadId: 'scout',
+          from: 'scout',
+          content: expect.stringContaining('Clear explanations'),
+        }),
+        expect.objectContaining({
+          threadId: 'crew',
+          from: 'writer',
+          content: expect.stringContaining('evidence-checklist'),
+        }),
+      ]),
+    );
+    preview.mockResolvedValue({ ...directorySkill, content: 'Unreviewed upstream change.' });
+    const { result: applied } = await request<SkillProposal>(
+      `/skill-proposals/${imported.id}/decide`,
+      'POST',
+      { approved: true },
+    );
+    expect(applied).toMatchObject({ status: 'applied', skillId: expect.any(String) });
+    expect(preview).toHaveBeenCalledOnce();
+    expect(daemon.service.skills()).toHaveLength(1);
+    expect(daemon.service.skills()[0]).toMatchObject({
+      ...directorySkill,
+      scope: 'roles',
+      roleIds: ['writer', 'reviewer'],
+    });
+    expect(daemon.service.skills('scout')).toEqual([]);
+    const events = daemon.service.board.events();
+    expect(
+      (await request(`/skill-proposals/${imported.id}/decide`, 'POST', { approved: true })).response
+        .status,
+    ).toBe(400);
+    expect(daemon.service.board.events()).toEqual(events);
+    expect(
+      (await request(`/skill-proposals/${custom.id}/decide`, 'POST', { approved: false })).response
+        .status,
+    ).toBe(200);
+    daemon.service.board.rebuild();
+    const after = (await request<Snapshot>('/snapshot')).result;
+    expect(after.skillProposals.map((proposal) => proposal.status)).toEqual([
+      'rejected',
+      'applied',
+    ]);
+    expect(after.skills).toHaveLength(1);
+    expect(
+      after.events
+        .filter((event) => event.kind === 'skill_proposal')
+        .every((event) => event.version === 5),
+    ).toBe(true);
+    const unauthenticated = await fetch(`${daemon.url}/api/skill-proposals/${custom.id}/decide`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: 'Bearer fixture-run-token' },
+      body: JSON.stringify({ approved: true }),
+    });
+    expect(unauthenticated.status).toBe(403);
+  });
+  it('bounds suggestions and rejects late remote results from cancelled capabilities', async () => {
+    const { daemon, request } = await setup(14442);
+    const controller = new AbortController();
+    const token = 'fixture-skill-suggestion-token';
+    const runId = 'fixture-skill-suggestion-run';
+    daemon.service.board.record(
+      'run',
+      {
+        id: runId,
+        cardId: null,
+        roleId: 'scout',
+        runtime: 'demo',
+        status: 'running',
+        mode: 'chat',
+        threadId: 'crew',
+        message: 'Fixture suggestion',
+        startedAt: '',
+        finishedAt: null,
+      },
+      'scout',
+      'Fixture suggestion run',
+    );
+    daemon.service.controllers.set(runId, controller);
+    daemon.service.capabilities.set(token, { runId, cardId: null, roleId: 'scout' });
+    try {
+      const suggestion = {
+        kind: 'custom',
+        skill: {
+          name: 'Fictional method',
+          content: 'Use exact quotations.',
+          scope: 'all',
+          roleIds: [],
+        },
+      };
+      for (let i = 0; i < 3; i++)
+        expect(
+          (
+            await request(
+              '/agent',
+              'POST',
+              { action: 'propose_skill', reason: 'Fixture reason', suggestion },
+              { authorization: `Bearer ${token}` },
+            )
+          ).response.status,
+        ).toBe(200);
+      const events = daemon.service.board.events();
+      expect(
+        (
+          await request(
+            '/agent',
+            'POST',
+            { action: 'propose_skill', reason: 'One too many', suggestion },
+            { authorization: `Bearer ${token}` },
+          )
+        ).response.status,
+      ).toBe(400);
+      expect(daemon.service.board.events()).toEqual(events);
+      expect(daemon.service.skills()).toEqual([]);
+      expect(
+        (
+          await request(
+            '/agent',
+            'POST',
+            { action: 'add_skill', suggestion },
+            { authorization: `Bearer ${token}` },
+          )
+        ).response.status,
+      ).toBe(400);
+      // Use a fresh run to exercise cancellation while an import is in flight.
+      const freshId = 'fixture-late-suggestion-run';
+      daemon.service.board.record(
+        'run',
+        {
+          id: freshId,
+          cardId: null,
+          roleId: 'scout',
+          runtime: 'demo',
+          status: 'running',
+          mode: 'chat',
+          threadId: 'scout',
+          message: 'Fixture',
+          startedAt: '',
+          finishedAt: null,
+        },
+        'scout',
+        'Fixture late run',
+      );
+      daemon.service.capabilities.set(token, { runId: freshId, cardId: null, roleId: 'scout' });
+      daemon.service.controllers.set(freshId, controller);
+      let resolvePreview!: (preview: SkillPreview) => void;
+      const preview = vi.spyOn(skillDirectory, 'preview').mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolvePreview = resolve;
+          }),
+      );
+      const pending = daemon.service.agentCall(token, 'propose_skill', {
+        reason: 'Fixture remote suggestion',
+        suggestion: {
+          kind: 'skills-sh',
+          url: directorySkill.source!.url,
+          assignment: { scope: 'all', roleIds: [] },
+        },
+      });
+      await vi.waitFor(() => expect(preview).toHaveBeenCalledOnce());
+      controller.abort();
+      const settled = expect(pending).rejects.toThrow('expired');
+      resolvePreview(directorySkill);
+      await settled;
+      expect((await daemon.service.snapshot()).skillProposals).toHaveLength(3);
+      daemon.service.controllers.delete(freshId);
+    } finally {
+      daemon.service.controllers.clear();
+      daemon.service.capabilities.clear();
+    }
   });
 });
