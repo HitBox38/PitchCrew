@@ -3,6 +3,8 @@ import { skillContentLimit } from './base-skills.ts';
 import { runtimeIds, roleIds, type CardState, type RoleId, type RuntimeId } from './states.ts';
 
 export * from './states.ts';
+export * from './computer.ts';
+import type { ComputerApproval } from './computer.ts';
 export const cardInput = z.object({
   company: z.string().trim().min(1).max(100),
   title: z.string().trim().min(1).max(160),
@@ -164,6 +166,7 @@ export const capabilitySchema = z.object({
   drive: z.boolean().optional(),
   calendar: z.boolean().optional(),
   sheets: z.boolean().optional(),
+  computerUse: z.boolean().optional(),
 });
 export type AgentCapabilities = z.infer<typeof capabilitySchema>;
 export const defaultCapabilities: AgentCapabilities = {
@@ -175,6 +178,7 @@ export const defaultCapabilities: AgentCapabilities = {
   drive: false,
   calendar: false,
   sheets: false,
+  computerUse: false,
 };
 export interface Run {
   id: string;
@@ -259,7 +263,7 @@ export interface Approval {
 }
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5;
+  version: 1 | 2 | 3 | 4 | 5 | 6;
   kind:
     | 'card'
     | 'role'
@@ -269,7 +273,8 @@ export interface BoardEvent {
     | 'proposal'
     | 'task'
     | 'skill'
-    | 'skill_proposal';
+    | 'skill_proposal'
+    | 'computer_approval';
   entityId: string;
   actor: string;
   message: string;
@@ -282,7 +287,8 @@ export interface BoardEvent {
     | RoleProposal
     | AgentTask
     | Skill
-    | SkillProposal;
+    | SkillProposal
+    | ComputerApproval;
   createdAt: string;
 }
 export interface ProfileFile {
@@ -313,6 +319,7 @@ export interface Snapshot {
   skillProposals: SkillProposal[];
   runs: Run[];
   approvals: Approval[];
+  computerApprovals: ComputerApproval[];
   events: BoardEvent[];
   profile: ProfileFile[];
   runtimes: RuntimeInfo[];
@@ -388,7 +395,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 2 &&
     event.version !== 3 &&
     event.version !== 4 &&
-    event.version !== 5
+    event.version !== 5 &&
+    event.version !== 6
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

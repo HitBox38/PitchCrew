@@ -175,7 +175,9 @@ export function App() {
   const act = (path: string, method = 'POST', body?: unknown, success?: string) => {
     void action(path, method, body, success).catch(() => {});
   };
-  const pending = data?.approvals.filter((a) => a.status === 'pending').length ?? 0;
+  const pending =
+    (data?.approvals.filter((a) => a.status === 'pending').length ?? 0) +
+    (data?.computerApprovals.filter((a) => a.status === 'pending').length ?? 0);
   const selected = data?.cards.find((c) => c.id === selectedId);
   const selectedRole = data?.roles.find((r) => r.id === roleId);
   const go = (next: View) => {
@@ -266,7 +268,8 @@ export function App() {
     ) : view === 'inbox' ? (
       pending ? (
         <>
-          <strong>{pending}</strong> {pending === 1 ? 'export is' : 'exports are'} waiting on you.
+          <strong>{pending}</strong> {pending === 1 ? 'approval is' : 'approvals are'} waiting on
+          you.
         </>
       ) : (
         'Nothing is waiting on you.'

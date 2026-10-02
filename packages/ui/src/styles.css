@@ -3599,3 +3599,18 @@ h1 {
   font-size: 12px;
   line-height: 1.7;
 }
+
+.computer-page-preview {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  margin-block: 12px;
+}
+.computer-action-preview {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 12px;
+  background: var(--paper-deep);
+  color: var(--ink);
+  border-radius: 8px;
+}

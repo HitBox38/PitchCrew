@@ -226,7 +226,7 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
     const current = daemon.service.board.get<Role>('role', 'scout');
     await daemon.service.configureRole('scout', {
       ...current,
-      capabilities: { ...defaultCapabilities, github: true },
+      capabilities: { ...defaultCapabilities, github: true, computerUse: true },
     });
     daemon.service.capabilities.set(token, {
       runId: 'connector-fixture',
@@ -234,6 +234,28 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
       roleId: 'scout',
     });
     daemon.service.controllers.set('connector-fixture', controller);
+    daemon.service.board.record(
+      'run',
+      {
+        id: 'connector-fixture',
+        cardId: null,
+        roleId: 'scout',
+        runtime: 'demo',
+        status: 'running',
+        message: '',
+        startedAt: '',
+        finishedAt: null,
+      },
+      'user',
+      'Scoped fixture run',
+    );
+    vi.spyOn(daemon.service.computer, 'inspect').mockResolvedValue({
+      url: 'https://example.com',
+      title: 'Fixture browser',
+      text: 'Name Apply',
+      screenshot: 'aW1hZ2U=',
+      digest: 'fixture-page',
+    });
     await client.connect(
       new StdioClientTransport({
         command: process.execPath,
@@ -249,6 +271,28 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
     const listed = (await client.listTools()).tools;
     expect(listed.some((t) => t.name === 'github_read_file')).toBe(true);
     expect(listed.some((t) => t.name.startsWith('gmail_'))).toBe(false);
+    expect(
+      listed
+        .filter((t) => t.name.startsWith('pitchcrew_computer_'))
+        .map((t) => t.name)
+        .sort(),
+    ).toEqual([
+      'pitchcrew_computer_execute',
+      'pitchcrew_computer_inspect',
+      'pitchcrew_computer_request',
+    ]);
+    const inspected = await client.callTool({ name: 'pitchcrew_computer_inspect', arguments: {} });
+    expect(inspected.content).toEqual(
+      expect.arrayContaining([expect.objectContaining({ type: 'image', mimeType: 'image/jpeg' })]),
+    );
+    expect(inspected.structuredContent).toMatchObject({ page: { title: 'Fixture browser' } });
+    const requested = await client.callTool({
+      name: 'pitchcrew_computer_request',
+      arguments: { input: { kind: 'click', selector: '#submit' }, reason: 'Submit fictional form' },
+    });
+    expect(requested.structuredContent).toMatchObject({
+      approval: { status: 'pending', runId: 'connector-fixture' },
+    });
     expect(listed.find((t) => t.name === 'github_read_file')?.annotations).toMatchObject({
       readOnlyHint: true,
       openWorldHint: true,
@@ -283,12 +327,16 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
       true,
     );
     expect(connectorCall).toHaveBeenCalledTimes(1);
+    expect(
+      (await client.callTool({ name: 'pitchcrew_computer_inspect', arguments: {} })).isError,
+    ).toBe(true);
     controller.abort();
     expect(
       (await client.callTool({ name: 'pitchcrew_list_connectors', arguments: {} })).isError,
     ).toBe(true);
   } finally {
     connectorCall.mockRestore();
+    vi.restoreAllMocks();
     daemon.service.controllers.delete('connector-fixture');
     daemon.service.capabilities.delete(token);
     await client.close();
