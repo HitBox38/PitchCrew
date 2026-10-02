@@ -2743,6 +2743,14 @@ h1 {
 .chat-message-content p + p {
   margin-top: 12px;
 }
+.chat-stream-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 30px;
+  color: var(--muted);
+  font-size: 12px;
+}
 .chat-message-content pre {
   max-width: 100%;
   overflow: auto;

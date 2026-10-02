@@ -390,10 +390,13 @@ describe.each([
       card: attached ? context.card : null,
       request: 'Fictional current request',
       messages: [],
+      onReply: vi.fn(),
     };
     expect(await adapters[runtime].chat(chat)).toEqual({
       reply: 'Fixture conversational café response.',
     });
+    expect(chat.onReply).toHaveBeenLastCalledWith('Fixture conversational café response.');
+    expect(chat.onReply.mock.calls.every(([text]) => !text.includes('Ignore me.'))).toBe(true);
     const request = await requestFor(context);
     expect(request.prompt).toContain('Fictional current request');
     expect(request.prompt).toContain(`Attached card: ${JSON.stringify(chat.card)}`);

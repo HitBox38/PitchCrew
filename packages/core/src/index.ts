@@ -200,6 +200,16 @@ export interface ChatMessage {
   runId: string | null;
   createdAt: string;
 }
+// Live previews are transient; only validated, completed replies enter the event log.
+export interface ChatStreamState {
+  messages: ChatMessage[];
+  streamingMessages: ChatMessage[];
+}
+export interface ChatStreamUpdate {
+  // Saved history is sent on connection and when messages change, never per token.
+  messages?: ChatMessage[];
+  streamingMessages: ChatMessage[];
+}
 export const chatInput = z.object({
   content: z.string().trim().min(1).max(8000),
   cardId: z.uuid().nullable().default(null),
@@ -309,6 +319,7 @@ export interface Snapshot {
   dataDirectory: string;
   demoAvailable: boolean;
   messages: ChatMessage[];
+  streamingMessages: ChatMessage[];
   proposals: RoleProposal[];
   tasks: AgentTask[];
   connectors: ConnectorStatus[];
@@ -365,6 +376,8 @@ export interface RuntimeAdapter {
 export interface ChatContext extends Omit<RunContext, 'card'> {
   card: Card | null;
   messages: ChatMessage[];
+  /** Current reply text, replacing the previous preview. Empty text clears it. */
+  onReply?: (text: string) => void;
 }
 export const chatResultSchema = z.object({ reply: z.string().trim().min(1).max(12000) });
 export type ChatResult = z.infer<typeof chatResultSchema>;

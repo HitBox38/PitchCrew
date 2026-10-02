@@ -84,6 +84,30 @@ it('normalizes a chat subprocess without a card or a provider account', async ()
   expect(result).toEqual({ reply: 'Fixture conversational response.' });
 });
 
+it('streams decoded reply text before the real subprocess finishes, including split UTF-8 and escapes', async () => {
+  const onReply = vi.fn();
+  let completed = false;
+  const result = chatCli(
+    process.execPath,
+    [fileURLToPath(new URL('./fixtures/streaming-cli.mjs', import.meta.url))],
+    {
+      ...context,
+      role: { ...context.role, runtime: 'claude-code' },
+      card: null,
+      messages: [],
+      onReply,
+    },
+    (event) => (typeof event.result === 'string' ? event.result : null),
+  ).then((reply) => {
+    completed = true;
+    return reply;
+  });
+  await vi.waitFor(() => expect(onReply).toHaveBeenCalledWith('Hello'));
+  expect(completed).toBe(false);
+  expect(await result).toEqual({ reply: 'Hello café\n"quoted" 🚀' });
+  expect(onReply.mock.calls.map(([text]) => text)).toEqual(['Hello', 'Hello café\n"quoted" 🚀']);
+});
+
 it('does not pass connector OAuth configuration to provider subprocesses', async () => {
   vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_SECRET', 'fixture-secret');
   try {

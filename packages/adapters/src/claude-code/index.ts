@@ -6,6 +6,7 @@ function argsFor(context: RunContext | ChatContext) {
     '--output-format',
     'stream-json',
     '--verbose',
+    ...('messages' in context ? ['--include-partial-messages'] : []),
     '--restricted',
     '--tools',
     '',

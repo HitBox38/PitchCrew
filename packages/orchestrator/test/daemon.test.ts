@@ -15,10 +15,13 @@ import type {
   Snapshot,
   RuntimeModelCatalog,
   RuntimeModel,
+  ChatContext,
+  ChatStreamState,
   Skill,
   SkillPreview,
   SkillProposal,
 } from '@pitchcrew/core';
+import { readChatStream } from '../../ui/src/chat-stream.ts';
 const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] = [];
 async function setup(port: number, seedSkills = false) {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
@@ -41,7 +44,7 @@ async function setup(port: number, seedSkills = false) {
     const result = (await response.json()) as T;
     return { response, result };
   }
-  return { daemon, directory, request };
+  return { daemon, directory, request, cookie };
 }
 afterEach(async () => {
   vi.restoreAllMocks();
@@ -391,6 +394,163 @@ async function waitForSnapshot(
 }
 
 describe('agent conversations and crew actions', () => {
+  it('streams user and agent follow-up replies, restores previews on reconnect and saves only final text', async () => {
+    const turns: { context: ChatContext; complete: (reply: string) => void }[] = [];
+    vi.spyOn(adapters.demo, 'chat').mockImplementation(
+      (context) =>
+        new Promise((resolve) => {
+          turns.push({ context, complete: (reply) => resolve({ reply }) });
+        }),
+    );
+    const { daemon, request, cookie } = await setup(14446);
+    const states: ChatStreamState[] = [];
+    const streams: { controller: AbortController; done: Promise<void> }[] = [];
+    const connect = async () => {
+      const controller = new AbortController();
+      const response = await fetch(`${daemon.url}/api/chat/stream`, {
+        signal: controller.signal,
+        headers: { cookie, 'x-pitchcrew-client': 'ui' },
+      });
+      expect(response.headers.get('content-type')).toContain('text/event-stream');
+      const done = readChatStream(response.body!, (state) => states.push(state)).catch((error) => {
+        if (!controller.signal.aborted) throw error;
+      });
+      streams.push({ controller, done });
+      return controller;
+    };
+    try {
+      const firstConnection = await connect();
+      await vi.waitFor(() => expect(states).toHaveLength(1));
+      expect(states[0]).toEqual({ messages: [], streamingMessages: [] });
+      const { result: root } = await request<Run>('/roles/scout/chat', 'POST', {
+        content: 'Help me.',
+      });
+      await vi.waitFor(() => expect(turns).toHaveLength(1));
+      turns[0].context.onReply!('A partial reply');
+      await vi.waitFor(() =>
+        expect(states.at(-1)?.streamingMessages[0]?.content).toBe('A partial reply'),
+      );
+      const preview = states.at(-1)!.streamingMessages[0];
+      expect(preview).toMatchObject({
+        from: 'scout',
+        to: 'user',
+        threadId: 'scout',
+        runId: root.id,
+      });
+      expect(daemon.service.board.list('message')).toHaveLength(1);
+      const token = [...daemon.service.capabilities.keys()][0];
+      expect(JSON.stringify(await daemon.service.agentCall(token, 'messages', {}))).not.toContain(
+        'A partial reply',
+      );
+      expect((await request<Snapshot>('/snapshot')).result.streamingMessages).toEqual([preview]);
+      firstConnection.abort();
+      await connect();
+      await vi.waitFor(() => expect(states.at(-1)?.streamingMessages[0]?.id).toBe(preview.id));
+      await daemon.service.agentCall(token, 'message', {
+        roleId: 'writer',
+        content: 'Help Scout with a reply.',
+      });
+      turns[0].complete('The validated final reply');
+      await vi.waitFor(() => expect(turns).toHaveLength(2));
+      turns[1].context.onReply!('Writer is responding');
+      await vi.waitFor(() => expect(states.at(-1)?.streamingMessages[0]?.from).toBe('writer'));
+      const crewPreview = states.at(-1)!.streamingMessages[0];
+      expect(crewPreview).toMatchObject({
+        from: 'writer',
+        to: 'scout',
+        threadId: 'crew',
+        content: 'Writer is responding',
+      });
+      expect(states.at(-1)!.messages.find((message) => message.id === preview.id)?.content).toBe(
+        'The validated final reply',
+      );
+      expect(states.at(-1)!.messages.some((message) => message.content === 'A partial reply')).toBe(
+        false,
+      );
+      turns[1].complete('Writer’s final response');
+      await vi.waitFor(() => {
+        expect(states.at(-1)?.streamingMessages).toEqual([]);
+        expect(
+          states.at(-1)?.messages.find((message) => message.id === crewPreview.id)?.content,
+        ).toBe('Writer’s final response');
+      });
+      await waitForSnapshot(request, (snapshot) =>
+        snapshot.runs.every((run) => run.status === 'completed'),
+      );
+      turns[1].context.onReply!('Late text after completion');
+      expect(daemon.service.chatState().streamingMessages).toEqual([]);
+      daemon.service.board.rebuild();
+      const snapshot = (await request<Snapshot>('/snapshot')).result;
+      expect(snapshot.streamingMessages).toEqual([]);
+      expect(
+        snapshot.messages.filter(
+          (message) => message.id === preview.id || message.id === crewPreview.id,
+        ),
+      ).toHaveLength(2);
+      expect(
+        snapshot.events.some(
+          (event) =>
+            event.kind === 'message' &&
+            ['A partial reply', 'Writer is responding'].includes(
+              (event.data as { content: string }).content,
+            ),
+        ),
+      ).toBe(false);
+    } finally {
+      for (const turn of turns) turn.complete('Cleanup');
+      for (const { controller } of streams) controller.abort();
+      await Promise.all(streams.map(({ done }) => done));
+    }
+  });
+
+  it.each(['cancelled', 'failed'] as const)(
+    'clears unfinished %s replies and ignores late text',
+    async (status) => {
+      let context!: ChatContext;
+      let complete!: () => void;
+      vi.spyOn(adapters.demo, 'chat').mockImplementation(async (input) => {
+        context = input;
+        input.onReply!('Unfinished reply');
+        await new Promise<void>((resolve) => {
+          complete = resolve;
+        });
+        input.onReply!('Late text');
+        return { reply: status === 'failed' ? '' : 'Late final text' };
+      });
+      const { daemon, request } = await setup(status === 'cancelled' ? 14447 : 14448);
+      const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
+        content: 'Start a turn.',
+      });
+      await vi.waitFor(() => expect(complete).toBeDefined());
+      expect(daemon.service.chatState().streamingMessages[0]?.content).toBe('Unfinished reply');
+      if (status === 'cancelled') {
+        await request(`/runs/${run.id}/cancel`, 'POST');
+        expect(daemon.service.chatState().streamingMessages).toEqual([]);
+        context.onReply!('Late text after cancellation');
+        expect(daemon.service.chatState().streamingMessages).toEqual([]);
+      }
+      complete();
+      const snapshot = await waitForSnapshot(request, (state) => state.runs[0].status === status);
+      expect(snapshot.streamingMessages).toEqual([]);
+      expect(snapshot.messages.map((message) => message.from)).toEqual(['user', 'system']);
+    },
+  );
+
+  it('protects the live stream with the same session, client and origin checks as snapshots', async () => {
+    const { daemon, cookie } = await setup(14449);
+    const deniedHeaders: Record<string, string>[] = [
+      { 'x-pitchcrew-client': 'ui' },
+      { cookie },
+      { cookie, 'x-pitchcrew-client': 'ui', origin: 'https://example.invalid' },
+      { cookie, 'x-pitchcrew-client': 'ui', 'sec-fetch-site': 'cross-site' },
+    ];
+    for (const headers of deniedHeaders) {
+      const response = await fetch(`${daemon.url}/api/chat/stream`, { headers });
+      expect(response.status).toBe(403);
+      await response.body?.cancel();
+    }
+  });
+
   it('persists role chats without a job/profile, isolates conversations, and rejects overlapping sends', async () => {
     const { daemon, request } = await setup(14422);
     const results = await Promise.all([

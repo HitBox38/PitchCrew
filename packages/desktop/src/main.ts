@@ -98,15 +98,23 @@ function createWindow() {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
-            let chatReady = null, chatResponded = null, chatTabsReady = null;
+            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null;
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'demo' && role.enabled)) throw new Error('Chat smoke test requires an isolated demo workspace.');
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Chat')?.click();
               chatReady = await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
               await waitFor(() => !!document.querySelector('textarea')?.value);
+              const partials = new Set();
+              const observer = new MutationObserver(() => {
+                const message = document.querySelector('.chat-message-content[aria-busy="true"]');
+                if (message?.textContent) partials.add(message.textContent);
+              });
+              observer.observe(document.querySelector('.chat-transcript'), { subtree: true, childList: true, characterData: true, attributes: true });
               document.querySelector('textarea')?.form?.requestSubmit();
-              chatResponded = await waitFor(() => document.querySelector('.chat-transcript')?.textContent.includes('This is a demo reply.'));
+              chatResponded = await waitFor(() => [...document.querySelectorAll('.chat-message-content[aria-busy="false"]')].some((message) => message.textContent.includes('This is a demo reply.')));
+              observer.disconnect();
+              chatStreamingUpdates = partials.size;
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
               const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));
               document.querySelector('.chat-thread .role-avatar.writer')?.closest('button')?.click();
@@ -116,7 +124,7 @@ function createWindow() {
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Conversation'))?.click();
               chatTabsReady = workReady && writerReady && await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-transcript'));
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates };
           })()`,
         );
         const chrome = [];
