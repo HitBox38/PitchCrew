@@ -141,7 +141,7 @@ export function readPipeline(board: Board, input: unknown): Record<string, unkno
     query.section === 'cards' ? 'updatedAt' : query.section === 'runs' ? 'startedAt' : 'createdAt';
   const where = [
     events
-      ? `json_extract(json,'$.kind') IN (${pipelineEvidenceKinds.map((kind) => `'${kind}'`).join(',')})`
+      ? `json_extract(e.json,'$.kind') IN (${pipelineEvidenceKinds.map((kind) => `'${kind}'`).join(',')})`
       : 'kind = ?',
   ];
   const args: (string | number)[] = events ? [] : [kind];
@@ -150,11 +150,11 @@ export function readPipeline(board: Board, input: unknown): Record<string, unkno
   const root = events ? '$.data.' : '$.';
   if (query.section !== 'roles') {
     if (query.scope.from) {
-      where.push(`json_extract(json, '${events ? '$.createdAt' : root + field}') >= ?`);
+      where.push(`json_extract(e.json, '${events ? '$.createdAt' : root + field}') >= ?`);
       args.push(query.scope.from);
     }
     if (query.scope.to) {
-      where.push(`json_extract(json, '${events ? '$.createdAt' : root + field}') <= ?`);
+      where.push(`json_extract(e.json, '${events ? '$.createdAt' : root + field}') <= ?`);
       args.push(query.scope.to);
     }
     if (query.scope.cardIds.length) {
@@ -162,20 +162,20 @@ export function readPipeline(board: Board, input: unknown): Record<string, unkno
       const cardField = query.section === 'cards' ? 'id' : 'cardId';
       if (query.section === 'reviews') {
         where.push(
-          `EXISTS (SELECT 1 FROM json_each(json, '$.scope.cardIds') WHERE value IN (${marks}))`,
+          `EXISTS (SELECT 1 FROM json_each(e.json, '$.scope.cardIds') WHERE value IN (${marks}))`,
         );
       } else if (events) {
         where.push(
-          `(json_extract(json,'$.kind') IN ('role','proposal','skill','skill_proposal') OR json_extract(json,'$.data.cardId') IN (${marks}) OR (json_extract(json,'$.kind') = 'card' AND json_extract(json,'$.data.id') IN (${marks})) OR (json_extract(json,'$.kind') = 'tracking_signal' AND EXISTS (SELECT 1 FROM json_each(json, '$.data.candidateIds') WHERE value IN (${marks}))) OR (json_extract(json,'$.kind') = 'pipeline_review' AND EXISTS (SELECT 1 FROM json_each(json, '$.data.scope.cardIds') WHERE value IN (${marks}))))`,
+          `(json_extract(e.json,'$.kind') IN ('role','proposal','skill','skill_proposal') OR json_extract(e.json,'$.data.cardId') IN (${marks}) OR (json_extract(e.json,'$.kind') = 'card' AND json_extract(e.json,'$.data.id') IN (${marks})) OR (json_extract(e.json,'$.kind') = 'tracking_signal' AND EXISTS (SELECT 1 FROM json_each(e.json, '$.data.candidateIds') WHERE value IN (${marks}))) OR (json_extract(e.json,'$.kind') = 'pipeline_review' AND EXISTS (SELECT 1 FROM json_each(e.json, '$.data.scope.cardIds') WHERE value IN (${marks}))))`,
         );
         args.push(...query.scope.cardIds, ...query.scope.cardIds, ...query.scope.cardIds);
-      } else where.push(`json_extract(json, '${root + cardField}') IN (${marks})`);
+      } else where.push(`json_extract(e.json, '${root + cardField}') IN (${marks})`);
       args.push(...query.scope.cardIds);
     }
   }
   const rows = board.db
     .prepare(
-      `SELECT ${events ? 'id' : 'rowid'} AS cursor,json FROM ${events ? 'events' : 'entities'} WHERE ${where.join(' AND ')} ORDER BY ${events ? 'id' : 'rowid'} LIMIT ?`,
+      `SELECT e.${events ? 'id' : 'rowid'} AS cursor,e.json FROM ${events ? 'events' : 'entities'} AS e WHERE ${where.join(' AND ')} ORDER BY ${events ? 'id' : 'rowid'} LIMIT ?`,
     )
     .all(...args, query.limit + 1) as { cursor: number; json: string }[];
   const items: unknown[] = [];

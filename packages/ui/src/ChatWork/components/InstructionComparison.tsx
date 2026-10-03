@@ -4,7 +4,7 @@ export function InstructionComparison({ current, proposal }: InstructionComparis
   return (
     <div className="chat-instruction-comparison">
       <div>
-        <h5>Current</h5>
+        <h5>{proposal.beforeRole ? 'Reviewed before' : 'Current'}</h5>
         <pre>{current.instructions || 'No custom instructions.'}</pre>
       </div>
       <div>
