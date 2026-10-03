@@ -1,0 +1,44 @@
+.creation-panel {
+  width: min(760px, 100vw);
+}
+.creation-progress {
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  overflow-x: auto;
+}
+.creation-progress ol {
+  display: flex;
+  gap: 4px;
+  justify-content: space-between;
+  min-width: max-content;
+}
+.creation-progress button {
+  gap: 7px;
+  color: var(--muted);
+}
+.creation-progress button[aria-current='step'] {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+.creation-step-number {
+  font-variant-numeric: tabular-nums;
+}
+.form.creation-form textarea {
+  min-height: 0;
+}
+.form.creation-form .creation-tool {
+  flex-direction: row;
+}
+.creation-tool [data-slot='checkbox'] {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.creation-body h3:focus {
+  outline: none;
+}
+@variant max-phone {
+  .creation-progress {
+    padding-inline: 12px;
+  }
+}

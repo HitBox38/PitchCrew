@@ -30,7 +30,7 @@ export function CrewPage() {
   };
   return (
     <>
-      <CreateRole data={data} action={action} working={working} />
+      <CreateRole data={data} working={working} />
       <div className="crew-grid">
         {data.roles.map((role) => (
           <CrewCard
