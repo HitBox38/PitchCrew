@@ -6,3 +6,7 @@ export function digestPacket(cardId: string, packet: Packet) {
     .update(JSON.stringify({ cardId, action: 'export_packet', packet }))
     .digest('hex');
 }
+
+export function digestArtifacts(artifacts: import('@pitchcrew/core').PacketArtifact[]) {
+  return createHash('sha256').update(JSON.stringify(artifacts)).digest('hex');
+}
