@@ -91,7 +91,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     profile,
     runtimes: this.runtimes,
     dataDirectory: this.directory,
-    demoAvailable: !this.board.list<Card>('card').some((c) => c.sample),
+    demoAvailable: this.dev && !this.board.list<Card>('card').some((c) => c.sample),
     messages: this.board.list<ChatMessage>('message'),
     streamingMessages: [...this.streamingMessages.values()],
     proposals: this.board.list<RoleProposal>('proposal'),

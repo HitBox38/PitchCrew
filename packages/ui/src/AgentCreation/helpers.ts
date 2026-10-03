@@ -24,7 +24,9 @@ export function initialCreation(data: Snapshot): CreationDraft {
       description: '',
       instructions: '',
       runtime:
-        data.runtimes.find((runtime) => runtime.available && runtime.id !== 'demo')?.id ?? 'demo',
+        data.runtimes.find((runtime) => runtime.available && runtime.id !== 'demo')?.id ??
+        data.runtimes[0]?.id ??
+        'claude-code',
       model: '',
       workflow: 'chat',
       enabled: true,

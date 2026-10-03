@@ -12,7 +12,7 @@ import { packet, profile } from './fixtures/evaluation.ts';
 it('connects the real stdio server to a scoped daemon and preserves approval boundaries', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-mcp-test-'))).toBe(true);
-  const daemon = await createDaemon({ directory, port: 14431, seedSkills: false });
+  const daemon = await createDaemon({ dev: true, directory, port: 14431, seedSkills: false });
   const client = new Client({ name: 'pitchcrew-contract-test', version: '1.0.0' });
   try {
     await new Promise<void>((resolve) => daemon.http.listen(14431, '127.0.0.1', resolve));
@@ -270,7 +270,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
 it('discovers permitted connector tools over stdio and rechecks role permissions on every call', async () => {
   const { vi } = await import('vitest');
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-test-'));
-  const daemon = await createDaemon({ directory, port: 14432, seedSkills: false });
+  const daemon = await createDaemon({ dev: true, directory, port: 14432, seedSkills: false });
   const client = new Client({ name: 'connector-contract-test', version: '1.0.0' });
   const token = 'fixture-connector-capability';
   const controller = new AbortController();

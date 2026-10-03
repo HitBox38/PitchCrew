@@ -277,7 +277,7 @@ it('persists schedules across restart and never replays an already dispatched oc
   await finish(request, stored(daemon, repeat.id).lastRunId!);
   await daemon.close();
   resources.pop();
-  const restarted = await createDaemon({ directory, port: 14534, seedSkills: false });
+  const restarted = await createDaemon({ dev: true, directory, port: 14534, seedSkills: false });
   resources.push({ daemon: restarted, directory });
   expect(restarted.service.routines()).toHaveLength(2);
   await restarted.service.tickRoutines(at('09:30'));

@@ -6,6 +6,7 @@ import {
   type CardInput,
   type CardState,
   type Packet,
+  type RuntimeId,
 } from '@pitchcrew/core';
 import Database from 'better-sqlite3';
 
@@ -38,5 +39,5 @@ export interface BoardContext {
   decideApproval(id: string, approved: boolean): Approval;
   consumeApproval(id: string, cardId: string, digest: string): Packet;
   hasActiveRun(cardId: string): boolean;
-  seedRoles(): void;
+  seedRoles(runtime?: RuntimeId, enabled?: boolean): void;
 }

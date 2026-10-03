@@ -30,6 +30,7 @@ export async function createDaemon(options: {
     options.directory,
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
+    options.dev ?? false,
   );
   await service.initialize(options.seedSkills ?? true);
   const app = express();

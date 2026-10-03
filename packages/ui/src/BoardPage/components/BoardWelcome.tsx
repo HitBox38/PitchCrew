@@ -3,7 +3,7 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { LoaderCircle, Plus } from 'lucide-react';
 
-export function BoardWelcome({ setAdd, working, act }: BoardWelcomeProps) {
+export function BoardWelcome({ setAdd, working, act, data }: BoardWelcomeProps) {
   return (
     <section className="welcome">
       <h2>Start with a job post</h2>
@@ -43,13 +43,17 @@ export function BoardWelcome({ setAdd, working, act }: BoardWelcomeProps) {
         <Button className="button primary" onClick={() => setAdd(true)}>
           <Plus size={16} /> Add job
         </Button>
-        <Button
-          className="button"
-          disabled={working}
-          onClick={() => act('/examples', 'POST', undefined, 'Loaded example jobs (demo runtime)')}
-        >
-          {working ? <LoaderCircle size={14} className="spin" /> : null} Load example data
-        </Button>
+        {data.demoAvailable && (
+          <Button
+            className="button"
+            disabled={working}
+            onClick={() =>
+              act('/examples', 'POST', undefined, 'Loaded example jobs (demo runtime)')
+            }
+          >
+            {working ? <LoaderCircle size={14} className="spin" /> : null} Load example data
+          </Button>
+        )}
       </div>
     </section>
   );

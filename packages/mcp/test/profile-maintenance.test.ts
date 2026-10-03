@@ -563,6 +563,7 @@ describe('profile maintenance', () => {
     expect(f.daemon.service.routines().find((item) => item.id === routine.id)?.runCount).toBe(0);
     await f.daemon.close();
     const restarted = await createDaemon({
+      dev: true,
       directory: f.directory,
       port: 14604,
       seedSkills: false,
