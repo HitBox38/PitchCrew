@@ -1,3 +1,4 @@
+import type { PacketArtifact } from '@pitchcrew/core';
 import {
   type Approval,
   type BoardEvent,
@@ -26,12 +27,14 @@ export interface BoardContext {
   createCard(input: CardInput, sample?: boolean): Card;
   updateCard(
     id: string,
-    patch: Partial<Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner'>>,
+    patch: Partial<
+      Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+    >,
     actor: string,
     message: string,
   ): Card;
   move(id: string, state: CardState, actor: string, message?: string): Card;
-  requestApproval(cardId: string): Approval;
+  requestApproval(cardId: string, artifacts?: PacketArtifact[]): Approval;
   decideApproval(id: string, approved: boolean): Approval;
   consumeApproval(id: string, cardId: string, digest: string): Packet;
   hasActiveRun(cardId: string): boolean;

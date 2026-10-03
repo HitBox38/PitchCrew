@@ -28,8 +28,21 @@ export async function agentCall(
   const permissions = role.capabilities ?? defaultCapabilities;
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);
-  if (action === 'computer_access') return { enabled: permissions.computerUse === true };
-  if (['computer_inspect', 'computer_request', 'computer_execute'].includes(action))
+  if (action === 'computer_access')
+    return {
+      enabled: permissions.computerUse === true,
+      assessForms: permissions.assessForms === true,
+      recordSubmissions: permissions.recordSubmissions === true,
+    };
+  if (
+    [
+      'computer_inspect',
+      'computer_request',
+      'computer_execute',
+      'assess_form',
+      'capture_submission',
+    ].includes(action)
+  )
     return computerAction.call(this, capability, token, action, data);
   if (action === 'connector_access') return connectorAccess.call(this, permissions);
   if (action === 'connector') return connectorAction.call(this, capability, permissions, data);

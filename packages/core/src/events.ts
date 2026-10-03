@@ -1,3 +1,4 @@
+import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
@@ -9,7 +10,7 @@ import type { Approval } from './workspace.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   kind:
     | 'card'
     | 'role'
@@ -21,7 +22,9 @@ export interface BoardEvent {
     | 'routine'
     | 'skill'
     | 'skill_proposal'
-    | 'computer_approval';
+    | 'computer_approval'
+    | 'form_assessment'
+    | 'submission_attempt';
   entityId: string;
   actor: string;
   message: string;
@@ -36,7 +39,9 @@ export interface BoardEvent {
     | Routine
     | Skill
     | SkillProposal
-    | ComputerApproval;
+    | ComputerApproval
+    | FormAssessment
+    | SubmissionAttempt;
   createdAt: string;
 }
 export function decodeEvent(raw: string): BoardEvent {
@@ -49,7 +54,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 5 &&
     event.version !== 6 &&
     event.version !== 7 &&
-    event.version !== 8
+    event.version !== 8 &&
+    event.version !== 9
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

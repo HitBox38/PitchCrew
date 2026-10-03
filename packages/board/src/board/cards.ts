@@ -28,7 +28,9 @@ export function createCard(this: BoardContext, input: CardInput, sample: boolean
 export function updateCard(
   this: BoardContext,
   id: string,
-  patch: Partial<Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner'>>,
+  patch: Partial<
+    Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+  >,
   actor: string,
   message: string,
 ): Card {

@@ -2,7 +2,7 @@ import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
 import type { BoardEvent } from './events.ts';
-import type { Packet } from './packets.ts';
+import type { Packet, PacketArtifact } from './packets.ts';
 import type { Role, RoleProposal } from './roles.ts';
 import type { AgentTask, Run } from './runs.ts';
 import type { Routine } from './routines.ts';
@@ -19,6 +19,8 @@ export interface Approval {
   createdAt: string;
   decidedAt: string | null;
   exportDirectory?: string;
+  artifacts?: PacketArtifact[];
+  artifactDigest?: string;
 }
 export interface ProfileFile {
   name: string;

@@ -23,6 +23,18 @@ export function BrowserApprovalContent({ approval, action, working }: Props) {
       <p className="approval-description">{approval.reason}</p>
       <p className="browser-page-url">Current page: {approval.page.url}</p>
       <BrowserActionSummary action={approval.action} />
+      {approval.uploadDigest ? (
+        <p className="quiet break-all">
+          Exact upload SHA-256: {approval.uploadDigest} ?{' '}
+          {approval.uploadMimeType || 'text/markdown'}
+        </p>
+      ) : null}
+      {approval.uploadPreview ? (
+        <details className="approval-preview">
+          <summary>Review generated upload text</summary>
+          <pre>{approval.uploadPreview}</pre>
+        </details>
+      ) : null}
       {approval.uploadContent !== undefined ? (
         <details className="approval-preview">
           <summary>Review upload contents</summary>

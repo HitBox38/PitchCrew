@@ -22,7 +22,7 @@ export function registerSessionSecurity(
     if (!options.dev)
       res.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
       );
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');

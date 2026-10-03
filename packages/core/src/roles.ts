@@ -22,6 +22,8 @@ export const capabilitySchema = z.object({
   calendar: z.boolean().optional(),
   sheets: z.boolean().optional(),
   computerUse: z.boolean().optional(),
+  assessForms: z.boolean().optional(),
+  recordSubmissions: z.boolean().optional(),
 });
 export type AgentCapabilities = z.infer<typeof capabilitySchema>;
 export const defaultCapabilities: AgentCapabilities = {
@@ -35,6 +37,8 @@ export const defaultCapabilities: AgentCapabilities = {
   calendar: false,
   sheets: false,
   computerUse: false,
+  assessForms: false,
+  recordSubmissions: false,
 };
 export const roleChanges = z
   .object({

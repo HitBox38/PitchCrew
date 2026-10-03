@@ -6,7 +6,7 @@ export * from './computer.ts';
 export { decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
-export type { Packet } from './packets.ts';
+export type { Packet, PacketArtifact } from './packets.ts';
 export { capabilitySchema, defaultCapabilities, roleChanges, rolePatch } from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
 export { runResultSchema } from './runs.ts';
@@ -39,3 +39,5 @@ export type {
   ProfileImportFile,
   ProfileSourcePreview,
 } from './profile-sources.ts';
+
+export * from './submissions.ts';

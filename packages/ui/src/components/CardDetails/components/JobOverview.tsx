@@ -1,3 +1,5 @@
+import { FormAssessments } from './FormAssessments.tsx';
+import { SubmissionReceipts } from './SubmissionReceipts.tsx';
 import { OutcomeActions } from '@/components/CardDetails/components/OutcomeActions.tsx';
 import type { JobOverviewProps } from '@/components/CardDetails/types.ts';
 
@@ -21,6 +23,8 @@ export function JobOverview({ card, working, run, act }: JobOverviewProps) {
           </ul>
         </>
       ) : null}
+      <FormAssessments card={card} />
+      <SubmissionReceipts card={card} act={act} working={working} />
       <h3>Outcome</h3>
       <p className="quiet">Record what happened after you applied.</p>
       <OutcomeActions card={card} working={working} run={run} act={act} />

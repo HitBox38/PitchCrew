@@ -1,3 +1,4 @@
+import type { PacketArtifact } from '@pitchcrew/core';
 import {
   type Approval,
   type BoardEvent,
@@ -9,7 +10,7 @@ import {
 import { createBoardContext } from './board/context.ts';
 import type { BoardContext } from './board/types.ts';
 
-export { digestPacket } from './board/helpers.ts';
+export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {
@@ -49,7 +50,9 @@ export class Board {
   }
   updateCard(
     id: string,
-    patch: Partial<Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner'>>,
+    patch: Partial<
+      Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+    >,
     actor: string,
     message: string,
   ): Card {
@@ -58,8 +61,8 @@ export class Board {
   move(id: string, state: CardState, actor: string, message?: string): Card {
     return this.context.move(id, state, actor, message);
   }
-  requestApproval(cardId: string): Approval {
-    return this.context.requestApproval(cardId);
+  requestApproval(cardId: string, artifacts?: PacketArtifact[]): Approval {
+    return this.context.requestApproval(cardId, artifacts);
   }
   decideApproval(id: string, approved: boolean): Approval {
     return this.context.decideApproval(id, approved);
