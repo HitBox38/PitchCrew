@@ -1,4 +1,4 @@
-import type { ProfileMaintenanceProposal } from './profile-maintenance.ts'
+import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
