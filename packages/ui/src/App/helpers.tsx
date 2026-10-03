@@ -42,7 +42,7 @@ export function getWorkspaceModel(props: ReadyWorkspaceProps) {
     ) : view === 'profile' ? (
       'Writer only quotes from these notes, and Reviewer checks every claim against them.'
     ) : view === 'activity' ? (
-      `${data.events.length} events, newest first. The log is append-only.`
+      'A history of your jobs, crew runs, and decisions, newest first.'
     ) : (
       'Check the address or return to Board.'
     );

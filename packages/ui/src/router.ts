@@ -7,6 +7,7 @@ import {
   notFound,
   redirect,
 } from '@tanstack/react-router';
+import { validateActivitySearch } from './ActivityPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
 import type { View } from './navigation.ts';
 import { isChatThread, validateSkillSearch } from './navigation.ts';
@@ -76,6 +77,7 @@ const activityRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/activity',
   staticData: { view: 'activity' },
+  validateSearch: validateActivitySearch,
   component: lazyRouteComponent(() => import('@/ActivityPage/index.tsx'), 'ActivityPage'),
 });
 

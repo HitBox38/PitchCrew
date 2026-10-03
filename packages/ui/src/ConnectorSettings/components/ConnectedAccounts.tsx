@@ -39,7 +39,7 @@ export function ConnectedAccounts({
             ) : null}
           </div>
           <span className={`badge ${connector.connected ? 'success' : ''}`}>
-            {connector.connected ? 'Connected' : 'Disconnected'}
+            {connector.connected ? 'Connected' : connector.pending ? 'Signing in…' : 'Disconnected'}
           </span>
           {connector.connected || connector.pending ? (
             <Button

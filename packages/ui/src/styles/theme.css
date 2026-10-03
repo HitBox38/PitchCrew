@@ -92,7 +92,7 @@
     inset 0 1px 0 rgb(255 255 255 / 0.95), inset 2px 3px 6px rgb(255 255 255 / 0.7),
     inset -3px -4px 7px rgb(30 34 44 / 0.06);
   --clay: var(--drop-sm), var(--volume-sm);
-  --clay-hover: var(--drop), var(--volume);
+  --clay-hover: var(--drop-sm), var(--volume);
   --clay-sunken:
     inset 0 1px 2px rgb(30 34 44 / 0.07), inset 3px 4px 8px rgb(30 34 44 / 0.07),
     inset -3px -3px 7px rgb(255 255 255 / 0.75), 0 1px 0 rgb(255 255 255 / 0.85);
@@ -115,7 +115,11 @@
   --sidebar-accent: rgb(var(--tint) / 0.055);
   --sidebar-border: var(--border);
   --sidebar-ring: var(--primary);
-  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 160ms;
+  --duration-popup: 180ms;
+  --duration-surface: 250ms;
   --motion:
     transform 0.18s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease),
     color 0.15s;

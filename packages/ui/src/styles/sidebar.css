@@ -197,3 +197,15 @@
   background: var(--inverse);
   color: var(--on-inverse);
 }
+
+[data-slot='sidebar-container'],
+[data-slot='sidebar-gap'] {
+  transition: none;
+}
+[data-slot='sidebar-header'],
+[data-slot='sidebar-footer'] {
+  flex-shrink: 0;
+}
+[data-slot='sidebar-content'] {
+  overscroll-behavior: contain;
+}

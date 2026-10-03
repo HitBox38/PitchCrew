@@ -4,6 +4,9 @@
   margin-inline: auto;
   padding: 25px 32px 30px;
 }
+.chat-work-section {
+  position: relative;
+}
 .chat-work-section + .chat-work-section {
   margin-top: 32px;
   padding-top: 24px;

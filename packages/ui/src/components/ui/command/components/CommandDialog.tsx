@@ -22,6 +22,7 @@ export function CommandDialog({
         <DialogDescription>{description}</DialogDescription>
       </DialogHeader>
       <DialogContent
+        motion={false}
         className={cn('overflow-hidden p-0', className)}
         showCloseButton={showCloseButton}
       >

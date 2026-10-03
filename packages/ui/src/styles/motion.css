@@ -1,8 +1,144 @@
-/* Motion owns physical movement; CSS owns the clay lighting and shadows. */
+/* Base UI owns surface state and unmounting; CSS provides interruptible motion.
+   Motion remains for dynamic board layout, pointer tilt and new chat messages. */
 [data-slot='button'] {
-  transition-property: color, background-color, border-color, box-shadow, opacity;
+  transition:
+    transform var(--duration-press) var(--ease),
+    color 150ms,
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms,
+    opacity 150ms;
 }
-[data-slot='dialog-content'],
+[data-slot='button']:active:not(:disabled):not([data-disabled]) {
+  transform: scale(0.97);
+  transition-duration: 100ms;
+}
+[data-slot='dialog-overlay'],
+[data-slot='sheet-overlay'] {
+  opacity: 1;
+  transition: opacity var(--duration-popup) var(--ease);
+}
+[data-slot='dialog-content'] {
+  opacity: 1;
+  transform: scale(1);
+  transform-origin: center;
+  transition:
+    opacity var(--duration-surface) var(--ease),
+    transform var(--duration-surface) var(--ease);
+}
+[data-slot='dialog-content'][data-starting-style],
+[data-slot='dialog-content'][data-ending-style] {
+  opacity: 0;
+  transform: scale(0.96);
+}
 [data-slot='sheet-content'] {
-  transition-property: none;
+  opacity: 1;
+  transform: translate(0);
+  transition:
+    transform var(--duration-surface) var(--ease-drawer),
+    opacity var(--duration-popup) var(--ease);
+}
+[data-slot='sheet-content'][data-side='right']:is([data-starting-style], [data-ending-style]) {
+  transform: translateX(100%);
+}
+[data-slot='sheet-content'][data-side='left']:is([data-starting-style], [data-ending-style]) {
+  transform: translateX(-100%);
+}
+[data-slot='sheet-content'][data-side='top']:is([data-starting-style], [data-ending-style]) {
+  transform: translateY(-100%);
+}
+[data-slot='sheet-content'][data-side='bottom']:is([data-starting-style], [data-ending-style]) {
+  transform: translateY(100%);
+}
+[data-slot='dialog-overlay']:is([data-starting-style], [data-ending-style]),
+[data-slot='sheet-overlay']:is([data-starting-style], [data-ending-style]),
+[data-slot='sheet-content']:is([data-starting-style], [data-ending-style]) {
+  opacity: 0;
+}
+[data-motion='false'] {
+  transition: none;
+}
+[data-slot='dialog-content'][data-motion='false'] {
+  transform: none;
+}
+[data-slot='dropdown-menu-content'],
+[data-slot='dropdown-menu-sub-content'],
+[data-slot='select-content'],
+[data-slot='tooltip-content'] {
+  opacity: 1;
+  transform: scale(1);
+  transform-origin: var(--transform-origin);
+  transition:
+    transform var(--duration-popup) var(--ease),
+    opacity var(--duration-popup) var(--ease);
+}
+:is(
+  [data-slot='dropdown-menu-content'],
+  [data-slot='dropdown-menu-sub-content'],
+  [data-slot='select-content'],
+  [data-slot='tooltip-content']
+):is([data-starting-style], [data-ending-style]) {
+  opacity: 0;
+  transform: scale(0.97);
+}
+[data-slot='tooltip-content'] {
+  transition-duration: 125ms;
+}
+[data-slot='tooltip-content'][data-instant],
+[data-slot='select-content'][data-align-trigger='true'] {
+  transition: none;
+}
+[data-slot='collapsible-content'] {
+  height: var(--collapsible-panel-height);
+  overflow: hidden;
+  opacity: 1;
+  /* Height is the deliberate exception: an accordion must move following content. */
+  transition:
+    height 200ms var(--ease),
+    opacity 200ms var(--ease);
+}
+[data-slot='collapsible-content']:is([data-starting-style], [data-ending-style]) {
+  height: 0;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='button'],
+  [data-slot='sidebar-container'],
+  [data-slot='sidebar-gap'],
+  [data-slot='collapsible-content'] {
+    transition: none;
+  }
+  [data-slot='button']:active:not(:disabled):not([data-disabled]) {
+    transform: none;
+  }
+  :is(
+    [data-slot='dialog-content'],
+    [data-slot='sheet-content'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dropdown-menu-sub-content'],
+    [data-slot='select-content'],
+    [data-slot='tooltip-content']
+  ) {
+    transition: opacity 120ms var(--ease);
+  }
+  :is(
+    [data-slot='dialog-content'],
+    [data-slot='sheet-content'],
+    [data-slot='dropdown-menu-content'],
+    [data-slot='dropdown-menu-sub-content'],
+    [data-slot='select-content'],
+    [data-slot='tooltip-content']
+  ):is([data-starting-style], [data-ending-style]) {
+    transform: none;
+  }
+}
+/* Exceptions stay stronger than the general reduced-motion surface rules. */
+[data-slot='dialog-content'][data-motion='false'],
+[data-slot='dialog-overlay'][data-motion='false'] {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='sheet-content'][data-side]:is([data-starting-style], [data-ending-style]) {
+    transform: none;
+  }
 }

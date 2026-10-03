@@ -8,13 +8,12 @@ import { getWorkspaceModel } from '@/App/helpers.tsx';
 import { SidebarInset } from '@/components/ui/sidebar/components/SidebarInset.tsx';
 import { SidebarProvider } from '@/components/ui/sidebar/components/SidebarProvider.tsx';
 import { Outlet } from '@tanstack/react-router';
-import * as m from 'motion/react-m';
 import { Suspense } from 'react';
 import type { ReadyWorkspaceProps } from '../types.ts';
 
 export function Workspace(props: ReadyWorkspaceProps) {
   const controller = getWorkspaceModel(props);
-  const { reduced, error, view, sidebarOpen, paletteMounted } = controller;
+  const { error, view, sidebarOpen, paletteMounted } = controller;
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
       <a className="skip-link" href="#main">
@@ -23,12 +22,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
       <WorkspaceSidebar {...controller} />
       <SidebarInset id="main" tabIndex={-1}>
         <WorkspaceToolbar {...controller} />
-        <m.div
-          key={view}
-          initial={reduced ? false : { opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          className={`page ${view === 'chat' ? 'chat-page' : ''}`}
-        >
+        <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
           <WorkspaceHeading {...controller} />
           {error ? (
             <div role="alert" className="error-banner">
@@ -38,7 +32,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
           <Suspense fallback={<p className="quiet">Opening view…</p>}>
             <Outlet />
           </Suspense>
-        </m.div>
+        </div>
       </SidebarInset>
       {paletteMounted ? <WorkspacePalette {...controller} /> : null}
       <WorkspaceNotification {...controller} />

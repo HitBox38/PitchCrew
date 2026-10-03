@@ -1,3 +1,4 @@
+import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import { capabilityDefaults, capabilityLabels } from '@/agent-capabilities.ts';
 import type { RoleCapabilitiesProps } from '@/ChatWork/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -5,7 +6,7 @@ import { SlidersHorizontal } from 'lucide-react';
 
 export function RoleCapabilities({ role, onConfigure }: RoleCapabilitiesProps) {
   return (
-    <section className="chat-work-section chat-role-summary">
+    <WorkSection className="chat-work-section chat-role-summary">
       <div className="chat-work-heading">
         <div>
           <h3>How {role.name} works</h3>
@@ -32,6 +33,6 @@ export function RoleCapabilities({ role, onConfigure }: RoleCapabilitiesProps) {
         Agents propose instruction and capability changes and suggest skills. You decide whether to
         apply them.
       </p>
-    </section>
+    </WorkSection>
   );
 }

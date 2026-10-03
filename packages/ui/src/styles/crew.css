@@ -28,9 +28,9 @@
 }
 .crew-runtime {
   display: grid;
-  grid-template-columns: repeat(3, auto);
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
   justify-content: start;
-  gap: 4px 22px;
+  gap: 6px 16px;
   padding: 12px 0;
   margin-top: auto;
   margin-bottom: 16px;
@@ -43,6 +43,7 @@
 .crew-runtime dd {
   font-size: 13px;
   font-weight: 600;
+  overflow-wrap: anywhere;
 }
 .crew-card .button {
   align-self: flex-start;
@@ -138,4 +139,90 @@
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
+}
+
+.crew-card-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.crew-card-top > div,
+.crew-runtime > div {
+  min-width: 0;
+}
+.runtime-section {
+  margin-top: 32px;
+}
+.runtime-section .section-heading h2 {
+  font-size: 18px;
+}
+.runtime-discovery {
+  margin-top: 12px;
+}
+.runtime-discovery-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+}
+.runtime-discovery-trigger span {
+  margin-left: auto;
+  font-weight: 400;
+  color: var(--muted);
+}
+.runtime-discovery-trigger svg {
+  transition: transform var(--duration-popup) var(--ease);
+}
+.runtime-discovery-trigger[data-panel-open] svg {
+  transform: rotate(180deg);
+}
+.runtime-row > div {
+  min-width: 0;
+}
+.runtime-row p {
+  overflow-wrap: anywhere;
+}
+.runtime-row > small {
+  max-width: 28%;
+  overflow-wrap: anywhere;
+}
+@media (min-width: 761px) and (max-width: 1100px) {
+  .crew-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: none;
+    gap: 12px;
+  }
+  .crew-card {
+    padding: 16px;
+  }
+  .crew-runtime {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+}
+@media (max-width: 760px) {
+  .crew-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: none;
+  }
+  .crew-runtime {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .connector-row {
+    align-items: flex-start;
+  }
+  .connector-settings .connector-row > div {
+    flex: 1 1 calc(100% - 36px);
+  }
+  .connector-row > .badge {
+    margin-left: 30px;
+  }
 }

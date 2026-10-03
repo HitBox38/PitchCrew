@@ -44,10 +44,6 @@
   .page {
     padding: 6px 24px 40px;
   }
-  .crew-grid {
-    grid-template-columns: 1fr;
-    max-width: 640px;
-  }
   .profile-layout {
     grid-template-columns: minmax(0, 1fr) 200px;
   }
@@ -88,11 +84,8 @@
   .welcome-actions {
     flex-wrap: wrap;
   }
-  .crew-runtime {
-    grid-template-columns: repeat(2, auto);
-  }
   .profile-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .profile-aside {
     order: -1;
@@ -167,7 +160,7 @@
   *::before,
   *::after {
     animation: none !important;
-    transition: none !important;
+    transition-duration: 0ms;
     scroll-behavior: auto !important;
   }
   .job-card:hover,

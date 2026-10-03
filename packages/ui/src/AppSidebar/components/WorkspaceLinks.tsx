@@ -24,7 +24,7 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
       <SidebarGroupLabel>Workspace</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          <Collapsible defaultOpen className="group/collapsible" render={<SidebarMenuItem />}>
+          <Collapsible className="group/collapsible" render={<SidebarMenuItem />}>
             <SidebarMenuButton
               tooltip="Board"
               isActive={view === 'board'}

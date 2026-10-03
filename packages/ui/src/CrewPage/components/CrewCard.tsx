@@ -24,19 +24,23 @@ export function CrewCard({ role, status, onConfigure, onChat }: CrewCardProps) {
         </div>
         <div>
           <dt>Model</dt>
-          <dd>{role.model || 'CLI default'}</dd>
+          <dd title={role.model || undefined}>
+            {role.runtime === 'demo' ? 'Scripted' : role.model || 'CLI default'}
+          </dd>
         </div>
         <div>
           <dt>Now</dt>
-          <dd>{status.startsWith('Working') ? status : 'Idle'}</dd>
+          <dd>{status}</dd>
         </div>
       </dl>
-      <Button className="button primary" onClick={onChat}>
-        <MessageSquare size={14} /> Chat
-      </Button>
-      <Button className="button" onClick={onConfigure}>
-        <SlidersHorizontal size={14} /> Configure
-      </Button>
+      <div className="crew-card-actions">
+        <Button className="button primary" onClick={onChat}>
+          <MessageSquare size={14} /> Chat
+        </Button>
+        <Button className="button" onClick={onConfigure}>
+          <SlidersHorizontal size={14} /> Configure
+        </Button>
+      </div>
     </section>
   );
 }

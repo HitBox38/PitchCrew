@@ -20,6 +20,11 @@ export function SkillsView(props: SkillsViewProps) {
         to the next chat or job run.
       </p>
       {data.starterSkillErrors?.length ? <StarterSkillErrors {...controller} /> : null}
+      {data.skills.length ? (
+        <output className="skills-result-count">
+          {skills.length} of {data.skills.length} {data.skills.length === 1 ? 'skill' : 'skills'}
+        </output>
+      ) : null}
       {skills.length ? (
         <SkillLibrary {...controller} />
       ) : (

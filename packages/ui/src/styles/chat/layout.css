@@ -247,3 +247,46 @@
   height: 2px;
   background: var(--chat-tone);
 }
+/* Conversations fit the viewport; only the transcript and work pane scroll. */
+.page.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 48px - var(--desktop-titlebar-height, 0px));
+  padding-bottom: 20px;
+}
+.chat-page .page-heading {
+  flex-shrink: 0;
+}
+.chat-page .chat-workspace {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+}
+.chat-rail {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+@media (max-width: 800px) {
+  .chat-page .chat-workspace {
+    display: flex;
+    flex-direction: column;
+  }
+  .chat-page .chat-panel {
+    height: auto;
+    flex: 1;
+  }
+  .chat-page .chat-rail {
+    flex-shrink: 0;
+    overflow-y: hidden;
+  }
+  .chat-page .page-heading p {
+    display: none;
+  }
+  .chat-page .page-heading {
+    margin-bottom: 12px;
+  }
+  .chat-page .chat-heading p {
+    display: none;
+  }
+}

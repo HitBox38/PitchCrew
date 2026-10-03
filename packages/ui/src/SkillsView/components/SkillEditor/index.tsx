@@ -1,3 +1,4 @@
+import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
 import { SkillAssignment } from '@/SkillsView/components/SkillEditor/components/SkillAssignment.tsx';
@@ -11,7 +12,7 @@ import type { SkillEditorProps } from '@/SkillsView/components/SkillEditor/types
 
 export function SkillEditor(props: SkillEditorProps) {
   const controller = useSkillEditor(props);
-  const { skill, importing, working, onClose, save } = controller;
+  const { skill, importing, working, onClose, save, guard } = controller;
   return (
     <Sheet
       open
@@ -31,6 +32,7 @@ export function SkillEditor(props: SkillEditorProps) {
           <SkillEditorFooter {...controller} />
         </form>
       </SheetContent>
+      <DiscardChanges guard={guard} />
     </Sheet>
   );
 }
