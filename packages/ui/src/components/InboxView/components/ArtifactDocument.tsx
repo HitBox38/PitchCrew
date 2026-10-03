@@ -3,6 +3,7 @@ import type { Approval, PacketArtifact } from '@pitchcrew/core';
 import { useArtifactUrl } from '../hooks/useArtifactUrl.ts';
 
 const PacketPdfPreview = lazy(() => import('@/PacketPdfPreview/index.tsx'));
+const PacketDocxPreview = lazy(() => import('@/PacketDocxPreview/index.tsx'));
 
 export function ArtifactDocument({
   approval,
@@ -34,6 +35,12 @@ export function ArtifactDocument({
       {artifact.mimeType === 'application/pdf' && opened ? (
         <Suspense fallback={<p className="quiet">Loading PDF preview...</p>}>
           <PacketPdfPreview bytes={artifact.bytes} name={artifact.name} />
+        </Suspense>
+      ) : null}
+      {artifact.mimeType ===
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document' && opened ? (
+        <Suspense fallback={<p className="quiet">Loading DOCX preview...</p>}>
+          <PacketDocxPreview bytes={artifact.bytes} name={artifact.name} />
         </Suspense>
       ) : null}
       <details>
