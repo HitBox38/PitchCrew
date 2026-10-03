@@ -37,56 +37,58 @@ export function CrewLinks({
       <SidebarGroupLabel>Crew</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {roles.map((role) => {
-            const running = runningRoles.includes(role.id);
-            return (
-              <SidebarMenuItem key={role.id}>
-                <SidebarMenuButton
-                  size="lg"
-                  className={`crew-button ${role.enabled ? '' : 'paused'}`}
-                  tooltip={`${role.name}: ${roleStatus(role)}`}
-                  render={<Link to="/chat/$thread" params={{ thread: role.id }} />}
-                >
-                  <RoleAvatar agentRole={role.id} size="small" />
-                  <span className="crew-text">
-                    <strong>{role.name}</strong>
-                    <small>{roleStatus(role)}</small>
-                  </span>
-                  {running ? (
-                    <LoaderCircle
-                      className="spin crew-running ml-auto text-primary"
-                      aria-label="Running"
-                    />
-                  ) : null}
-                </SidebarMenuButton>
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    render={<SidebarMenuAction aria-label={`${role.name} actions`} />}
+          {roles
+            .filter((role) => !role.retiredAt)
+            .map((role) => {
+              const running = runningRoles.includes(role.id);
+              return (
+                <SidebarMenuItem key={role.id}>
+                  <SidebarMenuButton
+                    size="lg"
+                    className={`crew-button ${role.enabled ? '' : 'paused'}`}
+                    tooltip={`${role.name}: ${roleStatus(role)}`}
+                    render={<Link to="/chat/$thread" params={{ thread: role.id }} />}
                   >
-                    <MoreHorizontal />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent side="right" align="start" className="menu">
-                    <DropdownMenuGroup>
-                      <DropdownMenuLabel>{role.name}</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => onChatRole(role.id)}>
-                        <MessageSquare /> Chat
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onConfigureRole(role.id)}>
-                        <SlidersHorizontal /> Configure…
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        disabled={working || running}
-                        onClick={() => onToggleRole(role)}
-                      >
-                        {role.enabled ? <Pause /> : <Play />}
-                        {role.enabled ? 'Pause role' : 'Resume role'}
-                      </DropdownMenuItem>
-                    </DropdownMenuGroup>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </SidebarMenuItem>
-            );
-          })}
+                    <RoleAvatar agentRole={role.id} size="small" />
+                    <span className="crew-text">
+                      <strong>{role.name}</strong>
+                      <small>{roleStatus(role)}</small>
+                    </span>
+                    {running ? (
+                      <LoaderCircle
+                        className="spin crew-running ml-auto text-primary"
+                        aria-label="Running"
+                      />
+                    ) : null}
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      render={<SidebarMenuAction aria-label={`${role.name} actions`} />}
+                    >
+                      <MoreHorizontal />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="start" className="menu">
+                      <DropdownMenuGroup>
+                        <DropdownMenuLabel>{role.name}</DropdownMenuLabel>
+                        <DropdownMenuItem onClick={() => onChatRole(role.id)}>
+                          <MessageSquare /> Chat
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onConfigureRole(role.id)}>
+                          <SlidersHorizontal /> Configure…
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          disabled={working || running}
+                          onClick={() => onToggleRole(role)}
+                        >
+                          {role.enabled ? <Pause /> : <Play />}
+                          {role.enabled ? 'Pause role' : 'Resume role'}
+                        </DropdownMenuItem>
+                      </DropdownMenuGroup>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              );
+            })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

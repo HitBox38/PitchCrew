@@ -23,7 +23,7 @@ export function ConversationWelcome({
           <RoleAvatar agentRole={roleId} size="large" />
         )}
       </div>
-      <h3>{thread === 'crew' ? 'Bring the crew together' : rolePurpose[roleId]}</h3>
+      <h3>{thread === 'crew' ? 'Bring the crew together' : (rolePurpose[roleId] ?? role.name)}</h3>
       <p>
         {thread === 'crew'
           ? 'Follow the handoffs, ask a question, or help the crew decide what comes next.'
@@ -57,7 +57,7 @@ export function ConversationWelcome({
               <span>Ask about this role</span>
               <ArrowRight size={15} />
             </Button>
-            {conversationStarters[roleId]
+            {(conversationStarters[roleId] ?? [])
               .filter((starter) => attached || !starter.prompt.includes('attached job'))
               .map((starter) => (
                 <Button

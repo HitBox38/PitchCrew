@@ -9,7 +9,7 @@ import type { Approval } from './workspace.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   kind:
     | 'card'
     | 'role'
@@ -49,7 +49,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 5 &&
     event.version !== 6 &&
     event.version !== 7 &&
-    event.version !== 8
+    event.version !== 8 &&
+    event.version !== 9
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

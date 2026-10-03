@@ -1,10 +1,21 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { roleChanges, roleIds, skillSuggestionInput } from '@pitchcrew/core';
+import { roleChanges, roleIdSchema, skillSuggestionInput } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
 export function registerCrewTools(server: McpServer, call: AgentCall) {
+  server.registerTool(
+    'pitchcrew_list_roles',
+    {
+      title: 'List crew roles',
+      description:
+        'List stored roles and their responsibilities, enabled status and workflow seats. Use these stable IDs for crew messages, invocations and assignments.',
+      inputSchema: {},
+      annotations: readOnly,
+    },
+    () => call('roles'),
+  );
   server.registerTool(
     'pitchcrew_notify_user',
     {
@@ -35,7 +46,7 @@ export function registerCrewTools(server: McpServer, call: AgentCall) {
       title: 'Message a crew member',
       description:
         'Persist a visible crew message and queue a reply from that role after this run finishes. Six follow-ups maximum per user-started chain.',
-      inputSchema: { roleId: z.enum(roleIds), content: z.string().trim().min(1).max(8000) },
+      inputSchema: { roleId: roleIdSchema, content: z.string().trim().min(1).max(8000) },
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },
     (input) => call('message', input),
@@ -47,7 +58,7 @@ export function registerCrewTools(server: McpServer, call: AgentCall) {
       description:
         'Queue yourself or another role after this run completes. Chat continues the crew conversation; workflow runs operate only on the attached card and must follow its state machine. Six follow-ups maximum per chain.',
       inputSchema: {
-        roleId: z.enum(roleIds),
+        roleId: roleIdSchema,
         content: z.string().trim().min(1).max(8000),
         mode: z.enum(['chat', 'workflow']),
       },

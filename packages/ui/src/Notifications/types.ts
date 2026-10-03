@@ -12,7 +12,7 @@ export interface CrewNotification {
   context: NotificationContext;
   title: string;
   body: string;
-  target: '/inbox' | '/chat/scout' | '/chat/writer' | '/chat/reviewer' | '/chat/crew';
+  target: '/inbox' | `/chat/${string}`;
   createdAt: string;
 }
 export interface NotificationPreferences {

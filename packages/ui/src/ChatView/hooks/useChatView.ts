@@ -22,7 +22,12 @@ export function useChatView({
   const setPane = (next: 'conversation' | 'work') =>
     setPanes((current) => ({ ...current, [thread]: next }));
   const [error, setError] = useState('');
-  const roleId = thread === 'crew' ? recipient : thread;
+  const roleId =
+    thread === 'crew'
+      ? (data.roles.find((role) => role.id === recipient && !role.retiredAt)?.id ??
+        data.roles.find((role) => !role.retiredAt)?.id ??
+        recipient)
+      : thread;
   const role = data.roles.find((r) => r.id === roleId)!;
   const streamingIds = new Set(data.streamingMessages.map((message) => message.id));
   const messages = [...data.messages, ...data.streamingMessages].filter(
@@ -53,15 +58,19 @@ export function useChatView({
     { value: '', label: 'Attach a job' },
     ...data.cards.map((card) => ({ value: card.id, label: `${card.company} · ${card.title}` })),
   ];
-  const recipientItems = data.roles.map((item) => ({ value: item.id, label: item.name }));
+  const recipientItems = data.roles
+    .filter((item) => !item.retiredAt)
+    .map((item) => ({ value: item.id, label: item.name }));
   const attached = data.cards.find((card) => card.id === cardId);
-  const roleState = !role.enabled
-    ? 'Paused'
-    : !available
-      ? 'Unavailable'
-      : busy
-        ? 'Working'
-        : 'Ready';
+  const roleState = role.retiredAt
+    ? 'Retired'
+    : !role.enabled || !!role.retiredAt
+      ? 'Paused'
+      : !available
+        ? 'Unavailable'
+        : busy
+          ? 'Working'
+          : 'Ready';
   const name = (id: ChatMessage['from'] | ChatMessage['to']) =>
     id === 'user'
       ? 'You'
@@ -75,7 +84,7 @@ export function useChatView({
     inputRef.current?.focus();
   };
   async function send(text: string) {
-    if (!text.trim() || busy || working || !role.enabled || !available) return;
+    if (!text.trim() || busy || working || !role.enabled || !!role.retiredAt || !available) return;
     const sentThread = thread;
     setPane('conversation');
     setError('');
@@ -102,7 +111,7 @@ export function useChatView({
     inputRef,
     setDrafts,
     setJobs,
-    recipient,
+    recipient: thread === 'crew' ? roleId : recipient,
     setRecipient,
     pane,
     setPane,

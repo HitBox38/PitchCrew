@@ -87,6 +87,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       [
         'pitchcrew_export_packet',
         'pitchcrew_list_connectors',
+        'pitchcrew_list_roles',
         'pitchcrew_get_card',
         'pitchcrew_get_history',
         'pitchcrew_lint_packet',

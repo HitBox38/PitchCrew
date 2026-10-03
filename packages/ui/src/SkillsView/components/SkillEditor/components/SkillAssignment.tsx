@@ -32,23 +32,25 @@ export function SkillAssignment({
       {scope === 'roles' ? (
         <fieldset className="role-settings-capabilities">
           <legend>Assigned agents</legend>
-          {roles.map((role) => (
-            <label className="checkbox-label" key={role.id}>
-              <Checkbox
-                checked={roleIds.includes(role.id)}
-                onCheckedChange={(checked) =>
-                  setRoleIds((current) =>
-                    checked ? [...current, role.id] : current.filter((id) => id !== role.id),
-                  )
-                }
-              />
-              <RoleAvatar agentRole={role.id} size="small" />
-              {role.name}
-            </label>
-          ))}
+          {roles
+            .filter((role) => !role.retiredAt)
+            .map((role) => (
+              <label className="checkbox-label" key={role.id}>
+                <Checkbox
+                  checked={roleIds.includes(role.id)}
+                  onCheckedChange={(checked) =>
+                    setRoleIds((current) =>
+                      checked ? [...current, role.id] : current.filter((id) => id !== role.id),
+                    )
+                  }
+                />
+                <RoleAvatar agentRole={role.id} size="small" />
+                {role.name}
+              </label>
+            ))}
         </fieldset>
       ) : (
-        <p className="quiet">Scout, Writer, and Reviewer will all receive this skill.</p>
+        <p className="quiet">Every current and future active role receives this skill.</p>
       )}
     </section>
   );
