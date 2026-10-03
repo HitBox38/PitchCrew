@@ -39,3 +39,8 @@ export type {
   ProfileImportFile,
   ProfileSourcePreview,
 } from './profile-sources.ts';
+
+export type {
+  ProfileMaintenanceProposal,
+  ProfileMaintenanceChange,
+} from './profile-maintenance.ts';

@@ -12,6 +12,7 @@ import { connectorAccess, connectorAction } from './gateway/connectors.ts';
 import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
+import { profileAction } from './gateway/profile.ts';
 import { routineAction } from './gateway/routines.ts';
 import type { CrewContext } from './types.ts';
 
@@ -28,6 +29,15 @@ export async function agentCall(
   const permissions = role.capabilities ?? defaultCapabilities;
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);
+  if (
+    [
+      'watched_profile_sources',
+      'detect_profile_changes',
+      'read_project_watch_file',
+      'propose_profile_note',
+    ].includes(action)
+  )
+    return profileAction.call(this, capability, token, action, data);
   if (action === 'computer_access') return { enabled: permissions.computerUse === true };
   if (['computer_inspect', 'computer_request', 'computer_execute'].includes(action))
     return computerAction.call(this, capability, token, action, data);
