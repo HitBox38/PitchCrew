@@ -21,6 +21,8 @@ export function saveAssessment(
   raw: unknown,
 ) {
   if (!scope.cardId) throw new Error('Attach an application to assess its form.');
+  if (page.dialog)
+    throw new Error('Resolve the browser dialog before assessing form requirements.');
   const input = formAssessmentInput.parse(raw);
   const seen = new Set<string>();
   for (const field of input.fields) {
@@ -112,16 +114,62 @@ export function currentExport(
   return exported;
 }
 
-export function assertNoUncertainSubmission(board: Board, cardId: string | null) {
-  if (
-    cardId &&
-    board
-      .list<SubmissionAttempt>('submission_attempt')
-      .some((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain')
-  )
+export function assertNoUncertainSubmission(
+  board: Board,
+  cardId: string | null,
+  action?: BrowserAction,
+  runId?: string,
+) {
+  const uncertain = board
+    .list<SubmissionAttempt>('submission_attempt')
+    .filter((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain');
+  if (action?.kind === 'dialog' && action.submissionAttemptId) {
+    const attempt = uncertain.find((item) => item.id === action.submissionAttemptId);
+    if (!attempt || attempt.runId !== runId || uncertain.length !== 1)
+      throw new Error('Dialog continuation must belong to this run and unresolved submission.');
+    const exported = currentExport(board, cardId, attempt.exportApprovalId);
+    const submission = board.get<ComputerApproval>('computer_approval', attempt.computerApprovalId);
+    if (
+      exported.digest !== attempt.packetDigest ||
+      !['consumed', 'failed'].includes(submission.status)
+    )
+      throw new Error('Dialog continuation requires the current consumed submission attempt.');
+    return;
+  }
+  if (uncertain.length)
     throw new Error(
-      'Submission outcome is uncertain. Inspect and capture confirmation, then ask the user to resolve it before any further browser interaction.',
+      'Submission outcome is uncertain. Inspect and capture confirmation, then ask the user to resolve it before any further browser interaction. Only an exact approved dialog continuation bound to this attempt is permitted.',
     );
+}
+
+export function recordDialogContinuation(board: Board, approval: ComputerApproval) {
+  const action = approval.action;
+  if (action.kind !== 'dialog' || !action.submissionAttemptId) return;
+  assertNoUncertainSubmission(board, approval.cardId, action, approval.runId);
+  if (!approval.page.dialog)
+    throw new Error('Submission continuation requires an inspected browser dialog.');
+  const attempt = board.get<SubmissionAttempt>('submission_attempt', action.submissionAttemptId);
+  const next = {
+    ...attempt,
+    dialogApprovalIds: [...(attempt.dialogApprovalIds ?? []), approval.id],
+  };
+  board.record(
+    'submission_attempt',
+    next,
+    'mcp',
+    'Consumed exact dialog continuation for uncertain submission',
+  );
+  const card = board.get<Card>('card', attempt.cardId);
+  board.updateCard(
+    card.id,
+    {
+      submissionAttempts: card.submissionAttempts?.map((item) =>
+        item.id === attempt.id ? next : item,
+      ),
+    },
+    'mcp',
+    'Recorded submission dialog continuation',
+  );
 }
 
 export function beginSubmission(board: Board, approval: ComputerApproval) {

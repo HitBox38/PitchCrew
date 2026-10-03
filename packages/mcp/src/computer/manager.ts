@@ -15,6 +15,7 @@ import {
   isSubmission,
   pageEvidence,
   saveAssessment,
+  recordDialogContinuation,
 } from './submissions.ts';
 import type { Card, SubmissionAttempt } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
@@ -55,7 +56,7 @@ export class ComputerManager {
     reason: string,
   ) {
     const action = browserActionSchema.parse(raw);
-    assertNoUncertainSubmission(this.board, scope.cardId);
+    assertNoUncertainSubmission(this.board, scope.cardId, action, scope.runId);
     if (isSubmission(action))
       currentExport(
         this.board,
@@ -72,6 +73,8 @@ export class ComputerManager {
     this.busy.add(scope.runId);
     try {
       const page = await this.inspect(scope.runId);
+      if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
+        throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
       await (await this.sessions.get(scope.runId))?.validate?.(action);
       const file = await this.uploadFile(action, scope.cardId);
@@ -194,12 +197,13 @@ export class ComputerManager {
         throw new Error('The upload changed. Request a new approval.');
       authorize();
       signal.throwIfAborted();
-      assertNoUncertainSubmission(this.board, approval.cardId);
+      assertNoUncertainSubmission(this.board, approval.cardId, approval.action, runId);
       // Consume before any side effect; a failed/uncertain click can never reuse approval.
       const current = this.board.get<ComputerApproval>('computer_approval', id);
       if (current.status !== 'approved') throw new Error('Approval is no longer available.');
       this.board.db.transaction(() => {
         beginSubmission(this.board, approval);
+        recordDialogContinuation(this.board, approval);
         this.board.record(
           'computer_approval',
           { ...current, status: 'consumed' },

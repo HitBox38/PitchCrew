@@ -43,7 +43,7 @@ export async function registerComputerTools(server: McpServer, call: AgentCall) 
       'pitchcrew_computer_request',
       {
         description:
-          'Request user approval for one exact browser action on the current page. All navigation, clicks, fills, selections, keypresses and uploads need approval. CSS selectors must match exactly one element. Uploads accept only exported packet files for the attached card. This tool only proposes; it never interacts with the page.',
+          'Request user approval for one exact browser action on the current page. All navigation, clicks, fills, selections, keypresses, dialog decisions and uploads need approval. Final submission click/Enter uses purpose submission and exportApprovalId. If it opens a dialog, request an exact dialog decision with the existing submissionAttemptId; this is the only allowed continuation until user verification. CSS selectors must match exactly one element. Uploads accept only exported packet files for the attached card. This tool only proposes; it never interacts with the page.',
         inputSchema: { input: browserActionSchema, reason: z.string().trim().min(1).max(2000) },
         annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
       },

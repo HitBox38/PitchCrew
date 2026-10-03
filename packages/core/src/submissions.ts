@@ -57,4 +57,5 @@ export interface SubmissionAttempt {
   externalConfirmation?: { url: string; evidence: string; verifiedAt: string; provenance: 'user' };
   createdAt: string;
   resolvedAt?: string;
+  dialogApprovalIds?: string[];
 }

@@ -17,7 +17,13 @@ export const browserStatusLabels: Record<ComputerApproval['status'], string> = {
   failed: 'Failed',
 };
 export function actionFields(action: BrowserAction): [string, string][] {
-  if (action.kind === 'dialog') return [['Decision', action.decision]];
+  if (action.kind === 'dialog')
+    return [
+      ['Decision', action.decision],
+      ...(action.submissionAttemptId
+        ? [['Submission attempt', action.submissionAttemptId] as [string, string]]
+        : []),
+    ];
   if (action.kind === 'navigate') return [['Destination', action.url]];
   const fields: [string, string][] = [['Page element', action.selector]];
   if (action.frame) fields.push(['Frame', action.frame]);

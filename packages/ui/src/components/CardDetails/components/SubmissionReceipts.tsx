@@ -24,7 +24,7 @@ export function SubmissionReceipts({
           </p>
           {attempt.externalConfirmation ? (
             <p className="quiet">
-              User-verified external confirmation: {attempt.externalConfirmation.url} ?{' '}
+              User-verified external confirmation: {attempt.externalConfirmation.url} -{' '}
               {attempt.externalConfirmation.evidence}
             </p>
           ) : null}
