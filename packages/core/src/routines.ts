@@ -1,10 +1,11 @@
+import { roleIdSchema } from './roles.ts';
 import { z } from 'zod';
-import { roleIds, type RoleId } from './states.ts';
+import { type RoleId } from './states.ts';
 
 export const routineInput = z
   .object({
     name: z.string().trim().min(1).max(120),
-    roleId: z.enum(roleIds),
+    roleId: roleIdSchema,
     content: z.string().trim().min(1).max(8000),
     cardId: z.uuid().nullable().default(null),
     startAt: z.iso.datetime({ offset: true }),

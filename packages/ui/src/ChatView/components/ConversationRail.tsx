@@ -51,7 +51,7 @@ export function ConversationRail({ data, thread, onThread, setError }: Conversat
                   ? 'Working…'
                   : latest
                     ? `${latest.from === 'user' ? 'You: ' : ''}${latest.content}`
-                    : rolePurpose[item.id]}
+                    : (rolePurpose[item.id] ?? item.description)}
               </small>
             </span>
           </Button>

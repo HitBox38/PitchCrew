@@ -1,3 +1,4 @@
+import { requireRole } from './roles.ts';
 import {
   defaultCapabilities,
   type AgentTask,
@@ -19,7 +20,7 @@ export function enqueue(
 ): AgentTask {
   const parent = this.board.get<Run>('run', capability.runId);
   const rootRunId = parent.rootRunId ?? parent.id;
-  const role = this.board.get<Role>('role', roleId);
+  const role = requireRole(this, roleId);
   if (!role.enabled) throw new Error('The target role is paused.');
   if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('The target runtime is not available.');
@@ -92,6 +93,7 @@ export function taskPermissionsAllow(this: CrewContext, task: AgentTask): boolea
   const permissions = source.capabilities ?? defaultCapabilities;
   return (
     source.enabled &&
+    !source.retiredAt &&
     permissions[task.trigger === 'message' ? 'messageAgents' : 'invokeAgents'] &&
     (task.mode !== 'workflow' || permissions.manageWorkflow)
   );

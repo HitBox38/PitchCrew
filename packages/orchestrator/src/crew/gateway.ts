@@ -1,5 +1,7 @@
+import { requireRole } from './roles.ts';
 import {
   defaultCapabilities,
+  workflowSeat,
   runResultSchema,
   type Approval,
   type Card,
@@ -13,7 +15,9 @@ import { connectorAccess, connectorAction } from './gateway/connectors.ts';
 import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
+import { profileAction } from './gateway/profile.ts';
 import { routineAction } from './gateway/routines.ts';
+import { trackingAction } from './gateway/tracking.ts';
 import type { CrewContext } from './types.ts';
 
 export async function agentCall(
@@ -25,8 +29,11 @@ export async function agentCall(
   const capability = this.capabilities.get(token);
   if (!capability || this.controllers.get(capability.runId)?.signal.aborted)
     throw new Error('Run capability is invalid or expired.');
-  const role = this.board.get<Role>('role', capability.roleId);
+  const role = requireRole(this, capability.roleId);
+  if (!role.enabled) throw new Error('This role is paused.');
   const permissions = role.capabilities ?? defaultCapabilities;
+  if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
+    return trackingAction.call(this, capability, token, action, data);
   if (action === 'pipeline_access')
     return {
       reviewPipeline: role.enabled && permissions.reviewPipeline === true,
@@ -43,12 +50,47 @@ export async function agentCall(
     return pipelineAction(this, capability, action, data.input);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);
-  if (action === 'computer_access') return { enabled: permissions.computerUse === true };
-  if (['computer_inspect', 'computer_request', 'computer_execute'].includes(action))
+  if (
+    [
+      'watched_profile_sources',
+      'detect_profile_changes',
+      'read_project_watch_file',
+      'propose_profile_note',
+    ].includes(action)
+  )
+    return profileAction.call(this, capability, token, action, data);
+  if (action === 'computer_access')
+    return {
+      enabled: permissions.computerUse === true,
+      assessForms: permissions.assessForms === true,
+      recordSubmissions: permissions.recordSubmissions === true,
+    };
+  if (
+    [
+      'computer_inspect',
+      'computer_request',
+      'computer_execute',
+      'assess_form',
+      'capture_submission',
+    ].includes(action)
+  )
     return computerAction.call(this, capability, token, action, data);
   if (action === 'connector_access') return connectorAccess.call(this, permissions);
   if (action === 'connector') return connectorAction.call(this, capability, permissions, data);
   if (action === 'notify_user') return notifyUser.call(this, capability, data);
+  if (action === 'roles')
+    return {
+      roles: this.board
+        .list<Role>('role')
+        .filter((item) => !item.retiredAt)
+        .map((item) => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          enabled: item.enabled,
+          workflow: workflowSeat(item),
+        })),
+    };
   if (action === 'messages') return readMessages.call(this, capability);
   if (action === 'message' || action === 'invoke')
     return queueMessage.call(this, capability, permissions, action, data);

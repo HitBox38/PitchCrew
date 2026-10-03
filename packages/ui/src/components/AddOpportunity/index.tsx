@@ -1,6 +1,7 @@
 import { JobIdentityFields } from '@/components/AddOpportunity/components/JobIdentityFields.tsx';
 import { JobLocationFields } from '@/components/AddOpportunity/components/JobLocationFields.tsx';
 import { useAddOpportunity } from '@/components/AddOpportunity/hooks/useAddOpportunity.ts';
+import { ExternalApplicationFields } from './components/ExternalApplicationFields.tsx';
 import type { AddOpportunityProps } from '@/components/AddOpportunity/types.ts';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -10,14 +11,17 @@ import { LoaderCircle, Plus } from 'lucide-react';
 
 export function AddOpportunity(props: AddOpportunityProps) {
   const controller = useAddOpportunity(props);
-  const { working, onClose, error, submit } = controller;
+  const { working, onClose, error, submit, external, setExternal } = controller;
   return (
-    <Modal title="Add a job post" onClose={onClose}>
+    <Modal title={external ? 'Register an application' : 'Add a job post'} onClose={onClose}>
       <p className="modal-intro">
-        Scout works from the description, so paste it in if you have it.
+        {external
+          ? 'Save an application you already submitted so future updates can be tracked.'
+          : 'Scout works from the description, so paste it in if you have it.'}
       </p>
       <form onSubmit={(e) => void submit(e)} className="form flex flex-col gap-4">
         <JobIdentityFields />
+        <ExternalApplicationFields external={external} setExternal={setExternal} />
         <label>
           Job post URL <span className="optional">optional</span>
           <Input name="url" type="url" placeholder="https://…" />
@@ -46,7 +50,8 @@ export function AddOpportunity(props: AddOpportunityProps) {
             Cancel
           </Button>
           <Button type="submit" className="button primary" disabled={working}>
-            {working ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />} Add job
+            {working ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />}{' '}
+            {external ? 'Register application' : 'Add job'}
           </Button>
         </div>
       </form>

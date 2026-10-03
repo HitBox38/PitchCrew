@@ -1,3 +1,4 @@
+import { ProfileMaintenance } from '../ProfileMaintenance/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ConnectAccountDialog } from '@/ConnectorSettings/components/ConnectAccountDialog.tsx';
 import { GitBranch, FolderOpen, ExternalLink } from 'lucide-react';
@@ -38,6 +39,8 @@ export function ProfileSources(c: ProfileSourcesModel) {
         </div>
       </div>
       <SourceList {...c} />
+      <ProfileMaintenance {...c.maintenance} />
+      {c.maintenanceError ? <p role="alert">{c.maintenanceError}</p> : null}
       {c.provider ? <SourceForm {...c} /> : null}
       {c.connection.authorizationUrl && c.connection.google?.pending ? (
         <a className="button" href={c.connection.authorizationUrl} target="_blank" rel="noreferrer">

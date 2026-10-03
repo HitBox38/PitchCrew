@@ -1,3 +1,4 @@
+import { ExportRequest } from './ExportRequest.tsx';
 import type { JobActionsProps } from '@/components/CardDetails/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ArrowRight, Check, LoaderCircle, Play, ShieldCheck } from 'lucide-react';
@@ -38,9 +39,9 @@ export function JobActions({
               }
             >
               <Play size={15} />
-              {runRole === 'scout'
+              {card.state === 'lead'
                 ? 'Evaluate fit'
-                : runRole === 'writer'
+                : ['shortlisted', 'changes_requested'].includes(card.state)
                   ? 'Draft application'
                   : 'Review packet'}
             </Button>
@@ -55,19 +56,7 @@ export function JobActions({
             </Button>
           ) : null}
           {card.state === 'agreed' ? (
-            <Button
-              disabled={working}
-              className="button primary"
-              onClick={() =>
-                act(
-                  `/cards/${card.id}/approval`,
-                  undefined,
-                  'Approval requested; it’s in your inbox',
-                )
-              }
-            >
-              <ShieldCheck size={15} /> Request export approval
-            </Button>
+            <ExportRequest card={card} act={act} working={working} />
           ) : null}
           {card.state === 'awaiting_approval' && !exported ? (
             <Button className="button primary" onClick={onInbox}>

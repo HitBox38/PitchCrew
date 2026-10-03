@@ -1,3 +1,4 @@
+import { ArtifactPreview } from './ArtifactPreview.tsx';
 import { PacketApprovalActions } from '@/components/InboxView/components/PacketApprovalActions.tsx';
 import { PacketPreview } from '@/components/InboxView/components/PacketPreview.tsx';
 import type { PacketApprovalListProps } from '@/components/InboxView/types.ts';
@@ -52,6 +53,7 @@ export function PacketApprovalList({
                 folder. You can then apply yourself.
               </p>
               <PacketPreview approval={approval} />
+              <ArtifactPreview approval={approval} />
               <PacketApprovalActions
                 approval={approval}
                 card={card}

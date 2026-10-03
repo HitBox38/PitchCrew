@@ -28,7 +28,9 @@ export function createCard(this: BoardContext, input: CardInput, sample: boolean
 export function updateCard(
   this: BoardContext,
   id: string,
-  patch: Partial<Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner'>>,
+  patch: Partial<
+    Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+  >,
   actor: string,
   message: string,
 ): Card {
@@ -45,7 +47,13 @@ export function move(
 ): Card {
   const card = this.get<Card>('card', id);
   assertTransition(card.state, state);
-  const next = { ...card, state, updatedAt: new Date().toISOString() };
+  const now = new Date().toISOString();
+  const next = {
+    ...card,
+    state,
+    updatedAt: now,
+    ...(actor === 'user' ? { statusEffectiveAt: now } : {}),
+  };
   this.record('card', next, actor, message ?? `Moved to ${state.replaceAll('_', ' ')}`);
   return next;
 }

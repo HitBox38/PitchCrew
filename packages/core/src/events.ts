@@ -1,3 +1,5 @@
+import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
+import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
@@ -7,6 +9,7 @@ import type { AgentTask, Run } from './runs.ts';
 import type { Routine } from './routines.ts';
 import type { Skill, SkillProposal } from './skills.ts';
 import type { Approval } from './workspace.ts';
+import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface BoardEvent {
   id: number;
@@ -21,9 +24,14 @@ export interface BoardEvent {
     | 'proposal'
     | 'task'
     | 'routine'
+    | 'tracking_signal'
+    | 'tracking_scan'
     | 'skill'
     | 'skill_proposal'
-    | 'computer_approval';
+    | 'computer_approval'
+    | 'profile_proposal'
+    | 'form_assessment'
+    | 'submission_attempt';
   entityId: string;
   actor: string;
   message: string;
@@ -37,9 +45,14 @@ export interface BoardEvent {
     | RoleProposal
     | AgentTask
     | Routine
+    | TrackingSignal
+    | TrackingScan
     | Skill
     | SkillProposal
-    | ComputerApproval;
+    | ComputerApproval
+    | ProfileMaintenanceProposal
+    | FormAssessment
+    | SubmissionAttempt;
   createdAt: string;
 }
 export function decodeEvent(raw: string): BoardEvent {

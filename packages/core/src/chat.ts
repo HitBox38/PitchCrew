@@ -1,5 +1,6 @@
+import { roleIdSchema } from './roles.ts';
 import { z } from 'zod';
-import { roleIds, type RoleId } from './states.ts';
+import { type RoleId } from './states.ts';
 
 export interface ChatMessage {
   id: string;
@@ -24,7 +25,7 @@ export interface ChatStreamUpdate {
 export const chatInput = z.object({
   content: z.string().trim().min(1).max(8000),
   cardId: z.uuid().nullable().default(null),
-  threadId: z.union([z.enum(roleIds), z.literal('crew')]).optional(),
+  threadId: z.union([roleIdSchema, z.literal('crew')]).optional(),
 });
 export const chatResultSchema = z.object({ reply: z.string().trim().min(1).max(12000) });
 export type ChatResult = z.infer<typeof chatResultSchema>;

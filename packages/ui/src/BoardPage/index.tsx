@@ -5,6 +5,7 @@ import { JobPipeline } from '@/BoardPage/components/JobPipeline.tsx';
 import { RecentActivity } from '@/BoardPage/components/RecentActivity.tsx';
 import { useBoardPage } from '@/BoardPage/hooks/useBoardPage.ts';
 import { LayoutGroup } from 'motion/react';
+import { TrackingReview } from '@/TrackingReview/index.tsx';
 
 export function BoardPage() {
   const controller = useBoardPage();
@@ -28,6 +29,7 @@ export function BoardPage() {
   } = controller;
   return (
     <>
+      <TrackingReview />
       {!data.cards.length ? (
         <BoardWelcome setAdd={setAdd} working={working} act={act} />
       ) : (

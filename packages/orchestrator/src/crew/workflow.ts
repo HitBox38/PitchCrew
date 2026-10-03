@@ -1,7 +1,10 @@
+import { requireRole } from './roles.ts';
+import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   runResultSchema,
+  workflowSeat,
   type AgentTask,
   type Card,
   type ProfileFile,
@@ -22,16 +25,13 @@ export async function startRun(
   task?: AgentTask,
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
+  assertProfileReady(this);
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
   const profileRevision = this.profileRevision;
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
-  if (
-    this.board
-      .list<Run>('run')
-      .some((r) => r.roleId === roleId && r.mode === 'chat' && r.status === 'running')
-  )
+  if (this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running'))
     throw new Error('Wait for this role’s chat turn to finish.');
-  const role = this.board.get<Role>('role', roleId);
+  const role = requireRole(this, roleId);
   const skills = this.skills(roleId);
   const card = this.board.get<Card>('card', cardId);
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
@@ -39,12 +39,14 @@ export async function startRun(
     throw new Error('This runtime is not installed. Check Crew settings.');
   if (this.board.hasActiveRun(cardId))
     throw new Error('This application already has an active run.');
+  const seat = workflowSeat(role);
+  if (seat === 'chat') throw new Error('This role has no application workflow seat. Use chat.');
   const allowed = {
     scout: ['lead'],
     writer: ['shortlisted', 'changes_requested'],
     reviewer: ['in_review'],
   };
-  if (!allowed[roleId].includes(card.state))
+  if (!allowed[seat].includes(card.state))
     throw new Error(`The ${roleId} cannot run on a card in ${card.state}.`);
   const profile = await readProfile(this.directory);
   if (!profile.length) throw new Error('Add your profile notes before starting the crew.');
@@ -74,17 +76,15 @@ export async function startRun(
     this.board.hasActiveRun(cardId) ||
     this.board.get<Card>('card', cardId).state !== card.state ||
     this.configuring.has(roleId) ||
-    JSON.stringify(this.board.get<Role>('role', roleId)) !== JSON.stringify(role) ||
-    this.board
-      .list<Run>('run')
-      .some((r) => r.roleId === roleId && r.mode === 'chat' && r.status === 'running')
+    JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(role) ||
+    this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running')
   )
     throw new Error('This application changed or was claimed by another run. Refresh and retry.');
   const controller = new AbortController();
   this.controllers.set(run.id, controller);
   const token = randomUUID();
   this.capabilities.set(token, { runId: run.id, cardId, roleId });
-  if (roleId === 'writer') this.board.move(cardId, 'drafting', 'orchestrator');
+  if (seat === 'writer') this.board.move(cardId, 'drafting', 'orchestrator');
   this.board.updateCard(
     cardId,
     { owner: roleId },
@@ -165,7 +165,7 @@ export async function applyResult(
   signal?: AbortSignal,
 ): Promise<void> {
   const result: RunResult = runResultSchema.parse(data);
-  if (result.role !== role.id) throw new Error('Result role does not match the run.');
+  if (result.role !== workflowSeat(role)) throw new Error('Result role does not match the run.');
   if (result.role === 'scout') {
     this.board.updateCard(
       cardId,

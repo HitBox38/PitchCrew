@@ -1,3 +1,4 @@
+import { workflowSeat } from '@pitchcrew/core/states';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { capabilityDefaults } from '@/agent-capabilities.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
@@ -6,12 +7,18 @@ import { useState, type FormEvent } from 'react';
 
 export function useRoleSettings({
   role,
+  creating = false,
   data,
   action,
   working,
   onClose,
   onManageSkills,
 }: RoleSettingsProps) {
+  const [id, setId] = useState(role.id);
+  const [name, setName] = useState(role.name);
+  const [description, setDescription] = useState(role.description);
+  const [workflow, setWorkflow] = useState(workflowSeat(role));
+  const [retiring, setRetiring] = useState(false);
   const [runtime, setRuntime] = useState(role.runtime);
   const [model, setModel] = useState(role.model);
   const [enabled, setEnabled] = useState(role.enabled);
@@ -19,6 +26,10 @@ export function useRoleSettings({
   const [capabilities, setCapabilities] = useState({ ...capabilityDefaults, ...role.capabilities });
   const [error, setError] = useState('');
   const dirty =
+    id !== role.id ||
+    name !== role.name ||
+    description !== role.description ||
+    workflow !== workflowSeat(role) ||
     runtime !== role.runtime ||
     model !== role.model ||
     enabled !== role.enabled ||
@@ -36,20 +47,53 @@ export function useRoleSettings({
   const runtimeAvailable = runtimeCatalog.available;
   async function save(e: FormEvent) {
     e.preventDefault();
-    if (working || !runtimeAvailable) return;
+    if (working) return;
     try {
       await action(
-        `/roles/${role.id}`,
-        'PUT',
-        { runtime, model, enabled, instructions, capabilities },
-        `${role.name} settings saved`,
+        creating ? '/roles' : `/roles/${role.id}`,
+        creating ? 'POST' : 'PUT',
+        {
+          ...(creating ? { id } : {}),
+          name,
+          description,
+          workflow,
+          runtime,
+          model,
+          enabled,
+          instructions,
+          capabilities,
+        },
+        creating ? `${name} created` : `${name} settings saved`,
       );
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save settings.');
     }
   }
+  async function retire() {
+    if (!retiring) {
+      setRetiring(true);
+      return;
+    }
+    try {
+      await action(`/roles/${role.id}/retire`, 'POST', {}, `${role.name} retired`);
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not retire role.');
+    }
+  }
   return {
+    creating,
+    id,
+    setId,
+    name,
+    setName,
+    description,
+    setDescription,
+    workflow,
+    setWorkflow,
+    retiring,
+    retire,
     role,
     data,
     working,

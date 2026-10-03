@@ -5,11 +5,16 @@ export const capabilityLabels = {
   reviewPipeline: 'Review applications, outcomes and every crew role',
   proposeCrewChanges: 'Propose reviewed changes to other roles',
   manageRoutines: 'Create, edit and delete scheduled actions',
+  maintainProfile: 'Detect watched profile changes and propose reviewed updates',
+  readApplications: 'Search all tracked applications and evidence',
+  trackApplications: 'Reconcile application status from verified Gmail evidence',
   github: 'Read GitHub repositories, files and issues',
   gmail: 'Search and read Gmail',
   drive: 'Search Drive and read files and Docs',
   calendar: 'Read Google Calendar events',
   sheets: 'Read Google Sheets ranges',
+  assessForms: 'Assess inspected application forms',
+  recordSubmissions: 'Record approved submission attempts and evidence',
   computerUse: 'Use a local browser with approval for each interaction',
 };
 
@@ -18,6 +23,9 @@ export const capabilityDefaults = {
   invokeAgents: true,
   manageWorkflow: true,
   manageRoutines: true,
+  maintainProfile: false,
+  readApplications: false,
+  trackApplications: false,
   reviewPipeline: false,
   proposeCrewChanges: false,
   github: false,
@@ -26,4 +34,6 @@ export const capabilityDefaults = {
   calendar: false,
   sheets: false,
   computerUse: false,
+  assessForms: false,
+  recordSubmissions: false,
 };
