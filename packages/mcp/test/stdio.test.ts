@@ -98,8 +98,48 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_propose_role_changes',
         'pitchcrew_propose_skill',
         'pitchcrew_change_workflow',
+        'pitchcrew_list_routines',
+        'pitchcrew_save_routine',
+        'pitchcrew_delete_routine',
       ].sort(),
     );
+    const routineInput = {
+      name: 'Fictional scheduled check',
+      roleId: 'writer',
+      content: 'Review fictional applications.',
+      startAt: '2030-01-01T09:00:00Z',
+      timezone: 'UTC',
+      intervalMinutes: 60,
+      maxRuns: 3,
+    };
+    const scheduled = await client.callTool({
+      name: 'pitchcrew_save_routine',
+      arguments: { input: routineInput },
+    });
+    expect(scheduled.isError).not.toBe(true);
+    expect(scheduled.structuredContent).toMatchObject({
+      routine: { createdBy: 'reviewer', roleId: 'writer', maxRuns: 3, runCount: 0 },
+    });
+    const routineId = (scheduled.structuredContent as { routine: { id: string } }).routine.id;
+    const routineList = await client.callTool({ name: 'pitchcrew_list_routines', arguments: {} });
+    expect(routineList.structuredContent).toMatchObject({
+      routines: [expect.objectContaining({ id: routineId })],
+    });
+    const edited = await client.callTool({
+      name: 'pitchcrew_save_routine',
+      arguments: {
+        routineId,
+        input: { ...routineInput, name: 'Edited scheduled check', enabled: false },
+      },
+    });
+    expect(edited.structuredContent).toMatchObject({
+      routine: { id: routineId, name: 'Edited scheduled check', enabled: false },
+    });
+    expect(
+      (await client.callTool({ name: 'pitchcrew_delete_routine', arguments: { routineId } }))
+        .structuredContent,
+    ).toMatchObject({ ok: true });
+    expect(daemon.service.routines()).toEqual([]);
     const notified = await client.callTool({
       name: 'pitchcrew_notify_user',
       arguments: { kind: 'attention', content: 'Which fictional profile should I review?' },

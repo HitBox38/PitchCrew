@@ -10,6 +10,7 @@
     "@pitchcrew/core": "workspace:*",
     "@pitchcrew/mcp": "workspace:*",
     "@pitchcrew/packet": "workspace:*",
+    "cron-parser": "^5.10.1",
     "express": "^5.2.1",
     "tsx": "4.23.15",
     "yaml": "^2.9.1",

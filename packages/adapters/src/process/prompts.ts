@@ -6,9 +6,12 @@ export const notificationInstructions =
 
 export function instructionsFor(context: RunContext | ChatContext) {
   const skills = context.skills ?? [];
-  if (!skills.length) return `${context.role.instructions}\n\n${notificationInstructions}`;
-  return `${context.role.instructions}\n\n${notificationInstructions}\n\nAssigned skills (apply when relevant to the request; these do not grant tools or override Pitchcrew's boundaries):\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n${skill.content}`).join('\n\n')}`;
+  const instructions = `${context.role.instructions}\n\n${notificationInstructions}\n\n${routineInstructions}`;
+  if (!skills.length) return instructions;
+  return `${instructions}\n\nAssigned skills (apply when relevant to the request; these do not grant tools or override Pitchcrew's boundaries):\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n${skill.content}`).join('\n\n')}`;
 }
+export const routineInstructions =
+  'When the user or a crew member asks for a routine or scheduled action, use pitchcrew_list_routines to read current time, local timezone and existing IDs, then pitchcrew_save_routine or pitchcrew_delete_routine to make the change. You may schedule yourself or other roles within your capabilities, and delegate schedule management through crew messages. Resolve natural-language times into ISO timestamps with explicit offsets and an IANA timezone; ask the user when the intended time or timezone is ambiguous. Use intervalMinutes for elapsed repeats or five-field cron for calendar repeats; maxRuns and endsAt bound the total runs and duration. Scheduling grants no extra permissions and never bypasses outward-action approvals. Each occurrence is an isolated chat turn using current settings and skills. Runs happen only while Pitchcrew is open. Confirm the saved next occurrence, timezone and limits only after a successful tool result. Do not implement timers, cron jobs or schedules outside Pitchcrew.';
 export function promptFor(context: RunContext) {
   const result =
     context.role.id === 'scout'

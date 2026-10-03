@@ -8,6 +8,7 @@ vi.mock('@/api.ts', () => ({ api: vi.fn() }));
 vi.mock('@/chat-stream.ts', () => ({ subscribeChatStream: vi.fn() }));
 
 const snapshot: Snapshot = {
+  routines: [],
   starterSkillErrors: [],
   cards: [],
   roles: [],

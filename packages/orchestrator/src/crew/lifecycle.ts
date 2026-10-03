@@ -14,6 +14,7 @@ import { readProfile } from '@pitchcrew/packet';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { routines } from './routines/index.ts';
 
 export async function initialize(this: CrewContext, seedSkills: boolean = true): Promise<void> {
   await this.connectors.initialize();
@@ -89,18 +90,21 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     streamingMessages: [...this.streamingMessages.values()],
     proposals: this.board.list<RoleProposal>('proposal'),
     tasks: this.board.list<AgentTask>('task'),
+    routines: routines.call(this),
     connectors: this.connectors.status(),
   };
 }
 export async function close(this: CrewContext): Promise<void> {
   this.closing = true;
+  clearInterval(this.schedulerTimer);
   this.modelController.abort();
   for (const controller of this.controllers.values()) controller.abort();
   await Promise.allSettled(this.modelRequests.values());
   await this.connectors.close();
   await this.computer.close();
-  for (let i = 0; i < 100 && (this.controllers.size || this.draining); i++)
+  for (let i = 0; i < 100 && (this.controllers.size || this.draining || this.scheduling); i++)
     await new Promise((resolve) => setTimeout(resolve, 25));
-  if (this.controllers.size || this.draining) throw new Error('Some runs did not stop in time.');
+  if (this.controllers.size || this.draining || this.scheduling)
+    throw new Error('Some runs did not stop in time.');
   this.board.close();
 }

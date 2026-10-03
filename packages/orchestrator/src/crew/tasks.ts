@@ -4,6 +4,7 @@ import {
   type Role,
   type RoleId,
   type Run,
+  type Routine,
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from './types.ts';
@@ -55,6 +56,15 @@ export function enqueue(
 }
 export function finishTask(this: CrewContext, run: Run): void {
   const finished = this.board.get<Run>('run', run.id);
+  if (run.routineId) {
+    const routine = this.board.get<Routine>('routine', run.routineId);
+    this.board.record(
+      'routine',
+      { ...routine, error: finished.status === 'completed' ? '' : finished.message },
+      run.roleId,
+      `Routine ${finished.status}: ${routine.name}`,
+    );
+  }
   if (run.taskId) {
     const task = this.board.get<AgentTask>('task', run.taskId);
     this.board.record(

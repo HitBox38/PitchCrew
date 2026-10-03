@@ -6,6 +6,7 @@ export const eventKindLabels = {
   message: 'Messages',
   proposal: 'Role suggestions',
   task: 'Follow-ups',
+  routine: 'Routines',
   skill: 'Skills',
   skill_proposal: 'Skill suggestions',
   computer_approval: 'Browser approvals',

@@ -11,6 +11,8 @@ export { capabilitySchema, defaultCapabilities, roleChanges, rolePatch } from '.
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
 export { runResultSchema } from './runs.ts';
 export type { AgentTask, Run, RunResult } from './runs.ts';
+export { routineInput } from './routines.ts';
+export type { Routine, RoutineInput } from './routines.ts';
 export type {
   ChatContext,
   RunContext,

@@ -40,6 +40,8 @@ export interface CrewContext {
   streamingMessages: Map<string, ChatMessage>;
   chatListeners: Set<(messagesChanged: boolean) => void>;
   draining: boolean;
+  scheduling: boolean;
+  schedulerTimer?: ReturnType<typeof setInterval>;
   drainAgain: boolean;
   closing: boolean;
   configuring: Set<RoleId>;
@@ -97,6 +99,7 @@ export interface CrewContext {
     cardId: string | null,
     threadId: ChatMessage['threadId'],
     task?: AgentTask,
+    scheduled?: { routineId: string; scheduledFor: string },
   ): Promise<Run>;
   decideProposal(id: string, approved: boolean): Promise<RoleProposal>;
   decideSkillProposal(id: string, approved: boolean): SkillProposal;

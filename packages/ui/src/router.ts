@@ -80,6 +80,12 @@ const activityRoute = createRoute({
   validateSearch: validateActivitySearch,
   component: lazyRouteComponent(() => import('@/ActivityPage/index.tsx'), 'ActivityPage'),
 });
+const routinesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/routines',
+  staticData: { view: 'routines' },
+  component: lazyRouteComponent(() => import('@/RoutinesPage/index.tsx'), 'RoutinesPage'),
+});
 
 const routeTree = rootRoute.addChildren([
   boardRoute,
@@ -89,6 +95,7 @@ const routeTree = rootRoute.addChildren([
   inboxRoute,
   profileRoute,
   skillsRoute,
+  routinesRoute,
   activityRoute,
 ]);
 

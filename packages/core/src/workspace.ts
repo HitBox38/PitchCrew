@@ -5,6 +5,7 @@ import type { BoardEvent } from './events.ts';
 import type { Packet } from './packets.ts';
 import type { Role, RoleProposal } from './roles.ts';
 import type { AgentTask, Run } from './runs.ts';
+import type { Routine } from './routines.ts';
 import type { RuntimeInfo } from './runtime.ts';
 import type { Skill, SkillProposal } from './skills.ts';
 
@@ -41,6 +42,7 @@ export interface Snapshot {
   streamingMessages: ChatMessage[];
   proposals: RoleProposal[];
   tasks: AgentTask[];
+  routines: Routine[];
   connectors: ConnectorStatus[];
 }
 export interface ConnectorStatus {

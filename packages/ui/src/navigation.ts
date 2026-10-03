@@ -7,6 +7,7 @@ export const viewPaths = {
   inbox: '/inbox',
   profile: '/profile',
   skills: '/skills',
+  routines: '/routines',
   activity: '/activity',
 } as const;
 export type View = keyof typeof viewPaths;

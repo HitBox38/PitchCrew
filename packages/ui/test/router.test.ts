@@ -19,6 +19,7 @@ describe('workspace routes', () => {
     ['/inbox', 'inbox'],
     ['/profile', 'profile'],
     ['/skills', 'skills'],
+    ['/routines', 'routines'],
     ['/activity', 'activity'],
   ])('loads %s directly', async (path, view) => {
     const { router } = await setup(path);

@@ -15,6 +15,8 @@ export interface Run {
   rootRunId?: string;
   taskId?: string;
   threadId?: RoleId | 'crew';
+  routineId?: string;
+  scheduledFor?: string;
 }
 export interface AgentTask {
   id: string;

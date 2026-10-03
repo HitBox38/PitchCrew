@@ -58,6 +58,7 @@ export function createCrewContext(
     streamingMessages: new Map<string, ChatMessage>(),
     chatListeners: new Set<(messagesChanged: boolean) => void>(),
     draining: false,
+    scheduling: false,
     drainAgain: false,
     closing: false,
     configuring: new Set<RoleId>(),

@@ -151,6 +151,9 @@ it('includes managed skills in both workflow and chat prompts without granting c
     expect(prompt).toContain('pitchcrew_computer_execute');
     expect(prompt).toContain('pitchcrew_propose_skill');
     expect(prompt).toContain('pitchcrew_notify_user');
+    expect(prompt).toContain('pitchcrew_list_routines');
+    expect(prompt).toContain('pitchcrew_save_routine');
+    expect(prompt).toContain('pitchcrew_delete_routine');
     expect(prompt).toContain('Notifications never authorize actions');
     expect(prompt).toContain('skills.sh');
   }

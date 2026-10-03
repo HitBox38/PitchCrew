@@ -2,6 +2,7 @@ import type { View } from '@/navigation.ts';
 import {
   Activity,
   BookOpen,
+  CalendarClock,
   FileUser,
   Inbox,
   LayoutDashboard,
@@ -19,6 +20,7 @@ export const viewIcons = {
   inbox: Inbox,
   profile: FileUser,
   skills: BookOpen,
+  routines: CalendarClock,
   activity: Activity,
 };
 
@@ -29,6 +31,7 @@ export const viewTitles: Record<View, string> = {
   inbox: 'Inbox',
   profile: 'Profile',
   skills: 'Skills',
+  routines: 'Routines',
   activity: 'Activity',
 };
 

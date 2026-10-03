@@ -41,6 +41,8 @@ export function getWorkspaceModel(props: ReadyWorkspaceProps) {
       'Give the whole crew shared skills, or tailor them to individual agents.'
     ) : view === 'profile' ? (
       'Writer only quotes from these notes, and Reviewer checks every claim against them.'
+    ) : view === 'routines' ? (
+      'Give your agents a task and a time. Run it once, or keep a routine.'
     ) : view === 'activity' ? (
       'A history of your jobs, crew runs, and decisions, newest first.'
     ) : (

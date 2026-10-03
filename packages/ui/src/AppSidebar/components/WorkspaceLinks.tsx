@@ -59,28 +59,30 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
               </SidebarMenuSub>
             </CollapsibleContent>
           </Collapsible>
-          {(['chat', 'crew', 'skills', 'inbox', 'profile', 'activity'] as const).map((id) => {
-            const Icon = viewIcons[id];
-            const count = counts[id] ?? 0;
-            return (
-              <SidebarMenuItem key={id}>
-                <SidebarMenuButton
-                  tooltip={count ? `${viewTitles[id]} (${count})` : viewTitles[id]}
-                  isActive={view === id}
-                  aria-current={view === id ? 'page' : undefined}
-                  render={<Link to={viewPaths[id]} />}
-                >
-                  <Icon />
-                  <span>{viewTitles[id]}</span>
-                </SidebarMenuButton>
-                {count ? (
-                  <SidebarMenuBadge className={id === 'inbox' ? 'attention' : ''}>
-                    {count}
-                  </SidebarMenuBadge>
-                ) : null}
-              </SidebarMenuItem>
-            );
-          })}
+          {(['chat', 'crew', 'skills', 'routines', 'inbox', 'profile', 'activity'] as const).map(
+            (id) => {
+              const Icon = viewIcons[id];
+              const count = counts[id] ?? 0;
+              return (
+                <SidebarMenuItem key={id}>
+                  <SidebarMenuButton
+                    tooltip={count ? `${viewTitles[id]} (${count})` : viewTitles[id]}
+                    isActive={view === id}
+                    aria-current={view === id ? 'page' : undefined}
+                    render={<Link to={viewPaths[id]} />}
+                  >
+                    <Icon />
+                    <span>{viewTitles[id]}</span>
+                  </SidebarMenuButton>
+                  {count ? (
+                    <SidebarMenuBadge className={id === 'inbox' ? 'attention' : ''}>
+                      {count}
+                    </SidebarMenuBadge>
+                  ) : null}
+                </SidebarMenuItem>
+              );
+            },
+          )}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

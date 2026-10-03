@@ -13,6 +13,7 @@ import { registerCrewRoutes } from './http/routes/crew.ts';
 import { registerSkillsRoutes } from './http/routes/skills.ts';
 import { registerProfileSourcesRoutes } from './http/routes/profile-sources.ts';
 import { registerSessionSecurity } from './http/security.ts';
+import { registerRoutinesRoutes } from './http/routes/routines.ts';
 import { CrewService, ensureDirectory } from './service.ts';
 
 const uiRoot = fileURLToPath(new URL('../../ui/', import.meta.url));
@@ -35,6 +36,7 @@ export async function createDaemon(options: {
   const sessions = new Set<string>();
   const chatStreams = new Set<express.Response>();
   const http = createServer(app);
+  http.once('listening', () => service.startScheduler());
   registerSessionSecurity(app, options, url, sessions);
   app.use(express.json({ limit: '1mb' }));
   app.get('/api/health', (_req, res) => res.json({ app: 'pitchcrew', version: '0.1.0' }));
@@ -46,6 +48,7 @@ export async function createDaemon(options: {
 
   registerCrewRoutes(app, service);
   registerSkillsRoutes(app, service);
+  registerRoutinesRoutes(app, service);
 
   registerConnectorsRoutes(app, service);
 
@@ -74,6 +77,7 @@ export async function createDaemon(options: {
         state: z.enum(['shortlisted', 'changes_requested']).optional(),
         tool: z.string().max(100).optional(),
         input: z.unknown().optional(),
+        routineId: z.uuid().optional(),
       })
       .parse(req.body);
     res.json(await service.agentCall(token, body.action, body));

@@ -22,6 +22,8 @@ import { access, mkdir } from 'node:fs/promises';
 import { createCrewContext } from './crew/context.ts';
 import type { CrewContext } from './crew/types.ts';
 import { changeProfile } from './profile-sources/mutation.ts';
+import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
+import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
@@ -80,6 +82,21 @@ export class CrewService {
   }
   snapshot(): Promise<Snapshot> {
     return this.context.snapshot();
+  }
+  routines() {
+    return routines.call(this.context);
+  }
+  saveRoutine(data: unknown, id?: string) {
+    return saveRoutine.call(this.context, data, id);
+  }
+  deleteRoutine(id: string) {
+    return deleteRoutine.call(this.context, id);
+  }
+  startScheduler(): void {
+    startScheduler.call(this.context);
+  }
+  tickRoutines(now?: Date): Promise<void> {
+    return tickRoutines.call(this.context, now);
   }
   skills(roleId?: RoleId): Skill[] {
     return this.context.skills(roleId);

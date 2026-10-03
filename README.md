@@ -94,6 +94,8 @@ Replies appear as the runtime produces text, including replies to other agents i
 
 Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
 
+Open **Routines** to create a one-time action or a repeating task for an agent. Choose a start time and timezone, an elapsed interval or a daily/weekday/weekly/monthly pattern, and optionally a total run limit or end date. Custom five-field cron expressions support other calendar patterns. Edit, pause, resume or delete schedules from the page, or ask an agent in chat, for example: "Every weekday at 9 AM, review my applications for two weeks." Agents can manage routines for themselves or delegate to another agent using scoped tools. **Create, edit and delete scheduled actions** controls this capability; targeting another role also requires **Invoke itself and other roles**. Each occurrence starts a fresh chat turn with current settings and skills. Schedules persist across restarts and run only while the local daemon is open; busy/paused roles wait, and overdue repeats coalesce into one run. Deleting leaves history and any active run intact. Outward actions still require their existing approvals. Demo remains scripted. See [routines](docs/routines.md) for timing, permissions and restart behavior.
+
 Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves, approve exports, or record submissions. They can also discuss skills with you or each other and suggest adding a custom Markdown skill or a public GitHub-backed skills.sh URL. Open **Crew work → Suggested skills** to inspect the reason, assignment, source and full instructions, then choose **Add skill** or **Decline**. Each run can make at most three skill suggestions. Adding a suggestion saves the exact reviewed snapshot for future runs; it does not fetch a new upstream version.
 
 ## Use a local browser
@@ -143,7 +145,7 @@ pnpm dev
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                                                        |
 | `board`        | SQLite event log, projections, exact-payload approval tokens and browser action approvals                                                    |
-| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, scoped capabilities                                                             |
+| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, persistent routines, scoped capabilities                                        |
 | `adapters`     | Demo and native CLI/ACP runtime integrations                                                                                                 |
 | `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export and browser interactions |
 | `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                                                   |
@@ -176,6 +178,6 @@ Tests use fictional fixtures and temporary workspaces. They cover transitions, a
 
 ## MVP boundaries
 
-Discovery is manual. Roles launch from user chat/workflow actions and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, PDF/one-page builder, schedule engine, custom-role creation, or automatic coaching. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
+Discovery is manual. Roles launch from user chat/workflow actions, persistent routines and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, PDF/one-page builder, OS/background scheduler, custom-role creation, or automatic coaching. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.

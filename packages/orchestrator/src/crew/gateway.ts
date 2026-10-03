@@ -12,6 +12,7 @@ import { connectorAccess, connectorAction } from './gateway/connectors.ts';
 import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
+import { routineAction } from './gateway/routines.ts';
 import type { CrewContext } from './types.ts';
 
 export async function agentCall(
@@ -25,6 +26,8 @@ export async function agentCall(
     throw new Error('Run capability is invalid or expired.');
   const role = this.board.get<Role>('role', capability.roleId);
   const permissions = role.capabilities ?? defaultCapabilities;
+  if (['routines', 'save_routine', 'delete_routine'].includes(action))
+    return routineAction.call(this, capability, action, data);
   if (action === 'computer_access') return { enabled: permissions.computerUse === true };
   if (['computer_inspect', 'computer_request', 'computer_execute'].includes(action))
     return computerAction.call(this, capability, token, action, data);

@@ -79,6 +79,7 @@ export async function startChatRun(
   cardId: string | null,
   threadId: ChatMessage['threadId'],
   task?: AgentTask,
+  scheduled?: { routineId: string; scheduledFor: string },
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
@@ -103,13 +104,22 @@ export async function startChatRun(
     startedAt: new Date().toISOString(),
     finishedAt: null,
     ...(task ? { rootRunId: task.rootRunId, taskId: task.id } : {}),
+    ...scheduled,
   };
   const controller = new AbortController();
   const token = randomUUID();
   this.controllers.set(run.id, controller);
   this.capabilities.set(token, { runId: run.id, cardId, roleId });
   this.board.record('run', run, roleId, `${role.name} started a chat turn`);
-  if (!task) this.addMessage(threadId, 'user', roleId, content, cardId, run.id);
+  if (!task)
+    this.addMessage(
+      threadId,
+      scheduled ? 'system' : 'user',
+      roleId,
+      scheduled ? `Scheduled action (${scheduled.scheduledFor}):\n${content}` : content,
+      cardId,
+      run.id,
+    );
   const reply: ChatMessage = {
     id: randomUUID(),
     threadId,
