@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Packet } from './packets.ts';
+import type { ApplicationTracking } from './tracking.ts';
 import { type CardState, type RoleId } from './states.ts';
 
 export const cardInput = z.object({
@@ -23,6 +24,8 @@ export const cardInput = z.object({
 });
 export type CardInput = z.infer<typeof cardInput>;
 export interface Card extends CardInput {
+  tracking?: ApplicationTracking;
+  statusEffectiveAt?: string;
   id: string;
   state: CardState;
   fit: number | null;

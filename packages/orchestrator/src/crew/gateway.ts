@@ -16,6 +16,7 @@ import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
 import { profileAction } from './gateway/profile.ts';
 import { routineAction } from './gateway/routines.ts';
+import { trackingAction } from './gateway/tracking.ts';
 import type { CrewContext } from './types.ts';
 
 export async function agentCall(
@@ -30,6 +31,8 @@ export async function agentCall(
   const role = requireRole(this, capability.roleId);
   if (!role.enabled) throw new Error('This role is paused.');
   const permissions = role.capabilities ?? defaultCapabilities;
+  if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
+    return trackingAction.call(this, capability, token, action, data);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);
   if (
