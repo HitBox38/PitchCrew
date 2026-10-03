@@ -48,7 +48,7 @@ describe('managed agent skills', () => {
     expect(
       events
         .filter((event) => event.kind === 'skill')
-        .every((event) => event.version === 6 && event.actor === 'user'),
+        .every((event) => event.version === 9 && event.actor === 'user'),
     ).toBe(true);
     daemon.service.board.rebuild();
     await daemon.service.initialize(false);

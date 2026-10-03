@@ -1,3 +1,4 @@
+import { CreateRole } from './components/CreateRole.tsx';
 import { CrewCard } from '@/CrewPage/components/CrewCard.tsx';
 import { ConnectorSettings } from '@/CrewPage/constants.ts';
 import { RuntimeList } from '@/CrewPage/components/RuntimeList.tsx';
@@ -20,6 +21,7 @@ export function CrewPage() {
   const { openChat } = useWorkspaceNavigation();
   if (!data) return null;
   const roleStatus = (role: Role) => {
+    if (role.retiredAt) return 'Retired';
     if (!role.enabled) return 'Paused';
     if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
       return 'Unavailable';
@@ -28,6 +30,7 @@ export function CrewPage() {
   };
   return (
     <>
+      <CreateRole data={data} action={action} working={working} />
       <div className="crew-grid">
         {data.roles.map((role) => (
           <CrewCard

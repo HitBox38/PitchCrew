@@ -40,6 +40,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
       const role = this.board.get<Role>('role', routine.roleId);
       if (
         !role.enabled ||
+        role.retiredAt ||
         this.profileWriting ||
         profileUpdateInterrupted(this) ||
         this.configuring.has(role.id) ||
@@ -73,6 +74,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
         const permissions = { ...defaultCapabilities, ...source.capabilities };
         if (
           !source.enabled ||
+          source.retiredAt ||
           !permissions.manageRoutines ||
           (source.id !== role.id && !permissions.invokeAgents)
         )

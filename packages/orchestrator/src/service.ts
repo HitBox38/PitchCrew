@@ -129,6 +129,12 @@ export class CrewService {
   writeRole(role: Role): Promise<void> {
     return this.context.writeRole(role);
   }
+  createRole(data: unknown): Promise<Role> {
+    return this.context.createRole(data);
+  }
+  retireRole(id: RoleId): Promise<Role> {
+    return this.context.retireRole(id);
+  }
   configureRole(id: RoleId, data: unknown): Promise<Role> {
     return this.context.configureRole(id, data);
   }

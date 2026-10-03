@@ -1,3 +1,4 @@
+import { requireRole } from '../roles.ts';
 import {
   roleChanges,
   skillInput,
@@ -73,6 +74,7 @@ export async function proposeSkill(
   )
     throw new Error('Run capability is invalid or expired.');
   if (proposalCount() >= 3) throw new Error('Three skill suggestions maximum per run.');
+  for (const id of skill.roleIds) requireRole(this, id);
   const run = this.board.get<Run>('run', capability.runId);
   const proposal: SkillProposal = {
     id: randomUUID(),

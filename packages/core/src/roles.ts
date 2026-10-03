@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { runtimeIds, type RoleId, type RuntimeId } from './states.ts';
+import { isRoleId, roleIds, runtimeIds, type RoleId, type RuntimeId } from './states.ts';
 
 export interface Role {
   id: RoleId;
@@ -9,6 +9,8 @@ export interface Role {
   model: string;
   enabled: boolean;
   instructions: string;
+  workflow?: 'scout' | 'writer' | 'reviewer' | 'chat';
+  retiredAt?: string | null;
   capabilities?: AgentCapabilities;
 }
 export const capabilitySchema = z.object({
@@ -54,10 +56,32 @@ export interface RoleProposal {
   status: 'pending' | 'applied' | 'rejected';
   createdAt: string;
 }
+export const roleIdSchema = z
+  .string()
+  .refine(isRoleId, 'Use a safe lowercase role ID (up to 48 characters).');
 export const rolePatch = z.object({
+  name: z.string().trim().min(1).max(80).optional(),
+  description: z.string().trim().min(1).max(500).optional(),
+  workflow: z.enum([...roleIds, 'chat']).optional(),
   runtime: z.enum(runtimeIds),
   model: z.string().trim().max(100),
   enabled: z.boolean(),
   instructions: z.string().max(12000),
   capabilities: capabilitySchema.optional(),
 });
+
+export const roleCreate = rolePatch
+  .extend({
+    id: roleIdSchema,
+    name: z.string().trim().min(1).max(80),
+    description: z.string().trim().min(1).max(500),
+    workflow: z.enum([...roleIds, 'chat']).default('chat'),
+  })
+  .strict();
+export const customCapabilities: AgentCapabilities = {
+  ...defaultCapabilities,
+  messageAgents: false,
+  invokeAgents: false,
+  manageWorkflow: false,
+  manageRoutines: false,
+};

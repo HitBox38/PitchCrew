@@ -1,5 +1,6 @@
 import type { CardDetailsProps } from '@/components/CardDetails/types.ts';
 import type { Packet } from '@pitchcrew/core';
+import { workflowSeat } from '@pitchcrew/core/states';
 import { useState } from 'react';
 
 export function useCardDetails({
@@ -24,7 +25,7 @@ export function useCardDetails({
       a.exportDirectory &&
       JSON.stringify(a.packet) === JSON.stringify(card.packet),
   );
-  const runRole =
+  const seat =
     card.state === 'lead'
       ? 'scout'
       : ['shortlisted', 'changes_requested'].includes(card.state)
@@ -32,6 +33,9 @@ export function useCardDetails({
         : card.state === 'in_review'
           ? 'reviewer'
           : null;
+  const runRole =
+    data.roles.find((role) => role.enabled && !role.retiredAt && workflowSeat(role) === seat)?.id ??
+    null;
   return {
     card,
     data,
