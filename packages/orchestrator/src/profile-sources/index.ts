@@ -3,12 +3,14 @@ import type {
   ProfileFile,
   ProfileSource,
   ProfileSourcePreview,
+  ProfileMaintenanceProposal,
 } from '@pitchcrew/core';
 import type { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { readProfile } from '@pitchcrew/packet';
 import { randomUUID } from 'node:crypto';
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { isDeepStrictEqual } from 'node:util';
 import { z } from 'zod';
 import { readDriveSource } from './drive.ts';
 import { readGithubSource } from './github.ts';
@@ -31,6 +33,13 @@ const storedSources = z.array(
     input: sourceInput,
     label: z.string(),
     importedAt: z.string(),
+    watching: z.boolean().optional(),
+    missingFiles: z.array(z.string()).max(100).optional(),
+    mode: z.literal('project').optional(),
+    revision: z
+      .string()
+      .regex(/^[a-f0-9]{40}$/)
+      .optional(),
     files: z.array(storedFile),
   }),
 );
@@ -71,7 +80,51 @@ export class ProfileSourceManager {
     if (!sources.some((source) => source.id === id)) throw new Error('Profile source not found.');
     await this.store(sources.filter((source) => source.id !== id));
   }
-  async preview(value: unknown): Promise<ProfileSourcePreview> {
+  async watchProject(value: unknown) {
+    const input = sourceInput.parse(value);
+    if (input.provider !== 'github')
+      throw new Error('Project watches currently support GitHub repositories.');
+    const id = digest('project:' + JSON.stringify(input)).slice(0, 24);
+    const sources = await this.list();
+    if (sources.some((source) => source.id === id))
+      throw new Error('This project is already watched.');
+    if (sources.length >= 20) throw new Error('Keep at most 20 profile sources.');
+    const [owner, repo] = input.repository.split('/');
+    const result = await this.connectors.call(
+      'github_get_revision',
+      { owner, repo, ref: input.ref },
+      AbortSignal.timeout(120000),
+    );
+    const revision = z
+      .string()
+      .regex(/^[a-f0-9]{40}$/)
+      .parse(result.sha);
+    const source: ProfileSource = {
+      id,
+      input,
+      label: `${input.repository}/${input.path}`,
+      importedAt: new Date().toISOString(),
+      watching: true,
+      mode: 'project',
+      revision,
+      files: [],
+    };
+    await this.store([...sources, source]);
+    return this.list();
+  }
+  async setWatching(id: string, watching: boolean) {
+    const sources = await this.list();
+    if (!sources.some((source) => source.id === id)) throw new Error('Profile source not found.');
+    await this.store(
+      sources.map((source) => (source.id === id ? { ...source, watching } : source)),
+    );
+    return this.list();
+  }
+  async preview(
+    value: unknown,
+    runSignal?: AbortSignal,
+    allowEmpty = false,
+  ): Promise<ProfileSourcePreview> {
     if (this.previewing) throw new Error('Wait for the current source preview to finish.');
     const input = sourceInput.parse(value);
     this.previewing = true;
@@ -82,12 +135,13 @@ export class ProfileSourceManager {
       const sources = await this.list();
       const id = sourceId(input);
       const previous = sources.find((source) => source.id === id);
-      const signal = AbortSignal.timeout(120000);
+      const timeout = AbortSignal.timeout(120000);
+      const signal = runSignal ? AbortSignal.any([timeout, runSignal]) : timeout;
       const remote =
         input.provider === 'github'
           ? await readGithubSource(this.connectors, input, signal)
           : await readDriveSource(this.connectors, input, signal);
-      checkFiles(remote.files);
+      if (remote.files.length || !allowEmpty) checkFiles(remote.files);
       const local = await readProfile(this.directory);
       const before = new Map<string, string | null>();
       const files = remote.files.map((file) => {
@@ -107,20 +161,23 @@ export class ProfileSourceManager {
                 : ('changed' as const);
         return { ...file, name, digest: incomingDigest, status };
       });
+      const missing = (previous?.files ?? [])
+        .filter((old) => !files.some((file) => file.key === old.key))
+        .map((old) => old.path);
       const source: ProfileSource = {
         id,
         input,
         label: remote.label,
         importedAt: new Date().toISOString(),
+        watching: previous?.watching ?? false,
+        missingFiles: missing,
         files: [],
       };
       const preview: ProfileSourcePreview = {
         token: randomUUID(),
         source,
         files,
-        missing: (previous?.files ?? [])
-          .filter((old) => !files.some((file) => file.key === old.key))
-          .map((old) => old.path),
+        missing,
         expiresAt: new Date(Date.now() + 10 * 60000).toISOString(),
       };
       this.previews.set(preview.token, {
@@ -189,6 +246,68 @@ export class ProfileSourceManager {
     }
     this.previews.delete(token);
     return readProfile(this.directory);
+  }
+  async commitMaintenance(
+    proposal: ProfileMaintenanceProposal,
+    names: string[],
+    recovering: boolean,
+    validateOnly = false,
+  ) {
+    const sources = await this.list();
+    const selected = proposal.documents.filter((file) => names.includes(file.name));
+    if (selected.length !== new Set(names).size) throw new Error('Select only proposed files.');
+    const prior = proposal.baseSources.find((source) => source.id === proposal.source.id)!;
+    const records = [...prior.files];
+    for (const file of selected) {
+      const { content: _content, before: _before, status: _status, ...record } = file;
+      const index = records.findIndex((item) => item.key === record.key);
+      if (index < 0) records.push(record);
+      else records[index] = record;
+    }
+    const updated = proposal.baseSources.map((source) =>
+      source.id === prior.id
+        ? {
+            ...proposal.source,
+            watching: true,
+            files: records,
+            importedAt: proposal.createdAt,
+            ...(proposal.observation ? { revision: proposal.observation.current } : {}),
+          }
+        : source,
+    );
+    const manifestMatches = isDeepStrictEqual(sources, proposal.baseSources);
+    const committedManifest = isDeepStrictEqual(sources, updated);
+    if (!manifestMatches && !(recovering && committedManifest))
+      throw new Error('Profile sources changed. Detect changes again before approving.');
+    const local = await readProfile(this.directory);
+    const expected = new Map(proposal.baseProfile.map((file) => [file.name, file.digest]));
+    for (const note of local) {
+      const incoming = selected.find((file) => file.name === note.name);
+      if (
+        digest(note.content) !== expected.get(note.name) &&
+        !(recovering && incoming && digest(note.content) === incoming.digest)
+      )
+        throw new Error('Profile notes changed. Detect changes again before approving.');
+      expected.delete(note.name);
+    }
+    if (expected.size)
+      throw new Error('Profile notes were removed. Detect changes again before approving.');
+    if (validateOnly) return;
+    const changed: typeof selected = [];
+    try {
+      for (const file of selected) {
+        changed.push(file);
+        await this.writeNote(file.name, file.content);
+      }
+      await this.store(updated);
+    } catch (error) {
+      for (const file of changed) {
+        const old = local.find((note) => note.name === file.name);
+        if (old) await this.writeNote(file.name, old.content);
+        else await rm(join(this.directory, 'profile', file.name), { force: true });
+      }
+      throw error;
+    }
   }
   private async writeNote(name: string, content: string) {
     const target = join(this.directory, 'profile', name);

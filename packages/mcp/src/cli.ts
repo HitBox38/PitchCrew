@@ -5,6 +5,7 @@ import { registerComputerTools } from './tools/computer.ts';
 import { registerConnectorsTools } from './tools/connectors.ts';
 import { registerCrewTools } from './tools/crew.ts';
 import { registerPacketTools } from './tools/packet.ts';
+import { registerProfileTools } from './tools/profile.ts';
 import { registerRoutineTools } from './tools/routines.ts';
 
 const url = process.env.PITCHCREW_DAEMON_URL;
@@ -18,6 +19,7 @@ registerPacketTools(server, call);
 
 registerCrewTools(server, call);
 registerRoutineTools(server, call);
+registerProfileTools(server, call);
 
 // Browser tools are exposed only to enabled roles; the daemon rechecks every call.
 await registerComputerTools(server, call);

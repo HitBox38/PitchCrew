@@ -1,4 +1,5 @@
 import { requireRole } from './roles.ts';
+import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   chatInput,
@@ -82,6 +83,7 @@ export async function startChatRun(
   scheduled?: { routineId: string; scheduledFor: string },
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
+  assertProfileReady(this);
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
   const role = requireRole(this, roleId);
   const skills = this.skills(roleId);
