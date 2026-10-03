@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { packetSchema } from './packets.ts';
+import type { Role } from './roles.ts';
+import type { Skill } from './skills.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
 
 export interface Run {
@@ -17,6 +19,9 @@ export interface Run {
   threadId?: RoleId | 'crew';
   routineId?: string;
   scheduledFor?: string;
+  configuration?: { role: Role; revision: string; skills: Skill[]; skillsRevision: string };
+  inputPacketDigest?: string | null;
+  outputPacketDigest?: string | null;
 }
 export interface AgentTask {
   id: string;

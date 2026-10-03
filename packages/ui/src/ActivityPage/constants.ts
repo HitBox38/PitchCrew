@@ -1,4 +1,5 @@
 export const eventKindLabels = {
+  pipeline_review: 'Pipeline reviews',
   card: 'Jobs',
   role: 'Roles',
   run: 'Runs',

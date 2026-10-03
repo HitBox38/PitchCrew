@@ -24,6 +24,9 @@ export function registerCrewRoutes(app: express.Express, service: CrewService) {
       ),
     ),
   );
+  app.post('/api/pipeline-reviews/:id/followup', (req, res) =>
+    res.json(service.updatePipelineReview({ ...req.body, reviewId: req.params.id })),
+  );
   app.post('/api/runtimes/detect', async (_req, res) => res.json(await service.detect()));
   app.post('/api/runtimes/:id/models', async (req, res) => {
     const { refresh } = z.object({ refresh: z.boolean().default(false) }).parse(req.body ?? {});
