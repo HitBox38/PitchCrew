@@ -37,7 +37,7 @@ pnpm desktop:prod
 1. Choose **Try an example board** on the empty board for six fictional opportunities and a fictional profile, or add your own Markdown notes under **Your profile**. Demo drafting expects a name heading and factual bullet points.
 2. Add an opportunity with its job description. Run **Evaluate fit**, then **Shortlist**.
 3. Run **Draft application**, then **Review packet**. Inspect the resume, letter, form answers, note, source evidence, and history in the opportunity sheet.
-4. Request export approval. In **Approval inbox**, inspect the exact packet, approve it, then export it. The export directory appears in decision history.
+4. Request export approval. In **Approval inbox**, inspect the exact packet, approve it, then export it. Generated PDFs and DOCX files have inline previews; DOCX browser layout may differ from Word. The complete source text is also available. The export directory appears in decision history.
 5. Apply yourself, then record the manual submission and track screening, interviews, and outcomes.
 
 **Demo makes no AI calls.** Its fit scores are keyword examples and its drafts reuse profile bullets; they need personalization before use. Loading examples is explicit and refuses to overwrite an existing profile.
