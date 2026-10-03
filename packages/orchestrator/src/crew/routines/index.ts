@@ -1,4 +1,5 @@
-import { type Card, type Role, type RoleId, type Routine } from '@pitchcrew/core';
+import { requireRole } from '../roles.ts';
+import { type Card, type RoleId, type Routine } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from '../types.ts';
 import { nextOccurrence, parseRoutine } from './schedule.ts';
@@ -16,7 +17,7 @@ export function saveRoutine(
   const input = parseRoutine(data);
   const current = id ? this.board.get<Routine>('routine', id) : undefined;
   if (current?.deletedAt) throw new Error('This routine was deleted.');
-  this.board.get<Role>('role', input.roleId);
+  requireRole(this, input.roleId);
   if (input.cardId) this.board.get<Card>('card', input.cardId);
   const now = new Date().toISOString();
   const changed =

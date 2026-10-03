@@ -1,6 +1,7 @@
+import { roleIdSchema } from './roles.ts';
 import { z } from 'zod';
 import { skillContentLimit } from './base-skills.ts';
-import { roleIds, type RoleId } from './states.ts';
+import { type RoleId } from './states.ts';
 
 export const skillsShUrl = z
   .string()
@@ -37,7 +38,7 @@ export const skillSourceSchema = z
 export const skillAssignment = z
   .object({
     scope: z.enum(['all', 'roles']),
-    roleIds: z.array(z.enum(roleIds)).max(3).default([]),
+    roleIds: z.array(roleIdSchema).max(50).default([]),
   })
   .refine(
     (value) =>
@@ -51,7 +52,7 @@ export const skillInput = z
     description: z.string().trim().max(500).default(''),
     content: z.string().trim().min(1).max(skillContentLimit),
     scope: z.enum(['all', 'roles']),
-    roleIds: z.array(z.enum(roleIds)).max(3).default([]),
+    roleIds: z.array(roleIdSchema).max(50).default([]),
     source: skillSourceSchema.optional(),
   })
   .strict()

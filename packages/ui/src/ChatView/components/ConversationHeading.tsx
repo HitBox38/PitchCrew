@@ -42,6 +42,7 @@ export function ConversationHeading({
         <Button
           variant="ghost"
           className="chat-runtime"
+          disabled={!!role.retiredAt}
           onClick={() => onConfigure(roleId)}
           title={
             role.runtime === 'demo'
@@ -56,6 +57,7 @@ export function ConversationHeading({
           variant="ghost"
           className="chat-settings"
           aria-label={`Configure ${role.name}`}
+          disabled={!!role.retiredAt}
           onClick={() => onConfigure(roleId)}
         >
           <SlidersHorizontal size={16} />

@@ -1,3 +1,4 @@
+import { workflowSeat } from '@pitchcrew/core';
 import type { Packet, RuntimeAdapter } from '@pitchcrew/core';
 import { lintPacket } from '@pitchcrew/packet';
 import { setTimeout } from 'node:timers/promises';
@@ -26,7 +27,7 @@ export const demo: RuntimeAdapter = {
   async run(context) {
     context.onMessage('Running the deterministic demo workflow.');
     await setTimeout(850, undefined, { signal: context.signal });
-    if (context.role.id === 'scout') {
+    if (workflowSeat(context.role) === 'scout') {
       const words = context.card.description
         .toLowerCase()
         .split(/\W+/)
@@ -42,7 +43,7 @@ export const demo: RuntimeAdapter = {
         ],
       };
     }
-    if (context.role.id === 'reviewer') {
+    if (workflowSeat(context.role) === 'reviewer') {
       if (!context.card.packet) throw new Error('Draft a packet first.');
       const feedback = lintPacket(context.card.packet, context.profile);
       return { role: 'reviewer', passed: feedback.length === 0, feedback };

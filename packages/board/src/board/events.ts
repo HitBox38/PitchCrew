@@ -28,19 +28,7 @@ export function record(
   return this.db.transaction(() => {
     const event: BoardEvent = {
       id: 0,
-      version:
-        kind === 'routine' ||
-        (kind === 'run' && 'routineId' in data) ||
-        (kind === 'role' &&
-          'capabilities' in data &&
-          data.capabilities?.manageRoutines !== undefined) ||
-        (kind === 'proposal' &&
-          'changes' in data &&
-          data.changes.capabilities?.manageRoutines !== undefined)
-          ? 8
-          : kind === 'message' && 'notification' in data
-            ? 7
-            : 6,
+      version: 9,
       kind,
       entityId: data.id,
       data,

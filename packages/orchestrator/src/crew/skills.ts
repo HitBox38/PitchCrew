@@ -1,6 +1,7 @@
+import { requireRole } from './roles.ts';
 import type { SkillPreview } from '@pitchcrew/core';
 import {
-  roleIds,
+  type Role,
   skillInput,
   skillsShUrl,
   type RoleId,
@@ -14,6 +15,7 @@ import { skillDirectory } from '../skills-directory.ts';
 import type { CrewContext } from './types.ts';
 
 export function skills(this: CrewContext, roleId?: RoleId): Skill[] {
+  if (roleId) requireRole(this, roleId);
   return this.board
     .list<Skill>('skill')
     .filter(
@@ -92,6 +94,7 @@ export function saveSkill(
   actor: 'user' | 'system' = 'user',
 ): Skill {
   const parsed = skillInput.parse(data);
+  for (const id of parsed.roleIds) requireRole(this, id);
   const current = id ? this.board.get<Skill>('skill', z.uuid().parse(id)) : undefined;
   if (current?.deletedAt) throw new Error('This skill has been deleted.');
   const now = new Date().toISOString();
@@ -105,7 +108,7 @@ export function saveSkill(
   };
   const next = [...this.skills().filter((item) => item.id !== skill.id), skill];
   if (next.length > 100) throw new Error('You can store up to 100 skills.');
-  for (const roleId of roleIds) {
+  for (const { id: roleId } of this.board.list<Role>('role').filter((role) => !role.retiredAt)) {
     const size = next
       .filter((item) => item.scope === 'all' || item.roleIds.includes(roleId))
       .reduce(
