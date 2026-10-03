@@ -14,6 +14,7 @@ Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persi
 
 - Strict TypeScript, Node 22.18+ or 24.11+ (supported LTS), pnpm 11 workspaces. Follow pnpm-lock.yaml and root engines.
 - SQLite through better-sqlite3; versioned append-only events and projections.
+- Fastify serves the loopback HTTP API and production UI; request hooks enforce Host, Origin and local sessions before body parsing. Encapsulated route plugins compose the orchestration services. Development uses Vite through @fastify/middie; chat SSE retains Node response backpressure and disconnect cleanup.
 - Official TypeScript MCP SDK with stdio transport and per-run capabilities.
 - React and shadcn/ui (Base UI primitives), Tailwind, Vite 8, shared browser/Electron renderer. Compose with `render`, not `asChild`; `Button` defaults to `type="button"`, so submit buttons need `type="submit"`; menu labels sit inside `DropdownMenuGroup`.
 - Motion for React supplies pointer-driven clay card tilt, board layout changes, proposal and approval decisions, and new chat message reveals. Base UI surfaces use shared interruptible CSS transitions; frequent navigation and the command palette stay instant. Buttons use brief CSS press feedback. The shared `AppMotion` provider loads Motion features and respects system reduced motion; pointer-driven effects also use its reduced-motion context. Base UI retains dialog semantics, exit lifecycles, and focus management. Reduced motion removes surface translation and scaling while retaining short fades.

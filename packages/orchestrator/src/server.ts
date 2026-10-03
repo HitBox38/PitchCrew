@@ -1,11 +1,10 @@
-import { roleIdSchema } from '@pitchcrew/core';
-import express from 'express';
-import { readFile } from 'node:fs/promises';
-import { createServer } from 'node:http';
-import { join } from 'node:path';
+import cookie from '@fastify/cookie';
+import Fastify from 'fastify';
+import type { ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
-import { z } from 'zod';
+import { registerJsonBody } from './http/body.ts';
 import { registerChatStream } from './http/chat-stream.ts';
+import { registerAgentRoutes } from './http/routes/agent.ts';
 import { registerApprovalsRoutes } from './http/routes/approvals.ts';
 import { registerBoardRoutes } from './http/routes/board.ts';
 import { registerConnectorsRoutes } from './http/routes/connectors.ts';
@@ -15,9 +14,9 @@ import { registerProfileSourcesRoutes } from './http/routes/profile-sources.ts';
 import { registerSessionSecurity } from './http/security.ts';
 import { registerRoutinesRoutes } from './http/routes/routines.ts';
 import { registerTrackingRoutes } from './http/routes/tracking.ts';
+import { registerUi } from './http/ui.ts';
 import { CrewService, ensureDirectory } from './service.ts';
 
-const uiRoot = fileURLToPath(new URL('../../ui/', import.meta.url));
 export async function createDaemon(options: {
   directory: string;
   port: number;
@@ -31,101 +30,47 @@ export async function createDaemon(options: {
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
   );
-  await service.initialize(options.seedSkills ?? true);
-  const app = express();
-  app.disable('x-powered-by');
+  const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
+  const http = app.server;
   const sessions = new Set<string>();
-  const chatStreams = new Set<express.Response>();
-  const http = createServer(app);
+  const chatStreams = new Set<ServerResponse>();
   http.once('listening', () => service.startScheduler());
-  registerSessionSecurity(app, options, url, sessions);
-  app.use(express.json({ limit: '1mb' }));
-  app.get('/api/health', (_req, res) => res.json({ app: 'pitchcrew', version: '0.1.0' }));
-  app.get('/api/snapshot', async (_req, res) => res.json(await service.snapshot()));
-  // Fetch-based SSE preserves the UI session cookie AND custom client header.
-  registerChatStream(app, service, chatStreams);
-  registerBoardRoutes(app, service);
-  registerTrackingRoutes(app, service);
-  registerProfileSourcesRoutes(app, service);
-
-  registerCrewRoutes(app, service);
-  registerSkillsRoutes(app, service);
-  registerRoutinesRoutes(app, service);
-
-  registerConnectorsRoutes(app, service);
-
-  registerApprovalsRoutes(app, service);
-
-  app.post('/api/agent', async (req, res) => {
-    const token = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
-    if (!service.capabilities.has(token)) {
-      res.status(403).json({ error: 'Invalid or expired run capability.' });
-      return;
-    }
-    const body = z
-      .object({
-        action: z.string(),
-        packet: z.unknown().optional(),
-        approvalId: z.uuid().optional(),
-        beforeEventId: z.number().int().positive().optional(),
-        limit: z.number().int().min(1).max(200).optional(),
-        roleId: roleIdSchema.optional(),
-        content: z.string().max(8000).optional(),
-        kind: z.enum(['message', 'attention']).optional(),
-        mode: z.enum(['chat', 'workflow']).optional(),
-        reason: z.string().max(2000).optional(),
-        changes: z.unknown().optional(),
-        suggestion: z.unknown().optional(),
-        state: z.enum(['shortlisted', 'changes_requested']).optional(),
-        tool: z.string().max(100).optional(),
-        input: z.unknown().optional(),
-        routineId: z.uuid().optional(),
-      })
-      .parse(req.body);
-    res.json(await service.agentCall(token, body.action, body));
+  app.addHook('preClose', async () => {
+    for (const stream of chatStreams) stream.destroy();
+    await service.close();
   });
-  let vite: Awaited<ReturnType<(typeof import('vite'))['createServer']>> | undefined;
-  if (options.dev) {
-    const { createServer: createVite } = await import('vite');
-    vite = await createVite({
-      root: uiRoot,
-      server: { middlewareMode: true, ws: { server: http } },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
-  } else {
-    app.use(express.static(join(uiRoot, 'dist')));
-    app.get('/{*path}', async (_req, res) => {
-      try {
-        res.type('html').send(await readFile(join(uiRoot, 'dist/index.html'), 'utf8'));
-      } catch {
-        res.status(503).send('Build the UI with pnpm build, then pnpm start.');
-      }
-    });
+  app.setErrorHandler((error, _req, res) => {
+    if (res.raw.headersSent) return;
+    return res
+      .status(400)
+      .send({ error: error instanceof Error ? error.message : 'Request failed.' });
+  });
+  try {
+    await service.initialize(options.seedSkills ?? true);
+    await app.register(cookie);
+    registerSessionSecurity(app, options, url, sessions);
+    registerJsonBody(app);
+    app.get('/api/health', () => ({ app: 'pitchcrew', version: '0.1.0' }));
+    app.get('/api/snapshot', async () => service.snapshot());
+    registerChatStream(app, service, chatStreams);
+    for (const registerRoutes of [
+      registerAgentRoutes,
+      registerBoardRoutes,
+      registerTrackingRoutes,
+      registerProfileSourcesRoutes,
+      registerCrewRoutes,
+      registerSkillsRoutes,
+      registerRoutinesRoutes,
+      registerConnectorsRoutes,
+      registerApprovalsRoutes,
+    ])
+      app.register(async (routes) => registerRoutes(routes, service));
+    await registerUi(app, options.dev ?? false);
+    // Callers retain the Node server contract; every plugin is ready before listen().
+    await app.ready();
+    return { app, http, service, url, close: () => app.close() };
+  } catch (error) {
+    await app.close();
+    throw error;
   }
-  app.use(
-    (error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-      if (res.headersSent) return;
-      res.status(400).json({ error: error instanceof Error ? error.message : 'Request failed.' });
-    },
-  );
-  return {
-    app,
-    http,
-    service,
-    url,
-    async close() {
-      for (const stream of chatStreams) stream.destroy();
-      await service.close();
-      await vite?.close();
-      await new Promise<void>((resolve, reject) => {
-        if (!http.listening) {
-          resolve();
-          return;
-        }
-        http.close((error) => (error ? reject(error) : resolve()));
-        http.closeAllConnections();
-      });
-    },
-  };
 }
