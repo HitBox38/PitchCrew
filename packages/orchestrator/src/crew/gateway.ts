@@ -9,6 +9,7 @@ import {
 } from '@pitchcrew/core';
 import { lintPacket, readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
+import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
 import { connectorAccess, connectorAction } from './gateway/connectors.ts';
 import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
@@ -33,6 +34,20 @@ export async function agentCall(
   const permissions = role.capabilities ?? defaultCapabilities;
   if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
     return trackingAction.call(this, capability, token, action, data);
+  if (action === 'pipeline_access')
+    return {
+      reviewPipeline: role.enabled && permissions.reviewPipeline === true,
+      proposeCrewChanges: role.enabled && permissions.proposeCrewChanges === true,
+    };
+  if (
+    [
+      'read_pipeline',
+      'save_pipeline_review',
+      'update_pipeline_review',
+      'propose_crew_changes',
+    ].includes(action)
+  )
+    return pipelineAction(this, capability, action, data.input);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);
   if (

@@ -1,3 +1,4 @@
+import { PipelineReviews } from '@/PipelineReviews/index.tsx';
 import { CrewTasks } from '@/ChatWork/components/CrewTasks.tsx';
 import { RoleCapabilities } from '@/ChatWork/components/RoleCapabilities.tsx';
 import { RoleProposals } from '@/ChatWork/components/RoleProposals.tsx';
@@ -10,6 +11,7 @@ export function ChatWork(props: ChatWorkProps) {
   const { thread } = controller;
   return (
     <div className="chat-work-content">
+      <PipelineReviews {...controller} />
       <RoleProposals {...controller} />
       <SkillProposals {...controller} />
       <CrewTasks {...controller} />

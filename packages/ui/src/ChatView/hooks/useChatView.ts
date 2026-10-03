@@ -41,7 +41,9 @@ export function useChatView({
   const draft = drafts[thread] ?? '';
   const cardId = jobs[thread] ?? '';
   const proposals = data.proposals.filter(
-    (p) => (thread === 'crew' || p.roleId === thread) && p.status === 'pending',
+    (p) =>
+      (thread === 'crew' || p.roleId === thread || p.sourceRoleId === thread) &&
+      p.status === 'pending',
   );
   const skillProposals = data.skillProposals.filter(
     (p) => (thread === 'crew' || p.roleId === thread) && p.status === 'pending',

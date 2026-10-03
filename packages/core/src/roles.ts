@@ -21,6 +21,8 @@ export const capabilitySchema = z.object({
   maintainProfile: z.boolean().optional(),
   readApplications: z.boolean().optional(),
   trackApplications: z.boolean().optional(),
+  reviewPipeline: z.boolean().optional(),
+  proposeCrewChanges: z.boolean().optional(),
   github: z.boolean().optional(),
   gmail: z.boolean().optional(),
   drive: z.boolean().optional(),
@@ -39,6 +41,8 @@ export const defaultCapabilities: AgentCapabilities = {
   maintainProfile: false,
   readApplications: false,
   trackApplications: false,
+  reviewPipeline: false,
+  proposeCrewChanges: false,
   github: false,
   gmail: false,
   drive: false,
@@ -61,6 +65,12 @@ export interface RoleProposal {
   runId: string;
   reason: string;
   changes: z.infer<typeof roleChanges>;
+  sourceRoleId?: RoleId;
+  beforeRole?: Role;
+  targetRevision?: string;
+  pipelineReviewId?: string;
+  findingId?: string;
+  noticeMessageId?: string;
   status: 'pending' | 'applied' | 'rejected';
   createdAt: string;
 }

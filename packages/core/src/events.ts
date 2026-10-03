@@ -1,5 +1,6 @@
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
+import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
@@ -14,6 +15,7 @@ export interface BoardEvent {
   id: number;
   version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
   kind:
+    | 'pipeline_review'
     | 'card'
     | 'role'
     | 'run'
@@ -34,6 +36,7 @@ export interface BoardEvent {
   actor: string;
   message: string;
   data:
+    | PipelineReview
     | Card
     | Role
     | Run
