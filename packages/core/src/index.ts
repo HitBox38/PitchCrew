@@ -30,3 +30,10 @@ export {
 export type { Skill, SkillInput, SkillPreview, SkillProposal } from './skills.ts';
 export * from './states.ts';
 export type { Approval, ConnectorStatus, ProfileFile, Snapshot } from './workspace.ts';
+export type {
+  ProfileSourceInput,
+  ProfileSource,
+  ImportedProfileFile,
+  ProfileImportFile,
+  ProfileSourcePreview,
+} from './profile-sources.ts';

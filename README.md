@@ -100,6 +100,16 @@ Agents can propose changes to their own instructions or capabilities. Inspect th
 
 Install Chromium with `pnpm browser:install`, then enable **Computer use** in a role's settings. Ask the agent to work on an application in chat. It opens a dedicated browser on this computer and can inspect pages, navigate, fill fields, select options, press keys, click and upload exported Markdown packet files. Review every interaction in **Inbox**, including the final submit click. Approvals bind the exact action and current page, work once, and expire when the run ends. Sign in manually in the dedicated window when needed. Attach the job card for packet uploads. Record the application outcome after verifying the website confirmation. See [computer use](docs/computer-use.md) for tools, boundaries and limitations.
 
+## Pull profile notes from GitHub or Google Drive
+
+Open **Profile** and choose **GitHub** or **Google Drive**. Connect your account on that page, choose a folder, review its documents, and import the facts you want your crew to use. Account connections are shared with Crew settings; importing your profile does not enable connector access for any role.
+
+For a resume repository, start with its factual source folder, such as `about-me`, with background notes, work experience and one Markdown file per project. GitHub imports nested Markdown/text files at a single commit. Add another source for a `general` folder if you also keep a baseline resume there. Writing skills and tailored application packets belong in their own workflows.
+
+Drive imports nested folders containing Google Docs, Markdown and plain text. Paste a Drive folder link or ID. PDFs, shortcuts and other binary formats are skipped.
+
+Imported documents remain separate local profile notes with source paths, links, revisions and content hashes. **Review updates** loads a fresh preview; new and changed documents are selected by default, while locally edited notes require explicit selection before replacement. Removed upstream documents remain local. Removing a source keeps its notes and leaves the account connected. Previews expire after ten minutes and after daemon restart; importing uses the reviewed snapshot without fetching again. Each source is bounded to 100 documents, 30 folders, 50,000 characters per document and 1 million characters in total. Profile updates wait until active runs finish.
+
 ## Your data
 
 By default, everything is stored outside the repository:
@@ -109,6 +119,7 @@ By default, everything is stored outside the repository:
   pitchcrew.db                    # SQLite projections and append-only event log
   connectors/credentials.json    # local GitHub/Google connector credentials
   profile/*.md                   # factual source notes
+  profile-sources.json           # reviewed import provenance and source configuration
   roles/<role>/AGENTS.md          # instructions managed in Crew settings
   roles/<role>/CLAUDE.md          # imports AGENTS.md
   roles/<role>/runs/<run-id>/     # isolated runtime working folders

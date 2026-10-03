@@ -81,6 +81,7 @@ export async function startChatRun(
   task?: AgentTask,
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
+  if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
   const role = this.board.get<Role>('role', roleId);
   const skills = this.skills(roleId);
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');

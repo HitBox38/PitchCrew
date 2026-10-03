@@ -21,6 +21,7 @@ import {
 import { access, mkdir } from 'node:fs/promises';
 import { createCrewContext } from './crew/context.ts';
 import type { CrewContext } from './crew/types.ts';
+import { changeProfile } from './profile-sources/mutation.ts';
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
@@ -37,6 +38,15 @@ export class CrewService {
   }
   get connectors() {
     return this.context.connectors;
+  }
+  get profileSources() {
+    return this.context.profileSources;
+  }
+  importProfileSource(input: unknown): Promise<ProfileFile[]> {
+    return changeProfile(this.context, () => this.profileSources.import(input));
+  }
+  unlinkProfileSource(id: string): Promise<void> {
+    return changeProfile(this.context, () => this.profileSources.unlink(id));
   }
   get computer() {
     return this.context.computer;

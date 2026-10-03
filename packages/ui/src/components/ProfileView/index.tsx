@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { FileText } from 'lucide-react';
+import { ProfileOrigin } from './components/ProfileOrigin.tsx';
+import { ProfileSources } from '@/components/ProfileSources/index.tsx';
 
 export function ProfileView(props: ProfileViewProps) {
   const controller = useProfileView(props);
@@ -14,8 +16,10 @@ export function ProfileView(props: ProfileViewProps) {
     controller;
   return (
     <>
+      <ProfileSources {...controller.sourceController} />
       <div className="profile-layout">
         <section className="profile-editor">
+          <ProfileOrigin {...controller} />
           <form onSubmit={(e) => void save(e)}>
             <div className="profile-editor-heading">
               <FileText size={18} />

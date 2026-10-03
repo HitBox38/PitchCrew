@@ -14,6 +14,7 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { exampleProfile, examples } from '../../test/fixtures/examples.ts';
 import type { CrewContext } from './types.ts';
+import { changeProfile } from '../profile-sources/mutation.ts';
 
 export function createCard(this: CrewContext, data: unknown): Card {
   return this.board.createCard(cardInput.parse(data));
@@ -63,10 +64,10 @@ export async function saveProfile(
 ): Promise<ProfileFile[]> {
   if (!/^[\w.-]+\.md$/.test(name) || name.includes('..'))
     throw new Error('Use a simple Markdown filename.');
-  if (this.controllers.size)
-    throw new Error('Wait for active runs to finish before changing their source profile.');
-  await writeFile(join(this.directory, 'profile', name), content, 'utf8');
-  return readProfile(this.directory);
+  return changeProfile(this, async () => {
+    await writeFile(join(this.directory, 'profile', name), content, 'utf8');
+    return readProfile(this.directory);
+  });
 }
 export async function loadExamples(this: CrewContext): Promise<void> {
   if (this.board.list<Card>('card').some((c) => c.sample))

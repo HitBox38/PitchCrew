@@ -8,7 +8,7 @@ import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx'
 import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
 import { X } from 'lucide-react';
 
-export function Modal({ title, children, onClose, drawer = false }: ModalProps) {
+export function Modal({ title, children, onClose, drawer = false, className = '' }: ModalProps) {
   if (drawer)
     return (
       <Sheet
@@ -17,7 +17,7 @@ export function Modal({ title, children, onClose, drawer = false }: ModalProps) 
           if (!open) onClose();
         }}
       >
-        <SheetContent className="modal drawer" showCloseButton={false}>
+        <SheetContent className={`modal drawer ${className}`} showCloseButton={false}>
           <div className="modal-heading">
             <SheetTitle>{title}</SheetTitle>
             <Button
@@ -40,7 +40,7 @@ export function Modal({ title, children, onClose, drawer = false }: ModalProps) 
         if (!open) onClose();
       }}
     >
-      <DialogContent className="modal" showCloseButton={false}>
+      <DialogContent className={`modal ${className}`} showCloseButton={false}>
         <div className="modal-heading">
           <DialogTitle>{title}</DialogTitle>
           <Button

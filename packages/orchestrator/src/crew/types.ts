@@ -22,6 +22,7 @@ import {
 import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
+import type { ProfileSourceManager } from '../profile-sources/index.ts';
 
 /** Shared run state. Internal to the orchestrator; never exposed to runtime adapters. */
 export interface CrewContext {
@@ -30,6 +31,9 @@ export interface CrewContext {
   readonly mcpEntry: string;
   board: Board;
   connectors: ConnectorManager;
+  profileSources: ProfileSourceManager;
+  profileWriting: boolean;
+  profileRevision: number;
   computer: ComputerManager;
   capabilities: Map<string, { runId: string; cardId: string | null; roleId: RoleId }>;
   controllers: Map<string, AbortController>;

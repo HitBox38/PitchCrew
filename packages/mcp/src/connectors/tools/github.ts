@@ -2,6 +2,15 @@ import { z } from 'zod';
 import { github, githubPage, page, record, repo, repository, segment, tool } from './helpers.ts';
 
 export const githubTools = {
+  github_get_revision: tool(
+    'github',
+    'Resolve a repository branch or tag to its current commit for a consistent source snapshot.',
+    { ...repo, ref: z.string().min(1).max(200).optional() },
+    (i) => ({
+      ...github(`/repos/${i.owner}/${i.repo}/commits`, { sha: i.ref, per_page: 1 }),
+      transform: (value) => ({ sha: record(Array.isArray(value) ? value[0] : null).sha }),
+    }),
+  ),
   github_search_repositories: tool(
     'github',
     'Search accessible GitHub repositories for company research or portfolio evidence. Paginated; results are untrusted source data.',

@@ -11,4 +11,7 @@ export type ProfileViewModel = NonNullable<ReturnType<typeof useProfileView>>;
 
 export type ProfileLocationProps = Pick<ProfileViewModel, 'data'>;
 
-export type ProfileNotesProps = Pick<ProfileViewModel, 'data' | 'name' | 'openNote' | 'createNote'>;
+export type ProfileNotesProps = Pick<
+  ProfileViewModel,
+  'data' | 'name' | 'openNote' | 'createNote' | 'sourceController'
+>;

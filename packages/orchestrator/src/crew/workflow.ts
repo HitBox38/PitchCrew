@@ -21,6 +21,8 @@ export async function startRun(
   task?: AgentTask,
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
+  if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
+  const profileRevision = this.profileRevision;
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (
     this.board
@@ -61,6 +63,8 @@ export async function startRun(
   await this.writeRunInstructions(dir, role, skills);
   if (
     this.closing ||
+    this.profileWriting ||
+    this.profileRevision !== profileRevision ||
     (task &&
       (this.board.get<AgentTask>('task', task.id).status !== 'queued' ||
         !this.taskPermissionsAllow(task))) ||
