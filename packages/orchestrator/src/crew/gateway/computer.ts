@@ -54,8 +54,8 @@ export async function computerAction(
     if (
       input.input &&
       typeof input.input === 'object' &&
-      'purpose' in input.input &&
-      input.input.purpose === 'submission' &&
+      (('purpose' in input.input && input.input.purpose === 'submission') ||
+        ('submissionAttemptId' in input.input && !!input.input.submissionAttemptId)) &&
       this.board.get<Role>('role', capability.roleId).capabilities?.recordSubmissions !== true
     )
       throw new Error('Submission recording is disabled.');
@@ -67,8 +67,8 @@ export async function computerAction(
     id,
   );
   if (
-    'purpose' in approval.action &&
-    approval.action.purpose === 'submission' &&
+    (('purpose' in approval.action && approval.action.purpose === 'submission') ||
+      ('submissionAttemptId' in approval.action && !!approval.action.submissionAttemptId)) &&
     this.board.get<Role>('role', capability.roleId).capabilities?.recordSubmissions !== true
   )
     throw new Error('Submission recording is disabled.');
@@ -78,7 +78,8 @@ export async function computerAction(
     this.controllers.get(capability.runId)?.signal ?? new AbortController().signal,
     () =>
       authorize(
-        'purpose' in approval.action && approval.action.purpose === 'submission'
+        ('purpose' in approval.action && approval.action.purpose === 'submission') ||
+          ('submissionAttemptId' in approval.action && !!approval.action.submissionAttemptId)
           ? 'recordSubmissions'
           : undefined,
       ),

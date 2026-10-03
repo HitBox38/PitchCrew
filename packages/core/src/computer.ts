@@ -9,7 +9,13 @@ const submission = {
 };
 const selector = z.string().trim().min(1).max(500);
 export const browserActionSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.literal('dialog'), decision: z.enum(['accept', 'dismiss']) }).strict(),
+  z
+    .object({
+      kind: z.literal('dialog'),
+      decision: z.enum(['accept', 'dismiss']),
+      submissionAttemptId: z.uuid().optional(),
+    })
+    .strict(),
   z
     .object({
       kind: z.literal('navigate'),

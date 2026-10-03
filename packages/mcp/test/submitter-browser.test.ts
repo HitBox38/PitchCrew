@@ -1,10 +1,13 @@
 import { Board } from '@pitchcrew/board';
+import { cardInput, type SubmissionAttempt } from '@pitchcrew/core';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { expect, it } from 'vitest';
 import { ComputerManager, createBrowserDriver } from '../src/computer.ts';
+import { exportApprovedPacket } from '../src/index.ts';
+import { packet } from '../../board/test/fixtures/packet.ts';
 
 it('inspects iframe controls, fingerprints iframe values, rejects ambiguous frames and requires approval for dialogs', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-submitter-browser-'));
@@ -74,6 +77,79 @@ it('inspects iframe controls, fingerprints iframe values, rejects ambiguous fram
     await browser.close();
     board.close();
     expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-submitter-browser-'))).toBe(
+      true,
+    );
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);
+
+it('continues an uncertain submission only through its exact approved confirmation dialog', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-submitter-confirm-'));
+  const board = new Board(join(directory, 'board.db'));
+  const browser = await chromium.launch({ headless: true });
+  const driver = await createBrowserDriver(browser);
+  const manager = new ComputerManager(board, directory, async () => driver);
+  const context = browser.contexts()[0];
+  await context.route('https://8.8.8.8/**', (route) =>
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<title>Fictional form</title><button id="submit" onclick="if(confirm(\'Submit this application?\'))document.querySelector(\'#result\').textContent=\'Application received FICTION-123\'">Submit</button><output id="result"></output>',
+    }),
+  );
+  const card = board.createCard(cardInput.parse({ company: 'Fixture Studio', title: 'Engineer' }));
+  for (const state of ['shortlisted', 'drafting'] as const) board.move(card.id, state, 'user');
+  board.updateCard(card.id, { packet }, 'writer', 'Fixture reviewed packet');
+  for (const state of ['in_review', 'agreed'] as const) board.move(card.id, state, 'reviewer');
+  const exported = board.requestApproval(card.id);
+  board.decideApproval(exported.id, true);
+  await exportApprovedPacket(board, directory, exported.id);
+  const scope = { runId: 'submission-with-dialog', roleId: 'writer' as const, cardId: card.id };
+  const signal = new AbortController().signal;
+  try {
+    await driver.perform({ kind: 'navigate', url: 'https://8.8.8.8/form' });
+    const approval = await manager.request(
+      scope,
+      { kind: 'click', selector: '#submit', purpose: 'submission', exportApprovalId: exported.id },
+      'Submit fictional reviewed packet',
+    );
+    manager.decide(approval.id, true);
+    await expect(manager.execute(scope.runId, approval.id, signal, () => {}, 0)).rejects.toThrow();
+    const attempt = board.list<SubmissionAttempt>('submission_attempt')[0];
+    expect(attempt.status).toBe('uncertain');
+    expect((await manager.inspect(scope.runId)).dialog?.type).toBe('confirm');
+    await expect(
+      manager.request(scope, { kind: 'dialog', decision: 'accept' }, 'Unbound dialog'),
+    ).rejects.toThrow('uncertain');
+    await expect(
+      manager.request(
+        { ...scope, runId: 'other-run' },
+        { kind: 'dialog', decision: 'accept', submissionAttemptId: attempt.id },
+        'Cross-run continuation',
+      ),
+    ).rejects.toThrow('this run');
+    const continuation = await manager.request(
+      scope,
+      { kind: 'dialog', decision: 'accept', submissionAttemptId: attempt.id },
+      'Accept exact inspected confirmation for existing attempt',
+    );
+    manager.decide(continuation.id, true);
+    await manager.execute(scope.runId, continuation.id, signal, () => {}, 0);
+    expect(
+      board.get<SubmissionAttempt>('submission_attempt', attempt.id).dialogApprovalIds,
+    ).toEqual([continuation.id]);
+    expect(
+      (await manager.capture(scope, attempt.id, 'Application received FICTION-123')).confirmation
+        ?.text,
+    ).toContain('Application received');
+    expect(board.list<SubmissionAttempt>('submission_attempt')).toHaveLength(1);
+    await expect(
+      manager.request(scope, { kind: 'click', selector: '#submit' }, 'Duplicate submission'),
+    ).rejects.toThrow('uncertain');
+  } finally {
+    await manager.close();
+    await browser.close();
+    board.close();
+    expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-submitter-confirm-'))).toBe(
       true,
     );
     await rm(directory, { recursive: true, force: true });
