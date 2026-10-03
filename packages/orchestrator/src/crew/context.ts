@@ -8,6 +8,7 @@ import {
 import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { join } from 'node:path';
+import { ProfileSourceManager } from '../profile-sources/index.ts';
 import { createCard, exportPacket, loadExamples, moveCard, saveProfile } from './cards.ts';
 import {
   addMessage,
@@ -41,12 +42,16 @@ export function createCrewContext(
   mcpEntry: string,
 ): CrewContext {
   const board = new Board(join(directory, 'pitchcrew.db'));
+  const connectors = new ConnectorManager(directory);
   const context: CrewContext = {
     directory,
     daemonUrl,
     mcpEntry,
     board,
-    connectors: new ConnectorManager(directory),
+    connectors,
+    profileSources: new ProfileSourceManager(directory, connectors),
+    profileWriting: false,
+    profileRevision: 0,
     computer: new ComputerManager(board, directory),
     capabilities: new Map<string, { runId: string; cardId: string | null; roleId: RoleId }>(),
     controllers: new Map<string, AbortController>(),

@@ -5,4 +5,5 @@ export interface ModalProps {
   children: ReactNode;
   onClose: () => void;
   drawer?: boolean;
+  className?: string;
 }

@@ -11,6 +11,7 @@ import { registerBoardRoutes } from './http/routes/board.ts';
 import { registerConnectorsRoutes } from './http/routes/connectors.ts';
 import { registerCrewRoutes } from './http/routes/crew.ts';
 import { registerSkillsRoutes } from './http/routes/skills.ts';
+import { registerProfileSourcesRoutes } from './http/routes/profile-sources.ts';
 import { registerSessionSecurity } from './http/security.ts';
 import { CrewService, ensureDirectory } from './service.ts';
 
@@ -41,6 +42,7 @@ export async function createDaemon(options: {
   // Fetch-based SSE preserves the UI session cookie AND custom client header.
   registerChatStream(app, service, chatStreams);
   registerBoardRoutes(app, service);
+  registerProfileSourcesRoutes(app, service);
 
   registerCrewRoutes(app, service);
   registerSkillsRoutes(app, service);

@@ -1,6 +1,7 @@
 import type { ProfileViewProps } from '@/components/ProfileView/types.ts';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useState, type FormEvent } from 'react';
+import { useProfileSources } from '@/components/ProfileSources/hooks/useProfileSources.ts';
 
 const newProfile = {
   name: 'profile.md',
@@ -16,6 +17,23 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
   const guard = useUnsavedChanges(dirty, () => {
     setName(saved.name);
     setContent(saved.content);
+  });
+  const sourceController = useProfileSources({
+    data,
+    action,
+    working,
+    requestImport: (action) =>
+      guard.requestLeave(() => {
+        setName(saved.name);
+        setContent(saved.content);
+        action();
+      }),
+    openImported: (note) => {
+      setName(note.name);
+      setContent(note.content);
+      setSaved(note);
+      setError('');
+    },
   });
   const openNote = (note: { name: string; content: string }) =>
     guard.requestLeave(() => {
@@ -51,5 +69,6 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
     guard,
     openNote,
     createNote,
+    sourceController,
   };
 }
