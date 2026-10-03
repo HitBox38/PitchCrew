@@ -57,3 +57,51 @@
 [data-slot='sheet-overlay'] {
   background: var(--overlay);
 }
+.activity-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  max-width: 980px;
+}
+.activity-toolbar .search-input {
+  margin-left: 0;
+  width: min(360px, 100%);
+}
+.activity-toolbar > output {
+  margin-left: auto;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+.activity-toolbar [data-slot='select-trigger'] {
+  flex: 0 1 190px;
+  width: 190px;
+  min-width: 0;
+}
+.activity-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 44px;
+}
+.activity-message {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.activity-kind {
+  display: inline-block;
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--paper-deep);
+  border-radius: 5px;
+  padding: 1px 6px;
+}
+@media (max-width: 760px) {
+  .activity-toolbar {
+    flex-wrap: wrap;
+  }
+  .activity-toolbar .search-input {
+    width: 100%;
+  }
+  .activity-toolbar > output {
+    margin-left: auto;
+  }
+}

@@ -48,3 +48,17 @@
     outline-offset: -2px;
   }
 }
+
+.run-status {
+  min-width: 0;
+  max-width: min(70%, 620px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.page-heading > div {
+  min-width: 0;
+}
+.page-heading > button {
+  flex-shrink: 0;
+}

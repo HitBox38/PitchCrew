@@ -1,42 +1,25 @@
-import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { DialogOverlay } from '@/components/ui/dialog/components/DialogOverlay.tsx';
 import { DialogPortal } from '@/components/ui/dialog/components/DialogPortal.tsx';
 import type { DialogContentProps } from '@/components/ui/dialog/types.ts';
 import { cn } from '@/lib/utils';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { XIcon } from 'lucide-react';
-import * as m from 'motion/react-m';
 
 export function DialogContent({
   className,
   children,
   showCloseButton = true,
+  motion = true,
   ...props
 }: DialogContentProps) {
-  const reduced = useAppReducedMotion();
   return (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay data-motion={motion} />
       <DialogPrimitive.Popup
-        render={
-          <m.div
-            initial={
-              reduced
-                ? { opacity: 0 }
-                : { opacity: 0, y: 12, scale: 0.96, rotateX: -3, transformPerspective: 1000 }
-            }
-            animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-            exit={{
-              opacity: 0,
-              y: reduced ? 0 : 8,
-              scale: reduced ? 1 : 0.98,
-              transition: { duration: 0.16 },
-            }}
-          />
-        }
         data-slot="dialog-content"
+        data-motion={motion}
         className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg duration-200 outline-none data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 sm:max-w-lg',
+          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none sm:max-w-lg',
           className,
         )}
         {...props}

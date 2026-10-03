@@ -1,6 +1,6 @@
 import { CrewCard } from '@/CrewPage/components/CrewCard.tsx';
 import { ConnectorSettings } from '@/CrewPage/constants.ts';
-import { runtimeLabels } from '@/lib/labels.ts';
+import { RuntimeList } from '@/CrewPage/components/RuntimeList.tsx';
 import { getRoleStatus } from '@/lib/role-status.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
@@ -19,7 +19,13 @@ export function CrewPage() {
   );
   const { openChat } = useWorkspaceNavigation();
   if (!data) return null;
-  const roleStatus = (role: Role) => getRoleStatus(role, data);
+  const roleStatus = (role: Role) => {
+    if (!role.enabled) return 'Paused';
+    if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
+      return 'Unavailable';
+    const status = getRoleStatus(role, data);
+    return status.startsWith('Working') ? status : 'Ready';
+  };
   return (
     <>
       <div className="crew-grid">
@@ -36,25 +42,7 @@ export function CrewPage() {
       <Suspense fallback={<p className="quiet">Loading connectors…</p>}>
         <ConnectorSettings data={data} action={action} working={working} />
       </Suspense>
-      <h2 className="subheading">Runtimes on this machine</h2>
-      <div className="runtime-list">
-        {data.runtimes.map((runtime) => (
-          <div className="runtime-row" key={runtime.id}>
-            <div>
-              <strong>{runtimeLabels[runtime.id]}</strong>
-              <p>{runtime.detail}</p>
-            </div>
-            {runtime.version ? <small>{runtime.version}</small> : null}
-            <span className={`badge ${runtime.available ? 'success' : ''}`}>
-              {runtime.available ? 'Available' : 'Unavailable'}
-            </span>
-          </div>
-        ))}
-      </div>
-      <p className="info-note">
-        Demo makes deterministic drafts without calling a model. Other runtimes use their native
-        authentication for conversations and job workflows.
-      </p>
+      <RuntimeList runtimes={data.runtimes} />
     </>
   );
 }

@@ -7,6 +7,7 @@ export type DialogCloseProps = DialogPrimitive.Close.Props;
 
 export type DialogContentProps = DialogPrimitive.Popup.Props & {
   showCloseButton?: boolean;
+  motion?: boolean;
 };
 
 export type DialogDescriptionProps = DialogPrimitive.Description.Props;

@@ -1,3 +1,4 @@
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { capabilityDefaults } from '@/agent-capabilities.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
@@ -17,6 +18,16 @@ export function useRoleSettings({
   const [instructions, setInstructions] = useState(role.instructions);
   const [capabilities, setCapabilities] = useState({ ...capabilityDefaults, ...role.capabilities });
   const [error, setError] = useState('');
+  const dirty =
+    runtime !== role.runtime ||
+    model !== role.model ||
+    enabled !== role.enabled ||
+    instructions !== role.instructions ||
+    JSON.stringify(capabilities) !==
+      JSON.stringify({ ...capabilityDefaults, ...role.capabilities });
+  const guard = useUnsavedChanges(dirty, onClose);
+  const close = () => guard.requestLeave(onClose);
+  const manageSkills = () => guard.requestLeave(onManageSkills);
   const runtimeItems = data.runtimes.map((r) => ({
     value: r.id,
     label: `${runtimeLabels[r.id]}${r.available ? '' : ' (unavailable)'}`,
@@ -42,8 +53,9 @@ export function useRoleSettings({
     role,
     data,
     working,
-    onClose,
-    onManageSkills,
+    onClose: close,
+    onManageSkills: manageSkills,
+    guard,
     runtime,
     setRuntime,
     model,

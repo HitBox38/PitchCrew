@@ -1,14 +1,15 @@
+import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
+import { AnimatePresence } from 'motion/react';
+import * as m from 'motion/react-m';
+import { SkillProposalContent } from '@/ChatWork/components/SkillProposalContent.tsx';
+import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import type { SkillProposalsProps } from '@/ChatWork/types.ts';
-import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
-import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
-import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { timeAgo } from '@/lib/time.ts';
-import { Check, CircleCheck, X } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
 
 export function SkillProposals({ skillProposals, name, working, act }: SkillProposalsProps) {
+  const reduced = useAppReducedMotion();
   return (
-    <section className="chat-work-section">
+    <WorkSection className="chat-work-section">
       <div className="chat-work-heading">
         <div>
           <h3>Suggested skills</h3>
@@ -16,71 +17,35 @@ export function SkillProposals({ skillProposals, name, working, act }: SkillProp
         </div>
         {skillProposals.length ? <span className="chat-count">{skillProposals.length}</span> : null}
       </div>
-      {skillProposals.length ? (
-        skillProposals.map((proposal) => (
-          <article
-            className="chat-proposal"
-            key={proposal.id}
-            aria-label={`${name(proposal.roleId)} suggested ${proposal.skill.name}`}
+      <AnimatePresence initial={false} mode="popLayout">
+        {skillProposals.length ? (
+          skillProposals.map((proposal) => (
+            <m.article
+              layout={reduced ? false : 'position'}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.16 }}
+              className="chat-proposal"
+              key={proposal.id}
+              aria-label={`${name(proposal.roleId)} suggested ${proposal.skill.name}`}
+            >
+              <SkillProposalContent proposal={proposal} name={name} working={working} act={act} />
+            </m.article>
+          ))
+        ) : (
+          <m.div
+            key="empty"
+            className="chat-work-empty"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.16 }}
           >
-            <header>
-              <RoleAvatar agentRole={proposal.roleId} />
-              <div>
-                <h4>{proposal.skill.name}</h4>
-                <time dateTime={proposal.createdAt}>
-                  {name(proposal.roleId)} suggested {timeAgo(proposal.createdAt)}
-                </time>
-              </div>
-              <span className="chat-review-label">Needs your review</span>
-            </header>
-            <MessageResponse mode="static" components={noRemoteImages}>
-              {proposal.reason}
-            </MessageResponse>
-            {proposal.skill.description ? <p>{proposal.skill.description}</p> : null}
-            <p className="quiet">
-              Assigned to:{' '}
-              {proposal.skill.scope === 'all'
-                ? 'All agents'
-                : proposal.skill.roleIds.map(name).join(', ')}
-            </p>
-            {proposal.skill.source ? (
-              <p className="quiet skill-source">
-                From {proposal.skill.source.url}
-                <br />
-                Only Markdown instructions are included.
-              </p>
-            ) : null}
-            <details>
-              <summary>Review skill instructions</summary>
-              <pre className="suggested-skill-content">{proposal.skill.content}</pre>
-            </details>
-            <footer>
-              <p>Applies to new runs after you add it.</p>
-              <div>
-                <Button
-                  className="button"
-                  disabled={working}
-                  onClick={() => act(`/skill-proposals/${proposal.id}/decide`, { approved: false })}
-                >
-                  <X size={14} /> Decline
-                </Button>
-                <Button
-                  className="button primary"
-                  disabled={working}
-                  onClick={() => act(`/skill-proposals/${proposal.id}/decide`, { approved: true })}
-                >
-                  <Check size={14} /> Add skill
-                </Button>
-              </div>
-            </footer>
-          </article>
-        ))
-      ) : (
-        <div className="chat-work-empty">
-          <CircleCheck size={18} />
-          <p>No skills waiting for your review. Ask an agent to suggest one.</p>
-        </div>
-      )}
-    </section>
+            <CircleCheck size={18} />
+            <p>No skills waiting for your review. Ask an agent to suggest one.</p>
+          </m.div>
+        )}
+      </AnimatePresence>
+    </WorkSection>
   );
 }

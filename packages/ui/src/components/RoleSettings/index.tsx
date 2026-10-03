@@ -1,3 +1,4 @@
+import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { CapabilitySettings } from '@/components/RoleSettings/components/CapabilitySettings.tsx';
 import { InstructionSettings } from '@/components/RoleSettings/components/InstructionSettings.tsx';
 import { RoleSettingsFooter } from '@/components/RoleSettings/components/RoleSettingsFooter.tsx';
@@ -11,7 +12,7 @@ import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx'
 
 export function RoleSettings(props: RoleSettingsProps) {
   const controller = useRoleSettings(props);
-  const { onClose, save } = controller;
+  const { onClose, save, guard } = controller;
   return (
     <Sheet
       open
@@ -31,6 +32,7 @@ export function RoleSettings(props: RoleSettingsProps) {
           <RoleSettingsFooter {...controller} />
         </form>
       </SheetContent>
+      <DiscardChanges guard={guard} />
     </Sheet>
   );
 }

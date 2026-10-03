@@ -67,4 +67,17 @@ describe('workspace routes', () => {
     ).toBe(true);
     expect(router.state.location.pathname).toBe(path);
   });
+
+  it('restores activity filters from a deep link', async () => {
+    const { router } = await setup('/activity?q=Writer&kind=run');
+    expect(router.state.matches.at(-1)?.search).toEqual({ q: 'Writer', kind: 'run' });
+  });
+
+  it.each(['unknown', '__proto__', 'toString'])(
+    'ignores invalid activity kind %s',
+    async (kind) => {
+      const { router } = await setup(`/activity?kind=${kind}`);
+      expect(router.state.matches.at(-1)?.search).toMatchObject({ kind: undefined });
+    },
+  );
 });

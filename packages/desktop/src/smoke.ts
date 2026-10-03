@@ -19,7 +19,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
-            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null;
+            let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'demo' && role.enabled)) throw new Error('Chat smoke test requires an isolated demo workspace.');
@@ -103,9 +103,10 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               const navigationReady = await waitFor(() => location.pathname === '/chat/scout' && document.querySelector('.notification-bell')?.getAttribute('aria-label') === 'Notifications, 2 unread');
               document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
               const dismissed = await waitFor(() => !document.querySelector('[data-slot="toast"]'));
-              notificationToastReady = toastVisible && hoverPaused && focusPaused && stackReady && linksReady && navigationReady && dismissed;
+              notificationToastChecks = { toastVisible, hoverPaused, focusPaused, stackReady, linksReady, navigationReady, dismissed };
+              notificationToastReady = Object.values(notificationToastChecks).every(Boolean);
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         const chrome = [];

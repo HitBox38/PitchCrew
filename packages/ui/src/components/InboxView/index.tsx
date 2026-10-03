@@ -11,16 +11,15 @@ export function InboxView(props: InboxViewProps) {
   return (
     <>
       <InboxTabs {...controller} />
-      {computerApprovals.length ? <BrowserApprovalList {...controller} /> : null}
-      {approvals.length ? (
-        <PacketApprovalList {...controller} />
-      ) : !computerApprovals.length ? (
+      <BrowserApprovalList key={`browser-${tab}`} {...controller} />
+      <PacketApprovalList key={`packet-${tab}`} {...controller} />
+      {!approvals.length && !computerApprovals.length ? (
         <EmptyState
           title={tab === 'pending' ? 'Nothing to approve' : 'No decisions yet'}
           description={
             tab === 'pending'
-              ? 'When Reviewer agrees on a packet, request approval from the job’s card.'
-              : 'Approved exports and rejections are kept here.'
+              ? 'Packet exports and browser actions appear here when they need your approval. Role and skill suggestions are reviewed in Chat → Crew work.'
+              : 'Export decisions and completed or expired browser requests are kept here.'
           }
         />
       ) : null}

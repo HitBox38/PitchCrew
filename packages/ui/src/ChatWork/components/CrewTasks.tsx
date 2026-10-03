@@ -1,3 +1,4 @@
+import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import { taskLabels } from '@/ChatWork/constants.ts';
 import type { CrewTasksProps } from '@/ChatWork/types.ts';
 import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
@@ -8,7 +9,7 @@ import { Check, Clock3, GitBranch } from 'lucide-react';
 
 export function CrewTasks({ tasks, data, name, onOpenCard, working, act }: CrewTasksProps) {
   return (
-    <section className="chat-work-section">
+    <WorkSection className="chat-work-section">
       <div className="chat-work-heading">
         <div>
           <h3>Crew follow-ups</h3>
@@ -69,6 +70,6 @@ export function CrewTasks({ tasks, data, name, onOpenCard, working, act }: CrewT
           <p>When an agent asks the crew to continue its work, the follow-up appears here.</p>
         </div>
       )}
-    </section>
+    </WorkSection>
   );
 }

@@ -3,6 +3,7 @@ import { ConnectedAccounts } from '@/ConnectorSettings/components/ConnectedAccou
 import { useConnectorSettings } from '@/ConnectorSettings/hooks/useConnectorSettings.ts';
 import type { ConnectorSettingsProps } from '@/ConnectorSettings/types.ts';
 import { ExternalLink } from 'lucide-react';
+import { AnimatePresence } from 'motion/react';
 
 export function ConnectorSettings(props: ConnectorSettingsProps) {
   const controller = useConnectorSettings(props);
@@ -24,11 +25,12 @@ export function ConnectorSettings(props: ConnectorSettingsProps) {
         </output>
       ) : null}
       <p className="info-note">
-        Agents can search and read connected services. Sending mail, editing files and posting to
-        GitHub remain unavailable. Disconnect removes local credentials; you can revoke the grant in
-        your provider account. Verified packet evidence still comes from Your profile.
+        Connections are read-only. Disconnect removes credentials saved on this device; revoke
+        access separately in your provider account. Application claims still come from your profile.
       </p>
-      {editing ? <ConnectAccountDialog {...controller} /> : null}
+      <AnimatePresence>
+        {editing ? <ConnectAccountDialog key={editing} {...controller} /> : null}
+      </AnimatePresence>
     </section>
   );
 }

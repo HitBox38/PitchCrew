@@ -50,6 +50,19 @@
   font-size: 16px;
   margin: 4px 0 8px;
 }
+.profile-aside,
+.profile-editor {
+  min-width: 0;
+}
+.profile-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.profile-file > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .profile-file {
   display: flex;
   gap: 8px;
@@ -113,4 +126,40 @@
   flex-direction: column;
   gap: 14px;
   max-width: 900px;
+}
+.profile-save-state {
+  color: var(--muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+.profile-file {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  height: auto;
+  min-height: 34px;
+}
+@media (max-width: 640px) {
+  .profile-editor-heading {
+    flex-wrap: wrap;
+  }
+  .profile-save-state {
+    order: 1;
+    flex-basis: 100%;
+    padding-left: 25px;
+  }
+  .data-location {
+    flex-wrap: wrap;
+  }
+  .profile-editor textarea {
+    padding: 18px;
+  }
+}
+@media (max-width: 760px) {
+  .profile-notes {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .profile-file {
+    max-width: 100%;
+  }
 }

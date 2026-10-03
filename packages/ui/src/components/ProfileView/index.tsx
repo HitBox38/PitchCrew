@@ -1,3 +1,4 @@
+import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { ProfileLocation } from '@/components/ProfileView/components/ProfileLocation.tsx';
 import { ProfileNotes } from '@/components/ProfileView/components/ProfileNotes.tsx';
 import { useProfileView } from '@/components/ProfileView/hooks/useProfileView.ts';
@@ -9,7 +10,8 @@ import { FileText } from 'lucide-react';
 
 export function ProfileView(props: ProfileViewProps) {
   const controller = useProfileView(props);
-  const { working, name, setName, content, setContent, error, save } = controller;
+  const { data, working, name, setName, content, setContent, error, save, dirty, guard } =
+    controller;
   return (
     <>
       <div className="profile-layout">
@@ -22,14 +24,24 @@ export function ProfileView(props: ProfileViewProps) {
               </label>
               <Input
                 id="profile-file"
+                autoComplete="off"
+                name="filename"
+                spellCheck={false}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 pattern="[a-zA-Z0-9_.\-]+\.md"
                 maxLength={100}
                 required
               />
+              <output className="profile-save-state">
+                {dirty
+                  ? 'Unsaved changes'
+                  : data.profile.some((file) => file.name === name)
+                    ? 'Saved'
+                    : 'New note'}
+              </output>
               <Button type="submit" className="button primary small" disabled={working}>
-                Save
+                {working ? 'Saving…' : 'Save note'}
               </Button>
             </div>
             <label className="sr-only" htmlFor="profile-content">
@@ -53,6 +65,7 @@ export function ProfileView(props: ProfileViewProps) {
         <ProfileNotes {...controller} />
       </div>
       <ProfileLocation {...controller} />
+      <DiscardChanges guard={guard} />
     </>
   );
 }

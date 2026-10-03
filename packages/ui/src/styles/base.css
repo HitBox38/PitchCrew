@@ -10,7 +10,7 @@
 }
 body {
   margin: 0;
-  min-width: 360px;
+  min-width: 320px;
 }
 ::selection {
   background: var(--primary-soft);
@@ -26,7 +26,7 @@ button {
   cursor: pointer;
 }
 button:disabled {
-  cursor: wait;
+  cursor: not-allowed;
   opacity: 0.55;
 }
 button,
@@ -83,4 +83,17 @@ time,
 * {
   scrollbar-color: var(--scrollbar) transparent;
   scrollbar-width: thin;
+}
+
+button,
+a {
+  touch-action: manipulation;
+}
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+p {
+  text-wrap: pretty;
 }

@@ -164,3 +164,25 @@
   justify-content: flex-end;
   gap: 10px;
 }
+
+.modal,
+.role-settings-body,
+.notification-panel {
+  overscroll-behavior: contain;
+}
+.modal {
+  max-height: calc(100dvh - 32px);
+}
+.drawer {
+  height: 100dvh;
+  max-height: 100dvh;
+}
+.role-settings-footer {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+.discard-description {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 10px;
+}

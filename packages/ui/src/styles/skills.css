@@ -11,6 +11,8 @@
 }
 .skills-toolbar .search-input {
   width: min(360px, 100%);
+  margin-left: 0;
+  margin-right: auto;
 }
 .skill-filters {
   border: 0;
@@ -41,7 +43,7 @@
   display: flex;
   align-items: flex-start;
   gap: 18px;
-  padding: 24px;
+  padding: 20px;
 }
 .skill-row + .skill-row {
   border-top: 1px solid var(--border);
@@ -57,7 +59,7 @@
   overflow-wrap: anywhere;
 }
 .skill-summary h2 {
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.4;
 }
 .skill-summary p {
@@ -214,4 +216,18 @@
   background: var(--paper-deep);
   color: var(--ink);
   border-radius: 8px;
+}
+
+.skills-result-count {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.skill-summary > p {
+  font-size: 14px;
+  line-height: 1.55;
+}
+.skill-row {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 155px;
 }

@@ -4,6 +4,16 @@
   box-shadow: var(--sheet);
   padding: 20px 22px;
 }
+.approval-list:not(:empty) + .approval-list:not(:empty) {
+  margin-top: 14px;
+}
+.approval-heading > div {
+  min-width: 0;
+}
+.approval-heading h2,
+.approval-heading p {
+  overflow-wrap: anywhere;
+}
 .approval-heading {
   display: flex;
   gap: 12px;
@@ -83,4 +93,35 @@
   margin-top: 12px;
   overflow-wrap: anywhere;
   font-family: var(--font-mono);
+}
+.browser-action-summary {
+  margin: 14px 0;
+  border-block: 1px solid var(--border);
+}
+.browser-action-summary > div {
+  padding: 10px 0;
+}
+.browser-action-summary dt {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.browser-action-summary dd {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.browser-page-url,
+.browser-approval-note {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.browser-approval-note {
+  margin-top: 14px;
+}
+.approval-card .approval-preview + .approval-preview {
+  margin-top: 8px;
 }

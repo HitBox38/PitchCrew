@@ -438,3 +438,13 @@
   margin-top: 6px;
   max-width: 460px;
 }
+.view-switch,
+.inbox-tabs {
+  border: 0;
+  margin-inline: 0;
+  min-width: 0;
+}
+.job-card h3,
+.detail-company h2 {
+  overflow-wrap: anywhere;
+}
