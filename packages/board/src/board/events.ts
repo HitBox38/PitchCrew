@@ -29,18 +29,30 @@ export function record(
     const event: BoardEvent = {
       id: 0,
       version:
-        kind === 'routine' ||
-        (kind === 'run' && 'routineId' in data) ||
+        kind === 'tracking_signal' ||
+        kind === 'tracking_scan' ||
+        (kind === 'card' && ('tracking' in data || 'statusEffectiveAt' in data)) ||
         (kind === 'role' &&
           'capabilities' in data &&
-          data.capabilities?.manageRoutines !== undefined) ||
+          (data.capabilities?.readApplications !== undefined ||
+            data.capabilities?.trackApplications !== undefined)) ||
         (kind === 'proposal' &&
           'changes' in data &&
-          data.changes.capabilities?.manageRoutines !== undefined)
-          ? 8
-          : kind === 'message' && 'notification' in data
-            ? 7
-            : 6,
+          (data.changes.capabilities?.readApplications !== undefined ||
+            data.changes.capabilities?.trackApplications !== undefined))
+          ? 9
+          : kind === 'routine' ||
+              (kind === 'run' && 'routineId' in data) ||
+              (kind === 'role' &&
+                'capabilities' in data &&
+                data.capabilities?.manageRoutines !== undefined) ||
+              (kind === 'proposal' &&
+                'changes' in data &&
+                data.changes.capabilities?.manageRoutines !== undefined)
+            ? 8
+            : kind === 'message' && 'notification' in data
+              ? 7
+              : 6,
       kind,
       entityId: data.id,
       data,

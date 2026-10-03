@@ -101,6 +101,9 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_list_routines',
         'pitchcrew_save_routine',
         'pitchcrew_delete_routine',
+        'pitchcrew_search_applications',
+        'pitchcrew_scan_application_mail',
+        'pitchcrew_reconcile_application_mail',
       ].sort(),
     );
     const routineInput = {
