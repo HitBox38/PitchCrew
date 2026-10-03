@@ -3,7 +3,18 @@ import type { Skill } from '@pitchcrew/core';
 import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { useState } from 'react';
 
-export function useSkillsView({ data, action, working, filter, onFilter }: SkillsViewProps) {
+export function useSkillsView({
+  data,
+  action,
+  working,
+  filter: requestedFilter,
+  onFilter,
+}: SkillsViewProps) {
+  const filter =
+    ['all', 'shared'].includes(requestedFilter) ||
+    data.roles.some((role) => role.id === requestedFilter)
+      ? requestedFilter
+      : 'all';
   const [query, setQuery] = useState('');
   const [editing, setEditing] = useState<Skill | 'new' | 'import' | null>(null);
   const [starter, setStarter] = useState<BaseSkill | null>(null);

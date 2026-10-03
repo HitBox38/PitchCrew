@@ -31,7 +31,7 @@ it('persists bounded, scoped user requests, replays priority and expires run acc
     notification: 'attention',
     content: question.content,
   });
-  expect(daemon.service.board.events()[0]).toMatchObject({ version: 7, kind: 'message' });
+  expect(daemon.service.board.events()[0]).toMatchObject({ version: 9, kind: 'message' });
   await expect(
     daemon.service.agentCall(token, 'notify_user', { ...question, roleId: 'writer' }),
   ).rejects.toThrow();

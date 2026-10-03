@@ -33,9 +33,11 @@ export function ChatComposer({
     <div className="chat-compose">
       {!role.enabled || !available ? (
         <p className="form-error">
-          {!role.enabled
-            ? `${role.name} is paused. Enable this role in its settings to chat.`
-            : `${runtimeLabels[role.runtime]} is not available. Choose an installed runtime in role settings.`}
+          {role.retiredAt
+            ? `${role.name} is retired. Its conversation is kept for reference.`
+            : !role.enabled
+              ? `${role.name} is paused. Enable this role in its settings to chat.`
+              : `${runtimeLabels[role.runtime]} is not available. Choose an installed runtime in role settings.`}
         </p>
       ) : null}
       {error ? (

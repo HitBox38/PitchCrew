@@ -4,7 +4,10 @@ import { draftInput, initialDraft } from '../helpers.ts';
 import type { EditorProps, RoutineDraft } from '../types.ts';
 
 export function useRoutineEditor(props: EditorProps) {
-  const [initial] = useState(() => initialDraft(props.routine));
+  const [initial] = useState(() => ({
+    ...initialDraft(props.routine),
+    ...(!props.routine ? { roleId: props.roles.find((role) => !role.retiredAt)?.id ?? '' } : {}),
+  }));
   const [draft, setDraft] = useState(initial);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);

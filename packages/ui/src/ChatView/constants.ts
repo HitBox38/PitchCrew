@@ -3,13 +3,13 @@ import * as m from 'motion/react-m';
 
 export const AnimatedMessage = m.create(Message);
 
-export const rolePurpose = {
+export const rolePurpose: Record<string, string> = {
   scout: 'Find the right opportunities',
   writer: 'Write a stronger application',
   reviewer: 'Check the details',
 };
 
-export const conversationStarters = {
+export const conversationStarters: Record<string, { label: string; prompt: string }[]> = {
   scout: [
     {
       label: 'What should I look for?',

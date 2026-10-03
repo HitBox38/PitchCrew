@@ -1,3 +1,4 @@
+import { requireRole } from './roles.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   chatInput,
@@ -7,7 +8,6 @@ import {
   type ChatMessage,
   type ChatStreamState,
   type ChatStreamUpdate,
-  type Role,
   type RoleId,
   type Run,
 } from '@pitchcrew/core';
@@ -83,7 +83,7 @@ export async function startChatRun(
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
-  const role = this.board.get<Role>('role', roleId);
+  const role = requireRole(this, roleId);
   const skills = this.skills(roleId);
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
