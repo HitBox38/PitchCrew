@@ -1,3 +1,4 @@
+import { profileUpdateInterrupted } from '../../profile-sources/mutation.ts';
 import {
   defaultCapabilities,
   type AgentTask,
@@ -41,6 +42,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
         !role.enabled ||
         role.retiredAt ||
         this.profileWriting ||
+        profileUpdateInterrupted(this) ||
         this.configuring.has(role.id) ||
         !this.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
       )

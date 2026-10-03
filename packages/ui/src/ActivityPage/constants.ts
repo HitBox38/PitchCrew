@@ -10,6 +10,7 @@ export const eventKindLabels = {
   skill: 'Skills',
   skill_proposal: 'Skill suggestions',
   computer_approval: 'Browser approvals',
+  profile_proposal: 'Profile updates',
 } as const;
 
 export const actorLabels: Record<string, string> = {

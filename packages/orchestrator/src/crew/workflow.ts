@@ -1,4 +1,5 @@
 import { requireRole } from './roles.ts';
+import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   runResultSchema,
@@ -23,6 +24,7 @@ export async function startRun(
   task?: AgentTask,
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
+  assertProfileReady(this);
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
   const profileRevision = this.profileRevision;
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
