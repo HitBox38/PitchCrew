@@ -1,3 +1,4 @@
+import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
@@ -41,6 +42,7 @@ export interface Snapshot {
   messages: ChatMessage[];
   streamingMessages: ChatMessage[];
   proposals: RoleProposal[];
+  pipelineReviews?: PipelineReview[];
   tasks: AgentTask[];
   routines: Routine[];
   connectors: ConnectorStatus[];

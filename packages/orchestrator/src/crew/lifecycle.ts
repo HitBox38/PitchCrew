@@ -1,4 +1,5 @@
 import {
+  type PipelineReview,
   type AgentTask,
   type Approval,
   type Card,
@@ -89,6 +90,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     messages: this.board.list<ChatMessage>('message'),
     streamingMessages: [...this.streamingMessages.values()],
     proposals: this.board.list<RoleProposal>('proposal'),
+    pipelineReviews: this.board.list<PipelineReview>('pipeline_review').reverse(),
     tasks: this.board.list<AgentTask>('task'),
     routines: routines.call(this),
     connectors: this.connectors.status(),

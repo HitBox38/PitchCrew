@@ -38,6 +38,7 @@ export function RoleProposals({ proposals, data, working, act }: RoleProposalsPr
                 <RoleProposalContent
                   proposal={proposal}
                   current={current}
+                  sourceName={data.roles.find((r) => r.id === proposal.sourceRoleId)?.name}
                   active={active}
                   working={working}
                   act={act}

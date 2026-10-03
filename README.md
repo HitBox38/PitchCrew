@@ -1,4 +1,4 @@
-﻿# Pitchcrew
+# Pitchcrew
 
 A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
@@ -181,3 +181,5 @@ Tests use fictional fixtures and temporary workspaces. They cover transitions, a
 Discovery is manual. Roles launch from user chat/workflow actions, persistent routines and bounded crew follow-ups. Exports are local Markdown files: there is no email sender, PDF/one-page builder, OS/background scheduler, custom-role creation, or automatic coaching. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.
+
+Pipeline review prerequisites are available through opt-in crew capabilities: bounded batch evidence, every-seat assessments, measurable follow-ups and explicit user approval for targeted role changes. No Coach agent or routine is added automatically. See [pipeline reviews](docs/pipeline-reviews.md).

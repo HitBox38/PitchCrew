@@ -1,3 +1,4 @@
+import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   runResultSchema,
@@ -52,6 +53,8 @@ export async function startRun(
     cardId,
     roleId,
     runtime: role.runtime,
+    configuration: runConfiguration(role, skills),
+    inputPacketDigest: packetDigest(card),
     status: 'running',
     message: 'Starting role…',
     startedAt: new Date().toISOString(),
@@ -118,6 +121,7 @@ export async function startRun(
         {
           ...run,
           status: 'completed',
+          outputPacketDigest: packetDigest(this.board.get<Card>('card', cardId)),
           message: `${role.name} finished`,
           finishedAt: new Date().toISOString(),
         },

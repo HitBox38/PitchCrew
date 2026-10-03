@@ -1,3 +1,4 @@
+import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   chatInput,
@@ -97,6 +98,8 @@ export async function startChatRun(
     cardId,
     roleId,
     runtime: role.runtime,
+    configuration: runConfiguration(role, skills),
+    inputPacketDigest: packetDigest(card),
     mode: 'chat',
     threadId,
     status: 'running',
@@ -177,6 +180,7 @@ export async function startChatRun(
       {
         ...run,
         status: 'completed',
+        outputPacketDigest: packetDigest(cardId ? this.board.get<Card>('card', cardId) : null),
         message: `${role.name} replied`,
         finishedAt: new Date().toISOString(),
       },

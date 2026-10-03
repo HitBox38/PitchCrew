@@ -21,6 +21,7 @@ import {
 import { access, mkdir } from 'node:fs/promises';
 import { createCrewContext } from './crew/context.ts';
 import type { CrewContext } from './crew/types.ts';
+import { updatePipelineReview } from './crew/pipeline/reviews.ts';
 import { changeProfile } from './profile-sources/mutation.ts';
 import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
@@ -159,6 +160,9 @@ export class CrewService {
   }
   sendChat(roleId: RoleId, data: unknown): Promise<Run> {
     return this.context.sendChat(roleId, data);
+  }
+  updatePipelineReview(input: unknown) {
+    return updatePipelineReview(this.context, input, 'user');
   }
   decideProposal(id: string, approved: boolean): Promise<RoleProposal> {
     return this.context.decideProposal(id, approved);

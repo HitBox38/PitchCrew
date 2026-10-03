@@ -29,18 +29,26 @@ export function record(
     const event: BoardEvent = {
       id: 0,
       version:
-        kind === 'routine' ||
-        (kind === 'run' && 'routineId' in data) ||
+        kind === 'pipeline_review' ||
+        (kind === 'run' && 'configuration' in data) ||
+        (kind === 'proposal' && 'targetRevision' in data) ||
         (kind === 'role' &&
           'capabilities' in data &&
-          data.capabilities?.manageRoutines !== undefined) ||
-        (kind === 'proposal' &&
-          'changes' in data &&
-          data.changes.capabilities?.manageRoutines !== undefined)
-          ? 8
-          : kind === 'message' && 'notification' in data
-            ? 7
-            : 6,
+          (data.capabilities?.reviewPipeline !== undefined ||
+            data.capabilities?.proposeCrewChanges !== undefined))
+          ? 9
+          : kind === 'routine' ||
+              (kind === 'run' && 'routineId' in data) ||
+              (kind === 'role' &&
+                'capabilities' in data &&
+                data.capabilities?.manageRoutines !== undefined) ||
+              (kind === 'proposal' &&
+                'changes' in data &&
+                data.changes.capabilities?.manageRoutines !== undefined)
+            ? 8
+            : kind === 'message' && 'notification' in data
+              ? 7
+              : 6,
       kind,
       entityId: data.id,
       data,
