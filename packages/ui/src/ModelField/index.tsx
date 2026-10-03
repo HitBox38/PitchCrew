@@ -52,7 +52,7 @@ export function ModelField(props: ModelFieldProps) {
       />
       <output className="optional" aria-live="polite">
         {!available
-          ? 'This runtime is unavailable. Choose an available runtime to save settings.'
+          ? 'This runtime is unavailable. Install it before starting agent work.'
           : loading
             ? 'Loading models from the runtime…'
             : error || catalog.modelDetail}

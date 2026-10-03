@@ -1,49 +1,34 @@
-import { useState } from 'react';
-import type { Role, Snapshot } from '@pitchcrew/core';
-import type { Action } from '@/WorkspaceStore/index.ts';
+import { lazy, Suspense, useState } from 'react';
+import type { Snapshot } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { RoleSettings } from '@/components/RoleSettings/index.tsx';
-import { capabilityDefaults } from '@/agent-capabilities.ts';
-const draft: Role = {
-  id: '',
-  name: '',
-  description: '',
-  runtime: 'demo',
-  model: '',
-  enabled: true,
-  instructions: '',
-  workflow: 'chat',
-  capabilities: {
-    ...capabilityDefaults,
-    messageAgents: false,
-    invokeAgents: false,
-    manageWorkflow: false,
-    manageRoutines: false,
-  },
-};
-export function CreateRole({
-  data,
-  action,
-  working,
-}: {
-  data: Snapshot;
-  action: Action;
-  working: boolean;
-}) {
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+const AgentCreation = lazy(() =>
+  import('@/AgentCreation/index.tsx').then((module) => ({ default: module.AgentCreation })),
+);
+export function CreateRole({ data, working }: { data: Snapshot; working: boolean }) {
   const [open, setOpen] = useState(false);
+  const reload = useWorkspaceStore((state) => state.reload);
+  const setToast = useWorkspaceStore((state) => state.setToast);
   return (
     <div className="mb-4">
-      <Button onClick={() => setOpen(true)}>Create role</Button>
+      <Button disabled={working || data.roles.length >= 50} onClick={() => setOpen(true)}>
+        Create agent
+      </Button>
+      {data.roles.length >= 50 ? (
+        <p className="quiet">All 50 stored role IDs are in use, including retired roles.</p>
+      ) : null}
       {open ? (
-        <RoleSettings
-          creating
-          role={draft}
-          data={data}
-          action={action}
-          working={working}
-          onClose={() => setOpen(false)}
-          onManageSkills={() => setOpen(false)}
-        />
+        <Suspense fallback={<output className="quiet">Loading agent setup…</output>}>
+          <AgentCreation
+            data={data}
+            working={working}
+            onClose={() => setOpen(false)}
+            onCreated={(role) => {
+              setToast(`${role.name} created`);
+              void reload().catch(() => {});
+            }}
+          />
+        </Suspense>
       ) : null}
     </div>
   );

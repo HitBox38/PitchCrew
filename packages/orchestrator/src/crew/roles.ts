@@ -1,6 +1,5 @@
 import {
   defaultCapabilities,
-  roleCreate,
   roleIdSchema,
   customCapabilities,
   rolePatch,
@@ -14,6 +13,8 @@ import {
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { roleSetup, validateRoleSetup } from './role-setup.ts';
+import { saveRoutine } from './routines/index.ts';
 
 export async function writeRunInstructions(
   this: CrewContext,
@@ -76,7 +77,8 @@ export function requireRole(context: CrewContext, id: RoleId): Role {
   return role;
 }
 export async function createRole(this: CrewContext, data: unknown): Promise<Role> {
-  const input = roleCreate.parse(data);
+  const { skills: selectedSkills, routine, ...input } = roleSetup.parse(data);
+  const setup = { ...input, skills: selectedSkills, routine };
   if (
     this.board.list<Role>('role').some((role) => role.id === input.id) ||
     this.configuring.has(input.id)
@@ -84,13 +86,7 @@ export async function createRole(this: CrewContext, data: unknown): Promise<Role
     throw new Error('This role ID already exists, including retired roles.');
   if (this.board.list<Role>('role').length + this.configuring.size >= 50)
     throw new Error('You can store up to 50 roles.');
-  const total = this.skills()
-    .filter((skill) => skill.scope === 'all')
-    .reduce(
-      (size, skill) => size + skill.name.length + skill.description.length + skill.content.length,
-      0,
-    );
-  if (total > 60000) throw new Error('Shared skills exceed the role instruction limit.');
+  validateRoleSetup(this, setup);
   const role: Role = {
     ...input,
     retiredAt: null,
@@ -99,7 +95,18 @@ export async function createRole(this: CrewContext, data: unknown): Promise<Role
   this.configuring.add(role.id);
   try {
     await this.writeRole(role);
-    this.board.record('role', role, 'user', `Created ${role.name}`);
+    this.board.db.transaction(() => {
+      const skills = validateRoleSetup(this, setup);
+      this.board.record('role', role, 'user', `Created ${role.name}`);
+      for (const skill of skills.filter((item) => item.scope === 'roles'))
+        this.board.record(
+          'skill',
+          { ...skill, roleIds: [...skill.roleIds, role.id], updatedAt: new Date().toISOString() },
+          'user',
+          `Assigned skill to ${role.name}: ${skill.name}`,
+        );
+      if (routine) saveRoutine.call(this, routine);
+    })();
   } finally {
     this.configuring.delete(role.id);
   }
