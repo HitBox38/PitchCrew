@@ -3,5 +3,9 @@
   "semi": true,
   "singleQuote": true,
   "printWidth": 100,
+  "sortTailwindcss": {
+    "stylesheet": "packages/ui/src/styles.css",
+    "functions": ["cn", "clsx", "cva"]
+  },
   "ignorePatterns": [".agents/**", "**/dist/**", "**/node_modules/**", "pnpm-lock.yaml"]
 }

@@ -59,7 +59,7 @@ export function SkillDialogs({
               {error}
             </p>
           ) : null}
-          <div className="form-footer">
+          <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
             <Button className="button" disabled={working} onClick={() => setDeleting(null)}>
               Cancel
             </Button>

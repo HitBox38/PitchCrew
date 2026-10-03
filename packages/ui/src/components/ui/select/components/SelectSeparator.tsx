@@ -6,7 +6,10 @@ export function SelectSeparator({ className, ...props }: SelectSeparatorProps) {
   return (
     <SelectPrimitive.Separator
       data-slot="select-separator"
-      className={cn('pointer-events-none -mx-1 my-1 h-px bg-border', className)}
+      className={cn(
+        'primitive:pointer-events-none primitive:-mx-1 primitive:my-1 primitive:h-px primitive:bg-border',
+        className,
+      )}
       {...props}
     />
   );

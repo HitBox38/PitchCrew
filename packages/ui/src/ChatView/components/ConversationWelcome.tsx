@@ -29,7 +29,7 @@ export function ConversationWelcome({
           ? 'Follow the handoffs, ask a question, or help the crew decide what comes next.'
           : `${role.description} Start with a question, or attach a job to work on an application.`}
       </p>
-      <div className="chat-starters">
+      <div className="chat-starters mt-6.25 grid w-full max-w-110 grid-cols-2 gap-2.5 max-chat:mt-5 max-chat:gap-2">
         {thread === 'crew' ? (
           <Button
             className="chat-starter"

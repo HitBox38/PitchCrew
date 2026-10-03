@@ -21,7 +21,7 @@ export function ModelField(props: ModelFieldProps) {
   } = controller;
   return (
     <div className="field">
-      <div className="model-field-heading">
+      <div className="model-field-heading flex items-center justify-between gap-2">
         <label htmlFor={id}>Model</label>
         {runtime !== 'demo' && (
           <Button

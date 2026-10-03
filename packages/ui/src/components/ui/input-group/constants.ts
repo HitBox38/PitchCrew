@@ -1,16 +1,18 @@
 import { cva } from 'class-variance-authority';
 
 export const inputGroupAddonVariants = cva(
-  "flex h-auto cursor-text items-center justify-center gap-2 py-1.5 text-sm font-medium text-muted-foreground select-none group-data-[disabled=true]/input-group:opacity-50 [&>kbd]:rounded-[calc(var(--radius)-5px)] [&>svg:not([class*='size-'])]:size-4",
+  "primitive:flex primitive:h-auto primitive:cursor-text primitive:items-center primitive:justify-center primitive:gap-2 primitive:py-1.5 primitive:text-sm primitive:font-medium primitive:text-muted-foreground primitive:select-none primitive:group-data-[disabled=true]/input-group:opacity-50 primitive:[&>kbd]:rounded-[calc(var(--radius)-5px)] primitive:[&>svg:not([class*='size-'])]:size-4",
   {
     variants: {
       align: {
-        'inline-start': 'order-first pl-2 has-[>button]:-ml-1 has-[>kbd]:ml-[-0.15rem]',
-        'inline-end': 'order-last pr-2 has-[>button]:-mr-1 has-[>kbd]:mr-[-0.15rem]',
+        'inline-start':
+          'primitive:order-first primitive:pl-2 primitive:has-[>button]:-ml-1 primitive:has-[>kbd]:ml-[-0.15rem]',
+        'inline-end':
+          'primitive:order-last primitive:pr-2 primitive:has-[>button]:-mr-1 primitive:has-[>kbd]:mr-[-0.15rem]',
         'block-start':
-          'order-first w-full justify-start px-2.5 pt-2 group-has-[>input]/input-group:pt-2 [.border-b]:pb-2',
+          'primitive:order-first primitive:w-full primitive:justify-start primitive:px-2.5 primitive:pt-2 primitive:group-has-[>input]/input-group:pt-2 primitive:[.border-b]:pb-2',
         'block-end':
-          'order-last w-full justify-start px-2.5 pb-2 group-has-[>input]/input-group:pb-2 [.border-t]:pt-2',
+          'primitive:order-last primitive:w-full primitive:justify-start primitive:px-2.5 primitive:pb-2 primitive:group-has-[>input]/input-group:pb-2 primitive:[.border-t]:pt-2',
       },
     },
     defaultVariants: {
@@ -19,16 +21,20 @@ export const inputGroupAddonVariants = cva(
   },
 );
 
-export const inputGroupButtonVariants = cva('flex items-center gap-2 text-sm shadow-none', {
-  variants: {
-    size: {
-      xs: "h-6 gap-1 rounded-[calc(var(--radius)-5px)] px-1.5 [&>svg:not([class*='size-'])]:size-3.5",
-      sm: '',
-      'icon-xs': 'size-6 rounded-[calc(var(--radius)-5px)] p-0 has-[>svg]:p-0',
-      'icon-sm': 'size-8 p-0 has-[>svg]:p-0',
+export const inputGroupButtonVariants = cva(
+  'primitive:flex primitive:items-center primitive:gap-2 primitive:text-sm primitive:shadow-none',
+  {
+    variants: {
+      size: {
+        xs: "primitive:h-6 primitive:gap-1 primitive:rounded-[calc(var(--radius)-5px)] primitive:px-1.5 primitive:[&>svg:not([class*='size-'])]:size-3.5",
+        sm: '',
+        'icon-xs':
+          'primitive:size-6 primitive:rounded-[calc(var(--radius)-5px)] primitive:p-0 primitive:has-[>svg]:p-0',
+        'icon-sm': 'primitive:size-8 primitive:p-0 primitive:has-[>svg]:p-0',
+      },
+    },
+    defaultVariants: {
+      size: 'xs',
     },
   },
-  defaultVariants: {
-    size: 'xs',
-  },
-});
+);

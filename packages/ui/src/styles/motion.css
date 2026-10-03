@@ -35,7 +35,7 @@
   opacity: 1;
   transform: translate(0);
   transition:
-    transform var(--duration-surface) var(--ease-drawer),
+    transform var(--duration-surface) var(--drawer-ease),
     opacity var(--duration-popup) var(--ease);
 }
 [data-slot='sheet-content'][data-side='right']:is([data-starting-style], [data-ending-style]) {

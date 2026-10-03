@@ -1,27 +1,13 @@
-.profile-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 240px;
-  gap: 28px;
-  max-width: 1180px;
-}
 .profile-editor {
   background: var(--surface);
   border-radius: 16px 17px 15px 16px;
   box-shadow: var(--sheet);
   overflow: hidden;
 }
-.profile-editor-heading {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  border-bottom: 1px solid var(--border);
-  padding: 10px 12px 10px 16px;
-  color: var(--muted);
-}
 .profile-editor-heading input {
   border: 0;
   background: transparent;
-  font-size: 13px;
+  font-size: var(--text-label);
   font-family: var(--font-mono);
   flex: 1;
   min-width: 0;
@@ -54,11 +40,6 @@
 .profile-editor {
   min-width: 0;
 }
-.profile-notes {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
 .profile-file > span {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -75,7 +56,7 @@
   padding: 0 10px;
   border-radius: 9px;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: var(--text-label);
   font-family: var(--font-mono);
   box-shadow: none;
   transition: var(--motion);
@@ -99,7 +80,7 @@
   margin-top: 22px;
 }
 .profile-tip p {
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--muted);
   line-height: 1.6;
   margin: 8px 0;
@@ -109,7 +90,7 @@
   gap: 8px;
   align-items: center;
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: var(--text-caption);
   margin-top: 18px;
   overflow-wrap: anywhere;
 }
@@ -138,7 +119,7 @@
   height: auto;
   min-height: 34px;
 }
-@media (max-width: 640px) {
+@variant max-narrow {
   .profile-editor-heading {
     flex-wrap: wrap;
   }
@@ -154,9 +135,8 @@
     padding: 18px;
   }
 }
-@media (max-width: 760px) {
+@variant max-compact {
   .profile-notes {
-    flex-direction: row;
     flex-wrap: wrap;
   }
   .profile-file {
@@ -212,7 +192,7 @@
 }
 .profile-source-description span {
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-label);
 }
 .profile-sources-footnote {
   color: var(--muted);
@@ -264,7 +244,7 @@
 .profile-import-selection {
   flex-wrap: wrap;
   margin-bottom: 16px;
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--muted);
 }
 .profile-import-document {
@@ -295,7 +275,7 @@
 }
 .profile-import-document details {
   margin: 10px 0 0 26px;
-  font-size: 13px;
+  font-size: var(--text-label);
 }
 .profile-import-document summary {
   cursor: pointer;
@@ -321,7 +301,7 @@
   margin-top: 0;
   flex-shrink: 0;
 }
-@media (max-width: 760px) {
+@variant max-compact {
   .profile-sources-heading {
     flex-direction: column;
   }

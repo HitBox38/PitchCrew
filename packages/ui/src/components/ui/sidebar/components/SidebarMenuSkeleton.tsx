@@ -15,12 +15,20 @@ export function SidebarMenuSkeleton({
     <div
       data-slot="sidebar-menu-skeleton"
       data-sidebar="menu-skeleton"
-      className={cn('flex h-8 items-center gap-2 rounded-md px-2', className)}
+      className={cn(
+        'primitive:flex primitive:h-8 primitive:items-center primitive:gap-2 primitive:rounded-md primitive:px-2',
+        className,
+      )}
       {...props}
     >
-      {showIcon && <Skeleton className="size-4 rounded-md" data-sidebar="menu-skeleton-icon" />}
+      {showIcon && (
+        <Skeleton
+          className="primitive:size-4 primitive:rounded-md"
+          data-sidebar="menu-skeleton-icon"
+        />
+      )}
       <Skeleton
-        className="h-4 max-w-(--skeleton-width) flex-1"
+        className="primitive:h-4 primitive:max-w-(--skeleton-width) primitive:flex-1"
         data-sidebar="menu-skeleton-text"
         style={
           {

@@ -1,0 +1,2 @@
+# Match Oxfmt's line endings on every platform without changing binary assets.
+* text=auto eol=lf

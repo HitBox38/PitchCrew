@@ -6,7 +6,10 @@ import * as m from 'motion/react-m';
 
 export function ClosedJobs({ closed, openCard }: ClosedJobsProps) {
   return (
-    <m.div layout className="closed-grid">
+    <m.div
+      layout
+      className="closed-grid grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-3"
+    >
       <AnimatePresence initial={false}>
         {closed.length ? (
           closed.map((card) => (

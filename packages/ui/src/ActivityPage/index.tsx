@@ -35,11 +35,16 @@ export function ActivityPage() {
         <section className="activity-panel" aria-label="Activity history">
           <ol className="activity-list">
             {filtered.map((event) => (
-              <li className={`activity-row ${event.kind}`} key={event.id}>
+              <li
+                className={`activity-row grid grid-cols-[74px_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-border py-2.75 text-body last:border-0 max-compact:grid-cols-[56px_minmax(0,1fr)] ${event.kind}`}
+                key={event.id}
+              >
                 <time dateTime={event.createdAt} title={event.createdAt}>
                   {timeAgo(event.createdAt)}
                 </time>
-                <span className="activity-message">{event.message}</span>
+                <span className="activity-message flex min-w-0 items-baseline gap-2.25 wrap-anywhere">
+                  {event.message}
+                </span>
                 <span className="activity-actor">
                   {actorLabels[event.actor] ?? event.actor}
                   <span className="activity-kind">{eventKindLabels[event.kind]}</span>

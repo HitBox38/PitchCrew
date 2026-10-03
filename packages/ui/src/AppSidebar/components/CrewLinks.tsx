@@ -53,7 +53,10 @@ export function CrewLinks({
                     <small>{roleStatus(role)}</small>
                   </span>
                   {running ? (
-                    <LoaderCircle className="spin crew-running" aria-label="Running" />
+                    <LoaderCircle
+                      className="spin crew-running ml-auto text-primary"
+                      aria-label="Running"
+                    />
                   ) : null}
                 </SidebarMenuButton>
                 <DropdownMenu>

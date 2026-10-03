@@ -8,16 +8,20 @@ import * as m from 'motion/react-m';
 
 export function JobPipeline({ filtered, flashStage, setAdd, openCard, query }: JobPipelineProps) {
   return (
-    <m.div layoutScroll className="pipeline" aria-label="Application pipeline">
+    <m.div
+      layoutScroll
+      className="pipeline grid grid-cols-[repeat(5,minmax(210px,1fr))] gap-3 overflow-x-auto pb-1.5 max-compact:grid-cols-[repeat(5,236px)]"
+      aria-label="Application pipeline"
+    >
       {stages.map((stage) => {
         const cards = filtered.filter((c) => stage.states.includes(c.state));
         return (
           <section
-            className={`pipeline-column ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
+            className={`pipeline-column min-h-110 min-w-0 px-2 pt-2.5 pb-3 max-compact:min-h-80 ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
             id={`stage-${stage.id}`}
             key={stage.id}
           >
-            <div className="column-heading">
+            <div className="column-heading mb-2.5 flex h-6.5 items-center gap-2 px-1.5">
               <span className="stage-dot" />
               <h2>{stage.label}</h2>
               <span className="column-count">{cards.length}</span>
@@ -27,7 +31,7 @@ export function JobPipeline({ filtered, flashStage, setAdd, openCard, query }: J
                 </Button>
               ) : null}
             </div>
-            <div className="column-cards">
+            <div className="column-cards flex flex-col gap-2">
               <AnimatePresence initial={false}>
                 {cards.map((card) => (
                   <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />

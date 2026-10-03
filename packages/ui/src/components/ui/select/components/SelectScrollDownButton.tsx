@@ -8,12 +8,12 @@ export function SelectScrollDownButton({ className, ...props }: SelectScrollDown
     <SelectPrimitive.ScrollDownArrow
       data-slot="select-scroll-down-button"
       className={cn(
-        'bottom-0 z-10 flex w-full cursor-default items-center justify-center bg-popover py-1',
+        'primitive:bottom-0 primitive:z-10 primitive:flex primitive:w-full primitive:cursor-default primitive:items-center primitive:justify-center primitive:bg-popover primitive:py-1',
         className,
       )}
       {...props}
     >
-      <ChevronDownIcon className="size-4" />
+      <ChevronDownIcon className="primitive:size-4" />
     </SelectPrimitive.ScrollDownArrow>
   );
 }

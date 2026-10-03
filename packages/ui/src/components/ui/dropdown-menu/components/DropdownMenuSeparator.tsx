@@ -6,7 +6,7 @@ export function DropdownMenuSeparator({ className, ...props }: DropdownMenuSepar
   return (
     <MenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
-      className={cn('-mx-1 my-1 h-px bg-border', className)}
+      className={cn('primitive:-mx-1 primitive:my-1 primitive:h-px primitive:bg-border', className)}
       {...props}
     />
   );

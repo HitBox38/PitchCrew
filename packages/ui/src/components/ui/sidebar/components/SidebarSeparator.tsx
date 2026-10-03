@@ -7,7 +7,7 @@ export function SidebarSeparator({ className, ...props }: SidebarSeparatorProps)
     <Separator
       data-slot="sidebar-separator"
       data-sidebar="separator"
-      className={cn('mx-2 w-auto bg-sidebar-border', className)}
+      className={cn('primitive:mx-2 primitive:w-auto primitive:bg-sidebar-border', className)}
       {...props}
     />
   );

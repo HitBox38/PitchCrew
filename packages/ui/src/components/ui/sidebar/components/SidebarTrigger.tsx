@@ -13,7 +13,7 @@ export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerP
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
-      className={cn('size-7', className)}
+      className={cn('primitive:size-7', className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -21,7 +21,7 @@ export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerP
       {...props}
     >
       <PanelLeftIcon />
-      <span className="sr-only">Toggle Sidebar</span>
+      <span className="primitive:sr-only">Toggle Sidebar</span>
     </Button>
   );
 }

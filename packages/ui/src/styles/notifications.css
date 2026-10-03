@@ -12,7 +12,7 @@
   align-items: center;
   gap: 12px;
   max-width: min(520px, calc(100vw - 32px));
-  font-size: 13.5px;
+  font-size: var(--text-body);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -52,7 +52,7 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  font-size: 13px;
+  font-size: var(--text-label);
 }
 .notification-controls label {
   display: flex;
@@ -87,7 +87,7 @@
   font-weight: 400;
 }
 .notification-link span {
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.5;
 }
 .notification-link small {

@@ -12,7 +12,10 @@ export function DialogFooter({
   return (
     <div
       data-slot="dialog-footer"
-      className={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', className)}
+      className={cn(
+        'primitive:flex primitive:flex-col-reverse primitive:gap-2 primitive:sm:flex-row primitive:sm:justify-end',
+        className,
+      )}
       {...props}
     >
       {children}

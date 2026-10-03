@@ -9,10 +9,10 @@ export function SidebarGroupAction({ className, render, ...props }: SidebarGroup
     props: mergeProps<'button'>(
       {
         className: cn(
-          'absolute top-3.5 right-3 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
+          'primitive:absolute primitive:top-3.5 primitive:right-3 primitive:flex primitive:aspect-square primitive:w-5 primitive:items-center primitive:justify-center primitive:rounded-md primitive:p-0 primitive:text-sidebar-foreground primitive:ring-sidebar-ring primitive:outline-hidden primitive:transition-transform primitive:hover:bg-sidebar-accent primitive:hover:text-sidebar-accent-foreground primitive:focus-visible:ring-2 primitive:[&>svg]:size-4 primitive:[&>svg]:shrink-0',
           // Increases the hit area of the button on mobile.
-          'after:absolute after:-inset-2 md:after:hidden',
-          'group-data-[collapsible=icon]:hidden',
+          'primitive:after:absolute primitive:after:-inset-2 primitive:md:after:hidden',
+          'primitive:group-data-[collapsible=icon]:hidden',
           className,
         ),
       },

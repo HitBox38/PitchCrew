@@ -16,17 +16,13 @@
   color: var(--ink);
 }
 .modal-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
   margin-bottom: 8px;
 }
 .modal-heading h2 {
   font-size: 20px;
 }
 .modal-intro {
-  font-size: 13.5px;
+  font-size: var(--text-body);
   color: var(--muted);
   line-height: 1.55;
   margin-bottom: 20px;
@@ -79,7 +75,7 @@
 }
 .role-settings-heading p {
   margin-top: 4px;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   line-height: 1.5;
   color: var(--muted);
 }
@@ -144,7 +140,7 @@
 .role-settings-capabilities legend {
   padding: 0 0 12px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 600;
 }
 .role-settings-capabilities [data-slot='checkbox'] {

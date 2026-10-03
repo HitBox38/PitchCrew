@@ -20,7 +20,7 @@ export function ConversationPanel({
   onOpenCard,
 }: ConversationPanelProps) {
   return (
-    <TabsContent value="conversation" className="chat-conversation-panel">
+    <TabsContent value="conversation" className="chat-conversation-panel flex min-h-0 flex-col">
       <Conversation
         key={thread}
         className="chat-conversation"

@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils.ts';
 
 export const PromptInput = ({ className, onSubmit, children, ...props }: PromptInputProps) => (
   <form
-    className={cn('w-full', className)}
+    className={cn('primitive:w-full', className)}
     onSubmit={(event) => {
       event.preventDefault();
       const text = String(new FormData(event.currentTarget).get('message') ?? '');
@@ -13,6 +13,6 @@ export const PromptInput = ({ className, onSubmit, children, ...props }: PromptI
     }}
     {...props}
   >
-    <InputGroup className="overflow-hidden">{children}</InputGroup>
+    <InputGroup className="primitive:overflow-hidden">{children}</InputGroup>
   </form>
 );

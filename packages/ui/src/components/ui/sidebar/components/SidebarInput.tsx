@@ -7,7 +7,10 @@ export function SidebarInput({ className, ...props }: SidebarInputProps) {
     <Input
       data-slot="sidebar-input"
       data-sidebar="input"
-      className={cn('h-8 w-full bg-background shadow-none', className)}
+      className={cn(
+        'primitive:h-8 primitive:w-full primitive:bg-background primitive:shadow-none',
+        className,
+      )}
       {...props}
     />
   );

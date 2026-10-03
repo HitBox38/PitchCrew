@@ -22,7 +22,10 @@ export function RoleSettings(props: RoleSettingsProps) {
     >
       <SheetContent className="role-settings-panel" showCloseButton={false}>
         <RoleSettingsHeading {...controller} />
-        <form className="form role-settings-form" onSubmit={(e) => void save(e)}>
+        <form
+          className="form role-settings-form flex flex-col gap-4"
+          onSubmit={(e) => void save(e)}
+        >
           <div className="role-settings-body">
             <RuntimeSettings {...controller} />
             <InstructionSettings {...controller} />

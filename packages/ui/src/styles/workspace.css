@@ -25,7 +25,7 @@
   align-items: center;
   gap: 7px;
   padding: 3px 10px;
-  font-size: 12.5px;
+  font-size: var(--text-caption);
   color: var(--primary);
   background: var(--primary-soft);
   border-radius: 999px;

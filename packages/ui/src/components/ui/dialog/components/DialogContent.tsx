@@ -19,7 +19,7 @@ export function DialogContent({
         data-slot="dialog-content"
         data-motion={motion}
         className={cn(
-          'fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border bg-background p-6 shadow-lg outline-none sm:max-w-lg',
+          'primitive:fixed primitive:top-[50%] primitive:left-[50%] primitive:z-50 primitive:grid primitive:w-full primitive:max-w-[calc(100%-2rem)] primitive:translate-x-[-50%] primitive:translate-y-[-50%] primitive:gap-4 primitive:rounded-lg primitive:border primitive:bg-background primitive:p-6 primitive:shadow-lg primitive:outline-none primitive:sm:max-w-lg',
           className,
         )}
         {...props}
@@ -28,10 +28,10 @@ export function DialogContent({
         {showCloseButton && (
           <DialogPrimitive.Close
             data-slot="dialog-close"
-            className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+            className="primitive:absolute primitive:top-4 primitive:right-4 primitive:rounded-xs primitive:opacity-70 primitive:ring-offset-background primitive:transition-opacity primitive:hover:opacity-100 primitive:focus:ring-2 primitive:focus:ring-ring primitive:focus:ring-offset-2 primitive:focus:outline-hidden primitive:disabled:pointer-events-none primitive:[&_svg]:pointer-events-none primitive:[&_svg]:shrink-0 primitive:[&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="primitive:sr-only">Close</span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Popup>

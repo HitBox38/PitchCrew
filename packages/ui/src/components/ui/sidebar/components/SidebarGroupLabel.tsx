@@ -9,8 +9,8 @@ export function SidebarGroupLabel({ className, render, ...props }: SidebarGroupL
     props: mergeProps<'div'>(
       {
         className: cn(
-          'flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70 ring-sidebar-ring outline-hidden transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
-          'group-data-[collapsible=icon]:-mt-8 group-data-[collapsible=icon]:opacity-0',
+          'primitive:flex primitive:h-8 primitive:shrink-0 primitive:items-center primitive:rounded-md primitive:px-2 primitive:text-xs primitive:font-medium primitive:text-sidebar-foreground/70 primitive:ring-sidebar-ring primitive:outline-hidden primitive:transition-[margin,opacity] primitive:duration-200 primitive:ease-linear primitive:focus-visible:ring-2 primitive:[&>svg]:size-4 primitive:[&>svg]:shrink-0',
+          'primitive:group-data-[collapsible=icon]:-mt-8 primitive:group-data-[collapsible=icon]:opacity-0',
           className,
         ),
       },

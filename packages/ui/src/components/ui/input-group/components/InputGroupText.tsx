@@ -5,7 +5,7 @@ export function InputGroupText({ className, ...props }: InputGroupTextProps) {
   return (
     <span
       className={cn(
-        "flex items-center gap-2 text-sm text-muted-foreground [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4",
+        "primitive:flex primitive:items-center primitive:gap-2 primitive:text-sm primitive:text-muted-foreground primitive:[&_svg]:pointer-events-none primitive:[&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}

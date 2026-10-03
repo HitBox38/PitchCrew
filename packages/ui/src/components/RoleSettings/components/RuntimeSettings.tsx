@@ -23,7 +23,7 @@ export function RuntimeSettings({
   return (
     <section className="role-settings-section" aria-labelledby={`${role.id}-runtime-heading`}>
       <h3 id={`${role.id}-runtime-heading`}>Runtime and model</h3>
-      <div className="form-row">
+      <div className="form-row grid grid-cols-2 gap-3.5 max-compact:grid-cols-1">
         <div className="field">
           <label htmlFor={`${role.id}-runtime`}>Runtime</label>
           <Select

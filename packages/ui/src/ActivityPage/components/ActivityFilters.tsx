@@ -22,7 +22,7 @@ const items = [
 ];
 export function ActivityFilters({ query, kind, change, count }: Props) {
   return (
-    <div className="activity-toolbar">
+    <div className="activity-toolbar mb-4.5 flex max-w-245 items-center gap-3 max-compact:flex-wrap">
       <div className="search-input">
         <Search size={15} aria-hidden="true" />
         <Input

@@ -18,7 +18,7 @@ export function Modal({ title, children, onClose, drawer = false, className = ''
         }}
       >
         <SheetContent className={`modal drawer ${className}`} showCloseButton={false}>
-          <div className="modal-heading">
+          <div className="modal-heading flex items-center justify-between gap-4">
             <SheetTitle>{title}</SheetTitle>
             <Button
               variant="ghost"
@@ -41,7 +41,7 @@ export function Modal({ title, children, onClose, drawer = false, className = ''
       }}
     >
       <DialogContent className={`modal ${className}`} showCloseButton={false}>
-        <div className="modal-heading">
+        <div className="modal-heading flex items-center justify-between gap-4">
           <DialogTitle>{title}</DialogTitle>
           <Button
             variant="ghost"

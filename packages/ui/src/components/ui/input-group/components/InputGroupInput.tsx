@@ -7,7 +7,7 @@ export function InputGroupInput({ className, ...props }: InputGroupInputProps) {
     <Input
       data-slot="input-group-control"
       className={cn(
-        'flex-1 rounded-none border-0 bg-transparent shadow-none ring-0 focus-visible:ring-0 aria-invalid:ring-0 dark:bg-transparent',
+        'primitive:flex-1 primitive:rounded-none primitive:border-0 primitive:bg-transparent primitive:shadow-none primitive:ring-0 primitive:focus-visible:ring-0 primitive:aria-invalid:ring-0 primitive:dark:bg-transparent',
         className,
       )}
       {...props}

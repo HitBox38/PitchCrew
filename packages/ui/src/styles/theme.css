@@ -1,4 +1,10 @@
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+/* Shared component defaults stay below materials and caller utilities. */
+@custom-variant primitive {
+  @layer primitives {
+    @slot;
+  }
+}
 /* State variants used by the shadcn Base UI components, as in shadcn/tailwind.css. */
 @custom-variant data-open (&:where([data-open]:not([data-open='false'])));
 @custom-variant data-closed (&:where([data-closed]:not([data-closed='false'])));
@@ -47,6 +53,33 @@
   --radius-lg: 16px;
   --font-sans: 'Source Sans 3', sans-serif;
   --font-serif: 'Fraunces Variable', Georgia, serif;
+  --color-ink-soft: var(--ink-soft);
+  --color-faint: var(--faint);
+  --color-surface-bright: var(--surface-bright);
+  --color-teal: var(--teal);
+  --color-moss: var(--moss);
+  --color-plum: var(--plum);
+  --color-ochre: var(--ochre);
+  --color-rose: var(--rose);
+  --shadow-clay: var(--clay);
+  --shadow-clay-hover: var(--clay-hover);
+  --shadow-sunken: var(--clay-sunken);
+  --shadow-glaze: var(--glaze);
+  --shadow-sheet: var(--sheet);
+  --shadow-pop: var(--pop);
+  --ease-material: var(--ease);
+  --ease-drawer: var(--drawer-ease);
+  --text-body: 0.84375rem;
+  --text-label: 0.8125rem;
+  --text-caption: 0.78125rem;
+  --text-note: 0.71875rem;
+  --text-detail: 0.75rem;
+  /* Existing feature thresholds, expressed in rem like Tailwind's defaults. */
+  --breakpoint-compact: 47.5625rem;
+  --breakpoint-chat: 50.0625rem;
+  --breakpoint-wide: 68.8125rem;
+  --breakpoint-narrow: 40.0625rem;
+  --breakpoint-phone: 30.0625rem;
 }
 :root {
   --paper: #f2f1ec;
@@ -116,7 +149,7 @@
   --sidebar-border: var(--border);
   --sidebar-ring: var(--primary);
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
-  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --drawer-ease: cubic-bezier(0.32, 0.72, 0, 1);
   --duration-press: 160ms;
   --duration-popup: 180ms;
   --duration-surface: 250ms;

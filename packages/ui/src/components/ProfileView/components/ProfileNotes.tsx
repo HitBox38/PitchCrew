@@ -18,7 +18,7 @@ export function ProfileNotes(props: ProfileNotesProps) {
           onChange={(event) => setQuery(event.target.value)}
         />
       ) : null}
-      <div className="profile-notes">
+      <div className="profile-notes flex flex-col gap-1">
         {notes.length ? (
           notes.map((file) => (
             <Button

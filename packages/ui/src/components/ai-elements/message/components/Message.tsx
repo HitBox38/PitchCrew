@@ -4,8 +4,8 @@ import { cn } from '@/lib/utils.ts';
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <div
     className={cn(
-      'group flex w-full max-w-[95%] flex-col gap-2',
-      from === 'user' ? 'is-user ml-auto justify-end' : 'is-assistant',
+      'group primitive:flex primitive:w-full primitive:max-w-[95%] primitive:flex-col primitive:gap-2',
+      from === 'user' ? 'is-user primitive:ml-auto primitive:justify-end' : 'is-assistant',
       className,
     )}
     {...props}

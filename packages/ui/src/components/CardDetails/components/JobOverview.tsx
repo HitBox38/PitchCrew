@@ -4,7 +4,7 @@ import type { JobOverviewProps } from '@/components/CardDetails/types.ts';
 export function JobOverview({ card, working, run, act }: JobOverviewProps) {
   return (
     <>
-      <div className="tags">
+      <div className="tags mt-2.25 flex flex-wrap gap-1">
         {card.tags.map((tag) => (
           <span key={tag}>{tag}</span>
         ))}

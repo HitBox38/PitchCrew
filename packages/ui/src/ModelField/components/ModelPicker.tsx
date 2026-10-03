@@ -21,7 +21,7 @@ export function ModelPicker({ id, models, value, onValueChange, disabled }: Mode
       disabled={disabled}
       autoHighlight
     >
-      <div className="model-picker-input">
+      <div className="model-picker-input relative">
         <Combobox.Input id={id} placeholder="Search models…" maxLength={100} />
         <Combobox.Trigger className="model-picker-trigger" aria-label="Show models">
           <ChevronDown size={16} aria-hidden="true" />

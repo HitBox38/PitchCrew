@@ -5,7 +5,10 @@ export function CommandShortcut({ className, ...props }: CommandShortcutProps) {
   return (
     <span
       data-slot="command-shortcut"
-      className={cn('ml-auto text-xs tracking-widest text-muted-foreground', className)}
+      className={cn(
+        'primitive:ml-auto primitive:text-xs primitive:tracking-widest primitive:text-muted-foreground',
+        className,
+      )}
       {...props}
     />
   );

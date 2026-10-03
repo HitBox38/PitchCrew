@@ -59,7 +59,7 @@ docs/             # design decisions
 - Keep components focused on rendering. Put pure transformations in helpers, network operations in API modules, and reusable stateful behavior in hooks. Name handlers as actions; reserve `use` prefixes for hooks.
 - Share repeated domain labels, formatting and status calculations under `packages/ui/src/lib/`. Keep shadcn and AI Elements families under `components/ui/` and `components/ai-elements/` with explicit public exports.
 - Backend entry points preserve their public contracts and compose private modules by domain: `board/`, orchestrator `crew/` and `http/`, adapter `process/`, MCP `tools/`, connector `auth/` and computer modules. Keep transactions and approval checks together.
-- Styles live in ordered feature files under `packages/ui/src/styles/`; `styles.css` preserves their cascade order. See [docs/code-organization.md](docs/code-organization.md).
+- Use ordinary Tailwind utilities for routine feature layout and spacing. Keep materials, complex selectors and shared motion in ordered feature files under `packages/ui/src/styles/`. Shared UI and AI Elements defaults use the `primitive:` variant: `styles.css` orders `base`, `primitives` and `components` below ordinary, unlayered caller utilities. Keep the utility import unlayered so the variant emits into the top-level `primitives` layer. Theme tokens and named responsive thresholds live in `styles/theme.css`; remaining feature CSS uses those thresholds through `@variant`. Oxfmt sorts classes, including `cn` and CVA arguments. See [docs/code-organization.md](docs/code-organization.md).
 
 ## Commands
 

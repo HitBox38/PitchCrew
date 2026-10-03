@@ -28,7 +28,7 @@
 .chat-work-heading p {
   margin-top: 3px;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-label);
 }
 .chat-work-heading > svg {
   color: var(--muted);
@@ -41,7 +41,7 @@
   border-radius: 8px;
   background: var(--paper);
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.5;
 }
 .chat-work-empty svg {
@@ -89,7 +89,7 @@
 }
 .chat-proposal summary {
   cursor: pointer;
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--primary);
 }
 .chat-instruction-comparison {
@@ -115,7 +115,7 @@
   border-radius: 6px;
   background: var(--paper);
   font: inherit;
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.6;
 }
 .chat-capability-changes {
@@ -209,7 +209,7 @@
   display: flex;
   align-items: baseline;
   gap: 8px;
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 600;
 }
 .chat-task strong > span {
@@ -232,7 +232,7 @@
 }
 .chat-task [data-streamdown] {
   margin-top: 6px;
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.6;
   color: var(--ink-soft);
 }
@@ -256,7 +256,7 @@
   gap: 15px;
   padding: 9px 0;
   color: var(--ink-soft);
-  font-size: 13px;
+  font-size: var(--text-label);
 }
 .chat-role-summary li > span:last-child {
   font-size: 12px;
@@ -282,7 +282,7 @@
   color: var(--ink);
   padding: 0 5px;
 }
-@media (max-width: 1100px) {
+@variant max-wide {
   .chat-workspace {
     grid-template-columns: 190px minmax(0, 1fr);
   }
@@ -307,7 +307,7 @@
     padding-inline: 22px;
   }
 }
-@media (max-width: 800px) {
+@variant max-chat {
   .chat-page .page-heading {
     margin-bottom: 15px;
   }
@@ -342,7 +342,7 @@
     gap: 7px;
   }
   .chat-thread strong {
-    font-size: 13px;
+    font-size: var(--text-label);
   }
   .chat-thread .role-avatar {
     width: 20px;
@@ -404,7 +404,7 @@
     font-size: 25px;
   }
   .chat-empty p {
-    font-size: 13px;
+    font-size: var(--text-label);
   }
   .chat-empty-identity {
     margin-bottom: 16px;
@@ -413,10 +413,6 @@
   .chat-empty-identity .crew-chat-icon {
     width: 46px;
     height: 46px;
-  }
-  .chat-starters {
-    margin-top: 20px;
-    gap: 8px;
   }
   .chat-starter {
     padding: 10px;

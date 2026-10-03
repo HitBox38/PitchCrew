@@ -6,7 +6,7 @@ export function TabsContent({ className, ...props }: TabsContentProps) {
   return (
     <TabsPrimitive.Panel
       data-slot="tabs-content"
-      className={cn('flex-1 outline-none', className)}
+      className={cn('primitive:flex-1 primitive:outline-none', className)}
       {...props}
     />
   );

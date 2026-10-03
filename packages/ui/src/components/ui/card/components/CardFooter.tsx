@@ -5,7 +5,10 @@ export function CardFooter({ className, ...props }: CardFooterProps) {
   return (
     <div
       data-slot="card-footer"
-      className={cn('flex items-center px-6 [.border-t]:pt-6', className)}
+      className={cn(
+        'primitive:flex primitive:items-center primitive:px-6 primitive:[.border-t]:pt-6',
+        className,
+      )}
       {...props}
     />
   );

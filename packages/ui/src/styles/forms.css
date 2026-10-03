@@ -1,11 +1,6 @@
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
 .form label,
 .form .field {
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--ink-soft);
   font-weight: 600;
   display: flex;
@@ -21,7 +16,7 @@
   border: 0;
   border-radius: 10px 11px 10px 9px;
   padding: 8px 11px;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   font-weight: 400;
   color: var(--ink);
   box-shadow: var(--clay-sunken);
@@ -36,15 +31,6 @@
 .form textarea {
   resize: vertical;
   line-height: 1.55;
-}
-.model-picker-input {
-  position: relative;
-}
-.model-field-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
 }
 .form .model-picker-input input {
   padding-right: 40px;
@@ -80,7 +66,7 @@
   gap: 12px;
   padding: 7px 10px;
   border-radius: 8px;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   cursor: pointer;
 }
 .model-picker-item[data-highlighted] {
@@ -91,7 +77,7 @@
 }
 .model-picker-empty {
   padding: 10px;
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--muted);
 }
 [data-slot='select-trigger'] {
@@ -100,7 +86,7 @@
   border: 0;
   border-radius: 10px 11px 10px 9px;
   padding: 0 11px;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   font-weight: 600;
   color: var(--ink);
   background: var(--clay-fill);
@@ -135,7 +121,7 @@
 [data-slot='select-content'] [data-slot='select-item'] {
   padding: 7px 32px 7px 10px;
   border-radius: 8px;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   color: var(--ink);
   cursor: pointer;
 }
@@ -145,23 +131,10 @@
 [data-slot='select-item'] svg {
   color: var(--primary);
 }
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
 .optional {
   font-size: 12px;
   color: var(--muted);
   font-weight: 400;
-}
-.form-footer {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  padding-top: 16px;
-  margin-top: 2px;
-  border-top: 1px solid var(--border);
 }
 .form .checkbox-label {
   display: flex;
@@ -189,14 +162,14 @@
 .form-error {
   background: var(--rose-soft);
   color: var(--error-ink);
-  font-size: 13px;
+  font-size: var(--text-label);
   padding: 9px 12px;
   border-radius: 9px;
   white-space: pre-wrap;
   line-height: 1.5;
 }
 .quiet {
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--muted);
   line-height: 1.6;
 }

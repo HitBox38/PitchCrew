@@ -7,7 +7,7 @@ export function SidebarContent({ className, ...props }: SidebarContentProps) {
       data-slot="sidebar-content"
       data-sidebar="content"
       className={cn(
-        'flex min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:overflow-hidden',
+        'primitive:flex primitive:min-h-0 primitive:flex-1 primitive:flex-col primitive:gap-2 primitive:overflow-auto primitive:group-data-[collapsible=icon]:overflow-hidden',
         className,
       )}
       {...props}

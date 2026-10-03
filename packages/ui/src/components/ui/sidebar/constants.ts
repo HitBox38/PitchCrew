@@ -16,18 +16,18 @@ export const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 export const SidebarContext = React.createContext<SidebarContextProps | null>(null);
 
 export const sidebarMenuButtonVariants = cva(
-  'peer/menu-button flex w-full items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm ring-sidebar-ring outline-hidden transition-[width,height,padding] group-has-data-[sidebar=menu-action]/menu-item:pr-8 group-data-[collapsible=icon]:size-8! group-data-[collapsible=icon]:p-2! hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 active:bg-sidebar-accent active:text-sidebar-accent-foreground disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50 data-active:bg-sidebar-accent data-active:font-medium data-active:text-sidebar-accent-foreground data-popup-open:hover:bg-sidebar-accent data-popup-open:hover:text-sidebar-accent-foreground [&>span:last-child]:truncate [&>svg]:size-4 [&>svg]:shrink-0',
+  'peer/menu-button primitive:flex primitive:w-full primitive:items-center primitive:gap-2 primitive:overflow-hidden primitive:rounded-md primitive:p-2 primitive:text-left primitive:text-sm primitive:ring-sidebar-ring primitive:outline-hidden primitive:transition-[width,height,padding] primitive:group-has-data-[sidebar=menu-action]/menu-item:pr-8 primitive:group-data-[collapsible=icon]:size-8! primitive:group-data-[collapsible=icon]:p-2! primitive:hover:bg-sidebar-accent primitive:hover:text-sidebar-accent-foreground primitive:focus-visible:ring-2 primitive:active:bg-sidebar-accent primitive:active:text-sidebar-accent-foreground primitive:disabled:pointer-events-none primitive:disabled:opacity-50 primitive:aria-disabled:pointer-events-none primitive:aria-disabled:opacity-50 primitive:data-popup-open:hover:bg-sidebar-accent primitive:data-popup-open:hover:text-sidebar-accent-foreground primitive:data-active:bg-sidebar-accent primitive:data-active:font-medium primitive:data-active:text-sidebar-accent-foreground primitive:[&>span:last-child]:truncate primitive:[&>svg]:size-4 primitive:[&>svg]:shrink-0',
   {
     variants: {
       variant: {
-        default: 'hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+        default: 'primitive:hover:bg-sidebar-accent primitive:hover:text-sidebar-accent-foreground',
         outline:
-          'bg-background shadow-[0_0_0_1px_var(--sidebar-border)] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_var(--sidebar-accent)]',
+          'primitive:bg-background primitive:shadow-[0_0_0_1px_var(--sidebar-border)] primitive:hover:bg-sidebar-accent primitive:hover:text-sidebar-accent-foreground primitive:hover:shadow-[0_0_0_1px_var(--sidebar-accent)]',
       },
       size: {
-        default: 'h-8 text-sm',
-        sm: 'h-7 text-xs',
-        lg: 'h-12 text-sm group-data-[collapsible=icon]:p-0!',
+        default: 'primitive:h-8 primitive:text-sm',
+        sm: 'primitive:h-7 primitive:text-xs',
+        lg: 'primitive:h-12 primitive:text-sm primitive:group-data-[collapsible=icon]:p-0!',
       },
     },
     defaultVariants: {

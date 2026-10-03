@@ -6,7 +6,7 @@ export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
     <div
       data-slot="sidebar-footer"
       data-sidebar="footer"
-      className={cn('flex flex-col gap-2 p-2', className)}
+      className={cn('primitive:flex primitive:flex-col primitive:gap-2 primitive:p-2', className)}
       {...props}
     />
   );

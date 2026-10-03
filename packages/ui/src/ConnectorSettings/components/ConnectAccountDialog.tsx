@@ -25,7 +25,7 @@ export function ConnectAccountDialog({
       title={editing === 'github' ? 'Connect GitHub' : 'Connect Google Workspace'}
       onClose={close}
     >
-      <form className="form" onSubmit={(e) => void connect(e)}>
+      <form className="form flex flex-col gap-4" onSubmit={(e) => void connect(e)}>
         {editing === 'github' ? (
           <>
             <GithubInstructions />
@@ -64,7 +64,7 @@ export function ConnectAccountDialog({
             {error}
           </p>
         ) : null}
-        <div className="form-footer">
+        <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
           <Button variant="outline" disabled={working} onClick={close}>
             Cancel
           </Button>

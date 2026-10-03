@@ -6,7 +6,10 @@ export function CommandList({ className, ...props }: CommandListProps) {
   return (
     <CommandPrimitive.List
       data-slot="command-list"
-      className={cn('max-h-[300px] scroll-py-1 overflow-x-hidden overflow-y-auto', className)}
+      className={cn(
+        'primitive:max-h-[300px] primitive:scroll-py-1 primitive:overflow-x-hidden primitive:overflow-y-auto',
+        className,
+      )}
       {...props}
     />
   );

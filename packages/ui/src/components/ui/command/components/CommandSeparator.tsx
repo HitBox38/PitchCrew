@@ -6,7 +6,7 @@ export function CommandSeparator({ className, ...props }: CommandSeparatorProps)
   return (
     <CommandPrimitive.Separator
       data-slot="command-separator"
-      className={cn('-mx-1 h-px bg-border', className)}
+      className={cn('primitive:-mx-1 primitive:h-px primitive:bg-border', className)}
       {...props}
     />
   );

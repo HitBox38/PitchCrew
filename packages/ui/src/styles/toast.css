@@ -131,14 +131,14 @@
   line-height: 1.4;
 }
 .ui-toast-description {
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.5;
   color: var(--ink-soft);
 }
 .ui-toast-link {
   width: fit-content;
   color: var(--ink);
-  font-size: 13px;
+  font-size: var(--text-label);
   text-decoration: underline;
   text-underline-offset: 3px;
   border-radius: 3px;
@@ -166,7 +166,7 @@
   position: absolute;
   inset: -4px;
 }
-@media (max-width: 480px) {
+@variant max-phone {
   .ui-toast-viewport {
     right: max(16px, env(safe-area-inset-right));
   }

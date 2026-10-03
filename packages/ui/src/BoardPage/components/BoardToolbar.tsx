@@ -12,7 +12,7 @@ export function BoardToolbar({
   setQuery,
 }: BoardToolbarProps) {
   return (
-    <div className="board-toolbar">
+    <div className="board-toolbar mb-4.5 flex items-center gap-3.5 max-compact:flex-wrap">
       <fieldset className="view-switch" aria-label="Board view">
         <Button
           aria-pressed={!showClosed}

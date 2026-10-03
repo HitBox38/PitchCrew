@@ -78,7 +78,7 @@ export function SourceForm(c: ProfileSourcesModel) {
           </Button>
         </div>
       ) : null}
-      <div className="form-footer">
+      <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
         <Button variant="outline" disabled={c.busy} onClick={() => c.setProvider(null)}>
           Cancel
         </Button>

@@ -18,18 +18,18 @@ export function TooltipContent({
         alignOffset={alignOffset}
         side={side}
         sideOffset={sideOffset}
-        className="isolate z-50"
+        className="primitive:isolate primitive:z-50"
       >
         <TooltipPrimitive.Popup
           data-slot="tooltip-content"
           className={cn(
-            'z-50 w-fit origin-(--transform-origin) rounded-md bg-foreground px-3 py-1.5 text-xs text-balance text-background',
+            'primitive:z-50 primitive:w-fit primitive:origin-(--transform-origin) primitive:rounded-md primitive:bg-foreground primitive:px-3 primitive:py-1.5 primitive:text-xs primitive:text-balance primitive:text-background',
             className,
           )}
           {...props}
         >
           {children}
-          <TooltipPrimitive.Arrow className="z-50 size-2.5 translate-y-[calc(-50%-2px)] rotate-45 rounded-[2px] bg-foreground fill-foreground data-[side=bottom]:top-1 data-[side=left]:top-1/2! data-[side=left]:-right-1 data-[side=left]:-translate-y-1/2 data-[side=right]:top-1/2! data-[side=right]:-left-1 data-[side=right]:-translate-y-1/2 data-[side=top]:-bottom-2.5" />
+          <TooltipPrimitive.Arrow className="primitive:z-50 primitive:size-2.5 primitive:translate-y-[calc(-50%-2px)] primitive:rotate-45 primitive:rounded-[2px] primitive:bg-foreground primitive:fill-foreground primitive:data-[side=bottom]:top-1 primitive:data-[side=left]:top-1/2! primitive:data-[side=left]:-right-1 primitive:data-[side=left]:-translate-y-1/2 primitive:data-[side=right]:top-1/2! primitive:data-[side=right]:-left-1 primitive:data-[side=right]:-translate-y-1/2 primitive:data-[side=top]:-bottom-2.5" />
         </TooltipPrimitive.Popup>
       </TooltipPrimitive.Positioner>
     </TooltipPrimitive.Portal>

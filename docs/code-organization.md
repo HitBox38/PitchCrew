@@ -24,7 +24,19 @@ Production TSX files have a maximum of 100 lines after formatting. `scripts/chec
 
 `App` owns the mounted workspace shell. Pages select workspace state and render their feature. `WorkspaceStore` owns snapshot polling, transient chat overlays and shared actions; route state remains in TanStack Router. Local form state belongs in the feature's hook. Pure helpers never call hooks, and action names do not start with `use`.
 
-Shared domain labels, time formatting and role status live in `src/lib`. Primitive families keep their original public exports in `components/ui` and `components/ai-elements`. Internal sections can import the specific primitive they need. Feature styles live under `src/styles`; the entry stylesheet imports them in the original cascade order.
+Shared domain labels, time formatting and role status live in `src/lib`. Primitive families keep their original public exports in `components/ui` and `components/ai-elements`. Internal sections can import the specific primitive they need.
+
+## Styling
+
+Use Tailwind utilities in feature JSX for ordinary flex/grid layout, spacing and responsive changes. Keep paper/clay materials, complex descendant selectors, Markdown formatting and shared motion in `src/styles`. Retain semantic class names when they identify materials, state or renderer smoke-test targets. Dynamic styles, such as card tilt and fit-meter widths, stay in Motion or inline styles.
+
+`styles.css` establishes `theme`, `base`, `primitives` and `components` layers in that order. Shared UI and AI Elements defaults use the custom `primitive:` variant, including their state and responsive utilities. Feature CSS imports belong to `components`; global resets belong to `base`. Material controls inherit the app's typography in `components`, preserving their existing appearance above primitive defaults. Ordinary caller utilities remain unlayered and override both primitive defaults and feature materials without `!important`. For example, `<Button className="button h-12 px-2">` keeps the clay material while overriding its height and horizontal padding. `cn()` still resolves conflicts within each utility variant.
+
+Keep the Tailwind utility import unlayered: nesting it in `utilities` would emit `primitive:` into `utilities.primitives`, above the feature material layer. Group and peer marker classes stay unprefixed because they identify the elements targeted by variants. New shared primitive defaults must use `primitive:`; feature `className` overrides use ordinary utilities.
+
+Register reusable colors, shadow recipes, easing and typography in `styles/theme.css` with `@theme inline`. CSS can reference the same tokens directly. The named `phone`, `narrow`, `compact`, `chat` and `wide` thresholds preserve the existing feature layouts; `md` remains the sidebar's 768px desktop boundary, matching `useIsMobile`. Remaining feature CSS uses `@variant max-compact`, for example, rather than repeating a media-query number. Oxfmt sorts utility classes using the actual stylesheet and recognizes `cn`, `clsx` and `cva`.
+
+Keep custom typography, shadow and easing names registered in `lib/utils.ts` as well, so `cn()` distinguishes sizes and shadow recipes from color utilities. `.gitattributes` keeps Oxfmt's LF endings consistent across platforms.
 
 ## Backend modules
 

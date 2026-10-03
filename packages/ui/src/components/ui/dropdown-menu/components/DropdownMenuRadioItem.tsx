@@ -12,14 +12,14 @@ export function DropdownMenuRadioItem({
     <MenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
       className={cn(
-        "relative flex cursor-default items-center gap-2 rounded-sm py-1.5 pr-2 pl-8 text-sm outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "primitive:relative primitive:flex primitive:cursor-default primitive:items-center primitive:gap-2 primitive:rounded-sm primitive:py-1.5 primitive:pr-2 primitive:pl-8 primitive:text-sm primitive:outline-hidden primitive:select-none primitive:focus:bg-accent primitive:focus:text-accent-foreground primitive:data-disabled:pointer-events-none primitive:data-disabled:opacity-50 primitive:[&_svg]:pointer-events-none primitive:[&_svg]:shrink-0 primitive:[&_svg:not([class*='size-'])]:size-4",
         className,
       )}
       {...props}
     >
-      <span className="pointer-events-none absolute left-2 flex size-3.5 items-center justify-center">
+      <span className="primitive:pointer-events-none primitive:absolute primitive:left-2 primitive:flex primitive:size-3.5 primitive:items-center primitive:justify-center">
         <MenuPrimitive.RadioItemIndicator>
-          <CircleIcon className="size-2 fill-current" />
+          <CircleIcon className="primitive:size-2 primitive:fill-current" />
         </MenuPrimitive.RadioItemIndicator>
       </span>
       {children}

@@ -14,12 +14,12 @@ export function SidebarRail({ className, ...props }: SidebarRailProps) {
       onClick={toggleSidebar}
       title="Toggle Sidebar"
       className={cn(
-        'absolute inset-y-0 z-20 hidden w-4 -translate-x-1/2 transition-all ease-linear group-data-[side=left]:-right-4 group-data-[side=right]:left-0 after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] hover:after:bg-sidebar-border sm:flex',
-        'in-data-[side=left]:cursor-w-resize in-data-[side=right]:cursor-e-resize',
-        '[[data-side=left][data-state=collapsed]_&]:cursor-e-resize [[data-side=right][data-state=collapsed]_&]:cursor-w-resize',
-        'group-data-[collapsible=offcanvas]:translate-x-0 group-data-[collapsible=offcanvas]:after:left-full hover:group-data-[collapsible=offcanvas]:bg-sidebar',
-        '[[data-side=left][data-collapsible=offcanvas]_&]:-right-2',
-        '[[data-side=right][data-collapsible=offcanvas]_&]:-left-2',
+        'primitive:absolute primitive:inset-y-0 primitive:z-20 primitive:hidden primitive:w-4 primitive:-translate-x-1/2 primitive:transition-all primitive:ease-linear primitive:group-data-[side=left]:-right-4 primitive:group-data-[side=right]:left-0 primitive:after:absolute primitive:after:inset-y-0 primitive:after:left-1/2 primitive:after:w-[2px] primitive:hover:after:bg-sidebar-border primitive:sm:flex',
+        'primitive:in-data-[side=left]:cursor-w-resize primitive:in-data-[side=right]:cursor-e-resize',
+        'primitive:[[data-side=left][data-state=collapsed]_&]:cursor-e-resize primitive:[[data-side=right][data-state=collapsed]_&]:cursor-w-resize',
+        'primitive:group-data-[collapsible=offcanvas]:translate-x-0 primitive:group-data-[collapsible=offcanvas]:after:left-full primitive:hover:group-data-[collapsible=offcanvas]:bg-sidebar',
+        'primitive:[[data-side=left][data-collapsible=offcanvas]_&]:-right-2',
+        'primitive:[[data-side=right][data-collapsible=offcanvas]_&]:-left-2',
         className,
       )}
       {...props}

@@ -62,6 +62,8 @@ try {
     result.roles !== 3 ||
     !result.iconLoaded ||
     !result.uiReady ||
+    !result.styleChecks ||
+    !Object.values(result.styleChecks).every(Boolean) ||
     !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
       (!result.chatReady ||

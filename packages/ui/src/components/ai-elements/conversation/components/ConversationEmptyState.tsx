@@ -11,17 +11,19 @@ export const ConversationEmptyState = ({
 }: ConversationEmptyStateProps) => (
   <div
     className={cn(
-      'flex size-full flex-col items-center justify-center gap-3 p-8 text-center',
+      'primitive:flex primitive:size-full primitive:flex-col primitive:items-center primitive:justify-center primitive:gap-3 primitive:p-8 primitive:text-center',
       className,
     )}
     {...props}
   >
     {children ?? (
       <>
-        {icon && <div className="text-muted-foreground">{icon}</div>}
-        <div className="space-y-1">
-          <h3 className="font-medium text-sm">{title}</h3>
-          {description && <p className="text-muted-foreground text-sm">{description}</p>}
+        {icon && <div className="primitive:text-muted-foreground">{icon}</div>}
+        <div className="primitive:space-y-1">
+          <h3 className="primitive:text-sm primitive:font-medium">{title}</h3>
+          {description && (
+            <p className="primitive:text-sm primitive:text-muted-foreground">{description}</p>
+          )}
         </div>
       </>
     )}

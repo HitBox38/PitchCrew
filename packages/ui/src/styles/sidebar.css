@@ -89,7 +89,7 @@
 }
 .crew-text strong,
 .data-text strong {
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 600;
   color: var(--ink);
 }
@@ -99,10 +99,6 @@
 }
 .crew-button.paused small {
   color: var(--faint);
-}
-.crew-running {
-  margin-left: auto;
-  color: var(--primary) !important;
 }
 .menu-kbd,
 .menu-value {
@@ -188,7 +184,7 @@
   max-width: 320px;
   padding: 2px 8px 6px;
   font-family: var(--font-mono);
-  font-size: 11.5px;
+  font-size: var(--text-note);
   line-height: 1.5;
   color: var(--ink-soft);
   overflow-wrap: anywhere;

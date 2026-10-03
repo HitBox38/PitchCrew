@@ -40,13 +40,13 @@ export function MessageTranscript({
               from={message.from === 'user' ? 'user' : 'assistant'}
               className={`chat-message ${message.from === 'system' ? 'chat-system' : ''}`}
             >
-              <div className="chat-message-meta">
+              <div className="chat-message-meta flex items-center gap-2 text-detail text-muted-foreground">
                 {message.from !== 'user' && message.from !== 'system' ? (
                   <RoleAvatar agentRole={message.from} size="small" />
                 ) : null}
                 <strong>{name(message.from)}</strong>
                 {thread === 'crew' && message.to !== 'crew' ? (
-                  <span className="chat-route">
+                  <span className="chat-route inline-flex items-center gap-1.25 text-detail text-muted-foreground">
                     <ArrowRight size={12} /> {name(message.to)}
                   </span>
                 ) : null}
@@ -67,7 +67,7 @@ export function MessageTranscript({
                 </MessageResponse>
               </MessageContent>
               {streaming ? (
-                <span className="chat-stream-status">
+                <span className="chat-stream-status ml-7.5 flex items-center gap-1.5 text-detail text-muted-foreground">
                   <LoaderCircle size={12} className="spin" /> Replying…
                 </span>
               ) : null}

@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils.ts';
 export const PromptInputFooter = ({ className, ...props }: PromptInputFooterProps) => (
   <InputGroupAddon
     align="block-end"
-    className={cn('justify-between gap-1', className)}
+    className={cn('primitive:justify-between primitive:gap-1', className)}
     {...props}
   />
 );

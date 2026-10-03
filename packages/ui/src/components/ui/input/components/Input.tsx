@@ -8,9 +8,9 @@ export function Input({ className, type, ...props }: InputProps) {
       type={type}
       data-slot="input"
       className={cn(
-        'h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 md:text-sm dark:bg-input/30',
-        'focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50',
-        'aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40',
+        'primitive:h-9 primitive:w-full primitive:min-w-0 primitive:rounded-md primitive:border primitive:border-input primitive:bg-transparent primitive:px-3 primitive:py-1 primitive:text-base primitive:shadow-xs primitive:transition-[color,box-shadow] primitive:outline-none primitive:selection:bg-primary primitive:selection:text-primary-foreground primitive:file:inline-flex primitive:file:h-7 primitive:file:border-0 primitive:file:bg-transparent primitive:file:text-sm primitive:file:font-medium primitive:file:text-foreground primitive:placeholder:text-muted-foreground primitive:disabled:pointer-events-none primitive:disabled:cursor-not-allowed primitive:disabled:opacity-50 primitive:md:text-sm primitive:dark:bg-input/30',
+        'primitive:focus-visible:border-ring primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50',
+        'primitive:aria-invalid:border-destructive primitive:aria-invalid:ring-destructive/20 primitive:dark:aria-invalid:ring-destructive/40',
         className,
       )}
       {...props}

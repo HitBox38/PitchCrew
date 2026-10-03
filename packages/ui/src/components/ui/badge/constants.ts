@@ -1,18 +1,20 @@
 import { cva } from 'class-variance-authority';
 
 export const badgeVariants = cva(
-  'inline-flex w-fit shrink-0 items-center justify-center gap-1 overflow-hidden rounded-full border border-transparent px-2 py-0.5 text-xs font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:size-3',
+  'primitive:inline-flex primitive:w-fit primitive:shrink-0 primitive:items-center primitive:justify-center primitive:gap-1 primitive:overflow-hidden primitive:rounded-full primitive:border primitive:border-transparent primitive:px-2 primitive:py-0.5 primitive:text-xs primitive:font-medium primitive:whitespace-nowrap primitive:transition-[color,box-shadow] primitive:focus-visible:border-ring primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50 primitive:aria-invalid:border-destructive primitive:aria-invalid:ring-destructive/20 primitive:dark:aria-invalid:ring-destructive/40 primitive:[&>svg]:pointer-events-none primitive:[&>svg]:size-3',
   {
     variants: {
       variant: {
-        default: 'bg-primary text-primary-foreground [a&]:hover:bg-primary/90',
-        secondary: 'bg-secondary text-secondary-foreground [a&]:hover:bg-secondary/90',
+        default:
+          'primitive:bg-primary primitive:text-primary-foreground primitive:[a&]:hover:bg-primary/90',
+        secondary:
+          'primitive:bg-secondary primitive:text-secondary-foreground primitive:[a&]:hover:bg-secondary/90',
         destructive:
-          'bg-destructive text-white focus-visible:ring-destructive/20 dark:bg-destructive/60 dark:focus-visible:ring-destructive/40 [a&]:hover:bg-destructive/90',
+          'primitive:bg-destructive primitive:text-white primitive:focus-visible:ring-destructive/20 primitive:dark:bg-destructive/60 primitive:dark:focus-visible:ring-destructive/40 primitive:[a&]:hover:bg-destructive/90',
         outline:
-          'border-border text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
-        ghost: '[a&]:hover:bg-accent [a&]:hover:text-accent-foreground',
-        link: 'text-primary underline-offset-4 [a&]:hover:underline',
+          'primitive:border-border primitive:text-foreground primitive:[a&]:hover:bg-accent primitive:[a&]:hover:text-accent-foreground',
+        ghost: 'primitive:[a&]:hover:bg-accent primitive:[a&]:hover:text-accent-foreground',
+        link: 'primitive:text-primary primitive:underline-offset-4 primitive:[a&]:hover:underline',
       },
     },
     defaultVariants: {

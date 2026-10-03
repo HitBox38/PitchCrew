@@ -6,7 +6,7 @@ export function SheetTitle({ className, ...props }: SheetTitleProps) {
   return (
     <SheetPrimitive.Title
       data-slot="sheet-title"
-      className={cn('font-semibold text-foreground', className)}
+      className={cn('primitive:font-semibold primitive:text-foreground', className)}
       {...props}
     />
   );

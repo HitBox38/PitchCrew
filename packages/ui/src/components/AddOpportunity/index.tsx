@@ -16,7 +16,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
       <p className="modal-intro">
         Scout works from the description, so paste it in if you have it.
       </p>
-      <form onSubmit={(e) => void submit(e)} className="form">
+      <form onSubmit={(e) => void submit(e)} className="form flex flex-col gap-4">
         <JobIdentityFields />
         <label>
           Job post URL <span className="optional">optional</span>
@@ -41,7 +41,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
             {error}
           </p>
         ) : null}
-        <div className="form-footer">
+        <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
           <Button type="button" className="button" onClick={onClose}>
             Cancel
           </Button>

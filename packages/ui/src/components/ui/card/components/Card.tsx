@@ -6,7 +6,7 @@ export function Card({ className, ...props }: CardProps) {
     <div
       data-slot="card"
       className={cn(
-        'flex flex-col gap-6 rounded-xl border bg-card py-6 text-card-foreground shadow-sm',
+        'primitive:flex primitive:flex-col primitive:gap-6 primitive:rounded-xl primitive:border primitive:bg-card primitive:py-6 primitive:text-card-foreground primitive:shadow-sm',
         className,
       )}
       {...props}

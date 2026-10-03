@@ -22,7 +22,7 @@ export function DiscardChanges({ guard }: { guard: ReturnType<typeof useUnsavedC
         <DialogDescription className="discard-description">
           Your edits haven’t been saved. Keep editing to save them, or discard them to continue.
         </DialogDescription>
-        <div className="form-footer">
+        <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
           <Button className="button" onClick={guard.discard}>
             Discard changes
           </Button>

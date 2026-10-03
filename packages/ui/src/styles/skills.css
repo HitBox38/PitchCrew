@@ -84,7 +84,7 @@
 }
 .skill-editor-panel .skill-markdown {
   font-family: ui-monospace, monospace;
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.7;
 }
 .role-skill-list {
@@ -99,7 +99,7 @@
   align-items: center;
   gap: 12px;
 }
-@media (max-width: 640px) {
+@variant max-narrow {
   .skills-toolbar {
     flex-wrap: wrap;
   }
@@ -140,7 +140,7 @@
 }
 .starter-skill-errors ul {
   padding-left: 20px;
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.6;
   margin-bottom: 16px;
 }
@@ -178,14 +178,14 @@
   overflow-wrap: anywhere;
 }
 .starter-skill p {
-  font-size: 13px;
+  font-size: var(--text-label);
   line-height: 1.6;
   margin: 0 0 8px;
 }
 .starter-skill > button {
   flex-shrink: 0;
 }
-@media (max-width: 800px) {
+@variant max-chat {
   .starter-skill-library {
     grid-template-columns: minmax(0, 1fr);
   }

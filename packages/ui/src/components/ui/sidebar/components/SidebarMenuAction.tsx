@@ -14,15 +14,15 @@ export function SidebarMenuAction({
     props: mergeProps<'button'>(
       {
         className: cn(
-          'absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform peer-hover/menu-button:text-sidebar-accent-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 [&>svg]:size-4 [&>svg]:shrink-0',
+          'primitive:absolute primitive:top-1.5 primitive:right-1 primitive:flex primitive:aspect-square primitive:w-5 primitive:items-center primitive:justify-center primitive:rounded-md primitive:p-0 primitive:text-sidebar-foreground primitive:ring-sidebar-ring primitive:outline-hidden primitive:transition-transform primitive:peer-hover/menu-button:text-sidebar-accent-foreground primitive:hover:bg-sidebar-accent primitive:hover:text-sidebar-accent-foreground primitive:focus-visible:ring-2 primitive:[&>svg]:size-4 primitive:[&>svg]:shrink-0',
           // Increases the hit area of the button on mobile.
-          'after:absolute after:-inset-2 md:after:hidden',
-          'peer-data-[size=sm]/menu-button:top-1',
-          'peer-data-[size=default]/menu-button:top-1.5',
-          'peer-data-[size=lg]/menu-button:top-2.5',
-          'group-data-[collapsible=icon]:hidden',
+          'primitive:after:absolute primitive:after:-inset-2 primitive:md:after:hidden',
+          'primitive:peer-data-[size=sm]/menu-button:top-1',
+          'primitive:peer-data-[size=default]/menu-button:top-1.5',
+          'primitive:peer-data-[size=lg]/menu-button:top-2.5',
+          'primitive:group-data-[collapsible=icon]:hidden',
           showOnHover &&
-            'group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 peer-data-active/menu-button:text-sidebar-accent-foreground aria-expanded:opacity-100 md:opacity-0',
+            'primitive:group-focus-within/menu-item:opacity-100 primitive:group-hover/menu-item:opacity-100 primitive:peer-data-active/menu-button:text-sidebar-accent-foreground primitive:aria-expanded:opacity-100 primitive:md:opacity-0',
           className,
         ),
       },

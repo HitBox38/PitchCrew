@@ -19,11 +19,15 @@ export function SheetContent({
         data-slot="sheet-content"
         data-side={side}
         className={cn(
-          'fixed z-50 flex flex-col gap-4 bg-background shadow-lg',
-          side === 'right' && 'inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
-          side === 'left' && 'inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
-          side === 'top' && 'inset-x-0 top-0 h-auto border-b',
-          side === 'bottom' && 'inset-x-0 bottom-0 h-auto border-t',
+          'primitive:fixed primitive:z-50 primitive:flex primitive:flex-col primitive:gap-4 primitive:bg-background primitive:shadow-lg',
+          side === 'right' &&
+            'primitive:inset-y-0 primitive:right-0 primitive:h-full primitive:w-3/4 primitive:border-l primitive:sm:max-w-sm',
+          side === 'left' &&
+            'primitive:inset-y-0 primitive:left-0 primitive:h-full primitive:w-3/4 primitive:border-r primitive:sm:max-w-sm',
+          side === 'top' &&
+            'primitive:inset-x-0 primitive:top-0 primitive:h-auto primitive:border-b',
+          side === 'bottom' &&
+            'primitive:inset-x-0 primitive:bottom-0 primitive:h-auto primitive:border-t',
           className,
         )}
         {...props}
@@ -32,10 +36,10 @@ export function SheetContent({
         {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
-            className="absolute top-4 right-4 rounded-xs opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none"
+            className="primitive:absolute primitive:top-4 primitive:right-4 primitive:rounded-xs primitive:opacity-70 primitive:ring-offset-background primitive:transition-opacity primitive:hover:opacity-100 primitive:focus:ring-2 primitive:focus:ring-ring primitive:focus:ring-offset-2 primitive:focus:outline-hidden primitive:disabled:pointer-events-none"
           >
-            <XIcon className="size-4" />
-            <span className="sr-only">Close</span>
+            <XIcon className="primitive:size-4" />
+            <span className="primitive:sr-only">Close</span>
           </SheetPrimitive.Close>
         )}
       </SheetPrimitive.Popup>

@@ -39,7 +39,7 @@ export function BoardWelcome({ setAdd, working, act }: BoardWelcomeProps) {
           </span>
         </li>
       </ol>
-      <div className="welcome-actions">
+      <div className="welcome-actions flex gap-2.5 max-compact:flex-wrap">
         <Button className="button primary" onClick={() => setAdd(true)}>
           <Plus size={16} /> Add job
         </Button>

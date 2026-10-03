@@ -17,11 +17,11 @@ export function ProfileView(props: ProfileViewProps) {
   return (
     <>
       <ProfileSources {...controller.sourceController} />
-      <div className="profile-layout">
+      <div className="profile-layout grid max-w-295 grid-cols-[minmax(0,1fr)_240px] gap-7 max-wide:grid-cols-[minmax(0,1fr)_200px] max-compact:grid-cols-1">
         <section className="profile-editor">
           <ProfileOrigin {...controller} />
           <form onSubmit={(e) => void save(e)}>
-            <div className="profile-editor-heading">
+            <div className="profile-editor-heading flex items-center gap-2.5 border-b border-border py-2.5 pr-3 pl-4 text-muted-foreground">
               <FileText size={18} />
               <label className="sr-only" htmlFor="profile-file">
                 Profile filename

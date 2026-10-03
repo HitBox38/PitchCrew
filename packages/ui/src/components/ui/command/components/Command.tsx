@@ -7,7 +7,7 @@ export function Command({ className, ...props }: CommandProps) {
     <CommandPrimitive
       data-slot="command"
       className={cn(
-        'flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground',
+        'primitive:flex primitive:h-full primitive:w-full primitive:flex-col primitive:overflow-hidden primitive:rounded-md primitive:bg-popover primitive:text-popover-foreground',
         className,
       )}
       {...props}

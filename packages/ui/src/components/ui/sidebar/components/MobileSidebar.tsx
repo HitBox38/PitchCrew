@@ -16,7 +16,7 @@ export function MobileSidebar({ side, children, ...props }: MobileSidebarProps) 
         data-sidebar="sidebar"
         data-slot="sidebar"
         data-mobile="true"
-        className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+        className="primitive:w-(--sidebar-width) primitive:bg-sidebar primitive:p-0 primitive:text-sidebar-foreground primitive:[&>button]:hidden"
         style={
           {
             '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
@@ -24,11 +24,13 @@ export function MobileSidebar({ side, children, ...props }: MobileSidebarProps) 
         }
         side={side}
       >
-        <SheetHeader className="sr-only">
+        <SheetHeader className="primitive:sr-only">
           <SheetTitle>Sidebar</SheetTitle>
           <SheetDescription>Displays the mobile sidebar.</SheetDescription>
         </SheetHeader>
-        <div className="flex h-full w-full flex-col">{children}</div>
+        <div className="primitive:flex primitive:h-full primitive:w-full primitive:flex-col">
+          {children}
+        </div>
       </SheetContent>
     </Sheet>
   );

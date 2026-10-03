@@ -12,7 +12,7 @@ export function ToastAction({
     <ToastPrimitive.Action
       data-slot="toast-action"
       render={render}
-      className={cn('shrink-0', className)}
+      className={cn('primitive:shrink-0', className)}
       {...props}
     />
   );

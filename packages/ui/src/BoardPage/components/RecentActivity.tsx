@@ -6,7 +6,7 @@ import { ArrowRight } from 'lucide-react';
 export function RecentActivity({ go, recent }: RecentActivityProps) {
   return (
     <section className="recent">
-      <div className="section-heading">
+      <div className="section-heading mb-2 flex items-baseline justify-between gap-3.75">
         <h2>Recent</h2>
         <Button className="text-button" onClick={() => go('activity')}>
           All activity <ArrowRight size={13} />

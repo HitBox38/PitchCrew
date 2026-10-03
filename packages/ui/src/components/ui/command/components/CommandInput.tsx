@@ -5,12 +5,15 @@ import { SearchIcon } from 'lucide-react';
 
 export function CommandInput({ className, ...props }: CommandInputProps) {
   return (
-    <div data-slot="command-input-wrapper" className="flex h-9 items-center gap-2 border-b px-3">
-      <SearchIcon className="size-4 shrink-0 opacity-50" />
+    <div
+      data-slot="command-input-wrapper"
+      className="primitive:flex primitive:h-9 primitive:items-center primitive:gap-2 primitive:border-b primitive:px-3"
+    >
+      <SearchIcon className="primitive:size-4 primitive:shrink-0 primitive:opacity-50" />
       <CommandPrimitive.Input
         data-slot="command-input"
         className={cn(
-          'flex h-10 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
+          'primitive:flex primitive:h-10 primitive:w-full primitive:rounded-md primitive:bg-transparent primitive:py-3 primitive:text-sm primitive:outline-hidden primitive:placeholder:text-muted-foreground primitive:disabled:cursor-not-allowed primitive:disabled:opacity-50',
           className,
         )}
         {...props}

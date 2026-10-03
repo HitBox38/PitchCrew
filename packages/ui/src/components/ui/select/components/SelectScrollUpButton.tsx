@@ -8,12 +8,12 @@ export function SelectScrollUpButton({ className, ...props }: SelectScrollUpButt
     <SelectPrimitive.ScrollUpArrow
       data-slot="select-scroll-up-button"
       className={cn(
-        'top-0 z-10 flex w-full cursor-default items-center justify-center bg-popover py-1',
+        'primitive:top-0 primitive:z-10 primitive:flex primitive:w-full primitive:cursor-default primitive:items-center primitive:justify-center primitive:bg-popover primitive:py-1',
         className,
       )}
       {...props}
     >
-      <ChevronUpIcon className="size-4" />
+      <ChevronUpIcon className="primitive:size-4" />
     </SelectPrimitive.ScrollUpArrow>
   );
 }

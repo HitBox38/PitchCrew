@@ -5,7 +5,10 @@ export function DialogHeader({ className, ...props }: DialogHeaderProps) {
   return (
     <div
       data-slot="dialog-header"
-      className={cn('flex flex-col gap-2 text-center sm:text-left', className)}
+      className={cn(
+        'primitive:flex primitive:flex-col primitive:gap-2 primitive:text-center primitive:sm:text-left',
+        className,
+      )}
       {...props}
     />
   );

@@ -42,7 +42,7 @@ export function JobCard(props: JobCardProps) {
       onClick={onOpen}
       aria-label={`Open ${card.title} at ${card.company}`}
     >
-      <div className="job-top">
+      <div className="job-top flex items-center gap-2">
         <CompanyMark name={card.company} />
         <strong>{card.company}</strong>
         {card.sample ? <span className="sample-tag">example</span> : null}
@@ -53,7 +53,7 @@ export function JobCard(props: JobCardProps) {
         {card.salary ? <span> · {card.salary}</span> : null}
       </p>
       {card.tags.length ? (
-        <div className="tags">
+        <div className="tags mt-2.25 flex flex-wrap gap-1">
           {card.tags.slice(0, 3).map((tag) => (
             <span key={tag}>{tag}</span>
           ))}
@@ -71,7 +71,7 @@ export function JobCard(props: JobCardProps) {
           <span className="subtle">Not scored</span>
         )}
         {card.owner ? (
-          <span className="owner">
+          <span className="owner flex items-center gap-1.5 text-primary">
             <LoaderCircle size={13} className="spin" />
             <RoleAvatar agentRole={card.owner} size="small" />
           </span>

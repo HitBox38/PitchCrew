@@ -16,14 +16,14 @@ export const PromptInputSubmit = ({
 }: PromptInputSubmitProps) => {
   const isGenerating = status === 'submitted' || status === 'streaming';
 
-  let Icon = <CornerDownLeftIcon className="size-4" />;
+  let Icon = <CornerDownLeftIcon className="primitive:size-4" />;
 
   if (status === 'submitted') {
-    Icon = <LoaderCircle className="size-4 animate-spin" />;
+    Icon = <LoaderCircle className="primitive:size-4 primitive:animate-spin" />;
   } else if (status === 'streaming') {
-    Icon = <SquareIcon className="size-4" />;
+    Icon = <SquareIcon className="primitive:size-4" />;
   } else if (status === 'error') {
-    Icon = <XIcon className="size-4" />;
+    Icon = <XIcon className="primitive:size-4" />;
   }
 
   const handleClick = useCallback(

@@ -13,7 +13,7 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   color: var(--muted);
 }
 .detail-company h2 {
@@ -26,7 +26,7 @@
   gap: 16px;
   flex-wrap: wrap;
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-label);
   margin: 14px 0;
 }
 .detail-meta span,
@@ -42,11 +42,11 @@
   margin: 14px 0;
 }
 .detail-state .state-pill {
-  font-size: 12.5px;
+  font-size: var(--text-caption);
   padding: 2px 9px;
 }
 .detail-state strong {
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--moss);
 }
 .detail-actions {
@@ -59,11 +59,11 @@
   display: flex;
   gap: 8px;
   align-items: center;
-  font-size: 13px;
+  font-size: var(--text-label);
   color: var(--primary);
 }
 .action-hint {
-  font-size: 12.5px;
+  font-size: var(--text-caption);
   color: var(--muted);
   margin: 6px 0 18px;
 }
@@ -115,7 +115,7 @@
   border-radius: 4px 6px 5px 7px;
   padding: 26px 28px;
   font-family: 'Source Sans 3', sans-serif;
-  font-size: 13.5px;
+  font-size: var(--text-body);
   line-height: 1.7;
   color: var(--ink);
   margin-top: 16px;
@@ -155,10 +155,10 @@
   margin-top: 8px;
 }
 .detail-history strong {
-  font-size: 13.5px;
+  font-size: var(--text-body);
   font-weight: 600;
 }
 .detail-history p {
-  font-size: 12.5px;
+  font-size: var(--text-caption);
   color: var(--muted);
 }

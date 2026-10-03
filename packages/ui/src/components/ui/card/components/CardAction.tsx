@@ -5,7 +5,10 @@ export function CardAction({ className, ...props }: CardActionProps) {
   return (
     <div
       data-slot="card-action"
-      className={cn('col-start-2 row-span-2 row-start-1 self-start justify-self-end', className)}
+      className={cn(
+        'primitive:col-start-2 primitive:row-span-2 primitive:row-start-1 primitive:self-start primitive:justify-self-end',
+        className,
+      )}
       {...props}
     />
   );

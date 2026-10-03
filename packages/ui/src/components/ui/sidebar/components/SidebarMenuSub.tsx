@@ -7,8 +7,8 @@ export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
       data-slot="sidebar-menu-sub"
       data-sidebar="menu-sub"
       className={cn(
-        'mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l border-sidebar-border px-2.5 py-0.5',
-        'group-data-[collapsible=icon]:hidden',
+        'primitive:mx-3.5 primitive:flex primitive:min-w-0 primitive:translate-x-px primitive:flex-col primitive:gap-1 primitive:border-l primitive:border-sidebar-border primitive:px-2.5 primitive:py-0.5',
+        'primitive:group-data-[collapsible=icon]:hidden',
         className,
       )}
       {...props}

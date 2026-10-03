@@ -5,7 +5,7 @@ export function CommandEmpty({ ...props }: CommandEmptyProps) {
   return (
     <CommandPrimitive.Empty
       data-slot="command-empty"
-      className="py-6 text-center text-sm"
+      className="primitive:py-6 primitive:text-center primitive:text-sm"
       {...props}
     />
   );

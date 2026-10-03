@@ -13,7 +13,7 @@ export function DropdownMenuSubContent({
   return (
     <DropdownMenuContent
       data-slot="dropdown-menu-sub-content"
-      className={cn('shadow-lg', className)}
+      className={cn('primitive:shadow-lg', className)}
       align={align}
       alignOffset={alignOffset}
       side={side}

@@ -6,7 +6,7 @@ export function CardHeader({ className, ...props }: CardHeaderProps) {
     <div
       data-slot="card-header"
       className={cn(
-        '@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-2 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6',
+        'primitive:@container/card-header primitive:grid primitive:auto-rows-min primitive:grid-rows-[auto_auto] primitive:items-start primitive:gap-2 primitive:px-6 primitive:has-data-[slot=card-action]:grid-cols-[1fr_auto] primitive:[.border-b]:pb-6',
         className,
       )}
       {...props}

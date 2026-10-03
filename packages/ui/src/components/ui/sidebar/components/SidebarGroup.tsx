@@ -6,7 +6,10 @@ export function SidebarGroup({ className, ...props }: SidebarGroupProps) {
     <div
       data-slot="sidebar-group"
       data-sidebar="group"
-      className={cn('relative flex w-full min-w-0 flex-col p-2', className)}
+      className={cn(
+        'primitive:relative primitive:flex primitive:w-full primitive:min-w-0 primitive:flex-col primitive:p-2',
+        className,
+      )}
       {...props}
     />
   );

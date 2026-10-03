@@ -1,5 +1,6 @@
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
 import { writeFile } from 'node:fs/promises';
+import { smokeStyles } from './smoke-styles.ts';
 
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
 export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
@@ -19,6 +20,8 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
+            await waitFor(() => !!document.querySelector('[data-slot="button"].button'));
+            const styleChecks = ${smokeStyles};
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
@@ -106,7 +109,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               notificationToastChecks = { toastVisible, hoverPaused, focusPaused, stackReady, linksReady, navigationReady, dismissed };
               notificationToastReady = Object.values(notificationToastChecks).every(Boolean);
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         const chrome = [];

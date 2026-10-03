@@ -6,7 +6,10 @@ export function SelectLabel({ className, ...props }: SelectLabelProps) {
   return (
     <SelectPrimitive.GroupLabel
       data-slot="select-label"
-      className={cn('px-2 py-1.5 text-xs text-muted-foreground', className)}
+      className={cn(
+        'primitive:px-2 primitive:py-1.5 primitive:text-xs primitive:text-muted-foreground',
+        className,
+      )}
       {...props}
     />
   );

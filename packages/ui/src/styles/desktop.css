@@ -18,7 +18,7 @@
   background-image: var(--grain), var(--fibres);
   border-bottom: 1px solid var(--border);
   color: var(--muted);
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 600;
   user-select: none;
   -webkit-app-region: drag;

@@ -1,28 +1,36 @@
-/* Import order preserves the cascade; feature rules follow the shared materials. */
-@import 'tailwindcss';
+/* Primitive defaults < feature materials < caller utilities. Keep utilities unlayered:
+ * primitive: emits into its named layer from this same utility entry point. */
+@layer theme, base, primitives, components;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
 @import 'tw-animate-css';
 @import './styles/theme.css';
-@import './styles/base.css';
-@import './styles/identity.css';
-@import './styles/desktop.css';
-@import './styles/sidebar.css';
-@import './styles/workspace.css';
-@import './styles/command-palette.css';
-@import './styles/buttons.css';
-@import './styles/board.css';
-@import './styles/crew.css';
-@import './styles/activity.css';
-@import './styles/dialogs.css';
-@import './styles/forms.css';
-@import './styles/notifications.css';
-@import './styles/toast.css';
-@import './styles/job-details.css';
-@import './styles/profile.css';
-@import './styles/approvals.css';
-@import './styles/responsive.css';
-@import './styles/chat/layout.css';
-@import './styles/chat/conversation.css';
-@import './styles/chat/composer.css';
-@import './styles/chat/work.css';
-@import './styles/skills.css';
-@import './styles/motion.css';
+@import './styles/base.css' layer(base);
+@import './styles/identity.css' layer(components);
+@import './styles/desktop.css' layer(components);
+@import './styles/sidebar.css' layer(components);
+@import './styles/workspace.css' layer(components);
+@import './styles/command-palette.css' layer(components);
+@import './styles/buttons.css' layer(components);
+@import './styles/board.css' layer(components);
+@import './styles/crew.css' layer(components);
+@import './styles/activity.css' layer(components);
+@import './styles/dialogs.css' layer(components);
+@import './styles/forms.css' layer(components);
+@import './styles/notifications.css' layer(components);
+@import './styles/toast.css' layer(components);
+@import './styles/job-details.css' layer(components);
+@import './styles/profile.css' layer(components);
+@import './styles/approvals.css' layer(components);
+@import './styles/responsive.css' layer(components);
+@import './styles/chat/layout.css' layer(components);
+@import './styles/chat/conversation.css' layer(components);
+@import './styles/chat/composer.css' layer(components);
+@import './styles/chat/work.css' layer(components);
+@import './styles/skills.css' layer(components);
+@import './styles/motion.css' layer(components);
+
+/* Regression-test class strings must not add unused production utilities. */
+@source not './**/__tests__/**';
+@source not '../test/**';

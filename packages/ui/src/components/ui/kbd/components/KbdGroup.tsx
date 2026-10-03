@@ -5,7 +5,7 @@ export function KbdGroup({ className, ...props }: KbdGroupProps) {
   return (
     <kbd
       data-slot="kbd-group"
-      className={cn('inline-flex items-center gap-1', className)}
+      className={cn('primitive:inline-flex primitive:items-center primitive:gap-1', className)}
       {...props}
     />
   );

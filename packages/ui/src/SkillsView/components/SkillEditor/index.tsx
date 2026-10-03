@@ -22,7 +22,10 @@ export function SkillEditor(props: SkillEditorProps) {
     >
       <SheetContent className="role-settings-panel skill-editor-panel" showCloseButton={false}>
         <SkillEditorHeading {...controller} />
-        <form className="form role-settings-form" onSubmit={(event) => void save(event)}>
+        <form
+          className="form role-settings-form flex flex-col gap-4"
+          onSubmit={(event) => void save(event)}
+        >
           <div className="role-settings-body">
             {importing || skill?.source ? <SkillImport {...controller} /> : null}
             <SkillDetails {...controller} />

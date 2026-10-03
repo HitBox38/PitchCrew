@@ -31,7 +31,7 @@ export function RuntimeList({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
   const unavailable = runtimes.filter((runtime) => !runtime.available);
   return (
     <section className="runtime-section" aria-labelledby="runtime-heading">
-      <div className="section-heading">
+      <div className="section-heading mb-2 flex items-baseline justify-between gap-3.75">
         <h2 id="runtime-heading">Runtimes on this machine</h2>
         <span className="subtle">{available.length} available</span>
       </div>

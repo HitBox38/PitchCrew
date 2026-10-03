@@ -1,3 +1,10 @@
+/* Material controls inherit the app's typography before their recipes choose a size. */
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
 .button {
   border: 0;
   border-radius: 11px 12px 11px 10px;
@@ -9,7 +16,7 @@
   justify-content: center;
   background: var(--clay-fill);
   color: var(--ink);
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 600;
   white-space: nowrap;
   box-shadow: var(--clay);
@@ -72,7 +79,7 @@
   height: auto;
   background: none;
   color: var(--primary);
-  font-size: 13px;
+  font-size: var(--text-label);
   font-weight: 600;
   box-shadow: none;
 }
