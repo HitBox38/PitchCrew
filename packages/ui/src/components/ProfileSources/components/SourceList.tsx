@@ -21,7 +21,7 @@ export function SourceList({ sources, busy, load, unlink, watch }: ProfileSource
             aria-pressed={source.watching === true}
             onClick={() => void watch(source.id, !source.watching)}
           >
-            {source.watching ? 'Watching ? pause' : 'Enable watching'}
+            {source.watching ? 'Pause watching' : 'Enable watching'}
           </Button>
           {source.mode !== 'project' ? (
             <Button variant="outline" disabled={busy} onClick={() => void load(source.input)}>
