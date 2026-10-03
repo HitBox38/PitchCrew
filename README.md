@@ -180,7 +180,7 @@ Tests use fictional fixtures and temporary workspaces. They cover transitions, a
 
 ## MVP boundaries
 
-Discovery is manual. Roles launch from user chat/workflow actions, persistent routines and bounded crew follow-ups. Exports are local Markdown and optional PDF/DOCX files: there is no email sender, bespoke one-page builder, OS/background scheduler or automatic coaching. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
+Discovery is manual. Roles launch from user chat/workflow actions, persistent routines and bounded crew follow-ups. Exports are local Markdown and optional PDF/DOCX files: there is no email sender, bespoke one-page builder, OS/background scheduler or automatic Coach installation. Users can enable batch pipeline reviews and schedule them through ordinary routines while Pitchcrew is open. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
 
 Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.
 

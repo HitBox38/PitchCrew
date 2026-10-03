@@ -93,33 +93,33 @@ export function savePipelineReview(
   const evidence = validateEvidence(context, ids, parsed.scope);
   const run = context.board.get<Run>('run', capability.runId);
   const now = new Date().toISOString();
+  const noticeMessageId = randomUUID();
+  const review: PipelineReview = {
+    ...parsed,
+    id: randomUUID(),
+    roleId: capability.roleId,
+    runId: capability.runId,
+    threadId: run.threadId ?? 'crew',
+    evidence,
+    followups: [],
+    noticeMessageId,
+    createdAt: now,
+    updatedAt: now,
+  };
+  // Validate the complete stored payload before announcing it to stream subscribers.
+  if (Buffer.byteLength(JSON.stringify(review), 'utf8') > 512000)
+    throw new Error('Pipeline review exceeds the 512 KB limit. Narrow its findings and evidence.');
   return context.board.db.transaction(() => {
-    const notice = context.addMessage(
+    context.addMessage(
       run.threadId ?? 'crew',
       capability.roleId,
       'user',
       `Pipeline review ready: ${parsed.title}. Review its evidence and recommendations in Crew work. Changes require your explicit approval.`,
       capability.cardId,
       capability.runId,
-      randomUUID(),
+      noticeMessageId,
       'attention',
     );
-    const review: PipelineReview = {
-      ...parsed,
-      id: randomUUID(),
-      roleId: capability.roleId,
-      runId: capability.runId,
-      threadId: run.threadId ?? 'crew',
-      evidence,
-      followups: [],
-      noticeMessageId: notice.id,
-      createdAt: now,
-      updatedAt: now,
-    };
-    if (Buffer.byteLength(JSON.stringify(review), 'utf8') > 512000)
-      throw new Error(
-        'Pipeline review exceeds the 512 KB limit. Narrow its findings and evidence.',
-      );
     context.board.record(
       'pipeline_review',
       review,

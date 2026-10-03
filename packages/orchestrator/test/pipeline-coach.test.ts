@@ -319,3 +319,83 @@ it('rejects finalized or missing-controller runs and requires coverage of every 
   daemon.service.board.record('run', { ...run, status: 'completed' }, 'user', 'Fixture completed');
   await expect(call('read_pipeline', { section: 'cards' })).rejects.toThrow('completed');
 });
+
+it('accepts sibling seat evidence without exposing raw email/profile/browser payloads or global scans in card-scoped reviews', async () => {
+  const { daemon, input, call, card } = await fixture(14807);
+  const board = daemon.service.board;
+  const insert = (kind: string, data: Record<string, unknown>) => {
+    const createdAt = new Date().toISOString();
+    const event = {
+      id: 0,
+      version: 9,
+      kind,
+      entityId: String(data.id),
+      actor: 'scout',
+      message: 'Fictional seat evidence',
+      createdAt,
+      data,
+    };
+    return Number(
+      board.db.prepare('INSERT INTO events(json) VALUES (?)').run(JSON.stringify(event))
+        .lastInsertRowid,
+    );
+  };
+  const signalId = insert('tracking_signal', {
+    id: 'signal-fixture',
+    cardId: null,
+    candidateIds: [card.id],
+    roleId: 'scout',
+    status: 'pending',
+    state: 'screening',
+    sourceText: 'Fictional private email source body',
+  });
+  const scanId = insert('tracking_scan', {
+    id: 'scan-fixture',
+    roleId: 'scout',
+    complete: false,
+    account: 'fictional@example.invalid',
+    query: 'Fictional private query',
+  });
+  const formId = insert('form_assessment', {
+    id: 'form-fixture',
+    cardId: card.id,
+    roleId: 'scout',
+    runId: 'fictional',
+    page: { text: 'Fictional private page body' },
+  });
+  const receiptId = insert('submission_attempt', {
+    id: 'receipt-fixture',
+    cardId: card.id,
+    roleId: 'scout',
+    status: 'confirmed',
+    evidence: 'Fictional private receipt text',
+  });
+  const profileId = insert('profile_proposal', {
+    id: 'profile-fixture',
+    roleId: 'scout',
+    runId: 'fictional',
+    status: 'pending',
+    documents: [{ content: 'Fictional private profile body' }],
+  });
+  const scoped = await call('read_pipeline', {
+    section: 'events',
+    scope: { cardIds: [card.id] },
+    limit: 50,
+  });
+  const ids = (scoped.items as { id: number }[]).map((event) => event.id);
+  expect(ids).toEqual(expect.arrayContaining([signalId, formId, receiptId]));
+  expect(ids).not.toContain(scanId);
+  expect(ids).not.toContain(profileId);
+  expect(JSON.stringify(scoped)).not.toContain('Fictional private');
+  const review = await call('save_pipeline_review', {
+    ...input,
+    findings: [{ ...input.findings[0], evidenceEventIds: [signalId, formId, receiptId] }],
+  });
+  expect((review.review as PipelineReview).evidence).toHaveLength(3);
+  await expect(
+    call('save_pipeline_review', {
+      ...input,
+      findings: [{ ...input.findings[0], evidenceEventIds: [scanId] }],
+    }),
+  ).rejects.toThrow('outside');
+});

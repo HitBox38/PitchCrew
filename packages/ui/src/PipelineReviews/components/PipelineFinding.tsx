@@ -1,5 +1,6 @@
 import type { PipelineReview, RoleId } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
+import { ReviewEvidence } from './ReviewEvidence.tsx';
 import { FollowupForm } from './FollowupForm.tsx';
 
 export function PipelineFinding({
@@ -36,13 +37,7 @@ export function PipelineFinding({
         {review.evidence
           .filter((event) => finding.evidenceEventIds.includes(event.eventId))
           .map((event) => (
-            <div key={event.eventId} className="py-2">
-              <p>
-                Event #{event.eventId} / {event.kind} / {event.actor} / {event.createdAt}
-              </p>
-              <p>{event.message}</p>
-              <pre className="text-xs whitespace-pre-wrap">{event.summary}</pre>
-            </div>
+            <ReviewEvidence key={event.eventId} event={event} />
           ))}
       </details>
       <p>
