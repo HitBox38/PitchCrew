@@ -1,3 +1,5 @@
+import { IdentitySettings } from './components/IdentitySettings.tsx';
+import { RoleRetirement } from './components/RoleRetirement.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { CapabilitySettings } from '@/components/RoleSettings/components/CapabilitySettings.tsx';
 import { InstructionSettings } from '@/components/RoleSettings/components/InstructionSettings.tsx';
@@ -27,10 +29,16 @@ export function RoleSettings(props: RoleSettingsProps) {
           onSubmit={(e) => void save(e)}
         >
           <div className="role-settings-body">
+            <IdentitySettings {...controller} />
             <RuntimeSettings {...controller} />
             <InstructionSettings {...controller} />
             <CapabilitySettings {...controller} />
-            <RoleSkills {...controller} />
+            {controller.creating ? (
+              <p className="quiet">Save the role, then assign skills from its settings.</p>
+            ) : (
+              <RoleSkills {...controller} />
+            )}
+            <RoleRetirement {...controller} />
           </div>
           <RoleSettingsFooter {...controller} />
         </form>

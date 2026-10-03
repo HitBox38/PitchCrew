@@ -1,3 +1,4 @@
+import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
@@ -26,6 +27,7 @@ export interface ProfileFile {
   content: string;
 }
 export interface Snapshot {
+  profileProposals?: ProfileMaintenanceProposal[];
   trackingSignals?: TrackingSignal[];
   trackingScans?: TrackingScan[];
   starterSkillErrors: { name: string; error: string }[];

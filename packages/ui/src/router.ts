@@ -1,6 +1,6 @@
 import type { RouterHistory } from '@tanstack/react-router';
 import {
-  createRootRoute,
+  createRootRouteWithContext,
   createRoute,
   createRouter,
   lazyRouteComponent,
@@ -9,6 +9,7 @@ import {
 } from '@tanstack/react-router';
 import { validateActivitySearch } from './ActivityPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
+import type { Role } from '@pitchcrew/core';
 import type { View } from './navigation.ts';
 import { isChatThread, validateSkillSearch } from './navigation.ts';
 
@@ -21,7 +22,7 @@ declare module '@tanstack/react-router' {
   }
 }
 
-const rootRoute = createRootRoute({
+const rootRoute = createRootRouteWithContext<{ getRoles: () => Role[] | undefined }>()({
   component: lazyRouteComponent(() => import('@/App/index.tsx'), 'App'),
   notFoundComponent: NotFoundPage,
 });
@@ -41,16 +42,27 @@ const crewRoute = createRoute({
 const chatIndexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/chat',
-  beforeLoad: () => {
-    throw redirect({ to: '/chat/$thread', params: { thread: 'scout' }, replace: true });
+  beforeLoad: ({ context }) => {
+    throw redirect({
+      to: '/chat/$thread',
+      params: {
+        thread:
+          context.getRoles()?.find((role) => role.enabled && !role.retiredAt)?.id ??
+          (context.getRoles() ? 'crew' : 'scout'),
+      },
+      replace: true,
+    });
   },
 });
 const chatRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/chat/$thread',
   staticData: { view: 'chat' },
-  beforeLoad: ({ params }) => {
+  beforeLoad: ({ params, context }) => {
     if (!isChatThread(params.thread)) throw notFound();
+    const roles = context.getRoles();
+    if (roles && params.thread !== 'crew' && !roles.some((role) => role.id === params.thread))
+      throw notFound();
   },
   component: lazyRouteComponent(() => import('@/pages/components/ChatPage.tsx'), 'ChatPage'),
 });
@@ -101,6 +113,9 @@ const routeTree = rootRoute.addChildren([
 
 // Both browser and Electron render from the daemon's HTTP origin.
 // Tests provide memory history to exercise the same route tree without a DOM.
-export function createAppRouter(history?: RouterHistory) {
-  return createRouter({ routeTree, history });
+export function createAppRouter(
+  history?: RouterHistory,
+  getRoles: () => Role[] | undefined = () => undefined,
+) {
+  return createRouter({ routeTree, history, context: { getRoles } });
 }

@@ -1,5 +1,5 @@
 import type { RunContext, RunResult } from '@pitchcrew/core';
-import { runResultSchema } from '@pitchcrew/core';
+import { runResultSchema, workflowSeat } from '@pitchcrew/core';
 
 export function parseWorkflowResult(text: string, context: RunContext): RunResult {
   try {
@@ -19,7 +19,7 @@ export function cleanResult(text: string) {
 export function parseResult(text: string, context: RunContext): RunResult {
   const cleaned = cleanResult(text);
   const result = runResultSchema.parse(JSON.parse(cleaned));
-  if (result.role !== context.role.id)
+  if (result.role !== workflowSeat(context.role))
     throw new Error('The runtime returned a result for the wrong role.');
   return result;
 }

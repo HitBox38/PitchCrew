@@ -26,12 +26,14 @@ export function ActionFields({
             value={draft.roleId}
             onChange={(event) => change({ roleId: event.target.value as Role['id'] })}
           >
-            {roles.map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-                {role.enabled ? '' : ' (paused)'}
-              </option>
-            ))}
+            {roles
+              .filter((role) => !role.retiredAt)
+              .map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                  {role.enabled ? '' : ' (paused)'}
+                </option>
+              ))}
           </select>
         </label>
         <label>

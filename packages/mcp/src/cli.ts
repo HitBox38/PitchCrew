@@ -5,6 +5,7 @@ import { registerComputerTools } from './tools/computer.ts';
 import { registerConnectorsTools } from './tools/connectors.ts';
 import { registerCrewTools } from './tools/crew.ts';
 import { registerPacketTools } from './tools/packet.ts';
+import { registerProfileTools } from './tools/profile.ts';
 import { registerRoutineTools } from './tools/routines.ts';
 import { registerTrackingTools } from './tools/tracking.ts';
 
@@ -19,6 +20,7 @@ registerPacketTools(server, call);
 
 registerCrewTools(server, call);
 registerRoutineTools(server, call);
+registerProfileTools(server, call);
 registerTrackingTools(server, call);
 
 // Browser tools are exposed only to enabled roles; the daemon rechecks every call.

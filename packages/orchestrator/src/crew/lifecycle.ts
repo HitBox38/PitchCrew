@@ -86,6 +86,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     approvals: this.board.list<Approval>('approval').reverse(),
     computerApprovals: this.board.list<ComputerApproval>('computer_approval').reverse(),
     events: this.board.events(),
+    profileProposals: this.board.list('profile_proposal'),
     profile,
     runtimes: this.runtimes,
     dataDirectory: this.directory,

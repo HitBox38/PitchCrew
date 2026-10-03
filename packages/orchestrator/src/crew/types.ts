@@ -68,6 +68,8 @@ export interface CrewContext {
   deleteSkill(id: string): { ok: boolean };
   writeRunInstructions(dir: string, role: Role, skills: Skill[]): Promise<void>;
   writeRole(role: Role): Promise<void>;
+  createRole(data: unknown): Promise<Role>;
+  retireRole(id: RoleId): Promise<Role>;
   configureRole(id: RoleId, data: unknown): Promise<Role>;
   createCard(data: unknown): Card;
   moveCard(id: string, state: CardState): Card;

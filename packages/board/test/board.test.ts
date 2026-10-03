@@ -57,6 +57,15 @@ describe('event-sourced board', () => {
     board.db
       .prepare('INSERT INTO events(json) VALUES (?)')
       .run(JSON.stringify({ ...legacy, version: 5 }));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 6 }));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 7 }));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 8 }));
     board.record('message', message, 'user', 'Fixture chat');
     const events = board.events();
     board.rebuild();

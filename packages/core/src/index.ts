@@ -8,7 +8,15 @@ export { decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
 export type { Packet } from './packets.ts';
-export { capabilitySchema, defaultCapabilities, roleChanges, rolePatch } from './roles.ts';
+export {
+  capabilitySchema,
+  defaultCapabilities,
+  roleChanges,
+  rolePatch,
+  roleCreate,
+  roleIdSchema,
+  customCapabilities,
+} from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
 export { runResultSchema } from './runs.ts';
 export type { AgentTask, Run, RunResult } from './runs.ts';
@@ -40,3 +48,8 @@ export type {
   ProfileImportFile,
   ProfileSourcePreview,
 } from './profile-sources.ts';
+
+export type {
+  ProfileMaintenanceProposal,
+  ProfileMaintenanceChange,
+} from './profile-maintenance.ts';

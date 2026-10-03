@@ -169,7 +169,7 @@ describe('directory imports and skill suggestions', () => {
     expect(
       after.events
         .filter((event) => event.kind === 'skill_proposal')
-        .every((event) => event.version === 6),
+        .every((event) => event.version === 9),
     ).toBe(true);
     const unauthenticated = await fetch(`${daemon.url}/api/skill-proposals/${custom.id}/decide`, {
       method: 'POST',

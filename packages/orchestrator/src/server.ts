@@ -1,4 +1,4 @@
-import { roleIds } from '@pitchcrew/core';
+import { roleIdSchema } from '@pitchcrew/core';
 import express from 'express';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -69,7 +69,7 @@ export async function createDaemon(options: {
         approvalId: z.uuid().optional(),
         beforeEventId: z.number().int().positive().optional(),
         limit: z.number().int().min(1).max(200).optional(),
-        roleId: z.enum(roleIds).optional(),
+        roleId: roleIdSchema.optional(),
         content: z.string().max(8000).optional(),
         kind: z.enum(['message', 'attention']).optional(),
         mode: z.enum(['chat', 'workflow']).optional(),
