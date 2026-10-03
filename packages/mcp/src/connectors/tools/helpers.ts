@@ -99,6 +99,7 @@ export function gmailMessage(value: unknown) {
     if (Array.isArray(part.parts)) part.parts.forEach((p) => readPart(record(p)));
   }
   readPart(payload);
+  const text = parts.join('\n');
   return {
     id: data.id,
     threadId: data.threadId,
@@ -106,6 +107,7 @@ export function gmailMessage(value: unknown) {
     labelIds: data.labelIds,
     internalDate: data.internalDate,
     headers: payload.headers,
-    text: parts.join('\n').slice(0, 60000),
+    text: text.slice(0, 60000),
+    textTruncated: text.length > 60000,
   };
 }

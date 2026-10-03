@@ -1,5 +1,5 @@
 import type { AgentCapabilities } from '@pitchcrew/core';
-import { roleIds, type ChatMessage } from '@pitchcrew/core';
+import { roleIdSchema, type ChatMessage } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 
@@ -25,7 +25,7 @@ export async function queueMessage(
     throw new Error('This capability is disabled for your role.');
   const input = z
     .object({
-      roleId: z.enum(roleIds),
+      roleId: roleIdSchema,
       content: z.string().trim().min(1).max(8000),
       mode: z.enum(['chat', 'workflow']).default('chat'),
     })

@@ -1,3 +1,4 @@
+import type { Role } from '@pitchcrew/core';
 import { createMemoryHistory } from '@tanstack/react-router';
 import { describe, expect, it } from 'vitest';
 import { createAppRouter } from '../src/router.ts';
@@ -5,12 +6,32 @@ import { createAppRouter } from '../src/router.ts';
 async function setup(path: string) {
   const history = createMemoryHistory({ initialEntries: [path] });
   const router = createAppRouter(history);
-  router.update({ isServer: false, origin: 'http://127.0.0.1' });
+  router.update({ isServer: false, origin: 'http://127.0.0.1', context: router.options.context });
   await router.load();
   return { router, history };
 }
 
 describe('workspace routes', () => {
+  it('accepts custom role deep links and validates loaded stored roles', async () => {
+    const history = createMemoryHistory({ initialEntries: ['/chat/research-assistant'] });
+    const roles = [
+      { id: 'scout', enabled: false, retiredAt: '2030-01-01' },
+      { id: 'research-assistant', enabled: true },
+    ] as Role[];
+    const router = createAppRouter(history, () => roles);
+    router.update({ isServer: false, origin: 'http://127.0.0.1', context: router.options.context });
+    await router.load();
+    expect(router.state.matches.at(-1)?.status).toBe('success');
+    await router.navigate({ to: '/chat' });
+    await router.load();
+    expect(router.state.location.pathname).toBe('/chat/research-assistant');
+    await router.navigate({ to: '/chat/$thread', params: { thread: 'missing' } });
+    await router.load();
+    expect(
+      router.state.matches.some((match) => match.status === 'notFound' || match._notFound),
+    ).toBe(true);
+  });
+
   it.each([
     ['/', 'board'],
     ['/crew', 'crew'],
@@ -56,12 +77,12 @@ describe('workspace routes', () => {
     },
   );
 
-  it.each(['unknown', 'all'])('uses the default skill assignment for %s', async (filter) => {
+  it.each(['INVALID', 'all'])('uses the default skill assignment for %s', async (filter) => {
     const { router } = await setup(`/skills?filter=${filter}`);
     expect(router.state.matches.at(-1)?.search).toMatchObject({ filter: undefined });
   });
 
-  it.each(['/missing', '/chat/unknown'])('shows not found for %s', async (path) => {
+  it.each(['/missing', '/chat/INVALID'])('shows not found for %s', async (path) => {
     const { router } = await setup(path);
     expect(
       router.state.matches.some((match) => match.status === 'notFound' || match._notFound),

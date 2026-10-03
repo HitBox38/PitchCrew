@@ -1,3 +1,4 @@
+import { useProfileMaintenance } from './useProfileMaintenance.ts';
 import { api } from '@/api.ts';
 import { useConnectorSettings } from '@/ConnectorSettings/hooks/useConnectorSettings.ts';
 import type {
@@ -108,7 +109,9 @@ export function useProfileSources(props: ProfileSourcesProps) {
       current.includes(name) ? current.filter((value) => value !== name) : [...current, name],
     );
   }
+  const maintenance = useProfileMaintenance(props, setSources);
   return {
+    ...maintenance,
     sources,
     provider,
     setProvider,

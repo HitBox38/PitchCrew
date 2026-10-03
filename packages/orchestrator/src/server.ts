@@ -1,4 +1,4 @@
-import { roleIds } from '@pitchcrew/core';
+import { roleIdSchema } from '@pitchcrew/core';
 import express from 'express';
 import { readFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
@@ -14,6 +14,7 @@ import { registerSkillsRoutes } from './http/routes/skills.ts';
 import { registerProfileSourcesRoutes } from './http/routes/profile-sources.ts';
 import { registerSessionSecurity } from './http/security.ts';
 import { registerRoutinesRoutes } from './http/routes/routines.ts';
+import { registerTrackingRoutes } from './http/routes/tracking.ts';
 import { CrewService, ensureDirectory } from './service.ts';
 
 const uiRoot = fileURLToPath(new URL('../../ui/', import.meta.url));
@@ -44,6 +45,7 @@ export async function createDaemon(options: {
   // Fetch-based SSE preserves the UI session cookie AND custom client header.
   registerChatStream(app, service, chatStreams);
   registerBoardRoutes(app, service);
+  registerTrackingRoutes(app, service);
   registerProfileSourcesRoutes(app, service);
 
   registerCrewRoutes(app, service);
@@ -67,7 +69,7 @@ export async function createDaemon(options: {
         approvalId: z.uuid().optional(),
         beforeEventId: z.number().int().positive().optional(),
         limit: z.number().int().min(1).max(200).optional(),
-        roleId: z.enum(roleIds).optional(),
+        roleId: roleIdSchema.optional(),
         content: z.string().max(8000).optional(),
         kind: z.enum(['message', 'attention']).optional(),
         mode: z.enum(['chat', 'workflow']).optional(),

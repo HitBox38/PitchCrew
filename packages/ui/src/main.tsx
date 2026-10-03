@@ -1,3 +1,4 @@
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { AppMotion } from '@/AppMotion/index.tsx';
 import '@fontsource-variable/fraunces/full-italic.css';
 import '@fontsource-variable/fraunces/full.css';
@@ -9,7 +10,7 @@ import { createRoot } from 'react-dom/client';
 import { createAppRouter } from './router.ts';
 import './styles.css';
 
-const router = createAppRouter();
+const router = createAppRouter(undefined, () => useWorkspaceStore.getState().data?.roles);
 createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <div className="desktop-titlebar" aria-hidden="true">

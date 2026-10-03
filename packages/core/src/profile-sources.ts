@@ -15,6 +15,10 @@ export interface ProfileSource {
   input: ProfileSourceInput;
   label: string;
   importedAt: string;
+  watching?: boolean;
+  mode?: 'project';
+  revision?: string;
+  missingFiles?: string[];
   files: ImportedProfileFile[];
 }
 export interface ProfileImportFile extends ImportedProfileFile {

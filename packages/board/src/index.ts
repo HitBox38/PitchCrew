@@ -11,6 +11,20 @@ import { createBoardContext } from './board/context.ts';
 import type { BoardContext } from './board/types.ts';
 
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
+export {
+  searchApplications,
+  registerExternalApplication,
+  registerExistingExternalSubmission,
+  decideTrackingSignal,
+  linkTrackingThread,
+  unlinkTrackingThread,
+  refreshTrackingSignal,
+  updateTrackingIdentifier,
+  latestTrackingTime,
+  trackingConflict,
+  applyTrackingSignal,
+  completeTrackingMessage,
+} from './board/tracking.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {

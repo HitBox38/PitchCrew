@@ -12,7 +12,7 @@ export function CrewCard({ role, status, onConfigure, onChat }: CrewCardProps) {
         <div>
           <h2>{role.name}</h2>
           <span className={`role-status ${!role.enabled ? 'paused' : ''}`}>
-            {role.enabled ? 'Enabled' : 'Paused'}
+            {role.retiredAt ? 'Retired' : role.enabled ? 'Enabled' : 'Paused'}
           </span>
         </div>
       </div>
@@ -37,7 +37,7 @@ export function CrewCard({ role, status, onConfigure, onChat }: CrewCardProps) {
         <Button className="button primary" onClick={onChat}>
           <MessageSquare size={14} /> Chat
         </Button>
-        <Button className="button" onClick={onConfigure}>
+        <Button className="button" onClick={onConfigure} disabled={!!role.retiredAt}>
           <SlidersHorizontal size={14} /> Configure
         </Button>
       </div>

@@ -1,3 +1,4 @@
+import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
@@ -8,6 +9,7 @@ import type { AgentTask, Run } from './runs.ts';
 import type { Routine } from './routines.ts';
 import type { RuntimeInfo } from './runtime.ts';
 import type { Skill, SkillProposal } from './skills.ts';
+import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface Approval {
   id: string;
@@ -27,6 +29,9 @@ export interface ProfileFile {
   content: string;
 }
 export interface Snapshot {
+  profileProposals?: ProfileMaintenanceProposal[];
+  trackingSignals?: TrackingSignal[];
+  trackingScans?: TrackingScan[];
   starterSkillErrors: { name: string; error: string }[];
   cards: Card[];
   roles: Role[];

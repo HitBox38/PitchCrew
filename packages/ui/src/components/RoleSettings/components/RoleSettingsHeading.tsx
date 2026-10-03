@@ -10,7 +10,7 @@ export function RoleSettingsHeading({ role, onClose }: RoleSettingsHeadingProps)
     <header className="role-settings-heading">
       <RoleAvatar agentRole={role.id} size="large" />
       <div>
-        <SheetTitle>{role.name} settings</SheetTitle>
+        <SheetTitle>{role.name ? `${role.name} settings` : 'Create role'}</SheetTitle>
         <SheetDescription>{role.description}</SheetDescription>
       </div>
       <Button

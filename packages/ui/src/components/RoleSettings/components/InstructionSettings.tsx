@@ -11,7 +11,7 @@ export function InstructionSettings({
       <h3 id={`${role.id}-instructions-heading`}>
         <label htmlFor={`${role.id}-instructions`}>Role instructions</label>
       </h3>
-      <p className="quiet">Describe how {role.name} should approach its work.</p>
+      <p className="quiet">Describe how {role.name || 'this role'} should approach its work.</p>
       <Textarea
         id={`${role.id}-instructions`}
         rows={10}

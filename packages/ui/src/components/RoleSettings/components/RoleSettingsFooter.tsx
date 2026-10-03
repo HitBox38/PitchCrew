@@ -2,12 +2,7 @@ import type { RoleSettingsFooterProps } from '@/components/RoleSettings/types.ts
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Check, LoaderCircle } from 'lucide-react';
 
-export function RoleSettingsFooter({
-  error,
-  onClose,
-  working,
-  runtimeAvailable,
-}: RoleSettingsFooterProps) {
+export function RoleSettingsFooter({ creating, error, onClose, working }: RoleSettingsFooterProps) {
   return (
     <footer className="role-settings-footer">
       {error ? (
@@ -19,9 +14,9 @@ export function RoleSettingsFooter({
         <Button className="button" type="button" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit" className="button primary" disabled={working || !runtimeAvailable}>
+        <Button type="submit" className="button primary" disabled={working}>
           {working ? <LoaderCircle size={15} className="spin" /> : <Check size={15} />}
-          Save settings
+          {creating ? 'Create role' : 'Save settings'}
         </Button>
       </div>
     </footer>

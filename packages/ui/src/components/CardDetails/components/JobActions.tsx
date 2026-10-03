@@ -39,9 +39,9 @@ export function JobActions({
               }
             >
               <Play size={15} />
-              {runRole === 'scout'
+              {card.state === 'lead'
                 ? 'Evaluate fit'
-                : runRole === 'writer'
+                : ['shortlisted', 'changes_requested'].includes(card.state)
                   ? 'Draft application'
                   : 'Review packet'}
             </Button>

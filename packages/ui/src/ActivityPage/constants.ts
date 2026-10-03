@@ -7,9 +7,12 @@ export const eventKindLabels = {
   proposal: 'Role suggestions',
   task: 'Follow-ups',
   routine: 'Routines',
+  tracking_signal: 'Application evidence',
+  tracking_scan: 'Email tracking scans',
   skill: 'Skills',
   skill_proposal: 'Skill suggestions',
   computer_approval: 'Browser approvals',
+  profile_proposal: 'Profile updates',
   form_assessment: 'Form assessments',
   submission_attempt: 'Submission receipts',
 } as const;

@@ -2,6 +2,8 @@ import { FormAssessments } from './FormAssessments.tsx';
 import { SubmissionReceipts } from './SubmissionReceipts.tsx';
 import { OutcomeActions } from '@/components/CardDetails/components/OutcomeActions.tsx';
 import type { JobOverviewProps } from '@/components/CardDetails/types.ts';
+import { ApplicationTracking } from '@/ApplicationTracking/index.tsx';
+import { ExternalSubmissionRegistration } from '@/ExternalSubmissionRegistration/index.tsx';
 
 export function JobOverview({ card, working, run, act }: JobOverviewProps) {
   return (
@@ -28,6 +30,8 @@ export function JobOverview({ card, working, run, act }: JobOverviewProps) {
       <h3>Outcome</h3>
       <p className="quiet">Record what happened after you applied.</p>
       <OutcomeActions card={card} working={working} run={run} act={act} />
+      <ApplicationTracking card={card} />
+      <ExternalSubmissionRegistration card={card} />
     </>
   );
 }

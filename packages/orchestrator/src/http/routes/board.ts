@@ -1,4 +1,4 @@
-import { roleIds, states } from '@pitchcrew/core';
+import { roleIdSchema, states } from '@pitchcrew/core';
 import express from 'express';
 import { z } from 'zod';
 import { CrewService } from '../../service.ts';
@@ -16,7 +16,7 @@ export function registerBoardRoutes(app: express.Express, service: CrewService) 
       .json(
         await service.startRun(
           req.params.id,
-          z.object({ roleId: z.enum(roleIds) }).parse(req.body).roleId,
+          z.object({ roleId: roleIdSchema }).parse(req.body).roleId,
         ),
       ),
   );

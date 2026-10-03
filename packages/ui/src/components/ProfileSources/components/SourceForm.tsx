@@ -1,3 +1,4 @@
+import { SourceActions } from './SourceActions.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
@@ -22,7 +23,7 @@ export function SourceForm(c: ProfileSourcesModel) {
           </label>
           <div className="profile-source-fields">
             <label>
-              Profile folder
+              Profile or project folder
               <Input
                 value={c.path}
                 onChange={(e) => c.setPath(e.target.value)}
@@ -42,7 +43,9 @@ export function SourceForm(c: ProfileSourcesModel) {
           </div>
           <p className="quiet">
             Choose your factual source folder. Nested work histories and projects stay separate. Add
-            a second source for a general resume.
+            a second source for a general resume. For a project watch, choose its code folder or
+            leave the folder empty for the repository. Watches detect repository commits and require
+            an enabled agent plus GitHub permission to investigate.
           </p>
         </>
       ) : (
@@ -78,14 +81,7 @@ export function SourceForm(c: ProfileSourcesModel) {
           </Button>
         </div>
       ) : null}
-      <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
-        <Button variant="outline" disabled={c.busy} onClick={() => c.setProvider(null)}>
-          Cancel
-        </Button>
-        <Button type="submit" disabled={c.busy || !c.canRead}>
-          {c.busy ? 'Reading documents…' : 'Review documents'}
-        </Button>
-      </div>
+      <SourceActions {...c} />
     </form>
   );
 }

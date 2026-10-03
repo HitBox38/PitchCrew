@@ -21,7 +21,8 @@ import {
 import { access, mkdir } from 'node:fs/promises';
 import { createCrewContext } from './crew/context.ts';
 import type { CrewContext } from './crew/types.ts';
-import { changeProfile } from './profile-sources/mutation.ts';
+import { decideProfileProposal } from './profile-sources/proposals.ts';
+import { assertProfileReady, changeProfile } from './profile-sources/mutation.ts';
 import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
 
@@ -45,10 +46,22 @@ export class CrewService {
     return this.context.profileSources;
   }
   importProfileSource(input: unknown): Promise<ProfileFile[]> {
+    assertProfileReady(this.context);
     return changeProfile(this.context, () => this.profileSources.import(input));
   }
   unlinkProfileSource(id: string): Promise<void> {
-    return changeProfile(this.context, () => this.profileSources.unlink(id));
+    assertProfileReady(this.context);
+    return changeProfile(this.context, () => this.profileSources.unlink(id), true);
+  }
+  watchProfileProject(input: unknown) {
+    assertProfileReady(this.context);
+    return changeProfile(this.context, () => this.profileSources.watchProject(input));
+  }
+  setProfileSourceWatching(id: string, watching: boolean) {
+    return changeProfile(this.context, () => this.profileSources.setWatching(id, watching), true);
+  }
+  decideProfileProposal(id: string, input: unknown) {
+    return decideProfileProposal(this.context, id, input);
   }
   get computer() {
     return this.context.computer;
@@ -115,6 +128,12 @@ export class CrewService {
   }
   writeRole(role: Role): Promise<void> {
     return this.context.writeRole(role);
+  }
+  createRole(data: unknown): Promise<Role> {
+    return this.context.createRole(data);
+  }
+  retireRole(id: RoleId): Promise<Role> {
+    return this.context.retireRole(id);
   }
   configureRole(id: RoleId, data: unknown): Promise<Role> {
     return this.context.configureRole(id, data);
