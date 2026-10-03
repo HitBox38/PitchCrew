@@ -2,12 +2,13 @@ import type { Card, Approval } from '@pitchcrew/core';
 import { digestPacket } from '@pitchcrew/board';
 import { renderArtifacts, verifiedArtifact } from '@pitchcrew/packet';
 import { resolveSubmission } from '@pitchcrew/mcp/computer';
-import express from 'express';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
-export function registerApprovalsRoutes(app: express.Express, service: CrewService) {
-  app.post('/api/cards/:id/approval', async (req, res) => {
+export function registerApprovalsRoutes(app: FastifyInstance, service: CrewService) {
+  app.post<IdRoute>('/api/cards/:id/approval', async (req, res) => {
     const { formats } = z
       .object({
         formats: z
@@ -23,16 +24,19 @@ export function registerApprovalsRoutes(app: express.Express, service: CrewServi
     const current = service.board.get<Card>('card', card.id);
     if (!current.packet || digestPacket(card.id, current.packet) !== digest)
       throw new Error('Packet changed during rendering.');
-    res.status(201).json(service.board.requestApproval(card.id, artifacts));
+    res.status(201).send(service.board.requestApproval(card.id, artifacts));
   });
-  app.get('/api/approvals/:id/artifacts/:name', (req, res) => {
-    const approval = service.board.get<Approval>('approval', req.params.id);
-    const artifact = approval.artifacts?.find((item) => item.name === req.params.name);
-    if (!artifact) throw new Error('Reviewed artifact not found.');
-    res.setHeader('Content-Disposition', `inline; filename="${artifact.name}"`);
-    res.type(artifact.mimeType).send(verifiedArtifact(artifact));
-  });
-  app.post('/api/submissions/:id/resolve', (req, res) => {
+  app.get<{ Params: { id: string; name: string } }>(
+    '/api/approvals/:id/artifacts/:name',
+    (req, res) => {
+      const approval = service.board.get<Approval>('approval', req.params.id);
+      const artifact = approval.artifacts?.find((item) => item.name === req.params.name);
+      if (!artifact) throw new Error('Reviewed artifact not found.');
+      res.header('Content-Disposition', `inline; filename="${artifact.name}"`);
+      res.type(artifact.mimeType).send(verifiedArtifact(artifact));
+    },
+  );
+  app.post<IdRoute>('/api/submissions/:id/resolve', (req, res) => {
     const input = z
       .object({
         confirmed: z.boolean(),
@@ -50,7 +54,7 @@ export function registerApprovalsRoutes(app: express.Express, service: CrewServi
           .optional(),
       })
       .parse(req.body);
-    res.json(
+    res.send(
       resolveSubmission(
         service.board,
         z.uuid().parse(req.params.id),
@@ -60,23 +64,23 @@ export function registerApprovalsRoutes(app: express.Express, service: CrewServi
       ),
     );
   });
-  app.post('/api/approvals/:id/decide', (req, res) =>
-    res.json(
+  app.post<IdRoute>('/api/approvals/:id/decide', (req, res) =>
+    res.send(
       service.board.decideApproval(
         req.params.id,
         z.object({ approved: z.boolean() }).parse(req.body).approved,
       ),
     ),
   );
-  app.post('/api/computer-approvals/:id/decide', (req, res) =>
-    res.json(
+  app.post<IdRoute>('/api/computer-approvals/:id/decide', (req, res) =>
+    res.send(
       service.computer.decide(
         z.uuid().parse(req.params.id),
         z.object({ approved: z.boolean() }).parse(req.body).approved,
       ),
     ),
   );
-  app.post('/api/approvals/:id/export', async (req, res) =>
-    res.json({ directory: await service.exportPacket(req.params.id) }),
+  app.post<IdRoute>('/api/approvals/:id/export', async (req, res) =>
+    res.send({ directory: await service.exportPacket(req.params.id) }),
   );
 }
