@@ -1,4 +1,5 @@
 export { cardInput } from './cards.ts';
+export * from './tracking.ts';
 export type { Card, CardInput } from './cards.ts';
 export { chatInput, chatResultSchema } from './chat.ts';
 export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from './chat.ts';
