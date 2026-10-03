@@ -6,6 +6,7 @@ import {
   type CardInput,
   type CardState,
   type Packet,
+  type RuntimeId,
 } from '@pitchcrew/core';
 import { createBoardContext } from './board/context.ts';
 import type { BoardContext } from './board/types.ts';
@@ -87,7 +88,7 @@ export class Board {
   hasActiveRun(cardId: string): boolean {
     return this.context.hasActiveRun(cardId);
   }
-  seedRoles(): void {
-    return this.context.seedRoles();
+  seedRoles(runtime?: RuntimeId, enabled?: boolean): void {
+    return this.context.seedRoles(runtime, enabled);
   }
 }

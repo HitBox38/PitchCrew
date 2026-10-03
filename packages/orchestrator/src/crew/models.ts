@@ -4,16 +4,18 @@ import type { CrewContext } from './types.ts';
 
 export async function detect(this: CrewContext): Promise<RuntimeInfo[]> {
   this.runtimes = await Promise.all(
-    Object.values(adapters).map(async (adapter) => {
-      const health = await adapter.detect();
-      const cached = this.modelCatalogs.get(adapter.id);
-      return {
-        ...health,
-        ...(health.available && cached && cached.expiresAt > Date.now()
-          ? cached.catalog
-          : suggestedModels(adapter)),
-      };
-    }),
+    Object.values(adapters)
+      .filter((adapter) => this.dev || adapter.id !== 'demo')
+      .map(async (adapter) => {
+        const health = await adapter.detect();
+        const cached = this.modelCatalogs.get(adapter.id);
+        return {
+          ...health,
+          ...(health.available && cached && cached.expiresAt > Date.now()
+            ? cached.catalog
+            : suggestedModels(adapter)),
+        };
+      }),
   );
   return this.runtimes;
 }
@@ -22,6 +24,8 @@ export async function runtimeModels(
   id: RuntimeId,
   refresh: boolean = false,
 ): Promise<RuntimeModelCatalog> {
+  if (id === 'demo' && !this.dev)
+    throw new Error('Demo runtime is only available in development mode.');
   if (this.closing) throw new Error('The workspace is closing.');
   const cached = this.modelCatalogs.get(id);
   if (!refresh && cached && cached.expiresAt > Date.now()) return cached.catalog;

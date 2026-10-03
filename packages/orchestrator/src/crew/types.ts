@@ -27,6 +27,7 @@ import type { ProfileSourceManager } from '../profile-sources/index.ts';
 /** Shared run state. Internal to the orchestrator; never exposed to runtime adapters. */
 export interface CrewContext {
   readonly directory: string;
+  readonly dev: boolean;
   readonly daemonUrl: string;
   readonly mcpEntry: string;
   board: Board;

@@ -46,10 +46,7 @@ export function ProfileNotes(props: ProfileNotesProps) {
           One fact per bullet: what you built, for whom, and what changed. Only include numbers you
           could back up in an interview.
         </p>
-        <p>
-          The demo writer uses your bullet points verbatim. Real runtimes can tailor the surrounding
-          prose.
-        </p>
+        <p>Writer uses your notes to support factual claims and tailor the surrounding prose.</p>
       </div>
     </aside>
   );

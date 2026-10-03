@@ -11,7 +11,7 @@ let daemon;
 let desktop;
 try {
   if (!process.env.PITCHCREW_URL) {
-    daemon = spawn(process.execPath, ['--import', 'tsx', 'packages/orchestrator/src/cli.ts'], {
+    daemon = spawn(process.execPath, ['--import', 'tsx', 'scripts/desktop-smoke-daemon.mjs'], {
       env: {
         ...process.env,
         PITCHCREW_HOME: join(directory, 'workspace'),

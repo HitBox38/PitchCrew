@@ -16,6 +16,8 @@ export type RoleSetup = z.infer<typeof roleSetup>;
 
 /** Recheck after asynchronous instruction writes, before committing any board entities. */
 export function validateRoleSetup(context: CrewContext, input: RoleSetup): Skill[] {
+  if (!context.dev && input.runtime === 'demo')
+    throw new Error('Demo runtime is only available in development mode.');
   if (new Set(input.skills.map((skill) => skill.id)).size !== input.skills.length)
     throw new Error('Choose each skill once.');
   const selected = input.skills.map((reference) => {

@@ -40,11 +40,13 @@ export function createCrewContext(
   directory: string,
   daemonUrl: string,
   mcpEntry: string,
+  dev = false,
 ): CrewContext {
   const board = new Board(join(directory, 'pitchcrew.db'));
   const connectors = new ConnectorManager(directory);
   const context: CrewContext = {
     directory,
+    dev,
     daemonUrl,
     mcpEntry,
     board,
@@ -108,6 +110,6 @@ export function createCrewContext(
     agentCall: (...args) => agentCall.call(context, ...args),
     close: (...args) => close.call(context, ...args),
   };
-  context.board.seedRoles();
+  context.board.seedRoles(dev ? 'demo' : 'claude-code', dev);
   return context;
 }

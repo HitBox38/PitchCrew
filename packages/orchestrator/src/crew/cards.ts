@@ -71,6 +71,7 @@ export async function saveProfile(
   });
 }
 export async function loadExamples(this: CrewContext): Promise<void> {
+  if (!this.dev) throw new Error('Example data is only available in development mode.');
   if (this.board.list<Card>('card').some((c) => c.sample))
     throw new Error('Example opportunities have already been loaded.');
   const profile = await readProfile(this.directory);
