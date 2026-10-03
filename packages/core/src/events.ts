@@ -1,4 +1,5 @@
-import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
+import type { ProfileMaintenanceProposal } from './profile-maintenance.ts'
+import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
@@ -26,7 +27,9 @@ export interface BoardEvent {
     | 'skill'
     | 'skill_proposal'
     | 'computer_approval'
-    | 'profile_proposal';
+    | 'profile_proposal'
+    | 'form_assessment'
+    | 'submission_attempt';
   entityId: string;
   actor: string;
   message: string;
@@ -44,7 +47,9 @@ export interface BoardEvent {
     | Skill
     | SkillProposal
     | ComputerApproval
-    | ProfileMaintenanceProposal;
+    | ProfileMaintenanceProposal
+    | FormAssessment
+    | SubmissionAttempt;
   createdAt: string;
 }
 export function decodeEvent(raw: string): BoardEvent {

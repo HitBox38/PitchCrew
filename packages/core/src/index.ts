@@ -7,7 +7,7 @@ export * from './computer.ts';
 export { decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
-export type { Packet } from './packets.ts';
+export type { Packet, PacketArtifact } from './packets.ts';
 export {
   capabilitySchema,
   defaultCapabilities,
@@ -53,3 +53,4 @@ export type {
   ProfileMaintenanceProposal,
   ProfileMaintenanceChange,
 } from './profile-maintenance.ts';
+export * from './submissions.ts';

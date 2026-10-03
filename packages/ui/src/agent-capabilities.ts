@@ -11,6 +11,8 @@ export const capabilityLabels = {
   drive: 'Search Drive and read files and Docs',
   calendar: 'Read Google Calendar events',
   sheets: 'Read Google Sheets ranges',
+  assessForms: 'Assess inspected application forms',
+  recordSubmissions: 'Record approved submission attempts and evidence',
   computerUse: 'Use a local browser with approval for each interaction',
 };
 
@@ -28,4 +30,6 @@ export const capabilityDefaults = {
   calendar: false,
   sheets: false,
   computerUse: false,
+  assessForms: false,
+  recordSubmissions: false,
 };

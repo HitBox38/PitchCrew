@@ -1,9 +1,14 @@
+import type { PacketArtifact } from '@pitchcrew/core';
 import { type Approval, type Card, type Packet } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
-import { digestPacket } from './helpers.ts';
+import { digestPacket, digestArtifacts } from './helpers.ts';
 import type { BoardContext } from './types.ts';
 
-export function requestApproval(this: BoardContext, cardId: string): Approval {
+export function requestApproval(
+  this: BoardContext,
+  cardId: string,
+  artifacts?: PacketArtifact[],
+): Approval {
   return this.db.transaction(() => {
     const card = this.get<Card>('card', cardId);
     if (card.state !== 'agreed' || !card.packet)
@@ -12,6 +17,7 @@ export function requestApproval(this: BoardContext, cardId: string): Approval {
       id: randomUUID(),
       cardId,
       action: 'export_packet',
+      ...(artifacts ? { artifacts, artifactDigest: digestArtifacts(artifacts) } : {}),
       packet: card.packet,
       digest: digestPacket(cardId, card.packet),
       status: 'pending',
@@ -26,6 +32,8 @@ export function requestApproval(this: BoardContext, cardId: string): Approval {
 export function decideApproval(this: BoardContext, id: string, approved: boolean): Approval {
   return this.db.transaction(() => {
     const approval = this.get<Approval>('approval', id);
+    if (approval.artifacts && approval.artifactDigest !== digestArtifacts(approval.artifacts))
+      throw new Error('Reviewed artifacts changed.');
     if (approval.status !== 'pending') throw new Error('This approval has already been decided.');
     const card = this.get<Card>('card', approval.cardId);
     if (
@@ -58,6 +66,8 @@ export function consumeApproval(
   return this.db.transaction(() => {
     const approval = this.get<Approval>('approval', id);
     const card = this.get<Card>('card', cardId);
+    if (approval.artifacts && approval.artifactDigest !== digestArtifacts(approval.artifacts))
+      throw new Error('Reviewed artifacts changed.');
     if (
       approval.status !== 'approved' ||
       approval.cardId !== cardId ||
