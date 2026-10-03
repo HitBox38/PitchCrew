@@ -1,6 +1,8 @@
-import type { Packet, ProfileFile } from '@pitchcrew/core';
+import type { Packet, PacketArtifact, ProfileFile } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { verifiedArtifact } from './artifacts.ts';
+export * from './artifacts.ts';
 import { join } from 'node:path';
 
 export async function readProfile(directory: string): Promise<ProfileFile[]> {
@@ -33,7 +35,12 @@ export function lintPacket(packet: Packet, profile: ProfileFile[]) {
     problems.push('Cover letter exceeds 500 words.');
   return problems;
 }
-export async function writePacket(directory: string, cardId: string, packet: Packet) {
+export async function writePacket(
+  directory: string,
+  cardId: string,
+  packet: Packet,
+  artifacts: PacketArtifact[] = [],
+) {
   const parent = join(directory, 'packets', cardId);
   await mkdir(parent, { recursive: true });
   const version = `try-${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -47,6 +54,13 @@ export async function writePacket(directory: string, cardId: string, packet: Pac
       'note.md': packet.note,
       'claims.json': JSON.stringify(packet.claims, null, 2),
     }).map(([name, text]) => writeFile(join(staging, name), text, 'utf8')),
+  );
+  await Promise.all(
+    artifacts.map((artifact) => {
+      if (!/^(resume|cover_letter)\.(pdf|docx)$/.test(artifact.name))
+        throw new Error('Invalid artifact filename.');
+      return writeFile(join(staging, artifact.name), verifiedArtifact(artifact));
+    }),
   );
   const output = join(parent, version);
   await rename(staging, output);

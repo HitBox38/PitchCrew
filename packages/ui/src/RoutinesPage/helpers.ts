@@ -96,7 +96,7 @@ function calendarPatterns(startLocal: string, custom: string): Record<Frequency,
     interval: null,
   };
 }
-export function scheduleLabel(routine: Routine): string {
+export function scheduleLabel(routine: Pick<Routine, 'cron' | 'intervalMinutes'>): string {
   if (routine.intervalMinutes) {
     const units = [
       [10080, 'week'],

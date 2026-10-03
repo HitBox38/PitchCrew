@@ -1,4 +1,6 @@
+export * from './pipeline-reviews.ts';
 export { cardInput } from './cards.ts';
+export * from './tracking.ts';
 export type { Card, CardInput } from './cards.ts';
 export { chatInput, chatResultSchema } from './chat.ts';
 export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from './chat.ts';
@@ -6,8 +8,16 @@ export * from './computer.ts';
 export { decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
-export type { Packet } from './packets.ts';
-export { capabilitySchema, defaultCapabilities, roleChanges, rolePatch } from './roles.ts';
+export type { Packet, PacketArtifact } from './packets.ts';
+export {
+  capabilitySchema,
+  defaultCapabilities,
+  roleChanges,
+  rolePatch,
+  roleCreate,
+  roleIdSchema,
+  customCapabilities,
+} from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
 export { runResultSchema } from './runs.ts';
 export type { AgentTask, Run, RunResult } from './runs.ts';
@@ -39,3 +49,9 @@ export type {
   ProfileImportFile,
   ProfileSourcePreview,
 } from './profile-sources.ts';
+
+export type {
+  ProfileMaintenanceProposal,
+  ProfileMaintenanceChange,
+} from './profile-maintenance.ts';
+export * from './submissions.ts';

@@ -1,4 +1,4 @@
-import { Board } from '@pitchcrew/board';
+import { digestPacket, Board } from '@pitchcrew/board';
 import { type BrowserSnapshot, type ComputerApproval, browserActionSchema } from '@pitchcrew/core';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -66,7 +66,7 @@ it('does not interact until approved, binds one action to one run and consumes i
   );
   board.rebuild();
   expect(board.get<ComputerApproval>('computer_approval', approval.id).status).toBe('consumed');
-  expect(board.events()[0].version).toBe(6);
+  expect(board.events()[0].version).toBe(9);
 });
 it('rejects changed pages and revocation, and never reuses a failed action', async () => {
   const { board, manager, driver, scope, page, signal, authorize } = await setup();
@@ -155,12 +155,13 @@ it('uploads only the exact reviewed exported bytes for the attached card', async
   const { randomUUID } = await import('node:crypto');
   const card = board.createCard(cardInput.parse({ company: 'Fixture Studio', title: 'Engineer' }));
   const directory = resources.at(-1)!.directory;
+  board.updateCard(card.id, { packet }, 'user', 'Reviewed fixture packet');
   const output = await writePacket(directory, card.id, packet);
   const exported = {
     id: randomUUID(),
     cardId: card.id,
     action: 'export_packet' as const,
-    digest: 'fixture',
+    digest: digestPacket(card.id, packet),
     packet,
     status: 'consumed' as const,
     createdAt: '',

@@ -6,6 +6,20 @@ export function registerProfileSourcesRoutes(app: express.Express, service: Crew
   app.get('/api/profile/sources', async (_req, res) =>
     res.json(await service.profileSources.list()),
   );
+  app.post('/api/profile/sources/project', async (req, res) =>
+    res.json(await service.watchProfileProject(req.body)),
+  );
+  app.put('/api/profile/sources/:id/watch', async (req, res) =>
+    res.json(
+      await service.setProfileSourceWatching(
+        req.params.id,
+        z.object({ watching: z.boolean() }).strict().parse(req.body).watching,
+      ),
+    ),
+  );
+  app.post('/api/profile/proposals/:id/decide', async (req, res) =>
+    res.json(await service.decideProfileProposal(z.uuid().parse(req.params.id), req.body)),
+  );
   app.post('/api/profile/sources/preview', async (req, res) =>
     res.json(await service.profileSources.preview(req.body)),
   );

@@ -5,6 +5,8 @@
   "type": "module",
   "exports": "./src/index.ts",
   "dependencies": {
-    "@pitchcrew/core": "workspace:*"
+    "@pitchcrew/core": "workspace:*",
+    "docx": "^9.8.1",
+    "pdf-lib": "^1.17.1"
   }
 }

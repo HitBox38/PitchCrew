@@ -17,3 +17,11 @@ export const packetSchema = z.object({
     .max(80),
 });
 export type Packet = z.infer<typeof packetSchema>;
+
+export interface PacketArtifact {
+  name: 'resume.pdf' | 'resume.docx' | 'cover_letter.pdf' | 'cover_letter.docx';
+  mimeType: string;
+  digest: string;
+  bytes: string;
+  source: 'resume' | 'coverLetter';
+}

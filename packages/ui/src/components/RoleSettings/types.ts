@@ -4,6 +4,7 @@ import type { Role, Snapshot } from '@pitchcrew/core';
 
 export interface RoleSettingsProps {
   role: Role;
+  creating?: boolean;
   data: Snapshot;
   action: Action;
   working: boolean;
@@ -24,7 +25,7 @@ export type InstructionSettingsProps = Pick<
 
 export type RoleSettingsFooterProps = Pick<
   RoleSettingsModel,
-  'error' | 'onClose' | 'working' | 'runtimeAvailable'
+  'error' | 'onClose' | 'working' | 'runtimeAvailable' | 'creating'
 >;
 
 export type RoleSettingsHeadingProps = Pick<RoleSettingsModel, 'role' | 'onClose'>;

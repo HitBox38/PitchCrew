@@ -3,13 +3,26 @@ import type { CrewNotification } from './types.ts';
 
 export function collectNotifications(data: Snapshot): CrewNotification[] {
   const roleName = (id: string) => data.roles.find((r) => r.id === id)?.name ?? id;
+  const proposalNotices = new Map(
+    data.proposals.filter((p) => p.noticeMessageId).map((p) => [p.noticeMessageId, p]),
+  );
+  const reviewNotices = new Map((data.pipelineReviews ?? []).map((r) => [r.noticeMessageId, r]));
   const notifications: CrewNotification[] = data.messages
     .filter((m) => m.from !== 'user' && m.from !== 'system')
     .map<CrewNotification>((m) => ({
       id: `message:${m.id}`,
       kind: m.notification ?? 'message',
-      context: m.notification === 'attention' ? 'input' : 'message',
-      title: `${roleName(m.from)}${m.notification === 'attention' ? ' needs your answer' : ' sent a message'}`,
+      context:
+        proposalNotices.has(m.id) || reviewNotices.has(m.id)
+          ? 'role_proposal'
+          : m.notification === 'attention'
+            ? 'input'
+            : 'message',
+      title: proposalNotices.has(m.id)
+        ? `${roleName(m.from)} suggests changes to ${roleName(proposalNotices.get(m.id)!.roleId)}`
+        : reviewNotices.has(m.id)
+          ? `${roleName(m.from)} saved a pipeline review`
+          : `${roleName(m.from)}${m.notification === 'attention' ? ' needs your answer' : ' sent a message'}`,
       body: m.content,
       target: `/chat/${m.threadId}` as CrewNotification['target'],
       createdAt: m.createdAt,
@@ -36,7 +49,7 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
       target: '/inbox',
       createdAt: a.createdAt,
     });
-  for (const p of data.proposals.filter((p) => p.status === 'pending'))
+  for (const p of data.proposals.filter((p) => p.status === 'pending' && !p.noticeMessageId))
     notifications.push({
       id: `proposal:${p.id}`,
       kind: 'attention',

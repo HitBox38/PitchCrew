@@ -59,7 +59,11 @@ export function RuntimeSettings({
         />
       </div>
       <label className="checkbox-label">
-        <Checkbox checked={enabled} onCheckedChange={(checked) => setEnabled(checked)} />
+        <Checkbox
+          aria-label="Enable this role"
+          checked={enabled}
+          onCheckedChange={(checked) => setEnabled(checked)}
+        />
         Enable this role
       </label>
     </section>

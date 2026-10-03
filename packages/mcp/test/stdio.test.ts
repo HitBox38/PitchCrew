@@ -87,6 +87,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       [
         'pitchcrew_export_packet',
         'pitchcrew_list_connectors',
+        'pitchcrew_list_roles',
         'pitchcrew_get_card',
         'pitchcrew_get_history',
         'pitchcrew_lint_packet',
@@ -101,6 +102,13 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_list_routines',
         'pitchcrew_save_routine',
         'pitchcrew_delete_routine',
+        'pitchcrew_list_watched_profile_sources',
+        'pitchcrew_detect_profile_changes',
+        'pitchcrew_read_project_watch_file',
+        'pitchcrew_propose_profile_note',
+        'pitchcrew_search_applications',
+        'pitchcrew_scan_application_mail',
+        'pitchcrew_reconcile_application_mail',
       ].sort(),
     );
     const routineInput = {

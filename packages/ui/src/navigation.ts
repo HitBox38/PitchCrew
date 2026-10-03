@@ -1,3 +1,4 @@
+import { isRoleId } from '@pitchcrew/core/states';
 import type { RoleId } from '@pitchcrew/core';
 
 export const viewPaths = {
@@ -15,12 +16,12 @@ export type ChatThread = RoleId | 'crew';
 export type SkillFilter = RoleId | 'all' | 'shared';
 
 export function isChatThread(value: string): value is ChatThread {
-  return ['scout', 'writer', 'reviewer', 'crew'].includes(value);
+  return value === 'crew' || isRoleId(value);
 }
 
 export function validateSkillSearch(search: Record<string, unknown>): { filter?: SkillFilter } {
   const filter = search.filter;
-  return typeof filter === 'string' && ['scout', 'writer', 'reviewer', 'shared'].includes(filter)
+  return typeof filter === 'string' && (filter === 'shared' || isRoleId(filter))
     ? { filter: filter as SkillFilter }
     : { filter: undefined };
 }

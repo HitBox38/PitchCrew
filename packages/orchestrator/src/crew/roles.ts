@@ -1,14 +1,20 @@
 import {
   defaultCapabilities,
+  roleIdSchema,
+  customCapabilities,
   rolePatch,
   type Role,
   type RoleId,
   type Run,
   type Skill,
+  type Routine,
+  type AgentTask,
 } from '@pitchcrew/core';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { roleSetup, validateRoleSetup } from './role-setup.ts';
+import { saveRoutine } from './routines/index.ts';
 
 export async function writeRunInstructions(
   this: CrewContext,
@@ -34,6 +40,7 @@ export async function writeRunInstructions(
   await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
 }
 export async function writeRole(this: CrewContext, role: Role): Promise<void> {
+  roleIdSchema.parse(role.id);
   const dir = join(this.directory, 'roles', role.id);
   await mkdir(dir, { recursive: true });
   await writeFile(
@@ -47,7 +54,7 @@ export async function configureRole(this: CrewContext, id: RoleId, data: unknown
   if (this.configuring.has(id)) throw new Error('This role’s settings are being updated.');
   if (this.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
     throw new Error('Wait for this role’s active run or cancel it before changing settings.');
-  const current = this.board.get<Role>('role', id);
+  const current = requireRole(this, id);
   const parsed = rolePatch.parse(data);
   const role = {
     ...current,
@@ -61,5 +68,83 @@ export async function configureRole(this: CrewContext, id: RoleId, data: unknown
   } finally {
     this.configuring.delete(id);
   }
+  return role;
+}
+
+export function requireRole(context: CrewContext, id: RoleId): Role {
+  const role = context.board.get<Role>('role', roleIdSchema.parse(id));
+  if (role.retiredAt) throw new Error('This role is retired.');
+  return role;
+}
+export async function createRole(this: CrewContext, data: unknown): Promise<Role> {
+  const { skills: selectedSkills, routine, ...input } = roleSetup.parse(data);
+  const setup = { ...input, skills: selectedSkills, routine };
+  if (
+    this.board.list<Role>('role').some((role) => role.id === input.id) ||
+    this.configuring.has(input.id)
+  )
+    throw new Error('This role ID already exists, including retired roles.');
+  if (this.board.list<Role>('role').length + this.configuring.size >= 50)
+    throw new Error('You can store up to 50 roles.');
+  validateRoleSetup(this, setup);
+  const role: Role = {
+    ...input,
+    retiredAt: null,
+    capabilities: { ...customCapabilities, ...input.capabilities },
+  };
+  this.configuring.add(role.id);
+  try {
+    await this.writeRole(role);
+    this.board.db.transaction(() => {
+      const skills = validateRoleSetup(this, setup);
+      this.board.record('role', role, 'user', `Created ${role.name}`);
+      for (const skill of skills.filter((item) => item.scope === 'roles'))
+        this.board.record(
+          'skill',
+          { ...skill, roleIds: [...skill.roleIds, role.id], updatedAt: new Date().toISOString() },
+          'user',
+          `Assigned skill to ${role.name}: ${skill.name}`,
+        );
+      if (routine) saveRoutine.call(this, routine);
+    })();
+  } finally {
+    this.configuring.delete(role.id);
+  }
+  return role;
+}
+export async function retireRole(this: CrewContext, id: RoleId): Promise<Role> {
+  const current = requireRole(this, id);
+  if (
+    this.configuring.has(id) ||
+    this.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
+  )
+    throw new Error('Wait for this role active run or settings update before retiring it.');
+  const role = { ...current, enabled: false, retiredAt: new Date().toISOString() };
+  this.board.db.transaction(() => {
+    this.board.record('role', role, 'user', `Retired ${role.name}; history retained`);
+    for (const routine of this.board
+      .list<Routine>('routine')
+      .filter((item) => !item.deletedAt && (item.roleId === id || item.updatedBy === id)))
+      this.board.record(
+        'routine',
+        {
+          ...routine,
+          enabled: false,
+          error: 'A responsible role was retired.',
+          updatedAt: role.retiredAt,
+        },
+        'user',
+        `Paused routine after retiring ${role.name}`,
+      );
+    for (const task of this.board
+      .list<AgentTask>('task')
+      .filter((item) => item.status === 'queued' && item.roleId === id))
+      this.board.record(
+        'task',
+        { ...task, status: 'cancelled', error: 'The target role was retired.' },
+        'user',
+        'Cancelled queued task for retired role',
+      );
+  })();
   return role;
 }
