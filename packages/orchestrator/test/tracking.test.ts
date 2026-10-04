@@ -229,7 +229,7 @@ describe('verified application reconciliation', () => {
     expect(
       daemon.service.board
         .events()
-        .some((event) => event.kind === 'tracking_signal' && event.version === 9),
+        .some((event) => event.kind === 'tracking_signal' && event.version === 10),
     ).toBe(true);
   });
   it('keeps an incomplete page durable across failure/rebuild and finds new messages on a later sweep', async () => {

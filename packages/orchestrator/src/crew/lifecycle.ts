@@ -106,6 +106,7 @@ export async function close(this: CrewContext): Promise<void> {
   this.closing = true;
   clearInterval(this.schedulerTimer);
   this.modelController.abort();
+  this.jobSources.close();
   for (const controller of this.controllers.values()) controller.abort();
   await Promise.allSettled(this.modelRequests.values());
   await this.connectors.close();
