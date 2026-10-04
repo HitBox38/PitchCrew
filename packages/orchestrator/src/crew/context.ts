@@ -11,6 +11,7 @@ import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { join } from 'node:path';
 import { ProfileSourceManager } from '../profile-sources/index.ts';
+import { JobSourceManager } from '../job-sources/index.ts';
 import { createCard, exportPacket, loadExamples, moveCard, saveProfile } from './cards.ts';
 import {
   addMessage,
@@ -57,6 +58,7 @@ export function createCrewContext(
     packetRules: new PacketRulesStore(directory),
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),
+    jobSources: new JobSourceManager(directory, board),
     profileWriting: false,
     profileRevision: 0,
     computer: new ComputerManager(board, directory),

@@ -25,6 +25,7 @@ import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import type { ProfileSourceManager } from '../profile-sources/index.ts';
+import type { JobSourceManager } from '../job-sources/index.ts';
 
 /** Shared run state. Internal to the orchestrator; never exposed to runtime adapters. */
 export interface CrewContext {
@@ -37,6 +38,7 @@ export interface CrewContext {
   packetRules: PacketRulesStore;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;
+  jobSources: JobSourceManager;
   profileWriting: boolean;
   profileRevision: number;
   computer: ComputerManager;

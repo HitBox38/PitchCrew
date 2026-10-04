@@ -201,7 +201,7 @@ describe('profile maintenance', () => {
       expect(
         events
           .filter((event) => event.kind === 'profile_proposal')
-          .every((event) => event.version === 9),
+          .every((event) => event.version === 10),
       ).toBe(true);
       f.daemon.service.board.rebuild();
       expect(f.daemon.service.board.get('profile_proposal', proposal.id)).toEqual(applied.result);

@@ -6,7 +6,7 @@ export type { Card, CardInput } from './cards.ts';
 export { chatInput, chatResultSchema } from './chat.ts';
 export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from './chat.ts';
 export * from './computer.ts';
-export { decodeEvent } from './events.ts';
+export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
 export type { Packet, PacketArtifact } from './packets.ts';
@@ -56,6 +56,7 @@ export type {
   ProfileMaintenanceChange,
 } from './profile-maintenance.ts';
 export * from './submissions.ts';
+export * from './job-sources.ts';
 export {
   defaultPacketRules,
   describePacketRules,

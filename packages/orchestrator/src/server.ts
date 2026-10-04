@@ -11,6 +11,7 @@ import { registerConnectorsRoutes } from './http/routes/connectors.ts';
 import { registerCrewRoutes } from './http/routes/crew.ts';
 import { registerSkillsRoutes } from './http/routes/skills.ts';
 import { registerProfileSourcesRoutes } from './http/routes/profile-sources.ts';
+import { registerJobSourcesRoutes } from './http/routes/job-sources.ts';
 import { registerSessionSecurity } from './http/security.ts';
 import { registerRoutinesRoutes } from './http/routes/routines.ts';
 import { registerTrackingRoutes } from './http/routes/tracking.ts';
@@ -67,6 +68,7 @@ export async function createDaemon(options: {
       registerPacketRulesRoutes,
       registerTrackingRoutes,
       registerProfileSourcesRoutes,
+      registerJobSourcesRoutes,
       registerCrewRoutes,
       registerSkillsRoutes,
       registerRoutinesRoutes,

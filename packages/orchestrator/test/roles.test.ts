@@ -136,7 +136,7 @@ describe('stored configurable roles', () => {
         (message) => message.from === custom.id && message.threadId === custom.id,
       ),
     ).toBe(true);
-    expect(before.events.every((event) => event.version === 9)).toBe(true);
+    expect(before.events.every((event) => event.version === 10)).toBe(true);
     daemon.service.board.rebuild();
     const after = (await request<Snapshot>('/snapshot')).result;
     expect(after.roles).toEqual(before.roles);

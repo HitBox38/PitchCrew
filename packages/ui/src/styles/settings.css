@@ -213,6 +213,29 @@
     flex-wrap: wrap;
   }
 }
+.job-source-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--sheet);
+}
+.job-source-failed {
+  color: var(--error-ink);
+}
+.job-source-editor,
+.job-source-summary {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--sheet);
+}
+.job-source-editor h3 {
+  font-size: 17px;
+}
 .packet-rule-list {
   display: grid;
   gap: 10px;

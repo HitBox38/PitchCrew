@@ -26,6 +26,12 @@ export {
   applyTrackingSignal,
   completeTrackingMessage,
 } from './board/tracking.ts';
+export {
+  discoveryKeys,
+  isKnownPosting,
+  recordDiscoveredLeads,
+  type DiscoveredPosting,
+} from './board/discovery.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {

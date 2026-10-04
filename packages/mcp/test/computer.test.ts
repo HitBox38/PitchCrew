@@ -66,7 +66,7 @@ it('does not interact until approved, binds one action to one run and consumes i
   );
   board.rebuild();
   expect(board.get<ComputerApproval>('computer_approval', approval.id).status).toBe('consumed');
-  expect(board.events()[0].version).toBe(9);
+  expect(board.events()[0].version).toBe(10);
 });
 it('rejects changed pages and revocation, and never reuses a failed action', async () => {
   const { board, manager, driver, scope, page, signal, authorize } = await setup();

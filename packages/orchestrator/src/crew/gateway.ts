@@ -19,6 +19,7 @@ import { changeWorkflow } from './gateway/workflow.ts';
 import { profileAction } from './gateway/profile.ts';
 import { routineAction } from './gateway/routines.ts';
 import { trackingAction } from './gateway/tracking.ts';
+import { jobSourceAction } from './gateway/job-sources.ts';
 import type { CrewContext } from './types.ts';
 
 export async function agentCall(
@@ -49,6 +50,10 @@ export async function agentCall(
     ].includes(action)
   )
     return pipelineAction(this, capability, action, data.input);
+  if (action === 'job_discovery_access')
+    return { discoverJobs: role.enabled && permissions.discoverJobs === true };
+  if (action === 'job_sources' || action === 'scan_job_sources')
+    return jobSourceAction.call(this, capability, token, action, data);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);
   if (

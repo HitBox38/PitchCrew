@@ -1,8 +1,9 @@
-import { HardDrive, Link, ListChecks, SlidersHorizontal, Terminal } from 'lucide-react';
+import { HardDrive, Link, ListChecks, Radar, SlidersHorizontal, Terminal } from 'lucide-react';
 
 export const settingsSections = [
   { id: 'general', label: 'General', icon: SlidersHorizontal },
   { id: 'accounts', label: 'Accounts', icon: Link },
+  { id: 'sources', label: 'Job sources', icon: Radar },
   { id: 'runtimes', label: 'Runtimes', icon: Terminal },
   { id: 'rules', label: 'Packet rules', icon: ListChecks },
   { id: 'data', label: 'Local data', icon: HardDrive },

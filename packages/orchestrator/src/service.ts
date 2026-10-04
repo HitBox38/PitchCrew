@@ -54,6 +54,12 @@ export class CrewService {
   get profileSources() {
     return this.context.profileSources;
   }
+  get jobSources() {
+    return this.context.jobSources;
+  }
+  scanJobSources(input: unknown) {
+    return this.context.jobSources.scan({ actor: 'user', input });
+  }
   importProfileSource(input: unknown): Promise<ProfileFile[]> {
     assertProfileReady(this.context);
     return changeProfile(this.context, () => this.profileSources.import(input));

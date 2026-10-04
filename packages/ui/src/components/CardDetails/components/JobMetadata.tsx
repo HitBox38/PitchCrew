@@ -1,5 +1,7 @@
 import type { JobMetadataProps } from '@/components/CardDetails/types.ts';
-import { ExternalLink, MapPin } from 'lucide-react';
+import { ExternalLink, MapPin, Radar } from 'lucide-react';
+
+const providers = { greenhouse: 'Greenhouse', ashby: 'Ashby', lever: 'Lever' } as const;
 
 export function JobMetadata({ card }: JobMetadataProps) {
   return (
@@ -13,6 +15,13 @@ export function JobMetadata({ card }: JobMetadataProps) {
         <a href={card.url} target="_blank" rel="noreferrer">
           Job post <ExternalLink size={13} />
         </a>
+      ) : null}
+      {card.discovery ? (
+        <span title={`Job ID ${card.discovery.jobId}`}>
+          <Radar size={14} />
+          Found on {providers[card.discovery.provider]} ({card.discovery.sourceName}){' '}
+          {new Date(card.discovery.firstSeenAt).toLocaleDateString()}
+        </span>
       ) : null}
     </div>
   );
