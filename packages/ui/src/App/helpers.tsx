@@ -43,6 +43,8 @@ export function getWorkspaceModel(props: ReadyWorkspaceProps) {
       'Writer only quotes from these notes, and Reviewer checks every claim against them.'
     ) : view === 'routines' ? (
       'Give your agents a task and a time. Run it once, or keep a routine.'
+    ) : view === 'insights' ? (
+      'See what your outcomes, weights and lessons say, then tidy tags and silent applications.'
     ) : view === 'activity' ? (
       'A history of your jobs, crew runs, and decisions, newest first.'
     ) : view === 'settings' ? (

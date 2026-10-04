@@ -9,6 +9,7 @@ export const viewPaths = {
   profile: '/profile',
   skills: '/skills',
   routines: '/routines',
+  insights: '/insights',
   activity: '/activity',
   settings: '/settings',
 } as const;

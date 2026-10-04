@@ -41,6 +41,7 @@ describe('workspace routes', () => {
     ['/profile', 'profile'],
     ['/skills', 'skills'],
     ['/routines', 'routines'],
+    ['/insights', 'insights'],
     ['/activity', 'activity'],
     ['/settings', 'settings'],
   ])('loads %s directly', async (path, view) => {

@@ -50,3 +50,22 @@ export const runtimeLabels: Record<RuntimeId, string> = {
   pi: 'Pi',
   'oh-my-pi': 'oh-my-pi',
 };
+
+export const weightLabels: Record<number, string> = {
+  [-2]: 'Strong miss',
+  [-1]: 'Miss',
+  0: 'Neutral',
+  1: 'Win',
+  2: 'Strong win',
+};
+
+export const outcomeLabels = {
+  positive: 'Positive',
+  negative: 'Negative',
+  neutral: 'Neutral',
+  pending: 'Pending',
+} as const;
+
+export function signedWeight(weight: number): string {
+  return weight > 0 ? `+${weight}` : String(weight);
+}
