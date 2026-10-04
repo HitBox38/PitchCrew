@@ -12,7 +12,7 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
             <strong>{connector.id === 'github' ? 'GitHub' : 'Google'}</strong>
             <p>
               {connector.connected
-                ? connector.account
+                ? `Connected as ${connector.account}`
                 : connector.pending
                   ? 'Waiting for sign-in…'
                   : 'No account connected'}
@@ -30,6 +30,9 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
             ) : null}
             {connector.connected && connector.id === 'google' ? (
               <p className="quiet">Granted: {connector.services.join(', ')}</p>
+            ) : null}
+            {connector.connected && connector.connectionMethod === 'cli' ? (
+              <p className="quiet">Uses your GitHub CLI login. Credentials stay with GitHub CLI.</p>
             ) : null}
           </div>
           <span className={`badge ${connector.connected ? 'success' : ''}`}>

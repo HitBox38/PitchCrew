@@ -64,4 +64,6 @@ export interface ConnectorStatus {
   configured: boolean;
   pending: boolean;
   error: string;
+  connectionMethod?: 'cli' | 'token';
+  githubCliState?: 'missing' | 'signed_out' | 'ready' | 'account_changed';
 }

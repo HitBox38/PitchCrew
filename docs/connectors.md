@@ -6,7 +6,19 @@ Open **Settings → Accounts** or connect from **Profile → Profile sources** t
 
 ## GitHub
 
-Create a [fine-grained personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) for only the repositories your crew should read. Set **Contents: read**, **Issues: read**, and **Pull requests: read** if using PR research. Metadata access is included. Organization approval or SSO policy may limit access. Paste the token into **Connect GitHub**. Pitchcrew validates the account using GitHub’s `/user` endpoint before saving it. Only fixed, read-only REST routes are exposed; there is no arbitrary API request or posting tool.
+Open **Connect GitHub** and choose **Connect with GitHub CLI**. If you already use `gh` and are signed in, that is the only connection step. No Pitchcrew GitHub App registration is required.
+
+For first-time setup, expand **Need to set up GitHub CLI?**:
+
+1. [Install GitHub CLI](https://cli.github.com/) and restart Pitchcrew so the daemon can find `gh` on PATH.
+2. In a terminal, run `gh auth login --hostname github.com --web` and follow the browser sign-in prompts.
+3. Return to Pitchcrew and choose **Connect with GitHub CLI**. Enable GitHub in the settings of agents that should use it, then start a new turn. Profile imports do not require agent permissions.
+
+Pitchcrew checks `gh --version` and validates the account with `gh api --hostname github.com --method GET user` only when the user connects. It saves the account name and connection method, never extracts a token with `gh auth token`, reads CLI credential files or copies CLI credentials into its data directory. Fixed read-only REST requests go through `gh api` with an explicit hostname and GET method, no shell, no interactive prompts, a 20-second deadline and bounded output. CLI stderr is not exposed. Before each read, Pitchcrew verifies that the active CLI account still matches the connected account; switching accounts requires reconnecting. Status snapshots perform no CLI or network checks. Disconnect removes only Pitchcrew’s account binding and cancels its requests; it does not log out GitHub CLI or affect other apps.
+
+GitHub CLI access follows its native authentication, including its environment configuration. Its login may grant access to multiple repositories and write permissions; Pitchcrew exposes only its existing read tools and cannot post or modify resources. This flow does not offer the GitHub App’s per-repository installation picker. Organization approval or SSO policy may limit access. GitHub CLI manages authentication storage; see [its login documentation](https://cli.github.com/manual/gh_auth_login) for credential-store behavior.
+
+**Advanced: use an access token** retains compatibility with existing connections and provides a narrower access option. Create a [fine-grained personal access token](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) for only the repositories your crew should read, with **Contents: read**, **Issues: read**, and **Pull requests: read** for PR research. Metadata access is included. Paste the token into **GitHub access token** and choose **Connect with token**. Pitchcrew validates the account using GitHub’s `/user` endpoint before saving it. Only fixed, read-only REST routes are exposed; there is no arbitrary API request or posting tool.
 
 Examples:
 
@@ -76,7 +88,7 @@ Selected documents become ordinary local profile files, so existing exact quotat
 
 ## Credentials, evidence and approvals
 
-Connector credentials live in `PITCHCREW_HOME/connectors/credentials.json`, outside the repository and event log. They are stored locally as JSON, not encrypted; Unix permissions are restricted to the current user (`0700` directory and `0600` file). Protect your data directory with your operating system’s account and disk protections. Credentials are never returned in snapshots, included in prompts, or passed in MCP configuration; agent processes receive only their scoped daemon run token. Disconnect aborts connector requests and deletes the local credential. To invalidate a provider grant/token as well, revoke it in your Google or GitHub account.
+Manual GitHub tokens and Google credentials live in `PITCHCREW_HOME/connectors/credentials.json`, outside the repository and event log. GitHub CLI connections save only the account name and `mode: "cli"`; credentials stay with `gh`. Locally saved credentials use JSON, not encryption; Unix permissions are restricted to the current user (`0700` directory and `0600` file). Protect your data directory with your operating system’s account and disk protections. Credentials are never returned in snapshots, included in prompts, or passed in MCP configuration; agent processes receive only their scoped daemon run token. Disconnect aborts connector requests and deletes the local credential or CLI account binding. To invalidate a provider grant/token as well, revoke it in your Google or GitHub account; CLI logout is managed separately through `gh`.
 
 Connected account status is read from local state and performs no network requests. The GitHub connection is validated when connecting; Google refresh and authorization errors surface when tools are used. Tests mock service APIs, exercise real local OAuth callbacks and real MCP stdio, and do not access live accounts.
 

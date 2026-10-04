@@ -1,5 +1,7 @@
 import { getConnectorTool } from '../tools.ts';
 import { boundedText, googleScopes, GoogleToken } from './helpers.ts';
+import { githubCliRead } from './github-cli.ts';
+import type { ConnectorRequest } from '../tools/helpers.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
 export async function fetch(
@@ -20,7 +22,9 @@ export async function fetch(
         response.status === 401 ||
         (response.status === 400 && String(url) === 'https://oauth2.googleapis.com/token')
       )
-        throw new Error('Connection expired or revoked. Reconnect this account in Your crew.');
+        throw new Error(
+          'Connection expired or revoked. Reconnect this account in Settings → Accounts.',
+        );
       if (response.status === 403 && response.headers.get('x-ratelimit-remaining') === '0')
         throw new Error('Connector rate limit reached. Retry later.');
       if (response.status === 403)
@@ -56,11 +60,22 @@ export async function call(
   const token = this.store[tool.provider];
   if (!token)
     throw new Error(
-      `Connect ${tool.provider === 'github' ? 'GitHub' : 'Google Workspace'} in Your crew before using this tool.`,
+      `Connect ${tool.provider === 'github' ? 'GitHub' : 'Google Workspace'} in Settings → Accounts before using this tool.`,
     );
   const lifetime = this.lifetimes[tool.provider].signal;
   const runSignal = AbortSignal.any([signal, lifetime]);
   runSignal.throwIfAborted();
+  if ('mode' in token) {
+    try {
+      const data = await githubCliRead(this, request.url, token.account, runSignal);
+      this.errors.github = '';
+      return connectorResult(request, data);
+    } catch (error) {
+      if (!runSignal.aborted && this.store.github === token)
+        this.errors.github = error instanceof Error ? error.message : 'GitHub CLI request failed.';
+      throw error;
+    }
+  }
   if (tool.provider === 'google') {
     const scope = googleScopes[tool.permission as keyof typeof googleScopes];
     if (!(token as GoogleToken).scopes.includes(scope))
@@ -107,6 +122,10 @@ export async function call(
   const data: unknown = request.text
     ? { text: body, source: request.url.origin + request.url.pathname }
     : JSON.parse(body);
+  return connectorResult(request, data);
+}
+
+function connectorResult(request: ConnectorRequest, data: unknown) {
   const result = request.transform ? request.transform(data) : { data };
   if (JSON.stringify(result).length > 80000)
     throw new Error(

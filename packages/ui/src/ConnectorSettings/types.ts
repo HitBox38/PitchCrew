@@ -17,6 +17,8 @@ export type ConnectAccountDialogProps = Pick<
   | 'token'
   | 'setToken'
   | 'google'
+  | 'github'
+  | 'connectGithubCli'
   | 'clientId'
   | 'setClientId'
   | 'clientSecret'

@@ -111,7 +111,7 @@ Agent suggestions for instructions, capabilities and skills appear in **Chat > C
 
 Connect accounts in **Settings > Accounts**, or from **Profile**:
 
-- **GitHub:** read repositories, files, issues and pull requests with a fine-grained token.
+- **GitHub:** connect your existing GitHub CLI (`gh`) login for read-only repository, file, issue and pull-request tools. First-time setup is install `gh`, run `gh auth login --hostname github.com --web`, then connect in Pitchcrew. Credentials stay with `gh`; manual fine-grained tokens remain available under Advanced. See [connector setup](docs/connectors.md#github).
 - **Google Workspace:** read Gmail, Drive/Docs, Sheets and Calendar with Desktop OAuth.
 
 Enable each service separately for the agents that need it. Connectors are read-only. See [connector setup](docs/connectors.md) for permissions and Google OAuth configuration.

@@ -1,4 +1,8 @@
-// Only explicit Google OAuth links can leave the sandboxed renderer.
+// Only explicit connector setup links can leave the sandboxed renderer.
+export function isConnectorExternalUrl(value: string) {
+  return isGoogleAuthorizationUrl(value) || value === 'https://cli.github.com/';
+}
+
 export function isGoogleAuthorizationUrl(value: string) {
   try {
     const url = new URL(value);
