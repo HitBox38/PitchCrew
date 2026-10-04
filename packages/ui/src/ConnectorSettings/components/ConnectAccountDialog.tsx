@@ -1,22 +1,18 @@
 ﻿import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { GoogleCredentials } from '@/ConnectorSettings/components/GoogleCredentials.tsx';
-import { GoogleInstructions } from '@/ConnectorSettings/components/GoogleInstructions.tsx';
+import { GoogleConnectionSetup } from '@/ConnectorSettings/components/GoogleConnectionSetup.tsx';
 import { GithubConnectionDialog } from './GithubConnectionDialog.tsx';
+import { GoogleCliConnectionDialog } from './GoogleCliConnectionDialog.tsx';
 import type { ConnectAccountDialogProps } from '@/ConnectorSettings/types.ts';
 
 export function ConnectAccountDialog(props: ConnectAccountDialogProps) {
-  const { editing, close, connect, google, error, working } = props;
+  const { editing, close, connect, google, error, working, customGoogle, clientId } = props;
   if (editing === 'github') return <GithubConnectionDialog {...props} />;
+  if (editing === 'google-cli') return <GoogleCliConnectionDialog {...props} />;
   return (
-    <Modal title="Connect Google Workspace" onClose={close}>
+    <Modal title="Connect Google" onClose={close}>
       <form className="form flex flex-col gap-4" onSubmit={(e) => void connect(e)}>
-        <GoogleInstructions />
-        {!google?.configured ? <GoogleCredentials {...props} /> : null}
-        <p className="quiet">
-          The browser will ask for read permissions. You can decline individual services. Connector
-          credentials are stored in your local data directory and never included in agent prompts.
-        </p>
+        <GoogleConnectionSetup {...props} />
         {error ? (
           <p role="alert" className="form-error">
             {error}
@@ -26,7 +22,11 @@ export function ConnectAccountDialog(props: ConnectAccountDialogProps) {
           <Button className="button" disabled={working} onClick={close}>
             Cancel
           </Button>
-          <Button className="button primary" type="submit" disabled={working}>
+          <Button
+            className="button primary"
+            type="submit"
+            disabled={working || (customGoogle ? !clientId.trim() : !google?.configured)}
+          >
             {working ? 'Connecting…' : 'Start Google sign-in'}
           </Button>
         </div>
