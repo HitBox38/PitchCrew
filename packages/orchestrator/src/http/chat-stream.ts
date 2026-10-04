@@ -1,12 +1,16 @@
-import express from 'express';
-import { CrewService } from '../service.ts';
+import type { FastifyInstance } from 'fastify';
+import type { ServerResponse } from 'node:http';
+import type { CrewService } from '../service.ts';
 
 export function registerChatStream(
-  app: express.Express,
+  app: FastifyInstance,
   service: CrewService,
-  chatStreams: Set<express.Response>,
+  chatStreams: Set<ServerResponse>,
 ) {
-  app.get('/api/chat/stream', (_req, res) => {
+  app.get('/api/chat/stream', (_req, reply) => {
+    // Keep ownership of the response until disconnect, including Node backpressure.
+    reply.hijack();
+    const res = reply.raw;
     chatStreams.add(res);
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache, no-transform');

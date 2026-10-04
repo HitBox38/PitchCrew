@@ -147,7 +147,7 @@ pnpm dev
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                                                        |
 | `board`        | SQLite event log, projections, exact-payload approval tokens and browser action approvals                                                    |
-| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, persistent routines, scoped capabilities                                        |
+| `orchestrator` | Fastify loopback daemon, chat/workflow launches, bounded crew tasks, persistent routines, scoped capabilities                                |
 | `adapters`     | Demo and native CLI/ACP runtime integrations                                                                                                 |
 | `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export and browser interactions |
 | `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                                                   |

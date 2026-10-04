@@ -8,9 +8,9 @@ import { createDaemon } from '../../src/server.ts';
 
 export const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] =
   [];
-export async function setup(port: number, seedSkills = false) {
+export async function setup(port: number, seedSkills = false, options: { dev?: boolean } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
-  const daemon = await createDaemon({ directory, port, seedSkills });
+  const daemon = await createDaemon({ directory, port, seedSkills, ...options });
   resources.push({ daemon, directory });
   await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
   const response = await fetch(daemon.url);
