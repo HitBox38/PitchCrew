@@ -63,11 +63,11 @@ New production workspaces start with paused Claude Code agents. Development defa
 
 1. **Evaluate fit**, then decide whether to **Shortlist** the job.
 2. **Draft application**, then **Review packet**. Inspect the full text and source evidence; request changes when needed.
-3. Choose Markdown, PDF and/or DOCX, then **Request export approval**.
+3. Choose Markdown, PDF and/or DOCX and a layout, then **Request export approval**.
 4. In **Inbox**, review the exact files, approve the export, then export them locally. A changed packet needs a fresh approval.
 5. Apply yourself and record the submission, or use the approved browser workflow. Track screening, interviews and outcomes on the same card.
 
-PDF and DOCX exports currently render **literal Markdown text**, including its syntax. They are not designed resume layouts. Both have inline previews; DOCX layout may differ from Word. PDF rejects unsupported characters explicitly, while DOCX preserves Unicode.
+PDF and DOCX exports use the **Formatted** layout by default. It turns Markdown headings, bold and italic text, lists and links into a one-column document with clickable blue links. The resume gets tight margins and 10 point text for a one-page fit. Pandoc frontmatter and LaTeX spacing commands such as `\vspace{-8pt}` are left out. **Plain text** prints the Markdown literally, as earlier versions did. Inbox previews every document and shows its page count. It warns when a resume runs past one page. PDF names any character its font cannot show, while DOCX preserves Unicode. DOCX layout may differ in Word. See [packet exports](docs/packet-exports.md).
 
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
@@ -158,6 +158,7 @@ pnpm dev
 - Routines require the local daemon to be running; there is no OS background scheduler.
 - Computer use covers an isolated Chromium browser, not the whole desktop.
 - Packet checks verify registered quotations and word limits. They cannot prove every sentence is factual; review the complete packet.
+- Formatted exports use one built-in template per document. PDF supports Latin, Greek and Cyrillic text but not right-to-left scripts, and DOCX page counts are estimates.
 - Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.
 
 ## Development
@@ -173,7 +174,7 @@ Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted 
 | `packages/orchestrator` | Loopback daemon, run launches, crew tasks and routines      |
 | `packages/adapters`     | Provider-specific CLI and ACP integrations, plus Demo       |
 | `packages/mcp`          | Scoped tools, read-only connectors and export/browser gates |
-| `packages/packet`       | Evidence checks and versioned packet files                  |
+| `packages/packet`       | Evidence checks, packet files and PDF/DOCX rendering        |
 | `packages/ui`           | Shared browser and desktop renderer                         |
 | `packages/desktop`      | Sandboxed Electron host                                     |
 
