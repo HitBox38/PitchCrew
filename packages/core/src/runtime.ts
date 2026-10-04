@@ -1,5 +1,6 @@
 import type { Card } from './cards.ts';
 import type { ChatMessage, ChatResult } from './chat.ts';
+import type { PacketRules } from './packet-rules.ts';
 import type { Role } from './roles.ts';
 import type { RunResult } from './runs.ts';
 import type { Skill } from './skills.ts';
@@ -32,6 +33,8 @@ export interface RunContext {
   signal: AbortSignal;
   onMessage: (message: string) => void;
   request?: string;
+  /** House rules checked mechanically on drafts, reviews and exports. */
+  packetRules?: PacketRules;
 }
 export interface RuntimeAdapter {
   id: RuntimeId;

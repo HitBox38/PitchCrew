@@ -159,3 +159,32 @@ it('includes managed skills in both workflow and chat prompts without granting c
   }
   expect(promptFor(context)).not.toContain('Assigned skills');
 });
+
+it('gives Writer and Reviewer workflow runs a summary of the user packet rules', () => {
+  const packetRules = {
+    version: 1 as const,
+    rules: [
+      {
+        id: 'team-size',
+        kind: 'pattern' as const,
+        severity: 'error' as const,
+        documents: ['resume' as const],
+        pattern: 'Led (\\d+) developers',
+        flags: '',
+        equals: '3',
+      },
+    ],
+  };
+  for (const id of ['writer', 'reviewer'] as const) {
+    const prompt = promptFor({ ...context, role: { ...context.role, id }, packetRules });
+    expect(prompt).toContain('team-size (error) Resume: every match of /Led (\\d+) developers/');
+    expect(prompt).toContain('pitchcrew_lint_packet');
+    expect(prompt).not.toContain('resume-length');
+  }
+  const defaults = promptFor({ ...context, role: { ...context.role, id: 'writer' } });
+  expect(defaults).toContain('resume-length (error) Resume: at most 650 words.');
+  expect(promptFor({ ...context, packetRules })).not.toContain('Packet rules');
+  expect(chatPromptFor({ ...context, card: null, messages: [] })).toContain(
+    'pitchcrew_get_packet_rules',
+  );
+});

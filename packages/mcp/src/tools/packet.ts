@@ -50,11 +50,22 @@ export function registerPacketTools(server: McpServer, call: AgentCall) {
     {
       title: 'Check packet evidence',
       description:
-        'Check exact source quotes and word limits. This is a mechanical check, not a complete factual review.',
+        "Check exact source quotes and the user's packet rules. problems lists blocking errors; warnings are advisory. findings give each rule id, severity and document. This is a mechanical check, not a complete factual review.",
       inputSchema: { packet: packetSchema },
       annotations: readOnly,
     },
     ({ packet }) => call('lint', { packet }),
+  );
+  server.registerTool(
+    'pitchcrew_get_packet_rules',
+    {
+      title: 'Read packet rules',
+      description:
+        "Read the user's packet house rules and a short summary. Only the user can change them in Settings.",
+      inputSchema: {},
+      annotations: readOnly,
+    },
+    () => call('packet_rules'),
   );
   server.registerTool(
     'pitchcrew_export_packet',

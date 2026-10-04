@@ -14,7 +14,7 @@ The daemon checks schedules every second while listening. It does not install OS
 
 ## Execution and permissions
 
-Each occurrence starts an isolated chat turn with the current role, runtime, model, instructions and assigned skills. Its request is saved as a system message in the assigned role's chat; validated replies use the usual notifications. Runs carry `routineId` and `scheduledFor`. The scheduled agent can request workflow runs through its existing tools, with the usual card transitions and six-follow-up limit for each occurrence's chain.
+Each occurrence starts an isolated chat turn with the current role, runtime, model, instructions and assigned skills. For example, a Scout routine with `discoverJobs` enabled can scan saved job sources every few hours; see [job discovery](job-discovery.md). Its request is saved as a system message in the assigned role's chat; validated replies use the usual notifications. Runs carry `routineId` and `scheduledFor`. The scheduled agent can request workflow runs through its existing tools, with the usual card transitions and six-follow-up limit for each occurrence's chain.
 
 `manageRoutines` controls agent mutations. Cross-role operations also require `invokeAgents`. Card-bound schedules are accessible only from runs with that attached application; card-free schedules are scoped by permitted roles. The daemon rechecks the last editor's current role permissions before an agent-managed routine fires. A user edit takes responsibility for that schedule. These permissions never grant connector access, role/skill changes, exports, browser approval or external submission.
 

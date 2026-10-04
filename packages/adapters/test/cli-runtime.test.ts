@@ -219,6 +219,7 @@ describe.each([
         'mcp__pitchcrew_read_profile',
         'mcp__pitchcrew_get_history',
         'mcp__pitchcrew_lint_packet',
+        'mcp__pitchcrew_get_packet_rules',
         'mcp__pitchcrew_export_packet',
       ]);
       const home = request.environment.PI_CODING_AGENT_DIR;

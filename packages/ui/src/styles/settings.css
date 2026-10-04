@@ -213,3 +213,57 @@
     flex-wrap: wrap;
   }
 }
+.job-source-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--sheet);
+}
+.job-source-failed {
+  color: var(--error-ink);
+}
+.job-source-editor,
+.job-source-summary {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--sheet);
+}
+.job-source-editor h3 {
+  font-size: 17px;
+}
+.packet-rule-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 16px;
+  list-style: none;
+}
+.packet-rule {
+  padding: 12px 14px;
+  border-radius: 10px 11px 10px 9px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+}
+.packet-rule[data-invalid] {
+  box-shadow: 0 0 0 1px var(--rose);
+}
+.badge.packet-rule-error {
+  color: var(--rose);
+  background: var(--rose-soft);
+}
+.badge.packet-rule-warn {
+  color: var(--ochre);
+  background: var(--ochre-soft);
+}
+.packet-rules-json {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.packet-rules .form-error li + li {
+  margin-top: 4px;
+}

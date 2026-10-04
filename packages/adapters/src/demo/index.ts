@@ -45,7 +45,7 @@ export const demo: RuntimeAdapter = {
     }
     if (workflowSeat(context.role) === 'reviewer') {
       if (!context.card.packet) throw new Error('Draft a packet first.');
-      const feedback = lintPacket(context.card.packet, context.profile);
+      const feedback = lintPacket(context.card.packet, context.profile, context.packetRules);
       return { role: 'reviewer', passed: feedback.length === 0, feedback };
     }
     const facts = context.profile

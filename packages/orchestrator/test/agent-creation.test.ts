@@ -89,7 +89,7 @@ describe('guided agent setup', () => {
     expect(after.roles).toEqual(before.roles);
     expect(after.skills).toEqual(before.skills);
     expect(after.routines).toEqual(before.routines);
-    expect(before.events.every((event) => event.version === 9)).toBe(true);
+    expect(before.events.every((event) => event.version === 10)).toBe(true);
   });
 
   it.each([

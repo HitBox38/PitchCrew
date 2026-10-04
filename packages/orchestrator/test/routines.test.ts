@@ -106,7 +106,7 @@ it('launches a one-time action exactly once with saved chat, scoped tools and cu
     daemon.service.board
       .events()
       .filter((event) => event.kind === 'routine')
-      .every((event) => event.version === 9),
+      .every((event) => event.version === 10),
   ).toBe(true);
 });
 
