@@ -1,6 +1,21 @@
 # Configurable roles
 
-Pitchcrew stores one agent configuration for each role. A role's stable ID is its board, chat, routine and run identity; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool. Startup still creates only Scout, Writer and Reviewer. There are no Submitter, Tracker, Documenter or Coach defaults in this change.
+Pitchcrew stores one agent configuration for each role. A role's stable ID is its board, chat, routine and run identity; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
+
+## Default crew
+
+Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults use Claude Code and start paused; select an installed runtime/model and enable them in Crew. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
+
+| Agent          | Configured tools                                                   | Setup before use                                                                                        |
+| -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Submitter      | Application search, browser, form assessments, submission receipts | Attach an application; review/export its packet before submission and approve each browser action.      |
+| Tracker        | Application search, email reconciliation, own routines             | Connect Google and enable Gmail for this role before scanning.                                          |
+| Documenter     | Profile maintenance, own routines                                  | Connect the relevant account, enable GitHub/Drive for this role, and choose watched sources in Profile. |
+| Pipeline Coach | Pipeline review, targeted crew-change proposals, own routines      | Choose the review scope; approve proposed changes before adoption.                                      |
+
+The four support roles use the chat workflow seat and can message the crew. They cannot invoke other agents or manage packet workflow transitions. Account connectors stay disabled until enabled by the user. No schedules, source watches, runs or external actions are created by seeding. Shared skills apply normally; no additional role-specific skills are assigned. Instructions ask for the user's cadence before creating periodic work and preserve all existing approval gates.
+
+Startup backfills missing default IDs in existing workspaces in one transaction. It never overwrites existing configurations, enables paused roles, reuses retired IDs or resets skill assignments. An existing custom role with a default ID wins. Backfill respects the 50-identity limit, including retired roles, adding missing defaults in the order above while space remains. It defers additions if shared skills exceed the 60,000-character creation budget. Restart after reducing that skill total to retry. Existing default instructions and capabilities are not silently updated on later startups.
 
 ## Creation and settings
 

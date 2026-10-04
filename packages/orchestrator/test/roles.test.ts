@@ -84,7 +84,7 @@ describe('stored configurable roles', () => {
     ).toHaveLength(1);
   });
 
-  it('creates one role without creating requested agents, snapshots custom skills and chat identity, and replays history', async () => {
+  it('creates a custom role alongside the default crew, snapshots skills and chat identity, and replays history', async () => {
     let turn: ChatContext | undefined;
     vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
       turn = context;
@@ -111,6 +111,10 @@ describe('stored configurable roles', () => {
       'scout',
       'writer',
       'reviewer',
+      'submitter',
+      'tracker',
+      'documenter',
+      'pipeline-coach',
       custom.id,
     ]);
     await request('/skills', 'POST', {

@@ -1,5 +1,13 @@
 import type { CardState, RuntimeId } from '@pitchcrew/core';
-import { PenLine, Search, ShieldCheck } from 'lucide-react';
+import {
+  ChartNoAxesCombined,
+  ClipboardList,
+  NotebookPen,
+  PenLine,
+  Search,
+  Send,
+  ShieldCheck,
+} from 'lucide-react';
 
 export const stateLabels: Record<CardState, string> = {
   lead: 'New lead',
@@ -18,7 +26,15 @@ export const stateLabels: Record<CardState, string> = {
   ghosted: 'No response',
 };
 
-export const roleIcons = { scout: Search, writer: PenLine, reviewer: ShieldCheck };
+export const roleIcons = {
+  scout: Search,
+  writer: PenLine,
+  reviewer: ShieldCheck,
+  submitter: Send,
+  tracker: ClipboardList,
+  documenter: NotebookPen,
+  'pipeline-coach': ChartNoAxesCombined,
+};
 
 export const runtimeLabels: Record<RuntimeId, string> = {
   demo: 'Demo',

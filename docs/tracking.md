@@ -1,6 +1,6 @@
 # Application tracking
 
-Tracking tools are prerequisites for a future Tracker role. They are usable by any existing configured role; Pitchcrew does not create, enable or schedule a Tracker automatically.
+Tracker is a default crew member with application search, tracking and routine-management tools configured. Production defaults start paused; connect Google and enable Gmail for Tracker before scanning. No tracking schedule is seeded. The same tools remain available to any user-configured role.
 
 ## Permissions and tools
 
