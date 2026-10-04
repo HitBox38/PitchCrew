@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { insightLimits, lessonLimits, staleDefaults, tagSorts, weightRange } from './insights.ts';
+import {
+  insightLimits,
+  lessonLimits,
+  staleDefaults,
+  staleBatchLimit,
+  tagSorts,
+  weightRange,
+} from './insights.ts';
 
 const tag = z.string().trim().min(1).max(40);
 const isoDate = z.iso.datetime({ offset: true });
@@ -41,7 +48,7 @@ export const staleApplyInput = z
     cards: z
       .array(z.object({ id: z.uuid(), updatedAt: z.string().min(1).max(40) }).strict())
       .min(1)
-      .max(200),
+      .max(staleBatchLimit),
   })
   .strict();
 export interface StaleSubmission {

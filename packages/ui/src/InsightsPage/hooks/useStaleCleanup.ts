@@ -1,8 +1,9 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { StaleSubmission } from '@pitchcrew/core';
-import { staleDefaults } from '@pitchcrew/core/insights';
+import { staleDefaults, staleBatchLimit } from '@pitchcrew/core/insights';
 import { useState } from 'react';
 import { previewStaleSubmissions } from '../api.ts';
+import { staleSelection } from '../helpers.ts';
 
 export function useStaleCleanup() {
   const action = useWorkspaceStore((state) => state.action);
@@ -23,7 +24,7 @@ export function useStaleCleanup() {
     try {
       const result = await previewStaleSubmissions(parsed);
       setPreview(result);
-      setSelected(result.cards.filter((card) => !card.blocked).map((card) => card.id));
+      setSelected(staleSelection(result.cards));
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not check submissions.');
     } finally {
@@ -32,7 +33,11 @@ export function useStaleCleanup() {
   };
   const toggle = (id: string, checked: boolean) =>
     setSelected((current) =>
-      checked ? [...current, id] : current.filter((other) => other !== id),
+      checked
+        ? current.includes(id) || current.length >= staleBatchLimit
+          ? current
+          : [...current, id]
+        : current.filter((other) => other !== id),
     );
   const apply = async () => {
     if (!preview) return;

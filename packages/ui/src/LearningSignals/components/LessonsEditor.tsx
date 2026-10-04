@@ -48,7 +48,7 @@ export function LessonsEditor({ card }: { card: Card }) {
             value={draft.text}
             maxLength={lessonLimits.length}
             rows={2}
-            disabled={draft.full}
+            disabled={draft.full || draft.working}
             placeholder="For example: the take-home rewarded clear tradeoffs."
             onChange={(event) => draft.setText(event.target.value)}
           />

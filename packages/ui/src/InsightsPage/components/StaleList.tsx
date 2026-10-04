@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { staleBatchLimit } from '@pitchcrew/core/insights';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 
 export function StaleList({ stale }: { stale: StaleCleanupModel }) {
@@ -13,13 +14,22 @@ export function StaleList({ stale }: { stale: StaleCleanupModel }) {
     );
   return (
     <div className="mt-3 flex flex-col gap-3">
+      {preview.cards.length > staleBatchLimit ? (
+        <p className="quiet">
+          Mark up to {staleBatchLimit} jobs at once. Find silent applications again to review the
+          rest.
+        </p>
+      ) : null}
       <ul className="flex flex-col gap-2" aria-label="Silent applications">
         {preview.cards.map((card) => (
           <li key={card.id}>
             <label className="checkbox-label flex items-start gap-3">
               <Checkbox
                 aria-label={`${card.company} · ${card.title}`}
-                disabled={Boolean(card.blocked)}
+                disabled={
+                  Boolean(card.blocked) ||
+                  (!stale.selected.includes(card.id) && stale.selected.length >= staleBatchLimit)
+                }
                 checked={stale.selected.includes(card.id)}
                 onCheckedChange={(checked) => stale.toggle(card.id, checked)}
               />

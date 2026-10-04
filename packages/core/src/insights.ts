@@ -6,6 +6,7 @@ export const weightRange = { min: -2, max: 2 } as const;
 export const weights = [-2, -1, 0, 1, 2] as const;
 export const lessonLimits = { count: 20, length: 1000 } as const;
 export const staleDefaults = { days: 21, minimum: 1, maximum: 365 } as const;
+export const staleBatchLimit = 200;
 export const insightLimits = { tags: 50, lessons: 10, companies: 5 } as const;
 export const tagSorts = ['count', 'positive', 'weight', 'tag'] as const;
 export type TagSort = (typeof tagSorts)[number];

@@ -39,7 +39,7 @@ Small numbers are weak evidence. Outcomes show what happened, not why.
 Both actions show a preview and ask you to confirm. Agents cannot run them.
 
 - **Merge tags.** Choose an old tag and type a new one. Every job with the old tag gets the new tag instead, and the old tag is removed. The match ignores case, so you can also fix spelling, for example `reactjs` to `React`. A job that already has both keeps one. Because the old tag is dropped, no job goes over 10 tags.
-- **Silent applications.** Choose a number of days from 1 to 365. The default is 21. Then select **Find silent applications**. The list shows submitted jobs with no status change for that long. Example jobs are not listed. Select the ones to mark and add an optional note for the job history, then confirm. Nothing runs on a schedule.
+- **Silent applications.** Choose a number of days from 1 to 365. The default is 21. Then select **Find silent applications**. The list shows submitted jobs with no status change for that long. Example jobs are not listed. Select the ones to mark and add an optional note for the job history, then confirm. Each batch marks up to 200 selected jobs; check again to process the rest. Nothing runs on a schedule.
 
 A silent application is measured from its last effective status time, following the [tracking rules](tracking.md): your own status changes, backdated external submissions and accepted email evidence. When an agent or an example moved the job into Submitted, the time of that move is used.
 

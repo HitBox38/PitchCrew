@@ -37,6 +37,31 @@ function external(board: Board, company: string, submittedAt: string) {
 }
 
 describe('version 10 learning events', () => {
+  it.each([1, 2, 3, 4, 5, 6, 7, 8, 9] as const)(
+    'retains version %i card events unchanged on replay',
+    (version) => {
+      const board = create();
+      const card = lead(board, 'Legacy Fictional Labs', ['Remote']);
+      const legacy = { ...board.events()[0], version };
+      const raw = JSON.stringify(legacy);
+      const retained = board.db.prepare('INSERT INTO events(json) VALUES (?)').run(raw);
+      board.rebuild();
+      expect(board.get<Card>('card', card.id)).toEqual(card);
+      expect(board.events()[0].version).toBe(version);
+      expect(boardInsights(board, {}).weights.find((item) => item.weight === 0)?.count).toBe(1);
+      expect(boardInsights(board, {}).lessons.pending).toEqual([]);
+      setCardWeight(board, card.id, { weight: 1 });
+      board.rebuild();
+      expect(board.get<Card>('card', card.id).weight).toBe(1);
+      expect(
+        (
+          board.db
+            .prepare('SELECT json FROM events WHERE id = ?')
+            .get(retained.lastInsertRowid) as { json: string }
+        ).json,
+      ).toBe(raw);
+    },
+  );
   it('appends weights and lessons as v10 card events that replay with older versions', () => {
     const board = create();
     const card = lead(board, 'Juniper Analytics', ['React']);

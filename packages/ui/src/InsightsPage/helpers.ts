@@ -1,5 +1,11 @@
-import type { Card } from '@pitchcrew/core';
-import { tagKey, tagSorts, type InsightsFilter, type TagSort } from '@pitchcrew/core/insights';
+import type { Card, StaleSubmission } from '@pitchcrew/core';
+import {
+  staleBatchLimit,
+  tagKey,
+  tagSorts,
+  type InsightsFilter,
+  type TagSort,
+} from '@pitchcrew/core/insights';
 import type { InsightsSearch } from './types.ts';
 
 const localDateTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;
@@ -45,4 +51,12 @@ export function cardsWithTag(cards: Card[], tag: string): Card[] {
 
 export function percent(rate: number | null): string {
   return rate === null ? 'No outcomes yet' : `${Math.round(rate * 100)}%`;
+}
+
+/** The default selection contains only applications the preview allows changing. */
+export function staleSelection(cards: StaleSubmission[]): string[] {
+  return cards
+    .filter((card) => !card.blocked)
+    .slice(0, staleBatchLimit)
+    .map((card) => card.id);
 }
