@@ -16,15 +16,40 @@ import { registerRoutinesRoutes } from './http/routes/routines.ts';
 import { registerTrackingRoutes } from './http/routes/tracking.ts';
 import { registerOnboardingRoutes } from './http/routes/onboarding.ts';
 import { registerUi } from './http/ui.ts';
+import { registerBackgroundServiceRoutes } from './http/routes/background-service.ts';
 import { CrewService, ensureDirectory } from './service.ts';
+import { acquireDaemonLock, type LockChecks } from './background/lock.ts';
+import type { BackgroundServiceStatus } from '@pitchcrew/core';
 
-export async function createDaemon(options: {
+export interface DaemonOptions {
   directory: string;
   port: number;
   dev?: boolean;
   seedSkills?: boolean;
-}) {
+  /** Started by the installed background service. */
+  service?: boolean;
+  /** Reads the OS background service; tests replace it so no service manager is called. */
+  backgroundService?: () => Promise<BackgroundServiceStatus>;
+  lockChecks?: LockChecks;
+}
+
+export async function createDaemon(options: DaemonOptions) {
   await ensureDirectory(options.directory);
+  // Claim the data folder before opening the board, so a second daemon cannot recover its runs.
+  const lock = await acquireDaemonLock(
+    options.directory,
+    { port: options.port, service: options.service ?? false },
+    options.lockChecks,
+  );
+  try {
+    return await startDaemon(options, lock.release);
+  } catch (error) {
+    await lock.release();
+    throw error;
+  }
+}
+
+async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<void>) {
   const url = `http://127.0.0.1:${options.port}`;
   const service = new CrewService(
     options.directory,
@@ -52,7 +77,11 @@ export async function createDaemon(options: {
     await app.register(cookie);
     registerSessionSecurity(app, options, url, sessions);
     registerJsonBody(app);
-    app.get('/api/health', () => ({ app: 'pitchcrew', version: '0.1.0' }));
+    app.get('/api/health', () => ({
+      app: 'pitchcrew',
+      version: '0.1.0',
+      service: options.service ?? false,
+    }));
     app.get('/api/snapshot', async () => service.snapshot());
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
@@ -68,10 +97,18 @@ export async function createDaemon(options: {
       registerApprovalsRoutes,
     ])
       app.register(async (routes) => registerRoutes(routes, service));
+    app.register(async (routes) => registerBackgroundServiceRoutes(routes, options));
     await registerUi(app, options.dev ?? false);
     // Callers retain the Node server contract; every plugin is ready before listen().
     await app.ready();
-    return { app, http, service, url, close: () => app.close() };
+    const close = async () => {
+      try {
+        await app.close();
+      } finally {
+        await releaseLock();
+      }
+    };
+    return { app, http, service, url, close };
   } catch (error) {
     await app.close();
     throw error;

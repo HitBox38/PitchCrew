@@ -56,3 +56,8 @@ export type {
   ProfileMaintenanceChange,
 } from './profile-maintenance.ts';
 export * from './submissions.ts';
+export type {
+  BackgroundServiceInfo,
+  BackgroundServicePlatform,
+  BackgroundServiceStatus,
+} from './background-service.ts';
