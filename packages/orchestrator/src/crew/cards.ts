@@ -9,7 +9,7 @@ import {
   type Role,
 } from '@pitchcrew/core';
 import { exportApprovedPacket } from '@pitchcrew/mcp';
-import { lintPacket, readProfile, writePacket } from '@pitchcrew/packet';
+import { readProfile, writePacket } from '@pitchcrew/packet';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { exampleProfile, examples } from '../../test/fixtures/examples.ts';
@@ -119,8 +119,10 @@ export async function loadExamples(this: CrewContext): Promise<void> {
 }
 export async function exportPacket(this: CrewContext, id: string): Promise<string> {
   const approval = this.board.get<Approval>('approval', id);
-  const problems = lintPacket(approval.packet, await readProfile(this.directory));
-  if (problems.length)
-    throw new Error('Profile evidence changed. Request changes and review the packet again.');
+  const { errors } = this.packetRules.check(approval.packet, await readProfile(this.directory));
+  if (errors.length)
+    throw new Error(
+      `This packet no longer passes its checks. Request changes and review it again.\n${errors.join('\n')}`,
+    );
   return exportApprovedPacket(this.board, this.directory, id);
 }

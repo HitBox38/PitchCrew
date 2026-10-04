@@ -15,6 +15,7 @@ import { registerSessionSecurity } from './http/security.ts';
 import { registerRoutinesRoutes } from './http/routes/routines.ts';
 import { registerTrackingRoutes } from './http/routes/tracking.ts';
 import { registerOnboardingRoutes } from './http/routes/onboarding.ts';
+import { registerPacketRulesRoutes } from './http/routes/packet-rules.ts';
 import { registerUi } from './http/ui.ts';
 import { CrewService, ensureDirectory } from './service.ts';
 
@@ -59,6 +60,7 @@ export async function createDaemon(options: {
       registerAgentRoutes,
       registerBoardRoutes,
       registerOnboardingRoutes,
+      registerPacketRulesRoutes,
       registerTrackingRoutes,
       registerProfileSourcesRoutes,
       registerCrewRoutes,

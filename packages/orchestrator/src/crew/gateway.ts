@@ -1,13 +1,14 @@
 import { requireRole } from './roles.ts';
 import {
   defaultCapabilities,
+  describePacketRules,
   workflowSeat,
   runResultSchema,
   type Approval,
   type Card,
   type Role,
 } from '@pitchcrew/core';
-import { lintPacket, readProfile } from '@pitchcrew/packet';
+import { readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
 import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
@@ -114,7 +115,17 @@ export async function agentCall(
   if (action === 'lint') {
     const parsed = runResultSchema.parse({ role: 'writer', packet: data.packet });
     if (parsed.role !== 'writer') throw new Error('Invalid packet.');
-    return { problems: lintPacket(parsed.packet, await readProfile(this.directory)) };
+    const check = this.packetRules.check(parsed.packet, await readProfile(this.directory));
+    return { problems: check.errors, warnings: check.warnings, findings: check.findings };
+  }
+  if (action === 'packet_rules') {
+    const state = this.packetRules.current();
+    return {
+      rules: state.rules,
+      custom: state.custom,
+      error: state.error,
+      summary: describePacketRules(state.rules),
+    };
   }
   if (action === 'export') {
     const approval = this.board.get<Approval>('approval', String(data.approvalId));
