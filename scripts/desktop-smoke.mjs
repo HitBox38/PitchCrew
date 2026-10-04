@@ -48,12 +48,19 @@ try {
     stdio: 'inherit',
     windowsHide: true,
   });
-  const timer = setTimeout(() => desktop.kill(), 45000);
+  // The fixture includes delayed toast checks and a 201-card stale-cleanup regression.
+  // Keep it bounded while allowing slower native CI runners to finish those actions.
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    desktop.kill();
+  }, 120000);
   const code = await new Promise((resolve, reject) => {
     desktop.on('error', reject);
     desktop.on('exit', resolve);
   });
   clearTimeout(timer);
+  if (timedOut) throw new Error('Electron check timed out after 120 seconds.');
   if (code !== 0) throw new Error(`Electron check exited with ${code}; a timeout returns null.`);
   const result = JSON.parse(await readFile(evidence, 'utf8'));
   if (
@@ -69,6 +76,7 @@ try {
     !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
       (!result.onboardingReady ||
+        !result.insightsReady ||
         !result.chatReady ||
         !result.chatResponded ||
         !result.chatTabsReady ||

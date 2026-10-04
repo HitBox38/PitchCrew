@@ -11,10 +11,13 @@ import { registerConnectorsRoutes } from './http/routes/connectors.ts';
 import { registerCrewRoutes } from './http/routes/crew.ts';
 import { registerSkillsRoutes } from './http/routes/skills.ts';
 import { registerProfileSourcesRoutes } from './http/routes/profile-sources.ts';
+import { registerJobSourcesRoutes } from './http/routes/job-sources.ts';
 import { registerSessionSecurity } from './http/security.ts';
 import { registerRoutinesRoutes } from './http/routes/routines.ts';
 import { registerTrackingRoutes } from './http/routes/tracking.ts';
+import { registerLearningRoutes } from './http/routes/learning.ts';
 import { registerOnboardingRoutes } from './http/routes/onboarding.ts';
+import { registerPacketRulesRoutes } from './http/routes/packet-rules.ts';
 import { registerUi } from './http/ui.ts';
 import { registerBackgroundServiceRoutes } from './http/routes/background-service.ts';
 import { CrewService, ensureDirectory } from './service.ts';
@@ -92,8 +95,11 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
       registerAgentRoutes,
       registerBoardRoutes,
       registerOnboardingRoutes,
+      registerPacketRulesRoutes,
       registerTrackingRoutes,
+      registerLearningRoutes,
       registerProfileSourcesRoutes,
+      registerJobSourcesRoutes,
       registerCrewRoutes,
       registerSkillsRoutes,
       registerRoutinesRoutes,

@@ -1,4 +1,4 @@
-import { cardInput, decodeEvent, type Card } from '@pitchcrew/core';
+import { cardInput, currentEventVersion, decodeEvent, type Card } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Board, digestPacket } from '../src/index.ts';
 import { packet } from './fixtures/packet.ts';
@@ -66,6 +66,9 @@ describe('event-sourced board', () => {
     board.db
       .prepare('INSERT INTO events(json) VALUES (?)')
       .run(JSON.stringify({ ...legacy, version: 8 }));
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 9 }));
     board.record('message', message, 'user', 'Fixture chat');
     const events = board.events();
     board.rebuild();
@@ -78,7 +81,9 @@ describe('event-sourced board', () => {
     expect(events.some((e) => e.version === 4)).toBe(true);
     expect(events.some((e) => e.version === 5)).toBe(true);
     expect(events.some((e) => e.version === 6)).toBe(true);
-    expect(() => decodeEvent('{"version":10}')).toThrow('Unsupported');
+    expect(events.some((e) => e.version === 9)).toBe(true);
+    expect(events.some((e) => e.version === currentEventVersion)).toBe(true);
+    expect(() => decodeEvent('{"version":12}')).toThrow('Unsupported');
   });
   it('prevents event deletion and rewriting at the database layer', () => {
     const board = create();

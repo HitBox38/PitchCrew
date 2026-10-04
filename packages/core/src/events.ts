@@ -13,7 +13,7 @@ import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11;
   kind:
     | 'pipeline_review'
     | 'card'
@@ -55,6 +55,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
+/** Version 11 adds user-only learning signals; version 10 added job discovery. */
+export const currentEventVersion = 11 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -66,7 +68,9 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 6 &&
     event.version !== 7 &&
     event.version !== 8 &&
-    event.version !== 9
+    event.version !== 9 &&
+    event.version !== 10 &&
+    event.version !== 11
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

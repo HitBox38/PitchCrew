@@ -1,4 +1,4 @@
-export type SettingsSection = 'general' | 'accounts' | 'runtimes' | 'data';
+export type SettingsSection = 'general' | 'accounts' | 'sources' | 'runtimes' | 'rules' | 'data';
 
 export function validateSettingsSearch(search: Record<string, unknown>): {
   section: SettingsSection;
@@ -6,6 +6,12 @@ export function validateSettingsSearch(search: Record<string, unknown>): {
   const section = search.section;
   return {
     section:
-      section === 'accounts' || section === 'runtimes' || section === 'data' ? section : 'general',
+      section === 'accounts' ||
+      section === 'sources' ||
+      section === 'runtimes' ||
+      section === 'rules' ||
+      section === 'data'
+        ? section
+        : 'general',
   };
 }

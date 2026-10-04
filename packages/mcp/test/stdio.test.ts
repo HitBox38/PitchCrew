@@ -91,6 +91,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_get_card',
         'pitchcrew_get_history',
         'pitchcrew_lint_packet',
+        'pitchcrew_get_packet_rules',
         'pitchcrew_read_profile',
         'pitchcrew_read_messages',
         'pitchcrew_message_agent',
@@ -107,6 +108,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_read_project_watch_file',
         'pitchcrew_propose_profile_note',
         'pitchcrew_search_applications',
+        'pitchcrew_application_insights',
         'pitchcrew_scan_application_mail',
         'pitchcrew_reconcile_application_mail',
       ].sort(),
@@ -223,7 +225,22 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet } }))
         .structuredContent,
-    ).toEqual({ problems: [] });
+    ).toEqual({ problems: [], warnings: [], findings: [] });
+    const rules = await client.callTool({ name: 'pitchcrew_get_packet_rules', arguments: {} });
+    expect(rules.structuredContent).toMatchObject({
+      custom: false,
+      error: null,
+      rules: { version: 1, rules: [{ id: 'resume-length' }, { id: 'cover-letter-length' }] },
+      summary: expect.stringContaining('resume-length (error) Resume: at most 650 words.'),
+    });
+    const long = { ...packet, coverLetter: `${packet.coverLetter} ${'word '.repeat(500)}` };
+    expect(
+      (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet: long } }))
+        .structuredContent,
+    ).toMatchObject({
+      problems: ['Cover letter exceeds 500 words.'],
+      findings: [{ ruleId: 'cover-letter-length', severity: 'error', document: 'coverLetter' }],
+    });
     const unsupported = { ...packet, claims: [{ ...packet.claims[0], source: 'missing.md' }] };
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet: unsupported } }))

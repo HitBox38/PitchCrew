@@ -2,6 +2,7 @@ import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import { z } from 'zod';
 import type { Packet } from './packets.ts';
 import type { ApplicationTracking } from './tracking.ts';
+import type { JobDiscovery } from './job-sources.ts';
 import { type CardState, type RoleId } from './states.ts';
 
 export const cardInput = z.object({
@@ -24,8 +25,19 @@ export const cardInput = z.object({
   tags: z.array(z.string().max(40)).max(10).default([]),
 });
 export type CardInput = z.infer<typeof cardInput>;
+/** A short user-written learning note; agents can read lessons but never write them. */
+export interface CardLesson {
+  id: string;
+  text: string;
+  createdAt: string;
+}
 export interface Card extends CardInput {
   tracking?: ApplicationTracking;
+  /** User-only signal from -2 (strong miss) to +2 (strong win); absent means 0. Event v11. */
+  weight?: number;
+  /** User-only lessons, newest last. Event v11. */
+  lessons?: CardLesson[];
+  discovery?: JobDiscovery;
   statusEffectiveAt?: string;
   id: string;
   state: CardState;

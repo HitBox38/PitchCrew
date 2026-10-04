@@ -31,6 +31,7 @@ export const toolGroups = [
     title: 'Applications and learning',
     keys: ['readApplications', 'trackApplications', 'reviewPipeline', 'proposeCrewChanges'],
   },
+  { title: 'Job discovery', keys: ['discoverJobs'] },
   { title: 'Profile maintenance', keys: ['maintainProfile'] },
   { title: 'Browser and forms', keys: ['computerUse', 'assessForms', 'recordSubmissions'] },
 ] as const;
@@ -50,6 +51,8 @@ export const toolHelp = {
   reviewPipeline: 'Read applications, run history and role configurations across the crew.',
   proposeCrewChanges:
     'Requires pipeline review. Alert you first, then propose changes for your approval.',
+  discoverJobs:
+    'Scans only the job sources you save in Settings. Agents cannot add sources or URLs.',
   maintainProfile:
     'Requires GitHub or Drive access and watched sources set up in Profile. Every update needs your review.',
   computerUse: 'Open an isolated browser. Each interaction needs your exact-action approval.',

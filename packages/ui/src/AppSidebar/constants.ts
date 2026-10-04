@@ -6,6 +6,7 @@ import {
   FileUser,
   Inbox,
   LayoutDashboard,
+  Lightbulb,
   MessageSquare,
   Settings,
   Users,
@@ -19,6 +20,7 @@ export const viewIcons = {
   profile: FileUser,
   skills: BookOpen,
   routines: CalendarClock,
+  insights: Lightbulb,
   activity: Activity,
   settings: Settings,
 };
@@ -31,6 +33,19 @@ export const viewTitles: Record<View, string> = {
   profile: 'Profile',
   skills: 'Skills',
   routines: 'Routines',
+  insights: 'Insights',
   activity: 'Activity',
   settings: 'Settings',
 };
+
+/** Sidebar order below Board; Settings stays pinned in the footer. */
+export const workspaceViews = [
+  'chat',
+  'crew',
+  'skills',
+  'routines',
+  'insights',
+  'inbox',
+  'profile',
+  'activity',
+] as const satisfies readonly View[];
