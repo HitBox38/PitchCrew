@@ -190,4 +190,6 @@ pnpm test:desktop    # isolated daemon and actual Electron renderer
 
 Use `pnpm format` to apply formatting. Tests use fictional fixtures, temporary workspaces and mock provider processes. Coverage includes board replay, approvals, HTTP boundaries, adapter contracts, MCP stdio and isolated Chromium. They make no paid provider calls.
 
+GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes to `main`, merge queues and manual dispatches. It checks lint, formatting, types and production builds, runs the complete test suite on Node 22 and 24 with Chromium, and verifies the actual Electron renderer on macOS and Windows. Installs use the pinned pnpm version and frozen lockfile; newer commits cancel superseded runs. Test reports and desktop evidence are retained for seven days. Configure the `main` branch ruleset to require the single **CI** status check, which passes only when all jobs succeed.
+
 Read [AGENTS.md](AGENTS.md) for repository rules, [code organization](docs/code-organization.md) for module conventions, and [MVP design](docs/mvp-design.md) for architectural decisions.
