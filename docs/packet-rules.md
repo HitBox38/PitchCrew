@@ -20,6 +20,8 @@ Without a file, Pitchcrew uses the built-in defaults:
 
 The defaults count words the way earlier versions did: every whitespace-separated piece of text, including Markdown symbols. Restore defaults removes the file.
 
+Pattern checks use a snapshot of the current rules. If the effective rules change during a check, the result blocks and asks you to check the packet again. Cancelled runs cannot apply delayed checks, and exports also recheck the managed profile revision and any agent run capability before entering the approval gate.
+
 The file is not part of the board event log. Changing it does not create events and does not change past reviews. New checks use the current rules. A run that is already in progress is checked against the rules in place when it finishes.
 
 If the file is edited by hand and becomes invalid, Pitchcrew fails closed: every check reports a blocking error until you save valid rules or restore the defaults.

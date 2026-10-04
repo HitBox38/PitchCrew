@@ -117,12 +117,20 @@ export async function loadExamples(this: CrewContext): Promise<void> {
     }
   }
 }
-export async function exportPacket(this: CrewContext, id: string): Promise<string> {
+export async function exportPacket(
+  this: CrewContext,
+  id: string,
+  assertActive?: () => void,
+): Promise<string> {
+  const profileRevision = this.profileRevision;
   const approval = this.board.get<Approval>('approval', id);
   const { errors } = await this.packetRules.check(
     approval.packet,
     await readProfile(this.directory),
   );
+  if (this.profileWriting || this.profileRevision !== profileRevision)
+    throw new Error('Profile changed while checking the packet. Check it again before exporting.');
+  assertActive?.();
   if (errors.length)
     throw new Error(
       `This packet no longer passes its checks. Request changes and review it again.\n${errors.join('\n')}`,

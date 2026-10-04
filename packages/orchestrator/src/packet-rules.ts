@@ -42,6 +42,15 @@ export function validatePacketRules(input: unknown): PacketRulesValidation {
     : { valid: false, issues: packetRuleIssues(parsed.error) };
 }
 
+const rulesSignature = (state: PacketRulesState) =>
+  JSON.stringify([state.rules, state.error], (_key, value: unknown) =>
+    value && typeof value === 'object' && !Array.isArray(value)
+      ? Object.fromEntries(
+          Object.entries(value).sort(([left], [right]) => left.localeCompare(right)),
+        )
+      : value,
+  );
+
 /**
  * User-owned house rules in packet-rules.json. A missing file means the built-in defaults.
  * An unreadable or invalid file fails closed: every check reports a blocking error.
@@ -113,9 +122,14 @@ export class PacketRulesStore {
   /** Applies current rules. An invalid rules file adds a blocking error instead of being ignored. */
   async check(packet: Packet, profile: ProfileFile[]): Promise<PacketCheck> {
     const state = this.current();
+    const signature = rulesSignature(state);
     const result = await boundedPacketCheck(packet, profile, state.rules);
-    if (!state.error) return result;
-    const message = `${state.error} Fix it in Settings before continuing.`;
+    const current = this.current();
+    const changed = signature !== rulesSignature(current);
+    if (!changed && !state.error) return result;
+    const message = changed
+      ? 'Packet rules changed while they were being checked. Check the packet again before continuing.'
+      : `${state.error} Fix it in Settings before continuing.`;
     return {
       findings: [
         ...result.findings,

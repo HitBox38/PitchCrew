@@ -131,7 +131,16 @@ export async function agentCall(
     const approval = this.board.get<Approval>('approval', String(data.approvalId));
     if (approval.cardId !== capability.cardId)
       throw new Error('This run cannot access another application.');
-    return { directory: await this.exportPacket(approval.id) };
+    return {
+      directory: await this.exportPacket(approval.id, () => {
+        if (
+          this.capabilities.get(token) !== capability ||
+          this.controllers.get(capability.runId)?.signal.aborted
+        )
+          throw new Error('Run capability is invalid or expired.');
+        if (!requireRole(this, capability.roleId).enabled) throw new Error('This role is paused.');
+      }),
+    };
   }
   throw new Error('This tool is not allowed.');
 }

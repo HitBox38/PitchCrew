@@ -10,8 +10,8 @@ import {
 } from '@pitchcrew/core';
 import { symlink, readFile, utimes, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
-import { cleanup, finish, setup } from './helpers/daemon.ts';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { cleanup, finish, setup, waitForSnapshot } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 
@@ -67,6 +67,24 @@ async function draftAndReview(request: Awaited<ReturnType<typeof setup>>['reques
   });
   const snapshot = await finish(request, reviewer.id);
   return snapshot.cards.find((item) => item.id === card.id)!;
+}
+
+function pauseChecks(service: Awaited<ReturnType<typeof setup>>['daemon']['service']) {
+  let release!: () => void;
+  let entered!: () => void;
+  const resumed = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  const check = service.packetRules.check.bind(service.packetRules);
+  vi.spyOn(service.packetRules, 'check').mockImplementation(async (...args) => {
+    entered();
+    await resumed;
+    return check(...args);
+  });
+  return { release, started };
 }
 
 describe('packet rules', () => {
@@ -188,6 +206,103 @@ describe('packet rules', () => {
     await utimes(path, timestamp, timestamp);
     expect(daemon.service.packetRules.current().rules.rules[0]).toMatchObject({ pattern: 'other' });
   });
+  it('fails closed if rules change while a worker checks the prior snapshot', async () => {
+    const { daemon } = await setup(15378);
+    const { packet } = await import('../../board/test/fixtures/packet.ts');
+    daemon.service.packetRules.save({
+      version: 1,
+      rules: [
+        {
+          id: 'initial',
+          kind: 'pattern',
+          severity: 'error',
+          documents: ['resume'],
+          pattern: 'forbidden',
+        },
+      ],
+    });
+    const pending = daemon.service.packetRules.check(packet, [
+      { name: 'profile.md', content: 'Built React interfaces.' },
+    ]);
+    daemon.service.packetRules.save({
+      version: 1,
+      rules: [
+        { id: 'stricter', kind: 'word_limit', severity: 'error', documents: ['resume'], max: 1 },
+      ],
+    });
+    expect((await pending).errors).toEqual([expect.stringContaining('rules changed')]);
+  });
+  it('accepts an unchanged effective default configuration across save and reset', async () => {
+    const { daemon } = await setup(15379);
+    const { packet } = await import('../../board/test/fixtures/packet.ts');
+    daemon.service.packetRules.save(defaultPacketRules);
+    const pending = daemon.service.packetRules.check(packet, [
+      { name: 'profile.md', content: 'Built React interfaces.' },
+    ]);
+    daemon.service.packetRules.reset();
+    expect((await pending).errors).toEqual([]);
+  });
+
+  it('keeps a reviewer cancelled during rule checks from agreeing the card', async () => {
+    const { daemon, request } = await setup(15380);
+    const agreed = await draftAndReview(request);
+    await request(`/cards/${agreed.id}/move`, 'POST', { state: 'changes_requested' });
+    const { result: writer } = await request<Run>(`/cards/${agreed.id}/run`, 'POST', {
+      roleId: 'writer',
+    });
+    await finish(request, writer.id);
+    const paused = pauseChecks(daemon.service);
+    const { result: reviewer } = await request<Run>(`/cards/${agreed.id}/run`, 'POST', {
+      roleId: 'reviewer',
+    });
+    await paused.started;
+    await request(`/runs/${reviewer.id}/cancel`, 'POST');
+    paused.release();
+    const snapshot = await waitForSnapshot(request, (state) =>
+      state.runs.some((run) => run.id === reviewer.id && run.status !== 'running'),
+    );
+    expect(snapshot.runs.find((run) => run.id === reviewer.id)?.status).toBe('cancelled');
+    expect(snapshot.cards.find((card) => card.id === agreed.id)?.state).toBe('in_review');
+  });
+
+  it('rejects export when managed profile notes change during rule checks', async () => {
+    const { daemon, request } = await setup(15381);
+    const agreed = await draftAndReview(request);
+    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST');
+    await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
+    const paused = pauseChecks(daemon.service);
+    const pending = request<{ error: string }>(`/approvals/${approval.id}/export`, 'POST');
+    await paused.started;
+    await request('/profile', 'PUT', { name: 'profile.md', content: 'Updated fictional profile.' });
+    paused.release();
+    const result = await pending;
+    expect(result.response.status).toBe(400);
+    expect(result.result.error).toContain('Profile changed');
+    expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('approved');
+  });
+
+  it('rejects an agent export when its run capability expires during rule checks', async () => {
+    const { daemon, request } = await setup(15382);
+    const agreed = await draftAndReview(request);
+    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST');
+    await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
+    daemon.service.capabilities.set('export-fixture', {
+      runId: 'fixture',
+      roleId: 'writer',
+      cardId: agreed.id,
+    });
+    const paused = pauseChecks(daemon.service);
+    const pending = daemon.service.agentCall('export-fixture', 'export', {
+      approvalId: approval.id,
+    });
+    await paused.started;
+    daemon.service.capabilities.delete('export-fixture');
+    const blocked = expect(pending).rejects.toThrow('capability is invalid');
+    paused.release();
+    await blocked;
+    expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('approved');
+  });
+
   it('bounds slow regex checks while keeping HTTP and approved exports responsive', async () => {
     const { daemon, request } = await setup(15376);
     const agreed = await draftAndReview(request);

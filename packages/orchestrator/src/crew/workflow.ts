@@ -177,6 +177,7 @@ export async function applyResult(
   }
   if (result.role === 'writer') {
     const check = await this.packetRules.check(result.packet, profile);
+    if (signal?.aborted) throw new Error('Run cancelled.');
     if (check.errors.length) throw new Error(check.errors.join('\n'));
     await writePacket(this.directory, cardId, result.packet);
     if (signal?.aborted) throw new Error('Run cancelled.');
@@ -192,6 +193,7 @@ export async function applyResult(
     const card = this.board.get<Card>('card', cardId);
     if (!card.packet) throw new Error('No packet to review.');
     const check = await this.packetRules.check(card.packet, profile);
+    if (signal?.aborted) throw new Error('Run cancelled.');
     // Reviewer feedback still fails the review; rule warnings are shown without blocking.
     const passed = result.passed && check.errors.length === 0 && result.feedback.length === 0;
     const feedback = [
