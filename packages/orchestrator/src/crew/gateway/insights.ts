@@ -62,7 +62,7 @@ export function insightsAction(
         lessonCharacters: lessonPreview,
         maximumBytes: insightsByteLimit,
       },
-      note: 'Weights and lessons are the user’s own judgments. Outcomes show what happened, not why. Read-only: agents cannot set weights, lessons, tags or no-response status.',
+      note: "Weights and lessons are the user's own judgments. Outcomes show what happened, not why. This tool is read-only, and agents cannot set weights, lessons, tags or no-response status.",
     };
     if (Buffer.byteLength(JSON.stringify(result), 'utf8') <= insightsByteLimit) return result;
     if (lessonLimit > 1) lessonLimit = Math.floor(lessonLimit / 2);

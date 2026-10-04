@@ -21,7 +21,7 @@ export function registerTrackingTools(server: McpServer, call: AgentCall) {
     {
       title: 'Read application insights',
       description:
-        'Requires readApplications or reviewPipeline. Read-only learning signals from past applications: outcome counts (interviewing/offer positive; rejected/no response negative; withdrawn neutral; others pending), a tag scoreboard (count, positive share of decided, average user weight -2..+2, up to 5 sample companies), weight distribution and recent user lessons grouped by outcome. Optional tag and ISO date filters on the application date. Bounded to 50 tags, 10 lessons per outcome, 500 characters per lesson and 64 KB; truncated is true when lists were shortened. Weights and lessons are the user’s judgments, not proof of cause. Agents cannot change them.',
+        "Requires readApplications or reviewPipeline. Read-only learning signals from past applications: outcome counts (interviewing/offer positive; rejected/no response negative; withdrawn neutral; others pending), a tag scoreboard (count, positive share of decided, average user weight -2..+2, up to 5 sample companies), weight distribution and recent user lessons grouped by outcome. Optional tag and ISO date filters on the application date. Bounded to 50 tags, 10 lessons per outcome, 500 characters per lesson and 64 KB; truncated is true when lists were shortened. Weights and lessons are the user's judgments, not proof of cause. Agents cannot change them.",
       inputSchema: { input: insightsQuery.optional() },
       annotations: readOnly,
     },

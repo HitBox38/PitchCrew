@@ -24,7 +24,7 @@ export function RecentLessons({ insights }: { insights: ApplicationInsights }) {
           </div>
         ))
       ) : (
-        <p className="quiet">Add lessons from a job’s details to see them here.</p>
+        <p className="quiet">Add lessons from a job's details to see them here.</p>
       )}
     </section>
   );
