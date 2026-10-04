@@ -1,6 +1,4 @@
-import type { getSidebarModel } from '@/AppSidebar/helpers.ts';
 import type { View } from '@/navigation.ts';
-import type { ThemeChoice } from '@/theme.ts';
 import type { Card, Role, RoleId } from '@pitchcrew/core';
 
 export interface StageLink {
@@ -25,13 +23,9 @@ export interface AppSidebarProps {
   onOpenCard: (id: string) => void;
   onSearch: () => void;
   onAddJob: () => void;
-  theme: ThemeChoice;
-  onTheme: (theme: ThemeChoice) => void;
-  dataDirectory: string;
-  onCopyDirectory: () => void;
   working: boolean;
 }
-export type AppSidebarModel = NonNullable<ReturnType<typeof getSidebarModel>>;
+export type AppSidebarModel = AppSidebarProps;
 
 export type CrewLinksProps = Pick<
   AppSidebarModel,
@@ -42,11 +36,6 @@ export type CrewLinksProps = Pick<
   | 'onConfigureRole'
   | 'working'
   | 'onToggleRole'
->;
-
-export type DevicePreferencesProps = Pick<
-  AppSidebarModel,
-  'ThemeIcon' | 'theme' | 'onTheme' | 'dataDirectory' | 'onCopyDirectory'
 >;
 
 export type RecentJobsProps = Pick<AppSidebarModel, 'recent' | 'onOpenCard'>;

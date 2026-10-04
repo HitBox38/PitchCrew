@@ -5,10 +5,7 @@ import type { useApp } from './hooks/useApp.ts';
 export type ReadyWorkspaceProps = Omit<ReturnType<typeof useApp>, 'data'> & { data: Snapshot };
 export type WorkspaceModel = NonNullable<ReturnType<typeof getWorkspaceModel>>;
 
-export type WorkspaceHeadingProps = Pick<
-  WorkspaceModel,
-  'view' | 'summary' | 'data' | 'setAdd' | 'working' | 'checkRuntimes'
->;
+export type WorkspaceHeadingProps = Pick<WorkspaceModel, 'view' | 'summary' | 'data' | 'setAdd'>;
 
 export type WorkspaceNotificationProps = Pick<
   WorkspaceModel,
@@ -61,9 +58,6 @@ export type WorkspaceSidebarProps = Pick<
   | 'openCard'
   | 'setPaletteOpen'
   | 'setAdd'
-  | 'theme'
-  | 'setTheme'
-  | 'copyDirectory'
   | 'working'
 >;
 
