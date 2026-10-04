@@ -45,6 +45,9 @@ export class CrewService {
   get onboarding() {
     return this.context.onboarding;
   }
+  get packetRules() {
+    return this.context.packetRules;
+  }
   get connectors() {
     return this.context.connectors;
   }
