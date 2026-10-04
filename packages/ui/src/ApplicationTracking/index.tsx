@@ -25,10 +25,12 @@ export function ApplicationTracking({ card }: { card: Card }) {
       <h3>Tracking evidence</h3>
       <TrackingIdentifier card={card} />
       {card.tracking?.origin === 'external' ? (
-        <p>
+        <p className="prewrap">
           Applied outside Pitchcrew on {new Date(card.tracking.submittedAt!).toLocaleString()}.{' '}
           {card.tracking.note}
         </p>
+      ) : card.tracking?.note ? (
+        <p className="prewrap">{card.tracking.note}</p>
       ) : null}
       {signals.map((signal) => (
         <details className="my-2" key={signal.id}>
