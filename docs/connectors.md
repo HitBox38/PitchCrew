@@ -2,7 +2,7 @@
 
 Pitchcrew exposes authenticated, read-only GitHub and Google Workspace tools through its existing per-run MCP gateway. They work in role chats, card workflows and bounded crew follow-ups with Claude Code or Codex. Demo remains deterministic and does not call connectors.
 
-Open **Your crew → Connected accounts** or connect from **Profile → Profile sources** to connect an account. Then open each role’s settings and enable the services it needs. Connecting an account never grants all roles access: GitHub, Gmail, Drive/Docs, Calendar and Sheets capabilities default to disabled, including in existing workspaces. Disabled tools are omitted when a run’s MCP server starts, and the daemon checks current role permission on every call. Connecting or disconnecting accounts requires the local UI session; agents cannot do either themselves. Start a new turn after enabling access.
+Open **Settings → Accounts** or connect from **Profile → Profile sources** to connect an account. Then open each role’s settings and enable the services it needs. Connecting an account never grants all roles access: GitHub, Gmail, Drive/Docs, Calendar and Sheets capabilities default to disabled, including in existing workspaces. Disabled tools are omitted when a run’s MCP server starts, and the daemon checks current role permission on every call. Connecting or disconnecting accounts requires the local UI session; agents cannot do either themselves. Start a new turn after enabling access.
 
 ## GitHub
 

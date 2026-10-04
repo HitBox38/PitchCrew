@@ -102,13 +102,17 @@ Open **Routines** to create a one-time action or a repeating task for an agent. 
 
 Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves or approve exports. With opt-in capabilities they can assess inspected form requirements and capture submission evidence; users verify the outcome. They can also discuss skills with you or each other and suggest adding a custom Markdown skill or a public GitHub-backed skills.sh URL. Open **Crew work → Suggested skills** to inspect the reason, assignment, source and full instructions, then choose **Add skill** or **Decline**. Each run can make at most three skill suggestions. Adding a suggestion saves the exact reviewed snapshot for future runs; it does not fetch a new upstream version.
 
+## Workspace settings
+
+Open **Settings** from the sidebar footer or command palette to choose a theme, toggle notification sounds, manage connected accounts, check installed runtimes or copy the local data folder path. Settings sections support direct links and browser history. Appearance and sound preferences save automatically on this device; agent instructions and capabilities stay in **Crew**.
+
 ## Use a local browser
 
 Install Chromium with `pnpm browser:install`, then enable **Computer use** in a role's settings. Ask the agent to work on an application in chat. It opens a dedicated browser on this computer and can inspect pages, navigate, fill fields, select options, press keys, click and upload exact exported Markdown/PDF/DOCX packet files. Review every interaction in **Inbox**, including the final submit click. Approvals bind the exact action and current page, work once, and expire when the run ends. Sign in manually in the dedicated window when needed. Attach the job card for packet uploads. Enable **Assess inspected application forms** to save actual controls, required flags and file formats on the job, with missing answers and explicitly unknown sections. Enable **Record approved submission attempts and evidence** for purpose-marked submit clicks/Enter actions linked to the current exported packet. Uncertain outcomes block further interactions until you verify the captured website confirmation or provide your own external verification, or verify no submission occurred. See [computer use](docs/computer-use.md) for tools, boundaries and limitations.
 
 ## Pull profile notes from GitHub or Google Drive
 
-Open **Profile** and choose **GitHub** or **Google Drive**. Connect your account on that page, choose a folder, review its documents, and import the facts you want your crew to use. Account connections are shared with Crew settings; importing your profile does not enable connector access for any role.
+Open **Profile** and choose **GitHub** or **Google Drive**. Connect your account on that page, choose a folder, review its documents, and import the facts you want your crew to use. Account connections are shared with Settings; importing your profile does not enable connector access for any role.
 
 For a resume repository, start with its factual source folder, such as `about-me`, with background notes, work experience and one Markdown file per project. GitHub imports nested Markdown/text files at a single commit. Add another source for a `general` folder if you also keep a baseline resume there. Writing skills and tailored application packets belong in their own workflows.
 

@@ -7,9 +7,7 @@ import {
   Inbox,
   LayoutDashboard,
   MessageSquare,
-  Monitor,
-  Moon,
-  Sun,
+  Settings,
   Users,
 } from 'lucide-react';
 
@@ -22,6 +20,7 @@ export const viewIcons = {
   skills: BookOpen,
   routines: CalendarClock,
   activity: Activity,
+  settings: Settings,
 };
 
 export const viewTitles: Record<View, string> = {
@@ -33,10 +32,5 @@ export const viewTitles: Record<View, string> = {
   skills: 'Skills',
   routines: 'Routines',
   activity: 'Activity',
+  settings: 'Settings',
 };
-
-export const themeOptions = [
-  { id: 'system', label: 'Match system', icon: Monitor },
-  { id: 'light', label: 'Light', icon: Sun },
-  { id: 'dark', label: 'Dark', icon: Moon },
-] as const;

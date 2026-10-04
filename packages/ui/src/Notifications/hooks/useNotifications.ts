@@ -1,4 +1,5 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { createToastManager } from '@/components/ui/toast/index.tsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { playNotificationSound, unlockNotificationAudio } from '../audio.ts';
@@ -9,14 +10,11 @@ import {
   NotificationTracker,
   notificationToastOptions,
 } from '../helpers.ts';
-import type { CrewNotification, NotificationPreferences } from '../types.ts';
+import type { CrewNotification } from '../types.ts';
 
 const readKey = 'pitchcrew-notifications-read-v1';
-const preferencesKey = 'pitchcrew-notifications-preferences-v1';
 const isIds = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((id) => typeof id === 'string');
-const isPreferences = (value: unknown): value is NotificationPreferences =>
-  !!value && typeof value === 'object' && 'sound' in value && typeof value.sound === 'boolean';
 
 export function useNotifications() {
   const data = useWorkspaceStore((s) => s.data);
@@ -24,9 +22,8 @@ export function useNotifications() {
   const activeToasts = useRef(new Set<string>());
   const items = useMemo(() => (data ? collectNotifications(data) : []), [data]);
   const [read, setRead] = useState(() => readStored(readKey, [] as string[], isIds));
-  const [preferences, setPreferences] = useState(() => ({
-    sound: readStored(preferencesKey, { sound: true }, isPreferences).sound,
-  }));
+  const sound = useDevicePreferences((state) => state.sound);
+  const setSound = useDevicePreferences((state) => state.setSound);
   const [open, setPanelOpen] = useState(false);
   const setOpen = (value: boolean) => {
     if (value) toastManager.close();
@@ -45,9 +42,6 @@ export function useNotifications() {
   useEffect(() => {
     saveStored(readKey, read);
   }, [read]);
-  useEffect(() => {
-    saveStored(preferencesKey, preferences);
-  }, [preferences]);
   useEffect(() => {
     const unlock = () => {
       try {
@@ -83,15 +77,15 @@ export function useNotifications() {
           onRemove: () => activeToasts.current.delete(item.id),
         });
       });
-    if (preferences.sound) playNotificationSound(priority.kind);
-  }, [data, items, preferences, open, toastManager]);
+    if (sound) playNotificationSound(priority.kind);
+  }, [data, items, sound, open, toastManager]);
   return {
     items,
     unread,
     read,
     markRead,
-    preferences,
-    setPreferences,
+    preferences: { sound },
+    setPreferences: (value: { sound: boolean }) => setSound(value.sound),
     open,
     setOpen,
     toastManager,

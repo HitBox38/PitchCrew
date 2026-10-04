@@ -15,6 +15,7 @@
 @import './styles/buttons.css' layer(components);
 @import './styles/board.css' layer(components);
 @import './styles/crew.css' layer(components);
+@import './styles/settings.css' layer(components);
 @import './styles/activity.css' layer(components);
 @import './styles/dialogs.css' layer(components);
 @import './styles/agent-creation.css' layer(components);

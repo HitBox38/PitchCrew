@@ -16,9 +16,6 @@ export function WorkspaceSidebar({
   openCard,
   setPaletteOpen,
   setAdd,
-  theme,
-  setTheme,
-  copyDirectory,
   working,
 }: WorkspaceSidebarProps) {
   return (
@@ -37,10 +34,6 @@ export function WorkspaceSidebar({
       onOpenCard={openCard}
       onSearch={() => setPaletteOpen(true)}
       onAddJob={() => setAdd(true)}
-      theme={theme}
-      onTheme={setTheme}
-      dataDirectory={data.dataDirectory}
-      onCopyDirectory={copyDirectory}
       working={working}
     />
   );

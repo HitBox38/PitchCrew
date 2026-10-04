@@ -10,6 +10,7 @@ export const viewPaths = {
   skills: '/skills',
   routines: '/routines',
   activity: '/activity',
+  settings: '/settings',
 } as const;
 export type View = keyof typeof viewPaths;
 export type ChatThread = RoleId | 'crew';

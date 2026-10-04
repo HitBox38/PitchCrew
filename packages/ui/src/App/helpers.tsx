@@ -45,6 +45,8 @@ export function getWorkspaceModel(props: ReadyWorkspaceProps) {
       'Give your agents a task and a time. Run it once, or keep a routine.'
     ) : view === 'activity' ? (
       'A history of your jobs, crew runs, and decisions, newest first.'
+    ) : view === 'settings' ? (
+      'Make Pitchcrew yours. Manage preferences, accounts and this device.'
     ) : (
       'Check the address or return to Board.'
     );
