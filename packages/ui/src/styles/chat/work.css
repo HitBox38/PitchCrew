@@ -470,13 +470,6 @@
 .connector-settings > .quiet {
   margin-bottom: 1rem;
 }
-.connector-row > div {
-  flex: 1;
-  min-width: 0;
-}
-.connector-row p {
-  overflow-wrap: anywhere;
-}
 .connector-authorization {
   margin-top: 1rem;
   display: flex;

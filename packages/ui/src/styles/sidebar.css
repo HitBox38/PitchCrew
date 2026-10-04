@@ -9,7 +9,8 @@
 [data-slot='sidebar-header'] {
   padding: 12px 8px 4px;
 }
-[data-slot='sidebar-group-label'] {
+[data-slot='sidebar-group-label'],
+.sidebar-category-toggle {
   font-size: 12px;
   font-weight: 600;
   color: var(--muted);
@@ -117,6 +118,17 @@
 }
 .stage-toggle[data-panel-open] > svg {
   transform: rotate(90deg);
+}
+.sidebar-category-toggle > svg {
+  transition: transform 200ms var(--ease);
+}
+.sidebar-category-toggle[data-panel-open] > svg {
+  transform: rotate(90deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-category-toggle > svg {
+    transition: none;
+  }
 }
 .stage-link {
   width: 100%;
