@@ -34,6 +34,21 @@
   top: var(--desktop-titlebar-height);
   height: calc(100svh - var(--desktop-titlebar-height));
 }
+/* Portaled sheets share the workspace bounds, including the mobile sidebar. */
+:root[data-desktop] [data-slot='sheet-overlay'] {
+  top: var(--desktop-titlebar-height);
+}
+:root[data-desktop] [data-sheet-content] {
+  max-height: calc(100dvh - var(--desktop-titlebar-height));
+}
+:root[data-desktop] [data-sheet-content]:is([data-side='left'], [data-side='right']) {
+  top: var(--desktop-titlebar-height);
+  bottom: 0;
+  height: calc(100dvh - var(--desktop-titlebar-height));
+}
+:root[data-desktop] [data-sheet-content][data-side='top'] {
+  top: var(--desktop-titlebar-height);
+}
 :root[data-desktop] .skip-link:focus {
   top: calc(var(--desktop-titlebar-height) + 10px);
 }

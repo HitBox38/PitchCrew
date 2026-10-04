@@ -37,6 +37,7 @@ export function CreationSuccess({
           </Button>
         ) : null}
         <Button
+          className="button"
           onClick={() => {
             close();
             setRoleId(role.id);
@@ -44,7 +45,7 @@ export function CreationSuccess({
         >
           Open settings
         </Button>
-        <Button variant="ghost" onClick={close}>
+        <Button className="button" onClick={close}>
           Done
         </Button>
       </div>

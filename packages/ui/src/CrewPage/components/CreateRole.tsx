@@ -11,7 +11,11 @@ export function CreateRole({ data, working }: { data: Snapshot; working: boolean
   const setToast = useWorkspaceStore((state) => state.setToast);
   return (
     <div className="mb-4">
-      <Button disabled={working || data.roles.length >= 50} onClick={() => setOpen(true)}>
+      <Button
+        className="button primary"
+        disabled={working || data.roles.length >= 50}
+        onClick={() => setOpen(true)}
+      >
         Create agent
       </Button>
       {data.roles.length >= 50 ? (
@@ -24,7 +28,7 @@ export function CreateRole({ data, working }: { data: Snapshot; working: boolean
             working={working}
             onClose={() => setOpen(false)}
             onCreated={(role) => {
-              setToast(`${role.name} created`);
+              setToast(`${role.name} created`, 'success');
               void reload().catch(() => {});
             }}
           />

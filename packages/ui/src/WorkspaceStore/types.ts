@@ -11,6 +11,7 @@ export interface WorkspaceState {
   data: Snapshot | null;
   error: string;
   toast: string;
+  toastType: 'success' | 'error' | 'info';
   working: boolean;
   add: boolean;
   selectedId: string | null;
@@ -23,7 +24,7 @@ export interface WorkspaceState {
   startSync: () => () => void;
   action: Action;
   act: (path: string, method?: string, body?: unknown, success?: string) => void;
-  setToast: (toast: string) => void;
+  setToast: (toast: string, type?: WorkspaceState['toastType']) => void;
   setAdd: (add: boolean) => void;
   setSelectedId: (selectedId: string | null) => void;
   setRoleId: (roleId: RoleId | null) => void;

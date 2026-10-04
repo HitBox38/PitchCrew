@@ -13,6 +13,7 @@ import { NotificationControls } from './components/NotificationControls.tsx';
 import { NotificationToast } from './components/NotificationToast.tsx';
 import { NotificationList } from './components/NotificationList.tsx';
 import { useNotifications } from './hooks/useNotifications.ts';
+import { ActionToast } from './components/ActionToast.tsx';
 
 export function Notifications() {
   const state = useNotifications();
@@ -20,9 +21,13 @@ export function Notifications() {
     <Toaster
       toastManager={state.toastManager}
       limit={3}
-      renderToast={(toast) => (
-        <NotificationToast key={toast.id} toast={toast} onOpen={state.openNotification} />
-      )}
+      renderToast={(toast) =>
+        toast.data ? (
+          <NotificationToast key={toast.id} toast={toast} onOpen={state.openNotification} />
+        ) : (
+          <ActionToast key={toast.id} toast={toast} />
+        )
+      }
     >
       <Sheet open={state.open} onOpenChange={state.setOpen}>
         <SheetTrigger

@@ -1,28 +1,29 @@
 import type { DraftFieldsProps, Frequency, RoutineDraft } from '../types.ts';
+import { FormSelect } from '@/FormSelect/index.tsx';
+import { Input } from '@/components/ui/input/index.tsx';
 
 export function RepeatFields({ draft, change }: DraftFieldsProps) {
   return (
     <>
-      <label>
-        Repeat
-        <select
-          value={draft.frequency}
-          onChange={(event) => change({ frequency: event.target.value as Frequency })}
-        >
-          <option value="once">Once</option>
-          <option value="interval">Every interval</option>
-          <option value="daily">Daily at this time</option>
-          <option value="weekdays">Weekdays at this time</option>
-          <option value="weekly">Weekly on this day</option>
-          <option value="monthly">Monthly on this date</option>
-          <option value="custom">Custom cron expression</option>
-        </select>
-      </label>
+      <FormSelect
+        label="Repeat"
+        value={draft.frequency}
+        onValueChange={(frequency) => change({ frequency: frequency as Frequency })}
+        options={[
+          { value: 'once', label: 'Once' },
+          { value: 'interval', label: 'Every interval' },
+          { value: 'daily', label: 'Daily at this time' },
+          { value: 'weekdays', label: 'Weekdays at this time' },
+          { value: 'weekly', label: 'Weekly on this day' },
+          { value: 'monthly', label: 'Monthly on this date' },
+          { value: 'custom', label: 'Custom cron expression' },
+        ]}
+      />
       {draft.frequency === 'interval' ? (
         <div className="grid gap-4 sm:grid-cols-2">
           <label>
             Every
-            <input
+            <Input
               required
               type="number"
               min={1}
@@ -31,24 +32,21 @@ export function RepeatFields({ draft, change }: DraftFieldsProps) {
               onChange={(event) => change({ interval: event.target.value })}
             />
           </label>
-          <label>
-            Unit
-            <select
-              value={draft.unit}
-              onChange={(event) => change({ unit: event.target.value as RoutineDraft['unit'] })}
-            >
-              <option value="minutes">Minutes</option>
-              <option value="hours">Hours</option>
-              <option value="days">Days</option>
-              <option value="weeks">Weeks</option>
-            </select>
-          </label>
+          <FormSelect
+            label="Unit"
+            value={draft.unit}
+            onValueChange={(unit) => change({ unit: unit as RoutineDraft['unit'] })}
+            options={['minutes', 'hours', 'days', 'weeks'].map((value) => ({
+              value,
+              label: value[0]!.toUpperCase() + value.slice(1),
+            }))}
+          />
         </div>
       ) : null}
       {draft.frequency === 'custom' ? (
         <label>
           Cron expression
-          <input
+          <Input
             required
             value={draft.cron}
             onChange={(event) => change({ cron: event.target.value })}

@@ -1,6 +1,6 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { workspaceToasts } from '../toasts.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { createToastManager } from '@/components/ui/toast/index.tsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { playNotificationSound, unlockNotificationAudio } from '../audio.ts';
 import {
@@ -18,7 +18,7 @@ const isIds = (value: unknown): value is string[] =>
 
 export function useNotifications() {
   const data = useWorkspaceStore((s) => s.data);
-  const [toastManager] = useState(() => createToastManager<CrewNotification>());
+  const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());
   const items = useMemo(() => (data ? collectNotifications(data) : []), [data]);
   const [read, setRead] = useState(() => readStored(readKey, [] as string[], isIds));
@@ -26,7 +26,7 @@ export function useNotifications() {
   const setSound = useDevicePreferences((state) => state.setSound);
   const [open, setPanelOpen] = useState(false);
   const setOpen = (value: boolean) => {
-    if (value) toastManager.close();
+    if (value) activeToasts.current.forEach((id) => toastManager.close(id));
     setPanelOpen(value);
   };
   const seen = useRef(new NotificationTracker());

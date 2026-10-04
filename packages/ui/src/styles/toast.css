@@ -4,7 +4,7 @@
   right: max(22px, env(safe-area-inset-right));
   bottom: max(72px, env(safe-area-inset-bottom));
   width: min(380px, calc(100% - 32px));
-  z-index: 50;
+  z-index: 100;
   pointer-events: none;
   outline: none;
 }
@@ -55,6 +55,12 @@
 }
 .ui-toast[data-kind] .ui-toast-title {
   padding-top: 3px;
+}
+.ui-toast[data-tone='success'] .ui-toast-content > svg {
+  color: var(--primary);
+}
+.ui-toast[data-tone='error'] .ui-toast-content > svg {
+  color: var(--error-ink);
 }
 .ui-toast[data-kind] .ui-toast-description {
   display: -webkit-box;

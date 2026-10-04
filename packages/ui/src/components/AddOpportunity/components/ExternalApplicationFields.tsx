@@ -1,4 +1,5 @@
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
+import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
 export function ExternalApplicationFields({
   external,
@@ -9,13 +10,9 @@ export function ExternalApplicationFields({
 }) {
   return (
     <fieldset className="flex flex-col gap-3">
-      <label className="flex items-center gap-2 [&&]:flex-row">
-        <input
-          type="checkbox"
-          checked={external}
-          onChange={(event) => setExternal(event.target.checked)}
-        />
-        Already applied outside Pitchcrew
+      <label className="checkbox-label">
+        <Checkbox checked={external} onCheckedChange={setExternal} />
+        <span>Already applied outside Pitchcrew</span>
       </label>
       {external ? (
         <>

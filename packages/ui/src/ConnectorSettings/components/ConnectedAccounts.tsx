@@ -43,7 +43,7 @@ export function ConnectedAccounts({
           </span>
           {connector.connected || connector.pending ? (
             <Button
-              variant="outline"
+              className="button"
               disabled={working}
               onClick={() =>
                 void action(
@@ -58,7 +58,7 @@ export function ConnectedAccounts({
             </Button>
           ) : (
             <Button
-              variant="outline"
+              className="button"
               disabled={working}
               onClick={() => {
                 setError('');

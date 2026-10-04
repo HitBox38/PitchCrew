@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 import { useFollowupForm } from '../hooks/useFollowupForm.ts';
+import { FormSelect } from '@/FormSelect/index.tsx';
 
 export function FollowupForm({
   review,
@@ -23,21 +24,17 @@ export function FollowupForm({
         event.preventDefault();
         void form.save();
       }}
-      className="space-y-3 pt-3"
+      className="form space-y-3 pt-3"
     >
-      <label className="block">
-        Follow-up state
-        <select
-          className="block w-full rounded border p-2"
-          value={form.status}
-          onChange={(event) => form.setStatus(event.target.value as typeof form.status)}
-        >
-          <option value="open">Open</option>
-          <option value="evaluating">Evaluating</option>
-          <option value="resolved">Resolved</option>
-          <option value="dismissed">Dismissed</option>
-        </select>
-      </label>
+      <FormSelect
+        label="Follow-up state"
+        value={form.status}
+        onValueChange={(status) => form.setStatus(status as typeof form.status)}
+        options={['open', 'evaluating', 'resolved', 'dismissed'].map((value) => ({
+          value,
+          label: value[0]!.toUpperCase() + value.slice(1),
+        }))}
+      />
       <label className="block">
         Result
         <Textarea
@@ -70,7 +67,7 @@ export function FollowupForm({
         </label>
       </div>
       {form.error ? <p role="alert">{form.error}</p> : null}
-      <Button type="submit" disabled={working}>
+      <Button className="button primary" type="submit" disabled={working}>
         Save follow-up
       </Button>
     </form>

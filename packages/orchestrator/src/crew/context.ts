@@ -1,4 +1,5 @@
 import { Board } from '@pitchcrew/board';
+import { OnboardingPreferences } from '../onboarding.ts';
 import {
   type ChatMessage,
   type RoleId,
@@ -42,6 +43,7 @@ export function createCrewContext(
   mcpEntry: string,
   dev = false,
 ): CrewContext {
+  const onboarding = new OnboardingPreferences(directory);
   const board = new Board(join(directory, 'pitchcrew.db'));
   const connectors = new ConnectorManager(directory);
   const context: CrewContext = {
@@ -50,6 +52,7 @@ export function createCrewContext(
     daemonUrl,
     mcpEntry,
     board,
+    onboarding,
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),
     profileWriting: false,

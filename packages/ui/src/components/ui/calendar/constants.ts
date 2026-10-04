@@ -1,0 +1,20 @@
+// shadcn Calendar's DayPicker structure, styled with Pitchcrew's shared materials.
+export const calendarClasses = {
+  root: 'ui-calendar',
+  months: 'calendar-months',
+  month: 'calendar-month',
+  nav: 'calendar-nav',
+  button_previous: 'icon-button calendar-nav-button',
+  button_next: 'icon-button calendar-nav-button',
+  month_caption: 'calendar-caption',
+  caption_label: 'calendar-caption-label',
+  month_grid: 'calendar-grid',
+  weekdays: 'calendar-week',
+  weekday: 'calendar-weekday',
+  week: 'calendar-week',
+  day: 'calendar-day',
+  today: 'calendar-today',
+  outside: 'calendar-outside',
+  disabled: 'calendar-disabled',
+  hidden: 'invisible',
+};

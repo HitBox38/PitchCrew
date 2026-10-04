@@ -13,7 +13,9 @@ export function JobLocationFields() {
         />
       </label>
       <label>
-        Salary range <span className="optional">optional</span>
+        <span className="flex items-baseline gap-2">
+          Salary range <span className="optional">optional</span>
+        </span>
         <Input name="salary" placeholder="e.g. $100k–$130k" maxLength={100} />
       </label>
     </div>

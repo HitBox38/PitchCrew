@@ -1,3 +1,4 @@
+import { SetupShortcut } from '@/Onboarding/components/SetupShortcut.tsx';
 import { SidebarFooter } from '@/components/ui/sidebar/components/SidebarFooter.tsx';
 import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
@@ -9,6 +10,7 @@ export function SettingsLink({ active }: { active: boolean }) {
   return (
     <SidebarFooter>
       <SidebarMenu>
+        <SetupShortcut />
         <SidebarMenuItem>
           <SidebarMenuButton
             tooltip="Settings"

@@ -76,6 +76,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
   // Finish filesystem reads before collecting board state, so no run can advance between entities.
   const profile = await readProfile(this.directory);
   return {
+    onboarding: this.onboarding.get(),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
     cards: this.board.list<Card>('card'),

@@ -1,5 +1,8 @@
 import type { DraftFieldsProps } from '../types.ts';
 import { RepeatFields } from './RepeatFields.tsx';
+import { DateTimePicker } from '@/DateTimePicker/index.tsx';
+import { Input } from '@/components/ui/input/index.tsx';
+import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 
 export function ScheduleFields(props: DraftFieldsProps) {
   const { draft, change } = props;
@@ -7,19 +10,15 @@ export function ScheduleFields(props: DraftFieldsProps) {
     <fieldset className="flex flex-col gap-4">
       <legend className="mb-3 font-semibold">When to run</legend>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label>
-          Start date and time
-          <input
-            required
-            type="datetime-local"
-            step={1}
-            value={draft.startLocal}
-            onChange={(event) => change({ startLocal: event.target.value })}
-          />
-        </label>
+        <DateTimePicker
+          label="Start date and time"
+          required
+          value={draft.startLocal}
+          onValueChange={(startLocal) => change({ startLocal })}
+        />
         <label>
           Timezone
-          <input
+          <Input
             required
             value={draft.timezone}
             onChange={(event) => change({ timezone: event.target.value })}
@@ -31,7 +30,7 @@ export function ScheduleFields(props: DraftFieldsProps) {
       <div className="grid gap-4 sm:grid-cols-2">
         <label>
           Stop after total runs
-          <input
+          <Input
             type="number"
             min={1}
             max={1000000}
@@ -41,23 +40,15 @@ export function ScheduleFields(props: DraftFieldsProps) {
             placeholder="No limit"
           />
         </label>
-        <label>
-          End date and time
-          <input
-            type="datetime-local"
-            step={1}
-            value={draft.endLocal}
-            onChange={(event) => change({ endLocal: event.target.value })}
-          />
-        </label>
+        <DateTimePicker
+          label="End date and time"
+          value={draft.endLocal}
+          onValueChange={(endLocal) => change({ endLocal })}
+        />
       </div>
-      <label className="flex flex-row items-center gap-2">
-        <input
-          type="checkbox"
-          checked={draft.enabled}
-          onChange={(event) => change({ enabled: event.target.checked })}
-        />{' '}
-        Enabled
+      <label className="checkbox-label">
+        <Checkbox checked={draft.enabled} onCheckedChange={(enabled) => change({ enabled })} />
+        <span>Enabled</span>
       </label>
     </fieldset>
   );

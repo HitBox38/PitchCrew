@@ -34,6 +34,8 @@ pnpm desktop:prod
 
 ## Try the workflow
 
+New workspaces open a short introduction, then a setup checklist: save your profile, configure the crew's runtimes, and add your first job. Progress is shared between browser and Electron and survives restarts. Choose **Set up later** to explore, or reopen the guide from **Getting started** in the sidebar. Existing workspaces can open the guide there without an automatic introduction.
+
 1. Choose **Try an example board** on the empty board for six fictional opportunities and a fictional profile, or add your own Markdown notes under **Your profile**. Demo drafting expects a name heading and factual bullet points.
 2. Add an opportunity with its job description. Run **Evaluate fit**, then **Shortlist**.
 3. Run **Draft application**, then **Review packet**. Inspect the resume, letter, form answers, note, source evidence, and history in the opportunity sheet.
@@ -127,6 +129,7 @@ By default, everything is stored outside the repository:
 ```text
 ~/.pitchcrew/
   pitchcrew.db                    # SQLite projections and append-only event log
+  onboarding.json                # shared welcome and setup preferences
   connectors/credentials.json    # local GitHub/Google connector credentials
   profile/*.md                   # factual source notes
   profile-sources.json           # reviewed import provenance and source configuration

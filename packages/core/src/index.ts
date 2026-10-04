@@ -1,4 +1,5 @@
 export * from './pipeline-reviews.ts';
+export type { OnboardingState } from './onboarding.ts';
 export { cardInput } from './cards.ts';
 export * from './tracking.ts';
 export type { Card, CardInput } from './cards.ts';

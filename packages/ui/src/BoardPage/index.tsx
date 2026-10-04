@@ -31,7 +31,9 @@ export function BoardPage() {
     <>
       <TrackingReview />
       {!data.cards.length ? (
-        <BoardWelcome data={data} setAdd={setAdd} working={working} act={act} />
+        data.onboarding?.status !== 'setup' ? (
+          <BoardWelcome data={data} setAdd={setAdd} working={working} act={act} />
+        ) : null
       ) : (
         <>
           <BoardToolbar

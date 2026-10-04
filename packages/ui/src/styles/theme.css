@@ -82,6 +82,7 @@
   --breakpoint-phone: 30.0625rem;
 }
 :root {
+  --picker-max-height: 280px;
   --paper: #f2f1ec;
   --paper-deep: #e8e6df;
   --surface: #f8f7f3;

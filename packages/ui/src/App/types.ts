@@ -7,10 +7,7 @@ export type WorkspaceModel = NonNullable<ReturnType<typeof getWorkspaceModel>>;
 
 export type WorkspaceHeadingProps = Pick<WorkspaceModel, 'view' | 'summary' | 'data' | 'setAdd'>;
 
-export type WorkspaceNotificationProps = Pick<
-  WorkspaceModel,
-  'toast' | 'reduced' | 'selectedRole' | 'setToast'
->;
+export type WorkspaceNotificationProps = Pick<WorkspaceModel, 'toast' | 'toastType' | 'setToast'>;
 
 export type WorkspacePaletteProps = Pick<
   WorkspaceModel,

@@ -1,6 +1,8 @@
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { smokeStyles } from './smoke-styles.ts';
+import { smokeOnboarding } from './smoke-onboarding.ts';
+import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke-sheets.ts';
 
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
 export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
@@ -24,8 +26,11 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             const styleChecks = ${smokeStyles};
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
+            let onboardingReady = null;
+            const sheetChecks = {};
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'claude-code' && role.enabled)) throw new Error('Chat smoke test requires an isolated fixture workspace.');
+              onboardingReady = await ${smokeOnboarding};
               document.querySelector('a[href="/chat"]')?.click();
               chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
@@ -52,6 +57,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               const unreadReady = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 1 unread');
               bell?.click();
               const notificationsVisible = await waitFor(() => document.querySelector('.notification-list')?.textContent.includes('Scout sent a message'));
+              sheetChecks.notifications = await ${smokeSheetBounds};
               [...document.querySelectorAll('.notification-controls button')].find((button) => button.textContent === 'Mark all read')?.click();
               const notificationsRead = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 0 unread');
               const inAppControlsOnly = !document.querySelector('.notification-controls')?.textContent.includes('Desktop alerts');
@@ -89,6 +95,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               await waitFor(() => !!document.querySelector('.crew-card.scout'));
               [...document.querySelectorAll('.crew-card.scout button')].find((button) => button.textContent.includes('Configure'))?.click();
               const settingsReady = await waitFor(() => !!document.querySelector('.role-settings-panel'));
+              sheetChecks.settings = await ${smokeSheetBounds};
               [...document.querySelectorAll('.role-settings-panel button')].find((button) => button.textContent === 'Cancel')?.click();
               const settingsClosed = await waitFor(() => !document.querySelector('[role="dialog"]'));
               featurePanelsReady = editorReady && skillSaved && settingsReady && settingsClosed;
@@ -109,7 +116,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               notificationToastChecks = { toastVisible, hoverPaused, focusPaused, stackReady, linksReady, navigationReady, dismissed };
               notificationToastReady = Object.values(notificationToastChecks).every(Boolean);
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         const chrome = [];
@@ -119,6 +126,16 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             `(async()=>{localStorage.setItem('pitchcrew-theme','${theme}');document.documentElement.dataset.theme='${theme}';await new Promise(r=>setTimeout(r,100));const bar=document.querySelector('.desktop-titlebar');const sidebar=document.querySelector('[data-slot="sidebar-container"]');return {platform:document.documentElement.dataset.desktop,height:bar.getBoundingClientRect().height,background:getComputedStyle(bar).backgroundColor,dragRegion:getComputedStyle(bar).getPropertyValue('-webkit-app-region'),sidebarTop:sidebar.getBoundingClientRect().top,overflow:document.documentElement.scrollHeight>innerHeight};})()`,
           );
           chrome.push({ theme, ...layout, nativeTheme: nativeTheme.themeSource });
+          result.sheetChecks[theme] = await window.webContents.executeJavaScript(smokeOpenCreation);
+          await writeFile(
+            `${smokeFile}.sheet-${theme}.png`,
+            (await window.webContents.capturePage()).toPNG(),
+          );
+          result.sheetChecks[`${theme}Closed`] =
+            await window.webContents.executeJavaScript(smokeCloseCreation);
+          await window.webContents.executeJavaScript(
+            `(async () => { document.querySelector('a[href="/chat"]')?.click(); await new Promise((resolve) => setTimeout(resolve, 350)); })()`,
+          );
           await writeFile(
             `${smokeFile}.${theme}.png`,
             (await window!.webContents.capturePage()).toPNG(),

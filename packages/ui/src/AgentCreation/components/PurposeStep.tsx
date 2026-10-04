@@ -2,6 +2,7 @@ import type { StepProps, CreationController } from '../types.ts';
 import { workflowOptions } from '../constants.ts';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { FormSelect } from '@/FormSelect/index.tsx';
 
 export function PurposeStep({
   draft,
@@ -48,24 +49,19 @@ export function PurposeStep({
         />
       </label>
       <div className="grid grid-cols-2 gap-4 max-compact:grid-cols-1">
-        <label htmlFor="agent-workflow">
-          Application workflow action
-          <select
+        <div className="field">
+          <FormSelect
+            label="Application workflow action"
             id="agent-workflow"
-            value={role.workflow}
-            onChange={(event) => changeRole({ workflow: event.target.value as RoleWorkflow })}
-          >
-            {workflowOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            value={role.workflow ?? 'chat'}
+            onValueChange={(workflow) => changeRole({ workflow: workflow as RoleWorkflow })}
+            options={workflowOptions}
+          />
           <span className="quiet font-normal">
             Chat and tools works for any responsibility. Choose a workflow action only if it
             evaluates, drafts or reviews applications.
           </span>
-        </label>
+        </div>
         <label htmlFor="agent-id">
           Stable role ID
           <Input

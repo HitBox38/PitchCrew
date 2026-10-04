@@ -9,9 +9,9 @@ export function SelectContent({
   children,
   side = 'bottom',
   sideOffset = 4,
-  align = 'center',
+  align = 'start',
   alignOffset = 0,
-  alignItemWithTrigger = true,
+  alignItemWithTrigger = false,
   ...props
 }: SelectContentProps) {
   return (
@@ -36,7 +36,10 @@ export function SelectContent({
           {...props}
         >
           <SelectScrollUpButton />
-          <SelectPrimitive.List className="primitive:scroll-my-1 primitive:p-1">
+          <SelectPrimitive.List
+            data-slot="select-list"
+            className="primitive:scroll-my-1 primitive:p-1"
+          >
             {children}
           </SelectPrimitive.List>
           <SelectScrollDownButton />

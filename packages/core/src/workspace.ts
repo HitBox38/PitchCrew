@@ -1,4 +1,5 @@
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
+import type { OnboardingState } from './onboarding.ts';
 import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
@@ -30,6 +31,7 @@ export interface ProfileFile {
   content: string;
 }
 export interface Snapshot {
+  onboarding?: OnboardingState;
   profileProposals?: ProfileMaintenanceProposal[];
   trackingSignals?: TrackingSignal[];
   trackingScans?: TrackingScan[];

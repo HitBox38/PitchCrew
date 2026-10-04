@@ -7,11 +7,23 @@ import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { TagPicker } from '@/TagPicker/index.tsx';
 import { LoaderCircle, Plus } from 'lucide-react';
 
 export function AddOpportunity(props: AddOpportunityProps) {
   const controller = useAddOpportunity(props);
-  const { working, onClose, error, submit, external, setExternal } = controller;
+  const {
+    working,
+    onClose,
+    error,
+    submit,
+    external,
+    setExternal,
+    tags,
+    setTags,
+    tagQuery,
+    setTagQuery,
+  } = controller;
   return (
     <Modal title={external ? 'Register an application' : 'Add a job post'} onClose={onClose}>
       <p className="modal-intro">
@@ -23,7 +35,9 @@ export function AddOpportunity(props: AddOpportunityProps) {
         <JobIdentityFields />
         <ExternalApplicationFields external={external} setExternal={setExternal} />
         <label>
-          Job post URL <span className="optional">optional</span>
+          <span className="flex items-baseline gap-2">
+            Job post URL <span className="optional">optional</span>
+          </span>
           <Input name="url" type="url" placeholder="https://…" />
         </label>
         <JobLocationFields />
@@ -36,10 +50,13 @@ export function AddOpportunity(props: AddOpportunityProps) {
             maxLength={20000}
           />
         </label>
-        <label>
-          Tags <span className="optional">comma separated, up to 10</span>
-          <Input name="tags" placeholder="React, TypeScript, Remote" />
-        </label>
+        <TagPicker
+          value={tags}
+          onValueChange={setTags}
+          query={tagQuery}
+          onQueryChange={setTagQuery}
+          disabled={working}
+        />
         {error ? (
           <p className="form-error" role="alert">
             {error}
