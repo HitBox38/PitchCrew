@@ -1,5 +1,5 @@
-import { access } from 'node:fs/promises';
-import { dirname } from 'node:path';
+import { access, realpath } from 'node:fs/promises';
+import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createGoogleCliRunner } from '../src/connectors/auth/google-cli-process.ts';
@@ -25,7 +25,9 @@ it('passes arguments literally, filters credential overrides and removes its wor
     '{"q":"; echo injected $(whoami)"}',
   ]);
   expect(parsed.args[5]).toBe('--output');
-  expect(dirname(parsed.args[6])).toBe(parsed.cwd);
+  const outputFolder = dirname(parsed.args[6]);
+  // The runner removed this folder; resolve its existing parent to account for macOS /var aliases.
+  expect(join(await realpath(dirname(outputFolder)), basename(outputFolder))).toBe(parsed.cwd);
   expect(parsed.overrides).toEqual([null, null, null]);
   expect(parsed.debug).toBeUndefined();
   await expect(access(parsed.cwd)).rejects.toThrow();
