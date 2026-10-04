@@ -39,6 +39,10 @@ export async function createDaemon(options: {
   const chatStreams = new Set<ServerResponse>();
   http.once('listening', () => service.startScheduler());
   app.addHook('preClose', async () => {
+    // Node listen() does not set Fastify's listening flag, so its forced cleanup is skipped.
+    // Stop accepting first, then close HTTP connections; Vite closes upgraded HMR sockets.
+    http.close();
+    http.closeAllConnections();
     for (const stream of chatStreams) stream.destroy();
     await service.close();
   });
