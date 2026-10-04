@@ -1,4 +1,4 @@
-import { decodeEvent, type BoardEvent } from '@pitchcrew/core';
+import { currentEventVersion, decodeEvent, type BoardEvent } from '@pitchcrew/core';
 import type { BoardContext } from './types.ts';
 
 export function close(this: BoardContext): void {
@@ -28,7 +28,7 @@ export function record(
   return this.db.transaction(() => {
     const event: BoardEvent = {
       id: 0,
-      version: 10,
+      version: currentEventVersion,
       kind,
       entityId: data.id,
       data,

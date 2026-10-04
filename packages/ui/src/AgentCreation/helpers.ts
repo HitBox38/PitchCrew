@@ -118,6 +118,8 @@ export function setupWarnings(draft: CreationDraft, data: Snapshot): string[] {
     warnings.push('Crew change proposals need pipeline review access.');
   if ((caps.assessForms || caps.recordSubmissions) && !caps.computerUse)
     warnings.push('Form assessment and submission recording need browser access.');
+  if (caps.discoverJobs)
+    warnings.push('Job discovery scans the sources you save in Settings > Job sources.');
   if (caps.maintainProfile)
     warnings.push(
       'Profile maintenance needs watched sources in Profile and access to their GitHub or Drive service.',

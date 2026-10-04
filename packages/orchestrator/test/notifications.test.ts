@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import type { ChatMessage, Run } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
@@ -31,7 +32,10 @@ it('persists bounded, scoped user requests, replays priority and expires run acc
     notification: 'attention',
     content: question.content,
   });
-  expect(daemon.service.board.events()[0]).toMatchObject({ version: 10, kind: 'message' });
+  expect(daemon.service.board.events()[0]).toMatchObject({
+    version: currentEventVersion,
+    kind: 'message',
+  });
   await expect(
     daemon.service.agentCall(token, 'notify_user', { ...question, roleId: 'writer' }),
   ).rejects.toThrow();

@@ -2,6 +2,7 @@ import { adapters } from '@pitchcrew/adapters';
 import { digestPacket } from '@pitchcrew/board';
 import {
   cardInput,
+  currentEventVersion,
   decodeEvent,
   defaultCapabilities,
   type PipelineReview,
@@ -301,7 +302,7 @@ it('retains old event decoders and replays version nine review/config records', 
         .version,
     ).toBe(version);
   const { review } = (await call('save_pipeline_review', input)) as { review: PipelineReview };
-  expect(daemon.service.board.history(review.id)[0].version).toBe(10);
+  expect(daemon.service.board.history(review.id)[0].version).toBe(currentEventVersion);
   daemon.service.board.rebuild();
   expect(daemon.service.board.get<PipelineReview>('pipeline_review', review.id).title).toBe(
     input.title,

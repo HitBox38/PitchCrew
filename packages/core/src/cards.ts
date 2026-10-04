@@ -2,6 +2,7 @@ import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import { z } from 'zod';
 import type { Packet } from './packets.ts';
 import type { ApplicationTracking } from './tracking.ts';
+import type { JobDiscovery } from './job-sources.ts';
 import { type CardState, type RoleId } from './states.ts';
 
 export const cardInput = z.object({
@@ -32,10 +33,11 @@ export interface CardLesson {
 }
 export interface Card extends CardInput {
   tracking?: ApplicationTracking;
-  /** User-only signal from -2 (strong miss) to +2 (strong win); absent means 0. Event v10. */
+  /** User-only signal from -2 (strong miss) to +2 (strong win); absent means 0. Event v11. */
   weight?: number;
-  /** User-only lessons, newest last. Event v10. */
+  /** User-only lessons, newest last. Event v11. */
   lessons?: CardLesson[];
+  discovery?: JobDiscovery;
   statusEffectiveAt?: string;
   id: string;
   state: CardState;

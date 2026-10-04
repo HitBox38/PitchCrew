@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Role, Routine, Skill, Snapshot } from '@pitchcrew/core';
 import type { CrewContext } from '../src/crew/types.ts';
@@ -89,7 +90,7 @@ describe('guided agent setup', () => {
     expect(after.roles).toEqual(before.roles);
     expect(after.skills).toEqual(before.skills);
     expect(after.routines).toEqual(before.routines);
-    expect(before.events.every((event) => event.version === 10)).toBe(true);
+    expect(before.events.every((event) => event.version === currentEventVersion)).toBe(true);
   });
 
   it.each([

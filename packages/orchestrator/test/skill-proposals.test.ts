@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import type { Skill, SkillPreview, SkillProposal, Snapshot } from '@pitchcrew/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -169,7 +170,7 @@ describe('directory imports and skill suggestions', () => {
     expect(
       after.events
         .filter((event) => event.kind === 'skill_proposal')
-        .every((event) => event.version === 10),
+        .every((event) => event.version === currentEventVersion),
     ).toBe(true);
     const unauthenticated = await fetch(`${daemon.url}/api/skill-proposals/${custom.id}/decide`, {
       method: 'POST',

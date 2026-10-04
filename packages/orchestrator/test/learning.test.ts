@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { defaultCapabilities, type Card, type Role, type StaleSubmission } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { insightsByteLimit } from '../src/crew/gateway/insights.ts';
@@ -87,7 +88,10 @@ describe('learning signals over HTTP', () => {
       to: 'React',
     });
     expect(merged.result.cards[0].tags).toEqual(['React', 'Remote']);
-    expect(daemon.service.board.events()[0]).toMatchObject({ version: 10, actor: 'user' });
+    expect(daemon.service.board.events()[0]).toMatchObject({
+      version: currentEventVersion,
+      actor: 'user',
+    });
   });
 
   it('previews and applies stale submissions only for the selected cards', async () => {

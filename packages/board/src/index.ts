@@ -15,6 +15,7 @@ export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export {
   searchApplications,
   registerExternalApplication,
+  isLikelyDuplicateApplication,
   registerExistingExternalSubmission,
   decideTrackingSignal,
   linkTrackingThread,
@@ -36,6 +37,13 @@ export {
   staleSubmissions,
   markStaleSubmissions,
 } from './board/learning.ts';
+export { previewApplicationImport, applyApplicationImport } from './board/imports.ts';
+export {
+  discoveryKeys,
+  isKnownPosting,
+  recordDiscoveredLeads,
+  type DiscoveredPosting,
+} from './board/discovery.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {

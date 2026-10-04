@@ -8,6 +8,7 @@ It runs in your browser or an Electron desktop window. Your board, profile, chat
 
 ## What you can do
 
+- **Find openings.** Save public Greenhouse, Ashby and Lever job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it.
 - **Prepare applications.** Scout evaluates fit, Writer drafts a packet, and Reviewer checks it against your profile. Packets include a resume, cover letter, form answers, notes and supporting claims.
 - **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat privately or in the shared crew conversation. Agents can hand off work through the board when their permissions allow it.
 - **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
@@ -56,7 +57,7 @@ Fresh workspaces show an introduction and setup checklist. You can defer setup a
 
 1. **Add your background in Profile.** Write factual Markdown notes or import a reviewed folder from GitHub or Google Drive.
 2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
-3. **Add a job on Board.** Save its description and URL, then start the workflow below.
+3. **Add a job on Board.** Save its description and URL, then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
 
 New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime.
 
@@ -70,7 +71,11 @@ New production workspaces start with paused Claude Code agents. Development defa
 
 PDF and DOCX exports currently render **literal Markdown text**, including its syntax. They are not designed resume layouts. Both have inline previews; DOCX layout may differ from Word. PDF rejects unsupported characters explicitly, while DOCX preserves Unicode.
 
+**Settings > Packet rules** holds your own mechanical house rules, such as word limits, bullets per job, exact employer headers and banned phrases. Errors block drafts, reviews and exports; warnings appear in review notes. See [packet rules](docs/packet-rules.md).
+
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
+
+Moving from another tracker? **Import applications** on Board takes a JSON or CSV file of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. `node scripts/convert-legacy-tracker.mjs <tracker.db> <applications.json>` converts a legacy SQLite tracker into that format. See [importing past applications](docs/tracking.md#importing-past-applications).
 
 ## Your crew
 
@@ -78,7 +83,7 @@ Each agent has a name, responsibilities, instructions, runtime, model and allowe
 
 | Agent          | Purpose                                            | Additional setup                                          |
 | -------------- | -------------------------------------------------- | --------------------------------------------------------- |
-| Scout          | Assess job fit and identify missing evidence       | Profile notes and a job description                       |
+| Scout          | Assess job fit and identify missing evidence       | Profile notes and a job description; job sources to scan  |
 | Writer         | Draft application packets                          | Profile notes and a shortlisted job                       |
 | Reviewer       | Check accuracy and suggest corrections             | A drafted packet                                          |
 | Submitter      | Inspect forms and assist with approved submissions | Chromium; an exported packet for packet uploads           |
@@ -105,6 +110,14 @@ See [runtime setup](docs/runtimes.md) for executable names, authentication requi
 On startup, Pitchcrew loads missing skills from a ten-entry public GitHub starter catalog. Existing edits and deletions are preserved. Failed imports can be retried from Skills. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports.
 
 **Routines** schedules one-time or repeating agent tasks with a timezone and optional end date or run limit. Routines persist across restarts and run only while the daemon is open. Busy or paused agents wait; overdue repeats coalesce into one run. See [routines](docs/routines.md).
+
+## Job discovery
+
+Open **Settings > Job sources** to save a company's public job board. Pitchcrew supports Greenhouse, Ashby and Lever. Give each source a company name and the board name from its link, then optional filters: title keywords to include or exclude, location keywords and remote only. **Test source** previews matching postings without adding anything. **Scan now** adds new matching postings to Board as leads, with the job ID and source recorded on each card.
+
+Pitchcrew reads only the providers' official public APIs, without signing in, and converts descriptions to plain text. A posting already on the board, in any state, is never added again, so withdrawing a lead dismisses it for good.
+
+To let Scout scan, enable **Scan your saved job sources and add new matching leads** in its settings under Role tools. It is off by default. Scout can then scan from chat or a routine, assess the new leads and tell you about strong matches. Agents cannot add, change or remove sources. See [job discovery](docs/job-discovery.md).
 
 Agent suggestions for instructions, capabilities and skills appear in **Chat > Crew work**. You review and decide whether to apply them. [Pipeline reviews](docs/pipeline-reviews.md) use the same explicit approval model for targeted crew changes.
 
@@ -137,7 +150,7 @@ Local packet exports also require a single-use approval for the exact packet and
 
 ## Local data and privacy
 
-The default data folder is `~/.pitchcrew` (`%USERPROFILE%\.pitchcrew` on Windows). It contains the SQLite board and event history, profile notes, chats, skills, routines, role instructions, isolated run folders and versioned packets.
+The default data folder is `~/.pitchcrew` (`%USERPROFILE%\.pitchcrew` on Windows). It contains the SQLite board and event history, profile notes, chats, skills, routines, packet rules, role instructions, isolated run folders and versioned packets.
 
 Pitchcrew does not read, copy or store AI provider credentials. The runtime uses its native authentication. Connected GitHub and Google credentials are stored separately in `connectors/credentials.json` inside the data folder, as local JSON without encryption. Protect that folder using your operating system's account and disk protections.
 
@@ -155,10 +168,10 @@ pnpm dev
 
 ## Current limits
 
-- Job discovery is manual. There is no automatic outreach or email sender.
+- Job discovery covers public Greenhouse, Ashby and Lever boards you add yourself. Other job sites stay manual. There is no automatic outreach or email sender.
 - Routines require the local daemon to be running; there is no OS background scheduler.
 - Computer use covers an isolated Chromium browser, not the whole desktop.
-- Packet checks verify registered quotations and word limits. They cannot prove every sentence is factual; review the complete packet.
+- Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
 - Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.
 
 ## Development
@@ -174,7 +187,7 @@ Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted 
 | `packages/orchestrator` | Loopback daemon, run launches, crew tasks and routines      |
 | `packages/adapters`     | Provider-specific CLI and ACP integrations, plus Demo       |
 | `packages/mcp`          | Scoped tools, read-only connectors and export/browser gates |
-| `packages/packet`       | Evidence checks and versioned packet files                  |
+| `packages/packet`       | Evidence checks, packet rules and versioned packet files    |
 | `packages/ui`           | Shared browser and desktop renderer                         |
 | `packages/desktop`      | Sandboxed Electron host                                     |
 

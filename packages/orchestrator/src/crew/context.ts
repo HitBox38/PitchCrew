@@ -1,5 +1,6 @@
 import { Board } from '@pitchcrew/board';
 import { OnboardingPreferences } from '../onboarding.ts';
+import { PacketRulesStore } from '../packet-rules.ts';
 import {
   type ChatMessage,
   type RoleId,
@@ -10,6 +11,7 @@ import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { join } from 'node:path';
 import { ProfileSourceManager } from '../profile-sources/index.ts';
+import { JobSourceManager } from '../job-sources/index.ts';
 import { createCard, exportPacket, loadExamples, moveCard, saveProfile } from './cards.ts';
 import {
   addMessage,
@@ -53,8 +55,10 @@ export function createCrewContext(
     mcpEntry,
     board,
     onboarding,
+    packetRules: new PacketRulesStore(directory),
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),
+    jobSources: new JobSourceManager(directory, board),
     profileWriting: false,
     profileRevision: 0,
     computer: new ComputerManager(board, directory),

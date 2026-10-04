@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { cardInput, decodeEvent, type Card, type Run, type TrackingSignal } from '@pitchcrew/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
@@ -36,7 +37,7 @@ function external(board: Board, company: string, submittedAt: string) {
   });
 }
 
-describe('version 10 learning events', () => {
+describe('current learning events', () => {
   it.each([1, 2, 3, 4, 5, 6, 7, 8, 9] as const)(
     'retains version %i card events unchanged on replay',
     (version) => {
@@ -62,7 +63,7 @@ describe('version 10 learning events', () => {
       ).toBe(raw);
     },
   );
-  it('appends weights and lessons as v10 card events that replay with older versions', () => {
+  it('appends weights and lessons as current-version card events that replay with older versions', () => {
     const board = create();
     const card = lead(board, 'Juniper Analytics', ['React']);
     // A retained v9 card event without the new fields still decodes and replays.
@@ -71,14 +72,14 @@ describe('version 10 learning events', () => {
     setCardWeight(board, card.id, { weight: 2 });
     const withLesson = addCardLesson(board, card.id, { text: '  Lead with platform work.  ' });
     const events = board.events();
-    expect(events[0]).toMatchObject({ version: 10, kind: 'card', actor: 'user' });
+    expect(events[0]).toMatchObject({ version: currentEventVersion, kind: 'card', actor: 'user' });
     expect(events.find((event) => event.version === 9)).toBeDefined();
     expect(withLesson.lessons).toEqual([
       { id: expect.any(String), text: 'Lead with platform work.', createdAt: expect.any(String) },
     ]);
     board.rebuild();
     expect(board.get<Card>('card', card.id)).toEqual(withLesson);
-    expect(decodeEvent(JSON.stringify(events[0])).version).toBe(10);
+    expect(decodeEvent(JSON.stringify(events[0])).version).toBe(currentEventVersion);
     expect(boardInsights(board, {}).weights.find((item) => item.weight === 2)?.count).toBe(1);
   });
   it('validates weights and caps lesson count and length', () => {
@@ -125,7 +126,7 @@ describe('tag merge', () => {
     expect(board.get<Card>('card', only.id).tags).toEqual(['React', 'Remote']);
     expect(board.get<Card>('card', untouched.id).tags).toEqual(['Go']);
     expect(board.events().length).toBe(before + 2);
-    expect(board.events()[0]).toMatchObject({ actor: 'user', version: 10 });
+    expect(board.events()[0]).toMatchObject({ actor: 'user', version: currentEventVersion });
     const tenth = lead(
       board,
       'Mosaic Labs',
@@ -168,7 +169,7 @@ describe('stale submission cleanup', () => {
     });
     expect(board.events()[0]).toMatchObject({
       actor: 'user',
-      version: 10,
+      version: currentEventVersion,
       message:
         'Marked as no response after 21 days without a status change: No reply from the fictional recruiter',
     });

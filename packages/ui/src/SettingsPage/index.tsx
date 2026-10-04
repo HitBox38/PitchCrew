@@ -1,4 +1,6 @@
 import { ConnectorSettings } from '@/ConnectorSettings/index.tsx';
+import { JobSourcesSettings } from '@/JobSourcesSettings/index.tsx';
+import { PacketRulesSettings } from '@/PacketRules/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
 import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
@@ -33,8 +35,14 @@ export function SettingsPage() {
       <TabsContent className="settings-content" value="accounts">
         <ConnectorSettings data={data} action={action} working={working} />
       </TabsContent>
+      <TabsContent className="settings-content" value="sources">
+        <JobSourcesSettings />
+      </TabsContent>
       <TabsContent className="settings-content" value="runtimes">
         <RuntimeSettings runtimes={data.runtimes} />
+      </TabsContent>
+      <TabsContent className="settings-content" value="rules">
+        {data.packetRules ? <PacketRulesSettings state={data.packetRules} /> : null}
       </TabsContent>
       <TabsContent className="settings-content" value="data">
         <DataSettings directory={data.dataDirectory} />

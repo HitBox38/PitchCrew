@@ -13,6 +13,11 @@ export const smokeInsights = `(async () => {
     submittedAt: new Date(Date.now() - 30 * 86400000).toISOString(),
     note: 'Confirmed fictional external submission.',
   });
+  const input = { format: 'json', content: JSON.stringify([{ company: 'Fictional Import Learning', title: 'Fictional Analyst', state: 'rejected', submittedAt: '2025-01-01', weight: -1, lessons: 'Fictional imported lesson from native smoke.' }]) };
+  const preview = await request('/tracking/import/preview', 'POST', input);
+  const imported = await request('/tracking/import/apply', 'POST', { ...input, digest: preview.digest });
+  const importedCard = (await request('/snapshot')).cards.find((card) => card.id === imported.rows[0].cardIds[0]);
+  const importReady = importedCard?.weight === -1 && importedCard.lessons?.[0]?.text === 'Fictional imported lesson from native smoke.';
   const first = await register(0);
   document.querySelector('a[href="/"]')?.click();
   const cardSelector = '.job-card[aria-label="Open Fictional Analyst at Fictional Learning 0"]';
@@ -56,5 +61,6 @@ export const smokeInsights = `(async () => {
   if (!await waitFor(() => !document.querySelector('[role="dialog"]'))) return false;
   const cards = (await request('/snapshot')).cards.filter((card) => card.company.startsWith('Fictional Learning '));
   const applied = cards.filter((card) => card.state === 'ghosted').length === 200 && cards.filter((card) => card.state === 'submitted').length === 1;
-  return weightReady && lessonPending && lessonReady && insightsReady && bounded && applied;
+  const importedVisible = document.body.textContent.includes('Fictional imported lesson from native smoke.');
+  return importReady && importedVisible && weightReady && lessonPending && lessonReady && insightsReady && bounded && applied;
 })()`;

@@ -19,6 +19,7 @@
 @import './styles/activity.css' layer(components);
 @import './styles/insights.css' layer(components);
 @import './styles/dialogs.css' layer(components);
+@import './styles/imports.css' layer(components);
 @import './styles/agent-creation.css' layer(components);
 @import './styles/onboarding.css' layer(components);
 @import './styles/forms.css' layer(components);

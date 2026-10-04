@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import type { Run, Skill, Snapshot } from '@pitchcrew/core';
 import { readFile } from 'node:fs/promises';
@@ -48,7 +49,7 @@ describe('managed agent skills', () => {
     expect(
       events
         .filter((event) => event.kind === 'skill')
-        .every((event) => event.version === 10 && event.actor === 'user'),
+        .every((event) => event.version === currentEventVersion && event.actor === 'user'),
     ).toBe(true);
     daemon.service.board.rebuild();
     await daemon.service.initialize(false);

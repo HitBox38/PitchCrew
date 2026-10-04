@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import {
   defaultCapabilities,
@@ -106,7 +107,7 @@ it('launches a one-time action exactly once with saved chat, scoped tools and cu
     daemon.service.board
       .events()
       .filter((event) => event.kind === 'routine')
-      .every((event) => event.version === 10),
+      .every((event) => event.version === currentEventVersion),
   ).toBe(true);
 });
 
