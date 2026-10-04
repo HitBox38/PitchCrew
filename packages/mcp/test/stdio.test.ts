@@ -223,7 +223,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet } }))
         .structuredContent,
-    ).toEqual({ problems: [] });
+    ).toEqual({ problems: [], layout: { resumePages: 1, coverLetterPages: 1, warnings: [] } });
     const unsupported = { ...packet, claims: [{ ...packet.claims[0], source: 'missing.md' }] };
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet: unsupported } }))

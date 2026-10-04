@@ -1,5 +1,5 @@
 import cookiePlugin from '@fastify/cookie';
-import type { Approval } from '@pitchcrew/core';
+import type { Approval, Snapshot } from '@pitchcrew/core';
 import { verifiedArtifact } from '@pitchcrew/packet';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
@@ -135,6 +135,20 @@ describe('HTTP framework contracts', () => {
       expect(Buffer.from(await preview.arrayBuffer())).toEqual(verifiedArtifact(artifact));
     }
     expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('pending');
+    const { result: snapshot } = await request<Snapshot>('/snapshot');
+    expect(snapshot.artifactPages).toEqual(
+      Object.fromEntries(approval.artifacts!.map((artifact) => [artifact.digest, 1])),
+    );
+    await request(`/approvals/${approval.id}/decide`, 'POST', { approved: false });
+    const { result: plain } = await request<Approval>(`/cards/${card.id}/approval`, 'POST', {
+      formats: ['pdf'],
+      layout: 'plain',
+    });
+    expect(plain.artifacts?.map((artifact) => artifact.name)).toEqual([
+      'resume.pdf',
+      'cover_letter.pdf',
+    ]);
+    expect(plain.artifacts![0].digest).not.toBe(approval.artifacts![0].digest);
   });
 
   it('serves production assets and SPA deep links with the same security hooks', async () => {

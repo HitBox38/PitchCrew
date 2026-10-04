@@ -50,7 +50,7 @@ export function registerPacketTools(server: McpServer, call: AgentCall) {
     {
       title: 'Check packet evidence',
       description:
-        'Check exact source quotes and word limits. This is a mechanical check, not a complete factual review.',
+        'Check exact source quotes and word limits, and report formatted PDF page counts. The resume target is one page; layout warnings name pages over that or characters the PDF font cannot show. This is a mechanical check, not a complete factual review.',
       inputSchema: { packet: packetSchema },
       annotations: readOnly,
     },

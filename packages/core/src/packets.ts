@@ -18,6 +18,8 @@ export const packetSchema = z.object({
 });
 export type Packet = z.infer<typeof packetSchema>;
 
+// Formatted exports lay out headings, lists and links; plain exports print the Markdown literally.
+export type ArtifactLayout = 'formatted' | 'plain';
 export interface PacketArtifact {
   name: 'resume.pdf' | 'resume.docx' | 'cover_letter.pdf' | 'cover_letter.docx';
   mimeType: string;

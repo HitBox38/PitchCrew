@@ -7,7 +7,7 @@ import {
   type Card,
   type Role,
 } from '@pitchcrew/core';
-import { lintPacket, readProfile } from '@pitchcrew/packet';
+import { checkLayout, lintPacket, readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
 import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
@@ -114,7 +114,10 @@ export async function agentCall(
   if (action === 'lint') {
     const parsed = runResultSchema.parse({ role: 'writer', packet: data.packet });
     if (parsed.role !== 'writer') throw new Error('Invalid packet.');
-    return { problems: lintPacket(parsed.packet, await readProfile(this.directory)) };
+    return {
+      problems: lintPacket(parsed.packet, await readProfile(this.directory)),
+      layout: await checkLayout(parsed.packet),
+    };
   }
   if (action === 'export') {
     const approval = this.board.get<Approval>('approval', String(data.approvalId));
