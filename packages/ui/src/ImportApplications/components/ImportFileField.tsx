@@ -27,7 +27,7 @@ export function ImportFileField({
       <p className="quiet">
         {upload
           ? `${upload.name} · ${upload.format.toUpperCase()}`
-          : `A JSON list or a CSV file with a header row. Up to ${maxImportRows} applications and 2 MB.`}
+          : `A JSON list or a CSV file with a header row. Up to ${maxImportRows.toLocaleString('en-US')} applications and 2 MB.`}
       </p>
     </div>
   );
