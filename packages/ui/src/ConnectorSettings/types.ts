@@ -19,18 +19,28 @@ export type ConnectAccountDialogProps = Pick<
   | 'google'
   | 'github'
   | 'connectGithubCli'
+  | 'connectGoogleCli'
+  | 'setEditing'
   | 'clientId'
   | 'setClientId'
   | 'clientSecret'
   | 'setClientSecret'
   | 'error'
   | 'working'
+  | 'customGoogle'
+  | 'setCustomGoogle'
 >;
 
 export type ConnectedAccountsProps = Pick<
   ConnectorSettingsModel,
-  'data' | 'working' | 'action' | 'setError' | 'setEditing'
+  'data' | 'working' | 'action' | 'open'
 >;
+
+export type GoogleConnectionSetupProps = GoogleCredentialsProps &
+  Pick<
+    ConnectorSettingsModel,
+    'google' | 'customGoogle' | 'setCustomGoogle' | 'setEditing' | 'working'
+  >;
 
 export type GoogleCredentialsProps = Pick<
   ConnectorSettingsModel,

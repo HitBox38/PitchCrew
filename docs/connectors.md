@@ -37,15 +37,36 @@ Examples:
 
 ## Google Workspace
 
-1. Create a Google Cloud project and enable **Gmail API**, **Google Drive API**, **Google Sheets API** and **Google Calendar API**.
-2. Configure the OAuth consent screen. For a personal testing project, add your Google account as a test user. Gmail and Drive permissions may require Google verification when distributing an app publicly; Workspace admins may also restrict consent.
-3. Create an OAuth client with the **Desktop app** type, using [Google’s installed-app setup](https://developers.google.com/identity/protocols/oauth2/native-app). A web client is not interchangeable with a Desktop client.
-4. Enter the client ID and client secret in **Connect Google Workspace**, start sign-in, then click **Continue with Google**. Electron opens this link in your system browser. Finish sign-in and return to Pitchcrew; connection status updates automatically.
-5. Enable the permitted services in each role’s settings.
+The standard flow uses a Pitchcrew-owned OAuth app configured by the distributor or installation administrator. Users do not create Google Cloud projects or enter client credentials.
 
-Alternatively, set `PITCHCREW_GOOGLE_CLIENT_ID` and `PITCHCREW_GOOGLE_CLIENT_SECRET` in the daemon’s environment before starting it; the connection dialog then uses that configuration. These variables are filtered from provider subprocess environments.
+1. Open **Settings → Accounts** and click **Connect Google**. With the shared app configured, Pitchcrew prepares sign-in directly.
+2. Click **Continue with Google**, choose your account and grant the read permissions you need. Electron opens the link in your system browser. You can decline individual services.
+3. Return to Pitchcrew; connection status updates automatically. Enable the permitted services in each agent’s settings in **Crew**, then start a new turn.
+
+### Shared app setup for distributors and administrators
+
+1. Create a Google Cloud project for Pitchcrew and enable **Gmail API**, **Google Drive API**, **Google Sheets API** and **Google Calendar API**.
+2. Configure the OAuth consent screen and create an OAuth client with the **Desktop app** type, using [Google’s installed-app setup](https://developers.google.com/identity/protocols/oauth2/native-app). A web client is not interchangeable with a Desktop client.
+3. Supply `PITCHCREW_GOOGLE_CLIENT_ID` and `PITCHCREW_GOOGLE_CLIENT_SECRET` in the daemon’s environment before starting it. The launcher inherits these variables when it starts the daemon; an already running daemon must be restarted. These variables are filtered from provider subprocess environments. Keep release configuration outside the repository.
+4. For development/testing, add intended accounts as test users. For public distribution, complete the applicable branding and scope verification with an accurate home page, privacy policy and data-flow disclosure. Gmail read-only and broad Drive read-only are restricted scopes. [Google’s restricted-scope requirements](https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification) include a security assessment when restricted data is accessed from or through third-party servers. Account for data passed to runtime AI providers; local token storage alone does not establish an exemption. Workspace admins may also restrict consent.
+
+This repository does not include a production OAuth client or assert that the shared app is verified. If shared configuration is absent, the UI explains that installation setup is incomplete and disables starting standard sign-in.
+
+### Advanced setup with a custom app
+
+**Advanced setup** remains available beside **Connect Google**, including when a shared app is configured. Create your own project and Desktop OAuth client using the administrator steps above, enter its client ID and client secret, then choose **Start Google sign-in** and **Continue with Google**. Custom credentials override the shared app for that connection and are retained with the account for token refresh; an omitted custom secret never falls back to the shared app’s secret.
 
 Sign-in uses a temporary callback listener bound only to `127.0.0.1`, random single-use state, S256 PKCE and a ten-minute deadline. Pitchcrew requests offline access and read-only Gmail, Drive, Calendar and Sheets scopes, plus email identity. Declining individual services is supported: only granted scopes can be used. Access tokens refresh automatically; concurrent calls share one refresh. An expired/revoked grant requires reconnection. Google testing-mode grants may expire according to the consent project’s policy.
+
+### Advanced: reuse Google Workspace CLI
+
+If you already use [Google Workspace CLI (`gws`)](https://github.com/googleworkspace/cli), choose **Advanced setup → Use Workspace CLI → Connect with Workspace CLI**. Standard Google sign-in remains the default. This optional integration follows the CLI's current `auth status` and read-command contracts; incompatible versions fail with update guidance. The CLI is under active development and is not an officially supported Google product.
+
+For first-time CLI setup, follow its installation and Google Cloud/OAuth setup guide, restart Pitchcrew so it can find the installed native binary on PATH, and run `gws auth login --readonly`. Return to Pitchcrew and connect. The CLI still needs its own Google Cloud app configuration; this option reuses an existing login rather than removing that setup. Enable each service for the agents that should read it in Crew.
+
+Pitchcrew invokes `gws --version` and `gws auth status` only on explicit connection, then checks the saved login's email and current scopes before every read. It stores only the account, connection method and scope names. Tokens and client credentials remain with the CLI; Pitchcrew never exports or reads its credential files. Switching accounts requires disconnecting and reconnecting. Broader existing Gmail, Drive, Sheets or Calendar grants can supply read access, but Pitchcrew exposes only fixed list/get/export commands with validated JSON parameters. It cannot invoke arbitrary CLI commands, mutations, login, logout or setup.
+
+Requests run without a shell or interactive input, with a 20-second deadline and 2 MB output/download bounds. CLI stderr and raw authentication errors are suppressed. Text and Docs downloads use an isolated temporary folder that is removed after the subprocess exits, including on failure or cancellation. JSON media printed by gws retains its parsed content with normalized JSON formatting. Raw-token, credentials-file and Google ADC environment overrides are filtered so API reads use the same saved OAuth account reported by `auth status`; service-account and override-only logins are unsupported. Disconnect cancels Pitchcrew's reads and removes its binding without logging out gws. Status snapshots never invoke the CLI or contact Google.
 
 Examples:
 
@@ -77,7 +98,7 @@ Selected documents become ordinary local profile files, so existing exact quotat
 
 ## Credentials, evidence and approvals
 
-Manual GitHub tokens and Google credentials live in `PITCHCREW_HOME/connectors/credentials.json`, outside the repository and event log. GitHub CLI connections save only the account name and `mode: "cli"`; credentials stay with `gh`. Locally saved credentials use JSON, not encryption; Unix permissions are restricted to the current user (`0700` directory and `0600` file). Protect your data directory with your operating system’s account and disk protections. Credentials are never returned in snapshots, included in prompts, or passed in MCP configuration; agent processes receive only their scoped daemon run token. Disconnect aborts connector requests and deletes the local credential or CLI account binding. To invalidate a provider grant/token as well, revoke it in your Google or GitHub account; CLI logout is managed separately through `gh`.
+Manual GitHub tokens and Google credentials live in `PITCHCREW_HOME/connectors/credentials.json`, outside the repository and event log. CLI connections save only the account name, `mode: "cli"` and, for Google, scope names; credentials stay with `gh` or `gws`. Locally saved credentials use JSON, not encryption; Unix permissions are restricted to the current user (`0700` directory and `0600` file). Protect your data directory with your operating system’s account and disk protections. Credentials are never returned in snapshots, included in prompts, or passed in MCP configuration; agent processes receive only their scoped daemon run token. Disconnect aborts connector requests and deletes the local credential or CLI account binding. To invalidate a provider grant/token as well, revoke it in your Google or GitHub account; CLI logout is managed separately through `gh` or `gws`.
 
 Connected account status is read from local state and performs no network requests. The GitHub connection is validated when connecting; Google refresh and authorization errors surface when tools are used. Tests mock service APIs, exercise real local OAuth callbacks and real MCP stdio, and do not access live accounts.
 

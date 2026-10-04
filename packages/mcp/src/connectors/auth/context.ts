@@ -6,16 +6,20 @@ import { call, fetch } from './http.ts';
 import { status } from './status.ts';
 import type { ConnectorManagerContext } from './types.ts';
 import { createGithubCliRunner, type GithubCliRunner } from './github-cli-process.ts';
+import { createGoogleCliRunner, type GoogleCliRunner } from './google-cli-process.ts';
+import { connectGoogleCli } from './google-cli.ts';
 
 export function createConnectorManagerContext(
   directory: string,
   fetcher: typeof globalThis.fetch = globalThis.fetch,
   runGithubCli: GithubCliRunner = createGithubCliRunner(),
+  runGoogleCli: GoogleCliRunner = createGoogleCliRunner(),
 ): ConnectorManagerContext {
   const context: ConnectorManagerContext = {
     directory,
     fetcher,
     runGithubCli,
+    runGoogleCli,
     store: { version: 1 },
     pending: undefined,
     errors: { github: '', google: '' },
@@ -36,6 +40,7 @@ export function createConnectorManagerContext(
     fetch: (...args) => fetch.call(context, ...args),
     connectGithub: (...args) => connectGithub.call(context, ...args),
     connectGoogle: (...args) => connectGoogle.call(context, ...args),
+    connectGoogleCli: () => connectGoogleCli.call(context),
     cancelPending: (...args) => cancelPending.call(context, ...args),
     disconnect: (...args) => disconnect.call(context, ...args),
     googleAccessToken: (...args) => googleAccessToken.call(context, ...args),
