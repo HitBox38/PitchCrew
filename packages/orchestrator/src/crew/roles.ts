@@ -56,6 +56,8 @@ export async function configureRole(this: CrewContext, id: RoleId, data: unknown
     throw new Error('Wait for this role’s active run or cancel it before changing settings.');
   const current = requireRole(this, id);
   const parsed = rolePatch.parse(data);
+  if (!this.dev && parsed.runtime === 'demo')
+    throw new Error('Demo runtime is only available in development mode.');
   const role = {
     ...current,
     ...parsed,

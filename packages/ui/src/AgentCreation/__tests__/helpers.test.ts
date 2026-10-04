@@ -16,6 +16,11 @@ const data = {
   runtimes: [{ id: 'demo', available: true }],
 } as unknown as Snapshot;
 describe('agent setup decisions', () => {
+  it('uses a listed real runtime when production has no installed runtimes', () => {
+    const production = { ...data, runtimes: [{ id: 'claude-code', available: false }] } as Snapshot;
+    expect(initialCreation(production).role.runtime).toBe('claude-code');
+    expect(initialCreation(data).role.runtime).toBe('demo');
+  });
   it('keeps arbitrary responsibilities generic and the optional routine bound to the final edited role ID', () => {
     const draft = initialCreation(data);
     draft.role = {

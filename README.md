@@ -1,6 +1,6 @@
 # Pitchcrew
 
-A local-first job-search workbench with a crew of role agents. Each role can use Demo, Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
+A local-first job-search workbench with a crew of role agents. Each role can use Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
 
 **Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, track your applications, and chat with each role or follow the crew conversation. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
 
@@ -39,6 +39,8 @@ pnpm desktop:prod
 3. Run **Draft application**, then **Review packet**. Inspect the resume, letter, form answers, note, source evidence, and history in the opportunity sheet.
 4. Request export approval. In **Approval inbox**, inspect the exact packet, approve it, then export it. Generated PDFs and DOCX files have inline previews; DOCX browser layout may differ from Word. The complete source text is also available. The export directory appears in decision history.
 5. Apply yourself, then record the manual submission and track screening, interviews, and outcomes.
+
+**Demo is available only in development mode (`pnpm dev` or `pnpm desktop`).** Production starts new workspaces with paused Claude Code roles; choose an installed runtime and enable each role in Crew. Existing Demo roles keep their history but cannot run outside development mode. Example data is also development-only.
 
 **Demo makes no AI calls.** Its fit scores are keyword examples and its drafts reuse profile bullets; they need personalization before use. Loading examples is explicit and refuses to overwrite an existing profile.
 
@@ -176,7 +178,7 @@ pnpm check          # lint, typecheck, tests, build
 pnpm test:desktop   # built UI + isolated Electron renderer/daemon smoke test
 ```
 
-Tests use fictional fixtures and temporary workspaces. They cover transitions, append-only history and projection replay, stale/reused approvals, evidence checks, concurrent claims, cancellation, HTTP boundaries, mock CLI parsing, and the real MCP stdio connection. They make no paid provider calls. The desktop test sends a demo chat through the production renderer and saves a screenshot and JSON evidence in a temporary directory.
+Tests use fictional fixtures and temporary workspaces. They cover transitions, append-only history and projection replay, stale/reused approvals, evidence checks, concurrent claims, cancellation, HTTP boundaries, mock CLI parsing, and the real MCP stdio connection. They make no paid provider calls. The desktop test sends a scripted fixture chat through the production renderer and saves a screenshot and JSON evidence in a temporary directory.
 
 ## MVP boundaries
 

@@ -35,8 +35,9 @@ export class CrewService {
     readonly directory: string,
     readonly daemonUrl: string,
     readonly mcpEntry: string,
+    dev = false,
   ) {
-    this.context = createCrewContext(directory, daemonUrl, mcpEntry);
+    this.context = createCrewContext(directory, daemonUrl, mcpEntry, dev);
   }
   get board() {
     return this.context.board;

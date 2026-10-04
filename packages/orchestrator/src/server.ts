@@ -29,6 +29,7 @@ export async function createDaemon(options: {
     options.directory,
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
+    options.dev ?? false,
   );
   const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
   const http = app.server;

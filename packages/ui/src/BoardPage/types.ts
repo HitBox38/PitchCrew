@@ -7,7 +7,7 @@ export type BoardToolbarProps = Pick<
   'showClosed' | 'setShowClosed' | 'data' | 'active' | 'query' | 'setQuery'
 >;
 
-export type BoardWelcomeProps = Pick<BoardPageModel, 'setAdd' | 'working' | 'act'>;
+export type BoardWelcomeProps = Pick<BoardPageModel, 'setAdd' | 'working' | 'act' | 'data'>;
 
 export type ClosedJobsProps = Pick<BoardPageModel, 'closed' | 'openCard'>;
 
