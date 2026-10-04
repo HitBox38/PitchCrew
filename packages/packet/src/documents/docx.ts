@@ -82,26 +82,47 @@ function children(runs: Run[], forceBold = false): ParagraphChild[] {
 }
 
 function numbering(blocks: Block[], template: Template) {
+  const references = new Map<ListItem, string>();
+  const sequences: { reference: string; depth: number; start: number }[] = [];
+  for (const block of blocks) {
+    if (block.kind !== 'list') continue;
+    const active: ({ reference: string; next: number } | undefined)[] = [];
+    for (const item of block.items) {
+      active.length = item.depth + 1;
+      if (!item.ordered) {
+        active[item.depth] = undefined;
+        continue;
+      }
+      let sequence = active[item.depth];
+      if (!sequence || sequence.next !== item.number) {
+        const reference = `numbers-${sequences.length + 1}`;
+        sequences.push({ reference, depth: item.depth, start: item.number });
+        sequence = { reference, next: item.number };
+        active[item.depth] = sequence;
+      }
+      references.set(item, sequence.reference);
+      sequence.next = item.number + 1;
+    }
+  }
   const level = (depth: number, extra: number) => ({
     indent: {
       left: twips(depth * template.indent + template.hang + extra),
       hanging: twips(template.hang + extra),
     },
   });
-  const ordered = blocks
-    .filter((block): block is Extract<Block, { kind: 'list' }> => block.kind === 'list')
-    .map((block, index) => ({
-      reference: `numbers-${index + 1}`,
-      levels: [0, 1, 2, 3].map((depth) => ({
-        level: depth,
-        format: LevelFormat.DECIMAL,
-        text: `%${depth + 1}.`,
-        start: block.items.find((item) => item.ordered && item.depth === depth)?.number ?? 1,
-        alignment: AlignmentType.LEFT,
-        style: { paragraph: level(depth, 4) },
-      })),
-    }));
+  const ordered = sequences.map((sequence) => ({
+    reference: sequence.reference,
+    levels: [0, 1, 2, 3].map((depth) => ({
+      level: depth,
+      format: LevelFormat.DECIMAL,
+      text: `%${depth + 1}.`,
+      start: depth === sequence.depth ? sequence.start : 1,
+      alignment: AlignmentType.LEFT,
+      style: { paragraph: level(depth, 4) },
+    })),
+  }));
   return {
+    references,
     config: [
       {
         reference: 'bullets',
@@ -126,7 +147,7 @@ export async function formattedDocx(markdown: string, kind: DocumentKind, pages?
     runs.some((run) => run.kind === 'fill')
       ? { tabStops: [{ type: TabStopType.RIGHT, position: twips(width) }] }
       : {};
-  let lists = 0;
+  const lists = numbering(blocks, template);
   const paragraphs = blocks.flatMap((block): Paragraph[] => {
     if (block.kind === 'heading')
       return [
@@ -145,13 +166,12 @@ export async function formattedDocx(markdown: string, kind: DocumentKind, pages?
           spacing: { before: twips(3), after: twips(5), ...exact(2) },
         }),
       ];
-    lists++;
     return block.items.map(
       (item: ListItem, index) =>
         new Paragraph({
           children: children(item.runs),
           numbering: {
-            reference: item.ordered ? `numbers-${lists}` : 'bullets',
+            reference: item.ordered ? lists.references.get(item)! : 'bullets',
             level: item.depth,
           },
           spacing: {
@@ -200,7 +220,7 @@ export async function formattedDocx(markdown: string, kind: DocumentKind, pages?
         heading4: heading(3),
       },
     },
-    numbering: numbering(blocks, template),
+    numbering: { config: lists.config },
     sections: [
       {
         properties: {

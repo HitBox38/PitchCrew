@@ -174,6 +174,20 @@ describe('formatted exports', () => {
     expect(docxFile(bytes, 'docProps/core.xml')).toContain('1970-01-01T00:00:00Z');
   });
 
+  it('restarts ordered sequences after bullets and nested parent items', async () => {
+    const [docx] = await renderArtifacts(
+      resumePacket(
+        '1. First\n- Bullet\n1. Restart\n2. Next\n  1. Child\n3. Parent\n  1. Restart child',
+      ),
+      ['docx'],
+    );
+    const bytes = verifiedArtifact(docx);
+    const xml = docxFile(bytes, 'word/document.xml');
+    const ids = [...xml.matchAll(/<w:numId w:val="(\d+)"\/>/g)].map((match) => match[1]);
+    expect(ids[0]).not.toBe(ids[2]);
+    expect(ids[2]).toBe(ids[3]);
+    expect(ids[4]).not.toBe(ids[6]);
+  });
   it('counts pages and warns when the resume runs past one page', async () => {
     const long = Array.from(
       { length: 90 },
