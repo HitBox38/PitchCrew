@@ -6,6 +6,7 @@ import {
   normalizeApplicationText,
   transitions,
   type Card,
+  type CardInput,
   type TrackingSignal,
   type TrackingScan,
   type Approval,
@@ -45,6 +46,20 @@ export function searchApplications(board: Board, data: unknown) {
     nextOffset: query.offset + query.limit < cards.length ? query.offset + query.limit : null,
   };
 }
+/** Likely the same application: normalized company/title plus matching or missing URL, or job ID. */
+export function isLikelyDuplicateApplication(
+  card: Pick<Card, 'company' | 'title' | 'url' | 'tracking'>,
+  input: { company: string; title: string; url: string; jobIdentifier: string },
+): boolean {
+  return (
+    normalizeApplicationText(card.company) === normalizeApplicationText(input.company) &&
+    normalizeApplicationText(card.title) === normalizeApplicationText(input.title) &&
+    (!card.url ||
+      !input.url ||
+      canonicalJobUrl(card.url) === canonicalJobUrl(input.url) ||
+      (!!input.jobIdentifier && card.tracking?.jobIdentifier === input.jobIdentifier))
+  );
+}
 export function registerExternalApplication(board: Board, data: unknown): Card {
   const { submittedAt, jobIdentifier, note, ...input } = externalApplicationInput.parse(data);
   if (Date.parse(submittedAt) > Date.now())
@@ -52,34 +67,35 @@ export function registerExternalApplication(board: Board, data: unknown): Card {
   return board.db.transaction(() => {
     const duplicates = board
       .list<Card>('card')
-      .filter(
-        (card) =>
-          normalizeApplicationText(card.company) === normalizeApplicationText(input.company) &&
-          normalizeApplicationText(card.title) === normalizeApplicationText(input.title) &&
-          (!card.url ||
-            !input.url ||
-            canonicalJobUrl(card.url) === canonicalJobUrl(input.url) ||
-            (jobIdentifier && card.tracking?.jobIdentifier === jobIdentifier)),
-      );
+      .filter((card) => isLikelyDuplicateApplication(card, { ...input, jobIdentifier }));
     if (duplicates.length)
       throw new Error(
         `Application already tracked: ${duplicates.map((card) => card.id).join(', ')}. Review the existing card.`,
       );
-    const card = board.createCard(input);
-    const external: Card = {
-      ...card,
-      state: 'submitted',
-      statusEffectiveAt: submittedAt,
-      tracking: { origin: 'external', submittedAt, jobIdentifier, note, gmailThreads: [] },
-    };
-    board.record(
-      'card',
-      external,
-      'user',
+    return recordExternalApplication(
+      board,
+      input,
+      { submittedAt, jobIdentifier, note },
       'Registered a known external submission; no outward action',
     );
-    return external;
   })();
+}
+/** Saves a new submitted card with external provenance and no packet. Callers check duplicates. */
+export function recordExternalApplication(
+  board: Board,
+  input: CardInput,
+  submission: { submittedAt: string; jobIdentifier: string; note: string },
+  message: string,
+): Card {
+  const card = board.createCard(input);
+  const external: Card = {
+    ...card,
+    state: 'submitted',
+    statusEffectiveAt: submission.submittedAt,
+    tracking: { origin: 'external', ...submission, gmailThreads: [] },
+  };
+  board.record('card', external, 'user', message);
+  return external;
 }
 export function latestTrackingTime(board: Board, card: Card): number {
   let userBoundary = Date.parse(card.statusEffectiveAt ?? '') || 0;
