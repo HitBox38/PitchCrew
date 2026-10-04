@@ -25,10 +25,17 @@ export function createWorkspaceActions(
       try {
         const result = await api<unknown>(path, method, body);
         await get().reload();
-        if (success) set({ toast: typeof success === 'function' ? success(result) : success });
+        if (success)
+          set({
+            toast: typeof success === 'function' ? success(result) : success,
+            toastType: 'success',
+          });
         return result;
       } catch (error) {
-        set({ toast: error instanceof Error ? error.message : 'Action failed.' });
+        set({
+          toast: error instanceof Error ? error.message : 'Action failed.',
+          toastType: 'error',
+        });
         throw error;
       } finally {
         pendingActions -= 1;

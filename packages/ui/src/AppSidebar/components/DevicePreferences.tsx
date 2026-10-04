@@ -15,6 +15,7 @@ import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMen
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 import type { ThemeChoice } from '@/theme.ts';
 import { Copy } from 'lucide-react';
+import { SetupShortcut } from '@/Onboarding/components/SetupShortcut.tsx';
 
 export function DevicePreferences({
   ThemeIcon,
@@ -26,6 +27,7 @@ export function DevicePreferences({
   return (
     <SidebarFooter>
       <SidebarMenu>
+        <SetupShortcut />
         <SidebarMenuItem>
           <DropdownMenu>
             <DropdownMenuTrigger render={<SidebarMenuButton tooltip="Theme" />}>

@@ -1,5 +1,5 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { createToastManager } from '@/components/ui/toast/index.tsx';
+import { workspaceToasts } from '../toasts.ts';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { playNotificationSound, unlockNotificationAudio } from '../audio.ts';
 import {
@@ -20,7 +20,7 @@ const isPreferences = (value: unknown): value is NotificationPreferences =>
 
 export function useNotifications() {
   const data = useWorkspaceStore((s) => s.data);
-  const [toastManager] = useState(() => createToastManager<CrewNotification>());
+  const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());
   const items = useMemo(() => (data ? collectNotifications(data) : []), [data]);
   const [read, setRead] = useState(() => readStored(readKey, [] as string[], isIds));
@@ -29,7 +29,7 @@ export function useNotifications() {
   }));
   const [open, setPanelOpen] = useState(false);
   const setOpen = (value: boolean) => {
-    if (value) toastManager.close();
+    if (value) activeToasts.current.forEach((id) => toastManager.close(id));
     setPanelOpen(value);
   };
   const seen = useRef(new NotificationTracker());

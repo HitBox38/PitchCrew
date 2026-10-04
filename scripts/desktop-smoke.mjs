@@ -48,7 +48,7 @@ try {
     stdio: 'inherit',
     windowsHide: true,
   });
-  const timer = setTimeout(() => desktop.kill(), 30000);
+  const timer = setTimeout(() => desktop.kill(), 45000);
   const code = await new Promise((resolve, reject) => {
     desktop.on('error', reject);
     desktop.on('exit', resolve);
@@ -64,9 +64,12 @@ try {
     !result.uiReady ||
     !result.styleChecks ||
     !Object.values(result.styleChecks).every(Boolean) ||
+    !result.sheetChecks ||
+    !Object.values(result.sheetChecks).every(Boolean) ||
     !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
-      (!result.chatReady ||
+      (!result.onboardingReady ||
+        !result.chatReady ||
         !result.chatResponded ||
         !result.chatTabsReady ||
         result.chatStreamingUpdates < 2 ||

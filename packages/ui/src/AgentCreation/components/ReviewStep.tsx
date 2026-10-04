@@ -17,6 +17,7 @@ export function ReviewStep({ draft, data, goTo }: StepProps & Pick<CreationContr
           <div className="mb-2 flex items-center justify-between gap-3">
             <h4 className="font-semibold">{section.title}</h4>
             <Button
+              className="text-button"
               size="xs"
               variant="ghost"
               onClick={() => goTo(index)}

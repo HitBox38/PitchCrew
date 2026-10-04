@@ -1,11 +1,15 @@
 import type { AddOpportunityProps } from '@/components/AddOpportunity/types.ts';
 import { useState, type FormEvent } from 'react';
+import { tagValues } from '@/TagPicker/helpers.ts';
 
 export function useAddOpportunity({ action, working, onClose }: AddOpportunityProps) {
   const [error, setError] = useState('');
   const [external, setExternal] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagQuery, setTagQuery] = useState('');
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (working) return;
     const form = new FormData(e.currentTarget);
     setError('');
     try {
@@ -26,10 +30,7 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
           url: form.get('url'),
           salary: form.get('salary'),
           description: form.get('description'),
-          tags: String(form.get('tags'))
-            .split(',')
-            .map((s) => s.trim())
-            .filter(Boolean),
+          tags: tagValues([...tags, ...tagQuery.split(',')]),
         },
         external ? 'External application registered' : 'Job added',
       );
@@ -38,5 +39,17 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
       setError(e instanceof Error ? e.message : 'Could not add the job.');
     }
   }
-  return { working, onClose, error, setError, submit, external, setExternal };
+  return {
+    working,
+    onClose,
+    error,
+    setError,
+    submit,
+    external,
+    setExternal,
+    tags,
+    setTags,
+    tagQuery,
+    setTagQuery,
+  };
 }

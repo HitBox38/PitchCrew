@@ -1,5 +1,8 @@
 import type { Card, Role } from '@pitchcrew/core';
 import type { DraftFieldsProps } from '../types.ts';
+import { FormSelect } from '@/FormSelect/index.tsx';
+import { Input } from '@/components/ui/input/index.tsx';
+import { Textarea } from '@/components/ui/textarea/index.tsx';
 
 export function ActionFields({
   draft,
@@ -11,7 +14,7 @@ export function ActionFields({
     <>
       <label>
         Name
-        <input
+        <Input
           required
           maxLength={120}
           value={draft.name}
@@ -20,37 +23,30 @@ export function ActionFields({
         />
       </label>
       <div className="grid gap-4 sm:grid-cols-2">
-        <label>
-          Agent
-          <select
-            value={draft.roleId}
-            onChange={(event) => change({ roleId: event.target.value as Role['id'] })}
-          >
-            {roles
-              .filter((role) => !role.retiredAt)
-              .map((role) => (
-                <option key={role.id} value={role.id}>
-                  {role.name}
-                  {role.enabled ? '' : ' (paused)'}
-                </option>
-              ))}
-          </select>
-        </label>
-        <label>
-          Attached job
-          <select value={draft.cardId} onChange={(event) => change({ cardId: event.target.value })}>
-            <option value="">No job attached</option>
-            {cards.map((card) => (
-              <option key={card.id} value={card.id}>
-                {card.company} — {card.title}
-              </option>
-            ))}
-          </select>
-        </label>
+        <FormSelect
+          label="Agent"
+          value={draft.roleId}
+          onValueChange={(roleId) => change({ roleId })}
+          options={roles
+            .filter((role) => !role.retiredAt)
+            .map((role) => ({
+              value: role.id,
+              label: `${role.name}${role.enabled ? '' : ' (paused)'}`,
+            }))}
+        />
+        <FormSelect
+          label="Attached job"
+          value={draft.cardId}
+          onValueChange={(cardId) => change({ cardId })}
+          options={[
+            { value: '', label: 'No job attached' },
+            ...cards.map((card) => ({ value: card.id, label: `${card.company} — ${card.title}` })),
+          ]}
+        />
       </div>
       <label>
         What should the agent do?
-        <textarea
+        <Textarea
           required
           rows={4}
           maxLength={8000}

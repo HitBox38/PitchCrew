@@ -6,6 +6,8 @@ import { CalendarClock, Plus } from 'lucide-react';
 import { useRoutinesPage } from '../hooks/useRoutinesPage.ts';
 import { RoutineRow } from './RoutineRow.tsx';
 import { RoutineDialogs } from './RoutineDialogs.tsx';
+import { FormSelect } from '@/FormSelect/index.tsx';
+import { Input } from '@/components/ui/input/index.tsx';
 
 export function RoutinesWorkspace({
   data,
@@ -29,25 +31,25 @@ export function RoutinesWorkspace({
         </Button>
       </div>
       <div className="form grid gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
-        <input
-          aria-label="Search routines"
-          type="search"
-          placeholder="Search routines…"
-          value={controller.query}
-          onChange={(event) => controller.setQuery(event.target.value)}
-        />
-        <select
-          aria-label="Filter by agent"
+        <label>
+          Search routines
+          <Input
+            aria-label="Search routines"
+            type="search"
+            placeholder="Search routines…"
+            value={controller.query}
+            onChange={(event) => controller.setQuery(event.target.value)}
+          />
+        </label>
+        <FormSelect
+          label="Filter by agent"
           value={controller.filter}
-          onChange={(event) => controller.setFilter(event.target.value)}
-        >
-          <option value="all">All agents</option>
-          {data.roles.map((role) => (
-            <option key={role.id} value={role.id}>
-              {role.name}
-            </option>
-          ))}
-        </select>
+          onValueChange={controller.setFilter}
+          options={[
+            { value: 'all', label: 'All agents' },
+            ...data.roles.map((role) => ({ value: role.id, label: role.name })),
+          ]}
+        />
       </div>
       {controller.error && !controller.deleting ? (
         <p role="alert" className="form-error">

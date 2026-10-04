@@ -18,7 +18,7 @@ export function CreationFooter({
         </p>
       ) : null}
       <div className="flex items-center justify-between gap-3">
-        <Button variant="ghost" disabled={saving} onClick={step ? () => goTo(step - 1) : close}>
+        <Button className="button" disabled={saving} onClick={step ? () => goTo(step - 1) : close}>
           {step ? 'Back' : 'Cancel'}
         </Button>
         <Button type="submit" className="button primary" disabled={working || saving}>

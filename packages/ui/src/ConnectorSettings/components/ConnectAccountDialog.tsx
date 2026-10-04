@@ -65,10 +65,10 @@ export function ConnectAccountDialog({
           </p>
         ) : null}
         <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
-          <Button variant="outline" disabled={working} onClick={close}>
+          <Button className="button" disabled={working} onClick={close}>
             Cancel
           </Button>
-          <Button type="submit" disabled={working}>
+          <Button className="button primary" type="submit" disabled={working}>
             {working
               ? 'Connecting…'
               : editing === 'github'

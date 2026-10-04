@@ -1,4 +1,5 @@
 import { Board } from '@pitchcrew/board';
+import type { OnboardingPreferences } from '../onboarding.ts';
 import type { SkillPreview } from '@pitchcrew/core';
 import {
   type AgentTask,
@@ -31,6 +32,7 @@ export interface CrewContext {
   readonly daemonUrl: string;
   readonly mcpEntry: string;
   board: Board;
+  onboarding: OnboardingPreferences;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;
   profileWriting: boolean;

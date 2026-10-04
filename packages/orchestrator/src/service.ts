@@ -42,6 +42,9 @@ export class CrewService {
   get board() {
     return this.context.board;
   }
+  get onboarding() {
+    return this.context.onboarding;
+  }
   get connectors() {
     return this.context.connectors;
   }

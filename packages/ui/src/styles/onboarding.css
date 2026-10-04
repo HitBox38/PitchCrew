@@ -1,0 +1,53 @@
+.onboarding-dialog {
+  width: min(620px, calc(100vw - 32px));
+  padding: 30px;
+}
+.onboarding-title {
+  font-size: clamp(26px, 4vw, 36px);
+  line-height: 1.16;
+  max-width: 16ch;
+}
+.onboarding-brand {
+  color: var(--primary-deep);
+}
+.onboarding-crew {
+  padding: 8px 0;
+}
+.onboarding-crew li + li {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+.onboarding-crew strong {
+  font-size: 18px;
+}
+.onboarding-crew span:not(.role-avatar) {
+  color: var(--muted);
+  font-size: 14px;
+}
+.onboarding-handoff {
+  color: var(--teal);
+  background: var(--teal-soft);
+  border-radius: 12px;
+}
+.onboarding-checklist {
+  background-color: var(--surface);
+  background-image: var(--grain);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--primary);
+  border-radius: 12px 14px 13px 11px;
+  padding: 22px 24px;
+}
+@variant max-phone {
+  .onboarding-dialog {
+    padding: 22px;
+  }
+  .onboarding-checklist {
+    padding: 18px 16px;
+  }
+  .onboarding-checklist li {
+    flex-wrap: wrap;
+  }
+  .onboarding-checklist li .button {
+    margin-left: 31px;
+  }
+}

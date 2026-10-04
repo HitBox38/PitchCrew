@@ -10,10 +10,7 @@ export type WorkspaceHeadingProps = Pick<
   'view' | 'summary' | 'data' | 'setAdd' | 'working' | 'checkRuntimes'
 >;
 
-export type WorkspaceNotificationProps = Pick<
-  WorkspaceModel,
-  'toast' | 'reduced' | 'selectedRole' | 'setToast'
->;
+export type WorkspaceNotificationProps = Pick<WorkspaceModel, 'toast' | 'toastType' | 'setToast'>;
 
 export type WorkspacePaletteProps = Pick<
   WorkspaceModel,

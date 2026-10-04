@@ -2,6 +2,9 @@ import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { ScheduleFields } from '@/RoutinesPage/components/ScheduleFields.tsx';
 import type { RoutineDraft } from '@/RoutinesPage/types.ts';
 import type { StepProps } from '../types.ts';
+import { FormSelect } from '@/FormSelect/index.tsx';
+import { Input } from '@/components/ui/input/index.tsx';
+import { Textarea } from '@/components/ui/textarea/index.tsx';
 
 export function RoutineStep({ draft, changeDraft, data }: StepProps) {
   const change = (patch: Partial<RoutineDraft>) =>
@@ -24,7 +27,7 @@ export function RoutineStep({ draft, changeDraft, data }: StepProps) {
         <>
           <label>
             Routine name
-            <input
+            <Input
               required
               maxLength={120}
               value={draft.routine.name}
@@ -34,7 +37,7 @@ export function RoutineStep({ draft, changeDraft, data }: StepProps) {
           </label>
           <label>
             What should the agent do?
-            <textarea
+            <Textarea
               required
               rows={4}
               maxLength={8000}
@@ -43,20 +46,18 @@ export function RoutineStep({ draft, changeDraft, data }: StepProps) {
               placeholder="Describe the task and what it should report back to you."
             />
           </label>
-          <label>
-            Attached job
-            <select
-              value={draft.routine.cardId}
-              onChange={(event) => change({ cardId: event.target.value })}
-            >
-              <option value="">No job attached</option>
-              {data.cards.map((card) => (
-                <option key={card.id} value={card.id}>
-                  {card.company} — {card.title}
-                </option>
-              ))}
-            </select>
-          </label>
+          <FormSelect
+            label="Attached job"
+            value={draft.routine.cardId}
+            onValueChange={(cardId) => change({ cardId })}
+            options={[
+              { value: '', label: 'No job attached' },
+              ...data.cards.map((card) => ({
+                value: card.id,
+                label: `${card.company} — ${card.title}`,
+              })),
+            ]}
+          />
           <ScheduleFields draft={draft.routine} change={change} />
           <p className="quiet">
             Routines run while Pitchcrew is open, using this agent’s current settings and skills.

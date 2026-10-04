@@ -183,6 +183,7 @@ describe('workspace store', () => {
     expect(api).toHaveBeenCalledWith('/first', 'PUT', { enabled: true });
     expect(store.getState().data).toEqual(snapshot);
     expect(store.getState().toast).toBe('Saved');
+    expect(store.getState().toastType).toBe('success');
     expect(store.getState().working).toBe(true);
     second.resolve({ id: 'second' });
     await secondAction;
@@ -194,6 +195,7 @@ describe('workspace store', () => {
     vi.mocked(api).mockRejectedValueOnce(new Error('Denied'));
     await expect(store.getState().action('/save')).rejects.toThrow('Denied');
     expect(store.getState().toast).toBe('Denied');
+    expect(store.getState().toastType).toBe('error');
     expect(store.getState().working).toBe(false);
     vi.mocked(api).mockResolvedValueOnce({}).mockRejectedValueOnce(new Error('Offline'));
     await expect(store.getState().action('/save', 'POST', undefined, 'Saved')).rejects.toThrow(

@@ -17,6 +17,7 @@ export function SheetContent({
       <SheetOverlay />
       <SheetPrimitive.Popup
         data-slot="sheet-content"
+        data-sheet-content=""
         data-side={side}
         className={cn(
           'primitive:fixed primitive:z-50 primitive:flex primitive:flex-col primitive:gap-4 primitive:bg-background primitive:shadow-lg',

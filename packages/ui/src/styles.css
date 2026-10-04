@@ -18,7 +18,10 @@
 @import './styles/activity.css' layer(components);
 @import './styles/dialogs.css' layer(components);
 @import './styles/agent-creation.css' layer(components);
+@import './styles/onboarding.css' layer(components);
 @import './styles/forms.css' layer(components);
+@import './styles/tag-picker.css' layer(components);
+@import './styles/date-time-picker.css' layer(components);
 @import './styles/notifications.css' layer(components);
 @import './styles/toast.css' layer(components);
 @import './styles/job-details.css' layer(components);
