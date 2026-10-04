@@ -1,5 +1,6 @@
 import { Board } from '@pitchcrew/board';
 import type { OnboardingPreferences } from '../onboarding.ts';
+import type { PacketRulesStore } from '../packet-rules.ts';
 import type { SkillPreview } from '@pitchcrew/core';
 import {
   type AgentTask,
@@ -34,6 +35,7 @@ export interface CrewContext {
   readonly mcpEntry: string;
   board: Board;
   onboarding: OnboardingPreferences;
+  packetRules: PacketRulesStore;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;
   jobSources: JobSourceManager;
@@ -120,7 +122,7 @@ export interface CrewContext {
   finishTask(run: Run): void;
   taskPermissionsAllow(task: AgentTask): boolean;
   drainTasks(): Promise<void>;
-  exportPacket(id: string): Promise<string>;
+  exportPacket(id: string, assertActive?: () => void): Promise<string>;
   agentCall(
     token: string,
     action: string,

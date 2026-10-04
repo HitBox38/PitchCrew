@@ -13,7 +13,7 @@ import {
   type Run,
   type RunResult,
 } from '@pitchcrew/core';
-import { lintPacket, readProfile, writePacket } from '@pitchcrew/packet';
+import { readProfile, warningFeedback, writePacket } from '@pitchcrew/packet';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
@@ -98,6 +98,7 @@ export async function startRun(
     skills,
     request: task?.content,
     profile,
+    packetRules: this.packetRules.current().rules,
     directory: dir,
     mcp: {
       command: process.execPath,
@@ -175,13 +176,14 @@ export async function applyResult(
     );
   }
   if (result.role === 'writer') {
-    const problems = lintPacket(result.packet, profile);
-    if (problems.length) throw new Error(problems.join('\n'));
+    const check = await this.packetRules.check(result.packet, profile);
+    if (signal?.aborted) throw new Error('Run cancelled.');
+    if (check.errors.length) throw new Error(check.errors.join('\n'));
     await writePacket(this.directory, cardId, result.packet);
     if (signal?.aborted) throw new Error('Run cancelled.');
     this.board.updateCard(
       cardId,
-      { packet: result.packet, feedback: [] },
+      { packet: result.packet, feedback: warningFeedback(check.warnings) },
       role.id,
       'Drafted application packet',
     );
@@ -190,11 +192,16 @@ export async function applyResult(
   if (result.role === 'reviewer') {
     const card = this.board.get<Card>('card', cardId);
     if (!card.packet) throw new Error('No packet to review.');
-    const problems = [...lintPacket(card.packet, profile), ...result.feedback];
-    const passed = result.passed && problems.length === 0;
+    const check = await this.packetRules.check(card.packet, profile);
+    if (signal?.aborted) throw new Error('Run cancelled.');
+    // Reviewer feedback still fails the review; rule warnings are shown without blocking.
+    const passed = result.passed && check.errors.length === 0 && result.feedback.length === 0;
+    const feedback = [
+      ...new Set([...check.errors, ...result.feedback, ...warningFeedback(check.warnings)]),
+    ];
     this.board.updateCard(
       cardId,
-      { feedback: problems },
+      { feedback },
       role.id,
       passed ? 'Reviewer approved the packet' : 'Reviewer requested changes',
     );

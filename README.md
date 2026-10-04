@@ -70,6 +70,8 @@ New production workspaces start with paused Claude Code agents. Development defa
 
 PDF and DOCX exports currently render **literal Markdown text**, including its syntax. They are not designed resume layouts. Both have inline previews; DOCX layout may differ from Word. PDF rejects unsupported characters explicitly, while DOCX preserves Unicode.
 
+**Settings > Packet rules** holds your own mechanical house rules, such as word limits, bullets per job, exact employer headers and banned phrases. Errors block drafts, reviews and exports; warnings appear in review notes. See [packet rules](docs/packet-rules.md).
+
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
 ## Your crew
@@ -145,7 +147,7 @@ Local packet exports also require a single-use approval for the exact packet and
 
 ## Local data and privacy
 
-The default data folder is `~/.pitchcrew` (`%USERPROFILE%\.pitchcrew` on Windows). It contains the SQLite board and event history, profile notes, chats, skills, routines, role instructions, isolated run folders and versioned packets.
+The default data folder is `~/.pitchcrew` (`%USERPROFILE%\.pitchcrew` on Windows). It contains the SQLite board and event history, profile notes, chats, skills, routines, packet rules, role instructions, isolated run folders and versioned packets.
 
 Pitchcrew does not read, copy or store AI provider credentials. The runtime uses its native authentication. Connected GitHub and Google credentials are stored separately in `connectors/credentials.json` inside the data folder, as local JSON without encryption. Protect that folder using your operating system's account and disk protections.
 
@@ -166,7 +168,7 @@ pnpm dev
 - Job discovery covers public Greenhouse, Ashby and Lever boards you add yourself. Other job sites stay manual. There is no automatic outreach or email sender.
 - Routines require the local daemon to be running; there is no OS background scheduler.
 - Computer use covers an isolated Chromium browser, not the whole desktop.
-- Packet checks verify registered quotations and word limits. They cannot prove every sentence is factual; review the complete packet.
+- Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
 - Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.
 
 ## Development
@@ -182,7 +184,7 @@ Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted 
 | `packages/orchestrator` | Loopback daemon, run launches, crew tasks and routines      |
 | `packages/adapters`     | Provider-specific CLI and ACP integrations, plus Demo       |
 | `packages/mcp`          | Scoped tools, read-only connectors and export/browser gates |
-| `packages/packet`       | Evidence checks and versioned packet files                  |
+| `packages/packet`       | Evidence checks, packet rules and versioned packet files    |
 | `packages/ui`           | Shared browser and desktop renderer                         |
 | `packages/desktop`      | Sandboxed Electron host                                     |
 

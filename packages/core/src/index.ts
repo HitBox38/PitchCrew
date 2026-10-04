@@ -57,3 +57,23 @@ export type {
 } from './profile-maintenance.ts';
 export * from './submissions.ts';
 export * from './job-sources.ts';
+export {
+  defaultPacketRules,
+  describePacketRules,
+  hasNestedQuantifier,
+  packetDocumentLabels,
+  packetDocuments,
+  packetRuleIssues,
+  packetRuleLimits,
+  packetRuleSchema,
+  packetRulesSchema,
+  patternProblem,
+} from './packet-rules.ts';
+export type {
+  PacketDocument,
+  PacketRule,
+  PacketRuleIssue,
+  PacketRules,
+  PacketRulesState,
+  PacketRuleSeverity,
+} from './packet-rules.ts';

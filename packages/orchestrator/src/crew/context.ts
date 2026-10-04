@@ -1,5 +1,6 @@
 import { Board } from '@pitchcrew/board';
 import { OnboardingPreferences } from '../onboarding.ts';
+import { PacketRulesStore } from '../packet-rules.ts';
 import {
   type ChatMessage,
   type RoleId,
@@ -54,6 +55,7 @@ export function createCrewContext(
     mcpEntry,
     board,
     onboarding,
+    packetRules: new PacketRulesStore(directory),
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),
     jobSources: new JobSourceManager(directory, board),

@@ -77,6 +77,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
   const profile = await readProfile(this.directory);
   return {
     onboarding: this.onboarding.get(),
+    packetRules: this.packetRules.current(),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
     cards: this.board.list<Card>('card'),
