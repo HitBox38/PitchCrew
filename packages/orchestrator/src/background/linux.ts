@@ -99,7 +99,7 @@ export function linuxDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
       if (changed && before.running) await required('restart', systemdUnit);
     },
     async unregister(before) {
-      if (before.installed || before.running) await systemctl('disable', '--now', systemdUnit);
+      if (before.installed || before.running) await required('disable', '--now', systemdUnit);
       await host.remove(file);
       await systemctl('daemon-reload');
       await systemctl('reset-failed', systemdUnit);

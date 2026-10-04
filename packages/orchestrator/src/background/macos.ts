@@ -57,6 +57,14 @@ export function readProgramArguments(plist: string) {
     .slice(1);
 }
 
+/** launchctl uses disabled/enabled on newer macOS releases and true/false on older ones. */
+export function launchAgentDisabled(output: string) {
+  return output.split(/\r?\n/).some((line) => {
+    const entry = /^\s*"([^"]+)"\s*=>\s*(disabled|true|1)\s*;?\s*$/.exec(line);
+    return entry?.[1] === launchdLabel;
+  });
+}
+
 /** Reads `launchctl print gui/<uid>/<label>` output for the service's own state and process. */
 export function parseLaunchctlPrint(output: string) {
   const state = /^\s*state = (.+)$/m.exec(output)?.[1]?.trim() ?? '';
@@ -81,11 +89,12 @@ export function macosDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
   };
   // bootout returns before launchd finishes removing the job; bootstrap fails until it has.
   const bootout = async () => {
-    await host.run('launchctl', ['bootout', target]);
+    await required('bootout', target);
     for (let i = 0; i < 40; i++) {
       if ((await host.run('launchctl', ['print', target])).code !== 0) return;
       await host.sleep(250);
     }
+    throw new Error('launchctl bootout timed out: the background service is still loaded.');
   };
   return {
     file,
@@ -94,10 +103,16 @@ export function macosDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
     async inspect(): Promise<Inspection> {
       const plist = await host.readFile(file);
       const print = await host.run('launchctl', ['print', target]);
+      const disabled = await host.run('launchctl', ['print-disabled', domain]);
+      if (disabled.code !== 0)
+        throw new Error(
+          `launchctl print-disabled failed: ${(disabled.stderr || disabled.stdout).trim() || `exit ${disabled.code}`}`,
+        );
+      const enabled = !!plist && !launchAgentDisabled(disabled.stdout);
       const state = parseLaunchctlPrint(print.code === 0 ? print.stdout : '');
       return {
         installed: !!plist,
-        enabled: !!plist,
+        enabled,
         loaded: print.code === 0,
         running: state.running,
         pid: state.pid,
@@ -109,7 +124,7 @@ export function macosDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
       };
     },
     async register(changed, before) {
-      await host.run('launchctl', ['enable', target]);
+      await required('enable', target);
       if (before.loaded && changed) await bootout();
       if (!before.loaded || changed) await required('bootstrap', domain, file);
       else if (!before.running) await required('kickstart', target);

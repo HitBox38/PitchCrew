@@ -134,7 +134,7 @@ export function windowsDriver(spec: ServiceSpec, host: ServiceHost): PlatformDri
     async unregister(before, daemonPid) {
       if (before.installed) {
         await stop(daemonPid);
-        await schtasks('/Delete', '/TN', serviceName, '/F');
+        await required('/Delete', '/TN', serviceName, '/F');
       }
       await host.remove(file);
     },

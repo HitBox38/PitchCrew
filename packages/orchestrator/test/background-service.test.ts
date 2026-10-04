@@ -210,6 +210,7 @@ describe('install, status and uninstall', () => {
     ],
     macos: [
       'launchctl print gui/501/local.pitchcrew.daemon',
+      'launchctl print-disabled gui/501',
       'launchctl enable gui/501/local.pitchcrew.daemon',
       `launchctl bootstrap gui/501 ${definitionFile('macos')}`,
     ],
@@ -321,6 +322,70 @@ describe('install, status and uninstall', () => {
       'percent sign',
     );
   });
+
+  it('reports a launchd service disabled at login accurately', async () => {
+    const spec = fixtureSpecs.macos;
+    const fake = fakeServiceHost('macos', spec);
+    const service = createBackgroundService(spec, fake.host);
+    await service.install();
+    const run = fake.host.run;
+    fake.host.run = async (command, args) =>
+      args[0] === 'print-disabled'
+        ? {
+            code: 0,
+            stdout: '\n disabled services = {\n "local.pitchcrew.daemon" => disabled\n }\n',
+            stderr: '',
+          }
+        : run(command, args);
+    expect(await service.status()).toMatchObject({
+      installed: true,
+      enabled: false,
+      running: true,
+    });
+  });
+
+  it('surfaces launchd login-state query failures instead of assuming enabled', async () => {
+    const spec = fixtureSpecs.macos;
+    const fake = fakeServiceHost('macos', spec);
+    const run = fake.host.run;
+    fake.host.run = async (command, args) =>
+      args[0] === 'print-disabled'
+        ? { code: 1, stdout: '', stderr: 'Login state unavailable' }
+        : run(command, args);
+    await expect(createBackgroundService(spec, fake.host).status()).rejects.toThrow(
+      'Login state unavailable',
+    );
+  });
+
+  it('keeps the definition if launchd never finishes bootout', async () => {
+    const spec = fixtureSpecs.macos;
+    const fake = fakeServiceHost('macos', spec);
+    const service = createBackgroundService(spec, fake.host);
+    await service.install();
+    const run = fake.host.run;
+    fake.host.run = async (command, args) =>
+      args[0] === 'bootout' ? { code: 0, stdout: '', stderr: '' } : run(command, args);
+    await expect(service.uninstall()).rejects.toThrow('still loaded');
+    expect(fake.files.has(definitionFile('macos'))).toBe(true);
+  });
+
+  it.each(['macos', 'linux', 'windows'] as const)(
+    'keeps service files when %s refuses to remove its registered job',
+    async (platform) => {
+      const spec = fixtureSpecs[platform];
+      const fake = fakeServiceHost(platform, spec);
+      const service = createBackgroundService(spec, fake.host);
+      await service.install();
+      const run = fake.host.run;
+      const action = { macos: 'bootout', linux: 'disable', windows: '/Delete' }[platform];
+      fake.host.run = async (command, args) =>
+        args.includes(action)
+          ? { code: 1, stdout: '', stderr: 'Service manager refused removal' }
+          : run(command, args);
+      await expect(service.uninstall()).rejects.toThrow('Service manager refused removal');
+      expect(fake.files.has(definitionFile(platform))).toBe(true);
+    },
+  );
 
   it('keeps the previous definition when the service manager rejects an install', async () => {
     const spec = fixtureSpecs.linux;

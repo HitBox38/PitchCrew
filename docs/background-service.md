@@ -71,7 +71,7 @@ No other variable is copied into a service definition. Provider API keys stay ou
 
 ## One daemon per data folder
 
-A daemon writes `daemon.lock` to its data folder while it runs. A second daemon for the same folder refuses to start before it opens the board, so it cannot mark the first daemon's runs as interrupted. A daemon also refuses a port where another Pitchcrew daemon answers. A lock left by a crash or a restart is replaced automatically.
+A daemon writes `daemon.lock` to its data folder while it runs. A second daemon for the same folder refuses to start before it opens the board, so it cannot mark the first daemon's runs as interrupted. A daemon also refuses a port where another Pitchcrew daemon answers. A lock left by a crash or a restart is replaced automatically. A separate empty `daemon-lock.sqlite` file uses SQLite's operating-system locks to serialize competing claims and releases; it contains no board data, and a crash releases its lock automatically.
 
 The background service waits instead of failing. It checks every 15 seconds and starts as soon as the other daemon stops. `pnpm service status` reports that it is waiting.
 

@@ -122,6 +122,26 @@ describe('single daemon per data folder', () => {
     ).rejects.toThrow('starting');
   });
 
+  it('allows only one contender to reclaim a stale lock', async () => {
+    const directory = await folder();
+    for (let round = 0; round < 30; round++) {
+      await writeFile(join(directory, 'daemon.lock'), JSON.stringify(lock({ pid: 2147483647 })));
+      const results = await Promise.allSettled(
+        Array.from({ length: 12 }, () =>
+          acquireDaemonLock(directory, { port: 15374, service: false }),
+        ),
+      );
+      const owners = results.flatMap((result) =>
+        result.status === 'fulfilled' ? [result.value] : [],
+      );
+      try {
+        expect(owners).toHaveLength(1);
+      } finally {
+        await Promise.all(owners.map((owner) => owner.release()));
+      }
+    }
+  });
+
   it('serves background service status only to a local UI session', async () => {
     const status: BackgroundServiceStatus = {
       platform: 'linux',

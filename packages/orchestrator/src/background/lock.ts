@@ -3,6 +3,7 @@ import { open, readFile, rm, stat } from 'node:fs/promises';
 import { uptime } from 'node:os';
 import { join } from 'node:path';
 import { lockFileName } from './paths.ts';
+import { withLockMutation } from './lock-mutation.ts';
 
 /** Contents of daemon.lock in the data folder while a daemon owns it. */
 export interface DaemonLock {
@@ -114,6 +115,14 @@ export async function acquireDaemonLock(
   options: { port: number; service: boolean },
   checks: LockChecks = defaultLockChecks,
 ) {
+  return withLockMutation(directory, () => claimDaemonLock(directory, options, checks));
+}
+
+async function claimDaemonLock(
+  directory: string,
+  options: { port: number; service: boolean },
+  checks: LockChecks,
+) {
   const file = join(directory, lockFileName);
   const lock: DaemonLock = {
     pid: process.pid,
@@ -134,8 +143,10 @@ export async function acquireDaemonLock(
       return {
         lock,
         async release() {
-          const current = await readFile(file, 'utf8').catch(() => '');
-          if (parseDaemonLock(current)?.token === lock.token) await rm(file, { force: true });
+          await withLockMutation(directory, async () => {
+            const current = await readFile(file, 'utf8').catch(() => '');
+            if (parseDaemonLock(current)?.token === lock.token) await rm(file, { force: true });
+          });
         },
       };
     } catch (error) {
