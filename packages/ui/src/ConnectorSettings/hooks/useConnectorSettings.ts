@@ -2,7 +2,7 @@ import type { ConnectorSettingsProps } from '@/ConnectorSettings/types.ts';
 import { useState, type FormEvent } from 'react';
 
 export function useConnectorSettings({ data, action, working }: ConnectorSettingsProps) {
-  const [editing, setEditing] = useState<'github' | 'google' | null>(null);
+  const [editing, setEditing] = useState<'github' | 'google' | 'google-cli' | null>(null);
   const [token, setToken] = useState('');
   const [clientId, setClientId] = useState('');
   const [clientSecret, setClientSecret] = useState('');
@@ -69,6 +69,15 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
       setError(e instanceof Error ? e.message : 'Could not connect GitHub CLI.');
     }
   }
+  async function connectGoogleCli() {
+    setError('');
+    try {
+      await action('/connectors/google/connect', 'POST', { mode: 'cli' }, 'Google connected');
+      close();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not connect Google Workspace CLI.');
+    }
+  }
   return {
     data,
     action,
@@ -90,6 +99,7 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
     open,
     github,
     connectGithubCli,
+    connectGoogleCli,
     close,
     connect,
   };

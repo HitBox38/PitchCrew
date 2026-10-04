@@ -32,7 +32,10 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
               <p className="quiet">Granted: {connector.services.join(', ')}</p>
             ) : null}
             {connector.connected && connector.connectionMethod === 'cli' ? (
-              <p className="quiet">Uses your GitHub CLI login. Credentials stay with GitHub CLI.</p>
+              <p className="quiet">
+                Uses your {connector.id === 'github' ? 'GitHub' : 'Google Workspace'} CLI login.
+                Credentials stay with the CLI.
+              </p>
             ) : null}
           </div>
           <span className={`badge ${connector.connected ? 'success' : ''}`}>

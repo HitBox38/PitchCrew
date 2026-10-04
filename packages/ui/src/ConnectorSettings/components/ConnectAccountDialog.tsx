@@ -2,11 +2,13 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { GoogleConnectionSetup } from '@/ConnectorSettings/components/GoogleConnectionSetup.tsx';
 import { GithubConnectionDialog } from './GithubConnectionDialog.tsx';
+import { GoogleCliConnectionDialog } from './GoogleCliConnectionDialog.tsx';
 import type { ConnectAccountDialogProps } from '@/ConnectorSettings/types.ts';
 
 export function ConnectAccountDialog(props: ConnectAccountDialogProps) {
   const { editing, close, connect, google, error, working, customGoogle, clientId } = props;
   if (editing === 'github') return <GithubConnectionDialog {...props} />;
+  if (editing === 'google-cli') return <GoogleCliConnectionDialog {...props} />;
   return (
     <Modal title="Connect Google" onClose={close}>
       <form className="form flex flex-col gap-4" onSubmit={(e) => void connect(e)}>

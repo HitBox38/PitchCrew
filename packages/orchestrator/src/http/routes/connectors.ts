@@ -8,7 +8,14 @@ export function registerConnectorsRoutes(app: FastifyInstance, service: CrewServ
     res.send(await service.connectors.connectGithub(req.body)),
   );
   app.post('/api/connectors/google/connect', async (req, res) =>
-    res.send(await service.connectors.connectGoogle(req.body)),
+    res.send(
+      z
+        .object({ mode: z.literal('cli') })
+        .strict()
+        .safeParse(req.body).success
+        ? await service.connectors.connectGoogleCli()
+        : await service.connectors.connectGoogle(req.body),
+    ),
   );
   app.post<IdRoute>('/api/connectors/:id/disconnect', async (req, res) =>
     res.send(

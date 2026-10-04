@@ -19,6 +19,8 @@ export type ConnectAccountDialogProps = Pick<
   | 'google'
   | 'github'
   | 'connectGithubCli'
+  | 'connectGoogleCli'
+  | 'setEditing'
   | 'clientId'
   | 'setClientId'
   | 'clientSecret'
@@ -35,7 +37,10 @@ export type ConnectedAccountsProps = Pick<
 >;
 
 export type GoogleConnectionSetupProps = GoogleCredentialsProps &
-  Pick<ConnectorSettingsModel, 'google' | 'customGoogle' | 'setCustomGoogle'>;
+  Pick<
+    ConnectorSettingsModel,
+    'google' | 'customGoogle' | 'setCustomGoogle' | 'setEditing' | 'working'
+  >;
 
 export type GoogleCredentialsProps = Pick<
   ConnectorSettingsModel,
