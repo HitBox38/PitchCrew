@@ -1,21 +1,15 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccountActions } from '@/ConnectorSettings/components/AccountActions.tsx';
 import type { ConnectedAccountsProps } from '@/ConnectorSettings/types.ts';
-import { Link, Unplug } from 'lucide-react';
+import { Link } from 'lucide-react';
 
-export function ConnectedAccounts({
-  data,
-  working,
-  action,
-  setError,
-  setEditing,
-}: ConnectedAccountsProps) {
+export function ConnectedAccounts({ data, working, action, open }: ConnectedAccountsProps) {
   return (
     <div className="runtime-list">
       {data.connectors.map((connector) => (
         <div className="runtime-row connector-row" key={connector.id}>
           <Link size={18} aria-hidden="true" />
           <div>
-            <strong>{connector.id === 'github' ? 'GitHub' : 'Google Workspace'}</strong>
+            <strong>{connector.id === 'github' ? 'GitHub' : 'Google'}</strong>
             <p>
               {connector.connected
                 ? connector.account
@@ -41,33 +35,7 @@ export function ConnectedAccounts({
           <span className={`badge ${connector.connected ? 'success' : ''}`}>
             {connector.connected ? 'Connected' : connector.pending ? 'Signing in…' : 'Disconnected'}
           </span>
-          {connector.connected || connector.pending ? (
-            <Button
-              className="button"
-              disabled={working}
-              onClick={() =>
-                void action(
-                  `/connectors/${connector.id}/disconnect`,
-                  'POST',
-                  {},
-                  'Account disconnected',
-                ).catch(() => {})
-              }
-            >
-              <Unplug size={14} /> {connector.pending ? 'Cancel sign-in' : 'Disconnect'}
-            </Button>
-          ) : (
-            <Button
-              className="button"
-              disabled={working}
-              onClick={() => {
-                setError('');
-                setEditing(connector.id);
-              }}
-            >
-              Connect
-            </Button>
-          )}
+          <AccountActions connector={connector} working={working} action={action} open={open} />
         </div>
       ))}
     </div>

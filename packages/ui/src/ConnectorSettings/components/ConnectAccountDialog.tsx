@@ -2,8 +2,7 @@ import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { GithubInstructions } from '@/ConnectorSettings/components/GithubInstructions.tsx';
-import { GoogleCredentials } from '@/ConnectorSettings/components/GoogleCredentials.tsx';
-import { GoogleInstructions } from '@/ConnectorSettings/components/GoogleInstructions.tsx';
+import { GoogleConnectionSetup } from '@/ConnectorSettings/components/GoogleConnectionSetup.tsx';
 import type { ConnectAccountDialogProps } from '@/ConnectorSettings/types.ts';
 
 export function ConnectAccountDialog({
@@ -19,12 +18,11 @@ export function ConnectAccountDialog({
   setClientSecret,
   error,
   working,
+  customGoogle,
+  setCustomGoogle,
 }: ConnectAccountDialogProps) {
   return (
-    <Modal
-      title={editing === 'github' ? 'Connect GitHub' : 'Connect Google Workspace'}
-      onClose={close}
-    >
+    <Modal title={editing === 'github' ? 'Connect GitHub' : 'Connect Google'} onClose={close}>
       <form className="form flex flex-col gap-4" onSubmit={(e) => void connect(e)}>
         {editing === 'github' ? (
           <>
@@ -42,22 +40,15 @@ export function ConnectAccountDialog({
             </label>
           </>
         ) : (
-          <>
-            <GoogleInstructions />
-            {!google?.configured ? (
-              <GoogleCredentials
-                clientId={clientId}
-                setClientId={setClientId}
-                clientSecret={clientSecret}
-                setClientSecret={setClientSecret}
-              />
-            ) : null}
-            <p className="quiet">
-              The browser will ask for read permissions. You can decline individual services.
-              Connector credentials are stored in your local data directory and never included in
-              agent prompts.
-            </p>
-          </>
+          <GoogleConnectionSetup
+            google={google}
+            customGoogle={customGoogle}
+            setCustomGoogle={setCustomGoogle}
+            clientId={clientId}
+            setClientId={setClientId}
+            clientSecret={clientSecret}
+            setClientSecret={setClientSecret}
+          />
         )}
         {error ? (
           <p role="alert" className="form-error">
@@ -68,7 +59,14 @@ export function ConnectAccountDialog({
           <Button className="button" disabled={working} onClick={close}>
             Cancel
           </Button>
-          <Button className="button primary" type="submit" disabled={working}>
+          <Button
+            className="button primary"
+            type="submit"
+            disabled={
+              working ||
+              (editing === 'google' && (customGoogle ? !clientId.trim() : !google?.configured))
+            }
+          >
             {working
               ? 'Connecting…'
               : editing === 'github'

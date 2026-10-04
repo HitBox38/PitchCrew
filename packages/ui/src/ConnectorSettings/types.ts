@@ -23,12 +23,17 @@ export type ConnectAccountDialogProps = Pick<
   | 'setClientSecret'
   | 'error'
   | 'working'
+  | 'customGoogle'
+  | 'setCustomGoogle'
 >;
 
 export type ConnectedAccountsProps = Pick<
   ConnectorSettingsModel,
-  'data' | 'working' | 'action' | 'setError' | 'setEditing'
+  'data' | 'working' | 'action' | 'open'
 >;
+
+export type GoogleConnectionSetupProps = GoogleCredentialsProps &
+  Pick<ConnectorSettingsModel, 'google' | 'customGoogle' | 'setCustomGoogle'>;
 
 export type GoogleCredentialsProps = Pick<
   ConnectorSettingsModel,
