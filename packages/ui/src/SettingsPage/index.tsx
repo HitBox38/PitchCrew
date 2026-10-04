@@ -1,3 +1,4 @@
+import { BackgroundServiceSettings } from '@/BackgroundServiceSettings/index.tsx';
 import { ConnectorSettings } from '@/ConnectorSettings/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
@@ -38,6 +39,7 @@ export function SettingsPage() {
       </TabsContent>
       <TabsContent className="settings-content" value="data">
         <DataSettings directory={data.dataDirectory} />
+        <BackgroundServiceSettings />
       </TabsContent>
     </Tabs>
   );
