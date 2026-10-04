@@ -1,6 +1,6 @@
 # Watched profile maintenance
 
-Profile maintenance supplies the tools for a future Documenter seat. It does not create a role, turn on account access, or change live user data during installation.
+Documenter is a default crew member with profile-maintenance and routine-management tools configured. Production defaults start paused. Account access stays disabled: connect the relevant account, enable GitHub or Drive for Documenter, and choose watched sources in Profile. Startup adds no watches or schedules and changes no profile notes. The same tools remain available to any user-configured role.
 
 On Profile, enable watching for an imported GitHub or Drive folder. To watch a project's code changes without importing project documentation as personal facts, use the GitHub source form, choose the repository and optional branch/tag and folder, and select **Watch project changes**. Leave the folder empty to permit investigation throughout that repository. Adding a project watch records its current commit as the baseline; it imports no profile notes. There are at most 20 source connections, including project watches.
 
