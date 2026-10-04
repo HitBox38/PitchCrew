@@ -28,7 +28,7 @@ export function record(
   return this.db.transaction(() => {
     const event: BoardEvent = {
       id: 0,
-      version: 9,
+      version: 10,
       kind,
       entityId: data.id,
       data,

@@ -26,6 +26,16 @@ export {
   applyTrackingSignal,
   completeTrackingMessage,
 } from './board/tracking.ts';
+export {
+  setCardWeight,
+  addCardLesson,
+  removeCardLesson,
+  mergeTags,
+  boardInsights,
+  statusSince,
+  staleSubmissions,
+  markStaleSubmissions,
+} from './board/learning.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {
