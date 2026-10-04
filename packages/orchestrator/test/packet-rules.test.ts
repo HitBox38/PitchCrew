@@ -8,6 +8,7 @@ import {
   type Run,
   type Snapshot,
 } from '@pitchcrew/core';
+import { verifiedArtifact } from '@pitchcrew/packet';
 import { symlink, readFile, utimes, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -88,6 +89,62 @@ function pauseChecks(service: Awaited<ReturnType<typeof setup>>['daemon']['servi
 }
 
 describe('packet rules', () => {
+  it.each(['formatted', 'plain'] as const)(
+    'rechecks rules before exporting exact frozen %s PDF and DOCX artifacts',
+    async (layout) => {
+      const { daemon, request, cookie } = await setup(layout === 'formatted' ? 15383 : 15384);
+      const agreed = await draftAndReview(request);
+      const { response, result: approval } = await request<Approval>(
+        `/cards/${agreed.id}/approval`,
+        'POST',
+        { formats: ['pdf', 'docx'], layout },
+      );
+      expect(response.status).toBe(201);
+      expect(approval.artifacts).toHaveLength(4);
+      const frozen = new Map<string, Buffer>();
+      for (const artifact of approval.artifacts!) {
+        const preview = await fetch(
+          `${daemon.url}/api/approvals/${approval.id}/artifacts/${artifact.name}`,
+          { headers: { cookie, 'x-pitchcrew-client': 'ui' } },
+        );
+        expect(preview.status).toBe(200);
+        const bytes = Buffer.from(await preview.arrayBuffer());
+        expect(bytes).toEqual(verifiedArtifact(artifact));
+        frozen.set(artifact.name, bytes);
+      }
+      const { result: snapshot } = await request<Snapshot>('/snapshot');
+      expect(snapshot.packetRules?.rules).toEqual(defaultPacketRules);
+      expect(snapshot.artifactPages).toEqual(
+        Object.fromEntries(
+          approval
+            .artifacts!.filter(
+              (artifact) => layout === 'formatted' || artifact.mimeType === 'application/pdf',
+            )
+            .map((artifact) => [artifact.digest, 1]),
+        ),
+      );
+      await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
+      await request('/packet-rules', 'PUT', { version: 1, rules: [blockGreeting] });
+      const blocked = await request<{ error: string }>(`/approvals/${approval.id}/export`, 'POST');
+      expect(blocked.response.status).toBe(400);
+      expect(blocked.result.error).toContain('Address a named person');
+      expect(daemon.service.board.get<Approval>('approval', approval.id)).toMatchObject({
+        status: 'approved',
+        artifacts: approval.artifacts,
+        artifactDigest: approval.artifactDigest,
+      });
+      await request('/packet-rules', 'DELETE');
+      const exported = await request<{ directory: string }>(
+        `/approvals/${approval.id}/export`,
+        'POST',
+      );
+      expect(exported.response.status).toBe(200);
+      for (const [name, bytes] of frozen)
+        expect(await readFile(join(exported.result.directory, name))).toEqual(bytes);
+      expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('consumed');
+    },
+  );
+
   it('uses the defaults without a file and lets only the UI session change rules', async () => {
     const { daemon, request, directory } = await setup(15371);
     const before = await daemon.service.snapshot();
@@ -268,7 +325,10 @@ describe('packet rules', () => {
   it('rejects export when managed profile notes change during rule checks', async () => {
     const { daemon, request } = await setup(15381);
     const agreed = await draftAndReview(request);
-    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST');
+    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST', {
+      formats: ['pdf', 'docx'],
+    });
+    expect(approval.artifacts).toHaveLength(4);
     await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
     const paused = pauseChecks(daemon.service);
     const pending = request<{ error: string }>(`/approvals/${approval.id}/export`, 'POST');
@@ -284,7 +344,10 @@ describe('packet rules', () => {
   it('rejects an agent export when its run capability expires during rule checks', async () => {
     const { daemon, request } = await setup(15382);
     const agreed = await draftAndReview(request);
-    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST');
+    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST', {
+      formats: ['pdf', 'docx'],
+    });
+    expect(approval.artifacts).toHaveLength(4);
     await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
     daemon.service.capabilities.set('export-fixture', {
       runId: 'fixture',
@@ -308,7 +371,10 @@ describe('packet rules', () => {
     const agreed = await draftAndReview(request);
     const slowPacket = { ...agreed.packet!, resume: `Built React interfaces.\n${'a'.repeat(40)}!` };
     daemon.service.board.updateCard(agreed.id, { packet: slowPacket }, 'user', 'Fixture packet');
-    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST');
+    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST', {
+      formats: ['pdf', 'docx'],
+    });
+    expect(approval.artifacts).toHaveLength(4);
     await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
     await request('/packet-rules', 'PUT', {
       version: 1,
@@ -400,6 +466,7 @@ describe('packet rules', () => {
     });
     expect(lint).toEqual({
       problems: [],
+      layout: { resumePages: 1, coverLetterPages: 1, warnings: [] },
       warnings: [
         'Address a named person when you can. (Cover letter: 1 match, "Dear Fixture Co team,")',
       ],

@@ -50,7 +50,7 @@ export function registerPacketTools(server: McpServer, call: AgentCall) {
     {
       title: 'Check packet evidence',
       description:
-        "Check exact source quotes and the user's packet rules. problems lists blocking errors; warnings are advisory. findings give each rule id, severity and document. This is a mechanical check, not a complete factual review.",
+        "Check exact source quotes and the user's packet rules. problems lists blocking errors; warnings are advisory. findings give each rule id, severity and document. layout reports formatted PDF page counts and warnings, including the one-page resume target. This is a mechanical check, not a complete factual review.",
       inputSchema: { packet: packetSchema },
       annotations: readOnly,
     },

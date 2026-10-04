@@ -44,6 +44,8 @@ export interface Snapshot {
   skillProposals: SkillProposal[];
   runs: Run[];
   approvals: Approval[];
+  // Page counts derived from frozen artifact bytes, keyed by artifact SHA-256 digest.
+  artifactPages?: Record<string, number>;
   computerApprovals: ComputerApproval[];
   events: BoardEvent[];
   profile: ProfileFile[];

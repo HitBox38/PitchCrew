@@ -9,18 +9,19 @@ import { CrewService } from '../../service.ts';
 
 export function registerApprovalsRoutes(app: FastifyInstance, service: CrewService) {
   app.post<IdRoute>('/api/cards/:id/approval', async (req, res) => {
-    const { formats } = z
+    const { formats, layout } = z
       .object({
         formats: z
           .array(z.enum(['pdf', 'docx']))
           .max(2)
           .default([]),
+        layout: z.enum(['formatted', 'plain']).default('formatted'),
       })
       .parse(req.body ?? {});
     const card = service.board.get<Card>('card', req.params.id);
     if (card.state !== 'agreed' || !card.packet) throw new Error('A reviewed packet is required.');
     const digest = digestPacket(card.id, card.packet);
-    const artifacts = await renderArtifacts(card.packet, [...new Set(formats)]);
+    const artifacts = await renderArtifacts(card.packet, [...new Set(formats)], layout);
     const current = service.board.get<Card>('card', card.id);
     if (!current.packet || digestPacket(card.id, current.packet) !== digest)
       throw new Error('Packet changed during rendering.');

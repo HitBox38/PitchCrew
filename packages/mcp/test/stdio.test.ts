@@ -225,7 +225,12 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet } }))
         .structuredContent,
-    ).toEqual({ problems: [], warnings: [], findings: [] });
+    ).toEqual({
+      problems: [],
+      warnings: [],
+      findings: [],
+      layout: { resumePages: 1, coverLetterPages: 1, warnings: [] },
+    });
     const rules = await client.callTool({ name: 'pitchcrew_get_packet_rules', arguments: {} });
     expect(rules.structuredContent).toMatchObject({
       custom: false,

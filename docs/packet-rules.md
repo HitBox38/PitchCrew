@@ -32,7 +32,7 @@ Only you can change rules, through the local UI session. Agents can read them:
 
 - Writer and Reviewer workflow runs get a short summary of the rules in their prompt.
 - `pitchcrew_get_packet_rules` returns the rules and the summary.
-- `pitchcrew_lint_packet` checks a draft and returns `problems` (errors), `warnings` and `findings`. Each finding has a rule id, severity, document and message. Claim problems use the rule id `claims`.
+- `pitchcrew_lint_packet` checks a draft and returns `problems` (errors), `warnings`, `findings` and `layout`. Each finding has a rule id, severity, document and message. Claim problems use the rule id `claims`. The layout report includes formatted PDF page counts and advisory layout warnings, independently of the packet rules.
 
 No agent tool writes rules.
 

@@ -8,7 +8,7 @@ import {
   type Card,
   type Role,
 } from '@pitchcrew/core';
-import { readProfile } from '@pitchcrew/packet';
+import { checkLayout, readProfile } from '@pitchcrew/packet';
 import { z } from 'zod';
 import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
@@ -123,7 +123,12 @@ export async function agentCall(
     const parsed = runResultSchema.parse({ role: 'writer', packet: data.packet });
     if (parsed.role !== 'writer') throw new Error('Invalid packet.');
     const check = await this.packetRules.check(parsed.packet, await readProfile(this.directory));
-    return { problems: check.errors, warnings: check.warnings, findings: check.findings };
+    return {
+      problems: check.errors,
+      warnings: check.warnings,
+      findings: check.findings,
+      layout: await checkLayout(parsed.packet),
+    };
   }
   if (action === 'packet_rules') {
     const state = this.packetRules.current();

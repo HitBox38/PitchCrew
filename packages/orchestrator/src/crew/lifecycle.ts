@@ -13,7 +13,7 @@ import {
   type TrackingSignal,
   type TrackingScan,
 } from '@pitchcrew/core';
-import { readProfile } from '@pitchcrew/packet';
+import { artifactPages, readProfile } from '@pitchcrew/packet';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
@@ -75,7 +75,7 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
 export async function snapshot(this: CrewContext): Promise<Snapshot> {
   // Finish filesystem reads before collecting board state, so no run can advance between entities.
   const profile = await readProfile(this.directory);
-  return {
+  const snapshot: Snapshot = {
     onboarding: this.onboarding.get(),
     packetRules: this.packetRules.current(),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
@@ -102,6 +102,9 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     routines: routines.call(this),
     connectors: this.connectors.status(),
   };
+  // Derived from the approvals collected above, after all board reads.
+  const artifacts = snapshot.approvals.flatMap((approval) => approval.artifacts ?? []);
+  return { ...snapshot, artifactPages: await artifactPages(artifacts) };
 }
 export async function close(this: CrewContext): Promise<void> {
   this.closing = true;

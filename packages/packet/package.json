@@ -5,8 +5,10 @@
   "type": "module",
   "exports": "./src/index.ts",
   "dependencies": {
+    "@pdf-lib/fontkit": "^1.1.1",
     "@pitchcrew/core": "workspace:*",
     "docx": "^9.8.1",
-    "pdf-lib": "^1.17.1"
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.3.289"
   }
 }

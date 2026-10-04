@@ -1,6 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import type { Approval, PacketArtifact } from '@pitchcrew/core';
 import { useArtifactUrl } from '../hooks/useArtifactUrl.ts';
+import { type ArtifactPages, pageLabel } from '../helpers.ts';
 
 const PacketPdfPreview = lazy(() => import('@/PacketPdfPreview/index.tsx'));
 const PacketDocxPreview = lazy(() => import('@/PacketDocxPreview/index.tsx'));
@@ -8,11 +9,14 @@ const PacketDocxPreview = lazy(() => import('@/PacketDocxPreview/index.tsx'));
 export function ArtifactDocument({
   approval,
   artifact,
+  pages,
 }: {
   approval: Approval;
   artifact: PacketArtifact;
+  pages: ArtifactPages;
 }) {
   const { url, setOpened } = useArtifactUrl(artifact);
+  const count = pageLabel(artifact, pages);
   const [opened, setPreviewOpened] = useState(false);
   return (
     <details
@@ -23,7 +27,7 @@ export function ArtifactDocument({
       }}
     >
       <summary>
-        {artifact.name} ·{' '}
+        {artifact.name} · {count ? `${count} · ` : ''}
         {(
           (artifact.bytes.length * 3) / 4 -
           (artifact.bytes.endsWith('==') ? 2 : artifact.bytes.endsWith('=') ? 1 : 0)
