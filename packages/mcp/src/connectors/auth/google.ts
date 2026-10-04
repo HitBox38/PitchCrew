@@ -17,10 +17,12 @@ export async function connectGoogle(
     .strict()
     .parse(value);
   const clientId = input.clientId ?? process.env.PITCHCREW_GOOGLE_CLIENT_ID;
-  const clientSecret = input.clientSecret ?? process.env.PITCHCREW_GOOGLE_CLIENT_SECRET ?? '';
+  const clientSecret = input.clientId
+    ? (input.clientSecret ?? '')
+    : (input.clientSecret ?? process.env.PITCHCREW_GOOGLE_CLIENT_SECRET ?? '');
   if (!clientId)
     throw new Error(
-      'Enter a Google Desktop OAuth client ID, or set PITCHCREW_GOOGLE_CLIENT_ID and restart the daemon.',
+      'Google sign-in is not configured in this installation. Ask the person who manages Pitchcrew to finish setup, or use Advanced setup to connect your own Google app.',
     );
   if (this.pending || this.googleStarting)
     throw new Error('Google sign-in is already in progress. Disconnect to cancel it.');
