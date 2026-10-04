@@ -1,6 +1,10 @@
 // Only explicit connector setup links can leave the sandboxed renderer.
 export function isConnectorExternalUrl(value: string) {
-  return isGoogleAuthorizationUrl(value) || value === 'https://cli.github.com/';
+  return (
+    isGoogleAuthorizationUrl(value) ||
+    value === 'https://cli.github.com/' ||
+    value === 'https://github.com/googleworkspace/cli'
+  );
 }
 
 export function isGoogleAuthorizationUrl(value: string) {

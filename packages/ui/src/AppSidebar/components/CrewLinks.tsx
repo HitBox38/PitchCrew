@@ -1,4 +1,5 @@
 import type { CrewLinksProps } from '@/AppSidebar/types.ts';
+import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { DropdownMenu } from '@/components/ui/dropdown-menu/components/DropdownMenu.tsx';
 import { DropdownMenuContent } from '@/components/ui/dropdown-menu/components/DropdownMenuContent.tsx';
@@ -6,9 +7,7 @@ import { DropdownMenuGroup } from '@/components/ui/dropdown-menu/components/Drop
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu/components/DropdownMenuItem.tsx';
 import { DropdownMenuLabel } from '@/components/ui/dropdown-menu/components/DropdownMenuLabel.tsx';
 import { DropdownMenuTrigger } from '@/components/ui/dropdown-menu/components/DropdownMenuTrigger.tsx';
-import { SidebarGroup } from '@/components/ui/sidebar/components/SidebarGroup.tsx';
 import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { SidebarGroupLabel } from '@/components/ui/sidebar/components/SidebarGroupLabel.tsx';
 import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
 import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
@@ -33,8 +32,7 @@ export function CrewLinks({
   onToggleRole,
 }: CrewLinksProps) {
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Crew</SidebarGroupLabel>
+    <SidebarCategory id="crew" label="Crew">
       <SidebarGroupContent>
         <SidebarMenu>
           {roles
@@ -91,6 +89,6 @@ export function CrewLinks({
             })}
         </SidebarMenu>
       </SidebarGroupContent>
-    </SidebarGroup>
+    </SidebarCategory>
   );
 }

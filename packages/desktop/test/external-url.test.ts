@@ -26,12 +26,16 @@ it('opens only Google PKCE authorization URLs with a loopback Pitchcrew callback
 
 it('opens only the exact GitHub CLI installation page', () => {
   expect(isConnectorExternalUrl('https://cli.github.com/')).toBe(true);
+  expect(isConnectorExternalUrl('https://github.com/googleworkspace/cli')).toBe(true);
   for (const url of [
     'http://cli.github.com/',
     'https://cli.github.com.evil.example/',
     'https://user@cli.github.com/',
     'https://cli.github.com/?redirect=evil',
     'https://cli.github.com/manual',
+    'https://github.com/googleworkspace/cli?redirect=evil',
+    'https://github.com/googleworkspace/cli/issues',
+    'https://github.com.evil.example/googleworkspace/cli',
     'https://github.com/login/device',
   ])
     expect(isConnectorExternalUrl(url)).toBe(false);
