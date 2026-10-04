@@ -10,7 +10,7 @@ it('excludes Demo and rejects its entry points outside development mode', async 
   const detect = vi.spyOn(adapters.demo, 'detect');
   const chat = vi.spyOn(adapters.demo, 'chat');
   const run = vi.spyOn(adapters.demo, 'run');
-  const { daemon, request } = await setup(14571, false, false);
+  const { daemon, request } = await setup(14571, false, { dev: false });
   const { result: snapshot } = await request<Snapshot>('/snapshot');
   expect(snapshot.runtimes.some((runtime) => runtime.id === 'demo')).toBe(false);
   expect(snapshot.demoAvailable).toBe(false);

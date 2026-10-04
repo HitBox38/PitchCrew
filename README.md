@@ -37,7 +37,7 @@ pnpm desktop:prod
 1. Choose **Try an example board** on the empty board for six fictional opportunities and a fictional profile, or add your own Markdown notes under **Your profile**. Demo drafting expects a name heading and factual bullet points.
 2. Add an opportunity with its job description. Run **Evaluate fit**, then **Shortlist**.
 3. Run **Draft application**, then **Review packet**. Inspect the resume, letter, form answers, note, source evidence, and history in the opportunity sheet.
-4. Request export approval. In **Approval inbox**, inspect the exact packet, approve it, then export it. The export directory appears in decision history.
+4. Request export approval. In **Approval inbox**, inspect the exact packet, approve it, then export it. Generated PDFs and DOCX files have inline previews; DOCX browser layout may differ from Word. The complete source text is also available. The export directory appears in decision history.
 5. Apply yourself, then record the manual submission and track screening, interviews, and outcomes.
 
 **Demo is available only in development mode (`pnpm dev` or `pnpm desktop`).** Production starts new workspaces with paused Claude Code roles; choose an installed runtime and enable each role in Crew. Existing Demo roles keep their history but cannot run outside development mode. Example data is also development-only.
@@ -149,7 +149,7 @@ pnpm dev
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                                                        |
 | `board`        | SQLite event log, projections, exact-payload approval tokens and browser action approvals                                                    |
-| `orchestrator` | Loopback daemon, chat/workflow launches, bounded crew tasks, persistent routines, scoped capabilities                                        |
+| `orchestrator` | Fastify loopback daemon, chat/workflow launches, bounded crew tasks, persistent routines, scoped capabilities                                |
 | `adapters`     | Demo and native CLI/ACP runtime integrations                                                                                                 |
 | `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export and browser interactions |
 | `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                                                   |
