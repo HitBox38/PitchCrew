@@ -11,7 +11,7 @@ export function AccountActions({ connector, working, action, open }: Props) {
   if (connector.connected || connector.pending)
     return (
       <Button
-        className="button"
+        className="button max-compact:col-start-3 max-compact:row-start-2"
         disabled={working}
         onClick={() =>
           void action(
@@ -26,7 +26,7 @@ export function AccountActions({ connector, working, action, open }: Props) {
       </Button>
     );
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-1 max-compact:col-start-3 max-compact:row-start-2">
       <Button className="button" disabled={working} onClick={() => void open(connector.id)}>
         {connector.id === 'google' ? 'Connect Google' : 'Connect'}
       </Button>

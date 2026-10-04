@@ -6,9 +6,12 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
   return (
     <div className="runtime-list">
       {data.connectors.map((connector) => (
-        <div className="runtime-row connector-row" key={connector.id}>
+        <div
+          className="runtime-row connector-row grid grid-cols-[18px_minmax(0,1fr)_auto_auto] max-compact:grid-cols-[18px_minmax(0,1fr)_auto] max-compact:items-start"
+          key={connector.id}
+        >
           <Link size={18} aria-hidden="true" />
-          <div>
+          <div className="min-w-0 max-compact:col-span-2">
             <strong>{connector.id === 'github' ? 'GitHub' : 'Google'}</strong>
             <p>
               {connector.connected
@@ -17,7 +20,7 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
                   ? 'Waiting for sign-in…'
                   : 'No account connected'}
             </p>
-            <small>
+            <small className="block font-sans text-xs leading-relaxed">
               {connector.id === 'github'
                 ? 'Repositories, files, profiles and issues'
                 : 'Gmail, Drive, Docs, Sheets and Calendar'}{' '}
@@ -38,7 +41,9 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
               </p>
             ) : null}
           </div>
-          <span className={`badge ${connector.connected ? 'success' : ''}`}>
+          <span
+            className={`badge ml-0 shrink-0 justify-self-start max-compact:col-start-2 max-compact:row-start-2 ${connector.connected ? 'success' : ''}`}
+          >
             {connector.connected ? 'Connected' : connector.pending ? 'Signing in…' : 'Disconnected'}
           </span>
           <AccountActions connector={connector} working={working} action={action} open={open} />
