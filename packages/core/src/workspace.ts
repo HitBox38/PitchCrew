@@ -64,6 +64,7 @@ export interface ConnectorStatus {
   configured: boolean;
   pending: boolean;
   error: string;
-  connectionMethod?: 'cli' | 'token';
+  connectionMethod?: 'cli' | 'token' | 'oauth';
+  googleCliState?: 'missing' | 'signed_out' | 'ready' | 'account_changed' | 'scopes_missing';
   githubCliState?: 'missing' | 'signed_out' | 'ready' | 'account_changed';
 }

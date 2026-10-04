@@ -1,5 +1,6 @@
 import type { ConnectorStatus } from '@pitchcrew/core';
 import { googleScopes } from './helpers.ts';
+import { googleCliServices } from './google-cli.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
 export function status(this: ConnectorManagerContext): ConnectorStatus[] {
@@ -23,12 +24,21 @@ export function status(this: ConnectorManagerContext): ConnectorStatus[] {
       id: 'google',
       connected: !!this.store.google,
       account: this.store.google?.account ?? '',
-      services: Object.entries(googleScopes)
-        .filter(([, scope]) => this.store.google?.scopes.includes(scope))
-        .map(([name]) => name),
+      services:
+        this.store.google && 'mode' in this.store.google
+          ? googleCliServices(this.store.google.scopes)
+          : Object.entries(googleScopes)
+              .filter(([, scope]) => this.store.google?.scopes.includes(scope))
+              .map(([name]) => name),
       configured: !!process.env.PITCHCREW_GOOGLE_CLIENT_ID,
       pending: !!this.pending || this.googleStarting,
       error: this.errors.google,
+      connectionMethod: this.store.google
+        ? 'mode' in this.store.google
+          ? 'cli'
+          : 'oauth'
+        : undefined,
+      googleCliState: this.googleCliState,
     },
   ];
 }

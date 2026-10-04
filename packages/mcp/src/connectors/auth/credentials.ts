@@ -42,7 +42,10 @@ export async function disconnect(
 ): Promise<ConnectorStatus[]> {
   this.lifetimes[provider].abort();
   this.lifetimes[provider] = new AbortController();
-  if (provider === 'google') this.cancelPending();
+  if (provider === 'google') {
+    this.cancelPending();
+    this.googleCliState = undefined;
+  }
   if (provider === 'github') this.githubCliState = undefined;
   delete this.store[provider];
   this.errors[provider] = '';

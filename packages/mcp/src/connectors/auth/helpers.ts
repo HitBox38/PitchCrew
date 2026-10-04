@@ -22,7 +22,16 @@ export const githubTokenSchema = z.union([
 export const storeSchema = z.object({
   version: z.literal(1),
   github: githubTokenSchema.optional(),
-  google: googleTokenSchema.optional(),
+  google: z
+    .union([
+      googleTokenSchema,
+      z.object({
+        account: z.email(),
+        mode: z.literal('cli'),
+        scopes: z.array(z.string()),
+      }),
+    ])
+    .optional(),
 });
 export type Store = z.infer<typeof storeSchema>;
 export type GoogleToken = z.infer<typeof googleTokenSchema>;
