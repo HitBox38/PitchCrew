@@ -15,6 +15,7 @@ export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export {
   searchApplications,
   registerExternalApplication,
+  isLikelyDuplicateApplication,
   registerExistingExternalSubmission,
   decideTrackingSignal,
   linkTrackingThread,
@@ -26,6 +27,7 @@ export {
   applyTrackingSignal,
   completeTrackingMessage,
 } from './board/tracking.ts';
+export { previewApplicationImport, applyApplicationImport } from './board/imports.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {

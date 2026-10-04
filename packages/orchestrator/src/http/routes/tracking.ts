@@ -1,4 +1,6 @@
 import {
+  applyApplicationImport,
+  previewApplicationImport,
   decideTrackingSignal,
   linkTrackingThread,
   unlinkTrackingThread,
@@ -8,6 +10,7 @@ import {
   searchApplications,
   updateTrackingIdentifier,
 } from '@pitchcrew/board';
+import { importLimits } from '@pitchcrew/core';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
@@ -35,6 +38,15 @@ export function registerTrackingRoutes(app: FastifyInstance, service: CrewServic
   );
   app.post('/api/tracking/external', (req, res) =>
     res.status(201).send(registerExternalApplication(service.board, req.body)),
+  );
+  // User-only bulk import. JSON escaping can triple file bytes, so the body
+  // limit is wider than the file limit that the board checks.
+  const bodyLimit = importLimits.bytes * 3 + 4096;
+  app.post('/api/tracking/import/preview', { bodyLimit }, (req, res) =>
+    res.send(previewApplicationImport(service.board, req.body)),
+  );
+  app.post('/api/tracking/import/apply', { bodyLimit }, (req, res) =>
+    res.send(applyApplicationImport(service.board, req.body)),
   );
   app.post<IdRoute>('/api/tracking/evidence/:id/decision', (req, res) => {
     const input = z
