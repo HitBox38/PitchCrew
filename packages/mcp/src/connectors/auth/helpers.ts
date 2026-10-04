@@ -15,7 +15,10 @@ export const googleTokenSchema = z.object({
   clientId: z.string().min(1),
   clientSecret: z.string(),
 });
-export const githubTokenSchema = z.object({ account: z.string(), accessToken: z.string().min(1) });
+export const githubTokenSchema = z.union([
+  z.object({ account: z.string(), accessToken: z.string().min(1) }),
+  z.object({ account: z.string(), mode: z.literal('cli') }),
+]);
 export const storeSchema = z.object({
   version: z.literal(1),
   github: githubTokenSchema.optional(),
@@ -23,6 +26,7 @@ export const storeSchema = z.object({
 });
 export type Store = z.infer<typeof storeSchema>;
 export type GoogleToken = z.infer<typeof googleTokenSchema>;
+export type GithubConnection = z.infer<typeof githubTokenSchema>;
 export const tokenResponse = z.object({
   access_token: z.string().min(1),
   refresh_token: z.string().optional(),

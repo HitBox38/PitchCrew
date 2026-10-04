@@ -1,10 +1,13 @@
 import type { ConnectorStatus } from '@pitchcrew/core';
 import { type Server } from 'node:http';
 import { GoogleToken, Store } from './helpers.ts';
+import type { GithubCliRunner } from './github-cli-process.ts';
 
 export interface ConnectorManagerContext {
   directory: string;
   fetcher: typeof fetch;
+  runGithubCli: GithubCliRunner;
+  githubCliState?: ConnectorStatus['githubCliState'];
   store: Store;
   pending?: { server: Server; timer: NodeJS.Timeout; state: string; busy: boolean };
   errors: { github: string; google: string };

@@ -43,6 +43,7 @@ export async function disconnect(
   this.lifetimes[provider].abort();
   this.lifetimes[provider] = new AbortController();
   if (provider === 'google') this.cancelPending();
+  if (provider === 'github') this.githubCliState = undefined;
   delete this.store[provider];
   this.errors[provider] = '';
   await this.save();

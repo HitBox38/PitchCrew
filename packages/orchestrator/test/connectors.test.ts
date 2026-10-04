@@ -32,6 +32,10 @@ describe('connector account settings', () => {
         .status,
     ).toBe(200);
     expect(connect).toHaveBeenCalledWith({ token: 'fixture-token' });
+    expect(
+      (await request('/connectors/github/connect', 'POST', { mode: 'cli' })).response.status,
+    ).toBe(200);
+    expect(connect).toHaveBeenCalledWith({ mode: 'cli' });
     expect((await request('/connectors/github/disconnect', 'POST', {})).response.status).toBe(200);
     expect(disconnect).toHaveBeenCalledWith('github');
     expect((await request('/connectors/arbitrary/disconnect', 'POST', {})).response.status).toBe(
