@@ -104,6 +104,7 @@ Sample Co,Platform Engineer,draft,,,
 - Rows that reached `submitted` or later use the same path as **Already applied outside Pitchcrew**: a submitted card with external provenance, the submission time and no packet. A row reached submission if it has `submittedAt`, a submitted-or-later final state, or such a state in its history.
 - The card then walks valid transitions from `packages/core/src/states.ts` to the final state. Valid history is followed, with each step effective at its history date, and completed with the shortest valid path when the final state is missing. For example, `offer` without an interview step adds `interviewing`.
 - When history has a sequence the board does not allow, such as `ghosted` then `rejected`, the card takes the shortest valid path to the final state. The original history text is kept in the card note and the preview warns about it.
+- An imported card keeps the final status date even when its final state is the initial lead or submitted state.
 - Effective times never go backward. A step dated earlier than the step before uses the earlier step's date, with a warning. A final state with no date in history or `statusAt` uses the date of the step before, or the import time for a never-submitted row, with a warning. Later Gmail evidence older than the imported final state is rejected as usual.
 - The card note starts with "Imported from a past tracker." and keeps notes, `Legacy lessons`, `Legacy weight` and, when needed, `Legacy history`.
 

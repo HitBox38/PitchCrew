@@ -68,6 +68,15 @@ function createImported(board: Board, plan: ImportPlan, key: string): Card {
     };
     board.record('card', card, 'user', `${message}; not submitted`);
   }
+  if (!plan.steps.length) {
+    card = { ...card, statusEffectiveAt: plan.effectiveAt };
+    board.record(
+      'card',
+      card,
+      'user',
+      `Imported past status ${card.state} effective ${plan.effectiveAt}`,
+    );
+  }
   for (const step of plan.steps) {
     assertTransition(card.state, step.state);
     card = {

@@ -145,7 +145,7 @@ it('converts a legacy SQLite tracker into an import file that previews and appli
     expect(cards.map((card) => [card.title, card.state, card.statusEffectiveAt ?? null])).toEqual([
       ['Frontend Engineer', 'rejected', '2025-02-10T05:00:00.000Z'],
       ['Frontend Engineer (try 2)', 'interviewing', '2025-06-15T10:00:00.000Z'],
-      ['Data platform engineer', 'lead', null],
+      ['Data platform engineer', 'lead', expect.any(String)],
       ['Untitled role', 'ghosted', '2025-04-01T00:00:00.000Z'],
     ]);
     expect(cards[0].tags).toHaveLength(10);

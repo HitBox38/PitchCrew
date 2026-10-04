@@ -312,6 +312,36 @@ describe('application import on the board', () => {
     board.rebuild();
     expect(board.list<Card>('card')).toEqual(cards);
   });
+  it('preserves the effective date when importing a card already in its initial state', () => {
+    const board = fresh();
+    const { result } = apply(
+      board,
+      json([
+        { company: 'Historical lead', state: 'lead', statusAt: '2025-02-01' },
+        {
+          company: 'Historical lead with history',
+          state: 'lead',
+          history: [{ state: 'lead', at: '2025-02-01' }],
+          statusAt: '2025-01-01',
+        },
+        {
+          company: 'Historical submission',
+          state: 'submitted',
+          submittedAt: '2025-01-01',
+          statusAt: '2025-02-01',
+        },
+      ]),
+    );
+    expect(result.counts.created).toBe(3);
+    for (const card of board.list<Card>('card')) {
+      expect(card.statusEffectiveAt).toBe('2025-02-01T00:00:00.000Z');
+      expect(latestTrackingTime(board, card)).toBe(Date.parse('2025-02-01'));
+    }
+    board.rebuild();
+    for (const card of board.list<Card>('card'))
+      expect(card.statusEffectiveAt).toBe('2025-02-01T00:00:00.000Z');
+  });
+
   it('rejects a changed file, oversized content and an invalid digest', () => {
     const board = fresh();
     const preview = previewApplicationImport(board, json(rows));

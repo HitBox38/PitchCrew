@@ -252,6 +252,7 @@ export interface ImportPlan {
   jobIdentifier: string;
   submittedAt: string | null;
   start: 'lead' | 'submitted';
+  effectiveAt: string;
   steps: { state: CardState; at: string }[];
   state: CardState;
   note: string;
@@ -355,6 +356,17 @@ export function planImportRow(row: ApplicationImportRow, now: number = Date.now(
     previous = time;
     return { state: step.state, at: time };
   });
+  // A final state that equals the initial state still has a historical date.
+  // Persist it explicitly so tracking never substitutes the import event time.
+  if (!steps.length) {
+    const dated = history.findLast((entry) => entry.state === state)?.at ?? row.statusAt;
+    if (dated && previous && Date.parse(dated) < Date.parse(previous)) clamped = true;
+    previous = dated && (!previous || Date.parse(dated) >= Date.parse(previous)) ? dated : previous;
+    if (!previous) {
+      previous = new Date(now).toISOString();
+      warnings.push(`No date for ${state}; used the import time.`);
+    }
+  }
   if (!fitted)
     warnings.push(
       'History did not fit the board status steps; used the shortest valid path and kept the original history in the note.',
@@ -410,6 +422,7 @@ export function planImportRow(row: ApplicationImportRow, now: number = Date.now(
     jobIdentifier: row.jobIdentifier,
     submittedAt,
     start,
+    effectiveAt: previous!,
     steps,
     state,
     note,
