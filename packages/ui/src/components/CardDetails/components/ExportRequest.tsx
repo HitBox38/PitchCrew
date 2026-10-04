@@ -9,6 +9,7 @@ export function ExportRequest({
   working,
 }: Pick<JobActionsProps, 'card' | 'act' | 'working'>) {
   const [format, setFormat] = useState('markdown');
+  const [layout, setLayout] = useState('formatted');
   return (
     <div className="flex flex-wrap items-end gap-2">
       <FormSelect
@@ -22,6 +23,16 @@ export function ExportRequest({
           { value: 'both', label: 'Markdown + PDF + DOCX' },
         ]}
       />
+      <FormSelect
+        label="Layout"
+        value={layout}
+        onValueChange={setLayout}
+        disabled={format === 'markdown'}
+        options={[
+          { value: 'formatted', label: 'Formatted' },
+          { value: 'plain', label: 'Plain text' },
+        ]}
+      />
       <Button
         disabled={working}
         className="button primary"
@@ -30,6 +41,7 @@ export function ExportRequest({
             `/cards/${card.id}/approval`,
             {
               formats: format === 'markdown' ? [] : format === 'both' ? ['pdf', 'docx'] : [format],
+              layout,
             },
             'Documents generated for review in Inbox',
           )

@@ -53,7 +53,7 @@ export function PacketApprovalList({
                 folder. You can then apply yourself.
               </p>
               <PacketPreview approval={approval} />
-              <ArtifactPreview approval={approval} />
+              <ArtifactPreview approval={approval} pages={data.artifactPages} />
               <PacketApprovalActions
                 approval={approval}
                 card={card}
