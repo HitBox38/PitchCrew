@@ -87,6 +87,8 @@ pnpm check        # lint, typecheck, tests, build
 
 The UI has hot reload; restart the daemon after backend changes. The default data directory is ~/.pitchcrew, optionally PITCHCREW_HOME outside the repository. PITCHCREW_PORT defaults to 4417. Tests use temporary directories outside the repository and fictional fixtures under packages/*/test/fixtures/.
 
+GitHub Actions CI runs on every pull request, pushes to main, merge queues and manual dispatches. It checks lint, formatting, types and production builds on Ubuntu, runs the full test suite with Chromium on Node 22 and 24, and runs the actual Electron smoke test on macOS and Windows. It uses the packageManager pin, frozen lockfile and read-only repository permissions without provider credentials. The aggregate CI check must pass all jobs. The GitHub main branch ruleset requires that check from GitHub Actions and an up-to-date branch, with no bypass actors. Test reports and desktop evidence are retained for seven days.
+
 ## Core concepts
 
 - **Onboarding.** Fresh data directories show a two-screen introduction to the crew and approval flow, followed by a Board setup checklist for nonblank profile notes, enabled and available agents in all three workflow seats, and a real (non-demo) job card. Other pages show compact setup progress linking back to Board. Users can defer setup or explicitly finish it, and reopen the introduction from Getting started in the sidebar. Versioned onboarding preferences live in `onboarding.json` in the data directory and synchronize through snapshots across browser/Electron; they do not change board events, role capabilities or approvals. Existing databases default to deferred onboarding on upgrade.
