@@ -34,7 +34,7 @@ For the desktop window:
 pnpm desktop
 ```
 
-The launcher reuses an existing daemon or starts one. A daemon started by the launcher stops when the window closes. Browser and desktop views connected to the same daemon share a workspace.
+The launcher reuses an existing daemon or starts one. A daemon started by the launcher stops when the window closes. If the background service is installed, the launcher starts it instead and leaves it running. Browser and desktop views connected to the same daemon share a workspace.
 
 For the built UI:
 
@@ -44,6 +44,17 @@ pnpm start
 ```
 
 Or run `pnpm desktop:prod` to build and launch it in Electron.
+
+### Run in the background
+
+Routines run only while a daemon is open. To start the production daemon at login without a window, build the UI and install the per-user background service:
+
+```sh
+pnpm build
+pnpm service install
+```
+
+It uses Task Scheduler on Windows, a LaunchAgent on macOS and a systemd user unit on Linux, without administrator rights. `pnpm service status`, `start`, `stop`, `logs` and `uninstall` manage it, and **Settings > Local data** shows its state. Only one daemon runs per data folder. See [background service](docs/background-service.md).
 
 ### Explore without an AI account
 
@@ -109,7 +120,7 @@ See [runtime setup](docs/runtimes.md) for executable names, authentication requi
 
 On startup, Pitchcrew loads missing skills from a ten-entry public GitHub starter catalog. Existing edits and deletions are preserved. Failed imports can be retried from Skills. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports.
 
-**Routines** schedules one-time or repeating agent tasks with a timezone and optional end date or run limit. Routines persist across restarts and run only while the daemon is open. Busy or paused agents wait; overdue repeats coalesce into one run. See [routines](docs/routines.md).
+**Routines** schedules one-time or repeating agent tasks with a timezone and optional end date or run limit. Routines persist across restarts and run only while the daemon is open; the [background service](docs/background-service.md) keeps it open after you log in. Busy or paused agents wait; overdue repeats coalesce into one run. See [routines](docs/routines.md).
 
 ## Job discovery
 
@@ -169,7 +180,7 @@ pnpm dev
 ## Current limits
 
 - Job discovery covers public Greenhouse, Ashby and Lever boards you add yourself. Other job sites stay manual. There is no automatic outreach or email sender.
-- Routines require the local daemon to be running; there is no OS background scheduler.
+- Routines run only while the daemon is open. The optional background service starts it at login but does not wake a sleeping computer. Automated tests use a simulated service manager, not the real Windows, macOS and Linux ones.
 - Computer use covers an isolated Chromium browser, not the whole desktop.
 - Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
 - Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.

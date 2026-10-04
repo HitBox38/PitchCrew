@@ -10,7 +10,7 @@ Routines persist an agent, task text, optional attached application, start time 
 - `maxRuns` limits total dispatched occurrences, including failed/interrupted attempts. `endsAt` limits the time window; neither is required. Both can be used together. Editing retains the count; increasing the limit or changing the schedule can extend a routine.
 - The editor interprets its date fields in the displayed timezone and rejects nonexistent times at a daylight-saving transition. Monthly dates missing from a month are skipped.
 
-The daemon checks schedules every second while listening. It does not install OS jobs, wake the machine or run while Pitchcrew is closed. A busy or paused role, unavailable runtime, profile write or revoked originating capability postpones dispatch. Repeating schedules coalesce downtime into at most one overdue occurrence and resume on the next future boundary. A routine past its end time does not catch up. A routine's active follow-up chain finishes before its next occurrence can start.
+The daemon checks schedules every second while listening. Routines do not run while no daemon is open, and they do not wake the machine. To keep a daemon running without a window, install the [background service](background-service.md), which starts the production daemon at login. A busy or paused role, unavailable runtime, profile write or revoked originating capability postpones dispatch. Repeating schedules coalesce downtime into at most one overdue occurrence and resume on the next future boundary. A routine past its end time does not catch up. A routine's active follow-up chain finishes before its next occurrence can start.
 
 ## Execution and permissions
 

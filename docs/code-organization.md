@@ -47,11 +47,14 @@ Public package entry points retain the existing application API. Private modules
 | Core         | Card, packet, role, skill, chat, run, runtime, event and workspace contracts                                    |
 | Board        | Events and replay, cards, approvals, role seeding and database context                                          |
 | Orchestrator | Crew lifecycle, models, skills, roles, cards, workflows, chat, proposals, tasks, scoped gateway and job sources |
+| Background   | Per-platform service definitions, an injectable service host, daemon lock and launcher ownership                |
 | HTTP         | Request security, chat streaming and route groups                                                               |
 | Adapters     | Provider directories and shared process environment, health, prompts, launch and results                        |
 | MCP          | Tool registration groups, scoped daemon client, computer driver and approval manager                            |
 | Connectors   | Credential storage, status, HTTP, GitHub auth, Google auth/callback and service tool groups                     |
 | Desktop      | Window/security setup and isolated renderer smoke verification                                                  |
+
+Background service code in `orchestrator/src/background/` renders each definition as a pure function and sends every schtasks, launchctl and systemctl call and file write through a `ServiceHost`. Tests supply a simulated host, so they assert exact definitions and commands without touching the operating system.
 
 Stateful backend facades hold a private context. Feature functions declare their context with a typed `this` parameter; the context factory binds those functions to one instance. This lets cooperating modules share a board and lifecycle state without exporting mutable global state. Transactions, event append/replay and exact-action approval consumption stay within their owning modules.
 

@@ -1,3 +1,4 @@
+import { BackgroundServiceSettings } from '@/BackgroundServiceSettings/index.tsx';
 import { ConnectorSettings } from '@/ConnectorSettings/index.tsx';
 import { JobSourcesSettings } from '@/JobSourcesSettings/index.tsx';
 import { PacketRulesSettings } from '@/PacketRules/index.tsx';
@@ -46,6 +47,7 @@ export function SettingsPage() {
       </TabsContent>
       <TabsContent className="settings-content" value="data">
         <DataSettings directory={data.dataDirectory} />
+        <BackgroundServiceSettings />
       </TabsContent>
     </Tabs>
   );
