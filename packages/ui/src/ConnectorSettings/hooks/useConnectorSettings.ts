@@ -9,6 +9,7 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
   const [authorizationUrl, setAuthorizationUrl] = useState('');
   const [error, setError] = useState('');
   const google = data.connectors.find((c) => c.id === 'google');
+  const github = data.connectors.find((c) => c.id === 'github');
   function close() {
     setEditing(null);
     setToken('');
@@ -39,6 +40,15 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
       setClientSecret('');
     }
   }
+  async function connectGithubCli() {
+    setError('');
+    try {
+      await action('/connectors/github/connect', 'POST', { mode: 'cli' }, 'GitHub connected');
+      close();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not connect GitHub CLI.');
+    }
+  }
   return {
     data,
     action,
@@ -55,6 +65,8 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
     error,
     setError,
     google,
+    github,
+    connectGithubCli,
     close,
     connect,
   };

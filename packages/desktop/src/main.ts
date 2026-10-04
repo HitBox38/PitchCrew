@@ -1,7 +1,7 @@
 import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, session, shell } from 'electron';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isGoogleAuthorizationUrl } from './external-url.ts';
+import { isConnectorExternalUrl } from './external-url.ts';
 import { installSmokeCheck } from './smoke.ts';
 
 app.setName('Pitchcrew');
@@ -74,7 +74,7 @@ function createWindow() {
     if (
       window &&
       new URL(window.webContents.mainFrame.url).origin === new URL(url).origin &&
-      isGoogleAuthorizationUrl(target)
+      isConnectorExternalUrl(target)
     )
       void shell.openExternal(target).catch(() => {});
     return { action: 'deny' };

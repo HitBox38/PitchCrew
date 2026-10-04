@@ -1,6 +1,7 @@
 import type { ConnectorStatus } from '@pitchcrew/core';
 import { createConnectorManagerContext } from './auth/context.ts';
 import type { ConnectorManagerContext } from './auth/types.ts';
+import type { GithubCliRunner } from './auth/github-cli-process.ts';
 
 export { googleScopes } from './auth/helpers.ts';
 export class ConnectorManager {
@@ -8,8 +9,9 @@ export class ConnectorManager {
   constructor(
     readonly directory: string,
     readonly fetcher: typeof fetch = fetch,
+    runGithubCli?: GithubCliRunner,
   ) {
-    this.context = createConnectorManagerContext(directory, fetcher);
+    this.context = createConnectorManagerContext(directory, fetcher, runGithubCli);
   }
 
   initialize(): Promise<void> {

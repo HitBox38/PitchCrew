@@ -42,6 +42,11 @@ export function ProfileSources(c: ProfileSourcesModel) {
       <ProfileMaintenance {...c.maintenance} />
       {c.maintenanceError ? <p role="alert">{c.maintenanceError}</p> : null}
       {c.provider ? <SourceForm {...c} /> : null}
+      {c.connection.github?.error ? (
+        <p role="alert" className="form-error">
+          {c.connection.github.error}
+        </p>
+      ) : null}
       {c.connection.authorizationUrl && c.connection.google?.pending ? (
         <a className="button" href={c.connection.authorizationUrl} target="_blank" rel="noreferrer">
           <ExternalLink size={14} /> Finish Google sign-in

@@ -5,14 +5,17 @@ import { cancelPending, connectGoogle, googleAccessToken } from './google.ts';
 import { call, fetch } from './http.ts';
 import { status } from './status.ts';
 import type { ConnectorManagerContext } from './types.ts';
+import { createGithubCliRunner, type GithubCliRunner } from './github-cli-process.ts';
 
 export function createConnectorManagerContext(
   directory: string,
   fetcher: typeof globalThis.fetch = globalThis.fetch,
+  runGithubCli: GithubCliRunner = createGithubCliRunner(),
 ): ConnectorManagerContext {
   const context: ConnectorManagerContext = {
     directory,
     fetcher,
+    runGithubCli,
     store: { version: 1 },
     pending: undefined,
     errors: { github: '', google: '' },

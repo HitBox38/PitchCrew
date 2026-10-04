@@ -12,6 +12,12 @@ export function status(this: ConnectorManagerContext): ConnectorStatus[] {
       configured: true,
       pending: this.githubConnecting,
       error: this.errors.github,
+      connectionMethod: this.store.github
+        ? 'mode' in this.store.github
+          ? 'cli'
+          : 'token'
+        : undefined,
+      githubCliState: this.githubCliState,
     },
     {
       id: 'google',
