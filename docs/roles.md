@@ -6,6 +6,8 @@ Pitchcrew stores one agent configuration for each role. A role's stable ID is it
 
 Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults use Claude Code and start paused; select an installed runtime/model and enable them in Crew. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
 
+Scout's instructions cover evidence-based fit, unknowns and the user's shortlisting decision. Writer's cover complete packets, exact profile quotations, word limits and inspected form requirements. Reviewer independently checks all packet prose, distinguishes blockers from style suggestions and gives actionable corrections. All three describe handoffs with the support crew and keep peer recommendations separate from user-approved settings changes.
+
 | Agent          | Configured tools                                                   | Setup before use                                                                                        |
 | -------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
 | Submitter      | Application search, browser, form assessments, submission receipts | Attach an application; review/export its packet before submission and approve each browser action.      |
