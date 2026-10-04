@@ -62,8 +62,8 @@ function* matches(text: string, source: string, flags: string) {
   const expression = new RegExp(source, `${flags}g`);
   let count = 0;
   for (const match of text.matchAll(expression)) {
-    if (++count > matchLimit) return;
     yield match;
+    if (++count > matchLimit) return;
   }
 }
 
@@ -116,6 +116,14 @@ function evaluate(rule: PacketRule, document: PacketDocument, text: string): str
       );
   }
   const found = [...matches(text, rule.pattern, rule.flags)];
+  if (found.length > matchLimit)
+    return [
+      located(
+        rule,
+        `${label} exceeds ${matchLimit} matches; this rule cannot check every match.`,
+        `${label}: more than ${matchLimit} matches`,
+      ),
+    ];
   if (rule.equals !== undefined)
     return found
       .filter((match) => (match[1] ?? match[0]) !== rule.equals)

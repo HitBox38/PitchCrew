@@ -176,7 +176,7 @@ export async function applyResult(
     );
   }
   if (result.role === 'writer') {
-    const check = this.packetRules.check(result.packet, profile);
+    const check = await this.packetRules.check(result.packet, profile);
     if (check.errors.length) throw new Error(check.errors.join('\n'));
     await writePacket(this.directory, cardId, result.packet);
     if (signal?.aborted) throw new Error('Run cancelled.');
@@ -191,7 +191,7 @@ export async function applyResult(
   if (result.role === 'reviewer') {
     const card = this.board.get<Card>('card', cardId);
     if (!card.packet) throw new Error('No packet to review.');
-    const check = this.packetRules.check(card.packet, profile);
+    const check = await this.packetRules.check(card.packet, profile);
     // Reviewer feedback still fails the review; rule warnings are shown without blocking.
     const passed = result.passed && check.errors.length === 0 && result.feedback.length === 0;
     const feedback = [

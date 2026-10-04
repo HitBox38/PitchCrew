@@ -9,7 +9,8 @@ import {
   type PacketRulesState,
   type ProfileFile,
 } from '@pitchcrew/core';
-import { checkPacket, type PacketCheck } from '@pitchcrew/packet';
+import type { PacketCheck } from '@pitchcrew/packet';
+import { boundedPacketCheck } from './packet-rules/check.ts';
 import { readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -57,14 +58,21 @@ export class PacketRulesStore {
     let key: string;
     try {
       const stat = statSync(this.path);
-      key = `${stat.mtimeMs}:${stat.size}`;
+      key = `${stat.ino}:${stat.mtimeMs}:${stat.ctimeMs}:${stat.size}`;
       if (stat.size > packetRuleLimits.fileBytes)
         return this.remember(
           key,
           `packet-rules.json is larger than ${packetRuleLimits.fileBytes / 1024} KB.`,
         );
-    } catch {
-      return { rules: defaultPacketRules, custom: false, error: null };
+    } catch (error) {
+      this.cache = undefined;
+      if (error instanceof Error && 'code' in error && error.code === 'ENOENT')
+        return { rules: defaultPacketRules, custom: false, error: null };
+      return {
+        rules: defaultPacketRules,
+        custom: true,
+        error: 'packet-rules.json could not be inspected.',
+      };
     }
     if (this.cache?.key === key) return this.cache.state;
     let input: unknown;
@@ -103,9 +111,9 @@ export class PacketRulesStore {
   }
 
   /** Applies current rules. An invalid rules file adds a blocking error instead of being ignored. */
-  check(packet: Packet, profile: ProfileFile[]): PacketCheck {
+  async check(packet: Packet, profile: ProfileFile[]): Promise<PacketCheck> {
     const state = this.current();
-    const result = checkPacket(packet, profile, state.rules);
+    const result = await boundedPacketCheck(packet, profile, state.rules);
     if (!state.error) return result;
     const message = `${state.error} Fix it in Settings before continuing.`;
     return {

@@ -8,7 +8,7 @@ import {
   type Run,
   type Snapshot,
 } from '@pitchcrew/core';
-import { readFile, writeFile } from 'node:fs/promises';
+import { symlink, readFile, utimes, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, finish, setup } from './helpers/daemon.ts';
@@ -153,7 +153,7 @@ describe('packet rules', () => {
     const state = daemon.service.packetRules.current();
     expect(state.error).toContain('rules.0.pattern: Nested repeats');
     const { packet } = await import('../../board/test/fixtures/packet.ts');
-    const check = daemon.service.packetRules.check(packet, [
+    const check = await daemon.service.packetRules.check(packet, [
       { name: 'profile.md', content: 'Built React interfaces.' },
     ]);
     expect(check.errors).toEqual([expect.stringContaining('Fix it in Settings')]);
@@ -165,6 +165,62 @@ describe('packet rules', () => {
     });
   });
 
+  it('fails closed when the rules path cannot be inspected', async () => {
+    const { daemon, directory } = await setup(15375);
+    await symlink('packet-rules.json', join(directory, 'packet-rules.json'));
+    expect(daemon.service.packetRules.current()).toMatchObject({
+      custom: true,
+      error: expect.any(String),
+    });
+  });
+  it('refreshes same-size rules edits even when their modification time is preserved', async () => {
+    const { daemon, directory } = await setup(15377);
+    const path = join(directory, 'packet-rules.json');
+    const timestamp = new Date('2026-01-01T00:00:00Z');
+    const original = { version: 1, rules: [{ ...houseRules.rules[1], pattern: 'first' }] };
+    await writeFile(path, JSON.stringify(original));
+    await utimes(path, timestamp, timestamp);
+    expect(daemon.service.packetRules.current().rules.rules[0]).toMatchObject({ pattern: 'first' });
+    await writeFile(
+      path,
+      JSON.stringify({ ...original, rules: [{ ...original.rules[0], pattern: 'other' }] }),
+    );
+    await utimes(path, timestamp, timestamp);
+    expect(daemon.service.packetRules.current().rules.rules[0]).toMatchObject({ pattern: 'other' });
+  });
+  it('bounds slow regex checks while keeping HTTP and approved exports responsive', async () => {
+    const { daemon, request } = await setup(15376);
+    const agreed = await draftAndReview(request);
+    const slowPacket = { ...agreed.packet!, resume: `Built React interfaces.\n${'a'.repeat(40)}!` };
+    daemon.service.board.updateCard(agreed.id, { packet: slowPacket }, 'user', 'Fixture packet');
+    const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST');
+    await request(`/approvals/${approval.id}/decide`, 'POST', { approved: true });
+    await request('/packet-rules', 'PUT', {
+      version: 1,
+      rules: [
+        {
+          id: 'slow',
+          kind: 'pattern',
+          severity: 'warn',
+          documents: ['resume'],
+          pattern: '(a|aa)+b',
+        },
+      ],
+    });
+    const pending = daemon.service.packetRules.check(slowPacket, [
+      { name: 'profile.md', content: 'Built React interfaces.' },
+    ]);
+    const started = Date.now();
+    expect((await request('/packet-rules')).response.status).toBe(200);
+    expect(Date.now() - started).toBeLessThan(1000);
+    expect((await pending).errors).toEqual([expect.stringContaining('timed out')]);
+    const blocked = await request<{ error: string }>(`/approvals/${approval.id}/export`, 'POST');
+    expect(blocked.response.status).toBe(400);
+    expect(blocked.result.error).toContain('timed out');
+    expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('approved');
+    await request('/packet-rules', 'DELETE');
+    expect((await request(`/approvals/${approval.id}/export`, 'POST')).response.status).toBe(200);
+  });
   it('shows warnings without blocking review and blocks drafts and exports on errors', async () => {
     const { daemon, request } = await setup(15373);
     await request('/packet-rules', 'PUT', {

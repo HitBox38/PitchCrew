@@ -115,7 +115,7 @@ export async function agentCall(
   if (action === 'lint') {
     const parsed = runResultSchema.parse({ role: 'writer', packet: data.packet });
     if (parsed.role !== 'writer') throw new Error('Invalid packet.');
-    const check = this.packetRules.check(parsed.packet, await readProfile(this.directory));
+    const check = await this.packetRules.check(parsed.packet, await readProfile(this.directory));
     return { problems: check.errors, warnings: check.warnings, findings: check.findings };
   }
   if (action === 'packet_rules') {

@@ -88,9 +88,10 @@ User patterns run on your packets, so Pitchcrew limits them:
 - A pattern must compile and must not match empty text.
 - Backreferences such as `\1` are rejected.
 - Nested repeats such as `(a+)+` or `(\w+\s?)*` are rejected, because they can take a very long time on near-miss text. Repeat the inner part only, for example `\w+(?:\s\w+)*`.
-- Rules read at most 20,000 characters of each document and report at most 20 findings per rule and document.
+- Rules read at most 20,000 characters of each document and report at most 20 findings per rule and document. More than 1,000 pattern matches reports an incomplete check instead of accepting unchecked matches.
+- Pattern checks run in an isolated worker with a two-second deadline. A timeout or worker failure blocks the packet, even for warning rules, because the check did not complete. The daemon stays responsive and the worker is terminated.
 
-These checks catch the common slow shapes, not every possible one. Keep patterns simple and specific.
+Validation catches common slow shapes; the worker deadline bounds patterns the heuristics miss. Keep patterns simple and specific.
 
 ## Example
 
