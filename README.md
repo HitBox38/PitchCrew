@@ -1,146 +1,148 @@
-# Pitchcrew
+﻿# Pitchcrew
 
-A local-first job-search workbench with a crew of role agents. Each role can use Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, or oh-my-pi. The same shadcn-based React interface runs in a browser and a sandboxed Electron window.
+Pitchcrew is a local-first job-search app with a crew of AI agents. Keep opportunities on a board, give the crew your background notes, and work through fit assessment, application drafts, review and follow-up in one workspace.
 
-**Status: working MVP.** Add opportunities, evaluate fit, draft and review packets, approve local exports, track your applications, and chat with each role or follow the crew conversation. See [AGENTS.md](AGENTS.md) for architectural invariants and [docs/mvp-design.md](docs/mvp-design.md) for design decisions.
+It runs in your browser or an Electron desktop window. Your board, profile, chats and packets stay on this computer; AI runs use the CLI runtime and provider account you configure.
 
-## Run
+**Status: working MVP.** The application workflow, crew chats, scheduled routines, read-only account connectors and approval-gated browser tools are implemented. Automated tests use fixtures and mock runtimes; live provider runs are not verified by that suite.
 
-Requires Node **22.18+ or 24.11+** (supported LTS lines) and **pnpm 11**. Windows is the verified development platform. Native SQLite and Electron dependencies may need build tooling if a prebuilt binary is unavailable.
+## What you can do
+
+- **Prepare applications.** Scout evaluates fit, Writer drafts a packet, and Reviewer checks it against your profile. Packets include a resume, cover letter, form answers, notes and supporting claims.
+- **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat privately or in the shared crew conversation. Agents can hand off work through the board when their permissions allow it.
+- **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
+- **Track progress.** Record submissions, interviews and outcomes, including applications made outside Pitchcrew. With Gmail access, Tracker can reconcile supported status updates and flag uncertain matches for review.
+- **Maintain your background.** Import profile notes from GitHub or Google Drive. Documenter can watch selected sources and propose updates for your review.
+- **Review the process.** Pipeline Coach can assess batches of applications and propose changes to the crew. Routines can schedule scans, reviews and other agent tasks while Pitchcrew is running.
+
+## Quick start
+
+Requires **Node.js 22.18+ or 24.11+** (supported LTS lines) and **pnpm 11**. Windows is the verified development platform. Native SQLite and Electron dependencies may need build tools if prebuilt binaries are unavailable.
 
 ```sh
 pnpm install
 pnpm dev
 ```
 
-Open **http://127.0.0.1:4417**. Use the printed loopback address, including the port. The UI has hot reload; restart `pnpm dev` after daemon or adapter changes.
+Open **http://127.0.0.1:4417**. Use the printed loopback address and port. The UI reloads as you edit it; restart the daemon after backend or adapter changes.
 
-Open the desktop view with:
+For the desktop window:
 
 ```sh
 pnpm desktop
 ```
 
-The desktop launcher reuses an existing daemon on the configured port, or starts one and stops it when the desktop app closes. Both views share the daemon's workspace.
+The launcher reuses an existing daemon or starts one. A daemon started by the launcher stops when the window closes. Browser and desktop views connected to the same daemon share a workspace.
 
 For the built UI:
 
 ```sh
 pnpm build
 pnpm start
-# Or launch the built UI in Electron:
-pnpm desktop:prod
 ```
 
-## Try the workflow
+Or run `pnpm desktop:prod` to build and launch it in Electron.
 
-New workspaces open a short introduction, then a setup checklist: save your profile, configure the crew's runtimes, and add your first job. Progress is shared between browser and Electron and survives restarts. Choose **Set up later** to explore, or reopen the guide from **Getting started** in the sidebar. Existing workspaces can open the guide there without an automatic introduction.
+### Explore without an AI account
 
-1. Choose **Try an example board** on the empty board for six fictional opportunities and a fictional profile, or add your own Markdown notes under **Your profile**. Demo drafting expects a name heading and factual bullet points.
-2. Add an opportunity with its job description. Run **Evaluate fit**, then **Shortlist**.
-3. Run **Draft application**, then **Review packet**. Inspect the resume, letter, form answers, note, source evidence, and history in the opportunity sheet.
-4. Request export approval. In **Approval inbox**, inspect the exact packet, approve it, then export it. Generated PDFs and DOCX files have inline previews; DOCX browser layout may differ from Word. The complete source text is also available. The export directory appears in decision history.
-5. Apply yourself, then record the manual submission and track screening, interviews, and outcomes.
+Development mode includes **Demo**, a deterministic runtime that makes no AI calls. On an empty board, load the example board to try six fictional opportunities and a fictional profile. Examples refuse to overwrite an existing profile; use a separate data folder if you already have one.
 
-**Demo is available only in development mode (`pnpm dev` or `pnpm desktop`).** Production starts new workspaces with paused Claude Code roles; choose an installed runtime and enable each role in Crew. Existing Demo roles keep their history but cannot run outside development mode. Example data is also development-only.
+Demo and example loading are available only when the daemon uses `--dev`, as with `pnpm dev` or a daemon started by `pnpm desktop`. Demo scores and drafts are scripted examples.
 
-**Demo makes no AI calls.** Its fit scores are keyword examples and its drafts reuse profile bullets; they need personalization before use. Loading examples is explicit and refuses to overwrite an existing profile.
+### Set up a real workspace
 
-In **Your crew**, choose **Create agent** for a guided setup: purpose and instructions, runtime/model, opt-in tools, saved skills, an optional first routine, and a final review. The flow works for any responsibilities. Role, skill assignments and routine save together; the first routine starts paused unless you enable it. Define a stable lowercase role ID, name and responsibilities. Each role has one runtime agent. Choose chat and scoped tools or an existing application workflow seat (evaluate fit, draft packets or review packets), then enable only the capabilities it needs. New roles start with crew actions and connectors disabled. Pause roles in settings or the sidebar; retirement requires confirmation, prevents future runs and edits, and keeps chat, skills, schedules and event history. Retired IDs cannot be reused. The default crew also includes Submitter, Tracker, Documenter and Pipeline Coach. Production defaults start paused; select a runtime and enable the agents you want. Account access stays opt-in and no schedules are seeded. Startup adds missing defaults without changing existing or retired roles. See [configurable roles](docs/roles.md).
+Fresh workspaces show an introduction and setup checklist. You can defer setup and reopen **Getting started** from the sidebar.
 
-In **Your crew**, select a runtime, optional model, instructions, agent capabilities, and whether a role is enabled. Every real runtime uses the same searchable model picker with a CLI default option. Opening settings or changing the runtime loads its native model catalog where supported; results are cached for five minutes, and **Refresh models** forces a new check. The field labels runtime results and suggested fallbacks separately. Claude Code, Gemini CLI and Goose use curated suggestions; unavailable or failing runtimes also fall back to suggestions. Runtime catalogs reflect what the CLI reports, not a guarantee of model access. Changing runtimes resets the model to CLI default; Demo does not use a model. Provider-qualified choices save the full `provider/model` value, and existing saved model names remain visible even when outside the catalog. Real runtimes must already be installed on PATH with their native authentication configured. Health detection runs only `--version`; model discovery never starts a conversation or inference turn. Chat turns and workflow runs may use your provider account, including bounded agent-requested follow-ups. Real provider executions have not been exercised during automated verification. See [model discovery](docs/model-discovery.md) for runtime support.
+1. **Add your background in Profile.** Write factual Markdown notes or import a reviewed folder from GitHub or Google Drive.
+2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
+3. **Add a job on Board.** Save its description and URL, then start the workflow below.
 
-Open **Skills** to add reusable Markdown instructions, edit their name, description or content, and delete them. Assign a skill to **All agents** or choose any stored active roles. Each skill shows who made it: its GitHub source owner, the agent behind a custom suggestion, or **You** for skills you create. Search by skill or creator, or filter by agent; individual agent views also show shared skills. Role settings show the skills that apply to that agent and link to the library. Every new chat or workflow run receives its assigned skills, including agent-requested follow-ups. Edits and deletion affect future runs; active runs keep their starting snapshot. Skills are stored in the local board with append-only history and copied into each run as `skills/<skill-id>/SKILL.md`. Managed skills use the shared runtime prompt, so they work even when a CLI’s ambient skill discovery is disabled. Demo stays deterministic. Choose **Import from skills.sh**, paste a public GitHub-backed skill URL such as `https://skills.sh/owner/repository/skill-name`, then **Load skill** to review its Markdown and choose its agents before saving. Imported skills show their source and offer **Load latest instructions** when editing; loading alone never updates the saved skill. Imports read public GitHub trees and immutable blobs without credentials or a CLI installer. Every load resolves the latest GitHub HEAD; only immutable blob contents are cached. Supplied hashes never select a version. Imports check up to 20 definitions with matching folders first. Only SKILL.md instructions are included; supporting scripts, assets, private repositories and non-GitHub sources are deferred.
+New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime.
 
-The ten starter skills are loaded automatically on workspace startup: cover-letter, humanizer, resume-bullet-writer, unslop, view-pdf, article-writing, grilling, research, writing-fragments and writing-shape. Writing skills default to Writer, research and questioning to Scout, and humanizer/PDF review to Reviewer. Edit their content or assignment, or delete them on **Skills**; removed starters stay removed across restarts. Existing skills are preserved. New imports and startup loads always fetch the latest source, with no lockfile hash pinning. Catalog imports use the listed GitHub path; article-writing now uses its renamed repository, `affaan-m/ECC`, and the previous URL remains supported. Missing or offline sources appear on the Skills page with **Retry missing starter skills**; retries preserve deletions. view-pdf requires separate viewer tooling. Individual skills allow 50,000 characters, with a 60,000-character total per agent. **Starter skills → Import** can restore a removed skill manually. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports, including in isolated automated tests.
+## From opportunity to application
 
-| Runtime                                                                                                        | Executable     | Model setting                                    |
-| -------------------------------------------------------------------------------------------------------------- | -------------- | ------------------------------------------------ |
-| Claude Code                                                                                                    | `claude`       | CLI model name, or empty for its default         |
-| Codex                                                                                                          | `codex`        | CLI model name, or empty for its default         |
-| [Gemini CLI](https://geminicli.com/docs/cli/headless/)                                                         | `gemini`       | CLI model name, or empty for its default         |
-| [OpenCode](https://opencode.ai/docs/cli/)                                                                      | `opencode`     | `provider/model`, or empty for its default       |
-| [GitHub Copilot CLI](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-command-reference) | `copilot`      | CLI model name, or empty for its default         |
-| [Cursor Agent](https://cursor.com/docs/cli/reference/parameters)                                               | `cursor-agent` | CLI model name, or empty for its default         |
-| [Goose](https://block.github.io/goose/docs/guides/goose-cli-commands/)                                         | `goose`        | `provider/model`, or native environment defaults |
-| [Kiro CLI](https://kiro.dev/docs/cli/acp/)                                                                     | `kiro-cli`     | CLI model name, or empty for its default         |
-| [Grok Build](https://docs.x.ai/build/cli)                                                                      | `grok`         | CLI model name, or empty for its default         |
-| [Pi](https://github.com/earendil-works/pi)                                                                     | `pi`           | `provider/model`, or empty for its default       |
-| [oh-my-pi](https://github.com/can1357/oh-my-pi)                                                                | `omp`          | `provider/model`, or empty for its default       |
+1. **Evaluate fit**, then decide whether to **Shortlist** the job.
+2. **Draft application**, then **Review packet**. Inspect the full text and source evidence; request changes when needed.
+3. Choose Markdown, PDF and/or DOCX, then **Request export approval**.
+4. In **Inbox**, review the exact files, approve the export, then export them locally. A changed packet needs a fresh approval.
+5. Apply yourself and record the submission, or use the approved browser workflow. Track screening, interviews and outcomes on the same card.
 
-Gemini CLI uses per-run system settings to disable built-in tools, extensions, skills and hooks, and allow only Pitchcrew MCP. OpenCode uses an isolated configuration directory, a fresh session, `--pure` to disable external plugins, and permissions that deny every tool except `pitchcrew_*`. Automatic session sharing is disabled. OpenCode's user configuration (including custom provider definitions) is not loaded; built-in providers use the CLI's existing sign-in or environment configuration. These adapters target Gemini CLI 0.62 and OpenCode 1.18; older versions may need an upgrade. Neither adapter reads or copies provider credentials.
+PDF and DOCX exports currently render **literal Markdown text**, including its syntax. They are not designed resume layouts. Both have inline previews; DOCX layout may differ from Word. PDF rejects unsupported characters explicitly, while DOCX preserves Unicode.
 
-GitHub Copilot CLI receives an isolated `COPILOT_HOME`, only `pitchcrew/*` tools available, built-in MCP disabled, hooks disabled in run settings, and session export disabled. Its native keychain or native authentication environment must supply sign-in; fallback tokens stored in the user's Copilot configuration file are not imported. This adapter targets Copilot CLI 1.0.91.
+You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
-Cursor Agent receives isolated CLI settings and project MCP configuration, an explicit permission allowlist for `Mcp(pitchcrew:*)`, and denials for shell, file reads/writes and web fetching. It runs without `--force` or automatic tool review. MCP server approval permits connection; it does not bypass tool permissions. Cursor Agent 2026.09.26 or newer is required: older builds do not isolate global MCP discovery, so they appear unavailable with upgrade instructions. Native credential/data locations remain unchanged. Runtime-managed enterprise policies and account extensions remain subject to the runtime's behavior.
+## Your crew
 
-Goose uses an isolated `GOOSE_PATH_ROOT` and an explicit recipe containing only Pitchcrew MCP, with no saved session. Its user configuration, plugins and hooks are not imported. Set the model to `provider/model` using `openai`, `anthropic`, `google`, `ollama` or `openrouter`; alternatively, set `GOOSE_PROVIDER` and `GOOSE_MODEL` in the daemon environment. Providers that launch another agent CLI are excluded because they can expose tools outside this recipe. Native keyring/environment authentication stays with Goose; file-based credentials in the user configuration are not imported. This adapter targets Goose 1.44.0.
+Each agent has a name, responsibilities, instructions, runtime, model and allowed tools. The defaults are ordinary editable agents:
 
-Kiro CLI runs one fresh ACP session using the V2 engine and an isolated `KIRO_HOME`. The generated custom agent exposes and trusts only `@pitchcrew/*`, disables external MCP discovery and powers, and has no resources or hooks. Pitchcrew declines ACP permission requests and provides no filesystem or terminal client capabilities. Configure native headless authentication using `KIRO_API_KEY` in the daemon environment; existing login files are not imported. This adapter targets Kiro CLI 2.26.1. See [Kiro headless authentication](https://kiro.dev/docs/cli/headless/).
+| Agent          | Purpose                                            | Additional setup                                          |
+| -------------- | -------------------------------------------------- | --------------------------------------------------------- |
+| Scout          | Assess job fit and identify missing evidence       | Profile notes and a job description                       |
+| Writer         | Draft application packets                          | Profile notes and a shortlisted job                       |
+| Reviewer       | Check accuracy and suggest corrections             | A drafted packet                                          |
+| Submitter      | Inspect forms and assist with approved submissions | Chromium; an exported packet for packet uploads           |
+| Tracker        | Reconcile application updates from email           | Connected Google account and Gmail permission             |
+| Documenter     | Propose profile updates from watched sources       | Connected account, matching permission and a source watch |
+| Pipeline Coach | Review the pipeline and propose crew improvements  | A review scope and enough board history                   |
 
-Grok Build uses an isolated `GROK_HOME`, a fresh headless session and only its native MCP search/call helpers. Only Pitchcrew MCP is configured and permitted; native file reads (including file-backed MCP arguments) are denied. Built-in shell, editing, web and subagent tools are excluded, and memory, compatibility discovery and automatic updates are disabled. Set `XAI_API_KEY` in the daemon environment; existing login files are not imported. The adapter requires the official xAI Grok Build CLI 1.0.45 or newer.
+Choose **Create agent** in Crew to define another role, select tools and skills, and optionally add a first routine. Custom agents start with optional capabilities disabled. Connecting an account does not grant agents access to it. Default agents have no seeded routines or source watches.
 
-Pi requires version 1.0.0 or newer from the current `earendil-works/pi` project, which includes native MCP support. It receives an isolated `PI_CODING_AGENT_DIR` and loads only the built-in MCP extension with direct Pitchcrew tool exposure. Built-in tools, ambient extensions, skills, prompt templates, context files and session persistence are disabled. Older Pi packages without native MCP support appear unavailable with upgrade instructions.
+### Runtimes
 
-oh-my-pi requires `omp` 18.4.9 or newer. It receives isolated configuration and data paths, waits for Pitchcrew MCP discovery, and exposes the five application MCP tools plus the three browser tools when computer use is enabled. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data directory must be on the same drive as the user home so OMP's native configuration-root resolution can isolate the run.
+Pitchcrew supports **Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi and oh-my-pi**. Different agents can use different runtimes.
 
-Pi and oh-my-pi inherit their CLI's native provider authentication environment (for example, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`). User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime's default or use `provider/model`. Pitchcrew never reads, copies or stores these credentials.
+Install the CLI on `PATH` and configure its native authentication before using it. **Settings > Runtimes** shows availability; Crew settings choose the runtime and model. Leave the model empty for the CLI default, or use the searchable picker. Version checks and model discovery do not start an inference turn; chats, workflows and follow-ups can use your provider account.
 
-These integrations have subprocess contract coverage; live provider runs have not been verified.
+See [runtime setup](docs/runtimes.md) for executable names, authentication requirements and version constraints, and [model discovery](docs/model-discovery.md) for catalog behavior.
 
-## Connect GitHub and Google Workspace
+### Chats, skills and routines
 
-In **Your crew → Connected accounts**, connect GitHub with a fine-grained token or Google Workspace with Desktop OAuth browser sign-in. Then enable GitHub, Gmail, Drive/Docs, Calendar or Sheets in each role’s settings. Access defaults to disabled. Agents can use these read-only MCP tools for company research, portfolio evidence, recruiter email and interview preparation in both chat and card workflows. Sending mail, editing files and posting still require future approval-gated tools. See [connector setup and available tools](docs/connectors.md).
+**Chat** offers private role threads and a shared crew conversation. Attach a job for application context. Replies stream where the runtime supports it; only successful final replies are saved. Agents with permission can message each other and queue follow-ups, limited to six per user-started chain. **Stop** cancels the chain.
 
-## Chat with your crew
+**Skills** holds reusable Markdown instructions assigned to all agents or selected roles. Write your own, import a public GitHub-backed skills.sh link, or review an agent's suggestion. Imports copy `SKILL.md` instructions only. New runs receive a snapshot of their assigned skills; edits affect future runs and grant no additional tools.
 
-Open **Chat** or click a role in the sidebar. Talk privately with any stored role, or join the **Crew conversation** to see agent messages and handoffs. Attach a job to give a turn application context. AI Elements provides the conversation, Markdown messages and composer in Pitchcrew’s visual style.
+On startup, Pitchcrew loads missing skills from a ten-entry public GitHub starter catalog. Existing edits and deletions are preserved. Failed imports can be retried from Skills. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports.
 
-Replies appear as the runtime produces text, including replies to other agents in the crew conversation. Streaming uses native CLI updates: Claude Code and Cursor provide text deltas; runtimes such as Codex `exec` and OpenCode may provide complete message items instead. Live previews become saved messages only after the turn succeeds. **Stop** clears unfinished replies, and reconnecting restores active previews.
+**Routines** schedules one-time or repeating agent tasks with a timezone and optional end date or run limit. Routines persist across restarts and run only while the daemon is open. Busy or paused agents wait; overdue repeats coalesce into one run. See [routines](docs/routines.md).
 
-Runtimes can use their exposed board-backed tools to message another agent, invoke themselves or another role, shortlist the attached lead, request packet changes, and queue drafting/review runs. Every exchange and task is visible in chat. Follow-ups wait for the current turn to finish and are limited to six per user-started chain; **Stop** cancels that chain. Paused roles and disabled capabilities are enforced by the daemon. Demo chat is scripted and does not reason or call tools.
+Agent suggestions for instructions, capabilities and skills appear in **Chat > Crew work**. You review and decide whether to apply them. [Pipeline reviews](docs/pipeline-reviews.md) use the same explicit approval model for targeted crew changes.
 
-Open **Routines** to create a one-time action or a repeating task for an agent. Choose a start time and timezone, an elapsed interval or a daily/weekday/weekly/monthly pattern, and optionally a total run limit or end date. Custom five-field cron expressions support other calendar patterns. Edit, pause, resume or delete schedules from the page, or ask an agent in chat, for example: "Every weekday at 9 AM, review my applications for two weeks." Agents can manage routines for themselves or delegate to another agent using scoped tools. **Create, edit and delete scheduled actions** controls this capability; targeting another role also requires **Invoke itself and other roles**. Each occurrence starts a fresh chat turn with current settings and skills. Schedules persist across restarts and run only while the local daemon is open; busy/paused roles wait, and overdue repeats coalesce into one run. Deleting leaves history and any active run intact. Outward actions still require their existing approvals. Demo remains scripted. See [routines](docs/routines.md) for timing, permissions and restart behavior.
+## Accounts and profile sources
 
-Agents can propose changes to their own instructions or capabilities. Inspect the proposed values in chat and choose **Apply changes** or **Decline**. Applying waits for that role’s active runs to finish. Agents cannot apply these changes themselves or approve exports. With opt-in capabilities they can assess inspected form requirements and capture submission evidence; users verify the outcome. They can also discuss skills with you or each other and suggest adding a custom Markdown skill or a public GitHub-backed skills.sh URL. Open **Crew work → Suggested skills** to inspect the reason, assignment, source and full instructions, then choose **Add skill** or **Decline**. Each run can make at most three skill suggestions. Adding a suggestion saves the exact reviewed snapshot for future runs; it does not fetch a new upstream version.
+Connect accounts in **Settings > Accounts**, or from **Profile**:
 
-## Workspace settings
+- **GitHub:** read repositories, files, issues and pull requests with a fine-grained token.
+- **Google Workspace:** read Gmail, Drive/Docs, Sheets and Calendar with Desktop OAuth.
 
-Open **Settings** from the sidebar footer or command palette to choose a theme, toggle notification sounds, manage connected accounts, check installed runtimes or copy the local data folder path. Settings sections support direct links and browser history. Appearance and sound preferences save automatically on this device; agent instructions and capabilities stay in **Crew**.
+Enable each service separately for the agents that need it. Connectors are read-only. See [connector setup](docs/connectors.md) for permissions and Google OAuth configuration.
 
-## Use a local browser
+Profile imports let you review and select documents from nested GitHub or Drive folders. GitHub imports use one pinned commit; Drive supports Google Docs, Markdown and plain text. Import applies the reviewed snapshot. Refresh flags local edits and keeps files removed upstream; removing a source keeps your local notes.
 
-Install Chromium with `pnpm browser:install`, then enable **Computer use** in a role's settings. Ask the agent to work on an application in chat. It opens a dedicated browser on this computer and can inspect pages, navigate, fill fields, select options, press keys, click and upload exact exported Markdown/PDF/DOCX packet files. Review every interaction in **Inbox**, including the final submit click. Approvals bind the exact action and current page, work once, and expire when the run ends. Sign in manually in the dedicated window when needed. Attach the job card for packet uploads. Enable **Assess inspected application forms** to save actual controls, required flags and file formats on the job, with missing answers and explicitly unknown sections. Enable **Record approved submission attempts and evidence** for purpose-marked submit clicks/Enter actions linked to the current exported packet. Uncertain outcomes block further interactions until you verify the captured website confirmation or provide your own external verification, or verify no submission occurred. See [computer use](docs/computer-use.md) for tools, boundaries and limitations.
+Optional watches let agents propose source refreshes or new notes backed by project evidence. You approve the exact proposed changes and verify personal facts before they enter your profile. See [profile maintenance](docs/profile-maintenance.md).
 
-## Pull profile notes from GitHub or Google Drive
+## Browser assistance and approvals
 
-Open **Profile** and choose **GitHub** or **Google Drive**. Connect your account on that page, choose a folder, review its documents, and import the facts you want your crew to use. Account connections are shared with Settings; importing your profile does not enable connector access for any role.
+Install the local browser:
 
-For a resume repository, start with its factual source folder, such as `about-me`, with background notes, work experience and one Markdown file per project. GitHub imports nested Markdown/text files at a single commit. Add another source for a `general` folder if you also keep a baseline resume there. Writing skills and tailored application packets belong in their own workflows.
-
-Drive imports nested folders containing Google Docs, Markdown and plain text. Paste a Drive folder link or ID. PDFs, shortcuts and other binary formats are skipped.
-
-Imported documents remain separate local profile notes with source paths, links, revisions and content hashes. **Review updates** loads a fresh preview; new and changed documents are selected by default, while locally edited notes require explicit selection before replacement. Removed upstream documents remain local. Removing a source keeps its notes and leaves the account connected. Previews expire after ten minutes and after daemon restart; importing uses the reviewed snapshot without fetching again. Each source is bounded to 100 documents, 30 folders, 50,000 characters per document and 1 million characters in total. Profile updates wait until active runs finish.
-
-## Your data
-
-By default, everything is stored outside the repository:
-
-```text
-~/.pitchcrew/
-  pitchcrew.db                    # SQLite projections and append-only event log
-  onboarding.json                # shared welcome and setup preferences
-  connectors/credentials.json    # local GitHub/Google connector credentials
-  profile/*.md                   # factual source notes
-  profile-sources.json           # reviewed import provenance and source configuration
-  roles/<role>/AGENTS.md          # instructions managed in Crew settings
-  roles/<role>/CLAUDE.md          # imports AGENTS.md
-  roles/<role>/runs/<run-id>/     # isolated runtime working folders
-    skills/<skill-id>/SKILL.md    # snapshots of assigned Markdown skills
-  packets/<card-id>/try-*/        # Markdown packets, claims.json and approved PDF/DOCX artifacts
+```sh
+pnpm browser:install
 ```
 
-Runtime MCP configuration is passed per run. Pitchcrew does not read or store provider credentials. To keep a demo separate, use PowerShell before starting the daemon:
+Enable **Computer use** for an agent and ask it to help with an application. It opens a visible, isolated Chromium window. The agent can inspect pages; navigation, clicks, fills, selections, keypresses and exported-packet uploads each require an approval in **Inbox**. Sign-in and CAPTCHA handling stay manual.
+
+Browser approvals allow one exact interaction on the reviewed page and expire when the run ends. Optional form assessments save inspected requirements for Writer. Submission receipts capture approved attempts; uncertain outcomes pause further interactions until you verify the result. See [computer use](docs/computer-use.md).
+
+Local packet exports also require a single-use approval for the exact packet and frozen document bytes. These checks are enforced by the tools. Agents cannot approve their own actions or adopt their own settings changes.
+
+## Local data and privacy
+
+The default data folder is `~/.pitchcrew` (`%USERPROFILE%\.pitchcrew` on Windows). It contains the SQLite board and event history, profile notes, chats, skills, routines, role instructions, isolated run folders and versioned packets.
+
+Pitchcrew does not read, copy or store AI provider credentials. The runtime uses its native authentication. Connected GitHub and Google credentials are stored separately in `connectors/credentials.json` inside the data folder, as local JSON without encryption. Protect that folder using your operating system's account and disk protections.
+
+AI runs send context to the configured runtime/provider, and connected services make network requests when used. Local storage does not make provider-backed runs offline.
+
+To use a separate workspace and port in PowerShell:
 
 ```powershell
 $env:PITCHCREW_HOME = "$env:USERPROFILE\.pitchcrew-demo"
@@ -148,50 +150,44 @@ $env:PITCHCREW_PORT = '4418'
 pnpm dev
 ```
 
-`PITCHCREW_HOME` must be outside this repository. Manage skills through the Skills page. Edit role instructions through Crew settings; the daemon regenerates instruction files from stored settings on startup. Profile files can also be edited directly while no roles are running.
+`PITCHCREW_HOME` must be outside this repository. **Settings > Local data** shows its path. Manage agent instructions in Crew; generated instruction files are refreshed from stored settings. Profile changes require all runs to be idle.
 
-## Architecture
+## Current limits
 
-| Package        | Responsibility                                                                                                                               |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `core`         | Strict TypeScript contracts, Zod validation, card transitions, connector capabilities                                                        |
-| `board`        | SQLite event log, projections, exact-payload approval tokens and browser action approvals                                                    |
-| `orchestrator` | Fastify loopback daemon, chat/workflow launches, bounded crew tasks, persistent routines, scoped capabilities                                |
-| `adapters`     | Demo and native CLI/ACP runtime integrations                                                                                                 |
-| `mcp`          | Official SDK stdio server, card/profile/chat/workflow tools, proposals, read-only connectors, approval-gated export and browser interactions |
-| `packet`       | Source-quote and word-cap checks, versioned Markdown files                                                                                   |
-| `ui`           | React, shadcn/ui, AI Elements, Tailwind, locally bundled fonts, Vite                                                                         |
-| `desktop`      | Sandboxed Electron host for the shared renderer                                                                                              |
+- Job discovery is manual. There is no automatic outreach or email sender.
+- Routines require the local daemon to be running; there is no OS background scheduler.
+- Computer use covers an isolated Chromium browser, not the whole desktop.
+- Packet checks verify registered quotations and word limits. They cannot prove every sentence is factual; review the complete packet.
+- Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.
 
-Agent application tools are scoped to the attached card; conversation reads are scoped to the role’s own chat and the shared crew chat. Messages, proposals and follow-up tasks are persisted in the board. Agents cannot approve actions, apply their own role changes, or use another role's runtime session. Approval binds the exact packet and is consumed once in the MCP export gate. A revised packet requires a fresh approval. The daemon recovers interrupted runs, releases their card claims, and marks interrupted queued tasks failed after restart.
+## Development
 
-The UI polls the daemon every two seconds. HTTP APIs use a local session, application header, origin checks, and host checks. Production assets use a content security policy. Electron disables Node integration, isolates the renderer, and denies permissions and external navigation.
+The workspace uses strict TypeScript, pnpm workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Oxlint and Oxfmt handle linting and formatting; Vitest runs the tests.
 
-See [Code organization](docs/code-organization.md) for feature folders, component boundaries and backend module ownership.
+Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted on the board, with an append-only event history; the runtime supplies the agent execution loop.
 
-## Tooling and verification
-
-**Oxlint** replaces ESLint, and **Oxfmt** handles formatting. Vite 8 / its React plugin use Oxc transforms and Rolldown; **tsdown** builds the Electron main process with Rolldown. TypeScript remains the type checker.
+| Package                 | Responsibility                                              |
+| ----------------------- | ----------------------------------------------------------- |
+| `packages/core`         | Contracts, validation, capabilities and card transitions    |
+| `packages/board`        | SQLite events, projections and approval state               |
+| `packages/orchestrator` | Loopback daemon, run launches, crew tasks and routines      |
+| `packages/adapters`     | Provider-specific CLI and ACP integrations, plus Demo       |
+| `packages/mcp`          | Scoped tools, read-only connectors and export/browser gates |
+| `packages/packet`       | Evidence checks and versioned packet files                  |
+| `packages/ui`           | Shared browser and desktop renderer                         |
+| `packages/desktop`      | Sandboxed Electron host                                     |
 
 ```sh
 pnpm lint
-pnpm format
 pnpm format:check
 pnpm typecheck
-pnpm browser:install # install Chromium once for browser tools and tests
+pnpm browser:install # once, for browser tools and tests
 pnpm test
 pnpm build
-pnpm check          # lint, typecheck, tests, build
-pnpm test:desktop   # built UI + isolated Electron renderer/daemon smoke test
+pnpm check           # lint, typecheck, tests and build
+pnpm test:desktop    # isolated daemon and actual Electron renderer
 ```
 
-Tests use fictional fixtures and temporary workspaces. They cover transitions, append-only history and projection replay, stale/reused approvals, evidence checks, concurrent claims, cancellation, HTTP boundaries, mock CLI parsing, and the real MCP stdio connection. They make no paid provider calls. The desktop test sends a scripted fixture chat through the production renderer and saves a screenshot and JSON evidence in a temporary directory.
+Use `pnpm format` to apply formatting. Tests use fictional fixtures, temporary workspaces and mock provider processes. Coverage includes board replay, approvals, HTTP boundaries, adapter contracts, MCP stdio and isolated Chromium. They make no paid provider calls.
 
-## MVP boundaries
-
-Discovery is manual. Roles launch from user chat/workflow actions, persistent routines and bounded crew follow-ups. Exports are local Markdown and optional PDF/DOCX files: there is no email sender, bespoke one-page builder, OS/background scheduler or automatic Coach installation. Users can enable batch pipeline reviews and schedule them through ordinary routines while Pitchcrew is open. Role-scoped browser interactions can submit forms with individual user approvals. Desktop installers, auto-updates and further runtimes are deferred.
-
-Packet lint checks registered claims against exact source quotes and enforces word caps. It cannot prove every free-form sentence is factual; the independent reviewer and the user still need to inspect the complete packet.
-
-Choose the document format on a reviewed job before requesting export approval. Inbox previews the exact generated PDF and the complete DOCX source text, with byte digests. Approved export writes the frozen files; downloads become available after export. Unsupported PDF characters fail explicitly; choose DOCX for Unicode. Documents render literal Markdown as text and never execute HTML or fetch embedded links.
-Pipeline review prerequisites are available through opt-in crew capabilities: bounded batch evidence, every-seat assessments, measurable follow-ups and explicit user approval for targeted role changes. The default Pipeline Coach has review and proposal tools configured, starts paused in production, and has no automatic schedule. See [pipeline reviews](docs/pipeline-reviews.md).
+Read [AGENTS.md](AGENTS.md) for repository rules, [code organization](docs/code-organization.md) for module conventions, and [MVP design](docs/mvp-design.md) for architectural decisions.
