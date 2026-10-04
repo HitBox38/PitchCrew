@@ -7,6 +7,7 @@ describe('connector account settings', () => {
   it('requires a local user session for account changes and never gives agents a connection action', async () => {
     const { daemon, request } = await setup(14433);
     const connect = vi.spyOn(daemon.service.connectors, 'connectGithub').mockResolvedValue([]);
+    const googleCli = vi.spyOn(daemon.service.connectors, 'connectGoogleCli').mockResolvedValue([]);
     const disconnect = vi.spyOn(daemon.service.connectors, 'disconnect').mockResolvedValue([]);
     for (const path of [
       '/connectors/github/connect',
@@ -27,6 +28,16 @@ describe('connector account settings', () => {
       ).toBe(403);
     }
     expect(connect).not.toHaveBeenCalled();
+    expect(googleCli).not.toHaveBeenCalled();
+    expect(
+      (await request('/connectors/google/connect', 'POST', { mode: 'cli' })).response.status,
+    ).toBe(200);
+    expect(googleCli).toHaveBeenCalledTimes(1);
+    expect(
+      (await request('/connectors/google/connect', 'POST', { mode: 'cli', command: 'send' }))
+        .response.status,
+    ).toBe(400);
+    expect(googleCli).toHaveBeenCalledTimes(1);
     expect(
       (await request('/connectors/github/connect', 'POST', { token: 'fixture-token' })).response
         .status,

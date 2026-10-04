@@ -1,6 +1,7 @@
 import { getConnectorTool } from '../tools.ts';
 import { boundedText, googleScopes, GoogleToken } from './helpers.ts';
 import { githubCliRead } from './github-cli.ts';
+import { googleCliRead } from './google-cli.ts';
 import type { ConnectorRequest } from '../tools/helpers.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
@@ -67,12 +68,16 @@ export async function call(
   runSignal.throwIfAborted();
   if ('mode' in token) {
     try {
-      const data = await githubCliRead(this, request.url, token.account, runSignal);
-      this.errors.github = '';
+      const data =
+        tool.provider === 'github'
+          ? await githubCliRead(this, request.url, token.account, runSignal)
+          : await googleCliRead(this, name, request, tool.permission, runSignal);
+      this.errors[tool.provider] = '';
       return connectorResult(request, data);
     } catch (error) {
-      if (!runSignal.aborted && this.store.github === token)
-        this.errors.github = error instanceof Error ? error.message : 'GitHub CLI request failed.';
+      if (!runSignal.aborted && this.store[tool.provider] === token)
+        this.errors[tool.provider] =
+          error instanceof Error ? error.message : 'Connector CLI request failed.';
       throw error;
     }
   }
