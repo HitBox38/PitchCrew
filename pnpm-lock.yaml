@@ -111,6 +111,9 @@ importers:
       '@pitchcrew/packet':
         specifier: workspace:*
         version: link:../packet
+      better-sqlite3:
+        specifier: 13.0.3
+        version: 13.0.3
       cron-parser:
         specifier: ^5.10.1
         version: 5.10.1
@@ -130,6 +133,9 @@ importers:
       '@fastify/middie':
         specifier: 9.3.4
         version: 9.3.4
+      '@types/better-sqlite3':
+        specifier: 9.6.0
+        version: 9.6.0
       vite:
         specifier: 8.3.1
         version: 8.3.1(@types/node@24.19.0)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15)(yaml@2.9.1)

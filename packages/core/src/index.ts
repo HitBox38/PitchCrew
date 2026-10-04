@@ -2,11 +2,13 @@ export * from './pipeline-reviews.ts';
 export type { OnboardingState } from './onboarding.ts';
 export { cardInput } from './cards.ts';
 export * from './tracking.ts';
-export type { Card, CardInput } from './cards.ts';
+export type { Card, CardInput, CardLesson } from './cards.ts';
+export * from './insights.ts';
+export * from './learning.ts';
 export { chatInput, chatResultSchema } from './chat.ts';
 export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from './chat.ts';
 export * from './computer.ts';
-export { decodeEvent } from './events.ts';
+export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
 export type { ArtifactLayout, Packet, PacketArtifact } from './packets.ts';
@@ -56,3 +58,30 @@ export type {
   ProfileMaintenanceChange,
 } from './profile-maintenance.ts';
 export * from './submissions.ts';
+export type {
+  BackgroundServiceInfo,
+  BackgroundServicePlatform,
+  BackgroundServiceStatus,
+} from './background-service.ts';
+export * from './imports.ts';
+export * from './job-sources.ts';
+export {
+  defaultPacketRules,
+  describePacketRules,
+  hasNestedQuantifier,
+  packetDocumentLabels,
+  packetDocuments,
+  packetRuleIssues,
+  packetRuleLimits,
+  packetRuleSchema,
+  packetRulesSchema,
+  patternProblem,
+} from './packet-rules.ts';
+export type {
+  PacketDocument,
+  PacketRule,
+  PacketRuleIssue,
+  PacketRules,
+  PacketRulesState,
+  PacketRuleSeverity,
+} from './packet-rules.ts';

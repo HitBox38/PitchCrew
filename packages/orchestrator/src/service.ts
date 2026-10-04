@@ -45,11 +45,20 @@ export class CrewService {
   get onboarding() {
     return this.context.onboarding;
   }
+  get packetRules() {
+    return this.context.packetRules;
+  }
   get connectors() {
     return this.context.connectors;
   }
   get profileSources() {
     return this.context.profileSources;
+  }
+  get jobSources() {
+    return this.context.jobSources;
+  }
+  scanJobSources(input: unknown) {
+    return this.context.jobSources.scan({ actor: 'user', input });
   }
   importProfileSource(input: unknown): Promise<ProfileFile[]> {
     assertProfileReady(this.context);

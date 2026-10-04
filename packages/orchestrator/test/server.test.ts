@@ -60,12 +60,7 @@ describe('HTTP framework contracts', () => {
     const { daemon, request, cookie } = await setup(15002);
     expect((await request('/runtimes/demo/models', 'POST')).response.status).toBe(200);
     const before = daemon.service.board.events();
-    for (const body of [
-      '{',
-      'null',
-      '"text"',
-      JSON.stringify({ content: 'x'.repeat(1024 * 1024) }),
-    ]) {
+    for (const body of ['{', 'null', '"text"']) {
       const response = await fetch(`${daemon.url}/api/cards`, {
         method: 'POST',
         headers: { cookie, 'x-pitchcrew-client': 'ui', 'content-type': 'application/json' },
@@ -74,6 +69,25 @@ describe('HTTP framework contracts', () => {
       expect(response.status).toBe(400);
       expect(await response.json()).toHaveProperty('error');
     }
+    // An early oversized-body rejection can reset the TCP upload before fetch sees
+    // the response on macOS. Inject exercises the actual parser/error envelope
+    // deterministically; small malformed bodies above still use loopback HTTP.
+    const create = vi.spyOn(daemon.service, 'createCard');
+    const oversized = await daemon.app.inject({
+      method: 'POST',
+      url: '/api/cards',
+      headers: {
+        host: new URL(daemon.url).host,
+        cookie,
+        'x-pitchcrew-client': 'ui',
+        'content-type': 'application/json',
+      },
+      payload: JSON.stringify({ content: 'x'.repeat(1024 * 1024) }),
+    });
+    expect(oversized.statusCode).toBe(400);
+    expect(oversized.json()).toHaveProperty('error');
+    expect(create).not.toHaveBeenCalled();
+    create.mockRestore();
     const invalid = await request<{ error: string }>('/cards', 'POST', {});
     expect(invalid.response.status).toBe(400);
     expect(invalid.result.error).toEqual(expect.any(String));

@@ -1,5 +1,6 @@
 import { Board } from '@pitchcrew/board';
 import type { OnboardingPreferences } from '../onboarding.ts';
+import type { PacketRulesStore } from '../packet-rules.ts';
 import type { SkillPreview } from '@pitchcrew/core';
 import {
   type AgentTask,
@@ -24,6 +25,7 @@ import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import type { ProfileSourceManager } from '../profile-sources/index.ts';
+import type { JobSourceManager } from '../job-sources/index.ts';
 
 /** Shared run state. Internal to the orchestrator; never exposed to runtime adapters. */
 export interface CrewContext {
@@ -33,8 +35,10 @@ export interface CrewContext {
   readonly mcpEntry: string;
   board: Board;
   onboarding: OnboardingPreferences;
+  packetRules: PacketRulesStore;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;
+  jobSources: JobSourceManager;
   profileWriting: boolean;
   profileRevision: number;
   computer: ComputerManager;
@@ -118,7 +122,7 @@ export interface CrewContext {
   finishTask(run: Run): void;
   taskPermissionsAllow(task: AgentTask): boolean;
   drainTasks(): Promise<void>;
-  exportPacket(id: string): Promise<string>;
+  exportPacket(id: string, assertActive?: () => void): Promise<string>;
   agentCall(
     token: string,
     action: string,

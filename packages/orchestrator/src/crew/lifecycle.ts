@@ -77,6 +77,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
   const profile = await readProfile(this.directory);
   const snapshot: Snapshot = {
     onboarding: this.onboarding.get(),
+    packetRules: this.packetRules.current(),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
     cards: this.board.list<Card>('card'),
@@ -109,6 +110,7 @@ export async function close(this: CrewContext): Promise<void> {
   this.closing = true;
   clearInterval(this.schedulerTimer);
   this.modelController.abort();
+  this.jobSources.close();
   for (const controller of this.controllers.values()) controller.abort();
   await Promise.allSettled(this.modelRequests.values());
   await this.connectors.close();

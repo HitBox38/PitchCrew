@@ -9,6 +9,7 @@ import { registerProfileTools } from './tools/profile.ts';
 import { registerPipelineTools } from './tools/pipeline.ts';
 import { registerRoutineTools } from './tools/routines.ts';
 import { registerTrackingTools } from './tools/tracking.ts';
+import { registerJobSourceTools } from './tools/job-sources.ts';
 
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
@@ -24,6 +25,7 @@ registerRoutineTools(server, call);
 registerProfileTools(server, call);
 registerTrackingTools(server, call);
 await registerPipelineTools(server, call);
+await registerJobSourceTools(server, call);
 
 // Browser tools are exposed only to enabled roles; the daemon rechecks every call.
 await registerComputerTools(server, call);

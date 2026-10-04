@@ -6,6 +6,7 @@ import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
 import type { BoardEvent } from './events.ts';
 import type { Packet, PacketArtifact } from './packets.ts';
+import type { PacketRulesState } from './packet-rules.ts';
 import type { Role, RoleProposal } from './roles.ts';
 import type { AgentTask, Run } from './runs.ts';
 import type { Routine } from './routines.ts';
@@ -32,6 +33,7 @@ export interface ProfileFile {
 }
 export interface Snapshot {
   onboarding?: OnboardingState;
+  packetRules?: PacketRulesState;
   profileProposals?: ProfileMaintenanceProposal[];
   trackingSignals?: TrackingSignal[];
   trackingScans?: TrackingScan[];

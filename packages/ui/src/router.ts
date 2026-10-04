@@ -8,6 +8,7 @@ import {
   redirect,
 } from '@tanstack/react-router';
 import { validateActivitySearch } from './ActivityPage/helpers.ts';
+import { validateInsightsSearch } from './InsightsPage/helpers.ts';
 import { validateSettingsSearch } from './SettingsPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
 import type { Role } from '@pitchcrew/core';
@@ -100,6 +101,14 @@ const routinesRoute = createRoute({
   component: lazyRouteComponent(() => import('@/RoutinesPage/index.tsx'), 'RoutinesPage'),
 });
 
+const insightsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/insights',
+  staticData: { view: 'insights' },
+  validateSearch: validateInsightsSearch,
+  component: lazyRouteComponent(() => import('@/InsightsPage/index.tsx'), 'InsightsPage'),
+});
+
 const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
@@ -117,6 +126,7 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   skillsRoute,
   routinesRoute,
+  insightsRoute,
   activityRoute,
   settingsRoute,
 ]);

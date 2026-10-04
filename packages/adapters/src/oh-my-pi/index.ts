@@ -73,6 +73,7 @@ export const ohMyPi = withChat({
         'read_profile',
         'get_history',
         'lint_packet',
+        'get_packet_rules',
         'export_packet',
         ...(context.role.capabilities?.computerUse
           ? ['computer_inspect', 'computer_request', 'computer_execute']
