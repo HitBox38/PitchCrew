@@ -143,8 +143,10 @@ export class JobSourceManager {
   }
   private async read(source: Pick<JobSource, 'provider' | 'slug'>, signal: AbortSignal) {
     const url = sourceEndpoint(source.provider, source.slug);
-    const body = await this.limiter.schedule(source.provider, () =>
-      fetchBoard(this.fetch, url, { signal }),
+    const body = await this.limiter.schedule(
+      source.provider,
+      () => fetchBoard(this.fetch, url, { signal }),
+      signal,
     );
     return {
       postings: parsePostings(source.provider, source.slug, body),
@@ -185,6 +187,7 @@ export class JobSourceManager {
     input?: unknown;
     signal?: AbortSignal;
     recentMs?: number;
+    authorize?: () => void;
   }): Promise<JobScanSummary> {
     const { sourceIds } = jobScanInput.parse(options.input ?? {});
     if (this.scanning) throw new Error('A job source scan is already running.');
@@ -225,37 +228,65 @@ export class JobSourceManager {
       );
       if (options.signal?.aborted || this.lifetime.signal.aborted)
         throw new Error('The scan was cancelled.');
-      const passing: DiscoveredPosting[] = [];
-      const results = new Map<string, JobSourceScanResult>();
-      for (const { source, postings, error, skipped } of fetched) {
-        const matches = postings.filter((posting) => matchesFilters(posting, source.filters));
-        results.set(source.id, {
-          sourceId: source.id,
-          name: source.name,
-          provider: source.provider,
-          status: skipped ? 'skipped' : error ? 'failed' : 'ok',
-          ...(error ? { error } : {}),
-          fetched: postings.length,
-          new: 0,
-          duplicate: 0,
-          filtered: postings.length - matches.length,
-          deferred: 0,
-        });
-        passing.push(...matches.map((posting) => ({ source, posting })));
-      }
-      const recorded = recordDiscoveredLeads(
-        this.board,
-        passing,
-        options.actor,
-        maxNewLeadsPerScan,
-      );
-      for (const { item } of recorded.created) results.get(item.source.id)!.new += 1;
-      for (const item of recorded.duplicate) results.get(item.source.id)!.duplicate += 1;
-      for (const item of recorded.deferred) results.get(item.source.id)!.deferred += 1;
-      for (const item of recorded.invalid) results.get(item.source.id)!.filtered += 1;
-      const scannedAt = new Date().toISOString();
-      await this.mutate((sources) => ({
-        sources: sources.map((source) => {
+      return await this.mutate((sources) => {
+        options.authorize?.();
+        if (options.signal?.aborted || this.lifetime.signal.aborted)
+          throw new Error('The scan was cancelled.');
+        const passing: DiscoveredPosting[] = [];
+        const results = new Map<string, JobSourceScanResult>();
+        for (const item of fetched) {
+          const { source } = item;
+          const current = sources.find((value) => value.id === source.id);
+          const changed =
+            !current ||
+            JSON.stringify([
+              current.provider,
+              current.slug,
+              current.name,
+              current.enabled,
+              current.filters,
+            ]) !==
+              JSON.stringify([
+                source.provider,
+                source.slug,
+                source.name,
+                source.enabled,
+                source.filters,
+              ]);
+          const { postings, error, skipped } = changed
+            ? {
+                postings: [],
+                error: 'The source changed during the scan. Scan it again.',
+                skipped: true,
+              }
+            : item;
+          const matches = postings.filter((posting) => matchesFilters(posting, source.filters));
+          results.set(source.id, {
+            sourceId: source.id,
+            name: source.name,
+            provider: source.provider,
+            status: skipped ? 'skipped' : error ? 'failed' : 'ok',
+            ...(error ? { error } : {}),
+            fetched: postings.length,
+            new: 0,
+            duplicate: 0,
+            filtered: postings.length - matches.length,
+            deferred: 0,
+          });
+          passing.push(...matches.map((posting) => ({ source, posting })));
+        }
+        const recorded = recordDiscoveredLeads(
+          this.board,
+          passing,
+          options.actor,
+          maxNewLeadsPerScan,
+        );
+        for (const { item } of recorded.created) results.get(item.source.id)!.new += 1;
+        for (const item of recorded.duplicate) results.get(item.source.id)!.duplicate += 1;
+        for (const item of recorded.deferred) results.get(item.source.id)!.deferred += 1;
+        for (const item of recorded.invalid) results.get(item.source.id)!.filtered += 1;
+        const scannedAt = new Date().toISOString();
+        const updatedSources = sources.map((source) => {
           const result = results.get(source.id);
           if (!result || result.status === 'skipped') return source;
           return {
@@ -270,30 +301,32 @@ export class JobSourceManager {
               filtered: result.filtered,
             },
           };
-        }),
-        result: undefined,
-      }));
-      const list = [...results.values()];
-      const total = (key: 'new' | 'duplicate' | 'filtered' | 'deferred') =>
-        list.reduce((sum, item) => sum + item[key], 0);
-      return {
-        scannedAt,
-        new: total('new'),
-        duplicate: total('duplicate'),
-        filtered: total('filtered'),
-        deferred: total('deferred'),
-        failedSources: list.filter((item) => item.status === 'failed').length,
-        sources: list,
-        newLeads: recorded.created.map(({ card, item }) => ({
-          id: card.id,
-          company: card.company,
-          title: card.title,
-          location: card.location,
-          url: card.url,
-          sourceId: item.source.id,
-          excerpt: card.description.slice(0, 1500),
-        })),
-      };
+        });
+        const list = [...results.values()];
+        const total = (key: 'new' | 'duplicate' | 'filtered' | 'deferred') =>
+          list.reduce((sum, item) => sum + item[key], 0);
+        return {
+          sources: updatedSources,
+          result: {
+            scannedAt,
+            new: total('new'),
+            duplicate: total('duplicate'),
+            filtered: total('filtered'),
+            deferred: total('deferred'),
+            failedSources: list.filter((item) => item.status === 'failed').length,
+            sources: list,
+            newLeads: recorded.created.map(({ card, item }) => ({
+              id: card.id,
+              company: card.company,
+              title: card.title,
+              location: card.location,
+              url: card.url,
+              sourceId: item.source.id,
+              excerpt: card.description.slice(0, 1500),
+            })),
+          },
+        };
+      });
     } finally {
       this.scanning = false;
     }

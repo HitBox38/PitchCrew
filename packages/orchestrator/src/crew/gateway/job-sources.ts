@@ -49,6 +49,7 @@ export async function jobSourceAction(
     actor: capability.roleId,
     input: data.input ?? {},
     signal,
+    authorize,
     recentMs: agentScanIntervalMs,
   });
   return { summary };

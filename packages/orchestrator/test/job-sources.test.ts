@@ -1,5 +1,5 @@
 import { jobSourceInput, type JobPosting } from '@pitchcrew/core';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   fetchBoard,
   ProviderRateLimiter,
@@ -241,6 +241,18 @@ describe('bounded fetch', () => {
         url,
       ),
     ).rejects.toThrow('invalid JSON');
+  });
+
+  it('cancels queued provider requests without starting them', async () => {
+    const limiter = new ProviderRateLimiter(1000);
+    await limiter.schedule('lever', async () => {});
+    const controller = new AbortController();
+    const task = vi.fn(async () => {});
+    const queued = limiter.schedule('lever', task, controller.signal);
+    const stopped = expect(queued).rejects.toThrow();
+    controller.abort();
+    await stopped;
+    expect(task).not.toHaveBeenCalled();
   });
 
   it('spaces requests to one provider without delaying other providers', async () => {

@@ -78,7 +78,9 @@ The daemon is the only part that calls the providers. It uses three fixed endpoi
 - Each request sends the user agent `Pitchcrew/0.1.0 (local job discovery; read-only; +https://github.com/HitBox38/PitchCrew)`.
 - Each request has a 20-second timeout. A whole scan stops after three minutes and reports the remaining sources as failed.
 - Responses must be JSON and at most 8 MB. Pitchcrew reads the first 2,000 postings per board.
-- Requests to the same provider start at least one second apart. Different providers run in parallel.
+- Requests to the same provider start at least one second apart. Different providers run in parallel. Queued requests stop immediately when the scan is cancelled or reaches its deadline.
+
+Sources paused, removed or edited while a scan is fetching are skipped before any leads are saved. Agent discovery permission and the active run are rechecked after the fetch, immediately before recording leads.
 
 Descriptions are converted to plain text with a single pass over the markup. Pitchcrew never renders or runs the HTML and never fetches links, images or other resources in it. Script, style, iframe and similar blocks are dropped with their contents, and link targets are discarded. Descriptions are capped at 20,000 characters. Job posts stay untrusted data for agents.
 

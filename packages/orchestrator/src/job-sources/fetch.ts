@@ -12,7 +12,11 @@ export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
 export class ProviderRateLimiter {
   private readonly next = new Map<JobProvider, Promise<void>>();
   constructor(private readonly intervalMs = providerIntervalMs) {}
-  async schedule<T>(provider: JobProvider, task: () => Promise<T>): Promise<T> {
+  async schedule<T>(
+    provider: JobProvider,
+    task: () => Promise<T>,
+    signal?: AbortSignal,
+  ): Promise<T> {
     const previous = this.next.get(provider) ?? Promise.resolve();
     let release!: () => void;
     const gate = new Promise<void>((resolve) => (release = resolve));
@@ -20,12 +24,28 @@ export class ProviderRateLimiter {
       provider,
       previous.then(() => gate),
     );
-    await previous;
+    let started = false;
+    let stopped: (() => void) | undefined;
     try {
+      if (signal)
+        await Promise.race([
+          previous,
+          new Promise<never>((_resolve, reject) => {
+            stopped = () => reject(new Error('The scan was cancelled.'));
+            if (signal.aborted) stopped();
+            else signal.addEventListener('abort', stopped, { once: true });
+          }),
+        ]);
+      else await previous;
+      signal?.throwIfAborted();
+      started = true;
       return await task();
     } finally {
-      const timer = setTimeout(release, this.intervalMs);
-      timer.unref?.();
+      if (signal && stopped) signal.removeEventListener('abort', stopped);
+      if (started) {
+        const timer = setTimeout(release, this.intervalMs);
+        timer.unref?.();
+      } else release();
     }
   }
 }

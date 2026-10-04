@@ -106,6 +106,65 @@ describe('job sources over HTTP', () => {
       );
   });
 
+  it.each(['pause', 'remove', 'edit'] as const)(
+    'does not create stale leads when a source is changed during a scan: %s',
+    async (change) => {
+      const { daemon } = await setup(15480);
+      const manager = daemon.service.jobSources;
+      const source = await manager.add(fixtureSources.lever);
+      let release!: (response: Response) => void;
+      let entered!: () => void;
+      const started = new Promise<void>((resolve) => {
+        entered = resolve;
+      });
+      manager.fetch = () => {
+        entered();
+        return new Promise<Response>((resolve) => {
+          release = resolve;
+        });
+      };
+      const pending = manager.scan({ actor: 'user' });
+      await started;
+      if (change === 'remove') await manager.remove(source.id);
+      else
+        await manager.update(source.id, {
+          ...fixtureSources.lever,
+          ...(change === 'pause' ? { enabled: false } : { slug: 'new-board' }),
+        });
+      release(jsonResponse([{ id: 'one', text: 'Engineer' }]));
+      const summary = await pending;
+      expect(summary.new).toBe(0);
+      expect(summary.sources[0].status).toBe('skipped');
+      expect(discovered(daemon.service.board.list<Card>('card'))).toEqual([]);
+      expect((await manager.list())[0]?.lastScan).toBeUndefined();
+    },
+  );
+
+  it('rechecks discovery permission before saving asynchronously fetched jobs', async () => {
+    const { daemon } = await setup(15481);
+    const manager = daemon.service.jobSources;
+    await manager.add(fixtureSources.lever);
+    enableDiscovery(daemon, true);
+    const token = fakeRun(daemon, 'revoked-discovery');
+    let release!: (response: Response) => void;
+    let entered!: () => void;
+    const started = new Promise<void>((resolve) => {
+      entered = resolve;
+    });
+    manager.fetch = () => {
+      entered();
+      return new Promise<Response>((resolve) => {
+        release = resolve;
+      });
+    };
+    const pending = daemon.service.agentCall(token, 'scan_job_sources', {});
+    await started;
+    enableDiscovery(daemon, false);
+    release(jsonResponse([{ id: 'one', text: 'Engineer' }]));
+    await expect(pending).rejects.toThrow('disabled');
+    expect(discovered(daemon.service.board.list<Card>('card'))).toEqual([]);
+  });
+
   it('adds, edits, pauses and removes sources with validation and caps', async () => {
     const { request, added, directory } = await withSources(15462);
     expect(added.map((source) => source.filters)).toEqual(

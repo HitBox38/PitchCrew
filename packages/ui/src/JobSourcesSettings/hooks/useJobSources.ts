@@ -52,6 +52,7 @@ export function useJobSources() {
     setError('');
   }
   function update(patch: Partial<SourceDraft>) {
+    previewController.current?.abort();
     setPreview(null);
     setDraft((current) => (current ? { ...current, ...patch } : current));
   }
@@ -69,8 +70,14 @@ export function useJobSources() {
     draft &&
     void run(async () => {
       previewController.current?.abort();
-      previewController.current = new AbortController();
-      setPreview(await previewJobSource(draftInput(draft), previewController.current.signal));
+      const controller = new AbortController();
+      previewController.current = controller;
+      try {
+        const result = await previewJobSource(draftInput(draft), controller.signal);
+        if (!controller.signal.aborted) setPreview(result);
+      } catch (error) {
+        if (!controller.signal.aborted) throw error;
+      }
     }, 'Could not read the job board.');
   const remove = (source: JobSource) =>
     void run(async () => {
