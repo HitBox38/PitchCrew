@@ -1,16 +1,14 @@
 import type { RecentJobsProps } from '@/AppSidebar/types.ts';
+import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
 import { CompanyMark } from '@/components/CompanyMark/index.tsx';
-import { SidebarGroup } from '@/components/ui/sidebar/components/SidebarGroup.tsx';
 import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { SidebarGroupLabel } from '@/components/ui/sidebar/components/SidebarGroupLabel.tsx';
 import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 
 export function RecentJobs({ recent, onOpenCard }: RecentJobsProps) {
   return (
-    <SidebarGroup className="recent-group">
-      <SidebarGroupLabel>Recently opened</SidebarGroupLabel>
+    <SidebarCategory id="recent" label="Recently opened" className="recent-group">
       <SidebarGroupContent>
         <SidebarMenu>
           {recent.map((card) => (
@@ -29,6 +27,6 @@ export function RecentJobs({ recent, onOpenCard }: RecentJobsProps) {
           ))}
         </SidebarMenu>
       </SidebarGroupContent>
-    </SidebarGroup>
+    </SidebarCategory>
   );
 }
