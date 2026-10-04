@@ -48,6 +48,11 @@ describe('word counting', () => {
     expect(countWords('- * # | ---')).toBe(0);
     expect(countWords('---\nnot: closed\nStill counted')).toBe(4);
   });
+  it('omits LaTeX hyperlink destinations while retaining their formatted labels', () => {
+    const text = String.raw`See \href{https://example.com/one}{\textbf{my portfolio}} and \url{https://example.com/two}`;
+    expect(countWords(text)).toBe(4);
+    expect(bodyText(text)).not.toContain('example.com');
+  });
   it('keeps the original whitespace split for the all mode', () => {
     for (const text of ['', 'one', ' one two', 'one\n\ntwo\n', 'word '.repeat(651)])
       expect(countWords(text, 'all')).toBe(text.split(/\s+/).length);

@@ -40,6 +40,7 @@ export function bodyText(text: string): string {
     .replace(/^[ \t]{0,3}\[[^\]\n]+\]:[ \t]*\S+.*$/gm, ' ')
     .replace(/(!?)\[([^\]\n]*)\]\([^)\n]*\)/g, ' $2 ')
     .replace(/<(?:https?:|mailto:)[^>\s]*>/g, ' ')
+    .replace(/\\(?:href|url)(?:\[[^\]\n]*\])?\{[^{}\n]*\}/g, ' ')
     .replace(/\\\\/g, ' ')
     .replace(/\\[A-Za-z@]+\*?(?:\[[^\]\n]*\])?(?:\{\s*-?[\d.]+\s*[a-z]{0,2}\s*\})*/g, ' ')
     .replace(/[{}]/g, ' ');
