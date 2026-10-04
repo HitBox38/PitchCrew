@@ -15,6 +15,7 @@ import {
 import { createHash } from 'node:crypto';
 import type { Board } from '../index.ts';
 import { isLikelyDuplicateApplication, recordExternalApplication } from './tracking.ts';
+import { addCardLesson, setCardWeight } from './learning.ts';
 
 // Imported cards carry a stable per-row key in their import event message, so
 // a retried apply skips rows it already created without a new event shape.
@@ -92,6 +93,8 @@ function createImported(board: Board, plan: ImportPlan, key: string): Card {
       `Imported past status ${step.state.replaceAll('_', ' ')} effective ${step.at}`,
     );
   }
+  if (plan.weight !== undefined) card = setCardWeight(board, card.id, { weight: plan.weight });
+  for (const text of plan.lessons) card = addCardLesson(board, card.id, { text });
   return card;
 }
 

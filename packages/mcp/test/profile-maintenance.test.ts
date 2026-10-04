@@ -1,3 +1,4 @@
+import { currentEventVersion } from '@pitchcrew/core';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import {
@@ -201,7 +202,7 @@ describe('profile maintenance', () => {
       expect(
         events
           .filter((event) => event.kind === 'profile_proposal')
-          .every((event) => event.version === 10),
+          .every((event) => event.version === currentEventVersion),
       ).toBe(true);
       f.daemon.service.board.rebuild();
       expect(f.daemon.service.board.get('profile_proposal', proposal.id)).toEqual(applied.result);

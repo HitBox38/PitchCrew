@@ -27,6 +27,16 @@ export {
   applyTrackingSignal,
   completeTrackingMessage,
 } from './board/tracking.ts';
+export {
+  setCardWeight,
+  addCardLesson,
+  removeCardLesson,
+  mergeTags,
+  boardInsights,
+  statusSince,
+  staleSubmissions,
+  markStaleSubmissions,
+} from './board/learning.ts';
 export { previewApplicationImport, applyApplicationImport } from './board/imports.ts';
 export {
   discoveryKeys,

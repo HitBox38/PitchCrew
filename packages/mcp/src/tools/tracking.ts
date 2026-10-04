@@ -1,5 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { applicationQuery, trackingReconciliation } from '@pitchcrew/core';
+import { applicationQuery, insightsQuery, trackingReconciliation } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
@@ -15,6 +15,17 @@ export function registerTrackingTools(server: McpServer, call: AgentCall) {
       annotations: readOnly,
     },
     (input) => call('applications', input),
+  );
+  server.registerTool(
+    'pitchcrew_application_insights',
+    {
+      title: 'Read application insights',
+      description:
+        "Requires readApplications or reviewPipeline. Read-only learning signals from past applications: outcome counts (interviewing/offer positive; rejected/no response negative; withdrawn neutral; others pending), a tag scoreboard (count, positive share of decided, average user weight -2..+2, up to 5 sample companies), weight distribution and recent user lessons grouped by outcome. Optional tag and ISO date filters on the application date. Bounded to 50 tags, 10 lessons per outcome, 500 characters per lesson and 64 KB; truncated is true when lists were shortened. Weights and lessons are the user's judgments, not proof of cause. Agents cannot change them.",
+      inputSchema: { input: insightsQuery.optional() },
+      annotations: readOnly,
+    },
+    (input) => call('application_insights', input),
   );
   server.registerTool(
     'pitchcrew_scan_application_mail',

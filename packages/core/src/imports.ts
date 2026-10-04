@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { cardInput, type CardInput } from './cards.ts';
 import { transitions, type CardState } from './states.ts';
 import { canonicalJobUrl } from './tracking.ts';
+import { lessonLimits } from './insights.ts';
 
 // Bulk import of applications tracked before Pitchcrew. Parsing and state
 // planning are pure; the board module checks duplicates and applies rows.
@@ -257,6 +258,22 @@ export interface ImportPlan {
   state: CardState;
   note: string;
   warnings: string[];
+  weight?: number;
+  lessons: string[];
+}
+// Split by Unicode code point so neither note contains half of a surrogate pair.
+function importedLessons(text: string): string[] {
+  const notes: string[] = [];
+  let note = '';
+  for (const character of text) {
+    if (note.length + character.length > lessonLimits.length) {
+      notes.push(note.trim());
+      note = '';
+    }
+    note += character;
+  }
+  if (note) notes.push(note.trim());
+  return notes.filter(Boolean);
 }
 function shortestPath(from: CardState, to: CardState, allowed: Set<CardState>): CardState[] {
   const previous = new Map<CardState, CardState | null>([[from, null]]);
@@ -393,7 +410,12 @@ export function planImportRow(row: ApplicationImportRow, now: number = Date.now(
       `Kept the first ${importLimits.tags} tags; dropped ${tags.slice(importLimits.tags).join(', ')}.`,
     );
   if (row.weight !== undefined || row.lessons)
-    warnings.push('Kept legacy weight and lessons in the card note.');
+    warnings.push(
+      'Kept legacy weight and lessons in the card note and saved them as learning signals.',
+    );
+  const lessons = importedLessons(row.lessons);
+  if (lessons.length > 1)
+    warnings.push('Split legacy lessons into learning notes of at most 1,000 characters.');
   const lines = ['Imported from a past tracker.'];
   if (row.notes) lines.push('', row.notes);
   if (row.lessons) lines.push('', `Legacy lessons: ${row.lessons}`);
@@ -427,5 +449,7 @@ export function planImportRow(row: ApplicationImportRow, now: number = Date.now(
     state,
     note,
     warnings,
+    weight: row.weight,
+    lessons,
   };
 }

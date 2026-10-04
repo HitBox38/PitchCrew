@@ -108,6 +108,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_read_project_watch_file',
         'pitchcrew_propose_profile_note',
         'pitchcrew_search_applications',
+        'pitchcrew_application_insights',
         'pitchcrew_scan_application_mail',
         'pitchcrew_reconcile_application_mail',
       ].sort(),

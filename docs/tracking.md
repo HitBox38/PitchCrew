@@ -9,6 +9,7 @@ Tracker is a default crew member with application search, tracking and routine-m
 - `pitchcrew_search_applications`: bounded cross-application query (company, title, canonical URL, job identifier or tracked state), up to 50 cards and 100 recent supporting signals per page. Returns an offset for additional pages. The shared `searchApplications` board helper can support future batch reviews.
 - `pitchcrew_scan_application_mail`: searches a Gmail query in pages of 20 IDs and saves a durable role/mailbox/query checkpoint. A pending page must be reconciled before the next page can be fetched. Connector failures leave it pending. An incomplete sweep resumes its saved page token; requesting a completed sweep starts again at the first page to find new mail. Mailbox/message IDs deduplicate across sweeps, roles and queries. Rebuild and restart preserve checkpoints.
 - `pitchcrew_reconcile_application_mail`: the gateway fetches a pending Gmail message through the connected read-only connector. Agents supply an exact quotation and suggested company, title and state; message identity, account, thread and effective timestamp come from the fetched source, not agent assertions. An optional reason records an unrelated message as ignored without changing an application. Completed signals and scan-message consumption are transactional and idempotent.
+- `pitchcrew_application_insights`: read-only outcome counts, tag scoreboard, weights and user lessons. It also works with `reviewPipeline`. See [insights](insights.md).
 
 Use normal routines to schedule scans. They run only while the daemon is open and retain current role capabilities; there is no OS background runner. Agents should finish a page or describe unfinished pending IDs, rather than claiming the entire mailbox was reviewed.
 
@@ -21,6 +22,8 @@ The server recognizes a small conservative set of explicit English submission, s
 Signals save the exact quotation, bounded fetched text, incompleteness flag, source sender/subject/message/thread IDs, effective timestamp, proposed state, candidate identities and comparison revisions. Uncertain matches produce pending records and an attention message. The Board shows pending reviews and an expandable full fetched email. Users can reject a signal, select its exact application and apply a valid transition, or register a missing external application first and explicitly associate it. Applying a user review links its Gmail thread for future updates. Changed cards require refreshing the saved comparison before approval. Card details show recent evidence and let the user edit job identifiers and link or unlink Gmail threads.
 
 All updates obey the existing state machine and reject active workflow ownership, older effective timestamps and conflicting evidence at the same timestamp. User status changes set a separate effective-time boundary; unrelated packet edits do not advance it. Legacy cards derive the last user status change from retained, paged event history. A user-reviewed historical email retains its verified source time. Rejected or ignored signals remain processed; decisions do not automatically retry or overwrite history.
+
+To close out silent applications, use **Insights > Silent applications**. It previews submitted jobs with no status change for a chosen number of days (21 by default) and marks only the ones you confirm as no response, effective from the day the silence period ended. Later replies can still move them forward. It never runs automatically. See [insights](insights.md).
 
 ## External submissions
 
@@ -68,8 +71,8 @@ JSON is an array of objects. CSV has a header row with the same column names (an
 | `history`       | Ordered list of `{ "state", "at", "note" }`. In CSV, `state@date` entries separated by `;`, without notes.                        |
 | `tags`          | JSON array, or `;`-separated in CSV.                                                                                              |
 | `notes`         | Free text kept in the card note.                                                                                                  |
-| `weight`        | Optional legacy weight from -2 to 2, kept in the card note.                                                                       |
-| `lessons`       | Optional legacy lessons, kept in the card note.                                                                                   |
+| `weight`        | Optional weight from -2 to 2, saved as a learning signal and retained in the card note.                                           |
+| `lessons`       | Optional lessons, saved as bounded learning notes and retained in the card note.                                                  |
 
 Dates are either `2025-03-01` (read as midnight UTC) or a date and time with a timezone, such as `2025-03-01T09:00:00Z` or `2025-03-01T11:00:00+02:00`. Future dates make the row invalid.
 
@@ -131,10 +134,12 @@ The tracker is opened read-only and an existing output file is never overwritten
 - `notes`, `lessons_learned` and a non-zero `weight` are carried over.
 - Times without a timezone, such as SQLite `CURRENT_TIMESTAMP` values, are read as UTC. The script reports how many it found.
 
+New imports save weight and lessons in the learning fields used by Insights. Lessons longer than 1,000 characters are split into bounded notes without splitting Unicode characters, with a preview warning. Their save timestamps reflect the import time. Original legacy text remains in the tracking note. Previously imported cards and events stay unchanged, and re-importing those rows does not backfill signals.
+
 Review the preview before you confirm.
 
 ## Persistence and verification
 
-Version 9 adds `tracking_signal`, `tracking_scan`, card tracking metadata, user status effective times and the two optional capabilities; versions 1–8 remain replayable. Import uses existing version 9 card events and adds no event version. The database remains behind board transactions and append-only events. Tracking metadata, email context and credentials remain outside the repository; credentials never enter events or snapshots.
+Version 9 adds `tracking_signal`, `tracking_scan`, card tracking metadata, user status effective times and the two optional capabilities; versions 1–8 remain replayable. Version 10 adds discovery provenance and version 11 adds optional learning signals. New imports append current version 11 card events; versions 1–10 remain replayable, including prerelease learning snapshots. Import keys do not depend on the event version. The database remains behind board transactions and append-only events. Tracking metadata, email context and credentials remain outside the repository; credentials never enter events or snapshots.
 
 Tests use fictional mail and temporary workspaces: actual HTTP and MCP stdio envelopes, CSV and JSON import parsing, import state mapping, idempotent re-import, the legacy converter against a temporary SQLite file, normalized Gmail payloads, duplicate registration, stable matching, ambiguous/no-candidate review, full-source negation, quoted conversations, monotonic user corrections, legacy history pagination, equal-time conflicts, failed reads, capability revocation during reads, replay, repeated sweeps and global message deduplication. Live mailbox behavior and provider inference are not tested.

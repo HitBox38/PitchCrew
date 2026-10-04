@@ -1,5 +1,6 @@
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
 import { writeFile } from 'node:fs/promises';
+import { smokeInsights } from './smoke-insights.ts';
 import { smokeStyles } from './smoke-styles.ts';
 import { smokeOnboarding } from './smoke-onboarding.ts';
 import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke-sheets.ts';
@@ -26,7 +27,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             const styleChecks = ${smokeStyles};
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
-            let onboardingReady = null;
+            let onboardingReady = null, insightsReady = null;
             const sheetChecks = {};
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'claude-code' && role.enabled)) throw new Error('Chat smoke test requires an isolated fixture workspace.');
@@ -99,6 +100,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               [...document.querySelectorAll('.role-settings-panel button')].find((button) => button.textContent === 'Cancel')?.click();
               const settingsClosed = await waitFor(() => !document.querySelector('[role="dialog"]'));
               featurePanelsReady = editorReady && skillSaved && settingsReady && settingsClosed;
+              insightsReady = await ${smokeInsights};
               document.querySelector('a[href="/chat"]')?.click();
               await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
 
@@ -116,7 +118,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               notificationToastChecks = { toastVisible, hoverPaused, focusPaused, stackReady, linksReady, navigationReady, dismissed };
               notificationToastReady = Object.values(notificationToastChecks).every(Boolean);
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, insightsReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         const chrome = [];
