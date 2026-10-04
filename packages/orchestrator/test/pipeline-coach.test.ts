@@ -295,13 +295,13 @@ it('records immutable actual run configs and packet digests while future skill e
 
 it('retains old event decoders and replays version nine review/config records', async () => {
   const { daemon, input, call } = await fixture(14804);
-  for (const version of [1, 2, 3, 4, 5, 6, 7, 8])
+  for (const version of [1, 2, 3, 4, 5, 6, 7, 8, 9])
     expect(
       decodeEvent(JSON.stringify({ version, kind: 'role', data: {}, entityId: 'fictional' }))
         .version,
     ).toBe(version);
   const { review } = (await call('save_pipeline_review', input)) as { review: PipelineReview };
-  expect(daemon.service.board.history(review.id)[0].version).toBe(9);
+  expect(daemon.service.board.history(review.id)[0].version).toBe(10);
   daemon.service.board.rebuild();
   expect(daemon.service.board.get<PipelineReview>('pipeline_review', review.id).title).toBe(
     input.title,
