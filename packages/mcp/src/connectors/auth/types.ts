@@ -2,11 +2,14 @@ import type { ConnectorStatus } from '@pitchcrew/core';
 import { type Server } from 'node:http';
 import { GoogleToken, Store } from './helpers.ts';
 import type { GithubCliRunner } from './github-cli-process.ts';
+import type { GoogleCliRunner } from './google-cli-process.ts';
 
 export interface ConnectorManagerContext {
   directory: string;
   fetcher: typeof fetch;
   runGithubCli: GithubCliRunner;
+  runGoogleCli: GoogleCliRunner;
+  googleCliState?: ConnectorStatus['googleCliState'];
   githubCliState?: ConnectorStatus['githubCliState'];
   store: Store;
   pending?: { server: Server; timer: NodeJS.Timeout; state: string; busy: boolean };
@@ -24,6 +27,7 @@ export interface ConnectorManagerContext {
   fetch(url: string | URL, init: RequestInit, lifetime: AbortSignal): Promise<Response>;
   connectGithub(value: unknown): Promise<ConnectorStatus[]>;
   connectGoogle(value: unknown): Promise<{ authorizationUrl: string }>;
+  connectGoogleCli(): Promise<ConnectorStatus[]>;
   cancelPending(): void;
   disconnect(provider: 'github' | 'google'): Promise<ConnectorStatus[]>;
   googleAccessToken(token: GoogleToken, lifetime: AbortSignal): Promise<string>;

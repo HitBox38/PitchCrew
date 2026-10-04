@@ -241,6 +241,65 @@ describe('connector credentials and API boundaries', () => {
   });
 });
 describe('Google Desktop OAuth', () => {
+  it.each([
+    { name: 'shared app', input: {}, clientId: 'fixture-shared', secret: 'fixture-shared-secret' },
+    {
+      name: 'custom app',
+      input: { clientId: 'fixture-custom', clientSecret: 'fixture-custom-secret' },
+      clientId: 'fixture-custom',
+      secret: 'fixture-custom-secret',
+    },
+    {
+      name: 'custom app without a secret',
+      input: { clientId: 'fixture-custom' },
+      clientId: 'fixture-custom',
+      secret: '',
+    },
+  ])(
+    'connects with $name and retains only its credentials for refresh',
+    async ({ input, clientId, secret }) => {
+      vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_ID', 'fixture-shared');
+      vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_SECRET', 'fixture-shared-secret');
+      expect(manager.status()[1]).toMatchObject({ configured: true, connected: false });
+      expect(fetcher).not.toHaveBeenCalled();
+      const { authorizationUrl } = await manager.connectGoogle(input);
+      const auth = new URL(authorizationUrl);
+      expect(auth.searchParams.get('client_id')).toBe(clientId);
+      expect(authorizationUrl).not.toContain('secret');
+      fetcher
+        .mockResolvedValueOnce(
+          json({
+            access_token: 'fixture-access',
+            refresh_token: 'fixture-refresh',
+            expires_in: 3600,
+            scope: googleScopes.drive,
+          }),
+        )
+        .mockResolvedValueOnce(json({ email: 'fixture@example.com' }));
+      const callback = new URL(auth.searchParams.get('redirect_uri')!);
+      callback.search = new URLSearchParams({
+        state: auth.searchParams.get('state')!,
+        code: 'fixture-code',
+      }).toString();
+      expect((await fetch(callback)).status).toBe(200);
+      const exchange = fetcher.mock.calls[0][1]?.body as URLSearchParams;
+      expect(exchange.get('client_id')).toBe(clientId);
+      expect(exchange.get('client_secret')).toBe(secret);
+      const saved = JSON.parse(
+        await readFile(join(directory, 'connectors/credentials.json'), 'utf8'),
+      );
+      expect(saved.google).toMatchObject({ clientId, clientSecret: secret });
+      expect(JSON.stringify(manager.status())).not.toContain('secret');
+    },
+  );
+  it('explains missing shared configuration without starting sign-in', async () => {
+    vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_ID', '');
+    vi.stubEnv('PITCHCREW_GOOGLE_CLIENT_SECRET', '');
+    expect(manager.status()[1].configured).toBe(false);
+    await expect(manager.connectGoogle({})).rejects.toThrow('Advanced setup');
+    expect(manager.status()[1].pending).toBe(false);
+    expect(fetcher).not.toHaveBeenCalled();
+  });
   it('validates single-use state and PKCE, supports partial consent, and saves offline credentials', async () => {
     const { authorizationUrl } = await manager.connectGoogle({
       clientId: 'fixture-client',

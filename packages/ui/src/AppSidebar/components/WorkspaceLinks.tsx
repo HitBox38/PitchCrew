@@ -1,11 +1,10 @@
 import { viewIcons, viewTitles } from '@/AppSidebar/constants.ts';
+import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
 import type { WorkspaceLinksProps } from '@/AppSidebar/types.ts';
 import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
 import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
 import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
-import { SidebarGroup } from '@/components/ui/sidebar/components/SidebarGroup.tsx';
 import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { SidebarGroupLabel } from '@/components/ui/sidebar/components/SidebarGroupLabel.tsx';
 import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
 import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
 import { SidebarMenuBadge } from '@/components/ui/sidebar/components/SidebarMenuBadge.tsx';
@@ -20,8 +19,7 @@ import { ChevronRight, LayoutDashboard } from 'lucide-react';
 
 export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinksProps) {
   return (
-    <SidebarGroup>
-      <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+    <SidebarCategory id="workspace" label="Workspace">
       <SidebarGroupContent>
         <SidebarMenu>
           <Collapsible className="group/collapsible" render={<SidebarMenuItem />}>
@@ -85,6 +83,6 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
           )}
         </SidebarMenu>
       </SidebarGroupContent>
-    </SidebarGroup>
+    </SidebarCategory>
   );
 }
