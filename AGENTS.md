@@ -86,7 +86,7 @@ pnpm check        # lint, typecheck, tests, build
 
 The UI has hot reload; restart the daemon after backend changes. The default data directory is ~/.pitchcrew, optionally PITCHCREW_HOME outside the repository. PITCHCREW_PORT defaults to 4417. Tests use temporary directories outside the repository and fictional fixtures under packages/*/test/fixtures/.
 
-GitHub Actions CI runs on every pull request, pushes to main, merge queues and manual dispatches. It checks lint, formatting, types and production builds on Ubuntu, runs the full test suite with Chromium on Node 22 and 24, and runs the actual Electron smoke test on macOS and Windows. It uses the packageManager pin, frozen lockfile and read-only repository permissions without provider credentials. The aggregate CI check must pass all jobs; use it as the required branch status check. Test reports and desktop evidence are retained for seven days.
+GitHub Actions CI runs on every pull request, pushes to main, merge queues and manual dispatches. It checks lint, formatting, types and production builds on Ubuntu, runs the full test suite with Chromium on Node 22 and 24, and runs the actual Electron smoke test on macOS and Windows. It uses the packageManager pin, frozen lockfile and read-only repository permissions without provider credentials. The aggregate CI check must pass all jobs. The GitHub main branch ruleset requires that check from GitHub Actions and an up-to-date branch, with no bypass actors. Test reports and desktop evidence are retained for seven days.
 
 ## Core concepts
 
