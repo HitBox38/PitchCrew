@@ -3,6 +3,7 @@ import {
   applicationImportRequest,
   assertTransition,
   importLimits,
+  normalizeApplicationText,
   parseApplicationImport,
   planImportRow,
   type ApplicationImportReport,
@@ -89,7 +90,13 @@ function processImport(board: Board, data: unknown, apply: boolean): Application
   const { format, content, digest } = readRequest(data, apply);
   const parsed = parseApplicationImport(format, content);
   const now = Date.now();
-  const known: Known[] = board.list<Card>('card');
+  // Duplicates always share normalized company and title, so compare within those groups.
+  const known = new Map<string, Known[]>();
+  const group = (card: Pick<Card, 'company' | 'title'>) =>
+    `${normalizeApplicationText(card.company)}\n${normalizeApplicationText(card.title)}`;
+  const remember = (card: Known) =>
+    known.set(group(card), [...(known.get(group(card)) ?? []), card]);
+  for (const card of board.list<Card>('card')) remember(card);
   const imported = importedKeys(board);
   const seen = new Map<string, number>();
   const rows = parsed.map((source): ApplicationImportRowResult => {
@@ -134,7 +141,9 @@ function processImport(board: Board, data: unknown, apply: boolean): Application
         cardIds: [existing],
       };
     const identity = { ...plan.input, jobIdentifier: plan.jobIdentifier };
-    const duplicates = known.filter((card) => isLikelyDuplicateApplication(card, identity));
+    const duplicates = (known.get(group(identity)) ?? []).filter((card) =>
+      isLikelyDuplicateApplication(card, identity),
+    );
     if (duplicates.length) {
       const planned = duplicates.find((card) => card.row);
       return {
@@ -147,7 +156,7 @@ function processImport(board: Board, data: unknown, apply: boolean): Application
       };
     }
     if (!apply) {
-      known.push({
+      remember({
         ...plan.input,
         tracking: { origin: 'external', jobIdentifier: plan.jobIdentifier, gmailThreads: [] },
         row: source.row,
@@ -157,7 +166,7 @@ function processImport(board: Board, data: unknown, apply: boolean): Application
     try {
       // Each row commits on its own so one failure does not block the others.
       const card = board.db.transaction(() => createImported(board, plan, key))();
-      known.push({ ...card, row: source.row });
+      remember({ ...card, row: source.row });
       imported.set(key, card.id);
       return { ...result, status: 'created', cardIds: [card.id] };
     } catch (error) {
