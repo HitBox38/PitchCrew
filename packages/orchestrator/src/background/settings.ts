@@ -1,6 +1,7 @@
 import { homedir } from 'node:os';
-import { join, relative, resolve } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { assertDataDirectoryOutsideRepository } from '../data-directory.ts';
 
 export const defaultPort = 4417;
 export const repositoryRoot = fileURLToPath(new URL('../../../../', import.meta.url));
@@ -33,8 +34,6 @@ export function resolveDaemonSettings(
   const directory = resolve(
     flagValue(argv, '--home') ?? env.PITCHCREW_HOME ?? join(home, '.pitchcrew'),
   );
-  const repoRelative = relative(repositoryRoot, directory);
-  if (!repoRelative.startsWith('..') && !repoRelative.includes(':'))
-    throw new Error('PITCHCREW_HOME must be outside the repository.');
+  assertDataDirectoryOutsideRepository(repositoryRoot, directory);
   return { directory, port };
 }
