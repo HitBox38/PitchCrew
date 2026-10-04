@@ -1,0 +1,215 @@
+/* Settings reuse the workspace paper; theme choices preview its board. */
+.settings-layout {
+  max-width: 960px;
+}
+.settings-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 6px;
+  width: 100%;
+  height: auto;
+  padding: 0 0 16px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+}
+.settings-tabs button {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+  height: auto;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 10px 11px 10px 9px;
+  color: var(--muted);
+  font-size: var(--text-body);
+  font-weight: 600;
+}
+.settings-tabs button:hover {
+  color: var(--ink);
+  background: var(--sidebar-accent);
+}
+.settings-tabs button[aria-selected='true'] {
+  color: var(--primary);
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.settings-content {
+  padding-top: 28px;
+}
+.settings-section + .settings-section {
+  margin-top: 32px;
+  padding-top: 28px;
+  border-top: 1px solid var(--border);
+}
+.settings-section h2 {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+.settings-content :is(.connector-settings, .runtime-section) {
+  margin-top: 0;
+}
+.settings-themes {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  max-width: 660px;
+  margin-top: 20px;
+  border: 0;
+}
+.settings-theme {
+  position: relative;
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: 0 0 0 1px var(--border);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.settings-theme:has(input:checked) {
+  color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.settings-theme:has(input:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+.settings-theme input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.settings-theme-preview {
+  --preview-paper: #f4f3ef;
+  --preview-sidebar: #e9e7e1;
+  --preview-card: #fff;
+  display: flex;
+  height: 100px;
+  overflow: hidden;
+  border-radius: 7px;
+  background: var(--preview-paper);
+  border: 1px solid rgb(128 128 128 / 0.2);
+}
+.settings-theme-dark {
+  --preview-paper: #1a1b1e;
+  --preview-sidebar: #141518;
+  --preview-card: #303136;
+}
+.settings-theme-system {
+  --preview-paper: linear-gradient(90deg, #f4f3ef 50%, #1a1b1e 50%);
+}
+.settings-preview-sidebar {
+  width: 24%;
+  background: var(--preview-sidebar);
+  border-right: 1px solid rgb(128 128 128 / 0.15);
+}
+.settings-preview-board {
+  display: flex;
+  align-items: flex-start;
+  flex: 1;
+  gap: 7px;
+  padding: 20px 10px;
+}
+.settings-preview-board i {
+  flex: 1;
+  height: 34px;
+  border-radius: 4px;
+  background: var(--preview-card);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.14);
+}
+.settings-theme-system .settings-preview-board i:last-child {
+  background: #303136;
+}
+.settings-preview-board i:nth-child(2) {
+  height: 48px;
+}
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 20px;
+}
+.settings-row > button {
+  flex-shrink: 0;
+}
+.settings-row > span {
+  min-width: 0;
+  flex: 1;
+}
+.settings-row input[role='switch'] {
+  appearance: none;
+  width: 42px;
+  height: 24px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 20px;
+  background: var(--paper-deep);
+  cursor: pointer;
+}
+.settings-row input[role='switch']::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: 3px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+.settings-row input[role='switch']:checked {
+  background: var(--primary);
+}
+.settings-row input[role='switch']:checked::before {
+  margin-left: 21px;
+  background: var(--paper);
+}
+.settings-directory {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--sheet);
+}
+.settings-directory > svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+.settings-directory code {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+}
+@variant max-compact {
+  .settings-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .settings-themes {
+    gap: 10px;
+  }
+  .settings-theme {
+    padding: 9px;
+    font-size: var(--text-caption);
+  }
+  .settings-theme-preview {
+    height: 76px;
+  }
+  .settings-preview-board {
+    gap: 4px;
+    padding: 14px 5px;
+  }
+  .settings-theme > span:last-child {
+    flex-wrap: wrap;
+  }
+  .settings-row {
+    flex-wrap: wrap;
+  }
+}

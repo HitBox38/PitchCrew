@@ -1,4 +1,5 @@
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
+import { copyDataDirectory } from '@/lib/data-directory.ts';
 import { useShortcuts } from '@/shortcuts.ts';
 import { useTheme } from '@/theme.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
@@ -90,10 +91,7 @@ export function useApp() {
   };
   const copyDirectory = () => {
     if (!data) return;
-    navigator.clipboard.writeText(data.dataDirectory).then(
-      () => setToast('Copied the data folder path'),
-      () => setToast(`Data folder: ${data.dataDirectory}`),
-    );
+    copyDataDirectory(data.dataDirectory);
   };
   const checkRuntimes = () =>
     act('/runtimes/detect', 'POST', undefined, 'Checked installed runtimes');

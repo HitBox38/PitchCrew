@@ -59,7 +59,7 @@ try {
   if (
     result.apiStatus !== 200 ||
     result.requireType !== 'undefined' ||
-    result.roles !== 3 ||
+    result.roles !== 7 ||
     !result.iconLoaded ||
     !result.uiReady ||
     !result.styleChecks ||

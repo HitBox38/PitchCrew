@@ -1,4 +1,4 @@
-import { themeOptions } from '@/AppSidebar/constants.ts';
+import { themeOptions } from '@/lib/theme-options.ts';
 import type { WorkspaceCommandsProps } from '@/CommandPalette/types.ts';
 import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
 import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';

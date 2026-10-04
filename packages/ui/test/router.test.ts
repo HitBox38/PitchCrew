@@ -42,6 +42,7 @@ describe('workspace routes', () => {
     ['/skills', 'skills'],
     ['/routines', 'routines'],
     ['/activity', 'activity'],
+    ['/settings', 'settings'],
   ])('loads %s directly', async (path, view) => {
     const { router } = await setup(path);
     expect(router.state.matches.at(-1)?.staticData.view).toBe(view);
@@ -93,6 +94,34 @@ describe('workspace routes', () => {
   it('restores activity filters from a deep link', async () => {
     const { router } = await setup('/activity?q=Writer&kind=run');
     expect(router.state.matches.at(-1)?.search).toEqual({ q: 'Writer', kind: 'run' });
+  });
+
+  it.each(['accounts', 'runtimes', 'data'])(
+    'opens the %s settings section from a deep link',
+    async (section) => {
+      const { router } = await setup(`/settings?section=${section}`);
+      expect(router.state.matches.at(-1)?.search).toEqual({ section });
+    },
+  );
+
+  it.each(['unknown', '__proto__', 'toString'])(
+    'falls back to general settings for %s',
+    async (section) => {
+      const { router } = await setup(`/settings?section=${section}`);
+      expect(router.state.matches.at(-1)?.search).toEqual({ section: 'general' });
+    },
+  );
+
+  it('restores settings sections through browser history', async () => {
+    const { router, history } = await setup('/settings?section=accounts');
+    await router.navigate({ to: '/settings', search: { section: 'runtimes' } });
+    await router.load();
+    history.back();
+    await router.load();
+    expect(router.state.matches.at(-1)?.search).toEqual({ section: 'accounts' });
+    history.forward();
+    await router.load();
+    expect(router.state.matches.at(-1)?.search).toEqual({ section: 'runtimes' });
   });
 
   it.each(['unknown', '__proto__', 'toString'])(

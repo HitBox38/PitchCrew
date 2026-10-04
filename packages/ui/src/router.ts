@@ -8,6 +8,7 @@ import {
   redirect,
 } from '@tanstack/react-router';
 import { validateActivitySearch } from './ActivityPage/helpers.ts';
+import { validateSettingsSearch } from './SettingsPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
 import type { Role } from '@pitchcrew/core';
 import type { View } from './navigation.ts';
@@ -99,6 +100,14 @@ const routinesRoute = createRoute({
   component: lazyRouteComponent(() => import('@/RoutinesPage/index.tsx'), 'RoutinesPage'),
 });
 
+const settingsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/settings',
+  staticData: { view: 'settings' },
+  validateSearch: validateSettingsSearch,
+  component: lazyRouteComponent(() => import('@/SettingsPage/index.tsx'), 'SettingsPage'),
+});
+
 const routeTree = rootRoute.addChildren([
   boardRoute,
   crewRoute,
@@ -109,6 +118,7 @@ const routeTree = rootRoute.addChildren([
   skillsRoute,
   routinesRoute,
   activityRoute,
+  settingsRoute,
 ]);
 
 // Both browser and Electron render from the daemon's HTTP origin.
