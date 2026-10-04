@@ -342,8 +342,13 @@ export function planImportRow(row: ApplicationImportRow, now: number = Date.now(
       )?.at;
     if (!time && !final) added.push(step.state);
     time ??= final ? row.statusAt : undefined;
-    if (!time) time = previous ?? new Date(now).toISOString();
-    else if (previous && Date.parse(time) < Date.parse(previous)) {
+    if (!time) {
+      if (final)
+        warnings.push(
+          `No date for ${step.state}; used ${previous ? 'the date of the step before' : 'the import time'}.`,
+        );
+      time = previous ?? new Date(now).toISOString();
+    } else if (previous && Date.parse(time) < Date.parse(previous)) {
       clamped = true;
       time = previous;
     }
