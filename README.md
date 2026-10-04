@@ -12,6 +12,7 @@ It runs in your browser or an Electron desktop window. Your board, profile, chat
 - **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat privately or in the shared crew conversation. Agents can hand off work through the board when their permissions allow it.
 - **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
 - **Track progress.** Record submissions, interviews and outcomes, including applications made outside Pitchcrew. With Gmail access, Tracker can reconcile supported status updates and flag uncertain matches for review.
+- **Learn from outcomes.** Rate how each application went, note lessons, and see outcomes, weights and lessons by tag on **Insights**. Merge duplicate tags, and mark silent applications as no response after you review a preview. Agents with application or pipeline access read these signals before they write; only you can change them. See [insights](docs/insights.md).
 - **Maintain your background.** Import profile notes from GitHub or Google Drive. Documenter can watch selected sources and propose updates for your review.
 - **Review the process.** Pipeline Coach can assess batches of applications and propose changes to the crew. Routines can schedule scans, reviews and other agent tasks while Pitchcrew is running.
 

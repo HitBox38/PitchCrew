@@ -9,6 +9,7 @@ Tracker is a default crew member with application search, tracking and routine-m
 - `pitchcrew_search_applications`: bounded cross-application query (company, title, canonical URL, job identifier or tracked state), up to 50 cards and 100 recent supporting signals per page. Returns an offset for additional pages. The shared `searchApplications` board helper can support future batch reviews.
 - `pitchcrew_scan_application_mail`: searches a Gmail query in pages of 20 IDs and saves a durable role/mailbox/query checkpoint. A pending page must be reconciled before the next page can be fetched. Connector failures leave it pending. An incomplete sweep resumes its saved page token; requesting a completed sweep starts again at the first page to find new mail. Mailbox/message IDs deduplicate across sweeps, roles and queries. Rebuild and restart preserve checkpoints.
 - `pitchcrew_reconcile_application_mail`: the gateway fetches a pending Gmail message through the connected read-only connector. Agents supply an exact quotation and suggested company, title and state; message identity, account, thread and effective timestamp come from the fetched source, not agent assertions. An optional reason records an unrelated message as ignored without changing an application. Completed signals and scan-message consumption are transactional and idempotent.
+- `pitchcrew_application_insights`: read-only outcome counts, tag scoreboard, weights and user lessons. It also works with `reviewPipeline`. See [insights](insights.md).
 
 Use normal routines to schedule scans. They run only while the daemon is open and retain current role capabilities; there is no OS background runner. Agents should finish a page or describe unfinished pending IDs, rather than claiming the entire mailbox was reviewed.
 
@@ -22,6 +23,8 @@ Signals save the exact quotation, bounded fetched text, incompleteness flag, sou
 
 All updates obey the existing state machine and reject active workflow ownership, older effective timestamps and conflicting evidence at the same timestamp. User status changes set a separate effective-time boundary; unrelated packet edits do not advance it. Legacy cards derive the last user status change from retained, paged event history. A user-reviewed historical email retains its verified source time. Rejected or ignored signals remain processed; decisions do not automatically retry or overwrite history.
 
+To close out silent applications, use **Insights > Silent applications**. It previews submitted jobs with no status change for a chosen number of days (21 by default) and marks only the ones you confirm as no response, effective from the day the silence period ended. Later replies can still move them forward. It never runs automatically. See [insights](insights.md).
+
 ## External submissions
 
 The Add job form includes **Already applied outside Pitchcrew**. Users supply a past submission time, optional job identifier and confirmation note. Registration atomically saves a submitted card with external provenance and no packet. It prevents likely duplicates by normalized company/title and canonical URL or job identifier, returning matching card IDs for review. Applications at the same company/title with different known URLs can be tracked separately.
@@ -32,6 +35,6 @@ For a job already on the board, card details include **Already applied outside P
 
 ## Persistence and verification
 
-Version 9 adds `tracking_signal`, `tracking_scan`, card tracking metadata, user status effective times and the two optional capabilities; versions 1–8 remain replayable. The database remains behind board transactions and append-only events. Tracking metadata, email context and credentials remain outside the repository; credentials never enter events or snapshots.
+Version 9 adds `tracking_signal`, `tracking_scan`, card tracking metadata, user status effective times and the two optional capabilities. Version 10 adds card weights and lessons; versions 1–9 remain replayable. The database remains behind board transactions and append-only events. Tracking metadata, email context and credentials remain outside the repository; credentials never enter events or snapshots.
 
 Tests use fictional mail and temporary workspaces: actual HTTP and MCP stdio envelopes, normalized Gmail payloads, duplicate registration, stable matching, ambiguous/no-candidate review, full-source negation, quoted conversations, monotonic user corrections, legacy history pagination, equal-time conflicts, failed reads, capability revocation during reads, replay, repeated sweeps and global message deduplication. Live mailbox behavior and provider inference are not tested.
