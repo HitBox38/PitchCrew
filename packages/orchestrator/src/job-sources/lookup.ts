@@ -90,17 +90,28 @@ const record = (value: unknown): Record<string, unknown> =>
   value && typeof value === 'object' && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
-const name = (value: unknown) =>
-  typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, 100) : '';
+const name = (value: unknown, token?: string) =>
+  typeof value === 'string'
+    ? redactToken(value, token).replace(/\s+/g, ' ').trim().slice(0, 100)
+    : '';
 /** The company name a provider response carries, if any. */
-function providerCompany(provider: JobProvider, body: unknown, jobId: string): string {
-  if (provider === 'greenhouse') return name(record(body).company_name);
-  if (provider === 'workable') return name(record(body).name);
+function providerCompany(
+  provider: JobProvider,
+  body: unknown,
+  jobId: string,
+  token?: string,
+): string {
+  if (provider === 'greenhouse') return name(record(body).company_name, token);
+  if (provider === 'workable') return name(record(body).name, token);
   if (provider === 'comeet' && Array.isArray(body))
     return name(
       record(
-        body.find((item) => typeof record(item).uid === 'string' && record(item).uid === jobId),
+        body.find((item) => {
+          const uid = record(item).uid;
+          return typeof uid === 'string' && uid.split('-')[0] === jobId;
+        }),
       ).company_name,
+      token,
     );
   return '';
 }
@@ -161,7 +172,12 @@ async function readPosting(
       ),
     );
   }
-  const postings = parsePostings(link.provider, link.board, template ? template.wrap(body) : body);
+  const postings = parsePostings(
+    link.provider,
+    link.board,
+    template ? template.wrap(body) : body,
+    token,
+  );
   const wanted = link.jobId.toLowerCase();
   const posting = postings.find((item) => item.jobId.toLowerCase() === wanted);
   if (!posting)
@@ -170,7 +186,7 @@ async function readPosting(
         ? `The ${label} response did not include this posting.`
         : `This posting is not on the public ${label} board. It may be closed.`,
     );
-  return { posting, company: providerCompany(link.provider, body, posting.jobId) };
+  return { posting, company: providerCompany(link.provider, body, posting.jobId, token) };
 }
 
 /**
@@ -206,7 +222,7 @@ export async function lookupJobLink(
     return { status: 'failed', reason: redactToken(reason, token).slice(0, 500) };
   }
   const { posting } = read;
-  const company = saved?.name ?? (read.company || companyFromBoard(link.board));
+  const company = redactToken(saved?.name ?? (read.company || companyFromBoard(link.board)), token);
   const duplicates = postingMatches(dependencies.board, {
     provider: link.provider,
     slug: link.board,
@@ -232,6 +248,11 @@ export async function lookupJobLink(
         postedAt: posting.postedAt,
       },
     },
-    duplicates: duplicates.map(({ id, company, title, state }) => ({ id, company, title, state })),
+    duplicates: duplicates.map(({ id, company, title, state }) => ({
+      id,
+      company: redactToken(company, token),
+      title: redactToken(title, token),
+      state,
+    })),
   };
 }

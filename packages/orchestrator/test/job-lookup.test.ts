@@ -531,6 +531,83 @@ describe('Ashby, Comeet and Workable links', () => {
     }
   });
 
+  it('keeps successful office-only lookups token-free and deduplicates after saving', async () => {
+    const { daemon, request } = await setup(15536);
+    let postings = [
+      {
+        uid: 'A1.00D-B3.C4D',
+        company_name: `Wingtip ${comeetFixtureToken}`,
+        name: `Backend Engineer ${comeetFixtureToken}`,
+        location: { name: `Haifa ${comeetFixtureToken}` },
+        details: [{ name: 'Description', value: `<p>Build services ${comeetFixtureToken}</p>` }],
+        url_comeet_hosted_page: `${postingLinks.comeet.link}-B3.C4D?access=${comeetFixtureToken}`,
+      },
+    ];
+    daemon.service.jobSources.fetch = recordedPostings({
+      [postingLinks.comeet.endpoint]: () => jsonResponse(postings),
+    }).fetcher;
+    // An embed link works before a source exists and uses the company carried by the office copy.
+    const initial = await request<JobLookupResult>('/jobs/lookup', 'POST', {
+      url: postingLinks.comeetEmbed.link.replace('A1.00D', 'A1.00D-B3.C4D'),
+    });
+    expect(initial.response.status).toBe(200);
+    const { prefill } = found(initial.result);
+    expect(prefill.company).toBe('Wingtip [token]');
+    expect(prefill.jobIdentifier).toBe('A1.00D');
+    expect(prefill.provenance.jobId).toBe('A1.00D');
+    expect(prefill.url).not.toContain('-B3.C4D');
+    expect(JSON.stringify(initial.result)).not.toContain(comeetFixtureToken);
+    const { jobIdentifier: _id, ...fields } = prefill;
+    const saved = await request<Card>('/cards', 'POST', fields);
+    expect(saved.response.status).toBe(201);
+    expect(JSON.stringify(saved.result)).not.toContain(comeetFixtureToken);
+    expect(JSON.stringify(daemon.service.board.history(saved.result.id))).not.toContain(
+      comeetFixtureToken,
+    );
+    await request('/job-sources', 'POST', { ...moreFixtureSources.comeet, name: 'Wingtip' });
+    for (const url of [
+      postingLinks.comeet.link,
+      postingLinks.comeet.link + '-B3.C4D',
+      postingLinks.comeetEmbed.link,
+    ]) {
+      const lookup = found(
+        (await request<JobLookupResult>('/jobs/lookup', 'POST', { url })).result,
+      );
+      expect(lookup.prefill.provenance.jobId).toBe('A1.00D');
+      expect(lookup.duplicates.map((card) => card.id)).toEqual([saved.result.id]);
+      expect(JSON.stringify(lookup)).not.toContain(comeetFixtureToken);
+    }
+    const firstScan = (await request<JobScanSummary>('/job-sources/scan', 'POST', {})).result;
+    expect(firstScan).toMatchObject({ new: 0, duplicate: 1 });
+    // Office changes leave the same base job identity, so a later scan still skips the saved job.
+    postings = [{ ...postings[0]!, uid: 'A1.00D-E5.F6A' }];
+    const nextScan = (await request<JobScanSummary>('/job-sources/scan', 'POST', {})).result;
+    expect(nextScan).toMatchObject({ new: 0, duplicate: 1 });
+    expect(daemon.service.board.list<Card>('card')).toHaveLength(1);
+  });
+
+  it('redacts careers tokens in saved company names and matching-card notices', async () => {
+    await withBoard(async (board) => {
+      board.createCard({
+        company: `Wingtip ${comeetFixtureToken}`,
+        title: `Engineer ${comeetFixtureToken}`,
+        url: postingLinks.comeet.link,
+        location: '',
+        salary: '',
+        description: '',
+        tags: [],
+      });
+      const result = found(
+        await lookup(board, postingLinks.comeetEmbed.link, recordedPostings().fetcher, {
+          sources: async () => savedComeet(`Wingtip ${comeetFixtureToken}`),
+        }),
+      );
+      expect(result.prefill.company).toBe('Wingtip [token]');
+      expect(result.duplicates).toHaveLength(1);
+      expect(JSON.stringify(result)).not.toContain(comeetFixtureToken);
+    });
+  });
+
   it('reads a Workable link by picking the shortcode from the account', async () => {
     const { calls, fetcher } = recordedPostings();
     const result = found(
