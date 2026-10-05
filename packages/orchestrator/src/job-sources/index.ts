@@ -137,7 +137,10 @@ export class JobSourceManager {
       if (!current) throw new Error('Job source not found.');
       this.assertUnique(sources, input, id);
       // A different board starts without the previous board's scan status.
-      const moved = current.provider !== input.provider || current.slug !== input.slug;
+      const moved =
+        current.provider !== input.provider ||
+        current.slug !== input.slug ||
+        current.token !== input.token;
       const source: JobSource = {
         ...input,
         id,
@@ -170,7 +173,7 @@ export class JobSourceManager {
       throw new Error(redactToken(error.message, source.token));
     }
     return {
-      postings: parsePostings(source.provider, source.slug, body),
+      postings: parsePostings(source.provider, source.slug, body, source.token),
       truncated: truncatedResponse(source.provider, body),
     };
   }

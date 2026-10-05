@@ -182,6 +182,85 @@ describe('provider parsers', () => {
     });
   });
 
+  it('keeps a stable Comeet identity when only office copies remain', () => {
+    const rows = [
+      {
+        uid: 'A1.00D-B3.C4D',
+        name: 'Engineer',
+        location: { name: 'Haifa' },
+        url_comeet_hosted_page: 'https://www.comeet.co/jobs/acme/A1.B2C/engineer/A1.00D-B3.C4D',
+      },
+      {
+        uid: 'A1.00D-C3.D4E',
+        name: 'Engineer',
+        location: { name: 'Tel Aviv' },
+        details: [{ value: '<p>Build services</p>' }],
+        time_updated: '2026-10-01',
+      },
+    ];
+    expect(parsePostings('comeet', 'A1.B2C', rows)).toEqual([
+      expect.objectContaining({
+        jobId: 'A1.00D',
+        location: 'Haifa; Tel Aviv',
+        url: 'https://www.comeet.co/jobs/acme/A1.B2C/engineer/A1.00D',
+        description: 'Build services',
+        postedAt: '2026-10-01T00:00:00.000Z',
+      }),
+    ]);
+    expect(
+      parsePostings('comeet', 'A1.B2C', [{ ...rows[0], url_comeet_hosted_page: undefined }])[0],
+    ).toMatchObject({
+      jobId: 'A1.00D',
+      url: 'https://www.comeet.com/jobs/company/A1.B2C/engineer/A1.00D',
+    });
+  });
+
+  it.each(['%74oken', 'ToKeN'])('rejects a Comeet link with the decoded query key %s', (key) => {
+    const [posting] = parsePostings('comeet', 'A1.B2C', [
+      {
+        uid: 'A1.00D',
+        name: 'Engineer',
+        url_comeet_hosted_page: `https://careers.example/role?${key}=${comeetFixtureToken}`,
+      },
+    ]);
+    expect(posting.url).toBe('https://www.comeet.com/jobs/company/A1.B2C/engineer/A1.00D');
+  });
+
+  it('discards malformed links and invalid optional dates without failing the board', () => {
+    const [posting] = parsePostings('comeet', 'A1.B2C', [
+      {
+        uid: 'A1.00D',
+        name: 'Engineer',
+        url_comeet_hosted_page: 'https://careers.example/%ZZ',
+        time_updated: Number.MAX_VALUE,
+      },
+    ]);
+    expect(posting).toMatchObject({
+      postedAt: null,
+      url: 'https://www.comeet.com/jobs/company/A1.B2C/engineer/A1.00D',
+    });
+  });
+
+  it('keeps an echoed source token out of posting text and arbitrary URL fields', () => {
+    const [posting] = parsePostings(
+      'comeet',
+      'A1.B2C',
+      [
+        {
+          uid: 'A1.00D',
+          name: `Engineer ${comeetFixtureToken}`,
+          location: { name: comeetFixtureToken },
+          details: [{ value: `<p>${comeetFixtureToken}</p>` }],
+          url_comeet_hosted_page: `https://careers.example/role?key=${comeetFixtureToken}`,
+        },
+      ],
+      comeetFixtureToken,
+    );
+    expect(JSON.stringify(posting)).not.toContain(comeetFixtureToken);
+    expect(posting.description).toBe('[token]');
+    expect(posting.url).toContain('https://www.comeet.com/jobs/');
+  });
+
   it('rejects responses with an unexpected shape', () => {
     expect(() => parsePostings('lever', 'acme', { jobs: [] })).toThrow('unexpected');
     expect(() => parsePostings('greenhouse', 'acme', [])).toThrow('unexpected');

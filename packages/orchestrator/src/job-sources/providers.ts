@@ -1,4 +1,5 @@
 import {
+  comeetCompanyUidPattern,
   comeetTokenPattern,
   jobSourceSlugPatterns,
   type JobPosting,
@@ -108,7 +109,9 @@ function webUrl(value: unknown, fallback: string): string {
 function isoDate(value: unknown): string | null {
   const time =
     typeof value === 'number' ? value : typeof value === 'string' ? Date.parse(value) : Number.NaN;
-  return Number.isFinite(time) && time > 0 ? new Date(time).toISOString() : null;
+  return Number.isFinite(time) && time > 0 && time <= 8_640_000_000_000_000
+    ? new Date(time).toISOString()
+    : null;
 }
 const remoteText = (value: string) => /\bremote\b/i.test(value);
 function list(value: unknown): unknown[] {
@@ -231,7 +234,11 @@ interface Copy {
 }
 function mergeCopies(copies: Copy[]): JobPosting[] {
   const groups = new Map<string, Copy[]>();
-  for (const copy of copies) groups.set(copy.key, [...(groups.get(copy.key) ?? []), copy]);
+  for (const copy of copies) {
+    const group = groups.get(copy.key) ?? [];
+    group.push(copy);
+    groups.set(copy.key, group);
+  }
   return [...groups.values()].map((group) => {
     const first = (group.find((item) => item.primary) ?? group[0]!).posting;
     const offices = new Map<string, string>();
@@ -240,6 +247,12 @@ function mergeCopies(copies: Copy[]): JobPosting[] {
         if (office && !offices.has(office.toLowerCase())) offices.set(office.toLowerCase(), office);
     return {
       ...first,
+      description:
+        first.description ||
+        group.find((item) => item.posting.description)?.posting.description ||
+        '',
+      postedAt:
+        first.postedAt ?? group.find((item) => item.posting.postedAt)?.posting.postedAt ?? null,
       location: [...offices.values()].join('; ').slice(0, 120),
       remote: group.some((item) => item.posting.remote),
     };
@@ -265,13 +278,38 @@ function comeetSections(value: unknown): string {
     })
     .join('\n');
 }
-function comeet(uid: string, body: unknown): JobPosting[] {
+/** Check decoded query names and values before any external link reaches the board. */
+function comeetLink(value: unknown, jobId: string, officeId: string, token?: string): string {
+  const safe = webUrl(value, '');
+  if (!safe) return '';
+  const url = new URL(safe);
+  let decoded: string;
+  try {
+    decoded = decodeURI(safe);
+  } catch {
+    return '';
+  }
+  if (/careers-api/i.test(decoded) || (token && decoded.includes(token))) return '';
+  if ([...url.searchParams.keys()].some((key) => key.toLowerCase() === 'token')) return '';
+  // Hosted office aliases still point to the same position when that office disappears.
+  if (/^(?:www\.)?comeet\.com?$/.test(url.hostname) && officeId !== jobId) {
+    const parts = url.pathname.split('/');
+    if (parts.at(-1) === officeId) {
+      parts[parts.length - 1] = jobId;
+      url.pathname = parts.join('/');
+    }
+  }
+  return url.toString();
+}
+function comeet(uid: string, body: unknown, token?: string): JobPosting[] {
   const postings = list(body).flatMap((value): Copy[] => {
     const job = record(value);
     if (job.is_internal === true) return [];
-    const jobId = identifier(job.uid);
-    const title = text(job.name, 160);
-    if (!jobId || !title) return [];
+    const officeId = identifier(job.uid);
+    const ids = officeId.split('-');
+    const jobId = ids[0]!;
+    const title = redactToken(text(job.name, 160), token);
+    if (ids.length > 2 || !ids.every((id) => comeetCompanyUidPattern.test(id)) || !title) return [];
     const place = record(job.location);
     const location =
       text(place.name, 120) ||
@@ -279,24 +317,22 @@ function comeet(uid: string, body: unknown): JobPosting[] {
         .filter(Boolean)
         .join(', ');
     const workplace = text(job.workplace_type, 40).toLowerCase();
-    const fallback = `https://www.comeet.com/jobs/${slugify(text(job.company_name, 120)) || 'company'}/${uid}/${slugify(title) || 'position'}/${jobId}`;
-    // A posting link never carries the careers token; skip any field that looks like an API link.
-    const links = [job.url_comeet_hosted_page, job.url_active_page, job.url_detected_page].filter(
-      (link) => typeof link === 'string' && !/[?&]token=|careers-api/i.test(link),
-    );
-    const url = links.map((link) => webUrl(link, '')).find(Boolean) ?? fallback;
+    const fallback = `https://www.comeet.com/jobs/${slugify(redactToken(text(job.company_name, 120), token)) || 'company'}/${uid}/${slugify(title) || 'position'}/${jobId}`;
+    const links = [job.url_comeet_hosted_page, job.url_active_page, job.url_detected_page];
+    const url =
+      links.map((link) => comeetLink(link, jobId, officeId, token)).find(Boolean) || fallback;
     return [
       {
-        key: jobId.split('-')[0]!,
-        primary: !jobId.includes('-'),
+        key: jobId,
+        primary: officeId === jobId,
         posting: {
           provider: 'comeet',
           jobId,
           title,
-          location: location.slice(0, 120),
+          location: redactToken(location, token).slice(0, 120),
           remote: place.is_remote === true || workplace === 'remote' || remoteText(location),
           url,
-          description: htmlToText(comeetSections(job.details)),
+          description: redactToken(htmlToText(comeetSections(job.details)), token),
           salary: '',
           // Comeet publishes no posting date; the last update time is the closest it offers.
           postedAt: isoDate(job.time_updated),
@@ -359,10 +395,15 @@ function workable(account: string, body: unknown): JobPosting[] {
 
 /** Providers whose response is a bare array of postings rather than `{ jobs: [...] }`. */
 const arrayResponse = (provider: JobProvider) => provider === 'lever' || provider === 'comeet';
-export function parsePostings(provider: JobProvider, slug: string, body: unknown): JobPosting[] {
+export function parsePostings(
+  provider: JobProvider,
+  slug: string,
+  body: unknown,
+  token?: string,
+): JobPosting[] {
   if (arrayResponse(provider) ? !Array.isArray(body) : !Array.isArray(record(body).jobs))
     throw new Error('The job board returned an unexpected response.');
-  return { greenhouse, ashby, lever, comeet, workable }[provider](slug, body);
+  return { greenhouse, ashby, lever, comeet, workable }[provider](slug, body, token);
 }
 export function truncatedResponse(provider: JobProvider, body: unknown): boolean {
   const items = arrayResponse(provider) ? body : record(body).jobs;
