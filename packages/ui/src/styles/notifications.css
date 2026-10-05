@@ -101,7 +101,8 @@
   --notification-accent: var(--teal);
 }
 .notification-context[data-context='role_proposal'],
-.notification-context[data-context='skill_proposal'] {
+.notification-context[data-context='skill_proposal'],
+.notification-context[data-context='instruction_update'] {
   --notification-accent: var(--plum);
 }
 .notification-context-icon {

@@ -10,19 +10,17 @@ import type { CrewContext } from './types.ts';
 /** Seeded default roles with newer default instructions. Shown only to the user's session. */
 export function instructionUpdates(context: CrewContext): InstructionUpdate[] {
   const dismissed = context.instructionUpdatePreferences.dismissed();
-  return context.board
-    .defaultInstructionStatuses()
-    .flatMap((status) =>
-      status.state === 'up_to_date'
-        ? []
-        : [
-            {
-              ...status,
-              state: status.state,
-              dismissed: dismissed[status.roleId] === status.revision,
-            },
-          ],
-    );
+  return context.board.defaultInstructionStatuses().flatMap((status) =>
+    status.state === 'up_to_date'
+      ? []
+      : [
+          {
+            ...status,
+            state: status.state,
+            dismissed: dismissed[status.roleId] === status.revision,
+          },
+        ],
+  );
 }
 
 /** The user's decision must name the exact revision they reviewed. */

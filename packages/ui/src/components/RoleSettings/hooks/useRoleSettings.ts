@@ -96,6 +96,7 @@ export function useRoleSettings({
     retire,
     role,
     data,
+    action,
     working,
     onClose: close,
     onManageSkills: manageSkills,
