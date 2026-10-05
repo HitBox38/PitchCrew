@@ -7,6 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   server: { host: '127.0.0.1' },
+  // This lazy SDK entry is already a standalone ESM bundle with no external imports.
+  optimizeDeps: { exclude: ['posthog-js/no-external'] },
   build: {
     outDir: 'dist',
     rolldownOptions: {

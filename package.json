@@ -7,6 +7,8 @@
     "dev": "node --import tsx packages/orchestrator/src/cli.ts --dev",
     "desktop": "pnpm --filter @pitchcrew/desktop build && node --import tsx scripts/desktop.mjs",
     "desktop:prod": "pnpm build && node --import tsx scripts/desktop.mjs --production",
+    "desktop:package": "pnpm build && node scripts/prepare-desktop-release.mjs && node scripts/build-desktop-installer.mjs",
+    "test:packaged": "node scripts/packaged-smoke.mjs",
     "build": "pnpm --filter @pitchcrew/ui build && pnpm --filter @pitchcrew/desktop build",
     "icon:build": "node scripts/build-icon.mjs",
     "start": "node --import tsx packages/orchestrator/src/cli.ts",
@@ -23,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^22.20.4",
     "electron": "44.5.1",
+    "electron-builder": "26.15.3",
     "oxfmt": "0.71.0",
     "oxlint": "1.86.0",
     "tsx": "4.23.15",
