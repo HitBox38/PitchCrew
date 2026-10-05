@@ -16,6 +16,19 @@ function storage(values: Record<string, string> = {}) {
 }
 
 describe('shared device preferences', () => {
+  it('defaults analytics on and preserves an explicit opt-out across reloads', async () => {
+    const entries = storage();
+    const first = await import('../device-preferences.ts');
+    expect(first.useDevicePreferences.getState().analytics).toBe(true);
+    first.useDevicePreferences.getState().setAnalytics(false);
+    expect(entries.get(first.analyticsKey)).toBe('false');
+    vi.resetModules();
+    const second = await import('../device-preferences.ts');
+    expect(second.useDevicePreferences.getState().analytics).toBe(false);
+    second.useDevicePreferences.getState().setAnalytics(true);
+    expect(entries.get(second.analyticsKey)).toBe('true');
+  });
+
   it('preserves existing theme and sound choices and saves subsequent changes', async () => {
     const entries = storage({
       'pitchcrew-theme': 'dark',
