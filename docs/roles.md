@@ -17,7 +17,32 @@ Scout's instructions cover evidence-based fit, unknowns and the user's shortlist
 
 The four support roles use the chat workflow seat and can message the crew. They cannot invoke other agents or manage packet workflow transitions. Account connectors stay disabled until enabled by the user. No schedules, source watches, runs or external actions are created by seeding. Shared skills apply normally; no additional role-specific skills are assigned. Instructions ask for the user's cadence before creating periodic work and preserve all existing approval gates.
 
-Startup backfills missing default IDs in existing workspaces in one transaction. It never overwrites existing configurations, enables paused roles, reuses retired IDs or resets skill assignments. An existing custom role with a default ID wins. Backfill respects the 50-identity limit, including retired roles, adding missing defaults in the order above while space remains. It defers additions if shared skills exceed the 60,000-character creation budget. Restart after reducing that skill total to retry. Existing default instructions and capabilities are not silently updated on later startups.
+Startup backfills missing default IDs in existing workspaces in one transaction. It never overwrites existing configurations, enables paused roles, reuses retired IDs or resets skill assignments. An existing custom role with a default ID wins. Backfill respects the 50-identity limit, including retired roles, adding missing defaults in the order above while space remains. It defers additions if shared skills exceed the 60,000-character creation budget. Restart after reducing that skill total to retry. Existing default instructions and capabilities are not silently updated on later startups. Crew offers newer default instructions for review instead; see [default instruction updates](#default-instruction-updates).
+
+## Default instruction updates
+
+Releases sometimes improve a default agent's instructions. Startup never rewrites a saved role, so Crew compares each seeded default role with the current default text and tells you when there is a newer one.
+
+Each default text has a revision: the first 16 hex characters of the SHA-256 of the text with whitespace runs collapsed, so spacing and line breaks alone never count as an edit. `packages/board/src/board/default-instruction-history.ts` lists every revision each default role has shipped with, oldest first, with its release date and a one-sentence summary. Only hashes are stored, not old texts. Texts that existed only on feature branches before release are matched too, but are not listed as changes.
+
+| State        | Meaning                                                                         | Shown as an update |
+| ------------ | ------------------------------------------------------------------------------- | ------------------ |
+| Up to date   | The saved text is the current default, or your own edit of the current default. | No                 |
+| Not edited   | The saved text is an earlier default.                                           | Yes                |
+| Customized   | You edited an earlier default. Its text comes from the role's own events.       | Yes                |
+| Unknown base | The text matches no known default. It is treated as your own.                   | Yes                |
+
+Only seeded default IDs that are not retired are checked; custom roles never are. Detection is read-only and is cached until the next board event.
+
+When an update is available, the agent's Crew card says **Instructions update available**, Crew shows a summary with a review button per agent, and the notification bell adds an attention item that opens Crew. Role settings show the changelog lines since your version and a paragraph diff of your saved text against the new default, with changed words marked. For a customized role you can also compare the default you started from with the new one. If your tool settings differ from the default, the panel names them; updates change instructions only and never change tools.
+
+- **Use new default** replaces the instructions. For text you wrote, it asks you to confirm first. It is an ordinary user settings change through `configureRole`: it waits for active runs and settings writes, applies the 12,000-character limit, refreshes the generated AGENTS.md and CLAUDE.md, and appends a role event by the user. Runtime, model, enabled state, workflow seat and tools stay as saved.
+- **Keep mine** hides this revision. The choice is stored in `instruction-updates.json` in the data directory, next to `onboarding.json`, because it is a local preference that changes no role and needs no board event. It lasts across restarts until a newer revision ships.
+- **Edit from new default** (customized and unknown base) puts the new default in the editor and keeps your previous text visible in the panel. Save settings as usual.
+
+Both decisions name the exact revision you reviewed; a stale revision is rejected. The routes `POST /api/roles/:id/instructions-update/adopt` and `.../dismiss` need the UI session. The agent gateway has no matching action, agents never see the update list, and nothing is applied automatically.
+
+When you change a default role's instructions in `default-roles.ts`, append an entry to `default-instruction-history.ts` with the new revision, the release date and a one-sentence summary. The board tests fail and print the expected revision until you do. Never remove or edit earlier entries: they let existing workspaces tell an unchanged old default from their own edits.
 
 ## Creation and settings
 

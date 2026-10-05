@@ -70,7 +70,7 @@ Fresh workspaces show an introduction and setup checklist. You can defer setup a
 2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
 3. **Add a job on Board.** Save its description and URL, then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
 
-New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime.
+New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime. When a release improves a default agent's instructions, Crew offers the new text for you to review instead of changing it.
 
 ## From opportunity to application
 
@@ -103,6 +103,8 @@ Each agent has a name, responsibilities, instructions, runtime, model and allowe
 | Pipeline Coach | Review the pipeline and propose crew improvements  | A review scope and enough board history                   |
 
 Choose **Create agent** in Crew to define another role, select tools and skills, and optionally add a first routine. Custom agents start with optional capabilities disabled. Connecting an account does not grant agents access to it. Default agents have no seeded routines or source watches.
+
+Updates never overwrite your agents. When a release changes a default agent's instructions, its Crew card shows **Instructions update available** and the notification bell lists it. Its settings show what changed and a diff against your text. Choose **Use new default**, **Keep mine**, or, if you edited the instructions, **Edit from new default** to start over while keeping your old text in view. Tools never change this way. See [default instruction updates](docs/roles.md#default-instruction-updates).
 
 ### Runtimes
 
