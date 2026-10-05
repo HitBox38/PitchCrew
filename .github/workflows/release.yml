@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  actions: read
+  contents: write
+
+concurrency:
+  group: release-${{ github.event.workflow_run.head_sha }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Publish production installers
+    if: ${{ github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_repository.full_name == github.repository }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      BUILD_SHA: ${{ github.event.workflow_run.head_sha }}
+      BUILD_RUN_ID: ${{ github.event.workflow_run.id }}
+    steps:
+      - name: Download verified installers
+        run: |
+          gh run download "$BUILD_RUN_ID" --pattern 'installers-*' --dir release
+          mkdir assets
+          find release -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' \) -exec cp {} assets/ \;
+          cd assets
+          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 5
+          sha256sum * > SHA256SUMS
+      - name: Publish GitHub Release
+        run: |
+          tag="build-$BUILD_SHA"
+          if gh release view "$tag" --json isDraft --jq '.isDraft' > release-state; then
+            if test "$(cat release-state)" = false; then
+              echo "Release $tag is already published."
+              exit 0
+            fi
+          else
+            cat > release-notes.md <<EOF
+          Production installers from main at commit $BUILD_SHA. All CI checks and packaged-app smoke checks passed.
+
+          Windows: per-user .exe installer (x64).
+          macOS: .dmg installers for Apple Silicon and Intel.
+          Linux: .AppImage and .deb (x64).
+
+          Node.js, the local daemon, its dependencies and Chromium are included. Node.js and pnpm do not need to be installed separately. Provider CLIs and their authentication are configured separately.
+
+          Windows and macOS installers are unsigned; macOS builds are not notarized. The operating system may require explicit permission to open the app.
+
+          SHA256SUMS contains the installer checksums. Board and profile data stay in the user's existing ~/.pitchcrew folder.
+          EOF
+            gh release create "$tag" --target "$BUILD_SHA" --draft \
+              --title "Production build ${BUILD_SHA:0:12}" --notes-file release-notes.md
+          fi
+          gh release upload "$tag" assets/* --clobber
+          gh release edit "$tag" --draft=false
