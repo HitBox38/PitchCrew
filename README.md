@@ -68,7 +68,7 @@ Fresh workspaces show an introduction and setup checklist. You can defer setup a
 
 1. **Add your background in Profile.** Write factual Markdown notes or import a reviewed folder from GitHub or Google Drive.
 2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
-3. **Add a job on Board.** Paste a Greenhouse, Ashby or Lever posting link and choose **Fetch from link** to fill in the details, or type them yourself. Then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
+3. **Add a job on Board.** Paste a Greenhouse, Ashby, Lever, Comeet or Workable posting link and choose **Fetch from link** to fill in the details, or type them yourself. Then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
 
 New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime.
 
