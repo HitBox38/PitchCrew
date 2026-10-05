@@ -298,6 +298,60 @@ describe('endpoints and board names', () => {
     if (token) expect(parsed.error!.message).not.toContain(token);
   });
 
+  it.each(['Northwind Labs', 'example.io', 'contoso.ai', 'Fabrikam', 'a.b c-d_e', 'x'.repeat(80)])(
+    'accepts the Ashby board name %j',
+    (slug) => {
+      expect(jobSourceInput.safeParse({ provider: 'ashby', slug, name: 'Acme' }).success).toBe(
+        true,
+      );
+      expect(() => sourceEndpoint('ashby', slug)).not.toThrow();
+    },
+  );
+
+  it.each([
+    '',
+    ' Northwind',
+    'Northwind ',
+    'Northwind  Labs',
+    'Northwind\tLabs',
+    '.example',
+    'example.',
+    'example..io',
+    '..',
+    '.',
+    'acme/jobs',
+    'acme/../v1',
+    'acme?x=1',
+    'acme#frag',
+    'Northwind%20Labs',
+    'acme%2Fjobs',
+    'éacme',
+    'x'.repeat(81),
+  ])('rejects the Ashby board name %j', (slug) => {
+    expect(() => sourceEndpoint('ashby', slug)).toThrow('Invalid job board name.');
+    // Saved input is trimmed first, so only an outer space becomes valid there.
+    const parsed = jobSourceInput.safeParse({ provider: 'ashby', slug, name: 'Acme' });
+    if (slug.trim() !== slug && slug.trim()) expect(parsed.data?.slug).toBe(slug.trim());
+    else expect(parsed.success).toBe(false);
+  });
+
+  it('encodes Ashby board names into the fixed endpoint and keeps other providers strict', () => {
+    expect(sourceEndpoint('ashby', 'Northwind Labs').toString()).toBe(
+      'https://api.ashbyhq.com/posting-api/job-board/Northwind%20Labs?includeCompensation=true',
+    );
+    expect(sourceEndpoint('ashby', 'example.io').toString()).toBe(
+      'https://api.ashbyhq.com/posting-api/job-board/example.io?includeCompensation=true',
+    );
+    for (const provider of ['greenhouse', 'lever', 'workable'] as const)
+      for (const slug of ['example.io', 'Northwind Labs'])
+        expect(() => sourceEndpoint(provider, slug)).toThrow('Invalid job board name.');
+    // A posting without jobUrl falls back to an encoded hosted page.
+    expect(
+      parsePostings('ashby', 'Northwind Labs', { jobs: [{ id: 'job-1', title: 'Analyst' }] })[0]
+        ?.url,
+    ).toBe('https://jobs.ashbyhq.com/Northwind%20Labs/job-1');
+  });
+
   it('accepts tokens only for Comeet and keeps old source files valid', () => {
     expect(() => sourceEndpoint('workable', 'litware', comeetFixtureToken)).toThrow('token');
     expect(() => sourceEndpoint('greenhouse', 'acme', '')).toThrow('token');

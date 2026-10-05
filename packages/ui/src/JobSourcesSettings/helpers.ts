@@ -45,6 +45,8 @@ function linkParts(url: URL): BoardLink | null {
   }
   return null;
 }
+/** Decode only `%20`; any other escape stays as typed so validation rejects it. */
+const decodeSpaces = (segment: string) => segment.replace(/%20/gi, ' ');
 /**
  * Accept a board name or a pasted public board link and return what it reveals. A Comeet careers
  * page link gives the company UID; embed and careers API links also carry the token.
@@ -56,7 +58,7 @@ export function boardFromLink(value: string): BoardLink {
     const url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
     const match = linkParts(url);
     if (!match) return { slug: trimmed };
-    return { ...match, slug: match.slug ? decodeURIComponent(match.slug) : trimmed };
+    return { ...match, slug: match.slug ? decodeSpaces(match.slug) : trimmed };
   } catch {
     return { slug: trimmed };
   }

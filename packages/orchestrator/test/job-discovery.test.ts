@@ -673,3 +673,65 @@ describe('Comeet and Workable sources', () => {
     expect((await scan(request)).result).toMatchObject({ new: 0, duplicate: 7 });
   });
 });
+
+describe('Ashby board names with dots and spaces', () => {
+  it('saves, scans and dedupes dotted and spaced Ashby boards', async () => {
+    const { daemon, request } = await setup(15495);
+    const urls = {
+      spaced:
+        'https://api.ashbyhq.com/posting-api/job-board/Northwind%20Labs?includeCompensation=true',
+      dotted: 'https://api.ashbyhq.com/posting-api/job-board/example.io?includeCompensation=true',
+    };
+    const boards = recordedBoards({
+      [urls.spaced]: () =>
+        jsonResponse({
+          jobs: [
+            {
+              id: '0a1b2c3d-0001-4a5b-8c9d-000000000001',
+              title: 'Research Engineer',
+              location: 'Remote',
+              isRemote: true,
+              descriptionPlain: 'Fictional research tools.',
+              publishedAt: '2026-09-30T10:00:00.000Z',
+            },
+          ],
+        }),
+      [urls.dotted]: () =>
+        jsonResponse({
+          jobs: [
+            {
+              id: '0a1b2c3d-0002-4a5b-8c9d-000000000002',
+              title: 'Platform Engineer',
+              location: 'Tel Aviv',
+              jobUrl: 'https://jobs.ashbyhq.com/example.io/0a1b2c3d-0002-4a5b-8c9d-000000000002',
+              descriptionHtml: '<p>Fictional platform work.</p>',
+            },
+          ],
+        }),
+    });
+    daemon.service.jobSources.fetch = boards.fetcher;
+    for (const source of [
+      { provider: 'ashby', slug: 'Northwind Labs', name: 'Northwind Labs' },
+      { provider: 'ashby', slug: 'example.io', name: 'Example' },
+    ])
+      expect((await request('/job-sources', 'POST', source)).response.status).toBe(201);
+    const invalid = await request('/job-sources', 'POST', {
+      provider: 'ashby',
+      slug: 'example..io',
+      name: 'Example',
+    });
+    expect(invalid.response.status).toBe(400);
+    const first = await scan(request);
+    expect(first.result).toMatchObject({ new: 2, failedSources: 0 });
+    expect(boards.calls.map((call) => call.url).sort()).toEqual(Object.values(urls).sort());
+    const cards = discovered(daemon.service.board.list<Card>('card'));
+    expect(cards.find((card) => card.discovery?.slug === 'Northwind Labs')).toMatchObject({
+      url: 'https://jobs.ashbyhq.com/Northwind%20Labs/0a1b2c3d-0001-4a5b-8c9d-000000000001',
+      discovery: { provider: 'ashby', jobId: '0a1b2c3d-0001-4a5b-8c9d-000000000001' },
+    });
+    expect(cards.find((card) => card.discovery?.slug === 'example.io')).toMatchObject({
+      url: 'https://jobs.ashbyhq.com/example.io/0a1b2c3d-0002-4a5b-8c9d-000000000002',
+    });
+    expect((await scan(request)).result).toMatchObject({ new: 0, duplicate: 2 });
+  });
+});

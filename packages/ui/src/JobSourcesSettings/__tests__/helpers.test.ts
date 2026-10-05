@@ -66,6 +66,31 @@ describe('job source helpers', () => {
     });
   });
 
+  it('reads Ashby board names with dots and encoded spaces', () => {
+    expect(boardFromLink('https://jobs.ashbyhq.com/Northwind%20Labs')).toEqual({
+      provider: 'ashby',
+      slug: 'Northwind Labs',
+    });
+    expect(
+      boardFromLink('https://jobs.ashbyhq.com/example.io/0a1b2c3d-0002-4a5b-8c9d-000000000002'),
+    ).toEqual({ provider: 'ashby', slug: 'example.io' });
+    expect(boardFromLink('jobs.ashbyhq.com/contoso.ai?utm_source=x')).toEqual({
+      provider: 'ashby',
+      slug: 'contoso.ai',
+    });
+    expect(boardFromLink('Northwind Labs')).toEqual({ slug: 'Northwind Labs' });
+    expect(boardFromLink('example.io')).toEqual({ slug: 'example.io' });
+    // Only %20 is decoded; other escapes stay visible so validation rejects them.
+    expect(boardFromLink('https://jobs.ashbyhq.com/acme%2Fjobs')).toEqual({
+      provider: 'ashby',
+      slug: 'acme%2Fjobs',
+    });
+    expect(boardFromLink('https://jobs.ashbyhq.com/acme%252E')).toEqual({
+      provider: 'ashby',
+      slug: 'acme%252E',
+    });
+  });
+
   it('reads Workable accounts from careers, legacy and API links', () => {
     expect(boardFromLink('https://apply.workable.com/litware/')).toEqual({
       provider: 'workable',

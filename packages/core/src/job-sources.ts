@@ -13,6 +13,12 @@ export const jobProviderLabels: Record<JobProvider, string> = {
 /** Letters, digits, hyphens and underscores only: no dots, slashes, encodings or queries. */
 export const jobBoardSlugPattern = /^[A-Za-z0-9][A-Za-z0-9_-]{0,79}$/;
 /**
+ * Ashby board names can hold dots and single inner spaces (`example.io`, `Northwind Labs`):
+ * parts of letters, digits, hyphens and underscores joined by one dot or one space. No leading,
+ * trailing or repeated dots or spaces, so no `.`/`..` segment; slashes, `?`, `#` and `%` never match.
+ */
+export const ashbyBoardPattern = /^(?=.{1,80}$)[A-Za-z0-9][A-Za-z0-9_-]*(?:[. ][A-Za-z0-9_-]+)*$/;
+/**
  * A Comeet company UID, such as `A1.B2C`: two short groups of letters or digits joined by one
  * dot. The dot is never first or last, so it cannot form a `.` or `..` path segment.
  */
@@ -25,7 +31,7 @@ export const comeetTokenPattern = /^[A-Za-z0-9_-]{8,128}$/;
  */
 export const jobSourceSlugPatterns: Record<JobProvider, RegExp> = {
   greenhouse: jobBoardSlugPattern,
-  ashby: jobBoardSlugPattern,
+  ashby: ashbyBoardPattern,
   lever: jobBoardSlugPattern,
   comeet: comeetCompanyUidPattern,
   workable: jobBoardSlugPattern,
@@ -76,7 +82,9 @@ export function refineJobSource(
       'slug',
       value.provider === 'comeet'
         ? 'Use the company UID from the Comeet careers link, such as A1.B2C.'
-        : 'Use the board name from the job board link: letters, numbers, hyphens or underscores.',
+        : value.provider === 'ashby'
+          ? 'Use the board name from the Ashby link: letters, numbers, hyphens, underscores, and single dots or spaces between them.'
+          : 'Use the board name from the job board link: letters, numbers, hyphens or underscores.',
     );
   if (!jobProviderNeedsToken(value.provider)) {
     if (value.token !== undefined) issue('token', 'Only Comeet sources use a token.');

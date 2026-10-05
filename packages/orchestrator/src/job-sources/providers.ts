@@ -43,7 +43,7 @@ const endpoints: Record<
 };
 const hosted: Record<Exclude<JobProvider, 'comeet'>, (slug: string, id: string) => string> = {
   greenhouse: (slug, id) => `https://job-boards.greenhouse.io/${slug}/jobs/${id}`,
-  ashby: (slug, id) => `https://jobs.ashbyhq.com/${slug}/${id}`,
+  ashby: (slug, id) => `https://jobs.ashbyhq.com/${encodeURIComponent(slug)}/${id}`,
   lever: (slug, id) => `https://jobs.lever.co/${slug}/${id}`,
   workable: (slug, id) => `https://apply.workable.com/${slug}/j/${id}/`,
 };

@@ -13,7 +13,7 @@ Open **Settings > Job sources** and choose **Add source**.
 5. Choose **Test source** to see the first 25 matching postings and which ones are already on the board. Testing creates no cards and saves nothing.
 6. Choose **Save source**.
 
-Board names may contain letters, numbers, hyphens and underscores, up to 80 characters. You can save up to 25 sources. Each provider and board name pair can be saved once. Pause a source to keep it without scanning it. Removing a source keeps the leads it found.
+Board names may contain letters, numbers, hyphens and underscores, up to 80 characters. Ashby board names may also hold single dots and spaces between those, such as `example.io` or `Northwind Labs`. A pasted Ashby link writes a space as `%20`; Pitchcrew turns that back into a space and rejects other escapes. The request sends the space as `%20` again. You can save up to 25 sources. Each provider and board name pair can be saved once. Pause a source to keep it without scanning it. Removing a source keeps the leads it found.
 
 ### Workable
 
