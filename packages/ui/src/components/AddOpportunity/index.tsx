@@ -2,10 +2,10 @@ import { JobIdentityFields } from '@/components/AddOpportunity/components/JobIde
 import { JobLocationFields } from '@/components/AddOpportunity/components/JobLocationFields.tsx';
 import { useAddOpportunity } from '@/components/AddOpportunity/hooks/useAddOpportunity.ts';
 import { ExternalApplicationFields } from './components/ExternalApplicationFields.tsx';
+import { JobLinkField } from './components/JobLinkField.tsx';
 import type { AddOpportunityProps } from '@/components/AddOpportunity/types.ts';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { TagPicker } from '@/TagPicker/index.tsx';
 import { LoaderCircle, Plus } from 'lucide-react';
@@ -23,6 +23,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
     setTags,
     tagQuery,
     setTagQuery,
+    lookup,
   } = controller;
   return (
     <Modal title={external ? 'Register an application' : 'Add a job post'} onClose={onClose}>
@@ -32,14 +33,13 @@ export function AddOpportunity(props: AddOpportunityProps) {
           : 'Scout works from the description, so paste it in if you have it.'}
       </p>
       <form onSubmit={(e) => void submit(e)} className="form flex flex-col gap-4">
+        <JobLinkField lookup={lookup} />
         <JobIdentityFields />
-        <ExternalApplicationFields external={external} setExternal={setExternal} />
-        <label>
-          <span className="flex items-baseline gap-2">
-            Job post URL <span className="optional">optional</span>
-          </span>
-          <Input name="url" type="url" placeholder="https://…" />
-        </label>
+        <ExternalApplicationFields
+          external={external}
+          setExternal={setExternal}
+          jobIdentifier={lookup.prefill?.jobIdentifier ?? ''}
+        />
         <JobLocationFields />
         <label>
           Job description
