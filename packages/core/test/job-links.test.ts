@@ -125,7 +125,7 @@ describe('job link recognition', () => {
       'Use an https link to the job posting.',
     );
     expect(reason('https://example.com/careers')).toBe(
-      'This link is not a Greenhouse, Ashby or Lever job posting.',
+      'This link is not a Greenhouse, Ashby, Lever, Comeet or Workable job posting.',
     );
     expect(reason('https://careers.example.com/?gh_jid=1')).toContain('does not name the board');
     expect(reason(`https://jobs.eu.lever.co/acme/${leverId}`)).toBe(
@@ -133,6 +133,148 @@ describe('job link recognition', () => {
     );
     expect(reason('https://jobs.ashbyhq.com/fabrikam/123')).toBe(
       'The Ashby job ID in this link is not valid.',
+    );
+  });
+});
+
+const token = 'FictionalToken0123456789';
+
+describe('Ashby board names with dots and spaces', () => {
+  it.each([
+    [`https://jobs.ashbyhq.com/example.io/${ashbyId}`, 'example.io', 'example.io'],
+    [`https://jobs.ashbyhq.com/fabrikam.ai/${ashbyId}/application`, 'fabrikam.ai', 'fabrikam.ai'],
+    [
+      `https://jobs.ashbyhq.com/Northwind%20Scientific/${ashbyId}`,
+      'Northwind Scientific',
+      'Northwind%20Scientific',
+    ],
+    [
+      `https://jobs.ashbyhq.com/Northwind%20Scientific/${ashbyId}/application?utm_source=x`,
+      'Northwind Scientific',
+      'Northwind%20Scientific',
+    ],
+  ])('reads %s', (value, board, encoded) => {
+    expect(link(value)).toEqual({
+      provider: 'ashby',
+      board,
+      jobId: ashbyId,
+      url: `https://jobs.ashbyhq.com/${encoded}/${ashbyId}`,
+    });
+  });
+
+  it.each([
+    `https://jobs.ashbyhq.com/fabrikam%2Fadmin/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam%2fadmin/${ashbyId}`,
+    `https://jobs.ashbyhq.com/%2E%2E/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam%2E/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam%25/${ashbyId}`,
+    `https://jobs.ashbyhq.com/Northwind%2520Scientific/${ashbyId}`,
+    `https://jobs.ashbyhq.com/Northwind%20%20Scientific/${ashbyId}`,
+    `https://jobs.ashbyhq.com/%20fabrikam/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam%20/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam..io/${ashbyId}`,
+    `https://jobs.ashbyhq.com/.fabrikam/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam/..%20/${ashbyId}`,
+    `https://jobs.ashbyhq.com/fabrikam/${ashbyId}%20`,
+    `https://jobs.ashbyhq.com/a/../fabrikam/${ashbyId}`,
+    `https://jobs.ashbyhq.com//fabrikam/${ashbyId}`,
+    `https://jobs.ashbyhq.com/Northwind Scientific/${ashbyId}`,
+    `https://jobs.lever.co/contoso%20robotics/${leverId}`,
+    'https://boards.greenhouse.io/north%20wind/jobs/4010001001',
+    'https://apply.workable.com/lit%20ware/j/3F2A1B0C9D',
+  ])('still rejects %s', (value) => {
+    expect(link(value)).toBeNull();
+  });
+});
+
+describe('Comeet links', () => {
+  it('reads a hosted posting link without a token', () => {
+    const value = 'https://www.comeet.com/jobs/northwind/A1.B2C/frontend-engineer/C3.D4E';
+    expect(link(value)).toEqual({
+      provider: 'comeet',
+      board: 'A1.B2C',
+      jobId: 'C3.D4E',
+      url: value,
+    });
+    expect(link(value.replace('www.', ''))?.jobId).toBe('C3.D4E');
+    expect(link(`${value}/`)?.board).toBe('A1.B2C');
+  });
+
+  it('reads an embed link and keeps its token only on the link', () => {
+    for (const suffix of ['', '/apply'])
+      expect(
+        link(`https://www.comeet.co/jobs/A1.B2C/C3.D4E${suffix}?token=${token}&embedded=true`),
+      ).toEqual({
+        provider: 'comeet',
+        board: 'A1.B2C',
+        jobId: 'C3.D4E',
+        url: 'https://www.comeet.co/jobs/A1.B2C/C3.D4E',
+        token,
+      });
+    expect(link('https://www.comeet.co/jobs/A1.B2C/C3.D4E')).toEqual({
+      provider: 'comeet',
+      board: 'A1.B2C',
+      jobId: 'C3.D4E',
+      url: 'https://www.comeet.co/jobs/A1.B2C/C3.D4E',
+    });
+  });
+
+  it.each([
+    'https://www.comeet.com/jobs/northwind/A1.B2C',
+    'https://www.comeet.com/jobs/northwind/A1.B2C/frontend-engineer',
+    'https://www.comeet.com/jobs/northwind/A1..B2/frontend-engineer/C3.D4E',
+    'https://www.comeet.com/jobs/northwind/A1.B2C.D/frontend-engineer/C3.D4E',
+    'https://www.comeet.com/jobs/northwind/A1.B2C/frontend-engineer/C3D4E',
+    'https://www.comeet.com/jobs/-northwind/A1.B2C/frontend-engineer/C3.D4E',
+    'https://www.comeet.com/jobs/north%20wind/A1.B2C/frontend-engineer/C3.D4E',
+    'https://www.comeet.com/careers/northwind/A1.B2C/frontend-engineer/C3.D4E',
+    'https://www.comeet.co/jobs/A1.B2C/C3.D4E/other',
+    'https://www.comeet.co/careers-api/2.0/company/A1.B2C/positions?token=' + token,
+    'https://comeet.example/jobs/northwind/A1.B2C/frontend-engineer/C3.D4E',
+  ])('does not recognize %s', (value) => {
+    expect(link(value)).toBeNull();
+  });
+
+  it('rejects a malformed embed token without repeating it', () => {
+    const bad = 'short';
+    const message = reason(`https://www.comeet.co/jobs/A1.B2C/C3.D4E?token=${bad}`);
+    expect(message).toBe('The Comeet token in this link is not valid.');
+    expect(message).not.toContain(bad);
+  });
+});
+
+describe('Workable links', () => {
+  it.each([
+    'https://apply.workable.com/litware/j/3F2A1B0C9D',
+    'https://apply.workable.com/litware/j/3F2A1B0C9D/',
+    'https://apply.workable.com/litware/j/3F2A1B0C9D/apply',
+    'https://apply.workable.com/litware/j/3F2A1B0C9D/?utm_source=board',
+  ])('reads %s', (value) => {
+    expect(link(value)).toEqual({
+      provider: 'workable',
+      board: 'litware',
+      jobId: '3F2A1B0C9D',
+      url: 'https://apply.workable.com/litware/j/3F2A1B0C9D/',
+    });
+  });
+
+  it.each([
+    'https://apply.workable.com/litware/j/3f2a1b0c9d',
+    'https://apply.workable.com/litware/j/3F2A1',
+    'https://apply.workable.com/litware/j/3F2A1B0C9D0E1',
+    'https://apply.workable.com/litware/j/3F2A1B0C9D/other',
+    'https://apply.workable.com/litware/3F2A1B0C9D',
+    'https://apply.workable.com/litware',
+    'https://apply.workable.com/lit.ware/j/3F2A1B0C9D',
+    'https://apply.workable.com/j/3F2A1B0C9D',
+    'https://litware.workable.com/j/3F2A1B0C9D',
+  ])('does not recognize %s', (value) => {
+    expect(link(value)).toBeNull();
+  });
+
+  it('explains that a short Workable link has no account', () => {
+    expect(reason('https://apply.workable.com/j/3F2A1B0C9D')).toContain(
+      'does not name the company',
     );
   });
 });

@@ -2,6 +2,7 @@ import { postingMatches, type Board } from '@pitchcrew/board';
 import {
   isJobLinkId,
   jobLookupInput,
+  jobProviderNeedsToken,
   jobProviderLabels,
   recognizeJobLink,
   type JobLink,
@@ -11,7 +12,13 @@ import {
   type JobSource,
 } from '@pitchcrew/core';
 import { fetchBoard, type FetchLike, type ProviderRateLimiter } from './fetch.ts';
-import { assertSlug, parsePostings, sourceEndpoint } from './providers.ts';
+import {
+  assertSlug,
+  parsePostings,
+  providerStatusMessages,
+  redactToken,
+  sourceEndpoint,
+} from './providers.ts';
 
 /** A lookup waits behind any running scan's provider spacing, then makes one request. */
 export const lookupDeadlineMs = 60_000;
@@ -49,12 +56,18 @@ function assertJobId(provider: JobProvider, id: string): string {
   if (!isJobLinkId(provider, id)) throw new Error('Invalid job ID.');
   return id;
 }
-/** The one URL a lookup may request: a fixed template, or the provider's board endpoint. */
-export function postingEndpoint(link: Pick<JobLink, 'provider' | 'board' | 'jobId'>): URL {
+/**
+ * The one URL a lookup may request: a fixed single-posting template, or the provider's board
+ * endpoint built exactly as scans build it (so Ashby names are encoded the same way).
+ */
+export function postingEndpoint(
+  link: Pick<JobLink, 'provider' | 'board' | 'jobId'>,
+  token?: string,
+): URL {
   const template = singlePosting[link.provider];
-  if (!template) return sourceEndpoint(link.provider, link.board);
+  if (!template) return sourceEndpoint(link.provider, link.board, token);
   const path = template.path(
-    encodeURIComponent(assertSlug(link.board)),
+    encodeURIComponent(assertSlug(link.board, link.provider)),
     encodeURIComponent(assertJobId(link.provider, link.jobId)),
   );
   const url = new URL(`${template.origin}${path}${template.query}`);
@@ -67,18 +80,29 @@ export function postingEndpoint(link: Pick<JobLink, 'provider' | 'board' | 'jobI
 /** Title-case a board name, used when neither a saved source nor the provider names the company. */
 export function companyFromBoard(board: string): string {
   return board
-    .split(/[-_]+/)
+    .split(/[-_. ]+/)
     .filter(Boolean)
     .map((word) => word[0]!.toUpperCase() + word.slice(1))
     .join(' ')
     .slice(0, 100);
 }
-function providerCompany(body: unknown): string {
-  const value =
-    body && typeof body === 'object' && !Array.isArray(body)
-      ? (body as Record<string, unknown>).company_name
-      : undefined;
-  return typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, 100) : '';
+const record = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+const name = (value: unknown) =>
+  typeof value === 'string' ? value.replace(/\s+/g, ' ').trim().slice(0, 100) : '';
+/** The company name a provider response carries, if any. */
+function providerCompany(provider: JobProvider, body: unknown, jobId: string): string {
+  if (provider === 'greenhouse') return name(record(body).company_name);
+  if (provider === 'workable') return name(record(body).name);
+  if (provider === 'comeet' && Array.isArray(body))
+    return name(
+      record(
+        body.find((item) => typeof record(item).uid === 'string' && record(item).uid === jobId),
+      ).company_name,
+    );
+  return '';
 }
 
 export interface LookupDependencies {
@@ -90,13 +114,19 @@ export interface LookupDependencies {
   /** Per-request timeout; defaults to the discovery request timeout. */
   timeoutMs?: number;
 }
+const sameBoard = (source: JobSource, link: JobLink) =>
+  source.provider === link.provider && source.slug.toLowerCase() === link.board.toLowerCase();
+export const comeetSourceNeeded =
+  'Add this company as a Comeet source in Settings > Job sources to fetch its postings.';
 
 async function readPosting(
   link: JobLink,
+  token: string | undefined,
   { fetch, limiter, signal, timeoutMs }: LookupDependencies,
 ): Promise<{ posting: JobPosting; company: string }> {
   const label = jobProviderLabels[link.provider];
-  const url = postingEndpoint(link);
+  const template = singlePosting[link.provider];
+  const statusMessages = providerStatusMessages[link.provider];
   let status = 0;
   const observed: FetchLike = async (target, init) => {
     const response = await fetch(target, init);
@@ -105,35 +135,48 @@ async function readPosting(
   };
   let body: unknown;
   try {
+    const url = postingEndpoint(link, token);
     body = await limiter.schedule(
       link.provider,
-      () => fetchBoard(observed, url, { signal, ...(timeoutMs ? { timeoutMs } : {}) }),
+      () =>
+        fetchBoard(observed, url, {
+          signal,
+          statusMessages,
+          ...(timeoutMs ? { timeoutMs } : {}),
+        }),
       signal,
     );
   } catch (error) {
-    if (status === 404)
+    if (status === 404 && !statusMessages?.[404])
       throw new Error(
-        singlePosting[link.provider]
+        template
           ? `This ${label} posting was not found. It may be closed, or the link may be wrong.`
           : `This ${label} board was not found. Check the link.`,
       );
-    throw error;
+    // Errors reach the UI; never echo a careers token.
+    throw new Error(
+      redactToken(
+        error instanceof Error ? error.message : 'Could not read the job posting.',
+        token,
+      ),
+    );
   }
-  const template = singlePosting[link.provider];
   const postings = parsePostings(link.provider, link.board, template ? template.wrap(body) : body);
-  const posting = postings.find((item) => item.jobId.toLowerCase() === link.jobId);
+  const wanted = link.jobId.toLowerCase();
+  const posting = postings.find((item) => item.jobId.toLowerCase() === wanted);
   if (!posting)
     throw new Error(
       template
         ? `The ${label} response did not include this posting.`
         : `This posting is not on the public ${label} board. It may be closed.`,
     );
-  return { posting, company: template ? providerCompany(body) : '' };
+  return { posting, company: providerCompany(link.provider, body, posting.jobId) };
 }
 
 /**
  * Read one posting from a pasted link and return form values for the user to review. Creates
- * nothing. Unrecognized links and provider failures are results, not errors.
+ * nothing. Unrecognized links and provider failures are results, not errors. A Comeet token from
+ * an embed link is used for this lookup only; no token appears in the result.
  */
 export async function lookupJobLink(
   value: unknown,
@@ -143,11 +186,15 @@ export async function lookupJobLink(
   const recognition = recognizeJobLink(url);
   if (!recognition.recognized) return { status: 'unrecognized', reason: recognition.reason };
   const { link } = recognition;
+  const saved = (await dependencies.sources()).find((source) => sameBoard(source, link));
+  const token = link.token ?? saved?.token;
+  if (jobProviderNeedsToken(link.provider) && !token)
+    return { status: 'failed', reason: comeetSourceNeeded };
   const deadline = AbortSignal.timeout(lookupDeadlineMs);
   const signal = AbortSignal.any([deadline, ...(dependencies.signal ? [dependencies.signal] : [])]);
   let read: Awaited<ReturnType<typeof readPosting>>;
   try {
-    read = await readPosting(link, { ...dependencies, signal });
+    read = await readPosting(link, token, { ...dependencies, signal });
   } catch (error) {
     const reason = dependencies.signal?.aborted
       ? 'The lookup was cancelled.'
@@ -156,13 +203,9 @@ export async function lookupJobLink(
         : error instanceof Error
           ? error.message
           : 'Could not read the job posting.';
-    return { status: 'failed', reason: reason.slice(0, 500) };
+    return { status: 'failed', reason: redactToken(reason, token).slice(0, 500) };
   }
   const { posting } = read;
-  const saved = (await dependencies.sources()).find(
-    (source) =>
-      source.provider === link.provider && source.slug.toLowerCase() === link.board.toLowerCase(),
-  );
   const company = saved?.name ?? (read.company || companyFromBoard(link.board));
   const duplicates = postingMatches(dependencies.board, {
     provider: link.provider,

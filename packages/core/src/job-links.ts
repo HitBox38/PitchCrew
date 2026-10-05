@@ -1,9 +1,11 @@
 import { z } from 'zod';
 import type { CardState } from './states.ts';
 import {
-  jobBoardSlugPattern,
+  comeetCompanyUidPattern,
+  comeetTokenPattern,
   jobProviderLabels,
   jobProviders,
+  jobSourceSlugPatterns,
   type JobProvider,
 } from './job-sources.ts';
 
@@ -18,13 +20,20 @@ export const jobLinkIdPatterns: Partial<Record<JobProvider, RegExp>> = {
   greenhouse: /^[0-9]{1,20}$/,
   ashby: uuid,
   lever: uuid,
+  // Comeet position UIDs share the company UID shape, such as `A1.00D`.
+  comeet: comeetCompanyUidPattern,
+  // Workable shortcodes are uppercase letters and digits, usually 10 characters.
+  workable: /^[A-Z0-9]{8,12}$/,
 };
+const own = <T>(table: Partial<Record<JobProvider, T>>, provider: string): T | undefined =>
+  Object.hasOwn(table, provider) ? table[provider as JobProvider] : undefined;
 /** Whether `id` is a job ID of `provider`. Unknown or unsupported providers never match. */
 export function isJobLinkId(provider: string, id: string): boolean {
-  const pattern = Object.hasOwn(jobLinkIdPatterns, provider)
-    ? jobLinkIdPatterns[provider as JobProvider]
-    : undefined;
-  return !!pattern && pattern.test(id);
+  return !!own(jobLinkIdPatterns, provider)?.test(id);
+}
+/** Whether `board` is a saved-source identifier of `provider` (the company UID for Comeet). */
+export function isJobLinkBoard(provider: string, board: string): boolean {
+  return !!own(jobSourceSlugPatterns, provider)?.test(board);
 }
 /** Discovery `sourceId` on cards added from a pasted link rather than a saved source. */
 export const jobLinkSourceId = 'link';
@@ -32,10 +41,16 @@ export const maxJobLinkLength = 2000;
 
 export interface JobLink {
   provider: JobProvider;
+  /** Board or account name; the company UID for Comeet. */
   board: string;
   jobId: string;
-  /** The provider-hosted posting page for this board and job ID. */
+  /** The provider-hosted posting page for this board and job ID, without any token. */
   url: string;
+  /**
+   * A Comeet careers token read from an embed link. It is used for one lookup only and never
+   * returned, saved or shown.
+   */
+  token?: string;
 }
 export type JobLinkRecognition =
   | { recognized: true; link: JobLink }
@@ -43,27 +58,47 @@ export type JobLinkRecognition =
 
 const hostedUrl: Partial<Record<JobProvider, (board: string, id: string) => string>> = {
   greenhouse: (board, id) => `https://job-boards.greenhouse.io/${board}/jobs/${id}`,
-  ashby: (board, id) => `https://jobs.ashbyhq.com/${board}/${id}`,
+  ashby: (board, id) => `https://jobs.ashbyhq.com/${encodeURIComponent(board)}/${id}`,
   lever: (board, id) => `https://jobs.lever.co/${board}/${id}`,
+  comeet: (board, id) => `https://www.comeet.co/jobs/${board}/${id}`,
+  workable: (board, id) => `https://apply.workable.com/${board}/j/${id}/`,
 };
 const greenhouseHosts = new Set(['boards.greenhouse.io', 'job-boards.greenhouse.io']);
+const comeetHostedHosts = new Set(['www.comeet.com', 'comeet.com']);
+const comeetEmbedHosts = new Set(['www.comeet.co', 'comeet.co']);
+/** A readable name or title segment in a Comeet hosted link. Pitchcrew ignores its value. */
+const comeetSlugSegment = /^[A-Za-z0-9][A-Za-z0-9._-]{0,199}$/;
 /** Known hosts Pitchcrew cannot read yet, with the reason shown to the user. */
 const unsupportedHosts = new Map([
   ['job-boards.eu.greenhouse.io', 'Greenhouse EU boards are not supported yet.'],
   ['boards.eu.greenhouse.io', 'Greenhouse EU boards are not supported yet.'],
   ['jobs.eu.lever.co', 'Lever EU boards are not supported yet.'],
 ]);
-const notRecognized = 'This link is not a Greenhouse, Ashby or Lever job posting.';
+const notRecognized =
+  'This link is not a Greenhouse, Ashby, Lever, Comeet or Workable job posting.';
 const fail = (reason: string): JobLinkRecognition => ({ recognized: false, reason });
 
-function found(provider: JobProvider, board: string, rawId: string): JobLinkRecognition {
-  const jobId = provider === 'greenhouse' ? rawId : rawId.toLowerCase();
-  if (!jobBoardSlugPattern.test(board) || board.toLowerCase() === 'embed')
-    return fail(`The ${jobProviderLabels[provider]} board name in this link is not valid.`);
+function found(
+  provider: JobProvider,
+  board: string,
+  rawId: string,
+  extra: { url?: string; token?: string } = {},
+): JobLinkRecognition {
+  // UUIDs are case-insensitive; Greenhouse, Comeet and Workable IDs keep their case.
+  const jobId = provider === 'ashby' || provider === 'lever' ? rawId.toLowerCase() : rawId;
+  if (!isJobLinkBoard(provider, board) || (provider === 'greenhouse' && board === 'embed'))
+    return fail(
+      provider === 'comeet'
+        ? 'The Comeet company UID in this link is not valid.'
+        : `The ${jobProviderLabels[provider]} board name in this link is not valid.`,
+    );
   if (!isJobLinkId(provider, jobId))
     return fail(`The ${jobProviderLabels[provider]} job ID in this link is not valid.`);
-  const url = hostedUrl[provider]!(board, jobId);
-  return { recognized: true, link: { provider, board, jobId, url } };
+  const url = extra.url ?? own(hostedUrl, provider)!(board, jobId);
+  return {
+    recognized: true,
+    link: { provider, board, jobId, url, ...(extra.token ? { token: extra.token } : {}) },
+  };
 }
 
 function greenhouse(segments: string[], query: URLSearchParams): JobLinkRecognition {
@@ -85,6 +120,48 @@ function greenhouse(segments: string[], query: URLSearchParams): JobLinkRecognit
   return fail('This Greenhouse link does not point to a single job posting.');
 }
 
+function comeetHosted(segments: string[]): JobLinkRecognition {
+  // www.comeet.com/jobs/{company-name}/{companyUid}/{title-slug}/{positionUid}
+  const [jobs, name, uid, title, position] = segments;
+  if (
+    segments.length !== 5 ||
+    jobs !== 'jobs' ||
+    !comeetSlugSegment.test(name!) ||
+    !comeetSlugSegment.test(title!)
+  )
+    return fail('This Comeet link does not point to a single job posting.');
+  return found('comeet', uid!, position!, {
+    url: `https://www.comeet.com/jobs/${name}/${uid}/${title}/${position}`,
+  });
+}
+
+function comeetEmbed(segments: string[], query: URLSearchParams): JobLinkRecognition {
+  // www.comeet.co/jobs/{companyUid}/{positionUid}[/apply]?token=...
+  const shape =
+    segments[0] === 'jobs' &&
+    (segments.length === 3 || (segments.length === 4 && segments[3] === 'apply'));
+  if (!shape) return fail('This Comeet link does not point to a single job posting.');
+  const token = query.get('token');
+  // The token is checked but never echoed: reasons stay generic.
+  if (token !== null && !comeetTokenPattern.test(token))
+    return fail('The Comeet token in this link is not valid.');
+  return found('comeet', segments[1]!, segments[2]!, token ? { token } : {});
+}
+
+function workable(segments: string[]): JobLinkRecognition {
+  // apply.workable.com/{account}/j/{shortcode}[/apply]
+  if (segments[0] === 'j')
+    return fail(
+      "This short Workable link does not name the company account. Open the job from the company's Workable jobs page and paste that link.",
+    );
+  if (
+    segments[1] === 'j' &&
+    (segments.length === 3 || (segments.length === 4 && segments[3] === 'apply'))
+  )
+    return found('workable', segments[0]!, segments[2]!);
+  return fail('This Workable link does not point to a single job posting.');
+}
+
 function companyPage(query: URLSearchParams): JobLinkRecognition {
   const ghJid = query.get('gh_jid');
   const board = query.get('for');
@@ -99,6 +176,22 @@ function companyPage(query: URLSearchParams): JobLinkRecognition {
       'This company page embeds an Ashby job, but the link does not name the board. Open the job on jobs.ashbyhq.com and paste that link.',
     );
   return fail(notRecognized);
+}
+
+/**
+ * Split the raw path into segments. The raw path must equal the parsed path, so dot segments
+ * never slip through. Only an Ashby board name may hold `%20`, which becomes a space; every
+ * other percent escape, empty segment or backslash is rejected.
+ */
+function pathSegments(raw: string, authority: string, url: URL): string[] | null {
+  const rawPath = raw.slice(authority.length).split(/[?#]/)[0] || '/';
+  if (rawPath !== url.pathname) return null;
+  const path = rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
+  const segments = path ? path.slice(1).split('/') : [];
+  if (url.hostname === 'jobs.ashbyhq.com' && segments[0])
+    segments[0] = segments[0].replace(/%20/g, ' ');
+  if (segments.some((segment) => !segment || segment.includes('%'))) return null;
+  return segments;
 }
 
 /**
@@ -121,11 +214,8 @@ export function recognizeJobLink(value: string): JobLinkRecognition {
     return fail(notRecognized);
   }
   if (url.username || url.password || url.port) return fail(notRecognized);
-  const rawPath = raw.slice(authority[0].length).split(/[?#]/)[0] || '/';
-  if (rawPath !== url.pathname || rawPath.includes('%')) return fail(notRecognized);
-  const path = rawPath.endsWith('/') ? rawPath.slice(0, -1) : rawPath;
-  const segments = path ? path.slice(1).split('/') : [];
-  if (segments.some((segment) => !segment)) return fail(notRecognized);
+  const segments = pathSegments(raw, authority[0], url);
+  if (!segments) return fail(notRecognized);
   const host = url.hostname;
   const unsupported = unsupportedHosts.get(host);
   if (unsupported) return fail(unsupported);
@@ -142,22 +232,30 @@ export function recognizeJobLink(value: string): JobLinkRecognition {
       return found('lever', segments[0]!, segments[1]!);
     return fail('This Lever link does not point to a single job posting.');
   }
+  if (comeetHostedHosts.has(host)) return comeetHosted(segments);
+  if (comeetEmbedHosts.has(host)) return comeetEmbed(segments, url.searchParams);
+  if (host === 'apply.workable.com') return workable(segments);
   return companyPage(url.searchParams);
 }
 
 export const jobLookupInput = z.object({ url: z.string().max(maxJobLinkLength) }).strict();
 /**
  * Provenance the UI sends back when the user saves a fetched job. It is saved as the card's
- * `discovery` (event version 10 shape) with `sourceId` set to `jobLinkSourceId`.
+ * `discovery` (event version 10 shape) with `sourceId` set to `jobLinkSourceId`. It never holds
+ * a Comeet token.
  */
 export const jobLinkProvenance = z
   .object({
     provider: z.enum(jobProviders),
-    board: z.string().regex(jobBoardSlugPattern),
+    board: z.string().max(80),
     jobId: z.string().max(200),
     postedAt: z.iso.datetime({ offset: true }).nullable().default(null),
   })
   .strict()
+  .refine(
+    (value) => isJobLinkBoard(value.provider, value.board),
+    'The board name does not match the provider.',
+  )
   .refine(
     (value) => isJobLinkId(value.provider, value.jobId),
     'The job ID does not match the provider.',

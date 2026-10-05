@@ -25,8 +25,8 @@ export function JobLinkField({ lookup }: { lookup: ReturnType<typeof useJobLooku
         </Button>
       </div>
       <p className="quiet font-normal">
-        Fetch reads Greenhouse, Ashby and Lever posting links. You can also fill in the form
-        yourself.
+        Fetch reads Greenhouse, Ashby, Lever, Comeet and Workable posting links. You can also fill
+        in the form yourself.
       </p>
       <LookupNotice message={lookup.message} duplicates={lookup.duplicates} />
     </div>

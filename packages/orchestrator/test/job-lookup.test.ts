@@ -13,9 +13,19 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { ProviderRateLimiter, userAgent, type FetchLike } from '../src/job-sources/fetch.ts';
-import { companyFromBoard, lookupJobLink, postingEndpoint } from '../src/job-sources/lookup.ts';
+import {
+  comeetSourceNeeded,
+  companyFromBoard,
+  lookupJobLink,
+  postingEndpoint,
+} from '../src/job-sources/lookup.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
-import { fixtureSources, jsonResponse } from './helpers/job-boards.ts';
+import {
+  comeetFixtureToken,
+  fixtureSources,
+  jsonResponse,
+  moreFixtureSources,
+} from './helpers/job-boards.ts';
 import { ashbyJobId, leverJobId, postingLinks, recordedPostings } from './helpers/job-links.ts';
 
 afterEach(cleanup);
@@ -80,6 +90,8 @@ describe('single posting endpoints', () => {
     expect(companyFromBoard('contoso-robotics')).toBe('Contoso Robotics');
     expect(companyFromBoard('fabrikam')).toBe('Fabrikam');
     expect(companyFromBoard('north_wind--labs')).toBe('North Wind Labs');
+    expect(companyFromBoard('Northwind Scientific')).toBe('Northwind Scientific');
+    expect(companyFromBoard('example.io')).toBe('Example Io');
   });
 });
 
@@ -431,5 +443,143 @@ describe('posting lookups over HTTP', () => {
     expect(manual.response.status).toBe(201);
     expect(manual.result.discovery).toBeUndefined();
     expect(manual.result.tracking).toBeUndefined();
+  });
+});
+
+const savedComeet = (name = 'Wingtip') =>
+  [{ ...moreFixtureSources.comeet, name, id: 'saved-comeet' }] as unknown as JobSource[];
+
+describe('Ashby, Comeet and Workable links', () => {
+  it('reads an Ashby board whose name has a space, encoded as scans encode it', async () => {
+    const { calls, fetcher } = recordedPostings();
+    const result = found(
+      await withBoard((board) => lookup(board, postingLinks.ashbySpaced.link, fetcher)),
+    );
+    expect(calls.map((call) => call.url)).toEqual([postingLinks.ashbySpaced.endpoint]);
+    expect(result.prefill).toMatchObject({
+      company: 'Northwind Scientific',
+      title: 'Product Designer',
+      provenance: { provider: 'ashby', board: 'Northwind Scientific', jobId: ashbyJobId },
+    });
+  });
+
+  it('asks for a saved Comeet source before fetching a hosted link', async () => {
+    const { calls, fetcher } = recordedPostings();
+    const result = await withBoard((board) => lookup(board, postingLinks.comeet.link, fetcher));
+    expect(result).toEqual({ status: 'failed', reason: comeetSourceNeeded });
+    expect(calls).toEqual([]);
+  });
+
+  it('reads a Comeet hosted link with the saved source token and never returns it', async () => {
+    const { calls, fetcher } = recordedPostings();
+    const result = found(
+      await withBoard((board) =>
+        lookup(board, postingLinks.comeet.link, fetcher, { sources: async () => savedComeet() }),
+      ),
+    );
+    expect(calls.map((call) => call.url)).toEqual([postingLinks.comeet.endpoint]);
+    expect(result.prefill).toMatchObject({
+      company: 'Wingtip',
+      title: 'Senior Backend Engineer',
+      url: 'https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/senior-backend-engineer/A1.00D',
+      jobIdentifier: 'A1.00D',
+      provenance: { provider: 'comeet', board: 'A1.B2C', jobId: 'A1.00D' },
+    });
+    expect(JSON.stringify(result)).not.toContain(comeetFixtureToken);
+  });
+
+  it('uses an embed link token for one lookup and keeps it out of results and errors', async () => {
+    const { calls, fetcher } = recordedPostings();
+    await withBoard(async (board) => {
+      const result = found(await lookup(board, postingLinks.comeetEmbed.link, fetcher));
+      expect(calls.map((call) => call.url)).toEqual([postingLinks.comeetEmbed.endpoint]);
+      expect(result.prefill.company).toBe('Wingtip Analytics');
+      expect(JSON.stringify(result)).not.toContain(comeetFixtureToken);
+      const rejected = recordedPostings({
+        [postingLinks.comeetEmbed.endpoint]: () => jsonResponse({}, 401),
+      });
+      const denied = reasonOf(await lookup(board, postingLinks.comeetEmbed.link, rejected.fetcher));
+      expect(denied.reason).toContain('Comeet did not accept the company UID and token');
+      // A network error that echoes the request URL is redacted too.
+      const echo: FetchLike = async (url) => {
+        throw new Error(`connection refused for ${url}`);
+      };
+      const failed = reasonOf(await lookup(board, postingLinks.comeetEmbed.link, echo));
+      expect(failed.reason).toContain('[token]');
+      expect(JSON.stringify([denied, failed])).not.toContain(comeetFixtureToken);
+      // The posting must be on the board; an unknown position is reported plainly.
+      const missing = postingLinks.comeetEmbed.link.replace('A1.00D', 'A1.0FF');
+      expect(reasonOf(await lookup(board, missing, fetcher)).reason).toBe(
+        'This posting is not on the public Comeet board. It may be closed.',
+      );
+    });
+  });
+
+  it('reads a Workable link by picking the shortcode from the account', async () => {
+    const { calls, fetcher } = recordedPostings();
+    const result = found(
+      await withBoard((board) => lookup(board, postingLinks.workable.link, fetcher)),
+    );
+    expect(calls.map((call) => call.url)).toEqual([postingLinks.workable.endpoint]);
+    expect(result.prefill).toMatchObject({
+      company: 'Litware Studio',
+      title: 'Frontend Developer',
+      jobIdentifier: '3F2A1B0C9D',
+      provenance: { provider: 'workable', board: 'litware', jobId: '3F2A1B0C9D' },
+    });
+    const missing = recordedPostings({
+      [postingLinks.workable.endpoint]: () => jsonResponse({}, 404),
+    });
+    expect(
+      reasonOf(
+        await withBoard((board) => lookup(board, postingLinks.workable.link, missing.fetcher)),
+      ).reason,
+    ).toBe('Workable account not found. Check the account name.');
+  });
+
+  it('keeps the Comeet token out of lookups, saved cards and events over HTTP', async () => {
+    const { daemon, request } = await setup(15535);
+    const boards = recordedPostings();
+    daemon.service.jobSources.fetch = boards.fetcher;
+    const before = await request<JobLookupResult>('/jobs/lookup', 'POST', {
+      url: postingLinks.comeet.link,
+    });
+    expect(before.result).toEqual({ status: 'failed', reason: comeetSourceNeeded });
+    await request<JobSource>('/job-sources', 'POST', {
+      ...moreFixtureSources.comeet,
+      name: 'Wingtip',
+    });
+    const hosted = await request<JobLookupResult>('/jobs/lookup', 'POST', {
+      url: postingLinks.comeet.link,
+    });
+    expect(found(hosted.result).prefill.title).toBe('Senior Backend Engineer');
+    expect(JSON.stringify(hosted.result)).not.toContain(comeetFixtureToken);
+    const lookup = await request<JobLookupResult>('/jobs/lookup', 'POST', {
+      url: postingLinks.comeetEmbed.link,
+    });
+    const text = JSON.stringify(lookup.result);
+    expect(text).not.toContain(comeetFixtureToken);
+    const { prefill } = found(lookup.result);
+    expect(prefill.company).toBe('Wingtip');
+    const { jobIdentifier: _id, ...fields } = prefill;
+    const saved = await request<Card>('/cards', 'POST', fields);
+    expect(saved.response.status).toBe(201);
+    expect(saved.result.discovery).toMatchObject({
+      provider: 'comeet',
+      slug: 'A1.B2C',
+      jobId: 'A1.00D',
+    });
+    const sneaky = await request('/cards', 'POST', {
+      ...fields,
+      provenance: { ...prefill.provenance, token: comeetFixtureToken },
+    });
+    expect(sneaky.response.status).toBe(400);
+    const history = daemon.service.board.history(saved.result.id);
+    expect(JSON.stringify(history)).not.toContain(comeetFixtureToken);
+    expect(JSON.stringify(daemon.service.board.list('card'))).not.toContain(comeetFixtureToken);
+    // A later scan of the saved Comeet source skips the job saved from the link.
+    const summary = (await request<JobScanSummary>('/job-sources/scan', 'POST', {})).result;
+    expect(summary.newLeads.map((lead) => lead.title)).not.toContain('Senior Backend Engineer');
+    expect(summary.duplicate).toBeGreaterThanOrEqual(1);
   });
 });
