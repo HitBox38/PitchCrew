@@ -48,7 +48,9 @@ const env = {
 };
 delete env.PITCHCREW_URL;
 delete env.ELECTRON_RUN_AS_NODE;
-const desktop = spawn(executable, [], { env, stdio: 'inherit', windowsHide: true });
+// Xvfb has no hardware GPU; use software rendering for reliable screenshot capture.
+const args = process.platform === 'linux' ? ['--disable-gpu'] : [];
+const desktop = spawn(executable, args, { env, stdio: 'inherit', windowsHide: true });
 const timer = setTimeout(() => desktop.kill(), 300000);
 try {
   const code = await new Promise((resolve, reject) => {
