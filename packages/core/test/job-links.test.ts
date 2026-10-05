@@ -205,6 +205,25 @@ describe('Comeet links', () => {
     expect(link(`${value}/`)?.board).toBe('A1.B2C');
   });
 
+  it('normalizes office-specific hosted and embed links to the base posting', () => {
+    const hosted = 'https://www.comeet.com/jobs/northwind/A1.B2C/frontend-engineer/C3.D4E';
+    expect(link(`${hosted}-E5.F6A`)).toEqual({
+      provider: 'comeet',
+      board: 'A1.B2C',
+      jobId: 'C3.D4E',
+      url: hosted,
+    });
+    expect(link(`https://www.comeet.co/jobs/A1.B2C/C3.D4E-E5.F6A/apply?token=${token}`)).toEqual({
+      provider: 'comeet',
+      board: 'A1.B2C',
+      jobId: 'C3.D4E',
+      url: 'https://www.comeet.co/jobs/A1.B2C/C3.D4E',
+      token,
+    });
+    for (const suffix of ['-', '-not-a-uid', '-E5.F6A-G7.H8I', '-E5.F6A/../C3.D4E'])
+      expect(link(`${hosted}${suffix}`)).toBeNull();
+  });
+
   it('reads an embed link and keeps its token only on the link', () => {
     for (const suffix of ['', '/apply'])
       expect(

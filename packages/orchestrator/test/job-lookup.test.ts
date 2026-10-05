@@ -515,6 +515,22 @@ describe('Ashby, Comeet and Workable links', () => {
     });
   });
 
+  it('looks up Comeet office-specific links using the base job identifier', async () => {
+    for (const url of [
+      postingLinks.comeet.link.replace('A1.00D', 'A1.00D-B3.C4D'),
+      postingLinks.comeetEmbed.link.replace('A1.00D', 'A1.00D-B3.C4D'),
+    ]) {
+      const result = found(
+        await withBoard((board) =>
+          lookup(board, url, recordedPostings().fetcher, { sources: async () => savedComeet() }),
+        ),
+      );
+      expect(result.prefill.jobIdentifier).toBe('A1.00D');
+      expect(result.prefill.provenance.jobId).toBe('A1.00D');
+      expect(result.prefill.url).not.toContain('A1.00D-B3.C4D');
+    }
+  });
+
   it('reads a Workable link by picking the shortcode from the account', async () => {
     const { calls, fetcher } = recordedPostings();
     const result = found(

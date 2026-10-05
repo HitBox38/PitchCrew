@@ -14,6 +14,11 @@ import {
  * name and job ID from a link and never fetches it. The daemon then calls only the provider's
  * fixed public endpoint, rebuilt from the validated board name and job ID.
  */
+// Comeet office-specific links append an office UID; provenance always identifies the base job.
+const comeetUid = comeetCompanyUidPattern.source.slice(1, -1);
+const comeetPositionUidPattern = new RegExp(`^${comeetUid}(?:-${comeetUid})?$`);
+const canonicalComeetPosition = (value: string) =>
+  comeetPositionUidPattern.test(value) ? value.split('-')[0]! : value;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 /** Job ID shapes per provider. A provider without an entry has no link support yet. */
 export const jobLinkIdPatterns: Partial<Record<JobProvider, RegExp>> = {
@@ -85,7 +90,12 @@ function found(
   extra: { url?: string; token?: string } = {},
 ): JobLinkRecognition {
   // UUIDs are case-insensitive; Greenhouse, Comeet and Workable IDs keep their case.
-  const jobId = provider === 'ashby' || provider === 'lever' ? rawId.toLowerCase() : rawId;
+  const jobId =
+    provider === 'ashby' || provider === 'lever'
+      ? rawId.toLowerCase()
+      : provider === 'comeet'
+        ? canonicalComeetPosition(rawId)
+        : rawId;
   if (!isJobLinkBoard(provider, board) || (provider === 'greenhouse' && board === 'embed'))
     return fail(
       provider === 'comeet'
@@ -134,7 +144,7 @@ function comeetHosted(segments: string[]): JobLinkRecognition {
   )
     return fail('This Comeet link does not point to a single job posting.');
   return found('comeet', uid!, position!, {
-    url: `https://www.comeet.com/jobs/${name}/${uid}/${title}/${position}`,
+    url: `https://www.comeet.com/jobs/${name}/${uid}/${title}/${canonicalComeetPosition(position!)}`,
   });
 }
 
