@@ -1,4 +1,5 @@
 import { BackgroundServiceSettings } from '@/BackgroundServiceSettings/index.tsx';
+import { AnalyticsSettings } from '@/Analytics/components/AnalyticsSettings.tsx';
 import { ConnectorSettings } from '@/ConnectorSettings/index.tsx';
 import { JobSourcesSettings } from '@/JobSourcesSettings/index.tsx';
 import { PacketRulesSettings } from '@/PacketRules/index.tsx';
@@ -32,6 +33,7 @@ export function SettingsPage() {
       <TabsContent className="settings-content" value="general">
         <AppearanceSettings />
         <NotificationSettings />
+        <AnalyticsSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="accounts">
         <ConnectorSettings data={data} action={action} working={working} />

@@ -4,6 +4,7 @@ import { capLogFile, captureServiceOutput, createRotatingLog } from './backgroun
 import { serviceFolderName } from './background/paths.ts';
 import { resolveDaemonSettings } from './background/settings.ts';
 import { createDaemon } from './server.ts';
+import { analyticsConfig } from './http/analytics.ts';
 
 /**
  * Starts the daemon from the command line. A daemon started by the background service (--service)
@@ -42,6 +43,7 @@ export async function runDaemon(argv: readonly string[]) {
         dev,
         service,
         seedSkills: process.env.PITCHCREW_SEED_SKILLS !== '0',
+        analytics: analyticsConfig(process.env, dev),
       });
       break;
     } catch (error) {
