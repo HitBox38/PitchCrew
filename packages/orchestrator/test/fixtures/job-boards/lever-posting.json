@@ -1,0 +1,30 @@
+{
+  "additional": "<div>Fictional benefits: <b>learning budget</b>.</div>",
+  "additionalPlain": "Fictional benefits: learning budget.",
+  "categories": {
+    "commitment": "Full-time",
+    "department": "Engineering",
+    "location": "Remote - Canada",
+    "team": "Platform",
+    "allLocations": ["Remote - Canada"]
+  },
+  "createdAt": 1758700800000,
+  "descriptionPlain": "Contoso Robotics is a fictional company.",
+  "description": "<div><b>Contoso Robotics</b> is a fictional company.</div>",
+  "id": "a1b2c3d4-0001-4a5b-8c9d-0e1f2a3b4c5d",
+  "lists": [
+    { "text": "What you'll do", "content": "<li>Build APIs</li><li>Run services</li>" },
+    { "text": "About you", "content": "<li>Know TypeScript</li>" }
+  ],
+  "text": "Backend Engineer",
+  "country": "CA",
+  "workplaceType": "remote",
+  "salaryRange": {
+    "currency": "CAD",
+    "interval": "per-year-salary",
+    "min": 120000,
+    "max": 150000
+  },
+  "hostedUrl": "https://jobs.lever.co/contoso-robotics/a1b2c3d4-0001-4a5b-8c9d-0e1f2a3b4c5d",
+  "applyUrl": "https://jobs.lever.co/contoso-robotics/a1b2c3d4-0001-4a5b-8c9d-0e1f2a3b4c5d/apply"
+}
