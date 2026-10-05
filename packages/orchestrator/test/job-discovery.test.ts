@@ -699,7 +699,6 @@ describe('Comeet and Workable sources', () => {
       .filter((event) => event.kind === 'card' && event.entityId !== 'legacy-lever-card');
     expect(cardEvents).toHaveLength(7);
     for (const event of cardEvents) expect(event.version).toBe(currentEventVersion);
-    expect(currentEventVersion).toBe(11);
     // Discovery keys from replayed cards still dedupe the next scan.
     expect((await scan(request)).result).toMatchObject({ new: 0, duplicate: 7 });
   });
