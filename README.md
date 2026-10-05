@@ -4,6 +4,8 @@ Pitchcrew is a local-first job-search app with a crew of AI agents. Keep opportu
 
 It runs in your browser or an Electron desktop window. Your board, profile, chats and packets stay on this computer; AI runs use the CLI runtime and provider account you configure.
 
+Production installations send anonymous page visits and feature usage to Pitchcrew's PostHog project. Opt out in **Settings > General > Usage analytics**. App content is excluded and sessions are never recorded. Development analytics is disabled by default. See [analytics configuration](docs/analytics.md).
+
 **Status: working MVP.** The application workflow, crew chats, scheduled routines, read-only account connectors and approval-gated browser tools are implemented. Automated tests use fixtures and mock runtimes; live provider runs are not verified by that suite.
 
 ## What you can do
