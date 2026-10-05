@@ -2,6 +2,7 @@ import type { ArtifactLayout, Packet, PacketArtifact } from '@pitchcrew/core';
 import { createHash } from 'node:crypto';
 import { PDFDocument } from 'pdf-lib';
 import { formattedDocx } from './documents/docx.ts';
+import { type FontSearch, systemFonts } from './documents/font-search.ts';
 import { formattedPdf } from './documents/pdf.ts';
 import { plainDocx, plainPdf } from './documents/plain.ts';
 import { readZip } from './documents/zip.ts';
@@ -10,6 +11,13 @@ export const digestBytes = (bytes: Uint8Array) => createHash('sha256').update(by
 export const resumePageTarget = 1;
 export const resumePageWarning = (pages: number) =>
   `The resume runs to ${pages} pages in the formatted layout. The target is one page.`;
+
+export { systemFonts, type FontLocation, type FontSearch } from './documents/font-search.ts';
+
+export interface RenderOptions {
+  /** Fallback fonts for characters the bundled fonts lack. Defaults to installed system fonts. */
+  fonts?: FontSearch;
+}
 
 const mimeTypes = {
   pdf: 'application/pdf',
@@ -22,12 +30,13 @@ export async function renderArtifacts(
   packet: Packet,
   formats: ('pdf' | 'docx')[],
   layout: ArtifactLayout = 'formatted',
+  { fonts = systemFonts() }: RenderOptions = {},
 ): Promise<PacketArtifact[]> {
   const output: PacketArtifact[] = [];
   for (const source of ['resume', 'coverLetter'] as const) {
     const text = packet[source];
     let pdf: Promise<{ bytes: Buffer; pages: number }> | undefined;
-    const formatted = () => (pdf ??= formattedPdf(text, source));
+    const formatted = () => (pdf ??= formattedPdf(text, source, fonts));
     for (const format of formats) {
       let bytes: Buffer;
       if (layout === 'plain')
@@ -95,10 +104,13 @@ export interface LayoutReport {
 }
 
 // Renders the formatted PDFs without storing them, so agents can fit the resume to one page.
-export async function checkLayout(packet: Packet): Promise<LayoutReport> {
+export async function checkLayout(
+  packet: Packet,
+  { fonts = systemFonts() }: RenderOptions = {},
+): Promise<LayoutReport> {
   const warnings: string[] = [];
   const count = (source: 'resume' | 'coverLetter') =>
-    formattedPdf(packet[source], source).then(
+    formattedPdf(packet[source], source, fonts).then(
       (rendered) => rendered.pages,
       (error: unknown) => {
         warnings.push(error instanceof Error ? error.message : String(error));

@@ -8,8 +8,9 @@ import {
   type Card,
   type Role,
 } from '@pitchcrew/core';
-import { checkLayout, readProfile } from '@pitchcrew/packet';
+import { checkLayout, readProfile, systemFonts } from '@pitchcrew/packet';
 import { z } from 'zod';
+import { join } from 'node:path';
 import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
 import { connectorAccess, connectorAction } from './gateway/connectors.ts';
@@ -127,7 +128,9 @@ export async function agentCall(
       problems: check.errors,
       warnings: check.warnings,
       findings: check.findings,
-      layout: await checkLayout(parsed.packet),
+      layout: await checkLayout(parsed.packet, {
+        fonts: systemFonts({ folders: [join(this.directory, 'fonts')] }),
+      }),
     };
   }
   if (action === 'packet_rules') {

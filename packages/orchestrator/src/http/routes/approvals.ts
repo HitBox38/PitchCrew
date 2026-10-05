@@ -1,8 +1,9 @@
 import type { Card, Approval } from '@pitchcrew/core';
 import { digestPacket } from '@pitchcrew/board';
-import { renderArtifacts, verifiedArtifact } from '@pitchcrew/packet';
+import { renderArtifacts, systemFonts, verifiedArtifact } from '@pitchcrew/packet';
 import { resolveSubmission } from '@pitchcrew/mcp/computer';
 import type { FastifyInstance } from 'fastify';
+import { join } from 'node:path';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
@@ -21,7 +22,10 @@ export function registerApprovalsRoutes(app: FastifyInstance, service: CrewServi
     const card = service.board.get<Card>('card', req.params.id);
     if (card.state !== 'agreed' || !card.packet) throw new Error('A reviewed packet is required.');
     const digest = digestPacket(card.id, card.packet);
-    const artifacts = await renderArtifacts(card.packet, [...new Set(formats)], layout);
+    // Fonts in the data folder's fonts folder come before installed system fonts.
+    const artifacts = await renderArtifacts(card.packet, [...new Set(formats)], layout, {
+      fonts: systemFonts({ folders: [join(service.directory, 'fonts')] }),
+    });
     const current = service.board.get<Card>('card', card.id);
     if (!current.packet || digestPacket(card.id, current.packet) !== digest)
       throw new Error('Packet changed during rendering.');

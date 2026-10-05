@@ -1,34 +1,49 @@
-import fontkit from '@pdf-lib/fontkit';
-import { PDFDocument, type PDFFont, type PDFPage, PDFString, rgb } from 'pdf-lib';
-import { fontBytes, type FontStyle, fontStyles, styleOf, subsetNames } from './fonts.ts';
+import {
+  beginText,
+  endText,
+  type PDFFont,
+  PDFDocument,
+  PDFHexString,
+  PDFOperator,
+  PDFOperatorNames,
+  type PDFPage,
+  PDFString,
+  popGraphicsState,
+  pushGraphicsState,
+  type RGB,
+  rgb,
+  setFillingColor,
+  setFontAndSize,
+  setTextMatrix,
+} from 'pdf-lib';
+import type { Direction } from './bidi.ts';
+import { FontChoice } from './font-choice.ts';
+import { type FontSearch, systemFonts } from './font-search.ts';
+import { rtlMark } from './fontkit.ts';
+import { type FontStyle, styleOf } from './fonts.ts';
 import { visibleText } from './inline.ts';
+import {
+  type Atom,
+  cleanText,
+  type Fonts,
+  type Piece,
+  paragraph,
+  visualChunks,
+  wrap,
+} from './lines.ts';
 import { parseMarkdown } from './markdown.ts';
 import { ascent, descent, linkColor, ruleGray, type Template, templates } from './template.ts';
-import type { Block, DocumentKind, Run } from './types.ts';
+import type { Block, DocumentKind, ListItem, Run } from './types.ts';
 
 export interface RenderedDocument {
   bytes: Buffer;
   pages: number;
-}
-interface Atom {
-  kind: 'word' | 'space' | 'break' | 'fill';
-  text: string;
-  style: FontStyle;
-  href?: string;
-  width: number;
 }
 
 const labels: Record<DocumentKind, string> = { resume: 'resume', coverLetter: 'cover letter' };
 const markers = ['\u2022', '\u25e6', '\u25aa', '\u25aa'];
 const black = rgb(0, 0, 0);
 const blue = rgb(linkColor.red, linkColor.green, linkColor.blue);
-
-// Invisible formatting characters are removed and other spacing becomes a plain space, so the
-// font check only rejects characters that would print.
-export const cleanText = (text: string) =>
-  text
-    .replace(/[\u00ad\u200b-\u200d\u2060\ufeff]/g, '')
-    .replace(/[\t\n\v\f\r\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ');
 
 const headingRuns = (runs: Run[]) =>
   runs.map((run) => (run.kind === 'text' ? { ...run, bold: true } : run));
@@ -40,6 +55,20 @@ const blockRuns = (block: Block): Run[][] =>
       : block.kind === 'list'
         ? block.items.map((item) => item.runs)
         : [];
+const marker = (item: ListItem) => (item.ordered ? `${item.number}.` : markers[item.depth]);
+
+// Every text the writer draws, with its style, so fonts are chosen before layout.
+function documentTexts(blocks: Block[]) {
+  const texts: { text: string; style: FontStyle }[] = [];
+  for (const block of blocks) {
+    for (const runs of blockRuns(block))
+      for (const run of runs)
+        if (run.kind === 'text') texts.push({ text: cleanText(run.text), style: styleOf(run) });
+    if (block.kind === 'list')
+      for (const item of block.items) texts.push({ text: marker(item), style: 'regular' });
+  }
+  return texts;
+}
 
 // PDF URI actions must be 7-bit ASCII; parentheses and backslashes are escaped as well.
 export function asciiUri(href: string) {
@@ -62,7 +91,7 @@ class PageWriter {
   constructor(
     private document: PDFDocument,
     private template: Template,
-    private fonts: Record<FontStyle, PDFFont>,
+    private fonts: Fonts,
   ) {
     this.newPage();
   }
@@ -83,113 +112,92 @@ class PageWriter {
     if (this.y !== this.top) this.y -= amount;
   }
 
-  atoms(runs: Run[], size: number): Atom[] {
-    return runs.flatMap((run): Atom[] => {
-      if (run.kind !== 'text')
-        return [
-          { kind: run.kind, text: '', style: 'regular', width: run.kind === 'fill' ? size : 0 },
-        ];
-      const style = styleOf(run);
-      return cleanText(run.text)
-        .split(/( +)/)
-        .filter(Boolean)
-        .map((text) => ({
-          kind: text.startsWith(' ') ? 'space' : 'word',
-          text: text.startsWith(' ') ? ' ' : text,
-          style,
-          href: run.href,
-          width: this.fonts[style].widthOfTextAtSize(text.startsWith(' ') ? ' ' : text, size),
-        }));
-    });
-  }
-
-  // Greedy word wrapping; a word wider than the line is split between characters.
-  lines(atoms: Atom[], size: number, width: number): Atom[][] {
-    const lines: Atom[][] = [];
-    let line: Atom[] = [];
-    let used = 0;
-    let pending: Atom[] = [];
-    const finish = () => {
-      lines.push(line);
-      line = [];
-      used = 0;
-      pending = [];
-    };
-    for (const atom of atoms) {
-      if (atom.kind === 'break') finish();
-      else if (atom.kind === 'space') {
-        if (line.length) pending.push(atom);
-      } else {
-        const gap = pending.reduce((sum, space) => sum + space.width, 0);
-        if (line.length && used + gap + atom.width > width) finish();
-        let word = atom;
-        while (!line.length && word.width > width && [...word.text].length > 1) {
-          const characters = [...word.text];
-          const font = this.fonts[word.style];
-          let count = 1;
-          while (
-            count < characters.length &&
-            font.widthOfTextAtSize(characters.slice(0, count + 1).join(''), size) <= width
-          )
-            count++;
-          const head = characters.slice(0, count).join('');
-          const tail = characters.slice(count).join('');
-          lines.push([{ ...word, text: head, width: font.widthOfTextAtSize(head, size) }]);
-          word = { ...word, text: tail, width: font.widthOfTextAtSize(tail, size) };
-        }
-        if (line.length) {
-          line.push(...pending);
-          used += gap;
-        }
-        line.push(word);
-        used += word.width;
-        pending = [];
-      }
-    }
-    if (line.length) lines.push(line);
-    return lines;
-  }
-
   baseline(size: number, leading: number) {
     this.ensure(leading);
     return this.y - (leading - (ascent + descent) * size) / 2 - ascent * size;
   }
 
-  draw(line: Atom[], x: number, size: number, leading: number, width: number) {
-    const baseline = this.baseline(size, leading);
-    const used = line.reduce((sum, atom) => sum + atom.width, 0);
+  // Draws pieces in visual order. Neighbours with the same font, link and direction share one text
+  // operation; right-to-left groups go to fontkit in logical order behind the right-to-left mark.
+  pieces(pieces: Piece[], x: number, baseline: number, size: number) {
     let cursor = x;
-    for (let index = 0; index < line.length;) {
-      const first = line[index];
-      if (first.kind === 'fill') {
-        cursor += first.width + Math.max(0, width - used);
-        index++;
-        continue;
-      }
+    for (let index = 0; index < pieces.length;) {
+      const first = pieces[index];
       let end = index;
-      let text = '';
-      let segment = 0;
+      let width = 0;
       while (
-        end < line.length &&
-        line[end].kind !== 'fill' &&
-        line[end].style === first.style &&
-        line[end].href === first.href
+        end < pieces.length &&
+        pieces[end].font === first.font &&
+        pieces[end].href === first.href &&
+        pieces[end].level % 2 === first.level % 2
       ) {
-        text += line[end].text;
-        segment += line[end].width;
+        width += pieces[end].width;
         end++;
       }
-      const font = this.fonts[first.style];
-      this.page.drawText(text, {
-        x: cursor,
-        y: baseline,
-        size,
-        font,
-        color: first.href ? blue : black,
-      });
-      if (first.href) this.link(first.href, cursor, baseline, segment, size);
-      cursor += segment;
+      const group = pieces.slice(index, end);
+      const text =
+        first.level % 2
+          ? rtlMark +
+            group
+              .reverse()
+              .map((piece) => piece.text)
+              .join('')
+          : group.map((piece) => piece.text).join('');
+      this.text(text, first.font, cursor, baseline, size, first.href ? blue : black);
+      if (first.href) this.link(first.href, cursor, baseline, width, size);
+      cursor += width;
       index = end;
+    }
+  }
+
+  // pdf-lib advances glyph by glyph and ignores the offsets fontkit gives marks, such as Hebrew
+  // points. Fallback text with such offsets is shown as one text
+  // array in which each mark moves by its horizontal offset and back. Advances stay the font's own
+  // widths, as measured for wrapping. Vertical offsets are left out: a text rise would split the
+  // word for PDF readers that extract text.
+  text(text: string, font: PDFFont, x: number, y: number, size: number, color: RGB) {
+    const shaped = this.fonts.shaped.get(font);
+    const run = shaped?.layout(text, { liga: false } as never);
+    if (!shaped || !run || run.positions.every((position) => !position.xOffset)) {
+      this.page.drawText(text, { x, y, size, font, color });
+      return;
+    }
+    const codes = font.encodeText(text).asString().match(/.{4}/g) ?? [];
+    const shown = run.positions.flatMap((position, index) => {
+      // Text arrays count in thousandths of the font size; positive numbers move left.
+      const shift = (position.xOffset * 1000) / shaped.unitsPerEm;
+      const glyph = PDFHexString.of(codes[index]);
+      return shift ? [-shift, glyph, shift] : [glyph];
+    });
+    this.page.pushOperators(
+      pushGraphicsState(),
+      beginText(),
+      setFillingColor(color),
+      setFontAndSize(this.page.node.newFontDictionary(font.name, font.ref), size),
+      setTextMatrix(1, 0, 0, 1, x, y),
+      PDFOperator.of(PDFOperatorNames.ShowTextAdjusted, [this.document.context.obj(shown)]),
+      endText(),
+      popGraphicsState(),
+    );
+  }
+
+  // Left-to-right lines start at `x`; right-to-left lines end at `x + width`. A fill takes the
+  // space the line leaves, so the text after it reaches the far edge.
+  draw(
+    line: Atom[],
+    x: number,
+    size: number,
+    leading: number,
+    width: number,
+    direction: Direction,
+  ) {
+    const baseline = this.baseline(size, leading);
+    const extra = Math.max(0, width - line.reduce((sum, atom) => sum + atom.width, 0));
+    let offset = 0;
+    for (const chunk of visualChunks(line, direction)) {
+      const start = direction === 'rtl' ? x + width - offset - chunk.width : x + offset;
+      this.pieces(chunk.pieces, start, baseline, size);
+      offset += chunk.width + (chunk.fill === undefined ? 0 : chunk.fill + extra);
     }
     this.y -= leading;
   }
@@ -226,88 +234,85 @@ class PageWriter {
       this.y -= 5;
     } else if (block.kind === 'heading') {
       const style = template.headings[block.level - 1];
-      const lines = this.lines(this.atoms(headingRuns(block.runs), style.size), style.size, width);
+      const text = paragraph(headingRuns(block.runs), style.size, this.fonts);
+      const lines = wrap(text.atoms, style.size, width);
       // Keep a heading with the first line that follows it.
       this.ensure(style.before + lines.length * style.leading + style.after + template.leading);
       this.space(style.before);
-      for (const line of lines) this.draw(line, left, style.size, style.leading, width);
+      for (const line of lines)
+        this.draw(line, left, style.size, style.leading, width, text.direction);
       if (style.rule) this.rule(this.y - 1, 0.6);
       this.y -= style.after;
     } else if (block.kind === 'paragraph') {
-      const lines = this.lines(this.atoms(block.runs, template.size), template.size, width);
-      for (const line of lines) this.draw(line, left, template.size, template.leading, width);
+      const text = paragraph(block.runs, template.size, this.fonts);
+      for (const line of wrap(text.atoms, template.size, width))
+        this.draw(line, left, template.size, template.leading, width, text.direction);
       this.y -= template.paragraphAfter;
     } else {
-      for (const item of block.items) {
-        const markerX = left + item.depth * template.indent;
-        const textX = markerX + template.hang + (item.ordered ? 4 : 0);
-        const size = template.size;
-        const lines = this.lines(this.atoms(item.runs, size), size, this.right - textX);
-        // The marker is drawn first so extracted text reads in visual order.
-        const marker = item.ordered ? `${item.number}.` : markers[item.depth];
-        const markerWidth = this.fonts.regular.widthOfTextAtSize(marker, size);
-        const baseline = this.baseline(size, template.leading);
-        this.page.drawText(marker, {
-          x: item.ordered ? textX - 3 - markerWidth : markerX + 1,
-          y: baseline,
-          size,
-          font: this.fonts.regular,
-          color: black,
-        });
-        if (!lines.length) this.y -= template.leading;
-        for (const line of lines)
-          this.draw(line, textX, size, template.leading, this.right - textX);
-        this.y -= template.itemAfter;
-      }
+      for (const item of block.items) this.item(item);
       this.y -= Math.max(0, template.paragraphAfter - template.itemAfter);
     }
   }
+
+  // Right-to-left items mirror the hanging indent: the marker sits at the right edge.
+  item(item: ListItem) {
+    const { template } = this;
+    const size = template.size;
+    const left = template.margin;
+    const text = paragraph(item.runs, size, this.fonts);
+    const rtl = text.direction === 'rtl';
+    const indent = item.depth * template.indent;
+    const textIndent = indent + template.hang + (item.ordered ? 4 : 0);
+    const textWidth = this.right - left - textIndent;
+    const lines = wrap(text.atoms, size, textWidth);
+    const label = paragraph(
+      [{ kind: 'text', text: marker(item), bold: false, italic: false }],
+      size,
+      this.fonts,
+      text.direction,
+    ).atoms;
+    const labelWidth = label.reduce((sum, atom) => sum + atom.width, 0);
+    const markerX = rtl
+      ? item.ordered
+        ? this.right - textIndent + 3
+        : this.right - indent - 1 - labelWidth
+      : item.ordered
+        ? left + textIndent - 3 - labelWidth
+        : left + indent + 1;
+    // The marker is drawn first so extracted text reads in visual order.
+    const baseline = this.baseline(size, template.leading);
+    this.pieces(visualChunks(label, text.direction)[0].pieces, markerX, baseline, size);
+    if (!lines.length) this.y -= template.leading;
+    for (const line of lines)
+      this.draw(
+        line,
+        rtl ? left : left + textIndent,
+        size,
+        template.leading,
+        textWidth,
+        text.direction,
+      );
+    this.y -= template.itemAfter;
+  }
 }
 
-function usedStyles(blocks: Block[]) {
-  const styles = new Set<FontStyle>(['regular']);
-  for (const block of blocks)
-    for (const runs of blockRuns(block))
-      for (const run of runs) if (run.kind === 'text') styles.add(styleOf(run));
-  return styles;
-}
-
-function checkCharacters(blocks: Block[], fonts: Record<FontStyle, PDFFont>, kind: DocumentKind) {
-  const sets = new Map<FontStyle, Set<number>>();
-  for (const block of blocks)
-    for (const runs of blockRuns(block))
-      for (const run of runs) {
-        if (run.kind !== 'text') continue;
-        const style = styleOf(run);
-        if (!sets.has(style)) sets.set(style, new Set(fonts[style].getCharacterSet()));
-        for (const character of cleanText(run.text)) {
-          const code = character.codePointAt(0)!;
-          if (character === ' ' || sets.get(style)!.has(code)) continue;
-          throw new Error(
-            `PDF text contains unsupported characters: "${character}" (U+${code.toString(16).toUpperCase().padStart(4, '0')}) in the ${labels[kind]}. Use DOCX or revise the packet; no text was omitted.`,
-          );
-        }
-      }
-}
-
+/**
+ * Lays out Markdown as a formatted PDF. Liberation Sans prints what it can; Hebrew uses the bundled
+ * Noto font and other scripts use fonts from `fonts`, which defaults to installed system fonts.
+ * Text no font can show, or a script that needs shaping, stops the export with an error naming
+ * the character.
+ */
 export async function formattedPdf(
   markdown: string,
   kind: DocumentKind,
+  fonts: FontSearch = systemFonts(),
 ): Promise<RenderedDocument> {
   const blocks = parseMarkdown(markdown);
   const document = await PDFDocument.create({ updateMetadata: false });
-  document.registerFontkit(fontkit);
-  const fonts = {} as Record<FontStyle, PDFFont>;
-  const used = usedStyles(blocks);
-  for (const style of fontStyles)
-    if (used.has(style))
-      fonts[style] = await document.embedFont(await fontBytes(style), {
-        subset: true,
-        customName: subsetNames[style],
-        features: { liga: false },
-      });
-  checkCharacters(blocks, fonts, kind);
-  const writer = new PageWriter(document, templates[kind], fonts);
+  const choice = await FontChoice.open(fonts);
+  await choice.cover(documentTexts(blocks), kind);
+  const { embedded, shaped } = await choice.embed(document);
+  const writer = new PageWriter(document, templates[kind], { choice, embedded, shaped });
   for (const block of blocks) writer.block(block);
   const heading = blocks.find((block) => block.kind === 'heading');
   document.setTitle(heading ? visibleText(heading.runs).trim() : labels[kind]);
