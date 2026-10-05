@@ -98,6 +98,10 @@ describe('job source helpers', () => {
       boardFromLink('comeet.com/jobs/wingtip-analytics/A1.B2C/senior-backend-engineer/A1.00D'),
     ).toEqual({ provider: 'comeet', slug: 'A1.B2C' });
     expect(boardFromLink('A1.B2C')).toEqual({ slug: 'A1.B2C' });
+    expect(boardFromLink('https://www.comeet.com/jobs/A1.B2C/C3.D4E')).toEqual({
+      provider: 'comeet',
+      slug: 'A1.B2C',
+    });
     const api =
       'https://www.comeet.co/careers-api/2.0/company/A1.B2C/positions?token=FictionalToken0123456789&details=true';
     expect(boardFromLink(api)).toEqual({
@@ -116,6 +120,36 @@ describe('job source helpers', () => {
     expect(boardFromLink('https://comeet.example/jobs/x/A1.B2C')).toEqual({
       slug: 'https://comeet.example/jobs/x/A1.B2C',
     });
+  });
+
+  it.each([
+    'https://www.comeet.co/jobs/A1.B2C/C3.D4E/apply?token=FICTIONAL0123456789ABCDEF0123456789&embedded=true',
+    'https://www.comeet.co/jobs/A1.B2C/C3.D4E/apply?token=FICTIONAL0123456789ABCDEF0123456789',
+    'https://www.comeet.co/jobs/A1.B2C/C3.D4E?token=FICTIONAL0123456789ABCDEF0123456789&embedded=true',
+    'www.comeet.com/jobs/A1.B2C/C3.D4E?embedded=true&token=FICTIONAL0123456789ABCDEF0123456789',
+  ])('reads the company UID and token from the Comeet embed link %s', (link) => {
+    const expected = {
+      provider: 'comeet',
+      slug: 'A1.B2C',
+      token: 'FICTIONAL0123456789ABCDEF0123456789',
+    };
+    expect(boardFromLink(link)).toEqual(expected);
+    expect(tokenFromInput(link)).toEqual(expected);
+  });
+
+  it('keeps the company UID from hosted pages and ignores malformed tokens', () => {
+    expect(
+      boardFromLink(
+        'https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/backend-engineer/C3.D4E?token=FICTIONAL0123456789ABCDEF0123456789',
+      ),
+    ).toEqual({
+      provider: 'comeet',
+      slug: 'A1.B2C',
+      token: 'FICTIONAL0123456789ABCDEF0123456789',
+    });
+    expect(
+      boardFromLink('https://www.comeet.co/jobs/A1.B2C/C3.D4E/apply?token=bad%20token'),
+    ).toEqual({ provider: 'comeet', slug: 'A1.B2C' });
   });
 
   it('sends the token only for Comeet and requires it before testing', () => {

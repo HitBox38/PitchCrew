@@ -8,6 +8,9 @@ export const providerOptions: { value: JobProvider; label: string }[] = provider
   label: jobProviderLabels[value],
 }));
 /** Providers that also need a public careers token next to the board identifier. */
+/** UI copies of the core Comeet patterns; the UI may only import types from core. */
+export const comeetUidPattern = /^[A-Za-z0-9]{1,8}\.[A-Za-z0-9]{1,8}$/;
+export const comeetTokenPattern = /^[A-Za-z0-9_-]{8,128}$/;
 export const tokenProviders: ReadonlySet<JobProvider> = new Set<JobProvider>(['comeet']);
 export const boardExamples: Record<JobProvider, string> = {
   greenhouse: 'job-boards.greenhouse.io/examplelabs',
@@ -35,7 +38,7 @@ export const boardHelp: Record<JobProvider, string> = {
     "The name after apply.workable.com/ in the company's Workable jobs link. Pasting the link also works.",
 };
 export const tokenHelp =
-  "Comeet careers pages load their jobs with a public token. Open the company's careers page, view the page source and search for token. The company UID is usually next to it. Pasting a Comeet careers API link fills in both fields.";
+  "Comeet careers pages load their jobs with a public token. Open the company's careers page, view the page source and search for token. Copy the comeet.co/jobs link that contains it and paste it here: it fills in both fields.";
 export const emptyDraft: SourceDraft = {
   provider: 'greenhouse',
   slug: '',

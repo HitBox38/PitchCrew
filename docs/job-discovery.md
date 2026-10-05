@@ -24,9 +24,9 @@ The board name is the company's Workable account name. It is the part after `app
 A Comeet source needs the company UID and the careers token.
 
 - **Company UID.** A short code with one dot, such as `A1.B2C`. It is in the company's Comeet jobs link, for example `comeet.com/jobs/examplelabs/A1.B2C`. Pasting that link, or a job link under it, fills in the UID.
-- **Careers token.** Companies that show Comeet jobs on their own careers page load them with a public token. Open that careers page, view the page source and search for "token". The company UID is usually next to it. The token holds letters, numbers, hyphens or underscores, 8 to 128 characters.
+- **Careers token.** Companies that show Comeet jobs on their own careers page load them with a public token. Open that careers page, view the page source and search for "token". It usually sits in an embedded Comeet link such as `comeet.co/jobs/{uid}/{position}/apply?token=...&embedded=true`. The token holds letters, numbers, hyphens or underscores, 8 to 128 characters.
 
-Pasting a Comeet careers API link (`comeet.co/careers-api/2.0/company/{uid}/positions?token=...`) into either field fills in both values.
+Pasting that embedded link, or a Comeet careers API link (`comeet.co/careers-api/2.0/company/{uid}/positions?token=...`), into either field fills in both values. In an embedded link the first code after `/jobs/` is the company UID and the second is a position.
 
 The token is public, not a password, but Pitchcrew still treats it with care. It is saved only in `job-sources.json`, returned only to the local UI session, and kept out of card provenance, board events, agent tool results and error messages. A company can change its token; a scan then fails with "Comeet did not accept the company UID and token" until you paste the new one.
 

@@ -1,5 +1,5 @@
 import type { JobScanSummary, JobSource, JobSourceInput } from '@pitchcrew/core';
-import { tokenProviders } from './constants.ts';
+import { comeetTokenPattern, comeetUidPattern, tokenProviders } from './constants.ts';
 import type { BoardLink, SourceDraft } from './types.ts';
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
@@ -33,18 +33,21 @@ function linkParts(url: URL): BoardLink | null {
   if (account && !['www', 'apply', 'jobs'].includes(account))
     return { provider: 'workable', slug: account };
   if (/^(?:www\.)?comeet\.com?$/.test(host)) {
-    if (parts[0] === 'jobs') return { provider: 'comeet', slug: parts[2] };
-    if (parts[0] === 'careers-api') {
-      const token = url.searchParams.get('token');
-      return { provider: 'comeet', slug: parts[3], ...(token ? { token } : {}) };
+    const token = url.searchParams.get('token') ?? '';
+    const found = comeetTokenPattern.test(token) ? { token } : {};
+    // Hosted pages are /jobs/{company-name}/{uid}/...; embed links are /jobs/{uid}/{position}/...
+    if (parts[0] === 'jobs') {
+      const uid = parts.slice(1, 3).find((part) => comeetUidPattern.test(part));
+      return { provider: 'comeet', slug: uid ?? parts[2], ...found };
     }
-    return { provider: 'comeet' };
+    if (parts[0] === 'careers-api') return { provider: 'comeet', slug: parts[3], ...found };
+    return { provider: 'comeet', ...found };
   }
   return null;
 }
 /**
  * Accept a board name or a pasted public board link and return what it reveals. A Comeet careers
- * page link gives the company UID; only a careers API link also carries the token.
+ * page link gives the company UID; embed and careers API links also carry the token.
  */
 export function boardFromLink(value: string): BoardLink {
   const trimmed = value.trim();
@@ -58,7 +61,7 @@ export function boardFromLink(value: string): BoardLink {
     return { slug: trimmed };
   }
 }
-/** Accept a pasted Comeet token, or a careers API link that holds both the UID and token. */
+/** Accept a pasted Comeet token, or an embed or API link that holds both the UID and token. */
 export function tokenFromInput(value: string): BoardLink {
   const link = boardFromLink(value);
   return link.token ? link : { token: value.trim() };
