@@ -32,7 +32,7 @@ The token is public, not a password, but Pitchcrew still treats it with care. It
 
 ## Add a job from a link
 
-In **Add job**, paste a posting link in **Job post URL** and choose **Fetch from link**. Pitchcrew reads that one posting and fills in the company, title, location, salary, link and full description. Check the details, change anything you like, then choose **Add job**. Nothing is saved until you do.
+In **Add job**, paste a posting link in **Job post URL** and choose **Fetch from link**. Pitchcrew reads that one posting and fills in the company, title, location, salary, link and full description. Check the details, change anything you like, then choose **Add job**. Nothing is saved until you do. Saving waits until a fetch finishes. Editing the link cancels its lookup and clears its duplicate notices and provenance, so a delayed response cannot replace the new link. If you fetch another job, missing fields clear unchanged values from the previous posting while retaining your manual edits.
 
 These links work:
 
@@ -47,7 +47,7 @@ These links work:
 | Comeet     | `www.comeet.co/jobs/{company UID}/{position UID}?token=...`, with or without `/apply`                      |
 | Workable   | `apply.workable.com/{account}/j/{shortcode}`, with or without a trailing `/` or `/apply`                   |
 
-Links must start with `https://`. Tracking parameters and fragments are ignored. An Ashby board name may hold dots, and spaces written as `%20`, such as `jobs.ashbyhq.com/Northwind%20Scientific/{id}`. Any other `%` escape, `..` segment or double slash is rejected, for every provider. Comeet company and position UIDs look like `A1.B2C`; Workable shortcodes are 8 to 12 uppercase letters and digits. A short Workable link such as `apply.workable.com/j/{shortcode}` does not name the account, so it is not recognized. A company careers page that only has `gh_jid` or `ashby_jid` does not name the board, so it is not recognized. Open the job on the provider's own page and paste that link. Greenhouse and Lever EU links are not supported yet.
+Links must start with `https://` and contain no user information or explicit port. Repeated job or board identifiers and conflicting Greenhouse job IDs are rejected. Tracking parameters and fragments are ignored. An Ashby board name may hold dots, and spaces written as `%20`, such as `jobs.ashbyhq.com/Northwind%20Scientific/{id}`. Any other `%` escape, `..` segment or double slash is rejected, for every provider. Comeet company and position UIDs look like `A1.B2C`; Workable shortcodes are 8 to 12 uppercase letters and digits. A short Workable link such as `apply.workable.com/j/{shortcode}` does not name the account, so it is not recognized. A company careers page that only has `gh_jid` or `ashby_jid` does not name the board, so it is not recognized. Open the job on the provider's own page and paste that link. Greenhouse and Lever EU links are not supported yet.
 
 Comeet's API needs the company's careers token, and a hosted Comeet link does not contain it. Pitchcrew uses the token of your saved Comeet source with the same company UID. Without one, the form says "Add this company as a Comeet source in Settings > Job sources to fetch its postings." and nothing is fetched. An embed link that carries `token=` works without a saved source: Pitchcrew uses that token for this one lookup and does not save it. The token never appears in the form, the saved card, board events or error messages.
 

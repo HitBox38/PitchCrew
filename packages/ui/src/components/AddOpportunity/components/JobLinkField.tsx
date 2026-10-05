@@ -6,7 +6,13 @@ import type { useJobLookup } from '../hooks/useJobLookup.ts';
 import { LookupNotice } from './LookupNotice.tsx';
 
 /** The posting URL with a fetch action that fills the rest of the form for review. */
-export function JobLinkField({ lookup }: { lookup: ReturnType<typeof useJobLookup> }) {
+export function JobLinkField({
+  lookup,
+  working,
+}: {
+  lookup: ReturnType<typeof useJobLookup>;
+  working: boolean;
+}) {
   const id = useId();
   return (
     <div className="field">
@@ -14,10 +20,18 @@ export function JobLinkField({ lookup }: { lookup: ReturnType<typeof useJobLooku
         Job post URL <span className="optional">optional</span>
       </label>
       <div className="flex gap-2 max-phone:flex-col">
-        <Input id={id} name="url" type="url" placeholder="https://…" maxLength={2000} />
+        <Input
+          id={id}
+          name="url"
+          type="url"
+          placeholder="https://…"
+          maxLength={2000}
+          onChange={lookup.changeLink}
+          disabled={working}
+        />
         <Button
           className="button shrink-0"
-          disabled={lookup.pending}
+          disabled={lookup.pending || working}
           onClick={(event) => void lookup.fetchFromLink(event)}
         >
           {lookup.pending ? <LoaderCircle className="spin" size={15} /> : <Link2 size={15} />}

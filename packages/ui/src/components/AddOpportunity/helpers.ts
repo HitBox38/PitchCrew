@@ -18,13 +18,20 @@ interface FormLike {
 }
 /**
  * Write fetched values into the uncontrolled form for review. Empty values keep what the user
- * already typed, so a posting without a salary does not clear the salary field.
+ * already typed. An empty value clears an unchanged value from the previously fetched posting.
  */
-export function fillJobForm(form: FormLike, prefill: JobLookupPrefill) {
+export function fillJobForm(
+  form: FormLike,
+  prefill: JobLookupPrefill,
+  previous: JobLookupPrefill | null = null,
+) {
+  const prior = previous ? prefillFields(previous) : {};
   for (const [name, value] of Object.entries(prefillFields(prefill))) {
     const field = form.elements.namedItem(name);
-    if (value && field && typeof field === 'object' && 'value' in field)
-      (field as { value: string }).value = value;
+    if (field && typeof field === 'object' && 'value' in field) {
+      const input = field as { value: string };
+      if (value || (prior[name] && input.value === prior[name])) input.value = value;
+    }
   }
 }
 /** Send link provenance only while the URL field still holds the fetched posting URL. */

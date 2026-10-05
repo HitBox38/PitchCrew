@@ -15,20 +15,29 @@ const idle: JobLookupState = { pending: false, message: '', prefill: null, dupli
 export function useJobLookup() {
   const [state, setState] = useState<JobLookupState>(idle);
   const controller = useRef<AbortController | null>(null);
+  const lastPrefill = useRef<JobLookupPrefill | null>(null);
   useEffect(() => () => controller.current?.abort(), []);
+  function changeLink() {
+    controller.current?.abort();
+    setState(idle);
+  }
   async function fetchFromLink(event: MouseEvent<HTMLButtonElement>) {
     const form = event.currentTarget.form;
     const url = form?.elements.namedItem('url');
     if (!form || !(url instanceof HTMLInputElement)) return;
+    const requestedUrl = url.value;
+    const previous = lastPrefill.current;
     controller.current?.abort();
     const current = new AbortController();
     controller.current = current;
     setState({ ...idle, pending: true });
     try {
-      const result = await lookupJob(url.value, current.signal);
+      const result = await lookupJob(requestedUrl, current.signal);
       if (current.signal.aborted) return;
+      if (url.value !== requestedUrl) return setState(idle);
       if (result.status !== 'found') return setState({ ...idle, message: result.reason });
-      fillJobForm(form, result.prefill);
+      fillJobForm(form, result.prefill, previous);
+      lastPrefill.current = result.prefill;
       setState({
         pending: false,
         message: 'Filled from the posting. Review the details before you add the job.',
@@ -43,5 +52,5 @@ export function useJobLookup() {
       });
     }
   }
-  return { ...state, fetchFromLink };
+  return { ...state, fetchFromLink, changeLink };
 }

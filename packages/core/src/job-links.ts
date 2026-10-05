@@ -112,7 +112,10 @@ function greenhouse(segments: string[], query: URLSearchParams): JobLinkRecognit
   // boards.greenhouse.io/embed/job_app?for={board}&token={id}
   if (segments.length === 2 && segments[0] === 'embed' && segments[1] === 'job_app') {
     const board = query.get('for');
-    const id = query.get('token') ?? ghJid;
+    const token = query.get('token');
+    if (token !== null && ghJid !== null && token !== ghJid)
+      return fail('This link names two different Greenhouse jobs.');
+    const id = token ?? ghJid;
     return board && id ? found('greenhouse', board, id) : fail(notRecognized);
   }
   // boards.greenhouse.io/{board}?gh_jid={id}
@@ -213,9 +216,12 @@ export function recognizeJobLink(value: string): JobLinkRecognition {
   } catch {
     return fail(notRecognized);
   }
-  if (url.username || url.password || url.port) return fail(notRecognized);
+  if (url.username || url.password || url.port || authority[0].slice(8).includes(':'))
+    return fail(notRecognized);
   const segments = pathSegments(raw, authority[0], url);
   if (!segments) return fail(notRecognized);
+  if (['for', 'gh_jid', 'token'].some((key) => url.searchParams.getAll(key).length > 1))
+    return fail('This link repeats a job or board identifier. Use the original posting link.');
   const host = url.hostname;
   const unsupported = unsupportedHosts.get(host);
   if (unsupported) return fail(unsupported);

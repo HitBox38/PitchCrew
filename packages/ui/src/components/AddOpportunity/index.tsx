@@ -33,7 +33,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
           : 'Scout works from the description, so paste it in if you have it.'}
       </p>
       <form onSubmit={(e) => void submit(e)} className="form flex flex-col gap-4">
-        <JobLinkField lookup={lookup} />
+        <JobLinkField lookup={lookup} working={working} />
         <JobIdentityFields />
         <ExternalApplicationFields
           external={external}
@@ -66,7 +66,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
           <Button type="button" className="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" className="button primary" disabled={working}>
+          <Button type="submit" className="button primary" disabled={working || lookup.pending}>
             {working ? <LoaderCircle className="spin" size={15} /> : <Plus size={15} />}{' '}
             {external ? 'Register application' : 'Add job'}
           </Button>

@@ -12,7 +12,7 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
   const lookup = useJobLookup();
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (working) return;
+    if (working || lookup.pending) return;
     const form = new FormData(e.currentTarget);
     // A fetched posting keeps its provider provenance so later scans skip it.
     const provenance = external

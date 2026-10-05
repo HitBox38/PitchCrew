@@ -35,6 +35,25 @@ describe('add job from a link', () => {
     });
   });
 
+  it('clears missing fields from a previous fetch while preserving manual edits', () => {
+    const previous = { ...prefill, location: 'London', salary: '£80,000', description: 'Old job' };
+    const fields = {
+      location: { value: 'London' },
+      salary: { value: '£80,000' },
+      description: { value: 'My updated description' },
+    };
+    fillJobForm(
+      { elements: { namedItem: (name) => fields[name as keyof typeof fields] } },
+      { ...prefill, location: '', salary: '', description: '' },
+      previous,
+    );
+    expect(fields).toEqual({
+      location: { value: '' },
+      salary: { value: '' },
+      description: { value: 'My updated description' },
+    });
+  });
+
   it('keeps provenance only while the URL is still the fetched posting', () => {
     expect(provenanceFor(prefill, ` ${prefill.url} `)).toEqual(prefill.provenance);
     expect(provenanceFor(prefill, 'https://careers.example.com/jobs/1')).toBeUndefined();
