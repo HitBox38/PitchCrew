@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 
 export function registerSessionSecurity(
   app: FastifyInstance,
-  options: { port: number; dev?: boolean },
+  options: { port: number; dev?: boolean; analyticsHost?: string },
   url: string,
   sessions: Set<string>,
 ) {
@@ -21,7 +21,7 @@ export function registerSessionSecurity(
     if (!options.dev)
       res.raw.setHeader(
         'Content-Security-Policy',
-        "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+        `default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data:; connect-src 'self'${options.analyticsHost ? ` ${options.analyticsHost}` : ''}; worker-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'`,
       );
     res.raw.setHeader('X-Content-Type-Options', 'nosniff');
     res.raw.setHeader('Referrer-Policy', 'no-referrer');

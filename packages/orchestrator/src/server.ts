@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import type { ServerResponse } from 'node:http';
 import { fileURLToPath } from 'node:url';
 import { registerJsonBody } from './http/body.ts';
+import { registerAnalyticsRoutes, type AnalyticsConfig } from './http/analytics.ts';
 import { registerChatStream } from './http/chat-stream.ts';
 import { registerAgentRoutes } from './http/routes/agent.ts';
 import { registerApprovalsRoutes } from './http/routes/approvals.ts';
@@ -34,6 +35,8 @@ export interface DaemonOptions {
   /** Reads the OS background service; tests replace it so no service manager is called. */
   backgroundService?: () => Promise<BackgroundServiceStatus>;
   lockChecks?: LockChecks;
+  /** Public PostHog configuration; omitted in tests and unconfigured installations. */
+  analytics?: AnalyticsConfig | null;
 }
 
 export async function createDaemon(options: DaemonOptions) {
@@ -82,7 +85,12 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
   try {
     await service.initialize(options.seedSkills ?? true);
     await app.register(cookie);
-    registerSessionSecurity(app, options, url, sessions);
+    registerSessionSecurity(
+      app,
+      { ...options, analyticsHost: options.analytics?.host },
+      url,
+      sessions,
+    );
     registerJsonBody(app);
     app.get('/api/health', () => ({
       app: 'pitchcrew',
@@ -90,6 +98,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
       service: options.service ?? false,
     }));
     app.get('/api/snapshot', async () => service.snapshot());
+    registerAnalyticsRoutes(app, options.analytics);
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
       registerAgentRoutes,
