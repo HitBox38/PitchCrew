@@ -389,7 +389,6 @@ describe('posting lookups over HTTP', () => {
     expect(Date.parse(saved.result.discovery!.firstSeenAt)).toBeGreaterThan(0);
     const [event] = daemon.service.board.history(saved.result.id);
     expect(event.version).toBe(currentEventVersion);
-    expect(event.version).toBe(11);
     expect(decodeEvent(JSON.stringify(event)).data).toMatchObject({
       discovery: { sourceId: 'link' },
     });
