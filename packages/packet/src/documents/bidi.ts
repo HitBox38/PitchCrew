@@ -6,14 +6,10 @@ const bidi = bidiFactory();
 
 export type Direction = 'ltr' | 'rtl';
 
-// Rules P2 and P3: the first strong character decides a paragraph's direction.
+// Rules P2 and P3: the first strong character outside directional isolates decides the paragraph's
+// direction. Let the same algorithm that resolves the runs handle nested or unmatched isolates.
 export function baseDirection(text: string): Direction {
-  for (const character of text) {
-    const type = bidi.getBidiCharTypeName(character);
-    if (type === 'L') return 'ltr';
-    if (type === 'R' || type === 'AL') return 'rtl';
-  }
-  return 'ltr';
+  return bidi.getEmbeddingLevels(text).paragraphs[0]?.level === 1 ? 'rtl' : 'ltr';
 }
 
 /** Embedding levels per UTF-16 code unit; odd levels are right-to-left. */

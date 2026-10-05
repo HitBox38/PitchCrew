@@ -16,7 +16,7 @@ import {
 } from 'pdf-lib';
 import { afterAll, describe, expect, it } from 'vitest';
 import { packet } from '../../board/test/fixtures/packet.ts';
-import { visualOrder } from '../src/documents/bidi.ts';
+import { baseDirection, visualOrder } from '../src/documents/bidi.ts';
 import { FontChoice, type FontKey } from '../src/documents/font-choice.ts';
 import { systemFonts } from '../src/documents/font-search.ts';
 import { documentFontkit } from '../src/documents/fontkit.ts';
@@ -242,6 +242,20 @@ describe('font subsets', () => {
 });
 
 describe('right-to-left layout', () => {
+  it('chooses paragraph direction outside nested directional isolates', async () => {
+    const rtl = '\u2066React \u2067World\u2069\u2069 שלום';
+    const ltr = '\u2067שלום\u2069 React';
+    expect(baseDirection(rtl)).toBe('rtl');
+    expect(baseDirection(ltr)).toBe('ltr');
+    expect(baseDirection('\u2068שלום\u2069 2024')).toBe('ltr');
+    const lines = await visualLines(await renderPdf(`${rtl}\n\n${ltr}`));
+    expect(lines[0].right).toBeCloseTo(right, 1);
+    expect(lines[1].left).toBeCloseTo(25.2, 1);
+    const paragraphs = (await renderDocx(`${rtl}\n\n${ltr}`)).match(/<w:p>.*?<\/w:p>/g)!;
+    expect(paragraphs[0]).toContain('<w:bidi/>');
+    expect(paragraphs[1]).not.toContain('<w:bidi/>');
+  });
+
   it('orders mixed Hebrew and English words, numbers and punctuation', async () => {
     const bytes = await renderPdf(
       [

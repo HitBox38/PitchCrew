@@ -57,7 +57,7 @@ To add a font, copy its file into the `fonts` folder of the data folder and requ
 
 Hebrew paragraphs run right to left. Pitchcrew applies the Unicode bidirectional algorithm to each paragraph, wraps lines in reading order and then reorders each line for display, so English words, numbers and punctuation inside Hebrew land where a browser or Word puts them. A paragraph, heading or list item takes its direction from its first letter. Right-to-left paragraphs are right-aligned, list markers sit on the right with mirrored indents, and a `\hfill` date moves to the left edge. Brackets are mirrored. Links and bold text keep working. Hebrew points are placed with the font's horizontal offsets; their height is the font's default. Hebrew has no italic face, so italic Hebrew prints upright.
 
-Directional marks such as U+200E and U+200F are respected and not printed.
+Directional marks such as U+200E and U+200F are respected and not printed. Directional isolates keep embedded text separate; their contents do not determine the surrounding paragraph's direction.
 
 ### Characters PDF cannot show
 
