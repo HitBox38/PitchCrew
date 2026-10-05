@@ -61,6 +61,38 @@ describe('default instruction revisions', () => {
     expect(defaultInstructionHistory.reviewer[0].revision).toBe(instructionRevision(firstReviewer));
   });
 
+  it('replays role events from versions 1 through 11 without rewriting their history', () => {
+    const board = new Board(':memory:');
+    boards.push(board);
+    const role = defaultRoles('claude-code', false)[0];
+    for (let version = 1; version <= 11; version++) {
+      board.db.prepare('INSERT INTO events(json) VALUES (?)').run(
+        JSON.stringify({
+          id: 0,
+          version,
+          kind: 'role',
+          entityId: role.id,
+          actor: version === 1 ? 'system' : 'user',
+          message: 'Fictional legacy settings',
+          createdAt: '2026-10-01T00:00:00.000Z',
+          data: {
+            ...role,
+            instructions:
+              version === 1 ? firstScout : `${firstScout} Fictional preference ${version}.`,
+          },
+        }),
+      );
+    }
+    const history = board.events();
+    board.rebuild();
+    expect(board.get<Role>('role', 'scout').defaultInstructionBase).toBeUndefined();
+    expect(status(board, 'scout')).toMatchObject({
+      state: 'customized',
+      base: { instructions: firstScout },
+    });
+    expect(board.events()).toEqual(history);
+  });
+
   it('ignores whitespace-only differences when computing revisions', () => {
     expect(normalizeInstructions('  One\n\n\ttwo   three \r\n')).toBe('One two three');
     expect(instructionRevision(`\n${firstScout.replace('. ', '.\n\n')}  `)).toBe(
@@ -156,12 +188,41 @@ describe('default instruction detection', () => {
       ...defaultRoles('claude-code', false)[3],
       instructions: 'Fictional submitter rules written before seeding.',
     };
-    board.record('role', custom, 'user', 'Created Submitter');
+    board.record('role', custom, 'system', 'Initialized legacy Submitter');
     board.seedRoles('claude-code', false);
     const submitter = status(board, 'submitter')!;
     expect(submitter.state).toBe('unknown_base');
     expect(submitter.base).toBeUndefined();
     expect(submitter.changes.map((change) => change.revision)).toEqual(['9dd6837b3291ebae']);
+  });
+
+  it('ignores user-created roles that reserved a default ID before seeding', () => {
+    const board = new Board(':memory:');
+    boards.push(board);
+    board.record(
+      'role',
+      { ...defaultRoles('claude-code', false)[0], instructions: firstScout },
+      'user',
+      'Created Scout',
+    );
+    board.seedRoles('claude-code', false);
+    expect(status(board, 'scout')).toBeUndefined();
+  });
+
+  it('uses the exact reviewed default as a customized base after another release', () => {
+    const fallback = defaultRoles('claude-code', false)[1];
+    const base = { revision: instructionRevision(firstWriter), instructions: firstWriter };
+    const result = instructionStatus(
+      {
+        ...fallback,
+        instructions: 'My completely rewritten instructions.',
+        defaultInstructionBase: base,
+      },
+      fallback,
+      () => [],
+    );
+    expect(result).toMatchObject({ state: 'customized', base });
+    expect(result.changes.at(-1)?.revision).toBe(instructionRevision(fallback.instructions));
   });
 
   it('ignores retired default roles and custom roles', () => {

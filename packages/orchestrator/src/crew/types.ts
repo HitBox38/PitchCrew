@@ -79,7 +79,12 @@ export interface CrewContext {
   writeRole(role: Role): Promise<void>;
   createRole(data: unknown): Promise<Role>;
   retireRole(id: RoleId): Promise<Role>;
-  configureRole(id: RoleId, data: unknown, message?: string): Promise<Role>;
+  configureRole(
+    id: RoleId,
+    data: unknown,
+    message?: string,
+    defaultInstructionBase?: Role['defaultInstructionBase'],
+  ): Promise<Role>;
   createCard(data: unknown): Card;
   moveCard(id: string, state: CardState): Card;
   saveProfile(name: string, content: string): Promise<ProfileFile[]>;

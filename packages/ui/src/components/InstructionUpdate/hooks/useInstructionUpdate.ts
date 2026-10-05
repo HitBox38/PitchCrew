@@ -10,6 +10,7 @@ export function useInstructionUpdate({
   working,
   instructions,
   setInstructions,
+  setDefaultInstructionRevision,
 }: InstructionUpdateProps) {
   const [mode, setMode] = useState<ComparisonMode>('yours');
   const [expanded, setExpanded] = useState(!update.dismissed);
@@ -60,8 +61,9 @@ export function useInstructionUpdate({
     }
   }
   function startFromDefault() {
-    setPrevious(role.instructions);
+    setPrevious(instructions);
     setInstructions(update.instructions);
+    setDefaultInstructionRevision(update.revision, instructions);
   }
   return {
     role,

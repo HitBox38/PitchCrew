@@ -23,6 +23,12 @@ export function useRoleSettings({
   const [model, setModel] = useState(role.model);
   const [enabled, setEnabled] = useState(role.enabled);
   const [instructions, setInstructions] = useState(role.instructions);
+  const [defaultInstructionDraft, setDefaultInstructionDraft] = useState<{
+    revision: string;
+    previous: string;
+  }>();
+  const setDefaultInstructionRevision = (revision: string, previous: string) =>
+    setDefaultInstructionDraft({ revision, previous });
   const [capabilities, setCapabilities] = useState({ ...capabilityDefaults, ...role.capabilities });
   const [error, setError] = useState('');
   const dirty =
@@ -61,6 +67,9 @@ export function useRoleSettings({
           model,
           enabled,
           instructions,
+          ...(defaultInstructionDraft && instructions !== defaultInstructionDraft.previous
+            ? { defaultInstructionRevision: defaultInstructionDraft.revision }
+            : {}),
           capabilities,
         },
         creating ? `${name} created` : `${name} settings saved`,
@@ -109,6 +118,7 @@ export function useRoleSettings({
     setEnabled,
     instructions,
     setInstructions,
+    setDefaultInstructionRevision,
     capabilities,
     setCapabilities,
     error,

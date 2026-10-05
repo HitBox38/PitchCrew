@@ -12,7 +12,7 @@ export interface RecordedRevision extends DefaultInstructionRevision {
  * Revisions are the first 16 hex characters of the SHA-256 of the whitespace-normalized text
  * (see instructionRevision). Earlier texts were reconstructed by evaluating defaultRoles() at
  * every commit that touched it, plus the original seed in board roles before default-roles.ts.
- * Only hashes are stored: a customized role's base text comes from its own event history.
+ * Only hashes are stored here: a customized role's base comes from its reviewed source or event history.
  *
  * When you change a default role's instructions, append an entry here with the new revision
  * and a one-sentence summary. The board tests fail and print the expected revision until you do.

@@ -39,7 +39,7 @@ export function UpdateActions({
         >
           {confirming ? 'Replace my instructions' : 'Use new default'}
         </Button>
-        {ownText && previous === null ? (
+        {(ownText || unsaved) && previous === null ? (
           <Button className="button" disabled={working} onClick={startFromDefault}>
             Edit from new default
           </Button>

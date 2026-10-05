@@ -83,7 +83,9 @@ describe('event-sourced board', () => {
     expect(events.some((e) => e.version === 6)).toBe(true);
     expect(events.some((e) => e.version === 9)).toBe(true);
     expect(events.some((e) => e.version === currentEventVersion)).toBe(true);
-    expect(() => decodeEvent('{"version":12}')).toThrow('Unsupported');
+    expect(() => decodeEvent(JSON.stringify({ version: currentEventVersion + 1 }))).toThrow(
+      'Unsupported',
+    );
   });
   it('prevents event deletion and rewriting at the database layer', () => {
     const board = create();

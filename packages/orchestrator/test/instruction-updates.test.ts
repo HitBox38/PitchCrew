@@ -134,6 +134,84 @@ describe('default instruction updates', () => {
     expect(again.result.error).toContain('no default instructions update');
   });
 
+  it('saves an edited reviewed default with durable provenance and rejects stale bases', async () => {
+    const { daemon, directory, request, seedOld, updates } = await fixture(15618);
+    seedOld('writer', firstWriter);
+    const role = daemon.service.board.get<Role>('role', 'writer');
+    const instructions = `${current.writer}\n\nKeep a fictional warm tone.`;
+    const stale = await request<{ error: string }>('/roles/writer', 'PUT', {
+      ...role,
+      instructions,
+      defaultInstructionRevision: defaultInstructionHistory.writer[0].revision,
+    });
+    expect(stale.response.status).toBe(400);
+    expect(stale.result.error).toContain('Review the latest update');
+    expect(daemon.service.board.get<Role>('role', 'writer').instructions).toBe(firstWriter);
+    const result = await request<Role>('/roles/writer', 'PUT', {
+      ...role,
+      instructions,
+      defaultInstructionRevision: latest('writer'),
+    });
+    expect(result.response.status).toBe(200);
+    expect(result.result.defaultInstructionBase).toEqual({
+      revision: latest('writer'),
+      instructions: current.writer,
+    });
+    expect((await updates()).find((update) => update.roleId === 'writer')).toBeUndefined();
+    expect(await readFile(join(directory, 'roles', 'writer', 'AGENTS.md'), 'utf8')).toContain(
+      instructions,
+    );
+    const event = daemon.service.board.events(1)[0];
+    expect(event).toMatchObject({ version: 12, kind: 'role', actor: 'user' });
+    daemon.service.board.rebuild();
+    expect(daemon.service.board.get<Role>('role', 'writer').defaultInstructionBase).toEqual(
+      result.result.defaultInstructionBase,
+    );
+    const restarted = await restart(directory, 15619);
+    expect(
+      (await restarted.service.snapshot()).instructionUpdates?.find(
+        (update) => update.roleId === 'writer',
+      ),
+    ).toBeUndefined();
+  });
+
+  it('clears an explicit source when the user restores an exact earlier default', async () => {
+    const { daemon, request, seedOld, updates } = await fixture(15621);
+    seedOld('writer', firstWriter);
+    const role = daemon.service.board.get<Role>('role', 'writer');
+    await request('/roles/writer', 'PUT', {
+      ...role,
+      instructions: `${current.writer} Fictional edit.`,
+      defaultInstructionRevision: latest('writer'),
+    });
+    const reviewed = daemon.service.board.get<Role>('role', 'writer');
+    await request('/roles/writer', 'PUT', { ...reviewed, instructions: firstWriter });
+    expect(daemon.service.board.get<Role>('role', 'writer').defaultInstructionBase).toBeUndefined();
+    await request('/roles/writer', 'PUT', {
+      ...reviewed,
+      instructions: `${firstWriter} Restored fictional edit.`,
+    });
+    expect((await updates()).find((update) => update.roleId === 'writer')).toMatchObject({
+      state: 'customized',
+      base: { instructions: firstWriter },
+    });
+  });
+
+  it('ignores forged default base metadata without a reviewed revision', async () => {
+    const { daemon, request, seedOld, updates } = await fixture(15620);
+    seedOld('writer', firstWriter);
+    const role = daemon.service.board.get<Role>('role', 'writer');
+    await request('/roles/writer', 'PUT', {
+      ...role,
+      instructions: `${firstWriter} Fictional edit.`,
+      defaultInstructionBase: { revision: latest('writer'), instructions: current.writer },
+    });
+    expect(daemon.service.board.get<Role>('role', 'writer').defaultInstructionBase).toBeUndefined();
+    expect((await updates()).find((update) => update.roleId === 'writer')?.state).toBe(
+      'customized',
+    );
+  });
+
   it('keeps a dismissal across restarts until a newer revision ships', async () => {
     const { daemon, directory, request, seedOld } = await fixture(15614);
     seedOld('writer', firstWriter);

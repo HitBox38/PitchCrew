@@ -21,7 +21,7 @@ export function defaultInstructionStatuses(this: BoardContext): DefaultInstructi
   const roles = this.list<Role>('role');
   const statuses = defaultRoles('claude-code', false).flatMap((fallback) => {
     const role = roles.find((saved) => saved.id === fallback.id);
-    if (!role || role.retiredAt) return [];
+    if (!role || role.retiredAt || !wasSeeded(this, role.id)) return [];
     return [instructionStatus(role, fallback, () => savedInstructions(this, role.id))];
   });
   this.instructionStatusCache = { eventId, statuses };
@@ -55,6 +55,13 @@ export function instructionStatus(
   if (stored === revision) return { ...common, state: 'up_to_date', changes: [] };
   const matched = known(stored);
   if (matched >= 0) return { ...common, state: 'unedited', changes: after(matched) };
+  const reviewed = role.defaultInstructionBase;
+  if (reviewed && instructionRevision(reviewed.instructions) === reviewed.revision) {
+    if (reviewed.revision === revision) return { ...common, state: 'up_to_date', changes: [] };
+    const index = known(reviewed.revision);
+    if (index >= 0)
+      return { ...common, state: 'customized', changes: after(index), base: reviewed };
+  }
   for (const text of saved()) {
     const base = instructionRevision(text);
     if (base === revision) return { ...common, state: 'up_to_date', changes: [] };
@@ -88,4 +95,14 @@ function savedInstructions(context: BoardContext, roleId: string): string[] {
     const instructions = (decodeEvent(row.json).data as Partial<Role>).instructions;
     return typeof instructions === 'string' ? [instructions] : [];
   });
+}
+
+/** A custom role can reserve a default ID before startup; its first event is user-owned. */
+function wasSeeded(context: BoardContext, roleId: string): boolean {
+  const row = context.db
+    .prepare(
+      "SELECT json FROM events WHERE json_extract(json,'$.kind') = 'role' AND json_extract(json,'$.entityId') = ? ORDER BY id LIMIT 1",
+    )
+    .get(roleId) as { json: string } | undefined;
+  return !!row && decodeEvent(row.json).actor === 'system';
 }

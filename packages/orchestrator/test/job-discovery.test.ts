@@ -425,7 +425,9 @@ describe('event version 10', () => {
     expect(after.filter((card) => card.id !== 'legacy-card')).toEqual(before);
     expect(after.find((card) => card.id === 'legacy-card')?.discovery).toBeUndefined();
     expect(decodeEvent(JSON.stringify({ ...legacy, version: 10 })).version).toBe(10);
-    expect(() => decodeEvent(JSON.stringify({ ...legacy, version: 12 }))).toThrow('Unsupported');
+    expect(() =>
+      decodeEvent(JSON.stringify({ ...legacy, version: currentEventVersion + 1 })),
+    ).toThrow('Unsupported');
   });
 
   it('caps new leads per scan and leaves the rest for later', async () => {

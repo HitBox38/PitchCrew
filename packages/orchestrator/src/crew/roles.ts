@@ -1,3 +1,4 @@
+import { defaultInstructionHistory, instructionRevision } from '@pitchcrew/board';
 import {
   defaultCapabilities,
   roleIdSchema,
@@ -55,6 +56,7 @@ export async function configureRole(
   id: RoleId,
   data: unknown,
   message?: string,
+  defaultInstructionBase?: Role['defaultInstructionBase'],
 ): Promise<Role> {
   if (this.configuring.has(id)) throw new Error('This role’s settings are being updated.');
   if (this.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
@@ -66,6 +68,13 @@ export async function configureRole(
   const role = {
     ...current,
     ...parsed,
+    defaultInstructionBase:
+      defaultInstructionBase ??
+      (defaultInstructionHistory[id]?.some(
+        (entry) => entry.revision === instructionRevision(parsed.instructions),
+      )
+        ? undefined
+        : current.defaultInstructionBase),
     capabilities: { ...defaultCapabilities, ...current.capabilities, ...parsed.capabilities },
   };
   this.configuring.add(id);

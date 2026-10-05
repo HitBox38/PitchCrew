@@ -32,15 +32,15 @@ Each default text has a revision: the first 16 hex characters of the SHA-256 of 
 | Customized   | You edited an earlier default. Its text comes from the role's own events.       | Yes                |
 | Unknown base | The text matches no known default. It is treated as your own.                   | Yes                |
 
-Only seeded default IDs that are not retired are checked; custom roles never are. Detection is read-only and is cached until the next board event.
+Only non-retired roles whose first role event was created by startup are checked; user-created roles are excluded even if they reserved a default ID. Detection is read-only and is cached until the next board event.
 
 When an update is available, the agent's Crew card says **Instructions update available**, Crew shows a summary with a review button per agent, and the notification bell adds an attention item that opens Crew. Role settings show the changelog lines since your version and a paragraph diff of your saved text against the new default, with changed words marked. For a customized role you can also compare the default you started from with the new one. If your tool settings differ from the default, the panel names them; updates change instructions only and never change tools.
 
 - **Use new default** replaces the instructions. For text you wrote, it asks you to confirm first. It is an ordinary user settings change through `configureRole`: it waits for active runs and settings writes, applies the 12,000-character limit, refreshes the generated AGENTS.md and CLAUDE.md, and appends a role event by the user. Runtime, model, enabled state, workflow seat and tools stay as saved.
 - **Keep mine** hides this revision. The choice is stored in `instruction-updates.json` in the data directory, next to `onboarding.json`, because it is a local preference that changes no role and needs no board event. It lasts across restarts until a newer revision ships.
-- **Edit from new default** (customized and unknown base) puts the new default in the editor and keeps your previous text visible in the panel. Save settings as usual.
+- **Edit from new default** (customized and unknown base) puts the new default in the editor and keeps your current editor text, including unsaved edits, visible in the panel. Save settings as usual. The save names the reviewed revision and stores the exact source text as `defaultInstructionBase` in the role event, so your customized new text stays up to date and future releases compare against the right base. Stale reviewed revisions are rejected. Restoring the previous editor text saves ordinary settings without claiming the new default as its source; saving any exact known default resets explicit source metadata.
 
-Both decisions name the exact revision you reviewed; a stale revision is rejected. The routes `POST /api/roles/:id/instructions-update/adopt` and `.../dismiss` need the UI session. The agent gateway has no matching action, agents never see the update list, and nothing is applied automatically.
+Adoption, dismissal and edited-default saves name the exact revision you reviewed; a stale revision is rejected. The routes `POST /api/roles/:id/instructions-update/adopt` and `.../dismiss` need the UI session. The agent gateway has no matching action, agents never see the update list, and nothing is applied automatically.
 
 When you change a default role's instructions in `default-roles.ts`, append an entry to `default-instruction-history.ts` with the new revision, the release date and a one-sentence summary. The board tests fail and print the expected revision until you do. Never remove or edit earlier entries: they let existing workspaces tell an unchanged old default from their own edits.
 
@@ -70,4 +70,4 @@ No unattended scheduler is added: routines still run only while the daemon is op
 
 ## Events and verification
 
-New records use version 11, including cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 10 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.
+New records use version 12, including cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 11 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.

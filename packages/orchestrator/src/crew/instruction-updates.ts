@@ -1,5 +1,7 @@
 import {
   instructionUpdateDecision,
+  defaultInstructionRevisionId,
+  rolePatch,
   type InstructionUpdate,
   type Role,
   type RoleId,
@@ -34,6 +36,28 @@ function reviewedUpdate(context: CrewContext, id: RoleId, input: unknown): Instr
   return update;
 }
 
+const reviewedRoleSettings = rolePatch.extend({
+  defaultInstructionRevision: defaultInstructionRevisionId.optional(),
+});
+
+/** User settings may explicitly start from the exact default the user reviewed. */
+export async function configureReviewedRole(
+  context: CrewContext,
+  id: RoleId,
+  input: unknown,
+): Promise<Role> {
+  const { defaultInstructionRevision, ...settings } = reviewedRoleSettings.parse(input);
+  const update = defaultInstructionRevision
+    ? reviewedUpdate(context, id, { revision: defaultInstructionRevision })
+    : undefined;
+  return context.configureRole(
+    id,
+    settings,
+    undefined,
+    update ? { revision: update.revision, instructions: update.instructions } : undefined,
+  );
+}
+
 /**
  * Use new default: an ordinary user settings change through configureRole, so the active-run,
  * settings-write and instruction-limit checks apply and generated AGENTS.md/CLAUDE.md refresh.
@@ -59,6 +83,7 @@ export async function adoptDefaultInstructions(
       ...(role.capabilities ? { capabilities: role.capabilities } : {}),
     },
     `Used the new default instructions for ${role.name}`,
+    { revision: update.revision, instructions: update.instructions },
   );
   context.instructionUpdatePreferences.clear(id);
   return saved;

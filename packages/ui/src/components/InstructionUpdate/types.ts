@@ -21,5 +21,6 @@ export interface InstructionUpdateProps {
   /** The editor's unsaved instruction text. */
   instructions: string;
   setInstructions: (value: string) => void;
+  setDefaultInstructionRevision: (revision: string, previous: string) => void;
 }
 export type InstructionUpdateModel = ReturnType<typeof useInstructionUpdate>;

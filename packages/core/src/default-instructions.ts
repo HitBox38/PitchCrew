@@ -15,7 +15,7 @@ export interface DefaultInstructionRevision {
 /**
  * - `up_to_date`: stored text matches the current default, or the user edited the current default.
  * - `unedited`: stored text matches an earlier default.
- * - `customized`: the user edited an earlier default (found in the role's own event history).
+ * - `customized`: the user edited an earlier default (recorded source or role event history).
  * - `unknown_base`: the text matches no known default; treated like `customized`.
  */
 export type DefaultInstructionState = 'up_to_date' | 'unedited' | 'customized' | 'unknown_base';
@@ -29,7 +29,7 @@ export interface DefaultInstructionStatus {
   instructions: string;
   /** Changelog entries newer than the matched base, oldest first. */
   changes: DefaultInstructionRevision[];
-  /** The earlier default a customized role was edited from, when known. */
+  /** The exact earlier default a customized role was edited from, when known. */
   base?: { revision: string; instructions: string };
   /** Tools whose saved setting differs from the current default. Mentioned only; never changed. */
   toolDifferences: (keyof AgentCapabilities)[];

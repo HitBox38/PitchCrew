@@ -90,7 +90,7 @@ The Lever EU host (`api.eu.lever.co`), Greenhouse EU boards and other ATS provid
 
 Sources live in `job-sources.json` in the data directory, written atomically with owner-only permissions. They are user settings, like `profile-sources.json`, and hold no credentials. Only the local UI session can call the source routes (`GET`, `POST /api/job-sources`, `PUT` and `DELETE /api/job-sources/:id`, `POST /api/job-sources/preview` and `POST /api/job-sources/scan`).
 
-Discovered cards are ordinary board events. Event version 10 adds the card `discovery` provenance and the optional `discoverJobs` capability. New events use version 11, which adds learning signals. Versions 1 through 10 remain decodable and replayable.
+Discovered cards are ordinary board events. Event version 10 adds the card `discovery` provenance and the optional `discoverJobs` capability. New events use version 12, which also retains version 11 learning signals. Versions 1 through 11 remain decodable and replayable.
 
 ## Verification
 

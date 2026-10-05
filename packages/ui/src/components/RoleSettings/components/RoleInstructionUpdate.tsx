@@ -10,6 +10,7 @@ export function RoleInstructionUpdate({
   working,
   instructions,
   setInstructions,
+  setDefaultInstructionRevision,
 }: RoleSettingsModel) {
   const update = creating ? undefined : instructionUpdateFor(data, role.id);
   if (!update || role.retiredAt) return null;
@@ -22,6 +23,7 @@ export function RoleInstructionUpdate({
       working={working}
       instructions={instructions}
       setInstructions={setInstructions}
+      setDefaultInstructionRevision={setDefaultInstructionRevision}
     />
   );
 }
