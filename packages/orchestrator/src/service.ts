@@ -24,6 +24,7 @@ import type { CrewContext } from './crew/types.ts';
 import { decideProfileProposal } from './profile-sources/proposals.ts';
 import { assertProfileReady, changeProfile } from './profile-sources/mutation.ts';
 import { updatePipelineReview } from './crew/pipeline/reviews.ts';
+import { adoptDefaultInstructions, dismissInstructionUpdate } from './crew/instruction-updates.ts';
 
 import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
@@ -152,6 +153,14 @@ export class CrewService {
   }
   configureRole(id: RoleId, data: unknown): Promise<Role> {
     return this.context.configureRole(id, data);
+  }
+  /** User-only: replace a default role's instructions with the reviewed new default. */
+  adoptDefaultInstructions(id: RoleId, data: unknown): Promise<Role> {
+    return adoptDefaultInstructions(this.context, id, data);
+  }
+  /** User-only: keep the current instructions and hide this default revision. */
+  dismissInstructionUpdate(id: RoleId, data: unknown) {
+    return dismissInstructionUpdate(this.context, id, data);
   }
   createCard(data: unknown): Card {
     return this.context.createCard(data);

@@ -1,4 +1,5 @@
 import { Board } from '@pitchcrew/board';
+import type { InstructionUpdatePreferences } from '../instruction-updates.ts';
 import type { OnboardingPreferences } from '../onboarding.ts';
 import type { PacketRulesStore } from '../packet-rules.ts';
 import type { SkillPreview } from '@pitchcrew/core';
@@ -35,6 +36,7 @@ export interface CrewContext {
   readonly mcpEntry: string;
   board: Board;
   onboarding: OnboardingPreferences;
+  instructionUpdatePreferences: InstructionUpdatePreferences;
   packetRules: PacketRulesStore;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;
@@ -77,7 +79,7 @@ export interface CrewContext {
   writeRole(role: Role): Promise<void>;
   createRole(data: unknown): Promise<Role>;
   retireRole(id: RoleId): Promise<Role>;
-  configureRole(id: RoleId, data: unknown): Promise<Role>;
+  configureRole(id: RoleId, data: unknown, message?: string): Promise<Role>;
   createCard(data: unknown): Card;
   moveCard(id: string, state: CardState): Card;
   saveProfile(name: string, content: string): Promise<ProfileFile[]>;

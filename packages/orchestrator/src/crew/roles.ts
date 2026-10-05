@@ -50,7 +50,12 @@ export async function writeRole(this: CrewContext, role: Role): Promise<void> {
   );
   await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
 }
-export async function configureRole(this: CrewContext, id: RoleId, data: unknown): Promise<Role> {
+export async function configureRole(
+  this: CrewContext,
+  id: RoleId,
+  data: unknown,
+  message?: string,
+): Promise<Role> {
   if (this.configuring.has(id)) throw new Error('This role’s settings are being updated.');
   if (this.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
     throw new Error('Wait for this role’s active run or cancel it before changing settings.');
@@ -66,7 +71,7 @@ export async function configureRole(this: CrewContext, id: RoleId, data: unknown
   this.configuring.add(id);
   try {
     await this.writeRole(role);
-    this.board.record('role', role, 'user', `Updated ${role.name} settings`);
+    this.board.record('role', role, 'user', message ?? `Updated ${role.name} settings`);
   } finally {
     this.configuring.delete(id);
   }

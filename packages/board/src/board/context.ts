@@ -4,6 +4,7 @@ import { consumeApproval, decideApproval, requestApproval } from './approvals.ts
 import { createCard, hasActiveRun, move, updateCard } from './cards.ts';
 import { close, events, get, history, list, rebuild, record } from './events.ts';
 import { seedRoles } from './roles.ts';
+import { defaultInstructionStatuses } from './default-instructions.ts';
 import type { BoardContext } from './types.ts';
 
 export function createBoardContext(filename: string): BoardContext {
@@ -26,6 +27,7 @@ export function createBoardContext(filename: string): BoardContext {
     consumeApproval: (...args) => consumeApproval.call(context, ...args),
     hasActiveRun: (...args) => hasActiveRun.call(context, ...args),
     seedRoles: (...args) => seedRoles.call(context, ...args),
+    defaultInstructionStatuses: () => defaultInstructionStatuses.call(context),
   };
 
   context.db.pragma('journal_mode = WAL');
