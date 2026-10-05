@@ -8,8 +8,19 @@ import {
 } from '../src/job-sources/fetch.ts';
 import { matchesFilters } from '../src/job-sources/filters.ts';
 import { decodeEntities, htmlToText } from '../src/job-sources/html.ts';
-import { parsePostings, sourceEndpoint } from '../src/job-sources/providers.ts';
-import { boardFixture, fixtureUrls, jsonResponse } from './helpers/job-boards.ts';
+import {
+  parsePostings,
+  providerStatusMessages,
+  redactToken,
+  sourceEndpoint,
+} from '../src/job-sources/providers.ts';
+import {
+  boardFixture,
+  comeetFixtureToken,
+  fixtureUrls,
+  jsonResponse,
+  moreFixtureUrls,
+} from './helpers/job-boards.ts';
 
 const posting = (patch: Partial<JobPosting> = {}): JobPosting => ({
   provider: 'greenhouse',
@@ -102,10 +113,83 @@ describe('provider parsers', () => {
     });
   });
 
+  it('reads Comeet positions, merges office copies and skips internal or untitled ones', () => {
+    const postings = parsePostings('comeet', 'A1.B2C', boardFixture('comeet'));
+    expect(postings.map((item) => item.jobId)).toEqual(['A1.00D', 'A1.00E', 'A1.011', 'A1.012']);
+    const [first, remote, sparse, unsafe] = postings;
+    expect(first).toMatchObject({
+      provider: 'comeet',
+      title: 'Senior Backend Engineer',
+      location: 'Tel Aviv, Israel; Haifa, Israel',
+      remote: false,
+      url: 'https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/senior-backend-engineer/A1.00D',
+      salary: '',
+      postedAt: '2026-09-25T08:30:00.000Z',
+    });
+    // Sections follow Comeet's order; markup, scripts and link targets are dropped.
+    expect(first.description).toBe(
+      'Description\n\nWingtip Analytics builds fictional analytics.\n\nRead more\n\nRequirements\n\n- Node.js & SQL\n- Five years building services',
+    );
+    // Unsafe links and anything that looks like the careers API are never used as posting URLs.
+    expect(remote).toMatchObject({
+      location: 'Remote',
+      remote: true,
+      url: 'https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/product-manager/A1.00E',
+      description: '',
+      postedAt: null,
+    });
+    expect(JSON.stringify(postings)).not.toContain(comeetFixtureToken);
+    expect(sparse).toMatchObject({
+      title: 'QA Engineer',
+      location: '',
+      remote: false,
+      url: 'https://www.comeet.com/jobs/company/A1.B2C/qa-engineer/A1.011',
+    });
+    expect(unsafe).toMatchObject({
+      location: 'Lisbon, PT',
+      remote: true,
+      url: 'https://careers.wingtip.example/jobs/data-scientist',
+      postedAt: null,
+    });
+  });
+
+  it('reads Workable jobs, merges per-location copies and falls back to the hosted page', () => {
+    const postings = parsePostings('workable', 'litware', boardFixture('workable'));
+    expect(postings.map((item) => item.jobId)).toEqual(['3F2A1B0C9D', '5C6D7E8F90', '7A8B9C0D1E']);
+    const [first, remote, sparse] = postings;
+    expect(first).toMatchObject({
+      provider: 'workable',
+      title: 'Frontend Developer',
+      location: 'Athens, Attica, Greece; Thessaloniki, Greece',
+      remote: false,
+      url: 'https://apply.workable.com/j/3F2A1B0C9D',
+      postedAt: '2026-09-21T00:00:00.000Z',
+    });
+    expect(first.description).toBe(
+      'Build fictional creative tools.\n\nRequirements\n\n- React\n- Accessibility\n\nBenefits\n\nFictional perks.',
+    );
+    expect(remote).toMatchObject({
+      location: 'Portugal',
+      remote: true,
+      url: 'https://apply.workable.com/litware/j/5C6D7E8F90/',
+      postedAt: '2026-09-18T00:00:00.000Z',
+    });
+    expect(sparse).toMatchObject({
+      location: 'Berlin, Berlin, Germany',
+      remote: false,
+      description: '',
+      postedAt: null,
+    });
+  });
+
   it('rejects responses with an unexpected shape', () => {
     expect(() => parsePostings('lever', 'acme', { jobs: [] })).toThrow('unexpected');
     expect(() => parsePostings('greenhouse', 'acme', [])).toThrow('unexpected');
     expect(() => parsePostings('ashby', 'acme', null)).toThrow('unexpected');
+    expect(() => parsePostings('comeet', 'A1.B2C', { jobs: [] })).toThrow('unexpected');
+    expect(() => parsePostings('workable', 'acme', [])).toThrow('unexpected');
+    expect(parsePostings('comeet', 'A1.B2C', [null, 'x', 7])).toEqual([]);
+    expect(parsePostings('workable', 'acme', { jobs: [null, { shortcode: 'A' }] })).toEqual([]);
   });
 });
 
@@ -136,6 +220,17 @@ describe('filters', () => {
     expect(matchesFilters(posting(), filters({ remoteOnly: true }))).toBe(false);
     expect(matchesFilters(posting({ remote: true }), filters({ remoteOnly: true }))).toBe(true);
   });
+
+  it('applies the same rules to Comeet and Workable postings, including every merged office', () => {
+    const [comeet] = parsePostings('comeet', 'A1.B2C', boardFixture('comeet'));
+    const [workable, remote] = parsePostings('workable', 'litware', boardFixture('workable'));
+    expect(matchesFilters(comeet!, filters({ locationInclude: ['haifa'] }))).toBe(true);
+    expect(matchesFilters(comeet!, filters({ titleInclude: ['backend'] }))).toBe(true);
+    expect(matchesFilters(comeet!, filters({ remoteOnly: true }))).toBe(false);
+    expect(matchesFilters(workable!, filters({ locationInclude: ['thessaloniki'] }))).toBe(true);
+    expect(matchesFilters(workable!, filters({ titleExclude: ['frontend'] }))).toBe(false);
+    expect(matchesFilters(remote!, filters({ remoteOnly: true }))).toBe(true);
+  });
 });
 
 describe('endpoints and board names', () => {
@@ -143,6 +238,151 @@ describe('endpoints and board names', () => {
     expect(sourceEndpoint('greenhouse', 'northwindlabs').toString()).toBe(fixtureUrls.greenhouse);
     expect(sourceEndpoint('ashby', 'fabrikam').toString()).toBe(fixtureUrls.ashby);
     expect(sourceEndpoint('lever', 'contoso-robotics').toString()).toBe(fixtureUrls.lever);
+    expect(sourceEndpoint('comeet', 'A1.B2C', comeetFixtureToken).toString()).toBe(
+      moreFixtureUrls.comeet,
+    );
+    expect(sourceEndpoint('workable', 'litware').toString()).toBe(moreFixtureUrls.workable);
+  });
+
+  it.each([
+    '',
+    'A1',
+    'A1.',
+    '.B2C',
+    '..',
+    'A1..B2',
+    'A1.B2.C3',
+    'A1/B2',
+    'A1.B2C/../x',
+    'A1.B2C?token=x',
+    'A1.B2C#x',
+    'A1%2EB2C',
+    'A1.B2 C',
+    'A1.B2C\nx',
+    'é1.B2C',
+    'A123456789.B2C',
+  ])('rejects the Comeet company UID %j', (slug) => {
+    expect(() => sourceEndpoint('comeet', slug, comeetFixtureToken)).toThrow(
+      'Invalid job board name.',
+    );
+    expect(
+      jobSourceInput.safeParse({
+        provider: 'comeet',
+        slug,
+        token: comeetFixtureToken,
+        name: 'Wingtip',
+      }).success,
+    ).toBe(false);
+  });
+
+  it.each([
+    undefined,
+    '',
+    'short',
+    'Fictional Token 123',
+    'FictionalToken&details=false',
+    'FictionalToken0123#x',
+    'FictionalToken0123/../x',
+    'FictionalToken%26x=1',
+    'Fictional\nToken0123',
+    'x'.repeat(129),
+  ])('rejects the Comeet token %j without echoing it', (token) => {
+    expect(() => sourceEndpoint('comeet', 'A1.B2C', token)).toThrow('Invalid careers token.');
+    const parsed = jobSourceInput.safeParse({
+      provider: 'comeet',
+      slug: 'A1.B2C',
+      name: 'Wingtip',
+      ...(token === undefined ? {} : { token }),
+    });
+    expect(parsed.success).toBe(false);
+    if (token) expect(parsed.error!.message).not.toContain(token);
+  });
+
+  it.each(['Northwind Labs', 'example.io', 'contoso.ai', 'Fabrikam', 'a.b c-d_e', 'x'.repeat(80)])(
+    'accepts the Ashby board name %j',
+    (slug) => {
+      expect(jobSourceInput.safeParse({ provider: 'ashby', slug, name: 'Acme' }).success).toBe(
+        true,
+      );
+      expect(() => sourceEndpoint('ashby', slug)).not.toThrow();
+    },
+  );
+
+  it.each([
+    '',
+    ' Northwind',
+    'Northwind ',
+    'Northwind  Labs',
+    'Northwind\tLabs',
+    '.example',
+    'example.',
+    'example..io',
+    '..',
+    '.',
+    'acme/jobs',
+    'acme/../v1',
+    'acme?x=1',
+    'acme#frag',
+    'Northwind%20Labs',
+    'acme%2Fjobs',
+    'éacme',
+    'x'.repeat(81),
+  ])('rejects the Ashby board name %j', (slug) => {
+    expect(() => sourceEndpoint('ashby', slug)).toThrow('Invalid job board name.');
+    // Saved input is trimmed first, so only an outer space becomes valid there.
+    const parsed = jobSourceInput.safeParse({ provider: 'ashby', slug, name: 'Acme' });
+    if (slug.trim() !== slug && slug.trim()) expect(parsed.data?.slug).toBe(slug.trim());
+    else expect(parsed.success).toBe(false);
+  });
+
+  it('encodes Ashby board names into the fixed endpoint and keeps other providers strict', () => {
+    expect(sourceEndpoint('ashby', 'Northwind Labs').toString()).toBe(
+      'https://api.ashbyhq.com/posting-api/job-board/Northwind%20Labs?includeCompensation=true',
+    );
+    expect(sourceEndpoint('ashby', 'example.io').toString()).toBe(
+      'https://api.ashbyhq.com/posting-api/job-board/example.io?includeCompensation=true',
+    );
+    for (const provider of ['greenhouse', 'lever', 'workable'] as const)
+      for (const slug of ['example.io', 'Northwind Labs'])
+        expect(() => sourceEndpoint(provider, slug)).toThrow('Invalid job board name.');
+    // A posting without jobUrl falls back to an encoded hosted page.
+    expect(
+      parsePostings('ashby', 'Northwind Labs', { jobs: [{ id: 'job-1', title: 'Analyst' }] })[0]
+        ?.url,
+    ).toBe('https://jobs.ashbyhq.com/Northwind%20Labs/job-1');
+  });
+
+  it('accepts tokens only for Comeet and keeps old source files valid', () => {
+    expect(() => sourceEndpoint('workable', 'litware', comeetFixtureToken)).toThrow('token');
+    expect(() => sourceEndpoint('greenhouse', 'acme', '')).toThrow('token');
+    expect(
+      jobSourceInput.safeParse({
+        provider: 'workable',
+        slug: 'litware',
+        name: 'Litware',
+        token: comeetFixtureToken,
+      }).success,
+    ).toBe(false);
+    expect(() => sourceEndpoint('workable', 'A1.B2C')).toThrow('Invalid job board name.');
+    // A source saved before Comeet existed has no token field and parses unchanged.
+    expect(
+      jobSourceInput.parse({ provider: 'lever', slug: 'contoso-robotics', name: 'Contoso' }),
+    ).not.toHaveProperty('token');
+    expect(
+      jobSourceInput.parse({
+        provider: 'comeet',
+        slug: ' A1.B2C ',
+        token: ` ${comeetFixtureToken} `,
+        name: 'Wingtip',
+      }),
+    ).toMatchObject({ slug: 'A1.B2C', token: comeetFixtureToken });
+  });
+
+  it('hides the careers token in error text', () => {
+    expect(redactToken(`GET ${moreFixtureUrls.comeet} failed`, comeetFixtureToken)).toBe(
+      'GET https://www.comeet.co/careers-api/2.0/company/A1.B2C/positions?details=true&token=[token] failed',
+    );
+    expect(redactToken('No token here', undefined)).toBe('No token here');
   });
 
   it.each([
@@ -241,6 +481,22 @@ describe('bounded fetch', () => {
         url,
       ),
     ).rejects.toThrow('invalid JSON');
+  });
+
+  it('explains rejected Comeet credentials and unknown Workable accounts', async () => {
+    const comeet = sourceEndpoint('comeet', 'A1.B2C', comeetFixtureToken);
+    const statusMessages = providerStatusMessages.comeet!;
+    await expect(
+      fetchBoard(async () => jsonResponse({ error: 'invalid' }, 400), comeet, { statusMessages }),
+    ).rejects.toThrow('Comeet did not accept the company UID and token.');
+    await expect(
+      fetchBoard(async () => jsonResponse({}, 404), sourceEndpoint('workable', 'litware'), {
+        statusMessages: providerStatusMessages.workable!,
+      }),
+    ).rejects.toThrow('Workable account not found.');
+    await expect(
+      fetchBoard(async () => jsonResponse({}, 500), comeet, { statusMessages }),
+    ).rejects.toThrow('HTTP 500');
   });
 
   it('cancels queued provider requests without starting them', async () => {

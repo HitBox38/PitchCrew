@@ -7,7 +7,9 @@ import {
 } from '@pitchcrew/board';
 import {
   jobScanInput,
+  jobSourceFields,
   jobSourceInput,
+  refineJobSource,
   maxJobSources,
   maxNewLeadsPerScan,
   type JobLookupResult,
@@ -24,26 +26,35 @@ import { z } from 'zod';
 import { fetchBoard, ProviderRateLimiter, type FetchLike } from './fetch.ts';
 import { matchesFilters } from './filters.ts';
 import { lookupJobLink } from './lookup.ts';
-import { parsePostings, sourceEndpoint, truncatedResponse } from './providers.ts';
+import {
+  parsePostings,
+  providerStatusMessages,
+  redactToken,
+  sourceEndpoint,
+  truncatedResponse,
+} from './providers.ts';
 
 export const scanDeadlineMs = 180_000;
+// Files saved before Comeet and Workable have no token and still parse unchanged.
 const storedSources = z.array(
-  jobSourceInput.extend({
-    id: z.uuid(),
-    createdAt: z.string(),
-    updatedAt: z.string(),
-    lastScan: z
-      .object({
-        at: z.string(),
-        status: z.enum(['ok', 'failed']),
-        error: z.string().max(500).optional(),
-        fetched: z.number().int().min(0),
-        new: z.number().int().min(0),
-        duplicate: z.number().int().min(0),
-        filtered: z.number().int().min(0),
-      })
-      .optional(),
-  }),
+  jobSourceFields
+    .extend({
+      id: z.uuid(),
+      createdAt: z.string(),
+      updatedAt: z.string(),
+      lastScan: z
+        .object({
+          at: z.string(),
+          status: z.enum(['ok', 'failed']),
+          error: z.string().max(500).optional(),
+          fetched: z.number().int().min(0),
+          new: z.number().int().min(0),
+          duplicate: z.number().int().min(0),
+          filtered: z.number().int().min(0),
+        })
+        .optional(),
+    })
+    .superRefine(refineJobSource),
 );
 interface Fetched {
   source: JobSource;
@@ -143,13 +154,21 @@ export class JobSourceManager {
       return { sources: sources.filter((source) => source.id !== id), result: undefined };
     });
   }
-  private async read(source: Pick<JobSource, 'provider' | 'slug'>, signal: AbortSignal) {
-    const url = sourceEndpoint(source.provider, source.slug);
-    const body = await this.limiter.schedule(
-      source.provider,
-      () => fetchBoard(this.fetch, url, { signal }),
-      signal,
-    );
+  private async read(source: Pick<JobSource, 'provider' | 'slug' | 'token'>, signal: AbortSignal) {
+    let body: unknown;
+    try {
+      const url = sourceEndpoint(source.provider, source.slug, source.token);
+      const statusMessages = providerStatusMessages[source.provider];
+      body = await this.limiter.schedule(
+        source.provider,
+        () => fetchBoard(this.fetch, url, { signal, statusMessages }),
+        signal,
+      );
+    } catch (error) {
+      // Scan errors reach the UI, saved scan status and agents; never echo the careers token.
+      if (!(error instanceof Error)) throw error;
+      throw new Error(redactToken(error.message, source.token));
+    }
     return {
       postings: parsePostings(source.provider, source.slug, body),
       truncated: truncatedResponse(source.provider, body),
@@ -254,6 +273,7 @@ export class JobSourceManager {
             JSON.stringify([
               current.provider,
               current.slug,
+              current.token,
               current.name,
               current.enabled,
               current.filters,
@@ -261,6 +281,7 @@ export class JobSourceManager {
               JSON.stringify([
                 source.provider,
                 source.slug,
+                source.token,
                 source.name,
                 source.enabled,
                 source.filters,

@@ -91,7 +91,13 @@ async function readBounded(
 export async function fetchBoard(
   fetcher: FetchLike,
   url: URL,
-  options: { signal?: AbortSignal; timeoutMs?: number; maxBytes?: number } = {},
+  options: {
+    signal?: AbortSignal;
+    timeoutMs?: number;
+    maxBytes?: number;
+    /** Provider-specific messages for HTTP error statuses, such as a rejected Comeet token. */
+    statusMessages?: Record<number, string>;
+  } = {},
 ): Promise<unknown> {
   const { signal, maxBytes = maxResponseBytes } = options;
   const timeout = AbortSignal.timeout(options.timeoutMs ?? requestTimeoutMs);
@@ -115,6 +121,11 @@ export async function fetchBoard(
     throw new Error(
       `Could not reach the job board${error instanceof Error ? `: ${error.message}` : '.'}`,
     );
+  }
+  const custom = response.ok ? undefined : options.statusMessages?.[response.status];
+  if (custom) {
+    await response.body?.cancel().catch(() => {});
+    throw new Error(custom);
   }
   if (response.status === 404) {
     await response.body?.cancel().catch(() => {});

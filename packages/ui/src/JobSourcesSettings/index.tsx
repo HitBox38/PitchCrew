@@ -11,9 +11,9 @@ export function JobSourcesSettings() {
     <section className="settings-section" aria-labelledby="job-sources-heading">
       <h2 id="job-sources-heading">Job sources</h2>
       <p className="quiet">
-        Watch public job boards on Greenhouse, Ashby and Lever. New postings that match your filters
-        become leads on the board. Jobs already on the board, including ones you withdrew, are not
-        added again.
+        Watch public job boards on Greenhouse, Ashby, Lever, Comeet and Workable. New postings that
+        match your filters become leads on the board. Jobs already on the board, including ones you
+        withdrew, are not added again.
       </p>
       <div className="settings-row">
         <Button className="button" disabled={model.busy || !!model.draft} onClick={model.startAdd}>

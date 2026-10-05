@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { jobProviderLabels } from '@/lib/labels.ts';
 import type { JobSource } from '@pitchcrew/core';
 import { Pencil, Trash2 } from 'lucide-react';
-import { providerLabels } from '../constants.ts';
 import { filterSummary, lastScanText } from '../helpers.ts';
 import type { JobSourcesModel } from '../types.ts';
 
@@ -11,7 +11,7 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
       <div className="min-w-0 flex-1">
         <strong>{source.name}</strong>
         <span className="quiet block">
-          {providerLabels[source.provider]} · {source.slug}
+          {jobProviderLabels[source.provider]} · {source.slug}
           {source.enabled ? '' : ' · Paused'}
         </span>
         <span className="quiet block">{filterSummary(source)}</span>

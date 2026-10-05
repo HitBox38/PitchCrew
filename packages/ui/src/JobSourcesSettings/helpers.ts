@@ -1,6 +1,6 @@
 import type { JobScanSummary, JobSource, JobSourceInput } from '@pitchcrew/core';
-import { boardHosts } from './constants.ts';
-import type { SourceDraft } from './types.ts';
+import { comeetTokenPattern, comeetUidPattern, tokenProviders } from './constants.ts';
+import type { BoardLink, SourceDraft } from './types.ts';
 
 const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
 
@@ -15,25 +15,68 @@ export function keywordList(value: string): string[] {
     ),
   ].slice(0, 20);
 }
-/** Accept a board name or a pasted public board link and return the board name. */
-export function boardFromLink(value: string): Partial<Pick<SourceDraft, 'provider' | 'slug'>> {
+/** Read the provider and identifiers from a public board, careers or API link. */
+function linkParts(url: URL): BoardLink | null {
+  const host = url.hostname.toLowerCase();
+  const parts = url.pathname.split('/').filter(Boolean);
+  if (/^(?:job-)?boards\.greenhouse\.io$/.test(host))
+    return { provider: 'greenhouse', slug: parts[0] };
+  if (host === 'boards-api.greenhouse.io') return { provider: 'greenhouse', slug: parts[2] };
+  if (host === 'jobs.ashbyhq.com') return { provider: 'ashby', slug: parts[0] };
+  if (host === 'jobs.lever.co') return { provider: 'lever', slug: parts[0] };
+  if (host === 'apply.workable.com')
+    return {
+      provider: 'workable',
+      slug: parts[0] === 'api' ? parts[4] : parts[0] === 'j' ? undefined : parts[0],
+    };
+  const account = /^([a-z0-9-]+)\.workable\.com$/.exec(host)?.[1];
+  if (account && !['www', 'apply', 'jobs'].includes(account))
+    return { provider: 'workable', slug: account };
+  if (/^(?:www\.)?comeet\.com?$/.test(host)) {
+    const token = url.searchParams.get('token') ?? '';
+    const found = comeetTokenPattern.test(token) ? { token } : {};
+    // Hosted pages are /jobs/{company-name}/{uid}/...; embed links are /jobs/{uid}/{position}/...
+    if (parts[0] === 'jobs') {
+      const uid = parts.slice(1, 3).find((part) => comeetUidPattern.test(part));
+      return { provider: 'comeet', slug: uid ?? parts[2], ...found };
+    }
+    if (parts[0] === 'careers-api') return { provider: 'comeet', slug: parts[3], ...found };
+    return { provider: 'comeet', ...found };
+  }
+  return null;
+}
+/** Decode only `%20`; any other escape stays as typed so validation rejects it. */
+const decodeSpaces = (segment: string) => segment.replace(/%20/gi, ' ');
+/**
+ * Accept a board name or a pasted public board link and return what it reveals. A Comeet careers
+ * page link gives the company UID; embed and careers API links also carry the token.
+ */
+export function boardFromLink(value: string): BoardLink {
   const trimmed = value.trim();
-  if (!/[/.]/.test(trimmed)) return { slug: trimmed };
+  if (!/[/]/.test(trimmed) && !/\.(?:io|co|com)\b/i.test(trimmed)) return { slug: trimmed };
   try {
     const url = new URL(/^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`);
-    const match = boardHosts.find((item) => item.host.test(url.hostname.toLowerCase()));
+    const match = linkParts(url);
     if (!match) return { slug: trimmed };
-    const parts = url.pathname.split('/').filter(Boolean);
-    const slug = url.hostname.startsWith('boards-api') ? parts[2] : parts[0];
-    return slug ? { provider: match.provider, slug } : { slug: trimmed };
+    return { ...match, slug: match.slug ? decodeSpaces(match.slug) : trimmed };
   } catch {
     return { slug: trimmed };
   }
+}
+/** Accept a pasted Comeet token, or an embed or API link that holds both the UID and token. */
+export function tokenFromInput(value: string): BoardLink {
+  const link = boardFromLink(value);
+  return link.token ? link : { token: value.trim() };
+}
+/** Test needs every identifier the provider uses. */
+export function canTest(draft: SourceDraft): boolean {
+  return !!draft.slug.trim() && (!tokenProviders.has(draft.provider) || !!draft.token.trim());
 }
 export function draftInput(draft: SourceDraft): JobSourceInput {
   return {
     provider: draft.provider,
     slug: draft.slug.trim(),
+    ...(tokenProviders.has(draft.provider) ? { token: draft.token.trim() } : {}),
     name: draft.name.trim(),
     enabled: draft.enabled,
     filters: {
@@ -48,6 +91,7 @@ export function sourceDraft(source: JobSource): SourceDraft {
   return {
     provider: source.provider,
     slug: source.slug,
+    token: source.token ?? '',
     name: source.name,
     enabled: source.enabled,
     titleInclude: source.filters.titleInclude.join(', '),
