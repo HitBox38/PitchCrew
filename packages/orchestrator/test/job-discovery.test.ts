@@ -591,6 +591,37 @@ describe('Comeet and Workable sources', () => {
     );
   });
 
+  it('dedupes Comeet office-only scans and never saves echoed token text', async () => {
+    const { daemon, request, added } = await withMoreSources(15497);
+    const office = {
+      uid: 'A1.00D-B3.C4D',
+      name: 'Engineer',
+      details: [{ value: `<p>Build services ${comeetFixtureToken}</p>` }],
+      url_comeet_hosted_page: `https://careers.example/engineer?%74oken=${comeetFixtureToken}`,
+    };
+    daemon.service.jobSources.fetch = async () => jsonResponse([office]);
+    const input = { sourceIds: [added[0].id] };
+    const first = await request<JobScanSummary>('/job-sources/scan', 'POST', input);
+    expect(first.result).toMatchObject({ new: 1, failedSources: 0 });
+    const card = discovered(daemon.service.board.list<Card>('card'))[0];
+    expect(card).toMatchObject({
+      tracking: { jobIdentifier: 'A1.00D' },
+      discovery: { jobId: 'A1.00D' },
+      description: 'Build services [token]',
+    });
+    expect(eventText(daemon)).not.toContain(comeetFixtureToken);
+    expect(JSON.stringify(first.result)).not.toContain(comeetFixtureToken);
+    daemon.service.jobSources.fetch = async () => jsonResponse([{ ...office, uid: 'A1.00D' }]);
+    const again = await request<JobScanSummary>('/job-sources/scan', 'POST', input);
+    expect(again.result).toMatchObject({ new: 0, duplicate: 1 });
+    const updated = await request<JobSource>(`/job-sources/${added[0].id}`, 'PUT', {
+      ...moreFixtureSources.comeet,
+      token: 'ChangedFictionalToken01',
+    });
+    expect(updated.response.status).toBe(200);
+    expect(updated.result.lastScan).toBeUndefined();
+  });
+
   it('loads job-sources.json files saved before Comeet and Workable', async () => {
     const { daemon, request } = await setup(15493);
     const manager = daemon.service.jobSources;
