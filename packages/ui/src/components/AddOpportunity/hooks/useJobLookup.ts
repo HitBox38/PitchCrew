@@ -1,7 +1,7 @@
 import type { JobLookupDuplicate, JobLookupPrefill } from '@pitchcrew/core';
 import { useEffect, useRef, useState, type MouseEvent } from 'react';
 import { lookupJob } from '../api.ts';
-import { fillJobForm } from '../helpers.ts';
+import { fillJobForm, snapshotJobForm } from '../helpers.ts';
 
 export interface JobLookupState {
   pending: boolean;
@@ -26,6 +26,7 @@ export function useJobLookup() {
     const url = form?.elements.namedItem('url');
     if (!form || !(url instanceof HTMLInputElement)) return;
     const requestedUrl = url.value;
+    const initial = snapshotJobForm(form);
     const previous = lastPrefill.current;
     controller.current?.abort();
     const current = new AbortController();
@@ -36,7 +37,7 @@ export function useJobLookup() {
       if (current.signal.aborted) return;
       if (url.value !== requestedUrl) return setState(idle);
       if (result.status !== 'found') return setState({ ...idle, message: result.reason });
-      fillJobForm(form, result.prefill, previous);
+      fillJobForm(form, result.prefill, previous, initial);
       lastPrefill.current = result.prefill;
       setState({
         pending: false,

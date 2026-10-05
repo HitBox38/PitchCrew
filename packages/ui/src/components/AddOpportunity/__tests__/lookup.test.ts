@@ -25,14 +25,16 @@ function pendingLookup() {
   vi.stubGlobal('HTMLInputElement', Input);
   const url = new Input();
   const company = { value: 'My typed company' };
-  const form = { elements: { namedItem: (name: string) => (name === 'url' ? url : company) } };
+  const title = { value: 'Original title' };
+  const fields: Record<string, { value: string }> = { url, company, title };
+  const form = { elements: { namedItem: (name: string) => fields[name] } };
   let complete!: (result: JobLookupResult) => void;
   vi.mocked(lookupJob).mockImplementationOnce(() => new Promise((resolve) => (complete = resolve)));
   const controller = useJobLookup();
   const pending = controller.fetchFromLink({
     currentTarget: { form },
   } as unknown as MouseEvent<HTMLButtonElement>);
-  return { controller, pending, complete, url, company };
+  return { controller, pending, complete, url, company, title, fields };
 }
 const result: JobLookupResult = {
   status: 'found',
@@ -50,6 +52,29 @@ const result: JobLookupResult = {
 };
 
 describe('pending job lookups', () => {
+  it.each(['Updated by the user', ''])(
+    'preserves a company edit to %j while filling fields left unchanged',
+    async (company) => {
+      const lookup = pendingLookup();
+      lookup.company.value = company;
+      lookup.complete(result);
+      await lookup.pending;
+      expect(lookup.company.value).toBe(company);
+      expect(lookup.title.value).toBe('Engineer');
+      expect(state).toHaveBeenLastCalledWith(
+        expect.objectContaining({ pending: false, prefill: result.prefill }),
+      );
+    },
+  );
+  it('preserves an edit in an optional field mounted while the lookup is pending', async () => {
+    const lookup = pendingLookup();
+    lookup.fields.jobIdentifier = { value: 'User-entered identifier' };
+    lookup.complete(result);
+    await lookup.pending;
+    expect(lookup.fields.jobIdentifier.value).toBe('User-entered identifier');
+    expect(lookup.title.value).toBe('Engineer');
+  });
+
   it('aborts and clears lookup notices when the user edits the link', async () => {
     const lookup = pendingLookup();
     const signal = vi.mocked(lookupJob).mock.calls[0][1];
