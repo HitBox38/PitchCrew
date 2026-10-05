@@ -1,18 +1,29 @@
-import { app, BrowserWindow, ipcMain, nativeImage, nativeTheme, session, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  nativeImage,
+  nativeTheme,
+  session,
+  shell,
+} from 'electron';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isConnectorExternalUrl } from './external-url.ts';
 import { installSmokeCheck } from './smoke.ts';
+import { startPackagedDaemon, stopPackagedDaemon } from './packaged.ts';
 
 app.setName('Pitchcrew');
 if (process.env.PITCHCREW_SMOKE_FILE)
   app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
-const url = process.env.PITCHCREW_URL ?? 'http://127.0.0.1:4417';
+let url = process.env.PITCHCREW_URL ?? 'http://127.0.0.1:4417';
 if (new URL(url).hostname !== '127.0.0.1')
   throw new Error('Pitchcrew only opens its loopback daemon.');
 const primaryInstance = app.requestSingleInstanceLock();
 if (!primaryInstance) app.quit();
 let window: BrowserWindow | null = null;
+let daemonReady = !app.isPackaged;
 const appIcon = nativeImage.createFromPath(
   fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
 );
@@ -89,19 +100,31 @@ function createWindow() {
   void window.loadURL(url);
 }
 if (primaryInstance)
-  void app.whenReady().then(() => {
-    if (process.platform === 'darwin') app.dock?.setIcon(appIcon);
-    session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
-      callback(false),
-    );
-    createWindow();
-  });
+  void app
+    .whenReady()
+    .then(async () => {
+      if (app.isPackaged) url = await startPackagedDaemon(process.resourcesPath);
+      daemonReady = true;
+      if (process.platform === 'darwin') app.dock?.setIcon(appIcon);
+      session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
+        callback(false),
+      );
+      createWindow();
+    })
+    .catch((error: unknown) => {
+      dialog.showErrorBox(
+        'Pitchcrew could not start',
+        error instanceof Error ? error.message : String(error),
+      );
+      app.quit();
+    });
+app.on('before-quit', stopPackagedDaemon);
 app.on('second-instance', () => {
   window?.restore();
   window?.focus();
 });
 app.on('activate', () => {
-  if (!BrowserWindow.getAllWindows().length) createWindow();
+  if (daemonReady && !BrowserWindow.getAllWindows().length) createWindow();
 });
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();

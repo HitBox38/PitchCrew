@@ -3,6 +3,15 @@ import { create } from 'zustand';
 
 const themeKey = 'pitchcrew-theme';
 const soundKey = 'pitchcrew-notifications-preferences-v1';
+export const analyticsKey = 'pitchcrew-analytics-enabled-v1';
+
+function readAnalytics(): boolean {
+  try {
+    return localStorage.getItem(analyticsKey) !== 'false';
+  } catch {
+    return true;
+  }
+}
 
 function readTheme(): ThemeChoice {
   try {
@@ -30,14 +39,25 @@ function readSound(): boolean {
 interface DevicePreferences {
   theme: ThemeChoice;
   sound: boolean;
+  analytics: boolean;
   setTheme: (theme: ThemeChoice) => void;
   setSound: (sound: boolean) => void;
+  setAnalytics: (analytics: boolean) => void;
 }
 
 // Keep the existing storage keys so upgrading preserves the user's choices.
 export const useDevicePreferences = create<DevicePreferences>((set) => ({
   theme: readTheme(),
   sound: readSound(),
+  analytics: readAnalytics(),
+  setAnalytics: (analytics) => {
+    set({ analytics });
+    try {
+      localStorage.setItem(analyticsKey, String(analytics));
+    } catch {
+      /* Consent still applies for this session when storage is unavailable. */
+    }
+  },
   setTheme: (theme) => {
     set({ theme });
     try {
