@@ -44,9 +44,7 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
             </label>
             <details className="mt-3 ml-7">
               <summary className="cursor-pointer text-sm">Read instructions</summary>
-              <pre className="mt-3 max-h-64 overflow-auto text-sm break-words whitespace-pre-wrap">
-                {skill.content}
-              </pre>
+              <pre className="suggested-skill-content max-h-64 text-sm">{skill.content}</pre>
             </details>
             {selected && selected.updatedAt !== skill.updatedAt ? (
               <p className="form-error" role="alert">
