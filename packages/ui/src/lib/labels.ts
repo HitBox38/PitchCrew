@@ -57,6 +57,7 @@ export const runtimeLabels: Record<RuntimeId, string> = {
   grok: 'Grok Build',
   pi: 'Pi',
   'oh-my-pi': 'oh-my-pi',
+  hermes: 'Hermes Agent',
 };
 
 export const weightLabels: Record<number, string> = {

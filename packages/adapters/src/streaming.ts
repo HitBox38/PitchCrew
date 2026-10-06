@@ -162,6 +162,10 @@ export function chatEventStream(context: RunContext | ChatContext) {
             else append(textParts(message.content));
           }
           break;
+        case 'hermes':
+          if (event.type === 'tool_use') replace('');
+          if (event.type === 'text' && typeof event.text === 'string') append(event.text);
+          break;
         case 'grok':
           if (event.type === 'tool_call') replace('');
           if (event.type === 'text' && typeof event.data === 'string') append(event.data);

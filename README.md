@@ -114,7 +114,7 @@ Updates never overwrite your agents. When a release changes a default agent's in
 
 ### Runtimes
 
-Pitchcrew supports **Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi and oh-my-pi**. Different agents can use different runtimes.
+Pitchcrew supports **Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi, oh-my-pi and Hermes Agent**. Different agents can use different runtimes.
 
 Install the CLI on `PATH` and configure its native authentication before using it. **Settings > Runtimes** shows availability; Crew settings choose the runtime and model. Leave the model empty for the CLI default, or use the searchable picker. Version checks and model discovery do not start an inference turn; chats, workflows and follow-ups can use your provider account.
 

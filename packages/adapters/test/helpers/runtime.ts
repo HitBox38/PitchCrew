@@ -15,7 +15,8 @@ export async function contextFor(
     | 'kiro-cli'
     | 'grok'
     | 'pi'
-    | 'oh-my-pi',
+    | 'oh-my-pi'
+    | 'hermes',
   mode = '',
 ): Promise<RunContext> {
   if (runtime === 'goose') vi.stubEnv('GOOSE_PROVIDER', 'openai');

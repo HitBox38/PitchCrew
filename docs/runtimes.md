@@ -21,6 +21,7 @@ These integrations have subprocess contract coverage. Live provider executions a
 | Grok Build         | `grok`         | CLI model name, or empty for its default         |
 | Pi                 | `pi`           | `provider/model`, or empty for its default       |
 | oh-my-pi           | `omp`          | `provider/model`, or empty for its default       |
+| Hermes Agent       | `hermes`       | `provider:model`, or native environment defaults |
 
 Crew settings provide a searchable model picker. Native catalogs are loaded where supported and cached for five minutes; **Refresh models** forces a new check. Curated suggestions are labeled separately. Changing runtimes resets the model to the CLI default. Saved model names remain visible even when absent from the current catalog.
 
@@ -77,6 +78,12 @@ Pi requires **1.0.0 or newer** from the current `earendil-works/pi` project, whi
 oh-my-pi requires **18.4.9 or newer**. It receives isolated configuration and data paths and exposes Pitchcrew MCP tools. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data folder must be on the same drive as the user home so OMP can isolate its configuration root.
 
 Both inherit native provider authentication environment variables, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime default or use `provider/model`.
+
+### Hermes Agent
+
+[Hermes Agent](https://hermes-agent.nousresearch.com/docs/reference/cli-commands/) **0.21.5 or newer** is required for structured one-shot output. The adapter runs `hermes chat --query-file - --oneshot --format stream-json` in an isolated `HERMES_HOME`, exposing only the `pitchcrew` toolset. User configuration, login files, plugins, ambient rules, memory and background self-improvement are not imported or enabled. Pitchcrew's role instructions and assigned skills arrive in the prompt.
+
+Set native provider authentication variables in the daemon environment, such as `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. Credentials saved by `hermes model` in the user's `.env` or auth files are not imported. Use `provider:model` with `openrouter`, `anthropic`, `openai-api`, `gemini`, `nous`, `xai` or `lmstudio`. For example, `openrouter:anthropic/claude-sonnet-5-5` retains OpenRouter's full model selector. Bare model names and an empty model use `HERMES_INFERENCE_PROVIDER`, defaulting to `openrouter`; empty models use that provider's Hermes default. Agent CLI/ACP providers and MoA presets are excluded. Native model discovery is not supported; the picker shows curated OpenRouter suggestions and accepts custom selectors.
 
 ## Demo
 
