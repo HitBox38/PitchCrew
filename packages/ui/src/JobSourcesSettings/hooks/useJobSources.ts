@@ -3,7 +3,13 @@ import type { JobScanSummary, JobSource, JobSourcePreview } from '@pitchcrew/cor
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { loadJobSources, previewJobSource } from '../api.ts';
 import { emptyDraft } from '../constants.ts';
-import { boardFromLink, draftInput, scanSummaryText, sourceDraft } from '../helpers.ts';
+import {
+  boardFromLink,
+  draftInput,
+  scanSummaryText,
+  sourceDraft,
+  tokenFromInput,
+} from '../helpers.ts';
 import type { SourceDraft } from '../types.ts';
 
 const message = (error: unknown, fallback: string) =>
@@ -116,6 +122,7 @@ export function useJobSources() {
     cancel: () => edit(null),
     update,
     setBoard: (value: string) => update(boardFromLink(value)),
+    setToken: (value: string) => update(tokenFromInput(value)),
     save,
     test,
     remove,

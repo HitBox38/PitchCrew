@@ -1,0 +1,58 @@
+{
+  "name": "Litware Studio",
+  "description": "<p>Litware Studio is a fictional company.</p>",
+  "jobs": [
+    {
+      "title": "Frontend Developer",
+      "shortcode": "3F2A1B0C9D",
+      "code": "FE-1",
+      "employment_type": "Full-time",
+      "telecommuting": false,
+      "department": "Engineering",
+      "url": "https://apply.workable.com/j/3F2A1B0C9D",
+      "shortlink": "https://apply.workable.com/j/3F2A1B0C9D",
+      "application_url": "https://apply.workable.com/j/3F2A1B0C9D/apply",
+      "published_on": "2026-09-21",
+      "created_at": "2026-09-20",
+      "country": "Greece",
+      "city": "Athens",
+      "state": "Attica",
+      "education": "",
+      "experience": "Mid-Senior level",
+      "function": "Engineering",
+      "industry": "Computer Software",
+      "description": "<p>Build <strong>fictional</strong> creative tools.</p><img src=\"https://tracker.example.invalid/pixel.gif\" onerror=\"alert(1)\">",
+      "requirements": "<ul><li>React</li><li>Accessibility</li></ul>",
+      "benefits": "<p>Fictional perks.</p>"
+    },
+    {
+      "title": "Frontend Developer",
+      "shortcode": "3F2A1B0C9D",
+      "telecommuting": false,
+      "url": "https://apply.workable.com/j/3F2A1B0C9D",
+      "published_on": "2026-09-21",
+      "country": "Greece",
+      "city": "Thessaloniki",
+      "state": "",
+      "description": "<p>Build <strong>fictional</strong> creative tools.</p>"
+    },
+    {
+      "title": "Support Specialist",
+      "shortcode": "5C6D7E8F90",
+      "telecommuting": true,
+      "url": "ftp://apply.workable.com/j/5C6D7E8F90",
+      "created_at": "2026-09-18",
+      "country": "Portugal",
+      "description": "<p>Help fictional customers.</p>"
+    },
+    { "title": "Missing shortcode" },
+    {
+      "title": "Content Writer",
+      "shortcode": "7A8B9C0D1E",
+      "locations": [
+        { "city": "Berlin", "region": "Berlin", "country": "Germany", "hidden": false },
+        { "city": "Hidden Office", "country": "Germany", "hidden": true }
+      ]
+    }
+  ]
+}

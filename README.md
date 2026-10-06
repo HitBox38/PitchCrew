@@ -10,7 +10,7 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 ## What you can do
 
-- **Find openings.** Save public Greenhouse, Ashby and Lever job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it.
+- **Find openings.** Save public Greenhouse, Ashby, Lever, Comeet and Workable job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it.
 - **Prepare applications.** Scout evaluates fit, Writer drafts a packet, and Reviewer checks it against your profile. Packets include a resume, cover letter, form answers, notes and supporting claims.
 - **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat privately or in the shared crew conversation. Agents can hand off work through the board when their permissions allow it.
 - **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
@@ -132,7 +132,7 @@ On startup, Pitchcrew loads missing skills from a ten-entry public GitHub starte
 
 ## Job discovery
 
-Open **Settings > Job sources** to save a company's public job board. Pitchcrew supports Greenhouse, Ashby and Lever. Give each source a company name and the board name from its link, then optional filters: title keywords to include or exclude, location keywords and remote only. **Test source** previews matching postings without adding anything. **Scan now** adds new matching postings to Board as leads, with the job ID and source recorded on each card.
+Open **Settings > Job sources** to save a company's public job board. Pitchcrew supports Greenhouse, Ashby, Lever, Comeet and Workable. Give each source a company name and the board name from its link, then optional filters: title keywords to include or exclude, location keywords and remote only. **Test source** previews matching postings without adding anything. **Scan now** adds new matching postings to Board as leads, with the job ID and source recorded on each card. A Comeet source needs the company UID and the public careers token from the company's careers page; [job discovery](docs/job-discovery.md) explains where to find them.
 
 Pitchcrew reads only the providers' official public APIs, without signing in, and converts descriptions to plain text. A posting already on the board, in any state, is never added again, so withdrawing a lead dismisses it for good.
 
@@ -187,7 +187,7 @@ pnpm dev
 
 ## Current limits
 
-- Job discovery covers public Greenhouse, Ashby and Lever boards you add yourself. Other job sites stay manual. There is no automatic outreach or email sender.
+- Job discovery covers public Greenhouse, Ashby, Lever, Comeet and Workable boards you add yourself. Other job sites stay manual. There is no automatic outreach or email sender.
 - Routines run only while the daemon is open. The optional background service starts it at login but does not wake a sleeping computer. Automated tests use a simulated service manager, not the real Windows, macOS and Linux ones.
 - Computer use covers an isolated Chromium browser, not the whole desktop.
 - Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
