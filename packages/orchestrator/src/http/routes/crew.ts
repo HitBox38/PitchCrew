@@ -14,6 +14,9 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
   app.put<IdRoute>('/api/roles/:id', async (req, res) =>
     res.send(await service.configureRole(roleIdSchema.parse(req.params.id), req.body)),
   );
+  app.post<IdRoute>('/api/roles/:id/runtime-recommendation', async (req, res) =>
+    res.send(await service.runtimeRecommendation(roleIdSchema.parse(req.params.id))),
+  );
   // Default instruction updates are user decisions only; the agent gateway has no equivalent.
   app.post<IdRoute>('/api/roles/:id/instructions-update/adopt', async (req, res) =>
     res.send(await service.adoptDefaultInstructions(roleIdSchema.parse(req.params.id), req.body)),

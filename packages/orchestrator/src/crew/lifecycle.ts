@@ -19,6 +19,7 @@ import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { routines } from './routines/index.ts';
 import { instructionUpdates } from './instruction-updates.ts';
+import { seedRecommendedRoles } from './runtime-recommendations.ts';
 
 export async function initialize(this: CrewContext, seedSkills: boolean = true): Promise<void> {
   await this.connectors.initialize();
@@ -69,9 +70,10 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
       'system',
       'Recovered interrupted crew task',
     );
+  await this.detect();
+  await seedRecommendedRoles(this);
   for (const role of this.board.list<Role>('role')) await this.writeRole(role);
   if (seedSkills) await this.seedStarterSkills();
-  await this.detect();
 }
 export async function snapshot(this: CrewContext): Promise<Snapshot> {
   // Finish filesystem reads before collecting board state, so no run can advance between entities.

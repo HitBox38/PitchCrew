@@ -52,6 +52,13 @@ export const runtimeIds = [
 ] as const;
 export type RuntimeId = (typeof runtimeIds)[number];
 export const roleIds = ['scout', 'writer', 'reviewer'] as const;
+export const defaultRoleIds = [
+  ...roleIds,
+  'submitter',
+  'tracker',
+  'documenter',
+  'pipeline-coach',
+] as const;
 export type WorkflowSeat = (typeof roleIds)[number];
 export type RoleId = string;
 export function isRoleId(value: string): boolean {

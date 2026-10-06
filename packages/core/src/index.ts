@@ -42,6 +42,8 @@ export type {
   RuntimeInfo,
   RuntimeModel,
   RuntimeModelCatalog,
+  RuntimeConfiguration,
+  RuntimeRecommendation,
 } from './runtime.ts';
 export {
   skillAssignment,

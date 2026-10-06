@@ -14,9 +14,7 @@ it('excludes Demo and rejects its entry points outside development mode', async 
   const { result: snapshot } = await request<Snapshot>('/snapshot');
   expect(snapshot.runtimes.some((runtime) => runtime.id === 'demo')).toBe(false);
   expect(snapshot.demoAvailable).toBe(false);
-  expect(snapshot.roles.every((role) => role.runtime === 'claude-code' && !role.enabled)).toBe(
-    true,
-  );
+  expect(snapshot.roles.every((role) => role.runtime !== 'demo' && !role.enabled)).toBe(true);
   expect(detect).not.toHaveBeenCalled();
   for (const refresh of [false, true])
     expect((await request('/runtimes/demo/models', 'POST', { refresh })).response.status).toBe(400);

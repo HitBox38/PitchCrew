@@ -32,6 +32,7 @@ import {
 
 import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
+import { runtimeRecommendation } from './crew/runtime-recommendations.ts';
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
@@ -112,6 +113,9 @@ export class CrewService {
   }
   runtimeModels(id: RuntimeId, refresh?: boolean): Promise<RuntimeModelCatalog> {
     return this.context.runtimeModels(id, refresh);
+  }
+  runtimeRecommendation(id: RoleId) {
+    return runtimeRecommendation(this.context, id);
   }
   snapshot(): Promise<Snapshot> {
     return this.context.snapshot();

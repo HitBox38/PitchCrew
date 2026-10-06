@@ -1,6 +1,7 @@
 import type { useRoleSettings } from '@/components/RoleSettings/hooks/useRoleSettings.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import type { Role, Snapshot } from '@pitchcrew/core';
+import type { ReactNode } from 'react';
 
 export interface RoleSettingsProps {
   role: Role;
@@ -46,4 +47,4 @@ export type RuntimeSettingsProps = Pick<
   | 'model'
   | 'enabled'
   | 'setEnabled'
->;
+> & { children?: ReactNode };

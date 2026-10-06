@@ -4,7 +4,21 @@ Pitchcrew stores one agent configuration for each role. A role's stable ID is it
 
 ## Default crew
 
-Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults use Claude Code and start paused; select an installed runtime/model and enable them in Crew. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
+Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
+
+| Agent          | Preferred runtime | Preferred model                     | Reasoning |
+| -------------- | ----------------- | ----------------------------------- | --------- |
+| Scout          | Codex             | GPT-6.1 Sol                         | Medium    |
+| Writer         | Claude Code       | Sonnet 5.5 (native Sonnet selector) | High      |
+| Reviewer       | Codex             | GPT-6 Astra                         | High      |
+| Submitter      | Codex             | GPT-6.1 Sol                         | Medium    |
+| Tracker        | Codex             | GPT-6 Luna                          | High      |
+| Documenter     | Codex             | GPT-6.1 Sol                         | Medium    |
+| Pipeline Coach | Codex             | GPT-6 Astra                         | High      |
+
+These are editorial starting points for each responsibility, not benchmark results. Native model catalogs take precedence over unverified suggestions; within each source, role-specific model preferences come before runtime preferences. All production adapters participate, including alternatives that expose the same model through another provider. Selectors retain native provider prefixes and Cursor effort presets. Unsupported effort uses CLI default. An empty or unfamiliar catalog is never replaced with an invented model: an installed runtime can retain CLI default with a setup explanation. With no installed runtime, the preferred setup remains visible and paused for installation. Discovery does not prove model entitlement or authenticate the user.
+
+For an existing built-in agent, **Use recommended setup** in Crew settings rechecks installed runtimes and refreshes their model catalogs, then fills only runtime/model/reasoning in the editor. **Save settings** applies it through the normal settings checks; instructions, capabilities, enablement and unsaved changes protection remain intact. Restarting or installing another CLI never replaces a saved configuration, and runs never silently switch models or runtimes. Custom agents keep their manually selected setup. No inference, install, sign-in or agent work runs while choosing recommendations.
 
 Scout's instructions cover evidence-based fit, unknowns and the user's shortlisting decision. When the user enables `discoverJobs`, they also cover scanning saved job sources and giving a short fit read for new leads; see [job discovery](job-discovery.md). The capability stays off by default. Writer's cover complete packets, exact profile quotations, the user's packet rules and inspected form requirements. Reviewer independently checks all packet prose, distinguishes blockers from style suggestions and gives actionable corrections. Scout and Writer read [application insights](insights.md) only when the user grants application search or pipeline review; Pipeline Coach starts each review with them. Weights and lessons remain user judgments that agents never set. All three describe handoffs with the support crew and keep peer recommendations separate from user-approved settings changes.
 
