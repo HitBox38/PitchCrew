@@ -234,6 +234,7 @@ describe.each([
       expect(request.args[request.args.indexOf('--tools') + 1].split(',')).toEqual([
         'mcp__pitchcrew_get_card',
         'mcp__pitchcrew_read_profile',
+        'mcp__pitchcrew_read_chat_attachment',
         'mcp__pitchcrew_get_history',
         'mcp__pitchcrew_lint_packet',
         'mcp__pitchcrew_get_packet_rules',

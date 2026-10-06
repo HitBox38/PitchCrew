@@ -71,6 +71,7 @@ export const ohMyPi = withChat({
       [
         'get_card',
         'read_profile',
+        'read_chat_attachment',
         'get_history',
         'lint_packet',
         'get_packet_rules',

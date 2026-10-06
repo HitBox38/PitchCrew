@@ -26,6 +26,8 @@ export function registerAgentRoutes(app: FastifyInstance, service: CrewService) 
         tool: z.string().max(100).optional(),
         input: z.unknown().optional(),
         routineId: z.uuid().optional(),
+        messageId: z.uuid().optional(),
+        attachmentId: z.uuid().optional(),
       })
       .parse(req.body);
     return res.send(await service.agentCall(token, body.action, body));

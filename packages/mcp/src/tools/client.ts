@@ -11,6 +11,11 @@ export function createAgentClient(url: string, token: string) {
       const approval = result.approval as Record<string, unknown> | undefined;
       const page = (result.page ?? approval?.page) as { screenshot?: string } | undefined;
       const { screenshot, ...description } = page ?? {};
+      const image =
+        action === 'chat_attachment'
+          ? (result.image as { data: string; mimeType: string } | undefined)
+          : undefined;
+      const { image: _image, ...attachmentResult } = result;
       return {
         content: [
           {
@@ -20,14 +25,19 @@ export function createAgentClient(url: string, token: string) {
                 ? approval
                   ? { ...result, approval: { ...approval, page: description } }
                   : { ...result, page: description }
-                : result,
+                : image
+                  ? attachmentResult
+                  : result,
             ),
           },
           ...(screenshot
             ? [{ type: 'image' as const, data: screenshot, mimeType: 'image/jpeg' }]
             : []),
+          ...(image
+            ? [{ type: 'image' as const, data: image.data, mimeType: image.mimeType }]
+            : []),
         ],
-        structuredContent: result,
+        structuredContent: image ? attachmentResult : result,
       };
     } catch (error) {
       return {

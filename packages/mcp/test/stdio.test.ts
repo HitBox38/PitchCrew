@@ -5,6 +5,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { saveAttachments } from '../../orchestrator/src/crew/attachments/storage.ts';
+import { randomUUID } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { createDaemon } from '../../orchestrator/src/server.ts';
 import { packet, profile } from './fixtures/evaluation.ts';
@@ -63,6 +65,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       cardId: card.id,
       roleId: 'reviewer',
     });
+    daemon.service.controllers.set('fixture', new AbortController());
     const transport = new StdioClientTransport({
       command: process.execPath,
       args: [
@@ -82,6 +85,35 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       stderr: 'pipe',
     });
     await client.connect(transport);
+    const [attachment] = await saveAttachments(directory, [
+      { name: 'fixture.md', data: Buffer.from('Fictional attachment text.').toString('base64') },
+    ]);
+    const attachmentMessageId = randomUUID();
+    board.record(
+      'message',
+      {
+        id: attachmentMessageId,
+        from: 'user',
+        to: 'reviewer',
+        threadId: 'reviewer',
+        cardId: card.id,
+        runId: 'fixture',
+        content: '',
+        createdAt: new Date().toISOString(),
+        attachments: [attachment],
+      },
+      'user',
+      'Fixture attached file',
+    );
+    const attachmentRead = await client.callTool({
+      name: 'pitchcrew_read_chat_attachment',
+      arguments: { messageId: attachmentMessageId, attachmentId: attachment.id },
+    });
+    expect(attachmentRead.isError, JSON.stringify(attachmentRead)).not.toBe(true);
+    expect(attachmentRead.structuredContent).toMatchObject({
+      text: 'Fictional attachment text.',
+      truncated: false,
+    });
     const listed = await client.listTools();
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
       [
@@ -94,6 +126,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_get_packet_rules',
         'pitchcrew_read_profile',
         'pitchcrew_read_messages',
+        'pitchcrew_read_chat_attachment',
         'pitchcrew_message_agent',
         'pitchcrew_notify_user',
         'pitchcrew_invoke_agent',
@@ -284,6 +317,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     );
   } finally {
     await client.close();
+    daemon.service.controllers.delete('fixture');
     await daemon.close();
     await rm(directory, { recursive: true, force: true });
   }

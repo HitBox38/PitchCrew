@@ -1,4 +1,5 @@
 import { AnimatedMessage } from '@/ChatView/constants.ts';
+import { MessageAttachments } from './MessageAttachments.tsx';
 import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { MessageContent } from '@/components/ai-elements/message/components/MessageContent.tsx';
@@ -65,6 +66,7 @@ export function MessageTranscript({
                 >
                   {message.content}
                 </MessageResponse>
+                <MessageAttachments message={message} />
               </MessageContent>
               {streaming ? (
                 <span className="chat-stream-status ml-7.5 flex items-center gap-1.5 text-detail text-muted-foreground">

@@ -1,4 +1,6 @@
 import { useChatReasoning } from './useChatReasoning.ts';
+import { useChatAttachments } from './useChatAttachments.ts';
+import { encodeAttachment } from '../api.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { resolveRuntime } from '@/lib/runtimes.ts';
 import type { ChatThread, ChatViewProps } from '@/ChatView/types.ts';
@@ -24,6 +26,9 @@ export function useChatView({
   const setPane = (next: 'conversation' | 'work') =>
     setPanes((current) => ({ ...current, [thread]: next }));
   const [error, setError] = useState('');
+  const attachments = useChatAttachments(thread, setError);
+  const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
   const roleId =
     thread === 'crew'
       ? (data.roles.find((role) => role.id === recipient && !role.retiredAt)?.id ??
@@ -89,31 +94,48 @@ export function useChatView({
     inputRef.current?.focus();
   };
   async function send(text: string) {
-    if (!text.trim() || busy || working || !role.enabled || !!role.retiredAt || !available) return;
+    if (
+      (!text.trim() && !attachments.files.length) ||
+      busy ||
+      working ||
+      sendingRef.current ||
+      !role.enabled ||
+      !!role.retiredAt ||
+      !available
+    )
+      return;
     const sentThread = thread;
     setPane('conversation');
     setError('');
+    sendingRef.current = true;
+    setSending(true);
     try {
       await action(`/roles/${roleId}/chat`, 'POST', {
         content: text,
         cardId: cardId || null,
         threadId: thread,
+        attachments: await Promise.all(attachments.files.map(encodeAttachment)),
         ...reasoning.reasoningInput,
       });
       setDrafts((current) => ({ ...current, [sentThread]: '' }));
+      attachments.clearFiles(sentThread);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not send your message.');
+    } finally {
+      sendingRef.current = false;
+      setSending(false);
     }
   }
   return {
     ...reasoning,
+    ...attachments,
     data,
     thread,
     onThread,
     onConfigure,
     onOpenCard,
     action,
-    working,
+    working: working || sending,
     reduced,
     inputRef,
     setDrafts,

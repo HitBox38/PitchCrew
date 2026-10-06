@@ -1,4 +1,5 @@
-import { roleIdSchema, runtimeIds } from '@pitchcrew/core';
+import { roleIdSchema, runtimeIds, chatAttachmentLimits, type ChatMessage } from '@pitchcrew/core';
+import { readAttachment } from '../../crew/attachments/storage.ts';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
@@ -24,8 +25,31 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
   app.post<IdRoute>('/api/roles/:id/instructions-update/dismiss', (req, res) =>
     res.send(service.dismissInstructionUpdate(roleIdSchema.parse(req.params.id), req.body)),
   );
-  app.post<IdRoute>('/api/roles/:id/chat', async (req, res) =>
-    res.status(202).send(await service.sendChat(roleIdSchema.parse(req.params.id), req.body)),
+  app.post<IdRoute>(
+    '/api/roles/:id/chat',
+    { bodyLimit: Math.ceil(chatAttachmentLimits.bytes / 3) * 4 + 64 * 1024 },
+    async (req, res) =>
+      res.status(202).send(await service.sendChat(roleIdSchema.parse(req.params.id), req.body)),
+  );
+  app.get<{ Params: { messageId: string; attachmentId: string } }>(
+    '/api/chat/messages/:messageId/attachments/:attachmentId',
+    async (req, res) => {
+      const message = service.board.get<ChatMessage>(
+        'message',
+        z.uuid().parse(req.params.messageId),
+      );
+      const file = message.attachments?.find((item) => item.id === req.params.attachmentId);
+      if (!file) return res.status(404).send({ error: 'Attachment not found.' });
+      return res
+        .header('Content-Type', 'application/octet-stream')
+        .header('X-Content-Type-Options', 'nosniff')
+        .header('Cache-Control', 'no-store')
+        .header(
+          'Content-Disposition',
+          `attachment; filename="attachment"; filename*=UTF-8''${encodeURIComponent(file.name).replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16)}`)}`,
+        )
+        .send(await readAttachment(service.directory, file));
+    },
   );
   app.post<IdRoute>('/api/proposals/:id/decide', async (req, res) =>
     res.send(

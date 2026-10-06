@@ -86,4 +86,4 @@ No unattended scheduler is added: routines still run only while the daemon is op
 
 ## Events and verification
 
-New records use version 13, including cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 12 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.
+New records use version 14, including optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 13 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.
