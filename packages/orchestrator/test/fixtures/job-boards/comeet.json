@@ -1,0 +1,69 @@
+[
+  {
+    "uid": "A1.00D",
+    "internal_use_custom_id": "R-101",
+    "name": "Senior Backend Engineer",
+    "department": "R&D",
+    "employment_type": "Full-time",
+    "experience_level": "Senior",
+    "workplace_type": "Hybrid",
+    "company_name": "Wingtip Analytics",
+    "location": {
+      "name": "Tel Aviv, Israel",
+      "city": "Tel Aviv",
+      "country": "IL",
+      "is_remote": false
+    },
+    "url_comeet_hosted_page": "https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/senior-backend-engineer/A1.00D",
+    "url_active_page": "https://careers.wingtip.example/jobs?comeet_pos=A1.00D",
+    "url_detected_page": "https://careers.wingtip.example/jobs?comeet_pos=A1.00D",
+    "time_updated": "2026-09-25T08:30:00Z",
+    "details": [
+      {
+        "name": "Requirements",
+        "value": "<ul><li>Node.js &amp; SQL</li><li>Five years building services</li></ul>",
+        "order": 2
+      },
+      {
+        "name": "Description",
+        "value": "<p>Wingtip Analytics builds <b>fictional</b> analytics.</p><script>alert('never run')</script><a href=\"https://tracker.example.invalid\">Read more</a>",
+        "order": 1
+      }
+    ]
+  },
+  {
+    "uid": "A1.00D-B3.C4D",
+    "name": "Senior Backend Engineer",
+    "company_name": "Wingtip Analytics",
+    "location": { "name": "Haifa, Israel", "city": "Haifa", "country": "IL", "is_remote": false },
+    "url_comeet_hosted_page": "https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/senior-backend-engineer/A1.00D",
+    "time_updated": "2026-09-25T08:30:00Z",
+    "details": []
+  },
+  {
+    "uid": "A1.00E",
+    "name": "Product Manager",
+    "company_name": "Wingtip Analytics",
+    "location": { "name": "Remote", "is_remote": true },
+    "url_comeet_hosted_page": "javascript:alert(1)",
+    "url_active_page": "https://www.comeet.co/careers-api/2.0/company/A1.B2C/positions?token=FictionalToken0123456789"
+  },
+  {
+    "uid": "A1.00F",
+    "name": "Internal Transfer Only",
+    "is_internal": true,
+    "location": { "name": "Tel Aviv, Israel" },
+    "url_comeet_hosted_page": "https://www.comeet.com/jobs/wingtip-analytics/A1.B2C/internal/A1.00F"
+  },
+  { "uid": "A1.010" },
+  { "uid": "A1.011", "name": "QA Engineer", "location": null },
+  {
+    "uid": "A1.012",
+    "name": "Data Scientist",
+    "workplace_type": "Remote",
+    "location": { "city": "Lisbon", "country": "PT" },
+    "url_comeet_hosted_page": "https://user:secret@www.comeet.com/jobs/wingtip-analytics/A1.B2C/data-scientist/A1.012",
+    "url_detected_page": "https://careers.wingtip.example/jobs/data-scientist",
+    "time_updated": "not a date"
+  }
+]

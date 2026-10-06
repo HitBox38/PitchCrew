@@ -1,4 +1,4 @@
-import type { CardState, RuntimeId } from '@pitchcrew/core';
+import type { CardState, JobProvider, RuntimeId } from '@pitchcrew/core';
 import {
   ChartNoAxesCombined,
   ClipboardList,
@@ -24,6 +24,14 @@ export const stateLabels: Record<CardState, string> = {
   rejected: 'Rejected',
   withdrawn: 'Withdrawn',
   ghosted: 'No response',
+};
+
+export const jobProviderLabels: Record<JobProvider, string> = {
+  greenhouse: 'Greenhouse',
+  ashby: 'Ashby',
+  lever: 'Lever',
+  comeet: 'Comeet',
+  workable: 'Workable',
 };
 
 export const roleIcons = {
