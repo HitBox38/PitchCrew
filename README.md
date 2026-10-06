@@ -193,7 +193,7 @@ pnpm dev
 - Routines run only while the daemon is open. The optional background service starts it at login but does not wake a sleeping computer. Automated tests use a simulated service manager, not the real Windows, macOS and Linux ones.
 - Computer use covers an isolated Chromium browser, not the whole desktop.
 - Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
-- Formatted exports use one built-in template per document. PDF supports Latin, Greek and Cyrillic text but not right-to-left scripts, and DOCX page counts are estimates.
+- Formatted exports use one built-in template per document, and DOCX page counts are estimates. PDF covers Latin, Greek, Cyrillic and Hebrew with its own fonts. Japanese, Chinese and Korean need an installed font such as Yu Gothic, Hiragino or Noto Sans CJK; see [packet exports](docs/packet-exports.md#fonts-and-characters). Arabic and Indic scripts export as DOCX only.
 - Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.
 
 ## Development

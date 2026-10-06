@@ -13,6 +13,7 @@ import {
   TabStopType,
   TextRun,
 } from 'docx';
+import { baseDirection, embeddingLevels } from './bidi.ts';
 import { visibleText } from './inline.ts';
 import { parseMarkdown } from './markdown.ts';
 import { linkColor, type Template, templates } from './template.ts';
@@ -67,18 +68,106 @@ export function normalizeDocx(bytes: Buffer, pages?: number): Buffer {
 
 const clean = (text: string) => text.replace(/[\t\n\v\f\r]/g, ' ');
 
-function children(runs: Run[], forceBold = false): ParagraphChild[] {
-  return runs.map((run) => {
-    if (run.kind === 'break') return new TextRun({ text: '', break: 1 });
-    if (run.kind === 'fill') return new TextRun({ children: [new Tab()] });
-    const text = new TextRun({
-      text: clean(run.text),
-      ...(forceBold || run.bold ? { bold: true } : {}),
-      ...(run.italic ? { italics: true } : {}),
-      ...(run.href ? { color: linkColor.hex } : {}),
-    });
-    return run.href ? new ExternalHyperlink({ link: run.href, children: [text] }) : text;
+const cjk =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}\p{Script=Bopomofo}\u3000-\u303f\uff00-\uffef]/u;
+
+// Word picks a font per character range. East Asian runs name a font for the document's language,
+// judged from kana or Hangul in the text; Han characters alone count as Chinese.
+interface Scripts {
+  eastAsia: { font: string; language: string };
+}
+function scripts(blocks: Block[]): Scripts {
+  const text = blocks
+    .flatMap((block) =>
+      block.kind === 'list'
+        ? block.items.map((item) => visibleText(item.runs))
+        : block.kind === 'rule'
+          ? []
+          : [visibleText(block.runs)],
+    )
+    .join('');
+  return {
+    eastAsia: /[\p{Script=Hiragana}\p{Script=Katakana}]/u.test(text)
+      ? { font: 'Yu Gothic', language: 'ja-JP' }
+      : /\p{Script=Hangul}/u.test(text)
+        ? { font: 'Malgun Gothic', language: 'ko-KR' }
+        : { font: 'Microsoft YaHei', language: 'zh-CN' },
+  };
+}
+
+interface Segment {
+  text: string;
+  rtl: boolean;
+  eastAsian: boolean;
+}
+
+// Splits a run where the bidi direction or East Asian script changes. Word lays out a paragraph
+// with the same algorithm, but `w:rtl` also turns neutral characters right to left, so only text
+// the algorithm resolves right to left is marked. Spaces stay with the text before them.
+function segments(text: string, levels: Uint8Array, start: number): Segment[] {
+  const output: Segment[] = [];
+  let position = start;
+  for (const character of text) {
+    const rtl = levels[position] % 2 === 1;
+    position += character.length;
+    const last = output.at(-1);
+    const eastAsian = character === ' ' && last ? last.eastAsian : cjk.test(character);
+    if (last && last.rtl === rtl && last.eastAsian === eastAsian) last.text += character;
+    else output.push({ text: character, rtl, eastAsian });
+  }
+  return output;
+}
+
+const rightToLeft = (text: string) => ({
+  rightToLeft: true,
+  language: { bidirectional: /\p{Script=Arabic}/u.test(text) ? 'ar-SA' : 'he-IL' },
+});
+const eastAsian = (scripts: Scripts) => ({
+  font: {
+    ascii: 'Arial',
+    hAnsi: 'Arial',
+    cs: 'Arial',
+    eastAsia: scripts.eastAsia.font,
+    hint: 'eastAsia',
+  },
+  language: { eastAsia: scripts.eastAsia.language },
+});
+
+function children(runs: Run[], scripts: Scripts, forceBold = false) {
+  const texts = runs.map((run) =>
+    run.kind === 'text' ? clean(run.text) : run.kind === 'fill' ? '\t' : '\u2028',
+  );
+  const direction = baseDirection(visibleText(runs));
+  const levels = embeddingLevels(texts.join(''), direction);
+  const output: ParagraphChild[] = [];
+  let offset = 0;
+  runs.forEach((run, index) => {
+    const start = offset;
+    offset += texts[index].length;
+    if (run.kind !== 'text') {
+      output.push(
+        run.kind === 'break'
+          ? new TextRun({ text: '', break: 1 })
+          : new TextRun({ children: [new Tab()] }),
+      );
+      return;
+    }
+    const found = segments(texts[index], levels, start);
+    const parts = (found.length ? found : [{ text: '', rtl: false, eastAsian: false }]).map(
+      (segment) =>
+        new TextRun({
+          text: segment.text,
+          ...(forceBold || run.bold ? { bold: true } : {}),
+          ...(run.italic ? { italics: true } : {}),
+          ...(run.href ? { color: linkColor.hex } : {}),
+          ...(segment.rtl ? rightToLeft(segment.text) : {}),
+          ...(segment.eastAsian ? eastAsian(scripts) : {}),
+        }),
+    );
+    if (run.href) output.push(new ExternalHyperlink({ link: run.href, children: parts }));
+    else output.push(...parts);
   });
+  return { children: output, rtl: direction === 'rtl' };
 }
 
 function numbering(blocks: Block[], template: Template) {
@@ -148,17 +237,18 @@ export async function formattedDocx(markdown: string, kind: DocumentKind, pages?
       ? { tabStops: [{ type: TabStopType.RIGHT, position: twips(width) }] }
       : {};
   const lists = numbering(blocks, template);
+  const used = scripts(blocks);
+  // Right-to-left paragraphs get `w:bidi`, which also mirrors their indents and list numbers.
+  const content = (runs: Run[], forceBold = false) => {
+    const text = children(runs, used, forceBold);
+    return { children: text.children, ...(text.rtl ? { bidirectional: true } : {}), ...tabs(runs) };
+  };
   const paragraphs = blocks.flatMap((block): Paragraph[] => {
     if (block.kind === 'heading')
       return [
-        new Paragraph({
-          heading: headingLevels[block.level - 1],
-          children: children(block.runs, true),
-          ...tabs(block.runs),
-        }),
+        new Paragraph({ heading: headingLevels[block.level - 1], ...content(block.runs, true) }),
       ];
-    if (block.kind === 'paragraph')
-      return [new Paragraph({ children: children(block.runs), ...tabs(block.runs) })];
+    if (block.kind === 'paragraph') return [new Paragraph(content(block.runs))];
     if (block.kind === 'rule')
       return [
         new Paragraph({
@@ -169,7 +259,7 @@ export async function formattedDocx(markdown: string, kind: DocumentKind, pages?
     return block.items.map(
       (item: ListItem, index) =>
         new Paragraph({
-          children: children(item.runs),
+          ...content(item.runs),
           numbering: {
             reference: item.ordered ? lists.references.get(item)! : 'bullets',
             level: item.depth,
@@ -179,7 +269,6 @@ export async function formattedDocx(markdown: string, kind: DocumentKind, pages?
               index === block.items.length - 1 ? template.paragraphAfter : template.itemAfter,
             ),
           },
-          ...tabs(item.runs),
         }),
     );
   });

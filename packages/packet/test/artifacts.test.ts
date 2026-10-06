@@ -18,6 +18,7 @@ const docxFile = (bytes: Buffer, name: string) =>
     .find((entry) => entry.name === name)
     ?.data.toString('utf8') ?? '';
 const resumePacket = (resume: string): Packet => ({ ...packet, resume });
+const noFonts = async () => [];
 
 async function pdfText(bytes: Buffer) {
   const task = getDocument({
@@ -138,18 +139,22 @@ describe('formatted exports', () => {
     const unsupported = resumePacket(
       '\u05e9\u05dc\u05d5\u05dd <script>fetch("https://example.com")</script> \u65e5\u672c\u8a9e',
     );
-    await expect(renderArtifacts(unsupported, ['pdf'])).rejects.toThrow(
-      'unsupported characters: "\u05e9" (U+05E9) in the resume',
-    );
+    // Hebrew uses the bundled font; with no CJK font available, the first CJK character stops it.
+    await expect(
+      renderArtifacts(unsupported, ['pdf'], 'formatted', { fonts: noFonts }),
+    ).rejects.toThrow('unsupported characters: "\u65e5" (U+65E5) in the resume');
     await expect(renderArtifacts(resumePacket('\u0142'), ['pdf'], 'plain')).rejects.toThrow(
       'unsupported characters: "\u0142" (U+0142)',
     );
     // DOCX keeps every character, and untrusted markup stays visible text.
-    const [docx] = await renderArtifacts(unsupported, ['docx']);
+    const [docx] = await renderArtifacts(unsupported, ['docx'], 'formatted', { fonts: noFonts });
     const xml = docxFile(verifiedArtifact(docx), 'word/document.xml');
     expect(xml).toContain('\u05e9\u05dc\u05d5\u05dd');
     expect(xml).toContain('\u65e5\u672c\u8a9e');
-    expect(xml).toContain('&lt;script&gt;');
+    // The angle bracket next to Hebrew reads right to left, so it gets its own run.
+    expect(xml).toContain('&lt;</w:t>');
+    expect(xml).toContain('script&gt;fetch(');
+    expect(xml).not.toContain('<script');
     expect(await artifactPages([docx])).toEqual({});
   });
 
@@ -209,7 +214,7 @@ describe('formatted exports', () => {
       coverLetterPages: 1,
       warnings: [],
     });
-    const unsupported = await checkLayout(resumePacket('\u65e5'));
+    const unsupported = await checkLayout(resumePacket('\u65e5'), { fonts: noFonts });
     expect(unsupported.resumePages).toBeNull();
     expect(unsupported.warnings[0]).toContain('U+65E5');
   });
