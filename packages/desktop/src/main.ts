@@ -10,7 +10,7 @@ import {
 } from 'electron';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isConnectorExternalUrl } from './external-url.ts';
+import { isAllowedExternalUrl } from './external-url.ts';
 import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon } from './packaged.ts';
 
@@ -85,7 +85,7 @@ function createWindow() {
     if (
       window &&
       new URL(window.webContents.mainFrame.url).origin === new URL(url).origin &&
-      isConnectorExternalUrl(target)
+      isAllowedExternalUrl(target)
     )
       void shell.openExternal(target).catch(() => {});
     return { action: 'deny' };

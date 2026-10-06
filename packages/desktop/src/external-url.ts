@@ -1,4 +1,11 @@
-// Only explicit connector setup links can leave the sandboxed renderer.
+// Only explicit setup and Pitchcrew release links can leave the sandboxed renderer.
+export function isAllowedExternalUrl(value: string) {
+  return (
+    isConnectorExternalUrl(value) ||
+    /^https:\/\/github\.com\/HitBox38\/PitchCrew\/releases\/tag\/build-[a-f0-9]{40}$/.test(value)
+  );
+}
+
 export function isConnectorExternalUrl(value: string) {
   return (
     isGoogleAuthorizationUrl(value) ||

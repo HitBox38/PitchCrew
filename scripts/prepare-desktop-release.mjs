@@ -33,6 +33,9 @@ await mkdir(join(app, 'node_modules'), { recursive: true });
 await cp('packages/desktop/dist', join(app, 'dist'), { recursive: true });
 await cp('packages/desktop/assets', join(app, 'assets'), { recursive: true });
 const metadata = JSON.parse(await readFile('package.json', 'utf8'));
+const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error('Invalid installer build identity.');
+await writeFile(join(runtime, 'build-info.json'), JSON.stringify({ commit }));
 await writeFile(
   join(app, 'package.json'),
   JSON.stringify({

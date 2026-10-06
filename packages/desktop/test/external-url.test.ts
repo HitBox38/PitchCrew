@@ -1,5 +1,27 @@
 import { expect, it } from 'vitest';
-import { isConnectorExternalUrl, isGoogleAuthorizationUrl } from '../src/external-url.ts';
+import {
+  isAllowedExternalUrl,
+  isConnectorExternalUrl,
+  isGoogleAuthorizationUrl,
+} from '../src/external-url.ts';
+
+it('opens only exact Pitchcrew build release pages', () => {
+  const release = `https://github.com/HitBox38/PitchCrew/releases/tag/build-${'a'.repeat(40)}`;
+  expect(isAllowedExternalUrl(release)).toBe(true);
+  expect(isAllowedExternalUrl('https://cli.github.com/')).toBe(true);
+  for (const value of [
+    release + '?redirect=evil',
+    release + '/other',
+    release + '#fragment',
+    release.replace('github.com', 'github.com.evil.example'),
+    release.replace('github.com', 'user@github.com'),
+    release.replace('https:', 'http:'),
+    release.replace('HitBox38', 'someone'),
+    release.replace('build-', 'v'),
+    'https://github.com/HitBox38/PitchCrew/releases',
+  ])
+    expect(isAllowedExternalUrl(value)).toBe(false);
+});
 
 it('opens only Google PKCE authorization URLs with a loopback Pitchcrew callback', () => {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
