@@ -9,8 +9,12 @@ export function RoleRetirement({ creating, role, retiring, retire, working }: Ro
         Retirement prevents future runs and edits. Chat, routines, skills and events stay in
         history. Its ID cannot be reused.
       </p>
-      {retiring ? <p role="alert">Retire {role.name} permanently?</p> : null}
-      <Button variant="destructive" disabled={working} onClick={() => void retire()}>
+      {retiring ? (
+        <p className="form-error" role="alert">
+          Retire {role.name} permanently?
+        </p>
+      ) : null}
+      <Button className="button danger self-start" disabled={working} onClick={() => void retire()}>
         {retiring ? 'Confirm retirement' : 'Retire role'}
       </Button>
     </section>
