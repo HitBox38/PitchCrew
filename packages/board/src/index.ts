@@ -8,6 +8,7 @@ import {
   type DefaultInstructionStatus,
   type Packet,
   type RuntimeId,
+  type RuntimeConfiguration,
 } from '@pitchcrew/core';
 import { createBoardContext } from './board/context.ts';
 import type { BoardContext } from './board/types.ts';
@@ -113,8 +114,12 @@ export class Board {
   hasActiveRun(cardId: string): boolean {
     return this.context.hasActiveRun(cardId);
   }
-  seedRoles(runtime?: RuntimeId, enabled?: boolean): void {
-    return this.context.seedRoles(runtime, enabled);
+  seedRoles(
+    runtime?: RuntimeId,
+    enabled?: boolean,
+    configurations?: ReadonlyMap<string, RuntimeConfiguration>,
+  ): void {
+    return this.context.seedRoles(runtime, enabled, configurations);
   }
   /** Read-only comparison of seeded default roles with the current default instructions. */
   defaultInstructionStatuses(): DefaultInstructionStatus[] {

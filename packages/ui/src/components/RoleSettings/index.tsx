@@ -12,6 +12,8 @@ import { useRoleSettings } from '@/components/RoleSettings/hooks/useRoleSettings
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
+import { RuntimeRecommendation } from '@/RuntimeRecommendation/index.tsx';
+import { defaultRoleIds } from '@pitchcrew/core/states';
 
 export function RoleSettings(props: RoleSettingsProps) {
   const controller = useRoleSettings(props);
@@ -31,7 +33,25 @@ export function RoleSettings(props: RoleSettingsProps) {
         >
           <div className="role-settings-body">
             <IdentitySettings {...controller} />
-            <RuntimeSettings {...controller} />
+            <RuntimeSettings {...controller}>
+              {!controller.creating && defaultRoleIds.some((id) => id === controller.role.id) ? (
+                <RuntimeRecommendation
+                  key={controller.role.id}
+                  roleId={controller.role.id}
+                  disabled={controller.working}
+                  configuration={{
+                    runtime: controller.runtime,
+                    model: controller.model,
+                    reasoning: controller.reasoning,
+                  }}
+                  onApply={(configuration) => {
+                    controller.setRuntime(configuration.runtime);
+                    controller.setModel(configuration.model);
+                    controller.setReasoning(configuration.reasoning ?? null);
+                  }}
+                />
+              ) : null}
+            </RuntimeSettings>
             <RoleInstructionUpdate {...controller} />
             <InstructionSettings {...controller} />
             <CapabilitySettings {...controller} />

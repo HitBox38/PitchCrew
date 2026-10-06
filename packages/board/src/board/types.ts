@@ -8,6 +8,7 @@ import {
   type DefaultInstructionStatus,
   type Packet,
   type RuntimeId,
+  type RuntimeConfiguration,
 } from '@pitchcrew/core';
 import Database from 'better-sqlite3';
 
@@ -40,7 +41,11 @@ export interface BoardContext {
   decideApproval(id: string, approved: boolean): Approval;
   consumeApproval(id: string, cardId: string, digest: string): Packet;
   hasActiveRun(cardId: string): boolean;
-  seedRoles(runtime?: RuntimeId, enabled?: boolean): void;
+  seedRoles(
+    runtime?: RuntimeId,
+    enabled?: boolean,
+    configurations?: ReadonlyMap<string, RuntimeConfiguration>,
+  ): void;
   defaultInstructionStatuses(): DefaultInstructionStatus[];
   instructionStatusCache?: { eventId: number; statuses: DefaultInstructionStatus[] };
 }

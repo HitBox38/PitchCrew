@@ -21,6 +21,7 @@ export function RuntimeSettings({
   model,
   enabled,
   setEnabled,
+  children,
 }: RuntimeSettingsProps) {
   return (
     <section className="role-settings-section" aria-labelledby={`${role.id}-runtime-heading`}>
@@ -63,6 +64,7 @@ export function RuntimeSettings({
           onReasoningChange={setReasoning}
         />
       </div>
+      {children}
       <label className="checkbox-label">
         <Checkbox
           aria-label="Enable this role"
