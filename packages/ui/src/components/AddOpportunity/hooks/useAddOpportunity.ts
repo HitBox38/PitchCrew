@@ -1,16 +1,23 @@
 import type { AddOpportunityProps } from '@/components/AddOpportunity/types.ts';
 import { useState, type FormEvent } from 'react';
 import { tagValues } from '@/TagPicker/helpers.ts';
+import { provenanceFor } from '../helpers.ts';
+import { useJobLookup } from './useJobLookup.ts';
 
 export function useAddOpportunity({ action, working, onClose }: AddOpportunityProps) {
   const [error, setError] = useState('');
   const [external, setExternal] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagQuery, setTagQuery] = useState('');
+  const lookup = useJobLookup();
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (working) return;
+    if (working || lookup.pending) return;
     const form = new FormData(e.currentTarget);
+    // A fetched posting keeps its provider provenance so later scans skip it.
+    const provenance = external
+      ? undefined
+      : provenanceFor(lookup.prefill, String(form.get('url')));
     setError('');
     try {
       await action(
@@ -31,6 +38,7 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
           salary: form.get('salary'),
           description: form.get('description'),
           tags: tagValues([...tags, ...tagQuery.split(',')]),
+          ...(provenance ? { provenance } : {}),
         },
         external ? 'External application registered' : 'Job added',
       );
@@ -51,5 +59,6 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
     setTags,
     tagQuery,
     setTagQuery,
+    lookup,
   };
 }

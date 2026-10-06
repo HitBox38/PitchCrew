@@ -179,3 +179,44 @@ it('distinguishes questions, approvals and proposals by their saved source', () 
   ).toBe(true);
   expect(items.find((item) => item.id === 'message:fictional')?.context).toBe('message');
 });
+it('lists unanswered default instruction updates as attention items for Crew', () => {
+  const update = {
+    roleId: 'scout',
+    state: 'unedited',
+    revision: 'a'.repeat(16),
+    instructions: 'Fictional new default.',
+    changes: [
+      { revision: 'b'.repeat(16), date: '2026-10-04', summary: 'Older fictional change.' },
+      { revision: 'a'.repeat(16), date: '2026-10-05', summary: 'Fictional change summary.' },
+    ],
+    toolDifferences: [],
+    dismissed: false,
+  };
+  const data = {
+    ...snapshot,
+    messages: [],
+    roles: [
+      { id: 'scout', name: 'Scout' },
+      { id: 'writer', name: 'Writer', retiredAt: '2026-10-05T00:00:00Z' },
+    ],
+    instructionUpdates: [
+      update,
+      { ...update, roleId: 'writer' },
+      { ...update, roleId: 'tracker', dismissed: true },
+    ],
+  } as unknown as Snapshot;
+  const items = collectNotifications(data);
+  expect(items).toEqual([
+    {
+      id: `instruction-update:scout:${'a'.repeat(16)}`,
+      kind: 'attention',
+      context: 'instruction_update',
+      title: 'Scout has new default instructions',
+      body: 'Fictional change summary.',
+      target: '/crew',
+      createdAt: '2026-10-05T00:00:00.000Z',
+    },
+  ]);
+  expect(notificationPresentation.instruction_update.action).toBe('Review update');
+  expect(collectNotifications({ ...data, instructionUpdates: undefined })).toEqual([]);
+});

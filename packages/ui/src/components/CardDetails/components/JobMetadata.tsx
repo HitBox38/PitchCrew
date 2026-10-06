@@ -2,6 +2,9 @@ import type { JobMetadataProps } from '@/components/CardDetails/types.ts';
 import { jobProviderLabels } from '@/lib/labels.ts';
 import { ExternalLink, MapPin, Radar } from 'lucide-react';
 
+/** Matches `jobLinkSourceId` in core: the card was fetched from a pasted posting link. */
+const linkSourceId = 'link';
+
 export function JobMetadata({ card }: JobMetadataProps) {
   return (
     <div className="detail-meta">
@@ -18,8 +21,10 @@ export function JobMetadata({ card }: JobMetadataProps) {
       {card.discovery ? (
         <span title={`Job ID ${card.discovery.jobId}`}>
           <Radar size={14} />
-          Found on {jobProviderLabels[card.discovery.provider]} ({card.discovery.sourceName}){' '}
-          {new Date(card.discovery.firstSeenAt).toLocaleDateString()}
+          {card.discovery.sourceId === linkSourceId
+            ? `Added from a ${jobProviderLabels[card.discovery.provider]} link`
+            : `Found on ${jobProviderLabels[card.discovery.provider]}`}{' '}
+          ({card.discovery.sourceName}) {new Date(card.discovery.firstSeenAt).toLocaleDateString()}
         </span>
       ) : null}
     </div>

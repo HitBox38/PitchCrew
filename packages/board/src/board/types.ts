@@ -5,6 +5,7 @@ import {
   type Card,
   type CardInput,
   type CardState,
+  type DefaultInstructionStatus,
   type Packet,
   type RuntimeId,
 } from '@pitchcrew/core';
@@ -40,4 +41,6 @@ export interface BoardContext {
   consumeApproval(id: string, cardId: string, digest: string): Packet;
   hasActiveRun(cardId: string): boolean;
   seedRoles(runtime?: RuntimeId, enabled?: boolean): void;
+  defaultInstructionStatuses(): DefaultInstructionStatus[];
+  instructionStatusCache?: { eventId: number; statuses: DefaultInstructionStatus[] };
 }

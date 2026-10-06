@@ -10,7 +10,7 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 ## What you can do
 
-- **Find openings.** Save public Greenhouse, Ashby, Lever, Comeet and Workable job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it.
+- **Find openings.** Save public Greenhouse, Ashby, Lever, Comeet and Workable job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it. Paste a single posting link in Add job to fill in its details.
 - **Prepare applications.** Scout evaluates fit, Writer drafts a packet, and Reviewer checks it against your profile. Packets include a resume, cover letter, form answers, notes and supporting claims.
 - **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat privately or in the shared crew conversation. Agents can hand off work through the board when their permissions allow it.
 - **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
@@ -74,9 +74,9 @@ Fresh workspaces show an introduction and setup checklist. You can defer setup a
 
 1. **Add your background in Profile.** Write factual Markdown notes or import a reviewed folder from GitHub or Google Drive.
 2. **Configure agents in Crew.** Choose an installed runtime, optional model and permissions. Enable an agent for each workflow seat: fit assessment, drafting and review.
-3. **Add a job on Board.** Save its description and URL, then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
+3. **Add a job on Board.** Paste a Greenhouse, Ashby, Lever, Comeet or Workable posting link and choose **Fetch from link** to fill in the details, or type them yourself. Then start the workflow below. Or add job sources in **Settings > Job sources** and choose **Scan now**.
 
-New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime.
+New production workspaces start with paused Claude Code agents. Development defaults use Demo. Existing agent settings are preserved; Demo agents cannot run in production until you select a real runtime. When a release improves a default agent's instructions, Crew offers the new text for you to review instead of changing it.
 
 ## From opportunity to application
 
@@ -110,6 +110,8 @@ Each agent has a name, responsibilities, instructions, runtime, model and allowe
 
 Choose **Create agent** in Crew to define another role, select tools and skills, and optionally add a first routine. Custom agents start with optional capabilities disabled. Connecting an account does not grant agents access to it. Default agents have no seeded routines or source watches.
 
+Updates never overwrite your agents. When a release changes a default agent's instructions, its Crew card shows **Instructions update available** and the notification bell lists it. Its settings show what changed and a diff against your text. Choose **Use new default**, **Keep mine**, or, if you edited the instructions, **Edit from new default** to start over while keeping your old text in view. Tools never change this way. See [default instruction updates](docs/roles.md#default-instruction-updates).
+
 ### Runtimes
 
 Pitchcrew supports **Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Cursor Agent, Goose, Kiro CLI, Grok Build, Pi and oh-my-pi**. Different agents can use different runtimes.
@@ -133,6 +135,8 @@ On startup, Pitchcrew loads missing skills from a ten-entry public GitHub starte
 Open **Settings > Job sources** to save a company's public job board. Pitchcrew supports Greenhouse, Ashby, Lever, Comeet and Workable. Give each source a company name and the board name from its link, then optional filters: title keywords to include or exclude, location keywords and remote only. **Test source** previews matching postings without adding anything. **Scan now** adds new matching postings to Board as leads, with the job ID and source recorded on each card. A Comeet source needs the company UID and the public careers token from the company's careers page; [job discovery](docs/job-discovery.md) explains where to find them.
 
 Pitchcrew reads only the providers' official public APIs, without signing in, and converts descriptions to plain text. A posting already on the board, in any state, is never added again, so withdrawing a lead dismisses it for good.
+
+For a single job, paste its posting link in **Add job** and choose **Fetch from link**. Pitchcrew fills in the company, title, location, salary and full description for you to review, and warns when the job may already be on the board. A job saved this way records its provider and job ID, so later scans skip it.
 
 To let Scout scan, enable **Scan your saved job sources and add new matching leads** in its settings under Role tools. It is off by default. Scout can then scan from chat or a routine, assess the new leads and tell you about strong matches. Agents cannot add, change or remove sources. See [job discovery](docs/job-discovery.md).
 

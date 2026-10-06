@@ -9,6 +9,8 @@ export interface Role {
   model: string;
   enabled: boolean;
   instructions: string;
+  /** Exact default the user reviewed before editing; absent in older role events. */
+  defaultInstructionBase?: { revision: string; instructions: string };
   workflow?: 'scout' | 'writer' | 'reviewer' | 'chat';
   retiredAt?: string | null;
   capabilities?: AgentCapabilities;

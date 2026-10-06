@@ -18,6 +18,7 @@ import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { routines } from './routines/index.ts';
+import { instructionUpdates } from './instruction-updates.ts';
 
 export async function initialize(this: CrewContext, seedSkills: boolean = true): Promise<void> {
   await this.connectors.initialize();
@@ -78,6 +79,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
   const snapshot: Snapshot = {
     onboarding: this.onboarding.get(),
     packetRules: this.packetRules.current(),
+    instructionUpdates: instructionUpdates(this),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
     cards: this.board.list<Card>('card'),

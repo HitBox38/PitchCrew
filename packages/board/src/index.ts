@@ -5,6 +5,7 @@ import {
   type Card,
   type CardInput,
   type CardState,
+  type DefaultInstructionStatus,
   type Packet,
   type RuntimeId,
 } from '@pitchcrew/core';
@@ -41,9 +42,15 @@ export { previewApplicationImport, applyApplicationImport } from './board/import
 export {
   discoveryKeys,
   isKnownPosting,
+  postingMatches,
   recordDiscoveredLeads,
+  recordLinkedJob,
   type DiscoveredPosting,
 } from './board/discovery.ts';
+export { defaultInstructionHistory } from './board/default-instruction-history.ts';
+export { instructionStatus } from './board/default-instructions.ts';
+export { defaultRoles } from './board/default-roles.ts';
+export { instructionRevision, normalizeInstructions } from './board/instruction-revisions.ts';
 export class Board {
   private readonly context: BoardContext;
   constructor(filename: string) {
@@ -108,5 +115,9 @@ export class Board {
   }
   seedRoles(runtime?: RuntimeId, enabled?: boolean): void {
     return this.context.seedRoles(runtime, enabled);
+  }
+  /** Read-only comparison of seeded default roles with the current default instructions. */
+  defaultInstructionStatuses(): DefaultInstructionStatus[] {
+    return this.context.defaultInstructionStatuses();
   }
 }

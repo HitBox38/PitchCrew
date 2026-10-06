@@ -1,5 +1,12 @@
 export * from './pipeline-reviews.ts';
 export type { OnboardingState } from './onboarding.ts';
+export { defaultInstructionRevisionId, instructionUpdateDecision } from './default-instructions.ts';
+export type {
+  DefaultInstructionRevision,
+  DefaultInstructionState,
+  DefaultInstructionStatus,
+  InstructionUpdate,
+} from './default-instructions.ts';
 export { cardInput } from './cards.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson } from './cards.ts';
@@ -65,6 +72,7 @@ export type {
 } from './background-service.ts';
 export * from './imports.ts';
 export * from './job-sources.ts';
+export * from './job-links.ts';
 export {
   defaultPacketRules,
   describePacketRules,

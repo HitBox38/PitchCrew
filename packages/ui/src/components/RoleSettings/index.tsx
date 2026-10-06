@@ -1,4 +1,5 @@
 import { IdentitySettings } from './components/IdentitySettings.tsx';
+import { RoleInstructionUpdate } from './components/RoleInstructionUpdate.tsx';
 import { RoleRetirement } from './components/RoleRetirement.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { CapabilitySettings } from '@/components/RoleSettings/components/CapabilitySettings.tsx';
@@ -31,6 +32,7 @@ export function RoleSettings(props: RoleSettingsProps) {
           <div className="role-settings-body">
             <IdentitySettings {...controller} />
             <RuntimeSettings {...controller} />
+            <RoleInstructionUpdate {...controller} />
             <InstructionSettings {...controller} />
             <CapabilitySettings {...controller} />
             {controller.creating ? (
