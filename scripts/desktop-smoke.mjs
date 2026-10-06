@@ -77,6 +77,7 @@ try {
     !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
       (!result.onboardingReady ||
+        !result.retainedRuntimeReady ||
         !result.appUpdatesReady ||
         !result.insightsReady ||
         !result.chatReady ||

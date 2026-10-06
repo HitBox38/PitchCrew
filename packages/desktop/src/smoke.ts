@@ -4,6 +4,7 @@ import { smokeInsights } from './smoke-insights.ts';
 import { smokeStyles } from './smoke-styles.ts';
 import { smokeOnboarding } from './smoke-onboarding.ts';
 import { smokeUpdates } from './smoke-updates.ts';
+import { smokeRetainedRuntime } from './smoke-retained-runtime.ts';
 import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke-sheets.ts';
 
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
@@ -28,11 +29,12 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             const styleChecks = ${smokeStyles};
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
-            let onboardingReady = null, insightsReady = null, appUpdatesReady = null;
+            let onboardingReady = null, insightsReady = null, appUpdatesReady = null, retainedRuntimeReady = null;
             const sheetChecks = {};
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
-              if (!snapshot.roles.every((role) => role.runtime === 'claude-code' && role.enabled)) throw new Error('Chat smoke test requires an isolated fixture workspace.');
+              if (!snapshot.roles.every((role) => role.runtime === (role.id === 'writer' ? 'demo' : 'claude-code') && role.enabled)) throw new Error('Chat smoke test requires an isolated fixture workspace.');
               onboardingReady = await ${smokeOnboarding};
+              retainedRuntimeReady = await ${smokeRetainedRuntime};
               document.querySelector('a[href="/chat"]')?.click();
               chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
@@ -120,7 +122,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               notificationToastReady = Object.values(notificationToastChecks).every(Boolean);
               appUpdatesReady = await ${smokeUpdates};
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, retainedRuntimeReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         if (result.appUpdatesReady) {

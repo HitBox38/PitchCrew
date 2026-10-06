@@ -15,6 +15,7 @@ for (const adapter of Object.values(adapters))
     detail: 'Isolated desktop test fixture.',
   });
 adapters['claude-code'].chat = adapters.demo.chat;
+adapters['claude-code'].listModels = async () => adapters['claude-code'].models;
 const port = Number(process.env.PITCHCREW_PORT);
 const daemon = await createDaemon({
   directory,
@@ -36,6 +37,14 @@ const daemon = await createDaemon({
 });
 for (const role of daemon.service.board.list('role'))
   await daemon.service.configureRole(role.id, { ...role, enabled: true });
+// Reproduce a role retained from development without enabling Demo in the production daemon.
+const writer = daemon.service.board.get('role', 'writer');
+daemon.service.board.record(
+  'role',
+  { ...writer, runtime: 'demo', model: '', reasoning: null },
+  'user',
+  'Retained development role fixture',
+);
 await new Promise((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
 console.log(`Desktop fixture daemon ready at ${daemon.url}`);
 let closing = false;
