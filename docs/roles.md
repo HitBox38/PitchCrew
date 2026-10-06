@@ -2,6 +2,8 @@
 
 Pitchcrew stores one agent configuration for each role. A role's stable ID is its board, chat, routine and run identity; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
 
+Every production runtime has a 30-minute limit per workflow or chat turn, including routines and crew follow-ups. The budget is independent of role, model, reasoning and computer-use permission, so Writer can complete drafting and source checks with its recommended High reasoning. Pitchcrew stops runs that reach this limit; users can cancel sooner with **Stop**. Restart the daemon after changing runtime code.
+
 ## Default crew
 
 Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.

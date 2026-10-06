@@ -62,7 +62,7 @@ export async function runCliText(
     const timer = setTimeout(() => {
       timedOut = true;
       kill();
-    }, runtimeTimeLimit(context));
+    }, runtimeTimeLimit);
     context.signal.addEventListener('abort', kill, { once: true });
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk: string) => {
@@ -107,7 +107,9 @@ export async function runCliText(
       }
       if (timedOut) {
         reject(
-          new Error(`Runtime exceeded the ${runtimeTimeLimit(context) / 60000}-minute limit.`),
+          new Error(
+            `Pitchcrew stopped the runtime after its ${runtimeTimeLimit / 60000}-minute limit.`,
+          ),
         );
         return;
       }
