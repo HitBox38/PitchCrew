@@ -18,6 +18,10 @@ async function reasoningSetup(port: number) {
     detail: '',
   });
   const turns: ChatContext[] = [];
+  vi.spyOn(adapters['claude-code'], 'listModels').mockResolvedValue([
+    { value: 'sonnet', label: 'Sonnet', reasoning: { levels: ['low', 'medium', 'high'] } },
+    { value: 'haiku', label: 'Haiku' },
+  ]);
   vi.spyOn(adapters['claude-code'], 'chat').mockImplementation(async (context) => {
     turns.push(context);
     return { reply: 'Fixture reply' };
