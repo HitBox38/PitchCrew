@@ -48,6 +48,7 @@ export const runtimeIds = [
   'grok',
   'pi',
   'oh-my-pi',
+  'hermes',
 ] as const;
 export type RuntimeId = (typeof runtimeIds)[number];
 export const roleIds = ['scout', 'writer', 'reviewer'] as const;

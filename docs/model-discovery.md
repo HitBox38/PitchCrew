@@ -2,18 +2,18 @@
 
 Crew settings load models when the form opens and when its runtime changes. Every runtime uses the same searchable picker and CLI default option. The model picker and Save settings button are disabled while the selected runtime is unavailable; Refresh models can recheck availability. Runtime results replace the curated suggestions, rather than merging unverified suggestions into a live catalog. A successful empty result remains empty and asks the user to check the CLI's native authentication.
 
-| Runtime                        | Discovery                                                                                                                                               |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Codex                          | Private `codex app-server --listen stdio://` connection; initialize, then paginate `model/list` with hidden entries excluded.                           |
-| OpenCode                       | `opencode models --pure`.                                                                                                                               |
-| GitHub Copilot CLI             | Private `copilot --headless --stdio --no-auto-update` connection; connect (or legacy ping), then `models.list`. Models disabled by policy are excluded. |
-| Cursor Agent                   | `cursor-agent --list-models`.                                                                                                                           |
-| Kiro CLI                       | `kiro-cli chat --list-models --format json`.                                                                                                            |
-| Grok Build                     | `grok --no-auto-update models`.                                                                                                                         |
-| Pi                             | `pi --list-models` with extensions, skills, context files and sessions disabled.                                                                        |
-| oh-my-pi                       | `omp models --json --no-extensions` (chat models).                                                                                                      |
-| Claude Code, Gemini CLI, Goose | Curated suggestions: no standalone model-list operation is integrated.                                                                                  |
-| Demo                           | No model.                                                                                                                                               |
+| Runtime                                      | Discovery                                                                                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Codex                                        | Private `codex app-server --listen stdio://` connection; initialize, then paginate `model/list` with hidden entries excluded.                           |
+| OpenCode                                     | `opencode models --pure`.                                                                                                                               |
+| GitHub Copilot CLI                           | Private `copilot --headless --stdio --no-auto-update` connection; connect (or legacy ping), then `models.list`. Models disabled by policy are excluded. |
+| Cursor Agent                                 | `cursor-agent --list-models`.                                                                                                                           |
+| Kiro CLI                                     | `kiro-cli chat --list-models --format json`.                                                                                                            |
+| Grok Build                                   | `grok --no-auto-update models`.                                                                                                                         |
+| Pi                                           | `pi --list-models` with extensions, skills, context files and sessions disabled.                                                                        |
+| oh-my-pi                                     | `omp models --json --no-extensions` (chat models).                                                                                                      |
+| Claude Code, Gemini CLI, Goose, Hermes Agent | Curated suggestions: no standalone model-list operation is integrated.                                                                                  |
+| Demo                                         | No model.                                                                                                                                               |
 
 Discovery is separate from `detect()`, which still only checks CLI versions. Runtime metadata requests never start threads, sessions, prompts, sign-in flows or inference. They use the CLI's native authentication and configuration; Pitchcrew never reads provider credential files or handles tokens. Commands run outside the project directory, disable ambient extensions where supported, and filter connector OAuth configuration from the environment. Only normalized model selectors and labels enter snapshots; other metadata and diagnostics are discarded. Runtime-reported models are not a guarantee of account entitlement or successful execution, and the catalog can include built-in or cached CLI models.
 

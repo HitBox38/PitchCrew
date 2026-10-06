@@ -164,6 +164,7 @@ describe('local daemon workflow', () => {
       'grok',
       'pi',
       'oh-my-pi',
+      'hermes',
     ]);
     for (const runtime of snapshot.runtimes) {
       if (runtime.id === 'demo') {
@@ -205,6 +206,7 @@ describe('local daemon workflow', () => {
       ['scout', 'grok', 'fixture-model'],
       ['writer', 'pi', 'example/fixture-model'],
       ['reviewer', 'oh-my-pi', 'example/fixture-model'],
+      ['scout', 'hermes', 'openrouter:example/fixture-model'],
     ] as const) {
       const settings = { runtime, model, enabled: true, instructions: 'Fictional role settings.' };
       const saved = await request<Role>(`/roles/${id}`, 'PUT', settings);

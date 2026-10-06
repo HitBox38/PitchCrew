@@ -6,6 +6,7 @@ import { cursorAgent } from './cursor-agent/index.ts';
 import { demo } from './demo/index.ts';
 import { geminiCli } from './gemini-cli/index.ts';
 import { goose } from './goose/index.ts';
+import { hermes } from './hermes/index.ts';
 import { grok } from './grok/index.ts';
 import { kiroCli } from './kiro-cli/index.ts';
 import { ohMyPi } from './oh-my-pi/index.ts';
@@ -26,4 +27,5 @@ export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   grok,
   pi,
   'oh-my-pi': ohMyPi,
+  hermes,
 };

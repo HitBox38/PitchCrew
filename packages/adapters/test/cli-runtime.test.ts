@@ -19,6 +19,7 @@ describe.each([
   'grok',
   'pi',
   'oh-my-pi',
+  'hermes',
 ] as const)('%s adapter', (runtime) => {
   it('detects its executable through the side-effect-free version helper', async () => {
     const command = {
@@ -31,6 +32,7 @@ describe.each([
       grok: 'grok',
       pi: 'pi',
       'oh-my-pi': 'omp',
+      hermes: 'hermes',
     }[runtime];
     expect(await adapters[runtime].detect()).toMatchObject({ id: runtime, available: true });
     expect(detectCli).toHaveBeenCalledWith(runtime, command);
@@ -168,6 +170,21 @@ describe.each([
           timeout: 60,
         },
       ]);
+    } else if (runtime === 'hermes') {
+      expect(request.args).toContain('--oneshot');
+      expect(request.args[request.args.indexOf('--toolsets') + 1]).toBe('pitchcrew');
+      expect(request.args[request.args.indexOf('--query-file') + 1]).toBe('-');
+      expect(request.args).not.toContain('--yolo');
+      const home = request.environment.HERMES_HOME;
+      expect(home.startsWith(context.directory)).toBe(true);
+      const config = JSON.parse(await readFile(join(home, 'config.yaml'), 'utf8'));
+      expect(config.mcp_servers).toEqual({ pitchcrew: context.mcp });
+      expect(config.plugins.enabled).toEqual([]);
+      expect(config.auth.adopt_external_logins).toBe(false);
+      expect(config.memory.memory_enabled).toBe(false);
+      expect(config.skills.project_discovery).toBe(false);
+      expect(config.auxiliary.background_review.enabled).toBe(false);
+      expect(request.environment.HERMES_IGNORE_RULES).toBe('1');
     } else if (runtime === 'grok') {
       expect(request.args).toContain('--no-auto-update');
       expect(request.args).toContain('--verbatim');

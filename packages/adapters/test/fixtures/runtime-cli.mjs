@@ -40,6 +40,7 @@ const environment = Object.fromEntries(
         'GITHUB_COPILOT_PROMPT_MODE_EXTENSIONS',
       ].includes(key) ||
       /^GROK_(CLAUDE|CURSOR)_(SKILLS|RULES|AGENTS|MCPS|HOOKS)_ENABLED$/.test(key) ||
+      key.startsWith('HERMES_') ||
       key.startsWith('OPENCODE_') ||
       key.startsWith('PITCHCREW_'),
   ),
@@ -110,6 +111,25 @@ if (mode === 'wait') {
     if (mode === 'late-error') {
       process.stdout.write('\n');
       emit({ type: 'error', message: 'Fixture late failure.' });
+    }
+  } else if (runtime === 'hermes') {
+    emit({ type: 'system', subtype: 'init', session_id: 'fictional-session' });
+    emit({ type: 'text', text: 'Checking the board.' });
+    emit({ type: 'tool_use', name: 'mcp_pitchcrew_pitchcrew_get_card', input: {} });
+    emit({ type: 'tool_result', name: 'mcp_pitchcrew_pitchcrew_get_card', output: 'Ignore me.' });
+    emit({ type: 'text', text: text.slice(0, 12) });
+    emit({ type: 'text', text: text.slice(12) });
+    if (mode === 'missing-terminal') process.exit(0);
+    process.stdout.write(
+      JSON.stringify({
+        type: 'result',
+        exit_code: mode === 'terminal-error' ? 1 : 0,
+        text: mode === 'empty-terminal' ? '' : text,
+      }),
+    );
+    if (mode === 'late-error') {
+      process.stdout.write('\n');
+      emit({ type: 'error', error: 'Fixture late failure.' });
     }
   } else if (runtime === 'grok') {
     emit({ type: 'text', data: 'Checking the board.' });
