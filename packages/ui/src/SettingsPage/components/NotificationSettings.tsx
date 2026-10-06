@@ -1,4 +1,5 @@
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
+import { Switch } from '@/components/ui/switch/index.tsx';
 
 export function NotificationSettings() {
   const sound = useDevicePreferences((state) => state.sound);
@@ -16,13 +17,11 @@ export function NotificationSettings() {
           <strong>Notification sounds</strong>
           <span className="quiet block">Play a sound when a message or request arrives.</span>
         </span>
-        <input
+        <Switch
           id="notification-sounds"
-          type="checkbox"
-          role="switch"
+          aria-label="Notification sounds"
           checked={sound}
-          aria-checked={sound}
-          onChange={(event) => setSound(event.target.checked)}
+          onCheckedChange={setSound}
         />
       </label>
       <p className="info-note">Preferences save automatically on this device.</p>

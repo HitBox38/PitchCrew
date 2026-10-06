@@ -25,7 +25,11 @@ export function GoogleConnectionSetup(props: GoogleConnectionSetupProps) {
             <div className="flex flex-col gap-4 pt-4">
               <div className="flex flex-col gap-2 rounded-lg border border-border p-3">
                 <p>Already use Google Workspace CLI?</p>
-                <Button disabled={working} onClick={() => setEditing('google-cli')}>
+                <Button
+                  className="button"
+                  disabled={working}
+                  onClick={() => setEditing('google-cli')}
+                >
                   Use Workspace CLI
                 </Button>
                 <p className="quiet">Connect its saved login without copying credentials.</p>

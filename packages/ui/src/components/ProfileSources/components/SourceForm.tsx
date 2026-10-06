@@ -5,7 +5,7 @@ import type { ProfileSourcesModel } from '../types.ts';
 
 export function SourceForm(c: ProfileSourcesModel) {
   return (
-    <form className="profile-source-form" onSubmit={c.previewSource}>
+    <form className="form profile-source-form" onSubmit={c.previewSource}>
       <h3>
         {c.provider === 'github' ? 'Read from a GitHub folder' : 'Read from a Google Drive folder'}
       </h3>
@@ -74,6 +74,7 @@ export function SourceForm(c: ProfileSourcesModel) {
               : 'Connect Google and grant Drive read access.'}
           </p>
           <Button
+            className="button primary"
             disabled={c.busy}
             onClick={() => c.connection.setEditing(c.provider === 'github' ? 'github' : 'google')}
           >

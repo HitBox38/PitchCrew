@@ -1,4 +1,4 @@
-import { Checkbox } from '../../components/ui/checkbox/index.tsx';
+import { Switch } from '../../components/ui/switch/index.tsx';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 import { useAnalyticsConfig } from '../api.ts';
 
@@ -19,14 +19,12 @@ export function AnalyticsSettings() {
           <strong>Share anonymous usage</strong>
           <span className="quiet block">Optional. You can turn this off at any time.</span>
         </span>
-        <div className="flex shrink-0">
-          <Checkbox
-            id="usage-analytics"
-            aria-label="Share anonymous usage"
-            checked={enabled}
-            onCheckedChange={setEnabled}
-          />
-        </div>
+        <Switch
+          id="usage-analytics"
+          aria-label="Share anonymous usage"
+          checked={enabled}
+          onCheckedChange={setEnabled}
+        />
       </label>
       <p className="info-note">
         {!loaded

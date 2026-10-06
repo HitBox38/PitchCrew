@@ -67,7 +67,8 @@ export function SetupChecklist({
           and routines can wait.
         </p>
         <Button
-          className={count === 3 ? 'button primary small' : 'button ghost small'}
+          variant={count === 3 ? 'default' : 'ghost'}
+          className={count === 3 ? 'button primary small' : 'text-button min-h-8'}
           disabled={working}
           onClick={() => void save(count === 3 ? 'completed' : 'dismissed')}
         >

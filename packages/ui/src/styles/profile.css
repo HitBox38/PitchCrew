@@ -281,7 +281,8 @@
   cursor: pointer;
   color: var(--primary);
 }
-.profile-import-document pre {
+.profile-import-document pre,
+.approval-preview .profile-update-preview {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font: 14px/1.6 var(--font-sans);

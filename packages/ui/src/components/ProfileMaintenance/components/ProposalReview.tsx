@@ -1,5 +1,6 @@
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import type { ProfileSourcesProps } from '../../ProfileSources/types.ts';
 import { useProposalReview } from '../hooks/useProposalReview.ts';
 import { ProposalDocuments } from './ProposalDocuments.tsx';
@@ -10,8 +11,8 @@ export function ProposalReview(
   const c = useProposalReview(props);
   const { proposal } = props;
   return (
-    <article className="grid gap-3 rounded-xl border border-border p-4">
-      <h4>{proposal.source.label}</h4>
+    <article className="approval-card form grid gap-3 text-sm">
+      <h4 className="font-serif text-lg font-semibold">{proposal.source.label}</h4>
       {proposal.observation ? (
         <p>
           Project changed from {proposal.observation.previous.slice(0, 8)} to{' '}
@@ -35,21 +36,28 @@ export function ProposalReview(
         <p>Removed upstream; local notes will be kept: {proposal.missing.join(', ')}</p>
       ) : null}
       {proposal.restored?.length ? <p>Returned upstream: {proposal.restored.join(', ')}</p> : null}
-      <label className="flex items-start gap-2">
-        <input
-          type="checkbox"
+      <label className="checkbox-label items-start">
+        <Checkbox
           checked={c.verified}
           disabled={props.working || proposal.status === 'applying'}
-          onChange={(event) => c.setVerified(event.target.checked)}
+          onCheckedChange={c.setVerified}
         />
         {proposal.documents.length
           ? 'I reviewed the selected documents and verified their personal facts. They may be used as resume evidence.'
           : 'I reviewed this observation. Keep profile notes unchanged and acknowledge these source changes.'}
       </label>
       {c.active ? <p>Apply when all agent runs have finished.</p> : null}
-      {c.error ? <p role="alert">{c.error}</p> : null}
-      <div className="flex gap-2">
-        <Button disabled={props.working || c.active || !c.verified} onClick={() => c.decide(true)}>
+      {c.error ? (
+        <p className="form-error" role="alert">
+          {c.error}
+        </p>
+      ) : null}
+      <div className="flex flex-wrap gap-2">
+        <Button
+          className="button primary"
+          disabled={props.working || c.active || !c.verified}
+          onClick={() => c.decide(true)}
+        >
           {proposal.status === 'applying'
             ? 'Retry approved update'
             : proposal.documents.length
@@ -57,7 +65,7 @@ export function ProposalReview(
               : 'Acknowledge source changes'}
         </Button>
         <Button
-          variant="outline"
+          className="button"
           disabled={props.working || proposal.status === 'applying'}
           onClick={() => c.decide(false)}
         >
