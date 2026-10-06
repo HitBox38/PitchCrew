@@ -13,6 +13,7 @@ import { NotificationSettings } from './components/NotificationSettings.tsx';
 import { RuntimeSettings } from './components/RuntimeSettings.tsx';
 import { SettingsTabs } from './components/SettingsTabs.tsx';
 import { validateSettingsSearch } from './helpers.ts';
+import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
 
 export function SettingsPage() {
   const { section } = useSearch({ from: '/settings' });
@@ -33,6 +34,7 @@ export function SettingsPage() {
       <TabsContent className="settings-content" value="general">
         <AppearanceSettings />
         <NotificationSettings />
+        <UpdateSettings />
         <AnalyticsSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="accounts">

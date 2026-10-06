@@ -43,6 +43,7 @@ const env = {
   PITCHCREW_HOME: join(directory, 'workspace'),
   PITCHCREW_PORT: String(port),
   PITCHCREW_SEED_SKILLS: '0',
+  PITCHCREW_UPDATE_CHECKS: '0',
   PITCHCREW_SMOKE_FILE: evidence,
   PITCHCREW_SMOKE_CHAT: '0',
 };

@@ -9,6 +9,7 @@ import { SidebarInset } from '@/components/ui/sidebar/components/SidebarInset.ts
 import { SidebarProvider } from '@/components/ui/sidebar/components/SidebarProvider.tsx';
 import { Outlet } from '@tanstack/react-router';
 import { Onboarding } from '@/Onboarding/index.tsx';
+import { AppUpdates } from '@/AppUpdates/index.tsx';
 import { Suspense } from 'react';
 import type { ReadyWorkspaceProps } from '../types.ts';
 
@@ -26,6 +27,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
         <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
           <WorkspaceHeading {...controller} />
           <Onboarding />
+          <AppUpdates />
           {error ? (
             <div role="alert" className="error-banner">
               Lost connection to the local daemon: {error}

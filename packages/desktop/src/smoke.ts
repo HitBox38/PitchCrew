@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises';
 import { smokeInsights } from './smoke-insights.ts';
 import { smokeStyles } from './smoke-styles.ts';
 import { smokeOnboarding } from './smoke-onboarding.ts';
+import { smokeUpdates } from './smoke-updates.ts';
 import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke-sheets.ts';
 
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
@@ -27,7 +28,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             const styleChecks = ${smokeStyles};
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
-            let onboardingReady = null, insightsReady = null;
+            let onboardingReady = null, insightsReady = null, appUpdatesReady = null;
             const sheetChecks = {};
             if (${JSON.stringify(process.env.PITCHCREW_SMOKE_CHAT === '1')}) {
               if (!snapshot.roles.every((role) => role.runtime === 'claude-code' && role.enabled)) throw new Error('Chat smoke test requires an isolated fixture workspace.');
@@ -117,10 +118,21 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               const dismissed = await waitFor(() => !document.querySelector('[data-slot="toast"]'));
               notificationToastChecks = { toastVisible, hoverPaused, focusPaused, stackReady, linksReady, navigationReady, dismissed };
               notificationToastReady = Object.values(notificationToastChecks).every(Boolean);
+              appUpdatesReady = await ${smokeUpdates};
             }
-            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, insightsReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
+        if (result.appUpdatesReady) {
+          await writeFile(
+            `${smokeFile}.updates.png`,
+            (await window.webContents.capturePage()).toPNG(),
+          );
+          // The title-bar checks below expect the bounded chat layout, not a scrolling Settings page.
+          await window.webContents.executeJavaScript(
+            `(async () => { document.querySelector('a[href="/chat"]')?.click(); for (let i = 0; i < 80; i++) { if (document.querySelector('textarea[aria-label="Message Scout"]')) return; await new Promise((resolve) => setTimeout(resolve, 100)); } throw new Error('Could not restore chat after update checks.'); })()`,
+          );
+        }
         const chrome = [];
         const initialTheme = nativeTheme.themeSource;
         for (const theme of ['light', 'dark'] as const) {

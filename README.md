@@ -23,6 +23,8 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 Download a production installer from [GitHub Releases](https://github.com/HitBox38/PitchCrew/releases): Windows x64 (`.exe`), macOS Apple Silicon or Intel (`.dmg`), or Linux x64 (`.AppImage`/`.deb`). Installers include Node.js, the daemon, its dependencies and Chromium; configure provider CLIs and authentication separately. Windows and macOS builds are unsigned and macOS builds are not notarized, so your operating system may require permission to open them. Each successful push to `main` publishes a commit-tagged release after CI and packaged-app checks pass. Existing data stays in `~/.pitchcrew`.
 
+Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > General shows your version, **Check for updates**, and a switch for automatic checks. Update notices open the matching GitHub release so you can download and install it yourself. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
+
 For development from source:
 
 Requires **Node.js 22.18+ or 24.11+** (supported LTS lines) and **pnpm 11**. Windows is the verified development platform. Native SQLite and Electron dependencies may need build tools if prebuilt binaries are unavailable.

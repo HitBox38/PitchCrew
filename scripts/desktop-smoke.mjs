@@ -17,6 +17,7 @@ try {
         PITCHCREW_HOME: join(directory, 'workspace'),
         PITCHCREW_PORT: port,
         PITCHCREW_SEED_SKILLS: '0',
+        PITCHCREW_UPDATE_CHECKS: '0',
       },
       stdio: 'inherit',
       windowsHide: true,
@@ -76,6 +77,7 @@ try {
     !result.notificationsInAppOnly ||
     (!process.env.PITCHCREW_URL &&
       (!result.onboardingReady ||
+        !result.appUpdatesReady ||
         !result.insightsReady ||
         !result.chatReady ||
         !result.chatResponded ||
