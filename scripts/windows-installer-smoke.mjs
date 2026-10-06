@@ -129,6 +129,8 @@ SectionEnd
   assert.equal(sibling.exitCode, null);
   assert.equal(sibling.signalCode, null);
   env.PITCHCREW_TEST_INSTALL_DIRECTORY = `${root}\\`;
+  // Remove the fixture's hard link before replacing it: other processes still map the Node binary.
+  await rm(join(root, 'Pitchcrew.exe'));
   await copyFile(installer, join(root, 'Pitchcrew.exe'));
   await check(join(root, 'Pitchcrew.exe'));
   console.log(
