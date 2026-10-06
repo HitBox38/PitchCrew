@@ -12,7 +12,7 @@ export async function registerJobSourceTools(server: McpServer, call: AgentCall)
     {
       title: 'List job sources',
       description:
-        "Requires discoverJobs. Read the user's saved public job boards (Greenhouse, Ashby, Lever): IDs, names, filters, enabled state and last scan. Only the user can add, edit or remove sources.",
+        "Requires discoverJobs. Read the user's saved public job boards (Greenhouse, Ashby, Lever, Comeet, Workable): IDs, names, filters, enabled state and last scan. Only the user can add, edit or remove sources.",
       inputSchema: {},
       annotations: readOnly,
     },
