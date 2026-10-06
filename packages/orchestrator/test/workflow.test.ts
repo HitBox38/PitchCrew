@@ -59,8 +59,18 @@ describe('local daemon workflow', () => {
     const list = vi
       .spyOn(adapters.opencode, 'listModels')
       .mockResolvedValue([{ value: 'fixture/live-one', label: 'Live One' }]);
+    vi.spyOn(adapters['claude-code'], 'detect').mockResolvedValue({
+      id: 'claude-code',
+      available: true,
+      version: 'fixture',
+      detail: 'Fixture runtime',
+    });
+    const claudeList = vi
+      .spyOn(adapters['claude-code'], 'listModels')
+      .mockResolvedValue([{ value: 'fixture-claude', label: 'Fixture Claude' }]);
     const { daemon, request } = await setup(14434);
     expect(list).not.toHaveBeenCalled();
+    expect(claudeList).not.toHaveBeenCalled();
     const eventsBefore = daemon.service.board.events();
     const { result: initial } = await request<RuntimeModelCatalog>(
       '/runtimes/opencode/models',
@@ -95,7 +105,14 @@ describe('local daemon workflow', () => {
     expect(fallback).toMatchObject({ modelSource: 'fallback', models: adapters.opencode.models });
     expect(JSON.stringify(fallback)).not.toContain('fixture-private-diagnostic');
     expect(
-      (await request<RuntimeModelCatalog>('/runtimes/claude-code/models', 'POST', {})).result
+      (await request<RuntimeModelCatalog>('/runtimes/claude-code/models', 'POST', {})).result,
+    ).toMatchObject({
+      modelSource: 'runtime',
+      models: [{ value: 'fixture-claude', label: 'Fixture Claude' }],
+    });
+    expect(claudeList).toHaveBeenCalledOnce();
+    expect(
+      (await request<RuntimeModelCatalog>('/runtimes/gemini-cli/models', 'POST', {})).result
         .modelSource,
     ).toBe('fallback');
     expect(
