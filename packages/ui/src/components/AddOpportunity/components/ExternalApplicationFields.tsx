@@ -4,9 +4,11 @@ import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 export function ExternalApplicationFields({
   external,
   setExternal,
+  jobIdentifier,
 }: {
   external: boolean;
   setExternal: (value: boolean) => void;
+  jobIdentifier: string;
 }) {
   return (
     <fieldset className="flex flex-col gap-3">
@@ -20,7 +22,7 @@ export function ExternalApplicationFields({
             Record a known submission. This saves tracking information without sending an
             application.
           </p>
-          <ExternalSubmissionFields />
+          <ExternalSubmissionFields jobIdentifier={jobIdentifier} />
         </>
       ) : null}
     </fieldset>

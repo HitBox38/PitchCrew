@@ -1,7 +1,8 @@
 import { adapters } from '@pitchcrew/adapters';
-import { digestPacket } from '@pitchcrew/board';
+import { digestPacket, recordLinkedJob } from '@pitchcrew/board';
 import {
   cardInput,
+  jobLinkProvenance,
   type Approval,
   type Card,
   type CardState,
@@ -16,8 +17,11 @@ import { exampleProfile, examples } from '../../test/fixtures/examples.ts';
 import type { CrewContext } from './types.ts';
 import { assertProfileReady, changeProfile } from '../profile-sources/mutation.ts';
 
+/** A user-added job; `provenance` is present when the user fetched it from a posting link. */
+const newCard = cardInput.extend({ provenance: jobLinkProvenance.optional() });
 export function createCard(this: CrewContext, data: unknown): Card {
-  return this.board.createCard(cardInput.parse(data));
+  const { provenance, ...input } = newCard.parse(data);
+  return provenance ? recordLinkedJob(this.board, input, provenance) : this.board.createCard(input);
 }
 export function moveCard(this: CrewContext, id: string, state: CardState): Card {
   if (this.board.hasActiveRun(id))

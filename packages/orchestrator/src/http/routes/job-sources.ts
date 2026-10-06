@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import type { CrewService } from '../../service.ts';
 
-/** User-only source management. The session hook rejects agent and cross-origin callers. */
+/** User-only source management and link lookups. The session hook rejects agent and cross-origin callers. */
 export function registerJobSourcesRoutes(app: FastifyInstance, service: CrewService) {
   const sourceId = (value: string) => z.uuid().parse(value);
   app.get('/api/job-sources', async (_req, res) => res.send(await service.jobSources.list()));
@@ -24,6 +24,14 @@ export function registerJobSourcesRoutes(app: FastifyInstance, service: CrewServ
       if (!res.raw.writableFinished) controller.abort();
     });
     res.send(await service.jobSources.preview(req.body, controller.signal));
+  });
+  // Fills the Add job form from a posting link. It fetches only fixed provider endpoints.
+  app.post('/api/jobs/lookup', async (req, res) => {
+    const controller = new AbortController();
+    res.raw.once('close', () => {
+      if (!res.raw.writableFinished) controller.abort();
+    });
+    res.send(await service.jobSources.lookup(req.body, controller.signal));
   });
   app.post('/api/job-sources/scan', async (req, res) =>
     res.send(await service.scanJobSources(req.body ?? {})),

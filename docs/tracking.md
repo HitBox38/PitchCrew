@@ -27,7 +27,7 @@ To close out silent applications, use **Insights > Silent applications**. It pre
 
 ## External submissions
 
-The Add job form includes **Already applied outside Pitchcrew**. Users supply a past submission time, optional job identifier and confirmation note. Registration atomically saves a submitted card with external provenance and no packet. It prevents likely duplicates by normalized company/title and canonical URL or job identifier, returning matching card IDs for review. Applications at the same company/title with different known URLs can be tracked separately.
+The Add job form includes **Already applied outside Pitchcrew**. Users supply a past submission time, optional job identifier and confirmation note. **Fetch from link** fills in the job identifier from a supported posting link; see [job discovery](job-discovery.md#add-a-job-from-a-link). Registration atomically saves a submitted card with external provenance and no packet. It prevents likely duplicates by normalized company/title and canonical URL or job identifier, returning matching card IDs for review. Applications at the same company/title with different known URLs can be tracked separately.
 
 Registration only records a known fact. It does not submit, send, navigate, export, invent a receipt or create/consume packet approval. Existing Pitchcrew packet/export/submission gates remain intact. Agents have no external-registration or tracking-decision tool.
 

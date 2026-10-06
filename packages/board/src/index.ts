@@ -42,7 +42,9 @@ export { previewApplicationImport, applyApplicationImport } from './board/import
 export {
   discoveryKeys,
   isKnownPosting,
+  postingMatches,
   recordDiscoveredLeads,
+  recordLinkedJob,
   type DiscoveredPosting,
 } from './board/discovery.ts';
 export { defaultInstructionHistory } from './board/default-instruction-history.ts';
