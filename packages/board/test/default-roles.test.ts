@@ -13,6 +13,36 @@ afterEach(() => boards.splice(0).forEach((board) => board.close()));
 const ids = ['scout', 'writer', 'reviewer', 'submitter', 'tracker', 'documenter', 'pipeline-coach'];
 
 describe('default crew', () => {
+  it('uses recommended configurations only for missing roles and keeps seeding controls intact', () => {
+    const board = create();
+    const saved = defaultRoles('demo', true)[0];
+    board.record('role', saved, 'user', 'Existing configuration');
+    const configurations = new Map([
+      ['scout', { runtime: 'codex' as const, model: 'gpt-6.1-sol', reasoning: 'medium' as const }],
+      [
+        'writer',
+        {
+          runtime: 'claude-code' as const,
+          model: 'sonnet',
+          reasoning: 'high' as const,
+          enabled: true,
+          instructions: 'Ignored override',
+        },
+      ],
+    ]);
+    board.seedRoles('claude-code', false, configurations);
+    expect(board.get<Role>('role', 'scout')).toEqual(saved);
+    expect(board.get<Role>('role', 'writer')).toMatchObject({
+      runtime: 'claude-code',
+      model: 'sonnet',
+      reasoning: 'high',
+      enabled: false,
+      instructions: defaultRoles('claude-code', false)[1].instructions,
+    });
+    const before = board.list('role');
+    board.rebuild();
+    expect(board.list('role')).toEqual(before);
+  });
   it('seeds seven valid paused production roles without starting work or connecting accounts', () => {
     const board = create();
     board.seedRoles('claude-code', false);

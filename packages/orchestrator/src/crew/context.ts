@@ -119,6 +119,6 @@ export function createCrewContext(
     agentCall: (...args) => agentCall.call(context, ...args),
     close: (...args) => close.call(context, ...args),
   };
-  context.board.seedRoles(dev ? 'demo' : 'claude-code', dev);
+  if (dev) context.board.seedRoles('demo', true);
   return context;
 }
