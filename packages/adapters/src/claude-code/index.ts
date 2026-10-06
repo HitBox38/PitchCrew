@@ -1,5 +1,6 @@
 import type { ChatContext, RunContext, RuntimeAdapter } from '@pitchcrew/core';
 import { chatCli, detectCli, promptFor, runCli } from '../process.ts';
+import { claudeModelArgs, readClaudeModels } from './models.ts';
 
 function argsFor(context: RunContext | ChatContext) {
   const args = [
@@ -40,6 +41,7 @@ export const claudeCode: RuntimeAdapter = {
     { value: 'fable', label: 'Fable' },
     { value: 'best', label: 'Best available' },
   ],
+  listModels: (signal) => readClaudeModels('claude', claudeModelArgs, signal),
   detect: () => detectCli('claude-code', 'claude'),
   run: (context) => runCli('claude', argsFor(context), context, promptFor(context), extract),
   chat: (context) => chatCli('claude', argsFor(context), context, extract),
