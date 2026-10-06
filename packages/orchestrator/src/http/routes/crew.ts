@@ -14,6 +14,13 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
   app.put<IdRoute>('/api/roles/:id', async (req, res) =>
     res.send(await service.configureRole(roleIdSchema.parse(req.params.id), req.body)),
   );
+  // Default instruction updates are user decisions only; the agent gateway has no equivalent.
+  app.post<IdRoute>('/api/roles/:id/instructions-update/adopt', async (req, res) =>
+    res.send(await service.adoptDefaultInstructions(roleIdSchema.parse(req.params.id), req.body)),
+  );
+  app.post<IdRoute>('/api/roles/:id/instructions-update/dismiss', (req, res) =>
+    res.send(service.dismissInstructionUpdate(roleIdSchema.parse(req.params.id), req.body)),
+  );
   app.post<IdRoute>('/api/roles/:id/chat', async (req, res) =>
     res.status(202).send(await service.sendChat(roleIdSchema.parse(req.params.id), req.body)),
   );

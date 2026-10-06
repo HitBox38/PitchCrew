@@ -26,6 +26,12 @@ export function NotificationLink({
         onOpen(item);
     },
   };
+  if (item.target === '/crew')
+    return (
+      <Link to="/crew" {...props}>
+        {children}
+      </Link>
+    );
   return item.target === '/inbox' ? (
     <Link to="/inbox" {...props}>
       {children}

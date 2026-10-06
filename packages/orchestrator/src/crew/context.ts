@@ -1,4 +1,5 @@
 import { Board } from '@pitchcrew/board';
+import { InstructionUpdatePreferences } from '../instruction-updates.ts';
 import { OnboardingPreferences } from '../onboarding.ts';
 import { PacketRulesStore } from '../packet-rules.ts';
 import {
@@ -55,6 +56,7 @@ export function createCrewContext(
     mcpEntry,
     board,
     onboarding,
+    instructionUpdatePreferences: new InstructionUpdatePreferences(directory),
     packetRules: new PacketRulesStore(directory),
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),

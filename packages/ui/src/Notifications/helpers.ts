@@ -1,4 +1,5 @@
 import type { Snapshot } from '@pitchcrew/core';
+import { pendingInstructionUpdates } from '../lib/instruction-updates.ts';
 import type { CrewNotification } from './types.ts';
 
 export function collectNotifications(data: Snapshot): CrewNotification[] {
@@ -69,6 +70,19 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
       target: `/chat/${p.threadId ?? p.roleId}`,
       createdAt: p.createdAt,
     });
+  // Shipped default changes; a dismissed or adopted revision leaves the list.
+  for (const update of pendingInstructionUpdates(data)) {
+    const latest = update.changes.at(-1);
+    notifications.push({
+      id: `instruction-update:${update.roleId}:${update.revision}`,
+      kind: 'attention',
+      context: 'instruction_update',
+      title: `${roleName(update.roleId)} has new default instructions`,
+      body: latest?.summary ?? 'Review the new default instructions in Crew.',
+      target: '/crew',
+      createdAt: `${latest?.date ?? '1970-01-01'}T00:00:00.000Z`,
+    });
+  }
   return notifications
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
     .slice(0, 100);

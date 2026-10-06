@@ -1,4 +1,5 @@
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
+import type { InstructionUpdate } from './default-instructions.ts';
 import type { OnboardingState } from './onboarding.ts';
 import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
@@ -34,6 +35,8 @@ export interface ProfileFile {
 export interface Snapshot {
   onboarding?: OnboardingState;
   packetRules?: PacketRulesState;
+  /** Newer default instructions for seeded roles; user-session snapshots only. */
+  instructionUpdates?: InstructionUpdate[];
   profileProposals?: ProfileMaintenanceProposal[];
   trackingSignals?: TrackingSignal[];
   trackingScans?: TrackingScan[];

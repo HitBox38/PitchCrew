@@ -1,5 +1,7 @@
 import { CreateRole } from './components/CreateRole.tsx';
+import { InstructionUpdatesNotice } from './components/InstructionUpdatesNotice.tsx';
 import { CrewCard } from '@/CrewPage/components/CrewCard.tsx';
+import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
 import { getRoleStatus } from '@/lib/role-status.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
@@ -24,15 +26,18 @@ export function CrewPage() {
     const status = getRoleStatus(role, data);
     return status.startsWith('Working') ? status : 'Ready';
   };
+  const updates = pendingInstructionUpdates(data);
   return (
     <>
       <CreateRole data={data} working={working} />
+      <InstructionUpdatesNotice data={data} onReview={setRoleId} />
       <div className="crew-grid">
         {data.roles.map((role) => (
           <CrewCard
             key={role.id}
             role={role}
             status={roleStatus(role)}
+            update={updates.find((update) => update.roleId === role.id)}
             onConfigure={() => setRoleId(role.id)}
             onChat={() => openChat(role.id)}
           />

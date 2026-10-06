@@ -104,5 +104,7 @@ it('retains mixed v9 imports, both v10 payload families, and combined v11 snapsh
       (board.db.prepare('SELECT json FROM events WHERE id = ?').get(fixture.id) as { json: string })
         .json,
     ).toBe(fixture.raw);
-  expect(() => decodeEvent('{"version":12}')).toThrow('Unsupported');
+  expect(() => decodeEvent(JSON.stringify({ version: currentEventVersion + 1 }))).toThrow(
+    'Unsupported',
+  );
 });

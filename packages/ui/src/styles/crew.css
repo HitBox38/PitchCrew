@@ -219,3 +219,96 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+.crew-card-update {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -6px 0 14px;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--plum);
+}
+.instruction-updates-notice {
+  background-color: var(--surface);
+  background-image: var(--grain);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--plum);
+  border-radius: 12px 14px 13px 11px;
+  padding: 18px 22px;
+}
+.instruction-update {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--plum);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.instruction-update-label {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--muted);
+}
+.instruction-update-changes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 18px;
+  list-style: disc;
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+.instruction-update-changes time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.instruction-diff,
+.instruction-update-previous {
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--paper);
+  font-size: var(--text-label);
+  line-height: 1.6;
+}
+.instruction-update-previous {
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+}
+.instruction-diff li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  padding: 4px 12px 4px 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.instruction-diff-sign {
+  text-align: center;
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+}
+.instruction-diff li[data-kind='added'] {
+  background: var(--moss-soft);
+}
+.instruction-diff li[data-kind='removed'] {
+  background: var(--rose-soft);
+}
+.instruction-diff li[data-kind='removed'] .instruction-diff-text {
+  color: var(--ink-soft);
+}
+.instruction-diff li[data-kind='removed'] > .instruction-diff-text:not(:has(del)),
+.instruction-diff del {
+  text-decoration: line-through;
+  text-decoration-color: var(--rose);
+}
+.instruction-diff ins {
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--moss);
+}
+.instruction-diff del {
+  color: var(--rose);
+}

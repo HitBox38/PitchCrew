@@ -1,3 +1,4 @@
+import { defaultInstructionHistory, instructionRevision } from '@pitchcrew/board';
 import {
   defaultCapabilities,
   roleIdSchema,
@@ -50,7 +51,13 @@ export async function writeRole(this: CrewContext, role: Role): Promise<void> {
   );
   await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
 }
-export async function configureRole(this: CrewContext, id: RoleId, data: unknown): Promise<Role> {
+export async function configureRole(
+  this: CrewContext,
+  id: RoleId,
+  data: unknown,
+  message?: string,
+  defaultInstructionBase?: Role['defaultInstructionBase'],
+): Promise<Role> {
   if (this.configuring.has(id)) throw new Error('This role’s settings are being updated.');
   if (this.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
     throw new Error('Wait for this role’s active run or cancel it before changing settings.');
@@ -61,12 +68,19 @@ export async function configureRole(this: CrewContext, id: RoleId, data: unknown
   const role = {
     ...current,
     ...parsed,
+    defaultInstructionBase:
+      defaultInstructionBase ??
+      (defaultInstructionHistory[id]?.some(
+        (entry) => entry.revision === instructionRevision(parsed.instructions),
+      )
+        ? undefined
+        : current.defaultInstructionBase),
     capabilities: { ...defaultCapabilities, ...current.capabilities, ...parsed.capabilities },
   };
   this.configuring.add(id);
   try {
     await this.writeRole(role);
-    this.board.record('role', role, 'user', `Updated ${role.name} settings`);
+    this.board.record('role', role, 'user', message ?? `Updated ${role.name} settings`);
   } finally {
     this.configuring.delete(id);
   }
