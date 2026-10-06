@@ -24,6 +24,7 @@ function argsFor(context: RunContext | ChatContext) {
     JSON.stringify({ mcpServers: { pitchcrew: context.mcp } }),
   ];
   if (context.role.model) args.push('--model', context.role.model);
+  if (context.role.reasoning) args.push('--effort', context.role.reasoning);
   return args;
 }
 function extract(event: Record<string, unknown>): string | null {
@@ -35,11 +36,27 @@ export const claudeCode: RuntimeAdapter = {
   // Runtime aliases follow the CLI's model configuration without pinning versions.
   // https://code.claude.com/docs/en/model-config
   models: [
-    { value: 'sonnet', label: 'Sonnet' },
-    { value: 'opus', label: 'Opus' },
+    {
+      value: 'sonnet',
+      label: 'Sonnet',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'] },
+    },
+    {
+      value: 'opus',
+      label: 'Opus',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'] },
+    },
     { value: 'haiku', label: 'Haiku' },
-    { value: 'fable', label: 'Fable' },
-    { value: 'best', label: 'Best available' },
+    {
+      value: 'fable',
+      label: 'Fable',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'] },
+    },
+    {
+      value: 'best',
+      label: 'Best available',
+      reasoning: { levels: ['low', 'medium', 'high', 'xhigh', 'max'] },
+    },
   ],
   listModels: (signal) => readClaudeModels('claude', claudeModelArgs, signal),
   detect: () => detectCli('claude-code', 'claude'),

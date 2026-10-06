@@ -56,6 +56,9 @@ if (mode === 'cursor') {
                 id: 'fixture-live',
                 name: 'Fixture · Live',
                 policy: { state: 'enabled' },
+                capabilities: { supports: { reasoningEffort: true } },
+                supportedReasoningEfforts: ['low', 'high'],
+                defaultReasoningEffort: 'low',
                 billing: { private: 'fixture-secret' },
               },
               { id: 'fixture-disabled', name: 'Disabled', policy: { state: 'disabled' } },
@@ -100,6 +103,8 @@ if (mode === 'cursor') {
         model: 'fixture-one',
         displayName: 'Fixture One',
         secretMetadata: 'fixture-secret',
+        supportedReasoningEfforts: [{ reasoningEffort: 'low' }, { reasoningEffort: 'high' }],
+        defaultReasoningEffort: 'high',
       };
       if (message.params.cursor) {
         send({

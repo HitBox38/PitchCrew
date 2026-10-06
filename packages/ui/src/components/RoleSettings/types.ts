@@ -38,6 +38,8 @@ export type RuntimeSettingsProps = Pick<
   | 'runtime'
   | 'setRuntime'
   | 'setModel'
+  | 'reasoning'
+  | 'setReasoning'
   | 'runtimeItems'
   | 'runtimeAvailable'
   | 'runtimeCatalog'

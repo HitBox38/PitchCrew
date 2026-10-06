@@ -1,3 +1,4 @@
+import { ComposerReasoning } from './ComposerReasoning.tsx';
 import { ComposerContext } from '@/ChatView/components/ComposerContext.tsx';
 import { ComposerHint } from '@/ChatView/components/ComposerHint.tsx';
 import type { ChatComposerProps } from '@/ChatView/types.ts';
@@ -9,26 +10,27 @@ import { PromptInputTextarea } from '@/components/ai-elements/prompt-input/compo
 import { runtimeLabels } from '@/lib/labels.ts';
 import { Send } from 'lucide-react';
 
-export function ChatComposer({
-  role,
-  available,
-  error,
-  send,
-  inputRef,
-  busy,
-  draft,
-  setDrafts,
-  thread,
-  working,
-  recipient,
-  recipientItems,
-  setRecipient,
-  cardId,
-  jobItems,
-  setJobs,
-  attached,
-  onOpenCard,
-}: ChatComposerProps) {
+export function ChatComposer(props: ChatComposerProps) {
+  const {
+    role,
+    available,
+    error,
+    send,
+    inputRef,
+    busy,
+    draft,
+    setDrafts,
+    thread,
+    working,
+    recipient,
+    recipientItems,
+    setRecipient,
+    cardId,
+    jobItems,
+    setJobs,
+    attached,
+    onOpenCard,
+  } = props;
   return (
     <div className="chat-compose">
       {!role.enabled || !available ? (
@@ -58,6 +60,7 @@ export function ChatComposer({
             className="chat-textarea"
           />
         </PromptInputBody>
+        {props.reasoningOptions ? <ComposerReasoning {...props} /> : null}
         <PromptInputFooter className="chat-prompt-footer">
           <ComposerContext
             thread={thread}

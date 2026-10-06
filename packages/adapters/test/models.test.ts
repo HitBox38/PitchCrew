@@ -12,6 +12,7 @@ import {
   parseOmpModels,
   parseOpenCodeModels,
   parsePiModels,
+  normalizeModels,
 } from '../src/model-discovery.ts';
 import { withChat } from '../src/process.ts';
 
@@ -49,11 +50,61 @@ it('reads Pi provider/model tables and preserves a successful empty account cata
     parsePiModels(
       'provider  model  context  max-out  thinking  images\nexample  fixture-1  200K  32K  yes  no\n',
     ),
-  ).toEqual([{ value: 'example/fixture-1', label: 'example · fixture-1' }]);
+  ).toEqual([
+    {
+      value: 'example/fixture-1',
+      label: 'example · fixture-1',
+      reasoning: { levels: ['off', 'minimal', 'low', 'medium', 'high', 'xhigh', 'max'] },
+    },
+  ]);
   expect(parsePiModels('No models available. Set API keys in environment variables.')).toEqual([]);
   expect(() =>
     parsePiModels('provider model context max-out thinking images\nInvalid row'),
   ).toThrow();
+});
+
+it('retains only supported native reasoning variants and effort metadata', () => {
+  const metadata = {
+    name: 'Fixture',
+    variants: { low: {}, high: {}, unknown: {} },
+    secret: 'fixture-secret',
+  };
+  expect(
+    parseOpenCodeModels(`example/model\n${JSON.stringify(metadata, null, 2)}\nexample/plain\n`),
+  ).toEqual([
+    { value: 'example/model', label: 'example · Fixture', reasoning: { levels: ['low', 'high'] } },
+    { value: 'example/plain', label: 'example · plain' },
+  ]);
+  expect(
+    parseOmpModels(
+      JSON.stringify({
+        models: [
+          {
+            selector: 'example/model',
+            name: 'Fixture',
+            reasoning: true,
+            thinking: ['low', 'high'],
+          },
+        ],
+      }),
+    ),
+  ).toEqual([
+    { value: 'example/model', label: 'example · Fixture', reasoning: { levels: ['low', 'high'] } },
+  ]);
+  expect(
+    parsePiModels('provider model context max-out thinking images\nexample plain 200K 32K no no'),
+  ).toEqual([{ value: 'example/plain', label: 'example · plain' }]);
+  expect(
+    normalizeModels([
+      {
+        value: 'fixture',
+        label: 'Fixture',
+        reasoning: { levels: ['high', 'high'], default: 'high' },
+      },
+    ]),
+  ).toEqual([
+    { value: 'fixture', label: 'Fixture', reasoning: { levels: ['high'], default: 'high' } },
+  ]);
 });
 
 it('projects only OMP chat selectors and names from JSON metadata', () => {
@@ -143,7 +194,11 @@ it('bounds native subprocess output and supports cancellation', async () => {
 
 it('lists paginated Codex models without creating a session, filters hidden models and strips metadata', async () => {
   expect(await readCodexModels(process.execPath, [fixture, 'codex'])).toEqual([
-    { value: 'fixture-one', label: 'Fixture One' },
+    {
+      value: 'fixture-one',
+      label: 'Fixture One',
+      reasoning: { levels: ['low', 'high'], default: 'high' },
+    },
     { value: 'fixture-two', label: 'Fixture Two' },
   ]);
 });
@@ -168,7 +223,11 @@ it.each(['copilot', 'copilot-legacy'])(
   'lists models through %s framed RPC without a session, excluding disabled policy entries',
   async (mode) => {
     expect(await readCopilotModels(process.execPath, [fixture, mode])).toEqual([
-      { value: 'fixture-live', label: 'Fixture · Live' },
+      {
+        value: 'fixture-live',
+        label: 'Fixture · Live',
+        reasoning: { levels: ['low', 'high'], default: 'low' },
+      },
     ]);
   },
 );

@@ -90,6 +90,7 @@ export const ohMyPi = withChat({
       '--no-prewalk',
     ];
     if (context.role.model) args.push('--model', context.role.model);
+    if (context.role.reasoning) args.push('--thinking', context.role.reasoning);
     return runCliText('omp', args, context, prompt, piResultExtractor(), {
       PI_CODING_AGENT_DIR: agentDir,
       PI_CONFIG_DIR: configDir,

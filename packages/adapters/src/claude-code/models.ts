@@ -7,6 +7,7 @@ import {
   normalizeModels,
 } from '../model-discovery.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
+import { modelReasoning } from '../reasoning.ts';
 
 // SDK initialization reports the native model catalog without a user message or inference.
 // https://github.com/anthropics/claude-agent-sdk-python/blob/main/src/claude_agent_sdk/_internal/query.py
@@ -35,11 +36,20 @@ export function parseClaudeModels(result: unknown): RuntimeModel[] {
   const output = result as { models?: unknown } | undefined;
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid Claude model catalog.');
   return normalizeModels(
-    output.models.map((row: { value?: unknown; displayName?: unknown }) => {
-      if (!row || typeof row.value !== 'string' || typeof row.displayName !== 'string')
-        throw new Error('Invalid Claude model row.');
-      return { value: row.value, label: row.displayName };
-    }),
+    output.models.map(
+      (row: {
+        value?: unknown;
+        displayName?: unknown;
+        supportsEffort?: unknown;
+        supportedEffortLevels?: unknown;
+      }) => {
+        if (!row || typeof row.value !== 'string' || typeof row.displayName !== 'string')
+          throw new Error('Invalid Claude model row.');
+        const reasoning =
+          row.supportsEffort === true ? modelReasoning(row.supportedEffortLevels) : undefined;
+        return { value: row.value, label: row.displayName, ...(reasoning ? { reasoning } : {}) };
+      },
+    ),
   );
 }
 

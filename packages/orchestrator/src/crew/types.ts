@@ -116,6 +116,7 @@ export interface CrewContext {
     threadId: ChatMessage['threadId'],
     task?: AgentTask,
     scheduled?: { routineId: string; scheduledFor: string },
+    reasoning?: Role['reasoning'],
   ): Promise<Run>;
   decideProposal(id: string, approved: boolean): Promise<RoleProposal>;
   decideSkillProposal(id: string, approved: boolean): SkillProposal;

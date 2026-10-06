@@ -1,3 +1,4 @@
+import { reasoningLabels } from '../lib/reasoning.ts';
 import { capabilityLabels } from '../agent-capabilities.ts';
 import { runtimeLabels } from '../lib/labels.ts';
 import { assignedSkills } from './helpers.ts';
@@ -18,7 +19,7 @@ export function reviewSections(draft: CreationDraft, data: Snapshot) {
     },
     {
       title: 'Runtime',
-      text: `${runtimeLabels[role.runtime]} · ${role.runtime === 'demo' ? 'Scripted (no AI calls)' : role.model || 'CLI default'}\nStarts ${role.enabled ? 'enabled' : 'paused'}.`,
+      text: `${runtimeLabels[role.runtime]} · ${role.runtime === 'demo' ? 'Scripted (no AI calls)' : role.model || 'CLI default'}\nReasoning: ${role.reasoning ? reasoningLabels[role.reasoning] : 'CLI default'}\nStarts ${role.enabled ? 'enabled' : 'paused'}.`,
     },
     {
       title: 'Tools',

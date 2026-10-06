@@ -46,6 +46,7 @@ export const pi = withChat({
       '--offline',
     ];
     if (context.role.model) args.push('--model', context.role.model);
+    if (context.role.reasoning) args.push('--thinking', context.role.reasoning);
     return runCliText('pi', args, context, prompt, piResultExtractor(), {
       PI_CODING_AGENT_DIR: agentDir,
       PI_CODING_AGENT_SESSION_DIR: join(agentDir, 'sessions'),

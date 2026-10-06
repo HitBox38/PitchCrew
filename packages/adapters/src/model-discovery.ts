@@ -2,6 +2,7 @@ import type { RuntimeAdapter, RuntimeModel, RuntimeModelCatalog } from '@pitchcr
 import { execFile } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { promisify, stripVTControlCharacters } from 'node:util';
+import { modelReasoning, piReasoning } from './reasoning.ts';
 import { cliEnvironment } from './process.ts';
 
 const exec = promisify(execFile);
@@ -46,7 +47,14 @@ export function normalizeModels(models: readonly RuntimeModel[]): RuntimeModel[]
     )
       throw new Error('Invalid model selector.');
     if (!label || label.length > 200) throw new Error('Invalid model label.');
-    if (!unique.has(value)) unique.set(value, { value, label });
+    if (!unique.has(value))
+      unique.set(value, {
+        value,
+        label,
+        ...(model.reasoning
+          ? { reasoning: modelReasoning(model.reasoning.levels, model.reasoning.default) }
+          : {}),
+      });
   }
   return [...unique.values()];
 }
@@ -102,10 +110,26 @@ export function parseCursorModels(text: string): RuntimeModel[] {
 
 export function parseOpenCodeModels(text: string): RuntimeModel[] {
   const lines = stripVTControlCharacters(text).trim().split(/\r?\n/).filter(Boolean);
-  if (!lines.length) return [];
-  if (lines.some((line) => !/^\S+\/\S+$/.test(line)))
-    throw new Error('Unrecognized OpenCode model list.');
-  return normalizeModels(lines.map((value) => ({ value, label: value.replace('/', ' · ') })));
+  const models: RuntimeModel[] = [];
+  for (let index = 0; index < lines.length; index++) {
+    const value = lines[index];
+    if (!/^\S+\/\S+$/.test(value)) throw new Error('Unrecognized OpenCode model list.');
+    let label = value.replace('/', ' · ');
+    let reasoning: RuntimeModel['reasoning'];
+    if (lines[index + 1]?.trim() === '{') {
+      const start = ++index;
+      while (index < lines.length && lines[index] !== '}') index++;
+      const metadata = JSON.parse(lines.slice(start, index + 1).join('\n')) as {
+        name?: unknown;
+        variants?: unknown;
+      };
+      if (typeof metadata.name === 'string') label = `${value.split('/')[0]} · ${metadata.name}`;
+      if (metadata.variants && typeof metadata.variants === 'object')
+        reasoning = modelReasoning(Object.keys(metadata.variants));
+    }
+    models.push({ value, label, ...(reasoning ? { reasoning } : {}) });
+  }
+  return normalizeModels(models);
 }
 
 // Pi prints a whitespace-aligned table; keep both provider and model in the selector.
@@ -124,7 +148,11 @@ export function parsePiModels(text: string): RuntimeModel[] {
       !['yes', 'no'].includes(parts[5])
     )
       throw new Error('Invalid Pi model row.');
-    return { value: `${parts[0]}/${parts[1]}`, label: `${parts[0]} · ${parts[1]}` };
+    return {
+      value: `${parts[0]}/${parts[1]}`,
+      label: `${parts[0]} · ${parts[1]}`,
+      ...(parts[4] === 'yes' ? { reasoning: piReasoning } : {}),
+    };
   });
   return normalizeModels(models);
 }
@@ -135,14 +163,27 @@ export function parseOmpModels(text: string): RuntimeModel[] {
   const output = JSON.parse(text) as { models?: unknown };
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid OMP model list.');
   return normalizeModels(
-    output.models.map((row: { selector?: unknown; name?: unknown; kind?: unknown }) => {
-      if (!row || (row.kind !== undefined && row.kind !== 'chat'))
-        throw new Error('Invalid OMP chat model.');
-      if (typeof row.selector !== 'string' || typeof row.name !== 'string')
-        throw new Error('Invalid OMP model row.');
-      const provider = row.selector.split('/')[0];
-      return { value: row.selector, label: `${provider} · ${row.name}` };
-    }),
+    output.models.map(
+      (row: {
+        selector?: unknown;
+        name?: unknown;
+        kind?: unknown;
+        reasoning?: unknown;
+        thinking?: unknown;
+      }) => {
+        if (!row || (row.kind !== undefined && row.kind !== 'chat'))
+          throw new Error('Invalid OMP chat model.');
+        if (typeof row.selector !== 'string' || typeof row.name !== 'string')
+          throw new Error('Invalid OMP model row.');
+        const provider = row.selector.split('/')[0];
+        const reasoning = row.reasoning === true ? modelReasoning(row.thinking) : undefined;
+        return {
+          value: row.selector,
+          label: `${provider} · ${row.name}`,
+          ...(reasoning ? { reasoning } : {}),
+        };
+      },
+    ),
   );
 }
 

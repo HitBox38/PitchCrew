@@ -60,6 +60,7 @@ export const copilotCli = withChat({
       'PITCHCREW_RUN_TOKEN',
     ];
     if (context.role.model) args.push('--model', context.role.model);
+    if (context.role.reasoning) args.push('--reasoning-effort', context.role.reasoning);
     return runCliText(
       'copilot',
       args,

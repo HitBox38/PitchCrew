@@ -18,7 +18,11 @@ it.each(['catalog', 'control'])(
       modelSource: 'runtime',
       models: [
         { value: 'default', label: 'Default (recommended)' },
-        { value: 'fixture-model', label: 'Fixture · Model' },
+        {
+          value: 'fixture-model',
+          label: 'Fixture · Model',
+          reasoning: { levels: ['low', 'high'] },
+        },
       ],
     });
     expect(JSON.stringify(catalog)).not.toContain('fixture-private');
@@ -32,6 +36,39 @@ it('keeps a successful empty Claude catalog empty instead of adding suggestions'
     modelSource: 'runtime',
     models: [],
   });
+});
+
+it('retains only recognized effort levels when the native model supports effort', () => {
+  expect(
+    parseClaudeModels({
+      models: [
+        {
+          value: 'fixture',
+          displayName: 'Fixture',
+          supportsEffort: true,
+          supportedEffortLevels: ['low', 'high', 'high', 'private'],
+        },
+        {
+          value: 'plain',
+          displayName: 'Plain',
+          supportsEffort: false,
+          supportedEffortLevels: ['high'],
+        },
+        { value: 'legacy', displayName: 'Legacy', supportedEffortLevels: ['high'] },
+        {
+          value: 'unknown',
+          displayName: 'Unknown',
+          supportsEffort: true,
+          supportedEffortLevels: ['private'],
+        },
+      ],
+    }),
+  ).toEqual([
+    { value: 'fixture', label: 'Fixture', reasoning: { levels: ['low', 'high'] } },
+    { value: 'plain', label: 'Plain' },
+    { value: 'legacy', label: 'Legacy' },
+    { value: 'unknown', label: 'Unknown' },
+  ]);
 });
 
 it.each(['invalid', 'missing', 'error', 'exit'])(

@@ -13,6 +13,8 @@ export function RuntimeSettings({
   runtime,
   setRuntime,
   setModel,
+  reasoning,
+  setReasoning,
   runtimeItems,
   runtimeAvailable,
   runtimeCatalog,
@@ -32,6 +34,7 @@ export function RuntimeSettings({
               if (value && value !== runtime) {
                 setRuntime(value);
                 setModel('');
+                setReasoning(null);
               }
             }}
             items={runtimeItems}
@@ -56,6 +59,8 @@ export function RuntimeSettings({
           initialCatalog={runtimeCatalog}
           value={model}
           onValueChange={setModel}
+          reasoning={reasoning}
+          onReasoningChange={setReasoning}
         />
       </div>
       <label className="checkbox-label">

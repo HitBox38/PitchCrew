@@ -1,4 +1,5 @@
 export * from './pipeline-reviews.ts';
+export * from './reasoning.ts';
 export type { OnboardingState } from './onboarding.ts';
 export { defaultInstructionRevisionId, instructionUpdateDecision } from './default-instructions.ts';
 export type {

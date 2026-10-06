@@ -9,7 +9,9 @@ export const opencode = withChat({
   models: apiModels,
   detect: () => detectCli('opencode', 'opencode'),
   listModels: async (signal) =>
-    parseOpenCodeModels(await modelListCommand('opencode', ['models', '--pure'], signal)),
+    parseOpenCodeModels(
+      await modelListCommand('opencode', ['models', '--pure', '--verbose'], signal),
+    ),
   async launch(context, prompt) {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'opencode-config');
@@ -33,6 +35,7 @@ export const opencode = withChat({
     };
     const args = ['run', '--pure', '--format', 'json', '--agent', 'pitchcrew'];
     if (context.role.model) args.push('--model', context.role.model);
+    if (context.role.reasoning) args.push('--variant', context.role.reasoning);
     return runCliText(
       'opencode',
       args,

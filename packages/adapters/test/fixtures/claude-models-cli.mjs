@@ -39,6 +39,8 @@ const respond = () => {
           {
             value: 'fixture-model',
             displayName: 'Fixture · Model',
+            supportsEffort: true,
+            supportedEffortLevels: ['low', 'high', 'fixture-private-effort'],
             description: 'fixture-private-metadata',
           },
           { value: 'fixture-model', displayName: 'Fixture · Model' },

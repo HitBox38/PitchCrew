@@ -2,6 +2,7 @@ import type { Card } from './cards.ts';
 import type { ChatMessage, ChatResult } from './chat.ts';
 import type { PacketRules } from './packet-rules.ts';
 import type { Role } from './roles.ts';
+import type { ModelReasoning } from './reasoning.ts';
 import type { RunResult } from './runs.ts';
 import type { Skill } from './skills.ts';
 import { type RuntimeId } from './states.ts';
@@ -16,6 +17,7 @@ export interface RuntimeHealth {
 export interface RuntimeModel {
   value: string;
   label: string;
+  reasoning?: ModelReasoning;
 }
 export interface RuntimeModelCatalog {
   models: readonly RuntimeModel[];

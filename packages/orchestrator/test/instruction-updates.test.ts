@@ -1,6 +1,7 @@
 import { adapters } from '@pitchcrew/adapters';
 import { defaultInstructionHistory, defaultRoles } from '@pitchcrew/board';
 import type { InstructionUpdate, Role, Snapshot } from '@pitchcrew/core';
+import { currentEventVersion } from '@pitchcrew/core';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -162,7 +163,7 @@ describe('default instruction updates', () => {
       instructions,
     );
     const event = daemon.service.board.events(1)[0];
-    expect(event).toMatchObject({ version: 12, kind: 'role', actor: 'user' });
+    expect(event).toMatchObject({ version: currentEventVersion, kind: 'role', actor: 'user' });
     daemon.service.board.rebuild();
     expect(daemon.service.board.get<Role>('role', 'writer').defaultInstructionBase).toEqual(
       result.result.defaultInstructionBase,
