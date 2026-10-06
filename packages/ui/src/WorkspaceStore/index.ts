@@ -4,6 +4,7 @@ import { recentKey } from './constants.ts';
 import { readRecent } from './helpers.ts';
 import { createWorkspaceSync } from './sync.ts';
 import type { WorkspaceState } from './types.ts';
+import { createAppUpdateActions } from './updates.ts';
 
 export type { Action } from './types.ts';
 /** Each store owns one snapshot poller, one chat stream and its pending-action count. */
@@ -42,6 +43,7 @@ export function createWorkspaceStore() {
       closePanels: () => set({ selectedId: null, roleId: null, add: false }),
       startSync,
       ...createWorkspaceActions(set, get, applySnapshot),
+      ...createAppUpdateActions(set, get),
     };
   });
 }

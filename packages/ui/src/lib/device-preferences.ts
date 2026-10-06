@@ -4,6 +4,15 @@ import { create } from 'zustand';
 const themeKey = 'pitchcrew-theme';
 const soundKey = 'pitchcrew-notifications-preferences-v1';
 export const analyticsKey = 'pitchcrew-analytics-enabled-v1';
+export const updatesKey = 'pitchcrew-automatic-updates-v1';
+
+function readAutomaticUpdates(): boolean {
+  try {
+    return localStorage.getItem(updatesKey) !== 'false';
+  } catch {
+    return true;
+  }
+}
 
 function readAnalytics(): boolean {
   try {
@@ -40,6 +49,8 @@ interface DevicePreferences {
   theme: ThemeChoice;
   sound: boolean;
   analytics: boolean;
+  automaticUpdates: boolean;
+  setAutomaticUpdates: (enabled: boolean) => void;
   setTheme: (theme: ThemeChoice) => void;
   setSound: (sound: boolean) => void;
   setAnalytics: (analytics: boolean) => void;
@@ -50,6 +61,15 @@ export const useDevicePreferences = create<DevicePreferences>((set) => ({
   theme: readTheme(),
   sound: readSound(),
   analytics: readAnalytics(),
+  automaticUpdates: readAutomaticUpdates(),
+  setAutomaticUpdates: (automaticUpdates) => {
+    set({ automaticUpdates });
+    try {
+      localStorage.setItem(updatesKey, String(automaticUpdates));
+    } catch {
+      /* The preference still applies for this session. */
+    }
+  },
   setAnalytics: (analytics) => {
     set({ analytics });
     try {

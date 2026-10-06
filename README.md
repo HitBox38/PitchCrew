@@ -23,6 +23,8 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 Download a production installer from [GitHub Releases](https://github.com/HitBox38/PitchCrew/releases): Windows x64 (`.exe`), macOS Apple Silicon or Intel (`.dmg`), or Linux x64 (`.AppImage`/`.deb`). Installers include Node.js, the daemon, its dependencies and Chromium; configure provider CLIs and authentication separately. Windows and macOS builds are unsigned and macOS builds are not notarized, so your operating system may require permission to open them. Each successful push to `main` publishes a commit-tagged release after CI and packaged-app checks pass. Existing data stays in `~/.pitchcrew`.
 
+Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > General shows your version, **Check for updates**, and a switch for automatic checks. Update notices open the matching GitHub release so you can download and install it yourself. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
+
 For development from source:
 
 Requires **Node.js 22.18+ or 24.11+** (supported LTS lines) and **pnpm 11**. Windows is the verified development platform. Native SQLite and Electron dependencies may need build tools if prebuilt binaries are unavailable.
@@ -194,7 +196,7 @@ pnpm dev
 - Computer use covers an isolated Chromium browser, not the whole desktop.
 - Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
 - Formatted exports use one built-in template per document, and DOCX page counts are estimates. PDF covers Latin, Greek, Cyrillic and Hebrew with its own fonts. Japanese, Chinese and Korean need an installed font such as Yu Gothic, Hiragino or Noto Sans CJK; see [packet exports](docs/packet-exports.md#fonts-and-characters). Arabic and Indic scripts export as DOCX only.
-- Desktop installers and auto-updates are deferred. Live provider execution is outside automated verification.
+- Automatic update installation is deferred. Live provider execution is outside automated verification.
 
 ## Development
 
@@ -228,6 +230,6 @@ Use `pnpm format` to apply formatting. Tests use fictional fixtures, temporary w
 
 GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes to `main`, merge queues and manual dispatches. It checks lint, formatting, types and production builds, runs the complete test suite on Node 22 and 24 with Chromium, and verifies the actual Electron renderer on macOS and Windows. It also builds installers and checks the packaged app on Windows, macOS and Linux. Installs use the pinned pnpm version and frozen lockfile; newer commits cancel superseded runs except for pushes to `main`, which each retain their release build. Test reports, desktop evidence and installers are retained for seven days. The repository’s `main` branch ruleset requires the single **CI** status check from GitHub Actions and an up-to-date branch before merging. That check passes only when all jobs succeed; the ruleset has no bypass actors.
 
-The [Release workflow](.github/workflows/release.yml) publishes the verified installers and SHA-256 checksums after successful push CI on `main`, using `build-<full commit SHA>` tags. It downloads artifacts from that exact CI run without checking out or executing repository code, and alone has release write permission. Reruns resume drafts or skip an already published release. `pnpm desktop:package` builds the current platform's installers locally; `pnpm test:packaged` verifies the unpacked app starts its bundled daemon, renders the UI and stops its owned daemon. Packaging uses the build machine's Node 24 executable, so build on each target platform and architecture. Signing and notarization credentials are not configured.
+The [Release workflow](.github/workflows/release.yml) publishes the verified installers and SHA-256 checksums after successful push CI on `main`, using `build-<full commit SHA>` tags. It downloads artifacts from that exact CI run without checking out or executing repository code, and alone has release write permission. Reruns resume drafts or skip an already published release. `pnpm desktop:package` builds the current platform's installers locally; `pnpm test:packaged` verifies the unpacked app starts its bundled daemon, renders the UI and stops its owned daemon. On Windows, `pnpm test:installer` also verifies the compiled NSIS process check closes only Pitchcrew's app and bundled runtime, without mistaking downloads or sibling folders for a running app. It uses isolated fixtures without installing or uninstalling anything. Packaging uses the build machine's Node 24 executable, so build on each target platform and architecture. Signing and notarization credentials are not configured.
 
 Read [AGENTS.md](AGENTS.md) for repository rules, [code organization](docs/code-organization.md) for module conventions, and [MVP design](docs/mvp-design.md) for architectural decisions.

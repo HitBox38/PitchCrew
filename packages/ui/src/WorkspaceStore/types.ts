@@ -1,5 +1,6 @@
 import type { RoleId, Snapshot } from '@pitchcrew/core';
 import type { StoreApi } from 'zustand';
+import type { AppUpdateState } from './updates.ts';
 
 export type Action = (
   path: string,
@@ -7,7 +8,7 @@ export type Action = (
   body?: unknown,
   success?: string | ((result: unknown) => string),
 ) => Promise<unknown>;
-export interface WorkspaceState {
+export interface WorkspaceState extends AppUpdateState {
   data: Snapshot | null;
   error: string;
   toast: string;
