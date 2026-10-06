@@ -18,7 +18,7 @@ export function GithubTokenForm({ connect, token, setToken, working }: ConnectAc
           maxLength={1000}
         />
       </label>
-      <Button className="self-start" type="submit" disabled={working}>
+      <Button className="button primary self-start" type="submit" disabled={working}>
         {working ? 'Connecting…' : 'Connect with token'}
       </Button>
     </form>
