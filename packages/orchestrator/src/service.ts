@@ -159,6 +159,9 @@ export class CrewService {
   retireRole(id: RoleId): Promise<Role> {
     return this.context.retireRole(id);
   }
+  restoreRole(id: RoleId): Promise<Role> {
+    return this.context.restoreRole(id);
+  }
   configureRole(id: RoleId, data: unknown): Promise<Role> {
     return configureReviewedRole(this.context, id, data);
   }

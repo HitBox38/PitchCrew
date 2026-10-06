@@ -11,6 +11,9 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
   app.post<IdRoute>('/api/roles/:id/retire', async (req, res) =>
     res.send(await service.retireRole(roleIdSchema.parse(req.params.id))),
   );
+  app.post<IdRoute>('/api/roles/:id/restore', async (req, res) =>
+    res.send(await service.restoreRole(roleIdSchema.parse(req.params.id))),
+  );
   app.put<IdRoute>('/api/roles/:id', async (req, res) =>
     res.send(await service.configureRole(roleIdSchema.parse(req.params.id), req.body)),
   );

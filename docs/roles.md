@@ -82,9 +82,11 @@ Adapters keep the actual role ID for prompts, capability scope and paths, while 
 
 ## Pause and retirement
 
-Pause is reversible through the existing enabled setting. Retirement is a confirmed user action and is permanent in this version. Active runs and settings writes must finish first. Retirement atomically stores the tombstone, pauses routines targeted at or last maintained by the retiring role, and cancels queued tasks addressed to it. It does not delete or rewrite events. Retired roles stay in snapshots and the conversation list for historical attribution, while live action pickers exclude them. Stored skills retain historical assignments; reassign skills away from retired roles before saving updates.
+Pause is reversible through the existing enabled setting. Retirement is a confirmed user action. Active runs and settings writes must finish first. Retirement atomically stores the tombstone, pauses routines targeted at or last maintained by the retiring role, and cancels queued tasks addressed to it. It does not delete or rewrite events. Retired roles stay in snapshots and the conversation list for historical attribution, while live action pickers exclude them. Stored skills retain historical assignments; reassign skills away from retired roles before saving updates.
 
-No unattended scheduler is added: routines still run only while the daemon is open. Browser interactions and local packet exports keep their existing exact-action/snapshot approval gates. Agents cannot create, retire or silently apply role changes.
+Choose **Restore agent** on a retired agent's Crew card to return the same identity to the crew paused. Restoration preserves its settings, skills, conversations and run history, and appends a user role event clearing retirement. It requires a local UI session and rejects active runs or settings writes. Review **Configure** and enable the agent when ready; paused routines and cancelled tasks do not resume automatically. Restoration also works when all 50 stored identities are in use or the saved runtime is unavailable.
+
+No unattended scheduler is added: routines still run only while the daemon is open. Browser interactions and local packet exports keep their existing exact-action/snapshot approval gates. Agents cannot create, retire, restore or silently apply role changes.
 
 ## Events and verification
 
