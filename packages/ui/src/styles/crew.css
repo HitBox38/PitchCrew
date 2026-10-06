@@ -228,14 +228,6 @@
   font-weight: 600;
   color: var(--plum);
 }
-.instruction-updates-notice {
-  background-color: var(--surface);
-  background-image: var(--grain);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--plum);
-  border-radius: 12px 14px 13px 11px;
-  padding: 18px 22px;
-}
 .instruction-update {
   padding: 16px;
   border: 1px solid var(--border);
