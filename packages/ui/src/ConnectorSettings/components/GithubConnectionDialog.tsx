@@ -65,7 +65,7 @@ export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
           <GithubTokenForm {...props} />
         </details>
         <div className="flex justify-end">
-          <Button disabled={working} onClick={close}>
+          <Button className="button" disabled={working} onClick={close}>
             Cancel
           </Button>
         </div>

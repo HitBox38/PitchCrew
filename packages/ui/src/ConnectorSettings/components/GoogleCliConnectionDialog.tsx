@@ -61,10 +61,10 @@ export function GoogleCliConnectionDialog({
           </p>
         ) : null}
         <div className="flex justify-end gap-2">
-          <Button disabled={working} onClick={() => setEditing('google')}>
+          <Button className="button" disabled={working} onClick={() => setEditing('google')}>
             Back
           </Button>
-          <Button disabled={working} onClick={close}>
+          <Button className="button" disabled={working} onClick={close}>
             Cancel
           </Button>
         </div>

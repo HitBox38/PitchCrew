@@ -23,7 +23,7 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <Button
-          variant="outline"
+          className="button"
           disabled={model.busy}
           aria-pressed={source.enabled}
           onClick={() => model.setEnabled(source, !source.enabled)}
@@ -31,7 +31,7 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
           {source.enabled ? 'Pause' : 'Enable'}
         </Button>
         <Button
-          variant="outline"
+          className="button"
           disabled={model.busy || !!model.draft}
           onClick={() => model.startEdit(source)}
         >
@@ -39,6 +39,7 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
         </Button>
         <Button
           variant="ghost"
+          className="icon-button"
           disabled={model.busy}
           aria-label={`Remove source ${source.name}; keep its leads`}
           onClick={() => model.remove(source)}

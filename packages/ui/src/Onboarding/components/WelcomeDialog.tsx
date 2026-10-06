@@ -38,7 +38,8 @@ export function WelcomeDialog({ step, working, error, save }: OnboardingActions 
         ) : null}
         <footer className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
           <Button
-            className="button ghost"
+            variant="ghost"
+            className="text-button min-h-9"
             disabled={working}
             onClick={() => void save('dismissed')}
           >

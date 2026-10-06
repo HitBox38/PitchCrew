@@ -25,7 +25,7 @@ export function RuntimeRecommendation({
     <div className="my-4 flex flex-col items-start gap-2">
       <Button
         size="sm"
-        variant="outline"
+        className="button small"
         disabled={disabled || checking}
         onClick={() => void recommend()}
       >
