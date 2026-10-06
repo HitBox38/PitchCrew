@@ -10,17 +10,26 @@ param(
 $ErrorActionPreference = 'Stop'
 
 function Select-PitchcrewProcesses($Processes, [string[]] $Directories, [string] $Executable, [int] $InstallerId) {
+  $browserExecutables = @('chrome.exe', 'chrome-headless-shell.exe', 'headless_shell.exe', 'chrome_crashpad_handler.exe', 'crashpad_handler.exe', 'ffmpeg-win64.exe')
+  $roots = foreach ($directory in $Directories) {
+    if (!$directory) { continue }
+    # Setup and process paths can use different 8.3 aliases. Compare their expanded paths.
+    $existing = Get-Item -LiteralPath $directory -Force -ErrorAction SilentlyContinue
+    $fullPath = if ($existing) { $existing.FullName } else { [IO.Path]::GetFullPath($directory) }
+    $fullPath.TrimEnd('\') + '\'
+  }
   foreach ($entry in $Processes) {
     if (!$entry.ExecutablePath -or $entry.ProcessId -eq $InstallerId) { continue }
-    foreach ($directory in $Directories) {
-      if (!$directory) { continue }
-      $root = [IO.Path]::GetFullPath($directory).TrimEnd('\') + '\'
-      $path = $entry.ExecutablePath
+    $name = [IO.Path]::GetFileName($entry.ExecutablePath)
+    if ($name -ne $Executable -and $name -ne 'node.exe' -and $name -notin $browserExecutables) { continue }
+    $existing = Get-Item -LiteralPath $entry.ExecutablePath -Force -ErrorAction SilentlyContinue
+    $path = if ($existing) { $existing.FullName } else { $entry.ExecutablePath }
+    foreach ($root in $roots) {
       # Match only shipped executables. A download, uninstaller or sibling directory is not the app.
       $app = $path.Equals($root + $Executable, [StringComparison]::OrdinalIgnoreCase)
       $node = $path.Equals($root + 'resources\runtime\node\node.exe', [StringComparison]::OrdinalIgnoreCase)
       $browser = $path.StartsWith($root + 'resources\runtime\browsers\', [StringComparison]::OrdinalIgnoreCase) -and
-        [IO.Path]::GetFileName($path) -in @('chrome.exe', 'chrome-headless-shell.exe', 'headless_shell.exe', 'chrome_crashpad_handler.exe', 'crashpad_handler.exe', 'ffmpeg-win64.exe')
+        $name -in $browserExecutables
       if ($app -or $node -or $browser) { $entry; break }
     }
   }

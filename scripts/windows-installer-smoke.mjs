@@ -68,6 +68,21 @@ async function cleanup() {
 }
 try {
   await mkdir(root, { recursive: true });
+  const powershell = join(
+    process.env.SystemRoot ?? 'C:\\Windows',
+    'System32/WindowsPowerShell/v1.0/powershell.exe',
+  );
+  const { stdout: shortPath } = await execute(
+    powershell,
+    [
+      '-NoProfile',
+      '-NonInteractive',
+      '-Command',
+      `[Console]::OutputEncoding = [Text.UTF8Encoding]::new($false); (New-Object -ComObject Scripting.FileSystemObject).GetFolder($env:PITCHCREW_TEST_INSTALL_DIRECTORY).ShortPath`,
+    ],
+    { env, windowsHide: true, timeout: 30000 },
+  );
+  env.PITCHCREW_TEST_INSTALL_DIRECTORY = `${shortPath.trim()}\\`;
   // Exercise the production macro without installing files, writing registry keys or changing shortcuts.
   await writeFile(
     source,
@@ -113,10 +128,11 @@ SectionEnd
   assert.ok(runtime.exitCode !== null || runtime.signalCode !== null);
   assert.equal(sibling.exitCode, null);
   assert.equal(sibling.signalCode, null);
+  env.PITCHCREW_TEST_INSTALL_DIRECTORY = `${root}\\`;
   await copyFile(installer, join(root, 'Pitchcrew.exe'));
   await check(join(root, 'Pitchcrew.exe'));
   console.log(
-    'Windows installer check passed: downloads and siblings ignored, owned processes closed, installer PID excluded.',
+    'Windows installer check passed: short paths recognized, downloads and siblings ignored, owned processes closed, installer PID excluded.',
   );
 } finally {
   await cleanup();
