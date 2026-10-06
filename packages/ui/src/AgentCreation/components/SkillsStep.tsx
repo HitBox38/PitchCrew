@@ -21,7 +21,7 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
         const shared = skill.scope === 'all';
         return (
           <section key={skill.id} className="border-b border-border pb-4">
-            <label className="flex items-start gap-3" aria-label={skill.name}>
+            <label className="flex flex-row items-start gap-3" aria-label={skill.name}>
               <Checkbox
                 aria-label={skill.name}
                 disabled={shared}
