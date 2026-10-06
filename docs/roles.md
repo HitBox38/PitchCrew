@@ -44,6 +44,8 @@ Adoption, dismissal and edited-default saves name the exact revision you reviewe
 
 When you change a default role's instructions in `default-roles.ts`, append an entry to `default-instruction-history.ts` with the new revision, the release date and a one-sentence summary. The board tests fail and print the expected revision until you do. Never remove or edit earlier entries: they let existing workspaces tell an unchanged old default from their own edits.
 
+Agents can save a default reasoning level alongside their model in setup or settings. The control appears only for models whose adapter reports adjustable reasoning; CLI default keeps the native setting unset. The chat composer can override it for upcoming user messages without saving a role change. Workflows, routines and follow-ups retain the saved default. Run snapshots record the effective value. See [model discovery](model-discovery.md#reasoning).
+
 ## Creation and settings
 
 Choose **Your crew > Create agent**. Setup works for any responsibilities through six steps: purpose, runtime, tools, skills, routine and review. Supply a name, responsibilities and optional working instructions; a safe stable ID is suggested from the name and can be edited. IDs use lowercase letters, numbers and single hyphens, up to 48 characters. Reserved names and path separators are rejected. IDs are permanent and cannot be reused after retirement; up to 50 identities, including retired ones, are retained. Closing, navigating and leaving protect unsaved changes. An unavailable runtime can be configured if the new agent starts paused; launching requires an installed available runtime.
@@ -70,4 +72,4 @@ No unattended scheduler is added: routines still run only while the daemon is op
 
 ## Events and verification
 
-New records use version 12, including cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 11 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.
+New records use version 13, including cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 12 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.

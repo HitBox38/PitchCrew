@@ -6,6 +6,7 @@ import {
   modelDiscoveryTimeout,
   normalizeModels,
 } from '../model-discovery.ts';
+import { modelReasoning } from '../reasoning.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
 
 // Native Copilot SDK transport: Content-Length framed JSON-RPC, with no session.create/send.
@@ -16,12 +17,25 @@ export function parseCopilotModels(result: unknown): RuntimeModel[] {
   const output = result as { models?: unknown } | undefined;
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid Copilot model catalog.');
   return normalizeModels(
-    output.models.flatMap((row: { id?: unknown; name?: unknown; policy?: { state?: unknown } }) => {
-      if (!row || typeof row.id !== 'string' || typeof row.name !== 'string')
-        throw new Error('Invalid Copilot model row.');
-      if (row.policy?.state === 'disabled') return [];
-      return [{ value: row.id, label: row.name }];
-    }),
+    output.models.flatMap(
+      (row: {
+        id?: unknown;
+        name?: unknown;
+        policy?: { state?: unknown };
+        capabilities?: { supports?: { reasoningEffort?: unknown } };
+        supportedReasoningEfforts?: unknown;
+        defaultReasoningEffort?: unknown;
+      }) => {
+        if (!row || typeof row.id !== 'string' || typeof row.name !== 'string')
+          throw new Error('Invalid Copilot model row.');
+        if (row.policy?.state === 'disabled') return [];
+        const reasoning =
+          row.capabilities?.supports?.reasoningEffort === true
+            ? modelReasoning(row.supportedReasoningEfforts, row.defaultReasoningEffort)
+            : undefined;
+        return [{ value: row.id, label: row.name, ...(reasoning ? { reasoning } : {}) }];
+      },
+    ),
   );
 }
 

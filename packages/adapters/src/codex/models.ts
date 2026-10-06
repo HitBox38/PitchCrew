@@ -6,6 +6,7 @@ import {
   modelDiscoveryTimeout,
   normalizeModels,
 } from '../model-discovery.ts';
+import { modelReasoning } from '../reasoning.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
 
 // https://learn.chatgpt.com/docs/app-server#list-models-modellist
@@ -97,12 +98,24 @@ export async function readCodexModels(
         model?: unknown;
         displayName?: unknown;
         hidden?: unknown;
+        supportedReasoningEfforts?: { reasoningEffort?: unknown }[];
+        defaultReasoningEffort?: unknown;
       }[]) {
         if (!row) throw new Error('Invalid Codex model row.');
         if (row.hidden === true) continue;
         if (typeof row.model !== 'string' || typeof row.displayName !== 'string')
           throw new Error('Invalid Codex model row.');
-        models.push({ value: row.model, label: row.displayName });
+        const reasoning = modelReasoning(
+          Array.isArray(row.supportedReasoningEfforts)
+            ? row.supportedReasoningEfforts.map((item) => item?.reasoningEffort)
+            : undefined,
+          row.defaultReasoningEffort,
+        );
+        models.push({
+          value: row.model,
+          label: row.displayName,
+          ...(reasoning ? { reasoning } : {}),
+        });
       }
       if (models.length > 5000) throw new Error('Codex model catalog exceeded its limit.');
       if (result.nextCursor !== null && result.nextCursor !== undefined) {

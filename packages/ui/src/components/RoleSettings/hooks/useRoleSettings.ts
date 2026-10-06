@@ -3,6 +3,7 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { capabilityDefaults } from '@/agent-capabilities.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
+import type { ReasoningLevel } from '@pitchcrew/core';
 import { useState, type FormEvent } from 'react';
 
 export function useRoleSettings({
@@ -21,6 +22,7 @@ export function useRoleSettings({
   const [retiring, setRetiring] = useState(false);
   const [runtime, setRuntime] = useState(role.runtime);
   const [model, setModel] = useState(role.model);
+  const [reasoning, setReasoning] = useState<ReasoningLevel | null>(role.reasoning ?? null);
   const [enabled, setEnabled] = useState(role.enabled);
   const [instructions, setInstructions] = useState(role.instructions);
   const [defaultInstructionDraft, setDefaultInstructionDraft] = useState<{
@@ -38,6 +40,7 @@ export function useRoleSettings({
     workflow !== workflowSeat(role) ||
     runtime !== role.runtime ||
     model !== role.model ||
+    reasoning !== (role.reasoning ?? null) ||
     enabled !== role.enabled ||
     instructions !== role.instructions ||
     JSON.stringify(capabilities) !==
@@ -65,6 +68,7 @@ export function useRoleSettings({
           workflow,
           runtime,
           model,
+          reasoning,
           enabled,
           instructions,
           ...(defaultInstructionDraft && instructions !== defaultInstructionDraft.previous
@@ -114,6 +118,8 @@ export function useRoleSettings({
     setRuntime,
     model,
     setModel,
+    reasoning,
+    setReasoning,
     enabled,
     setEnabled,
     instructions,

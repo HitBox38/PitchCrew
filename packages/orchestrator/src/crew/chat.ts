@@ -1,4 +1,5 @@
 import { requireRole } from './roles.ts';
+import { validateReasoning } from './reasoning.ts';
 import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
@@ -12,6 +13,7 @@ import {
   type ChatStreamUpdate,
   type RoleId,
   type Run,
+  type Role,
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { randomUUID } from 'node:crypto';
@@ -71,8 +73,24 @@ export async function sendChat(this: CrewContext, roleId: RoleId, data: unknown)
   const input = chatInput.parse(data);
   if (input.threadId && input.threadId !== 'crew' && input.threadId !== roleId)
     throw new Error('Choose this role’s chat or the crew conversation.');
-  // Reserve the role synchronously before setup awaits so two sends cannot overlap.
-  return this.startChatRun(roleId, input.content, input.cardId, input.threadId ?? roleId);
+  // Validate the user override without mutating the saved role. startChatRun
+  // rechecks it and reserves the role synchronously before setup awaits.
+  if (input.reasoning != null) {
+    const role = requireRole(this, roleId);
+    validateReasoning(
+      { ...role, reasoning: input.reasoning },
+      await this.runtimeModels(role.runtime),
+    );
+  }
+  return this.startChatRun(
+    roleId,
+    input.content,
+    input.cardId,
+    input.threadId ?? roleId,
+    undefined,
+    undefined,
+    input.reasoning,
+  );
 }
 export async function startChatRun(
   this: CrewContext,
@@ -82,11 +100,18 @@ export async function startChatRun(
   threadId: ChatMessage['threadId'],
   task?: AgentTask,
   scheduled?: { routineId: string; scheduledFor: string },
+  reasoning?: Role['reasoning'],
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   assertProfileReady(this);
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
-  const role = requireRole(this, roleId);
+  const storedRole = requireRole(this, roleId);
+  const role = reasoning === undefined ? storedRole : { ...storedRole, reasoning };
+  if (reasoning != null)
+    validateReasoning(
+      role,
+      this.runtimes.find((runtime) => runtime.id === role.runtime)!,
+    );
   const skills = this.skills(roleId);
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');

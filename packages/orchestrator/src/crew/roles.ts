@@ -16,6 +16,7 @@ import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { roleSetup, validateRoleSetup } from './role-setup.ts';
 import { saveRoutine } from './routines/index.ts';
+import { validateReasoning } from './reasoning.ts';
 
 export async function writeRunInstructions(
   this: CrewContext,
@@ -68,6 +69,12 @@ export async function configureRole(
   const role = {
     ...current,
     ...parsed,
+    reasoning:
+      parsed.reasoning !== undefined
+        ? parsed.reasoning
+        : parsed.runtime === current.runtime && parsed.model === current.model
+          ? current.reasoning
+          : null,
     defaultInstructionBase:
       defaultInstructionBase ??
       (defaultInstructionHistory[id]?.some(
@@ -79,6 +86,7 @@ export async function configureRole(
   };
   this.configuring.add(id);
   try {
+    if (role.reasoning != null) validateReasoning(role, await this.runtimeModels(role.runtime));
     await this.writeRole(role);
     this.board.record('role', role, 'user', message ?? `Updated ${role.name} settings`);
   } finally {
@@ -110,6 +118,7 @@ export async function createRole(this: CrewContext, data: unknown): Promise<Role
   };
   this.configuring.add(role.id);
   try {
+    if (role.reasoning != null) validateReasoning(role, await this.runtimeModels(role.runtime));
     await this.writeRole(role);
     this.board.db.transaction(() => {
       const skills = validateRoleSetup(this, setup);

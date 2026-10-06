@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { reasoningLevels, type ReasoningLevel } from './reasoning.ts';
 import { isRoleId, roleIds, runtimeIds, type RoleId, type RuntimeId } from './states.ts';
 
 export interface Role {
@@ -7,6 +8,8 @@ export interface Role {
   description: string;
   runtime: RuntimeId;
   model: string;
+  /** Omitted or null delegates to the CLI default. */
+  reasoning?: ReasoningLevel | null;
   enabled: boolean;
   instructions: string;
   /** Exact default the user reviewed before editing; absent in older role events. */
@@ -87,6 +90,7 @@ export const rolePatch = z.object({
   workflow: z.enum([...roleIds, 'chat']).optional(),
   runtime: z.enum(runtimeIds),
   model: z.string().trim().max(100),
+  reasoning: z.enum(reasoningLevels).nullable().optional(),
   enabled: z.boolean(),
   instructions: z.string().max(12000),
   capabilities: capabilitySchema.optional(),

@@ -1,4 +1,5 @@
 import { roleIdSchema } from './roles.ts';
+import { reasoningLevels } from './reasoning.ts';
 import { z } from 'zod';
 import { type RoleId } from './states.ts';
 
@@ -26,6 +27,8 @@ export const chatInput = z.object({
   content: z.string().trim().min(1).max(8000),
   cardId: z.uuid().nullable().default(null),
   threadId: z.union([roleIdSchema, z.literal('crew')]).optional(),
+  // Omission uses the saved agent default; null explicitly uses the CLI default.
+  reasoning: z.enum(reasoningLevels).nullable().optional(),
 });
 export const chatResultSchema = z.object({ reply: z.string().trim().min(1).max(12000) });
 export type ChatResult = z.infer<typeof chatResultSchema>;

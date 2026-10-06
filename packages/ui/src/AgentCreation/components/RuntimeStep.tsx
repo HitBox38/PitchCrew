@@ -19,6 +19,12 @@ export function RuntimeStep({ draft, changeRole, data }: StepProps) {
         role={{ ...role, id: 'new-agent' }}
         runtime={role.runtime}
         model={role.model}
+        reasoning={role.reasoning ?? null}
+        setReasoning={(value) =>
+          changeRole({
+            reasoning: typeof value === 'function' ? value(role.reasoning ?? null) : value,
+          })
+        }
         enabled={role.enabled}
         setEnabled={(value) =>
           changeRole({ enabled: typeof value === 'function' ? value(role.enabled) : value })
@@ -27,6 +33,7 @@ export function RuntimeStep({ draft, changeRole, data }: StepProps) {
           changeRole({
             runtime: typeof value === 'function' ? value(role.runtime) : value,
             model: '',
+            reasoning: null,
           })
         }
         setModel={(value) =>
