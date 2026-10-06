@@ -19,7 +19,7 @@ export function ProfileSources(c: ProfileSourcesModel) {
         </div>
         <div className="profile-source-actions">
           <Button
-            variant="outline"
+            className="button"
             disabled={c.busy}
             onClick={() => {
               c.setProvider('github');
@@ -28,7 +28,7 @@ export function ProfileSources(c: ProfileSourcesModel) {
             <GitBranch size={16} /> GitHub
           </Button>
           <Button
-            variant="outline"
+            className="button"
             disabled={c.busy}
             onClick={() => {
               c.setProvider('drive');

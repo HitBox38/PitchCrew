@@ -16,7 +16,7 @@ export function SourceList({ sources, busy, load, unlink, watch }: ProfileSource
             </span>
           </div>
           <Button
-            variant="outline"
+            className="button"
             disabled={busy}
             aria-pressed={source.watching === true}
             onClick={() => void watch(source.id, !source.watching)}
@@ -24,7 +24,7 @@ export function SourceList({ sources, busy, load, unlink, watch }: ProfileSource
             {source.watching ? 'Pause watching' : 'Enable watching'}
           </Button>
           {source.mode !== 'project' ? (
-            <Button variant="outline" disabled={busy} onClick={() => void load(source.input)}>
+            <Button className="button" disabled={busy} onClick={() => void load(source.input)}>
               <RefreshCw size={14} /> Review updates
             </Button>
           ) : (
@@ -32,6 +32,7 @@ export function SourceList({ sources, busy, load, unlink, watch }: ProfileSource
           )}
           <Button
             variant="ghost"
+            className="icon-button"
             disabled={busy}
             onClick={() => void unlink(source.id)}
             aria-label={`Remove source ${source.label}; keep local notes`}
