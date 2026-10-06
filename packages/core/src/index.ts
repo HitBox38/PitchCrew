@@ -65,6 +65,7 @@ export type {
 } from './background-service.ts';
 export * from './imports.ts';
 export * from './job-sources.ts';
+export * from './job-links.ts';
 export {
   defaultPacketRules,
   describePacketRules,

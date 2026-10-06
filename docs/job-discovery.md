@@ -1,6 +1,6 @@
 # Job discovery
 
-Pitchcrew can watch public company job boards on Greenhouse, Ashby, Lever, Comeet and Workable. A scan reads each board you saved, keeps the postings that pass your filters and adds new ones to Board as leads. Scout can run the same scan from chat or a routine when you give it permission.
+Pitchcrew can watch public company job boards on Greenhouse, Ashby, Lever, Comeet and Workable. A scan reads each board you saved, keeps the postings that pass your filters and adds new ones to Board as leads. Scout can run the same scan from chat or a routine when you give it permission. You can also add one job from its posting link.
 
 ## Add a source
 
@@ -29,6 +29,35 @@ A Comeet source needs the company UID and the careers token.
 Pasting that embedded link, or a Comeet careers API link (`comeet.co/careers-api/2.0/company/{uid}/positions?token=...`), into either field fills in both values. In an embedded link the first code after `/jobs/` is the company UID and the second is a position.
 
 The token is public, not a password, but Pitchcrew still treats it with care. It is saved only in `job-sources.json`, returned only to the local UI session, and kept out of card provenance, board events, agent tool results and error messages. Posting URLs with a token query parameter, including encoded or differently capitalized names, are discarded; source-token echoes in posting text are redacted. A company can change its token; a scan then fails with "Comeet did not accept the company UID and token" until you paste the new one. Changing the token clears the old scan status so agents can test the updated source immediately.
+
+## Add a job from a link
+
+In **Add job**, paste a posting link in **Job post URL** and choose **Fetch from link**. Pitchcrew reads that one posting and fills in the company, title, location, salary, link and full description. Check the details, change anything you like, then choose **Add job**. Nothing is saved until you do. Saving waits until a fetch finishes. Editing the link cancels its lookup and clears its duplicate notices and provenance, so a delayed response cannot replace the new link. Edits you make to other fields while the fetch is pending are preserved when it finishes. If you fetch another job, missing fields clear unchanged values from the previous posting while retaining your manual edits.
+
+These links work:
+
+| Provider   | Link                                                                                                       |
+| ---------- | ---------------------------------------------------------------------------------------------------------- |
+| Greenhouse | `boards.greenhouse.io/{board}/jobs/{id}` or `job-boards.greenhouse.io/{board}/jobs/{id}`                   |
+| Greenhouse | `boards.greenhouse.io/embed/job_app?for={board}&token={id}` and `boards.greenhouse.io/{board}?gh_jid={id}` |
+| Greenhouse | A company careers page with both `gh_jid={id}` and `for={board}` in the link                               |
+| Ashby      | `jobs.ashbyhq.com/{board}/{id}`, with or without `/application`                                            |
+| Lever      | `jobs.lever.co/{board}/{id}`, with or without `/apply`                                                     |
+| Comeet     | `www.comeet.com/jobs/{company-name}/{company UID}/{title}/{position UID}`                                  |
+| Comeet     | `www.comeet.co/jobs/{company UID}/{position UID}?token=...`, with or without `/apply`                      |
+| Workable   | `apply.workable.com/{account}/j/{shortcode}`, with or without a trailing `/` or `/apply`                   |
+
+Links must start with `https://` and contain no user information or explicit port. Repeated job or board identifiers and conflicting Greenhouse job IDs are rejected. Tracking parameters and fragments are ignored. An Ashby board name may hold dots, and spaces written as `%20`, such as `jobs.ashbyhq.com/Northwind%20Scientific/{id}`. Any other `%` escape, `..` segment or double slash is rejected, for every provider. Comeet company and position UIDs look like `A1.B2C`; an office-specific position link such as `A1.00D-B3.C4D` identifies the base posting `A1.00D`. Workable shortcodes are 8 to 12 uppercase letters and digits. A short Workable link such as `apply.workable.com/j/{shortcode}` does not name the account, so it is not recognized. A company careers page that only has `gh_jid` or `ashby_jid` does not name the board, so it is not recognized. Open the job on the provider's own page and paste that link. Greenhouse and Lever EU links are not supported yet.
+
+Comeet's API needs the company's careers token, and a hosted Comeet link does not contain it. Pitchcrew uses the token of your saved Comeet source with the same company UID. Without one, the form says "Add this company as a Comeet source in Settings > Job sources to fetch its postings." and nothing is fetched. An embed link that carries `token=` works without a saved source: Pitchcrew uses that token for this one lookup and does not save it. The token never appears in the form, the saved card, board events or error messages.
+
+When a link is not recognized or the posting cannot be read, the form says why and stays as it was, so you can fill it in by hand.
+
+The company comes from your saved job source for the same board, then from the provider (Greenhouse, Comeet and Workable name the company), and otherwise from the board name. If the job may already be on the board, the form lists the matching cards before you save. It uses the same duplicate check as scans, plus the company and title check used when you register an external application.
+
+A job saved from a link gets the same provenance as a discovered lead: provider, board name, job ID and first-seen time, with "link" as its source. Its job ID becomes the card's job identifier. Later scans of that board skip it. The card details show "Added from a Greenhouse link", with the provider's name. If you change the link after fetching, the job is saved without provenance, like a job you typed in. With **Already applied outside Pitchcrew** checked, the fetched job ID fills in the job identifier instead.
+
+Agents have no lookup tool and still cannot fetch links.
 
 ## Filters
 
@@ -92,11 +121,21 @@ The daemon is the only part that calls the providers. It uses five fixed endpoin
 
 - Only the validated board name, or the Comeet company UID and token, change. The daemon rebuilds the URL and rejects it unless the origin, path and query match the template exactly.
 - Workable also has a newer jobs API, but it uses POST. Pitchcrew keeps to the GET widget API.
+
+A link lookup makes one request. Greenhouse and Lever have a single-posting endpoint. For Ashby, Comeet and Workable, Pitchcrew reads the board endpoint above, built the same way as for a scan, and picks the posting by ID.
+
+| Provider   | Request                                                                         |
+| ---------- | ------------------------------------------------------------------------------- |
+| Greenhouse | `GET https://boards-api.greenhouse.io/v1/boards/{board}/jobs/{id}?content=true` |
+| Lever      | `GET https://api.lever.co/v0/postings/{board}/{id}?mode=json`                   |
+
+- For a lookup, only the validated board name, job ID and, for Comeet, token change. Greenhouse job IDs are digits; Ashby and Lever job IDs are UUIDs. The same exact template check applies. The pasted link itself is never fetched.
 - Requests are GET only, without credentials or cookies, and do not follow redirects.
 - Each request sends the user agent `Pitchcrew/0.1.0 (local job discovery; read-only; +https://github.com/HitBox38/PitchCrew)`.
 - Each request has a 20-second timeout. A whole scan stops after three minutes and reports the remaining sources as failed.
 - Responses must be JSON and at most 8 MB. Pitchcrew reads the first 2,000 postings per board.
 - Requests to the same provider start at least one second apart. Different providers run in parallel. Queued requests stop immediately when the scan is cancelled or reaches its deadline.
+- Link lookups share the same limits and spacing as scans. A lookup stops after one minute, including time spent waiting behind a running scan, or when you close the form.
 
 Sources paused, removed or edited while a scan is fetching are skipped before any leads are saved. Agent discovery permission and the active run are rechecked after the fetch, immediately before recording leads.
 
@@ -117,10 +156,10 @@ The Lever EU host (`api.eu.lever.co`), Greenhouse EU boards and other ATS provid
 
 ## Storage and events
 
-Sources live in `job-sources.json` in the data directory, written atomically with owner-only permissions. They are user settings, like `profile-sources.json`, and hold no credentials. A Comeet source adds a `token` field; files saved before Comeet and Workable load without changes. Only the local UI session can call the source routes (`GET`, `POST /api/job-sources`, `PUT` and `DELETE /api/job-sources/:id`, `POST /api/job-sources/preview` and `POST /api/job-sources/scan`).
+Sources live in `job-sources.json` in the data directory, written atomically with owner-only permissions. They are user settings, like `profile-sources.json`, and hold no credentials. A Comeet source adds a `token` field; files saved before Comeet and Workable load without changes. Only the local UI session can call the source routes (`GET`, `POST /api/job-sources`, `PUT` and `DELETE /api/job-sources/:id`, `POST /api/job-sources/preview` and `POST /api/job-sources/scan`) and the link lookup route, `POST /api/jobs/lookup`. A lookup takes `{ "url": "..." }` and returns `found` with the form values, provenance and possible duplicates, or `unrecognized` or `failed` with a reason. It creates nothing.
 
-Discovered cards are ordinary board events. Event version 10 adds the card `discovery` provenance and the optional `discoverJobs` capability. New events use version 11, which adds learning signals. Versions 1 through 10 remain decodable and replayable. Comeet and Workable add two `discovery.provider` values without a new event version: no stored event changes, and decoding never checked the provider.
+Discovered cards are ordinary board events. Event version 10 adds the card `discovery` provenance and the optional `discoverJobs` capability. New events use version 11, which adds learning signals. Versions 1 through 10 remain decodable and replayable. Comeet and Workable add two `discovery.provider` values without a new event version: no stored event changes, and decoding never checked the provider. Jobs saved from a link reuse the version 10 `discovery` shape with `sourceId` set to `link` and the board name as `sourceName`, so they need no new event version. `POST /api/cards` accepts an optional `provenance` (provider, board name, job ID and publish time), checked against the same board name and job ID patterns.
 
 ## Verification
 
-Tests use recorded fictional responses for all five providers and a mocked fetch, with no network access. They cover the parsers (including missing optional fields and merged office copies), HTML conversion, filters, board name, company UID and token validation, URL construction, token redaction, loading older source files, size and timeout limits, rate limiting, duplicate handling including withdrawn cards, the per-scan cap, the HTTP session boundary, capability gating over the daemon and actual MCP stdio, a routine-started scan and event replay.
+Tests use recorded fictional responses for all five providers and a mocked fetch, with no network access. They cover the parsers (including missing optional fields and merged office copies), HTML conversion, filters, board name, company UID and token validation, URL construction, token redaction, loading older source files, size and timeout limits, rate limiting, duplicate handling including withdrawn cards, the per-scan cap, the HTTP session boundary, capability gating over the daemon and actual MCP stdio, a routine-started scan and event replay. Link tests cover recognition for each provider, including Ashby names with dots and `%20` spaces, Comeet hosted and embed links and Workable links, and rejected hosts, IDs, user info, ports, non-https links, percent escapes and path traversal; Comeet lookups with and without a saved source and with an embed token, with the token kept out of results, errors, cards and events; lookups from recorded single postings; size, timeout and cancellation; duplicate warnings; the HTTP session boundary; and that a saved fetched job stops a later scan from adding it again.

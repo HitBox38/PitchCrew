@@ -12,6 +12,7 @@ import {
   refineJobSource,
   maxJobSources,
   maxNewLeadsPerScan,
+  type JobLookupResult,
   type JobPosting,
   type JobScanSummary,
   type JobSource,
@@ -24,6 +25,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { fetchBoard, ProviderRateLimiter, type FetchLike } from './fetch.ts';
 import { matchesFilters } from './filters.ts';
+import { lookupJobLink } from './lookup.ts';
 import {
   parsePostings,
   providerStatusMessages,
@@ -199,6 +201,16 @@ export class JobSourceManager {
         onBoard: known[index]!,
       })),
     };
+  }
+  /** Read one posting from a pasted link for the Add job form. User-only; creates nothing. */
+  lookup(value: unknown, signal?: AbortSignal): Promise<JobLookupResult> {
+    return lookupJobLink(value, {
+      fetch: (url, init) => this.fetch(url, init),
+      limiter: this.limiter,
+      board: this.board,
+      sources: () => this.list(),
+      signal: AbortSignal.any([this.lifetime.signal, ...(signal ? [signal] : [])]),
+    });
   }
   /**
    * Scan saved, enabled sources and add new matching postings as leads. `recentMs` skips sources
