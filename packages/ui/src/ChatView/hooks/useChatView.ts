@@ -1,5 +1,6 @@
 import { useChatReasoning } from './useChatReasoning.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
+import { resolveRuntime } from '@/lib/runtimes.ts';
 import type { ChatThread, ChatViewProps } from '@/ChatView/types.ts';
 import type { ChatMessage, RoleId } from '@pitchcrew/core';
 import { useRef, useState } from 'react';
@@ -30,11 +31,7 @@ export function useChatView({
         recipient)
       : thread;
   const role = data.roles.find((r) => r.id === roleId)!;
-  const reasoning = useChatReasoning(
-    role,
-    data.runtimes.find((runtime) => runtime.id === role.runtime)!,
-    thread,
-  );
+  const reasoning = useChatReasoning(role, resolveRuntime(data.runtimes, role.runtime), thread);
   const streamingIds = new Set(data.streamingMessages.map((message) => message.id));
   const messages = [...data.messages, ...data.streamingMessages].filter(
     (m) => m.threadId === thread,

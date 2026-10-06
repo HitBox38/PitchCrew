@@ -38,7 +38,9 @@ export function ModelField(props: ModelFieldProps) {
         />
         <output className="optional" aria-live="polite">
           {!available
-            ? 'This runtime is unavailable. Install it before starting agent work.'
+            ? catalog.modelSource === 'none'
+              ? catalog.modelDetail
+              : 'This runtime is unavailable. Install it before starting agent work.'
             : loading
               ? 'Loading models from the runtime…'
               : error || catalog.modelDetail}
