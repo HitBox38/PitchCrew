@@ -124,7 +124,7 @@ See [runtime setup](docs/runtimes.md) for executable names, authentication requi
 
 ### Chats, skills and routines
 
-**Chat** offers private role threads and a shared crew conversation. Attach a job for application context. Replies stream where the runtime supports it; only successful final replies are saved. Agents with permission can message each other and queue follow-ups, limited to six per user-started chain. **Stop** cancels the chain.
+**Chat** offers private role threads and a shared crew conversation. Attach a job for application context. Pick, drop or paste up to five files (10 MB total) into a message: UTF-8 text, Markdown, CSV, JSON, PDF, DOCX, PNG, JPEG, WebP or GIF. You can remove files before sending, send files without text and download them from saved messages. Agents read attachments through a scoped tool; PDF/DOCX text extraction is bounded, and scanned PDFs may have no extractable text. Attachments stay in the local data directory and are shared with your configured runtime/provider when the agent reads them. Replies stream where the runtime supports it; only successful final replies are saved. Agents with permission can message each other and queue follow-ups, limited to six per user-started chain. **Stop** cancels the chain.
 
 **Skills** holds reusable Markdown instructions assigned to all agents or selected roles. Write your own, import a public GitHub-backed skills.sh link, or review an agent's suggestion. Imports copy `SKILL.md` instructions only. New runs receive a snapshot of their assigned skills; edits affect future runs and grant no additional tools.
 

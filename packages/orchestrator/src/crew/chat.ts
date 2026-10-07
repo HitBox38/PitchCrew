@@ -1,4 +1,5 @@
 import { requireRole } from './roles.ts';
+import { saveAttachments, removeAttachments, prepareAttachments } from './attachments/storage.ts';
 import { validateReasoning } from './reasoning.ts';
 import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
@@ -9,6 +10,7 @@ import {
   type AgentTask,
   type Card,
   type ChatMessage,
+  type ChatAttachment,
   type ChatStreamState,
   type ChatStreamUpdate,
   type RoleId,
@@ -53,6 +55,7 @@ export function addMessage(
   runId: string | null,
   id: string = randomUUID(),
   notification?: ChatMessage['notification'],
+  attachments?: ChatAttachment[],
 ): ChatMessage {
   const message: ChatMessage = {
     id,
@@ -64,6 +67,7 @@ export function addMessage(
     runId,
     createdAt: new Date().toISOString(),
     ...(notification ? { notification } : {}),
+    ...(attachments?.length ? { attachments } : {}),
   };
   this.board.record('message', message, from, `${from === 'user' ? 'You' : from} messaged ${to}`);
   this.publishChat(true);
@@ -82,15 +86,22 @@ export async function sendChat(this: CrewContext, roleId: RoleId, data: unknown)
       await this.runtimeModels(role.runtime),
     );
   }
-  return this.startChatRun(
-    roleId,
-    input.content,
-    input.cardId,
-    input.threadId ?? roleId,
-    undefined,
-    undefined,
-    input.reasoning,
-  );
+  const attachments = await saveAttachments(this.directory, input.attachments);
+  try {
+    return await this.startChatRun(
+      roleId,
+      input.content,
+      input.cardId,
+      input.threadId ?? roleId,
+      undefined,
+      undefined,
+      input.reasoning,
+      attachments,
+    );
+  } catch (error) {
+    await removeAttachments(this.directory, attachments);
+    throw error;
+  }
 }
 export async function startChatRun(
   this: CrewContext,
@@ -101,6 +112,7 @@ export async function startChatRun(
   task?: AgentTask,
   scheduled?: { routineId: string; scheduledFor: string },
   reasoning?: Role['reasoning'],
+  attachments?: ChatAttachment[],
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   assertProfileReady(this);
@@ -149,6 +161,9 @@ export async function startChatRun(
       scheduled ? `Scheduled action (${scheduled.scheduledFor}):\n${content}` : content,
       cardId,
       run.id,
+      undefined,
+      undefined,
+      attachments,
     );
   const reply: ChatMessage = {
     id: randomUUID(),
@@ -176,6 +191,7 @@ export async function startChatRun(
         role,
         skills,
         messages,
+        attachments: await prepareAttachments(this.directory, dir, messages, controller.signal),
         request: content,
         profile: await readProfile(this.directory),
         directory: dir,

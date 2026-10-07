@@ -1,5 +1,6 @@
 import type { Card } from './cards.ts';
 import type { ChatMessage, ChatResult } from './chat.ts';
+import type { ChatAttachment } from './chat-attachments.ts';
 import type { PacketRules } from './packet-rules.ts';
 import type { Role } from './roles.ts';
 import type { ModelReasoning } from './reasoning.ts';
@@ -55,6 +56,7 @@ export interface RuntimeAdapter {
 export interface ChatContext extends Omit<RunContext, 'card'> {
   card: Card | null;
   messages: ChatMessage[];
+  attachments?: (ChatAttachment & { messageId: string; path: string })[];
   /** Current reply text, replacing the previous preview. Empty text clears it. */
   onReply?: (text: string) => void;
 }

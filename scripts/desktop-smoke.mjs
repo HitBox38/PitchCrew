@@ -83,6 +83,7 @@ try {
         !result.chatReady ||
         !result.chatResponded ||
         !result.chatTabsReady ||
+        !result.chatAttachmentsReady ||
         result.chatStreamingUpdates < 2 ||
         !result.routerHistoryReady ||
         !result.featurePanelsReady ||

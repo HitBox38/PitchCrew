@@ -108,6 +108,7 @@ export interface CrewContext {
     runId: string | null,
     id?: string,
     notification?: ChatMessage['notification'],
+    attachments?: ChatMessage['attachments'],
   ): ChatMessage;
   sendChat(roleId: RoleId, data: unknown): Promise<Run>;
   startChatRun(
@@ -118,6 +119,7 @@ export interface CrewContext {
     task?: AgentTask,
     scheduled?: { routineId: string; scheduledFor: string },
     reasoning?: Role['reasoning'],
+    attachments?: ChatMessage['attachments'],
   ): Promise<Run>;
   decideProposal(id: string, approved: boolean): Promise<RoleProposal>;
   decideSkillProposal(id: string, approved: boolean): SkillProposal;

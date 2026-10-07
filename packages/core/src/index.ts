@@ -15,6 +15,7 @@ export type { Card, CardInput, CardLesson } from './cards.ts';
 export * from './insights.ts';
 export * from './learning.ts';
 export { chatInput, chatResultSchema } from './chat.ts';
+export * from './chat-attachments.ts';
 export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from './chat.ts';
 export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';

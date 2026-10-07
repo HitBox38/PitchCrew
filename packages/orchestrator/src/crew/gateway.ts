@@ -1,4 +1,5 @@
 import { requireRole } from './roles.ts';
+import { readChatAttachment } from './gateway/attachments.ts';
 import {
   defaultCapabilities,
   describePacketRules,
@@ -101,6 +102,7 @@ export async function agentCall(
         })),
     };
   if (action === 'messages') return readMessages.call(this, capability);
+  if (action === 'chat_attachment') return readChatAttachment(this, capability, token, data);
   if (action === 'message' || action === 'invoke')
     return queueMessage.call(this, capability, permissions, action, data);
   if (action === 'propose') return proposeRole.call(this, capability, role, data);
