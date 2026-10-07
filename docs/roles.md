@@ -2,6 +2,8 @@
 
 Pitchcrew stores one agent configuration for each role. A role's stable ID is its board, chat, routine and run identity; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
 
+Every production runtime has a 30-minute limit per workflow or chat turn, including routines and crew follow-ups. The budget is independent of role, model, reasoning and computer-use permission, so Writer can complete drafting and source checks with its recommended High reasoning. Pitchcrew stops runs that reach this limit; users can cancel sooner with **Stop**. Restart the daemon after changing runtime code.
+
 ## Default crew
 
 Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
@@ -80,9 +82,11 @@ Adapters keep the actual role ID for prompts, capability scope and paths, while 
 
 ## Pause and retirement
 
-Pause is reversible through the existing enabled setting. Retirement is a confirmed user action and is permanent in this version. Active runs and settings writes must finish first. Retirement atomically stores the tombstone, pauses routines targeted at or last maintained by the retiring role, and cancels queued tasks addressed to it. It does not delete or rewrite events. Retired roles stay in snapshots and the conversation list for historical attribution, while live action pickers exclude them. Stored skills retain historical assignments; reassign skills away from retired roles before saving updates.
+Pause is reversible through the existing enabled setting. Retirement is a confirmed user action. Active runs and settings writes must finish first. Retirement atomically stores the tombstone, pauses routines targeted at or last maintained by the retiring role, and cancels queued tasks addressed to it. It does not delete or rewrite events. Retired roles stay in snapshots and the conversation list for historical attribution, while live action pickers exclude them. Stored skills retain historical assignments; reassign skills away from retired roles before saving updates.
 
-No unattended scheduler is added: routines still run only while the daemon is open. Browser interactions and local packet exports keep their existing exact-action/snapshot approval gates. Agents cannot create, retire or silently apply role changes.
+Choose **Restore agent** on a retired agent's Crew card to return the same identity to the crew paused. Restoration preserves its settings, skills, conversations and run history, and appends a user role event clearing retirement. It requires a local UI session and rejects active runs or settings writes. Review **Configure** and enable the agent when ready; paused routines and cancelled tasks do not resume automatically. Restoration also works when all 50 stored identities are in use or the saved runtime is unavailable.
+
+No unattended scheduler is added: routines still run only while the daemon is open. Browser interactions and local packet exports keep their existing exact-action/snapshot approval gates. Agents cannot create, retire, restore or silently apply role changes.
 
 ## Events and verification
 

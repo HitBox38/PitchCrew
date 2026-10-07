@@ -64,6 +64,11 @@ describe('analytics content boundary', () => {
     expect(actionEvent('/roles/private-role/chat', 'POST', { content: 'Private chat' })).toEqual({
       event: 'chat_sent',
     });
+    const restored = actionEvent('/roles/private-role/restore', 'POST', { name: 'Private name' })!;
+    expect(restored).toEqual({ event: 'agent_restored' });
+    expect(
+      sanitizeEvent({ event: restored.event, properties: { roleId: 'private-role' } })?.properties,
+    ).toEqual({ $process_person_profile: false, $geoip_disable: true });
     expect(
       actionEvent('/approvals/private-id/decide', 'POST', { approved: true, digest: 'secret' }),
     ).toEqual({

@@ -27,7 +27,14 @@ import { agentCall } from './gateway.ts';
 import { close, initialize, snapshot } from './lifecycle.ts';
 import { detect, runtimeModels } from './models.ts';
 import { decideProposal, decideSkillProposal } from './proposals.ts';
-import { createRole, retireRole, configureRole, writeRole, writeRunInstructions } from './roles.ts';
+import {
+  createRole,
+  retireRole,
+  restoreRole,
+  configureRole,
+  writeRole,
+  writeRunInstructions,
+} from './roles.ts';
 import {
   deleteSkill,
   hasStarterSkill,
@@ -98,6 +105,7 @@ export function createCrewContext(
     writeRole: (...args) => writeRole.call(context, ...args),
     createRole: (...args) => createRole.call(context, ...args),
     retireRole: (...args) => retireRole.call(context, ...args),
+    restoreRole: (...args) => restoreRole.call(context, ...args),
     configureRole: (...args) => configureRole.call(context, ...args),
     createCard: (...args) => createCard.call(context, ...args),
     moveCard: (...args) => moveCard.call(context, ...args),

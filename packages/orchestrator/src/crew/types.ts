@@ -79,6 +79,7 @@ export interface CrewContext {
   writeRole(role: Role): Promise<void>;
   createRole(data: unknown): Promise<Role>;
   retireRole(id: RoleId): Promise<Role>;
+  restoreRole(id: RoleId): Promise<Role>;
   configureRole(
     id: RoleId,
     data: unknown,

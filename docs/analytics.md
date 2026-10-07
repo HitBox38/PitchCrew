@@ -31,7 +31,7 @@ Only successful UI API mutations emit action events. Polling, failed actions, pr
 | `job_created`, `application_registered`, `applications_imported`   | None                                                    |
 | `application_status_changed`                                       | Known card `state`                                      |
 | `workflow_started`, `chat_sent`                                    | None                                                    |
-| `agent_created`, `agent_saved`, `agent_retired`                    | None                                                    |
+| `agent_created`, `agent_saved`, `agent_retired`, `agent_restored`  | None                                                    |
 | `skill_saved`, `skill_deleted`, `routine_saved`, `routine_deleted` | None                                                    |
 | `profile_saved`, `job_sources_scanned`                             | None                                                    |
 | `packet_export_requested`, `packet_exported`                       | None                                                    |
