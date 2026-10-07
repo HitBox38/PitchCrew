@@ -9,6 +9,7 @@ import {
   type Role,
   type Run,
   type Routine,
+  type Skill,
   type Snapshot,
 } from '@pitchcrew/core';
 import { parseResult } from '../../adapters/src/process/results.ts';
@@ -238,9 +239,9 @@ describe('stored configurable roles', () => {
     expect(daemon.service.board.get<Run>('run', builtIn.id).status).toBe('completed');
   });
 
-  it('retains history, pauses routines and cancels queued work on retirement, while rejecting active edits', async () => {
+  it('retains history through retirement and restoration without resuming routines or queued work', async () => {
     let complete!: (reply: { reply: string }) => void;
-    vi.spyOn(adapters.demo, 'chat').mockImplementation(
+    const chat = vi.spyOn(adapters.demo, 'chat').mockImplementation(
       () =>
         new Promise((resolve) => {
           complete = resolve;
@@ -248,6 +249,13 @@ describe('stored configurable roles', () => {
     );
     const { daemon, request } = await setup(14524);
     const role = await daemon.service.createRole(custom);
+    const skill = daemon.service.saveSkill({
+      name: 'Fictional research',
+      description: 'Check fictional sources.',
+      content: 'Use fictional evidence.',
+      scope: 'roles',
+      roleIds: [role.id],
+    });
     const routine = daemon.service.saveRoutine(schedule);
     const run = await daemon.service.sendChat(role.id, { content: 'Fictional question' });
     await vi.waitFor(() => expect(complete).toBeTypeOf('function'));
@@ -292,6 +300,68 @@ describe('stored configurable roles', () => {
     const snapshot = await daemon.service.snapshot();
     expect(snapshot.roles.find((item) => item.id === role.id)?.retiredAt).toBe(retired.retiredAt);
     expect(snapshot.messages.some((item) => item.content === 'Fictional answer')).toBe(true);
+
+    const pausedRoutine = daemon.service.board.get<Routine>('routine', routine.id);
+    const cancelledTask = daemon.service.board.get<AgentTask>('task', task.id);
+    const restored = await request<Role>(`/roles/${role.id}/restore`, 'POST', {});
+    expect(restored.response.status).toBe(200);
+    expect(restored.result).toEqual({ ...role, enabled: false, retiredAt: null });
+    expect(daemon.service.board.get<Routine>('routine', routine.id)).toEqual(pausedRoutine);
+    expect(daemon.service.board.get<AgentTask>('task', task.id)).toEqual(cancelledTask);
+    expect(daemon.service.board.get<Skill>('skill', skill.id)).toEqual(skill);
+    await expect(daemon.service.sendChat(role.id, { content: 'More' })).rejects.toThrow(
+      'Enable this role',
+    );
+    daemon.service.board.rebuild();
+    const restoredSnapshot = await daemon.service.snapshot();
+    expect(restoredSnapshot.roles.find((item) => item.id === role.id)).toEqual(restored.result);
+    expect(restoredSnapshot.messages).toEqual(snapshot.messages);
+    expect(restoredSnapshot.runs).toEqual(snapshot.runs);
+
+    await daemon.service.configureRole(role.id, { ...restored.result, enabled: true });
+    chat.mockResolvedValue({ reply: 'Fictional restored answer' });
+    const resumedRun = await daemon.service.sendChat(role.id, { content: 'More' });
+    await finish(request, resumedRun.id);
+    await daemon.service.retireRole(role.id);
+    await daemon.service.restoreRole(role.id);
+    expect(daemon.service.board.get<Role>('role', role.id)).toEqual(restored.result);
+  });
+
+  it('allows only user restoration of retired roles and rejects missing, invalid or busy roles', async () => {
+    const { daemon, request } = await setup(14527);
+    const role = await daemon.service.createRole(custom);
+    const notRetired = await request<{ error: string }>(`/roles/${role.id}/restore`, 'POST', {});
+    expect(notRetired.response.status).toBe(400);
+    expect(notRetired.result.error).toContain('not retired');
+    await daemon.service.retireRole(role.id);
+    const unauthorizedHeaders: Record<string, string>[] = [
+      { cookie: '' },
+      { 'x-pitchcrew-client': 'agent' },
+    ];
+    for (const headers of unauthorizedHeaders)
+      expect(
+        (await request(`/roles/${role.id}/restore`, 'POST', {}, headers)).response.status,
+      ).toBe(403);
+    for (const id of ['missing-role', 'Invalid_ID'])
+      expect((await request(`/roles/${id}/restore`, 'POST', {})).response.status).toBe(400);
+    daemon.service.board.record(
+      'run',
+      {
+        id: 'fixture-running',
+        roleId: role.id,
+        cardId: null,
+        runtime: role.runtime,
+        mode: 'chat',
+        status: 'running',
+        message: '',
+        startedAt: '',
+        finishedAt: null,
+      },
+      'system',
+      'Fictional inconsistent active run',
+    );
+    await expect(daemon.service.restoreRole(role.id)).rejects.toThrow('active run');
+    expect(daemon.service.board.get<Role>('role', role.id).retiredAt).toBeTruthy();
   });
 
   it('enforces source and target stored-role checks for every scoped gateway call and never grants approval', async () => {

@@ -3,9 +3,17 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { CrewCardProps } from '@/CrewPage/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { instructionUpdateTitle } from '@/lib/instruction-updates.ts';
-import { MessageSquare, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { MessageSquare, RotateCcw, SlidersHorizontal, Sparkles } from 'lucide-react';
 
-export function CrewCard({ role, status, update, onConfigure, onChat }: CrewCardProps) {
+export function CrewCard({
+  role,
+  status,
+  update,
+  onConfigure,
+  onChat,
+  onRestore,
+  working,
+}: CrewCardProps) {
   return (
     <section className={`crew-card ${role.id}`}>
       <div className="crew-card-top">
@@ -44,10 +52,19 @@ export function CrewCard({ role, status, update, onConfigure, onChat }: CrewCard
         <Button className="button primary" onClick={onChat}>
           <MessageSquare size={14} /> Chat
         </Button>
-        <Button className="button" onClick={onConfigure} disabled={!!role.retiredAt}>
-          <SlidersHorizontal size={14} /> Configure
-        </Button>
+        {role.retiredAt ? (
+          <Button className="button" onClick={onRestore} disabled={working}>
+            <RotateCcw size={14} /> Restore agent
+          </Button>
+        ) : (
+          <Button className="button" onClick={onConfigure}>
+            <SlidersHorizontal size={14} /> Configure
+          </Button>
+        )}
       </div>
+      {role.retiredAt ? (
+        <p className="quiet">Restores paused. Resume in Configure when ready.</p>
+      ) : null}
     </section>
   );
 }

@@ -9,11 +9,12 @@ import type { Role } from '@pitchcrew/core';
 import { useShallow } from 'zustand/react/shallow';
 
 export function CrewPage() {
-  const { data, working, setRoleId } = useWorkspaceStore(
+  const { data, working, setRoleId, act } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
       working: state.working,
       setRoleId: state.setRoleId,
+      act: state.act,
     })),
   );
   const { openChat } = useWorkspaceNavigation();
@@ -40,6 +41,10 @@ export function CrewPage() {
             update={updates.find((update) => update.roleId === role.id)}
             onConfigure={() => setRoleId(role.id)}
             onChat={() => openChat(role.id)}
+            working={working}
+            onRestore={() =>
+              act(`/roles/${role.id}/restore`, 'POST', {}, `${role.name} restored paused`)
+            }
           />
         ))}
       </div>

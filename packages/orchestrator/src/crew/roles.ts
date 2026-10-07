@@ -173,3 +173,16 @@ export async function retireRole(this: CrewContext, id: RoleId): Promise<Role> {
   })();
   return role;
 }
+
+export async function restoreRole(this: CrewContext, id: RoleId): Promise<Role> {
+  const current = this.board.get<Role>('role', roleIdSchema.parse(id));
+  if (!current.retiredAt) throw new Error('This role is not retired.');
+  if (
+    this.configuring.has(id) ||
+    this.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
+  )
+    throw new Error('Wait for this role active run or settings update before restoring it.');
+  const role = { ...current, enabled: false, retiredAt: null };
+  this.board.record('role', role, 'user', `Restored ${role.name} paused; history retained`);
+  return role;
+}

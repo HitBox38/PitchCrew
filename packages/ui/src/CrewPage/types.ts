@@ -7,4 +7,6 @@ export interface CrewCardProps {
   update?: InstructionUpdate;
   onConfigure: () => void;
   onChat: () => void;
+  onRestore: () => void;
+  working: boolean;
 }

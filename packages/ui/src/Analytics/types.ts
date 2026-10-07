@@ -16,6 +16,7 @@ export type AnalyticsEvent =
   | 'agent_created'
   | 'agent_saved'
   | 'agent_retired'
+  | 'agent_restored'
   | 'skill_saved'
   | 'skill_deleted'
   | 'routine_saved'
