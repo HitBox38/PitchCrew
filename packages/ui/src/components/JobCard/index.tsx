@@ -9,13 +9,13 @@ import * as m from 'motion/react-m';
 
 export function JobCard(props: JobCardProps) {
   const controller = useJobCard(props);
-  const { card, onOpen, reduced, tiltX, tiltY, rotateX, rotateY } = controller;
+  const { card, onOpen, reduced, stationary, tiltX, tiltY, rotateX, rotateY } = controller;
   return (
     <Button
       render={
         <m.button
-          layout="position"
-          layoutId={`job-${card.id}`}
+          layout={stationary ? false : 'position'}
+          layoutId={stationary ? undefined : `job-${card.id}`}
           initial={reduced ? false : { opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: reduced ? 1 : 0.97 }}
