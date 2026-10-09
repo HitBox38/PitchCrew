@@ -2,7 +2,15 @@
   margin-left: auto;
   position: relative;
 }
+.button.notification-bell {
+  min-width: 32px;
+  padding-inline: 8px;
+  gap: 6px;
+}
 .notification-count {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
   min-width: 17px;
   height: 17px;
   padding: 0 4px;
@@ -163,6 +171,10 @@
   box-shadow: var(--clay);
 }
 @variant max-phone {
+  .button.notification-bell {
+    min-width: 44px;
+    height: 44px;
+  }
   .notification-panel {
     padding: 24px 16px;
   }

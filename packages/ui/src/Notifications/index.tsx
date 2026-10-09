@@ -33,14 +33,16 @@ export function Notifications() {
         <SheetTrigger
           render={
             <Button
-              className="icon-button notification-bell"
+              className="button small notification-bell"
               aria-label={`Notifications, ${state.unread.length} unread`}
             />
           }
         >
           <Bell size={17} />
           {state.unread.length ? (
-            <span className="notification-count">{state.unread.length}</span>
+            <span className="notification-count" aria-hidden="true">
+              {state.unread.length}
+            </span>
           ) : null}
         </SheetTrigger>
         <SheetContent className="notification-panel">

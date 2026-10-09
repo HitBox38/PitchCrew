@@ -72,6 +72,11 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               const focusPaused = !!document.querySelector('[data-slot="toast"]:not([data-ending-style])') && viewport?.contains(document.activeElement);
               const bell = document.querySelector('.notification-bell');
               const unreadReady = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 1 unread');
+              const bellBounds = bell.getBoundingClientRect();
+              const notificationTriggerContained = [...bell.children].every((child) => {
+                const bounds = child.getBoundingClientRect();
+                return bounds.left >= bellBounds.left && bounds.right <= bellBounds.right && bounds.top >= bellBounds.top && bounds.bottom <= bellBounds.bottom;
+              });
               bell?.click();
               const notificationsVisible = await waitFor(() => document.querySelector('.notification-list')?.textContent.includes('Scout sent a message'));
               sheetChecks.notifications = await ${smokeSheetBounds};
@@ -80,8 +85,8 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               const inAppControlsOnly = !document.querySelector('.notification-controls')?.textContent.includes('Desktop alerts');
               [...document.querySelectorAll('.notification-panel button')].find((button) => button.textContent === 'Close')?.click();
               const notificationsClosed = await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])'));
-              interactionChecks.notifications = { unreadReady, notificationsVisible, notificationsRead, inAppControlsOnly, notificationsClosed, label: bell?.getAttribute('aria-label') };
-              notificationPanelReady = unreadReady && notificationsVisible && notificationsRead && inAppControlsOnly && notificationsClosed;
+              interactionChecks.notifications = { notificationTriggerContained, unreadReady, notificationsVisible, notificationsRead, inAppControlsOnly, notificationsClosed, label: bell?.getAttribute('aria-label') };
+              notificationPanelReady = notificationTriggerContained && unreadReady && notificationsVisible && notificationsRead && inAppControlsOnly && notificationsClosed;
               chatStreamingUpdates = partials.size;
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
               const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));

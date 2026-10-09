@@ -35,7 +35,9 @@ export function NotificationList({
               <span className="notification-item-heading">
                 <strong>{item.title}</strong>
                 {!read.includes(item.id) ? (
-                  <span className="notification-unread" role="img" aria-label="Unread" />
+                  <span className="notification-unread">
+                    <span className="sr-only">Unread</span>
+                  </span>
                 ) : null}
               </span>
               <span className="notification-preview">{notificationPreview(item.body)}</span>
