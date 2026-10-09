@@ -1,3 +1,4 @@
+export * from './conversations.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export * from './reasoning.ts';
@@ -98,3 +99,5 @@ export type {
   PacketRulesState,
   PacketRuleSeverity,
 } from './packet-rules.ts';
+
+export * from './user-input.ts';

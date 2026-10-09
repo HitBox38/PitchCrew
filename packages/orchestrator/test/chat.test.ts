@@ -35,7 +35,7 @@ describe('agent conversations and crew actions', () => {
     try {
       const firstConnection = await connect();
       await vi.waitFor(() => expect(states).toHaveLength(1));
-      expect(states[0]).toEqual({ messages: [], streamingMessages: [] });
+      expect(states[0]).toEqual({ messages: [], streamingMessages: [], userInputs: [] });
       const { result: root } = await request<Run>('/roles/scout/chat', 'POST', {
         content: 'Help me.',
       });
@@ -72,7 +72,7 @@ describe('agent conversations and crew actions', () => {
       expect(crewPreview).toMatchObject({
         from: 'writer',
         to: 'scout',
-        threadId: 'crew',
+        threadId: expect.any(String),
         content: 'Writer is responding',
       });
       expect(states.at(-1)!.messages.find((message) => message.id === preview.id)?.content).toBe(
@@ -303,13 +303,13 @@ describe('agent conversations and crew actions', () => {
     expect(snapshot.messages).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          threadId: 'crew',
+          threadId: expect.any(String),
           from: 'scout',
           to: 'reviewer',
           content: 'Tell me how you check evidence.',
         }),
-        expect.objectContaining({ threadId: 'crew', from: 'reviewer', to: 'scout' }),
-        expect.objectContaining({ threadId: 'crew', from: 'scout', to: 'scout' }),
+        expect.objectContaining({ threadId: expect.any(String), from: 'reviewer', to: 'scout' }),
+        expect.objectContaining({ threadId: 'scout', from: 'scout', to: 'scout' }),
       ]),
     );
     const decisions = await Promise.all([

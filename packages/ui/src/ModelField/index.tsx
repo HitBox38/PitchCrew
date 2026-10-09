@@ -5,6 +5,8 @@ import type { ModelFieldProps } from '@/ModelField/types.ts';
 import { ReasoningField } from '@/ReasoningField/index.tsx';
 import type { ReasoningLevel } from '@pitchcrew/core';
 import { RefreshCw } from 'lucide-react';
+import { reasoningLabels } from '@/lib/reasoning.ts';
+import { agentModelDefaultValue } from './constants.ts';
 
 export function ModelField(props: ModelFieldProps) {
   const controller = useModelField(props);
@@ -29,8 +31,20 @@ export function ModelField(props: ModelFieldProps) {
         <ModelPicker
           id={id}
           models={catalog.models}
-          value={value}
+          value={props.inheritModel ? agentModelDefaultValue : value}
+          agentDefault={
+            props.agentDefaults
+              ? {
+                  value: agentModelDefaultValue,
+                  label: `Use agent default (${props.agentDefaults.model || 'CLI default'})`,
+                }
+              : undefined
+          }
           onValueChange={(next) => {
+            if (props.agentDefaults && next === agentModelDefaultValue) {
+              props.onInheritModel?.();
+              return;
+            }
             onValueChange(next);
             if (next !== value) props.onReasoningChange(null);
           }}
@@ -57,9 +71,18 @@ export function ModelField(props: ModelFieldProps) {
       </div>
       <ReasoningField
         id={`${id}-reasoning`}
+        conversation={props.conversation}
         reasoning={catalog.models.find((model) => model.value === value)?.reasoning}
-        value={props.reasoning ?? ''}
-        onValueChange={(next) => props.onReasoningChange(next ? (next as ReasoningLevel) : null)}
+        value={props.inheritReasoning ? 'agent' : (props.reasoning ?? '')}
+        agentDefault={
+          props.agentDefaults
+            ? `Use agent default (${props.agentDefaults.reasoning ? reasoningLabels[props.agentDefaults.reasoning] : 'CLI default'})`
+            : undefined
+        }
+        onValueChange={(next) => {
+          if (next === 'agent') props.onInheritReasoning?.();
+          else props.onReasoningChange(next ? (next as ReasoningLevel) : null);
+        }}
         disabled={!available || loading}
       />
     </>

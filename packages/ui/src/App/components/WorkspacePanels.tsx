@@ -1,4 +1,10 @@
-import { AddOpportunity, CardDetails, RoleSettings } from '@/App/constants.ts';
+import {
+  AddOpportunity,
+  CardDetails,
+  RoleSettings,
+  ConversationCreation,
+} from '@/App/constants.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { WorkspacePanelsProps } from '@/App/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { Suspense } from 'react';
@@ -16,9 +22,20 @@ export function WorkspacePanels({
   navigate,
   setRoleId,
 }: WorkspacePanelsProps) {
+  const creatingConversation = useWorkspaceStore((state) => state.creatingConversation);
+  const setCreatingConversation = useWorkspaceStore((state) => state.setCreatingConversation);
   return (
     <Suspense fallback={null}>
       <AnimatePresence>
+        {creatingConversation ? (
+          <ConversationCreation
+            key="new-conversation"
+            data={data}
+            action={action}
+            working={working}
+            onClose={() => setCreatingConversation(false)}
+          />
+        ) : null}
         {add ? (
           <AddOpportunity
             key="add-job"

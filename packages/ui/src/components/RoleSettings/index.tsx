@@ -1,3 +1,4 @@
+import { AgentMemory } from '@/AgentMemory/index.tsx';
 import { IdentitySettings } from './components/IdentitySettings.tsx';
 import { RoleInstructionUpdate } from './components/RoleInstructionUpdate.tsx';
 import { RoleRetirement } from './components/RoleRetirement.tsx';
@@ -10,8 +11,7 @@ import { RoleSkills } from '@/components/RoleSettings/components/RoleSkills.tsx'
 import { RuntimeSettings } from '@/components/RoleSettings/components/RuntimeSettings.tsx';
 import { useRoleSettings } from '@/components/RoleSettings/hooks/useRoleSettings.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
+import { RoleSettingsSurface } from './components/RoleSettingsSurface.tsx';
 import { RuntimeRecommendation } from '@/RuntimeRecommendation/index.tsx';
 import { defaultRoleIds } from '@pitchcrew/core/states';
 
@@ -19,13 +19,8 @@ export function RoleSettings(props: RoleSettingsProps) {
   const controller = useRoleSettings(props);
   const { onClose, save, guard } = controller;
   return (
-    <Sheet
-      open
-      onOpenChange={(open) => {
-        if (!open) onClose();
-      }}
-    >
-      <SheetContent className="role-settings-panel" showCloseButton={false}>
+    <>
+      <RoleSettingsSurface docked={props.docked} onClose={onClose}>
         <RoleSettingsHeading {...controller} />
         <form
           className="form role-settings-form flex flex-col gap-4"
@@ -33,7 +28,7 @@ export function RoleSettings(props: RoleSettingsProps) {
         >
           <div className="role-settings-body">
             <IdentitySettings {...controller} />
-            <RuntimeSettings {...controller}>
+            <RuntimeSettings {...controller} stacked={props.docked}>
               {!controller.creating && defaultRoleIds.some((id) => id === controller.role.id) ? (
                 <RuntimeRecommendation
                   key={controller.role.id}
@@ -60,12 +55,13 @@ export function RoleSettings(props: RoleSettingsProps) {
             ) : (
               <RoleSkills {...controller} />
             )}
+            {!controller.creating ? <AgentMemory roleId={controller.role.id} /> : null}
             <RoleRetirement {...controller} />
           </div>
           <RoleSettingsFooter {...controller} />
         </form>
-      </SheetContent>
+      </RoleSettingsSurface>
       <DiscardChanges guard={guard} />
-    </Sheet>
+    </>
   );
 }

@@ -11,7 +11,9 @@ export const smokeRetainedRuntime = `(async () => {
   });
   const before = await fetch('/api/snapshot', { headers: { 'x-pitchcrew-client': 'ui' } }).then((response) => response.json());
   if (blocked.ok || before.runs.length || before.messages.length) throw new Error('Production accepted a Demo chat.');
-  document.querySelector('button[aria-label="Configure Writer"]')?.click();
+  document.querySelector('button[aria-label="Conversation options"]')?.click();
+  await waitFor(() => [...document.querySelectorAll('[role="menuitem"]')].some((item) => item.textContent.includes('Agent defaults')));
+  [...document.querySelectorAll('[role="menuitem"]')].find((item) => item.textContent.includes('Agent defaults'))?.click();
   const settings = await waitFor(() => !!document.querySelector('#writer-runtime'));
   if (!settings) throw new Error('Retained Demo settings failed to render.');
   const demoLabel = document.querySelector('#writer-runtime')?.textContent.includes('Demo (unavailable)');

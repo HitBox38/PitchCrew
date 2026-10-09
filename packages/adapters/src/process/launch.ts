@@ -48,7 +48,7 @@ export async function runCliText(
   const stream = chatEventStream(context);
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
-      cwd: context.directory,
+      cwd: 'session' in context && context.session ? context.session.directory : context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: runtimeEnvironment(context, env),

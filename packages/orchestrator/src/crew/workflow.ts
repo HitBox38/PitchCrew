@@ -1,3 +1,12 @@
+import {
+  endQuestionTurn,
+  finishUserContinuation,
+  waitingOnUser,
+  cancelUserQuestions,
+} from './user-input/lifecycle.ts';
+import { finishDelivery } from './conversation-queue.ts';
+import { relatedConversation } from './conversations.ts';
+import { drainConversationQueue } from './conversation-queue.ts';
 import { requireRole } from './roles.ts';
 import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
@@ -23,6 +32,7 @@ export async function startRun(
   cardId: string,
   roleId: RoleId,
   task?: AgentTask,
+  delivery?: { requestId: string; rootRunId: string; content: string },
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   assertProfileReady(this);
@@ -62,8 +72,24 @@ export async function startRun(
     startedAt: new Date().toISOString(),
     finishedAt: null,
     mode: 'workflow',
+    threadId:
+      task?.threadId ??
+      relatedConversation(
+        this,
+        'application',
+        cardId,
+        roleId,
+        cardId,
+        `${card.company}: Application work`,
+      ).id,
     ...(task ? { rootRunId: task.rootRunId, taskId: task.id } : {}),
   };
+  if (waitingOnUser(this, run.threadId!, roleId))
+    throw new Error('Answer or cancel this agent’s pending question first.');
+  if (delivery) {
+    run.requestId = delivery.requestId;
+    run.rootRunId = delivery.rootRunId;
+  }
   const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
   await this.writeRunInstructions(dir, role, skills);
   if (
@@ -96,7 +122,7 @@ export async function startRun(
     card: this.board.get<Card>('card', cardId),
     role,
     skills,
-    request: task?.content,
+    request: delivery?.content ?? task?.content,
     profile,
     packetRules: this.packetRules.current().rules,
     directory: dir,
@@ -115,6 +141,7 @@ export async function startRun(
   void adapters[role.runtime]
     .run(context)
     .then(async (result) => {
+      if (endQuestionTurn(this, run)) return;
       if (controller.signal.aborted) throw new Error('Run cancelled.');
       await this.applyResult(cardId, role, result, profile, controller.signal);
       this.board.record(
@@ -131,6 +158,7 @@ export async function startRun(
       );
     })
     .catch((error) => {
+      if (endQuestionTurn(this, run)) return;
       const message = error instanceof Error ? error.message : 'Run failed.';
       this.board.record(
         'run',
@@ -150,9 +178,17 @@ export async function startRun(
     .finally(async () => {
       await this.computer.stop(run.id);
       this.board.updateCard(cardId, { owner: null }, 'orchestrator', 'Released application');
+      if (
+        this.board.get<Run>('run', run.id).status === 'waiting' &&
+        this.board.get<Card>('card', cardId).state === 'drafting'
+      )
+        this.board.move(cardId, 'changes_requested', roleId, 'Writer is waiting for your answer');
       this.controllers.delete(run.id);
       this.capabilities.delete(token);
+      finishUserContinuation(this, run);
       this.finishTask(run);
+      finishDelivery(this, run);
+      void drainConversationQueue(this);
       void this.drainTasks();
     });
   return run;
@@ -214,6 +250,14 @@ export function cancelRun(this: CrewContext, id: string): void {
   controller.abort();
   const run = this.board.get<Run>('run', id);
   const rootRunId = run.rootRunId ?? run.id;
+  cancelUserQuestions(
+    this,
+    (q) => {
+      const origin = this.board.get<Run>('run', q.runId);
+      return (origin.rootRunId ?? origin.id) === rootRunId;
+    },
+    'The run chain was stopped by the user.',
+  );
   for (const sibling of this.board
     .list<Run>('run')
     .filter((r) => (r.rootRunId ?? r.id) === rootRunId)) {

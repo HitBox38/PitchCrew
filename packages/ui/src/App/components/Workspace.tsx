@@ -25,7 +25,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
       <SidebarInset id="main" tabIndex={-1}>
         <WorkspaceToolbar {...controller} />
         <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
-          <WorkspaceHeading {...controller} />
+          {view !== 'chat' ? <WorkspaceHeading {...controller} /> : null}
           <Onboarding />
           <AppUpdates />
           {error ? (

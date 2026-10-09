@@ -316,51 +316,6 @@
     height: auto;
     max-height: none;
   }
-  .chat-rail {
-    display: flex;
-    flex-direction: row;
-    gap: 5px;
-    overflow-x: auto;
-    padding: 8px;
-    border-right: 0;
-    border-bottom: 1px solid var(--border);
-  }
-  .chat-rail-heading,
-  .chat-rail-divider,
-  .chat-rail-note,
-  .chat-thread small,
-  .chat-thread .chat-role-dot,
-  .chat-thread .chat-count {
-    display: none;
-  }
-  .chat-thread {
-    flex-shrink: 0;
-    width: auto;
-    min-width: fit-content;
-    min-height: 38px;
-    padding: 6px 10px;
-    gap: 7px;
-  }
-  .chat-thread strong {
-    font-size: var(--text-label);
-  }
-  .chat-thread .role-avatar {
-    width: 20px;
-    height: 20px;
-  }
-  .chat-thread .role-avatar svg {
-    width: 12px;
-    height: 12px;
-  }
-  .chat-thread .crew-chat-icon {
-    width: 20px;
-    height: 20px;
-    background: transparent;
-  }
-  .chat-thread .crew-chat-icon svg {
-    width: 15px;
-    height: 15px;
-  }
   .chat-panel {
     height: max(550px, calc(100dvh - 235px));
   }
@@ -387,10 +342,6 @@
   .chat-heading-actions .chat-role-state,
   .chat-settings > span {
     display: none;
-  }
-  .chat-tabs {
-    padding-inline: 16px;
-    gap: 20px;
   }
   .chat-transcript,
   .chat-work-content {

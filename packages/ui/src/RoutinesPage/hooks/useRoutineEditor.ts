@@ -16,7 +16,11 @@ export function useRoutineEditor(props: EditorProps) {
     props.onClose,
   );
   const change = (patch: Partial<RoutineDraft>) =>
-    setDraft((current) => ({ ...current, ...patch }));
+    setDraft((current) => ({
+      ...current,
+      ...(patch.roleId !== undefined || patch.cardId !== undefined ? { conversationId: '' } : {}),
+      ...patch,
+    }));
   const close = () => {
     if (!props.working) guard.requestLeave(props.onClose);
   };

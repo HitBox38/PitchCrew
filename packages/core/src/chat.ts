@@ -1,3 +1,4 @@
+import type { UserInputRequest } from './user-input.ts';
 import { roleIdSchema } from './roles.ts';
 import { reasoningLevels } from './reasoning.ts';
 import { z } from 'zod';
@@ -17,15 +18,19 @@ export interface ChatMessage {
   cardId: string | null;
   runId: string | null;
   createdAt: string;
+  userInput?: { id: string; kind: 'question' | 'answer' };
   notification?: 'message' | 'attention';
   attachments?: ChatAttachment[];
+  memoryIds?: string[];
 }
 export interface ChatStreamState {
+  userInputs?: UserInputRequest[];
   messages: ChatMessage[];
   streamingMessages: ChatMessage[];
 }
 export interface ChatStreamUpdate {
   // Saved history is sent on connection and when messages change, never per token.
+  userInputs?: UserInputRequest[];
   messages?: ChatMessage[];
   streamingMessages: ChatMessage[];
 }
@@ -51,7 +56,7 @@ export const chatInput = z
       .max(chatAttachmentLimits.count)
       .default([]),
     cardId: z.uuid().nullable().default(null),
-    threadId: z.union([roleIdSchema, z.literal('crew')]).optional(),
+    threadId: z.union([roleIdSchema, z.literal('crew'), z.uuid()]).optional(),
     // Omission uses the saved agent default; null explicitly uses the CLI default.
     reasoning: z.enum(reasoningLevels).nullable().optional(),
   })
@@ -70,5 +75,7 @@ export const chatInput = z
       ) <= chatAttachmentLimits.bytes,
     'Attachments must total 10 MB or less.',
   );
-export const chatResultSchema = z.object({ reply: z.string().trim().min(1).max(12000) });
+export const chatResultSchema = z
+  .object({ reply: z.string().trim().max(12000), silent: z.boolean().optional() })
+  .refine((value) => !!value.reply || value.silent === true, 'Return a reply or explicit silence.');
 export type ChatResult = z.infer<typeof chatResultSchema>;

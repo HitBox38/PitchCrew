@@ -46,6 +46,7 @@ export function initialDraft(routine: Routine | null): RoutineDraft {
     roleId: routine?.roleId ?? 'scout',
     content: routine?.content ?? '',
     cardId: routine?.cardId ?? '',
+    conversationId: routine?.conversationId ?? '',
     startLocal,
     timezone,
     frequency: routine?.cron
@@ -68,6 +69,7 @@ export function draftInput(draft: RoutineDraft): RoutineInput {
     roleId: draft.roleId,
     content: draft.content,
     cardId: draft.cardId || null,
+    conversationId: draft.conversationId || null,
     startAt: instantTime(draft.startLocal, draft.timezone),
     timezone: draft.timezone,
     cron: patterns[draft.frequency],

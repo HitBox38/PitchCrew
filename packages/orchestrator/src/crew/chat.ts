@@ -1,3 +1,9 @@
+import { endQuestionTurn, finishUserContinuation, waitingOnUser } from './user-input/lifecycle.ts';
+import { conversationMessages } from './conversation-context.ts';
+import { prepareSession, finishSession } from './sessions.ts';
+import { completeContinuation } from './continuation.ts';
+import { conversations, canReadConversation } from './conversations.ts';
+import { drainConversationQueue, finishDelivery } from './conversation-queue.ts';
 import { requireRole } from './roles.ts';
 import { saveAttachments, removeAttachments, prepareAttachments } from './attachments/storage.ts';
 import { validateReasoning } from './reasoning.ts';
@@ -5,6 +11,7 @@ import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
+  defaultCapabilities,
   chatInput,
   chatResultSchema,
   type AgentTask,
@@ -24,6 +31,7 @@ import type { CrewContext } from './types.ts';
 
 export function chatState(this: CrewContext): ChatStreamState {
   return {
+    userInputs: this.board.list('user_input'),
     messages: this.board.list<ChatMessage>('message'),
     streamingMessages: [...this.streamingMessages.values()],
   };
@@ -69,12 +77,22 @@ export function addMessage(
     ...(notification ? { notification } : {}),
     ...(attachments?.length ? { attachments } : {}),
   };
+  const currentConversation = conversations(this).find((item) => item.id === threadId);
+  if (currentConversation)
+    this.board.record(
+      'conversation',
+      { ...currentConversation, archived: false, updatedAt: message.createdAt },
+      from,
+      'Conversation activity',
+    );
   this.board.record('message', message, from, `${from === 'user' ? 'You' : from} messaged ${to}`);
   this.publishChat(true);
   return message;
 }
 export async function sendChat(this: CrewContext, roleId: RoleId, data: unknown): Promise<Run> {
   const input = chatInput.parse(data);
+  if (input.threadId === 'crew' && conversations(this).some((item) => item.id === 'crew'))
+    throw new Error('Crew history is read-only. Start a group conversation.');
   if (input.threadId && input.threadId !== 'crew' && input.threadId !== roleId)
     throw new Error('Choose this role’s chat or the crew conversation.');
   // Validate the user override without mutating the saved role. startChatRun
@@ -113,12 +131,21 @@ export async function startChatRun(
   scheduled?: { routineId: string; scheduledFor: string },
   reasoning?: Role['reasoning'],
   attachments?: ChatAttachment[],
+  delivery?: { requestId: string; rootRunId: string },
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   assertProfileReady(this);
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
+  if (waitingOnUser(this, threadId, roleId))
+    throw new Error('Answer or cancel this agent’s pending question first.');
   const storedRole = requireRole(this, roleId);
-  const role = reasoning === undefined ? storedRole : { ...storedRole, reasoning };
+  const conversation = conversations(this).find((item) => item.id === threadId);
+  if (conversation && !canReadConversation(this, roleId, threadId))
+    throw new Error('This role cannot access the conversation.');
+  const configuredRole = scheduled
+    ? storedRole
+    : { ...storedRole, ...conversation?.configurations[roleId] };
+  const role = reasoning === undefined ? configuredRole : { ...configuredRole, reasoning };
   if (reasoning != null)
     validateReasoning(
       role,
@@ -147,13 +174,14 @@ export async function startChatRun(
     finishedAt: null,
     ...(task ? { rootRunId: task.rootRunId, taskId: task.id } : {}),
     ...scheduled,
+    ...(delivery ? { requestId: delivery.requestId, rootRunId: delivery.rootRunId } : {}),
   };
   const controller = new AbortController();
   const token = randomUUID();
   this.controllers.set(run.id, controller);
   this.capabilities.set(token, { runId: run.id, cardId, roleId });
   this.board.record('run', run, roleId, `${role.name} started a chat turn`);
-  if (!task)
+  if (!task && !delivery)
     this.addMessage(
       threadId,
       scheduled ? 'system' : 'user',
@@ -177,52 +205,152 @@ export async function startChatRun(
   };
   let acceptingReply = true;
   const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
+  let nativeSession: ReturnType<typeof prepareSession> | undefined;
   // Start in the background; HTTP returns the run so the user can cancel setup or execution.
   void (async () => {
     await this.writeRunInstructions(dir, role, skills);
     if (controller.signal.aborted) throw new Error('Run cancelled.');
-    const messages = this.board
-      .list<ChatMessage>('message')
-      .filter((m) => m.threadId === threadId)
+    if (!canReadConversation(this, roleId, threadId))
+      throw new Error('Conversation access was removed.');
+    const summary = conversation?.summary;
+    const permittedMessages = conversationMessages(this, threadId, roleId, delivery?.requestId);
+    const messages = permittedMessages
+      .filter((m) => m.threadId === threadId && (!summary || !summary.sources.includes(m.id)))
       .slice(-40);
-    const result = chatResultSchema.parse(
-      await adapters[role.runtime].chat({
-        card,
-        role,
-        skills,
-        messages,
-        attachments: await prepareAttachments(this.directory, dir, messages, controller.signal),
-        request: content,
-        profile: await readProfile(this.directory),
-        directory: dir,
-        mcp: {
-          command: process.execPath,
-          args: ['--import', import.meta.resolve('tsx'), this.mcpEntry],
-          env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
-        },
-        signal: controller.signal,
-        onReply: (text) => {
-          if (!acceptingReply || controller.signal.aborted || this.closing) return;
-          if (text) this.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
-          else this.streamingMessages.delete(run.id);
-          this.publishChat();
-        },
-        onMessage: (message) => {
-          const current = this.board.get<Run>('run', run.id);
-          if (!controller.signal.aborted)
-            this.board.record('run', { ...current, message }, roleId, message);
-        },
-      }),
-    );
+    if (summary)
+      messages.unshift({
+        id: 'summary',
+        threadId,
+        from: 'system',
+        to: roleId,
+        content: `Continuation summary (retrieve original sources through chat tools when needed):\n${summary.content}`,
+        cardId,
+        runId: null,
+        createdAt: summary.through,
+      });
+    if (conversation && adapters[role.runtime].sessionSupport === 'resume') {
+      nativeSession = prepareSession(this, role, skills, conversation, messages);
+      await this.writeRunInstructions(nativeSession.directory, role, skills);
+    }
+    const output = await adapters[role.runtime].chat({
+      card,
+      role,
+      skills,
+      messages: nativeSession?.messages ?? messages,
+      session: nativeSession
+        ? { id: nativeSession.session.nativeId ?? undefined, directory: nativeSession.directory }
+        : undefined,
+      onSession: nativeSession?.onSession,
+      attachments: await prepareAttachments(this.directory, dir, messages, controller.signal),
+      request: content,
+      conversation: conversation
+        ? {
+            id: conversation.id,
+            kind: conversation.kind,
+            leadId: conversation.leadId,
+            participants: conversation.participants,
+          }
+        : undefined,
+      profile: await readProfile(this.directory),
+      directory: dir,
+      mcp: {
+        command: process.execPath,
+        args: ['--import', import.meta.resolve('tsx'), this.mcpEntry],
+        env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
+      },
+      signal: controller.signal,
+      onReply: (text) => {
+        if (!acceptingReply || controller.signal.aborted || this.closing) return;
+        if (text) this.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
+        else this.streamingMessages.delete(run.id);
+        this.publishChat();
+      },
+      onMessage: (message) => {
+        const current = this.board.get<Run>('run', run.id);
+        if (!controller.signal.aborted)
+          this.board.record('run', { ...current, message }, roleId, message);
+      },
+    });
     acceptingReply = false;
+    if (endQuestionTurn(this, run)) {
+      if (nativeSession) finishSession(this, nativeSession.session, null, true);
+      return;
+    }
+    const result = chatResultSchema.parse(output);
     if (controller.signal.aborted) throw new Error('Run cancelled.');
     this.streamingMessages.delete(run.id);
-    this.addMessage(threadId, roleId, reply.to, result.reply, cardId, run.id, reply.id);
+    const memoryIds = this.board.get<Run>('run', run.id).memoryIds;
+    if (result.reply) {
+      const saved = this.addMessage(
+        threadId,
+        roleId,
+        reply.to,
+        result.reply,
+        cardId,
+        run.id,
+        reply.id,
+      );
+      if (memoryIds?.length) {
+        this.board.record('message', { ...saved, memoryIds }, roleId, 'Recorded memory sources');
+        this.publishChat(true);
+      }
+    }
+    const summarizing =
+      run.requestId &&
+      this.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', run.requestId)
+        .summarize;
+    if (
+      !summarizing &&
+      conversation &&
+      ['group', 'application'].includes(conversation.kind) &&
+      (storedRole.capabilities ?? defaultCapabilities).messageAgents
+    ) {
+      for (const target of [
+        ...new Set(
+          [...result.reply.matchAll(/(?:^|\s)@([a-z][a-z0-9-]*)\b/g)].map((match) => match[1]!),
+        ),
+      ].filter((id) => conversation.participants.includes(id))) {
+        try {
+          this.enqueue(
+            { runId: run.id, roleId, cardId },
+            target,
+            'chat',
+            result.reply,
+            'message',
+            threadId,
+          );
+        } catch (error) {
+          this.addMessage(
+            threadId,
+            'system',
+            'user',
+            error instanceof Error ? error.message : 'Could not queue the mentioned agent.',
+            cardId,
+            run.id,
+          );
+        }
+      }
+    }
+    if (nativeSession)
+      finishSession(
+        this,
+        nativeSession.session,
+        result.reply ? reply.id : (messages.at(-1)?.id ?? null),
+        false,
+      );
+    await completeContinuation(this, run, result.reply, [
+      ...new Set([
+        ...(summary?.sources ?? []),
+        ...permittedMessages.map((message) => message.id),
+        reply.id,
+      ]),
+    ]);
     this.board.record(
       'run',
       {
         ...run,
         status: 'completed',
+        memoryIds: this.board.get<Run>('run', run.id).memoryIds,
         outputPacketDigest: packetDigest(cardId ? this.board.get<Card>('card', cardId) : null),
         message: `${role.name} replied`,
         finishedAt: new Date().toISOString(),
@@ -233,7 +361,9 @@ export async function startChatRun(
   })()
     .catch((error: unknown) => {
       acceptingReply = false;
+      if (nativeSession) finishSession(this, nativeSession.session, null, true);
       this.streamingMessages.delete(run.id);
+      if (endQuestionTurn(this, run)) return;
       const message = error instanceof Error ? error.message : 'Chat failed.';
       this.board.record(
         'run',
@@ -252,7 +382,10 @@ export async function startChatRun(
       await this.computer.stop(run.id);
       this.controllers.delete(run.id);
       this.capabilities.delete(token);
+      finishUserContinuation(this, run);
       this.finishTask(run);
+      finishDelivery(this, run);
+      void drainConversationQueue(this);
       void this.drainTasks();
     });
   return run;

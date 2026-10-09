@@ -15,6 +15,7 @@ export interface WorkspaceState extends AppUpdateState {
   toastType: 'success' | 'error' | 'info';
   working: boolean;
   add: boolean;
+  creatingConversation: boolean;
   selectedId: string | null;
   roleId: RoleId | null;
   recentIds: string[];
@@ -27,6 +28,7 @@ export interface WorkspaceState extends AppUpdateState {
   act: (path: string, method?: string, body?: unknown, success?: string) => void;
   setToast: (toast: string, type?: WorkspaceState['toastType']) => void;
   setAdd: (add: boolean) => void;
+  setCreatingConversation: (open: boolean) => void;
   setSelectedId: (selectedId: string | null) => void;
   setRoleId: (roleId: RoleId | null) => void;
   setQuery: (query: string) => void;

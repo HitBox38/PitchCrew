@@ -18,6 +18,7 @@ export function createWorkspaceStore() {
       toastType: 'info',
       working: false,
       add: false,
+      creatingConversation: false,
       selectedId: null,
       roleId: null,
       recentIds: readRecent(),
@@ -26,6 +27,7 @@ export function createWorkspaceStore() {
       flashStage: null,
       setToast: (toast, toastType = 'info') => set({ toast, toastType }),
       setAdd: (add) => set({ add }),
+      setCreatingConversation: (creatingConversation) => set({ creatingConversation }),
       setSelectedId: (selectedId) => set({ selectedId }),
       setRoleId: (roleId) => set({ roleId }),
       setQuery: (query) => set({ query }),
@@ -40,7 +42,8 @@ export function createWorkspaceStore() {
           /* Recents are a convenience; ignore unavailable storage. */
         }
       },
-      closePanels: () => set({ selectedId: null, roleId: null, add: false }),
+      closePanels: () =>
+        set({ selectedId: null, roleId: null, add: false, creatingConversation: false }),
       startSync,
       ...createWorkspaceActions(set, get, applySnapshot),
       ...createAppUpdateActions(set, get),

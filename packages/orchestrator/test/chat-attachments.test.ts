@@ -33,7 +33,7 @@ function holdChats() {
 
 it('persists attachments outside events, prepares isolated copies, serves exact bytes and restores history', async () => {
   const turns = holdChats();
-  const { daemon, request, cookie, directory } = await setup(14570);
+  const { daemon, request, cookie, directory } = await setup(19670);
   try {
     const file = upload('Résumé.md');
     const { response, result: run } = await request<Run>('/roles/scout/chat', 'POST', {
@@ -97,17 +97,23 @@ it('persists attachments outside events, prepares isolated copies, serves exact 
   }
 });
 
-it('scopes reads to own and crew conversations, returns images, and rejects changed files and expired runs', async () => {
+it('scopes reads to own and joined group conversations, returns images, and rejects changed files and expired runs', async () => {
   const turns = holdChats();
-  const { daemon, request, directory } = await setup(14571);
+  const { daemon, request, directory } = await setup(19671);
   try {
     await request('/roles/scout/chat', 'POST', {
       content: 'Private file',
       attachments: [upload()],
     });
-    await request('/roles/writer/chat', 'POST', {
-      content: 'Crew file',
-      threadId: 'crew',
+    const group = (
+      await request<import('@pitchcrew/core').Conversation>('/conversations', 'POST', {
+        title: 'Shared files',
+        participants: ['scout', 'writer'],
+        leadId: 'writer',
+      })
+    ).result;
+    await request(`/conversations/${group.id}/messages`, 'POST', {
+      content: '@writer Shared group file',
       attachments: [upload('image.png', 'fixture image bytes')],
     });
     await vi.waitFor(() => expect(turns).toHaveLength(2));
@@ -145,7 +151,7 @@ it('scopes reads to own and crew conversations, returns images, and rejects chan
 
 it('rejects invalid or oversized uploads before recording messages and cleans files when a role is busy', async () => {
   const turns = holdChats();
-  const { daemon, request, directory } = await setup(14572);
+  const { daemon, request, directory } = await setup(19672);
   try {
     for (const body of [
       { content: ' ' },

@@ -14,7 +14,25 @@ for (const adapter of Object.values(adapters))
     version: 'Fixture',
     detail: 'Isolated desktop test fixture.',
   });
-adapters['claude-code'].chat = adapters.demo.chat;
+adapters['claude-code'].chat = async (context) => {
+  if (context.request === 'Fixture: ask for a cover-letter focus.') {
+    await daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN, 'ask_user', {
+      question: 'Which achievement should the cover letter emphasize?',
+      reason: 'Choose the focus before I continue drafting.',
+      options: [
+        { id: 'accessibility', label: 'Accessibility' },
+        { id: 'performance', label: 'Performance' },
+      ],
+      multiSelect: true,
+    });
+    return new Promise((_resolve, reject) =>
+      context.signal.addEventListener('abort', () => reject(new Error('Question saved')), {
+        once: true,
+      }),
+    );
+  }
+  return adapters.demo.chat(context);
+};
 adapters['claude-code'].listModels = async () => adapters['claude-code'].models;
 const port = Number(process.env.PITCHCREW_PORT);
 const daemon = await createDaemon({

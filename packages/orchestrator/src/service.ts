@@ -1,3 +1,12 @@
+import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answers.ts';
+import { createConversation, updateConversation } from './crew/conversations.ts';
+import {
+  sendConversation,
+  updateRequest,
+  stopConversationWork,
+} from './crew/conversation-queue.ts';
+import { continueConversation } from './crew/continuation.ts';
+import { editMemory } from './crew/gateway/conversations.ts';
 import type { SkillPreview } from '@pitchcrew/core';
 import {
   type AgentTask,
@@ -44,6 +53,34 @@ export class CrewService {
     dev = false,
   ) {
     this.context = createCrewContext(directory, daemonUrl, mcpEntry, dev);
+  }
+  answerUserQuestion(id: string, data: unknown) {
+    return answerUserQuestion(this.context, id, data);
+  }
+  cancelUserQuestion(id: string) {
+    return cancelUserQuestion(this.context, id);
+  }
+  createConversation(data: unknown) {
+    return createConversation(this.context, data);
+  }
+  updateConversation(id: string, data: unknown) {
+    return updateConversation(this.context, id, data);
+  }
+  sendConversation(id: string, data: unknown) {
+    return sendConversation(this.context, id, data);
+  }
+  updateChatRequest(id: string, data: unknown) {
+    return updateRequest(this.context, id, data);
+  }
+  stopConversation(id: string, roleId?: string) {
+    stopConversationWork(this.context, id, roleId);
+    return { ok: true };
+  }
+  continueConversation(id: string) {
+    return continueConversation(this.context, id);
+  }
+  editMemory(id: string, data?: unknown) {
+    return editMemory(this.context, id, data);
   }
   get board() {
     return this.context.board;

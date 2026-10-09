@@ -6,6 +6,44 @@ import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
 export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
+  app.post<IdRoute>('/api/user-input/:id/answer', (req, res) =>
+    res.status(202).send(service.answerUserQuestion(req.params.id, req.body)),
+  );
+  app.post<IdRoute>('/api/user-input/:id/cancel', (req, res) =>
+    res.send(service.cancelUserQuestion(req.params.id)),
+  );
+  app.post('/api/conversations', async (req, res) =>
+    res.status(201).send(service.createConversation(req.body)),
+  );
+  app.put<IdRoute>('/api/conversations/:id', async (req, res) =>
+    res.send(await service.updateConversation(req.params.id, req.body)),
+  );
+  app.post<IdRoute>(
+    '/api/conversations/:id/messages',
+    { bodyLimit: Math.ceil(chatAttachmentLimits.bytes / 3) * 4 + 64 * 1024 },
+    async (req, res) =>
+      res.status(202).send(await service.sendConversation(req.params.id, req.body)),
+  );
+  app.post<IdRoute>('/api/conversations/:id/stop', (req, res) =>
+    res.send(
+      service.stopConversation(
+        req.params.id,
+        z.object({ roleId: roleIdSchema.optional() }).parse(req.body ?? {}).roleId,
+      ),
+    ),
+  );
+  app.post<IdRoute>('/api/conversations/:id/continue', (req, res) =>
+    res.status(202).send(service.continueConversation(req.params.id)),
+  );
+  app.put<IdRoute>('/api/chat-requests/:id', (req, res) =>
+    res.send(service.updateChatRequest(req.params.id, req.body)),
+  );
+  app.put<IdRoute>('/api/memories/:id', (req, res) =>
+    res.send(service.editMemory(req.params.id, req.body)),
+  );
+  app.delete<IdRoute>('/api/memories/:id', (req, res) =>
+    res.send(service.editMemory(req.params.id)),
+  );
   app.post('/api/roles', async (req, res) =>
     res.status(201).send(await service.createRole(req.body)),
   );

@@ -53,6 +53,7 @@ export interface CrewContext {
   schedulerTimer?: ReturnType<typeof setInterval>;
   drainAgain: boolean;
   closing: boolean;
+  initializing: boolean;
   configuring: Set<RoleId>;
   deciding: Set<string>;
   runtimes: RuntimeInfo[];
@@ -90,7 +91,12 @@ export interface CrewContext {
   moveCard(id: string, state: CardState): Card;
   saveProfile(name: string, content: string): Promise<ProfileFile[]>;
   loadExamples(): Promise<void>;
-  startRun(cardId: string, roleId: RoleId, task?: AgentTask): Promise<Run>;
+  startRun(
+    cardId: string,
+    roleId: RoleId,
+    task?: AgentTask,
+    delivery?: { requestId: string; rootRunId: string; content: string },
+  ): Promise<Run>;
   applyResult(
     cardId: string,
     role: Role,
@@ -120,6 +126,7 @@ export interface CrewContext {
     scheduled?: { routineId: string; scheduledFor: string },
     reasoning?: Role['reasoning'],
     attachments?: ChatMessage['attachments'],
+    delivery?: { requestId: string; rootRunId: string },
   ): Promise<Run>;
   decideProposal(id: string, approved: boolean): Promise<RoleProposal>;
   decideSkillProposal(id: string, approved: boolean): SkillProposal;
@@ -129,6 +136,7 @@ export interface CrewContext {
     mode: AgentTask['mode'],
     content: string,
     trigger: AgentTask['trigger'],
+    conversationId?: string,
   ): AgentTask;
   finishTask(run: Run): void;
   taskPermissionsAllow(task: AgentTask): boolean;

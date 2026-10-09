@@ -1,5 +1,5 @@
 import type { View } from '@/navigation.ts';
-import type { Card, Role, RoleId } from '@pitchcrew/core';
+import type { Card, Role, RoleId, Snapshot } from '@pitchcrew/core';
 
 export interface StageLink {
   id: string;
@@ -9,6 +9,7 @@ export interface StageLink {
 }
 
 export interface AppSidebarProps {
+  data: Snapshot;
   view: View | undefined;
   stages: StageLink[];
   onStage: (id: string) => void;

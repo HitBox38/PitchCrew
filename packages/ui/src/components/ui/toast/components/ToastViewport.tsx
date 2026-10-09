@@ -6,6 +6,7 @@ export function ToastPortal(props: ToastPrimitive.Portal.Props) {
 }
 export function ToastViewport({
   className,
+  onClick,
   onMouseLeave,
   ...props
 }: ToastPrimitive.Viewport.Props) {
@@ -13,6 +14,13 @@ export function ToastViewport({
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
       className={cn('ui-toast-viewport', className)}
+      onClick={(event) => {
+        onClick?.(event);
+        // Dismissal may already have restored focus outside the viewport.
+        // Base UI 1.8's click focus handler would pause the now-empty timers.
+        if (!event.currentTarget.contains(event.currentTarget.ownerDocument.activeElement))
+          event.preventBaseUIHandler();
+      }}
       onMouseLeave={(event) => {
         onMouseLeave?.(event);
         const viewport = event.currentTarget;

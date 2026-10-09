@@ -5,7 +5,7 @@ import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { resolveRuntime } from '@/lib/runtimes.ts';
 import type { ReasoningLevel } from '@pitchcrew/core';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 export function useRoleSettings({
   role,
@@ -15,6 +15,7 @@ export function useRoleSettings({
   working,
   onClose,
   onManageSkills,
+  registerLeaveGuard,
 }: RoleSettingsProps) {
   const [id, setId] = useState(role.id);
   const [name, setName] = useState(role.name);
@@ -47,6 +48,10 @@ export function useRoleSettings({
     JSON.stringify(capabilities) !==
       JSON.stringify({ ...capabilityDefaults, ...role.capabilities });
   const guard = useUnsavedChanges(dirty, onClose);
+  useEffect(() => {
+    registerLeaveGuard?.(guard.requestLeave);
+    return () => registerLeaveGuard?.(null);
+  }, [registerLeaveGuard, guard.requestLeave]);
   const close = () => guard.requestLeave(onClose);
   const manageSkills = () => guard.requestLeave(onManageSkills);
   const runtimeCatalog = resolveRuntime(data.runtimes, runtime);

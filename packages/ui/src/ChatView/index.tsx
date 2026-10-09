@@ -1,44 +1,50 @@
+import { PendingQuestions } from '@/UserQuestions/index.tsx';
+import { ChatSettingsPanels } from './components/ChatSettingsPanels.tsx';
+import { RelatedConversations } from './components/RelatedConversations.tsx';
+import { ContinuationNotice } from './components/ContinuationNotice.tsx';
+import { ConversationQueue } from './components/ConversationQueue.tsx';
 import { ChatComposer } from '@/ChatView/components/ChatComposer.tsx';
 import { ChatProgress } from '@/ChatView/components/ChatProgress.tsx';
 import { ConversationHeading } from '@/ChatView/components/ConversationHeading.tsx';
 import { ConversationPanel } from '@/ChatView/components/ConversationPanel.tsx';
-import { ConversationRail } from '@/ChatView/components/ConversationRail.tsx';
 import { CrewWorkPanel } from '@/ChatView/components/CrewWorkPanel.tsx';
 import { useChatView } from '@/ChatView/hooks/useChatView.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
-import { GitBranch, MessageSquare } from 'lucide-react';
 
 export function ChatView(props: ChatViewProps) {
   const controller = useChatView(props);
-  const { thread, pane, setPane, running, attention } = controller;
+  const { pane, setPane, running } = controller;
   return (
-    <section className={`chat-workspace ${thread}`} aria-label="Agent conversations">
-      <ConversationRail {...controller} />
-      <div className="chat-panel">
+    <section
+      className={`chat-workspace ${controller.roleId}`}
+      data-chat-width={controller.width}
+      aria-label="Agent conversations"
+    >
+      <Tabs
+        value={pane}
+        onValueChange={(value) => setPane(value as 'conversation' | 'work')}
+        className="chat-panel"
+      >
         <ConversationHeading {...controller} />
-        <Tabs
-          value={pane}
-          onValueChange={(value) => setPane(value as 'conversation' | 'work')}
-          className="chat-body-tabs"
-        >
-          <TabsList variant="line" className="chat-tabs" aria-label="Conversation view">
-            <TabsTrigger value="conversation">
-              <MessageSquare size={15} /> Conversation
-            </TabsTrigger>
-            <TabsTrigger value="work">
-              <GitBranch size={15} /> Crew work
-              {attention ? <span className="chat-count">{attention}</span> : null}
-            </TabsTrigger>
-          </TabsList>
-          {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
-          {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
-        </Tabs>
+        <RelatedConversations {...controller} />
+        {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
+        {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
         {running.length ? <ChatProgress {...controller} /> : null}
-        <ChatComposer {...controller} />
-      </div>
+        <ContinuationNotice {...controller} />
+        <ConversationQueue {...controller} />
+        <PendingQuestions {...controller} />
+        {controller.readOnly ? (
+          <div className="chat-readonly">
+            {controller.conversation?.kind === 'agent_dm'
+              ? 'Agent DM · read-only. Start a separate conversation to give either agent direction.'
+              : 'Crew history · read-only. Start a new conversation to continue working.'}
+          </div>
+        ) : (
+          <ChatComposer {...controller} />
+        )}
+      </Tabs>
+      <ChatSettingsPanels {...controller} />
     </section>
   );
 }
