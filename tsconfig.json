@@ -14,5 +14,6 @@
     "types": ["node"],
     "paths": { "@/*": ["./packages/ui/src/*"] }
   },
-  "include": ["packages/**/*.ts", "packages/**/*.tsx", "vitest.config.ts"]
+  "include": ["packages/**/*.ts", "packages/**/*.tsx", "vitest.config.ts"],
+  "exclude": ["packages/landing", "**/node_modules", "**/dist"]
 }

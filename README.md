@@ -198,6 +198,8 @@ pnpm dev
 
 ## Development
 
+The standalone public landing page uses Next.js in `packages/landing`. Run `pnpm landing:dev` at **http://127.0.0.1:3000**, `pnpm landing:build` for its production build, and `pnpm landing:start` to serve that build. It is independent of the local app and uses fictional demo screenshots. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
+
 The workspace uses strict TypeScript, pnpm workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Oxlint and Oxfmt handle linting and formatting; Vitest runs the tests.
 
 Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted on the board, with an append-only event history; the runtime supplies the agent execution loop.

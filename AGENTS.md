@@ -51,6 +51,7 @@ packages/
   mcp/            # stdio tools, read-only connector clients/auth and shared export/browser gates
   packet/         # source quotation checks, packet rule evaluation, versioned Markdown files, PDF/DOCX rendering
   ui/             # shared React renderer, shadcn components in src/components/ui
+  landing/        # standalone public Next.js website; Vercel deployment is separate
   desktop/        # sandboxed Electron main process
 scripts/          # desktop launcher, isolated desktop smoke test and legacy tracker converter
 docs/             # design decisions
@@ -70,6 +71,9 @@ docs/             # design decisions
 ```sh
 pnpm install
 pnpm dev          # daemon + hot-reloading UI at http://127.0.0.1:4417
+pnpm landing:dev  # public Next.js landing page at http://127.0.0.1:3000
+pnpm landing:build # production landing page build, separate from desktop packaging
+pnpm landing:start # serve the built landing page locally
 pnpm desktop      # build Electron main process; reuse a daemon, start the installed service or launch a development daemon
 pnpm build        # UI and Electron main bundles
 pnpm icon:build   # regenerate Electron's PNG from the canonical favicon SVG
@@ -86,7 +90,7 @@ pnpm lint         # Oxlint; warnings fail
 pnpm format       # Oxfmt
 pnpm format:check
 pnpm typecheck
-pnpm check        # lint, typecheck, tests, build
+pnpm check        # lint, typecheck, tests, app build and landing page build
 ```
 
 The UI has hot reload; restart the daemon after backend changes. The default data directory is ~/.pitchcrew, optionally PITCHCREW_HOME outside the repository. PITCHCREW_PORT defaults to 4417. Tests use temporary directories outside the repository and fictional fixtures under packages/*/test/fixtures/.
@@ -96,6 +100,8 @@ GitHub Actions CI runs on every pull request, pushes to main, merge queues and m
 Standalone desktop packaging uses electron-builder with an isolated app directory and an unpacked runtime resource tree containing the source-layout daemon, production-only hoisted dependencies with workspace links materialized as directories, the build machine's Node 24 executable and Chromium. Native SQLite targets that Node runtime, so Electron native rebuilding is disabled. The packaged main process forks the bundled launcher, which retains daemon/service reuse and ownership rules; closing the app stops only its own daemon, and launcher IPC disconnect handles Electron crashes. User data remains outside installation resources in the existing data directory. Source desktop launches keep their existing launcher. Build installers on each target platform/architecture with Node 24; provider CLIs/authentication remain separate.
 
 ## Core concepts
+
+- **Public landing page.** `packages/landing` is a standalone Next.js App Router website with Tailwind, Base UI/shadcn controls, Motion and locally served Fraunces/Source Sans 3. It uses committed light/dark app screenshots with fictional demo data and does not access the local daemon. Its Light/Dark/System menu uses a separate website preference, synchronizes across tabs and applies before paint. The download chooser reads validated public GitHub release assets with hourly caching and an explicit Releases fallback, with separate platform/architecture choices. Production anonymous visits and download clicks use the public PostHog project, a closed property allowlist, Do Not Track and a footer opt-out synchronized across tabs; development stays offline by default. Optional `NEXT_PUBLIC_POSTHOG_TOKEN`/`NEXT_PUBLIC_POSTHOG_HOST` override ingestion and an empty token disables it. `NEXT_PUBLIC_SITE_URL` supplies the canonical HTTPS origin, Open Graph URLs, website/application JSON-LD and image sitemap. Only configured production builds are indexable; development and Vercel previews emit noindex. Root lint/types and CI cover the site; Vercel publishing is separate from the desktop build/release workflow. See [docs/landing-page.md](docs/landing-page.md).
 
 - **Usage analytics.** Production CLI launches use Pitchcrew's bundled public PostHog project token and EU ingestion host; `PITCHCREW_POSTHOG_TOKEN` and `PITCHCREW_POSTHOG_HOST` override them. Anonymous page views and successful user action counts are enabled by default, with a device-local opt-out in Settings > General synchronized across same-origin tabs. `PITCHCREW_POSTHOG_DISABLED=1` or an explicitly empty token disables installation telemetry. Development additionally requires `PITCHCREW_POSTHOG_DEV=1`. Direct daemon construction is unconfigured unless analytics options are supplied, keeping automated tests offline. The session-protected config endpoint and production CSP share the exact configured origin. The lazy no-external SDK disables autocapture, recording, surveys, flags, performance, exceptions and person profiles; a closed event/property allowlist excludes app content, URLs, referrers, custom identifiers and error text. Analytics is best effort, does not queue disabled events and never changes agent capabilities or approval gates. See [docs/analytics.md](docs/analytics.md).
 

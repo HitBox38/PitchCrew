@@ -5,6 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "node --import tsx packages/orchestrator/src/cli.ts --dev",
+    "landing:dev": "pnpm --filter @pitchcrew/landing dev",
+    "landing:build": "pnpm --filter @pitchcrew/landing build",
+    "landing:start": "pnpm --filter @pitchcrew/landing start",
     "desktop": "pnpm --filter @pitchcrew/desktop build && node --import tsx scripts/desktop.mjs",
     "desktop:prod": "pnpm build && node --import tsx scripts/desktop.mjs --production",
     "desktop:package": "pnpm build && node scripts/prepare-desktop-release.mjs && node scripts/build-desktop-installer.mjs",
@@ -15,11 +18,11 @@
     "service": "node --import tsx packages/orchestrator/src/cli.ts service",
     "test": "vitest run",
     "test:desktop": "pnpm build && node scripts/desktop-smoke.mjs",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && pnpm --filter @pitchcrew/landing typecheck",
     "lint": "oxlint --deny-warnings packages scripts vitest.config.ts && node scripts/check-components.mjs",
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
-    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm landing:build",
     "browser:install": "pnpm --filter @pitchcrew/mcp exec playwright install chromium"
   },
   "devDependencies": {

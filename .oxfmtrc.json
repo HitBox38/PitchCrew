@@ -7,5 +7,12 @@
     "stylesheet": "packages/ui/src/styles.css",
     "functions": ["cn", "clsx", "cva"]
   },
-  "ignorePatterns": [".agents/**", "**/dist/**", "**/node_modules/**", "pnpm-lock.yaml"]
+  "ignorePatterns": [
+    ".agents/**",
+    "**/dist/**",
+    "**/.next/**",
+    "**/next-env.d.ts",
+    "**/node_modules/**",
+    "pnpm-lock.yaml"
+  ]
 }
