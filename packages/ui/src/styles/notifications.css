@@ -1,4 +1,4 @@
-﻿.notification-bell {
+.notification-bell {
   margin-left: auto;
   position: relative;
 }
@@ -14,7 +14,9 @@
 .notification-panel {
   width: min(440px, 100vw);
   max-width: 440px;
+  min-height: 0;
   background: var(--paper);
+  background-image: var(--grain);
   color: var(--ink);
   padding: 24px;
 }
@@ -22,74 +24,109 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
   font-size: var(--text-label);
 }
-.notification-controls label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
 .notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
   list-style: none;
   margin: 0;
-  padding: 0;
+  padding: 3px 4px 12px;
+  min-height: 0;
   overflow-y: auto;
   flex: 1;
-}
-.notification-list li {
-  border-bottom: 1px solid var(--border);
-}
-.notification-list li[data-unread='true'] {
-  border-left: 3px solid var(--ink);
-  background: color-mix(in srgb, var(--ink) 5%, transparent);
+  overscroll-behavior: contain;
 }
 .notification-link {
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
   width: 100%;
-  gap: 6px;
+  gap: 12px;
   padding: 14px;
   height: auto;
+  border: 1px solid var(--border);
+  border-radius: 12px 14px 11px 13px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  text-decoration: none;
   text-align: left;
   white-space: normal;
   overflow-wrap: anywhere;
   font-weight: 400;
+  transition: var(--motion);
 }
-.notification-link span {
-  font-size: var(--text-label);
-  line-height: 1.5;
+.notification-link:hover {
+  background: var(--clay-fill-hover);
+  border-color: var(--border-strong);
+  box-shadow: var(--clay-hover);
 }
-.notification-link small {
-  font-size: 11px;
-  opacity: 0.7;
+.notification-link:active {
+  box-shadow: var(--clay-sunken);
+}
+.notification-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.notification-item-content {
+  display: grid;
+  gap: 5px;
+  flex: 1;
+  min-width: 0;
 }
 .notification-item-heading {
   display: flex;
   align-items: center;
   gap: 8px;
+  font-size: var(--text-label);
+  line-height: 1.4;
+}
+.notification-item-heading strong {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+}
+.notification-unread {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--notification-accent);
+}
+.notification-preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+}
+.notification-item-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: var(--text-note);
+}
+.notification-item-action {
+  color: var(--notification-accent);
+  font-weight: 600;
+}
+.notification-item-footer time {
+  white-space: nowrap;
 }
 .notification-empty {
   padding: 24px 0;
 }
-
-.notification-link {
-  color: inherit;
-  text-decoration: none;
-  border-radius: 6px;
-}
-.notification-link:hover {
-  background: color-mix(in srgb, var(--ink) 7%, transparent);
-}
-.notification-link:focus-visible {
-  outline: 2px solid var(--ink);
-  outline-offset: -2px;
-}
-.notification-list {
-  overscroll-behavior: contain;
-}
-
 .notification-context {
   --notification-accent: var(--primary);
 }
@@ -115,6 +152,22 @@
   color: var(--notification-accent);
   background: color-mix(in srgb, var(--notification-accent) 12%, transparent);
 }
-.notification-list li[data-unread='true'] {
-  border-left-color: var(--notification-accent);
+.notification-link > .notification-context-icon {
+  width: 32px;
+  height: 32px;
+  background: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--notification-accent) 8%, var(--surface-bright)),
+    color-mix(in srgb, var(--notification-accent) 16%, var(--surface))
+  );
+  box-shadow: var(--clay);
+}
+@variant max-phone {
+  .notification-panel {
+    padding: 24px 16px;
+  }
+  .notification-link {
+    gap: 10px;
+    padding: 12px;
+  }
 }
