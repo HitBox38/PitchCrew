@@ -60,6 +60,8 @@ try {
   });
   if (code !== 0) throw new Error(`Packaged app exited with ${code}.`);
   const result = JSON.parse(await readFile(evidence, 'utf8'));
+  if (process.env.PITCHCREW_SMOKE_VISIBLE !== '1' && !result.windowStayedHidden)
+    throw new Error('Packaged smoke check showed or focused its window.');
   if (
     result.apiStatus !== 200 ||
     result.roles !== 7 ||

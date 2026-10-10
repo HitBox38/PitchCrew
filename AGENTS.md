@@ -87,7 +87,7 @@ pnpm test:installer # Windows: verify compiled NSIS process handling with isolat
 pnpm browser:install # install Chromium for browser tools and tests
 node scripts/convert-legacy-tracker.mjs <tracker.db> [applications.json] # legacy SQLite tracker to import JSON
 pnpm test         # fixtures, loopback HTTP, MCP and isolated Chromium; no provider calls
-pnpm test:desktop # isolated production daemon + actual Electron renderer check
+pnpm test:desktop # isolated production daemon + hidden actual Electron renderer check
 pnpm lint         # Oxlint; warnings fail
 pnpm format       # Oxfmt
 pnpm format:check
@@ -96,6 +96,8 @@ pnpm check        # lint, typecheck, tests, app build and landing page build
 ```
 
 The UI has hot reload; restart the daemon after backend changes. The default data directory is ~/.pitchcrew, optionally PITCHCREW_HOME outside the repository. PITCHCREW_PORT defaults to 4417. Tests use temporary directories outside the repository and fictional fixtures under packages/*/test/fixtures/.
+
+Local desktop and packaged smoke checks must stay hidden and never take focus. They use a hidden, non-focusable Electron window, background macOS activation and `capturePage` with `stayHidden`; evidence asserts the window was never shown or focused. Use `PITCHCREW_SMOKE_VISIBLE=1` only when the user explicitly requests a visible debugging run. Startup failures in hidden smoke mode go to stderr and exit with failure instead of opening a native dialog. Ordinary `pnpm test` Chromium checks remain headless.
 
 GitHub Actions CI runs on every pull request, pushes to main, merge queues and manual dispatches. It checks lint, formatting, types and production builds on Ubuntu, runs the full test suite with Chromium on Node 22 and 24, runs the actual Electron smoke test on macOS and Windows, and builds and checks standalone installers on Windows x64, macOS Apple Silicon/Intel and Linux x64. It uses the packageManager pin, frozen lockfile and read-only repository permissions without provider credentials. The aggregate CI check must pass all jobs. The GitHub main branch ruleset requires that check from GitHub Actions and an up-to-date branch, with no bypass actors. Main push runs have distinct concurrency groups so every push can produce a release; other superseded runs are cancelled. Test reports, desktop evidence and installers are retained for seven days. The separate Release workflow publishes those exact verified installer artifacts and SHA-256 checksums after successful main push CI under build-<full commit SHA> tags; only it has contents write permission and it never executes repository code. Reruns resume drafts or skip published releases. Windows and macOS installers are unsigned, and macOS builds are not notarized.
 

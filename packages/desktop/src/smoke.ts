@@ -13,6 +13,16 @@ import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
 export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
   const smokeFile = process.env.PITCHCREW_SMOKE_FILE;
+  let windowShown = window.isVisible();
+  let windowFocused = window.isFocused();
+  if (smokeFile) {
+    window.on('show', () => {
+      windowShown = true;
+    });
+    window.on('focus', () => {
+      windowFocused = true;
+    });
+  }
   if (smokeFile)
     window.webContents.once('did-finish-load', async () => {
       try {
@@ -153,7 +163,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
         if (result.appUpdatesReady) {
           await writeFile(
             `${smokeFile}.updates.png`,
-            (await window.webContents.capturePage()).toPNG(),
+            (await window.webContents.capturePage(undefined, { stayHidden: true })).toPNG(),
           );
           // The title-bar checks below expect the bounded chat layout, not a scrolling Settings page.
           await window.webContents.executeJavaScript(
@@ -170,7 +180,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
           result.sheetChecks[theme] = await window.webContents.executeJavaScript(smokeOpenCreation);
           await writeFile(
             `${smokeFile}.sheet-${theme}.png`,
-            (await window.webContents.capturePage()).toPNG(),
+            (await window.webContents.capturePage(undefined, { stayHidden: true })).toPNG(),
           );
           result.sheetChecks[`${theme}Closed`] =
             await window.webContents.executeJavaScript(smokeCloseCreation);
@@ -179,18 +189,22 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
           );
           await writeFile(
             `${smokeFile}.${theme}.png`,
-            (await window!.webContents.capturePage()).toPNG(),
+            (await window!.webContents.capturePage(undefined, { stayHidden: true })).toPNG(),
           );
         }
         await window!.webContents.executeJavaScript(
           `(()=>{const source='${initialTheme}';if(source==='system')localStorage.removeItem('pitchcrew-theme');else localStorage.setItem('pitchcrew-theme',source);document.documentElement.dataset.theme=source==='system'?(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'):source;})()`,
         );
         await new Promise((resolve) => setTimeout(resolve, 800));
-        await writeFile(`${smokeFile}.png`, (await window!.webContents.capturePage()).toPNG());
+        await writeFile(
+          `${smokeFile}.png`,
+          (await window!.webContents.capturePage(undefined, { stayHidden: true })).toPNG(),
+        );
         await writeFile(
           smokeFile,
           JSON.stringify({
             ...result,
+            windowStayedHidden: !windowShown && !windowFocused,
             chrome,
             themeSourceRestored: nativeTheme.themeSource === initialTheme,
             iconLoaded: !appIcon.isEmpty(),

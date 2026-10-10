@@ -15,6 +15,9 @@ import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon } from './packaged.ts';
 
 app.setName('Pitchcrew');
+const hiddenSmoke =
+  !!process.env.PITCHCREW_SMOKE_FILE && process.env.PITCHCREW_SMOKE_VISIBLE !== '1';
+if (hiddenSmoke && process.platform === 'darwin') app.setActivationPolicy('accessory');
 if (process.env.PITCHCREW_SMOKE_FILE)
   app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
 let url = process.env.PITCHCREW_URL ?? 'http://127.0.0.1:4417';
@@ -56,6 +59,7 @@ function createWindow() {
     title: 'Pitchcrew',
     icon: appIcon,
     show: false,
+    ...(hiddenSmoke ? { focusable: false, skipTaskbar: true } : {}),
     titleBarStyle: 'hidden',
     ...(process.platform === 'darwin'
       ? { trafficLightPosition: { x: 14, y: 13 } }
@@ -78,7 +82,7 @@ function createWindow() {
       backgroundThrottling: false,
     },
   });
-  window.once('ready-to-show', () => window?.show());
+  if (!hiddenSmoke) window.once('ready-to-show', () => window?.show());
   window.on('enter-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', true));
   window.on('leave-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', false));
   window.webContents.setWindowOpenHandler(({ url: target }) => {
@@ -112,6 +116,11 @@ if (primaryInstance)
       createWindow();
     })
     .catch((error: unknown) => {
+      if (hiddenSmoke) {
+        console.error('Pitchcrew smoke startup failed:', error);
+        app.exit(1);
+        return;
+      }
       dialog.showErrorBox(
         'Pitchcrew could not start',
         error instanceof Error ? error.message : String(error),
@@ -120,6 +129,7 @@ if (primaryInstance)
     });
 app.on('before-quit', stopPackagedDaemon);
 app.on('second-instance', () => {
+  if (hiddenSmoke) return;
   window?.restore();
   window?.focus();
 });
