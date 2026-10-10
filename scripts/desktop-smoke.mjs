@@ -3,12 +3,14 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import electron from 'electron';
+
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-electron-check-'));
 const evidence = join(directory, 'result.json');
 const port = process.env.PITCHCREW_SMOKE_PORT ?? '14420';
 const url = process.env.PITCHCREW_URL ?? `http://127.0.0.1:${port}`;
 let daemon;
 let desktop;
+
 try {
   if (!process.env.PITCHCREW_URL) {
     daemon = spawn(process.execPath, ['--import', 'tsx', 'scripts/desktop-smoke-daemon.mjs'], {
@@ -64,6 +66,8 @@ try {
   if (timedOut) throw new Error('Electron check timed out after 120 seconds.');
   if (code !== 0) throw new Error(`Electron check exited with ${code}; a timeout returns null.`);
   const result = JSON.parse(await readFile(evidence, 'utf8'));
+  if (process.env.PITCHCREW_SMOKE_VISIBLE !== '1' && !result.windowStayedHidden)
+    throw new Error('Electron smoke check showed or focused its window.');
   if (
     result.apiStatus !== 200 ||
     result.requireType !== 'undefined' ||
