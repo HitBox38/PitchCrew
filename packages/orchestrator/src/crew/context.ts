@@ -79,6 +79,7 @@ export function createCrewContext(
     scheduling: false,
     drainAgain: false,
     closing: false,
+    initializing: false,
     configuring: new Set<RoleId>(),
     deciding: new Set<string>(),
     runtimes: [],

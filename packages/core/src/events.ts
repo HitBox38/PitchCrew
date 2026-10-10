@@ -1,3 +1,10 @@
+import type { UserInputRequest } from './user-input.ts';
+import type {
+  Conversation,
+  ChatRequest,
+  AgentMemory,
+  ConversationSession,
+} from './conversations.ts';
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { PipelineReview } from './pipeline-reviews.ts';
@@ -13,8 +20,13 @@ import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
   kind:
+    | 'user_input'
+    | 'conversation_session'
+    | 'conversation'
+    | 'chat_request'
+    | 'agent_memory'
     | 'pipeline_review'
     | 'card'
     | 'role'
@@ -36,6 +48,11 @@ export interface BoardEvent {
   actor: string;
   message: string;
   data:
+    | UserInputRequest
+    | ConversationSession
+    | Conversation
+    | ChatRequest
+    | AgentMemory
     | PipelineReview
     | Card
     | Role
@@ -55,8 +72,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 14 adds optional user chat attachment metadata; bytes stay outside the event log. */
-export const currentEventVersion = 14 as const;
+/** Version 16 adds durable user questions and targeted continuations. */
+export const currentEventVersion = 16 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -73,7 +90,9 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 11 &&
     event.version !== 12 &&
     event.version !== 13 &&
-    event.version !== 14
+    event.version !== 14 &&
+    event.version !== 15 &&
+    event.version !== 16
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

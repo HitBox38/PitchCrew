@@ -7,6 +7,7 @@ import { ConversationScrollButton } from '@/components/ai-elements/conversation/
 import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
 
 export function ConversationPanel({
+  answerQuestion,
   thread,
   role,
   name,
@@ -18,13 +19,15 @@ export function ConversationPanel({
   streamingIds,
   reduced,
   onOpenCard,
+  conversation,
+  readOnly,
 }: ConversationPanelProps) {
   return (
     <TabsContent value="conversation" className="chat-conversation-panel flex min-h-0 flex-col">
       <Conversation
         key={thread}
         className="chat-conversation"
-        aria-label={`${thread === 'crew' ? 'Crew' : role.name} messages`}
+        aria-label={`${conversation?.title ?? role.name} messages`}
       >
         <ConversationContent className="chat-transcript">
           {!messages.length ? (
@@ -34,9 +37,12 @@ export function ConversationPanel({
               role={role}
               applyStarter={applyStarter}
               attached={attached}
+              conversation={conversation}
+              readOnly={readOnly}
             />
           ) : null}
           <MessageTranscript
+            answerQuestion={answerQuestion}
             messages={messages}
             data={data}
             streamingIds={streamingIds}

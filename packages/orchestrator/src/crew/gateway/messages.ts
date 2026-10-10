@@ -1,3 +1,5 @@
+import { conversationMessages } from '../conversation-context.ts';
+import { conversation, canReadConversation } from '../conversations.ts';
 import type { AgentCapabilities } from '@pitchcrew/core';
 import { roleIdSchema, type ChatMessage } from '@pitchcrew/core';
 import { z } from 'zod';
@@ -7,10 +9,14 @@ export async function readMessages(
   this: CrewContext,
   capability: RunCapability,
 ): Promise<Record<string, unknown>> {
+  const run = this.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
+  const threads = [
+    ...new Set(this.board.list<ChatMessage>('message').map((message) => message.threadId)),
+  ].filter((id) => canReadConversation(this, capability.roleId, id));
   return {
-    messages: this.board
-      .list<ChatMessage>('message')
-      .filter((m) => m.threadId === capability.roleId || m.threadId === 'crew')
+    messages: threads
+      .flatMap((id) => conversationMessages(this, id, capability.roleId, run.requestId))
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
       .slice(-100),
   };
 }
@@ -28,10 +34,21 @@ export async function queueMessage(
       roleId: roleIdSchema,
       content: z.string().trim().min(1).max(8000),
       mode: z.enum(['chat', 'workflow']).default('chat'),
+      conversationId: z.string().optional(),
     })
     .parse(data);
   if (input.mode === 'workflow' && !permissions.manageWorkflow)
     throw new Error('Workflow capability is disabled for your role.');
+  if (input.conversationId) {
+    const target = conversation(this, input.conversationId);
+    if (
+      !target.participants.includes(capability.roleId) ||
+      !target.participants.includes(input.roleId) ||
+      target.cardId !== capability.cardId ||
+      target.kind === 'history'
+    )
+      throw new Error('Choose a shared conversation with the same job scope.');
+  }
   return {
     task: this.enqueue(
       capability,
@@ -39,6 +56,7 @@ export async function queueMessage(
       action === 'message' ? 'chat' : input.mode,
       input.content,
       action,
+      input.conversationId,
     ),
   };
 }

@@ -14,6 +14,7 @@ interface ReasoningFieldProps {
   disabled?: boolean;
   compact?: boolean;
   agentDefault?: string;
+  conversation?: boolean;
 }
 
 export function ReasoningField({
@@ -24,22 +25,23 @@ export function ReasoningField({
   disabled,
   compact,
   agentDefault,
+  conversation,
 }: ReasoningFieldProps) {
-  if (!reasoning?.levels.length) return null;
+  if (!reasoning?.levels.length && !agentDefault) return null;
   const items = [
     ...(agentDefault ? [{ value: 'agent', label: agentDefault }] : []),
     {
       value: '',
-      label: reasoning.default
+      label: reasoning?.default
         ? `CLI default (${reasoningLabels[reasoning.default]})`
         : 'CLI default',
     },
-    ...reasoning.levels.map((level) => ({ value: level, label: reasoningLabels[level] })),
+    ...(reasoning?.levels ?? []).map((level) => ({ value: level, label: reasoningLabels[level] })),
   ];
   return (
     <div className={compact ? 'flex items-center gap-2' : 'field'}>
       <label htmlFor={id} className={compact ? 'quiet text-xs' : undefined}>
-        {compact ? 'Reasoning' : 'Default reasoning'}
+        {compact || conversation ? 'Reasoning' : 'Default reasoning'}
       </label>
       <Select
         value={value}
@@ -61,7 +63,11 @@ export function ReasoningField({
         </SelectContent>
       </Select>
       {!compact ? (
-        <span className="optional">Used for this agent’s work. You can override it in chat.</span>
+        <span className="optional">
+          {conversation
+            ? 'Applies to this participant in this conversation.'
+            : 'Used for this agent’s work. You can override it in chat.'}
+        </span>
       ) : null}
     </div>
   );

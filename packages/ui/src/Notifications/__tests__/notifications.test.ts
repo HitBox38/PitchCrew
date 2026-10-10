@@ -220,3 +220,69 @@ it('lists unanswered default instruction updates as attention items for Crew', (
   expect(notificationPresentation.instruction_update.action).toBe('Review update');
   expect(collectNotifications({ ...data, instructionUpdates: undefined })).toEqual([]);
 });
+it('keeps internal exchanges quiet while retaining lead outcomes, explicit attention and conversation opt-in', () => {
+  const group = {
+    id: 'group',
+    title: 'Group',
+    kind: 'group' as const,
+    participants: ['scout', 'writer'],
+    leadId: 'scout',
+    cardId: null,
+    createdBy: 'user',
+    createdAt: '',
+    updatedAt: '',
+    archived: false,
+    pinned: false,
+    configurations: {},
+  };
+  const dm = { ...group, id: 'dm', kind: 'agent_dm' as const };
+  const data = {
+    ...snapshot,
+    conversations: [group, dm],
+    messages: [
+      { ...message, id: 'lead', threadId: 'group' },
+      { ...message, id: 'member', from: 'writer', threadId: 'group' },
+      { ...message, id: 'internal', threadId: 'dm', to: 'writer' },
+      { ...message, id: 'attention-dm', threadId: 'dm', notification: 'attention' as const },
+    ],
+  };
+  expect(
+    collectNotifications(data)
+      .map((item) => item.id)
+      .sort(),
+  ).toEqual(['message:attention-dm', 'message:lead']);
+  expect(
+    collectNotifications({ ...data, conversations: [{ ...group, notifyAll: true }, dm] })
+      .map((item) => item.id)
+      .sort(),
+  ).toEqual(['message:attention-dm', 'message:lead', 'message:member']);
+});
+
+it('clears question attention after an answer or cancellation while preserving the transcript', () => {
+  const q = {
+    id: 'question',
+    status: 'pending',
+    question: message.content,
+  } as import('@pitchcrew/core').UserInputRequest;
+  const data = {
+    ...snapshot,
+    userInputs: [q],
+    messages: [
+      {
+        ...message,
+        notification: 'attention' as const,
+        userInput: { id: q.id, kind: 'question' as const },
+      },
+    ],
+  };
+  expect(collectNotifications(data)[0]).toMatchObject({
+    context: 'input',
+    kind: 'attention',
+    target: '/chat/scout',
+  });
+  expect(collectNotifications({ ...data, userInputs: [{ ...q, status: 'answered' }] })).toEqual([]);
+  expect(collectNotifications({ ...data, userInputs: [{ ...q, status: 'cancelled' }] })).toEqual(
+    [],
+  );
+  expect(data.messages).toHaveLength(1);
+});

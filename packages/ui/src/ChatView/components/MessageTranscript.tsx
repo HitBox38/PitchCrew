@@ -1,10 +1,8 @@
+import { TranscriptMessageContent } from './TranscriptMessageContent.tsx';
+import { MemoryUsed } from './MemoryUsed.tsx';
 import { AnimatedMessage } from '@/ChatView/constants.ts';
-import { MessageAttachments } from './MessageAttachments.tsx';
 import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
-import { MessageContent } from '@/components/ai-elements/message/components/MessageContent.tsx';
-import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
-import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
@@ -13,6 +11,7 @@ import { AnimatePresence } from 'motion/react';
 import { Fragment } from 'react';
 
 export function MessageTranscript({
+  answerQuestion,
   messages,
   data,
   streamingIds,
@@ -58,16 +57,13 @@ export function MessageTranscript({
                   {timeAgo(message.createdAt)}
                 </time>
               </div>
-              <MessageContent className="chat-message-content" aria-busy={streaming}>
-                <MessageResponse
-                  mode={streaming ? 'streaming' : 'static'}
-                  isAnimating={streaming}
-                  components={noRemoteImages}
-                >
-                  {message.content}
-                </MessageResponse>
-                <MessageAttachments message={message} />
-              </MessageContent>
+              <TranscriptMessageContent
+                message={message}
+                data={data}
+                streaming={streaming}
+                answerQuestion={answerQuestion}
+              />
+              <MemoryUsed message={message} data={data} />
               {streaming ? (
                 <span className="chat-stream-status ml-7.5 flex items-center gap-1.5 text-detail text-muted-foreground">
                   <LoaderCircle size={12} className="spin" /> Replying…

@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import type { ChatContext, RunContext, RuntimeAdapter } from '@pitchcrew/core';
 import { chatCli, detectCli, promptFor, runCli } from '../process.ts';
 import { claudeModelArgs, readClaudeModels } from './models.ts';
@@ -13,7 +14,6 @@ function argsFor(context: RunContext | ChatContext) {
     '--tools',
     '',
     '--strict-mcp-config',
-    '--no-session-persistence',
     '--setting-sources',
     '',
     '--permission-mode',
@@ -23,6 +23,14 @@ function argsFor(context: RunContext | ChatContext) {
     '--mcp-config',
     JSON.stringify({ mcpServers: { pitchcrew: context.mcp } }),
   ];
+  if ('session' in context && context.session) {
+    if (context.session.id) args.push('--resume', context.session.id);
+    else {
+      const id = randomUUID();
+      args.push('--session-id', id);
+      context.onSession?.(id);
+    }
+  } else args.push('--no-session-persistence');
   if (context.role.model) args.push('--model', context.role.model);
   if (context.role.reasoning) args.push('--effort', context.role.reasoning);
   return args;
@@ -33,6 +41,7 @@ function extract(event: Record<string, unknown>): string | null {
 }
 export const claudeCode: RuntimeAdapter = {
   id: 'claude-code',
+  sessionSupport: 'resume',
   // Runtime aliases follow the CLI's model configuration without pinning versions.
   // https://code.claude.com/docs/en/model-config
   models: [

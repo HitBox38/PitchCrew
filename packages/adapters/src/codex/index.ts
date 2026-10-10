@@ -8,7 +8,6 @@ function argsFor(context: RunContext | ChatContext) {
     '--json',
     '--ignore-user-config',
     '--ignore-rules',
-    '--ephemeral',
     '--skip-git-repo-check',
     '--sandbox',
     'read-only',
@@ -28,16 +27,19 @@ function argsFor(context: RunContext | ChatContext) {
     `mcp_servers.pitchcrew.args=${JSON.stringify(context.mcp.args)}`,
     '-c',
     'mcp_servers.pitchcrew.env_vars=["PITCHCREW_RUN_TOKEN","PITCHCREW_DAEMON_URL"]',
-    '-',
   ];
-  if (context.role.model) args.splice(args.length - 1, 0, '--model', context.role.model);
+  if (context.role.model) args.push('--model', context.role.model);
   if (context.role.reasoning)
     args.splice(
-      args.length - 1,
+      args.length,
       0,
       '-c',
       `model_reasoning_effort=${JSON.stringify(context.role.reasoning)}`,
     );
+  if ('session' in context && context.session) {
+    if (context.session.id) args.push('resume', context.session.id);
+  } else args.push('--ephemeral');
+  args.push('-');
   return args;
 }
 function extract(event: Record<string, unknown>): string | null {
@@ -48,6 +50,7 @@ function extract(event: Record<string, unknown>): string | null {
 }
 export const codex: RuntimeAdapter = {
   id: 'codex',
+  sessionSupport: 'resume',
   // https://learn.chatgpt.com/docs/models
   models: [
     {
@@ -81,5 +84,10 @@ export const codex: RuntimeAdapter = {
   detect: () => detectCli('codex', 'codex'),
   listModels: (signal) => readCodexModels('codex', codexModelArgs, signal),
   run: (context) => runCli('codex', argsFor(context), context, promptFor(context), extract),
-  chat: (context) => chatCli('codex', argsFor(context), context, extract),
+  chat: (context) =>
+    chatCli('codex', argsFor(context), context, (event) => {
+      if (event.type === 'thread.started' && typeof event.thread_id === 'string')
+        context.onSession?.(event.thread_id);
+      return extract(event);
+    }),
 };

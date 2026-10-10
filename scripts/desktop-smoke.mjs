@@ -81,9 +81,11 @@ try {
         !result.appUpdatesReady ||
         !result.insightsReady ||
         !result.chatReady ||
+        !result.conversationNavigationReady ||
         !result.chatResponded ||
         !result.chatTabsReady ||
         !result.chatAttachmentsReady ||
+        !result.userQuestionsReady ||
         result.chatStreamingUpdates < 2 ||
         !result.routerHistoryReady ||
         !result.featurePanelsReady ||

@@ -1,6 +1,6 @@
 # Configurable roles
 
-Pitchcrew stores one agent configuration for each role. A role's stable ID is its board, chat, routine and run identity; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
+Pitchcrew stores one agent configuration for each role. A role's stable ID is its agent identity across board work, conversations, routines and runs; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
 
 Every production runtime has a 30-minute limit per workflow or chat turn, including routines and crew follow-ups. The budget is independent of role, model, reasoning and computer-use permission, so Writer can complete drafting and source checks with its recommended High reasoning. Pitchcrew stops runs that reach this limit; users can cancel sooner with **Stop**. Restart the daemon after changing runtime code.
 
@@ -60,7 +60,7 @@ Adoption, dismissal and edited-default saves name the exact revision you reviewe
 
 When you change a default role's instructions in `default-roles.ts`, append an entry to `default-instruction-history.ts` with the new revision, the release date and a one-sentence summary. The board tests fail and print the expected revision until you do. Never remove or edit earlier entries: they let existing workspaces tell an unchanged old default from their own edits.
 
-Agents can save a default reasoning level alongside their model in setup or settings. The control appears only for models whose adapter reports adjustable reasoning; CLI default keeps the native setting unset. The chat composer can override it for upcoming user messages without saving a role change. Workflows, routines and follow-ups retain the saved default. Run snapshots record the effective value. See [model discovery](model-discovery.md#reasoning).
+Agents can save a default reasoning level alongside their model in setup or settings. The control appears only for models whose adapter reports adjustable reasoning; CLI default keeps the native setting unset. Conversation runtime keeps reasoning outside the main composer and saves an override for this participant in this conversation. Chat follow-ups inherit that conversation configuration; workflows and routines retain the saved role default. Run snapshots record the effective value. See [model discovery](model-discovery.md#reasoning).
 
 ## Creation and settings
 
@@ -90,4 +90,4 @@ No unattended scheduler is added: routines still run only while the daemon is op
 
 ## Events and verification
 
-New records use version 14, including optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 13 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.
+New records use version 15, including optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 14 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.

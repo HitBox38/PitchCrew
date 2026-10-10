@@ -63,7 +63,12 @@ const chatRoute = createRoute({
   beforeLoad: ({ params, context }) => {
     if (!isChatThread(params.thread)) throw notFound();
     const roles = context.getRoles();
-    if (roles && params.thread !== 'crew' && !roles.some((role) => role.id === params.thread))
+    if (
+      roles &&
+      params.thread !== 'crew' &&
+      !/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(params.thread) &&
+      !roles.some((role) => role.id === params.thread)
+    )
       throw notFound();
   },
   component: lazyRouteComponent(() => import('@/pages/components/ChatPage.tsx'), 'ChatPage'),

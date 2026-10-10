@@ -117,6 +117,13 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     const listed = await client.listTools();
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
       [
+        'pitchcrew_list_conversations',
+        'pitchcrew_read_conversation',
+        'pitchcrew_create_group',
+        'pitchcrew_invite_agent',
+        'pitchcrew_transfer_lead',
+        'pitchcrew_recall_memory',
+        'pitchcrew_save_memory',
         'pitchcrew_export_packet',
         'pitchcrew_list_connectors',
         'pitchcrew_list_roles',
@@ -129,6 +136,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_read_chat_attachment',
         'pitchcrew_message_agent',
         'pitchcrew_notify_user',
+        'pitchcrew_ask_user',
         'pitchcrew_invoke_agent',
         'pitchcrew_propose_role_changes',
         'pitchcrew_propose_skill',
@@ -232,9 +240,12 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       task: { roleId: 'writer', status: 'queued', mode: 'chat' },
     });
     const messages = await client.callTool({ name: 'pitchcrew_read_messages', arguments: {} });
+    const dm = (await daemon.service.snapshot()).conversations!.find(
+      (item) => item.kind === 'agent_dm',
+    )!;
     expect(messages.structuredContent).toMatchObject({
       messages: expect.arrayContaining([
-        expect.objectContaining({ threadId: 'crew', from: 'reviewer', to: 'writer' }),
+        expect.objectContaining({ threadId: dm.id, from: 'reviewer', to: 'writer' }),
       ]),
     });
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
@@ -308,6 +319,26 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         await client.callTool({
           name: 'pitchcrew_export_packet',
           arguments: { approvalId: approval.id },
+        })
+      ).isError,
+    ).toBe(true);
+    const asked = await client.callTool({
+      name: 'pitchcrew_ask_user',
+      arguments: {
+        question: 'Which achievement?',
+        options: [{ id: 'accessibility', label: 'Accessibility' }],
+      },
+    });
+    expect(asked.isError, JSON.stringify(asked)).not.toBe(true);
+    expect(asked.structuredContent).toMatchObject({
+      question: { roleId: 'reviewer', status: 'pending', question: 'Which achievement?' },
+    });
+    expect(board.list<import('@pitchcrew/core').UserInputRequest>('user_input')).toHaveLength(1);
+    expect(
+      (
+        await client.callTool({
+          name: 'pitchcrew_propose_role_changes',
+          arguments: { reason: 'More work', changes: { instructions: 'Continue' } },
         })
       ).isError,
     ).toBe(true);

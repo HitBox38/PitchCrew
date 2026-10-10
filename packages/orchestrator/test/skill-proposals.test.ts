@@ -116,8 +116,9 @@ describe('directory imports and skill suggestions', () => {
     const custom = before.skillProposals.find((proposal) => proposal.roleId === 'scout')!;
     const imported = before.skillProposals.find((proposal) => proposal.roleId === 'writer')!;
     expect(custom).toMatchObject({ threadId: 'scout', status: 'pending' });
+    const dm = before.conversations!.find((item) => item.kind === 'agent_dm')!;
     expect(imported).toMatchObject({
-      threadId: 'crew',
+      threadId: dm.id,
       status: 'pending',
       skill: { ...directorySkill, scope: 'roles', roleIds: ['writer', 'reviewer'] },
     });
@@ -129,7 +130,7 @@ describe('directory imports and skill suggestions', () => {
           content: expect.stringContaining('Clear explanations'),
         }),
         expect.objectContaining({
-          threadId: 'crew',
+          threadId: dm.id,
           from: 'writer',
           content: expect.stringContaining('evidence-checklist'),
         }),

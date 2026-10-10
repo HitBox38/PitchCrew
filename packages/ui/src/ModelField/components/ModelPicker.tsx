@@ -4,8 +4,15 @@ import { Combobox } from '@base-ui/react/combobox';
 import type { RuntimeModel } from '@pitchcrew/core';
 import { Check, ChevronDown } from 'lucide-react';
 
-export function ModelPicker({ id, models, value, onValueChange, disabled }: ModelPickerProps) {
-  const items = [cliDefault, ...models];
+export function ModelPicker({
+  id,
+  models,
+  value,
+  onValueChange,
+  disabled,
+  agentDefault,
+}: ModelPickerProps) {
+  const items = [...(agentDefault ? [agentDefault] : []), cliDefault, ...models];
   // Keep an existing CLI model visible even if it is outside the suggested catalog.
   const selected = items.find((item) => item.value === value) ?? { value, label: value };
 

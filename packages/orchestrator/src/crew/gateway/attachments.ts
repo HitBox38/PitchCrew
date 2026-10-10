@@ -1,3 +1,4 @@
+import { canReadConversation } from '../conversations.ts';
 import type { ChatMessage } from '@pitchcrew/core';
 import { z } from 'zod';
 import { readAttachment } from '../attachments/storage.ts';
@@ -14,7 +15,7 @@ export async function readChatAttachment(
 ) {
   const input = z.object({ messageId: z.uuid(), attachmentId: z.uuid() }).parse(data);
   const message = context.board.get<ChatMessage>('message', input.messageId);
-  if (message.threadId !== capability.roleId && message.threadId !== 'crew')
+  if (!canReadConversation(context, capability.roleId, message.threadId))
     throw new Error('This run cannot access another role’s chat attachments.');
   const file = message.attachments?.find((attachment) => attachment.id === input.attachmentId);
   if (!file) throw new Error('Attachment not found.');
@@ -31,6 +32,7 @@ export async function readChatAttachment(
       ? { attachment: file, image: { data: bytes.toString('base64'), mimeType: file.mimeType } }
       : { attachment: file, ...(await readAttachmentText(bytes, file.mimeType, signal)) };
     if (
+      !canReadConversation(context, capability.roleId, message.threadId) ||
       context.capabilities.get(token) !== capability ||
       signal.aborted ||
       !context.board.get<import('@pitchcrew/core').Role>('role', capability.roleId).enabled

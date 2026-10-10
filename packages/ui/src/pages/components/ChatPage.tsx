@@ -17,8 +17,12 @@ export function ChatPage() {
   const { openChat } = useWorkspaceNavigation();
   const { thread } = chatRoute.useParams();
   if (!data || !isChatThread(thread)) return null;
-  if (thread !== 'crew' && !data.roles.some((role) => role.id === thread))
-    return <p>This role does not exist.</p>;
+  if (
+    !data.conversations?.some((conversation) => conversation.id === thread) &&
+    !data.roles.some((role) => role.id === thread) &&
+    thread !== 'crew'
+  )
+    return <p>This conversation does not exist.</p>;
   return (
     <ChatView
       data={data}
