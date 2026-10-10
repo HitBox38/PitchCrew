@@ -4,6 +4,8 @@ import type { Role, Snapshot } from '@pitchcrew/core';
 import type { ReactNode } from 'react';
 
 export interface RoleSettingsProps {
+  docked?: boolean;
+  registerLeaveGuard?: (guard: ((action: () => void) => void) | null) => void;
   role: Role;
   creating?: boolean;
   data: Snapshot;
@@ -47,4 +49,4 @@ export type RuntimeSettingsProps = Pick<
   | 'model'
   | 'enabled'
   | 'setEnabled'
-> & { children?: ReactNode };
+> & { children?: ReactNode; stacked?: boolean };

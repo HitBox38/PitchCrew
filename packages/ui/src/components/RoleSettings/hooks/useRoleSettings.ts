@@ -3,8 +3,9 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { capabilityDefaults } from '@/agent-capabilities.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
+import { resolveRuntime } from '@/lib/runtimes.ts';
 import type { ReasoningLevel } from '@pitchcrew/core';
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 
 export function useRoleSettings({
   role,
@@ -14,6 +15,7 @@ export function useRoleSettings({
   working,
   onClose,
   onManageSkills,
+  registerLeaveGuard,
 }: RoleSettingsProps) {
   const [id, setId] = useState(role.id);
   const [name, setName] = useState(role.name);
@@ -46,13 +48,20 @@ export function useRoleSettings({
     JSON.stringify(capabilities) !==
       JSON.stringify({ ...capabilityDefaults, ...role.capabilities });
   const guard = useUnsavedChanges(dirty, onClose);
+  useEffect(() => {
+    registerLeaveGuard?.(guard.requestLeave);
+    return () => registerLeaveGuard?.(null);
+  }, [registerLeaveGuard, guard.requestLeave]);
   const close = () => guard.requestLeave(onClose);
   const manageSkills = () => guard.requestLeave(onManageSkills);
-  const runtimeItems = data.runtimes.map((r) => ({
+  const runtimeCatalog = resolveRuntime(data.runtimes, runtime);
+  const runtimes = data.runtimes.some((item) => item.id === runtime)
+    ? data.runtimes
+    : [...data.runtimes, runtimeCatalog];
+  const runtimeItems = runtimes.map((r) => ({
     value: r.id,
     label: `${runtimeLabels[r.id]}${r.available ? '' : ' (unavailable)'}`,
   }));
-  const runtimeCatalog = data.runtimes.find((item) => item.id === runtime)!;
   const runtimeAvailable = runtimeCatalog.available;
   async function save(e: FormEvent) {
     e.preventDefault();

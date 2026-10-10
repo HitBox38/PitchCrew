@@ -1,3 +1,4 @@
+import { conversation } from '../conversations.ts';
 import { requireRole } from '../roles.ts';
 import { type Card, type RoleId, type Routine } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
@@ -19,6 +20,15 @@ export function saveRoutine(
   if (current?.deletedAt) throw new Error('This routine was deleted.');
   requireRole(this, input.roleId);
   if (input.cardId) this.board.get<Card>('card', input.cardId);
+  if (input.conversationId) {
+    const target = conversation(this, input.conversationId);
+    if (
+      !target.participants.includes(input.roleId) ||
+      target.cardId !== input.cardId ||
+      ['history', 'agent_dm'].includes(target.kind)
+    )
+      throw new Error('Choose a writable conversation with this agent and the same job scope.');
+  }
   const now = new Date().toISOString();
   const changed =
     !current ||

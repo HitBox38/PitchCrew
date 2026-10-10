@@ -34,6 +34,12 @@
   padding: 6px 40px 48px;
   max-width: 1680px;
 }
+.workspace-notice {
+  padding: 16px 20px;
+  background: var(--surface);
+  border-radius: 16px 17px 15px 16px;
+  box-shadow: var(--sheet);
+}
 .pipeline-column.flash {
   animation: tray-flash 1.4s var(--ease);
 }

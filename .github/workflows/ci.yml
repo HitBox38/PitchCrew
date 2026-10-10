@@ -139,6 +139,9 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Build installers
         run: pnpm desktop:package
+      - name: Verify Windows installer process handling
+        if: runner.os == 'Windows'
+        run: pnpm test:installer
       - name: Verify packaged app (Linux)
         if: runner.os == 'Linux'
         run: |

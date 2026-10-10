@@ -59,8 +59,12 @@ export async function runAcpText(
     };
     const timer = setTimeout(
       () =>
-        stop(new Error(`Runtime exceeded the ${runtimeTimeLimit(context) / 60000}-minute limit.`)),
-      runtimeTimeLimit(context),
+        stop(
+          new Error(
+            `Pitchcrew stopped the runtime after its ${runtimeTimeLimit / 60000}-minute limit.`,
+          ),
+        ),
+      runtimeTimeLimit,
     );
     context.signal.addEventListener('abort', abort, { once: true });
     const receive = (event: Record<string, unknown>) => {

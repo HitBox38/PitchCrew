@@ -46,6 +46,12 @@ select {
 .button.primary:not(:disabled):active {
   box-shadow: var(--glaze-pressed);
 }
+.button.danger {
+  color: var(--rose);
+}
+.button.danger:not(:disabled):hover {
+  color: var(--error-ink);
+}
 .button.small {
   height: 32px;
   padding: 0 12px;

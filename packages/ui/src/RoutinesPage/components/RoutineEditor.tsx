@@ -1,3 +1,4 @@
+import { RoutineConversation } from './RoutineConversation.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -20,10 +21,11 @@ export function RoutineEditor(props: EditorProps) {
       >
         <div className="flex min-h-0 flex-col gap-5 overflow-y-auto pr-1">
           <ActionFields {...editor} roles={props.roles} cards={props.cards} />
+          <RoutineConversation {...editor} />
           <ScheduleFields {...editor} />
           <p className="quiet">
-            Times use the timezone above. Runs appear in the agent’s chat. Exports and browser
-            actions still need your approval.
+            Times use the timezone above. Runs continue in the routine’s conversation. Exports and
+            browser actions still need your approval.
           </p>
           {props.routine ? (
             <p className="quiet">

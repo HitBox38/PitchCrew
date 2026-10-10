@@ -34,13 +34,18 @@ export function SourceEditor(model: JobSourcesModel & { draft: SourceDraft }) {
       <BoardFields draft={draft} setBoard={model.setBoard} setToken={model.setToken} />
       <SourceFilters draft={draft} update={update} />
       <div className="flex flex-wrap items-center gap-2">
-        <Button className="button" type="submit" disabled={model.busy}>
+        <Button className="button primary" type="submit" disabled={model.busy}>
           Save source
         </Button>
-        <Button variant="outline" disabled={model.busy || !canTest(draft)} onClick={model.test}>
+        <Button className="button" disabled={model.busy || !canTest(draft)} onClick={model.test}>
           Test source
         </Button>
-        <Button variant="ghost" disabled={model.busy} onClick={model.cancel}>
+        <Button
+          variant="ghost"
+          className="text-button min-h-9"
+          disabled={model.busy}
+          onClick={model.cancel}
+        >
           Cancel
         </Button>
       </div>

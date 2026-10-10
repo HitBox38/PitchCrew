@@ -32,7 +32,12 @@ export function CrewTasks({ tasks, data, name, onOpenCard, working, act }: CrewT
                       {name(task.roleId)}
                       <span>{task.mode === 'chat' ? 'Conversation' : 'Job workflow'}</span>
                     </strong>
-                    <span className="chat-task-status">{taskLabels[task.status]}</span>
+                    <span className="chat-task-status">
+                      {task.status === 'waiting' &&
+                      data.userInputs?.some((q) => q.runId === task.runId && q.status === 'pending')
+                        ? 'Waiting for you'
+                        : taskLabels[task.status]}
+                    </span>
                   </header>
                   <MessageResponse mode="static" components={noRemoteImages}>
                     {task.error || task.content}

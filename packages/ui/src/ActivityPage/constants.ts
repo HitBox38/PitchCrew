@@ -1,4 +1,9 @@
 export const eventKindLabels = {
+  user_input: 'User questions',
+  conversation: 'Conversations',
+  conversation_session: 'Runtime sessions',
+  chat_request: 'Queued messages',
+  agent_memory: 'Agent memories',
   pipeline_review: 'Pipeline reviews',
   card: 'Jobs',
   role: 'Roles',

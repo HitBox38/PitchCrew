@@ -44,6 +44,7 @@ export async function runDaemon(argv: readonly string[]) {
         service,
         seedSkills: process.env.PITCHCREW_SEED_SKILLS !== '0',
         analytics: analyticsConfig(process.env, dev),
+        updates: { enabled: process.env.PITCHCREW_UPDATE_CHECKS !== '0', automatic: !dev },
       });
       break;
     } catch (error) {

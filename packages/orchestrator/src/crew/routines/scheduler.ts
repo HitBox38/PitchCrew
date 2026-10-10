@@ -1,3 +1,5 @@
+import { drainConversationQueue } from '../conversation-queue.ts';
+import { relatedConversation, conversation } from '../conversations.ts';
 import { profileUpdateInterrupted } from '../../profile-sources/mutation.ts';
 import {
   defaultCapabilities,
@@ -19,13 +21,23 @@ export function startScheduler(this: CrewContext): void {
 }
 
 export async function tickRoutines(this: CrewContext, now = new Date()): Promise<void> {
-  if (this.closing || this.scheduling) return;
+  if (this.closing || this.initializing || this.scheduling) return;
   this.scheduling = true;
   try {
-    for (const candidate of routines.call(this)) {
+    await drainConversationQueue(this);
+    for (const candidate of routines
+      .call(this)
+      .sort(
+        (a, b) => Date.parse(a.nextRunAt ?? a.createdAt) - Date.parse(b.nextRunAt ?? b.createdAt),
+      )) {
       if (this.closing) break;
       const routine = this.board.get<Routine>('routine', candidate.id);
       if (routine.deletedAt) continue;
+      if (routine.conversationId) {
+        const target = conversation(this, routine.conversationId);
+        if (!target.participants.includes(routine.roleId) || target.cardId !== routine.cardId)
+          continue;
+      }
       if (!routine.enabled || !routine.nextRunAt || Date.parse(routine.nextRunAt) > now.getTime())
         continue;
       if (routine.endsAt && Date.parse(routine.endsAt) < now.getTime()) {
@@ -52,7 +64,11 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           .list<Run>('run')
           .some(
             (run) =>
-              run.status === 'running' &&
+              (run.status === 'running' ||
+                (run.status === 'waiting' &&
+                  (run.routineId === routine.id ||
+                    run.threadId === routine.conversationId ||
+                    (routine.lastRunId && run.rootRunId === routine.lastRunId)))) &&
               (run.roleId === role.id ||
                 run.routineId === routine.id ||
                 (routine.lastRunId && run.rootRunId === routine.lastRunId)),
@@ -65,7 +81,8 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           .list<AgentTask>('task')
           .some(
             (task) =>
-              task.rootRunId === routine.lastRunId && ['queued', 'running'].includes(task.status),
+              task.rootRunId === routine.lastRunId &&
+              ['queued', 'running', 'waiting'].includes(task.status),
           )
       )
         continue;
@@ -105,7 +122,9 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           role.id,
           routine.content,
           routine.cardId,
-          role.id,
+          routine.conversationId ??
+            relatedConversation(this, 'routine', routine.id, role.id, routine.cardId, routine.name)
+              .id,
           undefined,
           { routineId: routine.id, scheduledFor },
         );
@@ -127,7 +146,9 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           `Routine failed: ${routine.name}`,
         );
         this.addMessage(
-          role.id,
+          routine.conversationId ??
+            relatedConversation(this, 'routine', routine.id, role.id, routine.cardId, routine.name)
+              .id,
           'system',
           role.id,
           `Routine “${routine.name}” could not start: ${message}`,

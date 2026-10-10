@@ -17,15 +17,17 @@ export type ChatViewModel = NonNullable<ReturnType<typeof useChatView>>;
 
 export type ChatComposerProps = Pick<
   ChatViewModel,
+  | 'messages'
   | 'role'
   | 'available'
   | 'error'
   | 'send'
-  | 'reasoningOptions'
-  | 'reasoningChoice'
-  | 'setReasoningChoice'
+  | 'files'
+  | 'addFiles'
+  | 'removeFile'
   | 'inputRef'
   | 'busy'
+  | 'busyElsewhere'
   | 'draft'
   | 'setDrafts'
   | 'thread'
@@ -35,37 +37,50 @@ export type ChatComposerProps = Pick<
   | 'setRecipient'
   | 'cardId'
   | 'jobItems'
-  | 'setJobs'
+  | 'patchConversation'
   | 'attached'
   | 'onOpenCard'
+  | 'readOnly'
+  | 'conversation'
+  | 'participants'
+  | 'sendMode'
+  | 'setSendMode'
 >;
 
-export type ChatProgressProps = Pick<ChatViewModel, 'running' | 'name' | 'working' | 'action'>;
-
-export type ComposerContextProps = Pick<
+export type ChatProgressProps = Pick<
   ChatViewModel,
-  | 'thread'
-  | 'recipient'
-  | 'recipientItems'
-  | 'working'
-  | 'setRecipient'
-  | 'cardId'
-  | 'jobItems'
-  | 'busy'
-  | 'setJobs'
-  | 'attached'
-  | 'onOpenCard'
+  'running' | 'name' | 'working' | 'action' | 'thread'
 >;
 
 export type ComposerHintProps = Pick<ChatViewModel, 'role'>;
 
 export type ConversationHeadingProps = Pick<
   ChatViewModel,
-  'thread' | 'roleId' | 'role' | 'roleState' | 'running' | 'data' | 'onConfigure'
+  | 'questions'
+  | 'attention'
+  | 'thread'
+  | 'roleId'
+  | 'role'
+  | 'roleState'
+  | 'running'
+  | 'data'
+  | 'onConfigure'
+  | 'conversation'
+  | 'participants'
+  | 'setDialog'
+  | 'patchConversation'
+  | 'action'
+  | 'working'
+  | 'messages'
+  | 'readOnly'
+  | 'recipient'
+  | 'recipientItems'
+  | 'setRecipient'
 >;
 
 export type ConversationPanelProps = Pick<
   ChatViewModel,
+  | 'answerQuestion'
   | 'thread'
   | 'role'
   | 'name'
@@ -77,16 +92,16 @@ export type ConversationPanelProps = Pick<
   | 'streamingIds'
   | 'reduced'
   | 'onOpenCard'
->;
-
-export type ConversationRailProps = Pick<
-  ChatViewModel,
-  'data' | 'thread' | 'onThread' | 'setError'
+  | 'readOnly'
+  | 'conversation'
+  | 'participants'
+  | 'sendMode'
+  | 'setSendMode'
 >;
 
 export type ConversationWelcomeProps = Pick<
   ChatViewModel,
-  'thread' | 'roleId' | 'role' | 'applyStarter' | 'attached'
+  'thread' | 'roleId' | 'role' | 'applyStarter' | 'attached' | 'conversation' | 'readOnly'
 >;
 
 export type CrewWorkPanelProps = Pick<
@@ -102,9 +117,34 @@ export type CrewWorkPanelProps = Pick<
   | 'onConfigure'
   | 'roleId'
   | 'onOpenCard'
+  | 'readOnly'
+  | 'conversation'
+  | 'participants'
+  | 'sendMode'
+  | 'setSendMode'
 >;
 
 export type MessageTranscriptProps = Pick<
   ChatViewModel,
-  'messages' | 'data' | 'streamingIds' | 'reduced' | 'name' | 'thread' | 'onOpenCard'
+  | 'messages'
+  | 'data'
+  | 'streamingIds'
+  | 'reduced'
+  | 'name'
+  | 'thread'
+  | 'onOpenCard'
+  | 'answerQuestion'
+>;
+
+export type ConversationEditorProps = Pick<
+  ChatViewModel,
+  | 'data'
+  | 'conversation'
+  | 'roleId'
+  | 'dialog'
+  | 'setDialog'
+  | 'action'
+  | 'onThread'
+  | 'working'
+  | 'jobItems'
 >;

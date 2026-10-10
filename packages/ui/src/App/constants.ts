@@ -1,5 +1,9 @@
 import { lazy } from 'react';
 
+export const ConversationCreation = lazy(() =>
+  import('@/ConversationCreation/index.tsx').then((m) => ({ default: m.ConversationCreation })),
+);
+
 export const AddOpportunity = lazy(() =>
   import('@/components/AddOpportunity/index.tsx').then((m) => ({ default: m.AddOpportunity })),
 );

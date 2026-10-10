@@ -1,5 +1,7 @@
+import type { Conversation } from './conversations.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage, ChatResult } from './chat.ts';
+import type { ChatAttachment } from './chat-attachments.ts';
 import type { PacketRules } from './packet-rules.ts';
 import type { Role } from './roles.ts';
 import type { ModelReasoning } from './reasoning.ts';
@@ -46,6 +48,7 @@ export interface RunContext {
 }
 export interface RuntimeAdapter {
   id: RuntimeId;
+  sessionSupport?: 'resume';
   models: readonly RuntimeModel[];
   listModels?(signal?: AbortSignal): Promise<readonly RuntimeModel[]>;
   detect(): Promise<RuntimeHealth>;
@@ -54,7 +57,11 @@ export interface RuntimeAdapter {
 }
 export interface ChatContext extends Omit<RunContext, 'card'> {
   card: Card | null;
+  conversation?: Pick<Conversation, 'id' | 'kind' | 'leadId' | 'participants'>;
+  session?: { id?: string; directory: string };
+  onSession?: (id: string) => void;
   messages: ChatMessage[];
+  attachments?: (ChatAttachment & { messageId: string; path: string })[];
   /** Current reply text, replacing the previous preview. Empty text clears it. */
   onReply?: (text: string) => void;
 }

@@ -44,10 +44,4 @@
   .onboarding-checklist {
     padding: 18px 16px;
   }
-  .onboarding-checklist li {
-    flex-wrap: wrap;
-  }
-  .onboarding-checklist li .button {
-    margin-left: 31px;
-  }
 }

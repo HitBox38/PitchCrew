@@ -8,7 +8,15 @@ import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx'
 import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
 import { X } from 'lucide-react';
 
-export function Modal({ title, children, onClose, drawer = false, className = '' }: ModalProps) {
+export function Modal({
+  title,
+  children,
+  onClose,
+  drawer = false,
+  className = '',
+  initialFocus,
+  finalFocus,
+}: ModalProps) {
   if (drawer)
     return (
       <Sheet
@@ -17,7 +25,12 @@ export function Modal({ title, children, onClose, drawer = false, className = ''
           if (!open) onClose();
         }}
       >
-        <SheetContent className={`modal drawer ${className}`} showCloseButton={false}>
+        <SheetContent
+          className={`modal drawer ${className}`}
+          showCloseButton={false}
+          initialFocus={initialFocus}
+          finalFocus={finalFocus}
+        >
           <div className="modal-heading flex items-center justify-between gap-4">
             <SheetTitle>{title}</SheetTitle>
             <Button
@@ -40,7 +53,12 @@ export function Modal({ title, children, onClose, drawer = false, className = ''
         if (!open) onClose();
       }}
     >
-      <DialogContent className={`modal ${className}`} showCloseButton={false}>
+      <DialogContent
+        className={`modal ${className}`}
+        showCloseButton={false}
+        initialFocus={initialFocus}
+        finalFocus={finalFocus}
+      >
         <div className="modal-heading flex items-center justify-between gap-4">
           <DialogTitle>{title}</DialogTitle>
           <Button

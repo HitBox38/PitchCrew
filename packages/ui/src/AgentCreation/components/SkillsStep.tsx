@@ -21,7 +21,7 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
         const shared = skill.scope === 'all';
         return (
           <section key={skill.id} className="border-b border-border pb-4">
-            <label className="flex items-start gap-3" aria-label={skill.name}>
+            <label className="flex flex-row items-start gap-3" aria-label={skill.name}>
               <Checkbox
                 aria-label={skill.name}
                 disabled={shared}
@@ -44,9 +44,7 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
             </label>
             <details className="mt-3 ml-7">
               <summary className="cursor-pointer text-sm">Read instructions</summary>
-              <pre className="mt-3 max-h-64 overflow-auto text-sm break-words whitespace-pre-wrap">
-                {skill.content}
-              </pre>
+              <pre className="suggested-skill-content max-h-64 text-sm">{skill.content}</pre>
             </details>
             {selected && selected.updatedAt !== skill.updatedAt ? (
               <p className="form-error" role="alert">

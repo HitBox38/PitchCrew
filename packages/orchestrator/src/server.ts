@@ -24,6 +24,8 @@ import { registerBackgroundServiceRoutes } from './http/routes/background-servic
 import { CrewService, ensureDirectory } from './service.ts';
 import { acquireDaemonLock, type LockChecks } from './background/lock.ts';
 import type { BackgroundServiceStatus } from '@pitchcrew/core';
+import type { AppUpdateOptions } from './app-updates/index.ts';
+import { registerAppUpdateRoutes } from './http/routes/app-updates.ts';
 
 export interface DaemonOptions {
   directory: string;
@@ -37,6 +39,8 @@ export interface DaemonOptions {
   lockChecks?: LockChecks;
   /** Public PostHog configuration; omitted in tests and unconfigured installations. */
   analytics?: AnalyticsConfig | null;
+  /** CLI configures public release checks; direct construction stays offline by default. */
+  updates?: AppUpdateOptions;
 }
 
 export async function createDaemon(options: DaemonOptions) {
@@ -99,6 +103,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     }));
     app.get('/api/snapshot', async () => service.snapshot());
     registerAnalyticsRoutes(app, options.analytics);
+    app.register(async (routes) => registerAppUpdateRoutes(routes, options.updates));
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
       registerAgentRoutes,

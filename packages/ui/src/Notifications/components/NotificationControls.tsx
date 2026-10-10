@@ -1,4 +1,5 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 import type { NotificationPreferences } from '../types.ts';
 
 export function NotificationControls({
@@ -13,16 +14,16 @@ export function NotificationControls({
   onReadAll: () => void;
 }) {
   return (
-    <div className="notification-controls">
-      <label>
-        <input
-          type="checkbox"
+    <div className="notification-controls form">
+      <label className="checkbox-label" htmlFor="notification-panel-sounds">
+        <Checkbox
+          id="notification-panel-sounds"
           checked={preferences.sound}
-          onChange={(e) => onPreferences({ ...preferences, sound: e.target.checked })}
-        />{' '}
+          onCheckedChange={(sound) => onPreferences({ ...preferences, sound })}
+        />
         Sounds
       </label>
-      <Button className="button" disabled={!unread} onClick={onReadAll}>
+      <Button className="button small" disabled={!unread} onClick={onReadAll}>
         Mark all read
       </Button>
     </div>

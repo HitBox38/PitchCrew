@@ -7,6 +7,7 @@ import type { AppSidebarProps } from '@/AppSidebar/types.ts';
 import { Sidebar } from '@/components/ui/sidebar/components/Sidebar.tsx';
 import { SidebarContent } from '@/components/ui/sidebar/components/SidebarContent.tsx';
 import { SidebarRail } from '@/components/ui/sidebar/components/SidebarRail.tsx';
+import { ConversationNavigation } from '@/ConversationNavigation/index.tsx';
 
 export function AppSidebar(props: AppSidebarProps) {
   const { recent } = props;
@@ -15,6 +16,7 @@ export function AppSidebar(props: AppSidebarProps) {
       <SidebarHeading {...props} />
       <SidebarContent>
         <WorkspaceLinks {...props} />
+        <ConversationNavigation data={props.data} />
         <CrewLinks {...props} />
         {recent.length ? <RecentJobs {...props} /> : null}
       </SidebarContent>

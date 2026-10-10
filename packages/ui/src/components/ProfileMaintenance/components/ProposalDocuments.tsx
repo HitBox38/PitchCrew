@@ -1,4 +1,5 @@
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
+import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
 export function ProposalDocuments({
   proposal,
@@ -14,17 +15,16 @@ export function ProposalDocuments({
   return (
     <div className="grid gap-3">
       {proposal.documents.map((file) => (
-        <details key={file.name} className="rounded-lg border border-border p-3">
+        <details key={file.name} className="approval-preview">
           <summary>
             {file.name} —{' '}
             {file.status === 'conflict' ? 'Replaces a local note; review carefully' : file.status}
           </summary>
-          <label className="my-3 flex items-center gap-2">
-            <input
-              type="checkbox"
+          <label className="checkbox-label my-3">
+            <Checkbox
               disabled={disabled}
               checked={selected.includes(file.name)}
-              onChange={() => toggle(file.name)}
+              onCheckedChange={() => toggle(file.name)}
             />
             Apply this document
           </label>
@@ -34,24 +34,22 @@ export function ProposalDocuments({
           <div className="mt-3 grid gap-3 wide:grid-cols-2">
             <div>
               <h4>Current note</h4>
-              <pre className="max-h-80 overflow-auto whitespace-pre-wrap">
-                {file.before ?? 'New note'}
-              </pre>
+              <pre className="profile-update-preview max-h-80">{file.before ?? 'New note'}</pre>
             </div>
             <div>
               <h4>Proposed note</h4>
-              <pre className="max-h-80 overflow-auto whitespace-pre-wrap">{file.content}</pre>
+              <pre className="profile-update-preview max-h-80">{file.content}</pre>
             </div>
           </div>
         </details>
       ))}
       {proposal.evidence?.map((file, index) => (
-        <details key={file.path + index} className="rounded-lg border border-border p-3">
+        <details key={file.path + index} className="approval-preview">
           <summary>Project evidence: {file.path}</summary>
           <a href={file.url} target="_blank" rel="noreferrer" className="underline">
             Pinned source
           </a>
-          <pre className="max-h-80 overflow-auto whitespace-pre-wrap">{file.content}</pre>
+          <pre className="profile-update-preview mt-3 max-h-80">{file.content}</pre>
         </details>
       ))}
     </div>

@@ -7,10 +7,14 @@ export function RoleRetirement({ creating, role, retiring, retire, working }: Ro
       <h3>Retire role</h3>
       <p className="quiet">
         Retirement prevents future runs and edits. Chat, routines, skills and events stay in
-        history. Its ID cannot be reused.
+        history. Its ID cannot be reused. You can restore this agent paused from Crew.
       </p>
-      {retiring ? <p role="alert">Retire {role.name} permanently?</p> : null}
-      <Button variant="destructive" disabled={working} onClick={() => void retire()}>
+      {retiring ? (
+        <p className="form-error" role="alert">
+          Retire {role.name}?
+        </p>
+      ) : null}
+      <Button className="button danger self-start" disabled={working} onClick={() => void retire()}>
         {retiring ? 'Confirm retirement' : 'Retire role'}
       </Button>
     </section>

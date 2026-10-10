@@ -12,6 +12,7 @@
     "desktop:prod": "pnpm build && node --import tsx scripts/desktop.mjs --production",
     "desktop:package": "pnpm build && node scripts/prepare-desktop-release.mjs && node scripts/build-desktop-installer.mjs",
     "test:packaged": "node scripts/packaged-smoke.mjs",
+    "test:installer": "node scripts/windows-installer-smoke.mjs",
     "build": "pnpm --filter @pitchcrew/ui build && pnpm --filter @pitchcrew/desktop build",
     "icon:build": "node scripts/build-icon.mjs",
     "start": "node --import tsx packages/orchestrator/src/cli.ts",

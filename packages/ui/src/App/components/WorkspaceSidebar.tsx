@@ -20,6 +20,7 @@ export function WorkspaceSidebar({
 }: WorkspaceSidebarProps) {
   return (
     <AppSidebar
+      data={data}
       view={view}
       stages={stageLinks}
       onStage={jumpToStage}

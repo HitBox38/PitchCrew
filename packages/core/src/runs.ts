@@ -9,7 +9,7 @@ export interface Run {
   cardId: string | null;
   roleId: RoleId;
   runtime: RuntimeId;
-  status: 'running' | 'completed' | 'failed' | 'cancelled';
+  status: 'running' | 'waiting' | 'completed' | 'failed' | 'cancelled';
   message: string;
   startedAt: string;
   finishedAt: string | null;
@@ -17,6 +17,8 @@ export interface Run {
   rootRunId?: string;
   taskId?: string;
   threadId?: RoleId | 'crew';
+  requestId?: string;
+  memoryIds?: string[];
   routineId?: string;
   scheduledFor?: string;
   configuration?: { role: Role; revision: string; skills: Skill[]; skillsRevision: string };
@@ -33,7 +35,7 @@ export interface AgentTask {
   trigger: 'message' | 'invoke';
   threadId: RoleId | 'crew';
   content: string;
-  status: 'queued' | 'running' | 'completed' | 'failed' | 'cancelled';
+  status: 'queued' | 'running' | 'waiting' | 'completed' | 'failed' | 'cancelled';
   runId: string | null;
   error: string;
   createdAt: string;

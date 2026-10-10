@@ -56,9 +56,9 @@ export const smokeInsights = `(async () => {
   const unselected = document.querySelector('[aria-label="Silent applications"] [role="checkbox"][aria-checked="false"]');
   const bounded = selected === 200 && unselected?.hasAttribute('data-disabled');
   button('Review 200 selected')?.click();
-  if (!await waitFor(() => !!document.querySelector('[role="dialog"]'))) return false;
+  if (!await waitFor(() => !!document.querySelector('[role="dialog"]:not([data-slot="toast"])'))) return false;
   button('Mark as no response')?.click();
-  if (!await waitFor(() => !document.querySelector('[role="dialog"]'))) return false;
+  if (!await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])'))) return false;
   const cards = (await request('/snapshot')).cards.filter((card) => card.company.startsWith('Fictional Learning '));
   const applied = cards.filter((card) => card.state === 'ghosted').length === 200 && cards.filter((card) => card.state === 'submitted').length === 1;
   const importedVisible = document.body.textContent.includes('Fictional imported lesson from native smoke.');

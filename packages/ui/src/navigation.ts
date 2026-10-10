@@ -18,7 +18,11 @@ export type ChatThread = RoleId | 'crew';
 export type SkillFilter = RoleId | 'all' | 'shared';
 
 export function isChatThread(value: string): value is ChatThread {
-  return value === 'crew' || isRoleId(value);
+  return (
+    value === 'crew' ||
+    isRoleId(value) ||
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)
+  );
 }
 
 export function validateSkillSearch(search: Record<string, unknown>): { filter?: SkillFilter } {

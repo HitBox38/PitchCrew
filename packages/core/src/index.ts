@@ -1,4 +1,6 @@
+export * from './conversations.ts';
 export * from './pipeline-reviews.ts';
+export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export * from './reasoning.ts';
 export type { OnboardingState } from './onboarding.ts';
 export { defaultInstructionRevisionId, instructionUpdateDecision } from './default-instructions.ts';
@@ -14,6 +16,7 @@ export type { Card, CardInput, CardLesson } from './cards.ts';
 export * from './insights.ts';
 export * from './learning.ts';
 export { chatInput, chatResultSchema } from './chat.ts';
+export * from './chat-attachments.ts';
 export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from './chat.ts';
 export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
@@ -96,3 +99,5 @@ export type {
   PacketRulesState,
   PacketRuleSeverity,
 } from './packet-rules.ts';
+
+export * from './user-input.ts';

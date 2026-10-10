@@ -1,6 +1,8 @@
 # Configurable roles
 
-Pitchcrew stores one agent configuration for each role. A role's stable ID is its board, chat, routine and run identity; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
+Pitchcrew stores one agent configuration for each role. A role's stable ID is its agent identity across board work, conversations, routines and runs; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
+
+Every production runtime has a 30-minute limit per workflow or chat turn, including routines and crew follow-ups. The budget is independent of role, model, reasoning and computer-use permission, so Writer can complete drafting and source checks with its recommended High reasoning. Pitchcrew stops runs that reach this limit; users can cancel sooner with **Stop**. Restart the daemon after changing runtime code.
 
 ## Default crew
 
@@ -58,7 +60,7 @@ Adoption, dismissal and edited-default saves name the exact revision you reviewe
 
 When you change a default role's instructions in `default-roles.ts`, append an entry to `default-instruction-history.ts` with the new revision, the release date and a one-sentence summary. The board tests fail and print the expected revision until you do. Never remove or edit earlier entries: they let existing workspaces tell an unchanged old default from their own edits.
 
-Agents can save a default reasoning level alongside their model in setup or settings. The control appears only for models whose adapter reports adjustable reasoning; CLI default keeps the native setting unset. The chat composer can override it for upcoming user messages without saving a role change. Workflows, routines and follow-ups retain the saved default. Run snapshots record the effective value. See [model discovery](model-discovery.md#reasoning).
+Agents can save a default reasoning level alongside their model in setup or settings. The control appears only for models whose adapter reports adjustable reasoning; CLI default keeps the native setting unset. Conversation runtime keeps reasoning outside the main composer and saves an override for this participant in this conversation. Chat follow-ups inherit that conversation configuration; workflows and routines retain the saved role default. Run snapshots record the effective value. See [model discovery](model-discovery.md#reasoning).
 
 ## Creation and settings
 
@@ -80,10 +82,12 @@ Adapters keep the actual role ID for prompts, capability scope and paths, while 
 
 ## Pause and retirement
 
-Pause is reversible through the existing enabled setting. Retirement is a confirmed user action and is permanent in this version. Active runs and settings writes must finish first. Retirement atomically stores the tombstone, pauses routines targeted at or last maintained by the retiring role, and cancels queued tasks addressed to it. It does not delete or rewrite events. Retired roles stay in snapshots and the conversation list for historical attribution, while live action pickers exclude them. Stored skills retain historical assignments; reassign skills away from retired roles before saving updates.
+Pause is reversible through the existing enabled setting. Retirement is a confirmed user action. Active runs and settings writes must finish first. Retirement atomically stores the tombstone, pauses routines targeted at or last maintained by the retiring role, and cancels queued tasks addressed to it. It does not delete or rewrite events. Retired roles stay in snapshots and the conversation list for historical attribution, while live action pickers exclude them. Stored skills retain historical assignments; reassign skills away from retired roles before saving updates.
 
-No unattended scheduler is added: routines still run only while the daemon is open. Browser interactions and local packet exports keep their existing exact-action/snapshot approval gates. Agents cannot create, retire or silently apply role changes.
+Choose **Restore agent** on a retired agent's Crew card to return the same identity to the crew paused. Restoration preserves its settings, skills, conversations and run history, and appends a user role event clearing retirement. It requires a local UI session and rejects active runs or settings writes. Review **Configure** and enable the agent when ready; paused routines and cancelled tasks do not resume automatically. Restoration also works when all 50 stored identities are in use or the saved runtime is unavailable.
+
+No unattended scheduler is added: routines still run only while the daemon is open. Browser interactions and local packet exports keep their existing exact-action/snapshot approval gates. Agents cannot create, retire, restore or silently apply role changes.
 
 ## Events and verification
 
-New records use version 13, including cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 12 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.
+New records use version 15, including optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 14 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries and replay. Live provider CLI runs remain outside automated verification.

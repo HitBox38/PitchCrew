@@ -18,7 +18,7 @@ export function SetupItem({
 }) {
   const Icon = done ? Check : Circle;
   return (
-    <li className="flex items-start gap-3 border-t border-border py-4">
+    <li className="grid grid-cols-[19px_minmax(0,1fr)_auto] items-start gap-3 border-t border-border py-4 max-phone:grid-cols-[19px_minmax(0,1fr)]">
       <Icon
         size={19}
         className={done ? 'mt-0.5 shrink-0 text-teal' : 'mt-0.5 shrink-0 text-muted-foreground'}
@@ -31,7 +31,11 @@ export function SetupItem({
         </h3>
         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{description}</p>
       </div>
-      <Button className="button small shrink-0" disabled={disabled} onClick={action}>
+      <Button
+        className="button small shrink-0 max-phone:col-start-2 max-phone:justify-self-start"
+        disabled={disabled}
+        onClick={action}
+      >
         {done ? 'Review' : label}
       </Button>
     </li>

@@ -1,5 +1,6 @@
 import type { RoleId, Snapshot } from '@pitchcrew/core';
 import type { StoreApi } from 'zustand';
+import type { AppUpdateState } from './updates.ts';
 
 export type Action = (
   path: string,
@@ -7,13 +8,14 @@ export type Action = (
   body?: unknown,
   success?: string | ((result: unknown) => string),
 ) => Promise<unknown>;
-export interface WorkspaceState {
+export interface WorkspaceState extends AppUpdateState {
   data: Snapshot | null;
   error: string;
   toast: string;
   toastType: 'success' | 'error' | 'info';
   working: boolean;
   add: boolean;
+  creatingConversation: boolean;
   selectedId: string | null;
   roleId: RoleId | null;
   recentIds: string[];
@@ -26,6 +28,7 @@ export interface WorkspaceState {
   act: (path: string, method?: string, body?: unknown, success?: string) => void;
   setToast: (toast: string, type?: WorkspaceState['toastType']) => void;
   setAdd: (add: boolean) => void;
+  setCreatingConversation: (open: boolean) => void;
   setSelectedId: (selectedId: string | null) => void;
   setRoleId: (roleId: RoleId | null) => void;
   setQuery: (query: string) => void;

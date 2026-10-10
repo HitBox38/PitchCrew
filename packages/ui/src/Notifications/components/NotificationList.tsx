@@ -1,6 +1,9 @@
 import { NotificationLink } from './NotificationLink.tsx';
 import { NotificationIcon } from './NotificationIcon.tsx';
 import type { CrewNotification } from '../types.ts';
+import { notificationPresentation } from '../constants.ts';
+import { notificationPreview } from '../helpers.ts';
+import { timeAgo } from '@/lib/time.ts';
 
 export function NotificationList({
   items,
@@ -27,15 +30,26 @@ export function NotificationList({
           data-unread={!read.includes(item.id)}
         >
           <NotificationLink item={item} onOpen={onOpen} className="notification-link">
-            <span className="notification-item-heading">
-              <NotificationIcon context={item.context} />
-              <strong>{item.title}</strong>
+            <NotificationIcon context={item.context} />
+            <span className="notification-item-content">
+              <span className="notification-item-heading">
+                <strong>{item.title}</strong>
+                {!read.includes(item.id) ? (
+                  <span className="notification-unread">
+                    <span className="sr-only">Unread</span>
+                  </span>
+                ) : null}
+              </span>
+              <span className="notification-preview">{notificationPreview(item.body)}</span>
+              <span className="notification-item-footer">
+                <span className="notification-item-action">
+                  {notificationPresentation[item.context].action}
+                </span>
+                <time dateTime={item.createdAt} title={new Date(item.createdAt).toLocaleString()}>
+                  {timeAgo(item.createdAt)}
+                </time>
+              </span>
             </span>
-            <span>{item.body.slice(0, 240)}</span>
-            <small>
-              {item.kind === 'attention' ? 'Needs your attention · ' : ''}
-              <time dateTime={item.createdAt}>{new Date(item.createdAt).toLocaleString()}</time>
-            </small>
           </NotificationLink>
         </li>
       ))}

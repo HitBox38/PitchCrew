@@ -1,3 +1,5 @@
+import type { UserInputRequest } from './user-input.ts';
+import type { Conversation, ChatRequest, AgentMemory } from './conversations.ts';
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { InstructionUpdate } from './default-instructions.ts';
 import type { OnboardingState } from './onboarding.ts';
@@ -33,6 +35,10 @@ export interface ProfileFile {
   content: string;
 }
 export interface Snapshot {
+  userInputs?: UserInputRequest[];
+  conversations?: Conversation[];
+  chatRequests?: ChatRequest[];
+  memories?: AgentMemory[];
   onboarding?: OnboardingState;
   packetRules?: PacketRulesState;
   /** Newer default instructions for seeded roles; user-session snapshots only. */

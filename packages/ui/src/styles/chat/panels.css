@@ -1,0 +1,107 @@
+.chat-side-panel-slot {
+  min-width: 0;
+  min-height: 0;
+}
+.chat-side-panel-portal {
+  display: contents;
+}
+.chat-page .chat-workspace {
+  position: relative;
+}
+.chat-page .chat-workspace:has(.chat-side-panel) {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 420px);
+}
+.chat-side-panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  width: 100%;
+  max-height: none;
+  overflow: hidden;
+  border: 0;
+  border-left: 1px solid var(--border-strong);
+  border-radius: 0;
+  color: var(--ink);
+  background-color: var(--surface);
+  background-image: var(--grain);
+  box-shadow:
+    inset 1px 0 0 var(--rim),
+    -4px 0 18px var(--shadow-color);
+  outline: none;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity var(--duration-surface) var(--ease),
+    transform var(--duration-surface) var(--ease);
+}
+.chat-side-panel[data-starting-style] {
+  opacity: 0;
+  transform: translateX(12px);
+}
+.chat-side-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 20px;
+  min-height: 68px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.chat-side-panel-heading h2 {
+  font:
+    600 18px/1.4 'Source Sans 3',
+    sans-serif;
+}
+.chat-side-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.chat-side-panel-body .modal-intro {
+  margin-bottom: 0;
+}
+.chat-side-panel .role-settings-heading {
+  padding: 18px 20px;
+  gap: 10px;
+}
+.chat-side-panel .role-settings-heading h2 {
+  font-size: 18px;
+}
+.chat-side-panel .role-settings-body {
+  padding: 20px;
+}
+.chat-side-panel .role-settings-footer {
+  padding: 16px 20px;
+}
+.chat-side-panel .chat-participant-picker {
+  grid-template-columns: minmax(0, 1fr);
+}
+@variant max-wide {
+  .chat-side-panel {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: min(420px, 100%);
+    z-index: 20;
+    box-shadow: var(--pop);
+  }
+  .chat-page .chat-workspace:has(.chat-side-panel) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-side-panel {
+    transition: opacity 100ms;
+    transform: none;
+  }
+  .chat-side-panel[data-starting-style] {
+    transform: none;
+  }
+}

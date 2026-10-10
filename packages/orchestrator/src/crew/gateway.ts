@@ -1,4 +1,9 @@
+import { askUser } from './user-input/questions.ts';
+import { questionForRun } from './user-input/lifecycle.ts';
+import { conversationAction, memoryAction } from './gateway/conversations.ts';
+import { canReadConversation } from './conversations.ts';
 import { requireRole } from './roles.ts';
+import { readChatAttachment } from './gateway/attachments.ts';
 import {
   defaultCapabilities,
   describePacketRules,
@@ -36,6 +41,52 @@ export async function agentCall(
   const role = requireRole(this, capability.roleId);
   if (!role.enabled) throw new Error('This role is paused.');
   const permissions = role.capabilities ?? defaultCapabilities;
+  const activeRun = this.board
+    .list<import('@pitchcrew/core').Run>('run')
+    .find((run) => run.id === capability.runId);
+  if (activeRun?.threadId && !canReadConversation(this, capability.roleId, activeRun.threadId))
+    throw new Error('Conversation access was removed.');
+  if (
+    activeRun?.requestId &&
+    this.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', activeRun.requestId)
+      .summarize &&
+    ![
+      'messages',
+      'conversation_messages',
+      'conversations',
+      'roles',
+      'profile',
+      'chat_attachment',
+      'recall_memory',
+    ].includes(action)
+  )
+    throw new Error('Summarization turns can only read their permitted context.');
+  if (
+    questionForRun(this, capability.runId) &&
+    ![
+      'messages',
+      'conversation_messages',
+      'conversations',
+      'roles',
+      'profile',
+      'chat_attachment',
+      'recall_memory',
+    ].includes(action)
+  )
+    throw new Error('This turn is waiting for user input. End the turn now.');
+  if (action === 'ask_user') return askUser(this, capability, data.input ?? data);
+  if (
+    [
+      'conversations',
+      'conversation_messages',
+      'create_group',
+      'invite_agent',
+      'transfer_lead',
+    ].includes(action)
+  )
+    return conversationAction(this, capability, action, data);
+  if (['recall_memory', 'save_memory'].includes(action))
+    return memoryAction(this, capability, action, data);
   if (action === 'application_insights') return insightsAction(this, capability, token, data.input);
   if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
     return trackingAction.call(this, capability, token, action, data);
@@ -101,6 +152,7 @@ export async function agentCall(
         })),
     };
   if (action === 'messages') return readMessages.call(this, capability);
+  if (action === 'chat_attachment') return readChatAttachment(this, capability, token, data);
   if (action === 'message' || action === 'invoke')
     return queueMessage.call(this, capability, permissions, action, data);
   if (action === 'propose') return proposeRole.call(this, capability, role, data);

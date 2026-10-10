@@ -23,15 +23,73 @@
   line-height: 1.6;
 }
 .chat-prompt-footer {
-  align-items: flex-end;
+  align-items: center;
   padding: 7px 10px 10px;
   gap: 10px;
 }
-.chat-context-tools {
+.chat-send-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
   flex-wrap: wrap;
-  flex: 1;
+  gap: 8px;
+  margin-left: auto;
   min-width: 0;
+}
+.chat-add-context {
+  height: 32px;
+  font-size: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.chat-add-context:hover {
+  background: var(--clay-fill-hover);
+  box-shadow: var(--clay-hover);
+}
+.chat-composer-context {
+  align-items: flex-start;
+  flex-direction: column;
+  padding: 10px 12px 0;
+  gap: 8px;
+}
+.chat-context-chip {
+  display: flex;
+  align-items: center;
   gap: 6px;
+  max-width: 100%;
+  padding: 3px 5px 3px 8px;
+  border-radius: 9px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+.chat-context-job {
+  width: 100%;
+  padding-left: 0;
+  color: var(--primary);
+}
+.chat-context-job > button:first-child {
+  height: 28px;
+  font-size: 12px;
+}
+.chat-context-kind {
+  flex-shrink: 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+.chat-job-picker {
+  border: 1px solid var(--border);
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  border-radius: 12px;
+}
+.chat-job-picker [data-slot='command-input-wrapper'] {
+  height: 44px;
+}
+.chat-job-picker [data-slot='command-item'] {
+  margin: 4px;
+  padding: 10px;
 }
 .chat-context-select {
   max-width: 250px;
@@ -48,26 +106,10 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.chat-context-select.attached {
-  color: var(--primary);
-  background: var(--primary-soft);
-}
 .chat-context-select:hover {
   border-color: var(--border);
 }
 .chat-select-prefix {
-  color: var(--muted);
-}
-.chat-job-menu {
-  max-width: min(430px, calc(100vw - 32px));
-}
-.chat-job-menu [data-slot='select-item'] > span {
-  white-space: normal;
-}
-.chat-attached-state {
-  padding: 4px 6px;
-  height: auto;
-  font-size: 11px;
   color: var(--muted);
 }
 .chat-send {

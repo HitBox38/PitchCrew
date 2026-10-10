@@ -34,7 +34,11 @@ export function ExternalSubmissionRegistration({ card }: { card: Card }) {
             {error}
           </p>
         ) : null}
-        <Button type="submit" disabled={working || !!card.owner}>
+        <Button
+          className="button primary self-start"
+          type="submit"
+          disabled={working || !!card.owner}
+        >
           Register external submission
         </Button>
       </form>

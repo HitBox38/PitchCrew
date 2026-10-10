@@ -14,7 +14,12 @@ module.exports = {
   publish: null,
   artifactName: 'Pitchcrew-${version}-${os}-${arch}.${ext}',
   win: { target: 'nsis', icon: 'packages/desktop/assets/icon.png', signExecutable: false },
-  nsis: { oneClick: false, perMachine: false, allowToChangeInstallationDirectory: true },
+  nsis: {
+    oneClick: false,
+    perMachine: false,
+    allowToChangeInstallationDirectory: true,
+    include: 'packages/desktop/installer/installer.nsh',
+  },
   mac: {
     target: 'dmg',
     category: 'public.app-category.productivity',

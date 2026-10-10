@@ -14,11 +14,55 @@ for (const adapter of Object.values(adapters))
     version: 'Fixture',
     detail: 'Isolated desktop test fixture.',
   });
-adapters['claude-code'].chat = adapters.demo.chat;
+adapters['claude-code'].chat = async (context) => {
+  if (context.request === 'Fixture: ask for a cover-letter focus.') {
+    await daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN, 'ask_user', {
+      question: 'Which achievement should the cover letter emphasize?',
+      reason: 'Choose the focus before I continue drafting.',
+      options: [
+        { id: 'accessibility', label: 'Accessibility' },
+        { id: 'performance', label: 'Performance' },
+      ],
+      multiSelect: true,
+    });
+    return new Promise((_resolve, reject) =>
+      context.signal.addEventListener('abort', () => reject(new Error('Question saved')), {
+        once: true,
+      }),
+    );
+  }
+  return adapters.demo.chat(context);
+};
+adapters['claude-code'].listModels = async () => adapters['claude-code'].models;
 const port = Number(process.env.PITCHCREW_PORT);
-const daemon = await createDaemon({ directory, port, seedSkills: false });
+const daemon = await createDaemon({
+  directory,
+  port,
+  seedSkills: false,
+  updates: {
+    enabled: true,
+    automatic: true,
+    current: { version: '0.1.0', commit: 'a'.repeat(40), packaged: true },
+    fetcher: async (url) =>
+      new Response(
+        JSON.stringify(
+          String(url).includes('/releases/')
+            ? { tag_name: 'build-' + 'b'.repeat(40), draft: false, prerelease: false }
+            : { status: 'ahead' },
+        ),
+      ),
+  },
+});
 for (const role of daemon.service.board.list('role'))
   await daemon.service.configureRole(role.id, { ...role, enabled: true });
+// Reproduce a role retained from development without enabling Demo in the production daemon.
+const writer = daemon.service.board.get('role', 'writer');
+daemon.service.board.record(
+  'role',
+  { ...writer, runtime: 'demo', model: '', reasoning: null },
+  'user',
+  'Retained development role fixture',
+);
 await new Promise((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
 console.log(`Desktop fixture daemon ready at ${daemon.url}`);
 let closing = false;

@@ -13,6 +13,7 @@ const events: AnalyticsEvent[] = [
   'agent_created',
   'agent_saved',
   'agent_retired',
+  'agent_restored',
   'skill_saved',
   'skill_deleted',
   'routine_saved',
@@ -90,6 +91,7 @@ export function actionEvent(
     if (/^\/cards\/[^/]+\/run$/.test(path)) return { event: 'workflow_started' };
     if (/^\/roles\/[^/]+\/chat$/.test(path)) return { event: 'chat_sent' };
     if (/^\/roles\/[^/]+\/retire$/.test(path)) return { event: 'agent_retired' };
+    if (/^\/roles\/[^/]+\/restore$/.test(path)) return { event: 'agent_restored' };
     if (/^\/cards\/[^/]+\/approval$/.test(path)) return { event: 'packet_export_requested' };
     if (/^\/approvals\/[^/]+\/export$/.test(path)) return { event: 'packet_exported' };
     const decision =

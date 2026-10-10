@@ -14,6 +14,7 @@ export interface RoutineDraft {
   roleId: Role['id'];
   content: string;
   cardId: string;
+  conversationId?: string;
   startLocal: string;
   timezone: string;
   frequency: Frequency;

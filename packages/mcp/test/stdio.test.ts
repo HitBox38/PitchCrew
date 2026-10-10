@@ -5,6 +5,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { saveAttachments } from '../../orchestrator/src/crew/attachments/storage.ts';
+import { randomUUID } from 'node:crypto';
 import { expect, it } from 'vitest';
 import { createDaemon } from '../../orchestrator/src/server.ts';
 import { packet, profile } from './fixtures/evaluation.ts';
@@ -63,6 +65,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       cardId: card.id,
       roleId: 'reviewer',
     });
+    daemon.service.controllers.set('fixture', new AbortController());
     const transport = new StdioClientTransport({
       command: process.execPath,
       args: [
@@ -82,9 +85,45 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       stderr: 'pipe',
     });
     await client.connect(transport);
+    const [attachment] = await saveAttachments(directory, [
+      { name: 'fixture.md', data: Buffer.from('Fictional attachment text.').toString('base64') },
+    ]);
+    const attachmentMessageId = randomUUID();
+    board.record(
+      'message',
+      {
+        id: attachmentMessageId,
+        from: 'user',
+        to: 'reviewer',
+        threadId: 'reviewer',
+        cardId: card.id,
+        runId: 'fixture',
+        content: '',
+        createdAt: new Date().toISOString(),
+        attachments: [attachment],
+      },
+      'user',
+      'Fixture attached file',
+    );
+    const attachmentRead = await client.callTool({
+      name: 'pitchcrew_read_chat_attachment',
+      arguments: { messageId: attachmentMessageId, attachmentId: attachment.id },
+    });
+    expect(attachmentRead.isError, JSON.stringify(attachmentRead)).not.toBe(true);
+    expect(attachmentRead.structuredContent).toMatchObject({
+      text: 'Fictional attachment text.',
+      truncated: false,
+    });
     const listed = await client.listTools();
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
       [
+        'pitchcrew_list_conversations',
+        'pitchcrew_read_conversation',
+        'pitchcrew_create_group',
+        'pitchcrew_invite_agent',
+        'pitchcrew_transfer_lead',
+        'pitchcrew_recall_memory',
+        'pitchcrew_save_memory',
         'pitchcrew_export_packet',
         'pitchcrew_list_connectors',
         'pitchcrew_list_roles',
@@ -94,8 +133,10 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_get_packet_rules',
         'pitchcrew_read_profile',
         'pitchcrew_read_messages',
+        'pitchcrew_read_chat_attachment',
         'pitchcrew_message_agent',
         'pitchcrew_notify_user',
+        'pitchcrew_ask_user',
         'pitchcrew_invoke_agent',
         'pitchcrew_propose_role_changes',
         'pitchcrew_propose_skill',
@@ -199,9 +240,12 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       task: { roleId: 'writer', status: 'queued', mode: 'chat' },
     });
     const messages = await client.callTool({ name: 'pitchcrew_read_messages', arguments: {} });
+    const dm = (await daemon.service.snapshot()).conversations!.find(
+      (item) => item.kind === 'agent_dm',
+    )!;
     expect(messages.structuredContent).toMatchObject({
       messages: expect.arrayContaining([
-        expect.objectContaining({ threadId: 'crew', from: 'reviewer', to: 'writer' }),
+        expect.objectContaining({ threadId: dm.id, from: 'reviewer', to: 'writer' }),
       ]),
     });
     const current = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
@@ -278,12 +322,33 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         })
       ).isError,
     ).toBe(true);
+    const asked = await client.callTool({
+      name: 'pitchcrew_ask_user',
+      arguments: {
+        question: 'Which achievement?',
+        options: [{ id: 'accessibility', label: 'Accessibility' }],
+      },
+    });
+    expect(asked.isError, JSON.stringify(asked)).not.toBe(true);
+    expect(asked.structuredContent).toMatchObject({
+      question: { roleId: 'reviewer', status: 'pending', question: 'Which achievement?' },
+    });
+    expect(board.list<import('@pitchcrew/core').UserInputRequest>('user_input')).toHaveLength(1);
+    expect(
+      (
+        await client.callTool({
+          name: 'pitchcrew_propose_role_changes',
+          arguments: { reason: 'More work', changes: { instructions: 'Continue' } },
+        })
+      ).isError,
+    ).toBe(true);
     daemon.service.capabilities.delete(token);
     expect((await client.callTool({ name: 'pitchcrew_read_profile', arguments: {} })).isError).toBe(
       true,
     );
   } finally {
     await client.close();
+    daemon.service.controllers.delete('fixture');
     await daemon.close();
     await rm(directory, { recursive: true, force: true });
   }

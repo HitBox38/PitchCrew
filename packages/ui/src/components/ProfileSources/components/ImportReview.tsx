@@ -30,6 +30,7 @@ export function ImportReview(c: ProfileSourcesModel) {
         <div className="profile-import-selection">
           <Button
             variant="ghost"
+            className="text-button min-h-8"
             disabled={c.busy}
             onClick={() =>
               c.setSelected(
@@ -41,7 +42,12 @@ export function ImportReview(c: ProfileSourcesModel) {
           >
             Select all without local edits
           </Button>
-          <Button variant="ghost" disabled={c.busy} onClick={() => c.setSelected([])}>
+          <Button
+            variant="ghost"
+            className="text-button min-h-8"
+            disabled={c.busy}
+            onClick={() => c.setSelected([])}
+          >
             Clear selection
           </Button>
           <span>
@@ -77,10 +83,14 @@ export function ImportReview(c: ProfileSourcesModel) {
         ) : null}
       </div>
       <div className="profile-import-footer form-footer">
-        <Button variant="outline" disabled={c.busy} onClick={() => c.setPreview(null)}>
+        <Button className="button" disabled={c.busy} onClick={() => c.setPreview(null)}>
           Cancel
         </Button>
-        <Button disabled={c.busy || !c.selected.length} onClick={c.importSelected}>
+        <Button
+          className="button primary"
+          disabled={c.busy || !c.selected.length}
+          onClick={c.importSelected}
+        >
           {c.busy ? 'Importing…' : `Import ${c.selected.length} documents`}
         </Button>
       </div>

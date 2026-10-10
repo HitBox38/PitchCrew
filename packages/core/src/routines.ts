@@ -8,6 +8,7 @@ export const routineInput = z
     roleId: roleIdSchema,
     content: z.string().trim().min(1).max(8000),
     cardId: z.uuid().nullable().default(null),
+    conversationId: z.string().min(1).max(100).nullable().optional(),
     startAt: z.iso.datetime({ offset: true }),
     timezone: z.string().trim().min(1).max(100),
     cron: z.string().trim().min(1).max(120).nullable().default(null),

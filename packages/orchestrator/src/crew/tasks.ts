@@ -1,3 +1,12 @@
+import { waitingOnUser } from './user-input/lifecycle.ts';
+import {
+  agentDm,
+  canReadConversation,
+  relatedConversation,
+  conversation,
+} from './conversations.ts';
+import { drainConversationQueue } from './conversation-queue.ts';
+import { routineReadyBefore } from './routines/ready.ts';
 import { requireRole } from './roles.ts';
 import {
   defaultCapabilities,
@@ -17,6 +26,7 @@ export function enqueue(
   mode: AgentTask['mode'],
   content: string,
   trigger: AgentTask['trigger'],
+  conversationId?: string,
 ): AgentTask {
   const parent = this.board.get<Run>('run', capability.runId);
   const rootRunId = parent.rootRunId ?? parent.id;
@@ -38,7 +48,18 @@ export function enqueue(
     cardId: capability.cardId,
     mode,
     trigger,
-    threadId: 'crew',
+    threadId:
+      conversationId ??
+      (mode === 'workflow'
+        ? relatedConversation(
+            this,
+            'application',
+            capability.cardId!,
+            roleId,
+            capability.cardId,
+            'Application work',
+          ).id
+        : agentDm(this, capability.roleId, roleId, capability.cardId, parent.threadId).id),
     content,
     status: 'queued',
     runId: null,
@@ -51,7 +72,7 @@ export function enqueue(
     capability.roleId,
     `${capability.roleId} queued ${roleId} ${mode}`,
   );
-  this.addMessage('crew', capability.roleId, roleId, content, capability.cardId, parent.id);
+  this.addMessage(task.threadId, capability.roleId, roleId, content, capability.cardId, parent.id);
   // Children start after their parent finishes, so a self-invocation never shares a session.
   return task;
 }
@@ -61,7 +82,10 @@ export function finishTask(this: CrewContext, run: Run): void {
     const routine = this.board.get<Routine>('routine', run.routineId);
     this.board.record(
       'routine',
-      { ...routine, error: finished.status === 'completed' ? '' : finished.message },
+      {
+        ...routine,
+        error: ['completed', 'waiting'].includes(finished.status) ? '' : finished.message,
+      },
       run.roleId,
       `Routine ${finished.status}: ${routine.name}`,
     );
@@ -73,25 +97,35 @@ export function finishTask(this: CrewContext, run: Run): void {
       {
         ...task,
         status:
-          finished.status === 'completed'
-            ? 'completed'
-            : finished.status === 'cancelled'
-              ? 'cancelled'
-              : 'failed',
-        error: finished.status === 'completed' ? '' : finished.message,
+          finished.status === 'waiting'
+            ? 'waiting'
+            : finished.status === 'completed'
+              ? 'completed'
+              : finished.status === 'cancelled'
+                ? 'cancelled'
+                : 'failed',
+        error: ['completed', 'waiting'].includes(finished.status) ? '' : finished.message,
       },
       run.roleId,
       `${run.roleId} ${finished.status} a crew task`,
     );
   }
-  if (run.mode === 'workflow')
-    this.addMessage('crew', run.roleId, 'crew', finished.message, run.cardId, run.id);
+  if (run.mode === 'workflow' && finished.status !== 'waiting')
+    this.addMessage(
+      run.threadId ?? 'crew',
+      run.roleId,
+      'crew',
+      workflowResultMessage(this, finished),
+      run.cardId,
+      run.id,
+    );
 }
 export function taskPermissionsAllow(this: CrewContext, task: AgentTask): boolean {
   const parent = this.board.get<Run>('run', task.parentRunId);
   const source = this.board.get<Role>('role', parent.roleId);
   const permissions = source.capabilities ?? defaultCapabilities;
   return (
+    canReadConversation(this, task.roleId, task.threadId) &&
     source.enabled &&
     !source.retiredAt &&
     permissions[task.trigger === 'message' ? 'messageAgents' : 'invokeAgents'] &&
@@ -99,7 +133,7 @@ export function taskPermissionsAllow(this: CrewContext, task: AgentTask): boolea
   );
 }
 export async function drainTasks(this: CrewContext): Promise<void> {
-  if (this.closing) return;
+  if (this.closing || this.initializing) return;
   if (this.draining) {
     this.drainAgain = true;
     return;
@@ -109,7 +143,11 @@ export async function drainTasks(this: CrewContext): Promise<void> {
     for (const task of this.board.list<AgentTask>('task').filter((t) => t.status === 'queued')) {
       if (this.closing) break;
       const parent = this.board.get<Run>('run', task.parentRunId);
-      if (parent.status === 'running') continue;
+      if (
+        ['running', 'waiting'].includes(parent.status) ||
+        waitingOnUser(this, task.threadId, task.roleId)
+      )
+        continue;
       if (parent.status !== 'completed') {
         this.board.record(
           'task',
@@ -128,6 +166,27 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         );
         continue;
       }
+      if (routineReadyBefore(this, task.roleId, Date.parse(task.createdAt))) continue;
+      if (
+        this.board
+          .list<import('@pitchcrew/core').ChatRequest>('chat_request')
+          .some(
+            (request) =>
+              request.order < Date.parse(task.createdAt) &&
+              canReadConversation(this, task.roleId, request.threadId) &&
+              this.runtimes.some(
+                (runtime) =>
+                  runtime.available &&
+                  runtime.id ===
+                    (conversation(this, request.threadId).configurations[task.roleId]?.runtime ??
+                      requireRole(this, task.roleId).runtime),
+              ) &&
+              request.deliveries.some(
+                (delivery) => delivery.roleId === task.roleId && delivery.status === 'queued',
+              ),
+          )
+      )
+        continue;
       if (
         this.board
           .list<Run>('run')
@@ -150,14 +209,34 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         if (this.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
         const message = error instanceof Error ? error.message : 'Could not start crew task.';
         this.board.record('task', { ...task, status: 'failed', error: message }, 'system', message);
-        this.addMessage('crew', 'system', task.roleId, message, task.cardId, task.parentRunId);
+        this.addMessage(
+          task.threadId,
+          'system',
+          task.roleId,
+          message,
+          task.cardId,
+          task.parentRunId,
+        );
       }
     }
   } finally {
     this.draining = false;
+    void drainConversationQueue(this);
     if (this.drainAgain) {
       this.drainAgain = false;
       void this.drainTasks();
     }
   }
+}
+
+function workflowResultMessage(context: CrewContext, run: Run): string {
+  if (run.status !== 'completed' || !run.cardId) return run.message;
+  const card = context.board.get<import('@pitchcrew/core').Card>('card', run.cardId);
+  const role = requireRole(context, run.roleId);
+  const seat = role.workflow ?? role.id;
+  if (seat === 'scout')
+    return `${role.name} assessed job fit${card.fit === null ? '' : `: ${card.fit}/100`}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved assessment.`;
+  if (seat === 'writer')
+    return `${role.name} saved an application packet. It is ready for review; open the job to read the draft.`;
+  return `${role.name} ${card.state === 'agreed' ? 'approved the packet' : 'requested changes'}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved review.`;
 }
