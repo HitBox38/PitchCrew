@@ -1,6 +1,7 @@
 /** Real renderer checks using only the fixture daemon's injected release responses. */
 export const smokeUpdates = `(async () => {
   const updateSelector = '[aria-label="Pitchcrew update available"][data-slot="sidebar-menu-button"]';
+  const refreshSelector = '[aria-label="Check for updates"][data-slot="sidebar-menu-button"]';
   const notice = await waitFor(() => !!document.querySelector(updateSelector));
   const indicator = document.querySelector(updateSelector);
   const footer = !!indicator?.closest('[data-slot="sidebar-footer"]');
@@ -44,8 +45,12 @@ export const smokeUpdates = `(async () => {
   await waitFor(() => !!document.querySelector('[aria-label="Dismiss update notice"]'));
   document.querySelector('[aria-label="Dismiss update notice"]')?.click();
   const dismissed = await waitFor(() => !document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]'));
-  const dismissalFocus = await waitFor(() => document.activeElement === document.querySelector('[data-slot="sidebar-footer"] a[href="/settings?section=general"]'));
+  const refresh = document.querySelector(refreshSelector);
+  const dismissalFocus = await waitFor(() => !!refresh && document.activeElement === refresh);
   const stillAvailable = !!section?.querySelector('a[aria-label="View release and download"]');
+  refresh?.click();
+  const checkedAgain = await waitFor(() => !!document.querySelector(updateSelector));
+  const checkedAgainFocus = document.activeElement === document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]');
   section?.scrollIntoView({ block: 'center' });
-  return notice && footer && compactFooter && spacedFooter && noPageBanner && settings && retained && collapsed && compactIndicator && details && detailsRelease && closed && expanded && version && link && enabled && compactControl && disabled && restored && manual && dismissed && dismissalFocus && stillAvailable;
+  return notice && footer && compactFooter && spacedFooter && noPageBanner && settings && retained && collapsed && compactIndicator && details && detailsRelease && closed && expanded && version && link && enabled && compactControl && disabled && restored && manual && dismissed && dismissalFocus && stillAvailable && checkedAgain && checkedAgainFocus;
 })()`;

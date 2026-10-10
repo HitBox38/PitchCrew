@@ -61,3 +61,42 @@ it('clears progress after connection failures and can retry initial loading', as
   expect(api).toHaveBeenCalledTimes(2);
   expect(store.getState()).toMatchObject({ appUpdate: available, appUpdateError: '' });
 });
+
+it('keeps automatic checks dismissed and restores an available build on a manual check', async () => {
+  const store = createWorkspaceStore();
+  store.setState({ appUpdate: available });
+  store.getState().dismissAppUpdate();
+  vi.mocked(api).mockResolvedValue(available);
+  await store.getState().checkAppUpdate(false);
+  expect(store.getState().dismissedAppUpdate).toBe(available.latest!.commit);
+  await store.getState().checkAppUpdate();
+  expect(store.getState().dismissedAppUpdate).toBeNull();
+});
+
+it('preserves dismissal when a manual check fails with a previous available result', async () => {
+  const store = createWorkspaceStore();
+  store.setState({ appUpdate: available });
+  store.getState().dismissAppUpdate();
+  vi.mocked(api).mockRejectedValue(new Error('offline'));
+  await store.getState().checkAppUpdate();
+  expect(store.getState().dismissedAppUpdate).toBe(available.latest!.commit);
+  expect(store.getState().appUpdateError).toContain('local daemon');
+});
+
+it('restores an available build when a manual check joins an automatic check', async () => {
+  let resolve!: (value: AppUpdateInfo) => void;
+  vi.mocked(api).mockReturnValue(
+    new Promise<AppUpdateInfo>((done) => {
+      resolve = done;
+    }),
+  );
+  const store = createWorkspaceStore();
+  store.setState({ appUpdate: available });
+  store.getState().dismissAppUpdate();
+  const automatic = store.getState().checkAppUpdate(false);
+  const manual = store.getState().checkAppUpdate();
+  resolve(available);
+  await Promise.all([automatic, manual]);
+  expect(api).toHaveBeenCalledTimes(1);
+  expect(store.getState().dismissedAppUpdate).toBeNull();
+});
