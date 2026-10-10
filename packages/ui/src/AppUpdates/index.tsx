@@ -1,23 +1,46 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { X, Download } from 'lucide-react';
-import { ReleaseLink } from './components/ReleaseLink.tsx';
-import { useAutomaticUpdates } from './hooks/useAutomaticUpdates.ts';
+import { Popover, PopoverTrigger } from '@/components/ui/popover/index.tsx';
+import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
+import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
+import { Download } from 'lucide-react';
+import { useRef, type RefObject } from 'react';
+import { UpdateDetails } from './components/UpdateDetails.tsx';
 
-export function AppUpdates() {
-  useAutomaticUpdates();
+export function AppUpdates({
+  fallbackFocus,
+}: {
+  fallbackFocus: RefObject<HTMLAnchorElement | null>;
+}) {
+  const trigger = useRef<HTMLButtonElement>(null);
   const info = useWorkspaceStore((state) => state.appUpdate);
   const dismissed = useWorkspaceStore((state) => state.dismissedAppUpdate);
   const dismiss = useWorkspaceStore((state) => state.dismissAppUpdate);
   if (info?.status !== 'available' || !info.latest || dismissed === info.latest.commit) return null;
   return (
-    <div className="info-note flex flex-wrap items-center gap-3" aria-live="polite">
-      <Download size={17} aria-hidden="true" />
-      <span className="flex-1">A newer Pitchcrew build is available.</span>
-      <ReleaseLink url={info.latest.url} />
-      <Button variant="ghost" size="icon-sm" aria-label="Dismiss update notice" onClick={dismiss}>
-        <X size={16} aria-hidden="true" />
-      </Button>
-    </div>
+    <SidebarMenuItem>
+      <Popover>
+        <PopoverTrigger
+          render={
+            <SidebarMenuButton
+              ref={trigger}
+              className="sidebar-update-button"
+              tooltip="Pitchcrew update available"
+              aria-label="Pitchcrew update available"
+            />
+          }
+        >
+          <Download aria-hidden="true" />
+          <span>Update available</span>
+        </PopoverTrigger>
+        <UpdateDetails
+          url={info.latest.url}
+          dismiss={dismiss}
+          finalFocus={() => (trigger.current ? true : fallbackFocus.current)}
+        />
+      </Popover>
+      <output className="sr-only" aria-live="polite">
+        A newer Pitchcrew build is available.
+      </output>
+    </SidebarMenuItem>
   );
 }

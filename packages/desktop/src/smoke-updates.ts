@@ -1,8 +1,26 @@
 /** Real renderer checks using only the fixture daemon's injected release responses. */
 export const smokeUpdates = `(async () => {
-  const notice = await waitFor(() => !!document.querySelector('[aria-label="Dismiss update notice"]'));
+  const updateSelector = '[aria-label="Pitchcrew update available"][data-slot="sidebar-menu-button"]';
+  const notice = await waitFor(() => !!document.querySelector(updateSelector));
+  const indicator = document.querySelector(updateSelector);
+  const footer = !!indicator?.closest('[data-slot="sidebar-footer"]');
+  const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
   document.querySelector('a[href="/settings?section=general"]')?.click();
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
+  const retained = document.querySelector(updateSelector) === indicator;
+  const toggle = document.querySelector('[data-slot="sidebar-trigger"]');
+  toggle?.click();
+  const collapsed = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-collapsible="icon"]'));
+  const indicatorBounds = indicator?.getBoundingClientRect();
+  const compactIndicator = indicatorBounds && indicatorBounds.width > 0 && indicatorBounds.width <= 40;
+  indicator?.click();
+  const details = await waitFor(() => !!document.querySelector('[data-slot="popover-content"] [aria-label="Dismiss update notice"]'));
+  const detailsLink = document.querySelector('[data-slot="popover-content"] a[aria-label="View release and download"]');
+  const detailsRelease = detailsLink?.getAttribute('href') === 'https://github.com/HitBox38/PitchCrew/releases/tag/build-' + 'b'.repeat(40);
+  indicator?.click();
+  const closed = await waitFor(() => !document.querySelector('[data-slot="popover-content"]'));
+  toggle?.click();
+  const expanded = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-state="expanded"]'));
   const section = document.querySelector('#updates-heading')?.closest('section');
   const version = section?.textContent.includes('Version 0.1.0') && section?.textContent.includes('Build aaaaaaaaaaaa');
   const release = section?.querySelector('a[aria-label="View release and download"]');
@@ -18,9 +36,12 @@ export const smokeUpdates = `(async () => {
   const button = [...section?.querySelectorAll('button') ?? []].find((button) => button.textContent.includes('Check for updates'));
   button?.click();
   const manual = await waitFor(() => section?.querySelector('output')?.textContent.includes('A newer Pitchcrew build is available.') && !button?.disabled);
+  indicator?.click();
+  await waitFor(() => !!document.querySelector('[aria-label="Dismiss update notice"]'));
   document.querySelector('[aria-label="Dismiss update notice"]')?.click();
-  const dismissed = await waitFor(() => !document.querySelector('[aria-label="Dismiss update notice"]'));
+  const dismissed = await waitFor(() => !document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]'));
+  const dismissalFocus = await waitFor(() => document.activeElement === document.querySelector('[data-slot="sidebar-footer"] a[href="/settings?section=general"]'));
   const stillAvailable = !!section?.querySelector('a[aria-label="View release and download"]');
   section?.scrollIntoView({ block: 'center' });
-  return notice && settings && version && link && enabled && compactControl && disabled && restored && manual && dismissed && stillAvailable;
+  return notice && footer && noPageBanner && settings && retained && collapsed && compactIndicator && details && detailsRelease && closed && expanded && version && link && enabled && compactControl && disabled && restored && manual && dismissed && dismissalFocus && stillAvailable;
 })()`;

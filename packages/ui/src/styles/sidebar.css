@@ -34,6 +34,14 @@
 [data-slot='sidebar-menu-button'][data-active] > svg {
   color: var(--primary);
 }
+[data-slot='sidebar-menu-button'].sidebar-update-button {
+  color: var(--teal);
+  background: var(--teal-soft);
+  font-weight: 600;
+}
+[data-slot='sidebar-menu-button'].sidebar-update-button > svg {
+  color: inherit;
+}
 [data-collapsible='icon'] [data-slot='sidebar-menu-button'][data-size='lg'] {
   justify-content: center;
 }
