@@ -42,6 +42,8 @@ jobs:
         run: pnpm typecheck
       - name: Build browser and Electron bundles
         run: pnpm build
+      - name: Build public landing page
+        run: pnpm landing:build
 
   tests:
     name: Tests (Node ${{ matrix.node }})

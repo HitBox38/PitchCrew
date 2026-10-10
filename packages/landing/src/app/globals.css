@@ -1,0 +1,12 @@
+@layer theme, base, primitives, components;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+@import '../styles/theme.css';
+@import '../styles/base.css' layer(base);
+@import '../styles/buttons.css' layer(primitives);
+@import '../styles/sections.css' layer(components);
+@import '../styles/downloads.css' layer(components);
+@import '../styles/theme-control.css' layer(components);
+
+@source not '../**/__tests__/**';

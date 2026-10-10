@@ -9,7 +9,13 @@
       { "controlComponents": ["Input", "Textarea", "NativeSelect", "Checkbox"] }
     ]
   },
-  "ignorePatterns": ["**/dist/**", "**/node_modules/**", ".agents/**"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/.next/**",
+    "**/next-env.d.ts",
+    "**/node_modules/**",
+    ".agents/**"
+  ],
   "overrides": [
     {
       "files": ["packages/ui/src/**"],

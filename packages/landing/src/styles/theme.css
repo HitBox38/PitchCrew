@@ -1,0 +1,61 @@
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-teal: var(--teal);
+  --color-plum: var(--plum);
+  --color-border: var(--border);
+  --font-serif: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-source-sans), sans-serif;
+  --breakpoint-compact: 40rem;
+}
+:root {
+  --paper: #f2f1ec;
+  --paper-deep: #e8e6df;
+  --surface: #f8f7f3;
+  --surface-bright: #fdfcf9;
+  --ink: #2b2d31;
+  --ink-soft: #484b52;
+  --muted: #61646b;
+  --faint: #97999f;
+  --teal: #2f6a69;
+  --teal-soft: #d9e9e6;
+  --plum: #76517a;
+  --plum-soft: #ece1ec;
+  --primary-soft: #e0e6f0;
+  --product-paper: #eae9e2;
+  --rim: rgb(255 255 255 / 0.95);
+  --selection: #d9e9e6;
+  --link-rule: #a6b2c5;
+  --primary: #3a5482;
+  --border: rgb(43 45 49 / 0.14);
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --duration-press: 160ms;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .31 0 0 0 0 .33 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+:root[data-theme='dark'] {
+  --paper: #1a1b1e;
+  --paper-deep: #141518;
+  --surface: #222327;
+  --surface-bright: #2a2b30;
+  --ink: #e9e7e1;
+  --ink-soft: #c8c6c0;
+  --muted: #aaa8af;
+  --faint: #aaa8af;
+  --primary: #93abd8;
+  --primary-soft: #252e40;
+  --teal: #84c0bc;
+  --teal-soft: #263536;
+  --plum: #cda7d0;
+  --plum-soft: #352b37;
+  --product-paper: #1e1f23;
+  --border: rgb(236 234 228 / 0.16);
+  --rim: rgb(255 255 255 / 0.08);
+  --selection: #34433f;
+  --link-rule: #6b82a9;
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  color-scheme: dark;
+}

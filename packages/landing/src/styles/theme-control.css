@@ -1,0 +1,54 @@
+.theme-trigger {
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+}
+.theme-menu {
+  min-width: 168px;
+  padding: 5px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: var(--surface-bright);
+  color: var(--ink);
+  box-shadow: 0 10px 32px rgb(0 0 0 / 0.18);
+  transform-origin: var(--transform-origin);
+  transition:
+    opacity 150ms var(--ease),
+    transform 150ms var(--ease);
+}
+.theme-menu[data-starting-style],
+.theme-menu[data-ending-style] {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+.theme-option {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  outline: none;
+  font-size: 15px;
+}
+.theme-option[data-highlighted] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.themed-light {
+  display: block;
+}
+.themed-dark {
+  display: none;
+}
+:root[data-theme='dark'] .themed-light {
+  display: none;
+}
+:root[data-theme='dark'] .themed-dark {
+  display: block;
+}
+.product-image:focus-within {
+  outline: 3px solid var(--primary);
+  outline-offset: 5px;
+}

@@ -20,6 +20,7 @@ async function checkDirectory(directory) {
 }
 
 await checkDirectory('packages/ui/src');
+await checkDirectory('packages/landing/src');
 if (violations.length) {
   console.error(
     `Component files must have at most ${maximumLines} lines:\n${violations.join('\n')}`,
