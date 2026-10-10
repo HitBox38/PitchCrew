@@ -4,6 +4,10 @@ export const smokeUpdates = `(async () => {
   const notice = await waitFor(() => !!document.querySelector(updateSelector));
   const indicator = document.querySelector(updateSelector);
   const footer = !!indicator?.closest('[data-slot="sidebar-footer"]');
+  const utilityControls = [...indicator?.closest('[data-slot="sidebar-menu"]')?.querySelectorAll('[data-slot="sidebar-menu-button"]') ?? []];
+  const utilityBounds = utilityControls.map((control) => control.getBoundingClientRect());
+  const compactFooter = utilityBounds.length === 3 && utilityBounds.every((bounds) => bounds.width > 0 && bounds.width <= 40 && bounds.height <= 40 && Math.abs(bounds.top - utilityBounds[0].top) < 1);
+  const spacedFooter = utilityBounds.every((bounds, index) => index === 0 || bounds.left >= utilityBounds[index - 1].right);
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
   document.querySelector('a[href="/settings?section=general"]')?.click();
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
@@ -43,5 +47,5 @@ export const smokeUpdates = `(async () => {
   const dismissalFocus = await waitFor(() => document.activeElement === document.querySelector('[data-slot="sidebar-footer"] a[href="/settings?section=general"]'));
   const stillAvailable = !!section?.querySelector('a[aria-label="View release and download"]');
   section?.scrollIntoView({ block: 'center' });
-  return notice && footer && noPageBanner && settings && retained && collapsed && compactIndicator && details && detailsRelease && closed && expanded && version && link && enabled && compactControl && disabled && restored && manual && dismissed && dismissalFocus && stillAvailable;
+  return notice && footer && compactFooter && spacedFooter && noPageBanner && settings && retained && collapsed && compactIndicator && details && detailsRelease && closed && expanded && version && link && enabled && compactControl && disabled && restored && manual && dismissed && dismissalFocus && stillAvailable;
 })()`;

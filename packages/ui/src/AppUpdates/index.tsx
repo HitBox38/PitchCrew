@@ -1,6 +1,6 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Popover, PopoverTrigger } from '@/components/ui/popover/index.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
+import { SidebarIconButton } from '@/components/ui/sidebar/components/SidebarIconButton.tsx';
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 import { Download } from 'lucide-react';
 import { useRef, type RefObject } from 'react';
@@ -17,20 +17,18 @@ export function AppUpdates({
   const dismiss = useWorkspaceStore((state) => state.dismissAppUpdate);
   if (info?.status !== 'available' || !info.latest || dismissed === info.latest.commit) return null;
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem className="ml-auto shrink-0 group-data-[collapsible=icon]:ml-0">
       <Popover>
         <PopoverTrigger
           render={
-            <SidebarMenuButton
+            <SidebarIconButton
               ref={trigger}
               className="sidebar-update-button"
-              tooltip="Pitchcrew update available"
-              aria-label="Pitchcrew update available"
+              label="Pitchcrew update available"
             />
           }
         >
           <Download aria-hidden="true" />
-          <span>Update available</span>
         </PopoverTrigger>
         <UpdateDetails
           url={info.latest.url}

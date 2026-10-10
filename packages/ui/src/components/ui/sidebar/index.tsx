@@ -8,6 +8,7 @@ export { SidebarGroupLabel } from './components/SidebarGroupLabel.tsx';
 export { SidebarHeader } from './components/SidebarHeader.tsx';
 export { SidebarInput } from './components/SidebarInput.tsx';
 export { SidebarInset } from './components/SidebarInset.tsx';
+export { SidebarIconButton } from './components/SidebarIconButton.tsx';
 export { SidebarMenu } from './components/SidebarMenu.tsx';
 export { SidebarMenuAction } from './components/SidebarMenuAction.tsx';
 export { SidebarMenuBadge } from './components/SidebarMenuBadge.tsx';
