@@ -227,10 +227,12 @@ pnpm browser:install # once, for browser tools and tests
 pnpm test
 pnpm build
 pnpm check           # lint, typecheck, tests and build
-pnpm test:desktop    # isolated daemon and actual Electron renderer
+pnpm test:desktop    # isolated daemon and hidden actual Electron renderer
 ```
 
 Use `pnpm format` to apply formatting. Tests use fictional fixtures, temporary workspaces and mock provider processes. Coverage includes board replay, approvals, HTTP boundaries, adapter contracts, MCP stdio and isolated Chromium. They make no paid provider calls.
+
+Desktop and packaged smoke checks keep their Electron window hidden, capture screenshots without revealing it, and fail if it is shown or focused. For visible desktop debugging, run `PITCHCREW_SMOKE_VISIBLE=1 pnpm test:desktop` (PowerShell: `$env:PITCHCREW_SMOKE_VISIBLE='1'; pnpm test:desktop`). The same opt-in applies to `pnpm test:packaged`. Ordinary `pnpm test` Chromium checks run headless.
 
 GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes to `main`, merge queues and manual dispatches. It checks lint, formatting, types and production builds, runs the complete test suite on Node 22 and 24 with Chromium, and verifies the actual Electron renderer on macOS and Windows. It also builds installers and checks the packaged app on Windows, macOS and Linux. Installs use the pinned pnpm version and frozen lockfile; newer commits cancel superseded runs except for pushes to `main`, which each retain their release build. Test reports, desktop evidence and installers are retained for seven days. The repository’s `main` branch ruleset requires the single **CI** status check from GitHub Actions and an up-to-date branch before merging. That check passes only when all jobs succeed; the ruleset has no bypass actors.
 
