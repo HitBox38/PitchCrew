@@ -1,49 +1,50 @@
+import { PipelineColumn } from './PipelineColumn.tsx';
+import { pipelinePlugins, pipelineSensors } from '@/BoardPage/constants.ts';
+import { usePipelineDrag } from '@/BoardPage/hooks/usePipelineDrag.ts';
 import { stages } from '@/board-stages.ts';
 import type { JobPipelineProps } from '@/BoardPage/types.ts';
 import { JobCard } from '@/components/JobCard/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Plus } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
+import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import * as m from 'motion/react-m';
 
-export function JobPipeline({ filtered, flashStage, setAdd, openCard, query }: JobPipelineProps) {
+export function JobPipeline({ filtered, ...props }: JobPipelineProps) {
+  const { data, working, active, pending, startDrag, endDrag } = usePipelineDrag();
+  if (!data) return null;
+  const cards = filtered.map((card) =>
+    pending?.id === card.id && pending.from === card.state ? { ...card, state: pending.to } : card,
+  );
   return (
-    <m.div
-      layoutScroll
-      className="pipeline grid grid-cols-[repeat(5,minmax(210px,1fr))] gap-3 overflow-x-auto pb-1.5 max-compact:grid-cols-[repeat(5,236px)]"
-      aria-label="Application pipeline"
+    <DragDropProvider
+      sensors={pipelineSensors}
+      plugins={pipelinePlugins}
+      onDragStart={startDrag}
+      onDragEnd={(event) => void endDrag(event)}
     >
-      {stages.map((stage) => {
-        const cards = filtered.filter((c) => stage.states.includes(c.state));
-        return (
-          <section
-            className={`pipeline-column min-h-110 min-w-0 px-2 pt-2.5 pb-3 max-compact:min-h-80 ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
-            id={`stage-${stage.id}`}
+      <m.div
+        layoutScroll
+        className="pipeline grid grid-cols-[repeat(5,minmax(210px,1fr))] gap-3 overflow-x-auto pb-1.5 max-compact:grid-cols-[repeat(5,236px)]"
+        aria-label="Application pipeline"
+        aria-busy={!!pending}
+      >
+        {stages.map((stage) => (
+          <PipelineColumn
             key={stage.id}
-          >
-            <div className="column-heading mb-2.5 flex h-6.5 items-center gap-2 px-1.5">
-              <span className="stage-dot" />
-              <h2>{stage.label}</h2>
-              <span className="column-count">{cards.length}</span>
-              {stage.id === 'lead' ? (
-                <Button className="icon-button" aria-label="Add a job" onClick={() => setAdd(true)}>
-                  <Plus size={15} />
-                </Button>
-              ) : null}
-            </div>
-            <div className="column-cards flex flex-col gap-2">
-              <AnimatePresence initial={false}>
-                {cards.map((card) => (
-                  <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
-                ))}
-              </AnimatePresence>
-              {!cards.length ? (
-                <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
-              ) : null}
-            </div>
-          </section>
-        );
-      })}
-    </m.div>
+            stage={stage}
+            cards={cards.filter((card) => stage.states.includes(card.state))}
+            active={active}
+            data={data}
+            working={working}
+            {...props}
+          />
+        ))}
+      </m.div>
+      <DragOverlay dropAnimation={null} className="job-drag-overlay">
+        {active ? (
+          <div aria-hidden="true">
+            <JobCard card={active} stationary onOpen={() => {}} />
+          </div>
+        ) : null}
+      </DragOverlay>
+    </DragDropProvider>
   );
 }

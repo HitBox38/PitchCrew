@@ -396,3 +396,56 @@
 .detail-company h2 {
   overflow-wrap: anywhere;
 }
+
+/* Drag feedback is immediate so the card follows the pointer without lag. */
+.pipeline-column[data-drop-allowed] {
+  outline: 1px dashed var(--teal);
+  outline-offset: -1px;
+}
+.pipeline-column[data-drop-target] {
+  background: var(--teal-soft);
+  outline: 2px solid var(--teal);
+}
+.column-drop-hint {
+  min-height: 44px;
+  margin-bottom: 8px;
+  padding: 8px;
+  border-radius: 9px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+}
+.column-drop-hint[data-allowed='true'] {
+  color: var(--teal);
+  background: var(--teal-soft);
+  font-weight: 600;
+}
+.draggable-job:has(.job-drag-handle) .job-top {
+  padding-right: 24px;
+}
+.draggable-job:has(.job-drag-handle) .job-card {
+  cursor: grab;
+}
+.draggable-job[data-dragging] {
+  opacity: 0.35;
+}
+.job-drag-handle.icon-button {
+  position: absolute;
+  top: 9px;
+  right: 7px;
+  width: 26px;
+  height: 26px;
+  color: var(--muted);
+  cursor: grab;
+  touch-action: none;
+}
+.job-drag-handle:active,
+.job-drag-overlay .job-card {
+  cursor: grabbing;
+}
+.job-drag-overlay {
+  pointer-events: none;
+}
+.job-drag-overlay .job-card {
+  box-shadow: var(--clay-hover);
+}
