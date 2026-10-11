@@ -34,7 +34,11 @@ export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): Ap
     appUpdateError: '',
     dismissedAppUpdate: null,
     loadAppUpdate: () => (get().appUpdate ? Promise.resolve() : run(loadAppUpdate)),
-    checkAppUpdate: (manual = true) => run(() => checkAppUpdate(manual)),
+    checkAppUpdate: async (manual = true) => {
+      await run(() => checkAppUpdate(manual));
+      if (manual && !get().appUpdateError && get().appUpdate?.status === 'available')
+        set({ dismissedAppUpdate: null });
+    },
     dismissAppUpdate: () => set({ dismissedAppUpdate: get().appUpdate?.latest?.commit ?? null }),
   };
 }
