@@ -79,6 +79,16 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
   return {
     spec,
     status,
+    /** Updates may stop only a service configured for this exact installed runtime. */
+    async matchesRuntime() {
+      const current = await inspect();
+      return (
+        current.before.installed &&
+        current.location.port === spec.port &&
+        samePath(spec.platform, current.location.directory, spec.directory) &&
+        !!current.before.args?.some((arg) => samePath(spec.platform, arg, spec.cli))
+      );
+    },
     /** Writes and registers the definition; running it again applies new settings. */
     async install() {
       await assertInstallable();

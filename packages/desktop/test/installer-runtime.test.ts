@@ -7,7 +7,7 @@ import { basename, dirname, join, resolve } from 'node:path';
 const { pruneRuntimeDependencies, materializeWorkspacePackages } = createRequire(import.meta.url)(
   '../../../scripts/installer-runtime.mjs',
 ) as {
-  pruneRuntimeDependencies(runtime: string): Promise<void>;
+  pruneRuntimeDependencies(runtime: string, additionalPackages?: string[]): Promise<void>;
   materializeWorkspacePackages(runtime: string): Promise<void>;
 };
 const directories: string[] = [];
@@ -62,6 +62,25 @@ test('rejects missing required dependencies before removing files', async () => 
     'Missing runtime dependency missing',
   );
   expect((await lstat(join(directory, 'node_modules/unused'))).isDirectory()).toBe(true);
+});
+
+test('retains desktop updater dependencies and their transitive packages in the bundled runtime', async () => {
+  const directory = await workspace();
+  await packageAt(join(directory, 'packages/orchestrator'), '@pitchcrew/orchestrator');
+  await packageAt(join(directory, 'packages/desktop'), '@pitchcrew/desktop', {
+    dependencies: { updater: '1.0.0' },
+  });
+  await packageAt(join(directory, 'node_modules/updater'), 'updater', {
+    dependencies: { checksum: '1.0.0' },
+  });
+  await packageAt(join(directory, 'node_modules/checksum'), 'checksum');
+  await packageAt(join(directory, 'node_modules/unused-ui'), 'unused-ui');
+  await pruneRuntimeDependencies(directory, ['desktop']);
+  expect((await lstat(join(directory, 'node_modules/updater'))).isDirectory()).toBe(true);
+  expect((await lstat(join(directory, 'node_modules/checksum'))).isDirectory()).toBe(true);
+  await expect(lstat(join(directory, 'node_modules/unused-ui'))).rejects.toMatchObject({
+    code: 'ENOENT',
+  });
 });
 
 test('follows workspace dependencies and replaces their links with portable source directories', async () => {

@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 import { RefreshCw } from 'lucide-react';
 import { ReleaseLink } from './ReleaseLink.tsx';
+import { DesktopUpdateActions } from './DesktopUpdateActions.tsx';
 
 export function UpdateSettings() {
   const info = useWorkspaceStore((state) => state.appUpdate);
+  const native = useWorkspaceStore((state) => state.desktopUpdate);
   const loading = useWorkspaceStore((state) => state.checkingAppUpdate);
   const error = useWorkspaceStore((state) => state.appUpdateError);
   const check = useWorkspaceStore((state) => state.checkAppUpdate);
@@ -25,10 +27,12 @@ export function UpdateSettings() {
         </Button>
       </div>
       <p className="quiet">
-        {info
-          ? `Version ${info.current.version}${info.current.commit ? ` · Build ${info.current.commit.slice(0, 12)}` : ' · Build unknown'}`
-          : 'Loading version…'}
-        {info && !info.current.packaged ? ' · Source checkout' : ''}
+        {native?.enabled
+          ? `Version ${native.currentVersion}`
+          : info
+            ? `Version ${info.current.version}${info.current.commit ? ` · Build ${info.current.commit.slice(0, 12)}` : ' · Build unknown'}`
+            : 'Loading version…'}
+        {!native?.enabled && info && !info.current.packaged ? ' · Source checkout' : ''}
       </p>
       <label className="settings-row" htmlFor="automatic-updates" aria-label="Check automatically">
         <span>
@@ -53,13 +57,18 @@ export function UpdateSettings() {
         </p>
       ) : null}
       <output className="info-note block" aria-live="polite">
-        {error || (loading ? 'Checking for updates…' : info?.message)}
+        {error ||
+          (loading ? 'Checking for updates…' : native?.enabled ? native.message : info?.message)}
       </output>
       {info?.checkedAt ? (
         <p className="quiet">Last checked {new Date(info.checkedAt).toLocaleString()}.</p>
       ) : null}
       {info?.latest && (info.status === 'available' || info.status === 'unknown') ? (
         <ReleaseLink url={info.latest.url} />
+      ) : null}
+      <DesktopUpdateActions />
+      {native?.status === 'disabled' && info?.current.packaged ? (
+        <p className="quiet">{native.message}</p>
       ) : null}
     </section>
   );
