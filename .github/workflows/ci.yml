@@ -160,6 +160,9 @@ jobs:
             dist/releases/*.dmg
             dist/releases/*.AppImage
             dist/releases/*.deb
+            dist/releases/*.zip
+            dist/releases/*.yml
+            dist/releases/*.blockmap
           if-no-files-found: error
           retention-days: 7
 

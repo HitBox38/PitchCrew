@@ -47,6 +47,9 @@ vi.mock('electron', () => ({
   shell: {},
 }));
 vi.mock('../src/smoke.ts', () => ({ installSmokeCheck: vi.fn() }));
+vi.mock('../src/updates/index.ts', () => ({
+  registerDesktopUpdates: vi.fn(async () => ({ isInstalling: () => false })),
+}));
 vi.mock('../src/packaged.ts', () => ({
   startPackagedDaemon: vi.fn(),
   stopPackagedDaemon: vi.fn(),
@@ -79,7 +82,7 @@ afterEach(() => {
 
 async function start() {
   await import('../src/main.ts');
-  await Promise.resolve();
+  await vi.waitFor(() => expect(electron.windows).toHaveLength(1));
   const window = electron.windows[0];
   window.emit('ready-to-show');
   return window;

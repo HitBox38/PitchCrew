@@ -38,6 +38,12 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
+            const desktopUpdater = window.pitchcrewUpdates;
+            if (!desktopUpdater || Object.keys(desktopUpdater).sort().join(',') !== 'check,download,getState,install,subscribe')
+              throw new Error('Desktop updater bridge is missing or exposes extra capabilities.');
+            const updateState = await desktopUpdater.getState();
+            if (updateState.enabled || updateState.status !== 'disabled') throw new Error('Smoke updater must stay offline.');
+            await desktopUpdater.check(); await desktopUpdater.download(); await desktopUpdater.install();
             await waitFor(() => !!document.querySelector('[data-slot="button"].button'));
             const styleChecks = ${smokeStyles};
             let userQuestionsReady = null;

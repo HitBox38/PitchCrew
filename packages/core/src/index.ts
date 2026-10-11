@@ -1,6 +1,7 @@
 export * from './conversations.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
+export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';
 export * from './reasoning.ts';
 export type { OnboardingState } from './onboarding.ts';
 export { defaultInstructionRevisionId, instructionUpdateDecision } from './default-instructions.ts';

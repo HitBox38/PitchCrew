@@ -11,7 +11,17 @@ module.exports = {
   electronVersion: require('./package.json').devDependencies.electron,
   npmRebuild: false,
   compression: 'normal',
-  publish: null,
+  // Separate architecture channels avoid macOS manifests overwriting each other in Releases.
+  // Runtime checks pin a full build-SHA release before downloading.
+  publish: [
+    {
+      provider: 'generic',
+      url: 'https://github.com/HitBox38/PitchCrew/releases/latest/download/',
+      channel: `latest-${process.arch}`,
+      useMultipleRangeRequest: false,
+    },
+  ],
+  generateUpdatesFilesForAllChannels: false,
   artifactName: 'Pitchcrew-${version}-${os}-${arch}.${ext}',
   win: { target: 'nsis', icon: 'packages/desktop/assets/icon.png', signExecutable: false },
   nsis: {
@@ -21,7 +31,7 @@ module.exports = {
     include: 'packages/desktop/installer/installer.nsh',
   },
   mac: {
-    target: 'dmg',
+    target: ['dmg', 'zip'],
     category: 'public.app-category.productivity',
     identity: null,
     icon: 'packages/desktop/assets/icon.png',

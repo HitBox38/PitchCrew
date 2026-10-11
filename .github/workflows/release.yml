@@ -30,9 +30,13 @@ jobs:
         run: |
           gh run download "$BUILD_RUN_ID" --pattern 'installers-*' --dir release
           mkdir assets
-          find release -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' \) -exec cp {} assets/ \;
+          find release -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' -o -name '*.zip' -o -name 'latest-*.yml' -o -name '*.blockmap' \) -exec cp {} assets/ \;
           cd assets
-          test "$(find . -maxdepth 1 -type f | wc -l)" -eq 5
+          test "$(find . -maxdepth 1 -type f \( -name '*.exe' -o -name '*.dmg' -o -name '*.AppImage' -o -name '*.deb' \) | wc -l)" -eq 5
+          test "$(find . -maxdepth 1 -name '*.zip' | wc -l)" -eq 2
+          for manifest in latest-x64.yml latest-x64-linux.yml latest-arm64-mac.yml latest-x64-mac.yml; do
+            test -s "$manifest"
+          done
           sha256sum * > SHA256SUMS
       - name: Publish GitHub Release
         run: |
@@ -55,6 +59,8 @@ jobs:
           Windows and macOS installers are unsigned; macOS builds are not notarized. The operating system may require explicit permission to open the app.
 
           SHA256SUMS contains the installer checksums. Board and profile data stay in the user's existing ~/.pitchcrew folder.
+
+          Windows and Linux users with updater-enabled builds can download in the app, then confirm installation and restart. Unsigned Mac builds use the manual .dmg installation. Update manifests and blockmaps are included for the in-app updater.
           EOF
             gh release create "$tag" --target "$BUILD_SHA" --draft \
               --title "Production build ${BUILD_SHA:0:12}" --notes-file release-notes.md

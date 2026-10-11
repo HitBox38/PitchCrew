@@ -13,6 +13,7 @@ import { fileURLToPath } from 'node:url';
 import { isAllowedExternalUrl } from './external-url.ts';
 import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon } from './packaged.ts';
+import { registerDesktopUpdates } from './updates/index.ts';
 
 app.setName('Pitchcrew');
 const hiddenSmoke =
@@ -27,6 +28,7 @@ const primaryInstance = app.requestSingleInstanceLock();
 if (!primaryInstance) app.quit();
 let window: BrowserWindow | null = null;
 let daemonReady = !app.isPackaged;
+let updates: Awaited<ReturnType<typeof registerDesktopUpdates>> | undefined;
 const appIcon = nativeImage.createFromPath(
   fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
 );
@@ -108,6 +110,10 @@ if (primaryInstance)
     .whenReady()
     .then(async () => {
       if (app.isPackaged) url = await startPackagedDaemon(process.resourcesPath);
+      updates = await registerDesktopUpdates(
+        () => window,
+        () => new URL(url).origin,
+      );
       daemonReady = true;
       if (process.platform === 'darwin') app.dock?.setIcon(appIcon);
       session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
@@ -127,7 +133,9 @@ if (primaryInstance)
       );
       app.quit();
     });
-app.on('before-quit', stopPackagedDaemon);
+app.on('before-quit', () => {
+  if (!updates?.isInstalling()) stopPackagedDaemon();
+});
 app.on('second-instance', () => {
   if (hiddenSmoke) return;
   window?.restore();
