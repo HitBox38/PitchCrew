@@ -10,6 +10,14 @@ const events: AnalyticsEvent[] = [
   'application_status_changed',
   'workflow_started',
   'chat_sent',
+  'conversation_created',
+  'chat_continued',
+  'user_question_answered',
+  'user_question_cancelled',
+  'browser_session_changed',
+  'pipeline_followup_saved',
+  'app_update_download_requested',
+  'app_update_install_requested',
   'agent_created',
   'agent_saved',
   'agent_retired',
@@ -44,6 +52,19 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
   for (const key of ['token', 'distinct_id', '$session_id', '$window_id', '$lib', '$lib_version'])
     if (typeof input[key] === 'string') properties[key] = input[key];
   if (
+    typeof input.app_version === 'string' &&
+    /^\d{1,5}\.\d{1,5}\.\d{1,5}$/.test(input.app_version)
+  )
+    properties.app_version = input.app_version;
+  if (['browser', 'electron'].includes(input.renderer as string))
+    properties.renderer = input.renderer;
+  if (input.analytics_schema === 2) properties.analytics_schema = 2;
+  if (
+    event.event === 'browser_session_changed' &&
+    ['open', 'close', 'take', 'release'].includes(input.action as string)
+  )
+    properties.action = input.action;
+  if (
     event.event === '$pageview' &&
     typeof input.page === 'string' &&
     Object.hasOwn(viewPaths, input.page)
@@ -71,6 +92,8 @@ export function actionEvent(
   method: string,
   body: unknown,
 ): { event: AnalyticsEvent; properties?: AnalyticsProperties } | undefined {
+  // Match only the route. Thread IDs and all other query values never enter event properties.
+  path = path.split('?')[0];
   const input = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
   if (method === 'POST') {
     const exact: Record<string, AnalyticsEvent> = {
@@ -81,6 +104,7 @@ export function actionEvent(
       '/skills': 'skill_saved',
       '/routines': 'routine_saved',
       '/job-sources/scan': 'job_sources_scanned',
+      '/conversations': 'conversation_created',
     };
     if (exact[path]) return { event: exact[path] };
     if (/^\/cards\/[^/]+\/move$/.test(path))
@@ -90,6 +114,19 @@ export function actionEvent(
       };
     if (/^\/cards\/[^/]+\/run$/.test(path)) return { event: 'workflow_started' };
     if (/^\/roles\/[^/]+\/chat$/.test(path)) return { event: 'chat_sent' };
+    if (/^\/conversations\/[^/]+\/messages$/.test(path)) return { event: 'chat_sent' };
+    if (/^\/conversations\/[^/]+\/continue$/.test(path)) return { event: 'chat_continued' };
+    if (/^\/user-input\/[^/]+\/answer$/.test(path)) return { event: 'user_question_answered' };
+    if (/^\/user-input\/[^/]+\/cancel$/.test(path)) return { event: 'user_question_cancelled' };
+    if (/^\/pipeline-reviews\/[^/]+\/followup$/.test(path))
+      return { event: 'pipeline_followup_saved' };
+    const browser = /^\/browser\/[^/]+\/(open|close|control)$/.exec(path);
+    const browserAction = browser?.[1] === 'control' ? input.operation : browser?.[1];
+    if (['open', 'close', 'take', 'release'].includes(browserAction as string))
+      return {
+        event: 'browser_session_changed',
+        properties: { action: browserAction as AnalyticsProperties['action'] },
+      };
     if (/^\/roles\/[^/]+\/retire$/.test(path)) return { event: 'agent_retired' };
     if (/^\/roles\/[^/]+\/restore$/.test(path)) return { event: 'agent_restored' };
     if (/^\/cards\/[^/]+\/approval$/.test(path)) return { event: 'packet_export_requested' };

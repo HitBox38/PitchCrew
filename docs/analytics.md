@@ -31,6 +31,11 @@ Only successful UI API mutations emit action events. Polling, failed actions, pr
 | `job_created`, `application_registered`, `applications_imported`   | None                                                    |
 | `application_status_changed`                                       | Known card `state`                                      |
 | `workflow_started`, `chat_sent`                                    | None                                                    |
+| `conversation_created`, `chat_continued`                           | None                                                    |
+| `user_question_answered`, `user_question_cancelled`                | None                                                    |
+| `browser_session_changed`                                          | `action` (open/close/take/release)                      |
+| `pipeline_followup_saved`                                          | None                                                    |
+| `app_update_download_requested`, `app_update_install_requested`    | None                                                    |
 | `agent_created`, `agent_saved`, `agent_retired`, `agent_restored`  | None                                                    |
 | `skill_saved`, `skill_deleted`, `routine_saved`, `routine_deleted` | None                                                    |
 | `profile_saved`, `job_sources_scanned`                             | None                                                    |
@@ -40,8 +45,22 @@ Only successful UI API mutations emit action events. Polling, failed actions, pr
 
 Every chat thread becomes `/chat`; query strings and filters are excluded. Repeated renders, search changes and switching chat threads do not duplicate the same page view.
 
-The SDK generates an anonymous device identifier, session/window IDs and event metadata. It never identifies a person or creates person profiles. A `before_send` allowlist rebuilds every event's properties, keeping only these IDs, the public ingestion token, SDK name/version and the feature properties above. It removes URLs, referrers, attribution, screen/device metadata and person-property updates. GeoIP enrichment is disabled. The ingestion service still receives the source IP at the HTTPS network layer.
+`chat_sent` covers the current conversation message route and the legacy role-chat route. It counts accepted user messages, including queued turns, rather than responses. `chat_continued` counts a user's explicit continuation request. Question events count successful answer/cancel decisions without choices or answer text. `pipeline_followup_saved` counts a saved review follow-up, not a completed pipeline assessment.
+
+Browser events count successful UI open/close and take/release control requests. Query parameters are stripped before matching routes; thread IDs never become properties. Manual browser inputs, navigation, sites, screenshots, streams, viewport changes and periodic control renewals are excluded. These events do not count agent-triggered browser use.
+
+Desktop update events observe the main process entering `downloading` or `installing` after a user request, so installation is counted only after native confirmation. Initial state loading and repeated progress notifications do not count. These are best-effort request counts, not proof of a completed download or installation; renderer shutdown can lose a capture.
+
+Every event also includes `app_version` from the root package version shipped with the renderer, `renderer` (`browser` or `electron`), and `analytics_schema: 2`. The version accepts only a bounded numeric semantic version; no commit, runtime/model, operating-system fingerprint or custom identifier is included. Schema 2 distinguishes the expanded tracking from older builds even when their package versions match.
+
+The SDK generates an anonymous device identifier, session/window IDs and event metadata. It never identifies a person or creates person profiles. A `before_send` allowlist rebuilds every event's properties, keeping only these IDs, the public ingestion token, SDK name/version, release context and the feature properties above. It removes URLs, referrers, attribution, screen/device metadata and person-property updates. GeoIP enrichment is disabled. The ingestion service still receives the source IP at the HTTPS network layer.
 
 Names, emails, profile notes, messages, job/company details, tags, prompts, packets, account tokens, local paths, card IDs, custom role IDs and error text are excluded. Autocapture, pageleave capture, session replay, surveys, feature-flag requests, performance and exception capture are disabled. The SDK's `no-external` entry point loads no remote scripts. See [PostHog SDK configuration](https://posthog.com/docs/libraries/js/config) and [data collection controls](https://posthog.com/docs/privacy/data-collection).
 
 Automated verification uses fictional public tokens and mocked boundaries; it makes no calls to a live PostHog project.
+
+## Dashboard coverage
+
+The connected PitchCrew project is EU project 295060. Its [Usage Overview](https://eu.posthog.com/project/295060/dashboard/999570), [Crew & Feature Adoption](https://eu.posthog.com/project/295060/dashboard/999571), and [Application Workflow](https://eu.posthog.com/project/295060/dashboard/999572) dashboards describe anonymous device activity and accepted user actions. Device IDs are not identified people, and ordered device funnels cannot establish conversion of individual job cards. Website and application identities are not linked, so download clicks cannot establish installation conversion.
+
+The former Health & Reliability dashboard is [Diagnostics Coverage](https://eu.posthog.com/project/295060/dashboard/999694). Its eight saved diagnostic queries remain as explicitly labeled **Not collected** placeholders: errors, run outcomes/duration, API results/latency, Web Vitals and ratings. These signals are not emitted by current builds; empty values must never be presented as zero errors or healthy performance. New feature events and release context begin only with updated builds, with no historical backfill.

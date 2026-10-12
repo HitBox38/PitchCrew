@@ -87,4 +87,77 @@ describe('analytics content boundary', () => {
     ])
       expect(actionEvent(path, method, { token: 'private' })).toBeUndefined();
   });
+
+  it('tracks current chat and feature routes without including private IDs, queries or input', () => {
+    for (const [path, event] of [
+      ['/conversations/private-thread/messages', 'chat_sent'],
+      ['/conversations', 'conversation_created'],
+      ['/conversations/private-thread/continue', 'chat_continued'],
+      ['/user-input/private-question/answer', 'user_question_answered'],
+      ['/user-input/private-question/cancel', 'user_question_cancelled'],
+      ['/pipeline-reviews/private-review/followup', 'pipeline_followup_saved'],
+    ]) {
+      expect(
+        actionEvent(path, 'POST', { content: 'Private', selected: ['Private'], text: 'Private' }),
+      ).toEqual({ event });
+      expect(actionEvent(path, 'GET', {})).toBeUndefined();
+    }
+    for (const action of ['open', 'close', 'take', 'release']) {
+      const route = ['take', 'release'].includes(action) ? 'control' : action;
+      expect(
+        actionEvent(`/browser/private-agent/${route}?threadId=private-thread`, 'POST', {
+          operation: action,
+          leaseId: 'private',
+          url: 'https://private.example',
+        }),
+      ).toEqual({ event: 'browser_session_changed', properties: { action } });
+    }
+    for (const route of ['input', 'viewport', 'sites', 'stream'])
+      expect(
+        actionEvent(`/browser/private-agent/${route}?threadId=private`, 'POST', {
+          text: 'Private',
+        }),
+      ).toBeUndefined();
+    expect(
+      actionEvent('/browser/private-agent/control?threadId=private', 'POST', {
+        operation: 'renew',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('allows bounded release context and feature enums while stripping arbitrary content', () => {
+    expect(
+      sanitizeEvent({
+        event: 'browser_session_changed',
+        properties: {
+          app_version: '0.2.0',
+          analytics_schema: 2,
+          renderer: 'electron',
+          action: 'take',
+          threadId: 'private',
+          roleId: 'private',
+          text: 'private',
+          url: 'https://private.example',
+        },
+      })?.properties,
+    ).toEqual({
+      app_version: '0.2.0',
+      analytics_schema: 2,
+      renderer: 'electron',
+      action: 'take',
+      $process_person_profile: false,
+      $geoip_disable: true,
+    });
+    expect(
+      sanitizeEvent({
+        event: 'browser_session_changed',
+        properties: {
+          app_version: 'private-version',
+          analytics_schema: 123,
+          renderer: 'private-runtime',
+          action: 'private',
+        },
+      })?.properties,
+    ).toEqual({ $process_person_profile: false, $geoip_disable: true });
+  });
 });

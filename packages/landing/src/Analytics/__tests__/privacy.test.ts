@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createAnalytics, sdkConfig } from '../client';
 import { analyticsAllowed, preferenceKey, sanitizeEvent } from '../helpers';
 import { parseRelease } from '../../Downloads/helpers';
+import { analyticsContext } from '../context';
 
 const installer = parseRelease(null).installers[0];
 const makeSdk = () => ({
@@ -31,6 +32,7 @@ describe('landing analytics privacy', () => {
       destination: 'installer',
       $process_person_profile: false,
       $geoip_disable: true,
+      ...analyticsContext,
     });
     expect(
       sanitizeEvent({ event: 'landing_download_clicked', properties: { installer: 'custom' } }),
@@ -85,12 +87,59 @@ describe('landing analytics privacy', () => {
     expect(sdk.capture).toHaveBeenCalledWith('landing_download_clicked', {
       installer: 'mac-arm64',
       destination: 'releases',
+      ...analyticsContext,
     });
     await analytics.setEnabled(false);
     analytics.capture(installer);
     expect(sdk.capture).toHaveBeenCalledTimes(2);
     const config = sdk.init.mock.calls[0][1];
     expect(config.before_send({ event: 'landing_page_viewed', properties: {} })).toBeNull();
+  });
+
+  it('sends both landing events through the privacy boundary to the configured project', async () => {
+    const captured: { event: string; properties: Record<string, unknown> }[] = [];
+    let beforeSend!: (event: {
+      event: string;
+      properties: Record<string, unknown>;
+    }) => (typeof captured)[number] | null;
+    const sdk = makeSdk();
+    sdk.init.mockImplementation((_token, config) => {
+      beforeSend = config.before_send;
+    });
+    sdk.capture.mockImplementation((event, properties = {}) => {
+      const clean = beforeSend({
+        event,
+        properties: { ...properties, $current_url: 'private', $referrer: 'private' },
+      });
+      if (clean) captured.push(clean);
+    });
+    const analytics = createAnalytics(async () => sdk);
+    await analytics.setEnabled(true);
+    analytics.capture(installer);
+    expect(captured).toEqual([
+      {
+        event: 'landing_page_viewed',
+        properties: {
+          ...analyticsContext,
+          $process_person_profile: false,
+          $geoip_disable: true,
+        },
+      },
+      {
+        event: 'landing_download_clicked',
+        properties: {
+          ...analyticsContext,
+          $process_person_profile: false,
+          $geoip_disable: true,
+          installer: installer.id,
+          platform: installer.platform,
+          destination: 'releases',
+        },
+      },
+    ]);
+    await analytics.setEnabled(false);
+    analytics.capture(installer);
+    expect(captured).toHaveLength(2);
   });
 
   it('contains failures and does not queue disabled or failed events', async () => {

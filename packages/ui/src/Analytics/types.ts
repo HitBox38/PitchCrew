@@ -13,6 +13,14 @@ export type AnalyticsEvent =
   | 'application_status_changed'
   | 'workflow_started'
   | 'chat_sent'
+  | 'conversation_created'
+  | 'chat_continued'
+  | 'user_question_answered'
+  | 'user_question_cancelled'
+  | 'browser_session_changed'
+  | 'pipeline_followup_saved'
+  | 'app_update_download_requested'
+  | 'app_update_install_requested'
   | 'agent_created'
   | 'agent_saved'
   | 'agent_retired'
@@ -35,4 +43,5 @@ export interface AnalyticsProperties {
   approved?: boolean;
   status?: string;
   step?: number;
+  action?: 'open' | 'close' | 'take' | 'release';
 }

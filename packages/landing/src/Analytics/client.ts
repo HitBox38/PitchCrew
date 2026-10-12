@@ -2,6 +2,7 @@ import type { PostHog, PostHogConfig } from 'posthog-js';
 import type { Installer } from '../Downloads/types';
 import { analyticsConfig } from './config';
 import { sanitizeEvent } from './helpers';
+import { analyticsContext } from './context';
 
 type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'>;
 export const sdkConfig: Partial<PostHogConfig> = {
@@ -58,7 +59,7 @@ export function createAnalytics(load: () => Promise<Sdk>) {
         sdk.opt_in_capturing({ captureEventName: false });
         enabled = true;
         if (!pageCaptured) {
-          sdk.capture('landing_page_viewed');
+          sdk.capture('landing_page_viewed', analyticsContext);
           pageCaptured = true;
         }
       } catch {
@@ -71,6 +72,7 @@ export function createAnalytics(load: () => Promise<Sdk>) {
         sdk.capture('landing_download_clicked', {
           installer: installer.id,
           destination: installer.filename ? 'installer' : 'releases',
+          ...analyticsContext,
         });
       } catch {
         /* A download never depends on analytics. */

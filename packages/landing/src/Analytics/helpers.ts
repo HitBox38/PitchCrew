@@ -1,4 +1,5 @@
 import { installerDefinitions } from '../Downloads/constants';
+import { analyticsContext } from './context';
 
 export const preferenceKey = 'pitchcrew-landing-analytics-v1';
 
@@ -11,6 +12,7 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
   const properties: Record<string, unknown> = {
     $process_person_profile: false,
     $geoip_disable: true,
+    ...analyticsContext,
   };
   for (const key of ['token', 'distinct_id', '$lib', '$lib_version'])
     if (typeof input[key] === 'string') properties[key] = input[key];

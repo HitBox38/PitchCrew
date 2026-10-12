@@ -1,6 +1,7 @@
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import { useDevicePreferences } from '../lib/device-preferences.ts';
 import { sanitizeEvent } from './helpers.ts';
+import { analyticsContext } from './context.ts';
 import type { AnalyticsConfig, AnalyticsEvent, AnalyticsProperties } from './types.ts';
 
 type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'>;
@@ -75,7 +76,7 @@ export function createAnalytics(loadSdk: () => Promise<Sdk>, consent: () => bool
         lastPage = properties.page;
       }
       try {
-        sdk.capture(event, properties);
+        sdk.capture(event, { ...properties, ...analyticsContext() });
       } catch {
         /* Analytics is best effort. */
       }
