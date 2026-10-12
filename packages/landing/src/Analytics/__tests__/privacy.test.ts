@@ -8,6 +8,7 @@ const installer = parseRelease(null).installers[0];
 const makeSdk = () => ({
   init: vi.fn(),
   capture: vi.fn(),
+  set_config: vi.fn(),
   opt_in_capturing: vi.fn(),
   opt_out_capturing: vi.fn(),
 });
@@ -33,6 +34,8 @@ describe('landing analytics privacy', () => {
       $process_person_profile: false,
       $geoip_disable: true,
       ...analyticsContext,
+      $host: 'pitch-crew.tomer-norman.dev',
+      $pathname: '/',
     });
     expect(
       sanitizeEvent({ event: 'landing_download_clicked', properties: { installer: 'custom' } }),
@@ -82,7 +85,7 @@ describe('landing analytics privacy', () => {
     const analytics = createAnalytics(async () => sdk);
     await analytics.setEnabled(true);
     await analytics.setEnabled(true);
-    expect(sdk.capture).toHaveBeenCalledTimes(1);
+    expect(sdk.capture).toHaveBeenCalledTimes(2);
     analytics.capture(installer);
     expect(sdk.capture).toHaveBeenCalledWith('landing_download_clicked', {
       installer: 'mac-arm64',
@@ -91,7 +94,7 @@ describe('landing analytics privacy', () => {
     });
     await analytics.setEnabled(false);
     analytics.capture(installer);
-    expect(sdk.capture).toHaveBeenCalledTimes(2);
+    expect(sdk.capture).toHaveBeenCalledTimes(3);
     const config = sdk.init.mock.calls[0][1];
     expect(config.before_send({ event: 'landing_page_viewed', properties: {} })).toBeNull();
   });
@@ -118,11 +121,23 @@ describe('landing analytics privacy', () => {
     analytics.capture(installer);
     expect(captured).toEqual([
       {
+        event: '$pageview',
+        properties: {
+          ...analyticsContext,
+          $process_person_profile: false,
+          $geoip_disable: true,
+          $host: 'pitch-crew.tomer-norman.dev',
+          $pathname: '/',
+        },
+      },
+      {
         event: 'landing_page_viewed',
         properties: {
           ...analyticsContext,
           $process_person_profile: false,
           $geoip_disable: true,
+          $host: 'pitch-crew.tomer-norman.dev',
+          $pathname: '/',
         },
       },
       {
@@ -134,12 +149,14 @@ describe('landing analytics privacy', () => {
           installer: installer.id,
           platform: installer.platform,
           destination: 'releases',
+          $host: 'pitch-crew.tomer-norman.dev',
+          $pathname: '/',
         },
       },
     ]);
     await analytics.setEnabled(false);
     analytics.capture(installer);
-    expect(captured).toHaveLength(2);
+    expect(captured).toHaveLength(3);
   });
 
   it('contains failures and does not queue disabled or failed events', async () => {
@@ -152,7 +169,7 @@ describe('landing analytics privacy', () => {
       autocapture: false,
       disable_session_recording: true,
       person_profiles: 'never',
-      persistence: 'memory',
+      persistence: 'localStorage',
     });
   });
 });

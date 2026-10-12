@@ -1,9 +1,16 @@
 'use client';
 
+import { useReportWebVitals } from 'next/web-vitals';
+import { analytics } from './client';
 import { Button } from '../components/ui/button';
 import { useAnalytics } from './hooks/useAnalytics';
 
+const reportVital: Parameters<typeof useReportWebVitals>[0] = (metric) => {
+  analytics.captureWebVital({ name: metric.name, value: metric.value });
+};
+
 export function Analytics() {
+  useReportWebVitals(reportVital);
   const { enabled, available, toggle } = useAnalytics();
   return (
     <Button

@@ -28,10 +28,15 @@ export function useAnalytics() {
     const storage = (event: StorageEvent) => {
       if (event.key === preferenceKey || event.key === null) sync();
     };
+    const restored = (event: PageTransitionEvent) => {
+      if (event.persisted) analytics.capturePageview();
+    };
     sync();
+    window.addEventListener('pageshow', restored);
     window.addEventListener('storage', storage);
     window.addEventListener('pitchcrew-landing-consent', sync);
     return () => {
+      window.removeEventListener('pageshow', restored);
       window.removeEventListener('storage', storage);
       window.removeEventListener('pitchcrew-landing-consent', sync);
       void analytics.setEnabled(false);

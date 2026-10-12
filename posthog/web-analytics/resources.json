@@ -1,0 +1,328 @@
+{
+  "project_id": 295060,
+  "activation": "deferred_until_integrated_checks",
+  "dashboard": {
+    "name": "Pitchcrew Website",
+    "description": "Public landing traffic, anonymous browsers, sessions, download interest and measured Web Vitals. No attribution, private content or reliable native bounce metrics."
+  },
+  "insights": [
+    {
+      "name": "Website pageviews",
+      "description": "Native public landing pageviews. Legacy landing_page_viewed is excluded to avoid double counting.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$pageview",
+              "math": "total"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website anonymous browsers",
+      "description": "Unique anonymous website browser IDs, not verified people. SDK identity is stored only while website analytics is enabled.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$pageview",
+              "math": "dau"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website sessions",
+      "description": "Native SDK sessions observed with a public landing pageview. No private daemon UI traffic.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$pageview",
+              "math": "unique_session"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website download interest",
+      "description": "Clicks to installer assets or release pages, grouped by fixed platform. Does not prove a download completed or an app was installed.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "landing_download_clicked",
+              "math": "total"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          },
+          "breakdownFilter": {
+            "breakdown": "platform",
+            "breakdown_type": "event"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website measured leave duration",
+      "description": "Mean observed pageleave duration in seconds. Best effort delivery; not time-on-task and not complete sessions.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$pageleave",
+              "math": "avg",
+              "math_property": "$prev_pageview_duration"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website LCP p75",
+      "description": "75th percentile of observed numeric LCP samples; milliseconds. No attribution or performance entries.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$web_vitals",
+              "math": "p75",
+              "math_property": "$web_vitals_LCP_value"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website CLS p75",
+      "description": "75th percentile of observed numeric CLS samples; unitless. No attribution or performance entries.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$web_vitals",
+              "math": "p75",
+              "math_property": "$web_vitals_CLS_value"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website INP p75",
+      "description": "75th percentile of observed numeric INP samples; milliseconds. No attribution or performance entries.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$web_vitals",
+              "math": "p75",
+              "math_property": "$web_vitals_INP_value"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    },
+    {
+      "name": "Website FCP p75",
+      "description": "75th percentile of observed numeric FCP samples; milliseconds. No attribution or performance entries.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "dateRange": {
+            "date_from": "-30d"
+          },
+          "interval": "day",
+          "properties": [
+            {
+              "key": "renderer",
+              "value": "landing",
+              "operator": "exact",
+              "type": "event"
+            }
+          ],
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$web_vitals",
+              "math": "p75",
+              "math_property": "$web_vitals_FCP_value"
+            }
+          ],
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      }
+    }
+  ],
+  "native_web_analytics": {
+    "url": "https://eu.posthog.com/project/295060/web",
+    "filters": [
+      {
+        "key": "renderer",
+        "value": "landing",
+        "operator": "exact",
+        "type": "event"
+      }
+    ],
+    "conversion_goal": {
+      "name": "Website download interest",
+      "event": "landing_download_clicked"
+    },
+    "limitations": [
+      "No raw current URL, query, referrer, attribution or geography",
+      "Native URL-specific charts may be empty; saved numeric charts are the supported view",
+      "Bounce is approximate without arbitrary interaction autocapture",
+      "Download interest is a click, not installation"
+    ]
+  }
+}

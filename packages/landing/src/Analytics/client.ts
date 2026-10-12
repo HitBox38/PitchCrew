@@ -1,14 +1,22 @@
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import type { Installer } from '../Downloads/types';
-import { analyticsConfig } from './config';
-import { sanitizeEvent } from './helpers';
+import { analyticsConfig, analyticsConfigured } from './config';
+import { analyticsAllowed, sanitizeEvent } from './helpers';
 import { analyticsContext } from './context';
 
-type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'>;
+type Sdk = Pick<
+  PostHog,
+  'init' | 'capture' | 'set_config' | 'opt_in_capturing' | 'opt_out_capturing'
+>;
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,
   capture_pageview: false,
-  capture_pageleave: false,
+  capture_pageleave: true,
+  save_referrer: false,
+  save_campaign_params: false,
+  respect_dnt: true,
+  debug: false,
+  disable_persistence: false,
   capture_dead_clicks: false,
   rageclick: false,
   disable_session_recording: true,
@@ -19,25 +27,28 @@ export const sdkConfig: Partial<PostHogConfig> = {
   disable_external_dependency_loading: true,
   person_profiles: 'never',
   ip: false,
-  persistence: 'memory',
+  persistence: 'localStorage',
   opt_out_persistence_by_default: true,
   request_batching: false,
 };
 
-export function createAnalytics(load: () => Promise<Sdk>) {
+export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) {
   let sdk: Sdk | undefined;
   let loading: Promise<Sdk> | undefined;
   let initialized = false;
   let enabled = false;
   let generation = 0;
   let pageCaptured = false;
+  let nativePageCaptured = false;
   return {
     async setEnabled(next: boolean) {
       const current = ++generation;
       enabled = false;
-      if (!next) {
+      if (!next || !allowed()) {
+        nativePageCaptured = false;
         try {
           sdk?.opt_out_capturing();
+          sdk?.set_config({ disable_persistence: true });
         } catch {
           /* Best effort. */
         }
@@ -46,18 +57,26 @@ export function createAnalytics(load: () => Promise<Sdk>) {
       try {
         loading ??= load();
         const loaded = await loading;
-        if (current !== generation) return;
+        if (current !== generation || !allowed()) return;
         sdk = loaded;
         if (!initialized) {
           sdk.init(analyticsConfig.token, {
             ...sdkConfig,
             api_host: analyticsConfig.host,
-            before_send: (event) => (enabled ? sanitizeEvent(event) : null),
+            before_send: (event) => (enabled && allowed() ? sanitizeEvent(event) : null),
           });
           initialized = true;
         }
+        sdk.set_config({
+          persistence: 'localStorage',
+          disable_persistence: false,
+        });
         sdk.opt_in_capturing({ captureEventName: false });
         enabled = true;
+        if (!nativePageCaptured) {
+          sdk.capture('$pageview', analyticsContext);
+          nativePageCaptured = true;
+        }
         if (!pageCaptured) {
           sdk.capture('landing_page_viewed', analyticsContext);
           pageCaptured = true;
@@ -66,8 +85,29 @@ export function createAnalytics(load: () => Promise<Sdk>) {
         loading = undefined;
       }
     },
+    capturePageview() {
+      if (!enabled || !sdk || !allowed()) return;
+      try {
+        sdk.capture('$pageview', analyticsContext);
+      } catch {
+        /* BFCache restoration never depends on analytics. */
+      }
+    },
+    captureWebVital(metric: { name: string; value: number }) {
+      if (!enabled || !sdk || !allowed()) return;
+      const event = sanitizeEvent({
+        event: '$web_vitals',
+        properties: { [`$web_vitals_${metric.name}_value`]: metric.value },
+      });
+      if (!event) return;
+      try {
+        sdk.capture(event.event, event.properties);
+      } catch {
+        /* Performance reporting never affects the page. */
+      }
+    },
     capture(installer: Installer) {
-      if (!enabled || !sdk) return;
+      if (!enabled || !sdk || !allowed()) return;
       try {
         sdk.capture('landing_download_clicked', {
           installer: installer.id,
@@ -81,10 +121,23 @@ export function createAnalytics(load: () => Promise<Sdk>) {
   };
 }
 
-export const analytics = createAnalytics(async () => {
-  const { PostHog } = await import('posthog-js/no-external');
-  return new PostHog();
-});
+export const analytics = createAnalytics(
+  async () => {
+    const { PostHog } = await import('posthog-js/no-external');
+    return new PostHog();
+  },
+  () => {
+    try {
+      return (
+        analyticsConfigured() &&
+        window.location.pathname === '/' &&
+        analyticsAllowed(window.localStorage, navigator.doNotTrack)
+      );
+    } catch {
+      return false;
+    }
+  },
+);
 export function captureDownload(installer: Installer) {
   analytics.capture(installer);
 }
