@@ -1,3 +1,4 @@
+import { activityStream } from './activity/index.ts';
 import type { ChatContext, RunContext } from '@pitchcrew/core';
 
 // Decode only the reply string in the structured chat answer. Never display JSON,
@@ -57,19 +58,45 @@ function textParts(content: unknown): string {
 // separate so a preview can never turn an incomplete/failed run into success.
 export function chatEventStream(context: RunContext | ChatContext) {
   const preview = replyPreview(context);
+  const activity = activityStream(context);
   let raw = '';
   let itemId: unknown;
   const replace = (text: string) => {
     raw = text;
+    activity.text(raw);
     preview(raw);
   };
   const append = (text: string) => replace(raw + text);
   return {
     replace,
+    finish: () => activity.boundary(),
     event(event: Record<string, unknown>) {
       if (!('messages' in context)) return;
       const data = event.data as Record<string, unknown> | undefined;
       const message = event.message as { role?: string; content?: unknown } | undefined;
+      if (event.parent_tool_use_id || data?.parentToolCallId) return;
+      const item = event.item as { type?: string } | undefined;
+      const nested = event.event as
+        | { delta?: { type?: string }; content_block?: { type?: string }; type?: string }
+        | undefined;
+      if (
+        item?.type === 'reasoning' ||
+        nested?.delta?.type === 'thinking_delta' ||
+        nested?.content_block?.type === 'thinking' ||
+        event.type === 'assistant.reasoning_delta' ||
+        event.type === 'thought' ||
+        (Array.isArray(message?.content) &&
+          message.content.some((part) => part?.type === 'thinking'))
+      )
+        activity.thinking();
+      if (
+        ['tool_use', 'tool_call', 'tool.execution_start', 'tool_execution_start'].includes(
+          String(event.type),
+        ) ||
+        nested?.content_block?.type === 'tool_use' ||
+        item?.type === 'mcp_tool_call'
+      )
+        activity.boundary();
       switch (context.role.runtime) {
         case 'claude-code': {
           if (event.parent_tool_use_id) return;

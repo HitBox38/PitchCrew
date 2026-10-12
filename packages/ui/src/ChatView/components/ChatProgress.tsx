@@ -6,7 +6,14 @@ export function ChatProgress({ running, name, working, action, thread }: ChatPro
   return (
     <output className="chat-progress">
       <LoaderCircle size={15} className="spin" />
-      <span>{running.map((r) => `${name(r.roleId)}: ${r.message}`).join(' · ')}</span>
+      <span>
+        {running
+          .map(
+            (r) =>
+              `${name(r.roleId)}: ${r.activity?.findLast((entry) => entry.status === 'running')?.label ?? (r.activity?.length ? 'Preparing reply…' : r.message)}`,
+          )
+          .join(' · ')}
+      </span>
       {running.map((run) => (
         <Button
           key={run.id}

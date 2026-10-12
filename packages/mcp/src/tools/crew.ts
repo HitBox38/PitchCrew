@@ -13,6 +13,17 @@ import { readOnly } from './constants.ts';
 export function registerCrewTools(server: McpServer, call: AgentCall) {
   registerConversationTools(server, call);
   server.registerTool(
+    'pitchcrew_report_progress',
+    {
+      title: 'Report chat progress',
+      description:
+        'Post a brief public update about work actually completed or the next action during a chat turn. Appears in the live turn timeline without sending a notification or invoking agents. Up to eight updates per turn. Never include private reasoning, secrets, browser inputs or private manual-takeover content. This grants no approvals or capabilities.',
+      inputSchema: { content: z.string().trim().min(1).max(1200) },
+      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+    },
+    (input) => call('report_progress', input),
+  );
+  server.registerTool(
     'pitchcrew_ask_user',
     {
       title: 'Ask the user a question',

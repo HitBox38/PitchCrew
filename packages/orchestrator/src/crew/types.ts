@@ -48,6 +48,10 @@ export interface CrewContext {
   capabilities: Map<string, { runId: string; cardId: string | null; roleId: RoleId }>;
   controllers: Map<string, AbortController>;
   streamingMessages: Map<string, ChatMessage>;
+  runActivities: Map<
+    string,
+    { entries: import('@pitchcrew/core').RunActivity[]; truncated: boolean }
+  >;
   chatListeners: Set<(messagesChanged: boolean) => void>;
   draining: boolean;
   scheduling: boolean;

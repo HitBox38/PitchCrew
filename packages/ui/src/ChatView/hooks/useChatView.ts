@@ -9,7 +9,11 @@ import type { ChatMessage } from '@pitchcrew/core';
 import { useRef, useState } from 'react';
 
 export function useChatView(props: ChatViewProps) {
-  const { data, thread, action, working } = props;
+  const { thread, action, working } = props;
+  const runsById = new Map(props.data.runs.map((run) => [run.id, run]));
+  for (const run of props.data.activityRuns ?? [])
+    runsById.set(run.id, { ...runsById.get(run.id), ...run });
+  const data = { ...props.data, runs: [...runsById.values()] };
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -159,6 +163,7 @@ export function useChatView(props: ChatViewProps) {
   }
   return {
     ...props,
+    data,
     browserPanel,
     questions,
     activeQuestionId,

@@ -1,0 +1,73 @@
+/* Turn activity follows the transcript's paper and ink, with clay only on controls. */
+.chat-turn-body {
+  min-width: 0;
+}
+.chat-turn-commentary {
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.chat-turn-commentary p + p {
+  margin-top: 8px;
+}
+.chat-activity-group {
+  border-left: 1px solid var(--border-strong);
+  padding-left: 10px;
+  min-width: 0;
+}
+.chat-activity-group-trigger,
+.chat-activity-step-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 34px;
+  height: auto;
+  gap: 8px;
+  padding: 6px 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-detail);
+  font-weight: 400;
+  white-space: normal;
+  border-radius: 7px;
+}
+.chat-activity-group-trigger {
+  width: fit-content;
+  max-width: 100%;
+}
+.chat-activity-group-trigger:hover,
+.chat-activity-step-trigger:hover {
+  background: var(--paper-deep);
+}
+.chat-activity-chevron {
+  transition: transform 140ms var(--ease);
+}
+[data-panel-open] > .chat-activity-chevron {
+  transform: rotate(90deg);
+}
+.chat-activity-group-content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding-block: 4px;
+}
+.chat-activity-step {
+  border-radius: 7px;
+  background: var(--chat-soft);
+}
+.chat-activity-step[data-status='failed'] > button {
+  color: var(--rose);
+}
+.chat-activity-step-details {
+  padding: 0 10px 10px 29px;
+  font-size: var(--text-detail);
+  color: var(--muted);
+  line-height: 1.6;
+}
+.chat-turn-heading {
+  margin-bottom: 9px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-activity-chevron {
+    transition: none;
+  }
+}

@@ -18,10 +18,15 @@ export function registerChatStream(
     let timer: ReturnType<typeof setTimeout> | undefined;
     let blocked = false;
     let messagesChanged = true;
+    let previousActivity = '';
     const send = () => {
       timer = undefined;
       if (blocked || res.destroyed) return;
-      blocked = !res.write(`data: ${JSON.stringify(service.chatUpdate(messagesChanged))}\n\n`);
+      const update = service.chatUpdate(messagesChanged);
+      const activity = JSON.stringify(update.activityRuns);
+      if (!messagesChanged && activity === previousActivity) delete update.activityRuns;
+      previousActivity = activity ?? '';
+      blocked = !res.write(`data: ${JSON.stringify(update)}\n\n`);
       messagesChanged = false;
     };
     // Coalesce fast token bursts, and retain only the latest state for slow clients.

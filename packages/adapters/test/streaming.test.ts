@@ -171,3 +171,70 @@ it.each(cases)(
     expect(onReply).toHaveBeenLastCalledWith('Hello');
   },
 );
+
+it('streams public commentary separately, holds JSON prefixes, and never exposes thinking or tool payloads', () => {
+  const onActivity = vi.fn();
+  const onReply = vi.fn();
+  const controller = new AbortController();
+  const stream = chatEventStream({
+    role: { runtime: 'codex' },
+    messages: [],
+    signal: controller.signal,
+    onActivity,
+    onReply,
+  } as unknown as ChatContext);
+  stream.event({
+    type: 'item.started',
+    item: { id: 'r', type: 'reasoning', text: 'private reasoning' },
+  });
+  stream.event({
+    type: 'item.completed',
+    item: { id: 'c', type: 'agent_message', text: 'I’ll check your profile.' },
+  });
+  stream.event({
+    type: 'item.started',
+    item: { id: 't', type: 'mcp_tool_call', arguments: { secret: 'private secret' } },
+  });
+  stream.event({ type: 'item.completed', item: { id: 'a', type: 'agent_message', text: '{' } });
+  stream.event({
+    type: 'item.updated',
+    item: { id: 'a', type: 'agent_message', text: '{"reply":"Hello' },
+  });
+  stream.event({
+    type: 'item.completed',
+    item: { id: 'a', type: 'agent_message', text: '{"reply":"Hello world"}' },
+  });
+  stream.finish();
+  expect(onReply).toHaveBeenLastCalledWith('Hello world');
+  expect(
+    onActivity.mock.calls.map(([entry]) => entry).filter((entry) => entry.kind === 'commentary'),
+  ).toEqual([
+    expect.objectContaining({ text: 'I’ll check your profile.', status: 'running' }),
+    expect.objectContaining({ text: 'I’ll check your profile.', status: 'completed' }),
+  ]);
+  expect(JSON.stringify(onActivity.mock.calls)).not.toMatch(/private|Hello world|reply/);
+  expect(onActivity.mock.calls.some(([entry]) => entry.kind === 'reasoning')).toBe(true);
+  controller.abort();
+  const count = onActivity.mock.calls.length;
+  stream.replace('Late commentary');
+  expect(onActivity).toHaveBeenCalledTimes(count);
+});
+
+it('ignores nested runtime text and thinking in the parent activity', () => {
+  const onActivity = vi.fn();
+  const stream = chatEventStream({
+    role: { runtime: 'claude-code' },
+    messages: [],
+    signal: new AbortController().signal,
+    onActivity,
+  } as unknown as ChatContext);
+  stream.event({
+    type: 'stream_event',
+    parent_tool_use_id: 'child',
+    event: {
+      type: 'content_block_delta',
+      delta: { type: 'thinking_delta', thinking: 'private child' },
+    },
+  });
+  expect(onActivity).not.toHaveBeenCalled();
+});
