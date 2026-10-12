@@ -1,11 +1,12 @@
 {
   "project_id": 295060,
-  "activation": "prepared_no_live_mutations",
+  "activation": "active_native_readback_verified",
+  "activation_record": "activation.json",
   "native_tools_verified": "2026-10-12",
   "validation": {
-    "notebooks_listing": "Native notebooks-list succeeded with zero existing notebooks in project 295060; no creation attempted.",
+    "notebooks_listing": "Fresh complete inventory had zero notebooks before activation. Final inventory contains exactly the two verified review/release notebooks; native creation and complete cell readbacks succeeded.",
     "compiler": "All seven SQL templates with explicit UTC toDateTime bounds compiled through execute-sql in an intentionally zero-width window. This establishes syntax only. New event/property taxonomy warnings confirm collection is not yet available.",
-    "catalog": "metric-list still lacks data_catalog:read; no approved definition or governance status claimed."
+    "catalog": "Initial metric-list lacked data_catalog:read. Before activation, the coordinator and catalog/endpoints workstreams verified a complete empty catalog; all notebook SQL remains noncanonical."
   },
   "definition_status": "noncanonical",
   "timezone": "Asia/Jerusalem",
@@ -20,7 +21,7 @@
     {
       "key": "weekly_review",
       "title": "Pitchcrew · Weekly analytics investigation",
-      "markdown": "Review the seven elapsed days ending at the pinned UTC cutoff below. Day buckets use Asia/Jerusalem. Dashboard and saved-insight widgets show their own saved filters and current results; only the SQL cells share this pinned window. These are noncanonical diagnostic aggregates, not approved governed metrics.\n\nWeekly dashboard email delivery: Sunday 09:00 Asia/Jerusalem, charts only. This notebook is a manual investigation companion, not a subscription or an AI-generated report.\n\nBefore interpreting results, verify collection after deployment/import. Empty or absent rows mean unknown coverage. Opt-out, inactive renderers, observer leadership, rate limits and independently deployed landing code affect completeness. Record observations and follow-up actions manually; no personal content or identifiers belong here.",
+      "markdown": "Review the seven elapsed days ending at the pinned UTC cutoff below. Day buckets use Asia/Jerusalem. Dashboard and saved-insight widgets show their own saved filters and current results; only the SQL cells share this pinned window. These are noncanonical diagnostic aggregates, not approved governed metrics.\n\nWeekly dashboard email delivery: Sunday 06:00 UTC, charts only (fixed UTC time; Jerusalem local time changes with daylight saving). This notebook is a manual investigation companion, not a subscription or an AI-generated report.\n\nBefore interpreting results, verify collection after deployment/import. Empty or absent rows mean unknown coverage. Opt-out, inactive renderers, observer leadership, rate limits and independently deployed landing code affect completeness. Record observations and follow-up actions manually; no personal content or identifiers belong here.",
       "dashboards": [
         "usage",
         "adoption",
