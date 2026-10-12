@@ -1,5 +1,5 @@
 import type { RunActivity } from '@pitchcrew/core';
-import { ChevronRight, Layers, LoaderCircle } from 'lucide-react';
+import { ChevronRight, Layers } from 'lucide-react';
 import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
 import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
 import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
@@ -20,15 +20,8 @@ export function ActivityGroup({ entries }: { entries: RunActivity[] }) {
       <CollapsibleTrigger
         render={<Button variant="ghost" className="chat-activity-group-trigger" />}
       >
-        {active ? (
-          <LoaderCircle size={14} className="spin shrink-0" aria-hidden="true" />
-        ) : (
-          <Layers size={14} className="shrink-0" aria-hidden="true" />
-        )}
+        <Layers size={14} className="shrink-0" aria-hidden="true" />
         <span className="shrink-0">{label}</span>
-        {active && tools.length ? (
-          <span className="min-w-0 truncate text-muted-foreground">{active.label}</span>
-        ) : null}
         {failures ? <span className="text-destructive">{failures} failed</span> : null}
         <ChevronRight
           size={13}

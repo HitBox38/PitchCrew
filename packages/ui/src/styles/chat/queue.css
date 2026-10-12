@@ -1,0 +1,46 @@
+/* The composer stays clear until there is a follow-up waiting to be delivered. */
+.chat-queue {
+  flex-shrink: 0;
+  padding: 0 20px;
+  background: var(--surface);
+}
+.chat-queue-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  width: 100%;
+  height: 34px;
+  padding-inline: 2px;
+  justify-content: flex-start;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 400;
+}
+.chat-queue-chevron {
+  margin-left: auto;
+  transition: transform 140ms var(--ease);
+}
+[data-panel-open] > .chat-queue-chevron {
+  transform: rotate(180deg);
+}
+.chat-queue-content {
+  max-height: 160px;
+  overflow-y: auto;
+}
+.chat-stop-response {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.chat-stop-response:hover {
+  background: var(--clay-fill-hover);
+  box-shadow: var(--clay-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-queue-chevron {
+    transition: none;
+  }
+}

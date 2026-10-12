@@ -1,3 +1,4 @@
+import { queuedChatRequests } from '../helpers.ts';
 import { useBrowserPanel } from '@/AgentBrowser/hooks/useBrowserPanel.ts';
 import { useChatPanels } from './useChatPanels.ts';
 import { useChatAttachments } from './useChatAttachments.ts';
@@ -76,15 +77,7 @@ export function useChatView(props: ChatViewProps) {
   });
   const cardId = conversation?.cardId ?? '';
   const attached = data.cards.find((card) => card.id === cardId);
-  const queued = (data.chatRequests ?? [])
-    .filter(
-      (request) =>
-        request.threadId === thread &&
-        request.deliveries.some((delivery) =>
-          ['queued', 'paused', 'running', 'failed'].includes(delivery.status),
-        ),
-    )
-    .sort((a, b) => a.order - b.order);
+  const queued = queuedChatRequests(data.chatRequests ?? [], thread);
   const proposals = data.proposals.filter(
     (proposal) =>
       (participants.includes(proposal.roleId) ||
