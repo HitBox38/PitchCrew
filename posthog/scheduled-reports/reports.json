@@ -13,6 +13,7 @@
   },
   "sendTestNow": false,
   "summaryEnabled": false,
+  "summaryChoiceConfirmed": true,
   "reportPeriodDays": 7,
   "filterTestAccounts": true,
   "reports": [
