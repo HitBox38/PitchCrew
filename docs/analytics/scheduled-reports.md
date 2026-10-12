@@ -43,3 +43,23 @@ Dashboard subscriptions store selected insight IDs. When replacing/removing dash
 ## Authoritative references
 
 Discovery used the connected instance's `posthog:managing-subscriptions` skill and its destination, operation and subscription-type references. The [Subscriptions API](https://posthog.com/docs/api/subscriptions) supplies the payload fields; the [subscription guide](https://posthog.com/docs/product-analytics/subscriptions) describes the dashboard/email surface. No schema fields were inferred from an unavailable tool.
+
+## Scheduling investigation after reconnection
+
+Read-only discovery on October 12, 2026 confirmed that subscription tools are now accessible. The active PitchCrew project has `timezone: UTC`. The authenticated user's profile exposes no subscription timezone setting. The current `subscriptions-create` and `subscriptions-partial-update` schemas contain an offset-bearing `start_date`, `byweekday`, `count` and `until_date`, but no IANA timezone field. The current create tool allows up to 20 selected insights; this planner deliberately retains its conservative ten-tile report limit.
+
+The native subscription operations skill and focused documentation searches do not establish whether an offset anchor is retained, normalized to UTC, or interpreted through a named timezone for later occurrences. An empty email/dashboard subscription list supplies no persisted recurrence evidence. Changing the project timezone is not a verified remedy for subscription delivery and would change unrelated analytics bucketing. The [scheduled changes API](https://posthog.com/docs/api/scheduled-changes) supports `FeatureFlag` records only; it cannot queue subscription offset changes. Timezone-aware scouts and marketing broadcasts are distinct products and do not establish dashboard snapshot behavior.
+
+Consequently, **automatic Sunday 09:00 Asia/Jerusalem delivery remains unverified** and `recurrenceVerified` must remain false. Reconnected permissions resolve the earlier scope blocker; they do not resolve the recurrence blocker. No subscription or test delivery was created during this investigation.
+
+The native supported fallback is an administrator-managed **schedule-only PATCH** of each existing subscription's `start_date`. The operations skill states schedule-only updates do not send an immediate delivery by default. Keep the resource, recipients, tile selection, AI settings and enabled state unchanged. Do not resume paused subscriptions as part of an offset adjustment. Read the subscription before each update and verify the saved next occurrence afterward. This procedure is maintenance, not automatic DST preservation.
+
+Node 24's IANA timezone conversion gives these explicit anchors:
+
+| First relevant Sunday | Requested Jerusalem time | UTC instant            |
+| --------------------- | ------------------------ | ---------------------- |
+| October 18, 2026      | 09:00, UTC+03:00         | `2026-10-18T06:00:00Z` |
+| October 25, 2026      | 09:00, UTC+02:00         | `2026-10-25T07:00:00Z` |
+| March 28, 2027        | 09:00, UTC+03:00         | `2027-03-28T06:00:00Z` |
+
+For an established fixed-UTC recurrence, patch the autumn anchor after the October 18 delivery and before October 25; patch the spring anchor after the last winter Sunday and before March 28. Recompute future transitions from current IANA data. An `until_date` before a transition or finite `count` can bound a schedule to avoid wrong-time sends, but causes reports to stop unless an administrator extends the schedule; it does not fulfill indefinite weekly delivery. Do not mark the automatic recurrence verified merely because this fallback is available.
