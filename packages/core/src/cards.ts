@@ -32,6 +32,8 @@ export interface CardLesson {
   createdAt: string;
 }
 export interface Card extends CardInput {
+  /** Version 18 tombstone; retained in events and removed from current projections. */
+  deletedAt?: string;
   tracking?: ApplicationTracking;
   /** User-only signal from -2 (strong miss) to +2 (strong win); absent means 0. Event v11. */
   weight?: number;

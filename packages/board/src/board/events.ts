@@ -1,4 +1,4 @@
-import { currentEventVersion, decodeEvent, type BoardEvent } from '@pitchcrew/core';
+import { currentEventVersion, decodeEvent, type BoardEvent, type Card } from '@pitchcrew/core';
 import type { BoardContext } from './types.ts';
 
 export function close(this: BoardContext): void {
@@ -37,11 +37,7 @@ export function record(
       createdAt: new Date().toISOString(),
     };
     const row = this.db.prepare('INSERT INTO events(json) VALUES (?)').run(JSON.stringify(event));
-    this.db
-      .prepare(
-        'INSERT INTO entities(kind,id,json) VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET json=excluded.json',
-      )
-      .run(kind, data.id, JSON.stringify(data));
+    project.call(this, event);
     return { ...event, id: Number(row.lastInsertRowid) };
   })();
 }
@@ -75,11 +71,19 @@ export function rebuild(this: BoardContext): void {
     }[];
     for (const row of rows) {
       const e = decodeEvent(row.json);
-      this.db
-        .prepare(
-          'INSERT INTO entities(kind,id,json) VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET json=excluded.json',
-        )
-        .run(e.kind, e.entityId, JSON.stringify(e.data));
+      project.call(this, e);
     }
   })();
+}
+
+function project(this: BoardContext, event: BoardEvent): void {
+  if (event.kind === 'card' && (event.data as Card).deletedAt) {
+    this.db.prepare('DELETE FROM entities WHERE kind = ? AND id = ?').run('card', event.entityId);
+    return;
+  }
+  this.db
+    .prepare(
+      'INSERT INTO entities(kind,id,json) VALUES (?,?,?) ON CONFLICT(kind,id) DO UPDATE SET json=excluded.json',
+    )
+    .run(event.kind, event.entityId, JSON.stringify(event.data));
 }

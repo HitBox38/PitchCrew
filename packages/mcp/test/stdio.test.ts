@@ -141,6 +141,10 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_propose_role_changes',
         'pitchcrew_propose_skill',
         'pitchcrew_change_workflow',
+        'pitchcrew_list_jobs',
+        'pitchcrew_delete_job',
+        'pitchcrew_bulk_move_jobs',
+        'pitchcrew_bulk_delete_jobs',
         'pitchcrew_list_routines',
         'pitchcrew_save_routine',
         'pitchcrew_delete_routine',
@@ -322,6 +326,65 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         })
       ).isError,
     ).toBe(true);
+    const disposable = board.createCard(
+      cardInput.parse({ company: 'Disposable Fixture', title: 'Engineer' }),
+    );
+    expect(
+      (
+        await client.callTool({
+          name: 'pitchcrew_list_jobs',
+          arguments: { input: { company: 'Disposable' } },
+        })
+      ).structuredContent,
+    ).toMatchObject({ jobs: [{ id: disposable.id, state: 'lead' }], nextOffset: null });
+    for (const state of ['rejected', 'lead', 'submitted']) {
+      const moved = await client.callTool({
+        name: 'pitchcrew_change_workflow',
+        arguments: { cardId: disposable.id, state, reason: 'Correct fictional board status' },
+      });
+      expect(moved.isError, JSON.stringify(moved)).not.toBe(true);
+      expect(moved.structuredContent).toMatchObject({ card: { id: disposable.id, state } });
+    }
+    const deleted = await client.callTool({
+      name: 'pitchcrew_delete_job',
+      arguments: { cardId: disposable.id, reason: 'Remove fictional job' },
+    });
+    expect(deleted.isError, JSON.stringify(deleted)).not.toBe(true);
+    expect(deleted.structuredContent).toMatchObject({ ok: true, cardId: disposable.id });
+    expect(
+      board.list<import('@pitchcrew/core').Card>('card').some((item) => item.id === disposable.id),
+    ).toBe(false);
+    const batchCards = ['First', 'Second'].map((company) =>
+      board.createCard(cardInput.parse({ company: `${company} Batch Fixture`, title: 'Engineer' })),
+    );
+    const batchInput = { cardIds: batchCards.map((item) => item.id), reason: 'Correct batch' };
+    const bulkMoved = await client.callTool({
+      name: 'pitchcrew_bulk_move_jobs',
+      arguments: { ...batchInput, state: 'offer' },
+    });
+    expect(bulkMoved.isError, JSON.stringify(bulkMoved)).not.toBe(true);
+    expect(bulkMoved.structuredContent).toMatchObject({
+      succeeded: 2,
+      failed: 0,
+      results: batchCards.map((item) => ({ cardId: item.id, ok: true, state: 'offer' })),
+    });
+    const bulkDeleted = await client.callTool({
+      name: 'pitchcrew_bulk_delete_jobs',
+      arguments: { ...batchInput, cardIds: [batchCards[0]!.id, disposable.id, batchCards[1]!.id] },
+    });
+    expect(bulkDeleted.isError, JSON.stringify(bulkDeleted)).not.toBe(true);
+    expect(bulkDeleted.structuredContent).toMatchObject({
+      succeeded: 2,
+      failed: 1,
+      results: [
+        { cardId: batchCards[0]!.id, ok: true },
+        { cardId: disposable.id, ok: false, error: 'card not found.' },
+        { cardId: batchCards[1]!.id, ok: true },
+      ],
+    });
+    expect(
+      listed.tools.find((tool) => tool.name === 'pitchcrew_bulk_delete_jobs')?.annotations,
+    ).toMatchObject({ destructiveHint: true });
     const asked = await client.callTool({
       name: 'pitchcrew_ask_user',
       arguments: {
@@ -462,7 +525,7 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
     // Emulate revocation in stored settings to prove a discovered tool cannot bypass a current permission check.
     daemon.service.board.record(
       'role',
-      { ...current, capabilities: defaultCapabilities },
+      { ...current, capabilities: { ...defaultCapabilities, manageWorkflow: false } },
       'user',
       'Disabled GitHub fixture access',
     );
@@ -470,6 +533,14 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
       true,
     );
     expect(connectorCall).toHaveBeenCalledTimes(1);
+    for (const [name, args] of [
+      ['pitchcrew_list_jobs', {}],
+      ['pitchcrew_change_workflow', { state: 'lead', reason: 'Reopen' }],
+      ['pitchcrew_delete_job', { reason: 'Remove' }],
+      ['pitchcrew_bulk_move_jobs', { cardIds: [randomUUID()], state: 'lead', reason: 'Reopen' }],
+      ['pitchcrew_bulk_delete_jobs', { cardIds: [randomUUID()], reason: 'Remove' }],
+    ] as const)
+      expect((await client.callTool({ name, arguments: args })).isError).toBe(true);
     expect(
       (await client.callTool({ name: 'pitchcrew_computer_inspect', arguments: {} })).isError,
     ).toBe(true);

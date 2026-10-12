@@ -180,7 +180,8 @@ async function dispatchAgentCall(
     return queueMessage.call(this, capability, permissions, action, data);
   if (action === 'propose') return proposeRole.call(this, capability, role, data);
   if (action === 'propose_skill') return proposeSkill.call(this, capability, role, token, data);
-  if (action === 'workflow') return changeWorkflow.call(this, capability, permissions, data);
+  if (['jobs', 'workflow', 'delete_job', 'bulk_move_jobs', 'bulk_delete_jobs'].includes(action))
+    return changeWorkflow.call(this, capability, permissions, action, data);
   if (['card', 'history', 'export'].includes(action) && !capability.cardId)
     throw new Error('This chat has no attached application.');
   if (action === 'card') return { card: this.board.get<Card>('card', capability.cardId!) };

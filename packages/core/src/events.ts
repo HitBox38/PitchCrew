@@ -20,7 +20,7 @@ import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18;
   kind:
     | 'user_input'
     | 'conversation_session'
@@ -74,8 +74,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 17 adds user-granted task site access and automatic browser preparation records. */
-export const currentEventVersion = 17 as const;
+/** Version 18 adds card deletion tombstones and agent board status corrections. */
+export const currentEventVersion = 18 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -95,7 +95,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 14 &&
     event.version !== 15 &&
     event.version !== 16 &&
-    event.version !== 17
+    event.version !== 17 &&
+    event.version !== 18
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

@@ -51,6 +51,7 @@ export {
 export { defaultInstructionHistory } from './board/default-instruction-history.ts';
 export { instructionStatus } from './board/default-instructions.ts';
 export { defaultRoles } from './board/default-roles.ts';
+export { changeJobState, deleteJob } from './board/job-management.ts';
 export { instructionRevision, normalizeInstructions } from './board/instruction-revisions.ts';
 export class Board {
   private readonly context: BoardContext;

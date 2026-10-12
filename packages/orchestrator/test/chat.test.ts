@@ -236,8 +236,12 @@ describe('agent conversations and crew actions', () => {
         })
       ).response.status,
     ).toBe(200);
-    expect(daemon.service.board.get<Card>('card', other.id).state).toBe('lead');
-    expect(daemon.service.board.get<Card>('card', card.id).state).toBe('shortlisted');
+    expect(daemon.service.board.get<Card>('card', other.id).state).toBe('shortlisted');
+    expect(daemon.service.board.get<Card>('card', card.id).state).toBe('lead');
+    await daemon.service.agentCall(token, 'workflow', {
+      state: 'shortlisted',
+      reason: 'Shortlist the attached job too.',
+    });
     const proposalResult = await agent<{ proposal: import('@pitchcrew/core').RoleProposal }>({
       action: 'propose',
       reason: 'Focus future evaluations on accessibility.',
