@@ -1,0 +1,165 @@
+{
+  "project_id": 295060,
+  "definition_status": "noncanonical",
+  "activation": "prepared_no_live_mutations",
+  "default_window_days": 7,
+  "maximum_window_days": 30,
+  "maximum_rows": 200,
+  "timezone_choices": ["Asia/Jerusalem", "UTC"],
+  "validation": {
+    "date": "2026-10-12",
+    "schema": "events table columns confirmed via information_schema; new schemas verified against reviewed source code, not live collected data",
+    "catalog": "data_catalog:read missing; approval status unknown",
+    "compiler": "All seven exact templates accepted by connected execute-sql using timestamp >= now() AND timestamp < now(); this validates compilation only, not data availability."
+  },
+  "queries": [
+    {
+      "key": "action_mix",
+      "name": "Accepted action mix by day",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["chat_sent", "workflow_started", "job_sources_scanned"],
+          "properties": []
+        }
+      ],
+      "coverage": "existing_events_schema_verified",
+      "caveats": [
+        "Event observations, not completed agent runs, discovered jobs or unique users.",
+        "Includes older usage schema because these content-free event names retained their meaning."
+      ],
+      "sql": "SELECT toDate(toTimeZone(timestamp, '{{timezone}}')) AS day,\n    countIf(event = 'chat_sent') AS accepted_chat_sends,\n    countIf(event = 'workflow_started') AS accepted_workflow_launches,\n    countIf(event = 'job_sources_scanned') AS completed_ui_source_scans\nFROM events\nWHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now()\n    AND event IN ('chat_sent', 'workflow_started', 'job_sources_scanned')\nGROUP BY day ORDER BY day LIMIT {{limit}}"
+    },
+    {
+      "key": "setup_readiness",
+      "name": "Observed workspace setup readiness by day",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["workspace_setup_observed"],
+          "properties": ["profile_ready", "crew_ready", "job_ready", "renderer", "analytics_schema"]
+        }
+      ],
+      "coverage": "prepared_not_collected",
+      "caveats": [
+        "Observed boolean snapshots, not an installation activation rate or native funnel.",
+        "A workspace can contribute multiple observations; master consent and SDK initialization limit coverage."
+      ],
+      "sql": "SELECT toDate(toTimeZone(timestamp, '{{timezone}}')) AS day,\n    count() AS readiness_observations,\n    countIf(properties.profile_ready = true) AS profile_ready_observations,\n    countIf(properties.crew_ready = true) AS crew_ready_observations,\n    countIf(properties.job_ready = true) AS job_ready_observations,\n    countIf(properties.profile_ready = true AND properties.crew_ready = true AND properties.job_ready = true) AS all_ready_observations\nFROM events\nWHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now() AND event = 'workspace_setup_observed' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.profile_ready IN (true, false)\n    AND properties.crew_ready IN (true, false)\n    AND properties.job_ready IN (true, false)\nGROUP BY day ORDER BY day LIMIT {{limit}}"
+    },
+    {
+      "key": "request_health",
+      "name": "Observed deliberate request results and success latency",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["api_request_finished"],
+          "properties": ["result", "duration_ms", "renderer", "analytics_schema"]
+        }
+      ],
+      "coverage": "prepared_not_collected",
+      "caveats": [
+        "Only reviewed deliberate UI mutations; polling, streams, previews and browser input excluded.",
+        "Failure denominator excludes aborted requests; all other reviewed results included.",
+        "Latency percentiles include successful requests only. Empty groups/denominators mean unknown, never healthy zero."
+      ],
+      "sql": "SELECT toDate(toTimeZone(timestamp, '{{timezone}}')) AS day,\n    count() AS observed_requests,\n    countIf(properties.result = 'success') AS successes,\n    countIf(properties.result = 'aborted') AS aborted,\n    countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) AS failures,\n    100.0 * countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) / nullIf(countIf(properties.result != 'aborted'), 0) AS non_aborted_failure_percent,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p50_ms,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now() AND event = 'api_request_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.result IN ('success', 'http_error', 'network_error', 'invalid_response', 'aborted')\n    AND properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000\nGROUP BY day ORDER BY day LIMIT {{limit}}"
+    },
+    {
+      "key": "run_health",
+      "name": "Observed terminal run outcomes and measured duration",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["run_finished"],
+          "properties": ["mode", "outcome", "duration_ms", "renderer", "analytics_schema"]
+        }
+      ],
+      "coverage": "prepared_not_collected",
+      "caveats": [
+        "Runs must start while the opted-in observer is active; no historical backfill or closed-renderer coverage.",
+        "May include routines and follow-ups. Separate origins/devices can duplicate observations.",
+        "Missing/invalid duration is counted as an observed outcome but excluded from percentiles."
+      ],
+      "sql": "SELECT toDate(toTimeZone(timestamp, '{{timezone}}')) AS day, properties.mode AS mode,\n    count() AS observed_terminal_runs,\n    countIf(properties.outcome = 'completed') AS completed,\n    countIf(properties.outcome = 'failed') AS failed,\n    countIf(properties.outcome = 'cancelled') AS cancelled,\n    countIf(properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000) AS measured_runs,\n    if(measured_runs > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p50_ms,\n    if(measured_runs > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now() AND event = 'run_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.mode IN ('workflow', 'chat') AND properties.outcome IN ('completed', 'failed', 'cancelled')\nGROUP BY day, mode ORDER BY day, mode LIMIT {{limit}}"
+    },
+    {
+      "key": "sanitized_errors",
+      "name": "Reviewed sanitized exception source totals",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["$exception"],
+          "properties": ["error_source", "error_category", "renderer", "analytics_schema"]
+        }
+      ],
+      "coverage": "prepared_not_collected",
+      "caveats": [
+        "Deduplicated and rate-limited renderer observations; no daemon crash or provider-internal coverage.",
+        "Native automatic exceptions remain disabled; raw error text/stacks are never selected."
+      ],
+      "sql": "SELECT toDate(toTimeZone(timestamp, '{{timezone}}')) AS day,\n    countIf(properties.error_source IN ('window_error', 'unhandled_rejection')) AS global_exceptions,\n    countIf(properties.error_source IN ('react_boundary', 'react_uncaught', 'react_recoverable')) AS react_exceptions,\n    countIf(properties.error_source = 'api_action') AS deliberate_action_exceptions\nFROM events\nWHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now() AND event = '$exception' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.error_source IN ('window_error', 'unhandled_rejection', 'react_boundary', 'react_uncaught', 'react_recoverable', 'api_action')\n    AND properties.error_category IN ('type_error', 'reference_error', 'range_error', 'syntax_error', 'uri_error', 'evaluation_error', 'generic_error', 'non_error', 'request_network', 'request_server', 'request_response')\nGROUP BY day ORDER BY day LIMIT {{limit}}"
+    },
+    {
+      "key": "ci_attempt_health",
+      "name": "Imported completed CI attempt health",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["pitchcrew_ci_run_completed"],
+          "properties": [
+            "conclusion",
+            "attempt",
+            "job_span_seconds",
+            "telemetry_source",
+            "engineering_schema",
+            "repository"
+          ]
+        }
+      ],
+      "coverage": "prepared_not_collected",
+      "caveats": [
+        "Custom opt-in repository import; native Engineering Analytics sources are separate.",
+        "UUID only deduplicates internally; never returned. All completed conclusions including cancellation/skips/retries in denominator.",
+        "Job span includes dependency gaps and excludes initial queue time; repeat attempts are not flaky-test classifications."
+      ],
+      "sql": "SELECT toDate(toTimeZone(completed_at, '{{timezone}}')) AS day,\n    count() AS completed_attempts,\n    countIf(conclusion = 'success') AS successful_attempts,\n    countIf(attempt > 1) AS repeat_attempts,\n    100.0 * countIf(conclusion = 'success') / nullIf(count(), 0) AS success_percent,\n    quantile(0.5)(job_span_seconds) AS p50_job_span_seconds,\n    quantile(0.95)(job_span_seconds) AS p95_job_span_seconds\nFROM (\n    SELECT uuid, min(timestamp) AS completed_at,\n        any(properties.conclusion) AS conclusion,\n        max(toInt(properties.attempt)) AS attempt,\n        max(toFloat(properties.job_span_seconds)) AS job_span_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now() AND event = 'pitchcrew_ci_run_completed' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.conclusion IN ('success', 'failure', 'cancelled', 'skipped', 'timed_out', 'action_required', 'neutral', 'startup_failure', 'stale', 'other')\n        AND properties.job_span_seconds IS NOT NULL AND toFloat(properties.job_span_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day ORDER BY day LIMIT {{limit}}"
+    },
+    {
+      "key": "pr_delivery",
+      "name": "Imported merged PR throughput and open-to-merge timing",
+      "sources": [
+        {
+          "table": "events",
+          "events": ["pitchcrew_pr_merged"],
+          "properties": [
+            "target_branch",
+            "open_to_merge_seconds",
+            "telemetry_source",
+            "engineering_schema",
+            "repository"
+          ]
+        }
+      ],
+      "coverage": "prepared_not_collected",
+      "caveats": [
+        "Bots and currently draft PRs excluded by importer; includes former draft and waiting time.",
+        "Open-to-merge is neither review time nor DORA cycle time. No developer rankings."
+      ],
+      "sql": "SELECT toDate(toTimeZone(merged_at, '{{timezone}}')) AS day, target_branch,\n    count() AS merged_prs,\n    quantile(0.5)(open_to_merge_seconds) / 3600.0 AS p50_open_to_merge_hours,\n    quantile(0.95)(open_to_merge_seconds) / 3600.0 AS p95_open_to_merge_hours\nFROM (\n    SELECT uuid, min(timestamp) AS merged_at,\n        any(properties.target_branch) AS target_branch,\n        max(toFloat(properties.open_to_merge_seconds)) AS open_to_merge_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL {{days}} DAY AND timestamp < now() AND event = 'pitchcrew_pr_merged' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.target_branch IN ('dev', 'main')\n        AND properties.open_to_merge_seconds IS NOT NULL AND toFloat(properties.open_to_merge_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day, target_branch ORDER BY day, target_branch LIMIT {{limit}}"
+    }
+  ],
+  "excluded_sources": [
+    "persons",
+    "posthog.ai_events content",
+    "logs body/attributes",
+    "posthog.metrics until native schema/temporality and activation verified",
+    "heatmap coordinate samples",
+    "raw event properties and identifiers"
+  ],
+  "sources": [
+    "https://posthog.com/docs/data-warehouse/sql",
+    "https://posthog.com/docs/sql/aggregations",
+    "https://posthog.com/docs/sql/expressions"
+  ]
+}
