@@ -26,7 +26,8 @@ export async function api<T>(
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
     result = response.ok ? 'invalid_response' : 'http_error';
-    category = response.status >= 500 ? 'request_server' : response.ok ? 'request_response' : undefined;
+    category =
+      response.status >= 500 ? 'request_server' : response.ok ? 'request_response' : undefined;
     const data = (await response.json()) as T & { error?: string };
     if (!response.ok) throw new Error(data.error ?? 'Request failed.');
     if (tracked) analytics.capture(tracked.event, tracked.properties);
@@ -36,7 +37,8 @@ export async function api<T>(
     const aborted = signal?.aborted || (error instanceof Error && error.name === 'AbortError');
     if (aborted) result = 'aborted';
     const action = apiErrorAction(tracked?.event);
-    if (action && category && !aborted) reportErrorDiagnostic('api_action', error, category, action);
+    if (action && category && !aborted)
+      reportErrorDiagnostic('api_action', error, category, action);
     throw error;
   } finally {
     finishMetric(result);
