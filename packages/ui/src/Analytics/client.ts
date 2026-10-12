@@ -1,5 +1,6 @@
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import { useDevicePreferences } from '../lib/device-preferences.ts';
+import { sanitizeDiagnostic } from './diagnostics.ts';
 import { sanitizeEvent } from './helpers.ts';
 import { analyticsContext } from './context.ts';
 import type { AnalyticsConfig, AnalyticsEvent, AnalyticsProperties } from './types.ts';
@@ -28,7 +29,11 @@ export const sdkConfig: Partial<PostHogConfig> = {
 };
 
 /** No event queue: disabling consent drops all subsequent captures, including pending imports. */
-export function createAnalytics(loadSdk: () => Promise<Sdk>, consent: () => boolean = () => true) {
+export function createAnalytics(
+  loadSdk: () => Promise<Sdk>,
+  consent: () => boolean = () => true,
+  diagnosticsConsent: () => boolean = () => true,
+) {
   let sdk: Sdk | undefined;
   let loading: Promise<Sdk> | undefined;
   let initialized = false;
@@ -57,7 +62,7 @@ export function createAnalytics(loadSdk: () => Promise<Sdk>, consent: () => bool
           sdk.init(config.token, {
             ...sdkConfig,
             api_host: config.host,
-            before_send: (event) => (consent() ? sanitizeEvent(event) : null),
+            before_send: (event) => (consent() ? sanitizeEvent(event, diagnosticsConsent()) : null),
           });
           initialized = true;
         }
@@ -67,6 +72,16 @@ export function createAnalytics(loadSdk: () => Promise<Sdk>, consent: () => bool
       } catch {
         loading = undefined;
         return false;
+      }
+    },
+    captureDiagnostic(event: string, input: Record<string, unknown> = {}) {
+      if (!enabled || !sdk || !consent() || !diagnosticsConsent()) return;
+      const properties = sanitizeDiagnostic(event, input);
+      if (!properties) return;
+      try {
+        sdk.capture(event, { ...properties, ...analyticsContext() });
+      } catch {
+        /* Diagnostics are best effort and never interrupt user actions. */
       }
     },
     capture(event: AnalyticsEvent, properties: AnalyticsProperties = {}) {
@@ -90,4 +105,5 @@ export const analytics = createAnalytics(
     return new PostHog();
   },
   () => useDevicePreferences.getState().analytics,
+  () => useDevicePreferences.getState().diagnostics,
 );

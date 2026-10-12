@@ -29,6 +29,45 @@ describe('shared device preferences', () => {
     expect(entries.get(second.analyticsKey)).toBe('true');
   });
 
+  it('defaults diagnostics on and replay off and synchronizes all telemetry consent without writeback', async () => {
+    const entries = storage();
+    const prefs = await import('../device-preferences.ts');
+    const state = prefs.useDevicePreferences.getState();
+    expect(state).toMatchObject({ analytics: true, diagnostics: true, replay: false });
+    state.setDiagnostics(false);
+    state.setReplay(true);
+    expect(entries.get(prefs.diagnosticsKey)).toBe('false');
+    expect(entries.get(prefs.replayKey)).toBe('true');
+    prefs.synchronizeTelemetryPreferences({ key: prefs.analyticsKey, newValue: 'false' });
+    prefs.synchronizeTelemetryPreferences({ key: prefs.diagnosticsKey, newValue: 'true' });
+    prefs.synchronizeTelemetryPreferences({ key: prefs.replayKey, newValue: 'false' });
+    expect(prefs.useDevicePreferences.getState()).toMatchObject({
+      analytics: false,
+      diagnostics: true,
+      replay: false,
+    });
+    expect(entries.get(prefs.diagnosticsKey)).toBe('false');
+    expect(entries.get(prefs.replayKey)).toBe('true');
+    prefs.synchronizeTelemetryPreferences({ key: null, newValue: null });
+    expect(prefs.useDevicePreferences.getState()).toMatchObject({
+      analytics: true,
+      diagnostics: true,
+      replay: false,
+    });
+  });
+
+  it('reloads explicit diagnostic and replay preferences and treats corrupt replay consent as disabled', async () => {
+    storage({
+      'pitchcrew-diagnostics-enabled-v1': 'false',
+      'pitchcrew-replay-enabled-v1': 'invalid',
+    });
+    const prefs = await import('../device-preferences.ts');
+    expect(prefs.useDevicePreferences.getState()).toMatchObject({
+      diagnostics: false,
+      replay: false,
+    });
+  });
+
   it('preserves existing theme and sound choices and saves subsequent changes', async () => {
     const entries = storage({
       'pitchcrew-theme': 'dark',

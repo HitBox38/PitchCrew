@@ -1,3 +1,5 @@
+import { ReplaySettings } from './ReplaySettings.tsx';
+import { DiagnosticSettings } from './DiagnosticSettings.tsx';
 import { Switch } from '../../components/ui/switch/index.tsx';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 import { useAnalyticsConfig } from '../api.ts';
@@ -12,7 +14,8 @@ export function AnalyticsSettings() {
       <h2 id="analytics-heading">Usage analytics</h2>
       <p className="quiet">
         Help improve Pitchcrew with anonymous page visits and feature usage sent to PostHog. Profile
-        notes, messages, job content and packets stay out of analytics. Sessions are never recorded.
+        notes, messages, job content and packets stay out of analytics. Session replay requires a
+        separate opt-in.
       </p>
       <label className="settings-row" htmlFor="usage-analytics" aria-label="Share anonymous usage">
         <span>
@@ -26,6 +29,8 @@ export function AnalyticsSettings() {
           onCheckedChange={setEnabled}
         />
       </label>
+      <DiagnosticSettings />
+      <ReplaySettings />
       <p className="info-note">
         {!loaded
           ? 'Checking analytics availability…'

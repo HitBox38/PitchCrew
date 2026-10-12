@@ -1,3 +1,4 @@
+import { sanitizeDiagnostic } from './diagnostics.ts';
 import { states } from '@pitchcrew/core/states';
 import { viewPaths, type View } from '../navigation.ts';
 import type { AnalyticsEvent, AnalyticsProperties } from './types.ts';
@@ -42,12 +43,18 @@ export function analyticsPage(path: string): View | undefined {
 /** Rebuild properties from a closed vocabulary, including SDK-generated properties. */
 export function sanitizeEvent<T extends { event: string; properties: Record<string, unknown> }>(
   event: T | null,
+  diagnosticsAllowed = true,
 ): T | null {
-  if (!event || !events.includes(event.event as AnalyticsEvent)) return null;
+  if (!event) return null;
+  const usage = events.includes(event.event as AnalyticsEvent);
+  const diagnostic =
+    !usage && diagnosticsAllowed ? sanitizeDiagnostic(event.event, event.properties) : null;
+  if (!usage && !diagnostic) return null;
   const input = event.properties;
   const properties: Record<string, unknown> = {
     $process_person_profile: false,
     $geoip_disable: true,
+    ...diagnostic,
   };
   for (const key of ['token', 'distinct_id', '$session_id', '$window_id', '$lib', '$lib_version'])
     if (typeof input[key] === 'string') properties[key] = input[key];

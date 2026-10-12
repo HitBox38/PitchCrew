@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { useRouterState } from '@tanstack/react-router';
-import { analyticsKey, useDevicePreferences } from '../../lib/device-preferences.ts';
+import {
+  synchronizeTelemetryPreferences,
+  useDevicePreferences,
+} from '../../lib/device-preferences.ts';
 import { loadAnalyticsConfig, useAnalyticsConfig } from '../api.ts';
 import { analytics } from '../client.ts';
 import { analyticsPage } from '../helpers.ts';
@@ -16,12 +19,7 @@ export function useAnalytics() {
   }, [page]);
   useEffect(() => {
     void loadAnalyticsConfig();
-    const synchronize = (event: StorageEvent) => {
-      if (event.key !== analyticsKey && event.key !== null) return;
-      const next = event.key === null || event.newValue !== 'false';
-      const preferences = useDevicePreferences.getState();
-      if (preferences.analytics !== next) preferences.setAnalytics(next);
-    };
+    const synchronize = synchronizeTelemetryPreferences;
     window.addEventListener('storage', synchronize);
     return () => window.removeEventListener('storage', synchronize);
   }, []);
