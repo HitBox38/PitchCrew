@@ -1,0 +1,256 @@
+{
+  "project_id": 295060,
+  "activated_at_utc": "2026-10-12T19:19:15Z",
+  "status": "native_resources_created_collection_pending",
+  "inventory_before": {
+    "count": 5,
+    "next": null,
+    "dashboard_ids": [999572, 999571, 999694, 999570, 999476],
+    "saved_heatmaps_count": 0
+  },
+  "dashboard": {
+    "id": 1018295,
+    "name": "Pitchcrew Website Heatmaps & Friction",
+    "url": "https://eu.posthog.com/project/295060/dashboard/1018295",
+    "coverage_banner_tile_id": 7390060,
+    "layout_verified": true,
+    "tiles": [
+      {
+        "tile_id": 7390060,
+        "insight_id": null,
+        "short_id": null,
+        "name": "No captured heatmap data yet",
+        "layouts": {
+          "sm": {
+            "h": 2,
+            "w": 12,
+            "x": 0,
+            "y": 0
+          }
+        }
+      },
+      {
+        "tile_id": 7390062,
+        "insight_id": 6518298,
+        "short_id": "pXjejBzF",
+        "name": "Native website interaction volume",
+        "layouts": {
+          "sm": {
+            "h": 5,
+            "w": 8,
+            "x": 0,
+            "y": 2
+          }
+        },
+        "query": {
+          "kind": "DataVisualizationNode",
+          "source": {
+            "kind": "HogQLQuery",
+            "query": "SELECT toDate(timestamp) AS day, type AS signal, count() AS interactions\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type IN ('click', 'rageclick', 'deadclick')\nGROUP BY day, signal\nORDER BY day, signal"
+          },
+          "display": "ActionsLineGraph",
+          "chartSettings": {
+            "xAxis": {
+              "column": "day"
+            },
+            "yAxis": [
+              {
+                "column": "interactions"
+              }
+            ],
+            "showLegend": true,
+            "showNullsAsZero": false,
+            "seriesBreakdownColumn": "signal"
+          }
+        },
+        "query_validation": {
+          "execute_sql": "success",
+          "dashboard_insights_run": "success",
+          "result_rows": 0,
+          "warnings": null
+        }
+      },
+      {
+        "tile_id": 7390068,
+        "insight_id": 6518304,
+        "short_id": "TzeGaYQF",
+        "name": "Website observed scroll reach",
+        "layouts": {
+          "sm": {
+            "h": 5,
+            "w": 4,
+            "x": 8,
+            "y": 2
+          }
+        },
+        "query": {
+          "kind": "DataVisualizationNode",
+          "source": {
+            "kind": "HogQLQuery",
+            "query": "SELECT round((y + viewport_height) * scale_factor / 500) * 500 AS reach_px_bucket, count() AS observations\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type = 'scrolldepth'\nGROUP BY reach_px_bucket\nORDER BY reach_px_bucket"
+          },
+          "display": "ActionsBar",
+          "chartSettings": {
+            "xAxis": {
+              "column": "reach_px_bucket"
+            },
+            "yAxis": [
+              {
+                "column": "observations"
+              }
+            ],
+            "showLegend": false,
+            "showNullsAsZero": false
+          }
+        },
+        "query_validation": {
+          "execute_sql": "success",
+          "dashboard_insights_run": "success",
+          "result_rows": 0,
+          "warnings": null
+        }
+      },
+      {
+        "tile_id": 7390063,
+        "insight_id": 6518299,
+        "short_id": "Kl1SO8tO",
+        "name": "Website desktop click hotspots",
+        "layouts": {
+          "sm": {
+            "h": 6,
+            "w": 6,
+            "x": 0,
+            "y": 7
+          }
+        },
+        "query": {
+          "kind": "DataVisualizationNode",
+          "source": {
+            "kind": "HogQLQuery",
+            "query": "SELECT round(x / nullIf(viewport_width, 0), 2) AS relative_x, y * scale_factor AS page_y_px, pointer_target_fixed AS fixed, count() AS clicks\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type = 'click'\n  AND viewport_width * scale_factor >= 768\nGROUP BY relative_x, page_y_px, fixed\nORDER BY clicks DESC\nLIMIT 20"
+          },
+          "display": "ActionsTable"
+        },
+        "query_validation": {
+          "execute_sql": "success",
+          "dashboard_insights_run": "success",
+          "result_rows": 0,
+          "warnings": null
+        }
+      },
+      {
+        "tile_id": 7390064,
+        "insight_id": 6518300,
+        "short_id": "IahhEPjG",
+        "name": "Website mobile click hotspots",
+        "layouts": {
+          "sm": {
+            "h": 6,
+            "w": 6,
+            "x": 6,
+            "y": 7
+          }
+        },
+        "query": {
+          "kind": "DataVisualizationNode",
+          "source": {
+            "kind": "HogQLQuery",
+            "query": "SELECT round(x / nullIf(viewport_width, 0), 2) AS relative_x, y * scale_factor AS page_y_px, pointer_target_fixed AS fixed, count() AS clicks\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type = 'click'\n  AND viewport_width * scale_factor < 768\nGROUP BY relative_x, page_y_px, fixed\nORDER BY clicks DESC\nLIMIT 20"
+          },
+          "display": "ActionsTable"
+        },
+        "query_validation": {
+          "execute_sql": "success",
+          "dashboard_insights_run": "success",
+          "result_rows": 0,
+          "warnings": null
+        }
+      },
+      {
+        "tile_id": 7390066,
+        "insight_id": 6518302,
+        "short_id": "999yUyS0",
+        "name": "Website possible frustration hotspots",
+        "layouts": {
+          "sm": {
+            "h": 6,
+            "w": 12,
+            "x": 0,
+            "y": 13
+          }
+        },
+        "query": {
+          "kind": "DataVisualizationNode",
+          "source": {
+            "kind": "HogQLQuery",
+            "query": "SELECT type AS signal, round(x / nullIf(viewport_width, 0), 2) AS relative_x, y * scale_factor AS page_y_px, count() AS observations\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type IN ('rageclick', 'deadclick')\nGROUP BY signal, relative_x, page_y_px\nORDER BY observations DESC\nLIMIT 20"
+          },
+          "display": "ActionsTable"
+        },
+        "query_validation": {
+          "execute_sql": "success",
+          "dashboard_insights_run": "success",
+          "result_rows": 0,
+          "warnings": null
+        }
+      }
+    ]
+  },
+  "saved_heatmap": {
+    "id": "01a1318d-c5e6-0000-3258-286ec99a2515",
+    "short_id": "1VwspY54",
+    "name": "Pitchcrew public homepage",
+    "url": "https://pitch-crew.tomer-norman.dev/",
+    "data_url": "https://pitch-crew.tomer-norman.dev/",
+    "type": "screenshot",
+    "target_widths": [390, 1280],
+    "status": "completed",
+    "has_content": true,
+    "snapshots": [
+      {
+        "width": 390,
+        "has_content": true
+      },
+      {
+        "width": 1280,
+        "has_content": true
+      }
+    ],
+    "note": "Screenshots are rendered; no native interaction data yet. No screenshots or sessions were fabricated."
+  },
+  "governance": {
+    "status": "noncanonical",
+    "metric_list": "blocked: data_catalog:read missing",
+    "sql_catalog_fallback": {
+      "schema_verified": true,
+      "query": "SELECT id, name, display_name, status, is_drifted, definition_kind FROM system.information_schema.metrics ORDER BY name LIMIT 200",
+      "result_rows": 0,
+      "complete": true
+    },
+    "catalog_writes": "not attempted; data_catalog:write unavailable"
+  },
+  "project_settings_read_only": {
+    "id": 295060,
+    "heatmaps_opt_in": null,
+    "recording_domains": null
+  },
+  "blockers": [
+    "Updated landing instrumentation awaits deployment and genuine opted-in visitors.",
+    "Project heatmaps_opt_in reads null; native project ingestion needs narrow activation/verification by coordinator.",
+    "Allowed canonical-page capture settings were not changed; shared recording_domains is used by replay too."
+  ],
+  "guarantees": {
+    "other_dashboards_mutated": false,
+    "test_capture_events_sent": 0,
+    "fabricated_recordings_sent": 0,
+    "fabricated_coordinates_sent": 0,
+    "project_settings_mutated": false
+  },
+  "validation": {
+    "exact_sql": "All five reviewed native heatmaps-table queries executed successfully before writes.",
+    "readback": "All five exact queries and six complete sm layouts read back after update; no tile missing or overlaps.",
+    "dashboard_run": "Five tiles returned empty arrays without warnings; empty means No captured data, not healthy.",
+    "saved_render": "Native saved homepage screenshot generation completed for both widths.",
+    "time_window_days": 30
+  }
+}
