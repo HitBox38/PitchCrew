@@ -6,6 +6,7 @@ import { useAnalyticsConfig } from '../api.ts';
 import { analytics } from '../client.ts';
 import { createObservationRelay } from '../observations.ts';
 import { useDiagnosticLeader } from '../leadership.ts';
+import { installOperationalLogs } from '../logs/index.ts';
 
 export function useBackendObservations() {
   const enabled = useDevicePreferences((state) => state.analytics && state.diagnostics);
@@ -16,6 +17,7 @@ export function useBackendObservations() {
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
+    const logs = installOperationalLogs({ getDistinctId: analytics.getDistinctId });
     const relay = createObservationRelay({
       allowed: () =>
         active &&
@@ -28,7 +30,10 @@ export function useBackendObservations() {
           undefined,
           controller.signal,
         ),
-      capture: (event, properties) => analytics.captureDiagnostic(event, properties),
+      capture: (event, properties) => {
+        if (event === 'operational_log') void logs.capture(event, properties);
+        else analytics.captureDiagnostic(event, properties);
+      },
     });
     const poll = async () => {
       await relay.poll();
@@ -39,6 +44,7 @@ export function useBackendObservations() {
       active = false;
       relay.reset();
       controller.abort();
+      logs.dispose();
       clearTimeout(timer);
     };
   }, [enabled, configured, leader]);
