@@ -29,17 +29,22 @@ export function createObservationRelay({ allowed, read, capture }: ObservationRe
         )
           return;
         if (streamId === batch.streamId && cursor !== undefined) {
+          if (batch.cursor < cursor) return;
+          const seen = new Set<number>();
           for (const observation of batch.observations.slice(0, 1000)) {
             if (!allowed() || turn !== generation) break;
             if (
               !Number.isSafeInteger(observation.sequence) ||
               observation.sequence <= cursor ||
               observation.sequence > batch.cursor ||
+              seen.has(observation.sequence) ||
               typeof observation.event !== 'string' ||
               !observation.properties ||
-              typeof observation.properties !== 'object'
+              typeof observation.properties !== 'object' ||
+              Array.isArray(observation.properties)
             )
               continue;
+            seen.add(observation.sequence);
             try {
               capture(observation.event, observation.properties);
             } catch {

@@ -51,3 +51,19 @@ it('drops in-flight observations on opt-out and starts fresh after re-enabling',
   expect(read).toHaveBeenLastCalledWith(undefined);
   expect(capture).not.toHaveBeenCalled();
 });
+
+it('deduplicates a batch and rejects regressed cursors without replaying observations', async () => {
+  const duplicate = batch('one', 2);
+  duplicate.observations.push({ ...duplicate.observations[0] });
+  const read = vi
+    .fn()
+    .mockResolvedValueOnce(batch('one', 1))
+    .mockResolvedValueOnce(duplicate)
+    .mockResolvedValueOnce(batch('one', 1))
+    .mockResolvedValueOnce(batch('one', 2));
+  const capture = vi.fn();
+  const relay = createObservationRelay({ allowed: () => true, read, capture });
+  for (let turn = 0; turn < 4; turn++) await relay.poll();
+  expect(capture).toHaveBeenCalledTimes(1);
+  expect(read).toHaveBeenLastCalledWith(2);
+});

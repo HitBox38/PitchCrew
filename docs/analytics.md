@@ -21,6 +21,12 @@ For intentional development testing, set `$env:PITCHCREW_POSTHOG_DEV = '1'` befo
 
 Background service definitions do not copy these variables. Configure them in the service process's inherited environment, or launch the daemon with them directly. Terminal variables do not reconfigure a running service.
 
+## Consent and diagnostics
+
+The master usage switch gates every app telemetry feature. **Share anonymous diagnostics** starts enabled under that master switch and separately gates sanitized errors, request/run measurements and operational logs. **Share masked session replay** starts disabled and requires a separate explicit choice. Disabling a preference takes effect across same-origin tabs; native diagnostic transports abort in-flight requests and keep no retry queue.
+
+The daemon never uploads diagnostics itself. Configured daemons keep a bounded, short-lived memory buffer containing reviewed fixed fields. An opted-in renderer reads it through the session-protected `/api/telemetry/observations` route and uploads fresh observations. Renderer leadership uses an origin-wide Web Lock so multiple tabs do not duplicate shared run/tool observations. A new observer skips existing history; closing all renderers, late connection and unavailable leadership can lose observations. User API measurements remain per renderer.
+
 ## Events and data boundaries
 
 Only successful UI API mutations emit action events. Polling, failed actions, previews, and independent agent or routine actions do not emit events. `workflow_started` and `chat_sent` count accepted launches, not completed agent runs.
@@ -41,6 +47,7 @@ Only successful UI API mutations emit action events. Polling, failed actions, pr
 | `profile_saved`, `job_sources_scanned`                             | None                                                    |
 | `packet_export_requested`, `packet_exported`                       | None                                                    |
 | `approval_decided`                                                 | `kind` (packet/computer/role/skill), boolean `approved` |
+| `workspace_setup_observed`                                         | Boolean `profile_ready`, `crew_ready`, `job_ready`      |
 | `onboarding_updated`                                               | Known onboarding `status`, `step` (0/1)                 |
 
 Every chat thread becomes `/chat`; query strings and filters are excluded. Repeated renders, search changes and switching chat threads do not duplicate the same page view.
@@ -55,7 +62,7 @@ Every event also includes `app_version` from the root package version shipped wi
 
 The SDK generates an anonymous device identifier, session/window IDs and event metadata. It never identifies a person or creates person profiles. A `before_send` allowlist rebuilds every event's properties, keeping only these IDs, the public ingestion token, SDK name/version, release context and the feature properties above. It removes URLs, referrers, attribution, screen/device metadata and person-property updates. GeoIP enrichment is disabled. The ingestion service still receives the source IP at the HTTPS network layer.
 
-Names, emails, profile notes, messages, job/company details, tags, prompts, packets, account tokens, local paths, card IDs, custom role IDs and error text are excluded. Autocapture, pageleave capture, session replay, surveys, feature-flag requests, performance and exception capture are disabled. The SDK's `no-external` entry point loads no remote scripts. See [PostHog SDK configuration](https://posthog.com/docs/libraries/js/config) and [data collection controls](https://posthog.com/docs/privacy/data-collection).
+Names, emails, profile notes, messages, job/company details, tags, prompts, packets, account tokens, local paths, card IDs, custom role IDs and error text are excluded. App autocapture, automatic pageleave/performance/exception capture, surveys and feature-flag requests remain disabled. Reviewed manual `$exception` events contain fixed error categories and fingerprints, without source messages or stacks. Request outcomes and observed run durations use bounded numbers and fixed vocabularies; they do not establish complete daemon coverage. The SDK's `no-external` entry point loads no remote scripts. See [PostHog SDK configuration](https://posthog.com/docs/libraries/js/config) and [data collection controls](https://posthog.com/docs/privacy/data-collection).
 
 Automated verification uses fictional public tokens and mocked boundaries; it makes no calls to a live PostHog project.
 
@@ -64,3 +71,17 @@ Automated verification uses fictional public tokens and mocked boundaries; it ma
 The connected PitchCrew project is EU project 295060. Its [Usage Overview](https://eu.posthog.com/project/295060/dashboard/999570), [Crew & Feature Adoption](https://eu.posthog.com/project/295060/dashboard/999571), and [Application Workflow](https://eu.posthog.com/project/295060/dashboard/999572) dashboards describe anonymous device activity and accepted user actions. Device IDs are not identified people, and ordered device funnels cannot establish conversion of individual job cards. Website and application identities are not linked, so download clicks cannot establish installation conversion.
 
 The former Health & Reliability dashboard is [Diagnostics Coverage](https://eu.posthog.com/project/295060/dashboard/999694). Its eight saved diagnostic queries remain as explicitly labeled **Not collected** placeholders: errors, run outcomes/duration, API results/latency, Web Vitals and ratings. These signals are not emitted by current builds; empty values must never be presented as zero errors or healthy performance. New feature events and release context begin only with updated builds, with no historical backfill.
+
+## Feature implementation and activation
+
+| Feature               | Implementation and limits                                                                                                                                                                                                                     |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Product analytics     | Successful action counts and a three-boolean setup proxy; anonymous devices are not people. [Details](analytics/product-analytics.md).                                                                                                        |
+| Web analytics         | Public landing native page/session events, pageleave and numeric Web Vitals; no private app browsing or attribution URLs. [Details](analytics/web-analytics.md).                                                                              |
+| Error tracking        | Reviewed manual native exceptions for renderer errors and unexpected API action failures. [Details](analytics/error-tracking.md).                                                                                                             |
+| Application metrics   | Observed request/run events and bounded native OTLP metrics; native product enablement is separate. [Details](analytics/application-metrics.md).                                                                                              |
+| Logs                  | Native OTLP fixed operational codes through renderer consent; no console stream or raw error messages. [Details](analytics/logs.md).                                                                                                          |
+| Scheduled reports     | Weekly charts only, Sunday 09:00 Asia/Jerusalem, to the verified connected PostHog account. Planner defers activation until integration, quota, resource bindings and DST recurrence are verified. [Details](analytics/scheduled-reports.md). |
+| Engineering analytics | Manual opt-in GitHub collector and custom event queries; native engineering sources remain separate. [Details](analytics/engineering-analytics.md).                                                                                           |
+
+Resource manifests under `posthog/` are reviewable deployment inputs. Their presence does not mean a resource has been created or telemetry deployed. Saved chart descriptions must distinguish **Not collected**, **No captured data**, and measured results. New event coverage begins with updated builds and has no historical backfill. Automated validation remains offline and never invents production events.
