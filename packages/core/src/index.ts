@@ -116,3 +116,4 @@ export {
   type OperationalLogCode,
   type OperationalLogArea,
 } from './operational-logs.ts';
+export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telemetry-mcp.ts';

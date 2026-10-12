@@ -59,8 +59,10 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
   };
   // Relay timing is converted to native capture options; never retain it as a property.
   delete properties.observed_start_ms;
-  for (const key of ['token', 'distinct_id', '$session_id', '$window_id', '$lib', '$lib_version'])
+  for (const key of ['token', 'distinct_id', '$session_id', '$window_id', '$lib', '$lib_version']) {
+    if (diagnostic && Object.hasOwn(diagnostic, key)) continue;
     if (typeof input[key] === 'string') properties[key] = input[key];
+  }
   if (
     typeof input.app_version === 'string' &&
     /^\d{1,5}\.\d{1,5}\.\d{1,5}$/.test(input.app_version)

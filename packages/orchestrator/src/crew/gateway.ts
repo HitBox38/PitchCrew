@@ -28,8 +28,31 @@ import { trackingAction } from './gateway/tracking.ts';
 import { insightsAction } from './gateway/insights.ts';
 import { jobSourceAction } from './gateway/job-sources.ts';
 import type { CrewContext } from './types.ts';
+import { beginMcpToolCall } from '../telemetry/mcp.ts';
 
 export async function agentCall(
+  this: CrewContext,
+  token: string,
+  action: string,
+  data: Record<string, unknown>,
+): Promise<Record<string, unknown>> {
+  let finish: (isError: boolean) => void = () => {};
+  try {
+    finish = beginMcpToolCall(this, token, action, data);
+  } catch {
+    // Telemetry initialization must never prevent a scoped tool invocation.
+  }
+  let isError = true;
+  try {
+    const result = await dispatchAgentCall.call(this, token, action, data);
+    isError = false;
+    return result;
+  } finally {
+    finish(isError);
+  }
+}
+
+async function dispatchAgentCall(
   this: CrewContext,
   token: string,
   action: string,
