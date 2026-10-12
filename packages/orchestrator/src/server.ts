@@ -28,6 +28,9 @@ import { acquireDaemonLock, type LockChecks } from './background/lock.ts';
 import type { BackgroundServiceStatus } from '@pitchcrew/core';
 import type { AppUpdateOptions } from './app-updates/index.ts';
 import { registerAppUpdateRoutes } from './http/routes/app-updates.ts';
+import { registerTelemetryRoutes } from './http/routes/telemetry.ts';
+import { createTelemetryBuffer } from './telemetry/buffer.ts';
+import { sanitizeBackendObservation } from './telemetry/sanitize.ts';
 
 export interface DaemonOptions {
   /** Isolated browser driver factory for local integration tests. */
@@ -65,12 +68,14 @@ export async function createDaemon(options: DaemonOptions) {
 
 async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<void>) {
   const url = `http://127.0.0.1:${options.port}`;
+  const diagnostics = createTelemetryBuffer(sanitizeBackendObservation, !!options.analytics);
   const service = new CrewService(
     options.directory,
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
     options.dev ?? false,
     options.browserLaunch,
+    diagnostics,
   );
   const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
   const http = app.server;
@@ -83,6 +88,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     http.close();
     http.closeAllConnections();
     for (const stream of chatStreams) stream.destroy();
+    diagnostics.clear();
     await service.close();
   });
   app.setErrorHandler((error, _req, res) => {
@@ -108,6 +114,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     }));
     app.get('/api/snapshot', async () => service.snapshot());
     registerAnalyticsRoutes(app, options.analytics);
+    app.register(async (routes) => registerTelemetryRoutes(routes, diagnostics));
     app.register(async (routes) => registerAppUpdateRoutes(routes, options.updates));
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
