@@ -5,12 +5,14 @@ import { api } from '../../api.ts';
 import { useAnalyticsConfig } from '../api.ts';
 import { analytics } from '../client.ts';
 import { createObservationRelay } from '../observations.ts';
+import { useDiagnosticLeader } from '../leadership.ts';
 
 export function useBackendObservations() {
   const enabled = useDevicePreferences((state) => state.analytics && state.diagnostics);
   const configured = useAnalyticsConfig((state) => !!state.config);
+  const leader = useDiagnosticLeader();
   useEffect(() => {
-    if (!enabled || !configured) return;
+    if (!enabled || !configured || !leader) return;
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
@@ -39,5 +41,5 @@ export function useBackendObservations() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [enabled, configured]);
+  }, [enabled, configured, leader]);
 }
