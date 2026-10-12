@@ -1,4 +1,5 @@
 import { sanitizeException } from './error-sanitizer.ts';
+import { sanitizeRequestMetric, sanitizeRunMetric } from './metrics/sanitize.ts';
 
 export type DiagnosticSanitizer = (
   properties: Record<string, unknown>,
@@ -9,6 +10,8 @@ export type DiagnosticSanitizer = (
  */
 export const diagnosticSanitizers: Readonly<Record<string, DiagnosticSanitizer>> = Object.freeze({
   $exception: sanitizeException,
+  api_request_finished: sanitizeRequestMetric,
+  run_finished: sanitizeRunMetric,
 });
 
 export function sanitizeDiagnostic(event: string, properties: Record<string, unknown>) {
