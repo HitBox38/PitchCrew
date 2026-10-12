@@ -1,5 +1,6 @@
 import { sanitizeException } from './error-sanitizer.ts';
 import { sanitizeRequestMetric, sanitizeRunMetric } from './metrics/sanitize.ts';
+import { sanitizeAiSpan, sanitizeAiTrace } from '@pitchcrew/core/telemetry-ai';
 
 export type DiagnosticSanitizer = (
   properties: Record<string, unknown>,
@@ -12,6 +13,8 @@ export const diagnosticSanitizers: Readonly<Record<string, DiagnosticSanitizer>>
   $exception: sanitizeException,
   api_request_finished: sanitizeRequestMetric,
   run_finished: sanitizeRunMetric,
+  $ai_trace: sanitizeAiTrace,
+  $ai_span: sanitizeAiSpan,
 });
 
 export function sanitizeDiagnostic(event: string, properties: Record<string, unknown>) {

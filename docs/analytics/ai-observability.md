@@ -1,0 +1,19 @@
+# AI observability
+
+Pitchcrew launches runtime CLIs through its existing adapters. It does not own the provider model loop. This instrumentation observes actual workflow/chat turn boundaries and adapter execution; it does not represent each turn as a model generation.
+
+Each admitted turn gets a new telemetry-only UUIDv4 trace ID. Each actual adapter invocation gets a separate telemetry-only span ID. These IDs never derive from board runs, conversations, roles, jobs, sessions or capabilities and are not persisted. The daemon records a native `$ai_span` before the final `$ai_trace`. Names are fixed: `runtime_execution`, `workflow_turn` and `chat_turn`. Mode and outcome use closed vocabularies; duration uses a monotonic clock and native `$ai_latency` seconds.
+
+Trace duration includes admitted setup and result handling, ending before browser cleanup. Span duration covers the adapter call, including its CLI execution and normalized result parsing. Setup failure creates only a failed trace. A successful adapter call followed by invalid packet handling can yield a successful runtime span and a failed turn trace. Waiting for user input and cancellation are separate outcomes and do not claim provider errors.
+
+The standard runtime contracts expose replies/workflow results without normalized token counts or cost. No `$ai_generation`, token/cost estimates, model/provider identity, prompts, replies, reasoning, tool arguments/results, session IDs, errors, paths, credentials or content are captured. Installing provider-specific PostHog plugins would introduce a separate telemetry path and is not part of this implementation.
+
+The optional `CrewContext.diagnostics` sink writes only to the coordinator's bounded nonpersistent buffer; the daemon has no outward analytics client. The elected renderer relays new observations only while production analytics, master usage consent and diagnostic consent permit it. Closed sanitizers run on both sides and fail closed for unknown events or invalid measurements. Normal failures retain the original thrown error and application behavior.
+
+`observed_start_ms` is internal bounded numeric metadata for the coordinator to convert to SDK capture `timestamp`; it must be stripped before ingestion. Start timestamps permit native waterfalls to display the operation start despite completion-time delivery. If an integration does not supply capture timestamps, the native event timestamp reflects delivery and cannot be treated as an exact timeline. No backend history should be flushed after consent is enabled. Closed renderer windows, an exhausted/expired buffer or renderer leadership changes can lose observations. These are observed samples, not a complete audit trail.
+
+`posthog/ai-observability/resources.json` prepares a combined AI/MCP dashboard with native trend queries for outcomes, duration by mode and runtime execution average/P95. The exact queries executed read-only in project 295060 on 2026-10-12. No AI events exist yet, and no production events were fabricated. Empty outputs and zero placeholders must stay labeled as no samples; token/cost/generation coverage remains Not collected. Native traces should be verified from real opted-in release traffic after deployment before reports are called active.
+
+Verification uses fictional local fixtures and no provider calls. Tests assert actual workflow/chat lifecycle wiring, exact result/error preservation, seconds timing, child-before-parent ordering, cancellation/waiting, disabled-buffer behavior, and rejection/removal of private fields.
+
+Native schema references: [manual capture](https://posthog.com/docs/ai-observability/installation/manual-capture), [spans](https://posthog.com/docs/ai-observability/spans), [traces](https://posthog.com/docs/ai-observability/traces).

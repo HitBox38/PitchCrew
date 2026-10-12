@@ -11,6 +11,7 @@ import { validateReasoning } from './reasoning.ts';
 import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
+import { beginAiRun } from '../telemetry/ai.ts';
 import {
   defaultCapabilities,
   chatInput,
@@ -207,6 +208,7 @@ export async function startChatRun(
   let acceptingReply = true;
   const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
   let nativeSession: ReturnType<typeof prepareSession> | undefined;
+  const ai = beginAiRun(this.diagnostics, 'chat');
   // Start in the background; HTTP returns the run so the user can cancel setup or execution.
   void (async () => {
     await this.writeRunInstructions(dir, role, skills);
@@ -233,45 +235,55 @@ export async function startChatRun(
       nativeSession = prepareSession(this, role, skills, conversation, messages);
       await this.writeRunInstructions(nativeSession.directory, role, skills);
     }
-    const output = await adapters[role.runtime].chat({
-      card,
-      role,
-      skills,
-      messages: nativeSession?.messages ?? messages,
-      session: nativeSession
-        ? { id: nativeSession.session.nativeId ?? undefined, directory: nativeSession.directory }
-        : undefined,
-      onSession: nativeSession?.onSession,
-      attachments: await prepareAttachments(this.directory, dir, messages, controller.signal),
-      request: content,
-      conversation: conversation
-        ? {
-            id: conversation.id,
-            kind: conversation.kind,
-            leadId: conversation.leadId,
-            participants: conversation.participants,
-          }
-        : undefined,
-      profile: await readProfile(this.directory),
-      directory: dir,
-      mcp: {
-        command: process.execPath,
-        args: ['--import', import.meta.resolve('tsx'), this.mcpEntry],
-        env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
-      },
-      signal: controller.signal,
-      onReply: (text) => {
-        if (!acceptingReply || controller.signal.aborted || this.closing) return;
-        if (text) this.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
-        else this.streamingMessages.delete(run.id);
-        this.publishChat();
-      },
-      onMessage: (message) => {
-        const current = this.board.get<Run>('run', run.id);
-        if (!controller.signal.aborted)
-          this.board.record('run', { ...current, message }, roleId, message);
-      },
-    });
+    const attachments = await prepareAttachments(this.directory, dir, messages, controller.signal);
+    const profile = await readProfile(this.directory);
+    const output = await ai.observe(
+      () =>
+        adapters[role.runtime].chat({
+          card,
+          role,
+          skills,
+          messages: nativeSession?.messages ?? messages,
+          session: nativeSession
+            ? {
+                id: nativeSession.session.nativeId ?? undefined,
+                directory: nativeSession.directory,
+              }
+            : undefined,
+          onSession: nativeSession?.onSession,
+          attachments,
+          request: content,
+          conversation: conversation
+            ? {
+                id: conversation.id,
+                kind: conversation.kind,
+                leadId: conversation.leadId,
+                participants: conversation.participants,
+              }
+            : undefined,
+          profile,
+          directory: dir,
+          mcp: {
+            command: process.execPath,
+            args: ['--import', import.meta.resolve('tsx'), this.mcpEntry],
+            env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
+          },
+          signal: controller.signal,
+          onReply: (text) => {
+            if (!acceptingReply || controller.signal.aborted || this.closing) return;
+            if (text)
+              this.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
+            else this.streamingMessages.delete(run.id);
+            this.publishChat();
+          },
+          onMessage: (message) => {
+            const current = this.board.get<Run>('run', run.id);
+            if (!controller.signal.aborted)
+              this.board.record('run', { ...current, message }, roleId, message);
+          },
+        }),
+      controller.signal,
+    );
     acceptingReply = false;
     if (endQuestionTurn(this, run)) {
       if (nativeSession) finishSession(this, nativeSession.session, null, true);
@@ -384,6 +396,8 @@ export async function startChatRun(
       this.addMessage(threadId, 'system', roleId, message, cardId, run.id);
     })
     .finally(async () => {
+      const outcome = this.board.get<Run>('run', run.id).status;
+      ai.finish(outcome === 'running' ? 'failed' : outcome);
       await this.computer.stop(run.id);
       this.controllers.delete(run.id);
       this.capabilities.delete(token);
