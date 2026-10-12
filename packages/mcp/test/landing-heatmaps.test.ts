@@ -34,12 +34,16 @@ it('runs actual landing heatmap, rage/dead-click and consent transport through a
       path: landingRequire.resolve('posthog-js/dist/dead-clicks-autocapture.js'),
     });
     const modules = await Promise.all(
-      ['heatmaps', 'helpers', 'client'].map(async (name) => {
-        const source = await readFile(
-          new URL(`../../landing/src/Analytics/${name}.ts`, import.meta.url),
-          'utf8',
-        );
-        return { name: `./${name}`, source: stripTypeScriptTypes(source) };
+      [
+        ['./privacy', '../../ui/src/Analytics/replay/privacy.ts'],
+        ['../../../ui/src/Analytics/replay/recorder', '../../ui/src/Analytics/replay/recorder.ts'],
+        ...['heatmaps', 'helpers', 'client'].map((name) => [
+          `./${name}`,
+          `../../landing/src/Analytics/${name}.ts`,
+        ]),
+      ].map(async ([name, path]) => {
+        const source = await readFile(new URL(path, import.meta.url), 'utf8');
+        return { name, source: stripTypeScriptTypes(source) };
       }),
     );
     await page.addScriptTag({
@@ -55,6 +59,7 @@ it('runs actual landing heatmap, rage/dead-click and consent transport through a
         for (const { name, source } of sources) {
           const resolved = source.replace(/from '(.*?)'/g, (_match, name) => 'from ' + JSON.stringify(urls[name]));
           urls[name] = URL.createObjectURL(new Blob([resolved], { type: 'text/javascript' }));
+          if (name === './privacy') urls['../../../ui/src/Analytics/replay/privacy'] = urls[name];
         }
         const client = await import(urls['./client']);
         client.sdkConfig.disable_compression = true;

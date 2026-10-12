@@ -11,8 +11,9 @@ type Sdk = Pick<
   PostHog,
   'init' | 'capture' | 'set_config' | 'opt_in_capturing' | 'opt_out_capturing'
 > &
-  Partial<Pick<PostHog, 'sessionManager'>> &
-  { heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'> };
+  Partial<Pick<PostHog, 'sessionManager'>> & {
+    heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'>;
+  };
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,
   capture_pageview: false,

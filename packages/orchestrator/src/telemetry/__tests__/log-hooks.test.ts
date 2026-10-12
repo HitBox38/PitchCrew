@@ -56,10 +56,9 @@ it.each(['chat', 'workflow'] as const)(
       await vi.waitFor(() => expect(context.board.get<Run>('run', run.id).status).toBe('failed'));
       await vi.waitFor(() => expect(context.controllers.size).toBe(0));
       expect(context.board.get<Run>('run', run.id).message).toBe(secret);
-      expect(record).toHaveBeenCalledExactlyOnceWith('operational_log', {
-        code: 'runtime_run_failed',
-        area: mode,
-      });
+      expect(record.mock.calls.filter(([event]) => event === 'operational_log')).toEqual([
+        ['operational_log', { code: 'runtime_run_failed', area: mode }],
+      ]);
       expect(JSON.stringify(record.mock.calls)).not.toContain('private');
     } finally {
       adapter.mockRestore();
