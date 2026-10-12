@@ -22,7 +22,7 @@ export function DraggableJob({
   const { ref, handleRef, isDragSource } = useDraggable({
     id: card.id,
     disabled: disabled || !movable,
-    data: { label: `${card.title} at ${card.company}` },
+    data: { label: `${card.title} at ${card.company}`, state: card.state },
   });
   return (
     <div
@@ -39,7 +39,7 @@ export function DraggableJob({
           id={`drag-job-${card.id}`}
           className="job-drag-handle icon-button"
           aria-label={`Move ${card.title} at ${card.company}`}
-          title="Drag to another group. Keyboard: Space, arrow keys, Space to drop, Escape to cancel."
+          title="Drag to a status. Keyboard: Space, arrow keys, Space to drop, Escape to cancel."
           disabled={disabled}
         >
           <GripVertical size={15} />
