@@ -138,6 +138,15 @@ export async function updateConversation(
   for (const [roleId, override] of Object.entries(patch.configurations ?? {})) {
     if (!participants.includes(roleId)) throw new Error('Configure a conversation participant.');
     if (!Object.keys(override).length) continue;
+    const previous = current.configurations[roleId] ?? {};
+    if (
+      ['runtime', 'model', 'reasoning'].every(
+        (key) =>
+          override[key as keyof typeof override] === previous[key as keyof typeof previous] &&
+          Object.hasOwn(override, key) === Object.hasOwn(previous, key),
+      )
+    )
+      continue;
     const configuration = { ...context.board.get<Role>('role', roleId), ...override };
     if (
       !context.runtimes.some((runtime) => runtime.id === configuration.runtime && runtime.available)

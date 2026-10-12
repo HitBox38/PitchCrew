@@ -1,5 +1,6 @@
 import type { FormControl } from '@pitchcrew/core';
 import type { Page } from 'playwright';
+import { credentialSelector, redactCredentials } from './credentials.ts';
 
 export async function inspectControls(page: Page) {
   const controls: FormControl[] = [];
@@ -57,7 +58,10 @@ export async function inspectControls(page: Page) {
         }),
         overflow: document.querySelectorAll('input,textarea,select').length > 100,
       }));
-      const text = await frame.locator('body').ariaSnapshot();
+      const secrets = await frame
+        .locator(credentialSelector)
+        .evaluateAll((inputs) => inputs.map((input) => (input as HTMLInputElement).value));
+      const text = redactCredentials(await frame.locator('body').ariaSnapshot(), secrets);
       texts.push(text);
       frames.push({ url: frame.url(), text, ...evidence });
       controls.push(

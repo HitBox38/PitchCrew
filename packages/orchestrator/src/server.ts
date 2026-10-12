@@ -1,3 +1,4 @@
+import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
 import type { ServerResponse } from 'node:http';
@@ -7,6 +8,7 @@ import { registerAnalyticsRoutes, type AnalyticsConfig } from './http/analytics.
 import { registerChatStream } from './http/chat-stream.ts';
 import { registerAgentRoutes } from './http/routes/agent.ts';
 import { registerApprovalsRoutes } from './http/routes/approvals.ts';
+import { registerBrowserRoutes } from './http/routes/browser.ts';
 import { registerBoardRoutes } from './http/routes/board.ts';
 import { registerConnectorsRoutes } from './http/routes/connectors.ts';
 import { registerCrewRoutes } from './http/routes/crew.ts';
@@ -28,6 +30,8 @@ import type { AppUpdateOptions } from './app-updates/index.ts';
 import { registerAppUpdateRoutes } from './http/routes/app-updates.ts';
 
 export interface DaemonOptions {
+  /** Isolated browser driver factory for local integration tests. */
+  browserLaunch?: (profile?: string) => Promise<BrowserDriver>;
   directory: string;
   port: number;
   dev?: boolean;
@@ -66,6 +70,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
     options.dev ?? false,
+    options.browserLaunch,
   );
   const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
   const http = app.server;
@@ -119,6 +124,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
       registerRoutinesRoutes,
       registerConnectorsRoutes,
       registerApprovalsRoutes,
+      registerBrowserRoutes,
     ])
       app.register(async (routes) => registerRoutes(routes, service));
     app.register(async (routes) => registerBackgroundServiceRoutes(routes, options));

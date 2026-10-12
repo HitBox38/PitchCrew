@@ -2,6 +2,87 @@ import type { FormControl } from './submissions.ts';
 import { z } from 'zod';
 import type { RoleId } from './states.ts';
 
+export const browserModeSchema = z.enum(['supervised', 'autonomous']);
+export type BrowserMode = z.infer<typeof browserModeSchema>;
+export interface BrowserSitePermission {
+  id: string;
+  roleId: RoleId;
+  runId: string;
+  taskId: string;
+  origin: string;
+  allowed: boolean;
+  createdAt: string;
+}
+export interface BrowserSessionInfo {
+  roleId: RoleId;
+  runId: string | null;
+  taskId: string;
+  threadId: string | null;
+  cardId: string | null;
+  status: 'open' | 'closed';
+  mode: BrowserMode;
+  manual: boolean;
+  allowedSites: string[];
+  url: string;
+  title: string;
+}
+export interface BrowserFrame {
+  screenshot: string;
+  width: number;
+  height: number;
+  url: string;
+  title: string;
+  warning?: string;
+  dialog?: { type: string; message: string };
+}
+export const browserInputSchema = z.discriminatedUnion('kind', [
+  z
+    .object({
+      kind: z.literal('click'),
+      x: z.number().min(0).max(1280),
+      y: z.number().min(0).max(800),
+    })
+    .strict(),
+  z
+    .object({
+      kind: z.literal('scroll'),
+      deltaX: z.number().min(-2000).max(2000),
+      deltaY: z.number().min(-2000).max(2000),
+    })
+    .strict(),
+  z.object({ kind: z.literal('text'), text: z.string().max(12000) }).strict(),
+  z
+    .object({
+      kind: z.literal('key'),
+      key: z.enum([
+        'Tab',
+        'Shift+Tab',
+        'Enter',
+        'Escape',
+        'Space',
+        'Backspace',
+        'Delete',
+        'ArrowLeft',
+        'ArrowRight',
+        'ArrowUp',
+        'ArrowDown',
+        'Home',
+        'End',
+        'ControlOrMeta+A',
+      ]),
+    })
+    .strict(),
+  z.object({ kind: z.literal('navigate'), url: z.url().max(2000) }).strict(),
+  z
+    .object({
+      kind: z.literal('dialog'),
+      decision: z.enum(['accept', 'dismiss']),
+      text: z.string().max(2000).optional(),
+    })
+    .strict(),
+]);
+export type BrowserInput = z.infer<typeof browserInputSchema>;
+
 const frame = z.string().trim().min(1).max(500).optional();
 const submission = {
   purpose: z.literal('submission').optional(),
@@ -77,6 +158,8 @@ export interface ComputerApproval {
   cardId: string | null;
   action: BrowserAction;
   reason: string;
+  /** User granted this task site access; the server's form policy allowed this exact action. */
+  automatic?: boolean;
   uploadContent?: string;
   uploadDigest?: string;
   uploadMimeType?: string;

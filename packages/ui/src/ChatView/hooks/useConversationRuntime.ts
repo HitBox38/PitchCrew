@@ -27,6 +27,7 @@ export function useConversationRuntime({
   };
   const save = async () => {
     const configuration = {
+      ...(override?.browserMode ? { browserMode: override.browserMode } : {}),
       ...(runtime === undefined ? {} : { runtime }),
       ...(model === undefined ? {} : { model }),
       ...(reasoning === undefined ? {} : { reasoning }),

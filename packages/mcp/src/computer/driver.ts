@@ -1,24 +1,43 @@
 import type { BrowserSnapshot } from '@pitchcrew/core';
-import { chromium, type Browser, type Page, type Dialog } from 'playwright';
+import { chromium, type Browser, type BrowserContext, type Page, type Dialog } from 'playwright';
 import { inspectControls } from './inspection.ts';
 import { hash } from './helpers.ts';
 import { assertPublicUrl } from './network.ts';
 import type { BrowserDriver } from './types.ts';
+import { automaticFormAction } from './form-policy.ts';
+import { preparationGuard } from './preparation.ts';
+import { mkdir } from 'node:fs/promises';
+import { credentialSelector } from './credentials.ts';
 
-export async function launchBrowser(): Promise<BrowserDriver> {
-  let browser: Browser;
+export async function launchBrowser(profile?: string): Promise<BrowserDriver> {
   try {
-    browser = await chromium.launch({ headless: false, chromiumSandbox: true });
+    if (profile) {
+      await mkdir(profile, { recursive: true, mode: 0o700 });
+      const context = await chromium.launchPersistentContext(profile, {
+        headless: true,
+        chromiumSandbox: true,
+        viewport: { width: 1280, height: 800 },
+        acceptDownloads: false,
+        serviceWorkers: 'block',
+      });
+      try {
+        return await contextDriver(context, () => context.close());
+      } catch (error) {
+        await context.close();
+        throw error;
+      }
+    }
+    const browser = await chromium.launch({ headless: true, chromiumSandbox: true });
+    try {
+      return await createBrowserDriver(browser);
+    } catch (error) {
+      await browser.close();
+      throw error;
+    }
   } catch {
     throw new Error(
-      'Install the local browser with: pnpm --filter @pitchcrew/mcp exec playwright install chromium',
+      'Could not open the local browser. Install Chromium with pnpm browser:install.',
     );
-  }
-  try {
-    return await createBrowserDriver(browser);
-  } catch (error) {
-    await browser.close();
-    throw error;
   }
 }
 export async function createBrowserDriver(browser: Browser): Promise<BrowserDriver> {
@@ -27,18 +46,44 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
     acceptDownloads: false,
     serviceWorkers: 'block',
   });
+  return contextDriver(context, () => browser.close());
+}
+async function contextDriver(
+  context: BrowserContext,
+  close: () => Promise<void>,
+): Promise<BrowserDriver> {
+  const guard = preparationGuard();
   await context.route('**/*', async (route) => {
     try {
+      if (guard.rejects(route.request())) {
+        await route.abort('blockedbyclient');
+        return;
+      }
       await assertPublicUrl(route.request().url());
-      await route.continue();
+      await route.fallback();
     } catch {
       await route.abort('blockedbyclient');
     }
   });
   await context.routeWebSocket('**/*', (socket) => socket.close());
+  for (const restored of context.pages()) await restored.close();
   let page: Page = await context.newPage();
+  await guard.attach(page);
   context.on('page', (popup) => {
     page = popup;
+    previous = undefined;
+    popup.setDefaultTimeout(10000);
+    popup.on('close', () => {
+      if (page !== popup) return;
+      page =
+        context
+          .pages()
+          .filter((tab) => !tab.isClosed())
+          .at(-1) ?? popup;
+      previous = undefined;
+      pendingDialog = undefined;
+    });
+    void guard.attach(popup).catch(() => {});
   });
   let pendingDialog: Dialog | undefined;
   let previous: BrowserSnapshot | undefined;
@@ -47,16 +92,74 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
   });
   page.setDefaultTimeout(10000);
   return {
+    prepare: guard.prepare,
+    invalidate() {
+      previous = undefined;
+    },
+    async frame() {
+      const current = page;
+      return {
+        screenshot: (
+          await current.screenshot({ type: 'jpeg', quality: 60, timeout: 5000 })
+        ).toString('base64'),
+        width: 1280,
+        height: 800,
+        url: current.url(),
+        title: pendingDialog ? (previous?.title ?? '') : await current.title(),
+        ...(guard.blocked
+          ? {
+              warning:
+                'This site needs supervised requests. Further preparation actions will ask for approval.',
+            }
+          : {}),
+        ...(pendingDialog
+          ? { dialog: { type: pendingDialog.type(), message: pendingDialog.message() } }
+          : {}),
+      };
+    },
+    async freshPage() {
+      const old = context.pages();
+      page = await context.newPage();
+      await guard.attach(page);
+      pendingDialog = undefined;
+      previous = undefined;
+      guard.reset();
+      for (const tab of old) await tab.close();
+      page.setDefaultTimeout(10000);
+    },
+    automatic: async (action) => !guard.blocked && (await automaticFormAction(page, action)),
+    async input(input) {
+      if (input.kind === 'dialog') {
+        if (!pendingDialog) throw new Error('No browser dialog is pending.');
+        const dialog = pendingDialog;
+        pendingDialog = undefined;
+        if (input.decision === 'accept') await dialog.accept(input.text);
+        else await dialog.dismiss();
+        return;
+      }
+      if (pendingDialog) throw new Error('Resolve the browser dialog first.');
+      if (input.kind === 'navigate') {
+        await assertPublicUrl(input.url);
+        await page.goto(input.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+      }
+      if (input.kind === 'click') await page.mouse.click(input.x, input.y);
+      if (input.kind === 'scroll') await page.mouse.wheel(input.deltaX, input.deltaY);
+      if (input.kind === 'text') await page.keyboard.insertText(input.text);
+      if (input.kind === 'key') await page.keyboard.press(input.key);
+    },
     async snapshot() {
       if (pendingDialog) {
         const dialog = { type: pendingDialog.type(), message: pendingDialog.message() };
-        const base = previous ?? {
-          url: page.url(),
-          title: '',
-          text: '',
-          screenshot: '',
-          digest: '',
-        };
+        const base =
+          previous?.url === page.url()
+            ? previous
+            : {
+                url: page.url(),
+                title: '',
+                text: '',
+                screenshot: '',
+                digest: hash({ url: page.url() }),
+              };
         return {
           ...base,
           text: `${base.text}\nBrowser dialog: ${dialog.type}: ${dialog.message}`,
@@ -65,20 +168,23 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
         };
       }
       const current = page;
-      const state = await current.evaluate(() => ({
-        html: document.documentElement.outerHTML,
-        fields: Array.from(document.querySelectorAll('input,textarea,select')).map((element) => {
-          const field = element as HTMLInputElement;
-          return {
-            tag: field.tagName,
-            id: field.id,
-            name: field.name,
-            type: field.type,
-            value: field.value,
-            checked: field.checked,
-          };
+      const state = await current.evaluate(
+        (credentials) => ({
+          html: document.documentElement.outerHTML,
+          fields: Array.from(document.querySelectorAll('input,textarea,select')).map((element) => {
+            const field = element as HTMLInputElement;
+            return {
+              tag: field.tagName,
+              id: field.id,
+              name: field.name,
+              type: field.matches(credentials) ? 'password' : field.type,
+              value: field.value,
+              checked: field.checked,
+            };
+          }),
         }),
-      }));
+        credentialSelector,
+      );
       const evidence = await inspectControls(current);
       const url = current.url();
       const text =
@@ -86,13 +192,19 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
           0,
           30000,
         );
-      const screenshot = (await current.screenshot({ type: 'jpeg', quality: 40 })).toString(
-        'base64',
-      );
+      const screenshot = (
+        await current.screenshot({
+          type: 'jpeg',
+          quality: 40,
+          mask: current.frames().map((frame) => frame.locator(credentialSelector)),
+        })
+      ).toString('base64');
       previous = {
         url,
         title: await current.title(),
-        text,
+        text: guard.blocked
+          ? `${text}\nPreparation blocked a website request. Do not claim the upload or autosave succeeded. Request the exact action again; it will require user approval.`
+          : text,
         screenshot,
         controls: evidence.controls,
         uninspected: evidence.uninspected,
@@ -114,7 +226,8 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
       if ((await target.count()) !== 1)
         throw new Error('Choose a selector matching exactly one element.');
     },
-    async perform(action, file) {
+    async perform(action, file, automatic = false) {
+      guard.prepare(automatic);
       if (action.kind === 'dialog') {
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
         if (pendingDialog.type() === 'prompt' && action.decision === 'accept')
@@ -131,7 +244,12 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
         );
       if (action.kind === 'navigate') {
         await assertPublicUrl(action.url);
-        await page.goto(action.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        guard.navigate(true);
+        try {
+          await page.goto(action.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+        } finally {
+          guard.navigate(false);
+        }
         return;
       }
       const target = action.frame
@@ -139,9 +257,20 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
         : page.locator(action.selector);
       if ((await target.count()) !== 1)
         throw new Error('Choose a selector matching exactly one element.');
+      if (automatic)
+        guard.protect(
+          await page
+            .locator('form')
+            .evaluateAll((forms) => forms.map((form) => (form as HTMLFormElement).action)),
+        );
       if (action.kind === 'click') await target.click({ timeout: 10000 });
       if (action.kind === 'fill') {
-        if ((await target.getAttribute('type'))?.toLowerCase() === 'password')
+        if (
+          await target.evaluate(
+            (element, credentials) => element.matches(credentials),
+            credentialSelector,
+          )
+        )
           throw new Error(
             'Sign in manually in the dedicated browser; do not give passwords to agents.',
           );
@@ -155,6 +284,6 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
           { timeout: 10000 },
         );
     },
-    close: () => browser.close(),
+    close,
   };
 }

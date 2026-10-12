@@ -16,6 +16,8 @@ import {
   workflowSeat,
   type AgentTask,
   type Card,
+  type Conversation,
+  type ChatRequest,
   type ProfileFile,
   type Role,
   type RoleId,
@@ -41,7 +43,8 @@ export async function startRun(
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running'))
     throw new Error('Wait for this role’s chat turn to finish.');
-  const role = requireRole(this, roleId);
+  const storedRole = requireRole(this, roleId);
+  let role = storedRole;
   const skills = this.skills(roleId);
   const card = this.board.get<Card>('card', cardId);
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
@@ -58,6 +61,22 @@ export async function startRun(
   };
   if (!allowed[seat].includes(card.state))
     throw new Error(`The ${roleId} cannot run on a card in ${card.state}.`);
+  const sourceThread =
+    task?.threadId ??
+    (delivery
+      ? this.board
+          .list<ChatRequest>('chat_request')
+          .find((request) => request.id === delivery.requestId)?.threadId
+      : undefined);
+  const browserConversation = this.board
+    .list<Conversation>('conversation')
+    .find((conversation) =>
+      sourceThread
+        ? conversation.id === sourceThread
+        : conversation.kind === 'application' && conversation.cardId === cardId,
+    );
+  const browserMode = browserConversation?.configurations[roleId]?.browserMode;
+  if (browserMode !== undefined) role = { ...role, browserMode };
   const profile = await readProfile(this.directory);
   if (!profile.length) throw new Error('Add your profile notes before starting the crew.');
   const run: Run = {
@@ -102,7 +121,7 @@ export async function startRun(
     this.board.hasActiveRun(cardId) ||
     this.board.get<Card>('card', cardId).state !== card.state ||
     this.configuring.has(roleId) ||
-    JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(role) ||
+    JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(storedRole) ||
     this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running')
   )
     throw new Error('This application changed or was claimed by another run. Refresh and retry.');

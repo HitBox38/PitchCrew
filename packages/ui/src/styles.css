@@ -40,6 +40,7 @@
 @import './styles/chat/questions.css' layer(components);
 @import './styles/chat/header.css' layer(components);
 @import './styles/chat/panels.css' layer(components);
+@import './styles/chat/browser.css' layer(components);
 @import './styles/skills.css' layer(components);
 @import './styles/motion.css' layer(components);
 

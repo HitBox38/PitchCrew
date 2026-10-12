@@ -42,6 +42,7 @@ export type ChatComposerProps = Pick<
   | 'onOpenCard'
   | 'readOnly'
   | 'conversation'
+  | 'browserPanel'
   | 'participants'
   | 'sendMode'
   | 'setSendMode'
@@ -56,6 +57,7 @@ export type ComposerHintProps = Pick<ChatViewModel, 'role'>;
 
 export type ConversationHeadingProps = Pick<
   ChatViewModel,
+  | 'browserPanel'
   | 'questions'
   | 'attention'
   | 'thread'

@@ -1,3 +1,4 @@
+import { useBrowserPanel } from '@/AgentBrowser/hooks/useBrowserPanel.ts';
 import { useChatPanels } from './useChatPanels.ts';
 import { useChatAttachments } from './useChatAttachments.ts';
 import { useChatPreferences } from './useChatPreferences.ts';
@@ -42,6 +43,7 @@ export function useChatView(props: ChatViewProps) {
   const role = { ...savedRole, ...conversation?.configurations[roleId] };
   const attachments = useChatAttachments(thread, setError);
   const readOnly = conversation?.kind === 'history' || conversation?.kind === 'agent_dm';
+  const browserPanel = useBrowserPanel(data, thread, participants, !!readOnly, roleId);
   const messages = [...data.messages, ...data.streamingMessages].filter(
     (message) => message.threadId === thread,
   );
@@ -157,6 +159,7 @@ export function useChatView(props: ChatViewProps) {
   }
   return {
     ...props,
+    browserPanel,
     questions,
     activeQuestionId,
     setActiveQuestionId,

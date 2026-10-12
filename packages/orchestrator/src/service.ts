@@ -27,6 +27,7 @@ import {
   type SkillProposal,
   type Snapshot,
 } from '@pitchcrew/core';
+import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import { access, mkdir } from 'node:fs/promises';
 import { createCrewContext } from './crew/context.ts';
 import type { CrewContext } from './crew/types.ts';
@@ -51,8 +52,9 @@ export class CrewService {
     readonly daemonUrl: string,
     readonly mcpEntry: string,
     dev = false,
+    browserLaunch?: (profile?: string) => Promise<BrowserDriver>,
   ) {
-    this.context = createCrewContext(directory, daemonUrl, mcpEntry, dev);
+    this.context = createCrewContext(directory, daemonUrl, mcpEntry, dev, browserLaunch);
   }
   answerUserQuestion(id: string, data: unknown) {
     return answerUserQuestion(this.context, id, data);
