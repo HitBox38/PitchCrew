@@ -1,3 +1,4 @@
+import { recordOperationalLog } from '../telemetry/logs.ts';
 import {
   endQuestionTurn,
   finishUserContinuation,
@@ -178,6 +179,10 @@ export async function startRun(
     })
     .catch((error) => {
       if (endQuestionTurn(this, run)) return;
+      recordOperationalLog(this.diagnostics, {
+        code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
+        area: 'workflow',
+      });
       const message = error instanceof Error ? error.message : 'Run failed.';
       this.board.record(
         'run',

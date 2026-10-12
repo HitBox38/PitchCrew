@@ -8,7 +8,8 @@
     "./states": "./src/states.ts",
     "./chat-attachments": "./src/chat-attachments.ts",
     "./insights": "./src/insights.ts",
-    "./base-skills": "./src/base-skills.ts"
+    "./base-skills": "./src/base-skills.ts",
+    "./operational-logs": "./src/operational-logs.ts"
   },
   "dependencies": {
     "zod": "^4.3.6"

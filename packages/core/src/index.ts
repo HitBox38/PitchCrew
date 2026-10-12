@@ -108,3 +108,11 @@ export type {
 } from './packet-rules.ts';
 
 export * from './user-input.ts';
+
+export {
+  operationalLogCodes,
+  sanitizeOperationalLog,
+  type OperationalLog,
+  type OperationalLogCode,
+  type OperationalLogArea,
+} from './operational-logs.ts';

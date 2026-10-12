@@ -1,3 +1,4 @@
+import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn, finishUserContinuation, waitingOnUser } from './user-input/lifecycle.ts';
 import { conversationMessages } from './conversation-context.ts';
 import { prepareSession, finishSession } from './sessions.ts';
@@ -364,6 +365,10 @@ export async function startChatRun(
       if (nativeSession) finishSession(this, nativeSession.session, null, true);
       this.streamingMessages.delete(run.id);
       if (endQuestionTurn(this, run)) return;
+      recordOperationalLog(this.diagnostics, {
+        code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
+        area: 'chat',
+      });
       const message = error instanceof Error ? error.message : 'Chat failed.';
       this.board.record(
         'run',

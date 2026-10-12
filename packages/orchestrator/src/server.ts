@@ -1,3 +1,4 @@
+import { recordOperationalLog } from './telemetry/logs.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
@@ -93,6 +94,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
   });
   app.setErrorHandler((error, _req, res) => {
     if (res.raw.headersSent) return;
+    recordOperationalLog(diagnostics, { code: 'http_request_failed', area: 'http' });
     return res
       .status(400)
       .send({ error: error instanceof Error ? error.message : 'Request failed.' });
@@ -138,6 +140,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     await registerUi(app, options.dev ?? false);
     // Callers retain the Node server contract; every plugin is ready before listen().
     await app.ready();
+    recordOperationalLog(diagnostics, { code: 'daemon_ready', area: 'daemon' });
     const close = async () => {
       try {
         await app.close();
@@ -147,6 +150,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     };
     return { app, http, service, url, close };
   } catch (error) {
+    recordOperationalLog(diagnostics, { code: 'daemon_start_failed', area: 'daemon' });
     await app.close();
     throw error;
   }

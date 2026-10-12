@@ -1,3 +1,4 @@
+import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn } from './user-input/lifecycle.ts';
 import {
   type PipelineReview,
@@ -44,6 +45,7 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
     for (const folder of ['profile', 'roles', 'packets'])
       await mkdir(join(this.directory, folder), { recursive: true });
     for (const run of this.board.list<Run>('run').filter((r) => r.status === 'running')) {
+      recordOperationalLog(this.diagnostics, { code: 'daemon_run_recovered', area: 'daemon' });
       for (const session of this.board.list<ConversationSession>('conversation_session'))
         if (session.threadId === run.threadId && session.roleId === run.roleId && !session.invalid)
           this.board.record(
