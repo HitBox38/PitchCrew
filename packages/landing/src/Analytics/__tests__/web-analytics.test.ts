@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createAnalytics, sdkConfig } from '../client';
 import { sanitizeEvent } from '../helpers';
+import { heatmapConfig, publicLandingUrl } from '../heatmaps';
 
 const anonymousId = '019a019a-019a-7000-8000-019a019a019a';
 const makeSdk = () => ({
@@ -35,8 +36,9 @@ describe('native landing web analytics', () => {
       $pathname: '/',
       $host: 'pitch-crew.tomer-norman.dev',
       $prev_pageview_duration: 12.5,
+      $current_url: publicLandingUrl,
     });
-    for (const field of ['$current_url', '$session_entry_url', '$referrer', 'utm_campaign'])
+    for (const field of ['$session_entry_url', '$referrer', 'utm_campaign'])
       expect(event?.properties).not.toHaveProperty(field);
     expect(sdkConfig.capture_pageleave).toBe(true);
     expect(sdkConfig.save_referrer).toBe(false);
@@ -81,7 +83,12 @@ describe('native landing web analytics', () => {
     expect(sdk.capture).toHaveBeenCalledWith('$pageview', expect.any(Object));
     await analytics.setEnabled(false);
     expect(sdk.opt_out_capturing).toHaveBeenCalledOnce();
-    expect(sdk.set_config).toHaveBeenLastCalledWith({ disable_persistence: true });
+    expect(sdk.set_config).toHaveBeenCalledWith(heatmapConfig);
+    expect(sdk.set_config).toHaveBeenLastCalledWith({
+      disable_persistence: true,
+      capture_heatmaps: false,
+      rageclick: false,
+    });
     analytics.captureWebVital({ name: 'LCP', value: 2000 });
     expect(sdk.capture).toHaveBeenCalledTimes(2);
   });

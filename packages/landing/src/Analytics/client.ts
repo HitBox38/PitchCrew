@@ -3,11 +3,12 @@ import type { Installer } from '../Downloads/types';
 import { analyticsConfig, analyticsConfigured } from './config';
 import { analyticsAllowed, sanitizeEvent } from './helpers';
 import { analyticsContext } from './context';
+import { heatmapConfig } from './heatmaps';
 
 type Sdk = Pick<
   PostHog,
   'init' | 'capture' | 'set_config' | 'opt_in_capturing' | 'opt_out_capturing'
->;
+> & { heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'> };
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,
   capture_pageview: false,
@@ -18,7 +19,10 @@ export const sdkConfig: Partial<PostHogConfig> = {
   debug: false,
   disable_persistence: false,
   capture_dead_clicks: false,
-  rageclick: false,
+  rageclick: heatmapConfig.rageclick,
+  mask_all_text: true,
+  mask_all_element_attributes: true,
+  capture_heatmaps: false,
   disable_session_recording: true,
   disable_surveys: true,
   capture_exceptions: false,
@@ -48,7 +52,8 @@ export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) 
         nativePageCaptured = false;
         try {
           sdk?.opt_out_capturing();
-          sdk?.set_config({ disable_persistence: true });
+          sdk?.set_config({ disable_persistence: true, capture_heatmaps: false, rageclick: false });
+          sdk?.heatmaps?.getAndClearBuffer();
         } catch {
           /* Best effort. */
         }
@@ -73,6 +78,7 @@ export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) 
         });
         sdk.opt_in_capturing({ captureEventName: false });
         enabled = true;
+        sdk.set_config(heatmapConfig);
         if (!nativePageCaptured) {
           sdk.capture('$pageview', analyticsContext);
           nativePageCaptured = true;
@@ -123,7 +129,11 @@ export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) 
 
 export const analytics = createAnalytics(
   async () => {
-    const { PostHog } = await import('posthog-js/no-external');
+    const [{ PostHog }] = await Promise.all([
+      import('posthog-js/no-external'),
+      // Locally bundled detector; no recording and no remotely loaded scripts.
+      import('posthog-js/dist/dead-clicks-autocapture'),
+    ]);
     return new PostHog();
   },
   () => {

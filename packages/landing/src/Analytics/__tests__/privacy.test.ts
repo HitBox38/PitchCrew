@@ -3,6 +3,7 @@ import { createAnalytics, sdkConfig } from '../client';
 import { analyticsAllowed, preferenceKey, sanitizeEvent } from '../helpers';
 import { parseRelease } from '../../Downloads/helpers';
 import { analyticsContext } from '../context';
+import { publicLandingUrl } from '../heatmaps';
 
 const installer = parseRelease(null).installers[0];
 const makeSdk = () => ({
@@ -128,6 +129,7 @@ describe('landing analytics privacy', () => {
           $geoip_disable: true,
           $host: 'pitch-crew.tomer-norman.dev',
           $pathname: '/',
+          $current_url: publicLandingUrl,
         },
       },
       {

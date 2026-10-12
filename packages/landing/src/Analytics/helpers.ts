@@ -1,5 +1,6 @@
 import { installerDefinitions } from '../Downloads/constants';
 import { analyticsContext } from './context';
+import { heatmapMeasurements, publicLandingUrl, sanitizeHeatmap } from './heatmaps';
 
 export const preferenceKey = 'pitchcrew-landing-analytics-v1';
 
@@ -14,6 +15,7 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
       '$pageview',
       '$pageleave',
       '$web_vitals',
+      '$$heatmap',
     ].includes(event.event)
   )
     return null;
@@ -26,12 +28,23 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
   for (const key of ['token', 'distinct_id', '$lib', '$lib_version'])
     if (typeof input[key] === 'string') properties[key] = input[key];
   // PostHog-generated anonymous IDs connect visits, durations and vital measurements.
-  for (const key of ['$session_id', '$window_id', '$pageview_id']) {
+  for (const key of ['$session_id', '$window_id', '$pageview_id', '$prev_pageview_id']) {
     if (typeof input[key] === 'string' && /^[a-f0-9-]{36}$/i.test(input[key]))
       properties[key] = input[key];
   }
   properties.$host = 'pitch-crew.tomer-norman.dev';
   properties.$pathname = '/';
+  if (['$$heatmap', '$pageview', '$pageleave'].includes(event.event)) {
+    // Ingestion needs the page URL for native heatmap and scrollmap rows.
+    // This is a constant public page, never window.location or a link href.
+    properties.$current_url = publicLandingUrl;
+    Object.assign(properties, heatmapMeasurements(input, event.event === '$pageleave'));
+  }
+  if (event.event === '$$heatmap') {
+    const points = sanitizeHeatmap(input.$heatmap_data);
+    if (!points || !properties.$viewport_width || !properties.$viewport_height) return null;
+    properties.$heatmap_data = points;
+  }
   if (event.event === '$pageleave') {
     const duration = input.$prev_pageview_duration;
     if (
