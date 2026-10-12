@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "projectId": 295060,
+  "host": "https://eu.posthog.com",
+  "recipient": "authenticated-posthog-account",
+  "frequency": "weekly",
+  "interval": 1,
+  "schedule": {
+    "weekday": "sunday",
+    "localTime": "09:00",
+    "timeZone": "Asia/Jerusalem",
+    "confirmed": true
+  },
+  "sendTestNow": false,
+  "summaryEnabled": false,
+  "reportPeriodDays": 7,
+  "filterTestAccounts": true,
+  "reports": [
+    {
+      "key": "product",
+      "title": "Pitchcrew weekly product, adoption and workflow",
+      "topics": ["usage", "activation", "adoption", "workflow"],
+      "coverageNote": "Anonymous device IDs are not verified people or installations. Activity is limited to opted-in renderers."
+    },
+    {
+      "key": "web",
+      "title": "Pitchcrew weekly landing and web analytics",
+      "topics": ["landing visits", "downloads", "web vitals", "frustration signals"],
+      "coverageNote": "Public landing data excludes Do Not Track and opted-out visits; landing visits and installed app usage are separate populations."
+    },
+    {
+      "key": "diagnostics",
+      "title": "Pitchcrew weekly diagnostics and reliability",
+      "topics": ["sanitized errors", "run outcomes", "latency", "metrics", "logs"],
+      "coverageNote": "No captured errors does not demonstrate zero errors. Missing instrumentation is Not collected; an instrumented empty period is No captured data."
+    },
+    {
+      "key": "ai-mcp",
+      "title": "Pitchcrew weekly AI and MCP observations",
+      "topics": ["runtime observations", "MCP tool usage", "tool outcomes", "tool duration"],
+      "coverageNote": "CLI runtime observations are not model-call measurements. Tokens and costs are Not collected unless supplied by a verified provider source."
+    },
+    {
+      "key": "engineering",
+      "title": "Pitchcrew weekly engineering analytics",
+      "topics": ["CI runs", "CI duration", "CI failures", "pull request throughput"],
+      "coverageNote": "Engineering data describes repository automation, not app users. Show unavailable source integrations as Not collected."
+    }
+  ]
+}
