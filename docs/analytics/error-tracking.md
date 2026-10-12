@@ -30,7 +30,22 @@ An error object is reported once per renderer lifetime, preventing React/browser
 
 The native [Error Tracking screen](https://eu.posthog.com/project/295060/error_tracking) groups the emitted exceptions automatically. Source, category, action and package-version trends describe captured reports, with explicit collection limits. Anonymous device IDs are not verified people or installations. Empty charts do not imply zero exceptions; report volume is not a crash-free or failure-rate measure.
 
-All five descriptor queries were accepted through connected PostHog `query-trends` on October 12, 2026. No production exception property taxonomy or records exist yet. No live resources were written and no test event was sent.
+All five descriptor queries were accepted through connected PostHog `query-trends` on October 12, 2026. No production exception property taxonomy or records existed at that verification stage; it performed no live writes or test-event capture.
+
+### Live chart activation
+
+After the integrated implementation passed its checks, four additional charts were created on Diagnostics Coverage on October 12, 2026. [Activation evidence](../../posthog/error-tracking/activation.json) records their complete saved queries, IDs and verification. All use a seven-day range and descriptions explicitly marked awaiting an updated build and noncanonical. The complete saved-insight inventory contained 51 entries and no matching chart names before creation; no duplicate insight was reused or overwritten.
+
+| Chart                                                                                                 | Insight | Tile    |
+| ----------------------------------------------------------------------------------------------------- | ------- | ------- |
+| [Reported exceptions and anonymous devices](https://eu.posthog.com/project/295060/insights/EINj5HDY)  | 6518666 | 7390508 |
+| [Unexpected action failures by feature](https://eu.posthog.com/project/295060/insights/7cdbVwA2)      | 6518667 | 7390509 |
+| [Sanitized error reports by category](https://eu.posthog.com/project/295060/insights/hrGU5rTa)        | 6518686 | 7390544 |
+| [Sanitized error reports by shipped version](https://eu.posthog.com/project/295060/insights/lw3Nqj66) | 6518687 | 7390545 |
+
+Each exact query passed `query-trends` before creation, then `insight-get` readback confirmed its saved definition and Diagnostics attachment and `insight-query` ran successfully. All results were empty or zero report series, as expected before new builds ship; these are not healthy-app assertions. The coordinator verified an empty complete metrics catalog through SQL, so the charts remain noncanonical; no metric approval or catalog write was performed.
+
+The existing source chart `6355551` (`79UVPFXi`) was read-verified with its implemented source filter and seven-day range, and left untouched. Only the four new insights and their dashboard attachments were created. Existing source/banner/tile layouts and project settings were not edited. No fake exception events, production deployment or source-map upload were performed; the coordinator owns the final dashboard layout.
 
 ## Integration and verification
 
