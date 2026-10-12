@@ -1,6 +1,6 @@
 # Repository engineering analytics
 
-Pitchcrew has an executable, content-free GitHub metadata collector and a separate manual GitHub Actions workflow. **Neither ingestion nor native PostHog Engineering Analytics has been activated.** The new workflow is independent of required CI and Release; it does not change release gates or their permissions.
+Pitchcrew has an executable, content-free GitHub metadata collector and a separate manual GitHub Actions workflow. **A genuine seven-day repository import and eight-chart dashboard are active. Native PostHog Engineering Analytics remains unavailable.** The new workflow is independent of required CI and Release; it does not change release gates or their permissions.
 
 The source is the public `HitBox38/PitchCrew` repository. Collection refuses a private repository. It reads workflow/job/step metadata and closed PR metadata through GitHub's authenticated read API, then constructs a strict event allowlist. No installed Pitchcrew daemon or renderer sends engineering events. Repository maintainer opt-in is separate from users' device analytics preferences; this tooling never reads local app data.
 
@@ -33,9 +33,11 @@ Stable UUIDs derive from repository/run attempt/job/step or merged PR identity, 
 
 Collection is bounded to 1,000 rows per paginated endpoint, ten attempts per run, and 500 GitHub read requests per invocation. Hitting a bound fails instead of silently reporting complete coverage. PR pagination stops when updates precede the collection window. CI discovery is by **run creation** within the lookback: a rerun of an older run is omitted; use a wider window where possible. Running attempts are omitted until a later successful import. A run with no valid completed-job timestamps is omitted; job/step timing charts contain only valid timings. Windows with missed manual imports or expired GitHub metadata are incomplete. The workflow does not ingest the Release workflow or create developer productivity rankings.
 
-## Prepared dashboard
+## Active dashboard
 
-`posthog/engineering-analytics/resources.json` prepares **Engineering delivery (repository metadata)** with attempt outcomes, success rate, job/step timings, PR throughput/open-to-merge time and repeat-attempt share. These are **custom event-based, noncanonical definitions** until incorporated into the governed metric catalog. Query windows are fixed to 30 days in SQL, so dashboard date overrides do not apply. Empty charts mean no imported observations, never healthy CI. The coordinator must validate and create resources only when integration is ready; this worktree performs no live resource writes.
+`posthog/engineering-analytics/resources.json` defines [**Engineering delivery (repository metadata)**](https://eu.posthog.com/project/295060/dashboard/1018325) with attempt outcomes, success rate, job/step timings, PR throughput/open-to-merge time and repeat-attempt share. These are **custom event-based, noncanonical definitions** until incorporated into the governed metric catalog. Query windows are fixed to seven days in SQL, so dashboard date overrides do not apply. Empty charts mean no imported observations, never healthy CI. The initial authorized import on October 12, 2026 persisted 84 CI attempts, 802 jobs, 1,690 allowlisted steps and 27 merged PRs; distinct UUID counts matched all four row counts. All eight saved SQL/DataVisualization insights returned real rows after forced recalculation. Complete mixed-width desktop layouts were read back and checked for overlap. IDs, source time range and verification rows are recorded in `posthog/engineering-analytics/activation.json`.
+
+Weekly buckets use Asia/Jerusalem calendar weeks beginning Sunday; the rolling seven-day window creates partial first and last buckets. The import is manual and does not automatically refresh before future weekly reports. No repository variables or scheduled workflow were enabled during activation.
 
 The success-rate denominator includes all observed completed attempts, including cancellations/skips. Repeat-attempt share counts attempts numbered greater than one; it is **not a flaky-test rate**. Build timings use matching completed steps and exclude skipped steps; cancelled/failed build step durations remain observable. Separate target-branch PR trends prevent release PRs from being silently mixed with feature PRs.
 

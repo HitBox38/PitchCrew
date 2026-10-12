@@ -1,106 +1,272 @@
 {
   "project_id": 295060,
-  "activation": "deferred_until_integration_ready",
+  "activation": "live_manual_import_dashboard_verified",
   "definition_status": "noncanonical",
-  "validation": "prepared; execute after first real import before creating insights",
+  "validation": "All eight native saved visualizations validated on genuine imported data and force-recalculated; recorded in activation.json",
   "dashboard": {
     "name": "Engineering delivery (repository metadata)",
-    "description": "Content-free public GitHub CI/PR observations imported by an explicitly opted-in repository maintainer. Manual refresh: absent data means unknown coverage. Custom events, not native PostHog Engineering Analytics. No developer rankings, logs, test-flake classifications or cost estimates."
+    "description": "Public repository CI/PR observations over rolling seven days; refreshed manually. Custom, noncanonical event metrics. No actors, log content, test-flake classifications or runner costs. Native Engineering Analytics source is unavailable; missing imported data means unknown coverage."
   },
   "insights": [
     {
       "key": "ci_attempt_outcomes",
       "name": "CI attempt outcomes by week",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. All observed completed attempts, including retries, cancelled, skipped and unknown conclusions. UUID deduplication; only CI workflow, not Release.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. All observed completed attempts, including retries, cancelled, skipped and unknown conclusions. UUID deduplication; only CI workflow, not Release.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT\n    toStartOfWeek(timestamp) AS week,\n    properties.trigger AS trigger,\n    properties.conclusion AS conclusion,\n    count(DISTINCT uuid) AS completed_attempts\nFROM events\nWHERE event = 'pitchcrew_ci_run_completed'\n    AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\nGROUP BY week, trigger, conclusion\nORDER BY week, trigger, conclusion\nLIMIT 200"
+          "query": "SELECT\n    toStartOfWeek(toTimeZone(timestamp, 'Asia/Jerusalem')) AS week,\n    concat(toString(properties.trigger), ' / ', toString(properties.conclusion)) AS outcome,\n    count(DISTINCT uuid) AS completed_attempts\nFROM events\nWHERE event = 'pitchcrew_ci_run_completed'\n    AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\nGROUP BY week, outcome\nORDER BY week, outcome\nLIMIT 200"
+        },
+        "display": "ActionsStackedBar",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "week"
+          },
+          "yAxis": [
+            {
+              "column": "completed_attempts"
+            }
+          ],
+          "seriesBreakdownColumn": "outcome"
         }
       }
     },
     {
       "key": "ci_attempt_success",
       "name": "Observed completed CI attempt success (%)",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Success divided by all completed observed CI attempts, including cancellations/skips and retries. A run without valid completed-job timestamps is omitted.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Success divided by all completed observed CI attempts, including cancellations/skips and retries. A run without valid completed-job timestamps is omitted.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT\n    toStartOfWeek(completed_at) AS week,\n    100.0 * countIf(conclusion = 'success') / nullIf(count(), 0) AS success_percent,\n    count() AS observed_completed_attempts\nFROM (\n    SELECT uuid,\n        min(timestamp) AS completed_at,\n        any(properties.conclusion) AS conclusion\n    FROM events\n    WHERE event = 'pitchcrew_ci_run_completed'\n        AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY week\nORDER BY week\nLIMIT 30"
+          "query": "SELECT\n    toStartOfWeek(toTimeZone(completed_at, 'Asia/Jerusalem')) AS week,\n    100.0 * countIf(conclusion = 'success') / nullIf(count(), 0) AS success_percent,\n    count() AS observed_completed_attempts\nFROM (\n    SELECT uuid,\n        min(timestamp) AS completed_at,\n        any(properties.conclusion) AS conclusion\n    FROM events\n    WHERE event = 'pitchcrew_ci_run_completed'\n        AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY week\nORDER BY week\nLIMIT 30"
+        },
+        "display": "ActionsLineGraph",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "week"
+          },
+          "yAxis": [
+            {
+              "column": "success_percent",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": "%",
+                  "decimalPlaces": 1
+                }
+              }
+            }
+          ]
         }
       }
     },
     {
       "key": "ci_job_span",
       "name": "CI completed-job span p50/p95 (seconds)",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Earliest completed job start through latest completed job finish, including dependency gaps; initial queue time excluded. All conclusions included; one row per attempt UUID.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Earliest completed job start through latest completed job finish, including dependency gaps; initial queue time excluded. All conclusions included; one row per attempt UUID.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT\n    toStartOfWeek(completed_at) AS week,\n    quantile(0.5)(duration_seconds) AS p50_seconds,\n    quantile(0.95)(duration_seconds) AS p95_seconds,\n    count() AS observed_attempts\nFROM (\n    SELECT uuid,\n        min(timestamp) AS completed_at,\n        max(toFloat(properties.job_span_seconds)) AS duration_seconds\n    FROM events\n    WHERE event = 'pitchcrew_ci_run_completed'\n        AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY week\nORDER BY week\nLIMIT 30"
+          "query": "SELECT\n    toStartOfWeek(toTimeZone(completed_at, 'Asia/Jerusalem')) AS week,\n    quantile(0.5)(duration_seconds) AS p50_seconds,\n    quantile(0.95)(duration_seconds) AS p95_seconds,\n    count() AS observed_attempts\nFROM (\n    SELECT uuid,\n        min(timestamp) AS completed_at,\n        max(toFloat(properties.job_span_seconds)) AS duration_seconds\n    FROM events\n    WHERE event = 'pitchcrew_ci_run_completed'\n        AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY week\nORDER BY week\nLIMIT 30"
+        },
+        "display": "ActionsLineGraph",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "week"
+          },
+          "yAxis": [
+            {
+              "column": "p50_seconds",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": " s",
+                  "decimalPlaces": 1
+                }
+              }
+            },
+            {
+              "column": "p95_seconds",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": " s",
+                  "decimalPlaces": 1
+                }
+              }
+            }
+          ]
         }
       }
     },
     {
       "key": "ci_job_timings",
       "name": "CI job duration p50/p95 (seconds)",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Fixed job classes only; unknown job names become other. All completed conclusions with valid timings included. Parallel job durations are not workflow duration.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Fixed job classes only; unknown job names become other. All completed conclusions with valid timings included. Parallel job durations are not workflow duration.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT job,\n    quantile(0.5)(duration_seconds) AS p50_seconds,\n    quantile(0.95)(duration_seconds) AS p95_seconds,\n    count() AS observed_jobs\nFROM (\n    SELECT uuid,\n        any(properties.job) AS job,\n        max(toFloat(properties.duration_seconds)) AS duration_seconds\n    FROM events\n    WHERE event = 'pitchcrew_ci_job_completed'\n        AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY job\nORDER BY p95_seconds DESC\nLIMIT 20"
+          "query": "SELECT job,\n    quantile(0.5)(duration_seconds) AS p50_seconds,\n    quantile(0.95)(duration_seconds) AS p95_seconds,\n    count() AS observed_jobs\nFROM (\n    SELECT uuid,\n        any(properties.job) AS job,\n        max(toFloat(properties.duration_seconds)) AS duration_seconds\n    FROM events\n    WHERE event = 'pitchcrew_ci_job_completed'\n        AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY job\nORDER BY p95_seconds DESC\nLIMIT 20"
+        },
+        "display": "ActionsBarValue",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "job"
+          },
+          "yAxis": [
+            {
+              "column": "p50_seconds",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": " s",
+                  "decimalPlaces": 1
+                }
+              }
+            },
+            {
+              "column": "p95_seconds",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": " s",
+                  "decimalPlaces": 1
+                }
+              }
+            }
+          ]
         }
       }
     },
     {
       "key": "ci_build_timings",
       "name": "App, landing and installer build duration p50/p95 (seconds)",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Allowlisted build steps only; skipped steps excluded, failed/cancelled durations included. Not billed runner time or build cache hit rate.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Allowlisted build steps only; skipped steps excluded, failed/cancelled durations included. Not billed runner time or build cache hit rate.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT job, step,\n    quantile(0.5)(duration_seconds) AS p50_seconds,\n    quantile(0.95)(duration_seconds) AS p95_seconds,\n    count() AS observed_build_steps\nFROM (\n    SELECT uuid,\n        any(properties.job) AS job,\n        any(properties.step) AS step,\n        max(toFloat(properties.duration_seconds)) AS duration_seconds\n    FROM events\n    WHERE event = 'pitchcrew_ci_step_completed'\n        AND properties.step IN ('app_build', 'landing_build', 'installer_build')\n        AND properties.conclusion != 'skipped'\n        AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY job, step\nORDER BY job, step\nLIMIT 30"
-        }
+          "query": "SELECT job, step,\n    quantile(0.5)(duration_seconds) AS p50_seconds,\n    quantile(0.95)(duration_seconds) AS p95_seconds,\n    count() AS observed_build_steps\nFROM (\n    SELECT uuid,\n        any(properties.job) AS job,\n        any(properties.step) AS step,\n        max(toFloat(properties.duration_seconds)) AS duration_seconds\n    FROM events\n    WHERE event = 'pitchcrew_ci_step_completed'\n        AND properties.step IN ('app_build', 'landing_build', 'installer_build')\n        AND properties.conclusion != 'skipped'\n        AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY job, step\nORDER BY job, step\nLIMIT 30"
+        },
+        "display": "ActionsTable"
       }
     },
     {
       "key": "ci_repeat_attempt_share",
       "name": "Repeat CI attempt share (%) \u2014 not a flaky-test rate",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Attempts numbered greater than one divided by all observed completed attempts. Retries may reflect infrastructure, cancellation or code changes; no test-level classification.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Attempts numbered greater than one divided by all observed completed attempts. Retries may reflect infrastructure, cancellation or code changes; no test-level classification.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT\n    toStartOfWeek(completed_at) AS week,\n    100.0 * countIf(attempt > 1) / nullIf(count(), 0) AS repeat_attempt_percent,\n    count() AS observed_completed_attempts\nFROM (\n    SELECT uuid,\n        min(timestamp) AS completed_at,\n        max(toInt(properties.attempt)) AS attempt\n    FROM events\n    WHERE event = 'pitchcrew_ci_run_completed'\n        AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY week\nORDER BY week\nLIMIT 30"
+          "query": "SELECT\n    toStartOfWeek(toTimeZone(completed_at, 'Asia/Jerusalem')) AS week,\n    100.0 * countIf(attempt > 1) / nullIf(count(), 0) AS repeat_attempt_percent,\n    count() AS observed_completed_attempts\nFROM (\n    SELECT uuid,\n        min(timestamp) AS completed_at,\n        max(toInt(properties.attempt)) AS attempt\n    FROM events\n    WHERE event = 'pitchcrew_ci_run_completed'\n        AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY week\nORDER BY week\nLIMIT 30"
+        },
+        "display": "ActionsLineGraph",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "week"
+          },
+          "yAxis": [
+            {
+              "column": "repeat_attempt_percent",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": "%",
+                  "decimalPlaces": 1
+                }
+              }
+            }
+          ]
         }
       }
     },
     {
       "key": "pr_throughput",
       "name": "Merged PRs by target branch and week",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Bots and currently draft PRs excluded. Separate dev feature work from main release PRs. No per-author breakdown or ranking.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Bots and currently draft PRs excluded. Separate dev feature work from main release PRs. No per-author breakdown or ranking.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT\n    toStartOfWeek(timestamp) AS week,\n    properties.target_branch AS target_branch,\n    count(DISTINCT uuid) AS merged_prs\nFROM events\nWHERE event = 'pitchcrew_pr_merged'\n    AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\nGROUP BY week, target_branch\nORDER BY week, target_branch\nLIMIT 60"
+          "query": "SELECT\n    toStartOfWeek(toTimeZone(timestamp, 'Asia/Jerusalem')) AS week,\n    properties.target_branch AS target_branch,\n    count(DISTINCT uuid) AS merged_prs\nFROM events\nWHERE event = 'pitchcrew_pr_merged'\n    AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\nGROUP BY week, target_branch\nORDER BY week, target_branch\nLIMIT 60"
+        },
+        "display": "ActionsBar",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "week"
+          },
+          "yAxis": [
+            {
+              "column": "merged_prs"
+            }
+          ],
+          "seriesBreakdownColumn": "target_branch"
         }
       }
     },
     {
       "key": "pr_open_to_merge",
       "name": "PR open-to-merge p50/p95 (hours)",
-      "description": "Noncanonical custom repository metric. No imported observations means unknown coverage, not healthy CI. Fixed 30-day SQL window; dashboard date overrides do not apply. Merged timestamp minus created timestamp; includes any former draft time and review waiting. Never call this review time or cycle time. Bots/current drafts excluded.",
+      "description": "Noncanonical. Rolling 7 days; manual import coverage. SQL ignores dashboard date overrides. Merged timestamp minus created timestamp; includes any former draft time and review waiting. Never call this review time or cycle time. Bots/current drafts excluded.",
       "query": {
         "kind": "DataVisualizationNode",
         "source": {
           "kind": "HogQLQuery",
-          "query": "SELECT target_branch,\n    quantile(0.5)(open_to_merge_seconds) / 3600.0 AS p50_hours,\n    quantile(0.95)(open_to_merge_seconds) / 3600.0 AS p95_hours,\n    count() AS observed_merged_prs\nFROM (\n    SELECT uuid,\n        any(properties.target_branch) AS target_branch,\n        max(toFloat(properties.open_to_merge_seconds)) AS open_to_merge_seconds\n    FROM events\n    WHERE event = 'pitchcrew_pr_merged'\n        AND timestamp >= now() - INTERVAL 30 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY target_branch\nORDER BY target_branch\nLIMIT 2"
+          "query": "SELECT target_branch,\n    quantile(0.5)(open_to_merge_seconds) / 3600.0 AS p50_hours,\n    quantile(0.95)(open_to_merge_seconds) / 3600.0 AS p95_hours,\n    count() AS observed_merged_prs\nFROM (\n    SELECT uuid,\n        any(properties.target_branch) AS target_branch,\n        max(toFloat(properties.open_to_merge_seconds)) AS open_to_merge_seconds\n    FROM events\n    WHERE event = 'pitchcrew_pr_merged'\n        AND timestamp >= now() - INTERVAL 7 DAY AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n    GROUP BY uuid\n)\nGROUP BY target_branch\nORDER BY target_branch\nLIMIT 2"
+        },
+        "display": "ActionsBar",
+        "chartSettings": {
+          "showNullsAsZero": false,
+          "showTotalRow": false,
+          "showLegend": true,
+          "xAxis": {
+            "column": "target_branch"
+          },
+          "yAxis": [
+            {
+              "column": "p50_hours",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": " h",
+                  "decimalPlaces": 2
+                }
+              }
+            },
+            {
+              "column": "p95_hours",
+              "settings": {
+                "formatting": {
+                  "style": "number",
+                  "suffix": " h",
+                  "decimalPlaces": 2
+                }
+              }
+            }
+          ]
         }
       }
     }

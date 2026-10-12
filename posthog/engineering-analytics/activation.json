@@ -1,0 +1,254 @@
+{
+  "project_id": 295060,
+  "status": "manual_repository_import_and_dashboard_active",
+  "verified_at_utc": "2026-10-12T19:28:56Z",
+  "definition_status": "noncanonical",
+  "dashboard": {
+    "id": 1018325,
+    "name": "Engineering delivery (repository metadata)",
+    "url": "https://eu.posthog.com/project/295060/dashboard/1018325",
+    "filters": {
+      "date_from": "-7d"
+    }
+  },
+  "import": {
+    "source": "public GitHub REST metadata, HitBox38/PitchCrew",
+    "lookback_days": 7,
+    "opt_in": "explicit local invocation; repository variables unchanged",
+    "observed_persisted_at_utc": "2026-10-12T19:26:08Z",
+    "last_event_created_at_utc": "2026-10-12T19:25:33.043Z",
+    "counts": {
+      "pitchcrew_ci_run_completed": 84,
+      "pitchcrew_ci_job_completed": 802,
+      "pitchcrew_ci_step_completed": 1690,
+      "pitchcrew_pr_merged": 27
+    },
+    "all_counts_equal_distinct_uuid_counts": true,
+    "earliest_event_timestamp_utc": "2026-10-05T19:49:04Z",
+    "latest_event_timestamp_utc": "2026-10-12T19:07:33Z"
+  },
+  "insights": [
+    {
+      "key": "ci_attempt_outcomes",
+      "id": 6518478,
+      "short_id": "5HHYQOHW",
+      "url": "https://eu.posthog.com/project/295060/insights/5HHYQOHW",
+      "tile_id": 7390289,
+      "display": "ActionsStackedBar",
+      "layouts": {
+        "sm": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 0
+        }
+      },
+      "result_rows": 10,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["2026-10-04", "pull_request / cancelled", 7],
+        ["2026-10-04", "pull_request / failure", 13],
+        ["2026-10-04", "pull_request / success", 28],
+        ["2026-10-04", "push / failure", 1],
+        ["2026-10-04", "push / success", 19],
+        ["2026-10-11", "pull_request / cancelled", 2],
+        ["2026-10-11", "pull_request / failure", 3],
+        ["2026-10-11", "pull_request / success", 7],
+        ["2026-10-11", "push / failure", 1],
+        ["2026-10-11", "push / success", 3]
+      ]
+    },
+    {
+      "key": "ci_attempt_success",
+      "id": 6518479,
+      "short_id": "eDRBLIFG",
+      "url": "https://eu.posthog.com/project/295060/insights/eDRBLIFG",
+      "tile_id": 7390290,
+      "display": "ActionsLineGraph",
+      "layouts": {
+        "sm": {
+          "h": 6,
+          "w": 4,
+          "x": 8,
+          "y": 0
+        }
+      },
+      "result_rows": 2,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["2026-10-04", 69.11764705882354, 68],
+        ["2026-10-11", 62.5, 16]
+      ]
+    },
+    {
+      "key": "ci_job_span",
+      "id": 6518480,
+      "short_id": "vSIeIap4",
+      "url": "https://eu.posthog.com/project/295060/insights/vSIeIap4",
+      "tile_id": 7390291,
+      "display": "ActionsLineGraph",
+      "layouts": {
+        "sm": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 6
+        }
+      },
+      "result_rows": 2,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["2026-10-04", 434, 2823.8499999999976, 68],
+        ["2026-10-11", 449.5, 682.5, 16]
+      ]
+    },
+    {
+      "key": "ci_job_timings",
+      "id": 6518481,
+      "short_id": "FiXrKFYz",
+      "url": "https://eu.posthog.com/project/295060/insights/FiXrKFYz",
+      "tile_id": 7390292,
+      "display": "ActionsBarValue",
+      "layouts": {
+        "sm": {
+          "h": 8,
+          "w": 6,
+          "x": 0,
+          "y": 12
+        }
+      },
+      "result_rows": 11,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["desktop_windows", 137.5, 826.499999999997, 84],
+        ["installer_macos_x64", 361, 637.9999999999998, 74],
+        ["installer_linux", 333, 393.75, 74],
+        ["tests_node24", 169.5, 355.7499999999992, 84],
+        ["tests_node22", 181, 329.0499999999996, 84],
+        ["quality", 35.5, 328.4499999999982, 84],
+        ["installer_windows", 232.5, 304.7, 74],
+        ["installer_macos_arm64", 177.5, 279.15, 74],
+        ["desktop_macos", 104, 156.79999999999995, 84],
+        ["aggregate", 3, 5, 84],
+        ["other", 0, 0, 2]
+      ]
+    },
+    {
+      "key": "ci_build_timings",
+      "id": 6518482,
+      "short_id": "rbEh9lZc",
+      "url": "https://eu.posthog.com/project/295060/insights/rbEh9lZc",
+      "tile_id": 7390293,
+      "display": "ActionsTable",
+      "layouts": {
+        "sm": {
+          "h": 8,
+          "w": 6,
+          "x": 6,
+          "y": 12
+        }
+      },
+      "result_rows": 6,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["installer_linux", "installer_build", 270, 326, 74],
+        ["installer_macos_arm64", "installer_build", 89, 136.39999999999995, 73],
+        ["installer_macos_x64", "installer_build", 202, 423.7999999999998, 73],
+        ["installer_windows", "installer_build", 117.5, 138.7, 74],
+        ["quality", "app_build", 3, 4, 78],
+        ["quality", "landing_build", 9, 11, 18]
+      ]
+    },
+    {
+      "key": "ci_repeat_attempt_share",
+      "id": 6518483,
+      "short_id": "ObMPkBDG",
+      "url": "https://eu.posthog.com/project/295060/insights/ObMPkBDG",
+      "tile_id": 7390294,
+      "display": "ActionsLineGraph",
+      "layouts": {
+        "sm": {
+          "h": 6,
+          "w": 4,
+          "x": 8,
+          "y": 6
+        }
+      },
+      "result_rows": 2,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["2026-10-04", 7.352941176470588, 68],
+        ["2026-10-11", 6.25, 16]
+      ]
+    },
+    {
+      "key": "pr_throughput",
+      "id": 6518484,
+      "short_id": "dBITQrrl",
+      "url": "https://eu.posthog.com/project/295060/insights/dBITQrrl",
+      "tile_id": 7390295,
+      "display": "ActionsBar",
+      "layouts": {
+        "sm": {
+          "h": 6,
+          "w": 8,
+          "x": 0,
+          "y": 20
+        }
+      },
+      "result_rows": 3,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["2026-10-04", "main", 21],
+        ["2026-10-11", "dev", 4],
+        ["2026-10-11", "main", 2]
+      ]
+    },
+    {
+      "key": "pr_open_to_merge",
+      "id": 6518485,
+      "short_id": "qgLxIIDM",
+      "url": "https://eu.posthog.com/project/295060/insights/qgLxIIDM",
+      "tile_id": 7390296,
+      "display": "ActionsBar",
+      "layouts": {
+        "sm": {
+          "h": 6,
+          "w": 4,
+          "x": 8,
+          "y": 20
+        }
+      },
+      "result_rows": 2,
+      "warnings": null,
+      "is_cached": false,
+      "verification_rows": [
+        ["dev", 0.98375, 4.188944444444443, 4],
+        ["main", 1.3094444444444444, 13.580555555555554, 23]
+      ]
+    }
+  ],
+  "validation": {
+    "full_dashboard_inventory_before_creation": 8,
+    "complete_saved_insight_inventory_before_creation": 39,
+    "existing_engineering_dashboard_or_insight": false,
+    "engineering_template_matches": 0,
+    "all_eight_queries_executed_before_saving": true,
+    "all_eight_saved_insights_force_recalculated_with_real_rows": true,
+    "complete_mixed_sm_layouts_read_back": true,
+    "nonoverlapping_12_column_layout": true,
+    "query_window": "rolling 7 days, fixed in SQL",
+    "time_buckets": "Asia/Jerusalem calendar weeks, Sunday start; rolling window produces partial first/last weeks",
+    "catalog": "complete ordered SQL metric catalog read returned zero rows; no approved match",
+    "taxonomy": "Actual event/property shapes confirmed after genuine import; discovery snapshots briefly lagged step/PR ingestion"
+  },
+  "ongoing_collection": "manual only; no repository variables, scheduled workflow, subscriptions or other dashboard changes",
+  "native_engineering_analytics": "unavailable: source connector discovery disabled; no native source, trace-based flaky-test ranking or runner costs activated"
+}
