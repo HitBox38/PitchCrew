@@ -8,7 +8,7 @@ import {
   type RuntimeId,
   type RuntimeModelCatalog,
 } from '@pitchcrew/core';
-import { ComputerManager } from '@pitchcrew/mcp/computer';
+import { type BrowserDriver, ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { join } from 'node:path';
 import { ProfileSourceManager } from '../profile-sources/index.ts';
@@ -52,6 +52,7 @@ export function createCrewContext(
   daemonUrl: string,
   mcpEntry: string,
   dev = false,
+  browserLaunch?: (profile?: string) => Promise<BrowserDriver>,
 ): CrewContext {
   const onboarding = new OnboardingPreferences(directory);
   const board = new Board(join(directory, 'pitchcrew.db'));
@@ -70,7 +71,7 @@ export function createCrewContext(
     jobSources: new JobSourceManager(directory, board),
     profileWriting: false,
     profileRevision: 0,
-    computer: new ComputerManager(board, directory),
+    computer: new ComputerManager(board, directory, browserLaunch),
     capabilities: new Map<string, { runId: string; cardId: string | null; roleId: RoleId }>(),
     controllers: new Map<string, AbortController>(),
     streamingMessages: new Map<string, ChatMessage>(),

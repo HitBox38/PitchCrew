@@ -4,11 +4,15 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, vi } from 'vitest';
-import { createDaemon } from '../../src/server.ts';
+import { type DaemonOptions, createDaemon } from '../../src/server.ts';
 
 export const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] =
   [];
-export async function setup(port: number, seedSkills = false, options: { dev?: boolean } = {}) {
+export async function setup(
+  port: number,
+  seedSkills = false,
+  options: Pick<DaemonOptions, 'dev' | 'browserLaunch'> = {},
+) {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
   const daemon = await createDaemon({ directory, port, seedSkills, dev: true, ...options });
   resources.push({ daemon, directory });

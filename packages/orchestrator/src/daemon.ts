@@ -78,4 +78,8 @@ export async function runDaemon(argv: readonly string[]) {
     process.on(signal, () => {
       void stop();
     });
+  // The packaged launcher uses IPC for graceful shutdown on Windows as well as Unix.
+  process.on('message', (message) => {
+    if (message === 'pitchcrew:stop') void stop();
+  });
 }

@@ -5,12 +5,13 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import metadata from '../../../package.json' with { type: 'json' };
 import { readAppBuild } from '../src/app-updates/build.ts';
 import { createAppUpdateChecker } from '../src/app-updates/index.ts';
 import { registerAppUpdateRoutes } from '../src/http/routes/app-updates.ts';
 import { registerSessionSecurity } from '../src/http/security.ts';
 
-const current = { version: '0.1.0', commit: 'a'.repeat(40), packaged: true };
+const current = { version: metadata.version, commit: 'a'.repeat(40), packaged: true };
 const latest = 'b'.repeat(40);
 const release = { tag_name: `build-${latest}`, draft: false, prerelease: false };
 const json = (value: unknown) => new Response(JSON.stringify(value));

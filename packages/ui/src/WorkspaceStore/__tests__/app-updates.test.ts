@@ -1,12 +1,15 @@
 import { afterEach, expect, it, vi } from 'vitest';
-import type { AppUpdateInfo } from '@pitchcrew/core';
+import type { AppUpdateInfo, DesktopUpdateBridge, DesktopUpdateState } from '@pitchcrew/core';
 import { api } from '../../api.ts';
 import { createWorkspaceStore } from '../index.ts';
 
 vi.mock('@/api.ts', () => ({ api: vi.fn() }));
 vi.mock('../../api.ts', () => ({ api: vi.fn() }));
 vi.mock('@/chat-stream.ts', () => ({ subscribeChatStream: vi.fn() }));
-afterEach(() => vi.clearAllMocks());
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
 
 const available: AppUpdateInfo = {
   current: { version: '0.1.0', commit: 'a'.repeat(40), packaged: true },
@@ -99,4 +102,41 @@ it('restores an available build when a manual check joins an automatic check', a
   await Promise.all([automatic, manual]);
   expect(api).toHaveBeenCalledTimes(1);
   expect(store.getState().dismissedAppUpdate).toBeNull();
+});
+
+it('shares native updater state and actions while retaining browser release information', async () => {
+  const state: DesktopUpdateState = {
+    enabled: true,
+    currentVersion: '0.1.0',
+    status: 'available',
+    availableVersion: '0.2.0',
+    downloadedVersion: null,
+    downloadPercent: null,
+    checkedAt: null,
+    message: 'Ready to download.',
+  };
+  const downloaded = { ...state, status: 'downloaded' as const, downloadedVersion: '0.2.0' };
+  const bridge: DesktopUpdateBridge = {
+    getState: vi.fn(async () => state),
+    check: vi.fn(async () => state),
+    download: vi.fn(async () => downloaded),
+    install: vi.fn(async () => downloaded),
+    subscribe: vi.fn(() => () => {}),
+  };
+  vi.stubGlobal('window', { pitchcrewUpdates: bridge });
+  vi.mocked(api).mockResolvedValue(available);
+  const store = createWorkspaceStore();
+  await store.getState().loadAppUpdate();
+  expect(store.getState().desktopUpdate).toEqual(state);
+  store.getState().dismissAppUpdate();
+  expect(store.getState().dismissedAppUpdate).toBe('0.2.0');
+  await store.getState().checkAppUpdate(false);
+  expect(store.getState().dismissedAppUpdate).toBe('0.2.0');
+  await store.getState().checkAppUpdate();
+  expect(store.getState().dismissedAppUpdate).toBeNull();
+  expect(bridge.check).toHaveBeenCalledTimes(2);
+  await store.getState().downloadDesktopUpdate();
+  expect(store.getState().desktopUpdate?.downloadedVersion).toBe('0.2.0');
+  await store.getState().installDesktopUpdate();
+  expect(bridge.install).toHaveBeenCalledTimes(1);
 });

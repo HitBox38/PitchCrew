@@ -4,8 +4,11 @@ import { BrowserActionSummary } from './BrowserActionSummary.tsx';
 import { BrowserApprovalActions } from './BrowserApprovalActions.tsx';
 import type { ComputerApprovalsProps } from '../types.ts';
 
-type Props = Pick<ComputerApprovalsProps, 'action' | 'working'> & { approval: ComputerApproval };
-export function BrowserApprovalContent({ approval, action, working }: Props) {
+type Props = Pick<ComputerApprovalsProps, 'action' | 'working'> & {
+  approval: ComputerApproval;
+  showActions?: boolean;
+};
+export function BrowserApprovalContent({ approval, action, working, showActions = true }: Props) {
   const role = approval.roleId[0].toUpperCase() + approval.roleId.slice(1);
   return (
     <>
@@ -47,6 +50,8 @@ export function BrowserApprovalContent({ approval, action, working }: Props) {
           className="computer-page-preview"
           src={`data:image/jpeg;base64,${approval.page.screenshot}`}
           alt="Browser page when this action was requested"
+          width={approval.page.viewport?.width ?? 1280}
+          height={approval.page.viewport?.height ?? 800}
         />
         <pre>{approval.page.text}</pre>
       </details>
@@ -59,7 +64,9 @@ export function BrowserApprovalContent({ approval, action, working }: Props) {
           {approval.error}
         </p>
       ) : null}
-      <BrowserApprovalActions approval={approval} action={action} working={working} />
+      {showActions ? (
+        <BrowserApprovalActions approval={approval} action={action} working={working} />
+      ) : null}
     </>
   );
 }

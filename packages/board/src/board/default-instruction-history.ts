@@ -111,6 +111,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       date: '2026-10-04',
       summary: 'First default: inspect forms and submit only with exact approvals.',
     },
+    {
+      revision: '0edf890781c8ba2d',
+      date: '2026-10-12',
+      summary:
+        'Uses chat browser supervision, user-granted autonomous preparation and private manual takeover; submission still requires exact approval.',
+    },
   ],
   tracker: [
     {

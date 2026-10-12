@@ -18,6 +18,7 @@ export const eventKindLabels = {
   skill: 'Skills',
   skill_proposal: 'Skill suggestions',
   computer_approval: 'Browser approvals',
+  browser_site_permission: 'Browser site access',
   profile_proposal: 'Profile updates',
   form_assessment: 'Form assessments',
   submission_attempt: 'Submission receipts',

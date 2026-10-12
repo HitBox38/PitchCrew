@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { browserModeSchema, type BrowserMode } from './computer.ts';
 import { reasoningLevels, type ReasoningLevel } from './reasoning.ts';
 import { isRoleId, roleIds, runtimeIds, type RoleId, type RuntimeId } from './states.ts';
 
@@ -17,6 +18,7 @@ export interface Role {
   workflow?: 'scout' | 'writer' | 'reviewer' | 'chat';
   retiredAt?: string | null;
   capabilities?: AgentCapabilities;
+  browserMode?: BrowserMode;
 }
 export const capabilitySchema = z.object({
   messageAgents: z.boolean(),
@@ -85,6 +87,7 @@ export const roleIdSchema = z
   .string()
   .refine(isRoleId, 'Use a safe lowercase role ID (up to 48 characters).');
 export const rolePatch = z.object({
+  browserMode: browserModeSchema.optional(),
   name: z.string().trim().min(1).max(80).optional(),
   description: z.string().trim().min(1).max(500).optional(),
   workflow: z.enum([...roleIds, 'chat']).optional(),

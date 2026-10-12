@@ -55,7 +55,8 @@ export const toolHelp = {
     'Scans only the job sources you save in Settings. Agents cannot add sources or URLs.',
   maintainProfile:
     'Requires GitHub or Drive access and watched sources set up in Profile. Every update needs your review.',
-  computerUse: 'Open an isolated browser. Each interaction needs your exact-action approval.',
+  computerUse:
+    'Open this agent’s local browser in chat. Supervised mode asks for each interaction; bounded autonomous preparation is optional.',
   assessForms: 'Requires browser access. Inspect fields and report what an application form needs.',
   recordSubmissions:
     'Requires browser access. Submission actions and exported documents still need approval; confirmation must be verified.',

@@ -60,13 +60,15 @@ execFileSync(
     'install',
     '--filter',
     '@pitchcrew/orchestrator...',
+    '--filter',
+    '@pitchcrew/desktop',
     '--prod',
     '--frozen-lockfile',
     '--config.nodeLinker=hoisted',
   ],
   { cwd: runtime, stdio: 'inherit' },
 );
-await pruneRuntimeDependencies(runtime);
+await pruneRuntimeDependencies(runtime, ['desktop']);
 await materializeWorkspacePackages(runtime);
 execFileSync(
   process.execPath,

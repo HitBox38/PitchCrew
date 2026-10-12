@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { updatesKey, useDevicePreferences } from '@/lib/device-preferences.ts';
+import { desktopUpdateBridge } from '../desktop.ts';
 
 export function useAutomaticUpdates() {
   const enabled = useDevicePreferences((state) => state.automaticUpdates);
@@ -33,4 +34,11 @@ export function useAutomaticUpdates() {
       window.removeEventListener('storage', synchronize);
     };
   }, [enabled, load, check]);
+  useEffect(
+    () =>
+      desktopUpdateBridge()?.subscribe((state) => {
+        useWorkspaceStore.getState().setDesktopUpdate(state);
+      }),
+    [],
+  );
 }

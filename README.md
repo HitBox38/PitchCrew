@@ -13,7 +13,7 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 - **Find openings.** Save public Greenhouse, Ashby, Lever, Comeet and Workable job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it. Paste a single posting link in Add job to fill in its details.
 - **Prepare applications.** Scout evaluates fit, Writer drafts a packet, and Reviewer checks it against your profile. Packets include a resume, cover letter, form answers, notes and supporting claims.
 - **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat in named direct conversations or groups. Agents can hand off work through the board when their permissions allow it.
-- **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
+- **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional browser panel in Chat shows each agent’s local browser, with manual takeover, saved sign-ins and supervised or bounded autonomous preparation. Final submission requires approval.
 - **Track progress.** Record submissions, interviews and outcomes, including applications made outside Pitchcrew. With Gmail access, Tracker can reconcile supported status updates and flag uncertain matches for review.
 - **Learn from outcomes.** Rate how each application went, note lessons, and see outcomes, weights and lessons by tag on **Insights**. Merge duplicate tags, and mark silent applications as no response after you review a preview. Agents with application or pipeline access read these signals before they write; only you can change them. See [insights](docs/insights.md).
 - **Maintain your background.** Import profile notes from GitHub or Google Drive. Documenter can watch selected sources and propose updates for your review.
@@ -23,7 +23,7 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 Download a production installer from [GitHub Releases](https://github.com/HitBox38/PitchCrew/releases): Windows x64 (`.exe`), macOS Apple Silicon or Intel (`.dmg`), or Linux x64 (`.AppImage`/`.deb`). Installers include Node.js, the daemon, its dependencies and Chromium; configure provider CLIs and authentication separately. Windows and macOS builds are unsigned and macOS builds are not notarized, so your operating system may require permission to open them. Each successful push to `main` publishes a commit-tagged release after CI and packaged-app checks pass. Existing data stays in `~/.pitchcrew`.
 
-Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > General shows your version, **Check for updates**, and a switch for automatic checks. Update notices open the matching GitHub release so you can download and install it yourself. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
+Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > General shows your version, **Check for updates**, and a switch for automatic checks. Supported Windows and Linux installations offer **Download update**, then **Install and restart** after confirmation; active agents are interrupted and your saved data stays in place. Unsigned Mac builds, browser sessions and source launches use the matching release page for manual installation. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
 
 For development from source:
 
@@ -167,7 +167,7 @@ Install the local browser:
 pnpm browser:install
 ```
 
-Enable **Computer use** for an agent and ask it to help with an application. It opens a visible, isolated Chromium window. The agent can inspect pages; navigation, clicks, fills, selections, keypresses and exported-packet uploads each require an approval in **Inbox**. Sign-in and CAPTCHA handling stay manual.
+Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, a compact agent menu and manual takeover for login or CAPTCHA. **Supervised** asks before every interaction beside the browser or in **Inbox**. **Autonomous preparation** prepares recognized hosted forms on task sites you allow; unfamiliar controls and final submission still require approval. Set an agent default or override it per conversation. Scheduled routines stay supervised.
 
 Browser approvals allow one exact interaction on the reviewed page and expire when the run ends. Optional form assessments save inspected requirements for Writer. Submission receipts capture approved attempts; uncertain outcomes pause further interactions until you verify the result. See [computer use](docs/computer-use.md).
 
@@ -198,9 +198,11 @@ pnpm dev
 - Computer use covers an isolated Chromium browser, not the whole desktop.
 - Packet checks verify registered quotations and your mechanical packet rules. They cannot prove every sentence is factual; review the complete packet.
 - Formatted exports use one built-in template per document, and DOCX page counts are estimates. PDF covers Latin, Greek, Cyrillic and Hebrew with its own fonts. Japanese, Chinese and Korean need an installed font such as Yu Gothic, Hiragino or Noto Sans CJK; see [packet exports](docs/packet-exports.md#fonts-and-characters). Arabic and Indic scripts export as DOCX only.
-- Automatic update installation is deferred. Live provider execution is outside automated verification.
+- Supported installed Windows/Linux builds offer an explicit download followed by confirmed installation and restart. Unsigned Mac builds use manual installation. Live provider execution is outside automated verification.
 
 ## Development
+
+Create feature, fix, refactor, documentation and maintenance branches from the latest `dev`, and open their pull requests against `dev`. Production releases use a `dev` → `main` pull request that includes a version bump in the root `package.json` and matching workspace package versions, a change summary and validation. Use semantic versions (`MAJOR.MINOR.PATCH`), choosing and explaining the bump in each release PR: patch for fixes, minor for backward-compatible features and major for breaking changes. After required CI passes and the release merges, merge `main` back into `dev` before starting subsequent work. See [branch and release rules](AGENTS.md#branch-and-release-workflow).
 
 The standalone public landing page uses Next.js in `packages/landing`. Run `pnpm landing:dev` at **http://127.0.0.1:3000**, `pnpm landing:build` for its production build, and `pnpm landing:start` to serve that build. It is independent of the local app and uses fictional demo screenshots. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
 

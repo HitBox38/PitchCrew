@@ -193,7 +193,10 @@ describe('default instruction detection', () => {
     const submitter = status(board, 'submitter')!;
     expect(submitter.state).toBe('unknown_base');
     expect(submitter.base).toBeUndefined();
-    expect(submitter.changes.map((change) => change.revision)).toEqual(['9dd6837b3291ebae']);
+    expect(submitter.changes.map((change) => change.revision)).toEqual([
+      '9dd6837b3291ebae',
+      '0edf890781c8ba2d',
+    ]);
   });
 
   it('ignores user-created roles that reserved a default ID before seeding', () => {

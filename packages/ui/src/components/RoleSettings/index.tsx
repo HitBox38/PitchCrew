@@ -1,3 +1,4 @@
+import { BrowserSettings } from './components/BrowserSettings.tsx';
 import { AgentMemory } from '@/AgentMemory/index.tsx';
 import { IdentitySettings } from './components/IdentitySettings.tsx';
 import { RoleInstructionUpdate } from './components/RoleInstructionUpdate.tsx';
@@ -50,6 +51,7 @@ export function RoleSettings(props: RoleSettingsProps) {
             <RoleInstructionUpdate {...controller} />
             <InstructionSettings {...controller} />
             <CapabilitySettings {...controller} />
+            <BrowserSettings {...controller} />
             {controller.creating ? (
               <p className="quiet">Save the role, then assign skills from its settings.</p>
             ) : (

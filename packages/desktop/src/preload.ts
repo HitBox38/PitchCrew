@@ -1,6 +1,23 @@
-import { ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron';
+import type { DesktopUpdateBridge, DesktopUpdateState } from '../../core/src/desktop-updates.ts';
+import { updateChannels } from './updates/ipc.ts';
 
-// Keep Electron APIs in the isolated preload; the page only sees layout attributes.
+const updates: DesktopUpdateBridge = {
+  getState: () => ipcRenderer.invoke(updateChannels.state),
+  check: () => ipcRenderer.invoke(updateChannels.check),
+  download: () => ipcRenderer.invoke(updateChannels.download),
+  install: () => ipcRenderer.invoke(updateChannels.install),
+  subscribe(listener) {
+    const receive = (_event: unknown, state: DesktopUpdateState) => listener(state);
+    ipcRenderer.on(updateChannels.changed, receive);
+    return () => {
+      ipcRenderer.removeListener(updateChannels.changed, receive);
+    };
+  },
+};
+contextBridge.exposeInMainWorld('pitchcrewUpdates', updates);
+
+// Keep Electron APIs isolated; only the narrow update bridge and layout attributes reach the page.
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
   root.dataset.desktop = process.platform;

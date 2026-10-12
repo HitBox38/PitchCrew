@@ -11,12 +11,18 @@ import {
 } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
-export async function pruneRuntimeDependencies(runtime) {
+export async function pruneRuntimeDependencies(runtime, additionalPackages = []) {
   runtime = await realpath(runtime);
   const modules = join(runtime, 'node_modules');
   const visited = new Set();
   const needed = new Set();
-  const queue = [join(runtime, 'packages/orchestrator')];
+  const queue = [
+    join(runtime, 'packages/orchestrator'),
+    ...additionalPackages.map((name) => {
+      if (!/^[a-z-]+$/.test(name)) throw new Error('Invalid runtime package name.');
+      return join(runtime, 'packages', name);
+    }),
+  ];
   const findDependency = async (folder, name) => {
     if (!/^(?:@[\w.-]+\/)?[\w.-]+$/.test(name)) throw new Error('Invalid dependency name.');
     for (let current = folder; current.startsWith(runtime); current = dirname(current)) {

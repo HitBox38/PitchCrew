@@ -6,6 +6,7 @@ import { Download, RefreshCw } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { UpdateDetails } from './components/UpdateDetails.tsx';
 import { useManualUpdateCheck } from './hooks/useManualUpdateCheck.ts';
+import { DesktopAppUpdates } from './components/DesktopAppUpdates.tsx';
 
 export function AppUpdates() {
   const trigger = useRef<HTMLButtonElement>(null);
@@ -15,6 +16,7 @@ export function AppUpdates() {
   const dismiss = useWorkspaceStore((state) => state.dismissAppUpdate);
   const checking = useWorkspaceStore((state) => state.checkingAppUpdate);
   const check = useManualUpdateCheck();
+  const native = useWorkspaceStore((state) => state.desktopUpdate?.enabled);
   const disabled = info?.status === 'disabled';
   const available = !!(
     info?.status === 'available' &&
@@ -32,6 +34,7 @@ export function AppUpdates() {
     setOpen(false);
     dismiss();
   };
+  if (native) return <DesktopAppUpdates />;
   return (
     <SidebarMenuItem className="ml-auto shrink-0 group-data-[collapsible=icon]:ml-0">
       <Popover open={available && open} onOpenChange={(next) => setOpen(available && next)}>

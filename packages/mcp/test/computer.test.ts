@@ -115,6 +115,11 @@ it('rejects decisions after run end and aborts waiting without acting', async ()
   controller.abort();
   await expect(waiting).rejects.toThrow();
   await manager.stop(scope.runId);
+  expect(driver.close).not.toHaveBeenCalled();
+  expect(manager.browsers.list()).toMatchObject([
+    { roleId: 'writer', runId: null, status: 'open' },
+  ]);
+  await manager.close();
   expect(driver.close).toHaveBeenCalledOnce();
   expect(driver.perform).not.toHaveBeenCalled();
   expect(() => manager.decide(approval.id, true)).toThrow('no longer pending');
