@@ -19,7 +19,7 @@ function bindings() {
       confirmed: true,
       recurrenceVerified: true,
       weekday: 'sunday',
-      timeZone: 'Asia/Jerusalem',
+      timeZone: 'UTC',
       startDate: '2026-10-18T09:00:00+03:00',
     },
     existingSubscriptionsComplete: true,
@@ -180,8 +180,8 @@ test('validates explicit timezone, weekday, half-hour schedule and future anchor
     assert.throws(() => planScheduledReports(manifest, input, now));
   }
   const input = bindings();
-  Object.assign(input.schedule, { startDate: '2026-11-01T09:00:00+02:00' });
-  assert.equal(planScheduledReports(manifest, input, now).scheduleTimeZone, 'Asia/Jerusalem');
+  Object.assign(input.schedule, { startDate: '2026-11-01T08:00:00+02:00' });
+  assert.equal(planScheduledReports(manifest, input, now).scheduleTimeZone, 'UTC');
 });
 
 test('CLI writes private payload exclusively and never prints recipient, including on failure', async () => {
@@ -190,13 +190,12 @@ test('CLI writes private payload exclusively and never prints recipient, includi
     const inputPath = join(directory, 'bindings.json');
     const outputPath = join(directory, 'plan.json');
     const input = bindings();
-    input.schedule.startDate = '2099-01-04T09:00:00+02:00';
+    input.schedule.startDate = '2099-01-04T06:00:00Z';
     // Choose the confirmed weekday without depending on the machine clock.
     let date = new Date(input.schedule.startDate);
     while (
-      new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'Asia/Jerusalem' }).format(
-        date,
-      ) !== 'Sunday'
+      new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'UTC' }).format(date) !==
+      'Sunday'
     )
       date = new Date(date.getTime() + 86400_000);
     input.schedule.startDate = date.toISOString().replace('.000Z', 'Z');

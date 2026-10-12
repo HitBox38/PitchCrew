@@ -7,9 +7,10 @@
   "interval": 1,
   "schedule": {
     "weekday": "sunday",
-    "localTime": "09:00",
-    "timeZone": "Asia/Jerusalem",
-    "confirmed": true
+    "localTime": "06:00",
+    "timeZone": "UTC",
+    "confirmed": true,
+    "recurrence": "fixed-utc"
   },
   "sendTestNow": false,
   "summaryEnabled": false,
@@ -47,5 +48,12 @@
       "topics": ["CI runs", "CI duration", "CI failures", "pull request throughput"],
       "coverageNote": "Engineering data describes repository automation, not app users. Show unavailable source integrations as Not collected."
     }
-  ]
+  ],
+  "requestedSchedule": {
+    "weekday": "sunday",
+    "localTime": "09:00",
+    "timeZone": "Asia/Jerusalem",
+    "confirmed": true
+  },
+  "deliveryTimeChoice": "User approved fixed 06:00 UTC; Jerusalem time shifts with DST."
 }
