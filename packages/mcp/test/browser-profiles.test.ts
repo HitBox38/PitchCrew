@@ -14,8 +14,9 @@ it('retains sign-ins across hidden browser restarts, isolates agents and resets 
   const spy = vi
     .spyOn(chromium, 'launchPersistentContext')
     .mockImplementation(async (profile, options) => {
-      expect(options?.headless).toBe(true);
-      const context = await launch(profile, options);
+      expect(options).toMatchObject({ headless: true, chromiumSandbox: true });
+      // Fictional fixture pages only: hosted Linux runners lack a usable Chromium sandbox.
+      const context = await launch(profile, { ...options, chromiumSandbox: false });
       contexts.push(context);
       return context;
     });

@@ -15,7 +15,9 @@ it('reflows the real page, keeps frame dimensions and clicks accurate, and prese
   const spy = vi
     .spyOn(chromium, 'launchPersistentContext')
     .mockImplementation(async (profile, options) => {
-      context = await launch(profile, options);
+      expect(options).toMatchObject({ headless: true, chromiumSandbox: true });
+      // Fictional fixture pages only: hosted Linux runners lack a usable Chromium sandbox.
+      context = await launch(profile, { ...options, chromiumSandbox: false });
       return context;
     });
   const manager = new ComputerManager(board, directory);
