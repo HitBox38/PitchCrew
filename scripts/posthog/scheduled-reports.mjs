@@ -133,9 +133,13 @@ export function planScheduledReports(manifest, bindings, now = new Date()) {
     fail(typeof report.title === 'string' && report.title.length > 0, 'Each report needs a title');
     const binding = bindings.reports?.[report.key];
     fail(binding && positiveId(binding.dashboardId), `Resolve dashboard for ${report.key}`);
+    const reviewedRepositoryPopulation =
+      report.key === 'engineering' &&
+      binding.population === 'public-repository' &&
+      binding.repositoryFiltersReviewed === true;
     fail(
       binding.periodDays === 7 &&
-        binding.filterTestAccounts === true &&
+        (binding.filterTestAccounts === true || reviewedRepositoryPopulation) &&
         binding.coverageReviewed === true,
       `Review period, filters and coverage for ${report.key}`,
     );

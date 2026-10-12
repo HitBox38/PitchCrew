@@ -167,6 +167,21 @@ test('requires reviewed filters, tile membership, unique IDs and at most ten sel
   }
 });
 
+test('engineering repository filtering is a reviewed exception, never an app-user cohort claim', () => {
+  const input = bindings();
+  input.reports.engineering.filterTestAccounts = false;
+  input.reports.engineering.population = 'public-repository';
+  assert.throws(() => planScheduledReports(manifest, input, now), /Review period/);
+  input.reports.engineering.repositoryFiltersReviewed = true;
+  assert.equal(planScheduledReports(manifest, input, now).operations[4].action, 'create');
+  Object.assign(input.reports.product, {
+    filterTestAccounts: false,
+    population: 'public-repository',
+    repositoryFiltersReviewed: true,
+  });
+  assert.throws(() => planScheduledReports(manifest, input, now), /Review period/);
+});
+
 test('validates explicit timezone, weekday, half-hour schedule and future anchor', () => {
   for (const schedule of [
     { startDate: '2026-10-18T09:15:00+03:00' },
