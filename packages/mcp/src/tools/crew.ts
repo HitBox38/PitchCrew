@@ -1,4 +1,5 @@
 import { registerConversationTools } from './conversations.ts';
+import { registerJobTools } from './jobs.ts';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   roleChanges,
@@ -12,6 +13,7 @@ import { readOnly } from './constants.ts';
 
 export function registerCrewTools(server: McpServer, call: AgentCall) {
   registerConversationTools(server, call);
+  registerJobTools(server, call);
   server.registerTool(
     'pitchcrew_ask_user',
     {
@@ -111,20 +113,6 @@ export function registerCrewTools(server: McpServer, call: AgentCall) {
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },
     (input) => call('propose', input),
-  );
-  server.registerTool(
-    'pitchcrew_change_workflow',
-    {
-      title: 'Update attached job workflow',
-      description:
-        'Shortlist a lead or request changes to a packet. Cannot bypass drafting, review, export approval or manual submission. Rejects changes while the card has an active workflow run.',
-      inputSchema: {
-        state: z.enum(['shortlisted', 'changes_requested']),
-        reason: z.string().trim().min(1).max(2000),
-      },
-      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
-    },
-    (input) => call('workflow', input),
   );
   server.registerTool(
     'pitchcrew_propose_skill',

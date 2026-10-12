@@ -364,7 +364,9 @@ export async function startChatRun(
         ...run,
         status: 'completed',
         memoryIds: this.board.get<Run>('run', run.id).memoryIds,
-        outputPacketDigest: packetDigest(cardId ? this.board.get<Card>('card', cardId) : null),
+        outputPacketDigest: packetDigest(
+          this.board.list<Card>('card').find((card) => card.id === cardId) ?? null,
+        ),
         message: `${role.name} replied`,
         finishedAt: new Date().toISOString(),
       },

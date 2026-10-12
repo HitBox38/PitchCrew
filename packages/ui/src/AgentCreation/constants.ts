@@ -38,7 +38,8 @@ export const toolGroups = [
 export const toolHelp = {
   messageAgents: 'Save messages in crew chats.',
   invokeAgents: 'Queue follow-ups after the current turn, up to six per chain.',
-  manageWorkflow: 'Update the attached job within its allowed workflow.',
+  manageWorkflow:
+    'List board jobs, move them between any statuses and delete them, individually or in bulk.',
   manageRoutines: 'Manage schedules. Cross-role schedules also require invoking agents.',
   github: 'Read-only access through your connected GitHub account.',
   gmail: 'Read-only email access through your connected Google account.',

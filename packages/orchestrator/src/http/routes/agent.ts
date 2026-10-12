@@ -1,4 +1,4 @@
-import { roleIdSchema } from '@pitchcrew/core';
+import { roleIdSchema, states } from '@pitchcrew/core';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { CrewService } from '../../service.ts';
@@ -22,7 +22,8 @@ export function registerAgentRoutes(app: FastifyInstance, service: CrewService) 
         reason: z.string().max(2000).optional(),
         changes: z.unknown().optional(),
         suggestion: z.unknown().optional(),
-        state: z.enum(['shortlisted', 'changes_requested']).optional(),
+        state: z.enum(states).optional(),
+        cardId: z.uuid().optional(),
         tool: z.string().max(100).optional(),
         input: z.unknown().optional(),
         routineId: z.uuid().optional(),
