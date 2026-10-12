@@ -1,4 +1,5 @@
 import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answers.ts';
+import { extractApplicationContext } from './crew/application-context/extraction.ts';
 import { createConversation, updateConversation } from './crew/conversations.ts';
 import {
   sendConversation,
@@ -237,6 +238,12 @@ export class CrewService {
   }
   startRun(cardId: string, roleId: RoleId, task?: AgentTask): Promise<Run> {
     return this.context.startRun(cardId, roleId, task);
+  }
+  extractApplicationContext(cardId: string, roleId: RoleId): Promise<Run> {
+    return extractApplicationContext(this.context, cardId, roleId);
+  }
+  startApplicationDraft(cardId: string, roleId: RoleId): Promise<Run> {
+    return this.context.startRun(cardId, roleId, undefined, undefined, true);
   }
   applyResult(
     cardId: string,

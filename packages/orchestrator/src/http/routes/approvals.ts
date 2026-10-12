@@ -1,5 +1,5 @@
 import type { Card, Approval } from '@pitchcrew/core';
-import { digestPacket } from '@pitchcrew/board';
+import { assertReviewedContext, digestPacket } from '@pitchcrew/board';
 import { renderArtifacts, systemFonts, verifiedArtifact } from '@pitchcrew/packet';
 import { resolveSubmission } from '@pitchcrew/mcp/computer';
 import type { FastifyInstance } from 'fastify';
@@ -20,6 +20,7 @@ export function registerApprovalsRoutes(app: FastifyInstance, service: CrewServi
       })
       .parse(req.body ?? {});
     const card = service.board.get<Card>('card', req.params.id);
+    const contextRevision = assertReviewedContext(card).revision;
     if (card.state !== 'agreed' || !card.packet) throw new Error('A reviewed packet is required.');
     const digest = digestPacket(card.id, card.packet);
     // Fonts in the data folder's fonts folder come before installed system fonts.
@@ -27,6 +28,8 @@ export function registerApprovalsRoutes(app: FastifyInstance, service: CrewServi
       fonts: systemFonts({ folders: [join(service.directory, 'fonts')] }),
     });
     const current = service.board.get<Card>('card', card.id);
+    if (assertReviewedContext(current).revision !== contextRevision)
+      throw new Error('Application context changed during rendering.');
     if (!current.packet || digestPacket(card.id, current.packet) !== digest)
       throw new Error('Packet changed during rendering.');
     res.status(201).send(service.board.requestApproval(card.id, artifacts));

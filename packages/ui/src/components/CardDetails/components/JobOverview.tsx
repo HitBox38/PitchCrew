@@ -4,11 +4,22 @@ import { OutcomeActions } from '@/components/CardDetails/components/OutcomeActio
 import type { JobOverviewProps } from '@/components/CardDetails/types.ts';
 import { ApplicationTracking } from '@/ApplicationTracking/index.tsx';
 import { ExternalSubmissionRegistration } from '@/ExternalSubmissionRegistration/index.tsx';
+import type { Role } from '@pitchcrew/core';
+const noRoles: Role[] = [];
 import { LearningSignals } from '@/LearningSignals/index.tsx';
+import { ApplicationBriefReview } from '@/ApplicationBriefReview/index.tsx';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function JobOverview({ card, working, run, act }: JobOverviewProps) {
+export function JobOverview({ card, working, run, act, setBriefDirty }: JobOverviewProps) {
+  const roles = useWorkspaceStore((state) => state.data?.roles ?? noRoles);
   return (
     <>
+      <ApplicationBriefReview
+        card={card}
+        roles={roles}
+        busy={working || Boolean(run)}
+        onDirtyChange={setBriefDirty}
+      />
       <div className="tags mt-2.25 flex flex-wrap gap-1">
         {card.tags.map((tag) => (
           <span key={tag}>{tag}</span>

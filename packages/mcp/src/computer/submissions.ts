@@ -1,4 +1,4 @@
-import { digestPacket, type Board } from '@pitchcrew/board';
+import { assertReviewedContext, digestPacket, type Board } from '@pitchcrew/board';
 import {
   formAssessmentInput,
   type Approval,
@@ -85,6 +85,8 @@ export function currentExport(
     throw new Error('Submission requires an attached card and exact exported packet.');
   const card = board.get<Card>('card', cardId);
   const exported = board.get<Approval>('approval', id);
+  if (!allowRecorded && exported.contextRevision !== assertReviewedContext(card).revision)
+    throw new Error('Exported application context is stale. Confirm and review the packet again.');
   if (
     exported.cardId !== cardId ||
     exported.status !== 'consumed' ||

@@ -47,6 +47,31 @@ export async function finish(request: <T>(path: string) => Promise<{ result: T }
   }
   throw new Error('Run did not finish.');
 }
+/** Explicit UI confirmation used by existing fictional workflow fixtures. */
+export async function confirmFixtureApplication(
+  request: Awaited<ReturnType<typeof setup>>['request'],
+  id: string,
+) {
+  const { result } = await request<{
+    sourceRevision: string;
+    context: { revision: string } | null;
+  }>(`/cards/${id}/application-context`);
+  const response = await request(`/cards/${id}/application-context/confirm`, 'POST', {
+    sourceRevision: result.sourceRevision,
+    expectedRevision: result.context?.revision ?? null,
+    context: {
+      brief: {
+        companyContext: 'Fictional fixture employer.',
+        responsibilities: ['Build interfaces.'],
+        qualifications: ['React and TypeScript.'],
+        constraints: [],
+      },
+      requirements: [],
+      flagged: [],
+    },
+  });
+  expect(response.response.status).toBe(200);
+}
 export async function waitForSnapshot(
   request: <T>(path: string) => Promise<{ result: T }>,
   predicate: (snapshot: Snapshot) => boolean,

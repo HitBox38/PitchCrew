@@ -5,6 +5,8 @@ import type { Skill } from './skills.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
 
 export interface Run {
+  purpose?: 'source-extraction' | 'application-draft' | 'application-review' | 'fit';
+  contextRevision?: string;
   id: string;
   cardId: string | null;
   roleId: RoleId;

@@ -1,6 +1,12 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { defaultCapabilities, type Card, type Role, type TrackingScan } from '@pitchcrew/core';
+import {
+  defaultCapabilities,
+  type Card,
+  type Run,
+  type Role,
+  type TrackingScan,
+} from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { expect, it, vi } from 'vitest';
 import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
@@ -31,6 +37,22 @@ it('searches, scans and verifies actual normalized Gmail evidence through real s
       cardId: null,
     });
     daemon.service.controllers.set('tracking-fixture', new AbortController());
+    daemon.service.board.record(
+      'run',
+      {
+        id: 'tracking-fixture',
+        roleId: 'scout',
+        cardId: null,
+        mode: 'chat',
+        runtime: 'demo',
+        status: 'running',
+        message: '',
+        startedAt: new Date().toISOString(),
+        finishedAt: null,
+      } satisfies Run,
+      'user',
+      'Fictional active MCP run',
+    );
     vi.spyOn(daemon.service.connectors, 'status').mockReturnValue([
       {
         id: 'google',

@@ -1,3 +1,4 @@
+import { confirmFixtureApplication } from './helpers/daemon.ts';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import type { Card, Run } from '@pitchcrew/core';
@@ -41,6 +42,7 @@ describe('AI runtime boundaries', () => {
       title: 'Private Engineer',
       description: 'Private posting',
     });
+    await confirmFixtureApplication(request, card.id);
     const { result: workflow } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });

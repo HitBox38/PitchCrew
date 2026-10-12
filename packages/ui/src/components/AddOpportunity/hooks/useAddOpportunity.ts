@@ -37,6 +37,11 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
           url: form.get('url'),
           salary: form.get('salary'),
           description: form.get('description'),
+          ...(provenance &&
+          lookup.prefill?.description === form.get('description') &&
+          lookup.prefill.sourceHtml
+            ? { sourceHtml: lookup.prefill.sourceHtml }
+            : {}),
           tags: tagValues([...tags, ...tagQuery.split(',')]),
           ...(provenance ? { provenance } : {}),
         },

@@ -139,7 +139,7 @@ A link lookup makes one request. Greenhouse and Lever have a single-posting endp
 
 Sources paused, removed or edited while a scan is fetching are skipped before any leads are saved. Agent discovery permission and the active run are rechecked after the fetch, immediately before recording leads.
 
-Descriptions are converted to plain text with a single pass over the markup. Pitchcrew never renders or runs the HTML and never fetches links, images or other resources in it. Script, style, iframe and similar blocks are dropped with their contents, and link targets are discarded. Descriptions are capped at 20,000 characters. Job posts stay untrusted data for agents.
+Descriptions are converted to plain text with a single pass over the markup. Bounded source markup is also retained for application-brief extraction so hiding evidence is not discarded before review; it is never rendered or supplied to drafting runs. Pitchcrew never renders or runs the HTML and never fetches links, images or other resources in it. Script, style, iframe and similar blocks are dropped with their contents, and link targets are discarded. Descriptions are capped at 20,000 characters. Job posts stay untrusted data for agents.
 
 ### Fields read
 

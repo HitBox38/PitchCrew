@@ -1,3 +1,4 @@
+import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import {
@@ -54,6 +55,7 @@ describe('stored configurable roles', () => {
       workflow: 'reviewer',
     });
     const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
+    confirmFixtureJob(daemon.service.board, card.id);
     daemon.service.moveCard(card.id, 'shortlisted');
     await finish(request, (await daemon.service.startRun(card.id, writer.id)).id);
     expect(daemon.service.board.get<Card>('card', card.id)).toMatchObject({
@@ -208,6 +210,7 @@ describe('stored configurable roles', () => {
       title: 'Engineer',
       description: 'Build accessible interfaces.',
     });
+    confirmFixtureJob(daemon.service.board, card.id);
     const workflow = await daemon.service.startRun(card.id, role.id);
     await finish(request, workflow.id);
     expect(daemon.service.board.get<Card>('card', card.id).fit).toBeGreaterThan(0);

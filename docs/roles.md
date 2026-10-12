@@ -93,3 +93,9 @@ No unattended scheduler is added: routines still run only while the daemon is op
 ## Events and verification
 
 New records use version 18, including card deletion tombstones, optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 17 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries, unrestricted board status corrections, deletion and replay. Live provider CLI runs remain outside automated verification.
+
+## Application source review
+
+Before fit assessment, extract or manually prepare the job brief. Before drafting, review and confirm its complete context and application requirements in the job overview. Confirmed changes require a fresh packet review; unchanged refreshes preserve accepted personal answers. The job's Draft application control also supports custom chat-only agents with a supported runtime. Source-discussion chat cannot create a managed application packet.
+
+Codex, Claude Code and OpenCode support the isolated application modes; Demo supports fictional development examples. Other runtimes continue to support ordinary conversations but must not fall back to raw descriptions for application runs. See [application source safety](application-source-safety.md).

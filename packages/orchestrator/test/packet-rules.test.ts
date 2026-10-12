@@ -1,3 +1,5 @@
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
+import { confirmFixtureApplication } from './helpers/daemon.ts';
 import {
   defaultPacketRules,
   type Approval,
@@ -58,6 +60,7 @@ async function draftAndReview(request: Awaited<ReturnType<typeof setup>>['reques
     title: 'React Engineer',
     description: 'Build React interfaces.',
   });
+  await confirmFixtureApplication(request, card.id);
   await request(`/cards/${card.id}/move`, 'POST', { state: 'shortlisted' });
   const { result: writer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
     roleId: 'writer',
@@ -371,6 +374,7 @@ describe('packet rules', () => {
     const agreed = await draftAndReview(request);
     const slowPacket = { ...agreed.packet!, resume: `Built React interfaces.\n${'a'.repeat(40)}!` };
     daemon.service.board.updateCard(agreed.id, { packet: slowPacket }, 'user', 'Fixture packet');
+    reviewFixturePacket(daemon.service.board, agreed.id);
     const { result: approval } = await request<Approval>(`/cards/${agreed.id}/approval`, 'POST', {
       formats: ['pdf', 'docx'],
     });

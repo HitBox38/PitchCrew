@@ -3,6 +3,7 @@ import { type Approval, type Card, type Packet } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { digestPacket, digestArtifacts } from './helpers.ts';
 import type { BoardContext } from './types.ts';
+import { assertReviewedContext } from './application-context.ts';
 
 export function requestApproval(
   this: BoardContext,
@@ -11,12 +12,14 @@ export function requestApproval(
 ): Approval {
   return this.db.transaction(() => {
     const card = this.get<Card>('card', cardId);
+    const context = assertReviewedContext(card);
     if (card.state !== 'agreed' || !card.packet)
       throw new Error('A reviewed packet is required before requesting approval.');
     const approval: Approval = {
       id: randomUUID(),
       cardId,
       action: 'export_packet',
+      contextRevision: context.revision,
       ...(artifacts ? { artifacts, artifactDigest: digestArtifacts(artifacts) } : {}),
       packet: card.packet,
       digest: digestPacket(cardId, card.packet),
@@ -36,6 +39,9 @@ export function decideApproval(this: BoardContext, id: string, approved: boolean
       throw new Error('Reviewed artifacts changed.');
     if (approval.status !== 'pending') throw new Error('This approval has already been decided.');
     const card = this.get<Card>('card', approval.cardId);
+    const context = assertReviewedContext(card);
+    if (approval.contextRevision !== context.revision)
+      throw new Error('Application context changed. Request a new approval.');
     if (
       !card.packet ||
       card.state !== 'awaiting_approval' ||
@@ -66,6 +72,9 @@ export function consumeApproval(
   return this.db.transaction(() => {
     const approval = this.get<Approval>('approval', id);
     const card = this.get<Card>('card', cardId);
+    const context = assertReviewedContext(card);
+    if (approval.contextRevision !== context.revision)
+      throw new Error('Application context changed. Request a new approval.');
     if (approval.artifacts && approval.artifactDigest !== digestArtifacts(approval.artifacts))
       throw new Error('Reviewed artifacts changed.');
     if (

@@ -8,7 +8,7 @@ import {
   type ComputerApproval,
   type RoleId,
 } from '@pitchcrew/core';
-import { digestPacket, digestArtifacts } from '@pitchcrew/board';
+import { assertReviewedContext, digestPacket, digestArtifacts } from '@pitchcrew/board';
 import { digestBytes, verifiedArtifact } from '@pitchcrew/packet';
 import {
   assertNoUncertainSubmission,
@@ -21,6 +21,7 @@ import {
 } from './submissions.ts';
 import type { Card, SubmissionAttempt } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
+import { applicationValues, normalizedValue } from './application-values.ts';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -206,7 +207,9 @@ export class ComputerManager {
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
-      await (await this.sessions.get(scope.runId))?.validate?.(action);
+      const driver = await this.sessions.get(scope.runId);
+      await driver?.validate?.(action);
+      await this.checkApplicationValues(scope.cardId, action, driver);
       const file = await this.uploadFile(action, scope.cardId);
       const uploadContent = file && !file.mimeType ? file.buffer.toString('utf8') : undefined;
       const uploadDigest = file ? digestBytes(file.buffer) : undefined;
@@ -364,6 +367,9 @@ export class ComputerManager {
       authorize();
       signal.throwIfAborted();
       assertNoUncertainSubmission(this.board, approval.cardId, approval.action, runId);
+      await this.checkApplicationValues(approval.cardId, approval.action, driver);
+      authorize();
+      signal.throwIfAborted();
       // Consume before any side effect; a failed/uncertain click can never reuse approval.
       const current = this.board.get<ComputerApproval>('computer_approval', id);
       if (current.status !== 'approved') throw new Error('Approval is no longer available.');
@@ -404,6 +410,27 @@ export class ComputerManager {
       this.busyRoles.delete(approval.roleId);
     }
   }
+  private async checkApplicationValues(
+    cardId: string | null,
+    action: BrowserAction,
+    driver: BrowserDriver | undefined,
+  ) {
+    if (!cardId || (!isSubmission(action) && !['fill', 'select'].includes(action.kind))) return;
+    const values = await applicationValues(this.board, this.directory, cardId);
+    if (
+      action.kind === 'fill' &&
+      normalizedValue(action.value) &&
+      !values.includes(normalizedValue(action.value))
+    )
+      throw new Error(
+        'Application field contains an unreviewed answer. Save your personal answer in the confirmed brief first.',
+      );
+    if (driver?.validateApplicationValues) await driver.validateApplicationValues(values, action);
+    else if (isSubmission(action) || action.kind === 'select')
+      throw new Error(
+        'This browser cannot verify application field evidence. Use manual takeover.',
+      );
+  }
   private async uploadFile(
     action: BrowserAction,
     cardId: string | null,
@@ -415,6 +442,8 @@ export class ComputerManager {
     if (exported.artifacts && exported.artifactDigest !== digestArtifacts(exported.artifacts))
       throw new Error('Reviewed artifacts changed.');
     const card = this.board.get<Card>('card', exported.cardId);
+    if (exported.contextRevision !== assertReviewedContext(card).revision)
+      throw new Error('Exported application context is stale.');
     if (!card.packet || digestPacket(card.id, card.packet) !== exported.digest)
       throw new Error('Exported packet is stale.');
     const root = await realpath(join(this.directory, 'packets', exported.cardId));
@@ -424,6 +453,8 @@ export class ComputerManager {
       throw new Error('Upload is outside the exported packet.');
     const file = { name: action.file, buffer: await readFile(path) };
     const latest = this.board.get<Card>('card', exported.cardId);
+    if (exported.contextRevision !== assertReviewedContext(latest).revision)
+      throw new Error('Exported application context changed during upload.');
     if (!latest.packet || digestPacket(latest.id, latest.packet) !== exported.digest)
       throw new Error('Exported packet is stale.');
     if (action.file.endsWith('.pdf') || action.file.endsWith('.docx')) {

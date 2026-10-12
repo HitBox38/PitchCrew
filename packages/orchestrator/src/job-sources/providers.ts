@@ -135,6 +135,7 @@ function greenhouse(slug: string, body: unknown): JobPosting[] {
         remote: remoteText(location) || offices.some(remoteText),
         url: webUrl(job.absolute_url, hosted.greenhouse(slug, jobId)),
         description: htmlToText(typeof job.content === 'string' ? job.content : ''),
+        sourceHtml: typeof job.content === 'string' ? job.content.slice(0, 400000) : undefined,
         salary: '',
         postedAt: isoDate(job.first_published) ?? isoDate(job.updated_at),
       },
@@ -168,6 +169,10 @@ function ashby(slug: string, body: unknown): JobPosting[] {
         description: plain
           ? cleanText(plain)
           : htmlToText(typeof job.descriptionHtml === 'string' ? job.descriptionHtml : ''),
+        sourceHtml:
+          typeof job.descriptionHtml === 'string'
+            ? job.descriptionHtml.slice(0, 400000)
+            : undefined,
         salary:
           text(compensation.scrapeableCompensationSalarySummary, 100) ||
           text(compensation.compensationTierSummary, 100),
@@ -214,6 +219,7 @@ function lever(slug: string, body: unknown): JobPosting[] {
         remote: text(job.workplaceType).toLowerCase() === 'remote' || remoteText(location),
         url: webUrl(job.hostedUrl, hosted.lever(slug, jobId)),
         description: htmlToText(html),
+        sourceHtml: html.slice(0, 400000),
         salary: leverSalary(job.salaryRange),
         postedAt: isoDate(job.createdAt),
       },
@@ -333,6 +339,7 @@ function comeet(uid: string, body: unknown, token?: string): JobPosting[] {
           remote: place.is_remote === true || workplace === 'remote' || remoteText(location),
           url,
           description: redactToken(htmlToText(comeetSections(job.details)), token),
+          sourceHtml: redactToken(comeetSections(job.details).slice(0, 400000), token),
           salary: '',
           // Comeet publishes no posting date; the last update time is the closest it offers.
           postedAt: isoDate(job.time_updated),
@@ -384,6 +391,7 @@ function workable(account: string, body: unknown): JobPosting[] {
           remote: job.telecommuting === true || workplace === 'remote' || remoteText(location),
           url: url ?? hosted.workable(account, jobId),
           description: htmlToText(html),
+          sourceHtml: html.slice(0, 400000),
           salary: '',
           postedAt: isoDate(job.published_on) ?? isoDate(job.created_at),
         },

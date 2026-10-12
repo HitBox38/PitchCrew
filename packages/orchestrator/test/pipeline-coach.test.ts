@@ -1,3 +1,4 @@
+import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { digestPacket } from '@pitchcrew/board';
 import {
@@ -267,6 +268,7 @@ it('records immutable actual run configs and packet digests while future skill e
         complete = resolve;
       }),
   );
+  confirmFixtureJob(daemon.service.board, card.id);
   const run = await daemon.service.startRun(card.id, 'writer');
   expect(run.configuration?.skills[0].content).toBe('Original check');
   daemon.service.saveSkill(

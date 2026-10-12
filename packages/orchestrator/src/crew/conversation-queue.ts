@@ -177,11 +177,25 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
         try {
           const run =
             current.mode === 'workflow'
-              ? await context.startRun(item.cardId!, role.id, undefined, {
-                  requestId: current.id,
-                  rootRunId: current.rootRunId ?? current.id,
-                  content: current.content,
-                })
+              ? await context.startRun(
+                  item.cardId!,
+                  role.id,
+                  undefined,
+                  {
+                    requestId: current.id,
+                    rootRunId: current.rootRunId ?? current.id,
+                    content: current.content,
+                  },
+                  current.userInputId
+                    ? context.board.get<Run>(
+                        'run',
+                        context.board.get<import('@pitchcrew/core').UserInputRequest>(
+                          'user_input',
+                          current.userInputId,
+                        ).runId,
+                      ).purpose === 'application-draft'
+                    : false,
+                )
               : await context.startChatRun(
                   role.id,
                   current.content,

@@ -36,7 +36,7 @@ function argsFor(context: RunContext | ChatContext) {
       '-c',
       `model_reasoning_effort=${JSON.stringify(context.role.reasoning)}`,
     );
-  if ('session' in context && context.session) {
+  if (!context.purpose && 'session' in context && context.session) {
     if (context.session.id) args.push('resume', context.session.id);
   } else args.push('--ephemeral');
   args.push('-');
@@ -49,6 +49,7 @@ function extract(event: Record<string, unknown>): string | null {
   return null;
 }
 export const codex: RuntimeAdapter = {
+  applicationIsolation: true,
   id: 'codex',
   sessionSupport: 'resume',
   // https://learn.chatgpt.com/docs/models
@@ -86,7 +87,11 @@ export const codex: RuntimeAdapter = {
   run: (context) => runCli('codex', argsFor(context), context, promptFor(context), extract),
   chat: (context) =>
     chatCli('codex', argsFor(context), context, (event) => {
-      if (event.type === 'thread.started' && typeof event.thread_id === 'string')
+      if (
+        !context.purpose &&
+        event.type === 'thread.started' &&
+        typeof event.thread_id === 'string'
+      )
         context.onSession?.(event.thread_id);
       return extract(event);
     }),

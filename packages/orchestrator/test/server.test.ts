@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
 import cookiePlugin from '@fastify/cookie';
 import type { Approval, Snapshot } from '@pitchcrew/core';
 import { verifiedArtifact } from '@pitchcrew/packet';
@@ -128,6 +129,7 @@ describe('HTTP framework contracts', () => {
       'reviewer',
       'Fixture review',
     );
+    reviewFixturePacket(daemon.service.board, card.id);
     const { response, result: approval } = await request<Approval>(
       `/cards/${card.id}/approval`,
       'POST',

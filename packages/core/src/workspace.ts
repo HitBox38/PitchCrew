@@ -18,6 +18,7 @@ import type { Skill, SkillProposal } from './skills.ts';
 import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface Approval {
+  contextRevision?: string;
   id: string;
   cardId: string;
   action: 'export_packet';

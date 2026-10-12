@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { cardInput, defaultCapabilities, type Role } from '@pitchcrew/core';
@@ -42,6 +43,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     board.move(card.id, 'in_review', 'writer');
     board.updateCard(card.id, { feedback: [] }, 'reviewer', 'Verified corrected source quotes');
     board.move(card.id, 'agreed', 'reviewer');
+    reviewFixturePacket(board, card.id);
     const approval = board.requestApproval(card.id);
     // A deterministic capability fixture avoids launching or spending tokens on a provider CLI.
     board.record(
