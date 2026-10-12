@@ -17,14 +17,14 @@ export function BrowserSettings({
         value={browserMode}
         items={[
           { value: 'supervised', label: 'Supervised' },
-          { value: 'autonomous', label: 'Autonomous browsing' },
+          { value: 'autonomous', label: 'Autonomous preparation' },
         ]}
         onChange={(value) => setBrowserMode(value as BrowserMode)}
       />
       <p className="quiet">
         Override this default per conversation. Autonomous preparation requires task site access and
-        a recognized application form. Final submission always asks. Scheduled routines stay
-        supervised.
+        a recognized application form. Buttons, keys, dialogs and final submission always ask.
+        Scheduled routines stay supervised.
       </p>
     </section>
   );

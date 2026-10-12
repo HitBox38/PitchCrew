@@ -167,7 +167,7 @@ Install the local browser:
 pnpm browser:install
 ```
 
-Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, labeled agent tabs and manual takeover for login or CAPTCHA. **Supervised** asks before every interaction beside the browser or in **Inbox**. **Autonomous browsing** prepares recognized hosted forms on task sites you allow; unfamiliar controls and final submission still require approval. Set an agent default or override it per conversation. Scheduled routines stay supervised.
+Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, a compact agent menu and manual takeover for login or CAPTCHA. **Supervised** asks before every interaction beside the browser or in **Inbox**. **Autonomous preparation** prepares recognized hosted forms on task sites you allow; unfamiliar controls and final submission still require approval. Set an agent default or override it per conversation. Scheduled routines stay supervised.
 
 Browser approvals allow one exact interaction on the reviewed page and expire when the run ends. Optional form assessments save inspected requirements for Writer. Submission receipts capture approved attempts; uncertain outcomes pause further interactions until you verify the result. See [computer use](docs/computer-use.md).
 

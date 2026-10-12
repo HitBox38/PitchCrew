@@ -15,7 +15,8 @@ export const browserCommand = <T>(
   threadId: string,
   action: string,
   input?: unknown,
-) => api<T>(browserPath(roleId, threadId, action), 'POST', input ?? {});
+  signal?: AbortSignal,
+) => api<T>(browserPath(roleId, threadId, action), 'POST', input ?? {}, signal);
 export const browserInput = (
   roleId: string,
   threadId: string,

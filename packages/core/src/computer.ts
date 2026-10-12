@@ -35,12 +35,20 @@ export interface BrowserFrame {
   warning?: string;
   dialog?: { type: string; message: string };
 }
+export const browserViewportSchema = z
+  .object({
+    width: z.number().int().min(240).max(2560),
+    height: z.number().int().min(160).max(2160),
+  })
+  .strict();
+export type BrowserViewport = z.infer<typeof browserViewportSchema>;
 export const browserInputSchema = z.discriminatedUnion('kind', [
   z
     .object({
       kind: z.literal('click'),
-      x: z.number().min(0).max(1280),
-      y: z.number().min(0).max(800),
+      viewport: browserViewportSchema.optional(),
+      x: z.number().min(0).max(2560),
+      y: z.number().min(0).max(2160),
     })
     .strict(),
   z
@@ -142,6 +150,7 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
 ]);
 export type BrowserAction = z.infer<typeof browserActionSchema>;
 export interface BrowserSnapshot {
+  viewport?: BrowserViewport;
   url: string;
   title: string;
   text: string;

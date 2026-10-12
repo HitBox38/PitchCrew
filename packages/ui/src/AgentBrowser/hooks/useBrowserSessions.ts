@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import type { BrowserSessionInfo } from '@pitchcrew/core';
 import { browserSessions } from '../api.ts';
 
@@ -8,6 +8,11 @@ export function useBrowserSessions(threadId: string, enabled: boolean) {
     sessions: BrowserSessionInfo[];
     error: string;
   }>({ thread: threadId, sessions: [], error: '' });
+  const refresh = useCallback(async () => {
+    if (!enabled) return;
+    const sessions = await browserSessions(threadId);
+    setState({ thread: threadId, sessions, error: '' });
+  }, [threadId, enabled]);
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();
@@ -32,5 +37,8 @@ export function useBrowserSessions(threadId: string, enabled: boolean) {
       clearTimeout(timer);
     };
   }, [threadId, enabled]);
-  return state.thread === threadId ? state : { thread: threadId, sessions: [], error: '' };
+  return {
+    ...(state.thread === threadId ? state : { thread: threadId, sessions: [], error: '' }),
+    refresh,
+  };
 }

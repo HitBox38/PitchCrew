@@ -3,6 +3,8 @@ import {
   browserActionSchema,
   type Approval,
   type BrowserAction,
+  browserViewportSchema,
+  type BrowserViewport,
   type ComputerApproval,
   type RoleId,
 } from '@pitchcrew/core';
@@ -72,6 +74,33 @@ export class ComputerManager {
     if (this.busyRoles.has(roleId))
       throw new Error('A browser action is in progress. Try again shortly.');
     await this.browsers.openRole(roleId, threadId, cardId);
+  }
+  async resizeBrowser(roleId: RoleId, viewport: BrowserViewport, leaseId?: string) {
+    const size = browserViewportSchema.parse(viewport);
+    const session = this.browsers.forRole(roleId);
+    const allowed = () => {
+      if (session.info.status !== 'open') return false;
+      if (session.info.manual) {
+        if (!leaseId) return false;
+        this.browsers.lease(roleId, leaseId);
+      } else if (leaseId) return false;
+      return !this.board
+        .list<ComputerApproval>('computer_approval')
+        .some(
+          (approval) =>
+            approval.roleId === roleId && ['pending', 'approved'].includes(approval.status),
+        );
+    };
+    if (this.busyRoles.has(roleId) || !allowed()) return false;
+    this.busyRoles.add(roleId);
+    try {
+      const driver = await this.browsers.driver(roleId);
+      if (!allowed()) return false;
+      assertNoUncertainSubmission(this.board, session.info.cardId);
+      return (await driver.resize?.(size)) ?? false;
+    } finally {
+      this.busyRoles.delete(roleId);
+    }
   }
   takeControl(roleId: string) {
     const session = this.browsers.forRole(roleId);

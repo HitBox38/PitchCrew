@@ -19,7 +19,9 @@ export function BrowserApprovalActions({ approval, action, working }: Props) {
         Reject
       </Button>
       <Button disabled={working} className="button primary" onClick={() => decide(true)}>
-        Approve interaction
+        {'purpose' in approval.action && approval.action.purpose === 'submission'
+          ? 'Approve submission'
+          : 'Approve interaction'}
       </Button>
     </div>
   );

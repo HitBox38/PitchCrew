@@ -3,11 +3,13 @@ import {
   type BrowserSnapshot,
   type BrowserFrame,
   type BrowserInput,
+  type BrowserViewport,
 } from '@pitchcrew/core';
 
 export interface BrowserDriver {
   validate?(action: BrowserAction): Promise<void>;
   snapshot(): Promise<BrowserSnapshot>;
+  resize?(viewport: BrowserViewport): Promise<boolean>;
   frame?(): Promise<BrowserFrame>;
   input?(input: BrowserInput): Promise<void>;
   freshPage?(): Promise<void>;

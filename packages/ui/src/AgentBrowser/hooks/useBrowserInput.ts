@@ -1,5 +1,7 @@
 import { useEffect, type RefObject, type KeyboardEvent } from 'react';
 import type { BrowserViewProps } from '../types.ts';
+import { useBrowserTouch } from './useBrowserTouch.ts';
+import { remotePoint } from '../helpers.ts';
 const keys = new Set([
   'Tab',
   'Enter',
@@ -14,9 +16,11 @@ const keys = new Set([
   'End',
 ]);
 export function useBrowserInput(
-  { frame, manual, control }: BrowserViewProps,
+  props: BrowserViewProps,
   image: RefObject<HTMLButtonElement | null>,
 ) {
+  const { frame, manual, control } = props;
+  const touch = useBrowserTouch(props, image);
   const sendInput = control.input;
   useEffect(() => {
     const element = image.current;
@@ -36,6 +40,7 @@ export function useBrowserInput(
     if (!manual || event.nativeEvent.isComposing) return;
     if (event.key === 'Escape') {
       event.preventDefault();
+      event.stopPropagation();
       event.currentTarget
         .closest('.agent-browser-panel')
         ?.querySelector<HTMLButtonElement>('[data-browser-controls] button:not(:disabled)')
@@ -64,20 +69,14 @@ export function useBrowserInput(
     }
   };
   const click = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!manual) return;
+    if (!manual || touch.shouldIgnoreClick()) return;
     event.currentTarget.focus();
     const bounds = event.currentTarget.getBoundingClientRect();
     control.input({
       kind: 'click',
-      x: Math.max(
-        0,
-        Math.min(frame.width, ((event.clientX - bounds.left) * frame.width) / bounds.width),
-      ),
-      y: Math.max(
-        0,
-        Math.min(frame.height, ((event.clientY - bounds.top) * frame.height) / bounds.height),
-      ),
+      viewport: { width: frame.width, height: frame.height },
+      ...remotePoint(event.clientX, event.clientY, bounds, frame),
     });
   };
-  return { press, click };
+  return { press, click, touch: touch.handlers };
 }

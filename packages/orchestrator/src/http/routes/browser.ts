@@ -1,4 +1,10 @@
-import { browserInputSchema, roleIdSchema, type Conversation, type Role } from '@pitchcrew/core';
+import {
+  browserInputSchema,
+  browserViewportSchema,
+  roleIdSchema,
+  type Conversation,
+  type Role,
+} from '@pitchcrew/core';
 import { assertPublicUrl } from '@pitchcrew/mcp/computer';
 import type { FastifyInstance } from 'fastify';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -99,6 +105,16 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
     if (input.operation === 'release') await service.computer.returnControl(req.params.id, leaseId);
     else service.computer.browsers.renew(req.params.id, leaseId);
     return { ok: true };
+  });
+  app.post<Route>('/api/browser/:id/viewport', async (req) => {
+    authorize(req.query.threadId, req.params.id);
+    const { width, height, leaseId } = browserViewportSchema
+      .extend({ leaseId: z.uuid().optional() })
+      .strict()
+      .parse(req.body);
+    return {
+      applied: await service.computer.resizeBrowser(req.params.id, { width, height }, leaseId),
+    };
   });
   app.post<Route>('/api/browser/:id/input', async (req) => {
     authorize(req.query.threadId, req.params.id);

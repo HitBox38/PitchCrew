@@ -62,6 +62,7 @@ export function useBrowserPanel(
     role,
     sessions: status.sessions,
     error: status.error,
+    refresh: status.refresh,
     session: status.sessions.find((item) => item.roleId === role?.id),
     available: enabled,
     open: enabled && state.open,

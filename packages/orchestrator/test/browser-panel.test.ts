@@ -28,6 +28,7 @@ async function fixture(port: number) {
       width: 1280,
       height: 800,
     })),
+    resize: vi.fn(async () => true),
     perform: vi.fn(async () => {}),
     close: vi.fn(async () => {}),
     input: vi.fn(async () => {}),
@@ -251,4 +252,44 @@ it('lets users choose browser permissions without installing or changing a runti
   });
   expect(changed.response.status).toBe(200);
   expect(changed.result.configurations.writer).toEqual({ browserMode: 'autonomous' });
+});
+
+it('bounds viewport resizing and allows only the manual controller while protecting approval evidence', async () => {
+  const { request, driver, service } = await fixture(14520);
+  const path = '/browser/writer/viewport?threadId=writer';
+  const viewport = { width: 390, height: 920 };
+  expect((await request(path, 'POST', viewport)).result).toEqual({ applied: true });
+  expect(driver.resize).toHaveBeenCalledWith(viewport);
+  expect(
+    (await request('/browser/writer/viewport?threadId=scout', 'POST', viewport)).response.status,
+  ).toBe(400);
+  for (const size of [
+    { width: 0, height: 920 },
+    { width: 99999, height: 920 },
+    { width: 390.5, height: 920 },
+  ])
+    expect((await request(path, 'POST', size)).response.status).toBe(400);
+  const takeover = await request<{ leaseId: string }>(
+    '/browser/writer/control?threadId=writer',
+    'POST',
+    { operation: 'take' },
+  );
+  expect((await request(path, 'POST', viewport)).result).toEqual({ applied: false });
+  expect(
+    (await request(path, 'POST', { ...viewport, leaseId: takeover.result.leaseId })).result,
+  ).toEqual({ applied: true });
+  await request('/browser/writer/control?threadId=writer', 'POST', {
+    operation: 'release',
+    leaseId: takeover.result.leaseId,
+  });
+  const approval = await service.computer.request(
+    { runId: 'browser-panel-run', roleId: 'writer', cardId: null },
+    { kind: 'navigate', url: 'https://8.8.8.8/application' },
+    'Open fictional form',
+  );
+  driver.resize.mockClear();
+  expect((await request(path, 'POST', viewport)).result).toEqual({ applied: false });
+  service.computer.decide(approval.id, true);
+  expect((await request(path, 'POST', viewport)).result).toEqual({ applied: false });
+  expect(driver.resize).not.toHaveBeenCalled();
 });

@@ -14,8 +14,11 @@ export type AgentBrowserProps = Pick<
 > & { hidden?: boolean };
 export type BrowserControl = ReturnType<typeof useBrowserControl>;
 export type BrowserViewProps = {
+  size: { width: number; height: number };
   frame: BrowserFrame;
   manual: boolean;
   control: BrowserControl;
   name: string;
+  zoom: number;
+  panView: boolean;
 };
