@@ -13,7 +13,7 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 - **Find openings.** Save public Greenhouse, Ashby, Lever, Comeet and Workable job boards with title and location filters. Scans add new matching postings as leads and skip jobs already on the board, including ones you withdrew. Scout can scan on a schedule when you allow it. Paste a single posting link in Add job to fill in its details.
 - **Prepare applications.** Scout evaluates fit, Writer drafts a packet, and Reviewer checks it against your profile. Packets include a resume, cover letter, form answers, notes and supporting claims.
 - **Build your crew.** Customize agents, mix runtimes, assign Markdown skills, and chat in named direct conversations or groups. Agents can hand off work through the board when their permissions allow it.
-- **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional local browser can inspect application forms, fill them and submit with approval for each interaction.
+- **Apply with oversight.** Review and approve local Markdown, PDF or DOCX exports. An optional browser panel in Chat shows each agent’s local browser, with manual takeover, saved sign-ins and supervised or bounded autonomous preparation. Final submission requires approval.
 - **Track progress.** Record submissions, interviews and outcomes, including applications made outside Pitchcrew. With Gmail access, Tracker can reconcile supported status updates and flag uncertain matches for review.
 - **Learn from outcomes.** Rate how each application went, note lessons, and see outcomes, weights and lessons by tag on **Insights**. Merge duplicate tags, and mark silent applications as no response after you review a preview. Agents with application or pipeline access read these signals before they write; only you can change them. See [insights](docs/insights.md).
 - **Maintain your background.** Import profile notes from GitHub or Google Drive. Documenter can watch selected sources and propose updates for your review.
@@ -167,7 +167,7 @@ Install the local browser:
 pnpm browser:install
 ```
 
-Enable **Computer use** for an agent and ask it to help with an application. It opens a visible, isolated Chromium window. The agent can inspect pages; navigation, clicks, fills, selections, keypresses and exported-packet uploads each require an approval in **Inbox**. Sign-in and CAPTCHA handling stay manual.
+Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, a compact agent menu and manual takeover for login or CAPTCHA. **Supervised** asks before every interaction beside the browser or in **Inbox**. **Autonomous preparation** prepares recognized hosted forms on task sites you allow; unfamiliar controls and final submission still require approval. Set an agent default or override it per conversation. Scheduled routines stay supervised.
 
 Browser approvals allow one exact interaction on the reviewed page and expire when the run ends. Optional form assessments save inspected requirements for Writer. Submission receipts capture approved attempts; uncertain outcomes pause further interactions until you verify the result. See [computer use](docs/computer-use.md).
 

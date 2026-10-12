@@ -27,7 +27,7 @@ export interface RuntimeModelCatalog {
   modelDetail: string;
 }
 export interface RuntimeInfo extends RuntimeHealth, RuntimeModelCatalog {}
-export type RuntimeConfiguration = Pick<Role, 'runtime' | 'model' | 'reasoning'>;
+export type RuntimeConfiguration = Pick<Role, 'runtime' | 'model' | 'reasoning' | 'browserMode'>;
 export interface RuntimeRecommendation extends RuntimeConfiguration {
   available: boolean;
   modelSource: RuntimeModelCatalog['modelSource'];

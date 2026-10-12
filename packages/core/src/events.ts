@@ -10,7 +10,7 @@ import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
-import type { ComputerApproval } from './computer.ts';
+import type { ComputerApproval, BrowserSitePermission } from './computer.ts';
 import type { Role, RoleProposal } from './roles.ts';
 import type { AgentTask, Run } from './runs.ts';
 import type { Routine } from './routines.ts';
@@ -20,7 +20,7 @@ import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16;
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17;
   kind:
     | 'user_input'
     | 'conversation_session'
@@ -41,6 +41,7 @@ export interface BoardEvent {
     | 'skill'
     | 'skill_proposal'
     | 'computer_approval'
+    | 'browser_site_permission'
     | 'profile_proposal'
     | 'form_assessment'
     | 'submission_attempt';
@@ -67,13 +68,14 @@ export interface BoardEvent {
     | Skill
     | SkillProposal
     | ComputerApproval
+    | BrowserSitePermission
     | ProfileMaintenanceProposal
     | FormAssessment
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 16 adds durable user questions and targeted continuations. */
-export const currentEventVersion = 16 as const;
+/** Version 17 adds user-granted task site access and automatic browser preparation records. */
+export const currentEventVersion = 17 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -92,7 +94,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 13 &&
     event.version !== 14 &&
     event.version !== 15 &&
-    event.version !== 16
+    event.version !== 16 &&
+    event.version !== 17
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

@@ -1,4 +1,4 @@
-import { type Role, type Run } from '@pitchcrew/core';
+import { type Role, type Run, type Conversation } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 
@@ -24,6 +24,45 @@ export async function computerAction(
       throw new Error('Computer use is disabled or the run has ended.');
   };
   authorize();
+  const active = this.board.get<Run>('run', capability.runId);
+  const root = this.board
+    .list<Run>('run')
+    .find((run) => run.id === (active.rootRunId ?? active.id));
+  const role = active.configuration?.role ?? this.board.get<Role>('role', capability.roleId);
+  const conversation = active.threadId
+    ? this.board.list<Conversation>('conversation').find((item) => item.id === active.threadId)
+    : undefined;
+  const deadline = Date.now() + 30_000;
+  while (
+    this.computer.browsers
+      .list()
+      .some((item) => item.roleId === capability.roleId && item.manual) &&
+    Date.now() < deadline
+  ) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    authorize();
+  }
+  if (
+    this.computer.browsers.list().some((item) => item.roleId === capability.roleId && item.manual)
+  )
+    return {
+      status: 'manual',
+      message:
+        'The user has browser control. Call computer_inspect again to wait. Keep the run alive; do not inspect or act while the user controls it.',
+    };
+  this.computer.bindBrowser({
+    ...capability,
+    threadId: active.threadId,
+    taskId: root?.id ?? active.id,
+    mode:
+      active.routineId || root?.routineId || conversation?.kind === 'routine'
+        ? 'supervised'
+        : active.configuration
+          ? (role.browserMode ?? 'supervised')
+          : (conversation?.configurations[role.id]?.browserMode ??
+            role.browserMode ??
+            'supervised'),
+  });
   if (action === 'assess_form' || action === 'capture_submission') {
     const current = this.board.get<Role>('role', capability.roleId);
     if (action === 'assess_form') {
@@ -46,7 +85,11 @@ export async function computerAction(
     authorize();
     return { attempt };
   }
-  if (action === 'computer_inspect') return { page: await this.computer.inspect(capability.runId) };
+  if (action === 'computer_inspect') {
+    const page = await this.computer.inspect(capability.runId);
+    authorize();
+    return { page };
+  }
   if (action === 'computer_request') {
     const input = z
       .object({ input: z.unknown(), reason: z.string().trim().min(1).max(2000) })

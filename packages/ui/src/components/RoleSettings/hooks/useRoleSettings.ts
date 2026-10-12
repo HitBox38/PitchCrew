@@ -4,7 +4,7 @@ import { capabilityDefaults } from '@/agent-capabilities.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { resolveRuntime } from '@/lib/runtimes.ts';
-import type { ReasoningLevel } from '@pitchcrew/core';
+import type { BrowserMode, ReasoningLevel } from '@pitchcrew/core';
 import { useEffect, useState, type FormEvent } from 'react';
 
 export function useRoleSettings({
@@ -25,6 +25,7 @@ export function useRoleSettings({
   const [runtime, setRuntime] = useState(role.runtime);
   const [model, setModel] = useState(role.model);
   const [reasoning, setReasoning] = useState<ReasoningLevel | null>(role.reasoning ?? null);
+  const [browserMode, setBrowserMode] = useState<BrowserMode>(role.browserMode ?? 'supervised');
   const [enabled, setEnabled] = useState(role.enabled);
   const [instructions, setInstructions] = useState(role.instructions);
   const [defaultInstructionDraft, setDefaultInstructionDraft] = useState<{
@@ -44,6 +45,7 @@ export function useRoleSettings({
     model !== role.model ||
     reasoning !== (role.reasoning ?? null) ||
     enabled !== role.enabled ||
+    browserMode !== (role.browserMode ?? 'supervised') ||
     instructions !== role.instructions ||
     JSON.stringify(capabilities) !==
       JSON.stringify({ ...capabilityDefaults, ...role.capabilities });
@@ -84,6 +86,7 @@ export function useRoleSettings({
             ? { defaultInstructionRevision: defaultInstructionDraft.revision }
             : {}),
           capabilities,
+          browserMode,
         },
         creating ? `${name} created` : `${name} settings saved`,
       );
@@ -131,6 +134,8 @@ export function useRoleSettings({
     setReasoning,
     enabled,
     setEnabled,
+    browserMode,
+    setBrowserMode,
     instructions,
     setInstructions,
     setDefaultInstructionRevision,

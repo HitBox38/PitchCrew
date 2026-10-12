@@ -60,8 +60,13 @@ export function useNotifications() {
   useEffect(() => {
     if (!data) return;
     const currentIds = new Set(items.map((item) => item.id));
+    const visibleBrowserApprovals = new Set(
+      Array.from(document.querySelectorAll<HTMLElement>('[data-browser-approval-id]'))
+        .filter((element) => element.getClientRects().length > 0)
+        .map((element) => `computer:${element.dataset.browserApprovalId}`),
+    );
     for (const id of activeToasts.current) {
-      if (!currentIds.has(id)) {
+      if (!currentIds.has(id) || visibleBrowserApprovals.has(id)) {
         toastManager.close(id);
         activeToasts.current.delete(id);
       }
@@ -71,6 +76,7 @@ export function useNotifications() {
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;
     if (!open)
       fresh.toReversed().forEach((item) => {
+        if (visibleBrowserApprovals.has(item.id)) return;
         activeToasts.current.add(item.id);
         toastManager.add({
           ...notificationToastOptions(item),

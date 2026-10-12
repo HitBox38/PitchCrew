@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { browserModeSchema } from './computer.ts';
 import { roleIdSchema } from './roles.ts';
 import { runtimeIds } from './states.ts';
 import { reasoningLevels } from './reasoning.ts';
@@ -76,6 +77,7 @@ export const conversationPatch = z.object({
     .record(
       roleIdSchema,
       z.object({
+        browserMode: browserModeSchema.optional(),
         runtime: z.enum(runtimeIds).optional(),
         model: z.string().max(200).optional(),
         reasoning: z.enum(reasoningLevels).nullable().optional(),

@@ -1,3 +1,4 @@
+import { BrowserButton } from '@/AgentBrowser/components/BrowserButton.tsx';
 import type { ConversationHeadingProps } from '@/ChatView/types.ts';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -62,6 +63,7 @@ export function ConversationHeading(props: ConversationHeadingProps) {
       </div>
       <ConversationViewSwitch attention={props.attention} />
       <div className="chat-heading-actions">
+        <BrowserButton browserPanel={props.browserPanel} />
         {!props.readOnly ? (
           <Button variant="outline" className="chat-runtime" onClick={() => setDialog('runtime')}>
             <Cpu size={13} />

@@ -1,3 +1,5 @@
+import { AgentBrowser } from '@/AgentBrowser/index.tsx';
+import type { CSSProperties } from 'react';
 import { PendingQuestions } from '@/UserQuestions/index.tsx';
 import { ChatSettingsPanels } from './components/ChatSettingsPanels.tsx';
 import { RelatedConversations } from './components/RelatedConversations.tsx';
@@ -19,6 +21,8 @@ export function ChatView(props: ChatViewProps) {
     <section
       className={`chat-workspace ${controller.roleId}`}
       data-chat-width={controller.width}
+      data-browser-open={controller.browserPanel.open && !controller.dialog}
+      style={{ '--browser-width': `${controller.browserPanel.width}px` } as CSSProperties}
       aria-label="Agent conversations"
     >
       <Tabs
@@ -45,6 +49,7 @@ export function ChatView(props: ChatViewProps) {
         )}
       </Tabs>
       <ChatSettingsPanels {...controller} />
+      <AgentBrowser {...controller} hidden={!!controller.dialog} />
     </section>
   );
 }
