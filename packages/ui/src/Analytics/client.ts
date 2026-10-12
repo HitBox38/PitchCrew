@@ -5,7 +5,8 @@ import { sanitizeEvent } from './helpers.ts';
 import { analyticsContext } from './context.ts';
 import type { AnalyticsConfig, AnalyticsEvent, AnalyticsProperties } from './types.ts';
 
-type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'>;
+type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'> &
+  Partial<Pick<PostHog, 'get_distinct_id'>>;
 
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,
@@ -42,6 +43,15 @@ export function createAnalytics(
   let lastPage: AnalyticsProperties['page'];
   let lastSetup: string | undefined;
   return {
+    getDistinctId(): string | undefined {
+      if (!enabled || !sdk || !consent() || !diagnosticsConsent()) return;
+      try {
+        const id = sdk.get_distinct_id?.();
+        return typeof id === 'string' && id.length > 0 && id.length <= 200 ? id : undefined;
+      } catch {
+        return;
+      }
+    },
     async setEnabled(next: boolean, config: AnalyticsConfig | null): Promise<boolean> {
       const current = ++generation;
       enabled = false;
