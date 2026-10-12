@@ -2,6 +2,18 @@ import { installerDefinitions } from '../Downloads/constants';
 import { analyticsContext } from './context';
 import { heatmapMeasurements, publicLandingUrl, sanitizeHeatmap } from './heatmaps';
 
+export const replayPreferenceKey = 'pitchcrew-landing-replay-v1';
+export function replayAllowed(
+  storage: Pick<Storage, 'getItem'>,
+  doNotTrack: string | null,
+): boolean {
+  try {
+    return analyticsAllowed(storage, doNotTrack) && storage.getItem(replayPreferenceKey) === 'on';
+  } catch {
+    return false;
+  }
+}
+
 export const preferenceKey = 'pitchcrew-landing-analytics-v1';
 
 export function sanitizeEvent<T extends { event: string; properties: Record<string, unknown> }>(

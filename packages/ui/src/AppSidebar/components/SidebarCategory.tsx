@@ -23,7 +23,7 @@ export function SidebarCategory({ id, label, className, children, action }: Side
     <Collapsible
       open={iconOnly || open}
       onOpenChange={changeOpen}
-      render={<SidebarGroup className={className} />}
+      render={<SidebarGroup className={className} data-replay-category={id} />}
     >
       <SidebarCategoryTrigger label={label} />
       {action}

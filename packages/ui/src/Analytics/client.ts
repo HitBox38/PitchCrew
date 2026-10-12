@@ -1,12 +1,14 @@
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import { useDevicePreferences } from '../lib/device-preferences.ts';
+import { createReplay, loadLocalRecorder } from './replay/recorder.ts';
+import { sanitizeReplayProperties } from './replay/privacy.ts';
 import { sanitizeDiagnostic } from './diagnostics.ts';
 import { sanitizeEvent } from './helpers.ts';
 import { analyticsContext } from './context.ts';
 import type { AnalyticsConfig, AnalyticsEvent, AnalyticsProperties } from './types.ts';
 
 type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'> &
-  Partial<Pick<PostHog, 'get_distinct_id'>>;
+  Partial<Pick<PostHog, 'get_distinct_id' | 'sessionManager' | 'set_config'>>;
 
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,
@@ -34,6 +36,8 @@ export function createAnalytics(
   loadSdk: () => Promise<Sdk>,
   consent: () => boolean = () => true,
   diagnosticsConsent: () => boolean = () => true,
+  replayConsent: () => boolean = () => false,
+  loadRecorder = loadLocalRecorder,
 ) {
   let sdk: Sdk | undefined;
   let loading: Promise<Sdk> | undefined;
@@ -42,7 +46,40 @@ export function createAnalytics(
   let generation = 0;
   let lastPage: AnalyticsProperties['page'];
   let lastSetup: string | undefined;
+  let activeConfig: AnalyticsConfig | null = null;
+  let initializedConfig: AnalyticsConfig | null = null;
+  let replaySession: string | undefined;
+  const replay = createReplay(
+    loadRecorder,
+    () => enabled && consent() && replayConsent(),
+    (events) => {
+      const ids = sdk?.sessionManager?.checkAndGetSessionAndWindowId(true);
+      if (!sdk || !activeConfig || !ids) return;
+      if (replaySession && replaySession !== ids.sessionId) {
+        // A new native session needs its own meta/full snapshot, not old-session mutations.
+        replaySession = ids.sessionId;
+        replay.stop();
+        void replay.setEnabled(replayConsent());
+        return;
+      }
+      replaySession = ids.sessionId;
+      const properties = sanitizeReplayProperties({
+        $snapshot_data: events,
+        $session_id: ids.sessionId,
+        $window_id: ids.windowId,
+      });
+      if (properties)
+        sdk.capture(
+          '$snapshot',
+          { ...properties, ...analyticsContext() },
+          { _url: `${activeConfig.host}/s/`, _noTruncate: true },
+        );
+    },
+  );
   return {
+    setReplayEnabled(next: boolean) {
+      return replay.setEnabled(next && enabled);
+    },
     getDistinctId(): string | undefined {
       if (!enabled || !sdk || !consent() || !diagnosticsConsent()) return;
       try {
@@ -55,6 +92,9 @@ export function createAnalytics(
     async setEnabled(next: boolean, config: AnalyticsConfig | null): Promise<boolean> {
       const current = ++generation;
       enabled = false;
+      activeConfig = config;
+      replay.stop();
+      replaySession = undefined;
       lastPage = undefined;
       lastSetup = undefined;
       if (!next || !config) {
@@ -74,12 +114,32 @@ export function createAnalytics(
           sdk.init(config.token, {
             ...sdkConfig,
             api_host: config.host,
-            before_send: (event) => (consent() ? sanitizeEvent(event, diagnosticsConsent()) : null),
+            before_send: (event) => {
+              if (!enabled || !consent()) return null;
+              if (event?.event === '$snapshot') {
+                const properties = replayConsent()
+                  ? sanitizeReplayProperties(event.properties)
+                  : null;
+                return properties
+                  ? { ...event, properties: { ...properties, ...analyticsContext() } }
+                  : null;
+              }
+              return sanitizeEvent(event, diagnosticsConsent());
+            },
           });
           initialized = true;
+          initializedConfig = config;
+        } else if (
+          initializedConfig?.token !== config.token ||
+          initializedConfig.host !== config.host
+        ) {
+          if (!sdk.set_config) return false;
+          sdk.set_config({ token: config.token, api_host: config.host });
+          initializedConfig = config;
         }
         sdk.opt_in_capturing({ captureEventName: false });
         enabled = true;
+        void replay.setEnabled(replayConsent());
         return true;
       } catch {
         loading = undefined;
@@ -135,4 +195,10 @@ export const analytics = createAnalytics(
   },
   () => useDevicePreferences.getState().analytics,
   () => useDevicePreferences.getState().diagnostics,
+  () => useDevicePreferences.getState().replay,
 );
+
+// Consent changes stop the recorder synchronously, before React effects run.
+useDevicePreferences.subscribe((state) => {
+  void analytics.setReplayEnabled(state.analytics && state.replay);
+});

@@ -1,14 +1,18 @@
+import { createReplay, loadLocalRecorder } from '../../../ui/src/Analytics/replay/recorder';
+import { sanitizeReplayProperties } from '../../../ui/src/Analytics/replay/privacy';
 import type { PostHog, PostHogConfig } from 'posthog-js';
 import type { Installer } from '../Downloads/types';
 import { analyticsConfig, analyticsConfigured } from './config';
-import { analyticsAllowed, sanitizeEvent } from './helpers';
+import { analyticsAllowed, replayAllowed, sanitizeEvent } from './helpers';
 import { analyticsContext } from './context';
 import { heatmapConfig } from './heatmaps';
 
 type Sdk = Pick<
   PostHog,
   'init' | 'capture' | 'set_config' | 'opt_in_capturing' | 'opt_out_capturing'
-> & { heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'> };
+> &
+  Partial<Pick<PostHog, 'sessionManager'>> &
+  { heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'> };
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,
   capture_pageview: false,
@@ -36,7 +40,12 @@ export const sdkConfig: Partial<PostHogConfig> = {
   request_batching: false,
 };
 
-export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) {
+export function createAnalytics(
+  load: () => Promise<Sdk>,
+  allowed = () => true,
+  replayConsent = () => false,
+  loadRecorder = loadLocalRecorder,
+) {
   let sdk: Sdk | undefined;
   let loading: Promise<Sdk> | undefined;
   let initialized = false;
@@ -44,10 +53,43 @@ export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) 
   let generation = 0;
   let pageCaptured = false;
   let nativePageCaptured = false;
+  let replaySession: string | undefined;
+  const replay = createReplay(
+    loadRecorder,
+    () => enabled && allowed() && replayConsent(),
+    (events) => {
+      const ids = sdk?.sessionManager?.checkAndGetSessionAndWindowId(true);
+      if (!sdk || !ids) return;
+      if (replaySession && replaySession !== ids.sessionId) {
+        // A new native session needs its own meta/full snapshot, not old-session mutations.
+        replaySession = ids.sessionId;
+        replay.stop();
+        void replay.setEnabled(replayConsent());
+        return;
+      }
+      replaySession = ids.sessionId;
+      const properties = sanitizeReplayProperties({
+        $snapshot_data: events,
+        $session_id: ids.sessionId,
+        $window_id: ids.windowId,
+      });
+      if (properties)
+        sdk.capture(
+          '$snapshot',
+          { ...properties, ...analyticsContext },
+          { _url: `${analyticsConfig.host}/s/`, _noTruncate: true },
+        );
+    },
+  );
   return {
+    setReplayEnabled(next: boolean) {
+      return replay.setEnabled(next && enabled);
+    },
     async setEnabled(next: boolean) {
       const current = ++generation;
       enabled = false;
+      replay.stop();
+      replaySession = undefined;
       if (!next || !allowed()) {
         nativePageCaptured = false;
         try {
@@ -68,7 +110,18 @@ export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) 
           sdk.init(analyticsConfig.token, {
             ...sdkConfig,
             api_host: analyticsConfig.host,
-            before_send: (event) => (enabled && allowed() ? sanitizeEvent(event) : null),
+            before_send: (event) => {
+              if (!enabled || !allowed()) return null;
+              if (event?.event === '$snapshot') {
+                const properties = replayConsent()
+                  ? sanitizeReplayProperties(event.properties)
+                  : null;
+                return properties
+                  ? { ...event, properties: { ...properties, ...analyticsContext } }
+                  : null;
+              }
+              return sanitizeEvent(event);
+            },
           });
           initialized = true;
         }
@@ -79,6 +132,7 @@ export function createAnalytics(load: () => Promise<Sdk>, allowed = () => true) 
         sdk.opt_in_capturing({ captureEventName: false });
         enabled = true;
         sdk.set_config(heatmapConfig);
+        void replay.setEnabled(replayConsent());
         if (!nativePageCaptured) {
           sdk.capture('$pageview', analyticsContext);
           nativePageCaptured = true;
@@ -143,6 +197,13 @@ export const analytics = createAnalytics(
         window.location.pathname === '/' &&
         analyticsAllowed(window.localStorage, navigator.doNotTrack)
       );
+    } catch {
+      return false;
+    }
+  },
+  () => {
+    try {
+      return replayAllowed(window.localStorage, navigator.doNotTrack);
     } catch {
       return false;
     }

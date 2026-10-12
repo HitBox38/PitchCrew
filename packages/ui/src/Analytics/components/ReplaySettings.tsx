@@ -10,8 +10,8 @@ export function ReplaySettings() {
       <span>
         <strong>Share masked session replay</strong>
         <span className="quiet block">
-          Optional recordings of interface interactions. Private content stays hidden. Off by
-          default.
+          Optional wireframe recordings of navigation and layout. All text and inputs are hidden.
+          Off by default.
         </span>
       </span>
       <Switch
