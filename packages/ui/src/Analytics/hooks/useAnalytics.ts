@@ -14,9 +14,9 @@ import { isDiagnosticLeader, useDiagnosticLeader } from '../leadership.ts';
 
 export function useAnalytics() {
   const leader = useDiagnosticLeader();
-  const [ready, setReady] = useState(false);
   const enabled = useDevicePreferences((state) => state.analytics);
   const config = useAnalyticsConfig((state) => state.config);
+  const [ready, setReady] = useState<{ config: typeof config } | null>(null);
   const page = useRouterState({ select: (state) => analyticsPage(state.location.pathname) });
   const data = useWorkspaceStore((state) => state.data);
   const latestSetup = useRef(productSetupProperties(data));
@@ -37,21 +37,21 @@ export function useAnalytics() {
   }, []);
   useEffect(() => {
     let active = true;
-    setReady(false);
     void analytics.setEnabled(enabled, config).then((ready) => {
-      if (active && ready) {
-        setReady(true);
+      if (!active) return;
+      setReady(ready && config ? { config } : null);
+      if (ready) {
         analytics.capture('$pageview', { page: latestPage.current });
         if (latestSetup.current) analytics.capture('workspace_setup_observed', latestSetup.current);
       }
     });
     return () => {
       active = false;
-      setReady(false);
       void analytics.setEnabled(false, config);
     };
   }, [enabled, config]);
   useEffect(() => {
-    if (ready && enabled && config) return installApplicationMetrics(config, isDiagnosticLeader);
+    if (ready?.config === config && enabled && config)
+      return installApplicationMetrics(config, isDiagnosticLeader);
   }, [ready, enabled, config, leader]);
 }
