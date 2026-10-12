@@ -8,7 +8,7 @@
   },
   "governance": {
     "status": "proposed",
-    "catalogCheck": "Blocked: PostHog connection lacks data_catalog:read. Recheck complete catalog and reconcile approved definitions before publishing."
+    "catalogCheck": "Coordinator verified complete metrics count/list = 0. No approved match; proposed noncanonical activation definitions are valid fallbacks. Native catalog writes remain unavailable and drafts remain unapproved."
   },
   "insights": [
     {
@@ -18,10 +18,10 @@
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
-          "date_from": "-30d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
-        "interval": "week",
+        "interval": "day",
         "series": [
           {
             "kind": "EventsNode",
@@ -53,10 +53,10 @@
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
-          "date_from": "-30d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
-        "interval": "week",
+        "interval": "day",
         "series": [
           {
             "kind": "EventsNode",
@@ -98,10 +98,10 @@
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
-          "date_from": "-30d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
-        "interval": "week",
+        "interval": "day",
         "series": [
           {
             "kind": "EventsNode",
@@ -147,10 +147,10 @@
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
-          "date_from": "-30d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
-        "interval": "week",
+        "interval": "day",
         "series": [
           {
             "kind": "EventsNode",
@@ -218,7 +218,7 @@
           }
         ],
         "dateRange": {
-          "date_from": "-90d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
         "funnelsFilter": {
@@ -253,14 +253,22 @@
           }
         ],
         "dateRange": {
-          "date_from": "-30d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
         "funnelsFilter": {
           "funnelOrderType": "ordered",
           "funnelWindowInterval": 7,
           "funnelWindowIntervalUnit": "day"
-        }
+        },
+        "properties": [
+          {
+            "key": "renderer",
+            "operator": "exact",
+            "type": "event",
+            "value": ["browser", "electron"]
+          }
+        ]
       }
     },
     {
@@ -296,10 +304,10 @@
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
-          "date_from": "-30d"
+          "date_from": "-7d"
         },
         "filterTestAccounts": true,
-        "interval": "week",
+        "interval": "day",
         "series": [
           {
             "kind": "EventsNode",
@@ -337,6 +345,7 @@
     "date": "2026-10-12",
     "projectId": 295060,
     "method": "Read-only native query-trends, query-funnel, query-retention",
-    "result": "All eight descriptor queries accepted and executed successfully. New events have no production data until shipped. No dashboard or insight writes performed."
-  }
+    "result": "Initial eight native queries were accepted read-only. Subsequent authorized activation reused existing charts and added missing coverage: all nineteen current native dashboard queries passed force_blocking; see activation.json for exact live queries, IDs and weekly selection."
+  },
+  "activationArtifact": "activation.json"
 }
