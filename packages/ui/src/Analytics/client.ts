@@ -76,6 +76,9 @@ export function createAnalytics(
         return false;
       }
     },
+    diagnosticsEnabled() {
+      return enabled && !!sdk && consent() && diagnosticsConsent();
+    },
     captureDiagnostic(event: string, input: Record<string, unknown> = {}) {
       if (!enabled || !sdk || !consent() || !diagnosticsConsent()) return;
       const properties = sanitizeDiagnostic(event, input);

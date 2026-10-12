@@ -1,0 +1,258 @@
+{
+  "schemaVersion": 1,
+  "projectId": 295060,
+  "dashboard": {
+    "preferredExistingId": 999694,
+    "name": "Pitchcrew · Diagnostics Coverage",
+    "description": "App renderer error tracking is manually instrumented with sanitized fixed categories; collection begins after shipping. Other diagnostics must be described according to their own instrumentation. Empty charts never imply healthy behavior."
+  },
+  "coverageUpdate": {
+    "existingInsightId": 6355551,
+    "existingInsightShortId": "79UVPFXi",
+    "existingTileId": 7154516,
+    "removeNotCollectedPrefixOnlyFor": "sanitized-errors-by-source",
+    "keepOtherUninstrumentedLabels": true
+  },
+  "insights": [
+    {
+      "key": "sanitized-errors-by-source",
+      "name": "Sanitized error reports by source",
+      "description": "Manually instrumented app renderer errors. Reports are consent-dependent and deduplicated to one category/source/action per minute, capped at 20 per minute. Empty values do not mean zero errors. Messages, stacks, paths, component names and app content are excluded.",
+      "preferredExistingInsightId": 6355551,
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$exception",
+            "math": "total",
+            "properties": [
+              {
+                "key": "error_source",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "window_error",
+                  "unhandled_rejection",
+                  "react_boundary",
+                  "react_uncaught",
+                  "react_recoverable",
+                  "api_action"
+                ]
+              }
+            ]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "error_source",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "key": "sanitized-error-report-volume",
+      "name": "Reported exceptions and anonymous devices",
+      "description": "Captured reports and distinct anonymous device IDs per day. Counts are bounded and best effort; device IDs are not verified people or installations. This is report coverage, not an error frequency or crash-free rate.",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$exception",
+            "math": "total",
+            "properties": [
+              {
+                "key": "error_source",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "window_error",
+                  "unhandled_rejection",
+                  "react_boundary",
+                  "react_uncaught",
+                  "react_recoverable",
+                  "api_action"
+                ]
+              }
+            ],
+            "name": "Reported exceptions"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "$exception",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "error_source",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "window_error",
+                  "unhandled_rejection",
+                  "react_boundary",
+                  "react_uncaught",
+                  "react_recoverable",
+                  "api_action"
+                ]
+              }
+            ],
+            "name": "Anonymous devices with a report"
+          }
+        ],
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day"
+      }
+    },
+    {
+      "key": "api-action-exceptions",
+      "name": "Unexpected action failures by feature",
+      "description": "Tracked deliberate action failures: network rejection, HTTP 5xx, or malformed successful JSON response. Expected HTTP 4xx, aborted requests, polls, private browser inputs and control renewals are excluded. Grouping uses fixed feature categories.",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$exception",
+            "math": "total",
+            "properties": [
+              {
+                "key": "error_source",
+                "type": "event",
+                "operator": "exact",
+                "value": ["api_action"]
+              }
+            ]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "error_action",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "key": "sanitized-error-categories",
+      "name": "Sanitized error reports by category",
+      "description": "Fixed native error categories and request failure categories. No actual error names, messages or stacks are collected. Different defects can share a category, and repeated occurrences are deduplicated.",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$exception",
+            "math": "total",
+            "properties": [
+              {
+                "key": "error_source",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "window_error",
+                  "unhandled_rejection",
+                  "react_boundary",
+                  "react_uncaught",
+                  "react_recoverable",
+                  "api_action"
+                ]
+              }
+            ]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "error_category",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "key": "sanitized-errors-by-version",
+      "name": "Sanitized error reports by shipped version",
+      "description": "Reported renderer errors by root package version. Totals are not normalized for release adoption and cannot establish comparative reliability; opting out and rate limits affect coverage.",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$exception",
+            "math": "total",
+            "properties": [
+              {
+                "key": "error_source",
+                "type": "event",
+                "operator": "exact",
+                "value": [
+                  "window_error",
+                  "unhandled_rejection",
+                  "react_boundary",
+                  "react_uncaught",
+                  "react_recoverable",
+                  "api_action"
+                ]
+              }
+            ]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "app_version",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "errorTracking": {
+    "url": "https://eu.posthog.com/project/295060/error_tracking",
+    "manualEvent": "$exception",
+    "grouping": "Fixed source/category/action fingerprint, v1. No raw stack or message.",
+    "notCovered": [
+      "Daemon-only crashes",
+      "Provider CLI errors not surfaced to the renderer",
+      "Landing renderer errors",
+      "Expected validation/approval conflicts",
+      "Boot errors before analytics is initialized"
+    ]
+  },
+  "validation": {
+    "date": "2026-10-12",
+    "method": "Read-only connected docs-search and query-trends; all five queries executed successfully.",
+    "result": "No production exception property taxonomy exists yet. Empty queries are expected until builds ship; no exception events or live resources created."
+  }
+}
