@@ -15,6 +15,7 @@ export const sdkConfig: Partial<PostHogConfig> = {
   capture_pageview: false,
   capture_pageleave: false,
   capture_dead_clicks: false,
+  capture_heatmaps: false,
   rageclick: false,
   disable_session_recording: true,
   disable_surveys: true,
