@@ -1,0 +1,50 @@
+name: Engineering analytics
+
+on:
+  workflow_dispatch:
+    inputs:
+      send:
+        description: Send repository metrics to PostHog (requires repository opt-in)
+        type: boolean
+        default: false
+      lookback_days:
+        description: Bounded backfill window (1 to 30 days)
+        type: number
+        default: 7
+
+permissions:
+  contents: read
+  actions: read
+  pull-requests: read
+
+concurrency:
+  group: engineering-analytics
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    if: github.repository == 'HitBox38/PitchCrew'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      # Always execute trusted default-branch tooling, never a PR/fork checkout.
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+      - name: Collect public CI and merged PR metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SEND_EVENTS: ${{ inputs.send }}
+          PITCHCREW_ENGINEERING_LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+          PITCHCREW_ENGINEERING_ANALYTICS: ${{ vars.PITCHCREW_ENGINEERING_ANALYTICS }}
+          PITCHCREW_ENGINEERING_POSTHOG_TOKEN: ${{ vars.PITCHCREW_ENGINEERING_POSTHOG_TOKEN }}
+        run: |
+          if [ "$SEND_EVENTS" = true ]; then
+            node scripts/engineering-analytics/index.ts --send
+          else
+            node scripts/engineering-analytics/index.ts
+          fi
