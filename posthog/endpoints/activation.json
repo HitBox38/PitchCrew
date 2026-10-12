@@ -1,0 +1,297 @@
+{
+  "project_id": 295060,
+  "status": "native_created_and_verified",
+  "verified_at": "2026-10-12T19:21:03Z",
+  "definition_status": "noncanonical",
+  "catalog": {
+    "metric_list": "Missing data_catalog:read scope",
+    "sql_fallback": "Current catalog columns discovered from system.information_schema.columns; SELECT id,name,display_name,description,unit,status,is_drifted,definition_kind FROM system.information_schema.metrics ORDER BY id LIMIT 200 succeeded with zero rows.",
+    "outcome": "no_match_via_empty_sql_catalog",
+    "canonical": false
+  },
+  "variable": {
+    "id": "01a1318d-543d-0000-3b38-c37e6e7d8350",
+    "name": "Pitchcrew lookback days",
+    "code_name": "pitchcrew_lookback_days",
+    "type": "Number",
+    "default_value": 7,
+    "creation_preflight": "Exact name and code_name native variable query returned no rows.",
+    "binding_verification": "Constant execute-sql resolved native UUID variable map and returned lookback_days=7,bounded_days=7; every native endpoint compiled distinct literal overrides7 and1."
+  },
+  "inventory": {
+    "before": {
+      "count": 0,
+      "next": null
+    },
+    "after": {
+      "count": 4,
+      "next": null
+    }
+  },
+  "endpoints": [
+    {
+      "key": "action_mix",
+      "id": "01a1318d-b280-0000-44df-eb69013ff138",
+      "name": "pitchcrew_accepted_actions_daily",
+      "current_version": 1,
+      "current_version_id": "c964bd07-e9eb-4875-b423-33df8059e893",
+      "url": "https://eu.posthog.com/project/295060/endpoints/pitchcrew_accepted_actions_daily",
+      "data_freshness_seconds": 86400,
+      "is_materialized": false,
+      "columns": [
+        {
+          "name": "day",
+          "type": "date"
+        },
+        {
+          "name": "accepted_chat_sends",
+          "type": "integer"
+        },
+        {
+          "name": "accepted_workflow_launches",
+          "type": "integer"
+        },
+        {
+          "name": "completed_ui_source_scans",
+          "type": "integer"
+        }
+      ],
+      "verification": [
+        {
+          "days": 7,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 1,
+          "hasMore": false,
+          "coverage": "observations_available",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        },
+        {
+          "days": 1,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        }
+      ],
+      "idempotent_readback": "planner returned noop against complete native readbacks"
+    },
+    {
+      "key": "request_health",
+      "id": "01a1318e-4c4e-0000-d119-aa0203aada32",
+      "name": "pitchcrew_observed_request_health_daily",
+      "current_version": 1,
+      "current_version_id": "df919aa9-b6e5-43c5-a0c9-91cb6919f862",
+      "url": "https://eu.posthog.com/project/295060/endpoints/pitchcrew_observed_request_health_daily",
+      "data_freshness_seconds": 86400,
+      "is_materialized": false,
+      "columns": [
+        {
+          "name": "day",
+          "type": "date"
+        },
+        {
+          "name": "observed_requests",
+          "type": "integer"
+        },
+        {
+          "name": "successes",
+          "type": "integer"
+        },
+        {
+          "name": "aborted",
+          "type": "integer"
+        },
+        {
+          "name": "failures",
+          "type": "integer"
+        },
+        {
+          "name": "non_aborted_failure_percent",
+          "type": "float"
+        },
+        {
+          "name": "success_p50_ms",
+          "type": "float"
+        },
+        {
+          "name": "success_p95_ms",
+          "type": "float"
+        }
+      ],
+      "verification": [
+        {
+          "days": 7,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        },
+        {
+          "days": 1,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        }
+      ],
+      "idempotent_readback": "planner returned noop against complete native readbacks"
+    },
+    {
+      "key": "run_health",
+      "id": "01a1318e-5ac5-0000-c1b9-6cd4b88c8830",
+      "name": "pitchcrew_observed_run_health_daily",
+      "current_version": 1,
+      "current_version_id": "96c4fd81-0c6d-46ef-a667-b0656a6f08ab",
+      "url": "https://eu.posthog.com/project/295060/endpoints/pitchcrew_observed_run_health_daily",
+      "data_freshness_seconds": 86400,
+      "is_materialized": false,
+      "columns": [
+        {
+          "name": "day",
+          "type": "date"
+        },
+        {
+          "name": "mode",
+          "type": "string"
+        },
+        {
+          "name": "observed_terminal_runs",
+          "type": "integer"
+        },
+        {
+          "name": "completed",
+          "type": "integer"
+        },
+        {
+          "name": "failed",
+          "type": "integer"
+        },
+        {
+          "name": "cancelled",
+          "type": "integer"
+        },
+        {
+          "name": "measured_runs",
+          "type": "integer"
+        },
+        {
+          "name": "measured_p50_ms",
+          "type": "float"
+        },
+        {
+          "name": "measured_p95_ms",
+          "type": "float"
+        }
+      ],
+      "verification": [
+        {
+          "days": 7,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        },
+        {
+          "days": 1,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        }
+      ],
+      "idempotent_readback": "planner returned noop against complete native readbacks"
+    },
+    {
+      "key": "ci_attempt_health",
+      "id": "01a1318e-6a36-0000-4331-e0e8745d561c",
+      "name": "pitchcrew_imported_ci_health_daily",
+      "current_version": 1,
+      "current_version_id": "716bc9bd-3fc0-4b73-903f-20c30d8f6e9a",
+      "url": "https://eu.posthog.com/project/295060/endpoints/pitchcrew_imported_ci_health_daily",
+      "data_freshness_seconds": 86400,
+      "is_materialized": false,
+      "columns": [
+        {
+          "name": "day",
+          "type": "date"
+        },
+        {
+          "name": "completed_attempts",
+          "type": "integer"
+        },
+        {
+          "name": "successful_attempts",
+          "type": "integer"
+        },
+        {
+          "name": "repeat_attempts",
+          "type": "integer"
+        },
+        {
+          "name": "success_percent",
+          "type": "float"
+        },
+        {
+          "name": "p50_job_span_seconds",
+          "type": "float"
+        },
+        {
+          "name": "p95_job_span_seconds",
+          "type": "float"
+        }
+      ],
+      "verification": [
+        {
+          "days": 7,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        },
+        {
+          "days": 1,
+          "limit": 100,
+          "endpoint_version": 1,
+          "row_count": 0,
+          "hasMore": false,
+          "coverage": "unknown_no_observations",
+          "literal_override_verified": true,
+          "result_contract_validated": true
+        }
+      ],
+      "idempotent_readback": "planner returned noop against complete native readbacks"
+    }
+  ],
+  "coverage": {
+    "action_mix": "Existing source events found in current taxonomy; one 7-day aggregate day returned, no1-day rows.",
+    "request_health": "api_request_finished absent in current taxonomy; no1/7-day observations. Pending release.",
+    "run_health": "run_finished absent in current taxonomy; no1/7-day observations. Pending release.",
+    "ci_attempt_health": "pitchcrew_ci_run_completed absent in current taxonomy; no1/7-day observations. Pending opt-in import."
+  },
+  "restrictions": [
+    "No raw event IDs, prompts, properties objects or private credentials selected or committed.",
+    "No production events generated; only native endpoint and one SQL-variable resources created.",
+    "Local caller rejects out-of-range days/rows; saved query clamps Number days1–30 and bounds every events scan to30days. Daily output grain also bounds cardinality (maximum62rows across two run modes).",
+    "Personal read credentials remain external; endpoint MCP runner uses latest native version, consumers must check returnedversion1 or pinversion1 in external trusted admin clients."
+  ]
+}

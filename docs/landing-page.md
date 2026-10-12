@@ -41,6 +41,10 @@ The server reads the latest public GitHub release without credentials, validates
 
 Production counts anonymous page visits and download clicks through Pitchcrew's public PostHog project; `NEXT_PUBLIC_POSTHOG_TOKEN` and `NEXT_PUBLIC_POSTHOG_HOST` override the ingestion settings. An empty token disables analytics. Development is offline unless `NEXT_PUBLIC_POSTHOG_DEV=1`. The footer offers a device-local opt-out, synchronized across tabs, and browser Do Not Track is respected. Events use a closed vocabulary of platform and package choices; URLs, referrers, app content and error text are excluded. Autocapture, session recording, profiles, surveys, flags, performance and exceptions are disabled. Analytics failures never block downloads.
 
+`landing_page_viewed` and `landing_download_clicked` also include the root package's `app_version`, `renderer: landing` and `analytics_schema: 2`. A visit is counted once per loaded page, including after preference toggles. Download clicks count selected installer or Releases links, not completed downloads or installations. Website identity remains independent of the installed app.
+
+The public site is https://pitch-crew.tomer-norman.dev. On October 12, 2026, browser inspection confirmed its deployed bundle uses the app's public PitchCrew EU token and sends an ingestion request to `https://eu.i.posthog.com/e/` that returns HTTP 200. This verifies deployed configuration and accepted outbound capture; it does not establish query visibility or genuine visitor counts. Automated tests keep transport mocked and never send test downloads to the public project.
+
 ## Search and sharing
 
 The HTML includes a descriptive search title and summary, canonical and Open Graph URLs from `NEXT_PUBLIC_SITE_URL`, social sharing images, and escaped JSON-LD describing the website, page and desktop application. Visible hero copy identifies the AI job-search workflow. Text, FAQs and download links are rendered on the server; fonts are local and screenshots use Next.js image optimization with lazy loading below the hero.

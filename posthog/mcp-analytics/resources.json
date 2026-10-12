@@ -1,0 +1,265 @@
+{
+  "project_id": 295060,
+  "dashboard": "AI and MCP observability",
+  "activation_state": "native dashboard charts created or updated; instrumentation awaits release",
+  "coverage": "scoped_gateway",
+  "event": "$mcp_tool_call",
+  "governance": {
+    "status": "noncanonical",
+    "catalog_check": "data_catalog:read scope unavailable",
+    "proposed_metric": "mcp_tool_call_fail_pct",
+    "note": "Includes expected permission and validation rejections; review definition before approving."
+  },
+  "validation": {
+    "native_contract": "authoritative MCP event/property docs and querying-posthog-data/models-mcp reference",
+    "last_discovery": "2026-10-12",
+    "recent_events": false,
+    "queries": "Prepared source-validated descriptors; run after deployed taxonomy confirms fields. Not executed against absent data.",
+    "native_query_schema": "Current query-trends series, breakdownFilter, dateRange and trendsFilter schemas inspected; source contract verified only, runtime evaluation deferred until real deployed samples."
+  },
+  "insights": [
+    {
+      "key": "calls",
+      "name": "Observed MCP tool calls",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$mcp_tool_call",
+              "name": "Observed MCP tool calls",
+              "math": "total",
+              "properties": [
+                {
+                  "key": "$mcp_server_name",
+                  "value": "pitchcrew",
+                  "operator": "exact",
+                  "type": "event"
+                },
+                {
+                  "key": "mcp_observation_level",
+                  "value": "scoped_gateway",
+                  "operator": "exact",
+                  "type": "event"
+                }
+              ]
+            }
+          ],
+          "dateRange": {
+            "date_from": "-7d"
+          },
+          "interval": "day",
+          "filterTestAccounts": true,
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      },
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health."
+    },
+    {
+      "key": "tools",
+      "name": "Observed MCP calls by tool",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$mcp_tool_call",
+              "name": "Observed MCP tool calls",
+              "math": "total",
+              "properties": [
+                {
+                  "key": "$mcp_server_name",
+                  "value": "pitchcrew",
+                  "operator": "exact",
+                  "type": "event"
+                },
+                {
+                  "key": "mcp_observation_level",
+                  "value": "scoped_gateway",
+                  "operator": "exact",
+                  "type": "event"
+                }
+              ]
+            }
+          ],
+          "dateRange": {
+            "date_from": "-7d"
+          },
+          "interval": "day",
+          "filterTestAccounts": true,
+          "trendsFilter": {
+            "display": "ActionsBarValue"
+          },
+          "breakdownFilter": {
+            "breakdowns": [
+              {
+                "property": "$mcp_tool_name",
+                "type": "event"
+              }
+            ]
+          }
+        }
+      },
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health."
+    },
+    {
+      "key": "errors",
+      "name": "Observed MCP rejected calls",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$mcp_tool_call",
+              "name": "Rejected gateway calls",
+              "math": "total",
+              "properties": [
+                {
+                  "key": "$mcp_server_name",
+                  "value": "pitchcrew",
+                  "operator": "exact",
+                  "type": "event"
+                },
+                {
+                  "key": "mcp_observation_level",
+                  "value": "scoped_gateway",
+                  "operator": "exact",
+                  "type": "event"
+                },
+                {
+                  "key": "$mcp_is_error",
+                  "value": "true",
+                  "operator": "exact",
+                  "type": "event"
+                }
+              ]
+            }
+          ],
+          "dateRange": {
+            "date_from": "-7d"
+          },
+          "interval": "day",
+          "filterTestAccounts": true,
+          "trendsFilter": {
+            "display": "ActionsLineGraph"
+          }
+        }
+      },
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health."
+    },
+    {
+      "key": "mean-duration",
+      "name": "Observed MCP mean latency \u00b7 ms",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$mcp_tool_call",
+              "name": "Observed MCP tool calls",
+              "math": "avg",
+              "properties": [
+                {
+                  "key": "$mcp_server_name",
+                  "value": "pitchcrew",
+                  "operator": "exact",
+                  "type": "event"
+                },
+                {
+                  "key": "mcp_observation_level",
+                  "value": "scoped_gateway",
+                  "operator": "exact",
+                  "type": "event"
+                }
+              ],
+              "math_property": "$mcp_duration_ms"
+            }
+          ],
+          "dateRange": {
+            "date_from": "-7d"
+          },
+          "interval": "day",
+          "filterTestAccounts": true,
+          "trendsFilter": {
+            "display": "ActionsLineGraph",
+            "aggregationAxisFormat": "duration_ms"
+          }
+        }
+      },
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health."
+    },
+    {
+      "key": "p95-duration",
+      "name": "Observed MCP p95 latency \u00b7 ms",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "event": "$mcp_tool_call",
+              "name": "Observed MCP tool calls",
+              "math": "p95",
+              "properties": [
+                {
+                  "key": "$mcp_server_name",
+                  "value": "pitchcrew",
+                  "operator": "exact",
+                  "type": "event"
+                },
+                {
+                  "key": "mcp_observation_level",
+                  "value": "scoped_gateway",
+                  "operator": "exact",
+                  "type": "event"
+                }
+              ],
+              "math_property": "$mcp_duration_ms"
+            }
+          ],
+          "dateRange": {
+            "date_from": "-7d"
+          },
+          "interval": "day",
+          "filterTestAccounts": true,
+          "trendsFilter": {
+            "display": "ActionsLineGraph",
+            "aggregationAxisFormat": "duration_ms"
+          }
+        }
+      },
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health."
+    }
+  ],
+  "sql_insights": [
+    {
+      "key": "tool-quality",
+      "name": "Observed MCP tool quality \u00b7 noncanonical",
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health. Only tools with at least 20 observed calls appear.",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT\n    coalesce(nullIf(toString(properties.$mcp_exec_tool_call_name), ''), toString(properties.$mcp_tool_name)) AS tool,\n    count() AS calls,\n    countIf(toBool(properties.$mcp_is_error)) AS rejected_calls,\n    round(countIf(toBool(properties.$mcp_is_error)) * 100.0 / count(), 1) AS rejected_pct,\n    quantile(0.50)(toFloat(properties.$mcp_duration_ms)) AS p50_ms,\n    quantile(0.95)(toFloat(properties.$mcp_duration_ms)) AS p95_ms\nFROM events\nWHERE event = '$mcp_tool_call'\n    AND properties.$mcp_server_name = 'pitchcrew'\n    AND properties.mcp_observation_level = 'scoped_gateway'\n    AND timestamp >= now() - INTERVAL 7 DAY\nGROUP BY tool\nHAVING calls >= 20\nORDER BY rejected_pct DESC, calls DESC\nLIMIT 50"
+      }
+    }
+  ],
+  "unsupported": [
+    "Input/output payload analysis",
+    "Intent clusters",
+    "Client/model attribution",
+    "Discovery conversion",
+    "Provider CLI internal tools",
+    "Native protocol schema errors before gateway"
+  ],
+  "activation_audit": "../activation.json"
+}

@@ -1,0 +1,64 @@
+{
+  "project_id": 295060,
+  "activation": "active_native_readback_verified",
+  "activation_record": "activation.json",
+  "native_tools_verified": "2026-10-12",
+  "validation": {
+    "notebooks_listing": "Fresh complete inventory had zero notebooks before activation. Final inventory contains exactly the two verified review/release notebooks; native creation and complete cell readbacks succeeded.",
+    "compiler": "All seven SQL templates with explicit UTC toDateTime bounds compiled through execute-sql in an intentionally zero-width window. This establishes syntax only. New event/property taxonomy warnings confirm collection is not yet available.",
+    "catalog": "Initial metric-list lacked data_catalog:read. Before activation, the coordinator and catalog/endpoints workstreams verified a complete empty catalog; all notebook SQL remains noncanonical."
+  },
+  "definition_status": "noncanonical",
+  "timezone": "Asia/Jerusalem",
+  "window_days": 7,
+  "maximum_rows": 100,
+  "maximum_cells": 50,
+  "sources": [
+    "https://posthog.com/docs/notebooks",
+    "https://posthog.com/docs/model-context-protocol/tools"
+  ],
+  "notebooks": [
+    {
+      "key": "weekly_review",
+      "title": "Pitchcrew · Weekly analytics investigation",
+      "markdown": "Review the seven elapsed days ending at the pinned UTC cutoff below. Day buckets use Asia/Jerusalem. Dashboard and saved-insight widgets show their own saved filters and current results; only the SQL cells share this pinned window. These are noncanonical diagnostic aggregates, not approved governed metrics.\n\nWeekly dashboard email delivery: Sunday 06:00 UTC, charts only (fixed UTC time; Jerusalem local time changes with daylight saving). This notebook is a manual investigation companion, not a subscription or an AI-generated report.\n\nBefore interpreting results, verify collection after deployment/import. Empty or absent rows mean unknown coverage. Opt-out, inactive renderers, observer leadership, rate limits and independently deployed landing code affect completeness. Record observations and follow-up actions manually; no personal content or identifiers belong here.",
+      "dashboards": [
+        "usage",
+        "adoption",
+        "workflow",
+        "diagnostics",
+        "web",
+        "heatmaps",
+        "ai_mcp",
+        "engineering"
+      ],
+      "insights": ["sanitized_errors"],
+      "queries": [
+        "action_mix",
+        "setup_readiness",
+        "request_health",
+        "run_health",
+        "sanitized_errors",
+        "ci_attempt_health",
+        "pr_delivery"
+      ],
+      "closing_markdown": "## Investigation checklist\n\n- Check source coverage and deployed analytics schema before treating a gap as a regression.\n- Compare accepted actions with observed outcomes without assuming a complete conversion funnel.\n- Review request failures, measured latency and sanitized error sources together. Zero observed exceptions never proves a healthy app.\n- Review landing and frustration dashboards separately from private workspace activity. Replay remains separately opt-in and masked.\n- AI observability covers runtime spans, not a complete provider-generation/token/cost ledger. MCP telemetry excludes arguments, results and intents.\n- Engineering rows are opt-in repository imports; open-to-merge timing is neither review time nor DORA cycle time.\n- Write the evidence, uncertainty, next action and a later validation date. No automated conclusions or AI credit use are configured."
+    },
+    {
+      "key": "release_check",
+      "title": "Pitchcrew · Release analytics verification",
+      "markdown": "Use this notebook after a reviewed app or landing release. The aggregate cells cover seven elapsed days ending at a pinned UTC cutoff, with Asia/Jerusalem day buckets. They may span several releases and cannot attribute a change to one deployment. Dashboard/insight widgets retain their own filters. Definitions are noncanonical until approved in the governed catalog.\n\nConfirm the installed app version, separately deployed landing build, consent behavior and source availability before comparing results. Never manufacture production observations to fill an empty chart. No raw errors, provider prompts, tool payloads, person profiles or app entity IDs are selected.",
+      "dashboards": ["adoption", "workflow", "diagnostics", "web", "ai_mcp", "engineering"],
+      "insights": ["sanitized_errors"],
+      "queries": [
+        "setup_readiness",
+        "request_health",
+        "run_health",
+        "sanitized_errors",
+        "ci_attempt_health",
+        "pr_delivery"
+      ],
+      "closing_markdown": "## Release verification record\n\n- Record the release/version and landing deployment reviewed in manual notes; numeric query cells do not isolate a version.\n- Confirm required events and allowed property values with read-data-schema. Mark uncollected sources as Not collected.\n- Confirm native Logs and Metrics activation separately; event-based request/run tables do not prove those products are ingesting.\n- Check that opting out immediately stops events, metric/log requests and recording; replay should remain off without explicit consent.\n- Confirm actual sanitized exceptions group in Error tracking without message/stack disclosure.\n- Inspect the native AI/MCP and Engineering product coverage labels before interpreting custom event dashboards.\n- Record CI/import coverage and validation evidence. Low counts, missing duration and observer gaps remain unknown.\n- Record a follow-up decision only after reviewing evidence; this notebook does not deploy, merge or change approvals."
+    }
+  ]
+}

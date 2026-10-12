@@ -53,11 +53,13 @@ export function createCrewContext(
   mcpEntry: string,
   dev = false,
   browserLaunch?: (profile?: string) => Promise<BrowserDriver>,
+  diagnostics?: import('@pitchcrew/core').DiagnosticSink,
 ): CrewContext {
   const onboarding = new OnboardingPreferences(directory);
   const board = new Board(join(directory, 'pitchcrew.db'));
   const connectors = new ConnectorManager(directory);
   const context: CrewContext = {
+    diagnostics,
     directory,
     dev,
     daemonUrl,

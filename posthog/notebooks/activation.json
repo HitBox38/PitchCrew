@@ -1,0 +1,531 @@
+{
+  "project_id": 295060,
+  "status": "active_native_readback_verified",
+  "verified_at_utc": "2026-10-12 19:33:40 UTC",
+  "window": {
+    "start": "2026-10-05T19:28:57.000Z",
+    "end": "2026-10-12T19:28:57.000Z",
+    "days": 7,
+    "timezone": "Asia/Jerusalem",
+    "maximum_rows": 100
+  },
+  "definition_status": "noncanonical",
+  "catalog": {
+    "complete_listing_verified_by": "coordinator and governed/endpoints workstreams",
+    "metric_count": 0,
+    "outcome": "no_match"
+  },
+  "schedule_context": {
+    "weekday": "Sunday",
+    "time": "06:00",
+    "timezone": "UTC",
+    "summary_enabled": false,
+    "note": "Fixed UTC time accepted by user; Jerusalem local delivery changes with DST. Notebook day buckets remain Asia/Jerusalem. This notebook activation creates no subscription."
+  },
+  "bindings": [
+    {
+      "kind": "dashboard",
+      "key": "usage",
+      "id": 999570,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "adoption",
+      "id": 999571,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "workflow",
+      "id": 999572,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "diagnostics",
+      "id": 999694,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "web",
+      "id": 1018299,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "heatmaps",
+      "id": 1018295,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "ai_mcp",
+      "id": 1018318,
+      "project_id": 295060
+    },
+    {
+      "kind": "dashboard",
+      "key": "engineering",
+      "id": 1018325,
+      "project_id": 295060
+    },
+    {
+      "kind": "insight",
+      "key": "sanitized_errors",
+      "id": "79UVPFXi",
+      "project_id": 295060
+    }
+  ],
+  "query_coverage": {
+    "action_mix": {
+      "row_count": 1,
+      "observations": {
+        "accepted_chat_sends": 1,
+        "accepted_workflow_launches": 2,
+        "completed_ui_source_scans": 1
+      },
+      "note": "Existing observations; no completeness claim."
+    },
+    "setup_readiness": "no_rows_instrumented_awaiting_release_unknown_coverage",
+    "request_health": "no_rows_instrumented_awaiting_release_unknown_coverage",
+    "run_health": "no_rows_instrumented_awaiting_release_unknown_coverage",
+    "sanitized_errors": "no_rows_instrumented_awaiting_release_unknown_coverage",
+    "ci_attempt_health": {
+      "row_count": 7,
+      "completed_attempts": 84,
+      "source": "genuine_public_repository_import"
+    },
+    "pr_delivery": {
+      "row_count": 8,
+      "merged_prs": 27,
+      "source": "genuine_public_repository_import"
+    }
+  },
+  "notebooks": [
+    {
+      "key": "weekly_review",
+      "uuid": "01a13197-5f0a-0000-15b7-ffe2158496e8",
+      "short_id": "0eCbhBBR",
+      "title": "Pitchcrew · Weekly analytics investigation",
+      "url": "https://eu.posthog.com/project/295060/notebooks/0eCbhBBR",
+      "version": 32,
+      "parsed_readback_cells": 39,
+      "sql_cells": 7,
+      "kernel_status": "stopped",
+      "verification": {
+        "all_requested_cells_present_in_order": true,
+        "all_dashboard_ids_and_insight_short_id_matched": true,
+        "all_markdown_and_exact_sql_source_matched": true,
+        "all_sql_runs_done_without_error": true,
+        "no_python_cells": true
+      },
+      "cells": [
+        {
+          "index": 0,
+          "node_id": "21ed9de2-3647-4845-8126-8626c6bec778",
+          "cell_type": "component",
+          "title": "usage dashboard · saved filters",
+          "dashboard_id": 999570,
+          "status": "saved"
+        },
+        {
+          "index": 1,
+          "node_id": "9c018fea-5ea1-4dca-a676-914cac6ad419",
+          "cell_type": "component",
+          "title": "adoption dashboard · saved filters",
+          "dashboard_id": 999571,
+          "status": "saved"
+        },
+        {
+          "index": 2,
+          "node_id": "a6a29939-ea1c-4776-80ac-e42a9af4e510",
+          "cell_type": "component",
+          "title": "workflow dashboard · saved filters",
+          "dashboard_id": 999572,
+          "status": "saved"
+        },
+        {
+          "index": 3,
+          "node_id": "b83acdbd-5cc8-4580-a472-563363d2f8b5",
+          "cell_type": "component",
+          "title": "diagnostics dashboard · saved filters",
+          "dashboard_id": 999694,
+          "status": "saved"
+        },
+        {
+          "index": 4,
+          "node_id": "0ca3c201-fa60-4645-bbe6-daedf5c4a9ab",
+          "cell_type": "component",
+          "title": "web dashboard · saved filters",
+          "dashboard_id": 1018299,
+          "status": "saved"
+        },
+        {
+          "index": 5,
+          "node_id": "abdb7766-5b1b-4430-a8f0-20050ef9ccfc",
+          "cell_type": "component",
+          "title": "heatmaps dashboard · saved filters",
+          "dashboard_id": 1018295,
+          "status": "saved"
+        },
+        {
+          "index": 6,
+          "node_id": "6344acf2-d587-492b-8890-88df93396a93",
+          "cell_type": "component",
+          "title": "ai_mcp dashboard · saved filters",
+          "dashboard_id": 1018318,
+          "status": "saved"
+        },
+        {
+          "index": 7,
+          "node_id": "75fb0112-8b0e-435d-a152-9aac69ecaf10",
+          "cell_type": "component",
+          "title": "engineering dashboard · saved filters",
+          "dashboard_id": 1018325,
+          "status": "saved"
+        },
+        {
+          "index": 8,
+          "node_id": "3f0cad25-fe24-4e1f-9b89-854c1c3f10d1",
+          "cell_type": "saved_insight",
+          "title": "sanitized_errors · saved filters",
+          "insight_short_id": "79UVPFXi",
+          "status": "saved"
+        },
+        {
+          "index": 9,
+          "node_id": "phb-52252ba9-d8ff-41e5-b821-8da1f4c4856b",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 10,
+          "node_id": "907e6e8d-655a-405c-a9c6-801788322cb6",
+          "cell_type": "sql",
+          "title": "Accepted action mix by day",
+          "query_key": "action_mix",
+          "run_id": "01a13197-cb12-7ff0-831c-ba3e5e5b9858",
+          "status": "done",
+          "row_count": 1,
+          "sql_sha256": "f15437ab606b15db02dc33309ed5880ad0ce9e5537467ad8ccfdd4721d6078e2"
+        },
+        {
+          "index": 11,
+          "node_id": "phb-1a0ac3ed-b323-4850-8c61-f332441dddec",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 12,
+          "node_id": "e80407d8-dbe2-4fd7-9074-c2aeae54ff6f",
+          "cell_type": "sql",
+          "title": "Observed workspace setup readiness by day",
+          "query_key": "setup_readiness",
+          "run_id": "01a13198-1866-7104-9b54-c9c6298de465",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "d7c2ab0216ed67ff7a7a9d15ede6eebebba216868e8097281cd36f45722381e6"
+        },
+        {
+          "index": 13,
+          "node_id": "phb-8ba92606-0eee-44fe-afdf-a6bd56e637b6",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 14,
+          "node_id": "31230f8e-4ef1-47cd-ba61-0eb9fd026be8",
+          "cell_type": "sql",
+          "title": "Observed deliberate request results and success latency",
+          "query_key": "request_health",
+          "run_id": "01a13198-246d-7119-8d1c-6033f1a4aabd",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "f466d8cdab65fd631388dc1f26329caee88e215d57e9d5912196c3ac765e6dac"
+        },
+        {
+          "index": 15,
+          "node_id": "phb-cc668dad-1a37-431c-89e6-2df208379ef5",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 16,
+          "node_id": "0575490d-2b72-40d7-86e9-894d36489174",
+          "cell_type": "sql",
+          "title": "Observed terminal run outcomes and measured duration",
+          "query_key": "run_health",
+          "run_id": "01a13198-3175-778d-a7bd-865a361a35da",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "a89eaed6223e7337ef57eebf3aa9754e5e642f2ed6db8dfd06da355c5b86fe1b"
+        },
+        {
+          "index": 17,
+          "node_id": "phb-2f6f1a56-c2ac-42f8-ac77-e294415f1531",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 18,
+          "node_id": "2d5140f3-efa3-430e-9655-158a009fc3f4",
+          "cell_type": "sql",
+          "title": "Reviewed sanitized exception source totals",
+          "query_key": "sanitized_errors",
+          "run_id": "01a13198-3e10-7249-bc3a-a8896ff5b4bf",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "27f89e07e7d6d37134b3bbf69315ea8de7bc1b566d804c120d10fb1703ed2223"
+        },
+        {
+          "index": 19,
+          "node_id": "phb-4e2b85d7-8842-45f9-a519-0bffaf0e8ff1",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 20,
+          "node_id": "dca857f1-391b-4204-9f47-20db1230b2b9",
+          "cell_type": "sql",
+          "title": "Imported completed CI attempt health",
+          "query_key": "ci_attempt_health",
+          "run_id": "01a13198-4afd-7c69-a168-5d4e6c3b98fa",
+          "status": "done",
+          "row_count": 7,
+          "sql_sha256": "0cb8ea31708ae0c652562fbb73553e82697ce57425e11aae29d666f996e83a34"
+        },
+        {
+          "index": 21,
+          "node_id": "phb-72a98771-a74d-4704-8ca6-b915eaee0370",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 22,
+          "node_id": "77950d43-a990-4730-88e9-c7784e12fd11",
+          "cell_type": "sql",
+          "title": "Imported merged PR throughput and open-to-merge timing",
+          "query_key": "pr_delivery",
+          "run_id": "01a13198-57f8-77f2-9ace-60895f6ec796",
+          "status": "done",
+          "row_count": 8,
+          "sql_sha256": "4a3ad0dc54ce927732b0d0a5b11342d4356584e9220752b51971bd7a4f251532"
+        },
+        {
+          "index": 23,
+          "node_id": "phb-f9aabe42-924f-409e-9818-2772d9bff0b1",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 24,
+          "node_id": "phb-a29af2cc-9638-4706-8ed5-43d892c4de74",
+          "cell_type": "markdown",
+          "title": "Activation evidence",
+          "status": "saved"
+        }
+      ]
+    },
+    {
+      "key": "release_check",
+      "uuid": "01a13199-1282-0000-4408-6f90a905c855",
+      "short_id": "Pa2PNxGA",
+      "title": "Pitchcrew · Release analytics verification",
+      "url": "https://eu.posthog.com/project/295060/notebooks/Pa2PNxGA",
+      "version": 27,
+      "parsed_readback_cells": 34,
+      "sql_cells": 6,
+      "kernel_status": "stopped",
+      "verification": {
+        "all_requested_cells_present_in_order": true,
+        "all_dashboard_ids_and_insight_short_id_matched": true,
+        "all_markdown_and_exact_sql_source_matched": true,
+        "all_sql_runs_done_without_error": true,
+        "no_python_cells": true
+      },
+      "cells": [
+        {
+          "index": 0,
+          "node_id": "439cf835-b776-4706-946d-212f0b3d511f",
+          "cell_type": "component",
+          "title": "adoption dashboard · saved filters",
+          "dashboard_id": 999571,
+          "status": "saved"
+        },
+        {
+          "index": 1,
+          "node_id": "67b28ef8-8fbe-4235-877b-b811cb28d135",
+          "cell_type": "component",
+          "title": "workflow dashboard · saved filters",
+          "dashboard_id": 999572,
+          "status": "saved"
+        },
+        {
+          "index": 2,
+          "node_id": "20886dd5-29ea-43f0-a020-165a2df96b0d",
+          "cell_type": "component",
+          "title": "diagnostics dashboard · saved filters",
+          "dashboard_id": 999694,
+          "status": "saved"
+        },
+        {
+          "index": 3,
+          "node_id": "503b82bc-5fc8-4afc-ae0b-eead6500e0b9",
+          "cell_type": "component",
+          "title": "web dashboard · saved filters",
+          "dashboard_id": 1018299,
+          "status": "saved"
+        },
+        {
+          "index": 4,
+          "node_id": "3c4975e1-b4ea-45e1-90e9-8be12350a4cd",
+          "cell_type": "component",
+          "title": "ai_mcp dashboard · saved filters",
+          "dashboard_id": 1018318,
+          "status": "saved"
+        },
+        {
+          "index": 5,
+          "node_id": "34711101-e4f8-4a84-bc26-a3be7d4add0f",
+          "cell_type": "component",
+          "title": "engineering dashboard · saved filters",
+          "dashboard_id": 1018325,
+          "status": "saved"
+        },
+        {
+          "index": 6,
+          "node_id": "37261d6c-337b-4b89-bd60-c4eff3b86c5c",
+          "cell_type": "saved_insight",
+          "title": "sanitized_errors · saved filters",
+          "insight_short_id": "79UVPFXi",
+          "status": "saved"
+        },
+        {
+          "index": 7,
+          "node_id": "phb-615a32fa-4ffe-4f54-a1dc-848d0220e818",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 8,
+          "node_id": "f180f0ac-a2a2-4cd4-812b-03a2407d43c5",
+          "cell_type": "sql",
+          "title": "Observed workspace setup readiness by day",
+          "query_key": "setup_readiness",
+          "run_id": "01a13199-754e-7090-ad25-6127e0ac49f6",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "d7c2ab0216ed67ff7a7a9d15ede6eebebba216868e8097281cd36f45722381e6"
+        },
+        {
+          "index": 9,
+          "node_id": "phb-be80a2eb-1be8-4111-97f5-cd96f13c69e7",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 10,
+          "node_id": "4feb9868-888f-4461-a5f6-a05782adb0de",
+          "cell_type": "sql",
+          "title": "Observed deliberate request results and success latency",
+          "query_key": "request_health",
+          "run_id": "01a13199-8173-7b49-b339-575b4da38959",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "f466d8cdab65fd631388dc1f26329caee88e215d57e9d5912196c3ac765e6dac"
+        },
+        {
+          "index": 11,
+          "node_id": "phb-6f6c642f-eeb5-4782-8d34-f58118c2856c",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 12,
+          "node_id": "5e9d691a-9313-47be-8d75-4363bfd47e72",
+          "cell_type": "sql",
+          "title": "Observed terminal run outcomes and measured duration",
+          "query_key": "run_health",
+          "run_id": "01a13199-8ead-70e4-88ae-2b214b94d16a",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "a89eaed6223e7337ef57eebf3aa9754e5e642f2ed6db8dfd06da355c5b86fe1b"
+        },
+        {
+          "index": 13,
+          "node_id": "phb-547a51a6-9f8c-4585-bdf8-ede572bd612f",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 14,
+          "node_id": "0953d4b4-41e7-4be0-9adb-42b8922ba375",
+          "cell_type": "sql",
+          "title": "Reviewed sanitized exception source totals",
+          "query_key": "sanitized_errors",
+          "run_id": "01a13199-db1c-7448-883c-e6be4c207d2d",
+          "status": "done",
+          "row_count": 0,
+          "sql_sha256": "27f89e07e7d6d37134b3bbf69315ea8de7bc1b566d804c120d10fb1703ed2223"
+        },
+        {
+          "index": 15,
+          "node_id": "phb-a0279998-3379-4a2a-8d4b-ec559f379419",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 16,
+          "node_id": "4976554e-9ace-4f00-9a84-1e53ce4eccf3",
+          "cell_type": "sql",
+          "title": "Imported completed CI attempt health",
+          "query_key": "ci_attempt_health",
+          "run_id": "01a13199-e79d-7476-a7aa-7f5084b84d53",
+          "status": "done",
+          "row_count": 7,
+          "sql_sha256": "0cb8ea31708ae0c652562fbb73553e82697ce57425e11aae29d666f996e83a34"
+        },
+        {
+          "index": 17,
+          "node_id": "phb-02643abe-e5a4-463c-bf03-bf4593329ad9",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 18,
+          "node_id": "78900eee-2078-48ac-9c05-ada32448404d",
+          "cell_type": "sql",
+          "title": "Imported merged PR throughput and open-to-merge timing",
+          "query_key": "pr_delivery",
+          "run_id": "01a13199-f3f9-7b5b-9852-7c30ea049387",
+          "status": "done",
+          "row_count": 8,
+          "sql_sha256": "4a3ad0dc54ce927732b0d0a5b11342d4356584e9220752b51971bd7a4f251532"
+        },
+        {
+          "index": 19,
+          "node_id": "phb-f2ddac2b-38be-4fc5-91ee-83e71c96b5f5",
+          "cell_type": "markdown",
+          "status": "saved"
+        },
+        {
+          "index": 20,
+          "node_id": "phb-059aea75-3105-4b4d-9ff7-6ad24ce4cadf",
+          "cell_type": "markdown",
+          "title": "Activation evidence",
+          "status": "saved"
+        }
+      ]
+    }
+  ],
+  "limitations": [
+    "Pinned SQL windows require deliberate updates for later reviews; widgets keep their own saved filters/current data.",
+    "App instrumentation awaits release; empty diagnostic cells are unknown coverage, not healthy zero.",
+    "Custom repository aggregates do not prove native Engineering Analytics source activation or flake/cost classifications.",
+    "No Python kernel requested; final native kernel states stopped.",
+    "No production test events, credentials, recipient addresses, app entity IDs or private content were written."
+  ],
+  "blockers": []
+}

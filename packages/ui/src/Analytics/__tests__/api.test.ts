@@ -33,3 +33,19 @@ it('does not count failed mutations or snapshot polling as successful usage', as
   await api('/snapshot');
   expect(capture).not.toHaveBeenCalled();
 });
+
+it('counts current conversation sends only after acceptance and never captures attachments or answers', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ queued: true }), { status: 202 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ error: 'Private failure' }), { status: 400 }),
+      ),
+  );
+  const body = { content: 'Private', attachments: [{ name: 'private.pdf', data: 'secret' }] };
+  await api('/conversations/private-thread/messages', 'POST', body);
+  await expect(api('/conversations/private-thread/messages', 'POST', body)).rejects.toThrow();
+  expect(capture).toHaveBeenCalledExactlyOnceWith('chat_sent', undefined);
+});

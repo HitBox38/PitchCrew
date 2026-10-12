@@ -8,10 +8,14 @@ import { RouterProvider } from '@tanstack/react-router';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { createAppRouter } from './router.ts';
+import { installErrorTracking } from './Analytics/error-tracking.ts';
+import { reactErrorHandlers } from './Analytics/react-errors.ts';
 import './styles.css';
 
 const router = createAppRouter(undefined, () => useWorkspaceStore.getState().data?.roles);
-createRoot(document.getElementById('root')!).render(
+const stopErrorTracking = installErrorTracking(window);
+if (import.meta.hot) import.meta.hot.dispose(stopErrorTracking);
+createRoot(document.getElementById('root')!, reactErrorHandlers).render(
   <React.StrictMode>
     <div className="desktop-titlebar" aria-hidden="true">
       <span>Pitchcrew</span>

@@ -1,0 +1,89 @@
+{
+  "project_id": 295060,
+  "activation": "native_resources_created_collection_awaits_release",
+  "validation": {
+    "heatmaps_columns": "confirmed_read_only_2026-10-12",
+    "queries": "five native queries executed and saved; project ingestion enabled; genuine captures await deployment"
+  },
+  "dashboard": {
+    "name": "Pitchcrew Website Heatmaps & Friction",
+    "description": "One-page public landing interaction dashboard. Native coordinate maps, observed scroll reach and heuristic rage/dead clicks. No private app recording, DOM text, element identity or raw current URLs."
+  },
+  "insights": [
+    {
+      "name": "Native website interaction volume",
+      "description": "Counts individual native heatmap rows by day and signal; not SDK batch counts. Observed behavior only, not confirmed frustration.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "HogQLQuery",
+          "query": "SELECT toDate(timestamp) AS day, type AS signal, count() AS interactions\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type IN ('click', 'rageclick', 'deadclick')\nGROUP BY day, signal\nORDER BY day, signal"
+        }
+      }
+    },
+    {
+      "name": "Website desktop click hotspots",
+      "description": "Native coordinate hotspots for desktop viewports. Geometry only; manually compare with the public page because element text/autocapture is excluded.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "HogQLQuery",
+          "query": "SELECT round(x / nullIf(viewport_width, 0), 2) AS relative_x, y * scale_factor AS page_y_px, pointer_target_fixed AS fixed, count() AS clicks\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type = 'click'\n  AND viewport_width * scale_factor >= 768\nGROUP BY relative_x, page_y_px, fixed\nORDER BY clicks DESC\nLIMIT 20"
+        }
+      }
+    },
+    {
+      "name": "Website mobile click hotspots",
+      "description": "Native coordinate hotspots below 768 CSS pixels viewport width; separate layout from desktop.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "HogQLQuery",
+          "query": "SELECT round(x / nullIf(viewport_width, 0), 2) AS relative_x, y * scale_factor AS page_y_px, pointer_target_fixed AS fixed, count() AS clicks\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type = 'click'\n  AND viewport_width * scale_factor < 768\nGROUP BY relative_x, page_y_px, fixed\nORDER BY clicks DESC\nLIMIT 20"
+        }
+      }
+    },
+    {
+      "name": "Website possible frustration hotspots",
+      "description": "Native rage/dead-click heuristics. Repeated clicks or absent visible response do not prove a bug; false positives are possible.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "HogQLQuery",
+          "query": "SELECT type AS signal, round(x / nullIf(viewport_width, 0), 2) AS relative_x, y * scale_factor AS page_y_px, count() AS observations\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type IN ('rageclick', 'deadclick')\nGROUP BY signal, relative_x, page_y_px\nORDER BY observations DESC\nLIMIT 20"
+        }
+      }
+    },
+    {
+      "name": "Website observed scroll reach",
+      "description": "Native pageleave scroll samples. Reach = (y + viewport_height) times scale_factor. Leave delivery is best effort; absence is not zero reach.",
+      "query": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "HogQLQuery",
+          "query": "SELECT round((y + viewport_height) * scale_factor / 500) * 500 AS reach_px_bucket, count() AS observations\nFROM heatmaps\nWHERE current_url = 'https://pitch-crew.tomer-norman.dev/'\n  AND timestamp >= now() - INTERVAL 30 DAY\n  AND type = 'scrolldepth'\nGROUP BY reach_px_bucket\nORDER BY reach_px_bucket"
+        }
+      }
+    }
+  ],
+  "native_heatmaps": {
+    "canonical_url": "https://pitch-crew.tomer-norman.dev/",
+    "capture_urls": ["https://pitch-crew.tomer-norman.dev/"],
+    "viewports_css_px": [390, 1280],
+    "saved_heatmap": {
+      "name": "Pitchcrew public homepage",
+      "url": "https://pitch-crew.tomer-norman.dev/",
+      "type": "screenshot",
+      "widths": [390, 1280]
+    },
+    "required_project_setting": "heatmaps_opt_in; Only listed URLs -> canonical_url",
+    "limitations": [
+      "Geometry-only maps; no element text or DOM chains",
+      "Rage/dead clicks are heuristics",
+      "Website usage opt-out and DNT exclude observations",
+      "Heatmap table cannot filter renderer/version: exact fixed homepage URL scopes all tiles",
+      "Native heatmap retention is 90 days; dashboard is last 30 days",
+      "Heatmap rows may not appear until deployed and native project capture is enabled"
+    ]
+  }
+}

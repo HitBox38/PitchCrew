@@ -2,6 +2,8 @@ import { afterEach, expect, it, vi } from 'vitest';
 import type { AppUpdateInfo, DesktopUpdateBridge, DesktopUpdateState } from '@pitchcrew/core';
 import { api } from '../../api.ts';
 import { createWorkspaceStore } from '../index.ts';
+const capture = vi.hoisted(() => vi.fn());
+vi.mock('../../Analytics/client.ts', () => ({ analytics: { capture } }));
 
 vi.mock('@/api.ts', () => ({ api: vi.fn() }));
 vi.mock('../../api.ts', () => ({ api: vi.fn() }));
@@ -139,4 +141,36 @@ it('shares native updater state and actions while retaining browser release info
   expect(store.getState().desktopUpdate?.downloadedVersion).toBe('0.2.0');
   await store.getState().installDesktopUpdate();
   expect(bridge.install).toHaveBeenCalledTimes(1);
+});
+
+it('captures native acceptance before restart and excludes hydration, progress and cancelled installs', async () => {
+  const downloaded: DesktopUpdateState = {
+    enabled: true,
+    currentVersion: '0.2.0',
+    status: 'downloaded',
+    availableVersion: '0.3.0',
+    downloadedVersion: '0.3.0',
+    downloadPercent: 100,
+    checkedAt: null,
+    message: 'Private',
+  };
+  const bridge = { install: vi.fn(async () => downloaded) };
+  vi.stubGlobal('window', { pitchcrewUpdates: bridge });
+  const store = createWorkspaceStore();
+  store.getState().setDesktopUpdate(downloaded);
+  await store.getState().installDesktopUpdate();
+  expect(capture).not.toHaveBeenCalled();
+  store.getState().setDesktopUpdate({ ...downloaded, status: 'installing' });
+  store
+    .getState()
+    .setDesktopUpdate({ ...downloaded, status: 'installing', message: 'Private progress' });
+  expect(capture).toHaveBeenCalledExactlyOnceWith('app_update_install_requested');
+  capture.mockClear();
+  store
+    .getState()
+    .setDesktopUpdate({ ...downloaded, status: 'available', downloadedVersion: null });
+  store.getState().setDesktopUpdate({ ...downloaded, status: 'downloading', downloadPercent: 0 });
+  store.getState().setDesktopUpdate({ ...downloaded, status: 'downloading', downloadPercent: 70 });
+  store.getState().setDesktopUpdate(downloaded);
+  expect(capture).toHaveBeenCalledExactlyOnceWith('app_update_download_requested');
 });

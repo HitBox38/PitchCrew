@@ -1,0 +1,143 @@
+{
+  "project_id": 295060,
+  "dashboard_name": "Pitchcrew \u00b7 AI and MCP",
+  "activation_state": "native dashboard charts created or updated; instrumentation awaits release",
+  "coverage_banner": "AI runtime boundaries only. New events have no live samples yet. Token usage, cost, model generations and content are not collected. Empty charts do not establish healthy operation.",
+  "native_surface": "AI Observability traces and spans",
+  "canonical": false,
+  "validation": {
+    "date": "2026-10-12",
+    "method": "Read-only query-trends on connected PitchCrew EU project",
+    "result": "All three exact queries execute; outcome/mode charts report no data. Latency output contains zero placeholders because there are no samples; these are not measured zero durations."
+  },
+  "dashboard_insights": [
+    {
+      "name": "AI turns by outcome",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$ai_trace",
+            "math": "total"
+          }
+        ],
+        "properties": [
+          {
+            "key": "observation_level",
+            "type": "event",
+            "operator": "exact",
+            "value": ["runtime_boundary"]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "outcome",
+              "type": "event"
+            }
+          ]
+        }
+      },
+      "description": "Observed CLI runtime boundary, not a model-call generation. Requires master usage and diagnostic consent. No live samples yet."
+    },
+    {
+      "name": "AI turn duration by mode",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$ai_trace",
+            "math": "avg",
+            "math_property": "$ai_latency"
+          }
+        ],
+        "properties": [
+          {
+            "key": "observation_level",
+            "type": "event",
+            "operator": "exact",
+            "value": ["runtime_boundary"]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "mode",
+              "type": "event"
+            }
+          ]
+        }
+      },
+      "description": "Observed CLI runtime boundary, not a model-call generation. Requires master usage and diagnostic consent. No live samples yet."
+    },
+    {
+      "name": "Runtime execution latency",
+      "query": {
+        "kind": "TrendsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$ai_span",
+            "math": "avg",
+            "math_property": "$ai_latency"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "$ai_span",
+            "math": "p95",
+            "math_property": "$ai_latency"
+          }
+        ],
+        "properties": [
+          {
+            "key": "observation_level",
+            "type": "event",
+            "operator": "exact",
+            "value": ["runtime_boundary"]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true
+      },
+      "description": "Observed CLI runtime boundary, not a model-call generation. Requires master usage and diagnostic consent. No live samples yet."
+    }
+  ],
+  "integration": {
+    "backend_sanitizer": "sanitizeAiObservation(event,input) from @pitchcrew/core/telemetry-ai",
+    "renderer_sanitizers": {
+      "$ai_trace": "sanitizeAiTrace",
+      "$ai_span": "sanitizeAiSpan"
+    },
+    "capture_timestamp": "Convert optional bounded observed_start_ms to SDK capture options.timestamp and remove it from outward properties.",
+    "relay": "Only elected opted-in renderer transports the bounded ephemeral daemon buffer. Do not replay history on consent enable."
+  },
+  "not_collected": [
+    "provider generations",
+    "input/output tokens",
+    "token cache usage",
+    "cost",
+    "model/provider identifiers",
+    "prompts and replies",
+    "reasoning",
+    "tool inputs and outputs",
+    "persistent conversation/session IDs"
+  ],
+  "sources": [
+    "https://posthog.com/docs/ai-observability/installation/manual-capture",
+    "https://posthog.com/docs/ai-observability/spans",
+    "https://posthog.com/docs/ai-observability/traces"
+  ],
+  "activation_audit": "../activation.json"
+}

@@ -1,0 +1,54 @@
+{
+  "project_id": 295060,
+  "feature": "native_logs",
+  "activation": "pending_integrated_build_and_native_log_ingestion_verification",
+  "surface": "https://eu.posthog.com/project/295060/logs",
+  "transport": {
+    "protocol": "OTLP HTTP JSON",
+    "endpoint": "https://eu.i.posthog.com/i/v1/logs",
+    "authentication": "public project token in Authorization Bearer header",
+    "records": "operational_log local observations; no product event mirror"
+  },
+  "services": ["pitchcrew-daemon", "pitchcrew-http", "pitchcrew-runtime"],
+  "saved_view_definitions": [
+    {
+      "name": "Pitchcrew runtime failures",
+      "logql": "{service_name=\"pitchcrew-runtime\"} |= \"runtime_run_failed\"",
+      "default_window": "7d"
+    },
+    {
+      "name": "Pitchcrew cancelled runs",
+      "logql": "{service_name=\"pitchcrew-runtime\"} |= \"runtime_run_cancelled\"",
+      "default_window": "7d"
+    },
+    {
+      "name": "Pitchcrew request failures",
+      "logql": "{service_name=\"pitchcrew-http\"} |= \"http_request_failed\"",
+      "default_window": "7d"
+    },
+    {
+      "name": "Pitchcrew recovery",
+      "logql": "{service_name=\"pitchcrew-daemon\"} |= \"daemon_run_recovered\"",
+      "default_window": "7d"
+    }
+  ],
+  "dashboard_text": {
+    "title": "Operational Logs",
+    "markdown": "Operational logs live in [native PostHog Logs](https://eu.posthog.com/project/295060/logs), separate from product events. Filter services pitchcrew-runtime, pitchcrew-http or pitchcrew-daemon. Fixed bodies distinguish failed, cancelled and recovered runs. HTTP failures reflect Pitchcrew's existing 400 error handler and include expected invalid requests; they are not a server 5xx rate. Delivery requires an open renderer, enabled analytics and diagnostics, production config and the initialized SDK anonymous ID. Empty logs never establish healthy behavior."
+  },
+  "deployment_steps": [
+    "Compose sanitizeLogObservation into sanitizeBackendObservation.",
+    "Install installOperationalLogs with the initialized SDK getDistinctId accessor in the mounted shell.",
+    "Route operational_log observations to the native transport; never analytics.captureDiagnostic.",
+    "After real opted-in traffic arrives, verify services and bodies using native Logs read tools.",
+    "Create saved views from the definitions using a currently available native Logs view API/schema or the UI; definitions are not guessed API payloads.",
+    "Add dashboard_text to Diagnostics Coverage; do not count operational_log as product events.",
+    "Do not enable absence alerts: closed apps, opt-out, startup timing and dropped requests create intentional gaps."
+  ],
+  "documentation": [
+    "https://posthog.com/docs/logs",
+    "https://posthog.com/docs/logs/installation/nodejs",
+    "https://github.com/PostHog/posthog/blob/master/rust/capture-logs/README.md",
+    "https://posthog.com/docs/logs/logql-api"
+  ]
+}

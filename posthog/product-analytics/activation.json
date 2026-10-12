@@ -1,0 +1,1585 @@
+{
+  "schemaVersion": 1,
+  "projectId": 295060,
+  "activatedAt": "2026-10-12",
+  "status": "activated-awaiting-code-release",
+  "governance": {
+    "status": "proposed/noncanonical",
+    "catalog": "Coordinator checked the complete metrics catalog: count/list = 0. No approved definition matches. Native catalog writes blocked; draft proposals remain unapproved."
+  },
+  "changes": {
+    "updatedExistingInsights": 14,
+    "createdInsights": 5,
+    "preservedAllOriginalInsights": true,
+    "inheritedDashboardDateFiltersCleared": true,
+    "reason": "Per-chart seven-day product windows and ninety-day retention windows must coexist; inherited thirty-day dashboard override was removed."
+  },
+  "dashboards": [
+    {
+      "id": 999570,
+      "name": "PitchCrew Usage Overview",
+      "url": "https://eu.posthog.com/project/295060/dashboard/999570",
+      "filters": {},
+      "bannerTileId": 7152969,
+      "insights": [
+        {
+          "id": 6353834,
+          "shortId": "dYpcT3Id",
+          "tileId": 7152976,
+          "name": "Active anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/dYpcT3Id",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "App pageviews",
+                  "event": "$pageview"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "trendsFilter": {
+                "display": "BoldNumber",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Distinct anonymous devices with a pageview during the selected period. These are not identified people. Browser/Electron renderer filter excludes public landing and legacy events without renderer metadata. Latest 7 days; opted-in coverage only.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 3,
+              "w": 4,
+              "x": 0,
+              "y": 4
+            },
+            "xs": {
+              "h": 3,
+              "w": 1,
+              "x": 0,
+              "y": 8
+            }
+          }
+        },
+        {
+          "id": 6353835,
+          "shortId": "klfbw28n",
+          "tileId": 7152977,
+          "name": "Sessions",
+          "url": "https://eu.posthog.com/project/295060/insights/klfbw28n",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "unique_session",
+                  "name": "$pageview",
+                  "event": "$pageview"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "trendsFilter": {
+                "display": "BoldNumber",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Distinct sessions with a pageview during the selected period. Uses the anonymous SDK session ID. Browser/Electron renderer filter excludes public landing and legacy events without renderer metadata. Latest 7 days; opted-in coverage only.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 3,
+              "w": 4,
+              "x": 4,
+              "y": 4
+            },
+            "xs": {
+              "h": 3,
+              "w": 1,
+              "x": 0,
+              "y": 11
+            }
+          }
+        },
+        {
+          "id": 6353836,
+          "shortId": "FYtW2ZVs",
+          "tileId": 7152978,
+          "name": "Pageviews",
+          "url": "https://eu.posthog.com/project/295060/insights/FYtW2ZVs",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "$pageview",
+                  "event": "$pageview"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "trendsFilter": {
+                "display": "BoldNumber",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Normalized app pageviews during the selected period, including repeat visits. Query strings and chat IDs are excluded. Browser/Electron renderer filter excludes public landing and legacy events without renderer metadata. Latest 7 days; opted-in coverage only.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 3,
+              "w": 4,
+              "x": 8,
+              "y": 4
+            },
+            "xs": {
+              "h": 3,
+              "w": 1,
+              "x": 0,
+              "y": 14
+            }
+          }
+        },
+        {
+          "id": 6353837,
+          "shortId": "oTz6vgYz",
+          "tileId": 7152981,
+          "name": "Daily active anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/oTz6vgYz",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "App pageviews",
+                  "event": "$pageview"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "trendsFilter": {
+                "display": "ActionsLineGraph",
+                "showLegend": false,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdown_type": "event"
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Distinct anonymous devices with a pageview each day. Different browsers and cleared storage can count separately. Browser/Electron renderer filter excludes public landing and legacy events without renderer metadata. Latest 7 days; opted-in coverage only.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 12,
+              "x": 0,
+              "y": 7
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 17
+            }
+          }
+        },
+        {
+          "id": 6354578,
+          "shortId": "ZlhH3Szg",
+          "tileId": 7153001,
+          "name": "Top app pages by active devices",
+          "url": "https://eu.posthog.com/project/295060/insights/ZlhH3Szg",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "$pageview",
+                  "event": "$pageview",
+                  "custom_name": "Active devices"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "trendsFilter": {
+                "display": "ActionsBarValue",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": true,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "page"
+                  }
+                ],
+                "breakdown_type": "event",
+                "breakdown_limit": 15
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Distinct anonymous devices by canonical app page during the selected period. Each device can visit multiple pages. Browser/Electron renderer filter excludes public landing and legacy events without renderer metadata. Latest 7 days; opted-in coverage only.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 7,
+              "w": 6,
+              "x": 0,
+              "y": 12
+            },
+            "xs": {
+              "h": 7,
+              "w": 1,
+              "x": 0,
+              "y": 22
+            }
+          }
+        },
+        {
+          "id": 6353839,
+          "shortId": "OzK7fp5j",
+          "tileId": 7152983,
+          "name": "Weekly return visits",
+          "url": "https://eu.posthog.com/project/295060/insights/OzK7fp5j",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "RetentionQuery",
+              "version": 2,
+              "dateRange": {
+                "date_from": "-90d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "retentionFilter": {
+                "period": "Week",
+                "cumulative": false,
+                "targetEntity": {
+                  "id": "$pageview",
+                  "type": "events"
+                },
+                "retentionType": "retention_first_time",
+                "totalIntervals": 8,
+                "aggregationType": "count",
+                "returningEntity": {
+                  "id": "$pageview",
+                  "type": "events"
+                },
+                "cohortLabelStartIndex": 0,
+                "aggregationPropertyType": "event"
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "First-visit app device cohorts returning in subsequent weeks, 90 days/8 intervals. Browser/Electron renderer filter excludes landing and legacy events without metadata. Anonymous devices are not people or installations.",
+          "weeklyEligible": false,
+          "layouts": {
+            "sm": {
+              "h": 7,
+              "w": 6,
+              "x": 6,
+              "y": 12
+            },
+            "xs": {
+              "h": 7,
+              "w": 1,
+              "x": 0,
+              "y": 29
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 999571,
+      "name": "PitchCrew Crew & Feature Adoption",
+      "url": "https://eu.posthog.com/project/295060/dashboard/999571",
+      "filters": {},
+      "bannerTileId": 7152970,
+      "insights": [
+        {
+          "id": 6354579,
+          "shortId": "TkxLfEfY",
+          "tileId": 7153004,
+          "name": "Core feature adoption — anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/TkxLfEfY",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "chat_sent",
+                  "event": "chat_sent",
+                  "custom_name": "Chat"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "workflow_started",
+                  "event": "workflow_started",
+                  "custom_name": "Workflow launches"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "job_sources_scanned",
+                  "event": "job_sources_scanned",
+                  "custom_name": "Discovery scans"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "packet_exported",
+                  "event": "packet_exported",
+                  "custom_name": "Packet exports"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "job_created",
+                  "custom_name": "Job cards created"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "application_status_changed",
+                  "custom_name": "Manual status moves"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsBarValue",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": true,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Distinct anonymous devices per core feature in the latest 7 days; counts are not additive or identified people/installations. Discovery scans are preserved. Workflow starts are accepted requests, not completed runs. Updated build must ship for complete capture.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 0,
+              "y": 4
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 8
+            }
+          }
+        },
+        {
+          "id": 6354580,
+          "shortId": "RrmJIBrj",
+          "tileId": 7153007,
+          "name": "Chats, conversations and workflow requests",
+          "url": "https://eu.posthog.com/project/295060/insights/RrmJIBrj",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "chat_sent",
+                  "event": "chat_sent",
+                  "custom_name": "Chat sends"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "workflow_started",
+                  "event": "workflow_started",
+                  "custom_name": "Accepted workflow launches"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "event": "conversation_created",
+                  "custom_name": "Conversations created"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "event": "chat_continued",
+                  "custom_name": "Chat continuations"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "event": "user_question_answered",
+                  "custom_name": "Questions answered"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsLineGraph",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Successful UI actions per day over 7 days, including conversation creation, continuations and question answers. Workflow starts are accepted requests, not completed runs. Updated conversation/question tracking awaits release; empty series do not imply no usage.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 6,
+              "y": 4
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 13
+            }
+          }
+        },
+        {
+          "id": 6354581,
+          "shortId": "yOA2oyTe",
+          "tileId": 7153009,
+          "name": "Crew and workspace customization actions",
+          "url": "https://eu.posthog.com/project/295060/insights/yOA2oyTe",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "agent_created",
+                  "event": "agent_created",
+                  "custom_name": "Agents created"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "agent_saved",
+                  "event": "agent_saved",
+                  "custom_name": "Agent settings saved"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "skill_saved",
+                  "event": "skill_saved",
+                  "custom_name": "Skills saved"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "routine_saved",
+                  "event": "routine_saved",
+                  "custom_name": "Routines saved"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "profile_saved",
+                  "event": "profile_saved",
+                  "custom_name": "Profile saved"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsBarValue",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": true,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Successful UI configuration actions. Skill and routine saves include both creates and updates; saves are not unique configured entities.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 0,
+              "y": 9
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 18
+            }
+          }
+        },
+        {
+          "id": 6354582,
+          "shortId": "Uq4fNDYc",
+          "tileId": 7153010,
+          "name": "Onboarding preference updates by status",
+          "url": "https://eu.posthog.com/project/295060/insights/Uq4fNDYc",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "onboarding_updated",
+                  "event": "onboarding_updated",
+                  "custom_name": "Preference updates"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsBarValue",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": true,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "status"
+                  }
+                ],
+                "breakdown_type": "event",
+                "breakdown_limit": 15
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Counts onboarding preference updates by saved status. Repeated updates can count several times; this is not an activation funnel.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 6,
+              "y": 9
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 23
+            }
+          }
+        },
+        {
+          "id": 6518716,
+          "shortId": "SECimhUU",
+          "tileId": 7390589,
+          "name": "Crew and conversations — anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/SECimhUU",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "conversation_created"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "agent_saved"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "skill_saved"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "routine_saved"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "user_question_answered"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "event": "chat_continued"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "description": "Distinct anonymous devices using conversation/question or crew features in the latest 7 days. Actions are successful UI requests; counts are not additive or verified people/installations. New conversation/question capture awaits release. Updated capture awaits release; empty series may reflect missing coverage.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 12,
+              "x": 0,
+              "y": 14
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 28
+            }
+          }
+        },
+        {
+          "id": 6518717,
+          "shortId": "vU0TbY16",
+          "tileId": 7390590,
+          "name": "Browser and pipeline adoption — anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/vU0TbY16",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "Browser opened",
+                  "event": "browser_session_changed",
+                  "properties": [
+                    {
+                      "key": "action",
+                      "type": "event",
+                      "value": ["open"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "Manual takeover",
+                  "event": "browser_session_changed",
+                  "properties": [
+                    {
+                      "key": "action",
+                      "type": "event",
+                      "value": ["take"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "Pipeline follow-up saved",
+                  "event": "pipeline_followup_saved"
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "description": "Counts distinct devices using browser open, manual takeover or approved pipeline follow-up saves. Private inputs and entity IDs are excluded. Updated capture awaits release; empty series may reflect missing coverage.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 0,
+              "y": 19
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 33
+            }
+          }
+        },
+        {
+          "id": 6518718,
+          "shortId": "DOfKUU2h",
+          "tileId": 7390591,
+          "name": "Observed workspace readiness — anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/DOfKUU2h",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "Profile ready observed",
+                  "event": "workspace_setup_observed",
+                  "properties": [
+                    {
+                      "key": "profile_ready",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "Three crew seats ready observed",
+                  "event": "workspace_setup_observed",
+                  "properties": [
+                    {
+                      "key": "crew_ready",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "dau",
+                  "name": "Real job ready observed",
+                  "event": "workspace_setup_observed",
+                  "properties": [
+                    {
+                      "key": "job_ready",
+                      "type": "event",
+                      "value": ["true"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "filterTestAccounts": true,
+              "version": 4
+            }
+          },
+          "description": "Devices observed with each setup prerequisite met at least once in the interval. This is an observation, not a first-use conversion or current workspace count. Fictional demo cards do not satisfy job readiness. Updated capture awaits release; empty series may reflect missing coverage.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 6,
+              "y": 19
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 38
+            }
+          }
+        },
+        {
+          "id": 6518719,
+          "shortId": "GPMm659j",
+          "tileId": 7390592,
+          "name": "Visit to explicit onboarding completion — 7-day funnel",
+          "url": "https://eu.posthog.com/project/295060/insights/GPMm659j",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "$pageview"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "onboarding_updated",
+                  "properties": [
+                    {
+                      "key": "status",
+                      "type": "event",
+                      "value": ["completed"],
+                      "operator": "exact"
+                    }
+                  ]
+                }
+              ],
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [
+                {
+                  "key": "renderer",
+                  "type": "event",
+                  "value": ["browser", "electron"],
+                  "operator": "exact"
+                }
+              ],
+              "funnelsFilter": {
+                "layout": "vertical",
+                "exclusions": [],
+                "showLegend": false,
+                "funnelVizType": "steps",
+                "legendPosition": "bottom",
+                "funnelOrderType": "ordered",
+                "showAnnotations": true,
+                "showValuesOnSeries": false,
+                "funnelStepReference": "total",
+                "funnelWindowInterval": 7,
+                "breakdownAttributionType": "first_touch",
+                "funnelWindowIntervalUnit": "day",
+                "hideIncompleteConversionWindowPeriods": false
+              },
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "description": "Devices viewing the app then explicitly completing onboarding within seven days. Existing workspaces default to deferred onboarding; this chart is not an installation activation rate. Updated capture awaits release; empty series may reflect missing coverage.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 6,
+              "w": 12,
+              "x": 0,
+              "y": 24
+            },
+            "xs": {
+              "h": 6,
+              "w": 1,
+              "x": 0,
+              "y": 43
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 999572,
+      "name": "PitchCrew Application Workflow",
+      "url": "https://eu.posthog.com/project/295060/dashboard/999572",
+      "filters": {},
+      "bannerTileId": 7152972,
+      "insights": [
+        {
+          "id": 6354583,
+          "shortId": "DpxcU4HD",
+          "tileId": 7153011,
+          "name": "Job entry and application import activity",
+          "url": "https://eu.posthog.com/project/295060/insights/DpxcU4HD",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "job_created",
+                  "event": "job_created",
+                  "custom_name": "Job cards created manually"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "application_registered",
+                  "event": "application_registered",
+                  "custom_name": "External applications registered"
+                },
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "applications_imported",
+                  "event": "applications_imported",
+                  "custom_name": "Import batches applied"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsLineGraph",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": false,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Successful manual job-card creation, external registration and applied import batches. Imports count batches, not individual applications; discovery-created leads are excluded.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 6,
+              "w": 6,
+              "x": 0,
+              "y": 4
+            },
+            "xs": {
+              "h": 6,
+              "w": 1,
+              "x": 0,
+              "y": 8
+            }
+          }
+        },
+        {
+          "id": 6354585,
+          "shortId": "u4GEcjri",
+          "tileId": 7153016,
+          "name": "Job creation to exported packet — device funnel",
+          "url": "https://eu.posthog.com/project/295060/insights/u4GEcjri",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "FunnelsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "event": "job_created",
+                  "custom_name": "Created a job"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "workflow_started",
+                  "custom_name": "Launched workflow"
+                },
+                {
+                  "kind": "EventsNode",
+                  "event": "packet_exported",
+                  "custom_name": "Exported packet"
+                }
+              ],
+              "version": 2,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "funnelsFilter": {
+                "layout": "vertical",
+                "exclusions": [],
+                "showLegend": false,
+                "funnelVizType": "steps",
+                "legendPosition": "bottom",
+                "funnelOrderType": "ordered",
+                "showAnnotations": true,
+                "showValuesOnSeries": false,
+                "funnelStepReference": "total",
+                "funnelWindowInterval": 30,
+                "breakdownAttributionType": "first_touch",
+                "funnelWindowIntervalUnit": "day",
+                "hideIncompleteConversionWindowPeriods": false
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Proposed noncanonical proxy: anonymous device creates a job, starts workflow and exports within 30 days, allowing intervening events. Entrants from latest 7 days may still convert. Steps can involve different jobs; export is not submission or application conversion.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 6,
+              "w": 6,
+              "x": 6,
+              "y": 4
+            },
+            "xs": {
+              "h": 6,
+              "w": 1,
+              "x": 0,
+              "y": 14
+            }
+          }
+        },
+        {
+          "id": 6354590,
+          "shortId": "yelVsYMP",
+          "tileId": 7153022,
+          "name": "Manual status moves by destination",
+          "url": "https://eu.posthog.com/project/295060/insights/yelVsYMP",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "application_status_changed",
+                  "event": "application_status_changed",
+                  "custom_name": "Status moves"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsBarValue",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": true,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "state"
+                  }
+                ],
+                "breakdown_type": "event",
+                "breakdown_limit": 15
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Count of manual UI status moves by destination state. Excludes agent/tracking transitions. Does not describe the current board population or hiring outcomes.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 0,
+              "y": 10
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 20
+            }
+          }
+        },
+        {
+          "id": 6354591,
+          "shortId": "nAUi0uEH",
+          "tileId": 7153023,
+          "name": "Approval decisions by type and result",
+          "url": "https://eu.posthog.com/project/295060/insights/nAUi0uEH",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "TrendsQuery",
+              "series": [
+                {
+                  "kind": "EventsNode",
+                  "math": "total",
+                  "name": "approval_decided",
+                  "event": "approval_decided",
+                  "custom_name": "Decisions"
+                }
+              ],
+              "version": 4,
+              "interval": "day",
+              "dateRange": {
+                "date_from": "-7d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "trendsFilter": {
+                "display": "ActionsBarValue",
+                "showLegend": true,
+                "hideWeekends": false,
+                "metricSummary": "total",
+                "legendPosition": "bottom",
+                "yAxisScaleType": "linear",
+                "showAnnotations": true,
+                "metricShowChange": true,
+                "yAxisStartAtZero": true,
+                "showMultipleYAxes": false,
+                "showValuesOnSeries": true,
+                "smoothingIntervals": 1,
+                "showPercentStackView": false,
+                "stackBreakdownValues": false,
+                "aggregationAxisFormat": "numeric",
+                "resultCustomizationBy": "value",
+                "excludeBoxPlotOutliers": true,
+                "metricColorByDirection": false,
+                "showAlertThresholdLines": false
+              },
+              "breakdownFilter": {
+                "breakdowns": [
+                  {
+                    "type": "event",
+                    "property": "kind"
+                  },
+                  {
+                    "type": "event",
+                    "property": "approved"
+                  }
+                ],
+                "breakdown_type": "event",
+                "breakdown_limit": 15
+              },
+              "filterTestAccounts": true
+            }
+          },
+          "description": "Successful UI approval decisions by kind and approved boolean: true means approved; false means declined. Not a measure of execution success.",
+          "weeklyEligible": true,
+          "layouts": {
+            "sm": {
+              "h": 5,
+              "w": 6,
+              "x": 6,
+              "y": 10
+            },
+            "xs": {
+              "h": 5,
+              "w": 1,
+              "x": 0,
+              "y": 25
+            }
+          }
+        },
+        {
+          "id": 6518720,
+          "shortId": "05hZc2ps",
+          "tileId": 7390593,
+          "name": "Workflow return by week — anonymous devices",
+          "url": "https://eu.posthog.com/project/295060/insights/05hZc2ps",
+          "query": {
+            "kind": "InsightVizNode",
+            "source": {
+              "kind": "RetentionQuery",
+              "dateRange": {
+                "date_from": "-90d",
+                "explicitDate": false,
+                "excludeIncompletePeriods": false
+              },
+              "properties": [],
+              "retentionFilter": {
+                "period": "Week",
+                "cumulative": false,
+                "targetEntity": {
+                  "id": "workflow_started",
+                  "type": "events"
+                },
+                "retentionType": "retention_recurring",
+                "totalIntervals": 8,
+                "aggregationType": "count",
+                "returningEntity": {
+                  "id": "workflow_started",
+                  "type": "events"
+                },
+                "cohortLabelStartIndex": 0,
+                "aggregationPropertyType": "event"
+              },
+              "filterTestAccounts": true,
+              "version": 2
+            }
+          },
+          "description": "Recurring cohorts of devices starting a workflow and starting another in subsequent calendar weeks. Standard native PostHog retention; anonymous IDs can reset or represent multiple users. Updated capture awaits release; empty series may reflect missing coverage.",
+          "weeklyEligible": false,
+          "layouts": {
+            "sm": {
+              "h": 7,
+              "w": 12,
+              "x": 0,
+              "y": 15
+            },
+            "xs": {
+              "h": 7,
+              "w": 1,
+              "x": 0,
+              "y": 30
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "weeklyReport": {
+    "schedule": "Sunday 06:00 UTC",
+    "delivery": "Email to connected PostHog account",
+    "content": "Selected charts only",
+    "eligibleInsightIds": [
+      6353834, 6353835, 6353836, 6353837, 6354578, 6354579, 6354580, 6354581, 6354582, 6518716,
+      6518717, 6518718, 6518719, 6354583, 6354585, 6354590, 6354591
+    ],
+    "excludedInsightIds": [6353839, 6518720],
+    "subscriptionOwnedByCoordinator": true
+  },
+  "validation": {
+    "freshGetBeforeMutation": true,
+    "persistedGetAfterMutation": true,
+    "forceBlockingDashboardQueries": true,
+    "coverage": "No production events generated. App pageview/funnel renderer filter excludes landing and legacy events without metadata. New setup/browser/question/conversation series are empty pending code release.",
+    "layouts": "Complete mixed widths on 12-column sm and stacked one-column xs; all original tiles retained.",
+    "checks": [
+      {
+        "dashboardId": 999570,
+        "insightCount": 6,
+        "allOriginalInsightsPresent": true,
+        "all19NativeResultsSucceeded": true,
+        "layoutWithinColumns": true,
+        "layoutNoOverlaps": true
+      },
+      {
+        "dashboardId": 999571,
+        "insightCount": 8,
+        "allOriginalInsightsPresent": true,
+        "all19NativeResultsSucceeded": true,
+        "layoutWithinColumns": true,
+        "layoutNoOverlaps": true
+      },
+      {
+        "dashboardId": 999572,
+        "insightCount": 5,
+        "allOriginalInsightsPresent": true,
+        "all19NativeResultsSucceeded": true,
+        "layoutWithinColumns": true,
+        "layoutNoOverlaps": true
+      }
+    ]
+  },
+  "blockers": [
+    "Updated app/landing builds have not shipped; new event coverage remains incomplete.",
+    "No approved governed definition; draft proposals are not canonical."
+  ]
+}

@@ -7,7 +7,7 @@ import {
 } from './crew/conversation-queue.ts';
 import { continueConversation } from './crew/continuation.ts';
 import { editMemory } from './crew/gateway/conversations.ts';
-import type { SkillPreview } from '@pitchcrew/core';
+import type { DiagnosticSink, SkillPreview } from '@pitchcrew/core';
 import {
   type AgentTask,
   type Card,
@@ -53,8 +53,19 @@ export class CrewService {
     readonly mcpEntry: string,
     dev = false,
     browserLaunch?: (profile?: string) => Promise<BrowserDriver>,
+    diagnostics?: DiagnosticSink,
   ) {
-    this.context = createCrewContext(directory, daemonUrl, mcpEntry, dev, browserLaunch);
+    this.context = createCrewContext(
+      directory,
+      daemonUrl,
+      mcpEntry,
+      dev,
+      browserLaunch,
+      diagnostics,
+    );
+  }
+  get diagnostics() {
+    return this.context.diagnostics;
   }
   answerUserQuestion(id: string, data: unknown) {
     return answerUserQuestion(this.context, id, data);

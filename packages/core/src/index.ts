@@ -60,6 +60,12 @@ export type { Skill, SkillInput, SkillPreview, SkillProposal } from './skills.ts
 export * from './states.ts';
 export type { Approval, ConnectorStatus, ProfileFile, Snapshot } from './workspace.ts';
 export type {
+  DiagnosticObservation,
+  DiagnosticSanitizer,
+  DiagnosticSink,
+  TelemetryBatch,
+} from './telemetry.ts';
+export type {
   ProfileSourceInput,
   ProfileSource,
   ImportedProfileFile,
@@ -102,3 +108,12 @@ export type {
 } from './packet-rules.ts';
 
 export * from './user-input.ts';
+
+export {
+  operationalLogCodes,
+  sanitizeOperationalLog,
+  type OperationalLog,
+  type OperationalLogCode,
+  type OperationalLogArea,
+} from './operational-logs.ts';
+export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telemetry-mcp.ts';

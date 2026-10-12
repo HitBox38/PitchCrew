@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createAnalytics, sdkConfig } from '../client.ts';
+import metadata from '../../../../../package.json';
 
 const config = { token: 'phc_fixture123', host: 'https://eu.i.posthog.com' };
 function sdkMock() {
@@ -7,6 +8,34 @@ function sdkMock() {
 }
 
 describe('analytics lifecycle', () => {
+  it('attaches the shipped app version and renderer to every event without identifying users', async () => {
+    const sdk = sdkMock();
+    const analytics = createAnalytics(async () => sdk);
+    await analytics.setEnabled(true, config);
+    analytics.capture('chat_sent');
+    expect(sdk.capture).toHaveBeenCalledExactlyOnceWith('chat_sent', {
+      app_version: metadata.version,
+      analytics_schema: 2,
+      renderer: 'browser',
+    });
+    const beforeSend = sdk.init.mock.calls[0][1].before_send;
+    expect(
+      beforeSend({
+        event: 'chat_sent',
+        properties: {
+          ...sdk.capture.mock.calls[0][1],
+          content: 'private',
+          $current_url: 'private',
+        },
+      }).properties,
+    ).toEqual({
+      app_version: metadata.version,
+      analytics_schema: 2,
+      renderer: 'browser',
+      $process_person_profile: false,
+      $geoip_disable: true,
+    });
+  });
   it('does not load the SDK without a configured project or after opting out', async () => {
     const load = vi.fn();
     const analytics = createAnalytics(load);

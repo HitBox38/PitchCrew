@@ -152,6 +152,8 @@ jobs:
         if: runner.os != 'Linux'
         run: pnpm test:packaged
       - name: Upload installers
+        id: upload-installers
+        continue-on-error: true
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
           name: installers-${{ matrix.os }}
@@ -165,6 +167,26 @@ jobs:
             dist/releases/*.blockmap
           if-no-files-found: error
           retention-days: 7
+      - name: Wait before retrying installer upload
+        if: ${{ !cancelled() && steps.upload-installers.outcome == 'failure' }}
+        shell: bash
+        run: sleep 30
+      - name: Retry installer upload
+        if: ${{ !cancelled() && steps.upload-installers.outcome == 'failure' }}
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: installers-${{ matrix.os }}
+          path: |
+            dist/releases/*.exe
+            dist/releases/*.dmg
+            dist/releases/*.AppImage
+            dist/releases/*.deb
+            dist/releases/*.zip
+            dist/releases/*.yml
+            dist/releases/*.blockmap
+          if-no-files-found: error
+          retention-days: 7
+          overwrite: true
 
   ci:
     name: CI

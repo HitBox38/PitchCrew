@@ -1,3 +1,4 @@
+import { recordOperationalLog } from '../telemetry/logs.ts';
 import {
   endQuestionTurn,
   finishUserContinuation,
@@ -11,6 +12,7 @@ import { requireRole } from './roles.ts';
 import { assertProfileReady } from '../profile-sources/mutation.ts';
 import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
+import { beginAiRun } from '../telemetry/ai.ts';
 import {
   runResultSchema,
   workflowSeat,
@@ -157,8 +159,9 @@ export async function startRun(
         this.board.record('run', { ...current, message }, roleId, message);
     },
   };
-  void adapters[role.runtime]
-    .run(context)
+  const ai = beginAiRun(this.diagnostics, 'workflow');
+  void ai
+    .observe(() => adapters[role.runtime].run(context), controller.signal)
     .then(async (result) => {
       if (endQuestionTurn(this, run)) return;
       if (controller.signal.aborted) throw new Error('Run cancelled.');
@@ -178,6 +181,10 @@ export async function startRun(
     })
     .catch((error) => {
       if (endQuestionTurn(this, run)) return;
+      recordOperationalLog(this.diagnostics, {
+        code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
+        area: 'workflow',
+      });
       const message = error instanceof Error ? error.message : 'Run failed.';
       this.board.record(
         'run',
@@ -195,6 +202,8 @@ export async function startRun(
         this.board.move(cardId, 'changes_requested', roleId, 'Draft failed; retry the writer');
     })
     .finally(async () => {
+      const outcome = this.board.get<Run>('run', run.id).status;
+      ai.finish(outcome === 'running' ? 'failed' : outcome);
       await this.computer.stop(run.id);
       this.board.updateCard(cardId, { owner: null }, 'orchestrator', 'Released application');
       if (
