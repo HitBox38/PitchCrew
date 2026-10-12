@@ -40,11 +40,13 @@ export function createAnalytics(
   let enabled = false;
   let generation = 0;
   let lastPage: AnalyticsProperties['page'];
+  let lastSetup: string | undefined;
   return {
     async setEnabled(next: boolean, config: AnalyticsConfig | null): Promise<boolean> {
       const current = ++generation;
       enabled = false;
       lastPage = undefined;
+      lastSetup = undefined;
       if (!next || !config) {
         try {
           sdk?.opt_out_capturing();
@@ -86,6 +88,13 @@ export function createAnalytics(
     },
     capture(event: AnalyticsEvent, properties: AnalyticsProperties = {}) {
       if (!enabled || !sdk || !consent()) return;
+      if (event === 'workspace_setup_observed') {
+        const values = [properties.profile_ready, properties.crew_ready, properties.job_ready];
+        if (values.some((value) => typeof value !== 'boolean')) return;
+        const signature = JSON.stringify(values);
+        if (signature === lastSetup) return;
+        lastSetup = signature;
+      }
       if (event === '$pageview') {
         if (!properties.page || lastPage === properties.page) return;
         lastPage = properties.page;

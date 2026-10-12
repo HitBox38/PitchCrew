@@ -5,6 +5,7 @@ import type { AnalyticsEvent, AnalyticsProperties } from './types.ts';
 
 const events: AnalyticsEvent[] = [
   '$pageview',
+  'workspace_setup_observed',
   'job_created',
   'application_registered',
   'applications_imported',
@@ -66,6 +67,10 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
   if (['browser', 'electron'].includes(input.renderer as string))
     properties.renderer = input.renderer;
   if (input.analytics_schema === 2) properties.analytics_schema = 2;
+  if (event.event === 'workspace_setup_observed') {
+    for (const key of ['profile_ready', 'crew_ready', 'job_ready'])
+      if (typeof input[key] === 'boolean') properties[key] = input[key];
+  }
   if (
     event.event === 'browser_session_changed' &&
     ['open', 'close', 'take', 'release'].includes(input.action as string)

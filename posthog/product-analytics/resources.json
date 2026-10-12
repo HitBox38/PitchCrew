@@ -1,0 +1,342 @@
+{
+  "schemaVersion": 1,
+  "projectId": 295060,
+  "dashboard": {
+    "preferredExistingId": 999571,
+    "name": "PitchCrew \u00b7 Activation and Adoption",
+    "description": "Privacy-preserving usage, setup observations and proposed activation proxies. Anonymous device counts are not verified people or installations. Collection starts with shipped builds; empty series do not imply zero usage."
+  },
+  "governance": {
+    "status": "proposed",
+    "catalogCheck": "Blocked: PostHog connection lacks data_catalog:read. Recheck complete catalog and reconcile approved definitions before publishing."
+  },
+  "insights": [
+    {
+      "key": "core-adoption",
+      "name": "Core workflow adoption \u2014 anonymous devices",
+      "description": "Distinct anonymous device IDs using each successful action. Device IDs are not people, accounts or installations.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "week",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "job_created",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "workflow_started",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "packet_exported",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "application_status_changed",
+            "math": "dau"
+          }
+        ]
+      }
+    },
+    {
+      "key": "crew-adoption",
+      "name": "Crew and conversations \u2014 anonymous devices",
+      "description": "Successful feature actions. Disabled telemetry and installation configuration affect coverage.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "week",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "chat_sent",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "conversation_created",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "agent_saved",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "skill_saved",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "routine_saved",
+            "math": "dau"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "user_question_answered",
+            "math": "dau"
+          }
+        ]
+      }
+    },
+    {
+      "key": "advanced-adoption",
+      "name": "Browser and pipeline adoption \u2014 anonymous devices",
+      "description": "Counts distinct devices using browser open, manual takeover or approved pipeline follow-up saves. Private inputs and entity IDs are excluded.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "week",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "browser_session_changed",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "action",
+                "operator": "exact",
+                "type": "event",
+                "value": ["open"]
+              }
+            ],
+            "name": "Browser opened"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "browser_session_changed",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "action",
+                "operator": "exact",
+                "type": "event",
+                "value": ["take"]
+              }
+            ],
+            "name": "Manual takeover"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "pipeline_followup_saved",
+            "math": "dau",
+            "name": "Pipeline follow-up saved"
+          }
+        ]
+      }
+    },
+    {
+      "key": "setup-readiness",
+      "name": "Observed workspace readiness \u2014 anonymous devices",
+      "description": "Devices observed with each setup prerequisite met at least once in the interval. This is an observation, not a first-use conversion or current workspace count. Fictional demo cards do not satisfy job readiness.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "week",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "workspace_setup_observed",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "profile_ready",
+                "operator": "exact",
+                "type": "event",
+                "value": ["true"]
+              }
+            ],
+            "name": "Profile ready observed"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "workspace_setup_observed",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "crew_ready",
+                "operator": "exact",
+                "type": "event",
+                "value": ["true"]
+              }
+            ],
+            "name": "Three crew seats ready observed"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "workspace_setup_observed",
+            "math": "dau",
+            "properties": [
+              {
+                "key": "job_ready",
+                "operator": "exact",
+                "type": "event",
+                "value": ["true"]
+              }
+            ],
+            "name": "Real job ready observed"
+          }
+        ]
+      }
+    },
+    {
+      "key": "workflow-funnel",
+      "name": "Job creation to exported packet \u2014 30-day funnel",
+      "description": "Proposed, noncanonical activation proxy: same anonymous device creates a job, starts a workflow and exports a packet in order within 30 days; unrelated events may occur between steps. No shared card ID is collected, so steps can concern different jobs.",
+      "query": {
+        "kind": "FunnelsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "job_created"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "workflow_started"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "packet_exported"
+          }
+        ],
+        "dateRange": {
+          "date_from": "-90d"
+        },
+        "filterTestAccounts": true,
+        "funnelsFilter": {
+          "funnelOrderType": "ordered",
+          "funnelWindowInterval": 30,
+          "funnelWindowIntervalUnit": "day"
+        }
+      }
+    },
+    {
+      "key": "onboarding-funnel",
+      "name": "Visit to explicit onboarding completion \u2014 7-day funnel",
+      "description": "Devices viewing the app then explicitly completing onboarding within seven days. Existing workspaces default to deferred onboarding; this chart is not an installation activation rate.",
+      "query": {
+        "kind": "FunnelsQuery",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$pageview"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "onboarding_updated",
+            "properties": [
+              {
+                "key": "status",
+                "operator": "exact",
+                "type": "event",
+                "value": ["completed"]
+              }
+            ]
+          }
+        ],
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "funnelsFilter": {
+          "funnelOrderType": "ordered",
+          "funnelWindowInterval": 7,
+          "funnelWindowIntervalUnit": "day"
+        }
+      }
+    },
+    {
+      "key": "workflow-retention",
+      "name": "Workflow return by week \u2014 anonymous devices",
+      "description": "Recurring cohorts of devices starting a workflow and starting another in subsequent calendar weeks. Standard native PostHog retention; anonymous IDs can reset or represent multiple users.",
+      "query": {
+        "kind": "RetentionQuery",
+        "dateRange": {
+          "date_from": "-90d"
+        },
+        "filterTestAccounts": true,
+        "retentionFilter": {
+          "targetEntity": {
+            "type": "events",
+            "id": "workflow_started"
+          },
+          "returningEntity": {
+            "type": "events",
+            "id": "workflow_started"
+          },
+          "period": "Week",
+          "totalIntervals": 8,
+          "retentionType": "retention_recurring",
+          "cumulative": false
+        }
+      }
+    },
+    {
+      "key": "onboarding-decisions",
+      "name": "Onboarding decisions \u2014 successful actions",
+      "description": "Counts explicit onboarding completed and deferred decisions. Repeated user decisions count; snapshots never replay action events.",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-30d"
+        },
+        "filterTestAccounts": true,
+        "interval": "week",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "onboarding_updated",
+            "math": "total",
+            "properties": [
+              {
+                "key": "status",
+                "operator": "exact",
+                "type": "event",
+                "value": ["completed"]
+              }
+            ],
+            "name": "Onboarding completed"
+          },
+          {
+            "kind": "EventsNode",
+            "event": "onboarding_updated",
+            "math": "total",
+            "properties": [
+              {
+                "key": "status",
+                "operator": "exact",
+                "type": "event",
+                "value": ["dismissed"]
+              }
+            ],
+            "name": "Onboarding deferred"
+          }
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "date": "2026-10-12",
+    "projectId": 295060,
+    "method": "Read-only native query-trends, query-funnel, query-retention",
+    "result": "All eight descriptor queries accepted and executed successfully. New events have no production data until shipped. No dashboard or insight writes performed."
+  }
+}

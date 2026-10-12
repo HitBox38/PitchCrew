@@ -7,6 +7,7 @@ export interface AnalyticsConfig {
 
 export type AnalyticsEvent =
   | '$pageview'
+  | 'workspace_setup_observed'
   | 'job_created'
   | 'application_registered'
   | 'applications_imported'
@@ -38,6 +39,9 @@ export type AnalyticsEvent =
 
 export interface AnalyticsProperties {
   page?: View;
+  profile_ready?: boolean;
+  crew_ready?: boolean;
+  job_ready?: boolean;
   state?: string;
   kind?: 'packet' | 'computer' | 'role' | 'skill';
   approved?: boolean;

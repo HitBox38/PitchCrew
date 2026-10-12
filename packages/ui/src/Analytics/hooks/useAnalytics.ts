@@ -1,3 +1,5 @@
+import { useWorkspaceStore } from '../../WorkspaceStore/index.ts';
+import { productSetupProperties } from '../product.ts';
 import { useEffect, useRef } from 'react';
 import { useRouterState } from '@tanstack/react-router';
 import {
@@ -12,7 +14,13 @@ export function useAnalytics() {
   const enabled = useDevicePreferences((state) => state.analytics);
   const config = useAnalyticsConfig((state) => state.config);
   const page = useRouterState({ select: (state) => analyticsPage(state.location.pathname) });
+  const data = useWorkspaceStore((state) => state.data);
+  const latestSetup = useRef(productSetupProperties(data));
   const latestPage = useRef(page);
+  useEffect(() => {
+    latestSetup.current = productSetupProperties(data);
+    if (latestSetup.current) analytics.capture('workspace_setup_observed', latestSetup.current);
+  }, [data]);
   useEffect(() => {
     latestPage.current = page;
     analytics.capture('$pageview', { page });
@@ -26,7 +34,10 @@ export function useAnalytics() {
   useEffect(() => {
     let active = true;
     void analytics.setEnabled(enabled, config).then((ready) => {
-      if (active && ready) analytics.capture('$pageview', { page: latestPage.current });
+      if (active && ready) {
+        analytics.capture('$pageview', { page: latestPage.current });
+        if (latestSetup.current) analytics.capture('workspace_setup_observed', latestSetup.current);
+      }
     });
     return () => {
       active = false;
