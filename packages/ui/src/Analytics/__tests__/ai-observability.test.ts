@@ -62,3 +62,22 @@ describe('AI renderer consent and content boundary', () => {
     ).toBeNull();
   });
 });
+
+it('uses observed runtime start for native waterfall timestamps without leaking relay metadata', async () => {
+  const sdk = {
+    init: vi.fn(),
+    capture: vi.fn(),
+    opt_in_capturing: vi.fn(),
+    opt_out_capturing: vi.fn(),
+  };
+  const client = createAnalytics(async () => sdk);
+  await client.setEnabled(true, { token: 'phc_fixture', host: 'https://eu.i.posthog.com' });
+  const observed_start_ms = Date.parse('2026-10-12T10:00:00Z');
+  client.captureDiagnostic('$ai_trace', { ...properties, observed_start_ms });
+  expect(sdk.capture.mock.calls[0][2]).toEqual({ timestamp: new Date(observed_start_ms) });
+  expect(sdk.capture.mock.calls[0][1]).not.toHaveProperty('observed_start_ms');
+  expect(
+    sanitizeEvent({ event: '$ai_trace', properties: { ...properties, observed_start_ms } })
+      ?.properties,
+  ).not.toHaveProperty('observed_start_ms');
+});

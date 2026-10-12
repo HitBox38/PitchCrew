@@ -57,6 +57,8 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
     $geoip_disable: true,
     ...diagnostic,
   };
+  // Relay timing is converted to native capture options; never retain it as a property.
+  delete properties.observed_start_ms;
   for (const key of ['token', 'distinct_id', '$session_id', '$window_id', '$lib', '$lib_version'])
     if (typeof input[key] === 'string') properties[key] = input[key];
   if (

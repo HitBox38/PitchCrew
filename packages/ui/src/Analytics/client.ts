@@ -94,7 +94,14 @@ export function createAnalytics(
       const properties = sanitizeDiagnostic(event, input);
       if (!properties) return;
       try {
-        sdk.capture(event, { ...properties, ...analyticsContext() });
+        const observedStart = properties.observed_start_ms;
+        delete properties.observed_start_ms;
+        const timestamp =
+          (event === '$ai_trace' || event === '$ai_span') && typeof observedStart === 'number'
+            ? new Date(observedStart)
+            : undefined;
+        if (timestamp) sdk.capture(event, { ...properties, ...analyticsContext() }, { timestamp });
+        else sdk.capture(event, { ...properties, ...analyticsContext() });
       } catch {
         /* Diagnostics are best effort and never interrupt user actions. */
       }
