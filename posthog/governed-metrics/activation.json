@@ -1,0 +1,744 @@
+{
+  "project_id": 295060,
+  "project_name": "PitchCrew",
+  "host": "https://eu.posthog.com",
+  "status": "draft_virtual_models_created_metric_creation_blocked",
+  "canonical": false,
+  "ready_for_metric_approval": false,
+  "source_coverage": "unverified_waiting_real_release_or_repository_import",
+  "preflight": {
+    "complete_view_inventory": {
+      "rows": 0,
+      "count": 0,
+      "query": "SELECT table_name FROM system.information_schema.tables WHERE table_type = 'view' ORDER BY table_name LIMIT 200 OFFSET 0",
+      "matched_collisions": 0
+    },
+    "catalog": {
+      "access": "SQL metadata read available; dedicated native metric-list remains scope-gated",
+      "complete": true,
+      "count": 0,
+      "existing_approved_metrics": [],
+      "query": "SELECT name, display_name, status, is_drifted, definition_kind FROM system.information_schema.metrics ORDER BY name LIMIT 200 OFFSET 0"
+    },
+    "syntax": "All seven exact view query relations freshly compiled with empty source windows before creation; new source warnings retained as unknown coverage.",
+    "native_view_schema": "view-create and view-get exact input schemas read before use"
+  },
+  "models": [
+    {
+      "id": "01a13191-8428-0000-071c-e2f81df99979",
+      "name": "pitchcrew_action_mix_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    countIf(event = 'chat_sent') AS accepted_chat_sends,\n    countIf(event = 'workflow_started') AS accepted_workflow_launches,\n    countIf(event = 'job_sources_scanned') AS completed_ui_source_scans\nFROM events\nWHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now()\n    AND event IN ('chat_sent', 'workflow_started', 'job_sources_scanned')\nGROUP BY day ORDER BY day"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13191-8428-0000-071c-e2f81df99979",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "accepted_chat_sends",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "accepted_workflow_launches",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "completed_ui_source_scans",
+          "type": "integer",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "action_mix",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "8d46ddea18433e4e7c62b3b53b7709c614287df3e5b4e343bbb3c76438d8d2ff",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    },
+    {
+      "id": "01a13192-2200-0000-517e-89a391f54367",
+      "name": "pitchcrew_setup_readiness_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    count() AS readiness_observations,\n    countIf(properties.profile_ready = true) AS profile_ready_observations,\n    countIf(properties.crew_ready = true) AS crew_ready_observations,\n    countIf(properties.job_ready = true) AS job_ready_observations,\n    countIf(properties.profile_ready = true AND properties.crew_ready = true AND properties.job_ready = true) AS all_ready_observations\nFROM events\nWHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now() AND event = 'workspace_setup_observed' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.profile_ready IN (true, false)\n    AND properties.crew_ready IN (true, false)\n    AND properties.job_ready IN (true, false)\nGROUP BY day ORDER BY day"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-2200-0000-517e-89a391f54367",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "readiness_observations",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "profile_ready_observations",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "crew_ready_observations",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "job_ready_observations",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "all_ready_observations",
+          "type": "integer",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "setup_readiness",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "7e398295ecc8ae4d7056ac768256c1b167dae38a02ff2d0b6eddb36e8a734b29",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    },
+    {
+      "id": "01a13192-2f87-0000-71f7-d0de1f95ef9e",
+      "name": "pitchcrew_request_health_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    count() AS observed_requests,\n    countIf(properties.result = 'success') AS successes,\n    countIf(properties.result = 'aborted') AS aborted,\n    countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) AS failures,\n    100.0 * countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) / nullIf(countIf(properties.result != 'aborted'), 0) AS non_aborted_failure_percent,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p50_ms,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now() AND event = 'api_request_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.result IN ('success', 'http_error', 'network_error', 'invalid_response', 'aborted')\n    AND properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000\nGROUP BY day ORDER BY day"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-2f87-0000-71f7-d0de1f95ef9e",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "observed_requests",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "successes",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "aborted",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "failures",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "non_aborted_failure_percent",
+          "type": "float",
+          "schema_valid": true
+        },
+        {
+          "name": "success_p50_ms",
+          "type": "float",
+          "schema_valid": true
+        },
+        {
+          "name": "success_p95_ms",
+          "type": "float",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "request_health",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "d69372f5a1fa33ee6135dee3647daafa91b0882a76a35682395929a697f3a7b7",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    },
+    {
+      "id": "01a13192-4025-0000-d8f4-6f7f71ade7b6",
+      "name": "pitchcrew_run_health_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day, properties.mode AS mode,\n    count() AS observed_terminal_runs,\n    countIf(properties.outcome = 'completed') AS completed,\n    countIf(properties.outcome = 'failed') AS failed,\n    countIf(properties.outcome = 'cancelled') AS cancelled,\n    countIf(properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000) AS measured_runs,\n    if(measured_runs > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p50_ms,\n    if(measured_runs > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now() AND event = 'run_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.mode IN ('workflow', 'chat') AND properties.outcome IN ('completed', 'failed', 'cancelled')\nGROUP BY day, mode ORDER BY day, mode"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-4025-0000-d8f4-6f7f71ade7b6",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "mode",
+          "type": "string",
+          "schema_valid": true
+        },
+        {
+          "name": "observed_terminal_runs",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "completed",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "failed",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "cancelled",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "measured_runs",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "measured_p50_ms",
+          "type": "float",
+          "schema_valid": true
+        },
+        {
+          "name": "measured_p95_ms",
+          "type": "float",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "run_health",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "6f44a4bf71c218649c04f49995ad3e0b5c322acb19d8f6d518a8d279715f7ecd",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    },
+    {
+      "id": "01a13192-4cb6-0000-fed6-65824c9fe26d",
+      "name": "pitchcrew_sanitized_errors_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    countIf(properties.error_source IN ('window_error', 'unhandled_rejection')) AS global_exceptions,\n    countIf(properties.error_source IN ('react_boundary', 'react_uncaught', 'react_recoverable')) AS react_exceptions,\n    countIf(properties.error_source = 'api_action') AS deliberate_action_exceptions\nFROM events\nWHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now() AND event = '$exception' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.error_source IN ('window_error', 'unhandled_rejection', 'react_boundary', 'react_uncaught', 'react_recoverable', 'api_action')\n    AND properties.error_category IN ('type_error', 'reference_error', 'range_error', 'syntax_error', 'uri_error', 'evaluation_error', 'generic_error', 'non_error', 'request_network', 'request_server', 'request_response')\nGROUP BY day ORDER BY day"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-4cb6-0000-fed6-65824c9fe26d",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "global_exceptions",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "react_exceptions",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "deliberate_action_exceptions",
+          "type": "integer",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "sanitized_errors",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "d0bbdc95ee1796e5f2a9a7bcf764226dfb82e78116f6f35c05f2000b0b48750f",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    },
+    {
+      "id": "01a13192-5933-0000-138e-c0bacad125fd",
+      "name": "pitchcrew_ci_attempt_health_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(completed_at, 'Asia/Jerusalem')) AS day,\n    count() AS completed_attempts,\n    countIf(conclusion = 'success') AS successful_attempts,\n    countIf(attempt > 1) AS repeat_attempts,\n    100.0 * countIf(conclusion = 'success') / nullIf(count(), 0) AS success_percent,\n    quantile(0.5)(job_span_seconds) AS p50_job_span_seconds,\n    quantile(0.95)(job_span_seconds) AS p95_job_span_seconds\nFROM (\n    SELECT uuid AS uuid, min(timestamp) AS completed_at,\n        any(properties.conclusion) AS conclusion,\n        max(toInt(properties.attempt)) AS attempt,\n        max(toFloat(properties.job_span_seconds)) AS job_span_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now() AND event = 'pitchcrew_ci_run_completed' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.conclusion IN ('success', 'failure', 'cancelled', 'skipped', 'timed_out', 'action_required', 'neutral', 'startup_failure', 'stale', 'other')\n        AND properties.job_span_seconds IS NOT NULL AND toFloat(properties.job_span_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day ORDER BY day"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-5933-0000-138e-c0bacad125fd",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "completed_attempts",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "successful_attempts",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "repeat_attempts",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "success_percent",
+          "type": "float",
+          "schema_valid": true
+        },
+        {
+          "name": "p50_job_span_seconds",
+          "type": "float",
+          "schema_valid": true
+        },
+        {
+          "name": "p95_job_span_seconds",
+          "type": "float",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "ci_attempt_health",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "17c97ec08d5da76a36223c97da5d9d915ffad195ed8db9bdafbfe7de0e49f6a1",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    },
+    {
+      "id": "01a13192-672e-0000-ff50-8655227ebbb4",
+      "name": "pitchcrew_pr_delivery_daily_v1_jerusalem",
+      "query": {
+        "kind": "HogQLQuery",
+        "query": "SELECT toDate(toTimeZone(merged_at, 'Asia/Jerusalem')) AS day, target_branch AS target_branch,\n    count() AS merged_prs,\n    quantile(0.5)(open_to_merge_seconds) / 3600.0 AS p50_open_to_merge_hours,\n    quantile(0.95)(open_to_merge_seconds) / 3600.0 AS p95_open_to_merge_hours\nFROM (\n    SELECT uuid AS uuid, min(timestamp) AS merged_at,\n        any(properties.target_branch) AS target_branch,\n        max(toFloat(properties.open_to_merge_seconds)) AS open_to_merge_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL 30 DAY AND timestamp < now() AND event = 'pitchcrew_pr_merged' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.target_branch IN ('dev', 'main')\n        AND properties.open_to_merge_seconds IS NOT NULL AND toFloat(properties.open_to_merge_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day, target_branch ORDER BY day, target_branch"
+      },
+      "is_materialized": false,
+      "sync_frequency": null,
+      "latest_error": null,
+      "url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-672e-0000-ff50-8655227ebbb4",
+      "columns": [
+        {
+          "name": "day",
+          "type": "date",
+          "schema_valid": true
+        },
+        {
+          "name": "target_branch",
+          "type": "string",
+          "schema_valid": true
+        },
+        {
+          "name": "merged_prs",
+          "type": "integer",
+          "schema_valid": true
+        },
+        {
+          "name": "p50_open_to_merge_hours",
+          "type": "float",
+          "schema_valid": true
+        },
+        {
+          "name": "p95_open_to_merge_hours",
+          "type": "float",
+          "schema_valid": true
+        }
+      ],
+      "query_key": "pr_delivery",
+      "query_hash_algorithm": "sha256_json_query_definition",
+      "definition_hash": "b26009990396a345953db6e4b0a43778cf6a9b227375e6d11a151e13bd7967b7",
+      "status": "draft_semantic_description_only",
+      "source_coverage": "unverified",
+      "readback_verified": true
+    }
+  ],
+  "metric_proposals": [
+    {
+      "name": "pitchcrew_accepted_chat_sends_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "count",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "160c1506f0b9effcbef01cfd5bb8be991a8c90b864285840e21dc7559e7fe894",
+      "candidate": {
+        "name": "pitchcrew_accepted_chat_sends_7d_v1_jerusalem",
+        "display_name": "Accepted chat sends (7-day window)",
+        "description": "Accepted user chat sends per local day, across current and legacy chat routes. This counts sends rather than responses or completed runs.",
+        "unit": "count",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    accepted_chat_sends AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    countIf(event = 'chat_sent') AS accepted_chat_sends,\n    countIf(event = 'workflow_started') AS accepted_workflow_launches,\n    countIf(event = 'job_sources_scanned') AS completed_ui_source_scans\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now()\n    AND event IN ('chat_sent', 'workflow_started', 'job_sources_scanned')\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13191-8428-0000-071c-e2f81df99979",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13191-8428-0000-071c-e2f81df99979",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_accepted_workflow_launches_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "count",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "dc9f48f2c8f9103a9cae37899e8a32cc1e6b07d67e31b727246c0391c29fff7e",
+      "candidate": {
+        "name": "pitchcrew_accepted_workflow_launches_7d_v1_jerusalem",
+        "display_name": "Accepted workflow launches (7-day window)",
+        "description": "Accepted user workflow launches per local day. Launch acceptance does not establish successful completion or provider usage.",
+        "unit": "count",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    accepted_workflow_launches AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    countIf(event = 'chat_sent') AS accepted_chat_sends,\n    countIf(event = 'workflow_started') AS accepted_workflow_launches,\n    countIf(event = 'job_sources_scanned') AS completed_ui_source_scans\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now()\n    AND event IN ('chat_sent', 'workflow_started', 'job_sources_scanned')\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13191-8428-0000-071c-e2f81df99979",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13191-8428-0000-071c-e2f81df99979",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_setup_ready_observation_percent_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "percent",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "330cb50ad83dc89f50f0d2192d40f99a2d2b01540e8de432d3fec424730667b3",
+      "candidate": {
+        "name": "pitchcrew_setup_ready_observation_percent_7d_v1_jerusalem",
+        "display_name": "Setup-ready observation percentage (7-day window)",
+        "description": "Percentage of observed setup snapshots with profile, crew and job readiness, per local day. Repeated observations count separately; this is a readiness proxy rather than validated activation.",
+        "unit": "percent",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    100.0 * all_ready_observations / nullIf(readiness_observations, 0) AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    count() AS readiness_observations,\n    countIf(properties.profile_ready = true) AS profile_ready_observations,\n    countIf(properties.crew_ready = true) AS crew_ready_observations,\n    countIf(properties.job_ready = true) AS job_ready_observations,\n    countIf(properties.profile_ready = true AND properties.crew_ready = true AND properties.job_ready = true) AS all_ready_observations\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'workspace_setup_observed' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.profile_ready IN (true, false)\n    AND properties.crew_ready IN (true, false)\n    AND properties.job_ready IN (true, false)\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-2200-0000-517e-89a391f54367",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-2200-0000-517e-89a391f54367",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_request_failure_percent_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "percent",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "7d680d54be9c97299a9288746490a2130b38a855d57a166712c6558afe213665",
+      "candidate": {
+        "name": "pitchcrew_request_failure_percent_7d_v1_jerusalem",
+        "display_name": "Deliberate request failure percentage (7-day window)",
+        "description": "Failed deliberate UI requests divided by non-aborted observed requests, per local day. HTTP, network and invalid-response failures count; polling and streams are excluded.",
+        "unit": "percent",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    non_aborted_failure_percent AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    count() AS observed_requests,\n    countIf(properties.result = 'success') AS successes,\n    countIf(properties.result = 'aborted') AS aborted,\n    countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) AS failures,\n    100.0 * countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) / nullIf(countIf(properties.result != 'aborted'), 0) AS non_aborted_failure_percent,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p50_ms,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'api_request_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.result IN ('success', 'http_error', 'network_error', 'invalid_response', 'aborted')\n    AND properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-2f87-0000-71f7-d0de1f95ef9e",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-2f87-0000-71f7-d0de1f95ef9e",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_request_success_p95_ms_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "ms",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "8bbe4434c31f0fa90ec290810479a14d4d9281063a8f6f27899ca6f87069e5cb",
+      "candidate": {
+        "name": "pitchcrew_request_success_p95_ms_7d_v1_jerusalem",
+        "display_name": "Successful request p95 latency (7-day window)",
+        "description": "95th percentile elapsed duration of successful deliberate UI requests, per local day. Only valid measured durations count; empty groups have no measurement.",
+        "unit": "ms",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    success_p95_ms AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    count() AS observed_requests,\n    countIf(properties.result = 'success') AS successes,\n    countIf(properties.result = 'aborted') AS aborted,\n    countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) AS failures,\n    100.0 * countIf(properties.result IN ('http_error', 'network_error', 'invalid_response')) / nullIf(countIf(properties.result != 'aborted'), 0) AS non_aborted_failure_percent,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p50_ms,\n    if(countIf(properties.result = 'success') > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.result = 'success'), NULL) AS success_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'api_request_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.result IN ('success', 'http_error', 'network_error', 'invalid_response', 'aborted')\n    AND properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-2f87-0000-71f7-d0de1f95ef9e",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-2f87-0000-71f7-d0de1f95ef9e",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_run_failure_percent_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "percent",
+      "grain": "local_day_and_mode",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "d93ededfe2d229a99d4dbf0c3379fe089e86b3592dc2af394134bdad495c9e5e",
+      "candidate": {
+        "name": "pitchcrew_run_failure_percent_7d_v1_jerusalem",
+        "display_name": "Observed run failure percentage (7-day window)",
+        "description": "Failed observed runs divided by all observed terminal runs, per local day and mode. Cancellations remain in the denominator; closed-renderer and historical runs are excluded.",
+        "unit": "percent",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day, mode AS mode,\n    100.0 * failed / nullIf(observed_terminal_runs, 0) AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day, properties.mode AS mode,\n    count() AS observed_terminal_runs,\n    countIf(properties.outcome = 'completed') AS completed,\n    countIf(properties.outcome = 'failed') AS failed,\n    countIf(properties.outcome = 'cancelled') AS cancelled,\n    countIf(properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000) AS measured_runs,\n    if(measured_runs > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p50_ms,\n    if(measured_runs > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'run_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.mode IN ('workflow', 'chat') AND properties.outcome IN ('completed', 'failed', 'cancelled')\nGROUP BY day, mode ORDER BY day, mode\n)\nORDER BY day, mode LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-4025-0000-d8f4-6f7f71ade7b6",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-4025-0000-d8f4-6f7f71ade7b6",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_run_measured_p95_ms_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "ms",
+      "grain": "local_day_and_mode",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "044af5066ad31aa80c365e934e877f87e5e0c1862219a9cf5bf1ec264a408a9f",
+      "candidate": {
+        "name": "pitchcrew_run_measured_p95_ms_7d_v1_jerusalem",
+        "display_name": "Observed run p95 duration (7-day window)",
+        "description": "95th percentile valid observed run duration, per local day and mode. Missing durations remain unmeasured; routines and follow-ups may contribute observations.",
+        "unit": "ms",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day, mode AS mode,\n    measured_p95_ms AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day, properties.mode AS mode,\n    count() AS observed_terminal_runs,\n    countIf(properties.outcome = 'completed') AS completed,\n    countIf(properties.outcome = 'failed') AS failed,\n    countIf(properties.outcome = 'cancelled') AS cancelled,\n    countIf(properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000) AS measured_runs,\n    if(measured_runs > 0, quantileIf(0.5)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p50_ms,\n    if(measured_runs > 0, quantileIf(0.95)(toFloat(properties.duration_ms), properties.duration_ms IS NOT NULL AND toFloat(properties.duration_ms) >= 0 AND toFloat(properties.duration_ms) <= 86400000), NULL) AS measured_p95_ms\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'run_finished' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.mode IN ('workflow', 'chat') AND properties.outcome IN ('completed', 'failed', 'cancelled')\nGROUP BY day, mode ORDER BY day, mode\n)\nORDER BY day, mode LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-4025-0000-d8f4-6f7f71ade7b6",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-4025-0000-d8f4-6f7f71ade7b6",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_sanitized_exceptions_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "count",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "141f6783e877b88e8bb8387f337c9f262969be593b9aabff3703ff6908de3dc3",
+      "candidate": {
+        "name": "pitchcrew_sanitized_exceptions_7d_v1_jerusalem",
+        "display_name": "Sanitized exception observations (7-day window)",
+        "description": "Reviewed sanitized renderer exception observations per local day. Deduplication and rate limits apply; daemon crashes and provider internals are outside coverage.",
+        "unit": "count",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    global_exceptions + react_exceptions + deliberate_action_exceptions AS value\nFROM (\nSELECT toDate(toTimeZone(timestamp, 'Asia/Jerusalem')) AS day,\n    countIf(properties.error_source IN ('window_error', 'unhandled_rejection')) AS global_exceptions,\n    countIf(properties.error_source IN ('react_boundary', 'react_uncaught', 'react_recoverable')) AS react_exceptions,\n    countIf(properties.error_source = 'api_action') AS deliberate_action_exceptions\nFROM events\nWHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = '$exception' AND properties.renderer IN ('browser', 'electron') AND properties.analytics_schema = 2\n    AND properties.error_source IN ('window_error', 'unhandled_rejection', 'react_boundary', 'react_uncaught', 'react_recoverable', 'api_action')\n    AND properties.error_category IN ('type_error', 'reference_error', 'range_error', 'syntax_error', 'uri_error', 'evaluation_error', 'generic_error', 'non_error', 'request_network', 'request_server', 'request_response')\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-4cb6-0000-fed6-65824c9fe26d",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-4cb6-0000-fed6-65824c9fe26d",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_ci_attempt_success_percent_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "percent",
+      "grain": "local_day",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "aaf2f9e9a8fe97df9bc326b84ccf9bfff508ce7350c0d6107c63454352aab968",
+      "candidate": {
+        "name": "pitchcrew_ci_attempt_success_percent_7d_v1_jerusalem",
+        "display_name": "Imported CI attempt success percentage (7-day window)",
+        "description": "Successful imported completed CI attempts divided by all imported completed attempts, per local day. Cancellations, skips and repeat attempts remain in the denominator.",
+        "unit": "percent",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day,\n    success_percent AS value\nFROM (\nSELECT toDate(toTimeZone(completed_at, 'Asia/Jerusalem')) AS day,\n    count() AS completed_attempts,\n    countIf(conclusion = 'success') AS successful_attempts,\n    countIf(attempt > 1) AS repeat_attempts,\n    100.0 * countIf(conclusion = 'success') / nullIf(count(), 0) AS success_percent,\n    quantile(0.5)(job_span_seconds) AS p50_job_span_seconds,\n    quantile(0.95)(job_span_seconds) AS p95_job_span_seconds\nFROM (\n    SELECT uuid AS uuid, min(timestamp) AS completed_at,\n        any(properties.conclusion) AS conclusion,\n        max(toInt(properties.attempt)) AS attempt,\n        max(toFloat(properties.job_span_seconds)) AS job_span_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'pitchcrew_ci_run_completed' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.conclusion IN ('success', 'failure', 'cancelled', 'skipped', 'timed_out', 'action_required', 'neutral', 'startup_failure', 'stale', 'other')\n        AND properties.job_span_seconds IS NOT NULL AND toFloat(properties.job_span_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day ORDER BY day\n)\nORDER BY day LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-5933-0000-138e-c0bacad125fd",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-5933-0000-138e-c0bacad125fd",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_merged_prs_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "count",
+      "grain": "local_day_and_target_branch",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "dae71a40e9a552ef75e59ff5a51b40a91fa44ddc038b170476165d7341123af7",
+      "candidate": {
+        "name": "pitchcrew_merged_prs_7d_v1_jerusalem",
+        "display_name": "Imported merged PR throughput (7-day window)",
+        "description": "Imported merged non-bot PR count per local day and target branch. Counts completed merges, with no developer ranking or native Engineering Analytics source claim.",
+        "unit": "count",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day, target_branch AS target_branch,\n    merged_prs AS value\nFROM (\nSELECT toDate(toTimeZone(merged_at, 'Asia/Jerusalem')) AS day, target_branch AS target_branch,\n    count() AS merged_prs,\n    quantile(0.5)(open_to_merge_seconds) / 3600.0 AS p50_open_to_merge_hours,\n    quantile(0.95)(open_to_merge_seconds) / 3600.0 AS p95_open_to_merge_hours\nFROM (\n    SELECT uuid AS uuid, min(timestamp) AS merged_at,\n        any(properties.target_branch) AS target_branch,\n        max(toFloat(properties.open_to_merge_seconds)) AS open_to_merge_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'pitchcrew_pr_merged' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.target_branch IN ('dev', 'main')\n        AND properties.open_to_merge_seconds IS NOT NULL AND toFloat(properties.open_to_merge_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day, target_branch ORDER BY day, target_branch\n)\nORDER BY day, target_branch LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-672e-0000-ff50-8655227ebbb4",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-672e-0000-ff50-8655227ebbb4",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    },
+    {
+      "name": "pitchcrew_pr_open_to_merge_p95_hours_7d_v1_jerusalem",
+      "status": "local_proposed_not_created",
+      "canonical": false,
+      "unit": "hours",
+      "grain": "local_day_and_target_branch",
+      "window": {
+        "kind": "trailing_elapsed_days",
+        "days": 7,
+        "timezone": "Asia/Jerusalem",
+        "limit": 200
+      },
+      "definition_hash": "e2c951bd40e5dfff8c192a77ab293749672c2b6ec7f8f8db5e8ce5927a648961",
+      "candidate": {
+        "name": "pitchcrew_pr_open_to_merge_p95_hours_7d_v1_jerusalem",
+        "display_name": "Imported PR p95 open-to-merge duration (7-day window)",
+        "description": "95th percentile imported PR opening-to-merge elapsed hours per local day and target branch. Former draft and waiting time are included; this is not review time or DORA cycle time.",
+        "unit": "hours",
+        "definition": {
+          "kind": "HogQLQuery",
+          "query": "SELECT day AS day, target_branch AS target_branch,\n    p95_open_to_merge_hours AS value\nFROM (\nSELECT toDate(toTimeZone(merged_at, 'Asia/Jerusalem')) AS day, target_branch AS target_branch,\n    count() AS merged_prs,\n    quantile(0.5)(open_to_merge_seconds) / 3600.0 AS p50_open_to_merge_hours,\n    quantile(0.95)(open_to_merge_seconds) / 3600.0 AS p95_open_to_merge_hours\nFROM (\n    SELECT uuid AS uuid, min(timestamp) AS merged_at,\n        any(properties.target_branch) AS target_branch,\n        max(toFloat(properties.open_to_merge_seconds)) AS open_to_merge_seconds\n    FROM events\n    WHERE timestamp >= now() - INTERVAL 7 DAY AND timestamp < now() AND event = 'pitchcrew_pr_merged' AND properties.telemetry_source = 'github_repository' AND properties.engineering_schema = 1 AND properties.repository = 'pitchcrew'\n        AND properties.target_branch IN ('dev', 'main')\n        AND properties.open_to_merge_seconds IS NOT NULL AND toFloat(properties.open_to_merge_seconds) >= 0\n    GROUP BY uuid\n)\nGROUP BY day, target_branch ORDER BY day, target_branch\n)\nORDER BY day, target_branch LIMIT 200"
+        }
+      },
+      "candidate_is_validated_tool_input": false,
+      "lineage_model_id": "01a13192-672e-0000-ff50-8655227ebbb4",
+      "lineage_model_url": "https://eu.posthog.com/project/295060/sql?open_view=01a13192-672e-0000-ff50-8655227ebbb4",
+      "lineage": "Shared reviewed SQL definition; candidate query evaluates its own bounded source window.",
+      "owner_assignment": "pending_current_native_owner_input_schema",
+      "blocker": "data_catalog:write"
+    }
+  ],
+  "scope_evidence": {
+    "metric_create": {
+      "tool": "data-catalog-metric-create",
+      "operation": "info",
+      "available": false,
+      "missing_scope": "data_catalog:write",
+      "error": "Tool exists, but this MCP connection is missing data_catalog:write; schema cannot be inspected."
+    },
+    "metric_list": {
+      "tool": "metric-list",
+      "missing_scope": "data_catalog:read",
+      "fallback": "Complete SQL information_schema catalog returned zero rows and count zero."
+    }
+  },
+  "not_performed": [
+    "Metric creation/approval",
+    "Source certification",
+    "Relationship proposals",
+    "Materialization or synchronization",
+    "Owner identity assignment",
+    "Synthetic event ingestion"
+  ],
+  "recorded_at_utc": "2026-10-12T19:25:27.477Z",
+  "final_inventory": {
+    "complete": true,
+    "expected_model_count": 7,
+    "observed_view_count": 7,
+    "query": "SELECT table_name, table_type FROM system.information_schema.tables WHERE table_name LIKE 'pitchcrew_%' ORDER BY table_name LIMIT 200 OFFSET 0"
+  }
+}

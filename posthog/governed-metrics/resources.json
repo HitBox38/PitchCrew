@@ -1,6 +1,6 @@
 {
   "project_id": 295060,
-  "activation": "prepared_no_live_mutations",
+  "activation": "draft_virtual_models_created_metric_creation_blocked",
   "status": "proposed_noncanonical",
   "default_days": 7,
   "max_days": 30,
@@ -161,9 +161,9 @@
     "pr_delivery"
   ],
   "blockers": [
-    "Catalog read/write scopes unavailable; existing definitions and owners are unknown.",
-    "Metric-create input schema cannot be read until data_catalog:write is granted.",
-    "New event sources need real release/import coverage verification before model deployment."
+    "Native catalog metric creation requires data_catalog:write; complete SQL metadata catalog is empty.",
+    "Metric-create input schema cannot be read until data_catalog:write is granted; accountable owner assignment remains pending.",
+    "New event sources need real release/import coverage verification before metric approval; created virtual views remain draft and source-unverified."
   ],
   "sources": [
     "https://posthog.com/docs/semantic-layer/metrics",
@@ -176,6 +176,7 @@
     "sql": "All seven full reusable view relations and eleven metric projections compiled with zero-width live source timestamp ranges after removing inner consumer limits. Models retain all aggregate groups; metrics limit only final output. No collected data or KPI result was inferred.",
     "taxonomy": "New diagnostic, readiness and engineering events/properties are absent from live taxonomy and must be verified after real release/import.",
     "native_view_schema": "view-create exact schema read; virtual views only, sync_frequency null.",
-    "native_metric_schema": "Blocked by data_catalog:write; metric candidates are not validated tool inputs."
+    "native_metric_schema": "Blocked by data_catalog:write; metric candidates are not validated tool inputs.",
+    "native_view_readback": "Seven draft virtual views created and read back with exact query hashes, valid inferred columns, is_materialized=false, sync_frequency=null and no latest_error; see activation.json."
   }
 }
