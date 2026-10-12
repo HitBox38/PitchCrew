@@ -1,7 +1,7 @@
 {
   "feature": "session-replay",
   "project_id": 295060,
-  "status": "prepared-local-implementation-native-verification-pending",
+  "status": "native-project-ingestion-enabled-real-session-verification-pending-release",
   "native_view_url": "https://eu.posthog.com/project/295060/replay",
   "activation": {
     "recording_source": "locally-bundled-posthog-js-rrweb",
@@ -10,7 +10,9 @@
     "website_default": "off-separate-opt-in",
     "privacy_mode": "masked-wireframe",
     "verification": "Confirm a real consenting session renders in native replay after integration and deployment; no synthetic production traffic.",
-    "project_review": ["recording ingestion availability", "retention", "billing limits"]
+    "project_review": ["recording ingestion availability", "retention", "billing limits"],
+    "project_ingestion_enabled": true,
+    "activation_audit": "../activation.json"
   },
   "dashboard_text_tile": {
     "title": "Optional masked session replay",

@@ -308,5 +308,14 @@
       }
     ],
     "verified_no_events": true
+  },
+  "coordinator_internal_account_filter_readback": {
+    "insight_ids": [
+      6518326, 6518327, 6518328, 6518329, 6518330, 6518331, 6518332, 6518333, 6518334
+    ],
+    "filterTestAccounts": true,
+    "date_from": "-7d",
+    "verified": true,
+    "force_blocking_verification": "all nine queries succeeded without warnings after filter update; uncached"
   }
 }

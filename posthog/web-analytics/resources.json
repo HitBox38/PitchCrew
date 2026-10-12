@@ -34,7 +34,8 @@
           ],
           "trendsFilter": {
             "display": "ActionsLineGraph"
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -69,7 +70,8 @@
           },
           "compareFilter": {
             "compare": true
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -104,7 +106,8 @@
           },
           "compareFilter": {
             "compare": true
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -144,7 +147,8 @@
                 "type": "event"
               }
             ]
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -178,7 +182,8 @@
           "trendsFilter": {
             "display": "ActionsLineGraph",
             "aggregationAxisFormat": "duration"
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -212,7 +217,8 @@
           "trendsFilter": {
             "display": "ActionsLineGraph",
             "aggregationAxisFormat": "duration_ms"
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -245,7 +251,8 @@
           ],
           "trendsFilter": {
             "display": "ActionsLineGraph"
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -279,7 +286,8 @@
           "trendsFilter": {
             "display": "ActionsLineGraph",
             "aggregationAxisFormat": "duration_ms"
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     },
@@ -313,7 +321,8 @@
           "trendsFilter": {
             "display": "ActionsLineGraph",
             "aggregationAxisFormat": "duration_ms"
-          }
+          },
+          "filterTestAccounts": true
         }
       }
     }

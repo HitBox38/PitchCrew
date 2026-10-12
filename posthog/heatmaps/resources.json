@@ -1,9 +1,9 @@
 {
   "project_id": 295060,
-  "activation": "deferred_until_integrated_checks",
+  "activation": "native_resources_created_collection_awaits_release",
   "validation": {
     "heatmaps_columns": "confirmed_read_only_2026-10-12",
-    "queries": "prepared; coordinator must validate syntax and inspect native ingestion after deployment, without fabricated production events"
+    "queries": "five native queries executed and saved; project ingestion enabled; genuine captures await deployment"
   },
   "dashboard": {
     "name": "Pitchcrew Website Heatmaps & Friction",

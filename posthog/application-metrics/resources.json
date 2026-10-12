@@ -1,7 +1,7 @@
 {
   "project_id": 295060,
   "dashboard_id": 999694,
-  "activation_state": "prepared; no live changes",
+  "activation_state": "native dashboard charts created or updated; instrumentation awaits release",
   "native_metrics": {
     "product": "Metrics",
     "status": "open alpha; inspect project activation before enabling",
@@ -77,5 +77,6 @@
     "Integrated run observer must receive shared telemetry leadership; separate origins/devices can still count the same daemon run. These are observed session totals, not unique daemon runs.",
     "No traffic does not establish zero failures or healthy operation.",
     "No cost, token, provider-call or infrastructure metrics are inferred from these observations."
-  ]
+  ],
+  "activation_audit": "../activation.json"
 }

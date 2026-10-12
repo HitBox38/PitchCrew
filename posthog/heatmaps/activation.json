@@ -236,7 +236,6 @@
   },
   "blockers": [
     "Updated landing instrumentation awaits deployment and genuine opted-in visitors.",
-    "Project heatmaps_opt_in reads null; native project ingestion needs narrow activation/verification by coordinator.",
     "Allowed canonical-page capture settings were not changed; shared recording_domains is used by replay too."
   ],
   "guarantees": {
@@ -244,7 +243,8 @@
     "test_capture_events_sent": 0,
     "fabricated_recordings_sent": 0,
     "fabricated_coordinates_sent": 0,
-    "project_settings_mutated": false
+    "project_settings_mutated": true,
+    "project_settings_mutation_scope": "coordinator enabled only native heatmap and replay ingestion; feature-agent snapshot above is historical"
   },
   "validation": {
     "exact_sql": "All five reviewed native heatmaps-table queries executed successfully before writes.",
@@ -252,5 +252,12 @@
     "dashboard_run": "Five tiles returned empty arrays without warnings; empty means No captured data, not healthy.",
     "saved_render": "Native saved homepage screenshot generation completed for both widths.",
     "time_window_days": 30
+  },
+  "coordinator_project_settings_readback": {
+    "id": 295060,
+    "heatmaps_opt_in": true,
+    "session_recording_opt_in": true,
+    "recording_domains": null,
+    "timezone": "UTC"
   }
 }

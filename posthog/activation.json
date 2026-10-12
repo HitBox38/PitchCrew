@@ -52,17 +52,17 @@
     {
       "id": 6518690,
       "short_id": "8EXNDaEr",
-      "name": "Observed MCP mean latency · ms"
+      "name": "Observed MCP mean latency \u00b7 ms"
     },
     {
       "id": 6518691,
       "short_id": "xAtCQsQW",
-      "name": "Observed MCP p95 latency · ms"
+      "name": "Observed MCP p95 latency \u00b7 ms"
     },
     {
       "id": 6518722,
       "short_id": "cUsgdtf4",
-      "name": "Observed MCP tool quality · noncanonical"
+      "name": "Observed MCP tool quality \u00b7 noncanonical"
     }
   ],
   "application_metric_insights": [
@@ -125,7 +125,7 @@
     {
       "id": 6355554,
       "short_id": "emJtHPCg",
-      "name": "Observed successful action latency · p95 ms",
+      "name": "Observed successful action latency \u00b7 p95 ms",
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
@@ -162,7 +162,7 @@
     {
       "id": 6355557,
       "short_id": "f1tTDkU2",
-      "name": "Observed run duration · p95 ms",
+      "name": "Observed run duration \u00b7 p95 ms",
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
@@ -200,7 +200,7 @@
     {
       "id": 6355555,
       "short_id": "OOvXs0Kc",
-      "name": "Website LCP · p75 ms",
+      "name": "Website LCP \u00b7 p75 ms",
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
@@ -229,7 +229,7 @@
     {
       "id": 6355556,
       "short_id": "dcmPqbMK",
-      "name": "Website layout stability · CLS p75",
+      "name": "Website layout stability \u00b7 CLS p75",
       "query": {
         "kind": "TrendsQuery",
         "dateRange": {
@@ -539,7 +539,10 @@
     "summary_enabled": false,
     "send_test_now": false,
     "accepted_jerusalem_dst_shift": true,
-    "subscriptions": "activation in progress; feature audit will record IDs"
+    "subscriptions": [51668, 51669, 51670, 51671, 51672],
+    "enabled": true,
+    "next_delivery_utc": "2026-10-18T06:00:00Z",
+    "audit": "scheduled-reports/activation.json"
   },
   "remaining_native_setup": [
     "data_catalog:write needed for11 proposed governed metrics; no approval/certification",
