@@ -1,4 +1,5 @@
 import { roleIdSchema, states } from '@pitchcrew/core';
+import { setCardStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
@@ -6,6 +7,15 @@ import { CrewService } from '../../service.ts';
 
 export function registerBoardRoutes(app: FastifyInstance, service: CrewService) {
   app.post('/api/cards', (req, res) => res.status(201).send(service.createCard(req.body)));
+  app.post<IdRoute>('/api/cards/:id/status', (req, res) =>
+    res.send(
+      setCardStatus(
+        service.board,
+        req.params.id,
+        z.object({ state: z.enum(states) }).parse(req.body).state,
+      ),
+    ),
+  );
   app.post<IdRoute>('/api/cards/:id/move', (req, res) =>
     res.send(
       service.moveCard(req.params.id, z.object({ state: z.enum(states) }).parse(req.body).state),

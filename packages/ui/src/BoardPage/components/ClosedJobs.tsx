@@ -1,10 +1,10 @@
 import type { ClosedJobsProps } from '@/BoardPage/types.ts';
 import { EmptyState } from '@/components/EmptyState/index.tsx';
-import { JobCard } from '@/components/JobCard/index.tsx';
+import { DraggableJob } from './DraggableJob.tsx';
 import { AnimatePresence } from 'motion/react';
 import * as m from 'motion/react-m';
 
-export function ClosedJobs({ closed, openCard }: ClosedJobsProps) {
+export function ClosedJobs({ closed, openCard, data, working, dragging }: ClosedJobsProps) {
   return (
     <m.div
       layout
@@ -13,7 +13,14 @@ export function ClosedJobs({ closed, openCard }: ClosedJobsProps) {
       <AnimatePresence initial={false}>
         {closed.length ? (
           closed.map((card) => (
-            <JobCard key={card.id} card={card} onOpen={() => openCard(card.id)} />
+            <DraggableJob
+              key={card.id}
+              card={card}
+              data={data}
+              disabled={working}
+              dragging={dragging}
+              openCard={openCard}
+            />
           ))
         ) : (
           <EmptyState

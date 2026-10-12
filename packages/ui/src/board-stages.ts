@@ -1,5 +1,14 @@
-export const closedStates = ['rejected', 'withdrawn', 'ghosted'];
-export const stages = [
+import type { CardState } from '@pitchcrew/core';
+
+export type BoardStage = {
+  id: string;
+  label: string;
+  states: CardState[];
+  color: string;
+  empty: string;
+};
+export const closedStates: CardState[] = ['rejected', 'withdrawn', 'ghosted'];
+export const stages: BoardStage[] = [
   {
     id: 'lead',
     label: 'Leads',
@@ -36,3 +45,12 @@ export const stages = [
     empty: 'Record a submission after you apply.',
   },
 ];
+
+export const closedStage = {
+  id: 'closed',
+  label: 'Closed',
+  states: closedStates,
+  color: 'pink',
+  empty: 'Rejected, withdrawn and unanswered applications end up here.',
+};
+export const dropStages = [...stages, closedStage];
