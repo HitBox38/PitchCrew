@@ -16,6 +16,16 @@ Next's documented `useReportWebVitals` reports LCP, CLS, INP and FCP through a s
 
 Native attribution, geolocation, outbound-URL and URL-specific path/vital views are intentionally unavailable because their properties are removed. Use the saved insights for fixed-path numeric vitals and traffic. Native bounce should be treated as an approximation: the SDK's definition also relies on autocapture, while this implementation excludes arbitrary interaction autocapture. Pageleave is best effort on unload, so browser closure, blocking extensions and interrupted delivery can undercount duration samples. The dashboard avoids a headline bounce-rate chart and distinguishes measured pageleave duration from time-on-task.
 
-No replay, heatmap, frustration capture or performance-autocapture setting is enabled by this feature. Separate feature work supplies those controls. No production test events were sent and no live dashboard was changed during implementation.
+No replay, heatmap, frustration capture or performance-autocapture setting is enabled by this feature. Separate feature work supplies those controls. No production test events were sent during implementation or activation.
+
+## Live activation — October 12, 2026
+
+The [Pitchcrew Website dashboard](https://eu.posthog.com/project/295060/dashboard/1018299) now has all nine reviewed native insights and a coverage banner. Its default window is seven days. Native duration formatting distinguishes seconds from milliseconds; CLS remains unitless. The complete initial inventory contained five dashboards and 25 saved insights, with no Website counterpart. Existing resources were preserved.
+
+All nine queries passed validation before creation, then ran again through a fresh dashboard run. Eight results were zero-filled empty periods and the platform download breakdown returned an empty list. These are **no observed landing samples**, never a claim of zero usage or healthy performance. The instrumentation awaits release and real public landing captures. The mixed 12-column tile layout and dashboard filters were read back and verified.
+
+The metrics are explicitly noncanonical. The coordinator's complete Data Catalog SQL read returned no rows; the native catalog tools and governed-metric creation remain blocked by `data_catalog:read` and `data_catalog:write` scopes. Native resource IDs, short IDs, layouts and verification evidence are recorded in `posthog/web-analytics/activation.json` without personal account metadata.
+
+The native Web Analytics download goal still requires selecting `landing_download_clicked` in the Web Analytics UI. No exact goal-setting operation is exposed by this connection. Generic project `extra_settings` are untyped, so this workflow did not mutate them. Scope-gated marketing conversion-goal tools are a different surface and were not used as a substitute. No subscriptions, user email settings or AI-credit settings were changed.
 
 References: [PostHog Web Analytics](https://posthog.com/docs/web-analytics/start-here), [session semantics](https://posthog.com/docs/data/sessions), [conversion goals](https://posthog.com/docs/web-analytics/conversion-goals), [bounce limitations](https://posthog.com/docs/web-analytics/dashboard), [Web Vitals](https://posthog.com/docs/web-analytics/web-vitals), [Next Web Vitals hook](https://nextjs.org/docs/app/api-reference/functions/use-report-web-vitals).

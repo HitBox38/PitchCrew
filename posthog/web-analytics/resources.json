@@ -1,6 +1,6 @@
 {
   "project_id": 295060,
-  "activation": "deferred_until_integrated_checks",
+  "activation": "created_awaiting_release_and_real_captures",
   "dashboard": {
     "name": "Pitchcrew Website",
     "description": "Public landing traffic, anonymous browsers, sessions, download interest and measured Web Vitals. No attribution, private content or reliable native bounce metrics."
@@ -8,13 +8,13 @@
   "insights": [
     {
       "name": "Website pageviews",
-      "description": "Native public landing pageviews. Legacy landing_page_viewed is excluded to avoid double counting.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. Native public landing pageviews. Legacy landing_page_viewed is excluded to avoid double counting.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -40,13 +40,13 @@
     },
     {
       "name": "Website anonymous browsers",
-      "description": "Unique anonymous website browser IDs, not verified people. SDK identity is stored only while website analytics is enabled.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. Unique anonymous website browser IDs, not verified people. SDK identity is stored only while website analytics is enabled.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -65,20 +65,23 @@
             }
           ],
           "trendsFilter": {
-            "display": "ActionsLineGraph"
+            "display": "Metric"
+          },
+          "compareFilter": {
+            "compare": true
           }
         }
       }
     },
     {
       "name": "Website sessions",
-      "description": "Native SDK sessions observed with a public landing pageview. No private daemon UI traffic.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. Native SDK sessions observed with a public landing pageview. No private daemon UI traffic.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -97,20 +100,23 @@
             }
           ],
           "trendsFilter": {
-            "display": "ActionsLineGraph"
+            "display": "Metric"
+          },
+          "compareFilter": {
+            "compare": true
           }
         }
       }
     },
     {
       "name": "Website download interest",
-      "description": "Clicks to installer assets or release pages, grouped by fixed platform. Does not prove a download completed or an app was installed.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. Clicks to installer assets or release pages, grouped by fixed platform. Does not prove a download completed or an app was installed.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -132,21 +138,25 @@
             "display": "ActionsLineGraph"
           },
           "breakdownFilter": {
-            "breakdown": "platform",
-            "breakdown_type": "event"
+            "breakdowns": [
+              {
+                "property": "platform",
+                "type": "event"
+              }
+            ]
           }
         }
       }
     },
     {
       "name": "Website measured leave duration",
-      "description": "Mean observed pageleave duration in seconds. Best effort delivery; not time-on-task and not complete sessions.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. Mean observed pageleave duration in seconds. Best effort delivery; not time-on-task and not complete sessions.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -166,20 +176,21 @@
             }
           ],
           "trendsFilter": {
-            "display": "ActionsLineGraph"
+            "display": "ActionsLineGraph",
+            "aggregationAxisFormat": "duration"
           }
         }
       }
     },
     {
       "name": "Website LCP p75",
-      "description": "75th percentile of observed numeric LCP samples; milliseconds. No attribution or performance entries.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. 75th percentile of observed numeric LCP samples; milliseconds. No attribution or performance entries.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -199,20 +210,21 @@
             }
           ],
           "trendsFilter": {
-            "display": "ActionsLineGraph"
+            "display": "ActionsLineGraph",
+            "aggregationAxisFormat": "duration_ms"
           }
         }
       }
     },
     {
       "name": "Website CLS p75",
-      "description": "75th percentile of observed numeric CLS samples; unitless. No attribution or performance entries.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. 75th percentile of observed numeric CLS samples; unitless. No attribution or performance entries.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -239,13 +251,13 @@
     },
     {
       "name": "Website INP p75",
-      "description": "75th percentile of observed numeric INP samples; milliseconds. No attribution or performance entries.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. 75th percentile of observed numeric INP samples; milliseconds. No attribution or performance entries.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -265,20 +277,21 @@
             }
           ],
           "trendsFilter": {
-            "display": "ActionsLineGraph"
+            "display": "ActionsLineGraph",
+            "aggregationAxisFormat": "duration_ms"
           }
         }
       }
     },
     {
       "name": "Website FCP p75",
-      "description": "75th percentile of observed numeric FCP samples; milliseconds. No attribution or performance entries.",
+      "description": "Instrumented, awaiting release. Noncanonical: no approved catalog definition. 75th percentile of observed numeric FCP samples; milliseconds. No attribution or performance entries.",
       "query": {
         "kind": "InsightVizNode",
         "source": {
           "kind": "TrendsQuery",
           "dateRange": {
-            "date_from": "-30d"
+            "date_from": "-7d"
           },
           "interval": "day",
           "properties": [
@@ -298,7 +311,8 @@
             }
           ],
           "trendsFilter": {
-            "display": "ActionsLineGraph"
+            "display": "ActionsLineGraph",
+            "aggregationAxisFormat": "duration_ms"
           }
         }
       }

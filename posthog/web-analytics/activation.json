@@ -1,0 +1,312 @@
+{
+  "project_id": 295060,
+  "activated_at": "2026-10-12T19:20:00Z",
+  "status": "dashboard_created_instrumentation_awaiting_release",
+  "pre_activation_inventory": {
+    "complete": true,
+    "count": 5,
+    "next": null,
+    "dashboard_ids": [999572, 999571, 999694, 999570, 999476],
+    "saved_insights_count": 25,
+    "website_match": false
+  },
+  "dashboard": {
+    "id": 1018299,
+    "name": "Pitchcrew Website",
+    "url": "https://eu.posthog.com/project/295060/dashboard/1018299",
+    "filters": {
+      "date_from": "-7d"
+    },
+    "coverage_banner_tile_id": 7390095,
+    "layout_readback_verified": true
+  },
+  "insights": [
+    {
+      "name": "Website pageviews",
+      "id": 6518326,
+      "short_id": "qC1ylqX1",
+      "tile_id": 7390096,
+      "url": "https://eu.posthog.com/project/295060/insights/qC1ylqX1",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 5,
+        "w": 8,
+        "x": 0,
+        "y": 3
+      }
+    },
+    {
+      "name": "Website anonymous browsers",
+      "id": 6518327,
+      "short_id": "l4VUQIrW",
+      "tile_id": 7390097,
+      "url": "https://eu.posthog.com/project/295060/insights/l4VUQIrW",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          },
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 2,
+        "w": 4,
+        "x": 8,
+        "y": 3
+      }
+    },
+    {
+      "name": "Website sessions",
+      "id": 6518328,
+      "short_id": "pMlpJKtD",
+      "tile_id": 7390098,
+      "url": "https://eu.posthog.com/project/295060/insights/pMlpJKtD",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          },
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 3,
+        "w": 4,
+        "x": 8,
+        "y": 5
+      }
+    },
+    {
+      "name": "Website download interest",
+      "id": 6518329,
+      "short_id": "HPTzXfhj",
+      "tile_id": 7390099,
+      "url": "https://eu.posthog.com/project/295060/insights/HPTzXfhj",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [],
+        "warnings": null
+      },
+      "layout": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      }
+    },
+    {
+      "name": "Website measured leave duration",
+      "id": 6518330,
+      "short_id": "FjDQdkd6",
+      "tile_id": 7390100,
+      "url": "https://eu.posthog.com/project/295060/insights/FjDQdkd6",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      }
+    },
+    {
+      "name": "Website LCP p75",
+      "id": 6518331,
+      "short_id": "JjO4AOrA",
+      "tile_id": 7390101,
+      "url": "https://eu.posthog.com/project/295060/insights/JjO4AOrA",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 12
+      }
+    },
+    {
+      "name": "Website CLS p75",
+      "id": 6518332,
+      "short_id": "HzIPyf2I",
+      "tile_id": 7390102,
+      "url": "https://eu.posthog.com/project/295060/insights/HzIPyf2I",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 12
+      }
+    },
+    {
+      "name": "Website INP p75",
+      "id": 6518333,
+      "short_id": "bJTzwbAc",
+      "tile_id": 7390103,
+      "url": "https://eu.posthog.com/project/295060/insights/bJTzwbAc",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 16
+      }
+    },
+    {
+      "name": "Website FCP p75",
+      "id": 6518334,
+      "short_id": "TvmoyqCE",
+      "tile_id": 7390104,
+      "url": "https://eu.posthog.com/project/295060/insights/TvmoyqCE",
+      "query_validated": true,
+      "verification": {
+        "runner": "dashboard-insights-run",
+        "refresh": "force_blocking",
+        "date_from": "-7d",
+        "status": "no_observed_landing_samples",
+        "series": [
+          {
+            "count": 0,
+            "data": [0, 0, 0, 0, 0, 0, 0, 0]
+          }
+        ],
+        "warnings": null
+      },
+      "layout": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 16
+      }
+    }
+  ],
+  "governance": {
+    "status": "noncanonical",
+    "reason": "Complete catalog read by coordinator returned no rows. Native metric-list/read and governed creation remain scope gated.",
+    "missing_scopes": ["data_catalog:read", "data_catalog:write"]
+  },
+  "native_download_conversion_goal": {
+    "event": "landing_download_clicked",
+    "status": "pending_native_ui_selection",
+    "reason": "No exact native Web Analytics goal-setting operation is exposed. Generic project extra_settings are untyped; changing them cannot safely preserve existing configuration. Marketing analytics goal tools are also scope gated and are not a substitute for native Web Analytics selection.",
+    "native_url": "https://eu.posthog.com/project/295060/web",
+    "related_missing_scopes": ["marketing_analytics:read", "marketing_analytics:write"]
+  },
+  "notes": [
+    "No synthetic events sent.",
+    "Code instrumentation awaits release and real public landing captures.",
+    "Eight native result series are zero-filled empty periods; platform download breakdown returned an empty list. Neither indicates health.",
+    "Other dashboards, settings, subscriptions and user email configuration were preserved."
+  ],
+  "source_coverage": {
+    "date_from": "-7d",
+    "renderer": "landing",
+    "counts": [
+      {
+        "event": "$pageview",
+        "count": 0
+      },
+      {
+        "event": "$pageleave",
+        "count": 0
+      },
+      {
+        "event": "$web_vitals",
+        "count": 0
+      },
+      {
+        "event": "landing_download_clicked",
+        "count": 0
+      }
+    ],
+    "verified_no_events": true
+  }
+}
