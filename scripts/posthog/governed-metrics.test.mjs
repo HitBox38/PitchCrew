@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { buildGovernancePlan, parseGovernanceArgs } from './governed-metrics.mjs';
+import { buildSqlPlan } from './sql-library.mjs';
 
 function verifiedInventory(plan) {
   return {
@@ -123,4 +124,58 @@ test('CLI defaults dry-run and rejects credential-like unknown arguments without
   );
   assert.equal(invalid.status, 1);
   assert.ok(!(invalid.stdout + invalid.stderr).includes(privateValue));
+});
+
+test('30-day reusable views retain the full bounded aggregate relation without a consumer cap', () => {
+  for (const timezone of ['Asia/Jerusalem', 'UTC']) {
+    for (const model of buildGovernancePlan({ timezone }).models) {
+      const expected = buildSqlPlan(model.query_key, {
+        days: 30,
+        timezone,
+        limit: 200,
+      }).tool_input.query.replace(/\s+LIMIT 200\s*$/, '');
+      assert.equal(model.tool_input.query.query, expected);
+      assert.doesNotMatch(model.tool_input.query.query, /\bLIMIT\s+\d+/i);
+      assert.match(
+        model.tool_input.query.query,
+        /timestamp >= now\(\) - INTERVAL 30 DAY AND timestamp < now\(\)/,
+      );
+      assert.equal(model.tool_input.sync_frequency, null);
+    }
+  }
+});
+
+test('metric projection limits only final results and leaves every inner aggregate group available', () => {
+  for (const days of [7, 30]) {
+    const plan = buildGovernancePlan({ days });
+    for (const metric of plan.metrics) {
+      const query = metric.candidate.definition.query;
+      const inner = query.match(/FROM \(\n([\s\S]*)\n\)\nORDER BY/)[1];
+      const expected = buildSqlPlan(metric.query_key, {
+        days,
+        limit: 200,
+      }).tool_input.query.replace(/\s+LIMIT 200\s*$/, '');
+      assert.equal(inner, expected);
+      assert.doesNotMatch(inner, /\bLIMIT\s+\d+/i);
+      assert.equal((query.match(/\bLIMIT\s+200/g) ?? []).length, 1);
+      assert.match(query, /LIMIT 200$/);
+      assert.equal(metric.result_may_be_truncated, true);
+      assert.equal(metric.canonical, false);
+      assert.ok(metric.caveats.some((caveat) => caveat.includes('verify completeness')));
+    }
+  }
+});
+
+test('an existing truncated model definition is a collision rather than silently reused', () => {
+  const initial = buildGovernancePlan();
+  const inventory = verifiedInventory(initial);
+  inventory.views = [
+    {
+      ...initial.models[0].tool_input,
+      query: { kind: 'HogQLQuery', query: `${initial.models[0].tool_input.query.query} LIMIT 200` },
+    },
+  ];
+  const plan = buildGovernancePlan({ inventory });
+  assert.equal(plan.models[0].action, 'blocked_collision');
+  assert.equal(plan.ready_for_proposals, false);
 });

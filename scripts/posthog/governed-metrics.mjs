@@ -10,6 +10,14 @@ export function definitionHash(value) {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
 }
 
+// The SQL library limits standalone results. A reusable relation must retain all groups.
+function aggregateRelation(source) {
+  const query = source.tool_input.query;
+  if (!/\s+LIMIT 200\s*$/.test(query))
+    throw new Error('Shared aggregate consumer limit changed; review model relation');
+  return query.replace(/\s+LIMIT 200\s*$/, '');
+}
+
 function inventoryIndex(inventory, field) {
   const rows = inventory?.[field] ?? [];
   if (!Array.isArray(rows)) throw new Error('Inventory must contain arrays');
@@ -55,7 +63,7 @@ export function buildGovernancePlan(options = {}) {
   const models = resource.model_query_keys.map((key) => {
     const source = buildSqlPlan(key, { days: resource.model_days, timezone, limit: 200 });
     const name = `pitchcrew_${key}_daily_v1_${timezone === 'UTC' ? 'utc' : 'jerusalem'}`;
-    const query = { kind: 'HogQLQuery', query: source.tool_input.query };
+    const query = { kind: 'HogQLQuery', query: aggregateRelation(source) };
     const existing = views.get(name);
     const conflict = existing && definitionHash(existing.query) !== definitionHash(query);
     if (conflict)
@@ -68,7 +76,10 @@ export function buildGovernancePlan(options = {}) {
       status: 'proposed',
       version: 1,
       coverage: source.coverage,
-      caveats: source.caveats,
+      caveats: [
+        ...source.caveats,
+        'The reusable relation retains every aggregate group in its bounded source window; consumers must limit returned rows.',
+      ],
       definition_hash: definitionHash(query),
       action: conflict ? 'blocked_collision' : existing ? 'reuse_existing' : 'create_virtual_view',
       tool: 'view-create',
@@ -86,7 +97,7 @@ export function buildGovernancePlan(options = {}) {
     const dimensions = metric.dimensions
       .map((dimension) => `${dimension} AS ${dimension}`)
       .join(', ');
-    const query = `SELECT ${dimensions},\n    ${metric.expression} AS value\nFROM (\n${source.tool_input.query}\n)\nORDER BY ${metric.dimensions.join(', ')} LIMIT 200`;
+    const query = `SELECT ${dimensions},\n    ${metric.expression} AS value\nFROM (\n${aggregateRelation(source)}\n)\nORDER BY ${metric.dimensions.join(', ')} LIMIT 200`;
     const definition = { kind: 'HogQLQuery', query };
     const name = `pitchcrew_${metric.key}_${days}d_v${metric.version}_${timezone === 'UTC' ? 'utc' : 'jerusalem'}`;
     const existing = metrics.get(name);
@@ -112,7 +123,12 @@ export function buildGovernancePlan(options = {}) {
       query_key: metric.query_key,
       model_name: models.find((model) => model.query_key === metric.query_key).name,
       definition_hash: definitionHash(definition),
-      caveats: source.caveats,
+      result_limit: 200,
+      result_may_be_truncated: true,
+      caveats: [
+        ...source.caveats,
+        'The final result is capped at 200 rows after the full aggregate relation is computed. If 200 rows return, verify completeness before using the series as a whole-window total.',
+      ],
       action: conflict
         ? 'blocked_collision'
         : approved

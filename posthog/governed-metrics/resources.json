@@ -173,7 +173,7 @@
   "validation": {
     "date": "2026-10-12",
     "project_id": 295060,
-    "sql": "All eleven metric projection queries compiled with a zero-width live timestamp range; seven model bodies reuse the separately compiled SQL library. No collected data or KPI result was inferred.",
+    "sql": "All seven full reusable view relations and eleven metric projections compiled with zero-width live source timestamp ranges after removing inner consumer limits. Models retain all aggregate groups; metrics limit only final output. No collected data or KPI result was inferred.",
     "taxonomy": "New diagnostic, readiness and engineering events/properties are absent from live taxonomy and must be verified after real release/import.",
     "native_view_schema": "view-create exact schema read; virtual views only, sync_frequency null.",
     "native_metric_schema": "Blocked by data_catalog:write; metric candidates are not validated tool inputs."
