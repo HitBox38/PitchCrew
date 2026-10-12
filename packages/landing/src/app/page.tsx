@@ -17,7 +17,7 @@ export default async function LandingPage() {
     <>
       <SEO />
       <Header />
-      <main id="main">
+      <main id="main" data-replay-public data-replay-surface="landing">
         <Hero />
         <Workflow />
         <ProductViews />

@@ -1,0 +1,281 @@
+{
+  "schemaVersion": 1,
+  "projectId": 295060,
+  "activatedAt": "2026-10-12",
+  "dashboard": {
+    "id": 999694,
+    "url": "https://eu.posthog.com/project/295060/dashboard/999694"
+  },
+  "scope": "Four new reviewed sanitized-error insights only; source chart read-only, no existing tile/layout/banner or project-setting edits.",
+  "inventory": {
+    "savedInsightCount": 51,
+    "next": null,
+    "method": "Full unfiltered insights-list saved:true limit:100 offset:0; all returned names checked.",
+    "matchingFourInsightsBeforeWrite": false
+  },
+  "governance": {
+    "status": "noncanonical",
+    "catalog": "Coordinator verified complete SQL metrics catalog count=0. Native catalog writes unavailable; no approvals or catalog writes performed."
+  },
+  "sourceChart": {
+    "id": 6355551,
+    "shortId": "79UVPFXi",
+    "tileId": 7154516,
+    "name": "Sanitized error reports by source",
+    "verification": "Read-only insight-get confirmed implemented error_source allowlist, seven-day range, and Diagnostics attachment. Coordinator owns this chart; no mutation."
+  },
+  "insights": [
+    {
+      "key": "sanitized-error-report-volume",
+      "id": 6518666,
+      "shortId": "EINj5HDY",
+      "name": "Reported exceptions and anonymous devices",
+      "url": "https://eu.posthog.com/project/295060/insights/EINj5HDY",
+      "tileId": 7390508,
+      "description": "Captured reports and distinct anonymous device IDs per day. Counts are bounded and best effort; device IDs are not verified people or installations. This is report coverage, not an error frequency or crash-free rate. Awaiting updated build. Noncanonical.",
+      "savedQuery": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "math": "total",
+              "name": "Reported exceptions",
+              "event": "$exception",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "value": [
+                    "window_error",
+                    "unhandled_rejection",
+                    "react_boundary",
+                    "react_uncaught",
+                    "react_recoverable",
+                    "api_action"
+                  ],
+                  "operator": "exact"
+                }
+              ]
+            },
+            {
+              "kind": "EventsNode",
+              "math": "dau",
+              "name": "Anonymous devices with a report",
+              "event": "$exception",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "value": [
+                    "window_error",
+                    "unhandled_rejection",
+                    "react_boundary",
+                    "react_uncaught",
+                    "react_recoverable",
+                    "api_action"
+                  ],
+                  "operator": "exact"
+                }
+              ]
+            }
+          ],
+          "interval": "day",
+          "dateRange": {
+            "date_from": "-7d",
+            "explicitDate": false,
+            "excludeIncompletePeriods": false
+          },
+          "properties": [],
+          "filterTestAccounts": true,
+          "version": 4
+        }
+      },
+      "verification": {
+        "preWrite": "Exact seven-day query passed native query-trends.",
+        "readback": "Native insight-get confirmed name, description, saved query, and Diagnostics attachment.",
+        "nativeResult": "Zero report/device series; newly instrumented production events await release, not evidence of health.",
+        "savedQueryRun": "Native insight-query succeeded after creation."
+      }
+    },
+    {
+      "key": "api-action-exceptions",
+      "id": 6518667,
+      "shortId": "7cdbVwA2",
+      "name": "Unexpected action failures by feature",
+      "url": "https://eu.posthog.com/project/295060/insights/7cdbVwA2",
+      "tileId": 7390509,
+      "description": "Tracked deliberate action failures: network rejection, HTTP 5xx, or malformed successful JSON response. Expected HTTP 4xx, aborted requests, polls, private browser inputs and control renewals are excluded. Grouping uses fixed feature categories. Awaiting updated build. Noncanonical.",
+      "savedQuery": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "math": "total",
+              "event": "$exception",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "value": ["api_action"],
+                  "operator": "exact"
+                }
+              ]
+            }
+          ],
+          "interval": "day",
+          "dateRange": {
+            "date_from": "-7d",
+            "explicitDate": false,
+            "excludeIncompletePeriods": false
+          },
+          "properties": [],
+          "breakdownFilter": {
+            "breakdowns": [
+              {
+                "type": "event",
+                "property": "error_action"
+              }
+            ],
+            "breakdown_type": "event"
+          },
+          "filterTestAccounts": true,
+          "version": 4
+        }
+      },
+      "verification": {
+        "preWrite": "Exact seven-day query passed native query-trends.",
+        "readback": "Native insight-get confirmed name, description, saved query, and Diagnostics attachment.",
+        "nativeResult": "No data recorded; newly instrumented production events await release, not evidence of health.",
+        "savedQueryRun": "Native insight-query succeeded after creation."
+      }
+    },
+    {
+      "key": "sanitized-error-categories",
+      "id": 6518686,
+      "shortId": "hrGU5rTa",
+      "name": "Sanitized error reports by category",
+      "url": "https://eu.posthog.com/project/295060/insights/hrGU5rTa",
+      "tileId": 7390544,
+      "description": "Fixed native error categories and request failure categories. No actual error names, messages or stacks are collected. Different defects can share a category, and repeated occurrences are deduplicated. Awaiting updated build. Noncanonical.",
+      "savedQuery": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "math": "total",
+              "event": "$exception",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "value": [
+                    "window_error",
+                    "unhandled_rejection",
+                    "react_boundary",
+                    "react_uncaught",
+                    "react_recoverable",
+                    "api_action"
+                  ],
+                  "operator": "exact"
+                }
+              ]
+            }
+          ],
+          "interval": "day",
+          "dateRange": {
+            "date_from": "-7d",
+            "explicitDate": false,
+            "excludeIncompletePeriods": false
+          },
+          "properties": [],
+          "breakdownFilter": {
+            "breakdowns": [
+              {
+                "type": "event",
+                "property": "error_category"
+              }
+            ],
+            "breakdown_type": "event"
+          },
+          "filterTestAccounts": true,
+          "version": 4
+        }
+      },
+      "verification": {
+        "preWrite": "Exact seven-day query passed native query-trends.",
+        "readback": "Native insight-get confirmed name, description, saved query, and Diagnostics attachment.",
+        "nativeResult": "No data recorded; newly instrumented production events await release, not evidence of health.",
+        "savedQueryRun": "Native insight-query succeeded after creation."
+      }
+    },
+    {
+      "key": "sanitized-errors-by-version",
+      "id": 6518687,
+      "shortId": "lw3Nqj66",
+      "name": "Sanitized error reports by shipped version",
+      "url": "https://eu.posthog.com/project/295060/insights/lw3Nqj66",
+      "tileId": 7390545,
+      "description": "Reported renderer errors by root package version. Totals are not normalized for release adoption and cannot establish comparative reliability; opting out and rate limits affect coverage. Awaiting updated build. Noncanonical.",
+      "savedQuery": {
+        "kind": "InsightVizNode",
+        "source": {
+          "kind": "TrendsQuery",
+          "series": [
+            {
+              "kind": "EventsNode",
+              "math": "total",
+              "event": "$exception",
+              "properties": [
+                {
+                  "key": "error_source",
+                  "type": "event",
+                  "value": [
+                    "window_error",
+                    "unhandled_rejection",
+                    "react_boundary",
+                    "react_uncaught",
+                    "react_recoverable",
+                    "api_action"
+                  ],
+                  "operator": "exact"
+                }
+              ]
+            }
+          ],
+          "interval": "day",
+          "dateRange": {
+            "date_from": "-7d",
+            "explicitDate": false,
+            "excludeIncompletePeriods": false
+          },
+          "properties": [],
+          "breakdownFilter": {
+            "breakdowns": [
+              {
+                "type": "event",
+                "property": "app_version"
+              }
+            ],
+            "breakdown_type": "event"
+          },
+          "filterTestAccounts": true,
+          "version": 4
+        }
+      },
+      "verification": {
+        "preWrite": "Exact seven-day query passed native query-trends.",
+        "readback": "Native insight-get confirmed name, description, saved query, and Diagnostics attachment.",
+        "nativeResult": "No data recorded; newly instrumented production events await release, not evidence of health.",
+        "savedQueryRun": "Native insight-query succeeded after creation."
+      }
+    }
+  ],
+  "coverage": "Fixed source/category/action reports from the private app renderer; no raw exception message, stack, local path, URL or app content. Rate-limited/deduplicated best-effort observations, not true exception incidence or crash-free rates.",
+  "pending": "Ship updated builds before real exception data can arrive. No production deployment, provider call, fake exception event, dashboard reflow or source-map upload was performed."
+}

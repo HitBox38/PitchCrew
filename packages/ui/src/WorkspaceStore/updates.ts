@@ -1,6 +1,8 @@
 import { checkAppUpdate, loadAppUpdate } from '../AppUpdates/api.ts';
 import type { AppUpdateInfo, DesktopUpdateState } from '@pitchcrew/core';
 import { desktopUpdateBridge } from '../AppUpdates/desktop.ts';
+import { analytics } from '../Analytics/client.ts';
+import { desktopUpdateEvent } from '../Analytics/desktop-updates.ts';
 import type { WorkspaceGet, WorkspaceSet } from './types.ts';
 
 export interface AppUpdateState {
@@ -35,11 +37,15 @@ export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): Ap
   };
   return {
     desktopUpdate: null,
-    setDesktopUpdate: (desktopUpdate) => set({ desktopUpdate }),
+    setDesktopUpdate: (desktopUpdate) => {
+      const event = desktopUpdateEvent(get().desktopUpdate, desktopUpdate);
+      set({ desktopUpdate });
+      if (event) analytics.capture(event);
+    },
     downloadDesktopUpdate: async () => {
       try {
         const desktopUpdate = await desktopUpdateBridge()?.download();
-        if (desktopUpdate) set({ desktopUpdate });
+        if (desktopUpdate) get().setDesktopUpdate(desktopUpdate);
       } catch {
         get().setToast('Could not download the update. Try again.', 'error');
       }
@@ -47,7 +53,7 @@ export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): Ap
     installDesktopUpdate: async () => {
       try {
         const desktopUpdate = await desktopUpdateBridge()?.install();
-        if (desktopUpdate) set({ desktopUpdate });
+        if (desktopUpdate) get().setDesktopUpdate(desktopUpdate);
       } catch {
         get().setToast('Could not install the update. Try again.', 'error');
       }

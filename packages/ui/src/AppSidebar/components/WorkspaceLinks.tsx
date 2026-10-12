@@ -24,6 +24,7 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
         <SidebarMenu>
           <Collapsible className="group/collapsible" render={<SidebarMenuItem />}>
             <SidebarMenuButton
+              data-replay-surface="board"
               tooltip="Board"
               isActive={view === 'board'}
               aria-current={view === 'board' ? 'page' : undefined}
@@ -63,6 +64,7 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
             return (
               <SidebarMenuItem key={id}>
                 <SidebarMenuButton
+                  data-replay-surface={id}
                   tooltip={count ? `${viewTitles[id]} (${count})` : viewTitles[id]}
                   isActive={view === id}
                   aria-current={view === id ? 'page' : undefined}

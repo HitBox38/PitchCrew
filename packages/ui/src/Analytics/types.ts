@@ -7,12 +7,21 @@ export interface AnalyticsConfig {
 
 export type AnalyticsEvent =
   | '$pageview'
+  | 'workspace_setup_observed'
   | 'job_created'
   | 'application_registered'
   | 'applications_imported'
   | 'application_status_changed'
   | 'workflow_started'
   | 'chat_sent'
+  | 'conversation_created'
+  | 'chat_continued'
+  | 'user_question_answered'
+  | 'user_question_cancelled'
+  | 'browser_session_changed'
+  | 'pipeline_followup_saved'
+  | 'app_update_download_requested'
+  | 'app_update_install_requested'
   | 'agent_created'
   | 'agent_saved'
   | 'agent_retired'
@@ -30,9 +39,13 @@ export type AnalyticsEvent =
 
 export interface AnalyticsProperties {
   page?: View;
+  profile_ready?: boolean;
+  crew_ready?: boolean;
+  job_ready?: boolean;
   state?: string;
   kind?: 'packet' | 'computer' | 'role' | 'skill';
   approved?: boolean;
   status?: string;
   step?: number;
+  action?: 'open' | 'close' | 'take' | 'release';
 }

@@ -1,0 +1,23 @@
+{
+  "feature": "session-replay",
+  "project_id": 295060,
+  "status": "native-project-ingestion-enabled-real-session-verification-pending-release",
+  "native_view_url": "https://eu.posthog.com/project/295060/replay",
+  "activation": {
+    "recording_source": "locally-bundled-posthog-js-rrweb",
+    "built_in_sdk_recording": false,
+    "app_default": "off-separate-opt-in",
+    "website_default": "off-separate-opt-in",
+    "privacy_mode": "masked-wireframe",
+    "verification": "Confirm a real consenting session renders in native replay after integration and deployment; no synthetic production traffic.",
+    "project_review": ["recording ingestion availability", "retention", "billing limits"],
+    "project_ingestion_enabled": true,
+    "activation_audit": "../activation.json"
+  },
+  "dashboard_text_tile": {
+    "title": "Optional masked session replay",
+    "body": "Open [native session replay](https://eu.posthog.com/project/295060/replay) to investigate opted-in navigation and interface layout. Recordings mask all text and inputs and replace private app surfaces with placeholders. Both app and website recording are separately opt-in and off by default. Filter by associated page-view renderer/version. Replay is wireframe only; missing recordings do not imply zero usage. Native ingestion verification is pending deployment."
+  },
+  "ordinary_event_charts": [],
+  "note": "Native snapshots use the dedicated /s/ ingestion pipeline; do not count $snapshot as an ordinary product event."
+}

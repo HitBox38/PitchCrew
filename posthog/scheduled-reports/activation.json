@@ -1,0 +1,209 @@
+{
+  "schemaVersion": 1,
+  "projectId": 295060,
+  "verifiedAtUtc": "2026-10-12T19:52:03Z",
+  "status": "five_weekly_chart_only_email_subscriptions_enabled",
+  "destination": {
+    "type": "email",
+    "recipient": "authenticated-posthog-account",
+    "verifiedAccountEmail": true,
+    "addressCommitted": false
+  },
+  "approvedSchedule": {
+    "weekday": "sunday",
+    "timeZone": "UTC",
+    "localTime": "06:00",
+    "recurrence": "fixed-utc",
+    "startDate": "2026-10-18T06:00:00Z",
+    "nextDeliveryDate": "2026-10-18T06:00:00Z",
+    "jerusalemCurrentLocalTime": "09:00",
+    "jerusalemAfter20261025LocalTime": "08:00",
+    "originalFixedJerusalemTimeRequestSuperseded": true
+  },
+  "deliveryOptions": {
+    "summaryChoice": "charts_only_explicitly_confirmed",
+    "summaryEnabled": false,
+    "sendTestNow": false,
+    "manualTestSent": false,
+    "immediateDeliveryHistoryCount": 0,
+    "externalReceiptVerified": false
+  },
+  "inventory": {
+    "before": {
+      "complete": true,
+      "count": 0,
+      "next": null
+    },
+    "after": {
+      "complete": true,
+      "count": 5,
+      "next": null,
+      "subscriptionIds": [51668, 51669, 51670, 51671, 51672]
+    }
+  },
+  "quota": {
+    "actualPlanLimit": "not_exposed",
+    "billingScopeMissing": "billing:read",
+    "planningBound": 5,
+    "planningBoundSource": "documented free-plan minimum baseline; no existing subscriptions",
+    "backendAcceptedAllFive": true,
+    "verifiedCapacityAtLeast": 5,
+    "unlimitedClaimed": false
+  },
+  "subscriptions": [
+    {
+      "key": "product",
+      "id": 51668,
+      "dashboardId": 999571,
+      "insightIds": [6354579, 6354580, 6354581, 6354582, 6518716, 6518717, 6518718, 6518719],
+      "enabled": true,
+      "frequency": "weekly",
+      "interval": 1,
+      "byweekday": ["sunday"],
+      "summaryEnabled": false,
+      "nextDeliveryDate": "2026-10-18T06:00:00Z",
+      "recipientVerified": true,
+      "deliveryHistoryCount": 0,
+      "url": "https://eu.posthog.com/project/295060/subscriptions",
+      "dashboardUrl": "https://eu.posthog.com/project/295060/dashboard/999571",
+      "queryPeriodDays": 7,
+      "filterReview": "saved_native_filterTestAccounts_true",
+      "coverage": "instrumented_best_effort_capture; new instrumentation awaits shipped builds; empty does not mean zero activity or healthy performance"
+    },
+    {
+      "key": "web",
+      "id": 51669,
+      "dashboardId": 1018299,
+      "insightIds": [
+        6518326, 6518327, 6518328, 6518329, 6518330, 6518331, 6518332, 6518333, 6518334
+      ],
+      "enabled": true,
+      "frequency": "weekly",
+      "interval": 1,
+      "byweekday": ["sunday"],
+      "summaryEnabled": false,
+      "nextDeliveryDate": "2026-10-18T06:00:00Z",
+      "recipientVerified": true,
+      "deliveryHistoryCount": 0,
+      "url": "https://eu.posthog.com/project/295060/subscriptions",
+      "dashboardUrl": "https://eu.posthog.com/project/295060/dashboard/1018299",
+      "queryPeriodDays": 7,
+      "filterReview": "saved_native_filterTestAccounts_true",
+      "coverage": "instrumented_best_effort_capture; new instrumentation awaits shipped builds; empty does not mean zero activity or healthy performance"
+    },
+    {
+      "key": "diagnostics",
+      "id": 51670,
+      "dashboardId": 999694,
+      "insightIds": [
+        6355552, 6355553, 6355554, 6355557, 6518666, 6518667, 6355551, 6518686, 6518687
+      ],
+      "enabled": true,
+      "frequency": "weekly",
+      "interval": 1,
+      "byweekday": ["sunday"],
+      "summaryEnabled": false,
+      "nextDeliveryDate": "2026-10-18T06:00:00Z",
+      "recipientVerified": true,
+      "deliveryHistoryCount": 0,
+      "url": "https://eu.posthog.com/project/295060/subscriptions",
+      "dashboardUrl": "https://eu.posthog.com/project/295060/dashboard/999694",
+      "queryPeriodDays": 7,
+      "filterReview": "saved_native_filterTestAccounts_true",
+      "coverage": "instrumented_best_effort_capture; new instrumentation awaits shipped builds; empty does not mean zero activity or healthy performance"
+    },
+    {
+      "key": "ai-mcp",
+      "id": 51671,
+      "dashboardId": 1018318,
+      "insightIds": [6518688, 6518689, 6518690, 6518691, 6518507, 6518508, 6518509, 6518510],
+      "enabled": true,
+      "frequency": "weekly",
+      "interval": 1,
+      "byweekday": ["sunday"],
+      "summaryEnabled": false,
+      "nextDeliveryDate": "2026-10-18T06:00:00Z",
+      "recipientVerified": true,
+      "deliveryHistoryCount": 0,
+      "url": "https://eu.posthog.com/project/295060/subscriptions",
+      "dashboardUrl": "https://eu.posthog.com/project/295060/dashboard/1018318",
+      "queryPeriodDays": 7,
+      "filterReview": "saved_native_filterTestAccounts_true",
+      "coverage": "instrumented_best_effort_capture; new instrumentation awaits shipped builds; empty does not mean zero activity or healthy performance"
+    },
+    {
+      "key": "engineering",
+      "id": 51672,
+      "dashboardId": 1018325,
+      "insightIds": [6518478, 6518479, 6518480, 6518481, 6518482, 6518483, 6518484, 6518485],
+      "enabled": true,
+      "frequency": "weekly",
+      "interval": 1,
+      "byweekday": ["sunday"],
+      "summaryEnabled": false,
+      "nextDeliveryDate": "2026-10-18T06:00:00Z",
+      "recipientVerified": true,
+      "deliveryHistoryCount": 0,
+      "url": "https://eu.posthog.com/project/295060/subscriptions",
+      "dashboardUrl": "https://eu.posthog.com/project/295060/dashboard/1018325",
+      "queryPeriodDays": 7,
+      "filterReview": "public_repository_source_schema_repository_constraints",
+      "coverage": "genuine_repository_import_observations"
+    }
+  ],
+  "selectedSourceReview": {
+    "appAndLanding": {
+      "keys": ["product", "web", "diagnostics", "ai-mcp"],
+      "allSavedNativeSourcesSevenDays": true,
+      "allSavedNativeSourcesFilterTestAccounts": true,
+      "appCohortExclusionReviewed": true
+    },
+    "engineering": {
+      "population": "public-repository",
+      "personCohortApplied": false,
+      "reason": "App-user cohort does not represent repository CI/PR sources",
+      "allSqlQueriesRollingSevenDays": true,
+      "sourceConstraints": {
+        "telemetry_source": "github_repository",
+        "engineering_schema": 1,
+        "repository": "pitchcrew"
+      },
+      "genuineGitHubImportReviewed": true,
+      "noSyntheticEventsOrTestRecordsIngested": true
+    }
+  },
+  "excludedSources": [
+    {
+      "id": 6518722,
+      "reason": "AI/MCP SQL quality table has no verified equivalent app test-account cohort filter"
+    },
+    {
+      "id": 6355555,
+      "reason": "Website Web Vitals remain in website report; no duplicate in diagnostics"
+    },
+    {
+      "id": 6355556,
+      "reason": "Website CLS remains in website report; no duplicate in diagnostics"
+    },
+    {
+      "id": 6355558,
+      "reason": "Anonymous survey ratings are Not collected"
+    },
+    {
+      "type": "native_logs_or_replay",
+      "reason": "Separate native surfaces; not saved report insights"
+    }
+  ],
+  "governance": {
+    "status": "noncanonical",
+    "approvedNativeCatalogDefinitions": 0,
+    "definitionProposalsRemainUnapproved": 11,
+    "noDefinitionsApprovedOrInvented": true
+  },
+  "notes": [
+    "Subscriptions persist selected insight IDs; dashboard replacements require subscription review.",
+    "No subscription recipient/source updates or resumes performed.",
+    "API acceptance and configured next delivery do not prove eventual inbox receipt.",
+    "No administrator email address or credentials stored in repository artifacts."
+  ]
+}

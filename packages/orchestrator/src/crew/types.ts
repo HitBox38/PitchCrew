@@ -30,6 +30,7 @@ import type { JobSourceManager } from '../job-sources/index.ts';
 
 /** Shared run state. Internal to the orchestrator; never exposed to runtime adapters. */
 export interface CrewContext {
+  diagnostics?: import('@pitchcrew/core').DiagnosticSink;
   readonly directory: string;
   readonly dev: boolean;
   readonly daemonUrl: string;

@@ -1,3 +1,4 @@
+import { recordOperationalLog } from './telemetry/logs.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
@@ -28,6 +29,9 @@ import { acquireDaemonLock, type LockChecks } from './background/lock.ts';
 import type { BackgroundServiceStatus } from '@pitchcrew/core';
 import type { AppUpdateOptions } from './app-updates/index.ts';
 import { registerAppUpdateRoutes } from './http/routes/app-updates.ts';
+import { registerTelemetryRoutes } from './http/routes/telemetry.ts';
+import { createTelemetryBuffer } from './telemetry/buffer.ts';
+import { sanitizeBackendObservation } from './telemetry/sanitize.ts';
 
 export interface DaemonOptions {
   /** Isolated browser driver factory for local integration tests. */
@@ -65,12 +69,14 @@ export async function createDaemon(options: DaemonOptions) {
 
 async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<void>) {
   const url = `http://127.0.0.1:${options.port}`;
+  const diagnostics = createTelemetryBuffer(sanitizeBackendObservation, !!options.analytics);
   const service = new CrewService(
     options.directory,
     url,
     fileURLToPath(new URL('../../mcp/src/cli.ts', import.meta.url)),
     options.dev ?? false,
     options.browserLaunch,
+    diagnostics,
   );
   const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
   const http = app.server;
@@ -83,10 +89,12 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     http.close();
     http.closeAllConnections();
     for (const stream of chatStreams) stream.destroy();
+    diagnostics.clear();
     await service.close();
   });
   app.setErrorHandler((error, _req, res) => {
     if (res.raw.headersSent) return;
+    recordOperationalLog(diagnostics, { code: 'http_request_failed', area: 'http' });
     return res
       .status(400)
       .send({ error: error instanceof Error ? error.message : 'Request failed.' });
@@ -108,6 +116,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     }));
     app.get('/api/snapshot', async () => service.snapshot());
     registerAnalyticsRoutes(app, options.analytics);
+    app.register(async (routes) => registerTelemetryRoutes(routes, diagnostics));
     app.register(async (routes) => registerAppUpdateRoutes(routes, options.updates));
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
@@ -131,6 +140,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     await registerUi(app, options.dev ?? false);
     // Callers retain the Node server contract; every plugin is ready before listen().
     await app.ready();
+    recordOperationalLog(diagnostics, { code: 'daemon_ready', area: 'daemon' });
     const close = async () => {
       try {
         await app.close();
@@ -140,6 +150,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     };
     return { app, http, service, url, close };
   } catch (error) {
+    recordOperationalLog(diagnostics, { code: 'daemon_start_failed', area: 'daemon' });
     await app.close();
     throw error;
   }

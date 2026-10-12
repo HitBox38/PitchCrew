@@ -1,0 +1,82 @@
+{
+  "project_id": 295060,
+  "dashboard_id": 999694,
+  "activation_state": "native dashboard charts created or updated; instrumentation awaits release",
+  "native_metrics": {
+    "product": "Metrics",
+    "status": "open alpha; inspect project activation before enabling",
+    "ingestion": "/i/v1/metrics",
+    "retention_days_as_documented": 30,
+    "service_name": "pitchcrew-renderer",
+    "series": [
+      {
+        "name": "pitchcrew.api.request.count",
+        "type": "delta_monotonic_sum",
+        "dimensions": ["operation", "result", "renderer"]
+      },
+      {
+        "name": "pitchcrew.api.request.duration",
+        "type": "delta_histogram",
+        "unit": "ms",
+        "dimensions": ["operation", "result", "renderer"]
+      },
+      {
+        "name": "pitchcrew.run.count",
+        "type": "delta_monotonic_sum",
+        "dimensions": ["mode", "outcome", "renderer"]
+      },
+      {
+        "name": "pitchcrew.run.duration",
+        "type": "delta_histogram",
+        "unit": "ms",
+        "dimensions": ["mode", "outcome", "renderer"]
+      }
+    ],
+    "activation_steps": [
+      "Inspect Metrics onboarding/settings in EU project 295060 using current tools or UI.",
+      "Enable metrics only after integrated code and required checks are ready.",
+      "Verify real release samples arrive without creating synthetic production events.",
+      "Create native count and duration views scoped to service.name=pitchcrew-renderer when current viewer tools expose these resources."
+    ]
+  },
+  "dashboard_insights": [
+    {
+      "name": "Deliberate API requests by operation and result",
+      "event": "api_request_finished",
+      "measure": "count",
+      "breakdowns": ["operation", "result"],
+      "replace_matching_unsupported_tile": true
+    },
+    {
+      "name": "Deliberate API request latency",
+      "event": "api_request_finished",
+      "measure": "average duration_ms",
+      "breakdowns": ["operation"],
+      "replace_matching_unsupported_tile": true
+    },
+    {
+      "name": "Observed run outcomes",
+      "event": "run_finished",
+      "measure": "count",
+      "breakdowns": ["outcome", "mode"],
+      "replace_matching_unsupported_tile": true
+    },
+    {
+      "name": "Observed run duration",
+      "event": "run_finished",
+      "measure": "average duration_ms; exclude absent duration_ms",
+      "breakdowns": ["mode"],
+      "replace_matching_unsupported_tile": true
+    }
+  ],
+  "measurement_notes": [
+    "Request counts cover reviewed UI mutations, not polling or all backend requests.",
+    "Run metrics require a new-session active observation before a terminal outcome; no historical backfill.",
+    "Waiting is not a terminal outcome. Missing timestamps omit duration, never zero.",
+    "At most 512 runs per observer session; excess admission is dropped to preserve bounded deduplication.",
+    "Integrated run observer must receive shared telemetry leadership; separate origins/devices can still count the same daemon run. These are observed session totals, not unique daemon runs.",
+    "No traffic does not establish zero failures or healthy operation.",
+    "No cost, token, provider-call or infrastructure metrics are inferred from these observations."
+  ],
+  "activation_audit": "../activation.json"
+}

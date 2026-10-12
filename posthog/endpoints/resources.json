@@ -1,0 +1,51 @@
+{
+  "project_id": 295060,
+  "definition_status": "noncanonical",
+  "activation": "native_created_and_verified_see_activation_json",
+  "timezone": "Asia/Jerusalem",
+  "data_freshness_seconds": 86400,
+  "is_materialized": false,
+  "maximum_days": 30,
+  "maximum_rows": 200,
+  "variable": {
+    "name": "Pitchcrew lookback days",
+    "code_name": "pitchcrew_lookback_days",
+    "type": "Number",
+    "default_value": 7
+  },
+  "endpoints": [
+    {
+      "key": "action_mix",
+      "name": "pitchcrew_accepted_actions_daily",
+      "model_reference": "pitchcrew_action_mix_daily_v1_jerusalem"
+    },
+    {
+      "key": "request_health",
+      "name": "pitchcrew_observed_request_health_daily",
+      "model_reference": "pitchcrew_request_health_daily_v1_jerusalem"
+    },
+    {
+      "key": "run_health",
+      "name": "pitchcrew_observed_run_health_daily",
+      "model_reference": "pitchcrew_run_health_daily_v1_jerusalem"
+    },
+    {
+      "key": "ci_attempt_health",
+      "name": "pitchcrew_imported_ci_health_daily",
+      "model_reference": "pitchcrew_ci_attempt_health_daily_v1_jerusalem"
+    }
+  ],
+  "validation": {
+    "date": "2026-10-12",
+    "endpoints_list": "Native endpoints-get-all returned count 0, next null for project 295060.",
+    "tools": "endpoint-create, endpoint-update, endpoint-run, endpoint-get and endpoints-get-all callable; exact top-level schemas inspected. No scope blocker currently.",
+    "variable_binding": "Native Number variable 01a1318d-543d-0000-3b38-c37e6e7d8350 created, exact reference map confirmed by execute-sql, and native endpoint literal overrides 7 and 1 verified. See activation.json.",
+    "expression_compiler": "subtractDays(now(), least(30, greatest(1, toInt(7)))) accepted by connected execute-sql with an impossible timestamp range. This validates the bound expression, not native variable declaration/binding or source collection.",
+    "catalog": "metric-list scope remains unavailable. Authoritative SQL fallback read of system.information_schema.metrics succeeded with zero rows after exact column discovery; no match. Model references remain proposed definitions, not dependencies or canonical sources."
+  },
+  "sources": [
+    "https://posthog.com/docs/endpoints/guide-variables",
+    "https://posthog.com/docs/api/endpoints",
+    "https://posthog.com/docs/sql/variables"
+  ]
+}

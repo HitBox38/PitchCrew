@@ -1,0 +1,182 @@
+{
+  "project_id": 295060,
+  "activation": "draft_virtual_models_created_metric_creation_blocked",
+  "status": "proposed_noncanonical",
+  "default_days": 7,
+  "max_days": 30,
+  "model_days": 30,
+  "owner": "authenticated_posthog_account_pending_assignment",
+  "metrics": [
+    {
+      "key": "accepted_chat_sends",
+      "display_name": "Accepted chat sends",
+      "query_key": "action_mix",
+      "expression": "accepted_chat_sends",
+      "dimensions": ["day"],
+      "unit": "count",
+      "description": "Accepted user chat sends per local day, across current and legacy chat routes. This counts sends rather than responses or completed runs.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "accepted_workflow_launches",
+      "display_name": "Accepted workflow launches",
+      "query_key": "action_mix",
+      "expression": "accepted_workflow_launches",
+      "dimensions": ["day"],
+      "unit": "count",
+      "description": "Accepted user workflow launches per local day. Launch acceptance does not establish successful completion or provider usage.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "setup_ready_observation_percent",
+      "display_name": "Setup-ready observation percentage",
+      "query_key": "setup_readiness",
+      "expression": "100.0 * all_ready_observations / nullIf(readiness_observations, 0)",
+      "dimensions": ["day"],
+      "unit": "percent",
+      "description": "Percentage of observed setup snapshots with profile, crew and job readiness, per local day. Repeated observations count separately; this is a readiness proxy rather than validated activation.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "request_failure_percent",
+      "display_name": "Deliberate request failure percentage",
+      "query_key": "request_health",
+      "expression": "non_aborted_failure_percent",
+      "dimensions": ["day"],
+      "unit": "percent",
+      "description": "Failed deliberate UI requests divided by non-aborted observed requests, per local day. HTTP, network and invalid-response failures count; polling and streams are excluded.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "request_success_p95_ms",
+      "display_name": "Successful request p95 latency",
+      "query_key": "request_health",
+      "expression": "success_p95_ms",
+      "dimensions": ["day"],
+      "unit": "ms",
+      "description": "95th percentile elapsed duration of successful deliberate UI requests, per local day. Only valid measured durations count; empty groups have no measurement.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "run_failure_percent",
+      "display_name": "Observed run failure percentage",
+      "query_key": "run_health",
+      "expression": "100.0 * failed / nullIf(observed_terminal_runs, 0)",
+      "dimensions": ["day", "mode"],
+      "unit": "percent",
+      "description": "Failed observed runs divided by all observed terminal runs, per local day and mode. Cancellations remain in the denominator; closed-renderer and historical runs are excluded.",
+      "grain": "local_day_and_mode",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "run_measured_p95_ms",
+      "display_name": "Observed run p95 duration",
+      "query_key": "run_health",
+      "expression": "measured_p95_ms",
+      "dimensions": ["day", "mode"],
+      "unit": "ms",
+      "description": "95th percentile valid observed run duration, per local day and mode. Missing durations remain unmeasured; routines and follow-ups may contribute observations.",
+      "grain": "local_day_and_mode",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "sanitized_exceptions",
+      "display_name": "Sanitized exception observations",
+      "query_key": "sanitized_errors",
+      "expression": "global_exceptions + react_exceptions + deliberate_action_exceptions",
+      "dimensions": ["day"],
+      "unit": "count",
+      "description": "Reviewed sanitized renderer exception observations per local day. Deduplication and rate limits apply; daemon crashes and provider internals are outside coverage.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "ci_attempt_success_percent",
+      "display_name": "Imported CI attempt success percentage",
+      "query_key": "ci_attempt_health",
+      "expression": "success_percent",
+      "dimensions": ["day"],
+      "unit": "percent",
+      "description": "Successful imported completed CI attempts divided by all imported completed attempts, per local day. Cancellations, skips and repeat attempts remain in the denominator.",
+      "grain": "local_day",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "merged_prs",
+      "display_name": "Imported merged PR throughput",
+      "query_key": "pr_delivery",
+      "expression": "merged_prs",
+      "dimensions": ["day", "target_branch"],
+      "unit": "count",
+      "description": "Imported merged non-bot PR count per local day and target branch. Counts completed merges, with no developer ranking or native Engineering Analytics source claim.",
+      "grain": "local_day_and_target_branch",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    },
+    {
+      "key": "pr_open_to_merge_p95_hours",
+      "display_name": "Imported PR p95 open-to-merge duration",
+      "query_key": "pr_delivery",
+      "expression": "p95_open_to_merge_hours",
+      "dimensions": ["day", "target_branch"],
+      "unit": "hours",
+      "description": "95th percentile imported PR opening-to-merge elapsed hours per local day and target branch. Former draft and waiting time are included; this is not review time or DORA cycle time.",
+      "grain": "local_day_and_target_branch",
+      "status": "proposed",
+      "owner": "authenticated_posthog_account_pending_assignment",
+      "version": 1
+    }
+  ],
+  "model_query_keys": [
+    "action_mix",
+    "setup_readiness",
+    "request_health",
+    "run_health",
+    "sanitized_errors",
+    "ci_attempt_health",
+    "pr_delivery"
+  ],
+  "blockers": [
+    "Native catalog metric creation requires data_catalog:write; complete SQL metadata catalog is empty.",
+    "Metric-create input schema cannot be read until data_catalog:write is granted; accountable owner assignment remains pending.",
+    "New event sources need real release/import coverage verification before metric approval; created virtual views remain draft and source-unverified."
+  ],
+  "sources": [
+    "https://posthog.com/docs/semantic-layer/metrics",
+    "https://posthog.com/docs/semantic-layer/governance",
+    "https://posthog.com/docs/data-warehouse/views"
+  ],
+  "validation": {
+    "date": "2026-10-12",
+    "project_id": 295060,
+    "sql": "All seven full reusable view relations and eleven metric projections compiled with zero-width live source timestamp ranges after removing inner consumer limits. Models retain all aggregate groups; metrics limit only final output. No collected data or KPI result was inferred.",
+    "taxonomy": "New diagnostic, readiness and engineering events/properties are absent from live taxonomy and must be verified after real release/import.",
+    "native_view_schema": "view-create exact schema read; virtual views only, sync_frequency null.",
+    "native_metric_schema": "Blocked by data_catalog:write; metric candidates are not validated tool inputs.",
+    "native_view_readback": "Seven draft virtual views created and read back with exact query hashes, valid inferred columns, is_materialized=false, sync_frequency=null and no latest_error; see activation.json."
+  }
+}

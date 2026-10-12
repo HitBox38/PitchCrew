@@ -1,0 +1,554 @@
+{
+  "project_id": 295060,
+  "code_deployment": "not deployed; integration PR pending",
+  "dashboards": {
+    "usage": 999570,
+    "adoption": 999571,
+    "workflow": 999572,
+    "diagnostics": 999694,
+    "website": 1018299,
+    "heatmaps": 1018295,
+    "ai_mcp": 1018318,
+    "engineering": 1018325
+  },
+  "native_ingestion": {
+    "heatmaps": true,
+    "session_replay": true,
+    "project_timezone": "UTC",
+    "recording_domains": null,
+    "replay_client_default": "off; separate explicit consent"
+  },
+  "ai_insights": [
+    {
+      "id": 6518507,
+      "short_id": "l8mbTcjU",
+      "name": "AI turns by outcome"
+    },
+    {
+      "id": 6518508,
+      "short_id": "PlX3cPi0",
+      "name": "AI turn duration by mode"
+    },
+    {
+      "id": 6518509,
+      "short_id": "aFhlT6Ai",
+      "name": "Runtime execution latency"
+    },
+    {
+      "id": 6518510,
+      "short_id": "naJVMBk8",
+      "name": "Observed MCP tool calls"
+    },
+    {
+      "id": 6518688,
+      "short_id": "0VkL2rQO",
+      "name": "Observed MCP calls by tool"
+    },
+    {
+      "id": 6518689,
+      "short_id": "Z2jvexh8",
+      "name": "Observed MCP rejected calls"
+    },
+    {
+      "id": 6518690,
+      "short_id": "8EXNDaEr",
+      "name": "Observed MCP mean latency \u00b7 ms"
+    },
+    {
+      "id": 6518691,
+      "short_id": "xAtCQsQW",
+      "name": "Observed MCP p95 latency \u00b7 ms"
+    },
+    {
+      "id": 6518722,
+      "short_id": "cUsgdtf4",
+      "name": "Observed MCP tool quality \u00b7 noncanonical"
+    }
+  ],
+  "application_metric_insights": [
+    {
+      "id": 6355552,
+      "short_id": "EqRqn5IC",
+      "name": "Observed run outcomes",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "run_finished",
+            "math": "total"
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "outcome",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 6355553,
+      "short_id": "Ph7xkS8O",
+      "name": "Observed action request results",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "api_request_finished",
+            "math": "total"
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "result",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 6355554,
+      "short_id": "emJtHPCg",
+      "name": "Observed successful action latency \u00b7 p95 ms",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "api_request_finished",
+            "math": "p95",
+            "math_property": "duration_ms",
+            "properties": [
+              {
+                "key": "result",
+                "type": "event",
+                "operator": "exact",
+                "value": ["success"]
+              }
+            ]
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "operation",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": 6355557,
+      "short_id": "f1tTDkU2",
+      "name": "Observed run duration \u00b7 p95 ms",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "run_finished",
+            "math": "p95",
+            "math_property": "duration_ms",
+            "properties": [
+              {
+                "key": "duration_ms",
+                "type": "event",
+                "operator": "is_set"
+              }
+            ]
+          }
+        ],
+        "breakdownFilter": {
+          "breakdowns": [
+            {
+              "property": "mode",
+              "type": "event"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "diagnostic_website_vitals": [
+    {
+      "id": 6355555,
+      "short_id": "OOvXs0Kc",
+      "name": "Website LCP \u00b7 p75 ms",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$web_vitals",
+            "math": "p75",
+            "math_property": "$web_vitals_LCP_value",
+            "properties": [
+              {
+                "key": "renderer",
+                "type": "event",
+                "operator": "exact",
+                "value": ["landing"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 6355556,
+      "short_id": "dcmPqbMK",
+      "name": "Website layout stability \u00b7 CLS p75",
+      "query": {
+        "kind": "TrendsQuery",
+        "dateRange": {
+          "date_from": "-7d"
+        },
+        "filterTestAccounts": true,
+        "interval": "day",
+        "series": [
+          {
+            "kind": "EventsNode",
+            "event": "$web_vitals",
+            "math": "p75",
+            "math_property": "$web_vitals_CLS_value",
+            "properties": [
+              {
+                "key": "renderer",
+                "type": "event",
+                "operator": "exact",
+                "value": ["landing"]
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "diagnostic_layout": [
+    {
+      "id": 7386733,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 5
+        }
+      }
+    },
+    {
+      "id": 7390839,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 5,
+          "w": 12,
+          "h": 5
+        }
+      }
+    },
+    {
+      "id": 7154516,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 10,
+          "w": 8,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154517,
+      "layouts": {
+        "sm": {
+          "x": 8,
+          "y": 10,
+          "w": 4,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154518,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 16,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154519,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 16,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154520,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 22,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154521,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 22,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154522,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 28,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7154523,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 28,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390508,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 34,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390509,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 34,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390544,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 40,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390545,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 40,
+          "w": 6,
+          "h": 6
+        }
+      }
+    }
+  ],
+  "ai_layout": [
+    {
+      "id": 7390838,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 5
+        }
+      }
+    },
+    {
+      "id": 7390326,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 5,
+          "w": 8,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390327,
+      "layouts": {
+        "sm": {
+          "x": 8,
+          "y": 5,
+          "w": 4,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390328,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 11,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390329,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 11,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390546,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 17,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390547,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 17,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390548,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 23,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390549,
+      "layouts": {
+        "sm": {
+          "x": 6,
+          "y": 23,
+          "w": 6,
+          "h": 6
+        }
+      }
+    },
+    {
+      "id": 7390595,
+      "layouts": {
+        "sm": {
+          "x": 0,
+          "y": 29,
+          "w": 12,
+          "h": 6
+        }
+      }
+    }
+  ],
+  "website_internal_filter_updated_insights": [
+    6518326, 6518327, 6518328, 6518329, 6518330, 6518331, 6518332, 6518333, 6518334
+  ],
+  "native_query_verification": {
+    "ai_mcp": "force_blocking all9success; no newcaptureddata",
+    "diagnostics": "force_blocking all12queries success; unsupportedrating retained NotCollected; newdiagnostics no real samples",
+    "layouts": "persisted sm grid: zero overlaps"
+  },
+  "weekly_report_choice": {
+    "weekday": "sunday",
+    "time": "06:00",
+    "timezone": "UTC",
+    "summary_enabled": false,
+    "send_test_now": false,
+    "accepted_jerusalem_dst_shift": true,
+    "subscriptions": [51668, 51669, 51670, 51671, 51672],
+    "enabled": true,
+    "next_delivery_utc": "2026-10-18T06:00:00Z",
+    "audit": "scheduled-reports/activation.json"
+  },
+  "remaining_native_setup": [
+    "data_catalog:write needed for11 proposed governed metrics; no approval/certification",
+    "native Metrics viewer enablement and saved log/metric views require current UI/setup; no actual samples until release",
+    "Website native download goal requires UI setting; nine charts active",
+    "native Engineering Analytics source unavailable; genuine public repository custom-event metrics active"
+  ],
+  "privacy": "No prompts, replies, tool payloads, local paths or app/entity IDs; replay wireframe only. No fabricated production events."
+}
