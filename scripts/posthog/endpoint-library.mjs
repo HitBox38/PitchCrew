@@ -101,6 +101,20 @@ function stable(value) {
   return value;
 }
 
+// Native serialization adds null optional fields, the resolved default value,
+// and sorts tags. These are equivalent; substantive extra fields still drift.
+function comparableEndpoint(value, variable) {
+  const query = { ...value.query };
+  for (const [name, field] of Object.entries(query)) if (field === null) delete query[name];
+  if (query.variables?.[variable.id]) {
+    query.variables = { ...query.variables, [variable.id]: { ...query.variables[variable.id] } };
+    const binding = query.variables[variable.id];
+    if (binding.value === 7) delete binding.value;
+    if (binding.isNull === false) delete binding.isNull;
+  }
+  return { ...value, query, tags: Array.isArray(value.tags) ? [...value.tags].sort() : value.tags };
+}
+
 /** Require an unfiltered, fully paginated export and fail closed on name/query drift. */
 export function planEndpointDeployment(key, snapshot) {
   object(snapshot, ['project_id', 'complete', 'results', 'variable', 'catalog']);
@@ -123,7 +137,8 @@ export function planEndpointDeployment(key, snapshot) {
     );
     if (
       existing.is_active !== true ||
-      JSON.stringify(stable(comparable)) !== JSON.stringify(stable(desired))
+      JSON.stringify(stable(comparableEndpoint(comparable, snapshot.variable))) !==
+        JSON.stringify(stable(comparableEndpoint(desired, snapshot.variable)))
     )
       throw new Error('Endpoint drift: review the native version before changing it');
     action = 'noop';

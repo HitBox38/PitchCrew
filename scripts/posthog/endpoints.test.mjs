@@ -137,6 +137,36 @@ test('existing matching endpoints are noops; duplicates, settings and query drif
     );
 });
 
+test('native readback defaults and tag order remain idempotent; changed variable defaults still drift', () => {
+  const desired = buildEndpointDefinition('action_mix', variable);
+  const native = {
+    ...desired,
+    is_active: true,
+    tags: [...desired.tags].sort(),
+    query: {
+      ...desired.query,
+      name: null,
+      modifiers: null,
+      variables: {
+        [variable.id]: { ...desired.query.variables[variable.id], value: 7, isNull: false },
+      },
+    },
+  };
+  assert.equal(
+    planEndpointDeployment('action_mix', { ...snapshot(), results: [native] }).action,
+    'noop',
+  );
+  for (const change of [{ value: 30 }, { isNull: true }]) {
+    const query = {
+      ...native.query,
+      variables: { [variable.id]: { ...native.query.variables[variable.id], ...change } },
+    };
+    assert.throws(() =>
+      planEndpointDeployment('action_mix', { ...snapshot(), results: [{ ...native, query }] }),
+    );
+  }
+});
+
 test('aggregate result version and columns are enforced; empty rows retain unknown coverage', () => {
   const result = {
     endpoint_version: 1,

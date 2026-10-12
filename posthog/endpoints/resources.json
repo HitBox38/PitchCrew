@@ -1,7 +1,7 @@
 {
   "project_id": 295060,
   "definition_status": "noncanonical",
-  "activation": "prepared_no_live_mutations",
+  "activation": "native_created_and_verified_see_activation_json",
   "timezone": "Asia/Jerusalem",
   "data_freshness_seconds": 86400,
   "is_materialized": false,
@@ -39,9 +39,9 @@
     "date": "2026-10-12",
     "endpoints_list": "Native endpoints-get-all returned count 0, next null for project 295060.",
     "tools": "endpoint-create, endpoint-update, endpoint-run, endpoint-get and endpoints-get-all callable; exact top-level schemas inspected. No scope blocker currently.",
-    "variable_binding": "Reusable SQL variable reference map requires a real native variable UUID; creation and runtime binding must be verified before activation. Endpoint query field is untyped in the connector schema.",
+    "variable_binding": "Native Number variable 01a1318d-543d-0000-3b38-c37e6e7d8350 created, exact reference map confirmed by execute-sql, and native endpoint literal overrides 7 and 1 verified. See activation.json.",
     "expression_compiler": "subtractDays(now(), least(30, greatest(1, toInt(7)))) accepted by connected execute-sql with an impossible timestamp range. This validates the bound expression, not native variable declaration/binding or source collection.",
-    "catalog": "Governed metric access unavailable; model references are proposed definitions, not dependencies or canonical sources."
+    "catalog": "metric-list scope remains unavailable. Authoritative SQL fallback read of system.information_schema.metrics succeeded with zero rows after exact column discovery; no match. Model references remain proposed definitions, not dependencies or canonical sources."
   },
   "sources": [
     "https://posthog.com/docs/endpoints/guide-variables",
