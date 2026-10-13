@@ -6,7 +6,7 @@ import { Eye, PencilLine, Save } from 'lucide-react';
 
 export function ProfileEditorHeading(c: ProfileViewModel) {
   return (
-    <div className="profile-editor-heading flex shrink-0 flex-wrap items-center gap-2 border-b border-border px-4 py-2">
+    <div className="profile-editor-heading flex min-h-13 shrink-0 flex-wrap items-center gap-3 border-b border-border px-4 py-2">
       <label className="sr-only" htmlFor="profile-file">
         Profile filename
       </label>
