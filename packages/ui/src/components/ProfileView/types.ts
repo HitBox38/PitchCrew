@@ -14,4 +14,17 @@ export type ProfileLocationProps = Pick<ProfileViewModel, 'data'>;
 export type ProfileNotesProps = Pick<
   ProfileViewModel,
   'data' | 'name' | 'openNote' | 'createNote' | 'sourceController'
->;
+> & { hidden?: boolean };
+
+export interface ProfileDocument {
+  id: string;
+  name: string;
+  content: string;
+  saved: { name: string; content: string };
+  error: string;
+}
+
+export interface ProfileDocumentsState {
+  documents: ProfileDocument[];
+  activeId: string | null;
+}

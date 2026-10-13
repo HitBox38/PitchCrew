@@ -2,23 +2,48 @@ import type { ProfileNotesProps } from '@/components/ProfileView/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { useProfileNotes } from '../hooks/useProfileNotes.ts';
-import { FileText, Plus } from 'lucide-react';
+import { FileText, Plus, Search, ChevronDown, FolderOpen } from 'lucide-react';
 
 export function ProfileNotes(props: ProfileNotesProps) {
   const { data, name, openNote, createNote } = props;
   const { query, setQuery, notes, paths } = useProfileNotes(props);
   return (
-    <aside className="profile-aside">
-      <h3>Notes</h3>
-      {data.profile.length > 5 ? (
+    <aside
+      id="profile-explorer"
+      className="profile-aside"
+      aria-label="Notes explorer"
+      hidden={props.hidden}
+    >
+      <div className="flex shrink-0 items-center justify-between px-4 py-3">
+        <h2 className="text-sm font-semibold">Explorer</h2>
+        <Button
+          variant="ghost"
+          className="profile-explorer-toggle"
+          onClick={createNote}
+          aria-label="New note"
+          title="New note"
+        >
+          <Plus size={16} />
+        </Button>
+      </div>
+      <div className="relative mx-3 mb-3 shrink-0">
+        <Search
+          size={14}
+          className="pointer-events-none absolute top-2.5 left-2.5 text-muted-foreground"
+        />
         <Input
+          className="h-8 pl-8 text-xs"
           aria-label="Search profile notes"
           placeholder="Search notes…"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
         />
-      ) : null}
-      <div className="profile-notes flex flex-col gap-1">
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5 px-3 pb-2 text-xs text-muted-foreground">
+        <ChevronDown size={14} />
+        <FolderOpen size={14} /> profile
+      </div>
+      <nav className="profile-notes flex flex-col gap-0.5" aria-label="Profile notes">
         {notes.length ? (
           notes.map((file) => (
             <Button
@@ -28,25 +53,23 @@ export function ProfileNotes(props: ProfileNotesProps) {
               className={`profile-file ${name === file.name ? 'selected' : ''}`}
             >
               <FileText size={15} />
-              <span title={file.name}>{paths.get(file.name) ?? file.name}</span>
+              <span title={paths.get(file.name) ?? file.name}>
+                {paths.get(file.name) ?? file.name}
+              </span>
             </Button>
           ))
         ) : (
-          <p className="quiet">
+          <p className="quiet px-3 py-2">
             {data.profile.length ? 'No notes match your search.' : 'No notes saved yet.'}
           </p>
         )}
-      </div>
-      <Button className="text-button" onClick={createNote}>
-        <Plus size={14} /> New note
-      </Button>
+      </nav>
       <div className="profile-tip">
-        <h3>Writing useful notes</h3>
+        <h3>Notes your crew can use</h3>
         <p>
           One fact per bullet: what you built, for whom, and what changed. Only include numbers you
           could back up in an interview.
         </p>
-        <p>Writer uses your notes to support factual claims and tailor the surrounding prose.</p>
       </div>
     </aside>
   );

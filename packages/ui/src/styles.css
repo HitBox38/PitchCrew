@@ -42,6 +42,7 @@
 @import './styles/chat/panels.css' layer(components);
 @import './styles/chat/browser.css' layer(components);
 @import './styles/skills.css' layer(components);
+@import './styles/profile-workspace.css' layer(components);
 @import './styles/motion.css' layer(components);
 
 /* Regression-test class strings must not add unused production utilities. */

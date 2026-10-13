@@ -1,0 +1,387 @@
+/* The page is a fixed workspace; documents, sources and the explorer scroll independently. */
+.page.profile-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - 48px - var(--desktop-titlebar-height, 0px));
+  min-height: 0;
+  max-width: none;
+  overflow: hidden;
+  padding-bottom: 20px;
+}
+.profile-page > .page-heading,
+.profile-page > .workspace-notice,
+.profile-page > .error-banner {
+  flex-shrink: 0;
+}
+.profile-page .page-heading {
+  margin-bottom: 20px;
+}
+.profile-workspace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+}
+.profile-workspace-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 224px minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+.profile-workspace-body.explorer-hidden {
+  grid-template-columns: minmax(0, 1fr);
+}
+.profile-aside {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  background: var(--paper);
+  border-right: 1px solid var(--border);
+}
+.profile-aside[hidden],
+.profile-document [data-slot='tabs-content'][hidden] {
+  display: none;
+}
+.profile-aside h2,
+.profile-tip h3 {
+  font-family: var(--font-sans);
+}
+.profile-explorer-toggle {
+  height: 28px;
+  width: 28px;
+  padding: 0;
+  color: var(--muted);
+  border-radius: 5px;
+}
+.profile-explorer-toggle:hover {
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink);
+}
+.profile-notes {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 6px 12px;
+}
+.profile-file {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-shrink: 0;
+  width: 100%;
+  min-height: 33px;
+  padding: 7px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--ink-soft);
+  font: 12px/1.5 var(--font-mono);
+  text-align: left;
+  box-shadow: none;
+}
+.profile-file > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.profile-file:hover {
+  background: rgb(var(--tint) / 0.045);
+}
+.profile-file.selected {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+.profile-tip {
+  flex-shrink: 0;
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+}
+.profile-tip h3 {
+  font-size: 12px;
+}
+.profile-tip p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.profile-document,
+.profile-editor,
+.profile-editor-modes {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.profile-document-tabs {
+  display: flex;
+  justify-content: flex-start;
+  flex-shrink: 0;
+  gap: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  width: 100%;
+  height: 42px;
+  padding: 0;
+  background: var(--paper);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+.profile-document-tab {
+  flex: 1;
+  justify-content: flex-start;
+  min-width: 0;
+  height: 100%;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 0;
+  color: var(--muted);
+  font-size: 12px;
+  box-shadow: none;
+}
+.profile-dirty-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ochre);
+}
+.profile-update-count {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+.profile-note-panel,
+.profile-write-panel {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+.profile-editor,
+.profile-editor-modes {
+  flex: 1;
+  background: var(--surface-bright);
+}
+.profile-editor-heading input {
+  flex: 1;
+  min-width: 120px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink-soft);
+  font: 12px var(--font-mono);
+}
+.profile-mode-tabs {
+  height: 30px;
+  padding: 2px;
+  gap: 2px;
+  border-radius: 5px;
+  background: var(--paper);
+}
+.profile-mode-tabs [data-slot='tabs-trigger'] {
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 3px;
+}
+.profile-editor textarea {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  field-sizing: fixed;
+  padding: 26px 32px;
+  border: 0;
+  border-radius: 0;
+  resize: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font: 13px/1.9 var(--font-mono);
+  tab-size: 2;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.profile-editor textarea:focus-visible {
+  outline: 1px solid var(--primary);
+  outline-offset: -1px;
+  box-shadow: none;
+}
+.profile-editor-status {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 16px;
+  padding: 7px 16px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+}
+.profile-save-state {
+  white-space: nowrap;
+}
+.profile-workspace .data-location {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 8px;
+  min-width: 0;
+  padding: 8px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+}
+.data-location > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.data-location code {
+  margin-left: 8px;
+  color: var(--ink-soft);
+  font: 11px var(--font-mono);
+}
+.profile-sources-panel,
+.profile-preview-panel {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 24px 28px;
+  background: var(--surface-bright);
+}
+.profile-sources-panel .profile-sources {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 0;
+  border: 0;
+}
+.profile-sources-panel .profile-sources-heading {
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.profile-sources-panel .profile-source-actions {
+  flex-wrap: wrap;
+}
+.profile-sources-panel .profile-sources-heading h2 {
+  font-size: 22px;
+}
+.profile-preview-panel > div {
+  max-width: 72ch;
+  margin: 0 auto;
+  font-size: 15px;
+  line-height: 1.8;
+}
+@variant max-wide {
+  .profile-workspace-body {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+}
+@variant max-compact {
+  .profile-page .page-heading {
+    margin-bottom: 12px;
+  }
+  .profile-page .page-heading p {
+    display: none;
+  }
+  .page.profile-page {
+    padding-bottom: 12px;
+  }
+}
+/* Match the shared sidebar's mobile breakpoint. Explorer replaces the document on phones. */
+@variant max-mobile {
+  .profile-workspace-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .profile-workspace-body:not(.explorer-hidden) .profile-document {
+    display: none;
+  }
+  .profile-aside {
+    border-right: 0;
+  }
+  .profile-tip {
+    display: none;
+  }
+  .profile-editor-heading {
+    padding: 8px 12px;
+  }
+  .profile-editor-heading input {
+    flex-basis: calc(100% - 120px);
+  }
+  .profile-mode-tabs {
+    order: 1;
+  }
+  .profile-editor textarea {
+    padding: 18px;
+    font-size: 12px;
+  }
+  .profile-sources-panel,
+  .profile-preview-panel {
+    padding: 18px;
+  }
+  .profile-document-tab {
+    padding: 0 12px;
+  }
+}
+@media (max-height: 600px) {
+  .profile-page .page-heading p,
+  .profile-tip {
+    display: none;
+  }
+  .profile-page .page-heading {
+    margin-bottom: 10px;
+  }
+}
+
+.profile-tab-item {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 240px;
+  height: 100%;
+  border-right: 1px solid var(--border);
+}
+.profile-tab-item[data-selected='true'] {
+  background: var(--surface-bright);
+  box-shadow: inset 0 2px var(--primary);
+}
+.profile-document-tab[data-active] {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: none;
+}
+.profile-tab-close {
+  flex-shrink: 0;
+  height: 24px;
+  width: 24px;
+  padding: 0;
+  margin-right: 6px;
+  border-radius: 4px;
+  color: var(--muted);
+}
+.profile-sources-sheet {
+  width: min(720px, 100vw);
+  max-width: none;
+  gap: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+.profile-sources-sheet .profile-sources-heading h2 {
+  display: none;
+}

@@ -69,16 +69,6 @@
   .welcome {
     padding: 22px 18px 24px;
   }
-  .profile-aside {
-    order: -1;
-  }
-  .profile-tip {
-    display: none;
-  }
-  .profile-file {
-    display: inline-flex;
-    width: auto;
-  }
   .runtime-row {
     flex-wrap: wrap;
     gap: 8px 12px;

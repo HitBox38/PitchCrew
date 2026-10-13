@@ -1,75 +1,63 @@
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
-import { ProfileLocation } from '@/components/ProfileView/components/ProfileLocation.tsx';
-import { ProfileNotes } from '@/components/ProfileView/components/ProfileNotes.tsx';
-import { useProfileView } from '@/components/ProfileView/hooks/useProfileView.ts';
-import type { ProfileViewProps } from '@/components/ProfileView/types.ts';
+import { ProfileEditor } from './components/ProfileEditor.tsx';
+import { ProfileLocation } from './components/ProfileLocation.tsx';
+import { ProfileNotes } from './components/ProfileNotes.tsx';
+import { ProfileDocumentTabs } from './components/ProfileDocumentTabs.tsx';
+import { ProfileWorkspaceHeading } from './components/ProfileWorkspaceHeading.tsx';
+import { ProfileSourcesPanel } from './components/ProfileSourcesPanel.tsx';
+import { Tabs, TabsContent } from '@/components/ui/tabs/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
-import { FileText } from 'lucide-react';
-import { ProfileOrigin } from './components/ProfileOrigin.tsx';
-import { ProfileSources } from '@/components/ProfileSources/index.tsx';
+import { useProfileView } from './hooks/useProfileView.ts';
+import { useProfileWorkspace } from './hooks/useProfileWorkspace.ts';
+import type { ProfileViewProps } from './types.ts';
+import { FileText, Plus } from 'lucide-react';
 
 export function ProfileView(props: ProfileViewProps) {
   const controller = useProfileView(props);
-  const { data, working, name, setName, content, setContent, error, save, dirty, guard } =
-    controller;
+  const workspace = useProfileWorkspace(controller);
   return (
     <>
-      <ProfileSources {...controller.sourceController} />
-      <div className="profile-layout grid max-w-295 grid-cols-[minmax(0,1fr)_240px] gap-7 max-wide:grid-cols-[minmax(0,1fr)_200px] max-compact:grid-cols-1">
-        <section className="profile-editor">
-          <ProfileOrigin {...controller} />
-          <form onSubmit={(e) => void save(e)}>
-            <div className="profile-editor-heading flex items-center gap-2.5 border-b border-border py-2.5 pr-3 pl-4 text-muted-foreground">
-              <FileText size={18} />
-              <label className="sr-only" htmlFor="profile-file">
-                Profile filename
-              </label>
-              <Input
-                id="profile-file"
-                autoComplete="off"
-                name="filename"
-                spellCheck={false}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                pattern="[a-zA-Z0-9_.\-]+\.md"
-                maxLength={100}
-                required
-              />
-              <output className="profile-save-state">
-                {dirty
-                  ? 'Unsaved changes'
-                  : data.profile.some((file) => file.name === name)
-                    ? 'Saved'
-                    : 'New note'}
-              </output>
-              <Button type="submit" className="button primary small" disabled={working}>
-                {working ? 'Saving…' : 'Save note'}
-              </Button>
-            </div>
-            <label className="sr-only" htmlFor="profile-content">
-              Profile Markdown
-            </label>
-            <Textarea
-              id="profile-content"
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              spellCheck
-              rows={19}
-              maxLength={50000}
-            />
-            {error ? (
-              <p className="form-error" role="alert">
-                {error}
-              </p>
+      <section className="profile-workspace" aria-label="Profile workspace">
+        <ProfileWorkspaceHeading controller={controller} workspace={workspace} />
+        <div
+          className={`profile-workspace-body ${workspace.explorerVisible ? '' : 'explorer-hidden'}`}
+        >
+          <ProfileNotes
+            {...controller}
+            openNote={workspace.openNote}
+            createNote={workspace.createNote}
+            hidden={!workspace.explorerVisible}
+          />
+          <Tabs
+            value={controller.activeId}
+            onValueChange={(id) => {
+              if (typeof id === 'string') workspace.selectNote(id);
+            }}
+            className="profile-document"
+          >
+            <ProfileDocumentTabs {...controller} />
+            {controller.documents.map((document) => (
+              <TabsContent key={document.id} value={document.id} className="profile-note-panel">
+                <ProfileEditor {...controller} />
+              </TabsContent>
+            ))}
+            {!controller.documents.length ? (
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-5 text-center">
+                <FileText size={28} className="text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Open a note from the explorer, or start a new one.
+                </p>
+                <Button className="button small" onClick={workspace.createNote}>
+                  <Plus size={14} /> New note
+                </Button>
+              </div>
             ) : null}
-          </form>
-        </section>
-        <ProfileNotes {...controller} />
-      </div>
-      <ProfileLocation {...controller} />
-      <DiscardChanges guard={guard} />
+          </Tabs>
+        </div>
+        <ProfileLocation {...controller} />
+      </section>
+      <ProfileSourcesPanel {...controller} />
+      <DiscardChanges guard={controller.guard} />
     </>
   );
 }
