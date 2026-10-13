@@ -46,6 +46,7 @@
 @import './styles/skills.css' layer(components);
 @import './styles/profile-workspace.css' layer(components);
 @import './styles/motion.css' layer(components);
+@import './styles/workspace-frame.css' layer(components);
 
 /* Regression-test class strings must not add unused production utilities. */
 @source not './**/__tests__/**';
