@@ -1,26 +1,31 @@
 .crew-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 12px;
 }
 .crew-card {
   display: flex;
   flex-direction: column;
-  padding: 20px;
-  background: var(--surface);
-  border-radius: 18px 19px 17px 18px;
-  box-shadow: var(--sheet);
+  min-width: 0;
+  padding: 16px;
+  background: var(--surface-bright);
+  border: 1px solid var(--border);
+  border-radius: 12px 13px 11px 12px;
+}
+.crew-card[data-retired] {
+  background: var(--paper);
 }
 .crew-card-top {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .crew-card h2 {
-  font-size: 20px;
-  line-height: 1.2;
+  font: 600 16px/1.3 var(--font-sans);
+  letter-spacing: -0.1px;
+  overflow-wrap: anywhere;
 }
-.crew-card > p {
+.crew-card-description {
   font-size: var(--text-body);
   color: var(--muted);
   line-height: 1.55;
@@ -28,13 +33,18 @@
 }
 .crew-runtime {
   display: grid;
-  grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
-  justify-content: start;
-  gap: 6px 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
   padding: 12px 0;
   margin-top: auto;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   border-block: 1px solid var(--border);
+}
+.crew-runtime > div {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  align-items: baseline;
+  gap: 8px;
 }
 .crew-runtime dt {
   font-size: var(--text-note);
@@ -42,11 +52,15 @@
 }
 .crew-runtime dd {
   font-size: var(--text-label);
-  font-weight: 600;
+  font-weight: 500;
+  color: var(--ink-soft);
   overflow-wrap: anywhere;
 }
 .crew-card .button {
   align-self: flex-start;
+  height: 32px;
+  padding-inline: 10px;
+  font-size: 12px;
 }
 .role-avatar {
   --tone: var(--teal);
@@ -77,6 +91,21 @@
 }
 .role-status.paused {
   color: var(--muted);
+}
+.crew-card-retired-note {
+  margin-top: 12px;
+  font-size: var(--text-note);
+  line-height: 1.5;
+}
+.role-settings-panel .role-settings-section {
+  gap: 12px;
+}
+.role-settings-panel .role-settings-section + .role-settings-section {
+  margin-top: 24px;
+  padding-top: 20px;
+}
+.role-settings-panel .role-settings-section h3 {
+  font: 600 16px/1.4 var(--font-sans);
 }
 .subheading {
   font-size: 18px;
@@ -194,29 +223,15 @@
   max-width: 28%;
   overflow-wrap: anywhere;
 }
-@variant compact {
-  @variant max-wide {
-    .crew-grid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      max-width: none;
-      gap: 12px;
-    }
-    .crew-card {
-      padding: 16px;
-    }
-    .crew-runtime {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 10px;
-    }
+@variant max-wide {
+  .crew-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 @variant max-compact {
   .crew-grid {
     grid-template-columns: minmax(0, 1fr);
     max-width: none;
-  }
-  .crew-runtime {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 .crew-card-update {
