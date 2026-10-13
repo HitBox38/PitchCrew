@@ -7,6 +7,7 @@ import {
   registerExistingExternalSubmission,
 } from '../src/index.ts';
 import { packet } from './fixtures/packet.ts';
+import { reviewFixturePacket } from './fixtures/application-context.ts';
 
 const boards: Board[] = [];
 afterEach(() => {
@@ -19,6 +20,7 @@ it('does not let email tracking skip exact-packet approval and successful export
   for (const state of ['shortlisted', 'drafting', 'in_review', 'agreed'] as const)
     board.move(card.id, state, 'scout');
   board.updateCard(card.id, { packet }, 'writer', 'Drafted fixture');
+  reviewFixturePacket(board, card.id);
   const approval = board.requestApproval(card.id);
   const evidence = {
     state: 'submitted',
@@ -65,6 +67,7 @@ it('imports a user-confirmed external fact on an existing card while retaining i
   for (const state of ['shortlisted', 'drafting', 'in_review', 'agreed'] as const)
     board.move(card.id, state, 'scout');
   board.updateCard(card.id, { packet }, 'writer', 'Retained independent draft');
+  reviewFixturePacket(board, card.id);
   const approval = board.requestApproval(card.id);
   board.decideApproval(approval.id, true);
   const imported = registerExistingExternalSubmission(board, card.id, input);

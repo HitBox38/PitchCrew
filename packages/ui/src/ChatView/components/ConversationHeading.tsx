@@ -70,7 +70,7 @@ export function ConversationHeading(props: ConversationHeadingProps) {
             {runtimeLabels[role.runtime]}
           </Button>
         ) : null}
-        {running.length ? (
+        {props.readOnly && running.length ? (
           <Button
             variant="outline"
             size="sm"

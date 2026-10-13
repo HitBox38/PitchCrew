@@ -18,6 +18,7 @@ import type { Skill, SkillProposal } from './skills.ts';
 import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface Approval {
+  contextRevision?: string;
   id: string;
   cardId: string;
   action: 'export_packet';
@@ -52,6 +53,7 @@ export interface Snapshot {
   skills: Skill[];
   skillProposals: SkillProposal[];
   runs: Run[];
+  activityRuns?: Run[];
   approvals: Approval[];
   // Page counts derived from frozen artifact bytes, keyed by artifact SHA-256 digest.
   artifactPages?: Record<string, number>;

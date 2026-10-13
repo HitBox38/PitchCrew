@@ -1,4 +1,5 @@
 export * from './conversations.ts';
+export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';
@@ -36,7 +37,7 @@ export {
 } from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
 export { runResultSchema } from './runs.ts';
-export type { AgentTask, Run, RunResult } from './runs.ts';
+export type { AgentTask, Run, RunResult, RunActivity, RuntimeActivity } from './runs.ts';
 export { routineInput } from './routines.ts';
 export type { Routine, RoutineInput } from './routines.ts';
 export type {

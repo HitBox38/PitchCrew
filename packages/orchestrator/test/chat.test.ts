@@ -1,3 +1,4 @@
+import { confirmFixtureApplication } from './helpers/daemon.ts';
 import { adapters } from '@pitchcrew/adapters';
 import type { Approval, Card, ChatContext, ChatStreamState, Run, Snapshot } from '@pitchcrew/core';
 import { readFile } from 'node:fs/promises';
@@ -35,7 +36,12 @@ describe('agent conversations and crew actions', () => {
     try {
       const firstConnection = await connect();
       await vi.waitFor(() => expect(states).toHaveLength(1));
-      expect(states[0]).toEqual({ messages: [], streamingMessages: [], userInputs: [] });
+      expect(states[0]).toEqual({
+        messages: [],
+        streamingMessages: [],
+        userInputs: [],
+        activityRuns: [],
+      });
       const { result: root } = await request<Run>('/roles/scout/chat', 'POST', {
         content: 'Help me.',
       });
@@ -215,6 +221,7 @@ describe('agent conversations and crew actions', () => {
       company: 'Fixture Co',
       title: 'React Engineer',
     });
+    await confirmFixtureApplication(request, card.id);
     const { result: other } = await request<Card>('/cards', 'POST', {
       company: 'Other Fixture',
       title: 'Engineer',

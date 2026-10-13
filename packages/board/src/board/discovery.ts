@@ -101,6 +101,7 @@ export function recordDiscoveredLeads(
         url: posting.url,
         salary: posting.salary.slice(0, 100),
         description: posting.description.slice(0, 20000),
+        ...(posting.sourceHtml ? { sourceHtml: posting.sourceHtml.slice(0, 400000) } : {}),
         tags: [],
       });
       // A malformed posting is skipped without failing the rest of the scan.

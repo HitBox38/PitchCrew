@@ -1,3 +1,4 @@
+import { activityRuns } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn } from './user-input/lifecycle.ts';
 import {
@@ -146,6 +147,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     demoAvailable: this.dev && !this.board.list<Card>('card').some((c) => c.sample),
     messages: this.board.list<ChatMessage>('message'),
     streamingMessages: [...this.streamingMessages.values()],
+    activityRuns: activityRuns(this),
     proposals: this.board.list<RoleProposal>('proposal'),
     pipelineReviews: this.board.list<PipelineReview>('pipeline_review').reverse(),
     tasks: this.board.list<AgentTask>('task'),

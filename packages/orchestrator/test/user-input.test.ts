@@ -1,3 +1,4 @@
+import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import { adapters } from '@pitchcrew/adapters';
 import { defaultCapabilities } from '@pitchcrew/core';
@@ -278,6 +279,7 @@ it('ends a workflow without applying a partial result and resumes its original w
     title: 'Engineer',
     description: 'Accessible interfaces.',
   });
+  confirmFixtureJob(daemon.service.board, card.id);
   const run = await daemon.service.startRun(card.id, 'scout');
   await vi.waitFor(() => expect(contexts).toHaveLength(1));
   const q = (
@@ -292,7 +294,8 @@ it('ends a workflow without applying a partial result and resumes its original w
   ).toBeNull();
   await request(`/user-input/${q.id}/answer`, 'POST', { text: 'Remote' });
   await waitForSnapshot(request, (s) => s.runs.every((r) => r.status === 'completed'));
-  expect(contexts[1].request).toContain('Answer: Remote');
+  expect(contexts[1].request).toBeUndefined();
+  expect(contexts[1].userAnswers).toEqual([expect.objectContaining({ answer: 'Remote' })]);
   expect(daemon.service.board.get<Run>('run', run.id).status).toBe('completed');
   expect(daemon.service.board.get<import('@pitchcrew/core').Card>('card', card.id).fit).toBe(80);
 });

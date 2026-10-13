@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import { recordChatActivity } from './chat-activity.ts';
+import { observeChatTool } from './gateway/activity.ts';
 import { askUser } from './user-input/questions.ts';
 import { questionForRun } from './user-input/lifecycle.ts';
 import { conversationAction, memoryAction } from './gateway/conversations.ts';
@@ -8,6 +11,7 @@ import {
   defaultCapabilities,
   describePacketRules,
   workflowSeat,
+  draftingCard,
   runResultSchema,
   type Approval,
   type Card,
@@ -42,12 +46,14 @@ export async function agentCall(
   } catch {
     // Telemetry initialization must never prevent a scoped tool invocation.
   }
+  const finishActivity = observeChatTool(this, token, action);
   let isError = true;
   try {
     const result = await dispatchAgentCall.call(this, token, action, data);
     isError = false;
     return result;
   } finally {
+    finishActivity(isError);
     finish(isError);
   }
 }
@@ -67,6 +73,29 @@ async function dispatchAgentCall(
   const activeRun = this.board
     .list<import('@pitchcrew/core').Run>('run')
     .find((run) => run.id === capability.runId);
+  if (action === 'execution_access') {
+    if (!activeRun || activeRun.status !== 'running')
+      throw new Error('Run capability is invalid or expired.');
+    return { purpose: activeRun.purpose ?? null };
+  }
+  if (activeRun?.purpose === 'source-extraction')
+    throw new Error(
+      'Source extraction cannot call agent tools. Return only the structured source result.',
+    );
+  const isolated =
+    activeRun?.purpose === 'application-draft' ||
+    activeRun?.purpose === 'application-review' ||
+    activeRun?.purpose === 'fit';
+  if (
+    isolated &&
+    !['card', 'profile', 'packet_rules', 'lint', 'ask_user', 'notify_user'].includes(action)
+  )
+    throw new Error('This tool is not available in an isolated application run.');
+  if (isolated) {
+    const card = this.board.get<Card>('card', capability.cardId!);
+    if (card.applicationContext?.revision !== activeRun.contextRevision)
+      throw new Error('Application context changed during this run.');
+  }
   if (activeRun?.threadId && !canReadConversation(this, capability.roleId, activeRun.threadId))
     throw new Error('Conversation access was removed.');
   if (
@@ -97,6 +126,23 @@ async function dispatchAgentCall(
     ].includes(action)
   )
     throw new Error('This turn is waiting for user input. End the turn now.');
+  if (action === 'report_progress') {
+    if (activeRun?.mode !== 'chat') throw new Error('Progress updates require a chat turn.');
+    const { content } = z.object({ content: z.string().trim().min(1).max(1200) }).parse(data);
+    const count =
+      this.runActivities
+        .get(capability.runId)
+        ?.entries.filter((entry) => entry.id.startsWith('progress-')).length ?? 0;
+    if (count >= 8) throw new Error('Eight progress updates maximum per turn.');
+    recordChatActivity(this, capability.runId, {
+      id: `progress-${randomUUID()}`,
+      kind: 'commentary',
+      label: 'Progress update',
+      text: content,
+      status: 'completed',
+    });
+    return { ok: true };
+  }
   if (action === 'ask_user') return askUser(this, capability, data.input ?? data);
   if (
     [
@@ -184,7 +230,10 @@ async function dispatchAgentCall(
     return changeWorkflow.call(this, capability, permissions, action, data);
   if (['card', 'history', 'export'].includes(action) && !capability.cardId)
     throw new Error('This chat has no attached application.');
-  if (action === 'card') return { card: this.board.get<Card>('card', capability.cardId!) };
+  if (action === 'card') {
+    const card = this.board.get<Card>('card', capability.cardId!);
+    return { card: isolated ? draftingCard(card, activeRun.purpose) : card };
+  }
   if (action === 'profile') return { profile: await readProfile(this.directory) };
   if (action === 'history') {
     const query = z

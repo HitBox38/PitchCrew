@@ -279,6 +279,7 @@ export const jobLinkProvenance = z
 export type JobLinkProvenance = z.infer<typeof jobLinkProvenance>;
 /** Form values read from one posting. Nothing is saved until the user adds the job. */
 export interface JobLookupPrefill {
+  sourceHtml?: string;
   company: string;
   title: string;
   location: string;

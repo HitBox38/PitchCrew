@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerPacketTools(server: McpServer, call: AgentCall) {
+export function registerPacketTools(server: McpServer, call: AgentCall, isolated = false) {
   server.registerTool(
     'pitchcrew_get_card',
     {
@@ -26,25 +26,26 @@ export function registerPacketTools(server: McpServer, call: AgentCall) {
     },
     () => call('profile'),
   );
-  server.registerTool(
-    'pitchcrew_get_history',
-    {
-      title: 'Application history',
-      description:
-        'Read immutable history for the assigned card, newest first. Use nextCursor as beforeEventId to read older events.',
-      inputSchema: {
-        beforeEventId: z
-          .number()
-          .int()
-          .positive()
-          .optional()
-          .describe('Exclusive cursor from a previous history response.'),
-        limit: z.number().int().min(1).max(200).default(100).describe('Maximum events per page.'),
+  if (!isolated)
+    server.registerTool(
+      'pitchcrew_get_history',
+      {
+        title: 'Application history',
+        description:
+          'Read immutable history for the assigned card, newest first. Use nextCursor as beforeEventId to read older events.',
+        inputSchema: {
+          beforeEventId: z
+            .number()
+            .int()
+            .positive()
+            .optional()
+            .describe('Exclusive cursor from a previous history response.'),
+          limit: z.number().int().min(1).max(200).default(100).describe('Maximum events per page.'),
+        },
+        annotations: readOnly,
       },
-      annotations: readOnly,
-    },
-    (query) => call('history', query),
-  );
+      (query) => call('history', query),
+    );
   server.registerTool(
     'pitchcrew_lint_packet',
     {
@@ -67,15 +68,16 @@ export function registerPacketTools(server: McpServer, call: AgentCall) {
     },
     () => call('packet_rules'),
   );
-  server.registerTool(
-    'pitchcrew_export_packet',
-    {
-      title: 'Export approved packet',
-      description:
-        'Export locally only with an unused user approval bound to this exact packet. Agents cannot approve actions.',
-      inputSchema: { approvalId: z.uuid() },
-      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
-    },
-    ({ approvalId }) => call('export', { approvalId }),
-  );
+  if (!isolated)
+    server.registerTool(
+      'pitchcrew_export_packet',
+      {
+        title: 'Export approved packet',
+        description:
+          'Export locally only with an unused user approval bound to this exact packet. Agents cannot approve actions.',
+        inputSchema: { approvalId: z.uuid() },
+        annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+      },
+      ({ approvalId }) => call('export', { approvalId }),
+    );
 }

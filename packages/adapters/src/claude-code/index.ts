@@ -23,7 +23,7 @@ function argsFor(context: RunContext | ChatContext) {
     '--mcp-config',
     JSON.stringify({ mcpServers: { pitchcrew: context.mcp } }),
   ];
-  if ('session' in context && context.session) {
+  if (!context.purpose && 'session' in context && context.session) {
     if (context.session.id) args.push('--resume', context.session.id);
     else {
       const id = randomUUID();
@@ -40,6 +40,7 @@ function extract(event: Record<string, unknown>): string | null {
   return null;
 }
 export const claudeCode: RuntimeAdapter = {
+  applicationIsolation: true,
   id: 'claude-code',
   sessionSupport: 'resume',
   // Runtime aliases follow the CLI's model configuration without pinning versions.

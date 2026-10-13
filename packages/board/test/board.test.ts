@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from './fixtures/application-context.ts';
 import { cardInput, currentEventVersion, decodeEvent, type Card } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Board, digestPacket } from '../src/index.ts';
@@ -19,6 +20,7 @@ function reviewed(board: Board) {
   board.updateCard(card.id, { packet }, 'writer', 'Drafted');
   board.move(card.id, 'in_review', 'writer');
   board.move(card.id, 'agreed', 'reviewer');
+  reviewFixturePacket(board, card.id);
   return card.id;
 }
 describe('event-sourced board', () => {

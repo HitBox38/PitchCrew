@@ -1,5 +1,10 @@
 import { adapters } from '@pitchcrew/adapters';
-import { digestPacket, recordLinkedJob } from '@pitchcrew/board';
+import {
+  digestPacket,
+  jobSourceRevision,
+  recordLinkedJob,
+  saveApplicationContext,
+} from '@pitchcrew/board';
 import {
   cardInput,
   jobLinkProvenance,
@@ -85,6 +90,24 @@ export async function loadExamples(this: CrewContext): Promise<void> {
     );
   await this.saveProfile('example.md', exampleProfile);
   const cards = examples.map((input) => this.board.createCard(input, true));
+  for (const card of cards)
+    saveApplicationContext(
+      this.board,
+      card.id,
+      jobSourceRevision(card),
+      null,
+      {
+        brief: {
+          companyContext: 'Fictional demo employer. This example uses simulated confirmation.',
+          responsibilities: ['Build interfaces.'],
+          qualifications: ['React and TypeScript.'],
+          constraints: [],
+        },
+        requirements: [],
+        flagged: [],
+      },
+      true,
+    );
   const packetFor = async (card: Card) => {
     const role = this.board.get<Role>('role', 'writer');
     const result = await adapters.demo.run({
@@ -110,7 +133,25 @@ export async function loadExamples(this: CrewContext): Promise<void> {
       this.board.updateCard(card.id, { packet }, 'demo', 'Created a fictional sample packet');
       this.board.move(card.id, 'in_review', 'demo');
     }
-    if (i >= 3) this.board.move(card.id, 'agreed', 'demo');
+    if (i >= 3) {
+      const current = this.board.get<Card>('card', card.id);
+      const revision = current.applicationContext!.revision;
+      this.board.updateCard(
+        card.id,
+        {
+          packetContextRevision: revision,
+          packetReview: {
+            contextRevision: revision,
+            packetDigest: digestPacket(card.id, current.packet!),
+            runId: 'fictional-demo-review',
+            reviewedAt: new Date().toISOString(),
+          },
+        },
+        'demo',
+        'Simulated review of the fictional example brief',
+      );
+      this.board.move(card.id, 'agreed', 'demo');
+    }
     if (i === 4) this.board.requestApproval(card.id);
     if (i === 5) {
       const approval = this.board.requestApproval(card.id);

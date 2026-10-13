@@ -2,6 +2,7 @@ import { cardInput, states, type Approval, type Card, type Run } from '@pitchcre
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Board, setCardStatus } from '../src/index.ts';
 import { packet } from './fixtures/packet.ts';
+import { reviewFixturePacket } from './fixtures/application-context.ts';
 
 const boards: Board[] = [];
 function fixture() {
@@ -45,6 +46,8 @@ describe('user status changes', () => {
     const { board, card } = fixture();
     board.updateCard(card.id, { packet }, 'writer', 'Fictional packet');
     setCardStatus(board, card.id, 'agreed');
+    expect(() => board.requestApproval(card.id)).toThrow('brief first');
+    reviewFixturePacket(board, card.id);
     const pending = board.requestApproval(card.id);
     const approved = { ...pending, id: 'approved', status: 'approved' } as Approval;
     const consumed = { ...pending, id: 'consumed', status: 'consumed' } as Approval;
@@ -67,6 +70,7 @@ describe('user status changes', () => {
     const { board, card } = fixture();
     board.updateCard(card.id, { packet }, 'writer', 'Fictional packet');
     setCardStatus(board, card.id, 'agreed');
+    reviewFixturePacket(board, card.id);
     const approval = board.requestApproval(card.id);
     const source = board.get<Card>('card', card.id);
     const events = board.events();

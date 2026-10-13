@@ -10,6 +10,7 @@ import { chatPromptFor, promptFor } from './prompts.ts';
 import { cleanResult, parseWorkflowResult } from './results.ts';
 
 export function withChat(adapter: {
+  applicationIsolation?: true;
   id: RuntimeId;
   models: RuntimeAdapter['models'];
   listModels?: RuntimeAdapter['listModels'];
@@ -17,6 +18,7 @@ export function withChat(adapter: {
   launch(context: RunContext | ChatContext, prompt: string): Promise<string>;
 }): RuntimeAdapter {
   return {
+    applicationIsolation: adapter.applicationIsolation,
     id: adapter.id,
     models: adapter.models,
     listModels: adapter.listModels,

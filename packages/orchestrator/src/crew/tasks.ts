@@ -233,7 +233,7 @@ function workflowResultMessage(context: CrewContext, run: Run): string {
   if (run.status !== 'completed' || !run.cardId) return run.message;
   const card = context.board.get<import('@pitchcrew/core').Card>('card', run.cardId);
   const role = requireRole(context, run.roleId);
-  const seat = role.workflow ?? role.id;
+  const seat = run.purpose === 'application-draft' ? 'writer' : (role.workflow ?? role.id);
   if (seat === 'scout')
     return `${role.name} assessed job fit${card.fit === null ? '' : `: ${card.fit}/100`}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved assessment.`;
   if (seat === 'writer')

@@ -1,4 +1,5 @@
 import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
+import type { ApplicationContext, PacketReviewEvidence } from './application-context.ts';
 import { z } from 'zod';
 import type { Packet } from './packets.ts';
 import type { ApplicationTracking } from './tracking.ts';
@@ -22,6 +23,8 @@ export const cardInput = z.object({
     .default(''),
   salary: z.string().trim().max(100).default(''),
   description: z.string().trim().max(20000).default(''),
+  /** Captured provider markup, never rendered or passed into application drafting. */
+  sourceHtml: z.string().max(400000).optional(),
   tags: z.array(z.string().max(40)).max(10).default([]),
 });
 export type CardInput = z.infer<typeof cardInput>;
@@ -32,6 +35,9 @@ export interface CardLesson {
   createdAt: string;
 }
 export interface Card extends CardInput {
+  applicationContext?: ApplicationContext;
+  packetContextRevision?: string;
+  packetReview?: PacketReviewEvidence;
   /** Version 18 tombstone; retained in events and removed from current projections. */
   deletedAt?: string;
   tracking?: ApplicationTracking;

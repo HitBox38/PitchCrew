@@ -48,7 +48,10 @@ export async function runCliText(
   const stream = chatEventStream(context);
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
-      cwd: 'session' in context && context.session ? context.session.directory : context.directory,
+      cwd:
+        !context.purpose && 'session' in context && context.session
+          ? context.session.directory
+          : context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: runtimeEnvironment(context, env),
@@ -99,6 +102,7 @@ export async function runCliText(
       reject(err);
     });
     child.on('close', (code) => {
+      stream.finish();
       clearTimeout(timer);
       context.signal.removeEventListener('abort', kill);
       if (context.signal.aborted) {

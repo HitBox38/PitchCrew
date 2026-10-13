@@ -4,6 +4,7 @@ export const mcpGatewayTools = Object.freeze({
   chat_attachment: 'pitchcrew_read_chat_attachment',
   roles: 'pitchcrew_list_roles',
   notify_user: 'pitchcrew_notify_user',
+  report_progress: 'pitchcrew_report_progress',
   messages: 'pitchcrew_read_messages',
   message: 'pitchcrew_message_agent',
   invoke: 'pitchcrew_invoke_agent',

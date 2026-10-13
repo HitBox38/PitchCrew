@@ -48,6 +48,10 @@ export interface CrewContext {
   capabilities: Map<string, { runId: string; cardId: string | null; roleId: RoleId }>;
   controllers: Map<string, AbortController>;
   streamingMessages: Map<string, ChatMessage>;
+  runActivities: Map<
+    string,
+    { entries: import('@pitchcrew/core').RunActivity[]; truncated: boolean }
+  >;
   chatListeners: Set<(messagesChanged: boolean) => void>;
   draining: boolean;
   scheduling: boolean;
@@ -97,6 +101,7 @@ export interface CrewContext {
     roleId: RoleId,
     task?: AgentTask,
     delivery?: { requestId: string; rootRunId: string; content: string },
+    applicationDraft?: boolean,
   ): Promise<Run>;
   applyResult(
     cardId: string,
@@ -104,6 +109,7 @@ export interface CrewContext {
     data: unknown,
     profile?: ProfileFile[],
     signal?: AbortSignal,
+    evidence?: { contextRevision: string; runId: string },
   ): Promise<void>;
   cancelRun(id: string): void;
   addMessage(

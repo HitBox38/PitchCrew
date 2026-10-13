@@ -11,6 +11,7 @@ import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
 import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { FileCheck, FileText, History } from 'lucide-react';
+import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 
 export function CardDetails(props: CardDetailsProps) {
   const controller = useCardDetails(props);
@@ -47,6 +48,7 @@ export function CardDetails(props: CardDetailsProps) {
         </TabsList>
         <JobTabs {...controller} />
       </Tabs>
+      <DiscardChanges guard={controller.guard} />
     </Modal>
   );
 }

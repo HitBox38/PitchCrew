@@ -117,6 +117,8 @@ describe('agent posting link imports', () => {
       expect(card.company).toBe(lead.company);
       expect(card.title).toBe(lead.title);
       expect(card.description).toContain(lead.excerpt);
+      if (provider === 'greenhouse') expect(card.sourceHtml).toContain('&lt;script&gt;');
+      expect(lead).not.toHaveProperty('sourceHtml');
       const [event] = service.board.history(card.id);
       expect(event).toMatchObject({ actor: 'scout', version: currentEventVersion });
       expect(decodeEvent(JSON.stringify(event)).data).toMatchObject({ discovery: card.discovery });

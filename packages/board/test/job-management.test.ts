@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from './fixtures/application-context.ts';
 import {
   cardInput,
   currentEventVersion,
@@ -61,6 +62,7 @@ it.each(states)('deletes a %s job durably without removing its history', (state)
 function approvals(board: Board, cardId: string) {
   board.updateCard(cardId, { packet }, 'writer', 'Fixture packet');
   changeJobState(board, cardId, 'agreed', 'reviewer', 'Fixture reviewed packet');
+  reviewFixturePacket(board, cardId);
   const approval = board.requestApproval(cardId);
   board.decideApproval(approval.id, true);
   const browser = {
