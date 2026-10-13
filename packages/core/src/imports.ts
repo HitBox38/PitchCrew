@@ -115,6 +115,12 @@ export interface ApplicationImportRowResult {
   cardIds: string[];
   warnings: string[];
 }
+/** Database uploads use base64; conversion returns the normal, previewable JSON import. */
+export interface DatabaseImportConversion {
+  content: string;
+  warnings: string[];
+}
+
 export interface ApplicationImportReport {
   digest: string;
   rows: ApplicationImportRowResult[];

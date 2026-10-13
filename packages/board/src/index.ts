@@ -49,6 +49,7 @@ export {
   markStaleSubmissions,
 } from './board/learning.ts';
 export { previewApplicationImport, applyApplicationImport } from './board/imports.ts';
+export { convertLegacyTracker } from './board/legacy-tracker.ts';
 export {
   discoveryKeys,
   isKnownPosting,

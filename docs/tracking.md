@@ -41,7 +41,7 @@ Use **Import applications** on Board to bring in applications from an older trac
 
 ### Steps
 
-1. Choose a `.json` or `.csv` file. The daemon parses and checks it; nothing is saved yet.
+1. Choose your legacy SQLite tracker (`.db`, `.sqlite` or `.sqlite3`) directly, or a `.json` or `.csv` export. For a tracker stored in a GitHub repository, download the database file (for example, `data/applications.db`) first. Pitchcrew reads and converts the database locally; no script or terminal commands are needed. The daemon parses and checks the applications; nothing is saved yet.
 2. Review the preview. Each row is **New**, **Duplicate**, **Already imported** or **Invalid**, with the reason and any warnings.
 3. Confirm. Only new rows are saved. The result lists every row as **Imported**, **Duplicate**, **Already imported**, **Invalid** or **Failed**.
 
@@ -119,9 +119,11 @@ A row is a duplicate when it matches an existing card by the same rule as extern
 
 Each row has a stable import key from its parsed content. The key is written in the message of the card's import event. Importing the same file again reports those rows as **Already imported** and saves nothing new. A row whose content changed since the last import matches its card as a duplicate instead.
 
-### Converting a legacy SQLite tracker
+### SQLite trackers
 
-`scripts/convert-legacy-tracker.ts` reads a tracker with `applications`, `status_events`, `tags` and `application_tags` tables and writes a JSON import file:
+The file picker accepts trackers with `applications`, `status_events`, `tags` and `application_tags` tables in the legacy schema. Unsupported databases show an error with the JSON/CSV alternative. Uploaded databases are read-only in memory, inside a worker with a five-second deadline and bounded heap. The same 2 MB and 1,000-application limits apply to the database and converted JSON. Conversion warnings appear above the preview, including dates assumed UTC, derived titles and shortened content. Agents have no database import tool.
+
+For command-line workflows, `scripts/convert-legacy-tracker.ts` remains available and uses the same converter to write a JSON import file:
 
 ```sh
 node scripts/convert-legacy-tracker.ts ~/old-tracker.db ~/applications.json

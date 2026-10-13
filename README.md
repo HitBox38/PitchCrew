@@ -94,7 +94,7 @@ PDF and DOCX exports use the **Formatted** layout by default. It turns Markdown 
 
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
-Moving from another tracker? **Import applications** on Board takes a JSON or CSV file of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. `node scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` converts a legacy SQLite tracker into that format. See [importing past applications](docs/tracking.md#importing-past-applications).
+Moving from another tracker? **Import applications** on Board accepts a legacy SQLite tracker (`.db`, `.sqlite`, `.sqlite3`) directly or a JSON/CSV export of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. SQLite trackers are converted locally in the import dialog, with no terminal commands needed. The optional `node scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` command uses the same converter. See [importing past applications](docs/tracking.md#importing-past-applications).
 
 ## Your crew
 
