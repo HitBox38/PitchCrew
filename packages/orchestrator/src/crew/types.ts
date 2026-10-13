@@ -25,6 +25,7 @@ import {
 import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { ComputerManager } from '@pitchcrew/mcp/computer';
 import { ConnectorManager } from '@pitchcrew/mcp/connectors';
+import type { ProfileOrganizationStore } from '../profile-organization.ts';
 import type { ProfileSourceManager } from '../profile-sources/index.ts';
 import type { JobSourceManager } from '../job-sources/index.ts';
 
@@ -41,6 +42,7 @@ export interface CrewContext {
   packetRules: PacketRulesStore;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;
+  profileOrganization: ProfileOrganizationStore;
   jobSources: JobSourceManager;
   profileWriting: boolean;
   profileRevision: number;

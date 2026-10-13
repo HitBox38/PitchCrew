@@ -47,7 +47,7 @@ export function ProfileView(props: ProfileViewProps) {
                 <p className="text-sm text-muted-foreground">
                   Open a note from the explorer, or start a new one.
                 </p>
-                <Button className="button small" onClick={workspace.createNote}>
+                <Button className="button small" onClick={() => void workspace.createNote()}>
                   <Plus size={14} /> New note
                 </Button>
               </div>

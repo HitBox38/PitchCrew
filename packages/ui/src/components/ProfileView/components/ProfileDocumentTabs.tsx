@@ -1,39 +1,46 @@
 import type { ProfileViewModel } from '../types.ts';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { documentDirty } from '../helpers.ts';
-import { FileText, X } from 'lucide-react';
+import { useState } from 'react';
+import { TabsList } from '@/components/ui/tabs/index.tsx';
+import { DragDropProvider } from '@dnd-kit/react';
+import { isSortableOperation } from '@dnd-kit/react/sortable';
+import { ProfileDocumentTab } from './ProfileDocumentTab.tsx';
+import { profileTabPlugins, profileTabSensors } from '../tab-drag.ts';
+import { profileTabModifiers } from '../tab-drag-modifier.ts';
 
 export function ProfileDocumentTabs(c: ProfileViewModel) {
+  const [announcement, setAnnouncement] = useState('');
   return (
-    <TabsList className="profile-document-tabs" aria-label="Open profile notes">
-      {c.documents.map((document) => (
-        <div
-          key={document.id}
-          className="profile-tab-item"
-          data-selected={document.id === c.activeId}
-        >
-          <TabsTrigger
-            value={document.id}
-            className="profile-document-tab"
-            aria-label={document.name || 'Untitled note'}
-          >
-            <FileText size={15} />
-            <span className="truncate">{document.name || 'Untitled note'}</span>
-            {documentDirty(document) ? (
-              <span className="profile-dirty-dot" aria-label="Unsaved changes" />
-            ) : null}
-          </TabsTrigger>
-          <Button
-            variant="ghost"
-            className="profile-tab-close"
-            aria-label={`Close ${document.name || 'Untitled note'}`}
-            onClick={() => c.closeNote(document.id)}
-          >
-            <X size={13} />
-          </Button>
-        </div>
-      ))}
-    </TabsList>
+    <DragDropProvider
+      sensors={profileTabSensors}
+      plugins={profileTabPlugins}
+      modifiers={profileTabModifiers}
+      onDragEnd={({ operation, canceled }) => {
+        if (!canceled && operation.target && isSortableOperation(operation) && operation.source)
+          c.reorderNote(String(operation.source.id), operation.source.index);
+      }}
+    >
+      <TabsList className="profile-document-tabs" aria-label="Open profile notes">
+        {c.documents.map((document, index) => (
+          <ProfileDocumentTab
+            key={document.id}
+            document={document}
+            index={index}
+            count={c.documents.length}
+            active={document.id === c.activeId}
+            close={() => c.closeNote(document.id)}
+            reorder={(next) => {
+              if (next < 0 || next >= c.documents.length) return;
+              c.reorderNote(document.id, next);
+              setAnnouncement(
+                `Moved ${document.name}. Position ${next + 1} of ${c.documents.length}.`,
+              );
+            }}
+          />
+        ))}
+      </TabsList>
+      <output className="sr-only" aria-live="polite">
+        {announcement}
+      </output>
+    </DragDropProvider>
   );
 }

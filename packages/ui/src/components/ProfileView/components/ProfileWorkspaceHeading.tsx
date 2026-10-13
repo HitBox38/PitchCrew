@@ -26,10 +26,10 @@ export function ProfileWorkspaceHeading({
         <PanelLeft size={16} />
       </Button>
       <FolderOpen size={16} className="text-primary" />
-      <span className="text-sm font-semibold">Profile notes</span>
+      <h1 className="text-base font-semibold">Profile</h1>
       <Button
         variant="ghost"
-        className="ml-auto h-7 gap-1.5 rounded-md px-2 text-xs text-muted-foreground"
+        className="button small ml-auto"
         onClick={() => c.setSourcesOpen(true)}
         aria-haspopup="dialog"
       >

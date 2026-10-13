@@ -1,12 +1,23 @@
-import type { ProfileNotesProps } from '@/components/ProfileView/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { useRef } from 'react';
+import type { ProfileNotesProps } from '../types.ts';
 import { useProfileNotes } from '../hooks/useProfileNotes.ts';
-import { FileText, Plus, Search, ChevronDown, FolderOpen } from 'lucide-react';
+import { useProfileTreeKeyboard } from '../hooks/useProfileTreeKeyboard.ts';
+import { useProfileFolderActions } from '../hooks/useProfileFolderActions.ts';
+import { ProfileExplorerControls } from './ProfileExplorerControls.tsx';
+import { ProfileTreeRow } from './ProfileTreeRow.tsx';
+import { ProfileFolderDialog } from './ProfileFolderDialog.tsx';
 
 export function ProfileNotes(props: ProfileNotesProps) {
-  const { data, name, openNote, createNote } = props;
-  const { query, setQuery, notes, paths } = useProfileNotes(props);
+  const c = useProfileNotes(props);
+  const tree = useRef<HTMLDivElement>(null);
+  const keyboard = useProfileTreeKeyboard(
+    tree,
+    c.rows,
+    c.collapsed,
+    c.toggle,
+    Boolean(c.query.trim()),
+  );
+  const actions = useProfileFolderActions(props, c);
   return (
     <aside
       id="profile-explorer"
@@ -14,63 +25,61 @@ export function ProfileNotes(props: ProfileNotesProps) {
       aria-label="Notes explorer"
       hidden={props.hidden}
     >
-      <div className="flex shrink-0 items-center justify-between px-4 py-3">
-        <h2 className="text-sm font-semibold">Explorer</h2>
-        <Button
-          variant="ghost"
-          className="profile-explorer-toggle"
-          onClick={createNote}
-          aria-label="New note"
-          title="New note"
-        >
-          <Plus size={16} />
-        </Button>
-      </div>
-      <div className="relative mx-3 mb-3 shrink-0">
-        <Search
-          size={14}
-          className="pointer-events-none absolute top-2.5 left-2.5 text-muted-foreground"
-        />
-        <Input
-          className="h-8 pl-8 text-xs"
-          aria-label="Search profile notes"
-          placeholder="Search notes…"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-        />
-      </div>
-      <div className="flex shrink-0 items-center gap-1.5 px-3 pb-2 text-xs text-muted-foreground">
-        <ChevronDown size={14} />
-        <FolderOpen size={14} /> profile
-      </div>
-      <nav className="profile-notes flex flex-col gap-0.5" aria-label="Profile notes">
-        {notes.length ? (
-          notes.map((file) => (
-            <Button
-              key={file.name}
-              onClick={() => openNote(file)}
-              aria-pressed={name === file.name}
-              className={`profile-file ${name === file.name ? 'selected' : ''}`}
-            >
-              <FileText size={15} />
-              <span title={paths.get(file.name) ?? file.name}>
-                {paths.get(file.name) ?? file.name}
-              </span>
-            </Button>
-          ))
-        ) : (
-          <p className="quiet px-3 py-2">
-            {data.profile.length ? 'No notes match your search.' : 'No notes saved yet.'}
+      <ProfileExplorerControls
+        query={c.query}
+        setQuery={c.setQuery}
+        folder={c.selectedFolder}
+        working={props.working}
+        createNote={() => {
+          void props.createNote(c.selectedFolder).then((opened) => {
+            if (opened) c.reveal(c.selectedFolder);
+          });
+        }}
+        createFolder={() => actions.start({ kind: 'create', parent: c.selectedFolder })}
+      />
+      <div className="profile-notes">
+        <div ref={tree} role="tree" aria-label="Profile notes">
+          {c.rows.map((row) => (
+            <ProfileTreeRow
+              key={row.node.key}
+              node={row.node}
+              depth={row.depth}
+              position={row.position}
+              size={row.size}
+              expanded={Boolean(c.query.trim()) || !c.collapsed.has(row.node.path)}
+              selected={row.node.note?.name === props.name}
+              focused={keyboard.focusKey === row.node.key}
+              working={props.working}
+              focus={() => keyboard.setFocused(row.node.key)}
+              keyDown={(event) => keyboard.keyDown(event, row)}
+              activate={() => {
+                c.setSelectedFolder(row.node.path);
+                if (row.node.folder) c.toggle(row.node.path);
+                else if (row.node.note) props.openNote(row.node.note);
+              }}
+              move={() =>
+                actions.start({ kind: 'move', name: row.node.note!.name, current: row.node.path })
+              }
+            />
+          ))}
+        </div>
+        {!c.rows.length ? <p className="quiet px-3 py-2">No notes match your search.</p> : null}
+        {props.organization.error && !actions.operation ? (
+          <p className="form-error px-3 py-2" role="alert">
+            {props.organization.error}
           </p>
-        )}
-      </nav>
-      <div className="profile-tip">
-        <h3>Notes your crew can use</h3>
-        <p>
-          One fact per bullet: what you built, for whom, and what changed. Only include numbers you
-          could back up in an interview.
-        </p>
+        ) : null}
       </div>
+      {actions.operation ? (
+        <ProfileFolderDialog
+          operation={actions.operation}
+          folders={c.folders}
+          working={props.working}
+          error={props.organization.error}
+          close={actions.close}
+          submit={actions.submit}
+        />
+      ) : null}
     </aside>
   );
 }

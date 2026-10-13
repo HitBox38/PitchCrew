@@ -66,3 +66,23 @@ export function syncDocuments(
   });
   return changed ? { ...state, documents } : state;
 }
+
+export function reorderDocument(
+  state: ProfileDocumentsState,
+  id: string,
+  index: number,
+): ProfileDocumentsState {
+  const from = state.documents.findIndex((document) => document.id === id);
+  if (
+    from < 0 ||
+    !Number.isInteger(index) ||
+    index < 0 ||
+    index >= state.documents.length ||
+    from === index
+  )
+    return state;
+  const documents = [...state.documents];
+  const [document] = documents.splice(from, 1);
+  documents.splice(index, 0, document);
+  return { ...state, documents };
+}

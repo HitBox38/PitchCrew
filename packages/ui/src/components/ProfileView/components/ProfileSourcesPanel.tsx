@@ -1,27 +1,27 @@
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from '@/components/ui/sheet/index.tsx';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog/index.tsx';
 import { ProfileSources } from '@/components/ProfileSources/index.tsx';
 import type { ProfileViewModel } from '../types.ts';
 
 export function ProfileSourcesPanel(c: ProfileViewModel) {
   return (
-    <Sheet open={c.sourcesOpen} onOpenChange={c.setSourcesOpen}>
-      <SheetContent className="profile-sources-sheet">
-        <SheetHeader className="shrink-0 border-b border-border px-6 py-5 pr-12">
-          <SheetTitle>Profile sources</SheetTitle>
-          <SheetDescription>
+    <Dialog open={c.sourcesOpen} onOpenChange={c.setSourcesOpen}>
+      <DialogContent className="modal profile-sources-dialog">
+        <DialogHeader className="shrink-0 border-b border-border px-6 py-4 pr-12">
+          <DialogTitle>Profile sources</DialogTitle>
+          <DialogDescription>
             Manage the folders behind your notes and review source updates.
-          </SheetDescription>
-        </SheetHeader>
+          </DialogDescription>
+        </DialogHeader>
         <div className="profile-sources-panel">
           <ProfileSources {...c.sourceController} />
         </div>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

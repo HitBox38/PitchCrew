@@ -141,6 +141,7 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     events: this.board.events(),
     profileProposals: this.board.list('profile_proposal'),
     profile,
+    profileOrganization: this.profileOrganization.get(),
     runtimes: this.runtimes,
     dataDirectory: this.directory,
     demoAvailable: this.dev && !this.board.list<Card>('card').some((c) => c.sample),

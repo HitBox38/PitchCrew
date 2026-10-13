@@ -5,6 +5,7 @@ import {
   documentDirty,
   openDocument,
   syncDocuments,
+  reorderDocument,
 } from '../helpers.ts';
 
 const background = { name: 'background.md', content: '# Background' };
@@ -17,6 +18,29 @@ const opened = () =>
   );
 
 describe('open profile documents', () => {
+  it('reorders open tabs while retaining active identity, draft contents and saved snapshots', () => {
+    const state = opened();
+    state.documents[0] = { ...state.documents[0], content: '# Unsaved draft' };
+    const reordered = reorderDocument(state, 'background', 1);
+    expect(reordered.documents.map((document) => document.id)).toEqual(['projects', 'background']);
+    expect(reordered.activeId).toBe('projects');
+    expect(reordered.documents[1]).toBe(state.documents[0]);
+    expect(documentDirty(reordered.documents[1])).toBe(true);
+    expect(reorderDocument(reordered, 'background', 0).documents).toEqual(state.documents);
+  });
+
+  it('ignores outdated or invalid reorder requests without closing or changing any tab', () => {
+    const state = opened();
+    for (const [id, index] of [
+      ['missing', 0],
+      ['background', -1],
+      ['background', 2],
+      ['background', 0.5],
+      ['background', 0],
+    ] as const)
+      expect(reorderDocument(state, id, index)).toBe(state);
+  });
+
   it('reopens an existing tab without replacing its unsaved content or filename', () => {
     const state = opened();
     state.documents[0] = { ...state.documents[0], name: 'renamed.md', content: '# Unsaved draft' };

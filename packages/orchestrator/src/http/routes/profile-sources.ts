@@ -4,6 +4,9 @@ import type { IdRoute } from '../types.ts';
 import type { CrewService } from '../../service.ts';
 
 export function registerProfileSourcesRoutes(app: FastifyInstance, service: CrewService) {
+  app.post('/api/profile/organization', (req, res) =>
+    res.send(service.profileOrganization.change(req.body)),
+  );
   app.get('/api/profile/sources', async (_req, res) =>
     res.send(await service.profileSources.list()),
   );

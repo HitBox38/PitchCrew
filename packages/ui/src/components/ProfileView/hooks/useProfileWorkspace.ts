@@ -22,9 +22,10 @@ export function useProfileWorkspace(controller: ProfileViewModel) {
       controller.selectNote(id);
       showNote();
     },
-    createNote: () => {
-      controller.createNote();
-      showNote();
+    createNote: async (folder?: string) => {
+      const opened = await controller.createNote(folder);
+      if (opened) showNote();
+      return opened;
     },
   };
 }

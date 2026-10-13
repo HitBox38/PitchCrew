@@ -3,10 +3,12 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useState, type FormEvent } from 'react';
 import { useProfileSources } from '@/components/ProfileSources/hooks/useProfileSources.ts';
 import { useProfileDocuments } from './useProfileDocuments.ts';
+import { useProfileOrganization } from './useProfileOrganization.ts';
 import { documentDirty } from '../helpers.ts';
 
 export function useProfileView({ data, action, working }: ProfileViewProps) {
   const documents = useProfileDocuments(data);
+  const organization = useProfileOrganization({ action });
   const [closing, setClosing] = useState<string | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const guard = useUnsavedChanges(documents.dirty, documents.discard);
@@ -24,14 +26,18 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
       setSourcesOpen(false);
     },
   });
-  const createNote = () => {
+  const createNote = async (folder = '') => {
     const names = new Set([
       ...data.profile.map((file) => file.name),
       ...documents.documents.map((file) => file.name),
     ]);
     let name = 'new-note.md';
     for (let index = 2; names.has(name); index++) name = `new-note-${index}.md`;
+    if (folder || Object.hasOwn(data.profileOrganization?.locations ?? {}, name)) {
+      if (!(await organization.change({ action: 'move', name, folder }))) return false;
+    }
     documents.open({ name, content: '# Project\n\n- Add a source-backed fact.\n' });
+    return true;
   };
   async function save(e: FormEvent) {
     e.preventDefault();
@@ -40,6 +46,13 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
     const snapshot = { name: note.name, content: note.content };
     try {
       await action('/profile', 'PUT', snapshot, 'Profile note saved');
+      const previousFolder = data.profileOrganization?.locations[note.saved.name];
+      if (note.name !== note.saved.name && previousFolder !== undefined) {
+        if (
+          !(await organization.change({ action: 'move', name: note.name, folder: previousFolder }))
+        )
+          return;
+      }
       documents.update(note.id, { saved: snapshot, error: '' });
     } catch (e) {
       documents.update(note.id, {
@@ -66,6 +79,7 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
     documents: documents.documents,
     activeId: documents.activeId,
     selectNote: documents.select,
+    reorderNote: documents.reorder,
     closeNote: (id: string) => {
       const note = documents.documents.find((document) => document.id === id);
       if (note && documentDirty(note)) setClosing(id);
@@ -86,6 +100,7 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
       },
     },
     sourceController,
+    organization,
     sourcesOpen,
     setSourcesOpen,
   };

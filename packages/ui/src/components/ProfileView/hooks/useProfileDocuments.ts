@@ -7,6 +7,7 @@ import {
   initialProfileNote,
   openDocument,
   syncDocuments,
+  reorderDocument,
 } from '../helpers.ts';
 
 export function useProfileDocuments(data: ProfileViewProps['data']) {
@@ -39,5 +40,6 @@ export function useProfileDocuments(data: ProfileViewProps['data']) {
     },
     close: (id: string) => setState((state) => closeDocument(state, id)),
     discard: () => setState(discardDocuments),
+    reorder: (id: string, index: number) => setState((state) => reorderDocument(state, id, index)),
   };
 }

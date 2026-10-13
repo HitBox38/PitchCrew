@@ -28,7 +28,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
         <div
           className={`page ${view === 'chat' ? 'chat-page' : view === 'profile' ? 'profile-page' : ''}`}
         >
-          {view !== 'chat' ? <WorkspaceHeading {...controller} /> : null}
+          {view !== 'chat' && view !== 'profile' ? <WorkspaceHeading {...controller} /> : null}
           <Onboarding />
           {error ? (
             <div role="alert" className="error-banner">
