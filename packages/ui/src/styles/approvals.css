@@ -301,6 +301,17 @@
 .inbox-review-content .approval-preview > summary::after {
   flex-shrink: 0;
 }
+.inbox-review-content .approval-packet-preview [data-slot='accordion-header'] {
+  margin: 0;
+  text-transform: none;
+}
+.inbox-review-content .approval-packet-preview [data-slot='accordion-trigger'] {
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 1.45;
+}
 .inbox-review-actions {
   flex-shrink: 0;
   padding: 14px 24px;
