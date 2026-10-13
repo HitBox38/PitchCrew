@@ -512,9 +512,6 @@
   display: none;
 }
 .board-latest {
-  display: none;
-}
-.board-latest {
   margin-left: 8px;
   color: var(--faint);
 }
