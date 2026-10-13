@@ -15,7 +15,7 @@ it('the actual launcher stops and recovers its daemon over IPC while preserving 
   await new Promise<void>((resolve) => probe.close(() => resolve()));
   const saved = join(directory, 'saved-work.txt');
   await writeFile(saved, 'Fictional candidate: saved application notes.');
-  const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/packaged-launcher.mjs'], {
+  const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/packaged-launcher.ts'], {
     stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
     env: {
       ...process.env,

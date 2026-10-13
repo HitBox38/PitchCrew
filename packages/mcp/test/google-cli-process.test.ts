@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it, vi } from 'vitest';
 import { createGoogleCliRunner } from '../src/connectors/auth/google-cli-process.ts';
-const fixture = fileURLToPath(new URL('./fixtures/google-cli.mjs', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/google-cli.ts', import.meta.url));
 const signal = () => new AbortController().signal;
 const runner = (mode: string) => createGoogleCliRunner(process.execPath, [fixture, mode]);
 afterEach(() => vi.unstubAllEnvs());

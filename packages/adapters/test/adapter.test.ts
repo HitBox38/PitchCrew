@@ -41,7 +41,7 @@ const context: RunContext = {
 it('normalizes a headless JSONL subprocess without using a provider account', async () => {
   const result = await runCli(
     process.execPath,
-    [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url))],
+    [fileURLToPath(new URL('./fixtures/fake-cli.ts', import.meta.url))],
     context,
     'test',
     (event) => (typeof event.result === 'string' ? event.result : null),
@@ -78,7 +78,7 @@ it('requires a recognizable runtime version with the scoped-tool capabilities', 
 it('normalizes a chat subprocess without a card or a provider account', async () => {
   const result = await chatCli(
     process.execPath,
-    [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url)), '--chat'],
+    [fileURLToPath(new URL('./fixtures/fake-cli.ts', import.meta.url)), '--chat'],
     { ...context, card: null, messages: [], request: 'Say hello.' },
     (event) => (typeof event.result === 'string' ? event.result : null),
   );
@@ -90,7 +90,7 @@ it('streams decoded reply text before the real subprocess finishes, including sp
   let completed = false;
   const result = chatCli(
     process.execPath,
-    [fileURLToPath(new URL('./fixtures/streaming-cli.mjs', import.meta.url))],
+    [fileURLToPath(new URL('./fixtures/streaming-cli.ts', import.meta.url))],
     {
       ...context,
       role: { ...context.role, runtime: 'claude-code' },
@@ -114,7 +114,7 @@ it('does not pass connector OAuth configuration to provider subprocesses', async
   try {
     const result = await runCli(
       process.execPath,
-      [fileURLToPath(new URL('./fixtures/fake-cli.mjs', import.meta.url)), '--check-env'],
+      [fileURLToPath(new URL('./fixtures/fake-cli.ts', import.meta.url)), '--check-env'],
       context,
       'test',
       (event) => (typeof event.result === 'string' ? event.result : null),

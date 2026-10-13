@@ -121,10 +121,10 @@ Each row has a stable import key from its parsed content. The key is written in 
 
 ### Converting a legacy SQLite tracker
 
-`scripts/convert-legacy-tracker.mjs` reads a tracker with `applications`, `status_events`, `tags` and `application_tags` tables and writes a JSON import file:
+`scripts/convert-legacy-tracker.ts` reads a tracker with `applications`, `status_events`, `tags` and `application_tags` tables and writes a JSON import file:
 
 ```sh
-node scripts/convert-legacy-tracker.mjs ~/old-tracker.db ~/applications.json
+node scripts/convert-legacy-tracker.ts ~/old-tracker.db ~/applications.json
 ```
 
 The tracker is opened read-only and an existing output file is never overwritten. Without an output path, JSON goes to standard output.

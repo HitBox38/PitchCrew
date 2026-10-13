@@ -7,7 +7,7 @@ let requestId = 0;
 
 export async function startPackagedDaemon(resources: string) {
   const runtime = join(resources, 'runtime');
-  launcher = fork(join(runtime, 'scripts/packaged-launcher.mjs'), [], {
+  launcher = fork(join(runtime, 'scripts/packaged-launcher.ts'), [], {
     execPath: join(runtime, 'node', process.platform === 'win32' ? 'node.exe' : 'node'),
     execArgv: ['--import', 'tsx'],
     cwd: runtime,

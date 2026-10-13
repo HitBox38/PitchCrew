@@ -9,10 +9,10 @@ Every linked component, insight, narrative block and SQL source was matched agai
 The complete governed catalog was verified empty by the coordinator and catalog/endpoints workstreams, so these native SQL cells remain noncanonical. Weekly report context reflects the user's accepted fixed Sunday 06:00 UTC delivery, charts only; Jerusalem local delivery changes with daylight saving. Notebook activation created no subscriptions. Exact notebook UUIDs, cell/run identities, SQL hashes, bindings, cutoff and verification results are recorded in [activation.json](../../posthog/notebooks/activation.json). No recipient addresses or private application content are included.
 
 ```sh
-node scripts/posthog/notebooks.mjs list
-node scripts/posthog/notebooks.mjs plan weekly_review /tmp/pitchcrew-notebook-bindings.json
-node scripts/posthog/notebooks.mjs plan release_check /tmp/pitchcrew-notebook-bindings.json
-node --test scripts/posthog/notebooks.test.mjs
+node scripts/posthog/notebooks.ts list
+node scripts/posthog/notebooks.ts plan weekly_review /tmp/pitchcrew-notebook-bindings.json
+node scripts/posthog/notebooks.ts plan release_check /tmp/pitchcrew-notebook-bindings.json
+node --test scripts/posthog/notebooks.test.ts
 ```
 
 The bindings file supplies `project_id: 295060`, a whole-second UTC `cutoff`, `listing_complete: true`, the complete current `existing_notebooks` listing, `catalog` (`unavailable`, `no_match` or `proposed`), and a `bindings` array. Each binding has exactly `{kind, key, id, project_id}`. Dashboard keys are `usage`, `adoption`, `workflow`, `diagnostics`, `web`, `heatmaps`, `ai_mcp` and `engineering`; their IDs must be positive integers verified with `dashboard-get` in this project. The `sanitized_errors` insight binding needs its short ID, verified with `insight-get`. The existing exception insight has short ID `79UVPFXi`; verify its final updated query before binding. No fake IDs or personal credentials belong in committed artifacts.
@@ -23,7 +23,7 @@ Activation sequence:
 
 1. Confirm the connected project, inspect current tool schemas and review dashboard/insight bindings after their final updates. List all notebooks, following pagination. Inspect an existing exact title using `notebooks-get` rather than creating a duplicate.
 2. Consult the governed catalog. Approved, non-drifted measures supersede these noncanonical SQL derivations; do not claim the notebook makes them canonical. Recheck source events/properties after deployment/import. Missing collection remains unknown.
-3. Invoke `plan.create.tool` with `plan.create.input`. Read the creation response's notebook **short ID**, not UUID or URL. Use `bindNotebookCells(plan, shortId)` from `notebooks-library.mjs` to produce the remaining inputs.
+3. Invoke `plan.create.tool` with `plan.create.input`. Read the creation response's notebook **short ID**, not UUID or URL. Use `bindNotebookCells(plan, shortId)` from `notebooks-library.ts` to produce the remaining inputs.
 4. Invoke each cell sequentially. SQL cells run immediately and return their result or a run ID; inspect failures, and poll `notebooks-run-cell-result` if necessary before continuing. Stop on a failed creation/cell. Inspect current content before resuming a partial notebook; blindly replaying cells would duplicate them.
 5. The final `notebooks-get` must confirm cell order, titles, linked resource identities, query code and successful bounded results. Use `notebooks-update-cell` to repair SQL or markdown cells with their actual node IDs; do not append dead attempts. Persist live notebook links in the coordinator's deployment record.
 
