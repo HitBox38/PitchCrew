@@ -62,7 +62,7 @@
   padding-inline: 12px;
   font-size: 12px;
 }
-.workspace-body {
+:where(.workspace-body) {
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -141,7 +141,7 @@
   .workspace-heading-actions {
     margin-left: 30px;
   }
-  .workspace-body {
+  :where(.workspace-body) {
     padding: 12px;
   }
 }
