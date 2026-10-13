@@ -18,6 +18,7 @@ export function RoutinesToolbar({
           <span className="sr-only">Search routines</span>
           <Search size={16} aria-hidden="true" />
           <Input
+            className="pl-9"
             type="search"
             placeholder="Search routines…"
             value={controller.query}
