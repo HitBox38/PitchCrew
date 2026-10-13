@@ -1,18 +1,30 @@
 // Kept free of schema dependencies so the browser can render the catalog directly.
 import type { RoleId } from './states.ts';
+import { promptInjectionGuard } from './starter-skills/prompt-injection-guard.ts';
 
 export const skillContentLimit = 50000;
-export interface BaseSkill {
+interface BaseSkillMetadata {
   name: string;
   description: string;
   source: string;
   sourceAliases?: string[];
-  sourceType: 'github';
   skillPath: string;
   defaultRoles: RoleId[];
+  defaultScope?: 'all' | 'roles';
   note?: string;
 }
+export type BaseSkill = BaseSkillMetadata &
+  ({ sourceType: 'github' } | { sourceType: 'bundled'; content: string });
 export const baseSkills: BaseSkill[] = [
+  {
+    ...promptInjectionGuard,
+    source: 'Pitchcrew',
+    sourceType: 'bundled',
+    skillPath: 'src/starter-skills/prompt-injection-guard.ts',
+    defaultScope: 'all',
+    defaultRoles: [],
+    note: 'Included with Pitchcrew and available offline. Supplements the enforced safety checks.',
+  },
   {
     name: 'cover-letter',
     defaultRoles: ['writer'],
@@ -98,5 +110,5 @@ export const baseSkills: BaseSkill[] = [
   },
 ];
 export function baseSkillUrl(skill: BaseSkill) {
-  return `https://skills.sh/${skill.source}/${skill.name}`;
+  return skill.sourceType === 'github' ? `https://skills.sh/${skill.source}/${skill.name}` : '';
 }

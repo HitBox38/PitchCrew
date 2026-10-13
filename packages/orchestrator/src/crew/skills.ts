@@ -30,7 +30,9 @@ export function hasStarterSkill(this: CrewContext, starter: BaseSkill): boolean 
     .some(
       (skill) =>
         skill.name.toLowerCase() === starter.name.toLowerCase() ||
-        (skill.source &&
+        (starter.sourceType === 'bundled' && skill.bundledId === starter.name) ||
+        (starter.sourceType === 'github' &&
+          skill.source &&
           [starter.source, ...(starter.sourceAliases ?? [])].some(
             (source) => source.toLowerCase() === skill.source!.repository.toLowerCase(),
           ) &&
@@ -47,7 +49,15 @@ export async function seedStarterSkills(
       baseSkills.map(async (starter) => {
         if (this.hasStarterSkill(starter)) return null;
         try {
-          const preview = await this.previewSkill(baseSkillUrl(starter));
+          const preview =
+            starter.sourceType === 'bundled'
+              ? {
+                  name: starter.name,
+                  description: starter.description,
+                  content: starter.content,
+                  bundledId: starter.name,
+                }
+              : await this.previewSkill(baseSkillUrl(starter));
           if (this.closing) throw new Error('The workspace is closing.');
           // A user may have added or removed this skill while its source was loading.
           if (!this.hasStarterSkill(starter))
@@ -56,8 +66,8 @@ export async function seedStarterSkills(
                 ...preview,
                 description:
                   preview.description === '>' ? starter.description : preview.description,
-                scope: 'roles',
-                roleIds: starter.defaultRoles,
+                scope: starter.defaultScope ?? 'roles',
+                roleIds: starter.defaultScope === 'all' ? [] : starter.defaultRoles,
               },
               undefined,
               'system',
@@ -97,9 +107,18 @@ export function saveSkill(
   for (const id of parsed.roleIds) requireRole(this, id);
   const current = id ? this.board.get<Skill>('skill', z.uuid().parse(id)) : undefined;
   if (current?.deletedAt) throw new Error('This skill has been deleted.');
+  const bundledId = current?.bundledId ?? parsed.bundledId;
+  if (
+    bundledId &&
+    !baseSkills.some((starter) => starter.sourceType === 'bundled' && starter.name === bundledId)
+  )
+    throw new Error('Unknown bundled starter skill.');
+  if (current?.bundledId && parsed.bundledId && parsed.bundledId !== current.bundledId)
+    throw new Error('A bundled starter skill’s identity cannot be changed.');
   const now = new Date().toISOString();
   const skill: Skill = {
     ...parsed,
+    ...(bundledId ? { bundledId } : {}),
     ...(current?.source && !parsed.source ? { source: current.source } : {}),
     id: current?.id ?? randomUUID(),
     createdAt: current?.createdAt ?? now,

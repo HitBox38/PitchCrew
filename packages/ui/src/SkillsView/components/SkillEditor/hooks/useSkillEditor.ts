@@ -18,13 +18,20 @@ export function useSkillEditor({
 }: SkillEditorProps) {
   const [name, setName] = useState(skill?.name ?? starter?.name ?? '');
   const [description, setDescription] = useState(skill?.description ?? starter?.description ?? '');
-  const [content, setContent] = useState(skill?.content ?? '');
-  const [scope, setScope] = useState<'all' | 'roles'>(
-    skill?.scope ?? (initialRole || starter ? 'roles' : 'all'),
-  );
-  const [roleIds, setRoleIds] = useState<RoleId[]>(
-    skill?.roleIds ?? (initialRole ? [initialRole] : (starter?.defaultRoles ?? [])),
-  );
+  const initialContent =
+    skill?.content ?? (starter?.sourceType === 'bundled' ? starter.content : '');
+  const initialScope =
+    skill?.scope ?? starter?.defaultScope ?? (initialRole || starter ? 'roles' : 'all');
+  const initialRoles =
+    skill?.roleIds ??
+    (starter?.defaultScope === 'all'
+      ? []
+      : initialRole
+        ? [initialRole]
+        : (starter?.defaultRoles ?? []));
+  const [content, setContent] = useState(initialContent);
+  const [scope, setScope] = useState<'all' | 'roles'>(initialScope);
+  const [roleIds, setRoleIds] = useState<RoleId[]>(initialRoles);
   const [error, setError] = useState('');
   const [source, setSource] = useState(skill?.source);
   const [url, setUrl] = useState(skill?.source?.url ?? (starter ? baseSkillUrl(starter) : ''));
@@ -32,12 +39,9 @@ export function useSkillEditor({
   const dirty =
     name !== (skill?.name ?? starter?.name ?? '') ||
     description !== (skill?.description ?? starter?.description ?? '') ||
-    content !== (skill?.content ?? '') ||
-    scope !== (skill?.scope ?? (initialRole || starter ? 'roles' : 'all')) ||
-    JSON.stringify(roleIds) !==
-      JSON.stringify(
-        skill?.roleIds ?? (initialRole ? [initialRole] : (starter?.defaultRoles ?? [])),
-      );
+    content !== initialContent ||
+    scope !== initialScope ||
+    JSON.stringify(roleIds) !== JSON.stringify(initialRoles);
   const guard = useUnsavedChanges(dirty, onClose);
   const close = () => guard.requestLeave(onClose);
   const importRequest = useRef<AbortController | null>(null);
@@ -81,6 +85,9 @@ export function useSkillEditor({
           scope,
           roleIds: scope === 'all' ? [] : roleIds,
           ...(source ? { source } : {}),
+          ...((skill?.bundledId ?? (starter?.sourceType === 'bundled' ? starter.name : undefined))
+            ? { bundledId: skill?.bundledId ?? starter?.name }
+            : {}),
         },
         skill ? 'Updated skill' : 'Added skill',
       );
@@ -91,9 +98,9 @@ export function useSkillEditor({
   }
   return {
     skill,
-    creator,
+    creator: starter?.sourceType === 'bundled' ? 'Pitchcrew' : creator,
     roles,
-    importing,
+    importing: importing && starter?.sourceType !== 'bundled',
     starter,
     working,
     onClose: close,

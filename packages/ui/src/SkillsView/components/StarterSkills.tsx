@@ -37,14 +37,14 @@ export function StarterSkills({
               </div>
               <Button
                 className="button small"
-                aria-label={`Import ${item.name}`}
+                aria-label={`${item.sourceType === 'bundled' ? 'Add' : 'Import'} ${item.name}`}
                 disabled={working}
                 onClick={() => {
                   setStarter(item);
                   setEditing('import');
                 }}
               >
-                Import
+                {item.sourceType === 'bundled' ? 'Add' : 'Import'}
               </Button>
             </li>
           ))}

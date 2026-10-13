@@ -29,7 +29,8 @@ export function useSkillsView({
       ]),
   );
   const creator = (skill: Skill) =>
-    skill.source?.repository.split('/')[0] ?? agentCreators.get(skill.id) ?? 'You';
+    skill.source?.repository.split('/')[0] ??
+    (skill.bundledId ? 'Pitchcrew' : (agentCreators.get(skill.id) ?? 'You'));
   const skills = data.skills.filter(
     (skill) =>
       (filter === 'all' ||

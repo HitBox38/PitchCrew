@@ -19,7 +19,7 @@ const boards: Board[] = [];
 afterEach(() => {
   for (const board of boards.splice(0)) board.close();
 });
-it('binds confirmation/review to exact content, expires approvals on adoption, and replays version 19', () => {
+it('binds confirmation/review to exact content, expires approvals on adoption, and replays the current event version', () => {
   const board = new Board(':memory:');
   boards.push(board);
   const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));

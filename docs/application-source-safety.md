@@ -105,6 +105,10 @@ Brief changes are rejected while any run for that job is active or a managed sub
 
 ## Verification completed
 
-The full suite passed with 1,443 Vitest tests and 44 script tests; two Vitest cases remain intentionally skipped. Regression coverage includes hidden directives in markup, forbidden extractor tools, malformed extraction, confirmed-context gates, custom-agent personal-answer continuations, exclusion of earlier source-discussion answers, unchanged refreshes, legacy packets, exact export evidence, real MCP stdio and actual headless Chromium field checks across frames. Lint, formatting, type checks, application builds and the separate landing build passed. The Electron smoke test passed and verified its window stayed hidden.
+The full suite passed with 1,444 Vitest tests and 44 script tests; two Vitest cases remain intentionally skipped. Regression coverage includes hidden directives in markup, forbidden extractor tools, malformed extraction, confirmed-context gates, custom-agent personal-answer continuations, exclusion of earlier source-discussion answers, unchanged refreshes, legacy packets, exact export evidence, real MCP stdio and actual headless Chromium field checks across frames. Lint, formatting, type checks, application builds and the separate landing build passed. The Electron smoke test passed and verified its window stayed hidden.
 
 The collaborative browser verified full-brief editing, personal answers, unchanged confirmation, unsaved-change protection and a mobile layout without horizontal overflow using fictional local data. These checks used deterministic Demo and mocked adapters; no live provider run was performed.
+
+## Shared default guard skill
+
+The starter catalog includes a bundled `prompt-injection-guard`, assigned to all agents by default, including future custom agents. It is available offline, editable and removable through Skills; user edits and deleted tombstones survive startup and retries. Users can add the bundled starter again explicitly from the catalog. It provides first-line guidance for source instructions, personal answers, persistence, disclosure and exact-action approvals, supplementing the enforced boundaries. Tools-free source extraction intentionally receives no assigned skills.

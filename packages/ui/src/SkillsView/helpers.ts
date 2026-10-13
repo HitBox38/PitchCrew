@@ -11,7 +11,9 @@ export function assignment(skill: Skill, roles: Role[]) {
 }
 
 export function starterNote(skill: Skill) {
-  return baseSkills.find(
-    (item) => item.source === skill.source?.repository && item.skillPath === skill.source.path,
+  return baseSkills.find((item) =>
+    item.sourceType === 'bundled'
+      ? item.name === skill.bundledId
+      : item.source === skill.source?.repository && item.skillPath === skill.source.path,
   )?.note;
 }

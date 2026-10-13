@@ -99,6 +99,13 @@ export function starterFixture(
   starter: BaseSkill,
   content = `Fictional instructions for ${starter.name}.`,
 ): SkillPreview {
+  if (starter.sourceType === 'bundled')
+    return {
+      name: starter.name,
+      description: starter.description,
+      content: starter.content,
+      bundledId: starter.name,
+    };
   return {
     name: starter.name,
     description: 'Use this fictional fixture when relevant.',
