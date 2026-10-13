@@ -500,25 +500,18 @@
   color: var(--muted);
   font-size: 12px;
 }
-.board-recent summary {
-  min-height: 28px;
-  list-style: none;
+.board-recent [data-slot='accordion-header'] {
+  min-width: 0;
 }
-.board-recent summary::-webkit-details-marker {
-  display: none;
-}
-.board-recent summary:focus-visible {
+.board-recent-trigger:focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 5px;
 }
-.board-recent summary > svg {
-  flex-shrink: 0;
+.board-recent-trigger[data-panel-open] .board-latest {
+  display: none;
 }
-.board-recent details[open] .board-recent-chevron {
-  transform: rotate(180deg);
-}
-.board-recent details[open] .board-latest {
+.board-latest {
   display: none;
 }
 .board-latest {
