@@ -15,6 +15,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import type { CrewService } from '../../service.ts';
+import { readDatabaseImport } from '../../imports/database.ts';
 
 export function registerTrackingRoutes(app: FastifyInstance, service: CrewService) {
   app.post<IdRoute>('/api/tracking/applications/:id/external', (req, res) =>
@@ -42,6 +43,9 @@ export function registerTrackingRoutes(app: FastifyInstance, service: CrewServic
   // User-only bulk import. JSON escaping can triple file bytes, so the body
   // limit is wider than the file limit that the board checks.
   const bodyLimit = importLimits.bytes * 3 + 4096;
+  app.post('/api/tracking/import/database', { bodyLimit }, async (req, res) =>
+    res.send(await readDatabaseImport(req.body)),
+  );
   app.post('/api/tracking/import/preview', { bodyLimit }, (req, res) =>
     res.send(previewApplicationImport(service.board, req.body)),
   );

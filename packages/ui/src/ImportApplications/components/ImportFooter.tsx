@@ -26,7 +26,13 @@ export function ImportFooter({
           onClick={() => void confirmImport()}
         >
           {busy ? <LoaderCircle className="spin" size={15} /> : null}
-          Import {ready} {ready === 1 ? 'application' : 'applications'}
+          {busy
+            ? ready
+              ? 'Importing…'
+              : 'Preparing preview…'
+            : ready
+              ? `Import ${ready} ${ready === 1 ? 'application' : 'applications'}`
+              : 'Import applications'}
         </Button>
       ) : null}
     </div>
