@@ -8,7 +8,7 @@ export const capabilityLabels = {
   maintainProfile: 'Detect watched profile changes and propose reviewed updates',
   readApplications: 'Search all tracked applications and evidence',
   trackApplications: 'Reconcile application status from verified Gmail evidence',
-  discoverJobs: 'Scan your saved job sources and add new matching leads',
+  discoverJobs: 'Scan saved job sources and add leads from posting links',
   github: 'Read GitHub repositories, files and issues',
   gmail: 'Search and read Gmail',
   drive: 'Search Drive and read files and Docs',

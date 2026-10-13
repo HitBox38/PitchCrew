@@ -47,6 +47,7 @@ export {
   postingMatches,
   recordDiscoveredLeads,
   recordLinkedJob,
+  recordLinkedJobIfNew,
   type DiscoveredPosting,
 } from './board/discovery.ts';
 export { defaultInstructionHistory } from './board/default-instruction-history.ts';

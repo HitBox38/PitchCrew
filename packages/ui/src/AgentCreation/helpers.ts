@@ -119,7 +119,7 @@ export function setupWarnings(draft: CreationDraft, data: Snapshot): string[] {
   if ((caps.assessForms || caps.recordSubmissions) && !caps.computerUse)
     warnings.push('Form assessment and submission recording need browser access.');
   if (caps.discoverJobs)
-    warnings.push('Job discovery scans the sources you save in Settings > Job sources.');
+    warnings.push('Job discovery can scan saved sources and add supported posting links as leads.');
   if (caps.maintainProfile)
     warnings.push(
       'Profile maintenance needs watched sources in Profile and access to their GitHub or Drive service.',
