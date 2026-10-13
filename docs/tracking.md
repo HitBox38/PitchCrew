@@ -123,10 +123,10 @@ Each row has a stable import key from its parsed content. The key is written in 
 
 The file picker accepts trackers with `applications`, `status_events`, `tags` and `application_tags` tables in the legacy schema. Unsupported databases show an error with the JSON/CSV alternative. Uploaded databases are read-only in memory, inside a worker with a five-second deadline and bounded heap. The same 2 MB and 1,000-application limits apply to the database and converted JSON. Conversion warnings appear above the preview, including dates assumed UTC, derived titles and shortened content. Agents have no database import tool.
 
-For command-line workflows, `scripts/convert-legacy-tracker.mjs` remains available and uses the same converter to write a JSON import file:
+For command-line workflows, `scripts/convert-legacy-tracker.ts` remains available and uses the same converter to write a JSON import file:
 
 ```sh
-node scripts/convert-legacy-tracker.mjs ~/old-tracker.db ~/applications.json
+node scripts/convert-legacy-tracker.ts ~/old-tracker.db ~/applications.json
 ```
 
 The tracker is opened read-only and an existing output file is never overwritten. Without an output path, JSON goes to standard output.

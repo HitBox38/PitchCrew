@@ -2,7 +2,7 @@ import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { useEffect } from 'react';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
-// Keep in sync with public/theme.js, which applies the theme before the first paint.
+// Keep in sync with theme-init.ts, which applies the theme before the first paint.
 export function useTheme() {
   const choice = useDevicePreferences((state) => state.theme);
   const setChoice = useDevicePreferences((state) => state.setTheme);

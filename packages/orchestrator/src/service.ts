@@ -108,6 +108,9 @@ export class CrewService {
   get connectors() {
     return this.context.connectors;
   }
+  get profileOrganization() {
+    return this.context.profileOrganization;
+  }
   get profileSources() {
     return this.context.profileSources;
   }

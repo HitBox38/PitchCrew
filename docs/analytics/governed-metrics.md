@@ -3,9 +3,9 @@
 PitchCrew prepares seven virtual daily aggregate views and eleven metric candidates using the [shared SQL library](../../posthog/sql/resources.json). One source contract controls event filters, failure denominators, duration validity and engineering-import deduplication. The generator does not copy or reinterpret those definitions.
 
 ```sh
-node scripts/posthog/governed-metrics.mjs
-node scripts/posthog/governed-metrics.mjs --days 7 --timezone Asia/Jerusalem
-node --test scripts/posthog/governed-metrics.test.mjs
+node scripts/posthog/governed-metrics.ts
+node scripts/posthog/governed-metrics.ts --days 7 --timezone Asia/Jerusalem
+node --test scripts/posthog/governed-metrics.test.ts
 ```
 
 The command is network-free and prints a concrete proposal plan. Each model contains a native `view-create` input; each metric contains a candidate definition, unit, daily grain, owner assignment requirement, version and SHA-256 definition hash. It accepts no credentials or apply flag. These administrator artifacts are not part of the renderer or daemon.

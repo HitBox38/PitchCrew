@@ -4,7 +4,7 @@ import { claudeCode } from '../src/claude-code/index.ts';
 import { claudeModelArgs, parseClaudeModels, readClaudeModels } from '../src/claude-code/models.ts';
 import { discoverModels } from '../src/model-discovery.ts';
 
-const fixture = fileURLToPath(new URL('./fixtures/claude-models-cli.mjs', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/claude-models-cli.ts', import.meta.url));
 const read = (mode: string, signal?: AbortSignal, timeout?: number) =>
   readClaudeModels(process.execPath, [fixture, mode, ...claudeModelArgs], signal, timeout);
 afterEach(() => vi.unstubAllEnvs());

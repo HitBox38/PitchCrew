@@ -1,15 +1,12 @@
 import { afterEach, expect, test } from 'vitest';
-import { createRequire } from 'node:module';
+import {
+  pruneRuntimeDependencies,
+  materializeWorkspacePackages,
+} from '../../../scripts/installer-runtime.ts';
 import { lstat, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 
-const { pruneRuntimeDependencies, materializeWorkspacePackages } = createRequire(import.meta.url)(
-  '../../../scripts/installer-runtime.mjs',
-) as {
-  pruneRuntimeDependencies(runtime: string, additionalPackages?: string[]): Promise<void>;
-  materializeWorkspacePackages(runtime: string): Promise<void>;
-};
 const directories: string[] = [];
 async function workspace() {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-installer-'));

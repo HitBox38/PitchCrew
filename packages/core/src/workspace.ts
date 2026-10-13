@@ -7,6 +7,7 @@ import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
+import type { ProfileOrganization } from './profile-organization.ts';
 import type { BoardEvent } from './events.ts';
 import type { Packet, PacketArtifact } from './packets.ts';
 import type { PacketRulesState } from './packet-rules.ts';
@@ -60,6 +61,7 @@ export interface Snapshot {
   computerApprovals: ComputerApproval[];
   events: BoardEvent[];
   profile: ProfileFile[];
+  profileOrganization?: ProfileOrganization;
   runtimes: RuntimeInfo[];
   dataDirectory: string;
   demoAvailable: boolean;
