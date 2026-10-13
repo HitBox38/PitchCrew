@@ -142,3 +142,22 @@
   white-space: normal;
   text-align: left;
 }
+
+@variant max-chat {
+  .chat-empty {
+    padding: 18px 0;
+  }
+  .chat-empty p {
+    font-size: var(--text-label);
+  }
+  .chat-empty-identity .role-avatar.large,
+  .chat-empty-identity .crew-chat-icon {
+    width: 46px;
+    height: 46px;
+  }
+  .chat-starter {
+    padding: 10px;
+    font-size: 12px;
+    gap: 8px;
+  }
+}
