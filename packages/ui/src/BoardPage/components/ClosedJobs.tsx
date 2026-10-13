@@ -8,7 +8,7 @@ export function ClosedJobs({ closed, openCard, data, working, dragging }: Closed
   return (
     <m.div
       layout
-      className="closed-grid grid grid-cols-[repeat(auto-fill,minmax(230px,1fr))] gap-3"
+      className="closed-grid grid min-h-0 flex-1 grid-cols-[repeat(auto-fill,minmax(215px,1fr))] content-start gap-3 overflow-auto"
     >
       <AnimatePresence initial={false}>
         {closed.length ? (

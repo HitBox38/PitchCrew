@@ -15,7 +15,7 @@ export function StatusDestinations({
 }) {
   return (
     <div
-      className="mb-4 grid grid-cols-[repeat(6,minmax(180px,1fr))] gap-3 overflow-x-auto p-1"
+      className="mb-1 grid shrink-0 grid-cols-[repeat(6,minmax(180px,1fr))] gap-3 overflow-x-auto p-1"
       aria-label="Move to a status"
     >
       {dropStages.map((stage) => (

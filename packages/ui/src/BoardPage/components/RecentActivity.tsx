@@ -1,25 +1,30 @@
 import type { RecentActivityProps } from '@/BoardPage/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, ChevronDown, History } from 'lucide-react';
 
 export function RecentActivity({ go, recent }: RecentActivityProps) {
   return (
-    <section className="recent">
-      <div className="section-heading mb-2 flex items-baseline justify-between gap-3.75">
-        <h2>Recent</h2>
-        <Button className="text-button" onClick={() => go('activity')}>
-          All activity <ArrowRight size={13} />
-        </Button>
-      </div>
-      <ul>
-        {recent.map((event) => (
-          <li key={event.id}>
-            <span>{event.message}</span>
-            <time dateTime={event.createdAt}>{timeAgo(event.createdAt)}</time>
-          </li>
-        ))}
-      </ul>
-    </section>
+    <footer className="board-recent flex shrink-0 items-start gap-3 border-t border-border pt-2">
+      <details className="min-w-0 flex-1">
+        <summary className="flex cursor-pointer items-center gap-2">
+          <History size={14} />
+          Recent activity
+          <ChevronDown size={13} className="board-recent-chevron" />
+          <span className="board-latest truncate">{recent[0].message}</span>
+        </summary>
+        <ul className="mt-2 max-h-36 overflow-auto">
+          {recent.map((event) => (
+            <li key={event.id} className="flex items-baseline justify-between gap-4 py-2">
+              <span>{event.message}</span>
+              <time dateTime={event.createdAt}>{timeAgo(event.createdAt)}</time>
+            </li>
+          ))}
+        </ul>
+      </details>
+      <Button className="text-button" onClick={() => go('activity')}>
+        All activity <ArrowRight size={13} />
+      </Button>
+    </footer>
   );
 }

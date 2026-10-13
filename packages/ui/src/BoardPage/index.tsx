@@ -26,7 +26,7 @@ export function BoardPage() {
     recent,
   } = controller;
   return (
-    <>
+    <div className="board-workspace flex min-h-0 flex-1 flex-col gap-3">
       <TrackingReview />
       {!data.cards.length ? (
         data.onboarding?.status !== 'setup' ? (
@@ -55,6 +55,6 @@ export function BoardPage() {
           {recent.length ? <RecentActivity go={go} recent={recent} /> : null}
         </>
       )}
-    </>
+    </div>
   );
 }

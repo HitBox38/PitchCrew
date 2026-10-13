@@ -38,7 +38,7 @@ export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps
       ) : (
         <m.div
           layoutScroll
-          className={`pipeline grid gap-3 overflow-x-auto pb-1.5 ${active ? 'grid-cols-[repeat(6,minmax(210px,1fr))] max-compact:grid-cols-[repeat(6,236px)]' : 'grid-cols-[repeat(5,minmax(210px,1fr))] max-compact:grid-cols-[repeat(5,236px)]'}`}
+          className={`pipeline grid min-h-0 flex-1 gap-2.5 overflow-auto pb-1 ${active ? 'grid-cols-[repeat(6,minmax(185px,1fr))] max-mobile:grid-cols-[repeat(6,230px)]' : 'grid-cols-[repeat(5,minmax(185px,1fr))] max-mobile:grid-cols-[repeat(5,230px)]'}`}
           aria-label="Application pipeline"
           aria-busy={!!pending}
         >
