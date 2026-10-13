@@ -20,7 +20,7 @@
 .chat-prompt,
 .chat-compose-hint,
 .chat-compose > .form-error,
-.chat-queue > details {
+.chat-queue > [data-slot='collapsible'] {
   width: 100%;
   max-width: var(--chat-content-width);
   margin-inline: auto;
@@ -95,16 +95,6 @@
 }
 .chat-empty p {
   margin-top: 10px;
-}
-.chat-progress {
-  flex-wrap: wrap;
-  padding-inline: 20px;
-}
-.chat-queue {
-  padding: 0 20px;
-  border-top: 1px solid var(--border);
-  max-height: 180px;
-  overflow-y: auto;
 }
 .chat-queued-message {
   display: flex;

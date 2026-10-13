@@ -61,3 +61,28 @@ it('retains saved messages across preview-only updates', async () => {
   expect(onState).toHaveBeenCalledTimes(2);
   expect(onState).toHaveBeenLastCalledWith({ messages: [message], streamingMessages: [] });
 });
+
+it('merges activity snapshots by run ID across reply-only frames and terminal updates', async () => {
+  const run = { id: 'run', status: 'running', activity: [{ id: 'tool', status: 'running' }] };
+  const finished = { ...run, status: 'completed', activity: [{ id: 'tool', status: 'completed' }] };
+  const frames = [
+    { messages: [], streamingMessages: [], activityRuns: [run] },
+    { streamingMessages: [], activityRuns: [] },
+    { streamingMessages: [], activityRuns: [finished] },
+    { streamingMessages: [] },
+  ];
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      controller.enqueue(
+        new TextEncoder().encode(
+          frames.map((frame) => `data: ${JSON.stringify(frame)}\n\n`).join(''),
+        ),
+      );
+      controller.close();
+    },
+  });
+  const onState = vi.fn();
+  await readChatStream(body, onState);
+  expect(onState.mock.calls[1][0].activityRuns).toEqual([run]);
+  expect(onState.mock.calls[3][0].activityRuns).toEqual([finished]);
+});

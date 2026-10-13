@@ -2,14 +2,14 @@ import { BrowserModePicker } from '@/AgentBrowser/components/BrowserModePicker.t
 import { ComposerAttachmentMenu } from './ComposerAttachmentMenu.tsx';
 import type { ChatComposerProps } from '../types.ts';
 import { PromptInputFooter } from '@/components/ai-elements/prompt-input/components/PromptInputFooter.tsx';
-import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/components/PromptInputSubmit.tsx';
-import { ConversationSelect } from './ConversationSelect.tsx';
-import { Send } from 'lucide-react';
+import { ComposerSendActions } from './ComposerSendActions.tsx';
 
 export function ComposerFooter(props: ChatComposerProps) {
-  const interruptLabel = props.busyElsewhere ? 'Stop current and send' : 'Interrupt and send';
   return (
-    <PromptInputFooter className="chat-prompt-footer">
+    <PromptInputFooter
+      className="chat-prompt-footer"
+      data-follow-up={props.busy && (!!props.draft.trim() || !!props.files.length)}
+    >
       <ComposerAttachmentMenu key={props.thread} {...props} />
       {props.role.capabilities?.computerUse ? (
         <BrowserModePicker
@@ -19,31 +19,7 @@ export function ComposerFooter(props: ChatComposerProps) {
           save={(patch) => void props.patchConversation(patch)}
         />
       ) : null}
-      <div className="chat-send-actions">
-        {props.busy ? (
-          <ConversationSelect
-            label="Follow-up action"
-            value={props.sendMode}
-            items={[
-              { value: 'queue', label: 'Queue' },
-              { value: 'interrupt', label: interruptLabel },
-            ]}
-            onChange={(value) => props.setSendMode(value as 'queue' | 'interrupt')}
-          />
-        ) : null}
-        <PromptInputSubmit
-          className="button primary chat-send"
-          aria-label="Send message"
-          title={props.busy && props.sendMode === 'interrupt' ? interruptLabel : undefined}
-          status={props.working ? 'submitted' : 'ready'}
-          disabled={
-            (!props.draft.trim() && !props.files.length) || props.working || !props.available
-          }
-        >
-          <Send size={15} />
-          <span>{props.busy && props.sendMode === 'queue' ? 'Queue' : 'Send'}</span>
-        </PromptInputSubmit>
-      </div>
+      <ComposerSendActions {...props} />
     </PromptInputFooter>
   );
 }

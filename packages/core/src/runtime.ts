@@ -5,7 +5,7 @@ import type { ChatAttachment } from './chat-attachments.ts';
 import type { PacketRules } from './packet-rules.ts';
 import type { Role } from './roles.ts';
 import type { ModelReasoning } from './reasoning.ts';
-import type { RunResult } from './runs.ts';
+import type { RunResult, RuntimeActivity } from './runs.ts';
 import type { Skill } from './skills.ts';
 import { type RuntimeId } from './states.ts';
 import type { ProfileFile } from './workspace.ts';
@@ -64,4 +64,6 @@ export interface ChatContext extends Omit<RunContext, 'card'> {
   attachments?: (ChatAttachment & { messageId: string; path: string })[];
   /** Current reply text, replacing the previous preview. Empty text clears it. */
   onReply?: (text: string) => void;
+  /** Public commentary and action lifecycle; never private chain of thought. */
+  onActivity?: (activity: RuntimeActivity) => void;
 }

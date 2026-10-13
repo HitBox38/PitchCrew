@@ -77,6 +77,7 @@ export function createCrewContext(
     capabilities: new Map<string, { runId: string; cardId: string | null; roleId: RoleId }>(),
     controllers: new Map<string, AbortController>(),
     streamingMessages: new Map<string, ChatMessage>(),
+    runActivities: new Map(),
     chatListeners: new Set<(messagesChanged: boolean) => void>(),
     draining: false,
     scheduling: false,

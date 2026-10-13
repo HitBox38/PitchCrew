@@ -24,6 +24,7 @@
 }
 .chat-prompt-footer {
   align-items: center;
+  flex-wrap: wrap;
   padding: 7px 10px 10px;
   gap: 10px;
 }
@@ -31,7 +32,7 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 8px;
   margin-left: auto;
   min-width: 0;
@@ -142,4 +143,20 @@
 .chat-work-panel {
   min-height: 0;
   overflow-y: auto;
+}
+
+.chat-send-actions .chat-context-select {
+  width: auto;
+  max-width: 9rem;
+  flex-shrink: 0;
+}
+@container chat-desk (width < 32rem) {
+  .chat-prompt-footer[data-follow-up='true'] .chat-add-context {
+    width: 32px;
+    padding-inline: 0;
+    flex-shrink: 0;
+  }
+  .chat-prompt-footer[data-follow-up='true'] .chat-add-context > span {
+    display: none;
+  }
 }

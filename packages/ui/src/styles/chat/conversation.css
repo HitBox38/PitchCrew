@@ -142,20 +142,3 @@
   white-space: normal;
   text-align: left;
 }
-.chat-progress {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 25px;
-  color: var(--muted);
-  font-size: 12px;
-  border-top: 1px solid var(--border);
-  background: var(--chat-soft);
-}
-.chat-progress > span {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}

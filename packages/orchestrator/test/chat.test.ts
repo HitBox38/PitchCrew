@@ -35,7 +35,12 @@ describe('agent conversations and crew actions', () => {
     try {
       const firstConnection = await connect();
       await vi.waitFor(() => expect(states).toHaveLength(1));
-      expect(states[0]).toEqual({ messages: [], streamingMessages: [], userInputs: [] });
+      expect(states[0]).toEqual({
+        messages: [],
+        streamingMessages: [],
+        userInputs: [],
+        activityRuns: [],
+      });
       const { result: root } = await request<Run>('/roles/scout/chat', 'POST', {
         content: 'Help me.',
       });
