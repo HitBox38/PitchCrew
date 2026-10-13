@@ -53,7 +53,7 @@ export const toolHelp = {
   proposeCrewChanges:
     'Requires pipeline review. Alert you first, then propose changes for your approval.',
   discoverJobs:
-    'Scans only the job sources you save in Settings. Agents cannot add sources or URLs.',
+    'Scan saved sources or import Greenhouse, Ashby, Lever, Comeet and Workable posting links as leads. Agents cannot change sources.',
   maintainProfile:
     'Requires GitHub or Drive access and watched sources set up in Profile. Every update needs your review.',
   computerUse:

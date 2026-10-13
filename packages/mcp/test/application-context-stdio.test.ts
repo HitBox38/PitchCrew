@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { cardInput, type Run } from '@pitchcrew/core';
+import { cardInput, defaultCapabilities, type Role, type Run } from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
@@ -9,6 +9,16 @@ import { confirmFixtureJob } from '../../board/test/fixtures/application-context
 afterEach(cleanup);
 it('exposes no extraction tools and only application-scoped drafting/review tools over real stdio', async () => {
   const { daemon } = await setup(22381);
+  const writer = daemon.service.board.get<Role>('role', 'writer');
+  daemon.service.board.record(
+    'role',
+    {
+      ...writer,
+      capabilities: { ...defaultCapabilities, ...writer.capabilities, discoverJobs: true },
+    },
+    'user',
+    'Enable discovery to verify isolated runs cannot import job sources',
+  );
   const card = daemon.service.board.createCard(
     cardInput.parse({ company: 'Fixture', title: 'Engineer', description: 'RAW-HIDDEN-DIRECTIVE' }),
   );

@@ -47,6 +47,7 @@ export const mcpGatewayTools = Object.freeze({
   propose_profile_note: 'pitchcrew_propose_profile_note',
   job_sources: 'pitchcrew_list_job_sources',
   scan_job_sources: 'pitchcrew_scan_job_sources',
+  import_job_link: 'pitchcrew_import_job_link',
   routines: 'pitchcrew_list_routines',
   save_routine: 'pitchcrew_save_routine',
   delete_routine: 'pitchcrew_delete_routine',

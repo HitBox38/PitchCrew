@@ -175,7 +175,7 @@ async function dispatchAgentCall(
     return pipelineAction(this, capability, action, data.input);
   if (action === 'job_discovery_access')
     return { discoverJobs: role.enabled && permissions.discoverJobs === true };
-  if (action === 'job_sources' || action === 'scan_job_sources')
+  if (['job_sources', 'scan_job_sources', 'import_job_link'].includes(action))
     return jobSourceAction.call(this, capability, token, action, data);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
     return routineAction.call(this, capability, action, data);

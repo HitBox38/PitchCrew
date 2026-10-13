@@ -127,6 +127,7 @@ describe('default instruction detection', () => {
       '5351034367241fe7',
       '040296e5bc252a0d',
       '99ee31027dc9d202',
+      '4e92b80827a6000b',
     ]);
     expect(scout.changes[0]).toEqual({
       revision: '5351034367241fe7',

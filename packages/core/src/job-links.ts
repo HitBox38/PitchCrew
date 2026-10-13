@@ -10,8 +10,8 @@ import {
 } from './job-sources.ts';
 
 /**
- * Posting links the user can paste in Add job. Recognition is pure: it reads the provider, board
- * name and job ID from a link and never fetches it. The daemon then calls only the provider's
+ * Posting links accepted by Add job and agent imports. Recognition is pure: it reads the
+ * provider, board name and job ID from a link and never fetches it. The daemon then calls only the provider's
  * fixed public endpoint, rebuilt from the validated board name and job ID.
  */
 // Comeet office-specific links append an office UID; provenance always identifies the base job.
@@ -297,4 +297,20 @@ export interface JobLookupDuplicate {
 }
 export type JobLookupResult =
   | { status: 'found'; prefill: JobLookupPrefill; duplicates: JobLookupDuplicate[] }
+  | { status: 'unrecognized' | 'failed'; reason: string };
+
+/** Agent imports add only leads; duplicate results expose existing IDs and statuses. */
+export type JobLinkImportResult =
+  | {
+      status: 'added';
+      lead: {
+        id: string;
+        company: string;
+        title: string;
+        location: string;
+        url: string;
+        excerpt: string;
+      };
+    }
+  | { status: 'duplicate'; duplicates: Pick<JobLookupDuplicate, 'id' | 'state'>[] }
   | { status: 'unrecognized' | 'failed'; reason: string };

@@ -142,7 +142,7 @@ Pitchcrew reads only the providers' official public APIs, without signing in, an
 
 For a single job, paste its posting link in **Add job** and choose **Fetch from link**. Pitchcrew fills in the company, title, location, salary and full description for you to review, and warns when the job may already be on the board. A job saved this way records its provider and job ID, so later scans skip it.
 
-To let Scout scan, enable **Scan your saved job sources and add new matching leads** in its settings under Role tools. It is off by default. Scout can then scan from chat or a routine, assess the new leads and tell you about strong matches. Agents cannot add, change or remove sources. See [job discovery](docs/job-discovery.md).
+To let an agent scan sources or add a job from a posting link, enable **Scan saved job sources and add leads from posting links** in its settings under Role tools. It is off by default. You can then paste a supported Greenhouse, Ashby, Lever, Comeet or Workable posting link in chat and ask the agent to add it. The tool saves a lead or reports an existing card or a lookup failure. Scout can also scan saved sources from chat or a routine, assess the new leads and tell you about strong matches. Agents cannot add, change or remove sources. See [job discovery](docs/job-discovery.md).
 
 Agent suggestions for instructions, capabilities and skills appear in **Chat > Crew work**. You review and decide whether to apply them. [Pipeline reviews](docs/pipeline-reviews.md) use the same explicit approval model for targeted crew changes.
 
