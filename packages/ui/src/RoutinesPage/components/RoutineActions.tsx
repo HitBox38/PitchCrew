@@ -17,37 +17,30 @@ export function RoutineActions({
   remove(): void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <Button className="button" disabled={working} onClick={edit}>
+    <div className="routine-actions flex flex-wrap items-center gap-2">
+      <Button variant="ghost" size="sm" disabled={working} onClick={edit}>
         <Pencil size={14} /> Edit
       </Button>
       {routine.nextRunAt ? (
-        <Button className="button" disabled={working} onClick={toggle}>
+        <Button variant="ghost" size="sm" disabled={working} onClick={toggle}>
           {routine.enabled ? <Pause size={14} /> : <Play size={14} />}
           {routine.enabled ? 'Pause' : 'Resume'}
         </Button>
       ) : null}
       <Button
         variant="ghost"
+        size="icon-sm"
         disabled={working}
         onClick={remove}
         aria-label={`Delete ${routine.name}`}
       >
         <Trash2 size={15} />
       </Button>
-      <Link
-        className="text-sm underline underline-offset-4"
-        to="/chat/$thread"
-        params={{ thread: routine.roleId }}
-      >
+      <Link className="routine-link" to="/chat/$thread" params={{ thread: routine.roleId }}>
         Open chat
       </Link>
       {routine.lastRunId ? (
-        <Link
-          className="text-sm underline underline-offset-4"
-          to="/activity"
-          search={{ q: routine.name, kind: 'routine' }}
-        >
+        <Link className="routine-link" to="/activity" search={{ q: routine.name, kind: 'routine' }}>
           History
         </Link>
       ) : null}
