@@ -12,7 +12,6 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
         <strong>{source.name}</strong>
         <span className="quiet block">
           {jobProviderLabels[source.provider]} · {source.slug}
-          {source.enabled ? '' : ' · Paused'}
         </span>
         <span className="quiet block">{filterSummary(source)}</span>
         <span
@@ -21,6 +20,9 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
           {lastScanText(source)}
         </span>
       </div>
+      <span className={`badge ${source.enabled ? 'success' : ''}`}>
+        {source.enabled ? 'Watching' : 'Paused'}
+      </span>
       <div className="flex flex-wrap items-center gap-2">
         <Button
           className="button"

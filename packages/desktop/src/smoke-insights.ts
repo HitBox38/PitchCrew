@@ -49,6 +49,9 @@ export const smokeInsights = `(async () => {
   for (let index = 1; index < 201; index++) await register(index);
   document.querySelector('a[href="/insights"]')?.click();
   const insightsReady = await waitFor(() => location.pathname === '/insights' && !!document.querySelector('.insights-table'));
+  const tidy = document.querySelector('.insights-tidy-trigger');
+  if (tidy?.getAttribute('aria-expanded') !== 'true') tidy?.click();
+  if (!await waitFor(() => tidy?.getAttribute('aria-expanded') === 'true')) return false;
   const button = (text) => [...document.querySelectorAll('button')].find((item) => item.textContent === text);
   button('Find silent applications')?.click();
   if (!await waitFor(() => document.querySelectorAll('[aria-label="Silent applications"] [role="checkbox"]').length === 201)) return false;

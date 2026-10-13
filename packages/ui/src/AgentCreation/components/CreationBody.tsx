@@ -20,7 +20,7 @@ export function CreationBody(props: CreationController) {
   }, [props.step]);
   return (
     <div className="role-settings-body creation-body">
-      <h3 ref={heading} tabIndex={-1} className="mb-4 text-xl">
+      <h3 ref={heading} tabIndex={-1} className="mb-4 font-sans text-base font-semibold">
         {creationSteps[props.step]}
       </h3>
       {props.step === 0 ? <PurposeStep {...props} /> : null}

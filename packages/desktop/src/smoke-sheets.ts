@@ -26,7 +26,9 @@ export const smokeOpenCreation = `(async () => {
   };
   document.querySelector('a[href="/crew"]')?.click();
   await waitFor(() => !!document.querySelector('.crew-card'));
-  [...document.querySelectorAll('button')].find((button) => button.textContent === 'Create agent')?.click();
+  const create = () => [...document.querySelectorAll('.workspace-heading-actions button')].find((button) => button.textContent.trim() === 'Create agent');
+  await waitFor(() => !!create());
+  create()?.click();
   await waitFor(() => !!document.querySelector('.creation-panel'));
   return await ${smokeSheetBounds};
 })()`;

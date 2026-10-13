@@ -1,7 +1,7 @@
 import { ActivityFilters } from '@/ActivityPage/components/ActivityFilters.tsx';
-import { actorLabels, eventKindLabels } from '@/ActivityPage/constants.ts';
+import { ActivityHistory } from '@/ActivityPage/components/ActivityHistory.tsx';
+import { eventKindLabels } from '@/ActivityPage/constants.ts';
 import { EmptyState } from '@/components/EmptyState/index.tsx';
-import { timeAgo } from '@/lib/time.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 
@@ -29,40 +29,22 @@ export function ActivityPage() {
     });
   };
   return (
-    <>
+    <div className="activity-workspace flex min-h-0 min-w-0 flex-1 flex-col">
       <ActivityFilters query={query} kind={kind} change={change} count={filtered.length} />
       {filtered.length ? (
-        <section className="activity-panel" aria-label="Activity history">
-          <ol className="activity-list">
-            {filtered.map((event) => (
-              <li
-                className={`activity-row grid grid-cols-[74px_minmax(0,1fr)_auto] items-baseline gap-4 border-b border-border py-2.75 text-body last:border-0 max-compact:grid-cols-[56px_minmax(0,1fr)] ${event.kind}`}
-                key={event.id}
-              >
-                <time dateTime={event.createdAt} title={event.createdAt}>
-                  {timeAgo(event.createdAt)}
-                </time>
-                <span className="activity-message flex min-w-0 items-baseline gap-2.25 wrap-anywhere">
-                  {event.message}
-                </span>
-                <span className="activity-actor">
-                  {actorLabels[event.actor] ?? event.actor}
-                  <span className="activity-kind">{eventKindLabels[event.kind]}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
-        </section>
+        <ActivityHistory events={filtered} />
       ) : (
-        <EmptyState
-          title={events.length ? 'No matching activity' : 'Your history starts here'}
-          description={
-            events.length
-              ? 'Try another search or activity type.'
-              : 'Your jobs, crew runs, and decisions will appear here as you work.'
-          }
-        />
+        <div className="min-h-0 flex-1 overflow-y-auto">
+          <EmptyState
+            title={events.length ? 'No matching activity' : 'Your history starts here'}
+            description={
+              events.length
+                ? 'Try another search or activity type.'
+                : 'Your jobs, crew runs, and decisions will appear here as you work.'
+            }
+          />
+        </div>
       )}
-    </>
+    </div>
   );
 }

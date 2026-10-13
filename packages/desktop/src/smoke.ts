@@ -118,7 +118,9 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               chatTabsReady = !!document.querySelector('.chat-heading [role="tablist"][aria-label="Conversation view"]') && workReady && writerReady && await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-transcript'));
               document.querySelector('a[href="/skills"]')?.click();
               await waitFor(() => !!document.querySelector('.skills-view'));
-              [...document.querySelectorAll('.skill-actions button')].find((button) => button.textContent.includes('Add skill'))?.click();
+              const addSkill = () => [...document.querySelectorAll('.workspace-heading-actions button')].find((button) => button.textContent.includes('Add skill'));
+              await waitFor(() => !!addSkill());
+              addSkill()?.click();
               const editorReady = await waitFor(() => !!document.querySelector('#skill-content'));
               const fill = (selector, value) => {
                 const input = document.querySelector(selector);

@@ -24,6 +24,8 @@ Production TSX files have a maximum of 100 lines after formatting. `scripts/chec
 
 `App` owns the mounted workspace shell. Pages select workspace state and render their feature. `WorkspaceStore` owns snapshot polling, transient chat overlays and shared actions; route state remains in TanStack Router. Local form state belongs in the feature's hook. Pure helpers never call hooks, and action names do not start with `use`.
 
+`App/components/WorkspacePage.tsx` gives standard routes a viewport-height paper frame, compact title header and scrolling body. Feature actions use `WorkspaceHeaderActions` to render in that header while their state stays in the feature. Chat and Profile keep their dedicated workspaces. Shared frame materials and editor density live in `styles/workspace-frame.css`; its body defaults use `:where()` so each feature can establish its own independent panes and scrolling without specificity overrides.
+
 Shared domain labels, time formatting and role status live in `src/lib`. Primitive families keep their original public exports in `components/ui` and `components/ai-elements`. Internal sections can import the specific primitive they need.
 
 ## Styling

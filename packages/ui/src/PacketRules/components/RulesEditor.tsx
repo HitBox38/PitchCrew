@@ -14,11 +14,11 @@ export function RulesEditor({ controller }: { controller: PacketRulesController 
         : 'Ready to save';
   return (
     <>
-      <div className="mt-6 mb-2 flex items-center justify-between gap-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <label className="font-semibold" htmlFor="packet-rules-json">
           Rules file (JSON)
         </label>
-        <output className="quiet" aria-live="polite">
+        <output className="badge" aria-live="polite">
           {status}
         </output>
       </div>

@@ -39,13 +39,13 @@ export function PipelineColumn({
   return (
     <section
       ref={ref}
-      className={`pipeline-column min-h-110 min-w-0 px-2 pt-2.5 pb-3 max-compact:min-h-80 ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
+      className={`pipeline-column flex min-h-0 min-w-0 flex-col px-2 pt-2.5 pb-2 ${stage.color} ${flashStage === stage.id ? 'flash' : ''}`}
       id={`stage-${stage.id}`}
       aria-labelledby={`heading-${stage.id}`}
       data-drop-allowed={allowed || undefined}
       data-drop-target={(selection === undefined && isDropTarget) || undefined}
     >
-      <div className="column-heading mb-2.5 flex h-6.5 items-center gap-2 px-1.5">
+      <div className="column-heading mb-2.5 flex h-6.5 shrink-0 items-center gap-2 px-1">
         <span className="stage-dot" />
         <h2 id={`heading-${stage.id}`}>{stage.label}</h2>
         <span className="column-count">{cards.length}</span>
@@ -69,7 +69,7 @@ export function PipelineColumn({
           ))}
         </div>
       ) : null}
-      <div className="column-cards flex flex-col gap-2">
+      <div className="column-cards flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-1">
         <AnimatePresence initial={false}>
           {cards.map((card) => (
             <DraggableJob

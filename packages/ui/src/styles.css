@@ -19,6 +19,7 @@
 @import './styles/settings.css' layer(components);
 @import './styles/activity.css' layer(components);
 @import './styles/insights.css' layer(components);
+@import './styles/routines.css' layer(components);
 @import './styles/dialogs.css' layer(components);
 @import './styles/imports.css' layer(components);
 @import './styles/agent-creation.css' layer(components);
@@ -46,6 +47,7 @@
 @import './styles/skills.css' layer(components);
 @import './styles/profile-workspace.css' layer(components);
 @import './styles/motion.css' layer(components);
+@import './styles/workspace-frame.css' layer(components);
 
 /* Regression-test class strings must not add unused production utilities. */
 @source not './**/__tests__/**';

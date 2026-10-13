@@ -14,7 +14,7 @@ export function ProfileWorkspaceHeading({
     ['pending', 'applying'].includes(proposal.status),
   ).length;
   return (
-    <header className="flex shrink-0 items-center gap-2 border-b border-border px-3 py-2">
+    <header className="profile-workspace-heading">
       <Button
         variant="ghost"
         className="profile-explorer-toggle"
@@ -25,11 +25,14 @@ export function ProfileWorkspaceHeading({
       >
         <PanelLeft size={16} />
       </Button>
-      <FolderOpen size={16} className="text-primary" />
-      <h1 className="text-base font-semibold">Profile</h1>
+      <FolderOpen size={18} className="shrink-0 text-primary" />
+      <div className="profile-heading-copy">
+        <h1>Profile</h1>
+        <p>Your background and project notes for the crew.</p>
+      </div>
       <Button
         variant="ghost"
-        className="button small ml-auto"
+        className="button small profile-sources-action"
         onClick={() => c.setSourcesOpen(true)}
         aria-haspopup="dialog"
       >

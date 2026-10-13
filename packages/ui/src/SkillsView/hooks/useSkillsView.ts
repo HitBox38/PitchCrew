@@ -16,6 +16,7 @@ export function useSkillsView({
       ? requestedFilter
       : 'all';
   const [query, setQuery] = useState('');
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Skill | 'new' | 'import' | null>(null);
   const [starter, setStarter] = useState<BaseSkill | null>(null);
   const [deleting, setDeleting] = useState<Skill | null>(null);
@@ -41,6 +42,9 @@ export function useSkillsView({
         .toLowerCase()
         .includes(query.toLowerCase()),
   );
+  const chosen = skills.find((skill) => skill.id === selectedId);
+  const selected = chosen ?? skills[0] ?? null;
+  const showingDetail = Boolean(chosen);
   const filters: { value: SkillFilter; label: string }[] = [
     { value: 'all', label: 'All skills' },
     { value: 'shared', label: 'Shared' },
@@ -73,6 +77,9 @@ export function useSkillsView({
     setError,
     creator,
     skills,
+    selected,
+    setSelectedId,
+    showingDetail,
     filters,
     remove,
   };

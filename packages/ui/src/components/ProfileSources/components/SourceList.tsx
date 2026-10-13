@@ -15,30 +15,32 @@ export function SourceList({ sources, busy, load, unlink, watch }: ProfileSource
               {new Date(source.importedAt).toLocaleDateString()}
             </span>
           </div>
-          <Button
-            className="button"
-            disabled={busy}
-            aria-pressed={source.watching === true}
-            onClick={() => void watch(source.id, !source.watching)}
-          >
-            {source.watching ? 'Pause watching' : 'Enable watching'}
-          </Button>
-          {source.mode !== 'project' ? (
-            <Button className="button" disabled={busy} onClick={() => void load(source.input)}>
-              <RefreshCw size={14} /> Review updates
+          <div className="profile-source-controls">
+            <Button
+              className="button"
+              disabled={busy}
+              aria-pressed={source.watching === true}
+              onClick={() => void watch(source.id, !source.watching)}
+            >
+              {source.watching ? 'Pause watching' : 'Enable watching'}
             </Button>
-          ) : (
-            <span className="quiet">Project revision {source.revision?.slice(0, 8)}</span>
-          )}
-          <Button
-            variant="ghost"
-            className="icon-button"
-            disabled={busy}
-            onClick={() => void unlink(source.id)}
-            aria-label={`Remove source ${source.label}; keep local notes`}
-          >
-            <Unlink size={15} />
-          </Button>
+            {source.mode !== 'project' ? (
+              <Button className="button" disabled={busy} onClick={() => void load(source.input)}>
+                <RefreshCw size={14} /> Review updates
+              </Button>
+            ) : (
+              <span className="quiet">Project revision {source.revision?.slice(0, 8)}</span>
+            )}
+            <Button
+              variant="ghost"
+              className="icon-button"
+              disabled={busy}
+              onClick={() => void unlink(source.id)}
+              aria-label={`Remove source ${source.label}; keep local notes`}
+            >
+              <Unlink size={15} />
+            </Button>
+          </div>
         </div>
       ))}
     </div>

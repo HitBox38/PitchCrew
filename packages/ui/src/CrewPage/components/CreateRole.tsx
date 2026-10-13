@@ -2,6 +2,8 @@ import { lazy, Suspense, useState } from 'react';
 import type { Snapshot } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { WorkspaceHeaderActions } from '@/App/components/WorkspacePage.tsx';
+import { Plus } from 'lucide-react';
 const AgentCreation = lazy(() =>
   import('@/AgentCreation/index.tsx').then((module) => ({ default: module.AgentCreation })),
 );
@@ -10,16 +12,18 @@ export function CreateRole({ data, working }: { data: Snapshot; working: boolean
   const reload = useWorkspaceStore((state) => state.reload);
   const setToast = useWorkspaceStore((state) => state.setToast);
   return (
-    <div className="mb-4">
-      <Button
-        className="button primary"
-        disabled={working || data.roles.length >= 50}
-        onClick={() => setOpen(true)}
-      >
-        Create agent
-      </Button>
+    <>
+      <WorkspaceHeaderActions>
+        <Button
+          className="button primary"
+          disabled={working || data.roles.length >= 50}
+          onClick={() => setOpen(true)}
+        >
+          <Plus size={14} aria-hidden="true" /> Create agent
+        </Button>
+      </WorkspaceHeaderActions>
       {data.roles.length >= 50 ? (
-        <p className="quiet">All 50 stored role IDs are in use, including retired roles.</p>
+        <p className="quiet mb-4">All 50 stored role IDs are in use, including retired roles.</p>
       ) : null}
       {open ? (
         <Suspense fallback={<output className="quiet">Loading agent setup…</output>}>
@@ -34,6 +38,6 @@ export function CreateRole({ data, working }: { data: Snapshot; working: boolean
           />
         </Suspense>
       ) : null}
-    </div>
+    </>
   );
 }

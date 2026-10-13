@@ -8,7 +8,7 @@ import { X } from 'lucide-react';
 export function RoleSettingsHeading({ role, onClose }: RoleSettingsHeadingProps) {
   return (
     <header className="role-settings-heading">
-      <RoleAvatar agentRole={role.id} size="large" />
+      <RoleAvatar agentRole={role.id} />
       <div>
         <SheetTitle>{role.name ? `${role.name} settings` : 'Create role'}</SheetTitle>
         <SheetDescription>{role.description}</SheetDescription>

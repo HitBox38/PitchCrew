@@ -15,7 +15,7 @@ export function JobSourcesSettings() {
         match your filters become leads on the board. Jobs already on the board, including ones you
         withdrew, are not added again.
       </p>
-      <div className="settings-row">
+      <div className="mt-5 flex flex-wrap items-center gap-2">
         <Button className="button" disabled={model.busy || !!model.draft} onClick={model.startAdd}>
           <Plus size={15} /> Add source
         </Button>

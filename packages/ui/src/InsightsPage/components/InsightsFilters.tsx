@@ -20,7 +20,10 @@ export function InsightsFilters({
   ];
   const filtered = Boolean(search.tag || search.from || search.to);
   return (
-    <div className="insights-filters flex flex-wrap items-end gap-3">
+    <section
+      className="insights-filters flex flex-wrap items-end gap-3"
+      aria-label="Insights filters"
+    >
       <FormSelect
         label="Tag"
         value={tags.find((tag) => search.tag && tagKey(tag) === tagKey(search.tag)) ?? ''}
@@ -51,6 +54,6 @@ export function InsightsFilters({
           Clear filters
         </Button>
       ) : null}
-    </div>
+    </section>
   );
 }

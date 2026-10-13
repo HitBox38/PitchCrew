@@ -22,7 +22,7 @@ const items = [
 ];
 export function ActivityFilters({ query, kind, change, count }: Props) {
   return (
-    <div className="activity-toolbar mb-4.5 flex max-w-245 items-center gap-3 max-compact:flex-wrap">
+    <div className="activity-toolbar flex shrink-0 flex-wrap items-center gap-3 border-b border-border px-5 py-3.5 max-mobile:px-3">
       <div className="search-input">
         <Search size={15} aria-hidden="true" />
         <Input
@@ -53,7 +53,7 @@ export function ActivityFilters({ query, kind, change, count }: Props) {
           ))}
         </SelectContent>
       </Select>
-      <output className="subtle">
+      <output className="subtle" aria-live="polite" aria-atomic="true">
         {count} {count === 1 ? 'event' : 'events'}
       </output>
     </div>

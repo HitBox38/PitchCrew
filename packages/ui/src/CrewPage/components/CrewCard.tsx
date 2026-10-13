@@ -15,17 +15,19 @@ export function CrewCard({
   working,
 }: CrewCardProps) {
   return (
-    <section className={`crew-card ${role.id}`}>
+    <section className={`crew-card ${role.id}`} data-retired={role.retiredAt ? '' : undefined}>
       <div className="crew-card-top">
-        <RoleAvatar agentRole={role.id} size="large" />
+        <RoleAvatar agentRole={role.id} />
         <div>
           <h2>{role.name}</h2>
-          <span className={`role-status ${!role.enabled ? 'paused' : ''}`}>
-            {role.retiredAt ? 'Retired' : role.enabled ? 'Enabled' : 'Paused'}
+          <span
+            className={`role-status ${!role.enabled || status === 'Unavailable' ? 'paused' : ''}`}
+          >
+            {status}
           </span>
         </div>
       </div>
-      <p>{role.description}</p>
+      <p className="crew-card-description">{role.description}</p>
       {update ? (
         <p className="crew-card-update">
           <Sparkles size={14} aria-hidden="true" />
@@ -43,27 +45,25 @@ export function CrewCard({
             {role.runtime === 'demo' ? 'Scripted' : role.model || 'CLI default'}
           </dd>
         </div>
-        <div>
-          <dt>Now</dt>
-          <dd>{status}</dd>
-        </div>
       </dl>
       <div className="crew-card-actions">
         <Button className="button primary" onClick={onChat}>
-          <MessageSquare size={14} /> Chat
+          <MessageSquare size={14} aria-hidden="true" /> Chat
         </Button>
         {role.retiredAt ? (
           <Button className="button" onClick={onRestore} disabled={working}>
-            <RotateCcw size={14} /> Restore agent
+            <RotateCcw size={14} aria-hidden="true" /> Restore agent
           </Button>
         ) : (
           <Button className="button" onClick={onConfigure}>
-            <SlidersHorizontal size={14} /> Configure
+            <SlidersHorizontal size={14} aria-hidden="true" /> Configure
           </Button>
         )}
       </div>
       {role.retiredAt ? (
-        <p className="quiet">Restores paused. Resume in Configure when ready.</p>
+        <p className="quiet crew-card-retired-note">
+          Restores paused. Resume in Configure when ready.
+        </p>
       ) : null}
     </section>
   );

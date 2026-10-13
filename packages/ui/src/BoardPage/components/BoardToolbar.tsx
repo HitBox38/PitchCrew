@@ -12,14 +12,14 @@ export function BoardToolbar({
   setQuery,
 }: BoardToolbarProps) {
   return (
-    <div className="board-toolbar mb-4.5 flex items-center gap-3.5 max-compact:flex-wrap">
+    <div className="board-toolbar workspace-toolbar shrink-0 gap-3">
       <fieldset className="view-switch" aria-label="Board view">
         <Button
           aria-pressed={!showClosed}
           className={!showClosed ? 'active' : ''}
           onClick={() => setShowClosed(false)}
         >
-          Pipeline
+          Pipeline <span>{active.length}</span>
         </Button>
         <Button
           aria-pressed={showClosed}

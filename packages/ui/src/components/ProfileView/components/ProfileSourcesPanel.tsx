@@ -12,8 +12,8 @@ export function ProfileSourcesPanel(c: ProfileViewModel) {
   return (
     <Dialog open={c.sourcesOpen} onOpenChange={c.setSourcesOpen}>
       <DialogContent className="modal profile-sources-dialog">
-        <DialogHeader className="shrink-0 border-b border-border px-6 py-4 pr-12">
-          <DialogTitle>Profile sources</DialogTitle>
+        <DialogHeader className="min-h-17 shrink-0 border-b border-border px-5 py-4 pr-12">
+          <DialogTitle className="font-sans text-lg">Profile sources</DialogTitle>
           <DialogDescription>
             Manage the folders behind your notes and review source updates.
           </DialogDescription>

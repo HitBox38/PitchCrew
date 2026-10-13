@@ -18,7 +18,7 @@ export function TagScoreboard({
         Positive share counts only decided applications. Small numbers are weak evidence.
       </p>
       {insights.tags.length ? (
-        <div className="mt-3 overflow-x-auto">
+        <div className="insights-table-scroll mt-3 overflow-x-auto">
           <table className="insights-table w-full">
             <thead>
               <tr>
