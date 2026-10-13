@@ -323,17 +323,22 @@
   line-height: 1.6;
   margin-bottom: 16px;
 }
-.starter-skills > summary {
+.starter-skills [data-slot='accordion-trigger'] {
   cursor: pointer;
-  font-size: 18px;
-  font-weight: 600;
+  padding: 6px 0;
+  color: var(--ink-soft);
+  font: 600 13px/1.5 var(--font-sans);
 }
-.starter-skills > summary span {
-  margin-left: 12px;
-  font-size: 12px;
+.starter-skill-count {
+  margin-left: auto;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--sunken-fill);
+  color: var(--muted);
+  font-size: 11px;
   font-weight: 400;
 }
-.starter-skills > p {
+.starter-skills [data-slot='accordion-content'] > p {
   margin: 12px 0 20px;
 }
 .starter-skill-library {
@@ -401,15 +406,7 @@
   margin-top: 16px;
   padding: 14px 8px 0;
 }
-.skills-explorer .starter-skills > summary {
-  font-size: 13px;
-}
-.skills-explorer .starter-skills > summary span {
-  display: block;
-  margin: 4px 0 0 16px;
-  font-size: 11px;
-}
-.skills-explorer .starter-skills > p {
+.skills-explorer .starter-skills [data-slot='accordion-content'] > p {
   margin-bottom: 8px;
   font-size: 12px;
   line-height: 1.6;
