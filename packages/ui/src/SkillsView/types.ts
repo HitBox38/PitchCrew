@@ -33,7 +33,7 @@ export type SkillFiltersProps = Pick<SkillsViewModel, 'filters' | 'filter' | 'on
 
 export type SkillLibraryProps = Pick<
   SkillsViewModel,
-  'skills' | 'creator' | 'data' | 'setEditing' | 'working' | 'setError' | 'setDeleting'
+  'skills' | 'creator' | 'data' | 'selected' | 'setSelectedId'
 >;
 
 export type SkillsToolbarProps = Pick<
@@ -46,4 +46,16 @@ export type StarterSkillErrorsProps = Pick<SkillsViewModel, 'data' | 'working' |
 export type StarterSkillsProps = Pick<
   SkillsViewModel,
   'data' | 'query' | 'working' | 'setStarter' | 'setEditing'
+>;
+
+export type SkillPreviewProps = Pick<
+  SkillsViewModel,
+  | 'selected'
+  | 'creator'
+  | 'data'
+  | 'setEditing'
+  | 'working'
+  | 'setError'
+  | 'setDeleting'
+  | 'setSelectedId'
 >;

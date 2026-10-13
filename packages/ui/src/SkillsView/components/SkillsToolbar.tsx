@@ -1,3 +1,4 @@
+import { WorkspaceHeaderActions } from '@/App/components/WorkspacePage.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { SkillsToolbarProps } from '@/SkillsView/types.ts';
@@ -21,7 +22,7 @@ export function SkillsToolbar({
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
-      <div className="skill-actions">
+      <WorkspaceHeaderActions>
         <Button
           className="button"
           onClick={() => {
@@ -35,7 +36,7 @@ export function SkillsToolbar({
         <Button className="button primary" onClick={() => setEditing('new')} disabled={working}>
           <Plus size={16} /> Add skill
         </Button>
-      </div>
+      </WorkspaceHeaderActions>
     </div>
   );
 }
