@@ -51,6 +51,9 @@ describe('analytics content boundary', () => {
       $process_person_profile: false,
       $geoip_disable: true,
     });
+    expect(actionEvent('/cards/private-id/status', 'POST', { state: 'submitted' })).toEqual(
+      tracked,
+    );
     expect(
       sanitizeEvent({ event: 'application_status_changed', properties: { state: 'secret' } })
         ?.properties,

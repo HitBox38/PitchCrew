@@ -406,19 +406,27 @@
   background: var(--teal-soft);
   outline: 2px solid var(--teal);
 }
-.column-drop-hint {
-  min-height: 44px;
-  margin-bottom: 8px;
-  padding: 8px;
+.status-drop-target {
+  min-height: 38px;
+  border: 1px dashed var(--border-strong);
   border-radius: 9px;
   color: var(--muted);
-  font-size: var(--text-caption);
-  line-height: 1.4;
 }
-.column-drop-hint[data-allowed='true'] {
+.status-drop-target[data-drop-allowed] {
+  border-color: var(--teal);
   color: var(--teal);
+}
+.status-drop-target[data-drop-target] {
+  border-style: solid;
   background: var(--teal-soft);
+  outline: 1px solid var(--teal);
   font-weight: 600;
+}
+.status-drop-target[aria-disabled='true'] {
+  opacity: 0.5;
+}
+.pink .stage-dot {
+  background: var(--rose);
 }
 .draggable-job:has(.job-drag-handle) .job-top {
   padding-right: 24px;

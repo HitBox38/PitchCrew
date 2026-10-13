@@ -9,11 +9,13 @@ export type BoardToolbarProps = Pick<
 
 export type BoardWelcomeProps = Pick<BoardPageModel, 'setAdd' | 'working' | 'act' | 'data'>;
 
-export type ClosedJobsProps = Pick<BoardPageModel, 'closed' | 'openCard'>;
+export type ClosedJobsProps = Pick<BoardPageModel, 'closed' | 'openCard' | 'data' | 'working'> & {
+  dragging: boolean;
+};
 
 export type JobPipelineProps = Pick<
   BoardPageModel,
-  'filtered' | 'flashStage' | 'setAdd' | 'openCard' | 'query'
+  'filtered' | 'flashStage' | 'setAdd' | 'openCard' | 'query' | 'showClosed'
 >;
 
 export type RecentActivityProps = Pick<BoardPageModel, 'go' | 'recent'>;

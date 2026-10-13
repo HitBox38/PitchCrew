@@ -53,6 +53,7 @@ export interface Snapshot {
   skills: Skill[];
   skillProposals: SkillProposal[];
   runs: Run[];
+  activityRuns?: Run[];
   approvals: Approval[];
   // Page counts derived from frozen artifact bytes, keyed by artifact SHA-256 digest.
   artifactPages?: Record<string, number>;

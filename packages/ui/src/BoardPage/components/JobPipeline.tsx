@@ -1,14 +1,17 @@
 import { PipelineColumn } from './PipelineColumn.tsx';
+import { ClosedJobs } from './ClosedJobs.tsx';
+import { StatusDestinations } from './StatusDestinations.tsx';
 import { pipelinePlugins, pipelineSensors } from '@/BoardPage/constants.ts';
 import { usePipelineDrag } from '@/BoardPage/hooks/usePipelineDrag.ts';
-import { stages } from '@/board-stages.ts';
+import { closedStates, dropStages, stages } from '@/board-stages.ts';
 import type { JobPipelineProps } from '@/BoardPage/types.ts';
 import { JobCard } from '@/components/JobCard/index.tsx';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import * as m from 'motion/react-m';
 
-export function JobPipeline({ filtered, ...props }: JobPipelineProps) {
-  const { data, working, active, pending, startDrag, endDrag } = usePipelineDrag();
+export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps) {
+  const { data, working, active, pending, selection, startDrag, moveDrag, endDrag } =
+    usePipelineDrag();
   if (!data) return null;
   const cards = filtered.map((card) =>
     pending?.id === card.id && pending.from === card.state ? { ...card, state: pending.to } : card,
@@ -18,26 +21,41 @@ export function JobPipeline({ filtered, ...props }: JobPipelineProps) {
       sensors={pipelineSensors}
       plugins={pipelinePlugins}
       onDragStart={startDrag}
+      onDragMove={moveDrag}
       onDragEnd={(event) => void endDrag(event)}
     >
-      <m.div
-        layoutScroll
-        className="pipeline grid grid-cols-[repeat(5,minmax(210px,1fr))] gap-3 overflow-x-auto pb-1.5 max-compact:grid-cols-[repeat(5,236px)]"
-        aria-label="Application pipeline"
-        aria-busy={!!pending}
-      >
-        {stages.map((stage) => (
-          <PipelineColumn
-            key={stage.id}
-            stage={stage}
-            cards={cards.filter((card) => stage.states.includes(card.state))}
-            active={active}
-            data={data}
-            working={working}
-            {...props}
-          />
-        ))}
-      </m.div>
+      {showClosed && active ? (
+        <StatusDestinations active={active} data={data} working={working} selection={selection} />
+      ) : null}
+      {showClosed ? (
+        <ClosedJobs
+          closed={cards.filter((card) => closedStates.includes(card.state))}
+          openCard={props.openCard}
+          data={data}
+          working={working}
+          dragging={!!active}
+        />
+      ) : (
+        <m.div
+          layoutScroll
+          className={`pipeline grid gap-3 overflow-x-auto pb-1.5 ${active ? 'grid-cols-[repeat(6,minmax(210px,1fr))] max-compact:grid-cols-[repeat(6,236px)]' : 'grid-cols-[repeat(5,minmax(210px,1fr))] max-compact:grid-cols-[repeat(5,236px)]'}`}
+          aria-label="Application pipeline"
+          aria-busy={!!pending}
+        >
+          {(active ? dropStages : stages).map((stage) => (
+            <PipelineColumn
+              key={stage.id}
+              stage={stage}
+              cards={cards.filter((card) => stage.states.includes(card.state))}
+              active={active}
+              data={data}
+              working={working}
+              selection={selection}
+              {...props}
+            />
+          ))}
+        </m.div>
+      )}
       <DragOverlay dropAnimation={null} className="job-drag-overlay">
         {active ? (
           <div aria-hidden="true">

@@ -34,7 +34,9 @@
 @import './styles/responsive.css' layer(components);
 @import './styles/chat/layout.css' layer(components);
 @import './styles/chat/conversation.css' layer(components);
+@import './styles/chat/activity.css' layer(components);
 @import './styles/chat/composer.css' layer(components);
+@import './styles/chat/queue.css' layer(components);
 @import './styles/chat/work.css' layer(components);
 @import './styles/chat/redesign.css' layer(components);
 @import './styles/chat/questions.css' layer(components);

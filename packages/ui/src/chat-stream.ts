@@ -23,7 +23,18 @@ export async function readChatStream(
           .map((line) => line.slice(5).trimStart())
           .join('\n');
         if (data) {
-          state = { ...state, ...(JSON.parse(data) as ChatStreamUpdate) };
+          const update = JSON.parse(data) as ChatStreamUpdate;
+          const runs = update.activityRuns
+            ? [
+                ...new Map(
+                  [...(state.activityRuns ?? []), ...update.activityRuns].map((run) => [
+                    run.id,
+                    run,
+                  ]),
+                ).values(),
+              ]
+            : state.activityRuns;
+          state = { ...state, ...update, ...(runs ? { activityRuns: runs } : {}) };
           onState(state);
         }
       }

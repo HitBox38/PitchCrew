@@ -177,7 +177,7 @@ describe('default instruction updates', () => {
   });
 
   it('clears an explicit source when the user restores an exact earlier default', async () => {
-    const { daemon, request, seedOld, updates } = await fixture(15621);
+    const { daemon, request, seedOld, updates } = await fixture(15610);
     seedOld('writer', firstWriter);
     const role = daemon.service.board.get<Role>('role', 'writer');
     await request('/roles/writer', 'PUT', {

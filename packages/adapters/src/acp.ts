@@ -6,6 +6,7 @@ import {
   runtimeTimeLimit,
   terminateCli,
 } from './process.ts';
+import { activityStream } from './activity/index.ts';
 import { replyPreview } from './streaming.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
@@ -27,6 +28,7 @@ export async function runAcpText(
 ): Promise<string> {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   const preview = replyPreview(context);
+  const activity = activityStream(context);
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
       cwd: context.directory,
@@ -94,7 +96,9 @@ export async function runAcpText(
           | undefined;
         if (!sessionId || params?.sessionId !== sessionId) return;
         const update = params.update;
+        if (update?.sessionUpdate === 'agent_thought_chunk') activity.thinking();
         if (update?.sessionUpdate === 'tool_call') {
+          activity.boundary();
           assistant = '';
           preview('');
         }
@@ -104,6 +108,7 @@ export async function runAcpText(
           typeof update.content.text === 'string'
         ) {
           assistant += update.content.text;
+          activity.text(assistant);
           preview(assistant);
         }
         return;
@@ -184,6 +189,7 @@ export async function runAcpText(
       reject(error);
     });
     child.on('close', () => {
+      activity.boundary();
       if (settled) return;
       if (!failure && !completed && buffer.trim()) {
         try {

@@ -14,6 +14,7 @@ import { createBoardContext } from './board/context.ts';
 import type { BoardContext } from './board/types.ts';
 
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
+export { setCardStatus } from './board/manual-status.ts';
 export {
   applicationRevision,
   jobSourceRevision,

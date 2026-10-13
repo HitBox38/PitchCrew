@@ -1,5 +1,5 @@
 import { adapters } from '@pitchcrew/adapters';
-import { assertReviewedContext, changeJobState } from '@pitchcrew/board';
+import { assertReviewedContext } from '@pitchcrew/board';
 import {
   cardInput,
   type Card,
@@ -406,7 +406,10 @@ describe('application source boundary', () => {
     const drafting = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' }))
       .result;
     await finish(request, drafting.id);
-    changeJobState(daemon.service.board, card.id, 'agreed', 'user', 'Correction is not a review.');
+    await vi.waitFor(() => expect(daemon.service.controllers.size).toBe(0));
+    expect(
+      (await request(`/cards/${card.id}/status`, 'POST', { state: 'agreed' })).response.status,
+    ).toBe(200);
     expect((await request(`/cards/${card.id}/approval`, 'POST', {})).response.status).toBe(400);
     const reviewing = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'reviewer' }))
       .result;

@@ -1,3 +1,6 @@
+import { randomUUID } from 'node:crypto';
+import { recordChatActivity } from './chat-activity.ts';
+import { observeChatTool } from './gateway/activity.ts';
 import { askUser } from './user-input/questions.ts';
 import { questionForRun } from './user-input/lifecycle.ts';
 import { conversationAction, memoryAction } from './gateway/conversations.ts';
@@ -43,12 +46,14 @@ export async function agentCall(
   } catch {
     // Telemetry initialization must never prevent a scoped tool invocation.
   }
+  const finishActivity = observeChatTool(this, token, action);
   let isError = true;
   try {
     const result = await dispatchAgentCall.call(this, token, action, data);
     isError = false;
     return result;
   } finally {
+    finishActivity(isError);
     finish(isError);
   }
 }
@@ -121,6 +126,23 @@ async function dispatchAgentCall(
     ].includes(action)
   )
     throw new Error('This turn is waiting for user input. End the turn now.');
+  if (action === 'report_progress') {
+    if (activeRun?.mode !== 'chat') throw new Error('Progress updates require a chat turn.');
+    const { content } = z.object({ content: z.string().trim().min(1).max(1200) }).parse(data);
+    const count =
+      this.runActivities
+        .get(capability.runId)
+        ?.entries.filter((entry) => entry.id.startsWith('progress-')).length ?? 0;
+    if (count >= 8) throw new Error('Eight progress updates maximum per turn.');
+    recordChatActivity(this, capability.runId, {
+      id: `progress-${randomUUID()}`,
+      kind: 'commentary',
+      label: 'Progress update',
+      text: content,
+      status: 'completed',
+    });
+    return { ok: true };
+  }
   if (action === 'ask_user') return askUser(this, capability, data.input ?? data);
   if (
     [

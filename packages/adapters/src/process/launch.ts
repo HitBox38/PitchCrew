@@ -102,6 +102,7 @@ export async function runCliText(
       reject(err);
     });
     child.on('close', (code) => {
+      stream.finish();
       clearTimeout(timer);
       context.signal.removeEventListener('abort', kill);
       if (context.signal.aborted) {
