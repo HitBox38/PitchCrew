@@ -3,9 +3,9 @@ import { FileText } from 'lucide-react';
 
 export function PacketPreview({ approval }: PacketPreviewProps) {
   return (
-    <details className="approval-preview">
+    <details className="approval-preview" open>
       <summary>
-        <FileText size={15} /> Show the packet
+        <FileText size={15} /> Application packet
       </summary>
       {Object.entries(approval.packet)
         .filter(([key]) => key !== 'claims')

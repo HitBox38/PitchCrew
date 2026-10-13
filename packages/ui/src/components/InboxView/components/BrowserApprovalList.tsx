@@ -1,14 +1,28 @@
-import type { BrowserApprovalListProps } from '@/components/InboxView/types.ts';
-import { ComputerApprovals } from '@/ComputerApprovals/index.tsx';
+import type { BrowserApprovalListProps } from '../types.ts';
+import { BrowserApprovalContent } from '@/ComputerApprovals/components/BrowserApprovalContent.tsx';
+import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
+import { ApprovalReviewFrame } from './ApprovalReviewFrame.tsx';
 
 export function BrowserApprovalList({
   computerApprovals,
   action,
   working,
 }: BrowserApprovalListProps) {
-  return (
-    <div className="approval-list">
-      <ComputerApprovals approvals={computerApprovals} action={action} working={working} />
-    </div>
-  );
+  return computerApprovals.map((approval) => (
+    <ApprovalReviewFrame
+      key={approval.id}
+      actions={
+        approval.status === 'pending' ? (
+          <BrowserApprovalActions approval={approval} action={action} working={working} />
+        ) : null
+      }
+    >
+      <BrowserApprovalContent
+        approval={approval}
+        action={action}
+        working={working}
+        showActions={false}
+      />
+    </ApprovalReviewFrame>
+  ));
 }

@@ -1,4 +1,5 @@
-import type { PacketArtifact } from '@pitchcrew/core';
+import type { ApprovalRequest, InboxTab } from './types.ts';
+import type { Approval, PacketArtifact, Snapshot } from '@pitchcrew/core';
 
 export type ArtifactPages = Record<string, number> | undefined;
 
@@ -18,4 +19,34 @@ export function resumePageWarning(artifacts: PacketArtifact[], pages: ArtifactPa
   return most > 1
     ? `The resume runs to ${most} pages. The target is one page. Reject and ask the Writer to shorten it, or approve if you want a longer resume.`
     : undefined;
+}
+
+const waitingStatuses = new Set(['pending', 'approved']);
+
+export function approvalRequests(
+  data: Pick<Snapshot, 'approvals' | 'computerApprovals'>,
+  tab: InboxTab,
+): ApprovalRequest[] {
+  const waiting = tab === 'pending';
+  return [
+    ...data.computerApprovals
+      .filter((approval) => waitingStatuses.has(approval.status) === waiting)
+      .map((approval) => ({ kind: 'browser' as const, key: `browser:${approval.id}`, approval })),
+    ...data.approvals
+      .filter((approval) => waitingStatuses.has(approval.status) === waiting)
+      .map((approval) => ({ kind: 'packet' as const, key: `packet:${approval.id}`, approval })),
+  ];
+}
+
+export function selectedApprovalRequest(requests: ApprovalRequest[], key: string | null) {
+  return requests.find((request) => request.key === key) ?? requests[0];
+}
+
+export function packetStatusLabel(status: Approval['status']) {
+  return {
+    pending: 'Needs approval',
+    approved: 'Approved',
+    consumed: 'Exported',
+    rejected: 'Rejected',
+  }[status];
 }
