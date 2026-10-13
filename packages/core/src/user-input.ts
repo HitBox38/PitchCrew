@@ -2,6 +2,10 @@ import { z } from 'zod';
 
 export const userQuestionInput = z
   .object({
+    applicationRequirementId: z
+      .string()
+      .regex(/^[a-z0-9-]{1,80}$/)
+      .optional(),
     question: z.string().trim().min(1).max(2000),
     reason: z.string().trim().max(2000).default(''),
     continuationNotes: z.string().trim().max(8000).default(''),
@@ -31,6 +35,7 @@ export const userAnswerInput = z
     'Choose an option or write an answer.',
   );
 export interface UserInputRequest extends z.infer<typeof userQuestionInput> {
+  applicationContextRevision?: string;
   id: string;
   threadId: string;
   sourceThreadId: string;

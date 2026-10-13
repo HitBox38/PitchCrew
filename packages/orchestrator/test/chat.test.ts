@@ -1,3 +1,4 @@
+import { confirmFixtureApplication } from './helpers/daemon.ts';
 import { adapters } from '@pitchcrew/adapters';
 import type { Approval, Card, ChatContext, ChatStreamState, Run, Snapshot } from '@pitchcrew/core';
 import { readFile } from 'node:fs/promises';
@@ -220,6 +221,7 @@ describe('agent conversations and crew actions', () => {
       company: 'Fixture Co',
       title: 'React Engineer',
     });
+    await confirmFixtureApplication(request, card.id);
     const { result: other } = await request<Card>('/cards', 'POST', {
       company: 'Other Fixture',
       title: 'Engineer',

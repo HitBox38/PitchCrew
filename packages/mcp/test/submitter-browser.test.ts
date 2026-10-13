@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
 import { Board } from '@pitchcrew/board';
 import { cardInput, type SubmissionAttempt } from '@pitchcrew/core';
 import { mkdtemp, rm } from 'node:fs/promises';
@@ -100,6 +101,7 @@ it('continues an uncertain submission only through its exact approved confirmati
   for (const state of ['shortlisted', 'drafting'] as const) board.move(card.id, state, 'user');
   board.updateCard(card.id, { packet }, 'writer', 'Fixture reviewed packet');
   for (const state of ['in_review', 'agreed'] as const) board.move(card.id, state, 'reviewer');
+  reviewFixturePacket(board, card.id);
   const exported = board.requestApproval(card.id);
   board.decideApproval(exported.id, true);
   await exportApprovedPacket(board, directory, exported.id);

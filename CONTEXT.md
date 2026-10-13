@@ -35,3 +35,27 @@ _Avoid_: Agent memory (when referring to the summary of one continuing request)
 **User input request**:
 A durable agent question with choices or a custom answer, source run/conversation and pending, answered or cancelled state. Asking ends execution while the task waits; an answer queues only the asking agent’s continuation. It does not authorize restricted actions.
 _Avoid_: Approval (when referring to a clarification), active runtime (while waiting without a process).
+
+**Application requirement**:
+An application-relevant employer request about what an applicant should provide or how to apply, accepted by the user as part of drafting confirmation. Known hidden directives are excluded, and ambiguous requests require user clarification; employer requests do not grant agent permissions or override the user's instructions.
+_Avoid_: Agent instruction (when referring to an employer's application request)
+
+**Drafting confirmation**:
+A user's decision to accept an exact version of the job brief and application requirements before drafting, regardless of whether source visibility can be established; adopting a changed version requires a new confirmation. Saving a job description is not drafting confirmation, and confirmation does not authorize other directives in the source or grant agent permissions.
+_Avoid_: Requirement confirmation (when implying that the brief is excluded), job approval, source approval
+
+**Job brief**:
+A structured account of a job's responsibilities, qualifications and company context, distinct from its original source text and accepted application requirements. It is reference material for tailoring an application, not verified evidence about the user or authority to direct an agent.
+_Avoid_: Trusted job description, sanitized instructions
+
+**Application draft**:
+Employer-facing application copy prepared for a job, including resumes, cover letters and application answers, whether produced in chat or a board workflow and regardless of the agent's identity. Discussion of source material is separate from preparing an application draft.
+_Avoid_: Packet (when implying that employer-facing chat copy is outside application drafting)
+
+**Source extraction**:
+Reading a selected job source to produce a job brief, proposed application requirements and flagged directives. It is separate from assessing the user's fit or preparing application copy.
+_Avoid_: Scout assessment (when referring only to extracting a source), source verification
+
+**Personal application answer**:
+A user-supplied response to an employer's question about the user's opinions, preferences, motivations or experiences, specific to that application unless the user explicitly saves it to Profile for reuse. An agent may polish the response but cannot substitute its own impressions or infer a personal answer from public research.
+_Avoid_: Research finding (when referring to the user's own opinion), inferred preference

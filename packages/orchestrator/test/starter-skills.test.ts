@@ -1,11 +1,83 @@
-import type { Skill, SkillPreview, Snapshot } from '@pitchcrew/core';
+import type { Run, Skill, SkillPreview, Snapshot } from '@pitchcrew/core';
 import { baseSkills, baseSkillUrl } from '@pitchcrew/core/base-skills';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { adapters } from '@pitchcrew/adapters';
+import { readFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { skillDirectory } from '../src/skills-directory.ts';
-import { cleanup, setup, starterFixture } from './helpers/daemon.ts';
+import { cleanup, finish, setup, starterFixture } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 describe('starter skills at workspace startup', () => {
+  it('bundles the shared guard offline, includes future agents, and preserves edits, renames and deletion', async () => {
+    vi.spyOn(skillDirectory, 'preview').mockRejectedValue(new Error('Offline fixture.'));
+    const starter = baseSkills.find((item) => item.sourceType === 'bundled')!;
+    const { daemon, directory, request } = await setup(14457, true);
+    const guard = daemon.service.skills().find((skill) => skill.name === starter.name)!;
+    expect(guard).toMatchObject({ bundledId: starter.name, scope: 'all', roleIds: [] });
+    expect(guard.source).toBeUndefined();
+    for (const role of daemon.service.board.list<import('@pitchcrew/core').Role>('role'))
+      expect(daemon.service.skills(role.id)).toContainEqual(guard);
+    await daemon.service.createRole({
+      id: 'future-agent',
+      name: 'Future agent',
+      description: 'Fictional future agent.',
+      runtime: 'demo',
+      model: '',
+      enabled: true,
+      instructions: 'Use scoped tools.',
+    });
+    const chat = vi.spyOn(adapters.demo, 'chat');
+    const run = (
+      await request<Run>('/roles/future-agent/chat', 'POST', { content: 'Use my shared skills.' })
+    ).result;
+    await finish(request, run.id);
+    expect(chat.mock.calls[0]![0].skills).toContainEqual(guard);
+    expect(
+      await readFile(
+        join(directory, 'roles', 'future-agent', 'runs', run.id, 'skills', guard.id, 'SKILL.md'),
+        'utf8',
+      ),
+    ).toContain(guard.content);
+    const edited = (
+      await request<Skill>(`/skills/${guard.id}`, 'PUT', {
+        name: 'My renamed safety guard',
+        description: 'User-managed first layer.',
+        content: 'Preserve my reviewed safety instructions.',
+        scope: 'roles',
+        roleIds: ['scout'],
+      })
+    ).result;
+    expect(edited.bundledId).toBe(starter.name);
+    daemon.service.board.rebuild();
+    await daemon.service.initialize(true);
+    expect(daemon.service.skills()).toEqual([edited]);
+    await request(`/skills/${guard.id}`, 'DELETE');
+    await request('/skills/starter/retry', 'POST');
+    expect(daemon.service.skills()).toEqual([]);
+    const restored = (
+      await request<Skill>('/skills', 'POST', {
+        ...starterFixture(starter),
+        scope: 'all',
+        roleIds: [],
+      })
+    ).result;
+    expect(restored.id).not.toBe(guard.id);
+    expect(restored.bundledId).toBe(starter.name);
+    await request('/skills/starter/retry', 'POST');
+    expect(daemon.service.skills()).toEqual([restored]);
+    expect(
+      (
+        await request('/skills', 'POST', {
+          ...starterFixture(starter),
+          bundledId: 'unknown-bundle',
+          scope: 'all',
+          roleIds: [],
+        })
+      ).response.status,
+    ).toBe(400);
+  });
+
   it('loads defaults before the first snapshot and respects edits, renames and deletions on restart and replay', async () => {
     const preview = vi
       .spyOn(skillDirectory, 'preview')
@@ -14,13 +86,13 @@ describe('starter skills at workspace startup', () => {
       );
     const { daemon, request } = await setup(14453, true);
     const snapshot = (await request<Snapshot>('/snapshot')).result;
-    expect(snapshot.skills).toHaveLength(10);
+    expect(snapshot.skills).toHaveLength(11);
     expect(snapshot.starterSkillErrors).toEqual([]);
     expect(preview).toHaveBeenCalledTimes(10);
     for (const starter of baseSkills)
       expect(snapshot.skills.find((skill) => skill.name === starter.name)).toMatchObject({
-        scope: 'roles',
-        roleIds: starter.defaultRoles,
+        scope: starter.defaultScope ?? 'roles',
+        roleIds: starter.defaultScope === 'all' ? [] : starter.defaultRoles,
       });
     const cover = snapshot.skills.find((skill) => skill.name === 'cover-letter')!;
     const humanizer = snapshot.skills.find((skill) => skill.name === 'humanizer')!;
@@ -56,14 +128,14 @@ describe('starter skills at workspace startup', () => {
     daemon.service.board.rebuild();
     await daemon.service.initialize(true);
     expect(preview).toHaveBeenCalledTimes(10);
-    expect(daemon.service.skills()).toHaveLength(8);
+    expect(daemon.service.skills()).toHaveLength(9);
     expect(daemon.service.skills().find((skill) => skill.id === cover.id)?.content).toBe(
       'User edited instructions.',
     );
     expect(daemon.service.skills().some((skill) => skill.name === 'humanizer')).toBe(false);
     expect(
       daemon.service.board.events().filter((event) => event.message.startsWith('Loaded starter')),
-    ).toHaveLength(10);
+    ).toHaveLength(11);
   });
   it('starts with partial failures and retries latest sources without restoring a deleted starter', async () => {
     let unavailable = true;
@@ -76,7 +148,7 @@ describe('starter skills at workspace startup', () => {
       );
     });
     const { daemon, request } = await setup(14454, true);
-    expect(daemon.service.skills()).toHaveLength(9);
+    expect(daemon.service.skills()).toHaveLength(10);
     expect((await daemon.service.snapshot()).starterSkillErrors).toEqual([
       { name: 'research', error: 'Upstream file unavailable.' },
     ]);
@@ -123,7 +195,7 @@ describe('starter skills at workspace startup', () => {
     daemon.service.deleteSkill(userSkill.id);
     release(starterFixture(starter));
     await Promise.all([first, second]);
-    expect(daemon.service.skills()).toHaveLength(9);
+    expect(daemon.service.skills()).toHaveLength(10);
     expect(
       daemon.service.board.list<Skill>('skill').filter((skill) => skill.name === 'humanizer'),
     ).toHaveLength(1);
@@ -132,7 +204,14 @@ describe('starter skills at workspace startup', () => {
     vi.spyOn(skillDirectory, 'preview').mockRejectedValue(new Error('Offline fixture.'));
     const { daemon } = await setup(14450, true);
     const snapshot = await daemon.service.snapshot();
-    expect(snapshot.skills).toEqual([]);
+    expect(snapshot.skills).toHaveLength(1);
+    expect(snapshot.skills[0]).toMatchObject({
+      name: 'prompt-injection-guard',
+      scope: 'all',
+      roleIds: [],
+      bundledId: 'prompt-injection-guard',
+    });
+    expect(snapshot.skills[0]!.source).toBeUndefined();
     expect(snapshot.starterSkillErrors).toHaveLength(10);
   });
 });

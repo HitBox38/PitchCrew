@@ -1,3 +1,4 @@
+import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import type { Run, Skill, Snapshot } from '@pitchcrew/core';
@@ -127,6 +128,7 @@ describe('managed agent skills', () => {
     );
     const card = daemon.service.createCard({ company: 'Fictional Co', title: 'Engineer' });
     const workflow = vi.spyOn(adapters.demo, 'run');
+    confirmFixtureJob(daemon.service.board, card.id);
     const run = await daemon.service.startRun(card.id, 'scout');
     await finish(request, run.id);
     expect(workflow.mock.calls.at(-1)![0].skills).toEqual([shared]);

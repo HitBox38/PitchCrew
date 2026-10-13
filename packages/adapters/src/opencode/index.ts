@@ -5,6 +5,7 @@ import { apiModels } from '../models.ts';
 import { detectCli, runCliText, withChat } from '../process.ts';
 
 export const opencode = withChat({
+  applicationIsolation: true,
   id: 'opencode',
   models: apiModels,
   detect: () => detectCli('opencode', 'opencode'),

@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { userQuestionInput, type Run, type UserInputRequest } from '@pitchcrew/core';
+import { userQuestionInput, type Card, type Run, type UserInputRequest } from '@pitchcrew/core';
+import { assertConfirmedContext } from '@pitchcrew/board';
 import { canReadConversation, conversations, relatedConversation } from '../conversations.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
@@ -7,6 +8,19 @@ export function askUser(context: CrewContext, capability: RunCapability, data: u
   const input = userQuestionInput.parse(data);
   const run = context.board.get<Run>('run', capability.runId);
   if (run.status !== 'running') throw new Error('This execution is no longer active.');
+  let applicationContextRevision: string | undefined;
+  if (input.applicationRequirementId) {
+    if (!run.cardId || !['application-draft', 'application-review'].includes(run.purpose ?? ''))
+      throw new Error('Application answers require an isolated application run.');
+    const job = assertConfirmedContext(context.board.get<Card>('card', run.cardId));
+    const requirement = job.requirements.find(
+      (r) => r.id === input.applicationRequirementId && r.personal,
+    );
+    if (!requirement || job.revision !== run.contextRevision)
+      throw new Error('The application requirement changed.');
+    applicationContextRevision = job.revision;
+    input.question = requirement.question;
+  }
   if (context.board.list<UserInputRequest>('user_input').some((q) => q.runId === run.id))
     throw new Error('This turn already asked a question. Finish the turn and wait for its answer.');
   const sourceThreadId = run.threadId ?? run.roleId;
@@ -35,6 +49,7 @@ export function askUser(context: CrewContext, capability: RunCapability, data: u
     );
   const question: UserInputRequest = {
     ...input,
+    ...(applicationContextRevision ? { applicationContextRevision } : {}),
     id: randomUUID(),
     threadId: target.id,
     sourceThreadId,

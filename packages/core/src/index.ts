@@ -1,4 +1,5 @@
 export * from './conversations.ts';
+export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';

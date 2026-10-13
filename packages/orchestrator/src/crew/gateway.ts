@@ -11,6 +11,7 @@ import {
   defaultCapabilities,
   describePacketRules,
   workflowSeat,
+  draftingCard,
   runResultSchema,
   type Approval,
   type Card,
@@ -72,6 +73,29 @@ async function dispatchAgentCall(
   const activeRun = this.board
     .list<import('@pitchcrew/core').Run>('run')
     .find((run) => run.id === capability.runId);
+  if (action === 'execution_access') {
+    if (!activeRun || activeRun.status !== 'running')
+      throw new Error('Run capability is invalid or expired.');
+    return { purpose: activeRun.purpose ?? null };
+  }
+  if (activeRun?.purpose === 'source-extraction')
+    throw new Error(
+      'Source extraction cannot call agent tools. Return only the structured source result.',
+    );
+  const isolated =
+    activeRun?.purpose === 'application-draft' ||
+    activeRun?.purpose === 'application-review' ||
+    activeRun?.purpose === 'fit';
+  if (
+    isolated &&
+    !['card', 'profile', 'packet_rules', 'lint', 'ask_user', 'notify_user'].includes(action)
+  )
+    throw new Error('This tool is not available in an isolated application run.');
+  if (isolated) {
+    const card = this.board.get<Card>('card', capability.cardId!);
+    if (card.applicationContext?.revision !== activeRun.contextRevision)
+      throw new Error('Application context changed during this run.');
+  }
   if (activeRun?.threadId && !canReadConversation(this, capability.roleId, activeRun.threadId))
     throw new Error('Conversation access was removed.');
   if (
@@ -206,7 +230,10 @@ async function dispatchAgentCall(
     return changeWorkflow.call(this, capability, permissions, action, data);
   if (['card', 'history', 'export'].includes(action) && !capability.cardId)
     throw new Error('This chat has no attached application.');
-  if (action === 'card') return { card: this.board.get<Card>('card', capability.cardId!) };
+  if (action === 'card') {
+    const card = this.board.get<Card>('card', capability.cardId!);
+    return { card: isolated ? draftingCard(card, activeRun.purpose) : card };
+  }
   if (action === 'profile') return { profile: await readProfile(this.directory) };
   if (action === 'history') {
     const query = z

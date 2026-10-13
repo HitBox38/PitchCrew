@@ -1,6 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { defaultCapabilities, type Card, type Role } from '@pitchcrew/core';
+import { defaultCapabilities, type Card, type Run, type Role } from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { expect, it } from 'vitest';
 import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
@@ -16,6 +16,22 @@ it('serves read-only application insights through real stdio with capability gat
       cardId: null,
     });
     daemon.service.controllers.set('insights-fixture', new AbortController());
+    daemon.service.board.record(
+      'run',
+      {
+        id: 'insights-fixture',
+        roleId: 'writer',
+        cardId: null,
+        mode: 'chat',
+        runtime: 'demo',
+        status: 'running',
+        message: '',
+        startedAt: new Date().toISOString(),
+        finishedAt: null,
+      } satisfies Run,
+      'user',
+      'Fictional active MCP run',
+    );
     const card = (
       await request<Card>('/cards', 'POST', {
         company: 'Oakline Studio',

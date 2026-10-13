@@ -111,6 +111,7 @@ export interface JobSource extends JobSourceInput {
 }
 /** One normalized posting from a provider response. */
 export interface JobPosting {
+  sourceHtml?: string;
   provider: JobProvider;
   jobId: string;
   title: string;

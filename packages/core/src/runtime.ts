@@ -34,6 +34,9 @@ export interface RuntimeRecommendation extends RuntimeConfiguration {
   detail: string;
 }
 export interface RunContext {
+  purpose?: 'source-extraction' | 'application-draft' | 'application-review' | 'fit';
+  sourceText?: string;
+  userAnswers?: { questionId: string; messageId: string; answer: string }[];
   card: Card;
   role: Role;
   skills?: Skill[];
@@ -47,6 +50,8 @@ export interface RunContext {
   packetRules?: PacketRules;
 }
 export interface RuntimeAdapter {
+  /** Audited launch disables native tools and ambient sessions for restricted application runs. */
+  applicationIsolation?: true;
   id: RuntimeId;
   sessionSupport?: 'resume';
   models: readonly RuntimeModel[];

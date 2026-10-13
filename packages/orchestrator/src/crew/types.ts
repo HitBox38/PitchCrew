@@ -101,6 +101,7 @@ export interface CrewContext {
     roleId: RoleId,
     task?: AgentTask,
     delivery?: { requestId: string; rootRunId: string; content: string },
+    applicationDraft?: boolean,
   ): Promise<Run>;
   applyResult(
     cardId: string,
@@ -108,6 +109,7 @@ export interface CrewContext {
     data: unknown,
     profile?: ProfileFile[],
     signal?: AbortSignal,
+    evidence?: { contextRevision: string; runId: string },
   ): Promise<void>;
   cancelRun(id: string): void;
   addMessage(

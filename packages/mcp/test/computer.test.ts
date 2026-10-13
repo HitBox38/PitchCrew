@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
 import { currentEventVersion } from '@pitchcrew/core';
 import { digestPacket, Board } from '@pitchcrew/board';
 import { type BrowserSnapshot, type ComputerApproval, browserActionSchema } from '@pitchcrew/core';
@@ -162,12 +163,15 @@ it('uploads only the exact reviewed exported bytes for the attached card', async
   const card = board.createCard(cardInput.parse({ company: 'Fixture Studio', title: 'Engineer' }));
   const directory = resources.at(-1)!.directory;
   board.updateCard(card.id, { packet }, 'user', 'Reviewed fixture packet');
+  reviewFixturePacket(board, card.id);
   const output = await writePacket(directory, card.id, packet);
   const exported = {
     id: randomUUID(),
     cardId: card.id,
     action: 'export_packet' as const,
     digest: digestPacket(card.id, packet),
+    contextRevision: board.get<import('@pitchcrew/core').Card>('card', card.id).applicationContext!
+      .revision,
     packet,
     status: 'consumed' as const,
     createdAt: '',

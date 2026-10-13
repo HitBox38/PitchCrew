@@ -4,6 +4,7 @@ import { lintPacket } from '@pitchcrew/packet';
 import { setTimeout } from 'node:timers/promises';
 
 export const demo: RuntimeAdapter = {
+  applicationIsolation: true,
   id: 'demo',
   models: [],
   detect: async () => ({
@@ -13,6 +14,20 @@ export const demo: RuntimeAdapter = {
     detail: 'Deterministic example workflow. No AI calls.',
   }),
   async chat(context) {
+    if (context.purpose === 'source-extraction')
+      return {
+        reply: JSON.stringify({
+          brief: {
+            companyContext:
+              'Fictional demo job. Review the source and complete this brief before confirming.',
+            responsibilities: [],
+            qualifications: [],
+            constraints: [],
+          },
+          requirements: [],
+          flagged: [],
+        }),
+      };
     context.onMessage('Preparing a deterministic demo reply.');
     context.onActivity?.({
       id: 'demo-progress',

@@ -16,6 +16,14 @@ import type { BoardContext } from './board/types.ts';
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
 export { setCardStatus } from './board/manual-status.ts';
 export {
+  applicationRevision,
+  jobSourceRevision,
+  assertExtractedContext,
+  assertConfirmedContext,
+  assertReviewedContext,
+  saveApplicationContext,
+} from './board/application-context.ts';
+export {
   searchApplications,
   registerExternalApplication,
   isLikelyDuplicateApplication,
@@ -94,7 +102,18 @@ export class Board {
   updateCard(
     id: string,
     patch: Partial<
-      Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+      Pick<
+        Card,
+        | 'packet'
+        | 'feedback'
+        | 'fit'
+        | 'owner'
+        | 'formAssessments'
+        | 'submissionAttempts'
+        | 'applicationContext'
+        | 'packetContextRevision'
+        | 'packetReview'
+      >
     >,
     actor: string,
     message: string,

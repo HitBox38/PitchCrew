@@ -30,6 +30,10 @@ import { readProfile, warningFeedback, writePacket } from '@pitchcrew/packet';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { assertConfirmedContext, assertExtractedContext, digestPacket } from '@pitchcrew/board';
+import { draftingCard, missingPersonalAnswers } from '@pitchcrew/core';
+import { assertApplicationRuntime } from './application-context/extraction.ts';
+import { applicationUserAnswers } from './application-context/answers.ts';
 
 export async function startRun(
   this: CrewContext,
@@ -37,6 +41,7 @@ export async function startRun(
   roleId: RoleId,
   task?: AgentTask,
   delivery?: { requestId: string; rootRunId: string; content: string },
+  applicationDraft = false,
 ): Promise<Run> {
   if (this.closing) throw new Error('The daemon is stopping.');
   assertProfileReady(this);
@@ -46,7 +51,7 @@ export async function startRun(
   if (this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running'))
     throw new Error('Wait for this role’s chat turn to finish.');
   const storedRole = requireRole(this, roleId);
-  let role = storedRole;
+  let role = applicationDraft ? { ...storedRole, workflow: 'writer' as const } : storedRole;
   const skills = this.skills(roleId);
   const card = this.board.get<Card>('card', cardId);
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
@@ -56,10 +61,19 @@ export async function startRun(
     throw new Error('This application already has an active run.');
   const seat = workflowSeat(role);
   if (seat === 'chat') throw new Error('This role has no application workflow seat. Use chat.');
+  assertApplicationRuntime(role);
+  const applicationContext =
+    seat === 'scout' ? assertExtractedContext(card) : assertConfirmedContext(card);
+  const userAnswers = applicationUserAnswers(
+    this,
+    cardId,
+    roleId,
+    seat === 'scout' ? 'fit' : seat === 'writer' ? 'application-draft' : 'application-review',
+  );
   const allowed = {
     scout: ['lead'],
     writer: ['shortlisted', 'changes_requested'],
-    reviewer: ['in_review'],
+    reviewer: ['in_review', 'agreed', 'awaiting_approval'],
   };
   if (!allowed[seat].includes(card.state))
     throw new Error(`The ${roleId} cannot run on a card in ${card.state}.`);
@@ -93,6 +107,9 @@ export async function startRun(
     startedAt: new Date().toISOString(),
     finishedAt: null,
     mode: 'workflow',
+    purpose:
+      seat === 'writer' ? 'application-draft' : seat === 'reviewer' ? 'application-review' : 'fit',
+    contextRevision: applicationContext.revision,
     threadId:
       task?.threadId ??
       relatedConversation(
@@ -122,6 +139,8 @@ export async function startRun(
         !this.taskPermissionsAllow(task))) ||
     this.board.hasActiveRun(cardId) ||
     this.board.get<Card>('card', cardId).state !== card.state ||
+    this.board.get<Card>('card', cardId).applicationContext?.revision !==
+      applicationContext.revision ||
     this.configuring.has(roleId) ||
     JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(storedRole) ||
     this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running')
@@ -132,6 +151,13 @@ export async function startRun(
   const token = randomUUID();
   this.capabilities.set(token, { runId: run.id, cardId, roleId });
   if (seat === 'writer') this.board.move(cardId, 'drafting', 'orchestrator');
+  if (seat === 'reviewer' && card.state !== 'in_review')
+    this.board.record(
+      'card',
+      { ...card, state: 'in_review', packetReview: undefined, updatedAt: new Date().toISOString() },
+      'orchestrator',
+      'Started fresh review of the existing packet',
+    );
   this.board.updateCard(
     cardId,
     { owner: roleId },
@@ -140,10 +166,11 @@ export async function startRun(
   );
   this.board.record('run', run, 'orchestrator', `Started ${role.name} on ${role.runtime}`);
   const context = {
-    card: this.board.get<Card>('card', cardId),
+    card: draftingCard(this.board.get<Card>('card', cardId), run.purpose),
+    purpose: run.purpose,
+    userAnswers,
     role,
     skills,
-    request: delivery?.content ?? task?.content,
     profile,
     packetRules: this.packetRules.current().rules,
     directory: dir,
@@ -165,7 +192,10 @@ export async function startRun(
     .then(async (result) => {
       if (endQuestionTurn(this, run)) return;
       if (controller.signal.aborted) throw new Error('Run cancelled.');
-      await this.applyResult(cardId, role, result, profile, controller.signal);
+      await this.applyResult(cardId, role, result, profile, controller.signal, {
+        contextRevision: applicationContext.revision,
+        runId: run.id,
+      });
       this.board.record(
         'run',
         {
@@ -228,9 +258,27 @@ export async function applyResult(
   data: unknown,
   profile: ProfileFile[] = [],
   signal?: AbortSignal,
+  evidence?: { contextRevision: string; runId: string },
 ): Promise<void> {
   const result: RunResult = runResultSchema.parse(data);
   if (result.role !== workflowSeat(role)) throw new Error('Result role does not match the run.');
+  const context =
+    result.role === 'scout'
+      ? assertExtractedContext(this.board.get<Card>('card', cardId))
+      : assertConfirmedContext(this.board.get<Card>('card', cardId));
+  const assertCurrent = () => {
+    if (signal?.aborted) throw new Error('Run cancelled.');
+    const current =
+      result.role === 'scout'
+        ? assertExtractedContext(this.board.get<Card>('card', cardId))
+        : assertConfirmedContext(this.board.get<Card>('card', cardId));
+    if (
+      current.revision !== context.revision ||
+      (evidence && evidence.contextRevision !== current.revision)
+    )
+      throw new Error('Application context changed during this run. Confirm and run again.');
+  };
+  assertCurrent();
   if (result.role === 'scout') {
     this.board.updateCard(
       cardId,
@@ -241,13 +289,18 @@ export async function applyResult(
   }
   if (result.role === 'writer') {
     const check = await this.packetRules.check(result.packet, profile);
-    if (signal?.aborted) throw new Error('Run cancelled.');
+    assertCurrent();
     if (check.errors.length) throw new Error(check.errors.join('\n'));
     await writePacket(this.directory, cardId, result.packet);
-    if (signal?.aborted) throw new Error('Run cancelled.');
+    assertCurrent();
     this.board.updateCard(
       cardId,
-      { packet: result.packet, feedback: warningFeedback(check.warnings) },
+      {
+        packet: result.packet,
+        packetContextRevision: context.revision,
+        packetReview: undefined,
+        feedback: warningFeedback(check.warnings),
+      },
       role.id,
       'Drafted application packet',
     );
@@ -257,15 +310,44 @@ export async function applyResult(
     const card = this.board.get<Card>('card', cardId);
     if (!card.packet) throw new Error('No packet to review.');
     const check = await this.packetRules.check(card.packet, profile);
-    if (signal?.aborted) throw new Error('Run cancelled.');
+    assertCurrent();
+    if (
+      !this.board.get<Card>('card', cardId).packet ||
+      digestPacket(cardId, this.board.get<Card>('card', cardId).packet!) !==
+        digestPacket(cardId, card.packet)
+    )
+      throw new Error('Packet changed during review.');
+    const missing = missingPersonalAnswers(context).map(
+      (r) => `Answer required personal question: ${r.question}`,
+    );
     // Reviewer feedback still fails the review; rule warnings are shown without blocking.
-    const passed = result.passed && check.errors.length === 0 && result.feedback.length === 0;
+    const passed =
+      result.passed &&
+      check.errors.length === 0 &&
+      result.feedback.length === 0 &&
+      missing.length === 0;
     const feedback = [
-      ...new Set([...check.errors, ...result.feedback, ...warningFeedback(check.warnings)]),
+      ...new Set([
+        ...check.errors,
+        ...missing,
+        ...result.feedback,
+        ...warningFeedback(check.warnings),
+      ]),
     ];
     this.board.updateCard(
       cardId,
-      { feedback },
+      {
+        feedback,
+        packetContextRevision: context.revision,
+        packetReview: passed
+          ? {
+              contextRevision: context.revision,
+              packetDigest: digestPacket(cardId, card.packet),
+              runId: evidence?.runId ?? 'local-review',
+              reviewedAt: new Date().toISOString(),
+            }
+          : undefined,
+      },
       role.id,
       passed ? 'Reviewer approved the packet' : 'Reviewer requested changes',
     );

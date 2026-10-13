@@ -11,6 +11,7 @@ import {
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it, vi } from 'vitest';
 import { packet } from '../../board/test/fixtures/packet.ts';
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
 
 afterEach(cleanup);
@@ -22,6 +23,7 @@ it('generates reviewed artifact previews before approval and exports exact bytes
   for (const state of ['shortlisted', 'drafting'] as const) board.move(card.id, state, 'user');
   board.updateCard(card.id, { packet }, 'writer', 'Fictional packet');
   for (const state of ['in_review', 'agreed'] as const) board.move(card.id, state, 'reviewer');
+  reviewFixturePacket(board, card.id);
   const { response, result: approval } = await request<Approval>(
     `/cards/${card.id}/approval`,
     'POST',
