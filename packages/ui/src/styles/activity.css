@@ -1,77 +1,73 @@
-.activity-panel {
-  background: var(--surface);
-  border-radius: 18px 19px 17px 18px;
-  box-shadow: var(--sheet);
-  padding: 6px 22px;
-  max-width: 980px;
+.activity-workspace-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
 }
-
-.activity-row time {
-  color: var(--muted);
-  font-size: var(--text-caption);
-}
-.activity-message::before {
-  content: '';
+.activity-workspace-body > .workspace-notice,
+.activity-workspace-body > .error-banner {
   flex-shrink: 0;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--faint);
-  transform: translateY(-2px);
-}
-.activity-row.run .activity-message::before {
-  background: var(--teal);
-}
-.activity-row.approval .activity-message::before {
-  background: var(--ochre);
-}
-.activity-row.role .activity-message::before {
-  background: var(--plum);
-}
-.activity-actor {
-  color: var(--muted);
-  font-size: var(--text-caption);
-  white-space: nowrap;
-}
-.activity-kind {
-  margin-left: 8px;
-  color: var(--faint);
-}
-[data-slot='dialog-overlay'],
-[data-slot='sheet-overlay'] {
-  background: var(--overlay);
+  margin: 16px 20px 0;
 }
 .activity-toolbar .search-input {
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 420px;
   margin-left: 0;
-  width: min(360px, 100%);
 }
 .activity-toolbar > output {
   margin-left: auto;
   flex-shrink: 0;
   white-space: nowrap;
+  font-size: var(--text-detail);
 }
 .activity-toolbar [data-slot='select-trigger'] {
   flex: 0 1 190px;
   width: 190px;
   min-width: 0;
 }
+.activity-history:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
 .activity-row {
   content-visibility: auto;
-  contain-intrinsic-size: auto 44px;
+  contain-intrinsic-size: auto 88px;
+}
+.activity-marker {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--faint);
+}
+.activity-row.run .activity-marker {
+  background: var(--teal);
+}
+.activity-row.approval .activity-marker {
+  background: var(--ochre);
+}
+.activity-row.role .activity-marker {
+  background: var(--plum);
 }
 .activity-kind {
-  display: inline-block;
-  font-size: 11px;
-  color: var(--muted);
-  background: var(--paper-deep);
+  border: 1px solid var(--border);
   border-radius: 5px;
   padding: 1px 6px;
+  font-size: var(--text-note);
 }
-@variant max-compact {
-  .activity-toolbar .search-input {
-    width: 100%;
+[data-slot='dialog-overlay'],
+[data-slot='sheet-overlay'] {
+  background: var(--overlay);
+}
+@variant max-mobile {
+  .activity-workspace-body > .workspace-notice,
+  .activity-workspace-body > .error-banner {
+    margin: 12px 12px 0;
   }
-  .activity-toolbar > output {
-    margin-left: auto;
+}
+@variant max-phone {
+  .activity-toolbar .search-input {
+    flex-basis: 100%;
+    max-width: none;
   }
 }
