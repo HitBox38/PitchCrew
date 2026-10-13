@@ -17,8 +17,8 @@ Each is enabled, charts-only, weekly on Sunday, with its first saved delivery at
 The administrator-only planner is executable with Node 24 and has no network capability:
 
 ```sh
-node scripts/posthog/scheduled-reports.mjs /tmp/private-report-bindings.json /tmp/private-report-plan.json
-node --test scripts/posthog/scheduled-reports.test.mjs
+node scripts/posthog/scheduled-reports.ts /tmp/private-report-bindings.json /tmp/private-report-plan.json
+node --test scripts/posthog/scheduled-reports.test.ts
 ```
 
 The optional output is created exclusively with mode `0600`, because create payloads contain the verified account email. Standard output redacts the recipient. Keep bindings and payload files outside the repository and do not store personal API keys in either file. No administration code or credentials ship in the application renderer or daemon.

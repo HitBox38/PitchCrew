@@ -23,7 +23,7 @@ it.each(['cli', 'acp'] as const)(
       };
       const active = chat ? { ...context, card: null, messages: [], onReply: vi.fn() } : context;
       const fixture = fileURLToPath(
-        new URL(`./fixtures/${transport === 'cli' ? 'runtime' : 'acp'}-cli.mjs`, import.meta.url),
+        new URL(`./fixtures/${transport === 'cli' ? 'runtime' : 'acp'}-cli.ts`, import.meta.url),
       );
       vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
       const result =

@@ -16,7 +16,7 @@ import {
 } from '../src/model-discovery.ts';
 import { withChat } from '../src/process.ts';
 
-const fixture = fileURLToPath(new URL('./fixtures/models-cli.mjs', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/models-cli.ts', import.meta.url));
 const suggestions = [{ value: 'suggested', label: 'Suggested' }];
 const adapter = (listModels?: RuntimeAdapter['listModels']): RuntimeAdapter =>
   withChat({

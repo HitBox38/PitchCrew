@@ -10,7 +10,7 @@ import { afterEach, expect, it } from 'vitest';
 import { Board, applyApplicationImport, previewApplicationImport } from '../src/index.ts';
 
 const script = fileURLToPath(
-  new URL('../../../scripts/convert-legacy-tracker.mjs', import.meta.url),
+  new URL('../../../scripts/convert-legacy-tracker.ts', import.meta.url),
 );
 const directories: string[] = [];
 afterEach(async () => {
