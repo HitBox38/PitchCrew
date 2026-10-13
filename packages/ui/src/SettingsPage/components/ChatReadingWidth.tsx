@@ -5,7 +5,7 @@ export function ChatReadingWidth() {
   const width = useChatPreferenceStore((state) => state.width);
   const setWidth = useChatPreferenceStore((state) => state.setWidth);
   return (
-    <div className="form mt-6 max-w-sm">
+    <div className="form mt-4 max-w-sm">
       <FormSelect
         id="chat-reading-width"
         label="Chat reading width"
