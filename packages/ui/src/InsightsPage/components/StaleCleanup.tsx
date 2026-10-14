@@ -14,7 +14,7 @@ export function StaleCleanup() {
         mark as no response. Nothing changes until you confirm. If a company replies later, move the
         job forward from its details.
       </p>
-      <div className="mt-2 flex flex-wrap items-end gap-3">
+      <div className="form mt-2 flex flex-wrap items-end gap-3">
         <label className="field">
           Days without a status change
           <Input

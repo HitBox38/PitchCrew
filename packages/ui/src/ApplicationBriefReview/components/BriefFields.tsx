@@ -21,7 +21,8 @@ export function BriefFields({
       </label>
       {(['responsibilities', 'qualifications', 'constraints'] as const).map((field) => (
         <label key={field} className="grid gap-1">
-          {field[0].toUpperCase() + field.slice(1)} <span className="quiet">One item per line</span>
+          {field[0].toUpperCase() + field.slice(1)}{' '}
+          <span className="quiet font-normal">One item per line</span>
           <Textarea
             value={value[field].join('\n')}
             onChange={(event) => change({ ...value, [field]: splitLines(event.target.value) })}

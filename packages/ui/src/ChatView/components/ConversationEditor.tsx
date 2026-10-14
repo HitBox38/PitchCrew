@@ -2,8 +2,8 @@ import { useConversationEditor } from '../hooks/useConversationEditor.ts';
 import type { ConversationEditorProps } from '../types.ts';
 import { ChatSidePanel } from './ChatSidePanel.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ParticipantFields } from './editor/ParticipantFields.tsx';
+import { ConversationEditorActions } from './editor/ConversationEditorActions.tsx';
 import { ConversationSelect } from './ConversationSelect.tsx';
 export function ConversationEditor({
   data,
@@ -38,7 +38,7 @@ export function ConversationEditor({
       className="chat-editor"
     >
       <form
-        className="grid gap-5"
+        className="form grid gap-5"
         onSubmit={(event) => {
           event.preventDefault();
           void save();
@@ -82,14 +82,12 @@ export function ConversationEditor({
             {error}
           </p>
         ) : null}
-        <div className="flex justify-end gap-2">
-          <Button variant="ghost" disabled={working} onClick={() => setDialog(null)}>
-            Cancel
-          </Button>
-          <Button type="submit" disabled={working || !participants.length || !title.trim()}>
-            {current ? 'Save conversation' : 'Create conversation'}
-          </Button>
-        </div>
+        <ConversationEditorActions
+          editing={!!current}
+          working={working}
+          disabled={working || !participants.length || !title.trim()}
+          close={() => setDialog(null)}
+        />
       </form>
     </ChatSidePanel>
   );

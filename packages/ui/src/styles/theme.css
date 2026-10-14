@@ -65,6 +65,7 @@
   --shadow-clay-hover: var(--clay-hover);
   --shadow-sunken: var(--clay-sunken);
   --shadow-glaze: var(--glaze);
+  --shadow-switch-thumb: var(--switch-thumb-shadow);
   --shadow-sheet: var(--sheet);
   --shadow-pop: var(--pop);
   --ease-material: var(--ease);
@@ -115,6 +116,11 @@
   --sunken-fill: linear-gradient(160deg, #e3e1da 0%, var(--paper-deep) 40%, #ebe9e3 100%);
   --glaze-fill: linear-gradient(170deg, #4d6896 0%, #3a5482 55%, #324a74 100%);
   --glaze-fill-hover: linear-gradient(170deg, #55709e 0%, #405b8a 55%, #36507b 100%);
+  /* The raised ivory thumb stays light on both the recessed and glazed switch tracks. */
+  --switch-thumb-fill: linear-gradient(160deg, #fff 0%, #f8f7f3 55%, #e8e6df 100%);
+  --switch-thumb-shadow:
+    0 1px 2px rgb(0 0 0 / 0.18), 0 2px 4px rgb(0 0 0 / 0.12), inset 0 1px 0 rgb(255 255 255 / 0.95),
+    inset -2px -2px 3px rgb(30 34 44 / 0.1);
   --drop-sm:
     0 1px 1px rgb(30 34 44 / 0.06), 0 2px 4px rgb(30 34 44 / 0.05), 0 6px 12px rgb(30 34 44 / 0.05);
   --drop:

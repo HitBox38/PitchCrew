@@ -12,7 +12,7 @@ export function ApplicationBriefReview(props: ApplicationBriefProps) {
   const { draft, setDraft, loaded, editing, confirmed, disabled } = model;
   return (
     <section
-      className="my-4 grid gap-3 rounded-lg border p-4"
+      className="form my-4 grid gap-3 rounded-lg border p-4"
       aria-label="Application brief review"
     >
       <div>
@@ -50,6 +50,7 @@ export function ApplicationBriefReview(props: ApplicationBriefProps) {
             change={(requirements) => setDraft({ ...draft, requirements })}
           />
           <Button
+            className="h-auto min-h-9.5 justify-self-start py-2 whitespace-normal"
             disabled={disabled}
             onClick={() => {
               void model.confirm();

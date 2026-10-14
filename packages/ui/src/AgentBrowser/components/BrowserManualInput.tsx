@@ -11,6 +11,7 @@ export function BrowserManualInput({ control }: { control: BrowserControl }) {
     <div className="browser-manual-input">
       <div className="flex items-center justify-between gap-2">
         <Button
+          className="text-button"
           variant="ghost"
           size="sm"
           aria-expanded={open}
@@ -53,6 +54,7 @@ export function BrowserManualInput({ control }: { control: BrowserControl }) {
               Send text
             </Button>
             <Button
+              className="icon-button"
               variant="ghost"
               size="icon-sm"
               aria-label="Clear private text"

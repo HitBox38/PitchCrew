@@ -30,10 +30,10 @@ export const smokeUpdates = `(async () => {
   const version = section?.textContent.includes('Version 0.1.0') && section?.textContent.includes('Build aaaaaaaaaaaa');
   const release = section?.querySelector('a[aria-label="View release and download"]');
   const link = release?.getAttribute('href') === 'https://github.com/HitBox38/PitchCrew/releases/tag/build-' + 'b'.repeat(40) && release?.getAttribute('target') === '_blank';
-  const preference = section?.querySelector('[role="checkbox"]');
+  const preference = section?.querySelector('[role="switch"][aria-label="Check automatically"]');
   const enabled = preference?.getAttribute('aria-checked') === 'true';
   const bounds = preference?.getBoundingClientRect();
-  const compactControl = bounds && bounds.width > 0 && bounds.width <= 24 && bounds.height <= 24;
+  const compactControl = bounds && bounds.width > 0 && bounds.width <= 42 && bounds.height <= 24;
   preference?.click();
   const disabled = await waitFor(() => localStorage.getItem('pitchcrew-automatic-updates-v1') === 'false');
   preference?.click();

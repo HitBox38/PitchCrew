@@ -1,32 +1,32 @@
 import { cva } from 'class-variance-authority';
 
 export const buttonVariants = cva(
-  "primitive:inline-flex primitive:shrink-0 primitive:items-center primitive:justify-center primitive:gap-2 primitive:rounded-md primitive:text-sm primitive:font-medium primitive:whitespace-nowrap primitive:transition-all primitive:outline-none primitive:focus-visible:border-ring primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50 primitive:disabled:pointer-events-none primitive:disabled:opacity-50 primitive:aria-invalid:border-destructive primitive:aria-invalid:ring-destructive/20 primitive:dark:aria-invalid:ring-destructive/40 primitive:[&_svg]:pointer-events-none primitive:[&_svg]:shrink-0 primitive:[&_svg:not([class*='size-'])]:size-4",
+  "primitive:inline-flex primitive:shrink-0 primitive:items-center primitive:justify-center primitive:gap-[7px] primitive:rounded-[11px_12px_11px_10px] primitive:border-0 primitive:text-label primitive:font-semibold primitive:whitespace-nowrap primitive:transition-[color,background,box-shadow,opacity] primitive:outline-none primitive:disabled:pointer-events-none primitive:disabled:opacity-50 primitive:data-disabled:pointer-events-none primitive:data-disabled:opacity-50 primitive:[&_svg]:pointer-events-none primitive:[&_svg]:shrink-0 primitive:[&_svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
         default:
-          'primitive:bg-primary primitive:text-primary-foreground primitive:hover:bg-primary/90',
+          'primitive:text-primary-foreground primitive:shadow-glaze primitive:[background:var(--glaze-fill)] primitive:hover:[background:var(--glaze-fill-hover)] primitive:active:shadow-[var(--glaze-pressed)]',
         destructive:
-          'primitive:bg-destructive primitive:text-white primitive:hover:bg-destructive/90 primitive:focus-visible:ring-destructive/20 primitive:dark:bg-destructive/60 primitive:dark:focus-visible:ring-destructive/40',
+          'primitive:text-destructive primitive:shadow-clay primitive:[background:var(--clay-fill)] primitive:hover:text-(--error-ink) primitive:hover:shadow-clay-hover primitive:hover:[background:var(--clay-fill-hover)] primitive:active:shadow-sunken',
         outline:
-          'primitive:border primitive:bg-background primitive:shadow-xs primitive:hover:bg-accent primitive:hover:text-accent-foreground primitive:dark:border-input primitive:dark:bg-input/30 primitive:dark:hover:bg-input/50',
+          'primitive:text-foreground primitive:shadow-clay primitive:[background:var(--clay-fill)] primitive:hover:shadow-clay-hover primitive:hover:[background:var(--clay-fill-hover)] primitive:active:shadow-sunken',
         secondary:
-          'primitive:bg-secondary primitive:text-secondary-foreground primitive:hover:bg-secondary/80',
+          'primitive:text-secondary-foreground primitive:shadow-clay primitive:[background:var(--clay-fill)] primitive:hover:shadow-clay-hover primitive:hover:[background:var(--clay-fill-hover)] primitive:active:shadow-sunken',
         ghost:
-          'primitive:hover:bg-accent primitive:hover:text-accent-foreground primitive:dark:hover:bg-accent/50',
-        link: 'primitive:text-primary primitive:underline-offset-4 primitive:hover:underline',
+          'primitive:bg-transparent primitive:text-muted-foreground primitive:shadow-none primitive:hover:bg-[rgb(var(--tint)/0.06)] primitive:hover:text-foreground',
+        link: 'primitive:bg-transparent primitive:text-primary primitive:underline-offset-[3px] primitive:shadow-none primitive:hover:text-(--primary-deep) primitive:hover:underline',
       },
       size: {
-        default: 'primitive:h-9 primitive:px-4 primitive:py-2 primitive:has-[>svg]:px-3',
-        xs: "primitive:h-6 primitive:gap-1 primitive:rounded-md primitive:px-2 primitive:text-xs primitive:has-[>svg]:px-1.5 primitive:[&_svg:not([class*='size-'])]:size-3",
-        sm: 'primitive:h-8 primitive:gap-1.5 primitive:rounded-md primitive:px-3 primitive:has-[>svg]:px-2.5',
-        lg: 'primitive:h-10 primitive:rounded-md primitive:px-6 primitive:has-[>svg]:px-4',
-        icon: 'primitive:size-9',
+        default: 'primitive:h-[38px] primitive:px-[15px] primitive:py-0',
+        xs: "primitive:h-6 primitive:gap-1 primitive:rounded-[7px_8px_7px_6px] primitive:px-2 primitive:py-0 primitive:text-xs primitive:has-[>svg]:px-1.5 primitive:[&_svg:not([class*='size-'])]:size-3",
+        sm: 'primitive:h-8 primitive:gap-1.5 primitive:rounded-[9px_10px_9px_8px] primitive:px-3 primitive:py-0 primitive:text-xs',
+        lg: 'primitive:h-10 primitive:px-6 primitive:py-0',
+        icon: 'primitive:size-[38px] primitive:p-0',
         'icon-xs':
-          "primitive:size-6 primitive:rounded-md primitive:[&_svg:not([class*='size-'])]:size-3",
-        'icon-sm': 'primitive:size-8',
-        'icon-lg': 'primitive:size-10',
+          "primitive:size-6 primitive:rounded-[7px_8px_7px_6px] primitive:p-0 primitive:[&_svg:not([class*='size-'])]:size-3",
+        'icon-sm': 'primitive:size-8 primitive:rounded-[9px_10px_9px_8px] primitive:p-0',
+        'icon-lg': 'primitive:size-10 primitive:p-0',
       },
     },
     defaultVariants: {

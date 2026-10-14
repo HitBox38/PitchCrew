@@ -31,14 +31,14 @@ export function RequirementFields({
             />
           </label>
           <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2">
+            <label className="checkbox-label">
               <Checkbox
                 checked={entry.required}
                 onCheckedChange={(checked) => update(entry.id, { required: checked })}
               />
               Required
             </label>
-            <label className="flex items-center gap-2">
+            <label className="checkbox-label">
               <Checkbox
                 checked={entry.personal}
                 onCheckedChange={(checked) => update(entry.id, { personal: checked })}
@@ -57,7 +57,7 @@ export function RequirementFields({
             </label>
           ) : null}
           <Button
-            className="justify-self-start"
+            className="text-button danger min-h-8 justify-self-start"
             variant="ghost"
             onClick={() => change(value.filter((item) => item.id !== entry.id))}
           >

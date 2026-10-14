@@ -13,7 +13,7 @@ export function StaleList({ stale }: { stale: StaleCleanupModel }) {
       </p>
     );
   return (
-    <div className="mt-3 flex flex-col gap-3">
+    <div className="form mt-3 flex flex-col gap-3">
       {preview.cards.length > staleBatchLimit ? (
         <p className="quiet">
           Mark up to {staleBatchLimit} jobs at once. Find silent applications again to review the
@@ -35,7 +35,7 @@ export function StaleList({ stale }: { stale: StaleCleanupModel }) {
               />
               <span>
                 {card.company} · {card.title}
-                <small className="quiet block">
+                <small className="quiet block font-normal">
                   {card.blocked ||
                     `No status change for ${card.idleDays} days, since ${new Date(card.since).toLocaleDateString()}`}
                 </small>

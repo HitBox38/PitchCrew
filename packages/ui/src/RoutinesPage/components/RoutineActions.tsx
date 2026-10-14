@@ -18,16 +18,23 @@ export function RoutineActions({
 }) {
   return (
     <div className="routine-actions flex flex-wrap items-center gap-2">
-      <Button variant="ghost" size="sm" disabled={working} onClick={edit}>
+      <Button className="text-button" variant="ghost" size="sm" disabled={working} onClick={edit}>
         <Pencil size={14} /> Edit
       </Button>
       {routine.nextRunAt ? (
-        <Button variant="ghost" size="sm" disabled={working} onClick={toggle}>
+        <Button
+          className="text-button"
+          variant="ghost"
+          size="sm"
+          disabled={working}
+          onClick={toggle}
+        >
           {routine.enabled ? <Pause size={14} /> : <Play size={14} />}
           {routine.enabled ? 'Pause' : 'Resume'}
         </Button>
       ) : null}
       <Button
+        className="icon-button danger"
         variant="ghost"
         size="icon-sm"
         disabled={working}

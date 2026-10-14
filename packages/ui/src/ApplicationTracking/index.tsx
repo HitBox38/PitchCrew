@@ -21,7 +21,7 @@ export function ApplicationTracking({ card }: { card: Card }) {
   );
   const path = `/tracking/applications/${card.id}/thread`;
   return (
-    <section className="mt-4" aria-label="Application tracking evidence">
+    <section className="form mt-4" aria-label="Application tracking evidence">
       <h3>Tracking evidence</h3>
       <TrackingIdentifier card={card} />
       {card.tracking?.origin === 'external' ? (
@@ -48,9 +48,11 @@ export function ApplicationTracking({ card }: { card: Card }) {
       ))}
       <h4>Linked Gmail threads</h4>
       {(card.tracking?.gmailThreads ?? []).map((link) => (
-        <p className="flex items-center gap-2" key={`${link.account}/${link.threadId}`}>
+        <p className="flex flex-wrap items-center gap-2" key={`${link.account}/${link.threadId}`}>
           {link.account} · {link.threadId}
           <Button
+            className="text-button danger min-h-8"
+            variant="ghost"
             disabled={working}
             onClick={() => act(path, 'DELETE', link, 'Email thread unlinked')}
           >
@@ -60,7 +62,7 @@ export function ApplicationTracking({ card }: { card: Card }) {
       ))}
       {connected ? (
         <div className="mt-2 flex flex-wrap items-end gap-2">
-          <label>
+          <label className="min-w-0 flex-1 basis-48">
             Gmail thread ID
             <Input
               value={threadId}

@@ -32,6 +32,7 @@ export function AccountActions({ connector, working, action, open }: Props) {
       </Button>
       {connector.id === 'google' ? (
         <Button
+          className="text-button"
           variant="link"
           size="sm"
           disabled={working}

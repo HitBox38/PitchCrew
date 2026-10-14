@@ -22,7 +22,7 @@ export function LessonsEditor({ card }: { card: Card }) {
               </span>
               <Button
                 variant="ghost"
-                className="icon-button"
+                className="icon-button danger"
                 aria-label="Remove lesson"
                 disabled={draft.working}
                 onClick={() => draft.remove(lesson.id)}
@@ -36,7 +36,7 @@ export function LessonsEditor({ card }: { card: Card }) {
         <p className="quiet">No lessons yet. Note what worked or what to change next time.</p>
       )}
       <form
-        className="mt-2 flex flex-col gap-2"
+        className="form mt-2 flex flex-col gap-2"
         onSubmit={(event) => {
           event.preventDefault();
           if (draft.canAdd) void draft.add();

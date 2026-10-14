@@ -1,12 +1,13 @@
 import type { TextareaProps } from '@/components/ui/textarea/types.ts';
 import { cn } from '@/lib/utils';
 
-export function Textarea({ className, ...props }: TextareaProps) {
+export function Textarea({ className, rows = 3, ...props }: TextareaProps) {
   return (
     <textarea
       data-slot="textarea"
+      rows={rows}
       className={cn(
-        'primitive:flex primitive:field-sizing-content primitive:min-h-16 primitive:w-full primitive:rounded-md primitive:border primitive:border-input primitive:bg-transparent primitive:px-3 primitive:py-2 primitive:text-base primitive:shadow-xs primitive:transition-[color,box-shadow] primitive:outline-none primitive:placeholder:text-muted-foreground primitive:focus-visible:border-ring primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50 primitive:disabled:cursor-not-allowed primitive:disabled:opacity-50 primitive:aria-invalid:border-destructive primitive:aria-invalid:ring-destructive/20 primitive:md:text-sm primitive:dark:bg-input/30 primitive:dark:aria-invalid:ring-destructive/40',
+        'primitive:flex primitive:field-sizing-fixed primitive:min-h-[38px] primitive:w-full primitive:resize-y primitive:rounded-[10px_11px_10px_9px] primitive:border-0 primitive:px-[11px] primitive:py-2 primitive:text-body primitive:leading-[1.55] primitive:font-normal primitive:text-foreground primitive:shadow-sunken primitive:transition-[color,box-shadow,opacity] primitive:outline-none primitive:[background:var(--sunken-fill)] primitive:placeholder:text-faint primitive:disabled:cursor-not-allowed primitive:disabled:opacity-50 primitive:data-disabled:cursor-not-allowed primitive:data-disabled:opacity-50',
         className,
       )}
       {...props}
