@@ -19,6 +19,7 @@
 @import './styles/settings.css' layer(components);
 @import './styles/activity.css' layer(components);
 @import './styles/insights.css' layer(components);
+@import './styles/routines.css' layer(components);
 @import './styles/dialogs.css' layer(components);
 @import './styles/imports.css' layer(components);
 @import './styles/agent-creation.css' layer(components);
@@ -34,7 +35,9 @@
 @import './styles/responsive.css' layer(components);
 @import './styles/chat/layout.css' layer(components);
 @import './styles/chat/conversation.css' layer(components);
+@import './styles/chat/activity.css' layer(components);
 @import './styles/chat/composer.css' layer(components);
+@import './styles/chat/queue.css' layer(components);
 @import './styles/chat/work.css' layer(components);
 @import './styles/chat/redesign.css' layer(components);
 @import './styles/chat/questions.css' layer(components);
@@ -42,7 +45,9 @@
 @import './styles/chat/panels.css' layer(components);
 @import './styles/chat/browser.css' layer(components);
 @import './styles/skills.css' layer(components);
+@import './styles/profile-workspace.css' layer(components);
 @import './styles/motion.css' layer(components);
+@import './styles/workspace-frame.css' layer(components);
 
 /* Regression-test class strings must not add unused production utilities. */
 @source not './**/__tests__/**';

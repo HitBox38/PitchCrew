@@ -1,3 +1,4 @@
+import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
 import { Board, digestArtifacts } from '@pitchcrew/board';
 import {
   cardInput,
@@ -25,6 +26,7 @@ async function fixture(formats: ('pdf' | 'docx')[] = []) {
   for (const state of ['shortlisted', 'drafting'] as const) board.move(card.id, state, 'user');
   board.updateCard(card.id, { packet }, 'writer', 'Fictional packet');
   for (const state of ['in_review', 'agreed'] as const) board.move(card.id, state, 'reviewer');
+  reviewFixturePacket(board, card.id);
   const exported = board.requestApproval(card.id, await renderArtifacts(packet, formats));
   board.decideApproval(exported.id, true);
   const output = await exportApprovedPacket(board, directory, exported.id);
@@ -48,6 +50,7 @@ async function fixture(formats: ('pdf' | 'docx')[] = []) {
     ],
   };
   const driver = {
+    validateApplicationValues: vi.fn(async () => {}),
     snapshot: vi.fn(async () => ({ ...page })),
     perform: vi.fn(
       async (
@@ -290,7 +293,7 @@ it('uploads exact binary bytes with binary hash/MIME and rejects changed bytes a
   );
   await expect(
     manager.request(scope, { ...action, file: 'resume.docx' }, 'Stale DOCX'),
-  ).rejects.toThrow('stale');
+  ).rejects.toThrow('fresh review');
   expect(driver.perform).toHaveBeenCalledTimes(1);
 });
 

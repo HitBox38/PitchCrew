@@ -48,6 +48,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary:
         "Adds application insights: read outcomes and your lessons for the job's tags when allowed.",
     },
+    {
+      revision: '4e92b80827a6000b',
+      date: '2026-10-13',
+      summary:
+        'Adds single posting link imports as leads when discovery is enabled, with duplicates left unchanged.',
+    },
   ],
   writer: [
     {

@@ -1,4 +1,4 @@
-import { WorkspaceHeading } from '@/App/components/WorkspaceHeading.tsx';
+import { WorkspacePage } from '@/App/components/WorkspacePage.tsx';
 import { WorkspaceNotification } from '@/App/components/WorkspaceNotification.tsx';
 import { WorkspacePalette } from '@/App/components/WorkspacePalette.tsx';
 import { WorkspacePanels } from '@/App/components/WorkspacePanels.tsx';
@@ -7,16 +7,13 @@ import { WorkspaceToolbar } from '@/App/components/WorkspaceToolbar.tsx';
 import { getWorkspaceModel } from '@/App/helpers.tsx';
 import { SidebarInset } from '@/components/ui/sidebar/components/SidebarInset.tsx';
 import { SidebarProvider } from '@/components/ui/sidebar/components/SidebarProvider.tsx';
-import { Outlet } from '@tanstack/react-router';
-import { Onboarding } from '@/Onboarding/index.tsx';
 import { useAutomaticUpdates } from '@/AppUpdates/hooks/useAutomaticUpdates.ts';
-import { Suspense } from 'react';
 import type { ReadyWorkspaceProps } from '../types.ts';
 
 export function Workspace(props: ReadyWorkspaceProps) {
   useAutomaticUpdates();
   const controller = getWorkspaceModel(props);
-  const { error, view, sidebarOpen, paletteMounted } = controller;
+  const { sidebarOpen, paletteMounted } = controller;
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
       <a className="skip-link" href="#main">
@@ -25,18 +22,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
       <WorkspaceSidebar {...controller} />
       <SidebarInset id="main" tabIndex={-1}>
         <WorkspaceToolbar {...controller} />
-        <div className={`page ${view === 'chat' ? 'chat-page' : ''}`}>
-          {view !== 'chat' ? <WorkspaceHeading {...controller} /> : null}
-          <Onboarding />
-          {error ? (
-            <div role="alert" className="error-banner">
-              Lost connection to the local daemon: {error}
-            </div>
-          ) : null}
-          <Suspense fallback={<p className="quiet">Opening view…</p>}>
-            <Outlet />
-          </Suspense>
-        </div>
+        <WorkspacePage {...controller} />
       </SidebarInset>
       {paletteMounted ? <WorkspacePalette {...controller} /> : null}
       <WorkspaceNotification {...controller} />

@@ -1,3 +1,4 @@
+import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
 import {
   defaultCapabilities,
   type AgentTask,
@@ -239,6 +240,7 @@ it('captures the originating conversation browser mode for a workflow follow-up'
     createdAt: new Date().toISOString(),
   };
   service.board.record('task', task, 'writer', 'Queued fixture follow-up');
+  confirmFixtureJob(service.board, card.id);
   const launched = await service.startRun(card.id, 'scout', task);
   expect(launched.configuration?.role.browserMode).toBe('supervised');
   await finish(request, launched.id);

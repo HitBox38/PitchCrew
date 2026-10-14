@@ -4,7 +4,7 @@ import { outcomes, type ApplicationInsights } from '@pitchcrew/core/insights';
 export function RecentLessons({ insights }: { insights: ApplicationInsights }) {
   const groups = outcomes.filter((outcome) => insights.lessons[outcome].length);
   return (
-    <section className="insights-panel" aria-labelledby="insights-lessons">
+    <section className="insights-panel insights-lessons" aria-labelledby="insights-lessons">
       <h2 id="insights-lessons">Recent lessons</h2>
       {groups.length ? (
         groups.map((outcome) => (

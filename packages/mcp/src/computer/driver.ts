@@ -8,6 +8,7 @@ import { automaticFormAction } from './form-policy.ts';
 import { preparationGuard } from './preparation.ts';
 import { mkdir } from 'node:fs/promises';
 import { credentialSelector } from './credentials.ts';
+import { captureManualField, validateApplicationFields } from './application-fields.ts';
 
 export async function launchBrowser(profile?: string): Promise<BrowserDriver> {
   try {
@@ -53,6 +54,7 @@ async function contextDriver(
   close: () => Promise<void>,
 ): Promise<BrowserDriver> {
   const guard = preparationGuard();
+  const manualFields = new Set<string>();
   let viewport = { width: 1280, height: 800 };
   let rendering = Promise.resolve();
   const render = <T>(operation: () => Promise<T>) => {
@@ -107,6 +109,8 @@ async function contextDriver(
   });
   page.setDefaultTimeout(10000);
   return {
+    validateApplicationValues: (values, action) =>
+      validateApplicationFields(page, action, values, manualFields),
     prepare: guard.prepare,
     invalidate() {
       previous = undefined;
@@ -146,6 +150,7 @@ async function contextDriver(
     freshPage: () =>
       render(async () => {
         const old = context.pages();
+        manualFields.clear();
         page = await context.newPage();
         await guard.attach(page);
         await sizePage(page);
@@ -157,6 +162,8 @@ async function contextDriver(
       }),
     automatic: async (action) => !guard.blocked && (await automaticFormAction(page, action)),
     async input(input) {
+      const before = new Set<string>();
+      if (input.kind === 'key') await captureManualField(page, before);
       if (input.kind === 'dialog') {
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
         const dialog = pendingDialog;
@@ -184,6 +191,15 @@ async function contextDriver(
       if (input.kind === 'scroll') await page.mouse.wheel(input.deltaX, input.deltaY);
       if (input.kind === 'text') await page.keyboard.insertText(input.text);
       if (input.kind === 'key') await page.keyboard.press(input.key);
+      if (input.kind === 'text') await captureManualField(page, manualFields);
+      if (
+        input.kind === 'key' &&
+        ['Backspace', 'Delete', 'Space', 'Enter', 'ArrowDown', 'ArrowUp'].includes(input.key)
+      ) {
+        const after = new Set<string>();
+        await captureManualField(page, after);
+        for (const value of after) if (!before.has(value)) manualFields.add(value);
+      }
     },
     snapshot: () =>
       render(async () => {

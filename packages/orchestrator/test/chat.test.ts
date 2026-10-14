@@ -1,3 +1,4 @@
+import { confirmFixtureApplication } from './helpers/daemon.ts';
 import { adapters } from '@pitchcrew/adapters';
 import type { Approval, Card, ChatContext, ChatStreamState, Run, Snapshot } from '@pitchcrew/core';
 import { readFile } from 'node:fs/promises';
@@ -35,7 +36,12 @@ describe('agent conversations and crew actions', () => {
     try {
       const firstConnection = await connect();
       await vi.waitFor(() => expect(states).toHaveLength(1));
-      expect(states[0]).toEqual({ messages: [], streamingMessages: [], userInputs: [] });
+      expect(states[0]).toEqual({
+        messages: [],
+        streamingMessages: [],
+        userInputs: [],
+        activityRuns: [],
+      });
       const { result: root } = await request<Run>('/roles/scout/chat', 'POST', {
         content: 'Help me.',
       });
@@ -215,6 +221,7 @@ describe('agent conversations and crew actions', () => {
       company: 'Fixture Co',
       title: 'React Engineer',
     });
+    await confirmFixtureApplication(request, card.id);
     const { result: other } = await request<Card>('/cards', 'POST', {
       company: 'Other Fixture',
       title: 'Engineer',
@@ -236,8 +243,12 @@ describe('agent conversations and crew actions', () => {
         })
       ).response.status,
     ).toBe(200);
-    expect(daemon.service.board.get<Card>('card', other.id).state).toBe('lead');
-    expect(daemon.service.board.get<Card>('card', card.id).state).toBe('shortlisted');
+    expect(daemon.service.board.get<Card>('card', other.id).state).toBe('shortlisted');
+    expect(daemon.service.board.get<Card>('card', card.id).state).toBe('lead');
+    await daemon.service.agentCall(token, 'workflow', {
+      state: 'shortlisted',
+      reason: 'Shortlist the attached job too.',
+    });
     const proposalResult = await agent<{ proposal: import('@pitchcrew/core').RoleProposal }>({
       action: 'propose',
       reason: 'Focus future evaluations on accessibility.',

@@ -101,6 +101,7 @@ export function recordDiscoveredLeads(
         url: posting.url,
         salary: posting.salary.slice(0, 100),
         description: posting.description.slice(0, 20000),
+        ...(posting.sourceHtml ? { sourceHtml: posting.sourceHtml.slice(0, 400000) } : {}),
         tags: [],
       });
       // A malformed posting is skipped without failing the rest of the scan.
@@ -182,8 +183,9 @@ export function postingMatches(
   });
 }
 /**
- * Save a job the user fetched from a posting link. It gets the same `discovery` provenance and
- * job identifier as a discovered lead, so later scans skip it. Duplicates stay the user's call.
+ * Save a job fetched from a posting link. It gets the same `discovery` provenance and job
+ * identifier as a discovered lead, so later scans skip it. User saves allow duplicates;
+ * agent imports use recordLinkedJobIfNew to check them atomically.
  */
 export function recordLinkedJob(
   board: Board,
@@ -221,4 +223,27 @@ export function recordLinkedJob(
     `Added ${card.company} from a ${jobProviderLabels[link.provider]} job link`,
   );
   return card;
+}
+
+/** Recheck all current cards and save a linked lead in one transaction for agent imports. */
+export function recordLinkedJobIfNew(
+  board: Board,
+  input: CardInput,
+  link: JobLinkProvenance,
+  actor: string,
+  pastedUrl: string,
+): { card: Card | null; duplicates: Card[] } {
+  return board.db.transaction(() => {
+    const duplicates = postingMatches(board, {
+      provider: link.provider,
+      slug: link.board,
+      jobId: link.jobId,
+      company: input.company,
+      title: input.title,
+      urls: [input.url, pastedUrl],
+    });
+    return duplicates.length
+      ? { card: null, duplicates }
+      : { card: recordLinkedJob(board, input, link, actor), duplicates: [] };
+  })();
 }

@@ -123,7 +123,7 @@ export function actionEvent(
       '/conversations': 'conversation_created',
     };
     if (exact[path]) return { event: exact[path] };
-    if (/^\/cards\/[^/]+\/move$/.test(path))
+    if (/^\/cards\/[^/]+\/(?:move|status)$/.test(path))
       return {
         event: 'application_status_changed',
         properties: { state: typeof input.state === 'string' ? input.state : undefined },

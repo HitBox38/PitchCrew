@@ -23,7 +23,10 @@ export type JobHistoryProps = Pick<CardDetailsModel, 'data' | 'card'>;
 
 export type JobMetadataProps = Pick<CardDetailsModel, 'card'>;
 
-export type JobOverviewProps = Pick<CardDetailsModel, 'card' | 'working' | 'run' | 'act'>;
+export type JobOverviewProps = Pick<
+  CardDetailsModel,
+  'card' | 'working' | 'run' | 'act' | 'setBriefDirty'
+>;
 
 export type JobPacketProps = Pick<CardDetailsModel, 'document' | 'setDocument' | 'card'>;
 
@@ -31,7 +34,7 @@ export type JobStateProps = Pick<CardDetailsModel, 'card'>;
 
 export type JobTabsProps = Pick<
   CardDetailsModel,
-  'tab' | 'card' | 'working' | 'run' | 'act' | 'document' | 'setDocument' | 'data'
+  'tab' | 'card' | 'working' | 'run' | 'act' | 'document' | 'setDocument' | 'data' | 'setBriefDirty'
 >;
 
 export type OutcomeActionsProps = Pick<CardDetailsModel, 'card' | 'working' | 'run' | 'act'>;

@@ -14,6 +14,15 @@ import { createBoardContext } from './board/context.ts';
 import type { BoardContext } from './board/types.ts';
 
 export { digestPacket, digestArtifacts } from './board/helpers.ts';
+export { setCardStatus } from './board/manual-status.ts';
+export {
+  applicationRevision,
+  jobSourceRevision,
+  assertExtractedContext,
+  assertConfirmedContext,
+  assertReviewedContext,
+  saveApplicationContext,
+} from './board/application-context.ts';
 export {
   searchApplications,
   registerExternalApplication,
@@ -40,17 +49,20 @@ export {
   markStaleSubmissions,
 } from './board/learning.ts';
 export { previewApplicationImport, applyApplicationImport } from './board/imports.ts';
+export { convertLegacyTracker } from './board/legacy-tracker.ts';
 export {
   discoveryKeys,
   isKnownPosting,
   postingMatches,
   recordDiscoveredLeads,
   recordLinkedJob,
+  recordLinkedJobIfNew,
   type DiscoveredPosting,
 } from './board/discovery.ts';
 export { defaultInstructionHistory } from './board/default-instruction-history.ts';
 export { instructionStatus } from './board/default-instructions.ts';
 export { defaultRoles } from './board/default-roles.ts';
+export { changeJobState, deleteJob } from './board/job-management.ts';
 export { instructionRevision, normalizeInstructions } from './board/instruction-revisions.ts';
 export class Board {
   private readonly context: BoardContext;
@@ -92,7 +104,18 @@ export class Board {
   updateCard(
     id: string,
     patch: Partial<
-      Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+      Pick<
+        Card,
+        | 'packet'
+        | 'feedback'
+        | 'fit'
+        | 'owner'
+        | 'formAssessments'
+        | 'submissionAttempts'
+        | 'applicationContext'
+        | 'packetContextRevision'
+        | 'packetReview'
+      >
     >,
     actor: string,
     message: string,

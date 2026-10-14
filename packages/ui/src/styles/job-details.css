@@ -162,3 +162,106 @@
   font-size: var(--text-caption);
   color: var(--muted);
 }
+
+/* Keep job identity, actions and section navigation above the scrolling document. */
+.modal.card-details-panel,
+.modal.add-job-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.card-details-panel > .modal-heading,
+.add-job-panel > .modal-heading {
+  flex-shrink: 0;
+  min-height: 64px;
+  margin: 0;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.card-details-panel > .modal-heading h2,
+.add-job-panel > .modal-heading h2 {
+  font: 600 18px/1.3 var(--font-sans);
+}
+.card-details-panel .job-summary {
+  max-height: 42dvh;
+  overscroll-behavior: contain;
+}
+.card-details-panel .detail-company {
+  margin-top: 0;
+  align-items: flex-start;
+}
+.card-details-panel .detail-company > div {
+  min-width: 0;
+}
+.card-details-panel .detail-company .company-mark {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  font-size: 17px;
+}
+.card-details-panel .detail-company h2 {
+  margin-top: 3px;
+  font: 600 20px/1.3 var(--font-sans);
+}
+.card-details-panel .detail-company > div > span {
+  font-size: 13px;
+}
+.card-details-panel .detail-meta {
+  gap: 8px 14px;
+  margin-block: 12px;
+  font-size: 12px;
+}
+.card-details-panel .detail-state {
+  flex-wrap: wrap;
+  margin-block: 12px;
+}
+.card-details-panel .detail-actions {
+  margin-block: 12px 0;
+}
+.card-details-panel .detail-actions .button {
+  height: 34px;
+  padding-inline: 12px;
+  font-size: 12px;
+}
+.card-details-panel .action-hint {
+  margin-block: 8px 0;
+  font-size: 12px;
+}
+.card-details-panel .detail-tabs {
+  margin: 0;
+  border-radius: 10px;
+}
+.card-details-panel .detail-tabs button {
+  justify-content: center;
+  border-radius: 7px;
+}
+.card-details-panel .detail-navigation {
+  border-bottom: 1px solid var(--border);
+}
+.card-details-panel .detail-tab-content {
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+.card-details-panel .detail-tab-content h3 {
+  font: 600 15px/1.4 var(--font-sans);
+}
+.card-details-panel .detail-tab-content h3:first-child {
+  margin-top: 0;
+}
+.add-job-panel .add-job-body {
+  overscroll-behavior: contain;
+}
+.add-job-panel .modal-intro {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+.add-job-panel .add-job-footer {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+  background: var(--surface);
+}
+@variant max-mobile {
+  .card-details-panel .detail-company h2 {
+    font-size: 18px;
+  }
+}

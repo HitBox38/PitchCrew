@@ -8,7 +8,7 @@ export function OutcomeSummary({ insights }: { insights: ApplicationInsights }) 
       <h2 id="insights-outcomes" className="sr-only">
         Outcomes
       </h2>
-      <dl className="grid grid-cols-2 gap-3 wide:grid-cols-5">
+      <dl className="insights-outcome-grid grid grid-cols-2 wide:grid-cols-5">
         <div className="insight-tile">
           <dt>Applications</dt>
           <dd>{insights.total}</dd>

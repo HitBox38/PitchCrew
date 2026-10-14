@@ -94,7 +94,7 @@ PDF and DOCX exports use the **Formatted** layout by default. It turns Markdown 
 
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
-Moving from another tracker? **Import applications** on Board takes a JSON or CSV file of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. `node scripts/convert-legacy-tracker.mjs <tracker.db> <applications.json>` converts a legacy SQLite tracker into that format. See [importing past applications](docs/tracking.md#importing-past-applications).
+Moving from another tracker? **Import applications** on Board accepts a legacy SQLite tracker (`.db`, `.sqlite`, `.sqlite3`) directly or a JSON/CSV export of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. SQLite trackers are converted locally in the import dialog, with no terminal commands needed. The optional `node scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` command uses the same converter. See [importing past applications](docs/tracking.md#importing-past-applications).
 
 ## Your crew
 
@@ -142,7 +142,7 @@ Pitchcrew reads only the providers' official public APIs, without signing in, an
 
 For a single job, paste its posting link in **Add job** and choose **Fetch from link**. Pitchcrew fills in the company, title, location, salary and full description for you to review, and warns when the job may already be on the board. A job saved this way records its provider and job ID, so later scans skip it.
 
-To let Scout scan, enable **Scan your saved job sources and add new matching leads** in its settings under Role tools. It is off by default. Scout can then scan from chat or a routine, assess the new leads and tell you about strong matches. Agents cannot add, change or remove sources. See [job discovery](docs/job-discovery.md).
+To let an agent scan sources or add a job from a posting link, enable **Scan saved job sources and add leads from posting links** in its settings under Role tools. It is off by default. You can then paste a supported Greenhouse, Ashby, Lever, Comeet or Workable posting link in chat and ask the agent to add it. The tool saves a lead or reports an existing card or a lookup failure. Scout can also scan saved sources from chat or a routine, assess the new leads and tell you about strong matches. Agents cannot add, change or remove sources. See [job discovery](docs/job-discovery.md).
 
 Agent suggestions for instructions, capabilities and skills appear in **Chat > Crew work**. You review and decide whether to apply them. [Pipeline reviews](docs/pipeline-reviews.md) use the same explicit approval model for targeted crew changes.
 
@@ -241,3 +241,7 @@ GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes
 The [Release workflow](.github/workflows/release.yml) publishes the verified installers and SHA-256 checksums after successful push CI on `main`, using `build-<full commit SHA>` tags. It downloads artifacts from that exact CI run without checking out or executing repository code, and alone has release write permission. Reruns resume drafts or skip an already published release. `pnpm desktop:package` builds the current platform's installers locally; `pnpm test:packaged` verifies the unpacked app starts its bundled daemon, renders the UI and stops its owned daemon. On Windows, `pnpm test:installer` also verifies the compiled NSIS process check closes only Pitchcrew's app and bundled runtime, without mistaking downloads or sibling folders for a running app. It uses isolated fixtures without installing or uninstalling anything. Packaging uses the build machine's Node 24 executable, so build on each target platform and architecture. Signing and notarization credentials are not configured.
 
 Read [AGENTS.md](AGENTS.md) for repository rules, [code organization](docs/code-organization.md) for module conventions, and [MVP design](docs/mvp-design.md) for architectural decisions.
+
+## License
+
+Pitchcrew is released under the [MIT License](LICENSE).

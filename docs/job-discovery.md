@@ -57,7 +57,7 @@ The company comes from your saved job source for the same board, then from the p
 
 A job saved from a link gets the same provenance as a discovered lead: provider, board name, job ID and first-seen time, with "link" as its source. Its job ID becomes the card's job identifier. Later scans of that board skip it. The card details show "Added from a Greenhouse link", with the provider's name. If you change the link after fetching, the job is saved without provenance, like a job you typed in. With **Already applied outside Pitchcrew** checked, the fetched job ID fills in the job identifier instead.
 
-Agents have no lookup tool and still cannot fetch links.
+Agents with `discoverJobs` can use `pitchcrew_import_job_link` to add a supported posting link directly as a lead. It uses this same lookup and its limits; the pasted page itself is never fetched. See [Agents and routines](#agents-and-routines).
 
 ## Filters
 
@@ -94,16 +94,23 @@ Dismiss a lead by moving it to withdrawn. Later scans skip it. Only one scan run
 
 ## Agents and routines
 
-The `discoverJobs` capability is off for every role, including the default Scout. Turn it on in the role's settings under **Role tools**. With it, the role gets two MCP tools:
+The `discoverJobs` capability is off for every role, including the default Scout. Turn it on in the role's settings under **Role tools**. With it, the role gets three MCP tools:
 
-| Tool                         | Purpose                                                                   |
-| ---------------------------- | ------------------------------------------------------------------------- |
-| `pitchcrew_list_job_sources` | Read saved sources: ID, name, provider, filters, enabled state, last scan |
-| `pitchcrew_scan_job_sources` | Scan enabled sources, or saved `sourceIds`, and return the summary        |
+| Tool                         | Purpose                                                                            |
+| ---------------------------- | ---------------------------------------------------------------------------------- |
+| `pitchcrew_list_job_sources` | Read saved sources: ID, name, provider, filters, enabled state, last scan          |
+| `pitchcrew_scan_job_sources` | Scan enabled sources, or saved `sourceIds`, and return the summary                 |
+| `pitchcrew_import_job_link`  | Import one supported posting `url` as a lead, or return existing card IDs/statuses |
 
-The scan result includes each new lead's card ID, company, title, location, URL and a description excerpt of up to 1,500 characters. Agents cannot add, edit or remove sources, change filters or pass a URL. The input accepts only saved source IDs. The daemon checks the capability, the role's enabled state and the run on every call, so turning the capability off stops the next call. Agent scans skip a source that was scanned successfully in the last 15 minutes.
+The scan result includes each new lead's card ID, company, title, location, URL and a description excerpt of up to 1,500 characters. Agents cannot add, edit or remove sources or change filters. Scan input accepts only saved source IDs, never URLs. The daemon checks the capability, the role's enabled state and the run on every call, so turning the capability off stops the next call. Agent scans skip a source that was scanned successfully in the last 15 minutes.
 
-The default Scout instructions say to scan when discovery is enabled, then give a short fit read for each new lead and notify you about strong matches. New leads stay leads until you shortlist them. Workspaces created before this change keep their existing Scout instructions; edit them in Crew if you want the same behavior.
+For a single job, enable **Scan saved job sources and add leads from posting links** under the agent's Role tools, then ask in chat, for example: "Add this job to my board: https://job-boards.greenhouse.io/northwindlabs/jobs/4010001001". The tool takes `{ "url": "..." }`; it needs no saved source except a hosted Comeet link that needs the saved company's careers token. Embed Comeet tokens are used once and never saved.
+
+Imports ignore saved-source filters and paused source settings because they target one requested posting. They never add or change a source. The result is `added` with the lead ID, company, title, location, URL and a description excerpt of up to 1,500 characters; `duplicate` with existing card IDs and statuses; or `unrecognized` / `failed` with a reason. Confirming an addition requires an `added` result. Unsupported sites, closed postings and provider errors create nothing. Duplicate checking uses the Add job checks, including the company/title match for manually tracked applications, against all current cards in any status. The final check and insertion are atomic, so concurrent imports cannot add the same posting twice. Duplicate cards stay unchanged.
+
+An imported card records the importing agent as the event actor and uses link provenance, so later scans skip it. Imports do not launch workflow runs, shortlist, export or submit. The daemon rechecks discovery permission, the enabled role, the live run and cancellation after fetching and immediately before saving. Turning off permission, stopping the run or shutting down prevents an in-flight import from committing.
+
+The default Scout instructions say to scan when discovery is enabled, import a single posting link when asked, then give a short fit read for each new lead and notify you about strong matches. New leads stay leads until you shortlist them. Existing workspaces keep their Scout instructions and can adopt the reviewed default instruction update in Crew.
 
 To scan on a schedule, enable `discoverJobs` for Scout and add a routine on `/routines`, for example "Scan my job sources and assess new leads" every four hours. Routines run only while the daemon is open; see [routines](routines.md). Each routine run is an ordinary Scout chat turn that calls the scan tool.
 
@@ -137,9 +144,9 @@ A link lookup makes one request. Greenhouse and Lever have a single-posting endp
 - Requests to the same provider start at least one second apart. Different providers run in parallel. Queued requests stop immediately when the scan is cancelled or reaches its deadline.
 - Link lookups share the same limits and spacing as scans. A lookup stops after one minute, including time spent waiting behind a running scan, or when you close the form.
 
-Sources paused, removed or edited while a scan is fetching are skipped before any leads are saved. Agent discovery permission and the active run are rechecked after the fetch, immediately before recording leads.
+Sources paused, removed or edited while a scan is fetching are skipped before any leads are saved. Agent discovery permission and the active run are rechecked after the fetch, immediately before recording leads, for both scans and single-link imports.
 
-Descriptions are converted to plain text with a single pass over the markup. Pitchcrew never renders or runs the HTML and never fetches links, images or other resources in it. Script, style, iframe and similar blocks are dropped with their contents, and link targets are discarded. Descriptions are capped at 20,000 characters. Job posts stay untrusted data for agents.
+Descriptions are converted to plain text with a single pass over the markup. Bounded source markup is also retained for application-brief extraction so hiding evidence is not discarded before review; it is never rendered or supplied to drafting runs. Pitchcrew never renders or runs the HTML and never fetches links, images or other resources in it. Script, style, iframe and similar blocks are dropped with their contents, and link targets are discarded. Descriptions are capped at 20,000 characters. Job posts stay untrusted data for agents.
 
 ### Fields read
 
@@ -162,4 +169,4 @@ Discovered cards are ordinary board events. Event version 10 adds the card `disc
 
 ## Verification
 
-Tests use recorded fictional responses for all five providers and a mocked fetch, with no network access. They cover the parsers (including missing optional fields and merged office copies), HTML conversion, filters, board name, company UID and token validation, URL construction, token redaction, loading older source files, size and timeout limits, rate limiting, duplicate handling including withdrawn cards, the per-scan cap, the HTTP session boundary, capability gating over the daemon and actual MCP stdio, a routine-started scan and event replay. Link tests cover recognition for each provider, including Ashby names with dots and `%20` spaces, Comeet hosted and embed links and Workable links, and rejected hosts, IDs, user info, ports, non-https links, percent escapes and path traversal; Comeet lookups with and without a saved source and with an embed token, with the token kept out of results, errors, cards and events; lookups from recorded single postings; size, timeout and cancellation; duplicate warnings; the HTTP session boundary; and that a saved fetched job stops a later scan from adding it again.
+Tests use recorded fictional responses for all five providers and a mocked fetch, with no network access. They cover the parsers (including missing optional fields and merged office copies), HTML conversion, filters, board name, company UID and token validation, URL construction, token redaction, loading older source files, size and timeout limits, rate limiting, duplicate handling including withdrawn cards, the per-scan cap, the HTTP session boundary, capability gating over the daemon and actual MCP stdio, a routine-started scan and event replay. Link tests cover recognition for each provider, including Ashby names with dots and `%20` spaces, Comeet hosted and embed links and Workable links, and rejected hosts, IDs, user info, ports, non-https links, percent escapes and path traversal; Comeet lookups with and without a saved source and with an embed token, with the token kept out of results, errors, cards and events; lookups from recorded single postings; size, timeout and cancellation; duplicate warnings; the HTTP session boundary; and that a saved fetched job stops a later scan from adding it again. Agent import tests cover all providers through the HTTP gateway, actual MCP stdio registration and calls, input validation, errors, cancellation and permission revocation during fetching, atomic duplicate checks, concurrent imports, source preservation, token redaction, agent event attribution and replay.

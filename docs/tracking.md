@@ -21,7 +21,7 @@ The server recognizes a small conservative set of explicit English submission, s
 
 Signals save the exact quotation, bounded fetched text, incompleteness flag, source sender/subject/message/thread IDs, effective timestamp, proposed state, candidate identities and comparison revisions. Uncertain matches produce pending records and an attention message. The Board shows pending reviews and an expandable full fetched email. Users can reject a signal, select its exact application and apply a valid transition, or register a missing external application first and explicitly associate it. Applying a user review links its Gmail thread for future updates. Changed cards require refreshing the saved comparison before approval. Card details show recent evidence and let the user edit job identifiers and link or unlink Gmail threads.
 
-All updates obey the existing state machine and reject active workflow ownership, older effective timestamps and conflicting evidence at the same timestamp. User status changes set a separate effective-time boundary; unrelated packet edits do not advance it. Legacy cards derive the last user status change from retained, paged event history. A user-reviewed historical email retains its verified source time. Rejected or ignored signals remain processed; decisions do not automatically retry or overwrite history.
+All email-based updates obey the existing state machine and reject active workflow ownership, older effective timestamps and conflicting evidence at the same timestamp. User status changes and explicit agent board corrections set a separate effective-time boundary; unrelated packet edits do not advance it. Legacy cards derive the last user status change from retained, paged event history. A user-reviewed historical email retains its verified source time. Rejected or ignored signals remain processed; decisions do not automatically retry or overwrite history.
 
 To close out silent applications, use **Insights > Silent applications**. It previews submitted jobs with no status change for a chosen number of days (21 by default) and marks only the ones you confirm as no response, effective from the day the silence period ended. Later replies can still move them forward. It never runs automatically. See [insights](insights.md).
 
@@ -33,13 +33,15 @@ Registration only records a known fact. It does not submit, send, navigate, expo
 
 For a job already on the board, card details include **Already applied outside Pitchcrew?**. This explicit user-only import records the known external submission on that same card, avoiding a duplicate. It rejects active workflow ownership, retains the prior packet and history without identifying that packet as submitted, invalidates unused packet approvals, and marks external provenance and the provided effective time. It is a narrow fact-registration operation rather than a generic workflow transition. Ordinary moves and automatic email reconciliation into `submitted` still require a successfully exported current packet.
 
+Agents with `manageWorkflow` can separately correct any local board status through `pitchcrew_change_workflow`, including `submitted`, or delete a job through `pitchcrew_delete_job`. These tools accept a board job ID and do not submit externally or create export/submission receipts. They invalidate unused approvals and preserve history; active workflow runs block changes. See [agent board permissions](roles.md).
+
 ## Importing past applications
 
 Use **Import applications** on Board to bring in applications from an older tracker. Import is user-only: it needs the local UI session, and agents have no import tool. It records known facts. It does not submit, send, export or create packets or approvals.
 
 ### Steps
 
-1. Choose a `.json` or `.csv` file. The daemon parses and checks it; nothing is saved yet.
+1. Choose your legacy SQLite tracker (`.db`, `.sqlite` or `.sqlite3`) directly, or a `.json` or `.csv` export. For a tracker stored in a GitHub repository, download the database file (for example, `data/applications.db`) first. Pitchcrew reads and converts the database locally; no script or terminal commands are needed. The daemon parses and checks the applications; nothing is saved yet.
 2. Review the preview. Each row is **New**, **Duplicate**, **Already imported** or **Invalid**, with the reason and any warnings.
 3. Confirm. Only new rows are saved. The result lists every row as **Imported**, **Duplicate**, **Already imported**, **Invalid** or **Failed**.
 
@@ -117,12 +119,14 @@ A row is a duplicate when it matches an existing card by the same rule as extern
 
 Each row has a stable import key from its parsed content. The key is written in the message of the card's import event. Importing the same file again reports those rows as **Already imported** and saves nothing new. A row whose content changed since the last import matches its card as a duplicate instead.
 
-### Converting a legacy SQLite tracker
+### SQLite trackers
 
-`scripts/convert-legacy-tracker.mjs` reads a tracker with `applications`, `status_events`, `tags` and `application_tags` tables and writes a JSON import file:
+The file picker accepts trackers with `applications`, `status_events`, `tags` and `application_tags` tables in the legacy schema. Unsupported databases show an error with the JSON/CSV alternative. Uploaded databases are read-only in memory, inside a worker with a five-second deadline and bounded heap. The same 2 MB and 1,000-application limits apply to the database and converted JSON. Conversion warnings appear above the preview, including dates assumed UTC, derived titles and shortened content. Agents have no database import tool.
+
+For command-line workflows, `scripts/convert-legacy-tracker.ts` remains available and uses the same converter to write a JSON import file:
 
 ```sh
-node scripts/convert-legacy-tracker.mjs ~/old-tracker.db ~/applications.json
+node scripts/convert-legacy-tracker.ts ~/old-tracker.db ~/applications.json
 ```
 
 The tracker is opened read-only and an existing output file is never overwritten. Without an output path, JSON goes to standard output.

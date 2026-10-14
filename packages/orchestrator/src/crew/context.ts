@@ -1,4 +1,5 @@
 import { Board } from '@pitchcrew/board';
+import { ProfileOrganizationStore } from '../profile-organization.ts';
 import { InstructionUpdatePreferences } from '../instruction-updates.ts';
 import { OnboardingPreferences } from '../onboarding.ts';
 import { PacketRulesStore } from '../packet-rules.ts';
@@ -70,6 +71,7 @@ export function createCrewContext(
     packetRules: new PacketRulesStore(directory),
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),
+    profileOrganization: new ProfileOrganizationStore(directory),
     jobSources: new JobSourceManager(directory, board),
     profileWriting: false,
     profileRevision: 0,
@@ -77,6 +79,7 @@ export function createCrewContext(
     capabilities: new Map<string, { runId: string; cardId: string | null; roleId: RoleId }>(),
     controllers: new Map<string, AbortController>(),
     streamingMessages: new Map<string, ChatMessage>(),
+    runActivities: new Map(),
     chatListeners: new Set<(messagesChanged: boolean) => void>(),
     draining: false,
     scheduling: false,

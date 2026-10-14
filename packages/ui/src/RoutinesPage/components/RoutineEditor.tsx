@@ -13,15 +13,15 @@ export function RoutineEditor(props: EditorProps) {
     <Modal
       title={props.routine ? 'Edit routine' : 'New routine'}
       onClose={editor.close}
-      className="flex max-h-[90dvh] flex-col overflow-hidden"
+      className="routine-editor flex max-h-[90dvh] flex-col overflow-hidden"
     >
-      <form
-        className="form flex min-h-0 flex-col gap-5"
-        onSubmit={(event) => void editor.save(event)}
-      >
-        <div className="flex min-h-0 flex-col gap-5 overflow-y-auto pr-1">
-          <ActionFields {...editor} roles={props.roles} cards={props.cards} />
-          <RoutineConversation {...editor} />
+      <form className="form flex min-h-0 flex-col" onSubmit={(event) => void editor.save(event)}>
+        <div className="routine-editor-body flex min-h-0 flex-col gap-5 overflow-y-auto">
+          <fieldset className="routine-editor-section flex min-w-0 flex-col gap-4">
+            <legend>Task</legend>
+            <ActionFields {...editor} roles={props.roles} cards={props.cards} />
+            <RoutineConversation {...editor} />
+          </fieldset>
           <ScheduleFields {...editor} />
           <p className="quiet">
             Times use the timezone above. Runs continue in the routine’s conversation. Exports and
@@ -39,7 +39,7 @@ export function RoutineEditor(props: EditorProps) {
             </p>
           ) : null}
         </div>
-        <div className="flex shrink-0 justify-end gap-2 border-t border-border pt-4">
+        <div className="routine-editor-footer flex shrink-0 justify-end gap-2 border-t border-border">
           <Button className="button" disabled={props.working} onClick={editor.close}>
             Cancel
           </Button>

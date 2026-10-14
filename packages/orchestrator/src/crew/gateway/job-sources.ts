@@ -5,8 +5,8 @@ import type { CrewContext, RunCapability } from '../types.ts';
 export const agentScanIntervalMs = 15 * 60 * 1000;
 
 /**
- * Agents may scan the user's saved sources and read their names and filters. There is no agent
- * path to add, edit or remove a source, or to fetch any other URL.
+ * Agents may scan saved sources or import supported posting links through fixed provider APIs.
+ * There is no agent path to add, edit or remove a source, or to fetch arbitrary URLs.
  */
 export async function jobSourceAction(
   this: CrewContext,
@@ -44,6 +44,15 @@ export async function jobSourceAction(
           lastScan,
         }),
       ),
+    };
+  if (action === 'import_job_link')
+    return {
+      result: await this.jobSources.importLink({
+        actor: capability.roleId,
+        input: data.input,
+        signal,
+        authorize,
+      }),
     };
   const summary = await this.jobSources.scan({
     actor: capability.roleId,

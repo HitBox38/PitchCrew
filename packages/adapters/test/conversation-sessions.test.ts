@@ -103,3 +103,19 @@ it('retains ephemeral isolation for ordinary turns without a conversation sessio
   expect(vi.mocked(chatCli).mock.calls[0][1]).toContain('--ephemeral');
   expect(vi.mocked(chatCli).mock.calls[1][1]).toContain('--no-session-persistence');
 });
+it('does not resume a source-discussion session during isolated extraction', async () => {
+  const isolated: ChatContext = {
+    ...context,
+    purpose: 'source-extraction',
+    sourceText: 'Fictional source.',
+    session: { directory: '/contaminated/session', id: '11111111-1111-4111-8111-111111111111' },
+  };
+  await codex.chat(isolated);
+  await claudeCode.chat(isolated);
+  const codexFlags = vi.mocked(chatCli).mock.calls[0][1];
+  const claudeFlags = vi.mocked(chatCli).mock.calls[1][1];
+  expect(codexFlags).toContain('--ephemeral');
+  expect(codexFlags).not.toContain('resume');
+  expect(claudeFlags).toContain('--no-session-persistence');
+  expect(claudeFlags).not.toContain('--resume');
+});

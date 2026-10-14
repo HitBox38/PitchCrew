@@ -54,6 +54,10 @@ export const skillInput = z
     scope: z.enum(['all', 'roles']),
     roleIds: z.array(roleIdSchema).max(50).default([]),
     source: skillSourceSchema.optional(),
+    bundledId: z
+      .string()
+      .regex(/^[a-z0-9-]{1,80}$/)
+      .optional(),
   })
   .strict()
   .refine(
@@ -71,7 +75,10 @@ export interface Skill extends SkillInput {
   updatedAt: string;
   deletedAt: string | null;
 }
-export type SkillPreview = Pick<SkillInput, 'name' | 'description' | 'content' | 'source'>;
+export type SkillPreview = Pick<
+  SkillInput,
+  'name' | 'description' | 'content' | 'source' | 'bundledId'
+>;
 export const skillSuggestionInput = z.discriminatedUnion('kind', [
   z
     .object({

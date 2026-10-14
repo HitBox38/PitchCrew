@@ -1,7 +1,7 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { ApplicationImportReport } from '@pitchcrew/core';
 import { useState } from 'react';
-import { previewImport } from '../api.ts';
+import { convertDatabaseImport, previewImport } from '../api.ts';
 import { readImportFile } from '../helpers.ts';
 import type { ImportUpload } from '../types.ts';
 
@@ -20,7 +20,7 @@ export function useImportApplications() {
     if (!file) return;
     setBusy(true);
     try {
-      const next = await readImportFile(file);
+      const next = await readImportFile(file, convertDatabaseImport);
       setUpload(next);
       setPreview(await previewImport(next));
     } catch (error) {

@@ -5,7 +5,9 @@ import {
   type ChatRequest,
   type Run,
   type UserInputRequest,
+  type Card,
 } from '@pitchcrew/core';
+import { assertConfirmedContext, saveApplicationContext } from '@pitchcrew/board';
 import { canReadConversation } from '../conversations.ts';
 import { requireRole } from '../roles.ts';
 import { drainConversationQueue } from '../conversation-queue.ts';
@@ -38,11 +40,25 @@ export function answerUserQuestion(context: CrewContext, id: string, data: unkno
   const content = [...answer.selected.map((id) => options.get(id)!), answer.text]
     .filter(Boolean)
     .join('\n');
+  const application =
+    question.applicationRequirementId && question.cardId
+      ? assertConfirmedContext(context.board.get<Card>('card', question.cardId))
+      : undefined;
+  if (
+    application &&
+    (application.revision !== question.applicationContextRevision ||
+      !application.requirements.some(
+        (r) => r.id === question.applicationRequirementId && r.personal,
+      ))
+  )
+    throw new Error('The application brief changed. Answer its current requirements instead.');
   const request: ChatRequest = {
     id: randomUUID(),
     threadId: question.sourceThreadId,
     messageId: randomUUID(),
-    content: `Continue your interrupted task after the user answered your question.\nOriginal request: ${originalQuestionTask(context, original)}\nWork so far and next steps: ${question.continuationNotes || 'Use the saved conversation and current board state.'}\nQuestion: ${question.question}\nAnswer: ${content}`,
+    content: application
+      ? 'Continue the isolated application workflow using the saved user answer and current confirmed brief.'
+      : `Continue your interrupted task after the user answered your question.\nOriginal request: ${originalQuestionTask(context, original)}\nWork so far and next steps: ${question.continuationNotes || 'Use the saved conversation and current board state.'}\nQuestion: ${question.question}\nAnswer: ${content}`,
     attachments: [],
     createdAt: new Date().toISOString(),
     order:
@@ -63,6 +79,21 @@ export function answerUserQuestion(context: CrewContext, id: string, data: unkno
       null,
       request.messageId,
     );
+    if (application)
+      saveApplicationContext(
+        context.board,
+        question.cardId!,
+        application.sourceRevision,
+        application.revision,
+        {
+          brief: application.brief,
+          requirements: application.requirements.map((r) =>
+            r.id === question.applicationRequirementId ? { ...r, answer: content } : r,
+          ),
+          flagged: application.flagged,
+        },
+        true,
+      );
     context.board.record(
       'message',
       { ...message, userInput: { id, kind: 'answer' } },

@@ -1,10 +1,16 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
-import { defaultCapabilities, type JobScanSummary, type Role } from '@pitchcrew/core';
+import {
+  defaultCapabilities,
+  type JobLinkImportResult,
+  type JobScanSummary,
+  type Role,
+} from '@pitchcrew/core';
 import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, resources, setup } from '../../orchestrator/test/helpers/daemon.ts';
 import { fixtureSources, recordedBoards } from '../../orchestrator/test/helpers/job-boards.ts';
+import { postingLinks, recordedPostings } from '../../orchestrator/test/helpers/job-links.ts';
 
 afterEach(async () => {
   for (const resource of resources) resource.daemon.service.controllers.delete('stdio-discovery');
@@ -36,7 +42,7 @@ async function connect(url: string) {
   return client;
 }
 
-it('exposes the scan tool over actual stdio only with discoverJobs and rechecks it per call', async () => {
+it('exposes scan and link import tools over actual stdio only with discoverJobs and rechecks it per call', async () => {
   const { daemon, request } = await setup(15471);
   daemon.service.jobSources.fetch = recordedBoards().fetcher;
   await request('/job-sources', 'POST', fixtureSources.lever);
@@ -77,6 +83,7 @@ it('exposes the scan tool over actual stdio only with discoverJobs and rechecks 
     const names = (await disabled.listTools()).tools.map((tool) => tool.name);
     expect(names).not.toContain('pitchcrew_scan_job_sources');
     expect(names).not.toContain('pitchcrew_list_job_sources');
+    expect(names).not.toContain('pitchcrew_import_job_link');
   } finally {
     await disabled.close();
   }
@@ -89,6 +96,16 @@ it('exposes the scan tool over actual stdio only with discoverJobs and rechecks 
     expect(scanTool).toBeTruthy();
     expect(Object.keys(scanTool!.inputSchema.properties ?? {})).toEqual(['input']);
     expect(tools.map((tool) => tool.name)).toContain('pitchcrew_list_job_sources');
+    const importTool = tools.find((tool) => tool.name === 'pitchcrew_import_job_link');
+    expect(importTool).toBeTruthy();
+    expect(importTool!.inputSchema.required).toEqual(['url']);
+    expect(importTool!.inputSchema.additionalProperties).toBe(false);
+    expect(importTool!.annotations).toMatchObject({
+      readOnlyHint: false,
+      destructiveHint: false,
+      idempotentHint: true,
+      openWorldHint: true,
+    });
     const listed = await client.callTool({ name: 'pitchcrew_list_job_sources', arguments: {} });
     expect(listed.isError).not.toBe(true);
     const injected = await client.callTool({
@@ -101,9 +118,43 @@ it('exposes the scan tool over actual stdio only with discoverJobs and rechecks 
     const { summary } = scanned.structuredContent as { summary: JobScanSummary };
     expect(summary).toMatchObject({ new: 2, failedSources: 0 });
     expect(summary.newLeads[0].excerpt).not.toContain('<');
+    daemon.service.jobSources.fetch = recordedPostings().fetcher;
+    const invalidImport = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: postingLinks.greenhouse.link, endpoint: 'https://evil.example' },
+    });
+    expect(invalidImport.isError).toBe(true);
+    const imported = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: postingLinks.greenhouse.link },
+    });
+    expect(imported.isError).not.toBe(true);
+    const { result } = imported.structuredContent as { result: JobLinkImportResult };
+    expect(result).toMatchObject({
+      status: 'added',
+      lead: { company: 'Northwind Labs', title: 'Senior Frontend Engineer' },
+    });
+    if (result.status !== 'added') throw new Error('Expected an imported lead.');
+    const duplicate = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: postingLinks.greenhouse.link },
+    });
+    expect(duplicate.structuredContent).toEqual({
+      result: { status: 'duplicate', duplicates: [{ id: result.lead.id, state: 'lead' }] },
+    });
+    const unsupported = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: 'https://careers.example/jobs/42' },
+    });
+    expect(unsupported.structuredContent).toMatchObject({ result: { status: 'unrecognized' } });
     setDiscovery(false);
     const revoked = await client.callTool({ name: 'pitchcrew_scan_job_sources', arguments: {} });
     expect(revoked.isError).toBe(true);
+    const revokedImport = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: postingLinks.greenhouse.link },
+    });
+    expect(revokedImport.isError).toBe(true);
   } finally {
     await client.close();
   }

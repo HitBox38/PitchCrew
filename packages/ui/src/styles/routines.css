@@ -1,0 +1,161 @@
+/* The calendar is a working list on paper, with the controls kept above its scroll. */
+.routines-workspace-body {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.routines-workspace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.routines-toolbar {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.routines-toolbar .quiet {
+  font-size: 12px;
+}
+.routines-search {
+  position: relative;
+  min-width: 0;
+}
+.routines-search > svg {
+  position: absolute;
+  top: 11px;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.routines-search input {
+  width: 100%;
+  height: 38px;
+  padding: 8px 11px 8px 36px;
+  border: 0;
+  border-radius: 10px 11px 10px 9px;
+  background: var(--sunken-fill);
+  color: var(--ink);
+  font-size: var(--text-body);
+  font-weight: 400;
+  box-shadow: var(--clay-sunken);
+}
+.routines-agent-filter > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.routines-list-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 20px 20px;
+}
+.routines-list-area > .form-error {
+  margin-top: 16px;
+}
+.routine-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
+  gap: 16px 28px;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.routine-row:last-child {
+  border-bottom: 0;
+}
+.routine-row h2 {
+  font: 600 16px/1.4 var(--font-sans);
+  overflow-wrap: anywhere;
+}
+.routine-row .quiet,
+.routine-actions [data-slot='button'],
+.routine-link {
+  font-size: 12px;
+}
+.routine-row .routine-status {
+  border: 0;
+  background: var(--paper-deep);
+  color: var(--muted);
+  font-size: 11px;
+}
+.routine-status[data-status='Scheduled'] {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+.routine-status[data-status='Running'] {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+.routine-actions {
+  grid-column: 1 / -1;
+}
+.routine-link {
+  padding: 6px 8px;
+  border-radius: 6px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.routine-link:hover {
+  background: rgb(var(--tint) / 0.045);
+}
+.routine-editor.modal {
+  padding: 0;
+}
+.routine-editor .modal-heading {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.routine-editor-body {
+  padding: 20px;
+  overscroll-behavior: contain;
+}
+.routine-editor-section {
+  padding: 0;
+  border: 0;
+}
+.routine-editor-section legend {
+  margin-bottom: 14px;
+  padding: 0;
+  color: var(--ink);
+  font: 600 15px/1.4 var(--font-sans);
+}
+.routine-editor-section + .routine-editor-section {
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.routine-editor-footer {
+  padding: 14px 20px;
+  background: var(--surface);
+}
+@variant max-mobile {
+  .routines-toolbar {
+    padding: 14px 16px;
+  }
+  .routines-list-area {
+    padding: 0 16px 16px;
+  }
+  .routine-row {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+    padding: 18px 0;
+  }
+  .routine-schedule {
+    padding-left: 12px;
+    border-left: 2px solid var(--border);
+  }
+}

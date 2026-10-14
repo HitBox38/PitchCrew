@@ -2,6 +2,7 @@ import type { CardDetailsProps } from '@/components/CardDetails/types.ts';
 import type { Packet } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { useState } from 'react';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 
 export function useCardDetails({
   card,
@@ -12,6 +13,8 @@ export function useCardDetails({
   onInbox,
 }: CardDetailsProps) {
   const [tab, setTab] = useState<'overview' | 'packet' | 'history'>('overview');
+  const [briefDirty, setBriefDirty] = useState(false);
+  const guard = useUnsavedChanges(briefDirty);
   const [document, setDocument] = useState<keyof Omit<Packet, 'claims'>>('resume');
   const act = (path: string, body?: unknown, success?: string) => {
     void action(path, 'POST', body, success).catch(() => {});
@@ -40,10 +43,16 @@ export function useCardDetails({
     card,
     data,
     working,
-    onClose,
+    onClose: () => guard.requestLeave(onClose),
+    guard,
+    setBriefDirty,
     onInbox,
     tab,
-    setTab,
+    setTab: (next: typeof tab) =>
+      guard.requestLeave(() => {
+        setBriefDirty(false);
+        setTab(next);
+      }),
     document,
     setDocument,
     act,

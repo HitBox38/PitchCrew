@@ -1,3 +1,4 @@
+import type { Run } from './runs.ts';
 import type { UserInputRequest } from './user-input.ts';
 import { roleIdSchema } from './roles.ts';
 import { reasoningLevels } from './reasoning.ts';
@@ -24,11 +25,14 @@ export interface ChatMessage {
   memoryIds?: string[];
 }
 export interface ChatStreamState {
+  activityRuns?: Run[];
   userInputs?: UserInputRequest[];
   messages: ChatMessage[];
   streamingMessages: ChatMessage[];
 }
 export interface ChatStreamUpdate {
+  /** Run snapshots merged by ID; initial connection includes saved turn activity. */
+  activityRuns?: Run[];
   // Saved history is sent on connection and when messages change, never per token.
   userInputs?: UserInputRequest[];
   messages?: ChatMessage[];

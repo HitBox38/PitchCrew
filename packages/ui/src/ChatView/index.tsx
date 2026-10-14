@@ -6,7 +6,6 @@ import { RelatedConversations } from './components/RelatedConversations.tsx';
 import { ContinuationNotice } from './components/ContinuationNotice.tsx';
 import { ConversationQueue } from './components/ConversationQueue.tsx';
 import { ChatComposer } from '@/ChatView/components/ChatComposer.tsx';
-import { ChatProgress } from '@/ChatView/components/ChatProgress.tsx';
 import { ConversationHeading } from '@/ChatView/components/ConversationHeading.tsx';
 import { ConversationPanel } from '@/ChatView/components/ConversationPanel.tsx';
 import { CrewWorkPanel } from '@/ChatView/components/CrewWorkPanel.tsx';
@@ -16,7 +15,7 @@ import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
 
 export function ChatView(props: ChatViewProps) {
   const controller = useChatView(props);
-  const { pane, setPane, running } = controller;
+  const { pane, setPane } = controller;
   return (
     <section
       className={`chat-workspace ${controller.roleId}`}
@@ -34,7 +33,6 @@ export function ChatView(props: ChatViewProps) {
         <RelatedConversations {...controller} />
         {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
         {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
-        {running.length ? <ChatProgress {...controller} /> : null}
         <ContinuationNotice {...controller} />
         <ConversationQueue {...controller} />
         <PendingQuestions {...controller} />

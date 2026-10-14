@@ -7,8 +7,8 @@ import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 export function ScheduleFields(props: DraftFieldsProps) {
   const { draft, change } = props;
   return (
-    <fieldset className="flex flex-col gap-4">
-      <legend className="mb-3 font-semibold">When to run</legend>
+    <fieldset className="routine-editor-section flex min-w-0 flex-col gap-4">
+      <legend>When to run</legend>
       <div className="grid gap-4 sm:grid-cols-2">
         <DateTimePicker
           label="Start date and time"

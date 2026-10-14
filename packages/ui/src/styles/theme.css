@@ -76,6 +76,7 @@
   --text-detail: 0.75rem;
   /* Existing feature thresholds, expressed in rem like Tailwind's defaults. */
   --breakpoint-compact: 47.5625rem;
+  --breakpoint-mobile: 48rem;
   --breakpoint-chat: 50.0625rem;
   --breakpoint-wide: 68.8125rem;
   --breakpoint-narrow: 40.0625rem;

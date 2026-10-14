@@ -7,11 +7,11 @@ Endpoints are intended for a future trusted admin consumer; dashboards use nativ
 ## Prepare and verify
 
 ```sh
-node scripts/posthog/endpoints.mjs list
-node scripts/posthog/endpoints.mjs variable-plan
-node scripts/posthog/endpoints.mjs run-plan request_health --days 7 --limit 100
-node scripts/posthog/endpoints.mjs plan request_health /private/path/endpoint-snapshot.json
-node --test scripts/posthog/endpoints.test.mjs
+node scripts/posthog/endpoints.ts list
+node scripts/posthog/endpoints.ts variable-plan
+node scripts/posthog/endpoints.ts run-plan request_health --days 7 --limit 100
+node scripts/posthog/endpoints.ts plan request_health /private/path/endpoint-snapshot.json
+node --test scripts/posthog/endpoints.test.ts
 ```
 
 The CLI is offline and emits reviewed MCP tool inputs. It has no apply mode, HTTP client, key lookup or arbitrary SQL input. Runtime parameters are whole numbers: days 1–30 (default 7), rows 1–200 (default 100); all other parameters are rejected. Native Number variables bind literals. An independent 30-day timestamp filter and hard 200-row SQL limit remain in every saved query even if a direct caller bypasses the local validator.

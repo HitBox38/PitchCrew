@@ -7,6 +7,7 @@ import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage } from './chat.ts';
 import type { ComputerApproval } from './computer.ts';
+import type { ProfileOrganization } from './profile-organization.ts';
 import type { BoardEvent } from './events.ts';
 import type { Packet, PacketArtifact } from './packets.ts';
 import type { PacketRulesState } from './packet-rules.ts';
@@ -18,6 +19,7 @@ import type { Skill, SkillProposal } from './skills.ts';
 import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface Approval {
+  contextRevision?: string;
   id: string;
   cardId: string;
   action: 'export_packet';
@@ -52,12 +54,14 @@ export interface Snapshot {
   skills: Skill[];
   skillProposals: SkillProposal[];
   runs: Run[];
+  activityRuns?: Run[];
   approvals: Approval[];
   // Page counts derived from frozen artifact bytes, keyed by artifact SHA-256 digest.
   artifactPages?: Record<string, number>;
   computerApprovals: ComputerApproval[];
   events: BoardEvent[];
   profile: ProfileFile[];
+  profileOrganization?: ProfileOrganization;
   runtimes: RuntimeInfo[];
   dataDirectory: string;
   demoAvailable: boolean;

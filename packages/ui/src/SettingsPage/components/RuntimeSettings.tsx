@@ -9,9 +9,9 @@ export function RuntimeSettings({ runtimes }: { runtimes: Snapshot['runtimes'] }
   const working = useWorkspaceStore((state) => state.working);
   const act = useWorkspaceStore((state) => state.act);
   return (
-    <div>
-      <div className="settings-row pt-0">
-        <p className="quiet">
+    <section className="settings-section settings-runtimes">
+      <div className="settings-runtime-toolbar flex flex-wrap items-start justify-between gap-3">
+        <p className="quiet max-w-[58ch]">
           Check installed CLIs, then choose a runtime for each agent in <Link to="/crew">Crew</Link>
           .
         </p>
@@ -26,6 +26,6 @@ export function RuntimeSettings({ runtimes }: { runtimes: Snapshot['runtimes'] }
         </Button>
       </div>
       <RuntimeList runtimes={runtimes} />
-    </div>
+    </section>
   );
 }

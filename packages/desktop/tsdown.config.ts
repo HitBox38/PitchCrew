@@ -2,7 +2,7 @@ import { defineConfig } from 'tsdown';
 
 export default defineConfig([
   {
-    entry: ['src/main.ts'],
+    entry: { main: 'src/main.ts', 'build-icon': '../../scripts/build-icon.ts' },
     format: 'esm',
     outDir: 'dist',
     dts: false,

@@ -1,3 +1,4 @@
+import { activityRuns, recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn, finishUserContinuation, waitingOnUser } from './user-input/lifecycle.ts';
 import { conversationMessages } from './conversation-context.ts';
@@ -33,6 +34,7 @@ import type { CrewContext } from './types.ts';
 
 export function chatState(this: CrewContext): ChatStreamState {
   return {
+    activityRuns: activityRuns(this, true),
     userInputs: this.board.list('user_input'),
     messages: this.board.list<ChatMessage>('message'),
     streamingMessages: [...this.streamingMessages.values()],
@@ -41,7 +43,7 @@ export function chatState(this: CrewContext): ChatStreamState {
 export function chatUpdate(this: CrewContext, includeMessages: boolean): ChatStreamUpdate {
   return includeMessages
     ? this.chatState()
-    : { streamingMessages: [...this.streamingMessages.values()] };
+    : { streamingMessages: [...this.streamingMessages.values()], activityRuns: activityRuns(this) };
 }
 export function subscribeChat(
   this: CrewContext,
@@ -269,6 +271,9 @@ export async function startChatRun(
             env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
           },
           signal: controller.signal,
+          onActivity: (update) => {
+            if (acceptingReply) recordChatActivity(this, run.id, update);
+          },
           onReply: (text) => {
             if (!acceptingReply || controller.signal.aborted || this.closing) return;
             if (text)
@@ -364,7 +369,9 @@ export async function startChatRun(
         ...run,
         status: 'completed',
         memoryIds: this.board.get<Run>('run', run.id).memoryIds,
-        outputPacketDigest: packetDigest(cardId ? this.board.get<Card>('card', cardId) : null),
+        outputPacketDigest: packetDigest(
+          this.board.list<Card>('card').find((card) => card.id === cardId) ?? null,
+        ),
         message: `${role.name} replied`,
         finishedAt: new Date().toISOString(),
       },
@@ -396,6 +403,7 @@ export async function startChatRun(
       this.addMessage(threadId, 'system', roleId, message, cardId, run.id);
     })
     .finally(async () => {
+      finishChatActivity(this, run.id);
       const outcome = this.board.get<Run>('run', run.id).status;
       ai.finish(outcome === 'running' ? 'failed' : outcome);
       await this.computer.stop(run.id);

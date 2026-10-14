@@ -46,11 +46,8 @@ export type ChatComposerProps = Pick<
   | 'participants'
   | 'sendMode'
   | 'setSendMode'
->;
-
-export type ChatProgressProps = Pick<
-  ChatViewModel,
-  'running' | 'name' | 'working' | 'action' | 'thread'
+  | 'running'
+  | 'action'
 >;
 
 export type ComposerHintProps = Pick<ChatViewModel, 'role'>;

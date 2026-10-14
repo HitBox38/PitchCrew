@@ -240,6 +240,7 @@ export async function lookupJobLink(
       url: posting.url,
       salary: posting.salary.slice(0, 100),
       description: posting.description.slice(0, 20_000),
+      ...(posting.sourceHtml ? { sourceHtml: posting.sourceHtml.slice(0, 400000) } : {}),
       jobIdentifier: posting.jobId,
       provenance: {
         provider: link.provider,

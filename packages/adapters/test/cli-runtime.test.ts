@@ -295,12 +295,22 @@ describe.each([
       request: 'Fictional current request',
       messages: [],
       onReply: vi.fn(),
+      onActivity: vi.fn(),
     };
     expect(await adapters[runtime].chat(chat)).toEqual({
       reply: 'Fixture conversational café response.',
     });
     expect(chat.onReply).toHaveBeenLastCalledWith('Fixture conversational café response.');
     expect(chat.onReply.mock.calls.every(([text]) => !text.includes('Ignore me.'))).toBe(true);
+    expect(JSON.stringify(chat.onActivity.mock.calls)).not.toMatch(
+      /Ignore thinking|Private fixture reasoning|fictional-token|"reply"/,
+    );
+    if (runtime === 'kiro-cli')
+      expect(
+        chat.onActivity.mock.calls.some(
+          ([entry]) => entry.kind === 'commentary' && entry.text === 'Checking the board.',
+        ),
+      ).toBe(true);
     const request = await requestFor(context);
     expect(request.prompt).toContain('Fictional current request');
     expect(request.prompt).toContain(`Attached card: ${JSON.stringify(chat.card)}`);

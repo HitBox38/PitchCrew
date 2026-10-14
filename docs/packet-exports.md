@@ -1,6 +1,6 @@
 # Packet exports
 
-When you request export approval, Pitchcrew can render the resume and cover letter as PDF and DOCX files. Approval freezes the exact bytes and their SHA-256 manifest. Export, upload and preview all use those frozen bytes.
+When you request export approval, Pitchcrew can render the resume and cover letter as PDF and DOCX files. Approval requires user-confirmed application context and a packet review bound to that context and exact packet bytes. Existing packets need these checks before another export or managed browser submission. Approval freezes the exact bytes and their SHA-256 manifest. Export, upload and preview all use those frozen bytes.
 
 ## Layouts
 

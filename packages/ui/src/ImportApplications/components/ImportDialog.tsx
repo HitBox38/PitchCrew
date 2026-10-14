@@ -14,8 +14,8 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
   return (
     <Modal title="Import applications" drawer className="import-applications" onClose={close}>
       <p className="modal-intro">
-        Bring in applications from an older tracker. Nothing is sent or submitted. You review every
-        row before anything is saved.
+        Bring your past applications into the board. Choose a tracker database or export, review the
+        preview, then confirm. Your file stays unchanged and is processed locally.
       </p>
       <ImportFileField
         busy={busy}

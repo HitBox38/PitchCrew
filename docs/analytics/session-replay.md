@@ -1,6 +1,6 @@
 # Masked session replay
 
-App recordings are separately opt-in in Settings > General, off by default, and depend only on the master usage-analytics switch (not the diagnostics preference). Website recordings have their own explicit footer control, also off by default. Website analytics alone never enables recording. Do Not Track, installation configuration and the website analytics opt-out override website replay. Stored choices synchronize across same-origin tabs.
+App recordings are separately opt-in in Settings > General, off by default, and depend only on the master usage-analytics switch (not the diagnostics preference). Website recordings stay off: the landing page offers no replay opt-in, only the analytics opt-out. Website analytics alone never enables recording. Do Not Track, installation configuration and the website analytics opt-out override website replay. Stored choices synchronize across same-origin tabs.
 
 ## Implementation and privacy boundary
 

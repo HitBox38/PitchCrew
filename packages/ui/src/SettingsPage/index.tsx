@@ -13,9 +13,11 @@ import { NotificationSettings } from './components/NotificationSettings.tsx';
 import { RuntimeSettings } from './components/RuntimeSettings.tsx';
 import { SettingsTabs } from './components/SettingsTabs.tsx';
 import { validateSettingsSearch } from './helpers.ts';
+import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
 
 export function SettingsPage() {
+  const mobile = useIsMobile();
   const { section } = useSearch({ from: '/settings' });
   const navigate = useNavigate({ from: '/settings' });
   const data = useWorkspaceStore((state) => state.data);
@@ -24,7 +26,8 @@ export function SettingsPage() {
   if (!data) return null;
   return (
     <Tabs
-      className="settings-layout gap-0"
+      className="settings-layout min-h-0 min-w-0 flex-1 gap-0"
+      orientation={mobile ? 'horizontal' : 'vertical'}
       value={section}
       onValueChange={(value) =>
         void navigate({ search: validateSettingsSearch({ section: value }) })
@@ -46,7 +49,7 @@ export function SettingsPage() {
       <TabsContent className="settings-content" value="runtimes">
         <RuntimeSettings runtimes={data.runtimes} />
       </TabsContent>
-      <TabsContent className="settings-content" value="rules">
+      <TabsContent className="settings-content settings-rules-content" value="rules">
         {data.packetRules ? <PacketRulesSettings state={data.packetRules} /> : null}
       </TabsContent>
       <TabsContent className="settings-content" value="data">

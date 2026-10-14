@@ -1,4 +1,5 @@
 import { registerConversationTools } from './conversations.ts';
+import { registerJobTools } from './jobs.ts';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
   roleChanges,
@@ -12,6 +13,18 @@ import { readOnly } from './constants.ts';
 
 export function registerCrewTools(server: McpServer, call: AgentCall) {
   registerConversationTools(server, call);
+  registerJobTools(server, call);
+  server.registerTool(
+    'pitchcrew_report_progress',
+    {
+      title: 'Report chat progress',
+      description:
+        'Post a brief public update about work actually completed or the next action during a chat turn. Appears in the live turn timeline without sending a notification or invoking agents. Up to eight updates per turn. Never include private reasoning, secrets, browser inputs or private manual-takeover content. This grants no approvals or capabilities.',
+      inputSchema: { content: z.string().trim().min(1).max(1200) },
+      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+    },
+    (input) => call('report_progress', input),
+  );
   server.registerTool(
     'pitchcrew_ask_user',
     {
@@ -111,20 +124,6 @@ export function registerCrewTools(server: McpServer, call: AgentCall) {
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },
     (input) => call('propose', input),
-  );
-  server.registerTool(
-    'pitchcrew_change_workflow',
-    {
-      title: 'Update attached job workflow',
-      description:
-        'Shortlist a lead or request changes to a packet. Cannot bypass drafting, review, export approval or manual submission. Rejects changes while the card has an active workflow run.',
-      inputSchema: {
-        state: z.enum(['shortlisted', 'changes_requested']),
-        reason: z.string().trim().min(1).max(2000),
-      },
-      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
-    },
-    (input) => call('workflow', input),
   );
   server.registerTool(
     'pitchcrew_propose_skill',

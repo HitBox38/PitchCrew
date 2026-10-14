@@ -1,0 +1,312 @@
+.thread {
+  padding: 96px 0 8px;
+}
+.thread-stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 360px;
+  width: min(1280px, calc(100% - 64px));
+  margin-inline: auto;
+}
+.thread-sheet {
+  display: flex;
+  flex-direction: column;
+  padding: 40px 52px 28px;
+  border: 1px solid var(--border);
+  border-radius: 20px 0 0 20px;
+  background: var(--surface-bright);
+  box-shadow: 0 30px 60px -44px rgb(30 34 44 / 0.45);
+}
+.packet-meta {
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.packet-role {
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.thread-title {
+  max-width: 13ch;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: clamp(38px, 4.2vw, 60px);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+}
+.thread-lede {
+  max-width: 54ch;
+  margin-top: 18px;
+  font-size: clamp(18px, 1.45vw, 21px);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.claim-list {
+  min-width: 0;
+  margin: 30px 0 0;
+  padding: 0;
+  border: 0;
+}
+.claim-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  margin-bottom: 10px;
+}
+.claim-legend-chip {
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: var(--paper-deep);
+  font-size: 14px;
+  font-weight: 600;
+}
+.note-writer {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.inline-readout {
+  display: none;
+}
+.claim-row {
+  border-bottom: 1px solid var(--border);
+}
+.claim-row:first-of-type {
+  border-top: 1px solid var(--border);
+}
+.claim-line {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 16px;
+  margin-inline: -16px;
+  padding: 13px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1.45;
+  transition: background-color var(--duration-press) ease;
+}
+.claim-line > :not(.claim-highlight) {
+  position: relative;
+}
+.claim-highlight {
+  position: absolute;
+  inset: 0;
+  border-radius: 12px;
+  background: var(--teal-soft);
+}
+.claim-text {
+  color: var(--ink-soft);
+}
+.claim-line[data-selected] .claim-text {
+  color: var(--ink);
+}
+.claim-line:has(input:focus-visible) {
+  outline: 3px solid var(--primary);
+  outline-offset: 2px;
+}
+.claim-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--teal);
+}
+.claim-verdict[data-verdict='revised'] {
+  color: var(--plum);
+}
+.inline-note {
+  display: none;
+}
+.approval-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  margin-top: auto;
+  padding: 12px 12px 12px 20px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow:
+    0 14px 30px -24px rgb(30 34 44 / 0.5),
+    inset 0 1px 0 var(--rim);
+}
+.claim-list + .approval-bar {
+  margin-top: 30px;
+}
+.approval-bar p {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+.approval-bar strong {
+  font-size: 16px;
+  color: var(--ink);
+}
+.approval-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.thread-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 32px 26px;
+  border: 1px solid var(--border);
+  border-left: 0;
+  border-radius: 0 20px 20px 0;
+  background: var(--surface);
+}
+.rail-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.review-note {
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-bright);
+  box-shadow: 0 12px 26px -20px rgb(30 34 44 / 0.45);
+}
+.note-who {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 15px;
+  font-weight: 700;
+}
+.note-verdict {
+  margin-left: auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--teal-soft);
+  color: var(--teal);
+  font-size: 13px;
+}
+.note-verdict[data-verdict='revised'] {
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+.note-text {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.note-draft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.note-draft del {
+  color: var(--ink-soft);
+  text-decoration-color: var(--plum);
+  text-decoration-thickness: 2px;
+}
+.note-quote {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--teal-soft);
+}
+.note-quote blockquote {
+  font-size: 15.5px;
+  line-height: 1.45;
+}
+.note-quote figcaption {
+  margin-top: 6px;
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 12.5px;
+  color: var(--teal);
+}
+.readout {
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+  font-size: 15px;
+  color: var(--ink-soft);
+}
+.readout strong {
+  display: block;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--teal);
+  font-variant-numeric: tabular-nums;
+}
+.readout span {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  color: var(--muted);
+}
+@media (hover: hover) and (pointer: fine) {
+  .claim-line:not([data-selected]):hover {
+    background: var(--paper);
+  }
+}
+@media (max-width: 1023px) {
+  .thread-stage {
+    grid-template-columns: 1fr;
+  }
+  .thread-sheet {
+    border-radius: 20px 20px 0 0;
+  }
+  .thread-rail {
+    border-top: 0;
+    border-left: 1px solid var(--border);
+    border-radius: 0 0 20px 20px;
+  }
+  .thread-rail {
+    display: none;
+  }
+  .thread-sheet {
+    border-radius: 20px;
+  }
+  .inline-note {
+    display: block;
+    margin: 4px 0 16px;
+  }
+  .inline-readout {
+    display: block;
+    margin-block: 18px 22px;
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+@media (max-width: 639px) {
+  .thread-stage {
+    width: calc(100% - 24px);
+  }
+  .thread-sheet {
+    padding: 26px 20px 20px;
+  }
+  .claim-line {
+    margin-inline: -10px;
+    padding-inline: 10px;
+    font-size: 17px;
+  }
+  .approval-bar {
+    padding: 16px;
+  }
+  .approval-actions,
+  .approval-actions .button {
+    width: 100%;
+  }
+}

@@ -1,3 +1,4 @@
+import { confirmFixtureJob } from '../../../../board/test/fixtures/application-context.ts';
 import { adapters } from '@pitchcrew/adapters';
 import type { Run } from '@pitchcrew/core';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
@@ -49,6 +50,7 @@ it.each(['chat', 'workflow'] as const)(
         salary: '',
         tags: [],
       });
+      confirmFixtureJob(context.board, card.id);
       const run =
         mode === 'chat'
           ? await context.startChatRun('scout', 'private prompt', null, 'scout')

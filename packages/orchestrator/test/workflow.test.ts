@@ -1,3 +1,4 @@
+import { confirmFixtureApplication } from './helpers/daemon.ts';
 import { adapters } from '@pitchcrew/adapters';
 import type {
   Approval,
@@ -244,6 +245,7 @@ describe('local daemon workflow', () => {
       title: 'React Engineer',
       description: 'Build React interfaces.',
     });
+    await confirmFixtureApplication(request, card.id);
     const { result: scout } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });
@@ -332,6 +334,7 @@ describe('local daemon workflow', () => {
       company: 'Fixture',
       title: 'Engineer',
     });
+    await confirmFixtureApplication(request, card.id);
     const { result: run } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });
@@ -339,7 +342,9 @@ describe('local daemon workflow', () => {
     expect((await daemon.service.agentCall(token, 'card', {})).card).toEqual(
       daemon.service.board.get('card', card.id),
     );
-    await expect(daemon.service.agentCall(token, 'approve', {})).rejects.toThrow('not allowed');
+    await expect(daemon.service.agentCall(token, 'approve', {})).rejects.toThrow(
+      'isolated application',
+    );
     await request(`/runs/${run.id}/cancel`, 'POST');
     for (let i = 0; i < 50 && daemon.service.controllers.size; i++)
       await new Promise((resolve) => setTimeout(resolve, 20));

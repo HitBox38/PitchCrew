@@ -12,6 +12,7 @@ import {
   refineJobSource,
   maxJobSources,
   maxNewLeadsPerScan,
+  type JobLinkImportResult,
   type JobLookupResult,
   type JobPosting,
   type JobScanSummary,
@@ -26,6 +27,7 @@ import { z } from 'zod';
 import { fetchBoard, ProviderRateLimiter, type FetchLike } from './fetch.ts';
 import { matchesFilters } from './filters.ts';
 import { lookupJobLink } from './lookup.ts';
+import { importJobLink } from './import-link.ts';
 import {
   parsePostings,
   providerStatusMessages,
@@ -65,7 +67,8 @@ interface Fetched {
 
 /**
  * User-configured public job boards, saved in job-sources.json outside the event log. Agents can
- * only trigger scans of these saved sources; every source change goes through user HTTP routes.
+ * trigger scans or import individual supported posting links; every source change goes through
+ * user HTTP routes.
  */
 export class JobSourceManager {
   private queue: Promise<unknown> = Promise.resolve();
@@ -202,7 +205,7 @@ export class JobSourceManager {
       })),
     };
   }
-  /** Read one posting from a pasted link for the Add job form. User-only; creates nothing. */
+  /** Read one posting from a pasted link for the user-only Add job form. Creates nothing. */
   lookup(value: unknown, signal?: AbortSignal): Promise<JobLookupResult> {
     return lookupJobLink(value, {
       fetch: (url, init) => this.fetch(url, init),
@@ -210,6 +213,23 @@ export class JobSourceManager {
       board: this.board,
       sources: () => this.list(),
       signal: AbortSignal.any([this.lifetime.signal, ...(signal ? [signal] : [])]),
+    });
+  }
+  /** Import a single posting as a lead without changing saved sources or applying scan filters. */
+  importLink(options: {
+    input: unknown;
+    actor: string;
+    signal: AbortSignal;
+    authorize: () => void;
+  }): Promise<JobLinkImportResult> {
+    return importJobLink(options.input, {
+      fetch: (url, init) => this.fetch(url, init),
+      limiter: this.limiter,
+      board: this.board,
+      sources: () => this.list(),
+      actor: options.actor,
+      authorize: options.authorize,
+      signal: AbortSignal.any([this.lifetime.signal, options.signal]),
     });
   }
   /**

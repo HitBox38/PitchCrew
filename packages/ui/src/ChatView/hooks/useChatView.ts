@@ -1,3 +1,4 @@
+import { queuedChatRequests } from '../helpers.ts';
 import { useBrowserPanel } from '@/AgentBrowser/hooks/useBrowserPanel.ts';
 import { useChatPanels } from './useChatPanels.ts';
 import { useChatAttachments } from './useChatAttachments.ts';
@@ -9,7 +10,11 @@ import type { ChatMessage } from '@pitchcrew/core';
 import { useRef, useState } from 'react';
 
 export function useChatView(props: ChatViewProps) {
-  const { data, thread, action, working } = props;
+  const { thread, action, working } = props;
+  const runsById = new Map(props.data.runs.map((run) => [run.id, run]));
+  for (const run of props.data.activityRuns ?? [])
+    runsById.set(run.id, { ...runsById.get(run.id), ...run });
+  const data = { ...props.data, runs: [...runsById.values()] };
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -72,15 +77,7 @@ export function useChatView(props: ChatViewProps) {
   });
   const cardId = conversation?.cardId ?? '';
   const attached = data.cards.find((card) => card.id === cardId);
-  const queued = (data.chatRequests ?? [])
-    .filter(
-      (request) =>
-        request.threadId === thread &&
-        request.deliveries.some((delivery) =>
-          ['queued', 'paused', 'running', 'failed'].includes(delivery.status),
-        ),
-    )
-    .sort((a, b) => a.order - b.order);
+  const queued = queuedChatRequests(data.chatRequests ?? [], thread);
   const proposals = data.proposals.filter(
     (proposal) =>
       (participants.includes(proposal.roleId) ||
@@ -159,6 +156,7 @@ export function useChatView(props: ChatViewProps) {
   }
   return {
     ...props,
+    data,
     browserPanel,
     questions,
     activeQuestionId,

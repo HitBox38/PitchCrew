@@ -14,11 +14,21 @@ export function JobTabs({
   document,
   setDocument,
   data,
+  setBriefDirty,
 }: JobTabsProps) {
   return (
-    <TabsContent className="detail-tab-content" value={tab}>
+    <TabsContent
+      className="detail-tab-content min-h-0 overflow-y-auto px-5 pt-4 pb-6 max-mobile:px-4"
+      value={tab}
+    >
       {tab === 'overview' ? (
-        <JobOverview card={card} working={working} run={run} act={act} />
+        <JobOverview
+          card={card}
+          working={working}
+          run={run}
+          act={act}
+          setBriefDirty={setBriefDirty}
+        />
       ) : tab === 'packet' ? (
         card.packet ? (
           <JobPacket document={document} setDocument={setDocument} card={card} />

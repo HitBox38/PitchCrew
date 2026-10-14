@@ -31,7 +31,18 @@ export interface BoardContext {
   updateCard(
     id: string,
     patch: Partial<
-      Pick<Card, 'packet' | 'feedback' | 'fit' | 'owner' | 'formAssessments' | 'submissionAttempts'>
+      Pick<
+        Card,
+        | 'packet'
+        | 'feedback'
+        | 'fit'
+        | 'owner'
+        | 'formAssessments'
+        | 'submissionAttempts'
+        | 'applicationContext'
+        | 'packetContextRevision'
+        | 'packetReview'
+      >
     >,
     actor: string,
     message: string,

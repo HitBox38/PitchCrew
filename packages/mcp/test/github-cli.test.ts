@@ -239,7 +239,7 @@ it('bounds transformed output and sanitizes malformed CLI JSON', async () => {
   expect(manager.status()[0].error).not.toContain('sensitive');
 });
 
-const fixture = fileURLToPath(new URL('./fixtures/github-cli.mjs', import.meta.url));
+const fixture = fileURLToPath(new URL('./fixtures/github-cli.ts', import.meta.url));
 it('uses native process arguments without a shell and suppresses interactive/debug output', async () => {
   vi.stubEnv('GH_DEBUG', 'api');
   const result = await createGithubCliRunner(process.execPath, [fixture, 'inspect'])(

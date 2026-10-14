@@ -8,7 +8,7 @@ export function RulesActions({ controller }: { controller: PacketRulesController
   const input = useRef<HTMLInputElement>(null);
   const { canSave, dirty, working, state, guard } = controller;
   return (
-    <div className="mt-4 flex flex-wrap items-center gap-2.5">
+    <div className="packet-rules-actions flex flex-wrap items-center gap-2">
       <Button type="submit" className="button primary" disabled={!canSave}>
         {working ? 'Saving…' : 'Save rules'}
       </Button>

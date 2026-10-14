@@ -16,7 +16,7 @@ export async function processMock() {
       const [command, flags, ...rest] = args;
       return actual.runCliText(
         process.execPath,
-        [fileURLToPath(new URL('../fixtures/runtime-cli.mjs', import.meta.url)), command, ...flags],
+        [fileURLToPath(new URL('../fixtures/runtime-cli.ts', import.meta.url)), command, ...flags],
         ...rest,
       );
     }),
@@ -30,7 +30,7 @@ export async function acpMock() {
       const [, flags, ...rest] = args;
       return actual.runAcp(
         process.execPath,
-        [fileURLToPath(new URL('../fixtures/acp-cli.mjs', import.meta.url)), ...flags],
+        [fileURLToPath(new URL('../fixtures/acp-cli.ts', import.meta.url)), ...flags],
         ...rest,
       );
     }),
@@ -38,7 +38,7 @@ export async function acpMock() {
       const [, flags, ...rest] = args;
       return actual.runAcpText(
         process.execPath,
-        [fileURLToPath(new URL('../fixtures/acp-cli.mjs', import.meta.url)), ...flags],
+        [fileURLToPath(new URL('../fixtures/acp-cli.ts', import.meta.url)), ...flags],
         ...rest,
       );
     }),

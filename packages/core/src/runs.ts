@@ -4,7 +4,20 @@ import type { Role } from './roles.ts';
 import type { Skill } from './skills.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
 
+/** User-visible turn activity. Never contains private reasoning or raw tool payloads. */
+export interface RunActivity {
+  id: string;
+  kind: 'commentary' | 'tool' | 'reasoning';
+  label: string;
+  text?: string;
+  status: 'running' | 'completed' | 'failed' | 'interrupted';
+  startedAt: string;
+  finishedAt: string | null;
+}
+export type RuntimeActivity = Pick<RunActivity, 'id' | 'kind' | 'label' | 'status' | 'text'>;
 export interface Run {
+  purpose?: 'source-extraction' | 'application-draft' | 'application-review' | 'fit';
+  contextRevision?: string;
   id: string;
   cardId: string | null;
   roleId: RoleId;
@@ -19,6 +32,8 @@ export interface Run {
   threadId?: RoleId | 'crew';
   requestId?: string;
   memoryIds?: string[];
+  activity?: RunActivity[];
+  activityTruncated?: boolean;
   routineId?: string;
   scheduledFor?: string;
   configuration?: { role: Role; revision: string; skills: Skill[]; skillsRevision: string };
