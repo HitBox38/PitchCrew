@@ -1,8 +1,9 @@
 import { expect, it, vi, beforeEach } from 'vitest';
 import type { ChatContext } from '@pitchcrew/core';
+import { cardInput } from '@pitchcrew/core';
 import { codex } from '../src/codex/index.ts';
 import { claudeCode } from '../src/claude-code/index.ts';
-import { chatCli } from '../src/process.ts';
+import { chatCli, runCli } from '../src/process.ts';
 
 vi.mock('../src/process.ts', () => ({
   chatCli: vi.fn(async (_command, _args, context, extract) => {
@@ -39,6 +40,55 @@ const context: ChatContext = {
   signal: new AbortController().signal,
   onMessage: () => {},
 };
+it.each(['fresh', 'resumed', 'ephemeral', 'isolated', 'workflow'] as const)(
+  'requires scoped Pitchcrew tools and approves their runtime calls for %s Codex turns',
+  async (mode) => {
+    const turn = {
+      ...context,
+      session:
+        mode === 'ephemeral'
+          ? undefined
+          : {
+              ...context.session!,
+              id: mode === 'resumed' ? '11111111-1111-4111-8111-111111111111' : undefined,
+            },
+    };
+    if (mode === 'workflow')
+      await codex.run({
+        ...turn,
+        card: {
+          ...cardInput.parse({ company: 'Fixture', title: 'Engineer' }),
+          id: '11111111-1111-4111-8111-111111111111',
+          state: 'lead',
+          fit: null,
+          owner: null,
+          packet: null,
+          feedback: [],
+          createdAt: '',
+          updatedAt: '',
+          sample: true,
+        },
+      });
+    else
+      await codex.chat({
+        ...turn,
+        ...(mode === 'isolated' ? { purpose: 'source-extraction' as const } : {}),
+      });
+    const args =
+      mode === 'workflow'
+        ? vi.mocked(runCli).mock.calls[0][1]
+        : vi.mocked(chatCli).mock.calls[0][1];
+    expect(args).toContain('mcp_servers.pitchcrew.default_tools_approval_mode="approve"');
+    expect(args).toContain('mcp_servers.pitchcrew.required=true');
+    expect(args).toContain(
+      'mcp_servers.pitchcrew.env_vars=["PITCHCREW_RUN_TOKEN","PITCHCREW_DAEMON_URL"]',
+    );
+    expect(args).not.toContain('--dangerously-bypass-approvals-and-sandbox');
+    expect(args).toEqual(
+      expect.arrayContaining(['--sandbox', 'read-only', 'shell_tool', 'unified_exec']),
+    );
+  },
+);
 it('starts and resumes Codex sessions while retaining fresh scoped tools and sandbox restrictions', async () => {
   const onSession = vi.fn();
   await codex.chat({ ...context, onSession });
