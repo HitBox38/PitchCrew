@@ -79,7 +79,7 @@ export interface CrewContext {
   snapshot(): Promise<Snapshot>;
   skills(roleId?: RoleId): Skill[];
   hasStarterSkill(starter: BaseSkill): boolean;
-  seedStarterSkills(): Promise<Snapshot['starterSkillErrors']>;
+  seedStarterSkills(rolesReady?: Promise<void>): Promise<Snapshot['starterSkillErrors']>;
   previewSkill(url: string): Promise<SkillPreview>;
   saveSkill(data: unknown, id?: string, actor?: 'user' | 'system'): Skill;
   deleteSkill(id: string): { ok: boolean };

@@ -1,10 +1,6 @@
 import type { ArtifactLayout, Packet, PacketArtifact } from '@pitchcrew/core';
 import { createHash } from 'node:crypto';
-import { PDFDocument } from 'pdf-lib';
-import { formattedDocx } from './documents/docx.ts';
 import { type FontSearch, systemFonts } from './documents/font-search.ts';
-import { formattedPdf } from './documents/pdf.ts';
-import { plainDocx, plainPdf } from './documents/plain.ts';
 import { readZip } from './documents/zip.ts';
 
 export const digestBytes = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
@@ -36,12 +32,16 @@ export async function renderArtifacts(
   for (const source of ['resume', 'coverLetter'] as const) {
     const text = packet[source];
     let pdf: Promise<{ bytes: Buffer; pages: number }> | undefined;
-    const formatted = () => (pdf ??= formattedPdf(text, source, fonts));
+    const formatted = () =>
+      (pdf ??= import('./documents/pdf.ts').then(({ formattedPdf }) =>
+        formattedPdf(text, source, fonts),
+      ));
     for (const format of formats) {
       let bytes: Buffer;
-      if (layout === 'plain')
+      if (layout === 'plain') {
+        const { plainPdf, plainDocx } = await import('./documents/plain.ts');
         bytes = format === 'pdf' ? (await plainPdf(text)).bytes : await plainDocx(text);
-      else if (format === 'pdf') bytes = (await formatted()).bytes;
+      } else if (format === 'pdf') bytes = (await formatted()).bytes;
       else {
         // The DOCX page estimate comes from the matching PDF layout. Text the PDF font cannot
         // show still exports as DOCX, without an estimate.
@@ -49,6 +49,7 @@ export async function renderArtifacts(
           (rendered) => rendered.pages,
           () => undefined,
         );
+        const { formattedDocx } = await import('./documents/docx.ts');
         bytes = await formattedDocx(text, source, pages);
       }
       output.push({
@@ -71,8 +72,10 @@ export function verifiedArtifact(artifact: PacketArtifact) {
 
 async function countPages(artifact: PacketArtifact): Promise<number | null> {
   const bytes = verifiedArtifact(artifact);
-  if (artifact.mimeType === mimeTypes.pdf)
+  if (artifact.mimeType === mimeTypes.pdf) {
+    const { PDFDocument } = await import('pdf-lib');
     return (await PDFDocument.load(bytes, { updateMetadata: false })).getPageCount();
+  }
   const app = readZip(bytes).find((entry) => entry.name === 'docProps/app.xml');
   const pages = /<Pages>(\d+)<\/Pages>/.exec(app?.data.toString('utf8') ?? '')?.[1];
   return pages ? Number(pages) : null;
@@ -108,6 +111,7 @@ export async function checkLayout(
   packet: Packet,
   { fonts = systemFonts() }: RenderOptions = {},
 ): Promise<LayoutReport> {
+  const { formattedPdf } = await import('./documents/pdf.ts');
   const warnings: string[] = [];
   const count = (source: 'resume' | 'coverLetter') =>
     formattedPdf(packet[source], source, fonts).then(

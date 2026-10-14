@@ -95,8 +95,13 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
         'system',
         'Recovered interrupted crew task',
       );
-    await this.detect();
-    await seedRecommendedRoles(this);
+    const rolesReady = (async () => {
+      await this.detect();
+      await seedRecommendedRoles(this);
+    })();
+    // Public starter sources and CLI metadata can load together. Both must finish before the
+    // daemon becomes ready; skill commits wait for role setup and recheck current assignments.
+    await Promise.all([rolesReady, ...(seedSkills ? [this.seedStarterSkills(rolesReady)] : [])]);
     for (const role of this.board.list<Role>('role')) await this.writeRole(role);
     migrateConversations(this);
     for (const request of this.board.list<import('@pitchcrew/core').ChatRequest>('chat_request')) {
@@ -110,7 +115,6 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
               : 'paused';
       this.board.record('chat_request', request, 'system', 'Paused interrupted user request');
     }
-    if (seedSkills) await this.seedStarterSkills();
   } finally {
     this.initializing = false;
   }
@@ -165,7 +169,10 @@ export async function close(this: CrewContext): Promise<void> {
   this.modelController.abort();
   this.jobSources.close();
   for (const controller of this.controllers.values()) controller.abort();
-  await Promise.allSettled(this.modelRequests.values());
+  await Promise.allSettled([
+    ...this.modelRequests.values(),
+    ...(this.starterRequest ? [this.starterRequest] : []),
+  ]);
   await this.connectors.close();
   await this.computer.close();
   for (let i = 0; i < 100 && (this.controllers.size || this.draining || this.scheduling); i++)
