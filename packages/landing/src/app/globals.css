@@ -2,11 +2,34 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/preflight.css' layer(base);
 @import 'tailwindcss/utilities.css';
+/* The app's tokens, variants and breakpoints; landing tokens below override shared names. */
+@import '../../../ui/src/styles/theme.css';
 @import '../styles/theme.css';
 @import '../styles/base.css' layer(base);
 @import '../styles/buttons.css' layer(primitives);
 @import '../styles/sections.css' layer(components);
+@import '../styles/journey.css' layer(components);
+@import '../styles/thread.css' layer(components);
 @import '../styles/downloads.css' layer(components);
 @import '../styles/theme-control.css' layer(components);
+@import '../../../ui/src/styles/identity.css' layer(components);
+@import '../../../ui/src/styles/chat/conversation.css' layer(components);
+@import '../../../ui/src/styles/chat/activity.css' layer(components);
+@import '../../../ui/src/styles/board.css' layer(components);
+@import '../../../ui/src/styles/forms.css' layer(components);
+@import '../../../ui/src/styles/job-details.css' layer(components);
+@import '../styles/chat-demo.css' layer(components);
 
 @source not '../**/__tests__/**';
+/* App components rendered in the chat demo. */
+@source '../../../ui/src/ChatTurn/components';
+@source '../../../ui/src/components/RoleAvatar';
+@source '../../../ui/src/components/ui/button';
+@source '../../../ui/src/components/ai-elements/message/components';
+@source '../../../ui/src/components/CardDetails/components';
+@source '../../../ui/src/components/CompanyMark';
+@source '../../../ui/src/components/EmptyState';
+@source '../../../ui/src/components/ui/tabs';
+@source '../../../ui/src/components/ui/select';
+@source '../../../ui/src/ApplicationBriefReview/components';
+@source '../../../ui/src/FormSelect';

@@ -1,7 +1,8 @@
 'use client';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { documentationUrl, releasesUrl } from '../lib/links';
+import { releasesUrl } from '../lib/links';
+import { Setup } from '../Setup';
 import { InstallerLink } from './components/InstallerLink';
 import { platforms } from './constants';
 import { usePlatform } from './hooks/usePlatform';
@@ -16,22 +17,7 @@ export function Downloads({ release }: { release: Release }) {
       aria-labelledby="download-title"
     >
       <div className="page-width grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-24">
-        <div>
-          <h2 id="download-title" className="section-title">
-            Your next chapter
-            <br />
-            starts here.
-          </h2>
-          <p className="section-copy mt-6">
-            Give your job search a workspace—and a crew that knows your background.
-          </p>
-          <p className="mt-7 font-semibold text-primary">
-            Free to download. Bring your own AI account.
-          </p>
-          <a className="text-link mt-3 inline-block" href={documentationUrl}>
-            Read the setup guide
-          </a>
-        </div>
+        <Setup />
         <div className="download-sheet">
           <Tabs value={platform} onValueChange={(value) => select(value as Platform)}>
             <TabsList aria-label="Choose your operating system">

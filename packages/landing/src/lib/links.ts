@@ -1,6 +1,7 @@
 export const repository = 'https://github.com/HitBox38/PitchCrew';
 export const releasesUrl = `${repository}/releases/latest`;
 export const documentationUrl = `${repository}#quick-start`;
+export const licenseUrl = `${repository}/blob/main/LICENSE`;
 
 export function siteOrigin(): string | undefined {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;

@@ -60,8 +60,8 @@ export default async function OpenGraphImage() {
           color: '#3a5482',
         }}
       >
-        <span>Scout. Writer. Reviewer. You.</span>
-        <span>Free to download.</span>
+        <span>Quoted. Checked. Approved by you.</span>
+        <span>Free and open source.</span>
       </div>
     </div>,
     { ...size, fonts: [{ name: 'Source Sans', data: fontData, weight: 600, style: 'normal' }] },

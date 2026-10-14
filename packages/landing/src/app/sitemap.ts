@@ -6,7 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ? [
         {
           url: `${origin}/`,
-          images: ['board', 'chat', 'review'].map((view) => `${origin}/screenshots/${view}.png`),
+          images: [`${origin}/screenshots/board.png`],
         },
       ]
     : [];

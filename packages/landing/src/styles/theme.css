@@ -1,3 +1,32 @@
+/* The app's CSS names its fonts literally; point those names at the files this site serves. */
+@font-face {
+  font-family: 'Source Sans 3';
+  font-weight: 400;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/source-sans-3/files/source-sans-3-latin-400-normal.woff2')
+    format('woff2');
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-weight: 600;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/source-sans-3/files/source-sans-3-latin-600-normal.woff2')
+    format('woff2');
+}
+@font-face {
+  font-family: 'Source Sans 3';
+  font-weight: 700;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource/source-sans-3/files/source-sans-3-latin-700-normal.woff2')
+    format('woff2');
+}
+@font-face {
+  font-family: 'Fraunces Variable';
+  font-weight: 100 900;
+  font-display: swap;
+  src: url('../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2')
+    format('woff2-variations');
+}
 @theme inline {
   --color-paper: var(--paper);
   --color-surface: var(--surface);
@@ -24,6 +53,8 @@
   --teal-soft: #d9e9e6;
   --plum: #76517a;
   --plum-soft: #ece1ec;
+  --moss: #53673d;
+  --moss-soft: #e1e8d4;
   --primary-soft: #e0e6f0;
   --product-paper: #eae9e2;
   --rim: rgb(255 255 255 / 0.95);
@@ -34,6 +65,8 @@
   --ease: cubic-bezier(0.23, 1, 0.32, 1);
   --duration-press: 160ms;
   --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .31 0 0 0 0 .33 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* The app's paper fibres sit under the body grain, as in the desktop app. */
+  background-image: var(--fibres);
 }
 
 :root[data-theme='dark'] {
@@ -51,6 +84,8 @@
   --teal-soft: #263536;
   --plum: #cda7d0;
   --plum-soft: #352b37;
+  --moss: #a9c28a;
+  --moss-soft: rgb(169 194 138 / 0.14);
   --product-paper: #1e1f23;
   --border: rgb(236 234 228 / 0.16);
   --rim: rgb(255 255 255 / 0.08);
