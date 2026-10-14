@@ -1,3 +1,4 @@
+import type { JobReveal } from './hooks/useJobPage.ts';
 import type { useBoardPage } from '@/BoardPage/hooks/useBoardPage.ts';
 
 export type BoardPageModel = NonNullable<ReturnType<typeof useBoardPage>>;
@@ -11,6 +12,8 @@ export type BoardWelcomeProps = Pick<BoardPageModel, 'setAdd' | 'working' | 'act
 
 export type ClosedJobsProps = Pick<BoardPageModel, 'closed' | 'openCard' | 'data' | 'working'> & {
   dragging: boolean;
+  query: string;
+  reveal: JobReveal;
 };
 
 export type JobPipelineProps = Pick<

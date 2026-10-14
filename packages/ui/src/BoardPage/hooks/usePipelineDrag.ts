@@ -1,3 +1,4 @@
+import type { JobReveal } from './useJobPage.ts';
 import { pipelineDrop, statusDrop } from '@/BoardPage/helpers.ts';
 import { keyboardDestination } from '@/BoardPage/keyboard-sensor.ts';
 import { closedStates, dropStages } from '@/board-stages.ts';
@@ -18,6 +19,7 @@ export function usePipelineDrag() {
   const [pending, setPending] = useState<{ id: string; from: CardState; to: CardState } | null>(
     null,
   );
+  const [reveal, setReveal] = useState<JobReveal>(null);
   const focusId = useRef<string | null>(null);
   useEffect(() => {
     if (working || pending || !focusId.current) return;
@@ -69,8 +71,9 @@ export function usePipelineDrag() {
     } catch {
       // The workspace action shows the server's error; removing the preview restores the card.
     } finally {
+      setReveal({ id: card.id });
       setPending(null);
     }
   }
-  return { data, working, active, pending, selection, startDrag, moveDrag, endDrag };
+  return { data, working, active, pending, reveal, selection, startDrag, moveDrag, endDrag };
 }

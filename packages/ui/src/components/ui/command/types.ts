@@ -9,6 +9,7 @@ export type CommandDialogProps = Omit<React.ComponentProps<typeof Dialog>, 'chil
   className?: string;
   showCloseButton?: boolean;
   children: React.ReactNode;
+  commandProps?: Pick<CommandProps, 'filter'>;
 };
 
 export type CommandEmptyProps = React.ComponentProps<typeof CommandPrimitive.Empty>;
