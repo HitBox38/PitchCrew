@@ -1,6 +1,6 @@
 # Desktop shutdown performance
 
-The October 14, 2026 local performance sweep found a native process-exit stall on an Apple M4 Pro running macOS 26.6.2 (25G83), Node 22.23.2 and Electron 44.5.1. This metric remains unresolved. The change here fixes bounded smoke-test supervision and adds evidence; it does not claim a faster production quit.
+The October 14, 2026 local performance sweep found a native process-exit stall on an Apple M4 Pro running macOS 26.6.2 (25G83), Node 22.23.2 and Electron 44.5.1. The native stall is intermittent in this environment and remains unresolved. The change here fixes bounded smoke-test supervision and adds evidence; it does not claim a faster production quit.
 
 ## Reproduction and diagnosis
 
@@ -38,3 +38,5 @@ The source desktop smoke retains its 120-second UI deadline; the packaged smoke 
 On the measured post-change run, the actual Pitchcrew window closed in 5.8 ms and emitted `quit` in 9.0 ms, but the process still stalled. The supervisor correctly reported failure and finished about 12.1 seconds after UI evidence instead of waiting indefinitely. This is a test-harness improvement; the native process-exit budget still fails.
 
 Regression tests use actual child processes to cover successful exit, a nonzero exit despite successful UI evidence, ignored SIGTERM, and the separate shutdown deadline. Lifecycle tests verify that evidence does not suppress unload or equate `quit` with process exit. Cross-platform installer replacement and live provider shutdown are outside this diagnosis.
+
+The combined performance-fix branch later passed the complete hidden desktop workflow and exited 104 ms after its quit request (window closed in 5.2 ms). Three production daemon SIGTERM checks also exited successfully in 12–44 ms. These successful observations do not erase the minimized blank-window failures or establish a production fix for the native stall.
