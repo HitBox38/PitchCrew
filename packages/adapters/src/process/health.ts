@@ -1,6 +1,7 @@
 import type { RuntimeHealth, RuntimeId } from '@pitchcrew/core';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { cliEnvironment } from './environment.ts';
 
 export const exec = promisify(execFile);
 export function requireCliVersion(
@@ -21,7 +22,11 @@ export function requireCliVersion(
 }
 export async function detectCli(id: RuntimeId, command: string): Promise<RuntimeHealth> {
   try {
-    const { stdout } = await exec(command, ['--version'], { timeout: 5000, windowsHide: true });
+    const { stdout } = await exec(command, ['--version'], {
+      env: cliEnvironment(),
+      timeout: 5000,
+      windowsHide: true,
+    });
     return {
       id,
       available: true,
