@@ -3,6 +3,7 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { electronExecutable } from './electron-path.ts';
+import { smokeStreamAckFile } from '../packages/desktop/src/smoke-stream.ts';
 
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-electron-check-'));
 const evidence = join(directory, 'result.json');
@@ -20,6 +21,7 @@ try {
         PITCHCREW_PORT: port,
         PITCHCREW_SEED_SKILLS: '0',
         PITCHCREW_UPDATE_CHECKS: '0',
+        PITCHCREW_SMOKE_STREAM_ACK: smokeStreamAckFile(evidence),
       },
       stdio: 'inherit',
       windowsHide: true,

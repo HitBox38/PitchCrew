@@ -3,6 +3,7 @@ import { adapters } from '../packages/adapters/src/index.ts';
 import { resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { createDaemon } from '../packages/orchestrator/src/server.ts';
+import { smokeStreamRequest, streamSmokeReply } from '../packages/desktop/src/smoke-stream.ts';
 
 // Keep the production daemon and built UI under test without invoking any provider CLI.
 const directory = resolve(process.env.PITCHCREW_HOME ?? '');
@@ -16,6 +17,12 @@ for (const adapter of Object.values(adapters))
     detail: 'Isolated desktop test fixture.',
   });
 adapters['claude-code'].chat = async (context) => {
+  if (context.request === smokeStreamRequest) {
+    const acknowledgement = process.env.PITCHCREW_SMOKE_STREAM_ACK;
+    if (!acknowledgement)
+      throw new Error('The streaming fixture requires an acknowledgement file.');
+    return streamSmokeReply(context, acknowledgement);
+  }
   if (context.request === 'Fixture: ask for a cover-letter focus.') {
     await daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN, 'ask_user', {
       question: 'Which achievement should the cover letter emphasize?',
