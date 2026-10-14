@@ -15,6 +15,11 @@ export function transcriptItems(
     createdAt: message.createdAt,
     message,
   }));
+  const triggers = new Map<string, ChatMessage>();
+  for (const message of messages) {
+    if (message.runId && (message.from === 'user' || message.from === 'system'))
+      if (!triggers.has(message.runId)) triggers.set(message.runId, message);
+  }
   for (const run of runs) {
     if (
       run.threadId !== thread ||
@@ -22,10 +27,7 @@ export function transcriptItems(
       (!run.activity?.length && run.status !== 'running')
     )
       continue;
-    const trigger = messages.find(
-      (message) =>
-        message.runId === run.id && (message.from === 'user' || message.from === 'system'),
-    );
+    const trigger = triggers.get(run.id);
     items.push({
       kind: 'turn',
       id: `turn-${run.id}`,
