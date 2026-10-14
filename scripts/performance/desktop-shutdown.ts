@@ -3,6 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { Script } from 'node:vm';
 import { electronExecutable } from '../electron-path.ts';
 import { waitForSmokeExit } from '../desktop-smoke-exit.ts';
 
@@ -45,6 +46,8 @@ const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-native-shutdown-'));
 const dist = join(root, 'packages/desktop/dist');
 await mkdir(dist, { recursive: true });
 const entry = join(dist, `${basename(directory)}.cjs`);
+// Parse generated CommonJS before launching Electron; syntax errors must never open a native dialog.
+new Script(source, { filename: entry });
 await writeFile(entry, source);
 const results = [];
 try {
