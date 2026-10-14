@@ -41,6 +41,7 @@ export function SubmissionReceipts({
           {attempt.status === 'uncertain' ? (
             <div className="mt-2 flex flex-wrap gap-2">
               <Button
+                className="h-auto min-h-9.5 py-2 whitespace-normal"
                 disabled={working || !attempt.confirmation}
                 onClick={() =>
                   act(
@@ -57,6 +58,8 @@ export function SubmissionReceipts({
               </Button>
               <ExternalConfirmation id={attempt.id} act={act} working={working} />
               <Button
+                className="h-auto min-h-9.5 py-2 whitespace-normal"
+                variant="outline"
                 disabled={working}
                 onClick={() =>
                   act(

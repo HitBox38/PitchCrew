@@ -10,7 +10,7 @@ export function TrackingIdentifier({ card }: { card: Card }) {
   const working = useWorkspaceStore((state) => state.working);
   return (
     <div className="my-3 flex flex-wrap items-end gap-2">
-      <label>
+      <label className="min-w-0 flex-1 basis-48">
         Job identifier
         <Input
           maxLength={200}

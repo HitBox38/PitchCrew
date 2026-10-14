@@ -12,6 +12,13 @@ body {
 button {
   cursor: pointer;
 }
+/* Form controls inherit the app face before primitive and material recipes set sizes. */
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
 button:disabled {
   cursor: not-allowed;
   opacity: 0.55;

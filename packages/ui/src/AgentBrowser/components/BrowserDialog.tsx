@@ -26,6 +26,7 @@ export function BrowserDialog({
           <div className="flex gap-2">
             <Button
               size="sm"
+              variant="outline"
               onClick={() => control.input({ kind: 'dialog', decision: 'dismiss' })}
             >
               Dismiss

@@ -6,7 +6,7 @@ const mergeClasses = extendTailwindMerge({
   extend: {
     theme: {
       text: ['body', 'label', 'caption', 'note', 'detail'],
-      shadow: ['clay', 'clay-hover', 'sunken', 'glaze', 'sheet', 'pop'],
+      shadow: ['clay', 'clay-hover', 'sunken', 'glaze', 'switch-thumb', 'sheet', 'pop'],
       ease: ['material', 'drawer'],
     },
   },

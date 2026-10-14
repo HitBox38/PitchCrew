@@ -9,7 +9,8 @@ export const smokeStyles = `(() => {
   document.body.append(probe);
   try {
     const defaults = getComputedStyle(probe);
-    const primitiveHeight = defaults.height === '36px';
+    const primitiveHeight = defaults.height === '38px';
+    const primitiveSurface = defaults.backgroundImage.includes('linear-gradient') && defaults.boxShadow !== 'none';
     probe.classList.add('button');
     const material = getComputedStyle(probe);
     const materialHeight = material.height === '38px';
@@ -21,7 +22,7 @@ export const smokeStyles = `(() => {
     const utilityTypography = overrides.fontSize === '13.5px';
     probe.disabled = true;
     const disabledState = getComputedStyle(probe).pointerEvents === 'none';
-    return { sourceReady: true, primitiveHeight, materialHeight, materialSurface, utilityHeight, utilityPadding, utilityTypography, disabledState };
+    return { sourceReady: true, primitiveHeight, primitiveSurface, materialHeight, materialSurface, utilityHeight, utilityPadding, utilityTypography, disabledState };
   } finally {
     probe.remove();
   }

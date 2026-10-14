@@ -1,10 +1,9 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ModelPicker } from '@/ModelField/components/ModelPicker.tsx';
+import { RefreshModels } from '@/ModelField/components/RefreshModels.tsx';
 import { useModelField } from '@/ModelField/hooks/useModelField.ts';
 import type { ModelFieldProps } from '@/ModelField/types.ts';
 import { ReasoningField } from '@/ReasoningField/index.tsx';
 import type { ReasoningLevel } from '@pitchcrew/core';
-import { RefreshCw } from 'lucide-react';
 import { reasoningLabels } from '@/lib/reasoning.ts';
 import { agentModelDefaultValue } from './constants.ts';
 
@@ -17,16 +16,7 @@ export function ModelField(props: ModelFieldProps) {
       <div className="field">
         <div className="model-field-heading flex items-center justify-between gap-2">
           <label htmlFor={id}>Model</label>
-          {runtime !== 'demo' && (
-            <Button size="xs" variant="ghost" disabled={loading} onClick={refreshModels}>
-              <RefreshCw
-                size={13}
-                aria-hidden="true"
-                className={loading ? 'animate-spin' : undefined}
-              />
-              Refresh models
-            </Button>
-          )}
+          {runtime !== 'demo' && <RefreshModels loading={loading} refresh={refreshModels} />}
         </div>
         <ModelPicker
           id={id}

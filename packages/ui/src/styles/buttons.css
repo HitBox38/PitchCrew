@@ -1,9 +1,14 @@
-/* Material controls inherit the app's typography before their recipes choose a size. */
-button,
-input,
-textarea,
-select {
-  font: inherit;
+/* Outlines remain visible independently of the material's inset and raised shadows. */
+[data-slot='button']:focus-visible,
+.button:focus-visible,
+.icon-button:focus-visible,
+.text-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+[data-slot='button'][aria-invalid='true'] {
+  outline: 2px solid var(--rose);
+  outline-offset: 2px;
 }
 .button {
   border: 0;
@@ -94,4 +99,12 @@ select {
   color: var(--primary-deep);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+.text-button.danger,
+.icon-button.danger {
+  color: var(--rose);
+}
+.text-button.danger:not(:disabled):hover,
+.icon-button.danger:not(:disabled):hover {
+  color: var(--error-ink);
 }

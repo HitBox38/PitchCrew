@@ -8,7 +8,7 @@ export function Checkbox({ className, ...props }: CheckboxProps) {
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        'peer primitive:size-4 primitive:shrink-0 primitive:rounded-[4px] primitive:border primitive:border-input primitive:shadow-xs primitive:transition-shadow primitive:outline-none primitive:focus-visible:border-ring primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50 primitive:disabled:cursor-not-allowed primitive:disabled:opacity-50 primitive:aria-invalid:border-destructive primitive:aria-invalid:ring-destructive/20 primitive:dark:bg-input/30 primitive:dark:aria-invalid:ring-destructive/40 primitive:data-checked:border-primary primitive:data-checked:bg-primary primitive:data-checked:text-primary-foreground primitive:dark:data-checked:bg-primary primitive:data-disabled:cursor-not-allowed primitive:data-disabled:opacity-50',
+        'peer primitive:size-[18px] primitive:shrink-0 primitive:cursor-pointer primitive:rounded-[5px] primitive:border-0 primitive:shadow-sunken primitive:transition-[background,box-shadow,opacity] primitive:outline-none primitive:[background:var(--sunken-fill)] primitive:disabled:cursor-not-allowed primitive:disabled:opacity-50 primitive:data-[indeterminate]:text-primary-foreground primitive:data-[indeterminate]:shadow-glaze primitive:data-[indeterminate]:[background:var(--glaze-fill)] primitive:data-checked:text-primary-foreground primitive:data-checked:shadow-glaze primitive:data-checked:[background:var(--glaze-fill)] primitive:data-disabled:cursor-not-allowed primitive:data-disabled:opacity-50',
         className,
       )}
       {...props}
