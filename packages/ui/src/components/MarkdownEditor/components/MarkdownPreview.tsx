@@ -1,4 +1,4 @@
-import { Streamdown } from 'streamdown';
+import { MarkdownContent } from '@/components/MarkdownContent/index.tsx';
 
 const components = {
   img: ({ alt }: { alt?: string }) => <span className="quiet">[Image: {alt || 'image'}]</span>,
@@ -12,9 +12,9 @@ export default function MarkdownPreview({
   empty?: string;
 }) {
   return content.trim() ? (
-    <Streamdown mode="static" controls={false} components={components}>
+    <MarkdownContent controls={false} components={components}>
       {content}
-    </Streamdown>
+    </MarkdownContent>
   ) : (
     <p className="quiet">{empty}</p>
   );

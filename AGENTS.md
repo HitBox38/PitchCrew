@@ -39,6 +39,7 @@ Working MVP with a shared browser/Electron UI, Scout/Writer/Reviewer runs, persi
 - Oxc transforms / Rolldown in Vite, tsdown / Rolldown for Electron's main process.
 - Electron uses a paper-themed draggable title bar with native macOS traffic lights and Windows/Linux window-control overlays. Shared sheets and their backdrops fit below the title bar, including the mobile sidebar; macOS fullscreen uses the full viewport. Its sandboxed CommonJS preload synchronizes the renderer theme through a main-frame, origin-checked IPC channel with a narrow, user-only desktop update bridge; other Electron APIs remain isolated. Explicit Google PKCE sign-in links with a loopback callback, the exact GitHub and Google Workspace CLI installation pages, and exact Pitchcrew build release pages open in the system browser through a narrow main-process URL allowlist; other external navigation is denied.
 - Vitest for unit, HTTP workflow, adapter contract, and actual MCP stdio tests.
+- Streamdown renders chat and Profile/Skill Markdown through the shared `MarkdownContent` component and `styles/markdown.css`. Complete documents use static mode; active chat responses and commentary opt into streaming. Tailwind scans Streamdown's distributed class strings for its built-in elements and controls. Shared presentation retains caller-provided remote-image placeholders, Streamdown's link confirmation and the desktop external-navigation allowlist.
 
 ## Layout
 

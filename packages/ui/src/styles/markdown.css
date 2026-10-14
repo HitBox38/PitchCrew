@@ -1,0 +1,75 @@
+/* Shared reading material for streamed replies and complete Profile/Skill documents. */
+.markdown-content {
+  overflow-wrap: anywhere;
+  line-height: 1.75;
+}
+.markdown-content :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-sans);
+  color: var(--ink);
+  text-wrap: pretty;
+}
+.markdown-content :where(li) {
+  padding-inline-start: 0.25em;
+}
+.markdown-content :where(li > p + p, li > ul, li > ol) {
+  margin-block-start: 0.5em;
+}
+.markdown-content :where([data-streamdown='link']) {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+.markdown-content :where([data-streamdown='link']:hover) {
+  text-decoration-thickness: 2px;
+}
+.markdown-content :where(a:focus-visible, button:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+.markdown-content :where(code, pre) {
+  font-family: var(--font-mono);
+  font-variant-ligatures: none;
+}
+.markdown-content :where([data-streamdown='inline-code']) {
+  box-decoration-break: clone;
+}
+.markdown-content :where([data-streamdown='code-block'], [data-streamdown='table-wrapper']) {
+  min-width: 0;
+  max-width: 100%;
+}
+.markdown-content :where([data-streamdown='code-block-body']) {
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+}
+.markdown-content :where(pre) {
+  white-space: pre;
+  overflow-wrap: normal;
+  tab-size: 2;
+}
+.markdown-content :where([data-streamdown='table-wrapper'] > div:last-child) {
+  overscroll-behavior-inline: contain;
+}
+.markdown-content :where(table) {
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+.markdown-content :where(th, td) {
+  vertical-align: top;
+  line-height: 1.55;
+}
+.markdown-content :where(th) {
+  color: var(--ink-soft);
+}
+.markdown-content :where(tbody tr + tr) {
+  border-block-start: 1px solid var(--border);
+}
+.markdown-content :where(tbody tr:nth-child(even)) {
+  background: rgb(var(--tint) / 0.025);
+}
+.markdown-content
+  :where(
+    [data-streamdown='code-block-copy-button'],
+    [data-streamdown='code-block-download-button']
+  ) {
+  color: var(--ink-soft);
+}

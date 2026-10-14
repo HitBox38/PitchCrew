@@ -25,6 +25,7 @@
 @import './styles/agent-creation.css' layer(components);
 @import './styles/onboarding.css' layer(components);
 @import './styles/forms.css' layer(components);
+@import './styles/markdown.css' layer(components);
 @import './styles/tag-picker.css' layer(components);
 @import './styles/date-time-picker.css' layer(components);
 @import './styles/notifications.css' layer(components);
@@ -52,3 +53,6 @@
 /* Regression-test class strings must not add unused production utilities. */
 @source not './**/__tests__/**';
 @source not '../test/**';
+
+/* Streamdown's built-in elements and controls ship Tailwind class strings. */
+@source '../node_modules/streamdown/dist';

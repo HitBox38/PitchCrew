@@ -109,20 +109,6 @@
   border-radius: 13px 13px 3px 13px;
   padding: 11px 16px;
 }
-.chat-message-content p + p {
-  margin-top: 12px;
-}
-.chat-message-content pre {
-  max-width: 100%;
-  overflow: auto;
-  padding: 12px;
-  border-radius: 6px;
-  background: var(--paper-deep);
-}
-.chat-message-content a {
-  color: var(--primary);
-  text-decoration: underline;
-}
 .chat-system .chat-message-content {
   color: var(--muted);
   font-size: var(--text-label);

@@ -19,7 +19,10 @@
   gap: 24px;
 }
 .chat-message-content {
-  max-width: none;
+  max-width: 100%;
+}
+.chat-message.is-assistant:not(.chat-system) .chat-message-content {
+  max-width: calc(100% - 30px);
 }
 .chat-message.is-user {
   max-width: 85%;
