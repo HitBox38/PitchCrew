@@ -48,7 +48,3 @@
 :root[data-theme='dark'] .themed-dark {
   display: block;
 }
-.product-image:focus-within {
-  outline: 3px solid var(--primary);
-  outline-offset: 5px;
-}

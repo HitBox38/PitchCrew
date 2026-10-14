@@ -241,3 +241,7 @@ GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes
 The [Release workflow](.github/workflows/release.yml) publishes the verified installers and SHA-256 checksums after successful push CI on `main`, using `build-<full commit SHA>` tags. It downloads artifacts from that exact CI run without checking out or executing repository code, and alone has release write permission. Reruns resume drafts or skip an already published release. `pnpm desktop:package` builds the current platform's installers locally; `pnpm test:packaged` verifies the unpacked app starts its bundled daemon, renders the UI and stops its owned daemon. On Windows, `pnpm test:installer` also verifies the compiled NSIS process check closes only Pitchcrew's app and bundled runtime, without mistaking downloads or sibling folders for a running app. It uses isolated fixtures without installing or uninstalling anything. Packaging uses the build machine's Node 24 executable, so build on each target platform and architecture. Signing and notarization credentials are not configured.
 
 Read [AGENTS.md](AGENTS.md) for repository rules, [code organization](docs/code-organization.md) for module conventions, and [MVP design](docs/mvp-design.md) for architectural decisions.
+
+## License
+
+Pitchcrew is released under the [MIT License](LICENSE).

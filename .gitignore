@@ -10,3 +10,11 @@ test-results/
 .next/
 .vercel/
 *.tsbuildinfo
+
+# impeccable working files (durable PRODUCT.md, DESIGN.md, design.json and surfaces/ stay tracked)
+**/.impeccable/mocks/
+**/.impeccable/review/
+**/.impeccable/build/
+**/.impeccable/live/
+**/.impeccable/questions/
+**/.impeccable/config.local.json

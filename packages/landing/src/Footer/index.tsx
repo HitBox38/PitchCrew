@@ -1,6 +1,6 @@
 import { Analytics } from '../Analytics';
 import { Brand } from '../components/Brand';
-import { documentationUrl, repository } from '../lib/links';
+import { documentationUrl, licenseUrl, repository } from '../lib/links';
 
 export function Footer() {
   return (
@@ -14,10 +14,15 @@ export function Footer() {
           <a className="text-link" href={documentationUrl}>
             Documentation
           </a>
+          <a className="text-link" href={licenseUrl}>
+            MIT License
+          </a>
           <Analytics />
         </nav>
       </div>
-      <p className="mt-6 text-sm text-muted">A little teamwork for your next chapter.</p>
+      <p className="mt-6 text-sm text-muted">
+        Free and open source. Your notes, your AI, your final say.
+      </p>
     </footer>
   );
 }

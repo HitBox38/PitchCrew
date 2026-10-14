@@ -6,7 +6,13 @@ import { CollapsibleTrigger } from '@/components/ui/collapsible/components/Colla
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ActivityStep } from './ActivityStep.tsx';
 
-export function ActivityGroup({ entries }: { entries: RunActivity[] }) {
+export function ActivityGroup({
+  entries,
+  defaultOpen = false,
+}: {
+  entries: RunActivity[];
+  defaultOpen?: boolean;
+}) {
   const active = entries.findLast((entry) => entry.status === 'running');
   const tools = entries.filter((entry) => entry.kind === 'tool');
   const failures = tools.filter((entry) => entry.status === 'failed').length;
@@ -16,7 +22,7 @@ export function ActivityGroup({ entries }: { entries: RunActivity[] }) {
       ? 'Thinking'
       : 'Thought';
   return (
-    <Collapsible className="chat-activity-group">
+    <Collapsible className="chat-activity-group" defaultOpen={defaultOpen}>
       <CollapsibleTrigger
         render={<Button variant="ghost" className="chat-activity-group-trigger" />}
       >

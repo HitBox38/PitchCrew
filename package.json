@@ -2,6 +2,7 @@
   "name": "pitchcrew",
   "version": "0.3.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "node --import tsx packages/orchestrator/src/cli.ts --dev",

@@ -1,0 +1,76 @@
+/* A framed slice of the app's chat workspace, using the app's own chat styles. */
+.chat-demo {
+  --chat-tone: var(--plum);
+  --chat-soft: var(--plum-soft);
+  overflow: hidden;
+  border-radius: 16px 17px 15px 16px;
+  background-color: var(--surface);
+  background-image: var(--grain), var(--fibres);
+  box-shadow:
+    var(--sheet),
+    0 26px 52px -24px rgb(30 34 44 / 0.28);
+  text-align: left;
+}
+.chat-demo-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.chat-demo-header strong {
+  display: block;
+  font-size: 16px;
+  font-weight: 600;
+}
+.chat-demo-header span span,
+.chat-demo-header strong + span {
+  display: block;
+  font-size: 13px;
+  color: var(--muted);
+}
+.chat-demo-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+.chat-demo-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: min(100%, 52rem);
+  margin-inline: auto;
+  padding: 26px 28px 30px;
+}
+.chat-demo .chat-message.is-user .chat-message-content {
+  border-radius: 14px 14px 5px 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.chat-demo .chat-message.is-user .chat-job-link {
+  align-self: flex-end;
+}
+.chat-demo .role-avatar {
+  --tone: var(--teal);
+  --tone-soft: var(--teal-soft);
+  width: 32px;
+  height: 32px;
+}
+.chat-demo .role-avatar.writer {
+  --tone: var(--plum);
+  --tone-soft: var(--plum-soft);
+}
+.chat-demo .role-avatar.small {
+  width: 22px;
+  height: 22px;
+}
+@media (max-width: 639px) {
+  .chat-demo-header {
+    padding: 12px 14px;
+  }
+  .chat-demo-label {
+    display: none;
+  }
+  .chat-demo-transcript {
+    padding: 20px 14px 22px;
+  }
+}

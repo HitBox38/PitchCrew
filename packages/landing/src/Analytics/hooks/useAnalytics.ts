@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { analytics } from '../client';
 import { analyticsConfigured } from '../config';
-import { analyticsAllowed, preferenceKey, replayAllowed, replayPreferenceKey } from '../helpers';
+import { analyticsAllowed, preferenceKey } from '../helpers';
 
 function allowed(): boolean {
   try {
@@ -13,9 +13,9 @@ function allowed(): boolean {
   }
 }
 
+/** Website analytics is on by default when configured; visitors can opt out on this device. */
 export function useAnalytics() {
   const [enabled, setEnabled] = useState(false);
-  const [replay, setReplay] = useState(false);
   const [available, setAvailable] = useState(false);
   useEffect(() => {
     const sync = () => {
@@ -24,14 +24,11 @@ export function useAnalytics() {
       const next = configured && allowed();
       setAvailable(configured);
       setEnabled(next);
-      const recording = next && replayAllowed(window.localStorage, navigator.doNotTrack);
-      setReplay(recording);
-      void analytics.setReplayEnabled(recording);
+      void analytics.setReplayEnabled(false);
       void analytics.setEnabled(next);
     };
     const storage = (event: StorageEvent) => {
-      if (event.key === replayPreferenceKey || event.key === preferenceKey || event.key === null)
-        sync();
+      if (event.key === preferenceKey || event.key === null) sync();
     };
     const restored = (event: PageTransitionEvent) => {
       if (event.persisted) analytics.capturePageview();
@@ -56,16 +53,5 @@ export function useAnalytics() {
     }
     window.dispatchEvent(new Event('pitchcrew-landing-consent'));
   };
-  const toggleReplay = () => {
-    if (!available || !enabled) return;
-    try {
-      window.localStorage.setItem(replayPreferenceKey, replay ? 'off' : 'on');
-    } catch {
-      return;
-    }
-    // Stop first, before rendering or asynchronous SDK work.
-    void analytics.setReplayEnabled(!replay);
-    window.dispatchEvent(new Event('pitchcrew-landing-consent'));
-  };
-  return { enabled, available, toggle, replay, toggleReplay };
+  return { enabled, available, toggle };
 }
