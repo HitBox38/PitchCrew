@@ -15,6 +15,16 @@ export function registerSkillsRoutes(app: FastifyInstance, service: CrewService)
   app.put<IdRoute>('/api/skills/:id', (req, res) =>
     res.send(service.saveSkill(req.body, req.params.id)),
   );
+  app.post<IdRoute>('/api/skills/:id/update/preview', async (req, res) =>
+    res.send(await service.previewSkillUpdate(req.params.id)),
+  );
+  app.post<IdRoute>('/api/skills/:id/update/approve', (req, res) => {
+    const { previewId } = z
+      .object({ previewId: z.uuid(), approved: z.literal(true) })
+      .strict()
+      .parse(req.body);
+    res.send(service.approveSkillUpdate(req.params.id, previewId));
+  });
   app.delete<IdRoute>('/api/skills/:id', (req, res) =>
     res.send(service.deleteSkill(req.params.id)),
   );

@@ -1,16 +1,15 @@
-import { lazy, Suspense, useState } from 'react';
+import { useState } from 'react';
 import type { ProfileViewModel } from '../types.ts';
 import { ProfileOrigin } from './ProfileOrigin.tsx';
 import { ProfileEditorHeading } from './ProfileEditorHeading.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
-import { Tabs, TabsContent } from '@/components/ui/tabs/index.tsx';
-import { useProfileSaveShortcut } from '../hooks/useProfileSaveShortcut.ts';
-
-const ProfilePreview = lazy(() => import('./ProfilePreview.tsx'));
+import { Tabs } from '@/components/ui/tabs/index.tsx';
+import { MarkdownEditor } from '@/components/MarkdownEditor/index.tsx';
+import { MarkdownStatus } from '@/components/MarkdownEditor/components/MarkdownStatus.tsx';
+import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
 
 export function ProfileEditor(c: ProfileViewModel) {
   const [mode, setMode] = useState('write');
-  const form = useProfileSaveShortcut();
+  const form = useMarkdownSaveShortcut();
   return (
     <form className="profile-editor" ref={form} onSubmit={(event) => void c.save(event)}>
       <Tabs
@@ -22,42 +21,29 @@ export function ProfileEditor(c: ProfileViewModel) {
       >
         <ProfileEditorHeading {...c} />
         <ProfileOrigin {...c} />
-        <TabsContent value="write" keepMounted className="profile-write-panel">
-          <label className="sr-only" htmlFor="profile-content">
-            Profile Markdown
-          </label>
-          <Textarea
-            id="profile-content"
-            value={c.content}
-            onChange={(event) => c.setContent(event.target.value)}
-            spellCheck
-            maxLength={50000}
-          />
-        </TabsContent>
-        <TabsContent value="preview" className="profile-preview-panel">
-          <Suspense fallback={<p className="quiet">Opening preview…</p>}>
-            <ProfilePreview content={c.content} />
-          </Suspense>
-        </TabsContent>
+        <MarkdownEditor
+          id="profile-content"
+          label="Profile Markdown"
+          content={c.content}
+          onChange={c.setContent}
+          maxLength={50000}
+        />
       </Tabs>
       {c.error ? (
         <p className="form-error px-4 py-2" role="alert">
           {c.error}
         </p>
       ) : null}
-      <footer className="profile-editor-status">
-        <output className="profile-save-state" aria-live="polite">
-          {c.dirty
+      <MarkdownStatus
+        content={c.content}
+        status={
+          c.dirty
             ? 'Unsaved changes'
             : c.data.profile.some((file) => file.name === c.name)
               ? 'Saved'
-              : 'New note'}
-        </output>
-        <span className="ml-auto">
-          {c.content.trim() ? c.content.trim().split(/\s+/u).length : 0} words
-        </span>
-        <span>Markdown</span>
-      </footer>
+              : 'New note'
+        }
+      />
     </form>
   );
 }

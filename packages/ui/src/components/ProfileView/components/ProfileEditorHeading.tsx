@@ -1,8 +1,8 @@
 import type { ProfileViewModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
-import { TabsList, TabsTrigger } from '@/components/ui/tabs/index.tsx';
-import { Eye, PencilLine, Save } from 'lucide-react';
+import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
+import { Save } from 'lucide-react';
 
 export function ProfileEditorHeading(c: ProfileViewModel) {
   return (
@@ -21,14 +21,7 @@ export function ProfileEditorHeading(c: ProfileViewModel) {
         maxLength={100}
         required
       />
-      <TabsList aria-label="Note editor mode" className="profile-mode-tabs">
-        <TabsTrigger value="write">
-          <PencilLine size={14} /> Write
-        </TabsTrigger>
-        <TabsTrigger value="preview">
-          <Eye size={14} /> Preview
-        </TabsTrigger>
-      </TabsList>
+      <MarkdownModeTabs label="Note editor mode" />
       <Button type="submit" className="button primary small" disabled={c.working}>
         <Save size={14} /> {c.working ? 'Saving…' : 'Save note'}
       </Button>

@@ -70,6 +70,10 @@ export function useSkillEditor({
     event.preventDefault();
     if (loading || working) return;
     setError('');
+    if (!content.trim()) {
+      setError('Write instructions before saving the skill.');
+      return;
+    }
     if (scope === 'roles' && !roleIds.length) {
       setError('Choose at least one agent.');
       return;

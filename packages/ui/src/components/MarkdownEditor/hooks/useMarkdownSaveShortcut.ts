@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function useProfileSaveShortcut() {
+export function useMarkdownSaveShortcut() {
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
     const save = (event: KeyboardEvent) => {
