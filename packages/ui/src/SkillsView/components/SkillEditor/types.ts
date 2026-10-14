@@ -41,4 +41,7 @@ export type SkillImportProps = Pick<
   'url' | 'setUrl' | 'loading' | 'working' | 'loadSkill' | 'skill' | 'starter'
 >;
 
-export type SkillInstructionsProps = Pick<SkillEditorModel, 'content' | 'setContent' | 'source'>;
+export type SkillInstructionsProps = Pick<
+  SkillEditorModel,
+  'content' | 'setContent' | 'source' | 'working' | 'loading'
+>;

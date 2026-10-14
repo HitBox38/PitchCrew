@@ -1,4 +1,5 @@
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
+import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
 import { SkillAssignment } from '@/SkillsView/components/SkillEditor/components/SkillAssignment.tsx';
@@ -11,8 +12,9 @@ import { useSkillEditor } from '@/SkillsView/components/SkillEditor/hooks/useSki
 import type { SkillEditorProps } from '@/SkillsView/components/SkillEditor/types.ts';
 
 export function SkillEditor(props: SkillEditorProps) {
+  const form = useMarkdownSaveShortcut();
   const controller = useSkillEditor(props);
-  const { skill, importing, working, onClose, save, guard } = controller;
+  const { importing, working, onClose, save, guard } = controller;
   return (
     <Sheet
       open
@@ -23,14 +25,15 @@ export function SkillEditor(props: SkillEditorProps) {
       <SheetContent className="role-settings-panel skill-editor-panel" showCloseButton={false}>
         <SkillEditorHeading {...controller} />
         <form
+          ref={form}
           className="form role-settings-form flex flex-col gap-4"
           onSubmit={(event) => void save(event)}
         >
           <div className="role-settings-body">
-            {importing || skill?.source ? <SkillImport {...controller} /> : null}
+            {importing ? <SkillImport {...controller} /> : null}
             <SkillDetails {...controller} />
-            <SkillAssignment {...controller} />
             <SkillInstructions {...controller} />
+            <SkillAssignment {...controller} />
           </div>
           <SkillEditorFooter {...controller} />
         </form>

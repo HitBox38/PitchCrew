@@ -79,6 +79,13 @@ export type SkillPreview = Pick<
   SkillInput,
   'name' | 'description' | 'content' | 'source' | 'bundledId'
 >;
+export interface SkillUpdatePreview {
+  id: string;
+  current: Skill;
+  latest: SkillPreview;
+  changed: boolean;
+  expiresAt: string;
+}
 export const skillSuggestionInput = z.discriminatedUnion('kind', [
   z
     .object({

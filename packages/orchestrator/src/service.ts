@@ -44,10 +44,12 @@ import {
 import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
 import { runtimeRecommendation } from './crew/runtime-recommendations.ts';
+import { SkillUpdates } from './crew/skill-updates.ts';
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
   private readonly context: CrewContext;
+  private readonly skillUpdates = new SkillUpdates();
   constructor(
     readonly directory: string,
     readonly daemonUrl: string,
@@ -197,6 +199,12 @@ export class CrewService {
   }
   previewSkill(url: string): Promise<SkillPreview> {
     return this.context.previewSkill(url);
+  }
+  previewSkillUpdate(id: string) {
+    return this.skillUpdates.preview(this.context, id);
+  }
+  approveSkillUpdate(id: string, previewId: string) {
+    return this.skillUpdates.approve(this.context, id, previewId);
   }
   saveSkill(data: unknown, id?: string, actor?: 'user' | 'system'): Skill {
     return this.context.saveSkill(data, id, actor);

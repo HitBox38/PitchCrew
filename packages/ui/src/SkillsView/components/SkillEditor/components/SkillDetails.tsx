@@ -15,25 +15,31 @@ export function SkillDetails({
       {source || !importing ? (
         <p className="quiet">Made by {source?.repository.split('/')[0] ?? creator}</p>
       ) : null}
-      <label htmlFor="skill-name">Name</label>
-      <Input
-        id="skill-name"
-        required
-        maxLength={80}
-        placeholder="e.g. Clear application writing"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-      />
-      <label htmlFor="skill-description">
-        Description <span className="optional">optional</span>
-      </label>
-      <Input
-        id="skill-description"
-        maxLength={500}
-        placeholder="When should an agent use this skill?"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-      />
+      <div className="grid grid-cols-2 gap-4 max-phone:grid-cols-1">
+        <label htmlFor="skill-name" className="grid min-w-0 gap-2">
+          Name
+          <Input
+            id="skill-name"
+            required
+            maxLength={80}
+            placeholder="e.g. Clear application writing"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
+        </label>
+        <label htmlFor="skill-description" className="grid min-w-0 gap-2">
+          <span>
+            Description <span className="optional">optional</span>
+          </span>
+          <Input
+            id="skill-description"
+            maxLength={500}
+            placeholder="When should an agent use this skill?"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+          />
+        </label>
+      </div>
     </section>
   );
 }
