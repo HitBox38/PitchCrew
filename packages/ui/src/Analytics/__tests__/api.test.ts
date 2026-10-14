@@ -49,3 +49,40 @@ it('counts current conversation sends only after acceptance and never captures a
   await expect(api('/conversations/private-thread/messages', 'POST', body)).rejects.toThrow();
   expect(capture).toHaveBeenCalledExactlyOnceWith('chat_sent', undefined);
 });
+
+it('handles conditional 304 responses without parsing a body or emitting usage events', async () => {
+  const response = new Response(null, { status: 304, headers: { etag: 'W/"fixture"' } });
+  const json = vi.spyOn(response, 'json');
+  const fetch = vi.fn().mockResolvedValue(response);
+  vi.stubGlobal('fetch', fetch);
+  const updateEtag = vi.fn();
+  expect(
+    await api('/snapshot', 'GET', undefined, undefined, { etag: 'W/"fixture"', updateEtag }),
+  ).toBeUndefined();
+  expect(fetch).toHaveBeenCalledWith(
+    '/api/snapshot',
+    expect.objectContaining({
+      cache: 'no-store',
+      headers: { 'x-pitchcrew-client': 'ui', 'if-none-match': 'W/"fixture"' },
+    }),
+  );
+  expect(json).not.toHaveBeenCalled();
+  expect(updateEtag).toHaveBeenCalledWith('W/"fixture"');
+  expect(capture).not.toHaveBeenCalled();
+});
+
+it('only advances validators after successfully parsing a fresh snapshot', async () => {
+  const updateEtag = vi.fn();
+  vi.stubGlobal(
+    'fetch',
+    vi
+      .fn()
+      .mockResolvedValueOnce(new Response('{', { headers: { etag: 'W/"broken"' } }))
+      .mockResolvedValueOnce(new Response('{"cards":[]}', { headers: { etag: 'W/"fresh"' } })),
+  );
+  const conditional = { etag: null, updateEtag };
+  await expect(api('/snapshot', 'GET', undefined, undefined, conditional)).rejects.toThrow();
+  expect(updateEtag).not.toHaveBeenCalled();
+  expect(await api('/snapshot', 'GET', undefined, undefined, conditional)).toEqual({ cards: [] });
+  expect(updateEtag).toHaveBeenCalledExactlyOnceWith('W/"fresh"');
+});

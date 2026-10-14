@@ -7,9 +7,10 @@ import { installSmokeCheck } from '../src/smoke.ts';
 import { smokeStreamPartials, smokeStreamPrefix } from '../src/smoke-stream.ts';
 
 vi.mock('electron', () => ({
-  app: { quit: vi.fn(), exit: vi.fn() },
+  app: Object.assign(new EventEmitter(), { quit: vi.fn(), exit: vi.fn() }),
   nativeTheme: { themeSource: 'system' },
 }));
+vi.mock('node:fs', () => ({ writeFileSync: vi.fn() }));
 vi.mock('node:fs/promises', () => ({ writeFile: vi.fn() }));
 afterEach(() => {
   vi.clearAllMocks();

@@ -1,5 +1,5 @@
 import { browserViewportSchema, type BrowserSnapshot } from '@pitchcrew/core';
-import { chromium, type Browser, type BrowserContext, type Page, type Dialog } from 'playwright';
+import type { Browser, BrowserContext, Page, Dialog } from 'playwright';
 import { inspectControls } from './inspection.ts';
 import { hash } from './helpers.ts';
 import { assertPublicUrl } from './network.ts';
@@ -12,6 +12,7 @@ import { captureManualField, validateApplicationFields } from './application-fie
 
 export async function launchBrowser(profile?: string): Promise<BrowserDriver> {
   try {
+    const { chromium } = await import('playwright');
     if (profile) {
       await mkdir(profile, { recursive: true, mode: 0o700 });
       const context = await chromium.launchPersistentContext(profile, {

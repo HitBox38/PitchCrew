@@ -54,6 +54,25 @@ describe('HTTP framework contracts', () => {
     });
     expect(agent.statusCode).toBe(403);
     expect(agent.json().error).toContain('capability');
+    const snapshot = await daemon.app.inject({
+      method: 'GET',
+      url: '/api/snapshot',
+      headers: base,
+    });
+    const conditionalHeaders = { ...base, 'if-none-match': String(snapshot.headers.etag) };
+    const unchanged = await daemon.app.inject({
+      method: 'GET',
+      url: '/api/snapshot',
+      headers: conditionalHeaders,
+    });
+    expect(unchanged.statusCode).toBe(304);
+    expect(unchanged.body).toBe('');
+    const rejectedConditional = await daemon.app.inject({
+      method: 'GET',
+      url: '/api/snapshot',
+      headers: { ...conditionalHeaders, cookie: 'pitchcrew_session=expired' },
+    });
+    expect(rejectedConditional.statusCode).toBe(403);
     expect(daemon.service.board.list('card')).toHaveLength(0);
   });
 

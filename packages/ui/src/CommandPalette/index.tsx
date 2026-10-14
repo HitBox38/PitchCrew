@@ -1,3 +1,4 @@
+import { commandFilter } from './helpers.ts';
 import { CrewCommands } from '@/CommandPalette/components/CrewCommands.tsx';
 import { JobCommands } from '@/CommandPalette/components/JobCommands.tsx';
 import { NavigationCommands } from '@/CommandPalette/components/NavigationCommands.tsx';
@@ -15,6 +16,7 @@ export function CommandPalette(props: CommandPaletteProps) {
   const { open, onOpenChange, cards } = controller;
   return (
     <CommandDialog
+      commandProps={{ filter: commandFilter }}
       open={open}
       onOpenChange={onOpenChange}
       title="Search Pitchcrew"

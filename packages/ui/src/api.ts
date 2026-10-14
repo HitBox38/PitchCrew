@@ -4,12 +4,31 @@ import { apiErrorAction, reportErrorDiagnostic } from './Analytics/error-trackin
 import type { ErrorCategory } from './Analytics/error-sanitizer.ts';
 import { beginApiMetric } from './Analytics/metrics/runtime.ts';
 
+export interface ConditionalRequest {
+  etag: string | null;
+  updateEtag: (etag: string | null) => void;
+}
+
+export function api<T>(
+  path: string,
+  method?: string,
+  body?: unknown,
+  signal?: AbortSignal,
+): Promise<T>;
+export function api<T>(
+  path: string,
+  method: string,
+  body: unknown,
+  signal: AbortSignal | undefined,
+  conditional: ConditionalRequest,
+): Promise<T | undefined>;
 export async function api<T>(
   path: string,
   method = 'GET',
   body?: unknown,
   signal?: AbortSignal,
-): Promise<T> {
+  conditional?: ConditionalRequest,
+): Promise<T | undefined> {
   const tracked = actionEvent(path, method, body);
   const finishMetric = beginApiMetric(path, method, body);
   let result: 'success' | 'http_error' | 'network_error' | 'invalid_response' | 'aborted' =
@@ -19,12 +38,19 @@ export async function api<T>(
     const response = await fetch(`/api${path}`, {
       method,
       signal,
+      ...(conditional ? ({ cache: 'no-store' } as const) : {}),
       headers: {
         'x-pitchcrew-client': 'ui',
+        ...(conditional?.etag ? { 'if-none-match': conditional.etag } : {}),
         ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
+    if (response.status === 304 && conditional) {
+      conditional.updateEtag(response.headers.get('etag'));
+      result = 'success';
+      return undefined;
+    }
     result = response.ok ? 'invalid_response' : 'http_error';
     category =
       response.status >= 500 ? 'request_server' : response.ok ? 'request_response' : undefined;
@@ -32,6 +58,7 @@ export async function api<T>(
     if (!response.ok) throw new Error(data.error ?? 'Request failed.');
     if (tracked) analytics.capture(tracked.event, tracked.properties);
     result = 'success';
+    conditional?.updateEtag(response.headers.get('etag'));
     return data;
   } catch (error) {
     const aborted = signal?.aborted || (error instanceof Error && error.name === 'AbortError');

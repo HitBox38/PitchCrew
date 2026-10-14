@@ -206,6 +206,58 @@ describe('workspace store', () => {
     expect(store.getState().working).toBe(false);
   });
 
+  it('keeps data and subscribers untouched on unchanged conditional polls, including recovery', async () => {
+    const store = createWorkspaceStore();
+    vi.mocked(api).mockImplementationOnce(async (...args) => {
+      args[4]?.updateEtag('W/"fixture"');
+      return snapshot;
+    });
+    stop = store.getState().startSync();
+    await vi.advanceTimersByTimeAsync(0);
+    const initial = store.getState().data;
+    const listener = vi.fn();
+    const unsubscribeStore = store.subscribe(listener);
+    vi.mocked(api).mockResolvedValueOnce(undefined);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(vi.mocked(api).mock.calls[1]?.[4]?.etag).toBe('W/"fixture"');
+    expect(store.getState().data).toBe(initial);
+    expect(listener).not.toHaveBeenCalled();
+    vi.mocked(api).mockRejectedValueOnce(new Error('Offline'));
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(store.getState().error).toBe('Offline');
+    vi.mocked(api).mockResolvedValueOnce(undefined);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(store.getState().error).toBe('');
+    expect(store.getState().data).toBe(initial);
+    unsubscribeStore();
+  });
+
+  it('forces full polling after stream disconnect even when an old request finishes later', async () => {
+    const request = deferred<Snapshot | undefined>();
+    vi.mocked(api)
+      .mockImplementationOnce(async (...args) => {
+        args[4]?.updateEtag('W/"fixture"');
+        return snapshot;
+      })
+      .mockImplementationOnce(async (...args) => {
+        const result = await request.promise;
+        args[4]?.updateEtag('W/"old"');
+        return result;
+      });
+    const store = createWorkspaceStore();
+    stop = store.getState().startSync();
+    await vi.advanceTimersByTimeAsync(0);
+    const [onState, onDisconnect] = vi.mocked(subscribeChatStream).mock.calls[0]!;
+    onState(stream);
+    await vi.advanceTimersByTimeAsync(2000);
+    onDisconnect();
+    request.resolve(undefined);
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(vi.mocked(api).mock.calls[2]?.[4]?.etag).toBeNull();
+    expect(store.getState().data?.streamingMessages).toEqual([]);
+  });
+
   it('retains filters and bounded recents when navigation closes panels', () => {
     const storage = { getItem: vi.fn(() => '["old",123]'), setItem: vi.fn() };
     vi.stubGlobal('localStorage', storage);

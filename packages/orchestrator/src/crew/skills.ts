@@ -41,6 +41,7 @@ export function hasStarterSkill(this: CrewContext, starter: BaseSkill): boolean 
 }
 export async function seedStarterSkills(
   this: CrewContext,
+  rolesReady?: Promise<void>,
 ): Promise<Snapshot['starterSkillErrors']> {
   if (this.closing) throw new Error('The workspace is closing.');
   if (this.starterRequest) return this.starterRequest;
@@ -58,6 +59,9 @@ export async function seedStarterSkills(
                   bundledId: starter.name,
                 }
               : await this.previewSkill(baseSkillUrl(starter));
+          // Loading public sources is independent of runtime/model discovery. Only commit skills
+          // after the final role identities exist, so assignments and creation limits stay valid.
+          await rolesReady;
           if (this.closing) throw new Error('The workspace is closing.');
           // A user may have added or removed this skill while its source was loading.
           if (!this.hasStarterSkill(starter))
