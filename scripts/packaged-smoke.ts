@@ -3,6 +3,7 @@ import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { createServer } from 'node:net';
 import { dirname, join, resolve } from 'node:path';
+import { waitForSmokeExit } from './desktop-smoke-exit.ts';
 
 const output = resolve('dist/releases');
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-packaged-check-'));
@@ -54,13 +55,8 @@ delete env.ELECTRON_RUN_AS_NODE;
 // Xvfb has no hardware GPU; use software rendering for reliable screenshot capture.
 const args = process.platform === 'linux' ? ['--disable-gpu'] : [];
 const desktop = spawn(executable, args, { env, stdio: 'inherit', windowsHide: true });
-const timer = setTimeout(() => desktop.kill(), 300000);
 try {
-  const code = await new Promise((resolve, reject) => {
-    desktop.once('error', reject);
-    desktop.once('exit', resolve);
-  });
-  if (code !== 0) throw new Error(`Packaged app exited with ${code}.`);
+  const exit = await waitForSmokeExit(desktop, evidence, { timeoutMs: 300_000 });
   const result = JSON.parse(await readFile(evidence, 'utf8'));
   if (process.env.PITCHCREW_SMOKE_VISIBLE !== '1' && !result.windowStayedHidden)
     throw new Error('Packaged smoke check showed or focused its window.');
@@ -86,7 +82,7 @@ try {
   }
   if (!stopped) throw new Error('The packaged app left its daemon running after exit.');
   console.log('Packaged app started its daemon, rendered the UI and stopped its owned daemon.');
+  console.log(JSON.stringify(exit));
 } finally {
-  clearTimeout(timer);
   desktop.kill();
 }

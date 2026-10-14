@@ -1,3 +1,4 @@
+import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
 import { smokeUserQuestions } from './smoke-user-questions.ts';
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
 import { writeFile } from 'node:fs/promises';
@@ -38,6 +39,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
       windowFocused = true;
     });
   }
+  const quit = smokeFile ? installSmokeShutdownCheck(window, smokeFile) : () => app.quit();
   if (smokeFile)
     window.webContents.once('did-finish-load', async () => {
       try {
@@ -243,7 +245,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             sandbox: true,
           }),
         );
-        app.quit();
+        quit();
       } catch (error) {
         console.error(error);
         app.exit(1);

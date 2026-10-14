@@ -3,6 +3,7 @@ import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { electronExecutable } from './electron-path.ts';
+import { waitForSmokeExit } from './desktop-smoke-exit.ts';
 import { smokeStreamAckFile } from '../packages/desktop/src/smoke-stream.ts';
 
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-electron-check-'));
@@ -55,18 +56,7 @@ try {
   });
   // The fixture includes delayed toast checks and a 201-card stale-cleanup regression.
   // Keep it bounded while allowing slower native CI runners to finish those actions.
-  let timedOut = false;
-  const timer = setTimeout(() => {
-    timedOut = true;
-    desktop?.kill();
-  }, 120000);
-  const code = await new Promise((resolve, reject) => {
-    desktop!.on('error', reject);
-    desktop!.on('exit', resolve);
-  });
-  clearTimeout(timer);
-  if (timedOut) throw new Error('Electron check timed out after 120 seconds.');
-  if (code !== 0) throw new Error(`Electron check exited with ${code}; a timeout returns null.`);
+  const exit = await waitForSmokeExit(desktop, evidence);
   const result = JSON.parse(await readFile(evidence, 'utf8'));
   if (process.env.PITCHCREW_SMOKE_VISIBLE !== '1' && !result.windowStayedHidden)
     throw new Error('Electron smoke check showed or focused its window.');
@@ -125,7 +115,7 @@ try {
     throw new Error('Electron title bar theme/layout check failed.');
   console.log(
     JSON.stringify(
-      { check: 'passed', ...result, evidence, screenshot: `${evidence}.png` },
+      { check: 'passed', ...result, ...exit, evidence, screenshot: `${evidence}.png` },
       null,
       2,
     ),
