@@ -29,16 +29,14 @@ export function serviceNotes(info: BackgroundServiceInfo): string[] {
       `The installed service runs ${status.directory ?? 'another data folder'} on port ${status.port ?? 'unknown'}.`,
     );
   if (info.customLocation && !info.matches)
-    notes.push(
-      'This daemon uses its own data folder or port. Set the same PITCHCREW_HOME and PITCHCREW_PORT in the shell before you install.',
-    );
+    notes.push('Installation uses this workspace’s data folder and port automatically.');
   return notes;
 }
 
 /** CLI commands worth showing for the current state, in the order to run them. */
 export function serviceCommands({ status, matches, commands }: BackgroundServiceInfo): string[] {
   if (!status.platform) return [];
-  if (!status.installed) return [commands.install, commands.status];
-  if (!matches) return [commands.install, commands.uninstall];
+  if (!status.installed) return [];
+  if (!matches) return [commands.uninstall];
   return [commands.status, commands.logs, commands.uninstall];
 }

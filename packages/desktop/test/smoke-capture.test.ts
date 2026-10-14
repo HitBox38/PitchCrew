@@ -1,8 +1,10 @@
 import { EventEmitter } from 'node:events';
 import { writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import type { BrowserWindow, NativeImage } from 'electron';
 import { afterEach, expect, test, vi } from 'vitest';
 import { installSmokeCheck } from '../src/smoke.ts';
+import { smokeStreamPartials, smokeStreamPrefix } from '../src/smoke-stream.ts';
 
 vi.mock('electron', () => ({
   app: { quit: vi.fn(), exit: vi.fn() },
@@ -15,6 +17,26 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
+test('only acknowledges known streaming checkpoints in the isolated smoke folder', async () => {
+  vi.stubEnv('PITCHCREW_SMOKE_FILE', '/tmp/pitchcrew-fixture/result.json');
+  vi.mocked(writeFile).mockResolvedValue();
+  const webContents = new EventEmitter();
+  const window = Object.assign(new EventEmitter(), {
+    isVisible: () => false,
+    isFocused: () => false,
+    webContents,
+  });
+  installSmokeCheck(window as unknown as BrowserWindow, {} as NativeImage);
+  for (const message of ['Unrelated console message', `${smokeStreamPrefix}unknown checkpoint`])
+    webContents.emit('console-message', { message });
+  expect(writeFile).not.toHaveBeenCalled();
+  webContents.emit('console-message', { message: smokeStreamPrefix + smokeStreamPartials[0] });
+  expect(writeFile).toHaveBeenCalledWith(
+    join('/tmp/pitchcrew-fixture', 'stream-ack.txt'),
+    smokeStreamPartials[0],
+  );
+});
+
 test.each(['none', 'show', 'focus'])(
   'smoke screenshots stay hidden and evidence records %s events',
   async (event) => {
@@ -25,13 +47,13 @@ test.each(['none', 'show', 'focus'])(
     const window = Object.assign(new EventEmitter(), {
       isVisible: () => false,
       isFocused: () => false,
-      webContents: {
+      webContents: Object.assign(new EventEmitter(), {
         once: (_event: string, listener: () => Promise<void>) => {
           loaded = listener;
         },
         executeJavaScript: vi.fn(async () => ({ appUpdatesReady: true, sheetChecks: {} })),
         capturePage,
-      },
+      }),
     });
     installSmokeCheck(window as unknown as BrowserWindow, { isEmpty: () => false } as NativeImage);
     if (event !== 'none') window.emit(event);

@@ -44,6 +44,8 @@ export interface DaemonOptions {
   service?: boolean;
   /** Reads the OS background service; tests replace it so no service manager is called. */
   backgroundService?: () => Promise<BackgroundServiceStatus>;
+  /** Installs the OS service; tests replace it so no build or service manager is called. */
+  backgroundServiceInstall?: () => Promise<BackgroundServiceStatus>;
   lockChecks?: LockChecks;
   /** Public PostHog configuration; omitted in tests and unconfigured installations. */
   analytics?: AnalyticsConfig | null;
