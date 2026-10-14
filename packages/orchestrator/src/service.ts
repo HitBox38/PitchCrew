@@ -1,3 +1,4 @@
+import { snapshotRevision } from './crew/snapshot-revision.ts';
 import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answers.ts';
 import { extractApplicationContext } from './crew/application-context/extraction.ts';
 import { createConversation, updateConversation } from './crew/conversations.ts';
@@ -172,6 +173,9 @@ export class CrewService {
   }
   runtimeRecommendation(id: RoleId) {
     return runtimeRecommendation(this.context, id);
+  }
+  snapshotRevision(): Promise<string> {
+    return snapshotRevision(this.context);
   }
   snapshot(): Promise<Snapshot> {
     return this.context.snapshot();

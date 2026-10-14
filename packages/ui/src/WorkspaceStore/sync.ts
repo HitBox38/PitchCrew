@@ -11,6 +11,8 @@ export function createWorkspaceSync(set: WorkspaceSet) {
   const startSync = () => {
     if (stopSync) return stopSync;
     let active = true;
+    let etag: string | null = null;
+    let streamGeneration = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
     const unsubscribe = subscribeChatStream(
@@ -20,13 +22,26 @@ export function createWorkspaceSync(set: WorkspaceSet) {
         set(({ data }) => ({ data: data ? { ...data, ...state } : data }));
       },
       () => {
-        if (active) chatState = null;
+        if (active) {
+          streamGeneration += 1;
+          chatState = null;
+          etag = null;
+        }
       },
     );
     const poll = async () => {
+      const generation = streamGeneration;
       try {
-        const snapshot = await api<Snapshot>('/snapshot', 'GET', undefined, controller.signal);
-        if (active) applySnapshot(snapshot);
+        const snapshot = await api<Snapshot>('/snapshot', 'GET', undefined, controller.signal, {
+          etag,
+          updateEtag: (value) => {
+            if (active && generation === streamGeneration) etag = value;
+          },
+        });
+        if (active) {
+          if (snapshot) applySnapshot(snapshot);
+          else set((state) => (state.error ? { error: '' } : state));
+        }
       } catch (error) {
         if (active)
           set({
