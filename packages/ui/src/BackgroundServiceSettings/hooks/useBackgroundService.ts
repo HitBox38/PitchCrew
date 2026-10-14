@@ -1,11 +1,13 @@
 import type { BackgroundServiceInfo } from '@pitchcrew/core';
-import { useEffect, useState } from 'react';
-import { loadBackgroundService } from '../api.ts';
+import { useEffect, useRef, useState } from 'react';
+import { installBackgroundService, loadBackgroundService } from '../api.ts';
 
 export function useBackgroundService() {
   const [info, setInfo] = useState<BackgroundServiceInfo | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
+  const [installing, setInstalling] = useState(false);
+  const installPending = useRef(false);
   const [refresh, setRefresh] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
@@ -27,5 +29,21 @@ export function useBackgroundService() {
     setLoading(true);
     setRefresh((count) => count + 1);
   };
-  return { info, error, loading, checkAgain };
+  const install = async () => {
+    if (loading || installPending.current) return;
+    installPending.current = true;
+    setInstalling(true);
+    setError('');
+    try {
+      setInfo(await installBackgroundService());
+    } catch (cause) {
+      setError(
+        cause instanceof Error ? cause.message : 'Could not install the background service.',
+      );
+    } finally {
+      installPending.current = false;
+      setInstalling(false);
+    }
+  };
+  return { info, error, loading, installing, checkAgain, install };
 }

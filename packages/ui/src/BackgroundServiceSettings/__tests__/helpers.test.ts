@@ -50,15 +50,15 @@ it('offers install for a missing service and explains a service for another fold
     status: { ...info().status, installed: false, enabled: false, running: false, pid: null },
   });
   expect(serviceBadges(missing)).toEqual([{ label: 'Not installed', success: false }]);
-  expect(serviceCommands(missing)).toEqual(['pnpm service install', 'pnpm service status']);
-  expect(serviceNotes(missing).join(' ')).toContain('PITCHCREW_HOME and PITCHCREW_PORT');
+  expect(serviceCommands(missing)).toEqual([]);
+  expect(serviceNotes(missing).join(' ')).toContain('data folder and port automatically');
   const elsewhere = info({ matches: false, startedByService: false });
   expect(serviceBadges(elsewhere)[0]).toEqual({
     label: 'Installed for another folder',
     success: false,
   });
   expect(serviceNotes(elsewhere).join(' ')).toContain('on port 4417');
-  expect(serviceCommands(elsewhere)).toEqual(['pnpm service install', 'pnpm service uninstall']);
+  expect(serviceCommands(elsewhere)).toEqual(['pnpm service uninstall']);
 });
 
 it('explains unsupported platforms without commands', () => {
