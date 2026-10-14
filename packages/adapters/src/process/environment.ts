@@ -31,6 +31,7 @@ export function cliEnvironment(env: Record<string, string | undefined> = {}) {
       ...(environment[pathKey]?.split(delimiter) ?? []),
       join(homedir(), '.local', 'bin'),
       join(homedir(), '.grok', 'bin'),
+      join(homedir(), '.opencode', 'bin'),
     ]),
   ].join(delimiter);
   return environment;

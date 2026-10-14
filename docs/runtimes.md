@@ -2,7 +2,7 @@
 
 Pitchcrew starts an installed agent CLI for each chat or workflow run. Install the runtime on `PATH`, configure its native authentication, then select it in Crew settings. **Settings > Runtimes** shows whether Pitchcrew can detect it.
 
-After installing a runtime while Pitchcrew is open, select **Check runtimes**. Checks, model discovery and agent runs also search `~/.local/bin` and `~/.grok/bin` after the inherited `PATH`, so native installations in those folders work without restarting the app. Installations in other newly added `PATH` folders require restarting the daemon or background service with the updated environment.
+After installing a runtime while Pitchcrew is open, select **Check runtimes**. Checks, model discovery and agent runs also search `~/.local/bin`, `~/.grok/bin` and `~/.opencode/bin` after the inherited `PATH`, so native installations in those folders work without restarting the app. Installations in other newly added `PATH` folders require restarting the daemon or background service with the updated environment.
 
 Pitchcrew never reads, copies or stores provider credentials. Authentication remains with the CLI, including supported environment variables inherited from the daemon. Isolated runtime configuration can exclude existing login or configuration files; see the notes below before assuming that an interactive CLI login will also work in Pitchcrew.
 
