@@ -42,22 +42,25 @@ test('a native failure cannot pass because UI evidence exists', async () => {
   );
 });
 
-test('fails and finishes when a child ignores graceful termination after the deadline', async () => {
-  const { child, evidence } = await fixture(
-    "process.on('SIGTERM', () => {}); console.log('ready'); setInterval(() => {}, 1000)",
-  );
-  await once(child.stdout!, 'data');
-  await writeFile(
-    `${evidence}.shutdown.json`,
-    JSON.stringify({ requestedAt: Date.now(), events: { quit: 3 } }),
-  );
-  const exited = once(child, 'exit');
-  await expect(
-    waitForSmokeExit(child, evidence, { timeoutMs: 50, terminationGraceMs: 50 }),
-  ).rejects.toThrow(/timed out.*Forced test cleanup.*Native shutdown evidence.*quit/);
-  const [, signal] = await exited;
-  expect(signal).toBe('SIGKILL');
-});
+test.skipIf(process.platform === 'win32')(
+  'fails and finishes when a child ignores graceful termination after the deadline',
+  async () => {
+    const { child, evidence } = await fixture(
+      "process.on('SIGTERM', () => {}); console.log('ready'); setInterval(() => {}, 1000)",
+    );
+    await once(child.stdout!, 'data');
+    await writeFile(
+      `${evidence}.shutdown.json`,
+      JSON.stringify({ requestedAt: Date.now(), events: { quit: 3 } }),
+    );
+    const exited = once(child, 'exit');
+    await expect(
+      waitForSmokeExit(child, evidence, { timeoutMs: 50, terminationGraceMs: 50 }),
+    ).rejects.toThrow(/timed out.*Forced test cleanup.*Native shutdown evidence.*quit/);
+    const [, signal] = await exited;
+    expect(signal).toBe('SIGKILL');
+  },
+);
 
 test('uses a separate shutdown deadline after quit while retaining the longer UI deadline', async () => {
   const { child, evidence } = await fixture(
@@ -84,13 +87,16 @@ test('does not pass a zero exit without completed shutdown evidence', async () =
   );
 });
 
-test('a zero exit in response to deadline termination still fails', async () => {
-  const { child, evidence } = await fixture(
-    "process.on('SIGTERM', () => process.exit(0)); console.log('ready'); setInterval(() => {}, 1000)",
-  );
-  await once(child.stdout!, 'data');
-  await expect(
-    waitForSmokeExit(child, evidence, { timeoutMs: 50, terminationGraceMs: 1_000 }),
-  ).rejects.toThrow('Electron check timed out after 50 ms');
-  expect(child.exitCode).toBe(0);
-});
+test.skipIf(process.platform === 'win32')(
+  'a zero exit in response to deadline termination still fails',
+  async () => {
+    const { child, evidence } = await fixture(
+      "process.on('SIGTERM', () => process.exit(0)); console.log('ready'); setInterval(() => {}, 1000)",
+    );
+    await once(child.stdout!, 'data');
+    await expect(
+      waitForSmokeExit(child, evidence, { timeoutMs: 50, terminationGraceMs: 1_000 }),
+    ).rejects.toThrow('Electron check timed out after 50 ms');
+    expect(child.exitCode).toBe(0);
+  },
+);
