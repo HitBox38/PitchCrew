@@ -4,7 +4,7 @@ import type { TranscriptItem } from '@/ChatTurn/helpers.ts';
 import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { AnimatePresence } from 'motion/react';
-import { Fragment } from 'react';
+import { MessageScrollerItem } from '@/components/ui/message-scroller/components/MessageScrollerItem.tsx';
 
 export function MessageTranscript({
   items,
@@ -14,7 +14,12 @@ export function MessageTranscript({
   return (
     <AnimatePresence initial={false}>
       {items.map((item, index) => (
-        <Fragment key={item.id}>
+        <MessageScrollerItem
+          key={item.id}
+          messageId={item.id}
+          scrollAnchor={item.kind === 'message' && item.message.from === 'user'}
+          className="flex flex-col gap-6"
+        >
           {index === 0 ||
           new Date(items[index - 1].createdAt).toDateString() !==
             new Date(item.createdAt).toDateString() ? (
@@ -31,7 +36,7 @@ export function MessageTranscript({
           ) : (
             <TranscriptMessage {...props} message={item.message} />
           )}
-        </Fragment>
+        </MessageScrollerItem>
       ))}
     </AnimatePresence>
   );

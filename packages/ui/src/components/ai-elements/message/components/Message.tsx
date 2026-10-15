@@ -1,13 +1,18 @@
-import type { MessageProps } from '@/components/ai-elements/message/types.ts';
+import type { MessageProps } from '../types.ts';
+import { MessageRoleContext } from '../context.ts';
+import { Message as MessageRoot } from '@/components/ui/message/components/Message.tsx';
 import { cn } from '@/lib/utils.ts';
 
 export const Message = ({ className, from, ...props }: MessageProps) => (
-  <div
-    className={cn(
-      'group primitive:flex primitive:w-full primitive:max-w-[95%] primitive:flex-col primitive:gap-2',
-      from === 'user' ? 'is-user primitive:ml-auto primitive:justify-end' : 'is-assistant',
-      className,
-    )}
-    {...props}
-  />
+  <MessageRoleContext value={from}>
+    <MessageRoot
+      align={from === 'user' ? 'end' : 'start'}
+      className={cn(
+        'flex-col data-[align=end]:flex-col',
+        from === 'user' ? 'is-user ml-auto' : 'is-assistant',
+        className,
+      )}
+      {...props}
+    />
+  </MessageRoleContext>
 );

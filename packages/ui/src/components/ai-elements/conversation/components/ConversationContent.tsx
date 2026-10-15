@@ -1,10 +1,9 @@
-import type { ConversationContentProps } from '@/components/ai-elements/conversation/types.ts';
-import { cn } from '@/lib/utils.ts';
-import { StickToBottom } from 'use-stick-to-bottom';
+import type { ConversationContentProps } from '../types.ts';
+import { MessageScrollerContent } from '@/components/ui/message-scroller/components/MessageScrollerContent.tsx';
+import { MessageScrollerViewport } from '@/components/ui/message-scroller/components/MessageScrollerViewport.tsx';
 
-export const ConversationContent = ({ className, ...props }: ConversationContentProps) => (
-  <StickToBottom.Content
-    className={cn('primitive:flex primitive:flex-col primitive:gap-8 primitive:p-4', className)}
-    {...props}
-  />
+export const ConversationContent = ({ scrollClassName, ...props }: ConversationContentProps) => (
+  <MessageScrollerViewport className={scrollClassName}>
+    <MessageScrollerContent {...props} />
+  </MessageScrollerViewport>
 );

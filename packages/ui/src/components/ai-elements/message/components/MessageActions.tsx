@@ -1,11 +1,6 @@
-import type { MessageActionsProps } from '@/components/ai-elements/message/types.ts';
+import type { MessageActionsProps } from '../types.ts';
+import { MessageFooter } from '@/components/ui/message/components/MessageFooter.tsx';
 import { cn } from '@/lib/utils.ts';
-
-export const MessageActions = ({ className, children, ...props }: MessageActionsProps) => (
-  <div
-    className={cn('primitive:flex primitive:items-center primitive:gap-1', className)}
-    {...props}
-  >
-    {children}
-  </div>
+export const MessageActions = ({ className, ...props }: MessageActionsProps) => (
+  <MessageFooter className={cn('primitive:gap-1', className)} {...props} />
 );

@@ -9,7 +9,7 @@
 .chat-prompt,
 .chat-compose-hint,
 .chat-compose > .form-error,
-.chat-queue > [data-slot='collapsible'] {
+.chat-queue > [data-slot='trace'] {
   width: 100%;
   max-width: var(--chat-content-width);
   margin-inline: auto;

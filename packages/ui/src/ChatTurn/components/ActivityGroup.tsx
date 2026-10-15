@@ -1,9 +1,14 @@
 import type { RunActivity } from '@pitchcrew/core';
-import { ChevronRight, Layers } from 'lucide-react';
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Layers } from 'lucide-react';
+import {
+  ChainOfThought,
+  ChainOfThoughtTrigger,
+  ChainOfThoughtContent,
+} from '@/components/ai-elements/chain-of-thought/index.tsx';
+import { Trace } from '@/components/ui/trace/components/Trace.tsx';
+import { TraceLine } from '@/components/ui/trace/components/TraceLine.tsx';
+import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
+import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { ActivityStep } from './ActivityStep.tsx';
 
 export function ActivityGroup({
@@ -22,24 +27,25 @@ export function ActivityGroup({
       ? 'Thinking'
       : 'Thought';
   return (
-    <Collapsible className="chat-activity-group" defaultOpen={defaultOpen}>
-      <CollapsibleTrigger
-        render={<Button variant="ghost" className="chat-activity-group-trigger" />}
-      >
-        <Layers size={14} className="shrink-0" aria-hidden="true" />
-        <span className="shrink-0">{label}</span>
-        {failures ? <span className="text-destructive">{failures} failed</span> : null}
-        <ChevronRight
-          size={13}
-          className="chat-activity-chevron ml-auto shrink-0"
-          aria-hidden="true"
-        />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="chat-activity-group-content">
-        {entries.map((entry) => (
-          <ActivityStep key={entry.id} entry={entry} />
-        ))}
-      </CollapsibleContent>
-    </Collapsible>
+    <Trace>
+      <ChainOfThought className="chat-activity-group" defaultOpen={defaultOpen}>
+        <ChainOfThoughtTrigger className="chat-activity-group-trigger">
+          <TraceLine status={active ? 'running' : failures ? 'error' : undefined}>
+            <TraceIcon>
+              <Layers />
+            </TraceIcon>
+            <TraceTitle>{label}</TraceTitle>
+            {failures ? <span className="text-destructive">{failures} failed</span> : null}
+          </TraceLine>
+        </ChainOfThoughtTrigger>
+        <ChainOfThoughtContent className="chat-activity-group-content">
+          <Trace>
+            {entries.map((entry) => (
+              <ActivityStep key={entry.id} entry={entry} />
+            ))}
+          </Trace>
+        </ChainOfThoughtContent>
+      </ChainOfThought>
+    </Trace>
   );
 }
