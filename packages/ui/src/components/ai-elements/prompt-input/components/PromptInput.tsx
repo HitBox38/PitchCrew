@@ -5,11 +5,15 @@ import { cn } from '@/lib/utils.ts';
 export const PromptInput = ({ className, onSubmit, children, ...props }: PromptInputProps) => (
   <form
     className={cn('primitive:w-full', className)}
-    onSubmit={(event) => {
+    onSubmit={async (event) => {
       event.preventDefault();
       const text = String(new FormData(event.currentTarget).get('message') ?? '');
       // Controlled text is cleared by the caller after success, retained on failure.
-      void Promise.resolve(onSubmit({ text, files: [] }, event)).catch(() => {});
+      try {
+        await onSubmit({ text, files: [] }, event);
+      } catch {
+        // The caller presents its request error and retains the controlled draft.
+      }
     }}
     {...props}
   >

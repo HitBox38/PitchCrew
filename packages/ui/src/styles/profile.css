@@ -164,18 +164,6 @@
   cursor: pointer;
   color: var(--primary);
 }
-.profile-import-document pre,
-.approval-preview .profile-update-preview {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font: 14px/1.6 var(--font-sans);
-  max-height: 360px;
-  overflow: auto;
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--surface-bright);
-}
 .profile-import-document a {
   color: var(--primary);
 }

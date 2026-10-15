@@ -1,12 +1,23 @@
 import type { ChatViewModel } from '../types.ts';
 import { QueuedMessage } from './QueuedMessage.tsx';
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { ChevronDown, Clock3, CircleAlert } from 'lucide-react';
+import {
+  Queue,
+  QueueSection,
+  QueueSectionTrigger,
+  QueueSectionContent,
+} from '@/components/ai-elements/queue/index.tsx';
+import { TraceLine } from '@/components/ui/trace/components/TraceLine.tsx';
+import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
+import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
+import { Clock3, CircleAlert } from 'lucide-react';
 
-export function ConversationQueue({ queued, data, action, working, thread }: ChatViewModel) {
+export function ConversationQueue({
+  queued,
+  data,
+  action,
+  working,
+  thread,
+}: Pick<ChatViewModel, 'queued' | 'data' | 'action' | 'working' | 'thread'>) {
   if (!queued.length) return null;
   const attention = queued.filter((request) =>
     request.deliveries.some(
@@ -21,26 +32,31 @@ export function ConversationQueue({ queued, data, action, working, thread }: Cha
   const Icon = attention ? CircleAlert : Clock3;
   return (
     <section className="chat-queue" aria-label="Queued messages">
-      <Collapsible key={thread}>
-        <CollapsibleTrigger render={<Button variant="ghost" className="chat-queue-trigger" />}>
-          <Icon size={13} aria-hidden="true" />
-          <span>{label}</span>
-          <ChevronDown size={13} className="chat-queue-chevron" aria-hidden="true" />
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="chat-queue-content">
-            {queued.map((request) => (
-              <QueuedMessage
-                key={request.id}
-                request={request}
-                data={data}
-                action={action}
-                working={working}
-              />
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+      <Queue>
+        <QueueSection key={thread}>
+          <QueueSectionTrigger className="chat-queue-trigger">
+            <TraceLine className="flex-1" status={attention ? 'error' : 'pending'}>
+              <TraceIcon>
+                <Icon size={13} />
+              </TraceIcon>
+              <TraceTitle>{label}</TraceTitle>
+            </TraceLine>
+          </QueueSectionTrigger>
+          <QueueSectionContent>
+            <div className="chat-queue-content">
+              {queued.map((request) => (
+                <QueuedMessage
+                  key={request.id}
+                  request={request}
+                  data={data}
+                  action={action}
+                  working={working}
+                />
+              ))}
+            </div>
+          </QueueSectionContent>
+        </QueueSection>
+      </Queue>
     </section>
   );
 }

@@ -68,13 +68,6 @@
   margin: 16px 0 6px;
   text-transform: capitalize;
 }
-.approval-preview pre {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font-family: inherit;
-  font-size: var(--text-label);
-  line-height: 1.6;
-}
 .approval-footer {
   display: flex;
   gap: 10px;

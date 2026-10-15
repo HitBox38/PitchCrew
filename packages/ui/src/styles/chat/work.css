@@ -99,26 +99,6 @@
   gap: 12px;
   margin-top: 12px;
 }
-.chat-instruction-comparison h5 {
-  font:
-    600 12px 'Source Sans 3',
-    sans-serif;
-  color: var(--muted);
-  margin-bottom: 7px;
-}
-.chat-instruction-comparison pre {
-  padding: 12px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  max-height: 180px;
-  overflow: auto;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--paper);
-  font: inherit;
-  font-size: var(--text-label);
-  line-height: 1.6;
-}
 .chat-capability-changes {
   list-style: none;
   margin: 16px 0 0;

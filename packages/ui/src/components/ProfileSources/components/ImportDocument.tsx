@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import type { ProfileImportFile } from '@pitchcrew/core';
 import { importStatus } from '../helpers.ts';
@@ -24,7 +25,7 @@ export function ImportDocument({
       </label>
       <details>
         <summary>Read document</summary>
-        <pre>{file.content}</pre>
+        <SourceBlock label={file.path} value={file.content} contentClassName="font-sans" />
         <a href={file.url} target="_blank" rel="noreferrer">
           Open original source
         </a>

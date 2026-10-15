@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { BrowserAction } from '@pitchcrew/core';
 import { actionFields } from '../helpers.ts';
 
@@ -14,7 +15,7 @@ export function BrowserActionSummary({ action }: { action: BrowserAction }) {
       </dl>
       <details className="approval-preview">
         <summary>Exact action details</summary>
-        <pre>{JSON.stringify(action, null, 2)}</pre>
+        <SourceBlock label="Action JSON" value={JSON.stringify(action, null, 2)} />
       </details>
     </>
   );

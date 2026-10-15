@@ -107,22 +107,6 @@
 .document-select {
   flex-wrap: wrap;
 }
-.packet-document {
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  background-color: var(--surface-bright);
-  background-image: var(--fibres);
-  border-radius: 4px 6px 5px 7px;
-  padding: 26px 28px;
-  font-family: 'Source Sans 3', sans-serif;
-  font-size: var(--text-body);
-  line-height: 1.7;
-  color: var(--ink);
-  margin-top: 16px;
-  box-shadow:
-    0 0 0 1px var(--border),
-    var(--drop-sm);
-}
 .evidence {
   display: flex;
   gap: 10px;

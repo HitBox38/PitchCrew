@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { lazy, Suspense, useState } from 'react';
 import type { Approval, PacketArtifact } from '@pitchcrew/core';
 import { useArtifactUrl } from '../hooks/useArtifactUrl.ts';
@@ -49,7 +50,11 @@ export function ArtifactDocument({
       ) : null}
       <details>
         <summary>Complete document text</summary>
-        <pre>{approval.packet[artifact.source]}</pre>
+        <SourceBlock
+          label={artifact.name}
+          value={approval.packet[artifact.source]}
+          contentClassName="font-sans"
+        />
       </details>
       {approval.status === 'consumed' && approval.exportDirectory && url ? (
         <a className="text-button" href={url} download={artifact.name}>

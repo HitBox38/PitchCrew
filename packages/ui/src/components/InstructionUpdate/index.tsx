@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { DismissedUpdate } from './components/DismissedUpdate.tsx';
 import { UpdateActions } from './components/UpdateActions.tsx';
 import { UpdateComparison } from './components/UpdateComparison.tsx';
@@ -23,7 +24,11 @@ export function InstructionUpdate(props: InstructionUpdateProps) {
             The editor now holds the new default. Copy what you want to keep from here, then save
             settings.
           </p>
-          <pre className="instruction-update-previous">{model.previous}</pre>
+          <SourceBlock
+            label="Previous instructions"
+            value={model.previous}
+            contentClassName="font-sans"
+          />
         </div>
       ) : null}
       <UpdateActions {...model} />

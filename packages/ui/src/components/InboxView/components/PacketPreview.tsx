@@ -1,3 +1,5 @@
+import { packetDocumentLabels } from '@/lib/packet-labels.ts';
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { PacketPreviewProps } from '@/components/InboxView/types.ts';
 import { FileText } from 'lucide-react';
 import {
@@ -21,14 +23,11 @@ export function PacketPreview({ approval }: PacketPreviewProps) {
             .filter(([key]) => key !== 'claims')
             .map(([key, value]) => (
               <div key={key}>
-                <h3>
-                  {key === 'coverLetter'
-                    ? 'Cover letter'
-                    : key === 'formAnswers'
-                      ? 'Form answers'
-                      : key}
-                </h3>
-                <pre>{String(value)}</pre>
+                <SourceBlock
+                  label={packetDocumentLabels[key as keyof typeof packetDocumentLabels]}
+                  value={String(value)}
+                  contentClassName="font-sans"
+                />
               </div>
             ))}
         </AccordionContent>

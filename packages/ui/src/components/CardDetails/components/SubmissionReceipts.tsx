@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalConfirmation } from './ExternalConfirmation.tsx';
 import type { JobOverviewProps } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -35,7 +36,11 @@ export function SubmissionReceipts({
             <details>
               <summary>Full confirmation evidence</summary>
               <p>{attempt.confirmation.url}</p>
-              <pre className="packet-document">{attempt.confirmation.text}</pre>
+              <SourceBlock
+                label="Confirmation text"
+                value={attempt.confirmation.text}
+                contentClassName="font-sans"
+              />
             </details>
           ) : null}
           {attempt.status === 'uncertain' ? (
