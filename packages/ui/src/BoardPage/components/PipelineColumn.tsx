@@ -1,4 +1,4 @@
-import { DraggableJob } from './DraggableJob.tsx';
+import { PipelineCards } from './PipelineCards.tsx';
 import { StatusDropTarget } from './StatusDropTarget.tsx';
 import { pipelineDrop, type PipelineStage } from '@/BoardPage/helpers.ts';
 import type { JobPipelineProps } from '@/BoardPage/types.ts';
@@ -7,7 +7,8 @@ import { useDroppable } from '@dnd-kit/react';
 import { pointerIntersection } from '@dnd-kit/collision';
 import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 import { Plus } from 'lucide-react';
-import { AnimatePresence } from 'motion/react';
+import { useJobPage, type JobReveal } from '../hooks/useJobPage.ts';
+import { JobPages } from './JobPages.tsx';
 
 export function PipelineColumn({
   stage,
@@ -20,6 +21,7 @@ export function PipelineColumn({
   openCard,
   query,
   selection,
+  reveal,
 }: Pick<JobPipelineProps, 'flashStage' | 'setAdd' | 'openCard' | 'query'> & {
   stage: PipelineStage;
   cards: Card[];
@@ -27,7 +29,9 @@ export function PipelineColumn({
   data: Snapshot;
   working: boolean;
   selection?: CardState | null;
+  reveal: JobReveal;
 }) {
+  const page = useJobPage(cards, 20, query, reveal);
   const drop = active ? pipelineDrop(active, stage, data) : null;
   const allowed = !!drop && drop.kind !== 'blocked';
   const { ref, isDropTarget } = useDroppable({
@@ -69,23 +73,16 @@ export function PipelineColumn({
           ))}
         </div>
       ) : null}
-      <div className="column-cards flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-1">
-        <AnimatePresence initial={false}>
-          {cards.map((card) => (
-            <DraggableJob
-              key={card.id}
-              card={card}
-              data={data}
-              disabled={working}
-              dragging={!!active}
-              openCard={openCard}
-            />
-          ))}
-        </AnimatePresence>
-        {!cards.length && !drop ? (
-          <p className="column-empty">{query ? 'No matches.' : stage.empty}</p>
-        ) : null}
-      </div>
+      <JobPages {...page} label={stage.label} disabled={!!active || working} />
+      <PipelineCards
+        key={page.page}
+        cards={page.cards}
+        data={data}
+        working={working}
+        dragging={!!active}
+        openCard={openCard}
+        empty={!cards.length && !drop ? (query ? 'No matches.' : stage.empty) : null}
+      />
     </section>
   );
 }

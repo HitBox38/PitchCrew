@@ -1,13 +1,15 @@
 import { TranscriptMessage } from './TranscriptMessage.tsx';
 import { ChatTurn } from '@/ChatTurn/index.tsx';
-import { transcriptItems } from '@/ChatTurn/helpers.ts';
+import type { TranscriptItem } from '@/ChatTurn/helpers.ts';
 import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { Fragment } from 'react';
 
-export function MessageTranscript(props: MessageTranscriptProps) {
-  const items = transcriptItems(props.messages, props.data.runs, props.thread);
+export function MessageTranscript({
+  items,
+  ...props
+}: MessageTranscriptProps & { items: TranscriptItem[] }) {
   const replyingRuns = new Set(props.data.streamingMessages.map((message) => message.runId));
   return (
     <AnimatePresence initial={false}>

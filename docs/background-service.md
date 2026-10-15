@@ -4,7 +4,13 @@ Routines run only while a Pitchcrew daemon is open. The background service start
 
 The service runs as your user, listens on 127.0.0.1 only and never needs administrator rights. It uses the operating system's own per-user service manager and no extra software.
 
-## Before you install
+## Install from Settings
+
+Open **Settings > Local data** and press **Install background service**. Pitchcrew builds the production UI if it is missing, then registers the per-user service using this workspace's resolved data folder and port. Packaged apps already include the production UI. The button shows progress, reports installation failures and refreshes the service state when finished. Installation runs only when requested; opening Settings never installs it.
+
+If the service is installed for another workspace, **Use for this workspace** moves it to the current folder and port. There is one service per user. An existing daemon continues running while the newly installed service waits for it to stop.
+
+## Install from a terminal
 
 - Build the UI with `pnpm build`. The service runs the built UI without `--dev`, so Demo and example loading are not available in it.
 - Give each agent a real runtime in Crew. Production agents start paused.
@@ -26,7 +32,7 @@ Install is safe to run again. With the same settings it leaves a running daemon 
 
 Uninstall removes the service definition, the Task Scheduler file and the service logs in `background-service` inside the data folder. Your board, profile, chats and packets stay.
 
-Settings > Local data shows whether the service is installed and running, whether it started the daemon you are using, and the commands to install or remove it. Installing and removing stay commands you run yourself.
+Settings > Local data shows whether the service is installed and running, whether it started the daemon you are using, and an installation button. Status, logs and removal commands remain available to run in a terminal.
 
 ## How it runs on each system
 

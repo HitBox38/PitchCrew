@@ -32,6 +32,26 @@
   resize: vertical;
   line-height: 1.55;
 }
+/* Keep focus and invalid states above primitive resets without replacing shadows. */
+:is([data-slot='input'], [data-slot='textarea'], .form input, .form textarea):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+:is([data-slot='checkbox'], [data-slot='switch']):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+[data-slot='input-group']:has([data-slot='input-group-control']:focus-visible) {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+:is([data-slot='input'], [data-slot='textarea'], [data-slot='checkbox'], [data-slot='switch']):is(
+  [aria-invalid='true'],
+  [data-invalid]
+) {
+  outline: 2px solid var(--rose);
+  outline-offset: 2px;
+}
 .form .model-picker-input input {
   padding-right: 40px;
 }
@@ -155,23 +175,6 @@
   flex-direction: row;
   align-items: center;
   gap: 9px;
-}
-.form [data-slot='checkbox'] {
-  width: 18px;
-  height: 18px;
-  border: 0;
-  border-radius: 5px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
-}
-.form [data-slot='checkbox'][data-checked] {
-  background: var(--glaze-fill);
-  color: #fff;
-  box-shadow: var(--glaze);
-}
-.form [data-slot='checkbox']:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
 }
 .form-error {
   background: var(--rose-soft);

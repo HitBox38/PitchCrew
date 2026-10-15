@@ -7,7 +7,7 @@ export function InputGroupTextarea({ className, ...props }: InputGroupTextareaPr
     <Textarea
       data-slot="input-group-control"
       className={cn(
-        'primitive:flex-1 primitive:resize-none primitive:rounded-none primitive:border-0 primitive:bg-transparent primitive:py-2 primitive:shadow-none primitive:ring-0 primitive:focus-visible:ring-0 primitive:aria-invalid:ring-0 primitive:dark:bg-transparent',
+        'primitive:flex-1 primitive:resize-none primitive:rounded-none primitive:border-0 primitive:py-2 primitive:shadow-none primitive:ring-0 primitive:[background:transparent] primitive:focus-visible:ring-0 primitive:aria-invalid:ring-0',
         className,
       )}
       {...props}

@@ -1,6 +1,13 @@
+import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
 import { smokeUserQuestions } from './smoke-user-questions.ts';
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
 import { writeFile } from 'node:fs/promises';
+import {
+  smokeStreamAckFile,
+  smokeStreamPartials,
+  smokeStreamPrefix,
+  smokeStreamRequest,
+} from './smoke-stream.ts';
 import { smokeConversations } from './smoke-conversations.ts';
 import { smokeInsights } from './smoke-insights.ts';
 import { smokeStyles } from './smoke-styles.ts';
@@ -16,6 +23,15 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
   let windowShown = window.isVisible();
   let windowFocused = window.isFocused();
   if (smokeFile) {
+    window.webContents.on('console-message', (details) => {
+      const partial = details.message.slice(smokeStreamPrefix.length);
+      if (!details.message.startsWith(smokeStreamPrefix) || !smokeStreamPartials.includes(partial))
+        return;
+      void writeFile(smokeStreamAckFile(smokeFile), partial).catch((error) => {
+        console.error('Could not acknowledge the smoke streaming checkpoint:', error);
+        app.exit(1);
+      });
+    });
     window.on('show', () => {
       windowShown = true;
     });
@@ -23,6 +39,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
       windowFocused = true;
     });
   }
+  const quit = smokeFile ? installSmokeShutdownCheck(window, smokeFile) : () => app.quit();
   if (smokeFile)
     window.webContents.once('did-finish-load', async () => {
       try {
@@ -66,14 +83,21 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
               await waitFor(() => !!document.querySelector('textarea')?.value);
+              const streamingInput = document.querySelector('textarea');
+              Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(streamingInput, ${JSON.stringify(smokeStreamRequest)});
+              streamingInput.dispatchEvent(new Event('input', { bubbles: true }));
+              await waitFor(() => !streamingInput.form.querySelector('button[type="submit"]').disabled);
               const partials = new Set();
               const observer = new MutationObserver(() => {
                 const message = document.querySelector('.chat-message-content[aria-busy="true"]');
-                if (message?.textContent) partials.add(message.textContent);
+                if (message?.textContent && !partials.has(message.textContent)) {
+                  partials.add(message.textContent);
+                  console.info(${JSON.stringify(smokeStreamPrefix)} + message.textContent);
+                }
               });
               observer.observe(document.querySelector('.chat-transcript'), { subtree: true, childList: true, characterData: true, attributes: true });
               document.querySelector('textarea')?.form?.requestSubmit();
-              chatResponded = await waitFor(() => [...document.querySelectorAll('.chat-message-content[aria-busy="false"]')].some((message) => message.textContent.includes('This is a demo reply.')));
+              chatResponded = await waitFor(() => [...document.querySelectorAll('.chat-message-content[aria-busy="false"]')].some((message) => message.textContent.includes('Second streaming checkpoint. This is a demo reply.')));
               observer.disconnect();
               const toastVisible = await waitFor(() => !!document.querySelector('[data-slot="toast"][data-kind="message"]:not([data-starting-style]):not([data-ending-style])'));
               const viewport = document.querySelector('[data-slot="toast-viewport"]');
@@ -221,7 +245,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             sandbox: true,
           }),
         );
-        app.quit();
+        quit();
       } catch (error) {
         console.error(error);
         app.exit(1);

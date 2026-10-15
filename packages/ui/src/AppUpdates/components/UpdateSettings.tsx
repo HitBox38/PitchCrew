@@ -1,7 +1,7 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
+import { Switch } from '@/components/ui/switch/index.tsx';
 import { RefreshCw } from 'lucide-react';
 import { ReleaseLink } from './ReleaseLink.tsx';
 import { DesktopUpdateActions } from './DesktopUpdateActions.tsx';
@@ -42,14 +42,13 @@ export function UpdateSettings() {
             your choice.
           </span>
         </span>
-        <div className="flex shrink-0">
-          <Checkbox
-            id="automatic-updates"
-            checked={automatic}
-            onCheckedChange={setAutomatic}
-            disabled={!info?.automatic}
-          />
-        </div>
+        <Switch
+          id="automatic-updates"
+          aria-label="Check automatically"
+          checked={automatic}
+          onCheckedChange={setAutomatic}
+          disabled={!info?.automatic}
+        />
       </label>
       {info && !info.automatic && info.status !== 'disabled' ? (
         <p className="info-note">

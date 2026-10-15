@@ -78,7 +78,7 @@ export function ConversationRuntime(props: ChatViewModel) {
           </p>
         ) : null}
         <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
-          <Button variant="ghost" onClick={() => setDialog(null)}>
+          <Button className="text-button" variant="ghost" onClick={() => setDialog(null)}>
             Close
           </Button>
           <Button type="submit" disabled={working || !state.canSave}>

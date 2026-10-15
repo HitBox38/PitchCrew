@@ -27,6 +27,12 @@ function argsFor(context: RunContext | ChatContext) {
     `mcp_servers.pitchcrew.args=${JSON.stringify(context.mcp.args)}`,
     '-c',
     'mcp_servers.pitchcrew.env_vars=["PITCHCREW_RUN_TOKEN","PITCHCREW_DAEMON_URL"]',
+    // Pitchcrew enforces capabilities and exact-action approvals in its gateway.
+    // Codex exec cannot answer an additional native MCP approval prompt.
+    '-c',
+    'mcp_servers.pitchcrew.default_tools_approval_mode="approve"',
+    '-c',
+    'mcp_servers.pitchcrew.required=true',
   ];
   if (context.role.model) args.push('--model', context.role.model);
   if (context.role.reasoning)

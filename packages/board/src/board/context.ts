@@ -35,6 +35,10 @@ export function createBoardContext(filename: string): BoardContext {
   context.db
     .exec(`CREATE TABLE IF NOT EXISTS events (id INTEGER PRIMARY KEY AUTOINCREMENT, json TEXT NOT NULL);
       CREATE TABLE IF NOT EXISTS entities (kind TEXT NOT NULL, id TEXT NOT NULL, json TEXT NOT NULL, PRIMARY KEY(kind,id));
+      -- A single-column kind index is ordered by implicit rowid within each kind. The
+      -- (kind,id) primary key instead requires sorting every matching JSON document.
+      CREATE INDEX IF NOT EXISTS entities_kind ON entities(kind);
+      CREATE INDEX IF NOT EXISTS events_entity_id ON events(json_extract(json,'$.entityId'));
       CREATE TRIGGER IF NOT EXISTS events_no_update BEFORE UPDATE ON events BEGIN SELECT RAISE(ABORT,'Events are append-only'); END;
       CREATE TRIGGER IF NOT EXISTS events_no_delete BEFORE DELETE ON events BEGIN SELECT RAISE(ABORT,'Events are append-only'); END;`);
   return context;

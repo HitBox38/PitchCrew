@@ -7,14 +7,17 @@ import { encodeAttachment } from '../api.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 
 export function useChatView(props: ChatViewProps) {
   const { thread, action, working } = props;
-  const runsById = new Map(props.data.runs.map((run) => [run.id, run]));
-  for (const run of props.data.activityRuns ?? [])
-    runsById.set(run.id, { ...runsById.get(run.id), ...run });
-  const data = { ...props.data, runs: [...runsById.values()] };
+  const runs = useMemo(() => {
+    const runsById = new Map(props.data.runs.map((run) => [run.id, run]));
+    for (const run of props.data.activityRuns ?? [])
+      runsById.set(run.id, { ...runsById.get(run.id), ...run });
+    return [...runsById.values()];
+  }, [props.data.runs, props.data.activityRuns]);
+  const data = useMemo(() => ({ ...props.data, runs }), [props.data, runs]);
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
@@ -49,8 +52,12 @@ export function useChatView(props: ChatViewProps) {
   const attachments = useChatAttachments(thread, setError);
   const readOnly = conversation?.kind === 'history' || conversation?.kind === 'agent_dm';
   const browserPanel = useBrowserPanel(data, thread, participants, !!readOnly, roleId);
-  const messages = [...data.messages, ...data.streamingMessages].filter(
-    (message) => message.threadId === thread,
+  const messages = useMemo(
+    () =>
+      [...data.messages, ...data.streamingMessages].filter(
+        (message) => message.threadId === thread,
+      ),
+    [data.messages, data.streamingMessages, thread],
   );
   const streamingIds = new Set(data.streamingMessages.map((message) => message.id));
   const roots = new Set(

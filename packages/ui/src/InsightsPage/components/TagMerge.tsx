@@ -13,7 +13,7 @@ export function TagMerge({ cards, tags }: { cards: Card[]; tags: string[] }) {
       <p className="quiet">
         Move every job from one tag to another and drop the old tag. Jobs keep at most 10 tags.
       </p>
-      <div className="mt-2 flex flex-wrap items-end gap-3">
+      <div className="form mt-2 flex flex-wrap items-end gap-3">
         <FormSelect
           label="Old tag"
           value={merge.from}

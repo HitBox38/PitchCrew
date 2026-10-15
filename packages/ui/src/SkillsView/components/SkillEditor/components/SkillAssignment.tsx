@@ -30,7 +30,7 @@ export function SkillAssignment({
         </Button>
       </fieldset>
       {scope === 'roles' ? (
-        <fieldset className="role-settings-capabilities">
+        <fieldset className="role-settings-capabilities grid-cols-2 max-phone:grid-cols-1">
           <legend>Assigned agents</legend>
           {roles
             .filter((role) => !role.retiredAt)

@@ -2,6 +2,8 @@
 
 Pitchcrew starts an installed agent CLI for each chat or workflow run. Install the runtime on `PATH`, configure its native authentication, then select it in Crew settings. **Settings > Runtimes** shows whether Pitchcrew can detect it.
 
+After installing a runtime while Pitchcrew is open, select **Check runtimes**. Checks, model discovery and agent runs also search `~/.local/bin`, `~/.grok/bin` and `~/.opencode/bin` after the inherited `PATH`, so native installations in those folders work without restarting the app. Installations in other newly added `PATH` folders require restarting the daemon or background service with the updated environment.
+
 Pitchcrew never reads, copies or stores provider credentials. Authentication remains with the CLI, including supported environment variables inherited from the daemon. Isolated runtime configuration can exclude existing login or configuration files; see the notes below before assuming that an interactive CLI login will also work in Pitchcrew.
 
 These integrations have subprocess contract coverage. Live provider executions are not part of automated verification.
@@ -32,6 +34,8 @@ Health checks only check the CLI version. Model discovery does not start an infe
 ### Claude Code and Codex
 
 Configure the CLI's native authentication before launching runs. Select a model or leave the setting empty for its default. Provider-specific launch configuration lives in [the adapters package](../packages/adapters/src).
+
+Codex turns, including resumed conversations, require the scoped Pitchcrew MCP server to initialize before execution. A server startup failure fails the run instead of allowing a reply without Pitchcrew tools. The adapter approves native calls only for that server (`mcp_servers.pitchcrew.default_tools_approval_mode="approve"`), so local job deletion does not hit an unanswerable CLI approval prompt. Pitchcrew still checks current role capabilities on every call and enforces its own packet export, browser interaction and settings proposal approvals. The read-only sandbox and disabled native shell tools remain in place.
 
 ### Gemini CLI and OpenCode
 

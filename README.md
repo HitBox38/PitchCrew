@@ -55,7 +55,7 @@ Or run `pnpm desktop:prod` to build and launch it in Electron.
 
 ### Run in the background
 
-Routines run only while a daemon is open. To start the production daemon at login without a window, build the UI and install the per-user background service:
+Routines run only while a daemon is open. To start the production daemon at login without a window, open **Settings > Local data** and press **Install background service**. Pitchcrew builds the production UI if needed and installs the service for the current workspace automatically. Or install from a terminal:
 
 ```sh
 pnpm build

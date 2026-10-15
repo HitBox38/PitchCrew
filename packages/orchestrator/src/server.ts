@@ -1,3 +1,4 @@
+import { registerSnapshot } from './http/snapshot.ts';
 import { recordOperationalLog } from './telemetry/logs.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
@@ -44,6 +45,8 @@ export interface DaemonOptions {
   service?: boolean;
   /** Reads the OS background service; tests replace it so no service manager is called. */
   backgroundService?: () => Promise<BackgroundServiceStatus>;
+  /** Installs the OS service; tests replace it so no build or service manager is called. */
+  backgroundServiceInstall?: () => Promise<BackgroundServiceStatus>;
   lockChecks?: LockChecks;
   /** Public PostHog configuration; omitted in tests and unconfigured installations. */
   analytics?: AnalyticsConfig | null;
@@ -114,7 +117,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
       version: '0.1.0',
       service: options.service ?? false,
     }));
-    app.get('/api/snapshot', async () => service.snapshot());
+    registerSnapshot(app, service);
     registerAnalyticsRoutes(app, options.analytics);
     app.register(async (routes) => registerTelemetryRoutes(routes, diagnostics));
     app.register(async (routes) => registerAppUpdateRoutes(routes, options.updates));

@@ -10,7 +10,7 @@ import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import * as m from 'motion/react-m';
 
 export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps) {
-  const { data, working, active, pending, selection, startDrag, moveDrag, endDrag } =
+  const { data, working, active, pending, reveal, selection, startDrag, moveDrag, endDrag } =
     usePipelineDrag();
   if (!data) return null;
   const cards = filtered.map((card) =>
@@ -34,6 +34,8 @@ export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps
           data={data}
           working={working}
           dragging={!!active}
+          query={props.query}
+          reveal={reveal}
         />
       ) : (
         <m.div
@@ -51,6 +53,7 @@ export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps
               data={data}
               working={working}
               selection={selection}
+              reveal={reveal}
               {...props}
             />
           ))}

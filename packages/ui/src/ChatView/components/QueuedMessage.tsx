@@ -30,22 +30,28 @@ export function QueuedMessage({
       <div className="min-w-0 flex-1">
         {editing ? (
           <form
-            className="flex gap-2"
+            className="flex flex-wrap items-center gap-2"
             onSubmit={(event) => {
               event.preventDefault();
               void update('edit', { content }).then(() => setEditing(false));
             }}
           >
             <Input
+              className="min-w-0 flex-1 basis-40"
               aria-label="Edit queued message"
               value={content}
               onChange={(event) => setContent(event.target.value)}
               maxLength={8000}
             />
-            <Button type="submit" size="xs" disabled={working}>
+            <Button type="submit" size="sm" disabled={working}>
               Save
             </Button>
-            <Button size="xs" variant="ghost" onClick={() => setEditing(false)}>
+            <Button
+              className="text-button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setEditing(false)}
+            >
               Cancel
             </Button>
           </form>

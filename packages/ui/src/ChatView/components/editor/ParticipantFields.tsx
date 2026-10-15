@@ -22,7 +22,7 @@ export function ParticipantFields({
         {roles
           .filter((role) => !role.retiredAt || participants.includes(role.id))
           .map((role) => (
-            <label key={role.id} className="chat-participant-choice">
+            <label key={role.id} className="chat-participant-choice checkbox-label">
               <Checkbox
                 checked={participants.includes(role.id)}
                 disabled={!!role.retiredAt}
@@ -38,7 +38,7 @@ export function ParticipantFields({
               <RoleAvatar agentRole={role.id} size="small" />
               <span>
                 {role.name}
-                <small>
+                <small className="font-normal">
                   {role.retiredAt ? 'Retired' : role.enabled ? role.description : 'Paused'}
                 </small>
               </span>

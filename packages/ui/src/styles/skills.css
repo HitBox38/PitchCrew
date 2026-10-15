@@ -67,7 +67,7 @@
 .skills-workspace {
   display: grid;
   flex: 1;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 260px minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -114,7 +114,7 @@
   gap: 10px;
   width: 100%;
   height: auto;
-  padding: 12px;
+  padding: 10px 12px;
   border: 0;
   border-radius: 11px 12px 11px 10px;
   background: transparent;
@@ -139,24 +139,14 @@
 .skill-summary {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 3px;
   min-width: 0;
   overflow-wrap: anywhere;
 }
 .skill-name {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
   line-height: 1.4;
-}
-.skill-description {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.5;
-  font-weight: 400;
 }
 .skill-meta,
 .skill-assignment {
@@ -194,7 +184,7 @@
   overflow-wrap: anywhere;
 }
 .skill-document-heading h2 {
-  font: 600 17px/1.4 var(--font-sans);
+  font: 600 15px/1.4 var(--font-sans);
 }
 .skill-document-heading p {
   margin-top: 3px;
@@ -249,30 +239,9 @@
 .skill-instructions-preview {
   max-width: 74ch;
   margin: 0 auto;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.8;
   overflow-wrap: anywhere;
-}
-.skill-instructions-preview h1,
-.skill-instructions-preview h2,
-.skill-instructions-preview h3 {
-  font-family: var(--font-sans);
-}
-.skill-instructions-preview h1 {
-  font-size: 21px;
-}
-.skill-instructions-preview h2 {
-  font-size: 18px;
-}
-.skill-instructions-preview h3 {
-  font-size: 16px;
-}
-.skill-document-status {
-  flex-shrink: 0;
-  padding: 8px 20px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
 }
 .skill-document-empty {
   justify-content: center;
@@ -280,10 +249,63 @@
 .skill-back {
   display: none;
 }
-.skill-editor-panel .skill-markdown {
-  font-family: ui-monospace, monospace;
-  font-size: var(--text-label);
-  line-height: 1.7;
+.skill-editor-panel {
+  width: min(760px, 100vw);
+}
+.skill-editor-panel .skill-markdown-editor {
+  flex: none;
+  height: 420px;
+  margin: 8px 0 0;
+}
+.skill-editor-panel .profile-editor textarea {
+  min-height: 0;
+}
+.skill-editor-panel .role-settings-heading {
+  padding: 16px 20px;
+}
+.skill-editor-panel .role-settings-section h3 {
+  font-size: 15px;
+}
+.skill-update-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(800px, calc(100vw - 32px));
+  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px);
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+}
+.skill-update-dialog > .modal-heading {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.skill-update-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px;
+}
+.skill-update-summary {
+  margin-bottom: 8px;
+}
+.skill-update-changes {
+  display: grid;
+  gap: 20px;
+  margin-top: 20px;
+  overflow-wrap: anywhere;
+}
+.skill-update-changes h3 {
+  margin-bottom: 8px;
+  font: 600 14px/1.4 var(--font-sans);
+}
+.skill-update-changes del {
+  color: var(--rose);
+}
+.skill-update-changes ins {
+  color: var(--moss);
+  text-decoration: none;
 }
 .role-skill-list {
   display: grid;

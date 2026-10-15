@@ -50,6 +50,7 @@ export type StarterSkillsProps = Pick<
 
 export type SkillPreviewProps = Pick<
   SkillsViewModel,
+  | 'action'
   | 'selected'
   | 'creator'
   | 'data'

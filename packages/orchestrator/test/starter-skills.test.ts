@@ -215,3 +215,42 @@ describe('starter skills at workspace startup', () => {
     expect(snapshot.starterSkillErrors).toHaveLength(10);
   });
 });
+
+it('loads starter sources while native catalogs are pending, but waits for complete role and skill setup before readiness', async () => {
+  for (const adapter of Object.values(adapters))
+    vi.spyOn(adapter, 'detect').mockResolvedValue({
+      id: adapter.id,
+      available: adapter.id === 'codex',
+      version: 'fixture',
+      detail: '',
+    });
+  let release!: () => void;
+  const catalog = new Promise<typeof adapters.codex.models>((resolve) => {
+    release = () => resolve(adapters.codex.models);
+  });
+  const models = vi.spyOn(adapters.codex, 'listModels').mockReturnValue(catalog);
+  const preview = vi
+    .spyOn(skillDirectory, 'preview')
+    .mockImplementation(async (url) =>
+      starterFixture(baseSkills.find((item) => baseSkillUrl(item) === url)!),
+    );
+  let ready = false;
+  const starting = setup(15011, true, { dev: false }).then((workspace) => {
+    ready = true;
+    return workspace;
+  });
+  try {
+    await vi.waitFor(() => expect(models).toHaveBeenCalledOnce());
+    expect(ready).toBe(false);
+    expect(preview).toHaveBeenCalledTimes(10);
+  } finally {
+    release();
+    await starting;
+  }
+  const { request } = await starting;
+  const snapshot = (await request<Snapshot>('/snapshot')).result;
+  expect(snapshot.roles).toHaveLength(7);
+  expect(snapshot.roles.every((role) => !role.enabled)).toBe(true);
+  expect(snapshot.skills).toHaveLength(11);
+  expect(snapshot.starterSkillErrors).toEqual([]);
+});
