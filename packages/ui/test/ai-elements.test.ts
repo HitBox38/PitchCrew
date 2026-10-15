@@ -60,7 +60,7 @@ const atEnd = () =>
     );
 
 test('code fences preserve blank lines, copy exact text, and retain image and link safety', async () => {
-  const code = page.locator('[data-slot="code-block"]');
+  const code = page.locator('[data-slot="message-scroller-content"] [data-slot="code-block"]');
   expect(await code.count()).toBe(1);
   expect(await code.locator('code').textContent()).toBe(
     'const answer = 42;\n\nconsole.log(answer);\n',
@@ -162,4 +162,44 @@ test('queue disclosure preserves explicit delivery commands', async () => {
   expect(await section.count()).toBe(1);
   if (process.env.PITCHCREW_UI_EVIDENCE)
     await page.screenshot({ path: process.env.PITCHCREW_UI_EVIDENCE, fullPage: true });
+});
+
+test('non-chat command and action previews copy exact source without executing or rendering it', async () => {
+  const source = page.getByRole('region', { name: 'Source preview examples' });
+  await source.getByRole('button', { name: 'Copy Background service command' }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('pnpm service status');
+  await source.getByText('Exact action details', { exact: true }).click();
+  const expected = JSON.stringify(
+    {
+      kind: 'fill',
+      selector: '#cover-letter',
+      value: 'First line\n\n<script>fictional()</script> & exact text',
+    },
+    null,
+    2,
+  );
+  expect(await source.locator('pre[aria-label="Action JSON"]').textContent()).toBe(expected);
+  expect(await source.locator('pre script').count()).toBe(0);
+  await source.getByRole('button', { name: 'Copy Action JSON' }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
+});
+
+test('document source previews wrap in narrow panels and remain keyboard-scrollable', async () => {
+  const source = page.locator('pre[aria-label="Profile source"]');
+  const dimensions = await source.evaluate((element) => ({
+    height: element.clientHeight,
+    scrollHeight: element.scrollHeight,
+    width: element.clientWidth,
+    scrollWidth: element.scrollWidth,
+    whiteSpace: getComputedStyle(element).whiteSpace,
+    font: getComputedStyle(element).fontFamily,
+  }));
+  expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.height);
+  expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.width + 1);
+  expect(dimensions.whiteSpace).toBe('pre-wrap');
+  expect(dimensions.font).not.toContain('monospace');
+  await source.focus();
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(() => source.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  expect(errors).toEqual([]);
 });

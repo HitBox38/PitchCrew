@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ComputerApproval } from '@pitchcrew/core';
 import { browserActionTitles, browserStatusLabels } from '../helpers.ts';
 import { BrowserActionSummary } from './BrowserActionSummary.tsx';
@@ -35,13 +36,17 @@ export function BrowserApprovalContent({ approval, action, working, showActions 
       {approval.uploadPreview ? (
         <details className="approval-preview">
           <summary>Review generated upload text</summary>
-          <pre>{approval.uploadPreview}</pre>
+          <SourceBlock
+            label="Generated upload text"
+            value={approval.uploadPreview}
+            contentClassName="font-sans"
+          />
         </details>
       ) : null}
       {approval.uploadContent !== undefined ? (
         <details className="approval-preview">
           <summary>Review upload contents</summary>
-          <pre>{approval.uploadContent}</pre>
+          <SourceBlock label="Upload contents" value={approval.uploadContent} />
         </details>
       ) : null}
       <details className="approval-preview">
@@ -53,7 +58,11 @@ export function BrowserApprovalContent({ approval, action, working, showActions 
           width={approval.page.viewport?.width ?? 1280}
           height={approval.page.viewport?.height ?? 800}
         />
-        <pre>{approval.page.text}</pre>
+        <SourceBlock
+          label="Captured page text"
+          value={approval.page.text}
+          contentClassName="font-sans"
+        />
       </details>
       <p className="browser-approval-note">
         This allows one interaction on this page. Clicks, typing and uploads may send information to

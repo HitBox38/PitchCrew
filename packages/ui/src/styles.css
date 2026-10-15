@@ -25,6 +25,7 @@
 @import './styles/agent-creation.css' layer(components);
 @import './styles/onboarding.css' layer(components);
 @import './styles/forms.css' layer(components);
+@import './styles/code-block.css' layer(components);
 @import './styles/markdown.css' layer(components);
 @import './styles/tag-picker.css' layer(components);
 @import './styles/date-time-picker.css' layer(components);

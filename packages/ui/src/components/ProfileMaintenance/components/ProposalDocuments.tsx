@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
@@ -33,12 +34,18 @@ export function ProposalDocuments({
           </a>
           <div className="mt-3 grid gap-3 wide:grid-cols-2">
             <div>
-              <h4>Current note</h4>
-              <pre className="profile-update-preview max-h-80">{file.before ?? 'New note'}</pre>
+              <SourceBlock
+                label="Current note"
+                value={file.before ?? 'New note'}
+                contentClassName="font-sans"
+              />
             </div>
             <div>
-              <h4>Proposed note</h4>
-              <pre className="profile-update-preview max-h-80">{file.content}</pre>
+              <SourceBlock
+                label="Proposed note"
+                value={file.content}
+                contentClassName="font-sans"
+              />
             </div>
           </div>
         </details>
@@ -49,7 +56,7 @@ export function ProposalDocuments({
           <a href={file.url} target="_blank" rel="noreferrer" className="underline">
             Pinned source
           </a>
-          <pre className="profile-update-preview mt-3 max-h-80">{file.content}</pre>
+          <SourceBlock label={file.path} value={file.content} contentClassName="font-sans" />
         </details>
       ))}
     </div>

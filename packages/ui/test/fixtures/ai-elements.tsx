@@ -1,3 +1,6 @@
+import { ServiceCommand } from '@/BackgroundServiceSettings/components/ServiceCommand.tsx';
+import { BrowserActionSummary } from '@/ComputerApprovals/components/BrowserActionSummary.tsx';
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import type { ChatMessage, Snapshot, RunActivity, ChatRequest } from '@pitchcrew/core';
@@ -153,6 +156,27 @@ function Fixture() {
         <Button onClick={() => setFail(false)}>Allow send</Button>
         <output aria-label="Send attempts">{attempts}</output>
         <output aria-label="Submitted text">{submitted}</output>
+        <section
+          aria-label="Source preview examples"
+          style={{ width: 320, maxWidth: '100%', margin: '24px auto' }}
+        >
+          <ServiceCommand command="pnpm service status" />
+          <BrowserActionSummary
+            action={{
+              kind: 'fill',
+              selector: '#cover-letter',
+              value: 'First line\n\n<script>fictional()</script> & exact text',
+            }}
+          />
+          <SourceBlock
+            label="Profile source"
+            value={
+              '# Profile\n\n' +
+              'An intentionally long source line with preserved whitespace. '.repeat(100)
+            }
+            contentClassName="max-h-44 font-sans"
+          />
+        </section>
       </div>
     </AppMotion>
   );

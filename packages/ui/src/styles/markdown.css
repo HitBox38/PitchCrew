@@ -73,13 +73,3 @@
   ) {
   color: var(--ink-soft);
 }
-
-/* shadcn Code Block keeps code keyboard-scrollable in the shared paper material. */
-.markdown-content :where([data-slot='code-block']) {
-  background: var(--paper-deep);
-}
-.markdown-content :where([data-slot='code-block-content']) {
-  margin: 0;
-  overscroll-behavior-inline: contain;
-  scrollbar-gutter: stable;
-}

@@ -1,0 +1,11 @@
+/* Shared code and exact-source previews keep the app's paper and ink material. */
+[data-slot='code-block'] {
+  background: var(--paper-deep);
+}
+[data-slot='code-block-content'] {
+  margin: 0;
+  overscroll-behavior-inline: contain;
+  scrollbar-gutter: stable;
+  tab-size: 2;
+  font-variant-ligatures: none;
+}

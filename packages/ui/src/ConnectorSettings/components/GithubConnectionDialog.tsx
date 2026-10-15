@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalLink, GitBranch } from 'lucide-react';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -41,9 +42,10 @@ export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
             </li>
             <li>
               Open a terminal and run:
-              <code className="mt-2 block rounded border border-border bg-background p-2 text-sm wrap-anywhere select-all">
-                gh auth login --hostname github.com --web
-              </code>
+              <SourceBlock
+                label="GitHub sign-in command"
+                value="gh auth login --hostname github.com --web"
+              />
               <p className="quiet">Follow the prompts to sign in through your browser.</p>
             </li>
             <li>Return here and choose Connect with GitHub CLI.</li>
