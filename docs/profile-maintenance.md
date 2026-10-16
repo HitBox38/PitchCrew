@@ -2,9 +2,21 @@
 
 Documenter is a default crew member with profile-maintenance and routine-management tools configured. Production defaults start paused. Account access stays disabled: connect the relevant account, enable GitHub or Drive for Documenter, and choose watched sources in Profile. Startup adds no watches or schedules and changes no profile notes. The same tools remain available to any user-configured role.
 
-On Profile, enable watching for an imported GitHub or Drive folder. To watch a project's code changes without importing project documentation as personal facts, use the GitHub source form, choose the repository and optional branch/tag and folder, and select **Watch project changes**. Leave the folder empty to permit investigation throughout that repository. Adding a project watch records its current commit as the baseline; it imports no profile notes. There are at most 20 source connections, including project watches.
+On Profile, enable watching for an imported GitHub or Drive folder. To watch a project's code changes without importing project documentation as personal facts, choose **Add source** → **GitHub** → **Watch a project**, enter the repository and optional branch/tag and folder, and select **Watch project**. Leave the folder empty to permit investigation throughout that repository. Adding a project watch records its current commit as the baseline; it imports no profile notes. There are at most 20 source connections, including project watches.
 
 An agent needs the opt-in `maintainProfile` capability and the source's `github` or `drive` capability, as well as a connected account. The dedicated maintenance tools only use user-enabled source watches. Pausing watching, removing a source or disconnecting its account prevents further reads; an in-flight read rechecks the current watch, role/run authorization and account before returning data or storing a proposal. Removing a source keeps its local notes. Ordinary GitHub connector tools retain their separately configured repository access.
+
+Profile sources opens as a source-first dialog with an **Add source** action,
+provider choices in the empty state and separate focused setup for note imports
+and project watches. Source rows expose a Watching switch, manual **Review
+updates** for imports and source removal in a menu. Watching permits authorized
+agent checks; routines determine when scheduled checks run. Fetches and writes
+show an action-specific loader. Pending proposals open from their source's
+review indicator into a focused review inside the same dialog, including
+interrupted-update retry. Imports and applied proposals return to the source
+list with a success message and an explicit **Open note** action. The existing
+import-document review drawer and account connection dialogs remain in use.
+See [Profile sources dialog](profile-sources-dialog.md).
 
 ## Agent tools
 

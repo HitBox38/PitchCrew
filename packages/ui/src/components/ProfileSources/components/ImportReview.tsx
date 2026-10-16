@@ -1,6 +1,7 @@
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ImportDocument } from './ImportDocument.tsx';
+import { ImportReviewFooter } from './ImportReviewFooter.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
 export function ImportReview(c: ProfileSourcesModel) {
@@ -82,18 +83,7 @@ export function ImportReview(c: ProfileSourcesModel) {
           </p>
         ) : null}
       </div>
-      <div className="profile-import-footer form-footer">
-        <Button className="button" disabled={c.busy} onClick={() => c.setPreview(null)}>
-          Cancel
-        </Button>
-        <Button
-          className="button primary"
-          disabled={c.busy || !c.selected.length}
-          onClick={c.importSelected}
-        >
-          {c.busy ? 'Importing…' : `Import ${c.selected.length} documents`}
-        </Button>
-      </div>
+      <ImportReviewFooter {...c} />
     </Modal>
   );
 }

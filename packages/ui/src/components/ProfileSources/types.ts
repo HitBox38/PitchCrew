@@ -10,3 +10,10 @@ export interface ProfileSourcesProps {
   openImported: (file: ProfileFile) => void;
 }
 export type ProfileSourcesModel = ReturnType<typeof useProfileSources>;
+
+export type SourceProvider = 'github' | 'drive';
+export type SourceIntent = 'notes' | 'project';
+export interface SourceNotice {
+  message: string;
+  file?: ProfileFile;
+}

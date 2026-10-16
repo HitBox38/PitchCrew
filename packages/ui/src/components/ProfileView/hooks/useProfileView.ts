@@ -12,20 +12,23 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
   const [closing, setClosing] = useState<string | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const guard = useUnsavedChanges(documents.dirty, documents.discard);
-  const sourceController = useProfileSources({
-    data,
-    action,
-    working,
-    requestImport: (action) =>
-      guard.requestLeave(() => {
-        documents.discard();
-        action();
-      }),
-    openImported: (note) => {
-      documents.open(note, true);
-      setSourcesOpen(false);
+  const sourceController = useProfileSources(
+    {
+      data,
+      action,
+      working,
+      requestImport: (action) =>
+        guard.requestLeave(() => {
+          documents.discard();
+          action();
+        }),
+      openImported: (note) => {
+        documents.open(note, true);
+        setSourcesOpen(false);
+      },
     },
-  });
+    sourcesOpen,
+  );
   const createNote = async (folder = '') => {
     const names = new Set([
       ...data.profile.map((file) => file.name),

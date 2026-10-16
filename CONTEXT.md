@@ -71,3 +71,11 @@ _Avoid_: Scout assessment (when referring only to extracting a source), source v
 **Personal application answer**:
 A user-supplied response to an employer's question about the user's opinions, preferences, motivations or experiences, specific to that application unless the user explicitly saves it to Profile for reuse. An agent may polish the response but cannot substitute its own impressions or infer a personal answer from public research.
 _Avoid_: Research finding (when referring to the user's own opinion), inferred preference
+
+**Profile note import**:
+A user-reviewed copy of selected source documents into Profile as local notes about the user. Watching the source for later changes is optional; subsequent updates require review.
+_Avoid_: Automatic sync, project watch (when referring to copying personal documents)
+
+**Project watch**:
+A user-enabled GitHub source for an authorized agent to investigate project changes and propose profile notes for the user's review. Watching a project does not itself import documents or establish the user's personal contribution.
+_Avoid_: Profile note import, automatic profile update
