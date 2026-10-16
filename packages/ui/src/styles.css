@@ -33,6 +33,7 @@
 @import './styles/toast.css' layer(components);
 @import './styles/job-details.css' layer(components);
 @import './styles/profile.css' layer(components);
+@import './styles/profile-import.css' layer(components);
 @import './styles/approvals.css' layer(components);
 @import './styles/responsive.css' layer(components);
 @import './styles/chat/layout.css' layer(components);

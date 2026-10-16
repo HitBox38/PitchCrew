@@ -4,6 +4,10 @@ Pitchcrew helps a user manage a job search with a crew of agents and a shared ap
 
 ## Language
 
+**Removed source document**:
+A previously imported Profile document that is no longer present in its connected source. Its local copy is kept and remains available to the user and crew.
+_Avoid_: Deleted profile document
+
 **Manual status change**:
 A user's bookkeeping update to a job's board status. It does not start agent work or authorize packet export or application submission.
 _Avoid_: Workflow execution (when referring only to a recorded status change)
