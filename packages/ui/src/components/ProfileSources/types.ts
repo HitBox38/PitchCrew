@@ -10,3 +10,15 @@ export interface ProfileSourcesProps {
   openImported: (file: ProfileFile) => void;
 }
 export type ProfileSourcesModel = ReturnType<typeof useProfileSources>;
+
+export type ImportReviewProps = Pick<
+  ProfileSourcesModel,
+  | 'preview'
+  | 'setPreview'
+  | 'selected'
+  | 'setSelected'
+  | 'toggle'
+  | 'busy'
+  | 'error'
+  | 'importSelected'
+>;

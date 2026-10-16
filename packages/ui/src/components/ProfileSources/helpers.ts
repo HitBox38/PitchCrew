@@ -1,4 +1,4 @@
-import type { ProfileSourceInput } from '@pitchcrew/core';
+import type { ProfileImportFile, ProfileSourceInput } from '@pitchcrew/core';
 
 export function githubInput(repository: string, path: string, ref: string): ProfileSourceInput {
   let name = repository.trim();
@@ -31,8 +31,16 @@ export function driveInput(value: string): ProfileSourceInput {
   return { provider: 'drive', folderId };
 }
 export const importStatus = {
-  new: 'New document',
-  changed: 'Source changed',
+  new: 'Added',
+  changed: 'Changed',
   unchanged: 'Up to date',
-  conflict: 'Local edits — selecting replaces your saved copy',
+  conflict: 'Local edits',
 };
+
+/** Unchanged documents are never selectable in the changes-only review. */
+export function importChanges(files: ProfileImportFile[]) {
+  const order = { conflict: 0, changed: 1, new: 2, unchanged: 3 };
+  return files
+    .filter((file) => file.status !== 'unchanged')
+    .sort((a, b) => order[a.status] - order[b.status] || a.path.localeCompare(b.path));
+}

@@ -6,7 +6,12 @@ const labels = { same: 'Unchanged', added: 'Added', removed: 'Removed' };
 /** Unified diff: removed lines are struck through, added lines are highlighted. */
 export function InstructionDiff({ lines }: { lines: DiffLine[] }) {
   return (
-    <ol className="instruction-diff" aria-label="Differences, line by line">
+    <ol
+      className="instruction-diff focus-visible:outline-2 focus-visible:outline-ring"
+      aria-label="Differences, line by line"
+      // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users scroll the bounded diff.
+      tabIndex={0}
+    >
       {lines.map((line, index) => (
         <li key={index} data-kind={line.kind}>
           <span className="instruction-diff-sign" aria-hidden="true">

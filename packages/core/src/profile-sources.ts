@@ -22,6 +22,8 @@ export interface ProfileSource {
   files: ImportedProfileFile[];
 }
 export interface ProfileImportFile extends ImportedProfileFile {
+  /** Exact saved local text at review time; null for a new local document. */
+  before: string | null;
   content: string;
   status: 'new' | 'changed' | 'unchanged' | 'conflict';
 }
