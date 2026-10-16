@@ -9,13 +9,11 @@ export function StatusDropTarget({
   active,
   data,
   working,
-  selection,
 }: {
   state: CardState;
   active: Card;
   data: Snapshot;
   working: boolean;
-  selection?: CardState | null;
 }) {
   const drop = statusDrop(active, state, data);
   const allowed = drop.kind === 'move' && !working;
@@ -32,7 +30,7 @@ export function StatusDropTarget({
       className="status-drop-target px-2 py-2 text-xs"
       data-status={state}
       data-drop-allowed={allowed || undefined}
-      data-drop-target={(selection === undefined ? isDropTarget : selection === state) || undefined}
+      data-drop-target={isDropTarget || undefined}
       aria-disabled={!allowed}
     >
       {stateLabels[state]}

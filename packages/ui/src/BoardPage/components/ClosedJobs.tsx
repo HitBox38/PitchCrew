@@ -14,6 +14,7 @@ export function ClosedJobs({
   dragging,
   query,
   reveal,
+  menuActions,
 }: ClosedJobsProps) {
   const page = useJobPage(closed, 40, query, reveal);
   return (
@@ -33,6 +34,7 @@ export function ClosedJobs({
                 disabled={working}
                 dragging={dragging}
                 openCard={openCard}
+                menuActions={menuActions}
               />
             ))
           ) : (

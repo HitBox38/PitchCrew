@@ -408,26 +408,24 @@
 .pink .stage-dot {
   background: var(--rose);
 }
-.draggable-job:has(.job-drag-handle) .job-top {
+.draggable-job .job-top {
   padding-right: 24px;
 }
-.draggable-job:has(.job-drag-handle) .job-card {
+.draggable-job[data-movable] .job-card {
   cursor: grab;
 }
 .draggable-job[data-dragging] {
   opacity: 0.35;
 }
-.job-drag-handle.icon-button {
+.job-actions-trigger.icon-button {
   position: absolute;
   top: 9px;
   right: 7px;
   width: 26px;
   height: 26px;
   color: var(--muted);
-  cursor: grab;
-  touch-action: none;
+  cursor: pointer;
 }
-.job-drag-handle:active,
 .job-drag-overlay .job-card {
   cursor: grabbing;
 }
