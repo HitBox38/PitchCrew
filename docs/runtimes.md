@@ -37,6 +37,8 @@ Configure the CLI's native authentication before launching runs. Select a model 
 
 Codex turns, including resumed conversations, require the scoped Pitchcrew MCP server to initialize before execution. A server startup failure fails the run instead of allowing a reply without Pitchcrew tools. The adapter approves native calls only for that server (`mcp_servers.pitchcrew.default_tools_approval_mode="approve"`), so local job deletion does not hit an unanswerable CLI approval prompt. Pitchcrew still checks current role capabilities on every call and enforces its own packet export, browser interaction and settings proposal approvals. The read-only sandbox and disabled native shell tools remain in place.
 
+Source extraction exposes no callable MCP tools. Its scoped server answers `tools/list` with an empty list so required-server discovery succeeds without granting access to profile, crew, browser or workflow actions.
+
 ### Gemini CLI and OpenCode
 
 The adapters target Gemini CLI 0.62 and OpenCode 1.18; older versions may need an upgrade.
