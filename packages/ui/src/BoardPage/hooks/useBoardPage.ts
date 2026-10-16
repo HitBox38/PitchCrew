@@ -4,9 +4,11 @@ import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
+import { useBoardJobMutations } from './useBoardJobMutations.ts';
 
 export function useBoardPage() {
   const reduced = useAppReducedMotion();
+  const jobMutations = useBoardJobMutations();
   const {
     data,
     working,
@@ -55,6 +57,7 @@ export function useBoardPage() {
   const closed = filtered.filter((c) => closedStates.includes(c.state));
   const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
   return {
+    jobMutations,
     reduced,
     data,
     working,

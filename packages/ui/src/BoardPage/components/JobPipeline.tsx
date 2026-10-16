@@ -9,10 +9,11 @@ import { JobCard } from '@/components/JobCard/index.tsx';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import * as m from 'motion/react-m';
 
-export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps) {
-  const { data, working, active, pending, reveal, selection, startDrag, moveDrag, endDrag } =
-    usePipelineDrag();
+export function JobPipeline({ filtered, showClosed, jobMutations, ...props }: JobPipelineProps) {
+  const { data, working, active, pending, reveal, startDrag, endDrag, moveJob, requestDelete } =
+    usePipelineDrag(jobMutations);
   if (!data) return null;
+  const menuActions = { moveJob, requestDelete };
   const cards = filtered.map((card) =>
     pending?.id === card.id && pending.from === card.state ? { ...card, state: pending.to } : card,
   );
@@ -21,11 +22,10 @@ export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps
       sensors={pipelineSensors}
       plugins={pipelinePlugins}
       onDragStart={startDrag}
-      onDragMove={moveDrag}
       onDragEnd={(event) => void endDrag(event)}
     >
       {showClosed && active ? (
-        <StatusDestinations active={active} data={data} working={working} selection={selection} />
+        <StatusDestinations active={active} data={data} working={working} />
       ) : null}
       {showClosed ? (
         <ClosedJobs
@@ -35,6 +35,7 @@ export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps
           working={working}
           dragging={!!active}
           query={props.query}
+          menuActions={menuActions}
           reveal={reveal}
         />
       ) : (
@@ -52,7 +53,7 @@ export function JobPipeline({ filtered, showClosed, ...props }: JobPipelineProps
               active={active}
               data={data}
               working={working}
-              selection={selection}
+              menuActions={menuActions}
               reveal={reveal}
               {...props}
             />

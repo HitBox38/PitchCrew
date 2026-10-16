@@ -4,6 +4,18 @@ Pitchcrew helps a user manage a job search with a crew of agents and a shared ap
 
 ## Language
 
+**Manual status change**:
+A user's bookkeeping update to a job's board status. It does not start agent work or authorize packet export or application submission.
+_Avoid_: Workflow execution (when referring only to a recorded status change)
+
+**Withdrawn**:
+A closed job the user has decided not to pursue further, with its application history retained. Recording this status does not communicate a withdrawal to the employer.
+_Avoid_: Deleted job, employer notification
+
+**Deleted job**:
+A job removed from the board with its stored history and exported files retained, its queued follow-ups cancelled and its attached routines paused. It has no user-facing restore action.
+_Avoid_: Withdrawn job, erased history
+
 **Conversation**:
 A named exchange with its own message history, participants and optional job context. Separate conversations can cover different topics or jobs with the same agent or agents.
 _Avoid_: Agent chat history (when referring to an individual conversation)

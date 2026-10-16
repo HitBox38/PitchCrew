@@ -1,17 +1,15 @@
 import { StatusDropTarget } from './StatusDropTarget.tsx';
 import { dropStages } from '@/board-stages.ts';
-import type { Card, CardState, Snapshot } from '@pitchcrew/core';
+import type { Card, Snapshot } from '@pitchcrew/core';
 
 export function StatusDestinations({
   active,
   data,
   working,
-  selection,
 }: {
   active: Card;
   data: Snapshot;
   working: boolean;
-  selection?: CardState | null;
 }) {
   return (
     <div
@@ -29,7 +27,6 @@ export function StatusDestinations({
                 active={active}
                 data={data}
                 working={working}
-                selection={selection}
               />
             ))}
           </div>

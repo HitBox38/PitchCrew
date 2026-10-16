@@ -5,10 +5,11 @@ import type { JobPipelineProps } from '@/BoardPage/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useDroppable } from '@dnd-kit/react';
 import { pointerIntersection } from '@dnd-kit/collision';
-import type { Card, CardState, Snapshot } from '@pitchcrew/core';
+import type { Card, Snapshot } from '@pitchcrew/core';
 import { Plus } from 'lucide-react';
 import { useJobPage, type JobReveal } from '../hooks/useJobPage.ts';
 import { JobPages } from './JobPages.tsx';
+import type { JobMenuActions } from './JobActionsMenu/types.ts';
 
 export function PipelineColumn({
   stage,
@@ -20,16 +21,16 @@ export function PipelineColumn({
   setAdd,
   openCard,
   query,
-  selection,
   reveal,
+  menuActions,
 }: Pick<JobPipelineProps, 'flashStage' | 'setAdd' | 'openCard' | 'query'> & {
   stage: PipelineStage;
   cards: Card[];
   active: Card | null;
   data: Snapshot;
   working: boolean;
-  selection?: CardState | null;
   reveal: JobReveal;
+  menuActions: JobMenuActions;
 }) {
   const page = useJobPage(cards, 20, query, reveal);
   const drop = active ? pipelineDrop(active, stage, data) : null;
@@ -47,7 +48,7 @@ export function PipelineColumn({
       id={`stage-${stage.id}`}
       aria-labelledby={`heading-${stage.id}`}
       data-drop-allowed={allowed || undefined}
-      data-drop-target={(selection === undefined && isDropTarget) || undefined}
+      data-drop-target={isDropTarget || undefined}
     >
       <div className="column-heading mb-2.5 flex h-6.5 shrink-0 items-center gap-2 px-1">
         <span className="stage-dot" />
@@ -68,7 +69,6 @@ export function PipelineColumn({
               active={active}
               data={data}
               working={working}
-              selection={selection}
             />
           ))}
         </div>
@@ -81,6 +81,7 @@ export function PipelineColumn({
         working={working}
         dragging={!!active}
         openCard={openCard}
+        menuActions={menuActions}
         empty={!cards.length && !drop ? (query ? 'No matches.' : stage.empty) : null}
       />
     </section>

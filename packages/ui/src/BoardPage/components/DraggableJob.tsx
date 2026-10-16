@@ -1,9 +1,10 @@
 import { canDragJob } from '@/BoardPage/helpers.ts';
 import { JobCard } from '@/components/JobCard/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useDraggable } from '@dnd-kit/react';
 import type { Card, Snapshot } from '@pitchcrew/core';
-import { GripVertical } from 'lucide-react';
+import { JobActionsMenu } from './JobActionsMenu/index.tsx';
+import type { JobMenuActions } from './JobActionsMenu/types.ts';
+import { useIsPresent } from 'motion/react';
 
 export function DraggableJob({
   card,
@@ -11,40 +12,48 @@ export function DraggableJob({
   disabled,
   dragging,
   openCard,
+  menuActions,
 }: {
   card: Card;
   data: Snapshot;
   disabled: boolean;
   dragging: boolean;
   openCard: (id: string) => void;
+  menuActions: JobMenuActions;
 }) {
-  const movable = canDragJob(card, data);
+  const present = useIsPresent();
+  const movable = present && !disabled && canDragJob(card, data);
+  // Gate pointer activation instead of disabling the container and its action menu.
   const { ref, handleRef, isDragSource } = useDraggable({
     id: card.id,
-    disabled: disabled || !movable,
-    data: { label: `${card.title} at ${card.company}`, state: card.state },
+    data: { label: `${card.title} at ${card.company}`, state: card.state, movable },
   });
   return (
     <div
       ref={ref}
-      id={`board-job-${card.id}`}
+      id={present ? `board-job-${card.id}` : undefined}
+      inert={!present}
+      aria-hidden={!present || undefined}
       className="draggable-job relative"
       data-card-state={card.state}
+      data-movable={movable || undefined}
       data-dragging={isDragSource || undefined}
     >
-      <JobCard card={card} stationary={dragging} onOpen={() => openCard(card.id)} />
-      {movable ? (
-        <Button
-          ref={handleRef}
-          id={`drag-job-${card.id}`}
-          className="job-drag-handle icon-button"
-          aria-label={`Move ${card.title} at ${card.company}`}
-          title="Drag to a status. Keyboard: Space, arrow keys, Space to drop, Escape to cancel."
-          disabled={disabled}
-        >
-          <GripVertical size={15} />
-        </Button>
-      ) : null}
+      <JobCard
+        card={card}
+        buttonRef={handleRef}
+        stationary={dragging}
+        onOpen={() => openCard(card.id)}
+        actions={
+          <JobActionsMenu
+            card={card}
+            data={data}
+            disabled={disabled || dragging || !present}
+            openCard={openCard}
+            {...menuActions}
+          />
+        }
+      />
     </div>
   );
 }

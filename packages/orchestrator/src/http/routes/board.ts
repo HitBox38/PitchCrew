@@ -1,14 +1,27 @@
 import { roleIdSchema, states } from '@pitchcrew/core';
-import { setCardStatus } from '@pitchcrew/board';
+import { deleteJob, setCardStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
+import type { Card, Run } from '@pitchcrew/core';
 import { registerApplicationContextRoutes } from './application-context.ts';
 
 export function registerBoardRoutes(app: FastifyInstance, service: CrewService) {
   registerApplicationContextRoutes(app, service);
   app.post('/api/cards', (req, res) => res.status(201).send(service.createCard(req.body)));
+  app.delete<IdRoute>('/api/cards/:id', (req) => {
+    const card = service.board.get<Card>('card', req.params.id);
+    if (
+      card.owner ||
+      service.board
+        .list<Run>('run')
+        .some((run) => run.cardId === card.id && run.status === 'running')
+    )
+      throw new Error('Wait for the active run or cancel it before deleting this job.');
+    deleteJob(service.board, req.params.id, 'user', 'User deleted the job');
+    return { ok: true };
+  });
   app.post<IdRoute>('/api/cards/:id/status', (req, res) =>
     res.send(
       setCardStatus(
