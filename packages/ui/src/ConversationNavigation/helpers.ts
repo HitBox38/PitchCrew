@@ -5,11 +5,12 @@ export function conversationRows(
   query: string,
   includeArchived: boolean,
   readAt: Record<string, string>,
+  historyMatches: readonly string[] = [],
 ): ConversationNavigationRow[] {
   const needle = query.trim().toLowerCase();
   const roles = new Map(data.roles.map((role) => [role.id, role.name]));
   const messages = new Map<string, { preview: string; unread: boolean }>();
-  const matchingThreads = new Set<string>();
+  const matchingThreads = new Set(historyMatches);
   for (const message of data.messages) {
     if (
       needle &&
@@ -54,7 +55,10 @@ export function conversationRows(
           : conversation.kind === 'history'
             ? 'Previous crew messages · read-only'
             : 'Start a conversation'),
-      unread: messages.get(conversation.id)?.unread ?? false,
+      unread: data.messageHistory
+        ? (data.messageHistory.threads[conversation.id]?.incomingAt ?? '') >
+          (readAt[conversation.id] ?? '')
+        : (messages.get(conversation.id)?.unread ?? false),
       working: working.has(conversation.id),
       waiting: waiting.has(conversation.id),
       waitingForUser:

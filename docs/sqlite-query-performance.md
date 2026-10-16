@@ -4,7 +4,9 @@ The board keeps events append-only and projects current entities into `entities`
 
 `entities_kind` indexes `kind` alone. SQLite's ordinary secondary indexes include the rowid after their indexed values, so this provides the required insertion order within a kind without a temporary sort. No payload is copied into this index. `events_entity_id` indexes the existing event JSON's entity ID, narrowing history pagination and default-instruction provenance lookups to one entity's events. Event ID ordering remains unchanged.
 
-Both indexes are installed with `CREATE INDEX IF NOT EXISTS` when a board opens. Existing databases gain the indexes without replaying projections, changing rowids or rewriting events. Reopening after an interrupted index creation is safe. These are physical indexes over existing data, so the event format and decoder versions stay unchanged. The indexes add disk space and a small amount of work to writes; the event triggers and projection transactions remain intact.
+These indexes are installed with `CREATE INDEX IF NOT EXISTS` when a board opens. Existing databases gain the indexes without replaying projections, changing rowids or rewriting events. Reopening after an interrupted index creation is safe. These are physical indexes over existing data, so the event format and decoder versions stay unchanged. The indexes add disk space and a small amount of work to writes; the event triggers and projection transactions remain intact.
+
+The additional partial `entities_thread` index covers message/run lookups by kind and conversation ID, excluding job source documents and other entity kinds. Conversation history reads position metadata through this index and parses only the selected page's bodies. Full ordered lists retain `entities_kind`. See [workspace synchronization](workspace-synchronization.md).
 
 ## Reproducing the comparison
 

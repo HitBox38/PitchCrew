@@ -177,8 +177,8 @@ export class CrewService {
   snapshotRevision(): Promise<string> {
     return snapshotRevision(this.context);
   }
-  snapshot(): Promise<Snapshot> {
-    return this.context.snapshot();
+  snapshot(options?: { workspace?: boolean }): Promise<Snapshot> {
+    return this.context.snapshot(options);
   }
   routines() {
     return routines.call(this.context);

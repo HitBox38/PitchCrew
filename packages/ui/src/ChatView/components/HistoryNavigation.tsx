@@ -6,7 +6,10 @@ export function HistoryNavigation({
   page,
   total,
 }: {
-  page: ReturnType<typeof useHistoryWindow>;
+  page: Omit<ReturnType<typeof useHistoryWindow>, 'navigate'> & {
+    pending?: boolean;
+    navigate: (anchor: string | null) => void;
+  };
   total: number;
 }) {
   return (
@@ -18,7 +21,10 @@ export function HistoryNavigation({
         size="sm"
         variant="ghost"
         disabled={!page.older}
-        onClick={() => page.navigate(page.older)}
+        aria-disabled={page.pending || undefined}
+        onClick={() => {
+          if (!page.pending) page.navigate(page.older);
+        }}
       >
         Older
       </Button>
@@ -29,7 +35,11 @@ export function HistoryNavigation({
         size="sm"
         variant="ghost"
         disabled={!page.newer}
-        onClick={() => page.navigate(page.end + HISTORY_PAGE_SIZE >= total ? null : page.newer)}
+        aria-disabled={page.pending || undefined}
+        onClick={() => {
+          if (!page.pending)
+            page.navigate(page.end + HISTORY_PAGE_SIZE >= total ? null : page.newer);
+        }}
       >
         Newer
       </Button>
@@ -37,7 +47,10 @@ export function HistoryNavigation({
         size="sm"
         variant="outline"
         disabled={page.latest}
-        onClick={() => page.navigate(null)}
+        aria-disabled={page.pending || undefined}
+        onClick={() => {
+          if (!page.pending) page.navigate(null);
+        }}
       >
         Latest
       </Button>

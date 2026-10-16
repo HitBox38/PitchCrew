@@ -1,5 +1,6 @@
 import { isChatThread } from '@/navigation.ts';
-import { chatRoute, ChatView } from '@/pages/constants.ts';
+import { chatRoute } from '@/pages/constants.ts';
+import { ChatView } from '@/ChatView/index.tsx';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';

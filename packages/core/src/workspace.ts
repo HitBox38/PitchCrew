@@ -1,3 +1,4 @@
+import type { WorkspaceMessages } from './chat-history.ts';
 import type { UserInputRequest } from './user-input.ts';
 import type { Conversation, ChatRequest, AgentMemory } from './conversations.ts';
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
@@ -36,7 +37,9 @@ export interface ProfileFile {
   name: string;
   content: string;
 }
-export interface Snapshot {
+export interface Snapshot extends WorkspaceMessages {
+  /** UI projection: job source text is fetched when its details are opened. */
+  workspace?: true;
   userInputs?: UserInputRequest[];
   conversations?: Conversation[];
   chatRequests?: ChatRequest[];

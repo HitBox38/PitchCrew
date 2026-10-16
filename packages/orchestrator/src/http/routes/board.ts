@@ -9,6 +9,9 @@ import { registerApplicationContextRoutes } from './application-context.ts';
 
 export function registerBoardRoutes(app: FastifyInstance, service: CrewService) {
   registerApplicationContextRoutes(app, service);
+  app.get<IdRoute>('/api/cards/:id', (req) =>
+    service.board.get<Card>('card', z.uuid().parse(req.params.id)),
+  );
   app.post('/api/cards', (req, res) => res.status(201).send(service.createCard(req.body)));
   app.delete<IdRoute>('/api/cards/:id', (req) => {
     const card = service.board.get<Card>('card', req.params.id);

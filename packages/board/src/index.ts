@@ -149,3 +149,5 @@ export class Board {
     return this.context.defaultInstructionStatuses();
   }
 }
+export { workspaceMessages } from './board/workspace-messages.ts';
+export { conversationHistory, searchConversationMessages } from './board/conversation-history.ts';

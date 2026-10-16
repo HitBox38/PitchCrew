@@ -1,3 +1,4 @@
+import '@/styles/chat.css';
 import { AgentBrowser } from '@/AgentBrowser/index.tsx';
 import type { CSSProperties } from 'react';
 import { PendingQuestions } from '@/UserQuestions/index.tsx';
