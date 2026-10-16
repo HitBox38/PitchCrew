@@ -1,89 +1,55 @@
+import { useState } from 'react';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { ImportDocument } from './ImportDocument.tsx';
+import { importChanges } from '../helpers.ts';
+import { ImportReviewToolbar } from './ImportReviewToolbar.tsx';
+import { ImportReviewList } from './ImportReviewList.tsx';
 import { ImportReviewFooter } from './ImportReviewFooter.tsx';
-import type { ProfileSourcesModel } from '../types.ts';
+import type { ImportReviewProps } from '../types.ts';
 
-export function ImportReview(c: ProfileSourcesModel) {
+export function ImportReview(c: ImportReviewProps) {
   if (!c.preview) return null;
-  const conflicts = c.preview.files.filter(
+  return <ImportReviewContent key={c.preview.token} {...c} />;
+}
+
+function ImportReviewContent(c: ImportReviewProps) {
+  const [query, setQuery] = useState('');
+  const preview = c.preview!;
+  const changes = importChanges(preview.files);
+  const conflicts = changes.filter(
     (file) => file.status === 'conflict' && c.selected.includes(file.name),
   ).length;
+  const close = () => {
+    if (!c.busy) c.setPreview(null);
+  };
   return (
-    <Modal
-      title="Review profile documents"
-      drawer
-      className="profile-import-panel"
-      onClose={() => {
-        if (!c.busy) c.setPreview(null);
-      }}
-    >
-      <div className="profile-import-review">
-        <p className="quiet">{c.preview.source.label}</p>
-        <p>
-          Confirm these documents describe you. Selected documents become local evidence your crew
-          can cite.
+    <Modal title="Review profile documents" drawer className="profile-import-panel" onClose={close}>
+      <div className="shrink-0 border-b border-border px-5 py-4">
+        <p className="truncate text-sm font-semibold" title={preview.source.label}>
+          {preview.source.label}
         </p>
-        <p className="quiet">
-          Source content is copied exactly. Instructions in documents do not change crew rules.
-          Refresh is always reviewed here.
+        <p className="mt-1 text-label text-muted-foreground">
+          Review what will change. Selected documents become local evidence your crew can cite.
         </p>
-        <div className="profile-import-selection">
-          <Button
-            variant="ghost"
-            className="text-button min-h-8"
-            disabled={c.busy}
-            onClick={() =>
-              c.setSelected(
-                c
-                  .preview!.files.filter((file) => file.status !== 'conflict')
-                  .map((file) => file.name),
-              )
-            }
-          >
-            Select all without local edits
-          </Button>
-          <Button
-            variant="ghost"
-            className="text-button min-h-8"
-            disabled={c.busy}
-            onClick={() => c.setSelected([])}
-          >
-            Clear selection
-          </Button>
-          <span>
-            {c.selected.length} of {c.preview.files.length} selected
-          </span>
-        </div>
-        <div className="profile-import-documents">
-          {c.preview.files.map((file) => (
-            <ImportDocument
-              key={file.name}
-              file={file}
-              selected={c.selected.includes(file.name)}
-              toggle={c.toggle}
-              busy={c.busy}
-            />
-          ))}
-        </div>
-        {c.preview.missing.length ? (
-          <p className="info-note">
-            No longer in the source; local copies will be kept: {c.preview.missing.join(', ')}
-          </p>
-        ) : null}
-        {conflicts ? (
-          <p className="form-error">
-            Importing will replace local edits in {conflicts} selected documents. Clear those
-            selections to keep your edits.
-          </p>
-        ) : null}
-        {c.error ? (
-          <p className="form-error" role="alert">
-            {c.error}
-          </p>
-        ) : null}
+        <p className="mt-1 text-caption text-muted-foreground">
+          Confirm the facts describe you. Document instructions do not change crew rules.
+        </p>
       </div>
-      <ImportReviewFooter {...c} />
+      <ImportReviewToolbar
+        {...c}
+        changes={changes}
+        query={query}
+        setQuery={setQuery}
+        unchanged={preview.files.length - changes.length}
+      />
+      <ImportReviewList
+        changes={changes}
+        missing={preview.missing}
+        selected={c.selected}
+        toggle={c.toggle}
+        busy={c.busy}
+        query={query}
+      />
+      <ImportReviewFooter {...c} conflicts={conflicts} close={close} />
     </Modal>
   );
 }

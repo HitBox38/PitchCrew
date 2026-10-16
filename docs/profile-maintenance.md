@@ -32,6 +32,10 @@ Use an existing routine to request scans at the desired interval. The daemon mus
 
 ## Review and recovery
 
+The **Review profile documents** sheet for manual source imports and refreshes lists only added, changed and locally conflicting documents, followed by documents removed from the source. Unchanged documents are hidden. Search matches filenames and folder paths without changing the selection; bulk selection includes all added and changed documents and excludes local conflicts. Conflicts start unselected and appear first. Removed-source rows are informational: local copies are kept, including when every upstream document has been removed.
+
+Compact shared accordion rows expand to show the saved local text compared with the incoming snapshot, using the same paragraph and word highlights as agent instruction updates. **Full document** shows and copies the exact incoming text. Both sides are captured when the server stages the review; a subsequent local edit invalidates import. The comparison text is transient and is not stored in source manifests. Search, selection totals and import actions stay visible while the document list scrolls.
+
 Profile displays pending proposals with selectable exact before/after documents, source links, pinned project evidence and upstream removals. Conflicting local notes start unselected. Review contradictions and verify personal facts explicitly before applying selected documents as resume evidence. The application cannot automatically establish personal authorship or semantically verify every claim. A project observation can be acknowledged without adding any notes.
 
 The user decision includes only the proposal ID, snapshot digest, selection and fact confirmation. A changed proposal invalidates an earlier review. Approval never fetches source content again. It checks current source configuration, connected account, all profile-note hashes and the selected files. Another local edit or source change requires a fresh proposal. Removing a remote document never deletes a local note automatically.

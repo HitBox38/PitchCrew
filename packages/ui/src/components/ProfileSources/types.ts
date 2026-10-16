@@ -17,3 +17,16 @@ export interface SourceNotice {
   message: string;
   file?: ProfileFile;
 }
+
+export type ImportReviewProps = Pick<
+  ProfileSourcesModel,
+  | 'preview'
+  | 'setPreview'
+  | 'selected'
+  | 'setSelected'
+  | 'toggle'
+  | 'busy'
+  | 'error'
+  | 'progress'
+  | 'importSelected'
+>;

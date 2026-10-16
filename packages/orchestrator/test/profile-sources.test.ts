@@ -52,7 +52,7 @@ describe('reviewed profile sources', () => {
     const preview = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
     expect(preview.files).toHaveLength(3);
-    expect(preview.files.every((file) => file.status === 'new')).toBe(true);
+    expect(preview.files.every((file) => file.status === 'new' && file.before === null)).toBe(true);
     expect((await request<Snapshot>('/snapshot')).result.profile).toEqual([]);
     const selected = preview.files.filter(
       (file) => file.path.includes('LinkedIn') || file.path.includes('Work Experience'),
@@ -86,6 +86,9 @@ describe('reviewed profile sources', () => {
     const sources = (await request<ProfileSource[]>('/profile/sources')).result;
     expect(sources[0].files.map((file) => file.path)).toEqual(selected.map((file) => file.path));
     expect(sources[0].files[0].url).toContain(`/blob/${sha}/`);
+    expect(sources[0].files.every((file) => !('before' in file) && !('content' in file))).toBe(
+      true,
+    );
     expect(await new ProfileSourceManager(directory, daemon.service.connectors).list()).toEqual(
       sources,
     );
@@ -123,8 +126,16 @@ describe('reviewed profile sources', () => {
     documents.delete(preview.files.find((file) => file.path.includes('Work Experience'))!.path);
     const refresh = (await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
       .result;
-    expect(refresh.files.find((file) => file.name === project.name)?.status).toBe('conflict');
-    expect(refresh.files.find((file) => file.name === about.name)?.status).toBe('changed');
+    expect(refresh.files.find((file) => file.name === project.name)).toMatchObject({
+      status: 'conflict',
+      before: 'My local edit',
+      content: 'Upstream project change',
+    });
+    expect(refresh.files.find((file) => file.name === about.name)).toMatchObject({
+      status: 'changed',
+      before: about.content,
+      content: 'Upstream bio change',
+    });
     expect(refresh.missing).toHaveLength(1);
     await request('/profile', 'PUT', { name: about.name, content: 'Edited after preview' });
     const failed = await request<{ error: string }>('/profile/sources/import', 'POST', {
@@ -139,6 +150,29 @@ describe('reviewed profile sources', () => {
     expect(notes.find((note) => note.name === project.name)?.content).toBe('My local edit');
     expect(notes.find((note) => note.name === about.name)?.content).toBe('Upstream bio change');
     expect(notes).toHaveLength(3);
+  });
+  it('reviews an entirely removed upstream folder without deleting local copies, while rejecting empty first imports', async () => {
+    const { daemon, request } = await setup(14508);
+    const { documents } = githubFixture(daemon);
+    const original = (
+      await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input)
+    ).result;
+    await request('/profile/sources/import', 'POST', {
+      token: original.token,
+      names: original.files.map((file) => file.name),
+    });
+    documents.clear();
+    const refresh = await request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input);
+    expect(refresh.response.status).toBe(200);
+    expect(refresh.result.files).toEqual([]);
+    expect(refresh.result.missing.toSorted()).toEqual(
+      original.files.map((file) => file.path).toSorted(),
+    );
+    expect((await request<Snapshot>('/snapshot')).result.profile).toHaveLength(3);
+    const sources = (await request<ProfileSource[]>('/profile/sources')).result;
+    await request(`/profile/sources/${sources[0].id}`, 'DELETE');
+    expect((await request('/profile/sources/preview', 'POST', input)).response.status).toBe(400);
+    expect((await request<Snapshot>('/snapshot')).result.profile).toHaveLength(3);
   });
   it('rejects unauthorized source access, path traversal, payload changes, oversized documents and active-run mutations', async () => {
     const { daemon, request } = await setup(14503);
