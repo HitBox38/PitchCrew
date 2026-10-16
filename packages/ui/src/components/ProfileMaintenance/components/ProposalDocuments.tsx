@@ -21,7 +21,7 @@ export function ProposalDocuments({
             {file.name} —{' '}
             {file.status === 'conflict' ? 'Replaces a local note; review carefully' : file.status}
           </summary>
-          <label className="checkbox-label my-3">
+          <label className="my-3 flex items-center gap-3">
             <Checkbox
               disabled={disabled}
               checked={selected.includes(file.name)}

@@ -1,14 +1,16 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { SourceProgress } from './SourceProgress.tsx';
 import type { ImportReviewProps } from '../types.ts';
 
 export function ImportReviewFooter({
   selected,
   busy,
   error,
+  progress,
   importSelected,
   conflicts,
   close,
-}: Pick<ImportReviewProps, 'selected' | 'busy' | 'error' | 'importSelected'> & {
+}: Pick<ImportReviewProps, 'selected' | 'busy' | 'error' | 'progress' | 'importSelected'> & {
   conflicts: number;
   close: () => void;
 }) {
@@ -26,6 +28,7 @@ export function ImportReviewFooter({
           {error}
         </p>
       ) : null}
+      {progress ? <SourceProgress label={progress.label} /> : null}
       <div className="flex items-center justify-end gap-2">
         <Button variant="outline" disabled={busy} onClick={close}>
           Cancel

@@ -65,6 +65,7 @@ function Fixture() {
             current.includes(name) ? current.filter((n) => n !== name) : [...current, name],
           )
         }
+        progress={mode === 'busy' ? { label: 'Importing documents…' } : null}
         busy={mode === 'busy'}
         error=""
         importSelected={() => {

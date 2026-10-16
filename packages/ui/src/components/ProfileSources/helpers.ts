@@ -1,4 +1,38 @@
-import type { ProfileImportFile, ProfileSourceInput } from '@pitchcrew/core';
+import type { ProfileImportFile, ProfileSource, ProfileSourceInput } from '@pitchcrew/core';
+import type { ProfileSourcesModel } from './types.ts';
+
+export function sourceLocation(source: ProfileSource) {
+  const input = source.input;
+  if (input.provider === 'drive') return `Google Drive folder ${input.folderId}`;
+  return `${input.repository}${input.path ? ` / ${input.path}` : ' / Entire repository'}${input.ref ? ` (${input.ref})` : ''}`;
+}
+
+export function sourceHeading(c: ProfileSourcesModel) {
+  if (c.proposalId)
+    return {
+      title: 'Review profile updates',
+      description: 'Review the proposed notes and evidence before making a decision.',
+    };
+  if (!c.adding)
+    return {
+      title: 'Profile sources',
+      description: 'Manage the notes and projects behind your profile.',
+    };
+  if (!c.provider)
+    return { title: 'Add a source', description: 'Choose where your notes or project live.' };
+  if (!c.intent)
+    return { title: 'Add from GitHub', description: 'What would you like to bring into Profile?' };
+  if (c.intent === 'project')
+    return {
+      title: 'Watch a project',
+      description:
+        'Track changes for an authorized agent to investigate. Notes always need your review.',
+    };
+  return {
+    title: c.provider === 'github' ? 'Import GitHub notes' : 'Import Google Drive notes',
+    description: 'Choose a folder of factual notes about your background and work.',
+  };
+}
 
 export function githubInput(repository: string, path: string, ref: string): ProfileSourceInput {
   let name = repository.trim();

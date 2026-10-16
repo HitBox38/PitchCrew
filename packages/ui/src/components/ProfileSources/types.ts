@@ -11,6 +11,13 @@ export interface ProfileSourcesProps {
 }
 export type ProfileSourcesModel = ReturnType<typeof useProfileSources>;
 
+export type SourceProvider = 'github' | 'drive';
+export type SourceIntent = 'notes' | 'project';
+export interface SourceNotice {
+  message: string;
+  file?: ProfileFile;
+}
+
 export type ImportReviewProps = Pick<
   ProfileSourcesModel,
   | 'preview'
@@ -20,5 +27,6 @@ export type ImportReviewProps = Pick<
   | 'toggle'
   | 'busy'
   | 'error'
+  | 'progress'
   | 'importSelected'
 >;
