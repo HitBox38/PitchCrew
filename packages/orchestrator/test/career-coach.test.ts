@@ -10,6 +10,7 @@ import type {
 import { baseSkills } from '@pitchcrew/core/base-skills';
 import { afterEach, expect, it, vi } from 'vitest';
 import { skillDirectory } from '../src/skills-directory.ts';
+import * as attachmentStorage from '../src/crew/attachments/storage.ts';
 import { cleanup, setup, waitForSnapshot } from './helpers/daemon.ts';
 
 afterEach(cleanup);
@@ -26,11 +27,27 @@ it('uses offline coaching skills, scoped evidence and memory across a durable pr
         turns.push({ context, complete: () => resolve({ reply: 'Fictional coaching feedback.' }) });
       }),
   );
+  // Run preparation can exceed vi.waitFor's one-second default on a loaded runner.
+  // Keep that boundary covered while still writing and reading the real attachment.
+  const prepareAttachments = attachmentStorage.prepareAttachments;
+  vi.spyOn(attachmentStorage, 'prepareAttachments').mockImplementation(async (...args) => {
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    return prepareAttachments(...args);
+  });
   const { daemon, request } = await setup(19748, true);
+  const waitForTurn = (count: number) =>
+    vi.waitFor(
+      () => {
+        const current = daemon.service.board.list<Run>('run').at(-1);
+        expect(current?.status, current?.message).toBe('running');
+        expect(turns).toHaveLength(count);
+      },
+      { timeout: 5000 },
+    );
   const card = (
     await request<Card>('/cards', 'POST', { company: 'Example Works', title: 'Analyst' })
   ).result;
-  const { result: run } = await request<Run>('/roles/career-coach/chat', 'POST', {
+  const { response, result: run } = await request<Run>('/roles/career-coach/chat', 'POST', {
     content: 'Practice a behavioral interview with me.',
     attachments: [
       {
@@ -39,7 +56,8 @@ it('uses offline coaching skills, scoped evidence and memory across a durable pr
       },
     ],
   });
-  await vi.waitFor(() => expect(turns).toHaveLength(1));
+  expect(response.status).toBe(202);
+  await waitForTurn(1);
   const { context } = turns[0];
   expect(context.card).toBeNull();
   expect(context.skills?.map((skill) => skill.name).sort()).toEqual(
@@ -109,7 +127,7 @@ it('uses offline coaching skills, scoped evidence and memory across a durable pr
       })
     ).response.status,
   ).toBe(202);
-  await vi.waitFor(() => expect(turns).toHaveLength(2));
+  await waitForTurn(2);
   expect(turns[1].context.request).toContain('I wrote a checklist');
   const resumedToken = turns[1].context.mcp.env.PITCHCREW_RUN_TOKEN;
   expect(await daemon.service.agentCall(resumedToken, 'recall_memory', {})).toMatchObject({
