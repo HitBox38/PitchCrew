@@ -55,7 +55,7 @@ it('aborts overlapping starter reads when runtime setup fails and releases the d
   const daemon = await createDaemon({ directory, port: 15012, seedSkills: false });
   try {
     expect(daemon.service.skills()).toEqual([]);
-    expect(daemon.service.board.list('role')).toHaveLength(7);
+    expect(daemon.service.board.list('role')).toHaveLength(8);
   } finally {
     await daemon.close();
   }

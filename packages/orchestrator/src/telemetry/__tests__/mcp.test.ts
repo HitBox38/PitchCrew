@@ -37,7 +37,7 @@ describe('MCP gateway observations', () => {
     const result = await context.agentCall('private-token', 'roles', {
       prompt: 'private-profile /Users/private https://secret.test',
     });
-    expect(result.roles).toHaveLength(7);
+    expect(result.roles).toHaveLength(8);
     expect(record).toHaveBeenCalledTimes(1);
     const [event, properties] = record.mock.calls[0];
     expect(event).toBe('$mcp_tool_call');
@@ -115,7 +115,7 @@ describe('MCP gateway observations', () => {
       throw new Error('telemetry unavailable');
     });
     // A successful ordinary tool remains available even when observation fails.
-    expect((await context.agentCall('private-token', 'roles', {})).roles).toHaveLength(7);
+    expect((await context.agentCall('private-token', 'roles', {})).roles).toHaveLength(8);
     const error = new Error('private original error');
     vi.spyOn(context.board, 'list').mockImplementation(() => {
       throw error;
@@ -128,7 +128,7 @@ describe('MCP gateway observations', () => {
     vi.spyOn(performance, 'now').mockImplementationOnce(() => {
       throw new Error('clock unavailable');
     });
-    expect((await context.agentCall('private-token', 'roles', {})).roles).toHaveLength(7);
+    expect((await context.agentCall('private-token', 'roles', {})).roles).toHaveLength(8);
     expect(record).not.toHaveBeenCalled();
   });
 
@@ -139,7 +139,7 @@ describe('MCP gateway observations', () => {
       .mockImplementationOnce(() => {
         throw new Error('clock unavailable');
       });
-    expect((await context.agentCall('private-token', 'roles', {})).roles).toHaveLength(7);
+    expect((await context.agentCall('private-token', 'roles', {})).roles).toHaveLength(8);
     expect(record).not.toHaveBeenCalled();
   });
 

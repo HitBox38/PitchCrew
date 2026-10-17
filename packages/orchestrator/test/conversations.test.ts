@@ -45,13 +45,13 @@ it('migrates history without rewriting messages and supports unlimited group mem
       participants: before.roles.map((role) => role.id),
     })
   ).result;
-  expect(group.participants).toHaveLength(7);
+  expect(group.participants).toHaveLength(8);
   const sent = await request<ChatRequest>(`/conversations/${group.id}/messages`, 'POST', {
     content: '@scout Check this.',
   });
   expect(sent.response.status).toBe(202);
   await vi.waitFor(() => expect(turns).toHaveLength(1));
-  expect(turns[0].context.conversation?.participants).toHaveLength(7);
+  expect(turns[0].context.conversation?.participants).toHaveLength(8);
   expect(turns[0].context.role.id).toBe('scout');
   turns[0].complete();
   await waitForSnapshot(
@@ -61,8 +61,8 @@ it('migrates history without rewriting messages and supports unlimited group mem
   const all = await request<ChatRequest>(`/conversations/${group.id}/messages`, 'POST', {
     content: 'Consider this together.',
   });
-  expect(all.result.deliveries).toHaveLength(7);
-  await vi.waitFor(() => expect(turns).toHaveLength(8));
+  expect(all.result.deliveries).toHaveLength(8);
+  await vi.waitFor(() => expect(turns).toHaveLength(9));
   for (const turn of turns.slice(1)) turn.complete();
   await waitForSnapshot(request, (snapshot) =>
     snapshot.runs.every((run) => run.status === 'completed'),

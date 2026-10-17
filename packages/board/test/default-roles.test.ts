@@ -10,7 +10,16 @@ function create() {
   return board;
 }
 afterEach(() => boards.splice(0).forEach((board) => board.close()));
-const ids = ['scout', 'writer', 'reviewer', 'submitter', 'tracker', 'documenter', 'pipeline-coach'];
+const ids = [
+  'scout',
+  'writer',
+  'reviewer',
+  'submitter',
+  'tracker',
+  'documenter',
+  'pipeline-coach',
+  'career-coach',
+];
 
 describe('default crew', () => {
   it('uses recommended configurations only for missing roles and keeps seeding controls intact', () => {
@@ -43,7 +52,7 @@ describe('default crew', () => {
     board.rebuild();
     expect(board.list('role')).toEqual(before);
   });
-  it('seeds seven valid paused production roles without starting work or connecting accounts', () => {
+  it('seeds eight valid paused production roles without starting work or connecting accounts', () => {
     const board = create();
     board.seedRoles('claude-code', false);
     const roles = board.list<Role>('role');
@@ -87,6 +96,21 @@ describe('default crew', () => {
       proposeCrewChanges: true,
       manageRoutines: true,
       computerUse: false,
+    });
+    expect(roles[7]).toMatchObject({
+      id: 'career-coach',
+      browserMode: 'supervised',
+      capabilities: {
+        readApplications: true,
+        computerUse: true,
+        assessForms: false,
+        recordSubmissions: false,
+        trackApplications: false,
+        maintainProfile: false,
+        manageRoutines: false,
+        reviewPipeline: false,
+        proposeCrewChanges: false,
+      },
     });
     expect(board.events().every((event) => event.kind === 'role')).toBe(true);
     expect(board.list('routine')).toEqual([]);
@@ -164,7 +188,7 @@ describe('default crew', () => {
       'Removed fixture',
     );
     board.seedRoles();
-    expect(board.list('role')).toHaveLength(7);
+    expect(board.list('role')).toHaveLength(8);
   });
 
   it('rolls back every default if an event cannot be recorded', () => {

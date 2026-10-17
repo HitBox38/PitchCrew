@@ -103,3 +103,35 @@ _Avoid_: Automatic sync, project watch (when referring to copying personal docum
 **Project watch**:
 A user-enabled GitHub source for an authorized agent to investigate project changes and propose profile notes for the user's review. Watching a project does not itself import documents or establish the user's personal contribution.
 _Avoid_: Profile note import, automatic profile update
+
+**Career Coach**:
+A crew agent that helps the user with interview preparation, practice and debriefs, career planning and offer evaluation.
+_Avoid_: Pipeline Coach (when referring to career support rather than application pipeline or crew improvement)
+
+**Interview preparation**:
+Planning for a specific interview using the job's requirements, the user's experience and known interview details.
+_Avoid_: Interview practice (when referring to planning rather than rehearsal)
+
+**Interview practice**:
+A rehearsal in which the user answers interview questions and receives feedback on those answers.
+_Avoid_: Interview assessment (when implying an employer's actual evaluation)
+
+**Coached practice**:
+Interview practice with feedback after each completed answer.
+_Avoid_: Mock interview (when referring to practice interrupted by coaching)
+
+**Mock interview**:
+Interview practice that stays in the interviewer role and defers coaching feedback until the round ends.
+_Avoid_: Coached practice (when referring to feedback after each answer)
+
+**Interview debrief**:
+The user's account of a completed interview, considered alongside feedback to identify lessons and preparation needs.
+_Avoid_: Employer feedback (when referring only to the user's recollection)
+
+**Career planning**:
+Exploring target roles, adjacent job titles, skill gaps and learning priorities in relation to the user's goals and experience.
+_Avoid_: Pipeline review (when referring to career direction rather than the application pipeline or crew performance)
+
+**Offer evaluation**:
+Comparing an employment offer's stated compensation and contract terms with the user's priorities and reported promises, identifying uncertainties and preparing questions for the employer or a lawyer.
+_Avoid_: Offer acceptance (when referring only to analysis)

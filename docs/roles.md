@@ -6,7 +6,7 @@ Every ordinary production runtime turn has a fixed 30-minute limit per workflow 
 
 ## Default crew
 
-Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pipeline Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
+Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter, Pipeline Coach and Career Coach. Production defaults start paused. Before seeding missing roles, Pitchcrew checks every supported runtime installed on the daemon's machine and loads bounded native model catalogs for installed runtimes that support discovery. It selects a role-specific recommended runtime, model and supported reasoning level. Development defaults use Demo. These are ordinary editable, retireable roles using the same configuration and tools as custom agents.
 
 | Agent          | Preferred runtime | Preferred model                     | Reasoning |
 | -------------- | ----------------- | ----------------------------------- | --------- |
@@ -17,6 +17,7 @@ Startup supplies Scout, Writer, Reviewer, Submitter, Tracker, Documenter and Pip
 | Tracker        | Codex             | GPT-6 Luna                          | High      |
 | Documenter     | Codex             | GPT-6.1 Sol                         | Medium    |
 | Pipeline Coach | Codex             | GPT-6 Astra                         | High      |
+| Career Coach   | Codex             | GPT-6.1 Sol                         | High      |
 
 These are editorial starting points for each responsibility, not benchmark results. Native model catalogs take precedence over unverified suggestions; within each source, role-specific model preferences come before runtime preferences. All production adapters participate, including alternatives that expose the same model through another provider. Selectors retain native provider prefixes and Cursor effort presets. Unsupported effort uses CLI default. An empty or unfamiliar catalog is never replaced with an invented model: an installed runtime can retain CLI default with a setup explanation. With no installed runtime, the preferred setup remains visible and paused for installation. Discovery does not prove model entitlement or authenticate the user.
 
@@ -30,10 +31,13 @@ Scout's instructions cover evidence-based fit, unknowns and the user's shortlist
 | Tracker        | Application search, email reconciliation, own routines             | Connect Google and enable Gmail for this role before scanning.                                                                 |
 | Documenter     | Profile maintenance, own routines                                  | Connect the relevant account, enable GitHub/Drive for this role, and choose watched sources in Profile.                        |
 | Pipeline Coach | Pipeline review, targeted crew-change proposals, own routines      | Choose the review scope; approve proposed changes before adoption.                                                             |
+| Career Coach   | Application search, Insights, supervised browser, own memory       | Enable the role; supply interview details, career goals or offer documents. Chromium is needed for public research.            |
 
-The four support roles use the chat workflow seat and can message the crew. They cannot invoke other agents or manage packet workflow transitions. Account connectors stay disabled until enabled by the user. No schedules, source watches, runs or external actions are created by seeding. Shared skills apply normally; Pipeline Coach also receives the bundled, role-assigned `improve-system` skill for user-requested retrospectives. Instructions ask for the user's cadence before creating periodic work and preserve all existing approval gates.
+The five support roles use the chat workflow seat and can message the crew. They cannot invoke other agents or manage packet workflow transitions. Account connectors stay disabled until enabled by the user. No schedules, source watches, runs or external actions are created by seeding. Shared skills apply normally; Pipeline Coach also receives the bundled, role-assigned `improve-system` skill for user-requested retrospectives. Instructions ask for the user's cadence before creating periodic work and preserve all existing approval gates.
 
 Startup backfills missing default IDs in existing workspaces in one transaction. It never overwrites existing configurations, enables paused roles, reuses retired IDs or resets skill assignments. An existing custom role with a default ID wins. Backfill respects the 50-identity limit, including retired roles, adding missing defaults in the order above while space remains. It defers additions if shared skills exceed the 60,000-character creation budget. Restart after reducing that skill total to retry. Existing default instructions and capabilities are not silently updated on later startups. Crew offers newer default instructions for review instead; see [default instruction updates](#default-instruction-updates).
+
+Career Coach receives five offline career skills for interview preparation, coached practice or mock interviews, debriefs, career planning and offer evaluation. General coaching needs no attached job. It saves concise source-linked memory, keeps coaching separate from verified Profile evidence, and uses existing durable user questions. It has no workflow, agent invocation, email scanning, Profile maintenance, submission, pipeline review or routine-management capability. Scout, Writer and Reviewer also receive focused offline assessment, tailoring and coverage-review skills. See [career support](career-support.md).
 
 ## Default instruction updates
 
