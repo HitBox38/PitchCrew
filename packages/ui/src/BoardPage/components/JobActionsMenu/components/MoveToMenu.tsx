@@ -15,10 +15,12 @@ export function MoveToMenu({
   card,
   disabled,
   move,
+  finalFocus,
 }: {
   card: Card;
   disabled: boolean;
   move: (state: CardState) => void;
+  finalFocus: () => boolean;
 }) {
   return (
     <DropdownMenuSub>
@@ -29,6 +31,7 @@ export function MoveToMenu({
       <DropdownMenuSubContent
         className="max-h-[min(65vh,480px,var(--available-height))] min-w-48"
         aria-label="Job status"
+        finalFocus={finalFocus}
       >
         {dropStages.map((stage) => (
           <DropdownMenuGroup key={stage.id}>

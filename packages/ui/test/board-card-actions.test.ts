@@ -115,7 +115,16 @@ test('copying a posting link and recording withdrawal preserve the current view 
   ).toEqual([]);
 });
 
-test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async () => {
+test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async ({
+  onTestFinished,
+}) => {
+  const cdp = await page.context().newCDPSession(page);
+  onTestFinished(async () => {
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    await cdp.detach();
+  });
+  // Exercise the submenu/board focus handoff under slower CI rendering.
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await page.route(
     `**/api/cards/${card.id}/status`,
     async (route) => {
@@ -148,6 +157,7 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await expect.poll(() => menu().count()).toBe(0);
   const closed = page.getByRole('button', { name: /^Closed/ });
   expect(await closed.getAttribute('aria-pressed')).toBe('true');
+  await page.locator('[data-slot="dropdown-menu-content"]').waitFor({ state: 'detached' });
   await expect
     .poll(() => closed.evaluate((element) => element === document.activeElement))
     .toBe(true);

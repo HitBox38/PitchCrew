@@ -4,6 +4,11 @@ import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
 
 const labels: Record<string, string> = {
+  start_deep_review: 'Starting deep resume review',
+  start_review_subagent: 'Starting targeted second opinion',
+  review_subagents: 'Reading second opinions',
+  extend_review_deadline: 'Extending shared review deadline',
+  request_review_time: 'Requesting more review time',
   profile: 'Reading profile',
   card: 'Reading job details',
   history: 'Reading application history',
@@ -49,7 +54,7 @@ export function observeChatTool(context: CrewContext, token: string, action: str
       action === 'report_progress' ||
       !context.board
         .list<Run>('run')
-        .some((run) => run.id === capability.runId && run.mode === 'chat')
+        .some((run) => run.id === capability.runId && (run.mode === 'chat' || !!run.deepReviewId))
     )
       return () => {};
     const label = labels[action] ?? 'Using a crew tool';

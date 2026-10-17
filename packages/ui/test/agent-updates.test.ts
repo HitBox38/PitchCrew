@@ -105,7 +105,7 @@ test('notification review, dismissal, rediscovery and explicit replacement updat
   await page.getByRole('button', { name: 'Check now', exact: true }).click();
   await skillLink().waitFor();
   await page.getByRole('button', { name: 'Updates only', exact: true }).click();
-  expect(new URL(page.url()).searchParams.get('updates')).toBe('true');
+  await expect.poll(() => new URL(page.url()).searchParams.get('updates')).toBe('true');
   await page.getByRole('button', { name: 'Review update', exact: true }).click();
   await review.getByRole('button', { name: 'Replace with upstream version' }).click();
   await page.getByRole('link', { name: 'Skills', exact: true }).waitFor();
@@ -113,9 +113,24 @@ test('notification review, dismissal, rediscovery and explicit replacement updat
     content: 'Fictional upstream revision c.',
     roleIds: ['reviewer'],
   });
+  // Keep Skills mounted while Crew loads so shared button labels cannot hide a navigation race.
+  let crewLoadDelayed = false;
+  await page.route(
+    '**/src/CrewPage/index.tsx*',
+    async (route) => {
+      crewLoadDelayed = true;
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      await route.continue();
+    },
+    { times: 1 },
+  );
   await page.getByRole('link', { name: 'Crew (1 update)', exact: true }).click();
-  await page.getByRole('button', { name: 'Updates only', exact: true }).click();
-  expect(await page.locator('.crew-card').count()).toBe(1);
+  await page
+    .getByRole('region', { name: 'Instruction updates', exact: true })
+    .getByRole('button', { name: 'Updates only', exact: true })
+    .click();
+  expect(crewLoadDelayed).toBe(true);
+  await expect.poll(() => page.locator('.crew-card').count()).toBe(1);
   await page.getByRole('button', { name: 'Review update', exact: true }).click();
   await page.locator('.instruction-update').waitFor();
   expect((await page.locator('.instruction-update').boundingBox())!.y).toBeLessThan(300);
@@ -131,7 +146,16 @@ test('notification review, dismissal, rediscovery and explicit replacement updat
 
 test('collapsed and mobile sidebars retain the update reminder and a direct review remains usable', async () => {
   await page.locator('[data-slot=sidebar-trigger]').click();
-  const indicator = page.locator('[data-collapsible="icon"] .sidebar-update-badge');
+  const indicator = page
+    .locator('[data-collapsible="icon"] [data-sidebar="menu-item"]')
+    .filter({
+      has: page.getByRole('link', {
+        name: 'Skills (1 update)',
+        exact: true,
+        includeHidden: true,
+      }),
+    })
+    .locator('.sidebar-update-badge');
   await indicator.waitFor();
   expect(await indicator.evaluate((element) => getComputedStyle(element).display)).toBe('flex');
   await page.setViewportSize({ width: 390, height: 844 });

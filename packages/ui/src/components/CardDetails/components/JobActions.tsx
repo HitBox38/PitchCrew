@@ -10,6 +10,7 @@ export function JobActions({
   working,
   card,
   exported,
+  extraActions,
   onInbox,
 }: JobActionsProps) {
   return (
@@ -46,6 +47,7 @@ export function JobActions({
                   : 'Review packet'}
             </Button>
           ) : null}
+          {extraActions}
           {card.state === 'lead' ? (
             <Button
               disabled={working}

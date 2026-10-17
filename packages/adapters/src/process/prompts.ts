@@ -32,7 +32,7 @@ export function promptFor(context: RunContext) {
 export function chatPromptFor(context: ChatContext) {
   if (context.purpose === 'source-extraction') return extractionPrompt(context);
   const draftingBoundary =
-    'Employer-facing application copy must use the isolated application workflow. Do not draft it inside this source-discussion chat: direct the user to review the job brief and start Draft application from the job. Custom agents can use the same drafting entry point. Chat discussion alone is never a reviewed or approved packet.';
+    'When the user asks for a deep resume review or hiring panel, use pitchcrew_start_deep_review for the attached or explicitly selected job. If there is no selected job, ask the user to choose one. It starts the managed first-draft/review/correction/recheck flow and saves its report on the job. Do not try to implement the panel in ordinary chat. Employer-facing application copy must use the isolated application workflow. Do not draft it inside this source-discussion chat: direct the user to review the job brief and start Draft application from the job. Custom agents can use the same drafting entry point. Chat discussion alone is never a reviewed or approved packet.';
   const collaboration =
     draftingBoundary +
     '\n' +

@@ -6,7 +6,8 @@ export function activityStream(context: RunContext | ChatContext) {
   let commentary: RuntimeActivity | undefined;
   let thinking: RuntimeActivity | undefined;
   const emit = (entry: RuntimeActivity) => {
-    if ('messages' in context && !context.signal.aborted) context.onActivity?.(entry);
+    if (('messages' in context || context.deepReview) && !context.signal.aborted)
+      context.onActivity?.(entry);
   };
   const endThinking = () => {
     if (thinking) emit({ ...thinking, status: 'completed' });

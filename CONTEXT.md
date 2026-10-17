@@ -68,6 +68,26 @@ _Avoid_: Trusted job description, sanitized instructions
 Employer-facing application copy prepared for a job, including resumes, cover letters and application answers, whether produced in chat or a board workflow and regardless of the agent's identity. Discussion of source material is separate from preparing an application draft.
 _Avoid_: Packet (when implying that employer-facing chat copy is outside application drafting)
 
+**Deep resume review**:
+An optional assessment of a tailored resume against a specific job's confirmed brief, using multiple hiring perspectives to identify supported strengths, weaknesses and corrections for Writer. Its findings do not constitute an employer's hiring decision or authorize packet export or submission.
+_Avoid_: Hiring panel (when implying actual employer participation), ATS verdict (when referring to a model's assessment)
+
+**Review perspective**:
+A hiring concern used to assess a resume, such as relevance, readability, impact or collaboration. One reviewer can apply several perspectives; those perspectives do not represent independent reviewers.
+_Avoid_: Reviewer (when referring only to a perspective), independent opinion (when produced within the same review)
+
+**Review subagent**:
+A temporary agent assigned a specific concern within a parent deep resume review. It returns a targeted second opinion to the parent Reviewer rather than becoming a permanent crew member.
+_Avoid_: Crew role (when referring to temporary review work), review perspective (when referring to a separate agent)
+
+**Review deadline extension**:
+Additional time granted by the parent Reviewer for unfinished work within a deep resume review, including work requested by its subagents. It extends the shared review budget without overriding user cancellation.
+_Avoid_: Subagent timeout reset (when referring to an extension of the shared review)
+
+**Deep review report**:
+An account of a deep resume review's perspective assessments, second opinions, prioritized findings and correction outcomes, associated with the job and resume versions assessed. Historical findings do not establish approval of a later application draft.
+_Avoid_: Hiring decision, current packet approval (when referring only to a historical report)
+
 **Source extraction**:
 Reading a selected job source to produce a job brief, proposed application requirements and flagged directives. It is separate from assessing the user's fit or preparing application copy.
 _Avoid_: Scout assessment (when referring only to extracting a source), source verification

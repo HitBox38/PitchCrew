@@ -41,6 +41,7 @@ function extract(event: Record<string, unknown>): string | null {
 }
 export const claudeCode: RuntimeAdapter = {
   applicationIsolation: true,
+  reviewSubagents: { maxConcurrent: 4 },
   id: 'claude-code',
   sessionSupport: 'resume',
   // Runtime aliases follow the CLI's model configuration without pinning versions.

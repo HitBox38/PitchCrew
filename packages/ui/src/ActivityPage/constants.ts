@@ -1,4 +1,6 @@
 export const eventKindLabels = {
+  deep_review: 'Deep resume reviews',
+  review_subagent: 'Review subagents',
   user_input: 'User questions',
   conversation: 'Conversations',
   conversation_session: 'Runtime sessions',

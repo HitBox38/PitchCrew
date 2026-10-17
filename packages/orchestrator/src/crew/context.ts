@@ -67,6 +67,7 @@ export function createCrewContext(
     daemonUrl,
     mcpEntry,
     board,
+    deepReviewExecutions: new Map(),
     onboarding,
     instructionUpdatePreferences: new InstructionUpdatePreferences(directory),
     skillUpdateChecks: new SkillUpdateChecks(directory),

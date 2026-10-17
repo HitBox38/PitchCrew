@@ -1,4 +1,4 @@
-import type { AgentTask, ChatRequest, Run, UserInputRequest } from '@pitchcrew/core';
+import type { AgentTask, ChatRequest, DeepReview, Run, UserInputRequest } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 
 export function questionForRun(context: CrewContext, runId: string) {
@@ -115,6 +115,31 @@ export function cancelUserQuestions(
       reason,
     );
     context.controllers.get(run.id)?.abort();
+    if (run.deepReviewId) {
+      const report = context.board.get<DeepReview>('deep_review', run.deepReviewId);
+      if (report.status === 'waiting') {
+        context.board.record(
+          'deep_review',
+          {
+            ...report,
+            status: 'cancelled',
+            summary: reason,
+            finishedAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          'user',
+          reason,
+        );
+        const parent = context.board.get<Run>('run', report.runId);
+        context.board.record(
+          'run',
+          { ...parent, status: 'cancelled', message: reason },
+          'user',
+          reason,
+        );
+      }
+    }
+
     if (q.continuationRequestId) {
       const request = context.board.get<ChatRequest>('chat_request', q.continuationRequestId);
       for (const delivery of request.deliveries) {

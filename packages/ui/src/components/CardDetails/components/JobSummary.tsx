@@ -1,3 +1,4 @@
+import { ReviewLaunch } from '@/DeepResumeReview/components/ReviewLaunch.tsx';
 import { JobActions } from './JobActions.tsx';
 import { JobHeading } from './JobHeading.tsx';
 import { JobMetadata } from './JobMetadata.tsx';
@@ -13,7 +14,17 @@ export function JobSummary(controller: CardDetailsModel) {
       <JobHeading {...controller} />
       <JobMetadata {...controller} />
       <JobState {...controller} />
-      <JobActions {...controller} />
+      <JobActions
+        {...controller}
+        extraActions={
+          <ReviewLaunch
+            card={controller.card}
+            data={data}
+            working={controller.working}
+            act={controller.act}
+          />
+        }
+      />
       {role ? (
         <p className="action-hint">
           Uses {runtimeLabels[role.runtime]}.{' '}

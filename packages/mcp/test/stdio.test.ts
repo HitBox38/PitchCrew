@@ -141,6 +141,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_report_progress',
         'pitchcrew_ask_user',
         'pitchcrew_invoke_agent',
+        'pitchcrew_start_deep_review',
         'pitchcrew_propose_role_changes',
         'pitchcrew_propose_skill',
         'pitchcrew_change_workflow',
