@@ -1,3 +1,4 @@
+import { cancelDeletedJobReviews } from './deep-review-cleanup.ts';
 import {
   states,
   type AgentTask,
@@ -61,6 +62,7 @@ export function deleteJob(board: Board, cardId: string, actor: string, reason: s
     const card = availableCard(board, cardId);
     const now = new Date().toISOString();
     board.record('card', { ...card, owner: null, deletedAt: now, updatedAt: now }, actor, reason);
+    cancelDeletedJobReviews(board, cardId, actor, now);
     invalidateApprovals(board, cardId, actor, now);
     for (const task of board.list<AgentTask>('task'))
       if (task.cardId === cardId && task.status === 'queued')

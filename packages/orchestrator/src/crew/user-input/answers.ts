@@ -1,3 +1,5 @@
+import { deepReviewQuestionRequest } from '../deep-reviews/chat.ts';
+import { cancelWaitingDeepReview } from '../deep-reviews/index.ts';
 import { originalQuestionTask, questionContinuationAllowed } from './context.ts';
 import { randomUUID } from 'node:crypto';
 import {
@@ -52,7 +54,23 @@ export function answerUserQuestion(context: CrewContext, id: string, data: unkno
       ))
   )
     throw new Error('The application brief changed. Answer its current requirements instead.');
+  const deepRequest = deepReviewQuestionRequest(
+    context,
+    original,
+    question,
+    answer.selected,
+    answer.text,
+  );
   const request: ChatRequest = {
+    ...(deepRequest
+      ? {
+          deepReviewRequest: {
+            cardId: deepRequest.cardId,
+            resumeId: deepRequest.resumeId,
+            preferences: deepRequest.preferences,
+          },
+        }
+      : {}),
     id: randomUUID(),
     threadId: question.sourceThreadId,
     messageId: randomUUID(),
@@ -64,7 +82,9 @@ export function answerUserQuestion(context: CrewContext, id: string, data: unkno
     order:
       Math.min(Date.now(), ...context.board.list<ChatRequest>('chat_request').map((r) => r.order)) -
       1,
-    deliveries: [{ roleId: role.id, status: 'queued', runId: null, error: '' }],
+    deliveries: [
+      { roleId: deepRequest?.reviewerId ?? role.id, status: 'queued', runId: null, error: '' },
+    ],
     userInputId: id,
     rootRunId: original.rootRunId ?? original.id,
     mode: original.mode ?? 'chat',
@@ -133,6 +153,8 @@ export function cancelUserQuestion(context: CrewContext, id: string) {
   if (question.status !== 'pending')
     throw new Error('This question is no longer awaiting an answer.');
   cancelUserQuestions(context, (q) => q.id === id, 'Question cancelled by the user.');
+  const origin = context.board.get<Run>('run', question.runId);
+  if (origin.deepReviewId) cancelWaitingDeepReview(context, origin.deepReviewId);
   void context.drainTasks();
   void drainConversationQueue(context);
   return context.board.get<UserInputRequest>('user_input', id);

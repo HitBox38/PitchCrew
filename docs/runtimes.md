@@ -96,3 +96,11 @@ Set native provider authentication variables in the daemon environment, such as 
 Demo is a deterministic fixture runtime with no model, authentication or AI calls. It is available only when the daemon starts with `--dev`. Existing Demo roles retain their history in production but cannot run until you select a real runtime.
 
 Return to the [README](../README.md) for workspace setup and the application workflow.
+
+## Managed deep-review child runs
+
+Codex, Claude Code and OpenCode advertise audited deep-review child support. Development Demo provides deterministic provider-free coverage. Pitchcrew starts each child as a fresh isolated CLI run with its own scoped MCP capability, run directory, cancellation signal and saved result; it does not enable native subagent, shell or filesystem tools or implement a provider agent loop. The capability describes launch isolation and a conservative four-child concurrent capacity per runtime per review, not provider quota or account entitlement. Other runtimes cannot silently substitute for an unsupported selection.
+
+Children normally inherit the effective saved Reviewer runtime/model. User-configured per-review alternatives are explicit and do not rewrite Crew settings. Invocation permissions are rechecked on every child request. Unavailable/failed children are reported, while the parent can finish using available findings. Children see the candidate resume, confirmed job data and verified evidence without other readers’ notes; only the parent consolidates conclusions.
+
+Deep-review phases and children share an initial 30-minute wall-clock budget. The parent can extend it by 1–30 minutes per scoped call with a concrete explanation, including considering a Writer time request in a separate parent decision turn. Existing CLI processes observe approved extensions. Children request time through the parent; they cannot extend deadlines or recursively delegate. Questions end execution and preserve remaining time for a fresh continuation. Stop always cancels the full workflow and child processes. Ordinary CLI/ACP turns retain the fixed 30-minute limit.

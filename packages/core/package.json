@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
     "./states": "./src/states.ts",
     "./chat-attachments": "./src/chat-attachments.ts",

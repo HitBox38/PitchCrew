@@ -1,3 +1,6 @@
+import { failReviewContinuation } from './deep-reviews/state.ts';
+import { startDeepReview } from './deep-reviews/index.ts';
+import { isDeepReviewRequest, queueDeepReviewChat } from './deep-reviews/chat.ts';
 import { questionContinuationAllowed } from './user-input/context.ts';
 import { cancelUserQuestions, waitingOnUser } from './user-input/lifecycle.ts';
 import { randomUUID } from 'node:crypto';
@@ -54,6 +57,11 @@ export async function sendConversation(
   try {
     if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
       throw new Error('The conversation changed. Try sending again.');
+    if (isDeepReviewRequest(input.content)) {
+      const request = queueDeepReviewChat(context, item, input.content, files);
+      void drainConversationQueue(context);
+      return request;
+    }
     if (intent === 'interrupt') {
       for (const run of context.board
         .list<Run>('run')
@@ -119,7 +127,7 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
         const delivery = current.deliveries.find((entry) => entry.roleId === queued.roleId)!;
         if (delivery.status !== 'queued') continue;
         const item = conversation(context, request.threadId);
-        if (!item.participants.includes(delivery.roleId)) {
+        if (!current.deepReviewRequest && !item.participants.includes(delivery.roleId)) {
           delivery.status = 'cancelled';
           saveRequest(context, current);
           continue;
@@ -175,8 +183,23 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
         delivery.status = 'running';
         saveRequest(context, current);
         try {
-          const run =
-            current.mode === 'workflow'
+          const deepRequest = current.deepReviewRequest;
+          const savedReview = deepRequest?.resumeId
+            ? context.board.get<import('@pitchcrew/core').DeepReview>(
+                'deep_review',
+                deepRequest.resumeId,
+              )
+            : undefined;
+          const run = deepRequest
+            ? await startDeepReview(
+                context,
+                deepRequest.cardId,
+                savedReview?.options ?? deepRequest.preferences ?? {},
+                deepRequest.resumeId,
+                { requestId: current.id, rootRunId: current.rootRunId ?? current.id },
+                current.threadId,
+              )
+            : current.mode === 'workflow'
               ? await context.startRun(
                   item.cardId!,
                   role.id,
@@ -214,6 +237,13 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
             context.controllers.get(run.id)?.abort();
           saveRequest(context, latest);
         } catch (error) {
+          if (context.closing) return;
+          if (current.deepReviewRequest?.resumeId)
+            failReviewContinuation(
+              context,
+              current.deepReviewRequest.resumeId,
+              error instanceof Error ? error.message : 'Continuation failed.',
+            );
           const latest = context.board.get<ChatRequest>('chat_request', current.id);
           const entry = latest.deliveries.find((entry) => entry.roleId === role.id)!;
           if (entry.status === 'running') {

@@ -2,7 +2,7 @@
 
 Pitchcrew stores one agent configuration for each role. A role's stable ID is its agent identity across board work, conversations, routines and runs; its runtime/model selects the CLI that executes it. Creating a role is a user settings action, never an agent tool.
 
-Every production runtime has a 30-minute limit per workflow or chat turn, including routines and crew follow-ups. The budget is independent of role, model, reasoning and computer-use permission, so Writer can complete drafting and source checks with its recommended High reasoning. Pitchcrew stops runs that reach this limit; users can cancel sooner with **Stop**. Restart the daemon after changing runtime code.
+Every ordinary production runtime turn has a fixed 30-minute limit per workflow or chat turn, including routines and crew follow-ups. Managed [deep resume reviews](deep-resume-review.md) share an initial 30-minute budget across their stages and optional children; the parent Reviewer can extend it with an explicit reason, and user cancellation stops the whole review. The budget is independent of role, model, reasoning and computer-use permission, so Writer can complete drafting and source checks with its recommended High reasoning. Pitchcrew stops runs that reach this limit; users can cancel sooner with **Stop**. Restart the daemon after changing runtime code.
 
 ## Default crew
 
@@ -92,10 +92,18 @@ No unattended scheduler is added: routines still run only while the daemon is op
 
 ## Events and verification
 
-New records use version 18, including card deletion tombstones, optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 17 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries, unrestricted board status corrections, deletion and replay. Live provider CLI runs remain outside automated verification.
+New records use version 21, which adds managed deep-review reports and temporary review subagents. Earlier versions introduced card deletion tombstones, optional user chat attachment metadata, cards with dynamic owners and job-discovery provenance, chat, tasks, routines and assignments. Versions 1 through 20 remain decodable and replayable. Integration tests exercise safe IDs, unknown/retired targets, source gateway checks, skill snapshots, custom chat, workflow seats, retirement, busy settings, proposal boundaries, unrestricted board status corrections, deletion and replay. Live provider CLI runs remain outside automated verification.
 
 ## Application source review
 
 Before fit assessment, extract or manually prepare the job brief. Before drafting, review and confirm its complete context and application requirements in the job overview. Confirmed changes require a fresh packet review; unchanged refreshes preserve accepted personal answers. The job's Draft application control also supports custom chat-only agents with a supported runtime. Source-discussion chat cannot create a managed application packet.
 
 Codex, Claude Code and OpenCode support the isolated application modes; Demo supports fictional development examples. Other runtimes continue to support ordinary conversations but must not fall back to raw descriptions for application runs. See [application source safety](application-source-safety.md).
+
+## Deep resume review
+
+A shortlisted job can enter the managed deep-review flow from its job action or chat. It uses the enabled Reviewer and Writer workflow seats and their saved runtime/model settings. It creates a first draft if needed, applies seven hiring perspectives in one Reviewer turn, sends actionable findings to Writer and independently rechecks the whole packet. Strong resumes need no invented criticism or unnecessary rewrite.
+
+Temporary second opinions inherit Reviewer’s identity for scoped permissions and attribution but are distinct isolated executions, never permanent crew roles or shared native sessions. They require Reviewer’s current invocation capability, cannot recursively delegate or ask the user directly, and have no export, submission, connector or ordinary crew tools. The user may explicitly configure alternative runtimes/models in the start dialog. Runtime/provider errors remain visible as incomplete optional opinions.
+
+Ordinary crew turns remain serialized per role; temporary review subagents and parent budget decisions belong to the owning deep-review workflow. Reports retain all seven perspectives, optional specialist results, severity and quotation attribution, before/after resumes and heuristic screen results. Review agreement still requires verified Profile evidence, confirmed requirements and a matching packet digest, followed by separate user approvals for outward actions.

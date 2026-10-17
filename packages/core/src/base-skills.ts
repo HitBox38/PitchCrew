@@ -1,3 +1,4 @@
+import { deepResumeReviewSkill } from './starter-skills/deep-resume-review.ts';
 // Kept free of schema dependencies so the browser can render the catalog directly.
 import type { RoleId } from './states.ts';
 import { improveSystem } from './starter-skills/improve-system.ts';
@@ -17,6 +18,14 @@ interface BaseSkillMetadata {
 export type BaseSkill = BaseSkillMetadata &
   ({ sourceType: 'github' } | { sourceType: 'bundled'; content: string });
 export const baseSkills: BaseSkill[] = [
+  {
+    ...deepResumeReviewSkill,
+    source: 'Pitchcrew',
+    sourceType: 'bundled',
+    skillPath: 'src/starter-skills/deep-resume-review.ts',
+    defaultRoles: ['reviewer'],
+    note: 'Uses the managed deep-review flow. Subagents depend on runtime support.',
+  },
   {
     ...promptInjectionGuard,
     source: 'Pitchcrew',

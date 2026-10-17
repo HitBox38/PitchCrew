@@ -1,3 +1,4 @@
+import { registerDeepReviewTools } from './tools/deep-reviews.ts';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -33,9 +34,18 @@ if (purpose === 'source-extraction') {
 } else {
   registerPacketTools(server, call, isolated);
 
-  if (isolated) registerApplicationInputTools(server, call);
-  else {
+  if (isolated) {
+    if (!['subagent', 'budget'].includes(String(execution.structuredContent.reviewMode)))
+      registerApplicationInputTools(server, call);
+    if (execution.structuredContent.reviewMode)
+      registerDeepReviewTools(
+        server,
+        call,
+        execution.structuredContent.reviewMode as 'parent' | 'subagent' | 'writer' | 'budget',
+      );
+  } else {
     registerCrewTools(server, call);
+    registerDeepReviewTools(server, call);
     registerRoutineTools(server, call);
     registerProfileTools(server, call);
     registerTrackingTools(server, call);

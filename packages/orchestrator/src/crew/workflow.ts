@@ -331,6 +331,7 @@ export async function applyResult(
         ...check.errors,
         ...missing,
         ...result.feedback,
+        ...warningFeedback(result.suggestions ?? []),
         ...warningFeedback(check.warnings),
       ]),
     ];
@@ -355,7 +356,11 @@ export async function applyResult(
   }
 }
 export function cancelRun(this: CrewContext, id: string): void {
-  const controller = this.controllers.get(id);
+  const reviewRun = this.board.get<Run>('run', id);
+  const parentId = reviewRun.deepReviewId
+    ? (this.deepReviewExecutions.get(reviewRun.deepReviewId)?.runId ?? id)
+    : id;
+  const controller = this.controllers.get(parentId);
   if (!controller) throw new Error('This run is no longer active.');
   controller.abort();
   const run = this.board.get<Run>('run', id);

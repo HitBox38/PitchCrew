@@ -38,7 +38,12 @@ export function JobActionsMenu(props: JobActionsMenuProps) {
             <ArrowUpRight size={15} />
             Open details
           </DropdownMenuItem>
-          <MoveToMenu card={card} disabled={!model.mutable} move={model.move} />
+          <MoveToMenu
+            card={card}
+            disabled={!model.mutable}
+            move={model.move}
+            finalFocus={model.finalFocus}
+          />
           {quickStatuses(card.state).map((state) => (
             <DropdownMenuItem
               key={state}
