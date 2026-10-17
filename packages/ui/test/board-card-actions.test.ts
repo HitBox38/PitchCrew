@@ -115,7 +115,26 @@ test('copying a posting link and recording withdrawal preserve the current view 
   ).toEqual([]);
 });
 
-test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async () => {
+test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async ({
+  onTestFinished,
+}) => {
+  const cdp = await page.context().newCDPSession(page);
+  onTestFinished(async () => {
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+    await cdp.detach();
+  });
+  // Exercise the submenu/board focus handoff under slower CI rendering.
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+  await page.route(
+    `**/api/cards/${card.id}/status`,
+    async (route) => {
+      const response = await route.fetch();
+      // Persistence can precede the response and the renderer's authoritative reload.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fulfill({ response });
+    },
+    { times: 1 },
+  );
   await menu().focus();
   await page.keyboard.press('Enter');
   await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
@@ -123,6 +142,8 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await expect
     .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
     .toBe('changes_requested');
+  // Focus returns after the action reload settles and re-enables the rendered trigger.
+  await page.locator(`#board-job-${card.id} .job-actions-trigger:enabled`).waitFor();
   await expect.poll(focusedLabel).toBe(menuName());
   await menu().click();
   await page.getByRole('menuitem', { name: 'Mark withdrawn', exact: true }).click();
@@ -136,6 +157,7 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await expect.poll(() => menu().count()).toBe(0);
   const closed = page.getByRole('button', { name: /^Closed/ });
   expect(await closed.getAttribute('aria-pressed')).toBe('true');
+  await page.locator('[data-slot="dropdown-menu-content"]').waitFor({ state: 'detached' });
   await expect
     .poll(() => closed.evaluate((element) => element === document.activeElement))
     .toBe(true);

@@ -27,7 +27,7 @@ it('starts and snapshots a workspace without initializing optional document or b
     try {
       workspace = await createDaemon({ directory, port: 15010, seedSkills: false });
       const snapshot = await workspace.service.snapshot();
-      if (snapshot.roles.length !== 7) throw new Error('Default roles missing.');
+      if (snapshot.roles.length !== 8) throw new Error('Default roles missing.');
       console.log('daemon snapshot ready');
     } finally {
       await workspace?.close();

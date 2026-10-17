@@ -56,7 +56,7 @@ This document records decisions from the chat redesign discussion. The conversat
 ## Agreed active-run messaging direction
 
 - Keep the composer usable while agents work, with Queue as Pitchcrew's default follow-up behavior.
-- Each agent has one active turn across its conversations, routines and workflow runs. Different agents can run in parallel; waiting requests queue visibly and retain their own conversation context.
+- Each crew agent has one active ordinary turn across its conversations, routines and workflow runs. A managed deep review holds its configured workflow seats while its scoped temporary child executions and parent deadline decisions run. Different agents can run in parallel; waiting requests queue visibly and retain their own conversation context.
 - Show which conversation is occupying a busy agent. Busy participants' pending requests wait for their turn rather than starting a second concurrent run for that agent.
 - Dispatch each agent's oldest ready request across conversations and routines first. Users can move an urgent queued request forward with Make next.
 - Steer applies only within the active conversation. A request from another conversation can be queued or use the explicitly labeled Stop current and send action; do not inject one conversation's request into another conversation's active session.

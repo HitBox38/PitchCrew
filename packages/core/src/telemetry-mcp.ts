@@ -1,5 +1,10 @@
 /** Reviewed tool names only. Discovery/bootstrap gateway actions are intentionally absent. */
 export const mcpGatewayTools = Object.freeze({
+  start_deep_review: 'pitchcrew_start_deep_review',
+  start_review_subagent: 'pitchcrew_start_review_subagent',
+  review_subagents: 'pitchcrew_review_subagents',
+  extend_review_deadline: 'pitchcrew_extend_review_deadline',
+  request_review_time: 'pitchcrew_request_review_time',
   ask_user: 'pitchcrew_ask_user',
   chat_attachment: 'pitchcrew_read_chat_attachment',
   roles: 'pitchcrew_list_roles',

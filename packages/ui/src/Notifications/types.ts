@@ -5,7 +5,8 @@ export type NotificationContext =
   | 'browser_approval'
   | 'role_proposal'
   | 'skill_proposal'
-  | 'instruction_update';
+  | 'instruction_update'
+  | 'skill_update';
 
 export interface CrewNotification {
   id: string;
@@ -13,7 +14,8 @@ export interface CrewNotification {
   context: NotificationContext;
   title: string;
   body: string;
-  target: '/inbox' | '/crew' | `/chat/${string}`;
+  target: '/inbox' | '/crew' | '/skills' | `/chat/${string}`;
+  reviewId?: string;
   createdAt: string;
 }
 export interface NotificationPreferences {

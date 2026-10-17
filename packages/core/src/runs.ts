@@ -1,3 +1,4 @@
+import { reviewAssessmentSchema } from './deep-reviews.ts';
 import { z } from 'zod';
 import { packetSchema } from './packets.ts';
 import type { Role } from './roles.ts';
@@ -16,8 +17,20 @@ export interface RunActivity {
 }
 export type RuntimeActivity = Pick<RunActivity, 'id' | 'kind' | 'label' | 'status' | 'text'>;
 export interface Run {
-  purpose?: 'source-extraction' | 'application-draft' | 'application-review' | 'fit';
+  purpose?:
+    | 'source-extraction'
+    | 'application-draft'
+    | 'application-review'
+    | 'fit'
+    | 'deep-review';
   contextRevision?: string;
+  deepReviewId?: string;
+  deepReviewSelection?: boolean;
+  reviewSubagentId?: string;
+  reviewBudgetRequest?: boolean;
+  /** Reserves a configured workflow seat; no provider execution or capability. */
+  reviewSeatReservation?: boolean;
+  reviewStage?: 'draft' | 'review' | 'correction' | 'recheck';
   id: string;
   cardId: string | null;
   roleId: RoleId;
@@ -66,6 +79,8 @@ export const runResultSchema = z.discriminatedUnion('role', [
     role: z.literal('reviewer'),
     passed: z.boolean(),
     feedback: z.array(z.string().max(2000)).max(30),
+    suggestions: z.array(z.string().max(2000)).max(60).optional(),
+    assessment: reviewAssessmentSchema.optional(),
   }),
 ]);
 export type RunResult = z.infer<typeof runResultSchema>;

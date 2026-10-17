@@ -1,5 +1,7 @@
 import type { WorkspaceSidebarProps } from '@/App/types.ts';
 import { AppSidebar } from '@/AppSidebar/index.tsx';
+import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
+import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
 
 export function WorkspaceSidebar({
   view,
@@ -24,7 +26,12 @@ export function WorkspaceSidebar({
       view={view}
       stages={stageLinks}
       onStage={jumpToStage}
-      counts={{ inbox: pending, profile: data.profile.length }}
+      counts={{
+        inbox: pending,
+        profile: data.profile.length,
+        crew: pendingInstructionUpdates(data).length,
+        skills: pendingSkillUpdates(data).length,
+      }}
       roles={data.roles}
       roleStatus={roleStatus}
       runningRoles={running.map((r) => r.roleId)}

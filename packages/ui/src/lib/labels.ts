@@ -1,6 +1,7 @@
 import type { CardState, JobProvider, RuntimeId } from '@pitchcrew/core';
 import {
   ChartNoAxesCombined,
+  Compass,
   ClipboardList,
   NotebookPen,
   PenLine,
@@ -42,6 +43,7 @@ export const roleIcons = {
   tracker: ClipboardList,
   documenter: NotebookPen,
   'pipeline-coach': ChartNoAxesCombined,
+  'career-coach': Compass,
 };
 
 export const runtimeLabels: Record<RuntimeId, string> = {

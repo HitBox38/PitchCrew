@@ -1,4 +1,5 @@
 export * from './conversations.ts';
+export * from './skill-updates.ts';
 export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
@@ -129,3 +130,5 @@ export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telem
 export type { ProfileOrganization } from './profile-organization.ts';
 export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from './chat-history.ts';
 export { isNotificationMessage } from './message-notifications.ts';
+
+export * from './deep-reviews.ts';

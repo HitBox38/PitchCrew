@@ -57,11 +57,11 @@ function CardDetailsContent(
       >
         <div className="detail-navigation shrink-0 px-5 pb-3 max-mobile:px-4">
           <TabsList className="detail-tabs" aria-label="Job sections">
-            {(['overview', 'packet', 'history'] as const).map((name) => (
+            {(['overview', 'packet', 'reviews', 'history'] as const).map((name) => (
               <TabsTrigger key={name} value={name}>
                 {name === 'overview' ? (
                   <FileText size={15} />
-                ) : name === 'packet' ? (
+                ) : name === 'packet' || name === 'reviews' ? (
                   <FileCheck size={15} />
                 ) : (
                   <History size={15} />

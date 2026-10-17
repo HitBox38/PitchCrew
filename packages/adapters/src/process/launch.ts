@@ -1,3 +1,4 @@
+import { watchRuntimeDeadline } from './deadline.ts';
 import type { ChatContext, RunContext, RunResult } from '@pitchcrew/core';
 import { chatResultSchema } from '@pitchcrew/core';
 import { spawn, type ChildProcess } from 'node:child_process';
@@ -12,7 +13,14 @@ export function terminateCli(child: ChildProcess) {
       windowsHide: true,
       stdio: 'ignore',
     });
-  else child.kill('SIGTERM');
+  else {
+    child.kill('SIGTERM');
+    const force = setTimeout(() => {
+      if (child.exitCode === null && child.signalCode === null) child.kill('SIGKILL');
+    }, 1000);
+    force.unref();
+    child.once('close', () => clearTimeout(force));
+  }
 }
 export async function chatCli(
   command: string,
@@ -62,10 +70,10 @@ export async function runCliText(
       bytes = 0;
     let timedOut = false;
     const kill = () => terminateCli(child);
-    const timer = setTimeout(() => {
+    const clearDeadline = watchRuntimeDeadline(context, () => {
       timedOut = true;
       kill();
-    }, runtimeTimeLimit);
+    });
     context.signal.addEventListener('abort', kill, { once: true });
     child.stdout.setEncoding('utf8');
     child.stdout.on('data', (chunk: string) => {
@@ -97,13 +105,13 @@ export async function runCliText(
       error = (error + chunk.toString()).slice(-3000);
     });
     child.on('error', (err) => {
-      clearTimeout(timer);
+      clearDeadline();
       context.signal.removeEventListener('abort', kill);
       reject(err);
     });
     child.on('close', (code) => {
       stream.finish();
-      clearTimeout(timer);
+      clearDeadline();
       context.signal.removeEventListener('abort', kill);
       if (context.signal.aborted) {
         reject(new Error('Run cancelled.'));

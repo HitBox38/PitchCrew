@@ -39,6 +39,7 @@ describe('role runtime recommendations', () => {
       { runtime: 'codex', model: luna.value, reasoning: 'high' },
       { runtime: 'codex', model: sol.value, reasoning: 'medium' },
       { runtime: 'codex', model: astra.value, reasoning: 'high' },
+      { runtime: 'codex', model: sol.value, reasoning: 'high' },
     ]);
     expect(runtimes).toEqual(before);
   });

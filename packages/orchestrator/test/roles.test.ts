@@ -119,6 +119,7 @@ describe('stored configurable roles', () => {
       'tracker',
       'documenter',
       'pipeline-coach',
+      'career-coach',
       custom.id,
     ]);
     await request('/skills', 'POST', {

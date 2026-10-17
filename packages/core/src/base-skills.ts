@@ -1,6 +1,9 @@
+import { deepResumeReviewSkill } from './starter-skills/deep-resume-review.ts';
 // Kept free of schema dependencies so the browser can render the catalog directly.
 import type { RoleId } from './states.ts';
+import { improveSystem } from './starter-skills/improve-system.ts';
 import { promptInjectionGuard } from './starter-skills/prompt-injection-guard.ts';
+import { careerSkills } from './starter-skills/career-ops/index.ts';
 
 export const skillContentLimit = 50000;
 interface BaseSkillMetadata {
@@ -16,6 +19,15 @@ interface BaseSkillMetadata {
 export type BaseSkill = BaseSkillMetadata &
   ({ sourceType: 'github' } | { sourceType: 'bundled'; content: string });
 export const baseSkills: BaseSkill[] = [
+  ...careerSkills,
+  {
+    ...deepResumeReviewSkill,
+    source: 'Pitchcrew',
+    sourceType: 'bundled',
+    skillPath: 'src/starter-skills/deep-resume-review.ts',
+    defaultRoles: ['reviewer'],
+    note: 'Uses the managed deep-review flow. Subagents depend on runtime support.',
+  },
   {
     ...promptInjectionGuard,
     source: 'Pitchcrew',
@@ -24,6 +36,14 @@ export const baseSkills: BaseSkill[] = [
     defaultScope: 'all',
     defaultRoles: [],
     note: 'Included with Pitchcrew and available offline. Supplements the enforced safety checks.',
+  },
+  {
+    ...improveSystem,
+    source: 'Pitchcrew',
+    sourceType: 'bundled',
+    skillPath: 'src/starter-skills/improve-system.ts',
+    defaultRoles: ['pipeline-coach'],
+    note: 'Included offline for Pipeline Coach. Adapts improve-system to board evidence and user-reviewed proposals.',
   },
   {
     name: 'cover-letter',

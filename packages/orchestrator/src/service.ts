@@ -1,3 +1,4 @@
+import { startDeepReview } from './crew/deep-reviews/index.ts';
 import { snapshotRevision } from './crew/snapshot-revision.ts';
 import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answers.ts';
 import { extractApplicationContext } from './crew/application-context/extraction.ts';
@@ -207,6 +208,16 @@ export class CrewService {
   previewSkillUpdate(id: string) {
     return this.skillUpdates.preview(this.context, id);
   }
+  checkSkillUpdates(automatic: boolean) {
+    return this.context.skillUpdateChecks.check(this.context, automatic);
+  }
+  configureSkillUpdates(automatic: boolean) {
+    this.context.skillUpdateChecks.setAutomatic(automatic);
+    return this.context.skillUpdateChecks.current(this.context);
+  }
+  dismissSkillUpdate(id: string, revision: string) {
+    return this.context.skillUpdateChecks.dismiss(this.context, id, revision);
+  }
   approveSkillUpdate(id: string, previewId: string) {
     return this.skillUpdates.approve(this.context, id, previewId);
   }
@@ -250,6 +261,9 @@ export class CrewService {
   }
   loadExamples(): Promise<void> {
     return this.context.loadExamples();
+  }
+  startDeepReview(cardId: string, input: unknown = {}) {
+    return startDeepReview(this.context, cardId, input);
   }
   startRun(cardId: string, roleId: RoleId, task?: AgentTask): Promise<Run> {
     return this.context.startRun(cardId, roleId, task);

@@ -8,7 +8,8 @@ export function JobHistory({ data, card }: JobHistoryProps) {
         .filter(
           (e) =>
             e.entityId === card.id ||
-            (e.kind === 'run' && (e.data as { cardId?: string }).cardId === card.id),
+            (['run', 'deep_review'].includes(e.kind) &&
+              (e.data as { cardId?: string }).cardId === card.id),
         )
         .map((event) => (
           <div key={event.id}>

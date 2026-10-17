@@ -11,6 +11,7 @@ export function RoleInstructionUpdate({
   instructions,
   setInstructions,
   setDefaultInstructionRevision,
+  reviewInstructions,
 }: RoleSettingsModel) {
   const update = creating ? undefined : instructionUpdateFor(data, role.id);
   if (!update || role.retiredAt) return null;
@@ -18,6 +19,7 @@ export function RoleInstructionUpdate({
     <InstructionUpdate
       key={update.revision}
       role={role}
+      initiallyExpanded={reviewInstructions}
       update={update}
       action={action}
       working={working}

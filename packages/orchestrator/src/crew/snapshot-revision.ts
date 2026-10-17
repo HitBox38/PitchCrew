@@ -33,6 +33,7 @@ export async function snapshotRevision(context: CrewContext): Promise<string> {
     onboarding: context.onboarding.get(),
     packetRules: context.packetRules.current(),
     instructionUpdates: context.instructionUpdatePreferences.dismissed(),
+    skillUpdates: context.skillUpdateChecks.revision(),
     profileOrganization: context.profileOrganization.get(),
     runtimes: context.runtimes,
     connectors: context.connectors.status(),

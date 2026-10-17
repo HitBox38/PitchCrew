@@ -1,4 +1,4 @@
-import { workspaceCards, workspaceRuns } from './workspace-projection.ts';
+import { workspaceCards, workspaceRuns, workspaceEvents } from './workspace-projection.ts';
 import { workspaceMessages } from '@pitchcrew/board';
 import { activityRuns } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
@@ -76,6 +76,61 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
       if (card.state === 'drafting')
         this.board.move(card.id, 'changes_requested', 'system', 'Draft interrupted; retry writer');
     }
+    for (const report of this.board
+      .list<import('@pitchcrew/core').DeepReview>('deep_review')
+      .filter((r) => r.status === 'running')) {
+      const question = this.board
+        .list<import('@pitchcrew/core').UserInputRequest>('user_input')
+        .find(
+          (q) =>
+            q.status === 'pending' &&
+            this.board.get<Run>('run', q.runId).deepReviewId === report.id,
+        );
+      const summary = question
+        ? 'Waiting for your answer'
+        : 'The daemon stopped during this deep review. Start a fresh review; completed work remains in history.';
+      this.board.record(
+        'deep_review',
+        {
+          ...report,
+          status: question ? 'waiting' : 'failed',
+          summary,
+          error: question ? undefined : 'Interrupted by daemon restart.',
+          currentPacketDigest: question
+            ? this.board.get<Run>('run', question.runId).inputPacketDigest
+            : report.currentPacketDigest,
+          remainingMs: question
+            ? Math.max(1000, Date.parse(report.deadlineAt) - Date.parse(question.createdAt))
+            : undefined,
+          finishedAt: question ? null : new Date().toISOString(),
+        },
+        'system',
+        'Recovered interrupted deep review',
+      );
+      if (question) {
+        const parent = this.board.get<Run>('run', report.runId);
+        this.board.record(
+          'run',
+          { ...parent, status: 'waiting', message: summary },
+          'system',
+          summary,
+        );
+      }
+    }
+    for (const child of this.board
+      .list<import('@pitchcrew/core').ReviewSubagent>('review_subagent')
+      .filter((r) => r.status === 'running'))
+      this.board.record(
+        'review_subagent',
+        {
+          ...child,
+          status: 'cancelled',
+          error: 'Interrupted by daemon restart.',
+          finishedAt: new Date().toISOString(),
+        },
+        'system',
+        'Recovered interrupted review subagent',
+      );
     for (const task of this.board
       .list<AgentTask>('task')
       .filter((t) => ['queued', 'running'].includes(t.status)))
@@ -138,6 +193,7 @@ export async function snapshot(
     onboarding: this.onboarding.get(),
     packetRules: this.packetRules.current(),
     instructionUpdates: instructionUpdates(this),
+    skillUpdates: this.skillUpdateChecks.current(this),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
     cards: options?.workspace ? workspaceCards(this.board) : this.board.list<Card>('card'),
@@ -148,7 +204,7 @@ export async function snapshot(
     runs: options?.workspace ? workspaceRuns(this.board) : this.board.list<Run>('run').reverse(),
     approvals: this.board.list<Approval>('approval').reverse(),
     computerApprovals: this.board.list<ComputerApproval>('computer_approval').reverse(),
-    events: this.board.events(),
+    events: options?.workspace ? workspaceEvents(this.board) : this.board.events(),
     profileProposals: this.board.list('profile_proposal'),
     profile,
     profileOrganization: this.profileOrganization.get(),
@@ -178,6 +234,7 @@ export async function close(this: CrewContext): Promise<void> {
   for (const controller of this.controllers.values()) controller.abort();
   await Promise.allSettled([
     ...this.modelRequests.values(),
+    this.skillUpdateChecks.close(),
     ...(this.starterRequest ? [this.starterRequest] : []),
   ]);
   await this.connectors.close();

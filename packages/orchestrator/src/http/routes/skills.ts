@@ -4,6 +4,24 @@ import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
 export function registerSkillsRoutes(app: FastifyInstance, service: CrewService) {
+  app.post('/api/skills/updates/check', async (req, res) => {
+    const { automatic } = z
+      .object({ automatic: z.boolean().default(false) })
+      .strict()
+      .parse(req.body ?? {});
+    res.send(await service.checkSkillUpdates(automatic));
+  });
+  app.put('/api/skills/updates/preferences', (req, res) => {
+    const { automatic } = z.object({ automatic: z.boolean() }).strict().parse(req.body);
+    res.send(service.configureSkillUpdates(automatic));
+  });
+  app.post<IdRoute>('/api/skills/:id/update/dismiss', (req, res) => {
+    const { revision } = z
+      .object({ revision: z.string().min(1).max(800) })
+      .strict()
+      .parse(req.body);
+    res.send(service.dismissSkillUpdate(req.params.id, revision));
+  });
   app.post('/api/skills', (req, res) => res.status(201).send(service.saveSkill(req.body)));
   app.post('/api/skills/starter/retry', async (_req, res) =>
     res.send(await service.seedStarterSkills()),

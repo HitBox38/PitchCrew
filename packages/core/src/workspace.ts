@@ -3,6 +3,7 @@ import type { UserInputRequest } from './user-input.ts';
 import type { Conversation, ChatRequest, AgentMemory } from './conversations.ts';
 import type { ProfileMaintenanceProposal } from './profile-maintenance.ts';
 import type { InstructionUpdate } from './default-instructions.ts';
+import type { SkillUpdatesState } from './skill-updates.ts';
 import type { OnboardingState } from './onboarding.ts';
 import type { PipelineReview } from './pipeline-reviews.ts';
 import type { Card } from './cards.ts';
@@ -48,6 +49,8 @@ export interface Snapshot extends WorkspaceMessages {
   packetRules?: PacketRulesState;
   /** Newer default instructions for seeded roles; user-session snapshots only. */
   instructionUpdates?: InstructionUpdate[];
+  /** User-only upstream checks and version-specific decisions, without remote skill contents. */
+  skillUpdates?: SkillUpdatesState;
   profileProposals?: ProfileMaintenanceProposal[];
   trackingSignals?: TrackingSignal[];
   trackingScans?: TrackingScan[];

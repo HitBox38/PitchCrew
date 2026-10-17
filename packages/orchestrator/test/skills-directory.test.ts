@@ -28,6 +28,19 @@ function fixture(raw = text, path = 'skills/evidence-checklist/SKILL.md') {
   return { fetcher, directory: new SkillDirectory(fetcher) };
 }
 describe('skills.sh Markdown imports', () => {
+  it('shares repository HEAD only within one bounded update sweep', async () => {
+    const { directory, fetcher } = fixture();
+    const batch = directory.batch();
+    await directory.preview(url, undefined, batch);
+    await directory.preview(url, undefined, batch);
+    expect(
+      fetcher.mock.calls.filter(([target]) => String(target).includes('/git/trees/HEAD')),
+    ).toHaveLength(1);
+    await directory.preview(url, undefined, directory.batch());
+    expect(
+      fetcher.mock.calls.filter(([target]) => String(target).includes('/git/trees/HEAD')),
+    ).toHaveLength(2);
+  });
   it('resolves latest HEAD on every load and reuses only unchanged immutable blobs', async () => {
     const { directory, fetcher } = fixture();
     const preview = await directory.preview(url);

@@ -58,6 +58,7 @@ export const defaultRoleIds = [
   'tracker',
   'documenter',
   'pipeline-coach',
+  'career-coach',
 ] as const;
 export type WorkflowSeat = (typeof roleIds)[number];
 export type RoleId = string;

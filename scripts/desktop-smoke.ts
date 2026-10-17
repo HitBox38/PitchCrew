@@ -1,3 +1,4 @@
+import { defaultRoleIds } from '../packages/core/src/states.ts';
 import { spawn, type ChildProcess } from 'node:child_process';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -63,7 +64,7 @@ try {
   if (
     result.apiStatus !== 200 ||
     result.requireType !== 'undefined' ||
-    result.roles !== 7 ||
+    result.roles !== defaultRoleIds.length ||
     !result.iconLoaded ||
     !result.uiReady ||
     !result.styleChecks ||

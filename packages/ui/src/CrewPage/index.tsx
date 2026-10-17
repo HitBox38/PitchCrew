@@ -1,5 +1,7 @@
 import { CreateRole } from './components/CreateRole.tsx';
-import { InstructionUpdatesNotice } from './components/InstructionUpdatesNotice.tsx';
+import { CrewUpdates } from './components/CrewUpdates.tsx';
+import { CrewUpdateReview } from './components/CrewUpdateReview.tsx';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { CrewCard } from '@/CrewPage/components/CrewCard.tsx';
 import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
 import { getRoleStatus } from '@/lib/role-status.ts';
@@ -9,12 +11,15 @@ import type { Role } from '@pitchcrew/core';
 import { useShallow } from 'zustand/react/shallow';
 
 export function CrewPage() {
-  const { data, working, setRoleId, act } = useWorkspaceStore(
+  const navigate = useNavigate({ from: '/crew' });
+  const { updates: updatesOnly } = useSearch({ from: '/crew' });
+  const { data, working, setRoleId, act, action } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
       working: state.working,
       setRoleId: state.setRoleId,
       act: state.act,
+      action: state.action,
     })),
   );
   const { openChat } = useWorkspaceNavigation();
@@ -28,12 +33,20 @@ export function CrewPage() {
     return status.startsWith('Working') ? status : 'Ready';
   };
   const updates = pendingInstructionUpdates(data);
+  const pendingIds = new Set(updates.map((update) => update.roleId));
+  const roles = data.roles
+    .filter((role) => !updatesOnly || pendingIds.has(role.id))
+    .toSorted((a, b) => Number(pendingIds.has(b.id)) - Number(pendingIds.has(a.id)));
   return (
     <>
       <CreateRole data={data} working={working} />
-      <InstructionUpdatesNotice data={data} onReview={setRoleId} />
+      <CrewUpdates
+        data={data}
+        onReview={(id) => void navigate({ search: (previous) => ({ ...previous, review: id }) })}
+      />
+      <CrewUpdateReview data={data} action={action} working={working} />
       <div className="crew-grid">
-        {data.roles.map((role) => (
+        {roles.map((role) => (
           <CrewCard
             key={role.id}
             role={role}

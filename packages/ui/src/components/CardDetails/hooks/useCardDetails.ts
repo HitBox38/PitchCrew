@@ -12,7 +12,7 @@ export function useCardDetails({
   onClose,
   onInbox,
 }: CardDetailsProps) {
-  const [tab, setTab] = useState<'overview' | 'packet' | 'history'>('overview');
+  const [tab, setTab] = useState<'overview' | 'packet' | 'reviews' | 'history'>('overview');
   const [briefDirty, setBriefDirty] = useState(false);
   const guard = useUnsavedChanges(briefDirty);
   const [document, setDocument] = useState<keyof Omit<Packet, 'claims'>>('resume');

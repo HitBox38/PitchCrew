@@ -60,6 +60,13 @@ it('detects all runtimes and seeds paused production roles from native models an
       reasoning: 'high',
       enabled: false,
     },
+    {
+      id: 'career-coach',
+      runtime: 'codex',
+      model: 'gpt-6.1-sol',
+      reasoning: 'high',
+      enabled: false,
+    },
   ]);
   for (const adapter of Object.values(adapters).filter((adapter) => adapter.id !== 'demo'))
     expect(adapter.detect).toHaveBeenCalled();

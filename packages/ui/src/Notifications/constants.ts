@@ -21,4 +21,5 @@ export const notificationPresentation: Record<
   role_proposal: { icon: Settings2, action: 'Review role change' },
   skill_proposal: { icon: BookOpenCheck, action: 'Review skill' },
   instruction_update: { icon: Sparkles, action: 'Review update' },
+  skill_update: { icon: BookOpenCheck, action: 'Review update' },
 };

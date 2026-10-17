@@ -56,6 +56,7 @@ function extract(event: Record<string, unknown>): string | null {
 }
 export const codex: RuntimeAdapter = {
   applicationIsolation: true,
+  reviewSubagents: { maxConcurrent: 4 },
   id: 'codex',
   sessionSupport: 'resume',
   // https://learn.chatgpt.com/docs/models

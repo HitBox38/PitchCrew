@@ -9,6 +9,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 export function useRoleSettings({
   role,
+  reviewInstructions = false,
   creating = false,
   data,
   action,
@@ -108,6 +109,7 @@ export function useRoleSettings({
     }
   }
   return {
+    reviewInstructions,
     creating,
     id,
     setId,

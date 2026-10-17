@@ -1,6 +1,7 @@
 import { Board } from '@pitchcrew/board';
 import { ProfileOrganizationStore } from '../profile-organization.ts';
 import { InstructionUpdatePreferences } from '../instruction-updates.ts';
+import { SkillUpdateChecks } from '../skill-update-checks/index.ts';
 import { OnboardingPreferences } from '../onboarding.ts';
 import { PacketRulesStore } from '../packet-rules.ts';
 import {
@@ -66,8 +67,10 @@ export function createCrewContext(
     daemonUrl,
     mcpEntry,
     board,
+    deepReviewExecutions: new Map(),
     onboarding,
     instructionUpdatePreferences: new InstructionUpdatePreferences(directory),
+    skillUpdateChecks: new SkillUpdateChecks(directory),
     packetRules: new PacketRulesStore(directory),
     connectors,
     profileSources: new ProfileSourceManager(directory, connectors),

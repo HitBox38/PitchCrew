@@ -100,19 +100,22 @@ Moving from another tracker? **Import applications** on Board accepts a legacy S
 
 Each agent has a name, responsibilities, instructions, runtime, model and allowed tools. The defaults are ordinary editable agents:
 
-| Agent          | Purpose                                            | Additional setup                                          |
-| -------------- | -------------------------------------------------- | --------------------------------------------------------- |
-| Scout          | Assess job fit and identify missing evidence       | Profile notes and a job description; job sources to scan  |
-| Writer         | Draft application packets                          | Profile notes and a shortlisted job                       |
-| Reviewer       | Check accuracy and suggest corrections             | A drafted packet                                          |
-| Submitter      | Inspect forms and assist with approved submissions | Chromium; an exported packet for packet uploads           |
-| Tracker        | Reconcile application updates from email           | Connected Google account and Gmail permission             |
-| Documenter     | Propose profile updates from watched sources       | Connected account, matching permission and a source watch |
-| Pipeline Coach | Review the pipeline and propose crew improvements  | A review scope and enough board history                   |
+| Agent          | Purpose                                                       | Additional setup                                          |
+| -------------- | ------------------------------------------------------------- | --------------------------------------------------------- |
+| Scout          | Assess job fit and identify missing evidence                  | Profile notes and a job description; job sources to scan  |
+| Writer         | Draft application packets                                     | Profile notes and a shortlisted job                       |
+| Reviewer       | Check accuracy and suggest corrections                        | A drafted packet                                          |
+| Submitter      | Inspect forms and assist with approved submissions            | Chromium; an exported packet for packet uploads           |
+| Tracker        | Reconcile application updates from email                      | Connected Google account and Gmail permission             |
+| Documenter     | Propose profile updates from watched sources                  | Connected account, matching permission and a source watch |
+| Pipeline Coach | Review the pipeline and propose crew improvements             | A review scope and enough board history                   |
+| Career Coach   | Prepare for interviews, plan career moves and evaluate offers | Profile and task context; Chromium for public research    |
 
 Choose **Create agent** in Crew to define another role, select tools and skills, and optionally add a first routine. Custom agents start with optional capabilities disabled. Connecting an account does not grant agents access to it. Default agents have no seeded routines or source watches.
 
 Updates never overwrite your agents. When a release changes a default agent's instructions, its Crew card shows **Instructions update available** and the notification bell lists it. Its settings show what changed and a diff against your text. Choose **Use new default**, **Keep mine**, or, if you edited the instructions, **Edit from new default** to start over while keeping your old text in view. Tools never change this way. See [default instruction updates](docs/roles.md#default-instruction-updates).
+
+Career Coach offers five chat starters: interview preparation, practice, debrief, career planning and offer evaluation. Practice defaults to feedback after each answer; ask for a mock interview to receive feedback at the end. Coaching results stay in chat, with concise source-linked agent memory. Offer support includes compensation comparisons, a guided terms walkthrough and negotiation drafts on request, which you review and send. Production starts Career Coach paused; configure and enable it in Crew. See [career support](docs/career-support.md).
 
 ### Runtimes
 
@@ -130,7 +133,7 @@ Use **Conversation runtime** to override runtime/model for a participant; reason
 
 **Skills** holds reusable Markdown instructions assigned to all agents or selected roles. Write your own, import a public GitHub-backed skills.sh link, or review an agent's suggestion. Imports copy `SKILL.md` instructions only. New runs receive a snapshot of their assigned skills; edits affect future runs and grant no additional tools.
 
-On startup, Pitchcrew loads missing skills from a ten-entry public GitHub starter catalog. Existing edits and deletions are preserved. Failed imports can be retried from Skills. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports.
+On startup, Pitchcrew loads missing skills from the public GitHub starter catalog and bundled offline skills. Existing edits and deletions are preserved. Career skills are included offline for Scout, Writer, Reviewer and Career Coach; existing edits, assignments and deletions survive startup. Failed imports can be retried from Skills. Set `PITCHCREW_SEED_SKILLS=0` to skip startup imports.
 
 **Routines** schedules one-time or repeating agent tasks with a timezone and optional end date or run limit. Routines persist across restarts and run only while the daemon is open; the [background service](docs/background-service.md) keeps it open after you log in. Busy or paused agents wait; overdue repeats coalesce into one run. See [routines](docs/routines.md).
 

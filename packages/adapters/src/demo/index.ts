@@ -1,3 +1,4 @@
+import { originalReviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import { workflowSeat } from '@pitchcrew/core';
 import type { Packet, RuntimeAdapter } from '@pitchcrew/core';
 import { lintPacket } from '@pitchcrew/packet';
@@ -5,6 +6,7 @@ import { setTimeout } from 'node:timers/promises';
 
 export const demo: RuntimeAdapter = {
   applicationIsolation: true,
+  reviewSubagents: { maxConcurrent: 4 },
   id: 'demo',
   models: [],
   detect: async () => ({
@@ -79,8 +81,42 @@ export const demo: RuntimeAdapter = {
     }
     if (workflowSeat(context.role) === 'reviewer') {
       if (!context.card.packet) throw new Error('Draft a packet first.');
-      const feedback = lintPacket(context.card.packet, context.profile, context.packetRules);
-      return { role: 'reviewer', passed: feedback.length === 0, feedback };
+      const feedback = context.deepReview?.subagent
+        ? []
+        : lintPacket(context.card.packet, context.profile, context.packetRules);
+      return {
+        role: 'reviewer',
+        passed: feedback.length === 0,
+        feedback,
+        ...(context.deepReview
+          ? {
+              assessment: {
+                summary:
+                  'Deterministic fictional review. Check the supported experience against this job.',
+                perspectives: (context.deepReview.subagent
+                  ? [context.deepReview.subagent.perspective]
+                  : originalReviewPerspectives
+                ).map((perspective) => ({
+                  perspective,
+                  verdict:
+                    perspective === 'screen'
+                      ? feedback.length
+                        ? ('REJECT' as const)
+                        : ('PASS' as const)
+                      : perspective === 'interview'
+                        ? feedback.length
+                          ? ('NO' as const)
+                          : ('INTERVIEW' as const)
+                        : ('MAYBE' as const),
+                  rationale: 'Demo assessment; no live hiring prediction.',
+                  weakestLine: '',
+                  interviewQuestions: [],
+                })),
+                findings: [],
+              },
+            }
+          : {}),
+      };
     }
     const facts = context.profile
       .flatMap((file) =>

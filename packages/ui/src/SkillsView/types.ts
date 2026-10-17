@@ -10,6 +10,12 @@ export interface SkillsViewProps {
   working: boolean;
   filter: SkillFilter;
   onFilter: (filter: SkillFilter) => void;
+  selectedId?: string;
+  onSelect: (id: string | null) => void;
+  updatesOnly: boolean;
+  onUpdatesOnly: () => void;
+  reviewId?: string;
+  onReviewClose: () => void;
 }
 export type SkillsViewModel = NonNullable<ReturnType<typeof useSkillsView>>;
 
@@ -59,4 +65,6 @@ export type SkillPreviewProps = Pick<
   | 'setError'
   | 'setDeleting'
   | 'setSelectedId'
+  | 'reviewId'
+  | 'onReviewClose'
 >;

@@ -24,7 +24,14 @@ export function SkillDocumentHeading(c: SkillPreviewProps) {
       </div>
       <div className="skill-actions">
         {skill.source ? (
-          <SkillUpdate key={skill.id} skill={skill} action={c.action} working={c.working} />
+          <SkillUpdate
+            key={skill.id}
+            skill={skill}
+            action={c.action}
+            working={c.working}
+            requested={c.reviewId === skill.id}
+            onReviewClose={c.onReviewClose}
+          />
         ) : null}
         <Button
           className="button small"
