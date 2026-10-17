@@ -116,6 +116,16 @@ test('copying a posting link and recording withdrawal preserve the current view 
 });
 
 test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async () => {
+  await page.route(
+    `**/api/cards/${card.id}/status`,
+    async (route) => {
+      const response = await route.fetch();
+      // Persistence can precede the response and the renderer's authoritative reload.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fulfill({ response });
+    },
+    { times: 1 },
+  );
   await menu().focus();
   await page.keyboard.press('Enter');
   await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
@@ -123,6 +133,8 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await expect
     .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
     .toBe('changes_requested');
+  // Focus returns after the action reload settles and re-enables the rendered trigger.
+  await page.locator(`#board-job-${card.id} .job-actions-trigger:enabled`).waitFor();
   await expect.poll(focusedLabel).toBe(menuName());
   await menu().click();
   await page.getByRole('menuitem', { name: 'Mark withdrawn', exact: true }).click();
