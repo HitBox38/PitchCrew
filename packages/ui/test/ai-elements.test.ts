@@ -1,4 +1,7 @@
 import { fileURLToPath } from 'node:url';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright';
 import { createServer, type ViteDevServer } from 'vite';
 import { afterAll, beforeAll, expect, test } from 'vitest';
@@ -6,12 +9,16 @@ import { afterAll, beforeAll, expect, test } from 'vitest';
 let server: ViteDevServer;
 let browser: Browser;
 let page: Page;
+let cache: string;
 const errors: string[] = [];
 
 beforeAll(async () => {
+  // Different fixture plugins must not invalidate another server's dependency cache.
+  cache = await mkdtemp(join(tmpdir(), 'pitchcrew-ai-elements-cache-'));
   server = await createServer({
     root: fileURLToPath(new URL('..', import.meta.url)),
     configFile: fileURLToPath(new URL('../vite.config.ts', import.meta.url)),
+    cacheDir: cache,
     logLevel: 'error',
     server: { host: '127.0.0.1', port: 0 },
     plugins: [
@@ -49,6 +56,7 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await server?.close();
+  if (cache) await rm(cache, { recursive: true, force: true });
 });
 
 const viewport = '[data-slot="message-scroller-viewport"]';
