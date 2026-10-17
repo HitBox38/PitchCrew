@@ -1,3 +1,4 @@
+import { lazyRouteComponent } from '@tanstack/react-router';
 import { lazy } from 'react';
 
 export const ConversationCreation = lazy(() =>
@@ -16,6 +17,7 @@ export const RoleSettings = lazy(() =>
   import('@/components/RoleSettings/index.tsx').then((m) => ({ default: m.RoleSettings })),
 );
 
-export const CommandPalette = lazy(() =>
-  import('@/CommandPalette/index.tsx').then((m) => ({ default: m.CommandPalette })),
+export const CommandPalette = lazyRouteComponent(
+  () => import('@/CommandPalette/index.tsx'),
+  'CommandPalette',
 );

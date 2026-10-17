@@ -1,4 +1,4 @@
-import { InboxView } from '@/pages/constants.ts';
+import { InboxView } from '@/components/InboxView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 

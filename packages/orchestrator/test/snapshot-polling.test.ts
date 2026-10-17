@@ -282,3 +282,62 @@ it('never accepts a validator from a previous daemon instance', async () => {
     await restarted.close();
   }
 });
+
+it('shares only in-flight workspace reads at the same revision', async () => {
+  const body = await context.snapshot();
+  let release!: (value: Snapshot) => void;
+  const waiting = new Promise<Snapshot>((resolve) => {
+    release = resolve;
+  });
+  snapshot.mockReturnValue(waiting);
+  const revision = vi.fn(async () => 'unchanged');
+  await app.close();
+  app = Fastify();
+  registerSnapshot(app, { snapshot, snapshotRevision: revision });
+  const first = app.inject({ url: '/api/snapshot?view=workspace' });
+  await vi.waitFor(() => expect(snapshot).toHaveBeenCalledOnce());
+  const second = app.inject({ url: '/api/snapshot?view=workspace' });
+  try {
+    await vi.waitFor(() => expect(revision).toHaveBeenCalledTimes(2));
+    await Promise.resolve();
+    expect(snapshot).toHaveBeenCalledOnce();
+  } finally {
+    release(body);
+  }
+  const responses = await Promise.all([first, second]);
+  expect(responses[0].body).toBe(responses[1].body);
+  snapshot.mockResolvedValue(body);
+  expect((await app.inject({ url: '/api/snapshot?view=workspace' })).statusCode).toBe(200);
+  expect(snapshot).toHaveBeenCalledTimes(2);
+});
+
+it('never coalesces different revisions or retains a failed workspace build', async () => {
+  const body = await context.snapshot();
+  let value = 'first';
+  let release!: (value: Snapshot) => void;
+  snapshot.mockImplementationOnce(
+    () =>
+      new Promise<Snapshot>((resolve) => {
+        release = resolve;
+      }),
+  );
+  snapshot.mockResolvedValue(body);
+  await app.close();
+  app = Fastify();
+  registerSnapshot(app, { snapshot, snapshotRevision: async () => value });
+  const first = app.inject({ url: '/api/snapshot?view=workspace' });
+  await vi.waitFor(() => expect(snapshot).toHaveBeenCalledOnce());
+  value = 'second';
+  let second;
+  try {
+    second = await app.inject({ url: '/api/snapshot?view=workspace' });
+  } finally {
+    release(body);
+  }
+  expect(snapshot).toHaveBeenCalledTimes(2);
+  expect((await first).headers.etag).not.toBe(second.headers.etag);
+  snapshot.mockRejectedValueOnce(new Error('Fictional read failure'));
+  expect((await app.inject({ url: '/api/snapshot?view=workspace' })).statusCode).toBe(500);
+  expect((await app.inject({ url: '/api/snapshot?view=workspace' })).statusCode).toBe(200);
+  expect(snapshot).toHaveBeenCalledTimes(4);
+});

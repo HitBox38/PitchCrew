@@ -43,6 +43,7 @@ export function useNotifications() {
     saveStored(readKey, read);
   }, [read]);
   useEffect(() => {
+    if (!sound) return;
     const unlock = () => {
       try {
         unlockNotificationAudio();
@@ -56,7 +57,7 @@ export function useNotifications() {
       window.removeEventListener('pointerdown', unlock);
       window.removeEventListener('keydown', unlock);
     };
-  }, []);
+  }, [sound]);
   useEffect(() => {
     if (!data) return;
     const currentIds = new Set(items.map((item) => item.id));

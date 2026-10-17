@@ -3,6 +3,10 @@ import { smokeChatPanels } from './smoke-chat-panels.ts';
 export const smokeConversations = `(async () => {
   document.querySelector('a[href="/"]')?.click();
   if (!await waitFor(() => location.pathname === '/')) throw new Error('Conversation creation did not start from Board.');
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
+  const searchOpened = await waitFor(() => !!document.querySelector('.command-palette input') && document.activeElement === document.querySelector('.command-palette input'));
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+  const commandSearch = searchOpened && await waitFor(() => !document.querySelector('.command-palette input'));
   document.querySelector('button[aria-label="New conversation"]')?.click();
   if (!await waitFor(() => !!document.querySelector('#conversation-title'))) throw new Error('New conversation dialog did not open from the app sidebar.');
   const title = document.querySelector('#conversation-title');
@@ -35,5 +39,5 @@ export const smokeConversations = `(async () => {
   const expanded = await waitFor(() => document.activeElement === document.querySelector('nav[aria-label="Conversations"] input'));
   document.querySelector('nav[aria-label="Conversations"] a[href="/chat/scout"]')?.click();
   const navigated = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
-  return { created, singleSidebar, runtimeDefaults, chatPanels, filtered, collapsed, expanded, navigated };
+  return { commandSearch, created, singleSidebar, runtimeDefaults, chatPanels, filtered, collapsed, expanded, navigated };
 })()`;

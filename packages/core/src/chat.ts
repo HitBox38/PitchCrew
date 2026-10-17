@@ -1,3 +1,4 @@
+import type { WorkspaceMessages } from './chat-history.ts';
 import type { Run } from './runs.ts';
 import type { UserInputRequest } from './user-input.ts';
 import { roleIdSchema } from './roles.ts';
@@ -24,16 +25,16 @@ export interface ChatMessage {
   attachments?: ChatAttachment[];
   memoryIds?: string[];
 }
-export interface ChatStreamState {
+export interface ChatStreamState extends WorkspaceMessages {
   activityRuns?: Run[];
   userInputs?: UserInputRequest[];
   messages: ChatMessage[];
   streamingMessages: ChatMessage[];
 }
-export interface ChatStreamUpdate {
+export interface ChatStreamUpdate extends Partial<WorkspaceMessages> {
   /** Run snapshots merged by ID; initial connection includes saved turn activity. */
   activityRuns?: Run[];
-  // Saved history is sent on connection and when messages change, never per token.
+  // Full streams send saved history; workspace streams send previews and history metadata.
   userInputs?: UserInputRequest[];
   messages?: ChatMessage[];
   streamingMessages: ChatMessage[];

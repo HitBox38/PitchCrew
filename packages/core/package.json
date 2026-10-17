@@ -11,7 +11,8 @@
     "./base-skills": "./src/base-skills.ts",
     "./operational-logs": "./src/operational-logs.ts",
     "./telemetry-ai": "./src/telemetry-ai.ts",
-    "./telemetry-mcp": "./src/telemetry-mcp.ts"
+    "./telemetry-mcp": "./src/telemetry-mcp.ts",
+    "./message-notifications": "./src/message-notifications.ts"
   },
   "dependencies": {
     "zod": "^4.3.6"

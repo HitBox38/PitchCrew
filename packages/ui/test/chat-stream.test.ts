@@ -86,3 +86,46 @@ it('merges activity snapshots by run ID across reply-only frames and terminal up
   expect(onState.mock.calls[1][0].activityRuns).toEqual([run]);
   expect(onState.mock.calls[3][0].activityRuns).toEqual([finished]);
 });
+
+it('bounds compact terminal activity while retaining active runs and recent completions', async () => {
+  const activity = (id: string, status: 'running' | 'completed') => ({
+    id,
+    roleId: 'scout',
+    runtime: 'demo' as const,
+    threadId: 'scout',
+    mode: 'chat' as const,
+    cardId: null,
+    status,
+    startedAt: '',
+    finishedAt: null,
+    message: '',
+  });
+  const updates = [
+    {
+      messages: [],
+      streamingMessages: [],
+      messageHistory: { revision: '1:1:1', threads: {} },
+      activityRuns: [activity('long', 'running')],
+    },
+    ...Array.from({ length: 80 }, (_, i) => ({
+      streamingMessages: [],
+      activityRuns: [activity(`done-${i}`, 'completed')],
+    })),
+    { streamingMessages: [], activityRuns: [activity('long', 'completed')] },
+  ];
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) {
+      for (const update of updates)
+        controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(update)}\n\n`));
+      controller.close();
+    },
+  });
+  const states: ChatStreamState[] = [];
+  await readChatStream(body, (state) => states.push(state));
+  expect(states[80].activityRuns).toHaveLength(51);
+  expect(
+    states[80].activityRuns?.some((run) => run.id === 'long' && run.status === 'running'),
+  ).toBe(true);
+  expect(states.at(-1)?.activityRuns).toHaveLength(50);
+  expect(states.at(-1)?.activityRuns?.at(-1)?.id).toBe('long');
+});

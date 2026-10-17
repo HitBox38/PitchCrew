@@ -25,14 +25,11 @@ export async function readChatStream(
         if (data) {
           const update = JSON.parse(data) as ChatStreamUpdate;
           const runs = update.activityRuns
-            ? [
-                ...new Map(
-                  [...(state.activityRuns ?? []), ...update.activityRuns].map((run) => [
-                    run.id,
-                    run,
-                  ]),
-                ).values(),
-              ]
+            ? mergeActivityRuns(
+                state.activityRuns ?? [],
+                update.activityRuns,
+                !!(update.messageHistory ?? state.messageHistory),
+              )
             : state.activityRuns;
           state = { ...state, ...update, ...(runs ? { activityRuns: runs } : {}) };
           onState(state);
@@ -55,7 +52,7 @@ export function subscribeChatStream(
   let timer: ReturnType<typeof setTimeout> | undefined;
   const connect = async () => {
     try {
-      const response = await fetch('/api/chat/stream', {
+      const response = await fetch('/api/chat/stream?view=workspace', {
         signal: controller.signal,
         headers: { 'x-pitchcrew-client': 'ui' },
       });
@@ -75,4 +72,24 @@ export function subscribeChatStream(
     controller.abort();
     clearTimeout(timer);
   };
+}
+
+/** Keep live overlays and recent terminal handoffs; saved history is loaded page by page. */
+function mergeActivityRuns(
+  previous: NonNullable<ChatStreamState['activityRuns']>,
+  incoming: NonNullable<ChatStreamState['activityRuns']>,
+  compact: boolean,
+) {
+  const runs = new Map(previous.map((run) => [run.id, run]));
+  for (const run of incoming) {
+    runs.delete(run.id);
+    runs.set(run.id, run);
+  }
+  const values = [...runs.values()];
+  return compact
+    ? [
+        ...values.filter((run) => run.status !== 'running').slice(-50),
+        ...values.filter((run) => run.status === 'running'),
+      ]
+    : values;
 }

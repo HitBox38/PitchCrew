@@ -1,3 +1,5 @@
+import { workspaceCards, workspaceRuns } from './workspace-projection.ts';
+import { workspaceMessages } from '@pitchcrew/board';
 import { activityRuns } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn } from './user-input/lifecycle.ts';
@@ -119,7 +121,10 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
     this.initializing = false;
   }
 }
-export async function snapshot(this: CrewContext): Promise<Snapshot> {
+export async function snapshot(
+  this: CrewContext,
+  options?: { workspace?: boolean },
+): Promise<Snapshot> {
   // Finish filesystem reads before collecting board state, so no run can advance between entities.
   const profile = await readProfile(this.directory);
   migrateConversations(this);
@@ -135,12 +140,12 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     instructionUpdates: instructionUpdates(this),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
-    cards: this.board.list<Card>('card'),
+    cards: options?.workspace ? workspaceCards(this.board) : this.board.list<Card>('card'),
     roles: this.board.list<Role>('role'),
     skills: this.skills(),
     starterSkillErrors: this.starterSkillErrors,
     skillProposals: this.board.list<SkillProposal>('skill_proposal'),
-    runs: this.board.list<Run>('run').reverse(),
+    runs: options?.workspace ? workspaceRuns(this.board) : this.board.list<Run>('run').reverse(),
     approvals: this.board.list<Approval>('approval').reverse(),
     computerApprovals: this.board.list<ComputerApproval>('computer_approval').reverse(),
     events: this.board.events(),
@@ -150,7 +155,9 @@ export async function snapshot(this: CrewContext): Promise<Snapshot> {
     runtimes: this.runtimes,
     dataDirectory: this.directory,
     demoAvailable: this.dev && !this.board.list<Card>('card').some((c) => c.sample),
-    messages: this.board.list<ChatMessage>('message'),
+    ...(options?.workspace
+      ? { workspace: true as const, ...workspaceMessages(this.board) }
+      : { messages: this.board.list<ChatMessage>('message') }),
     streamingMessages: [...this.streamingMessages.values()],
     activityRuns: activityRuns(this),
     proposals: this.board.list<RoleProposal>('proposal'),

@@ -283,3 +283,24 @@ describe('workspace store', () => {
     );
   });
 });
+
+it('recovers newer persisted compact history without losing active streaming replies', async () => {
+  const older = { revision: '10:20:1', threads: { scout: { count: 1, incomingAt: '' } } };
+  const newer = { revision: '11:22:1', threads: { scout: { count: 2, incomingAt: '' } } };
+  vi.mocked(api).mockResolvedValue({
+    ...snapshot,
+    workspace: true,
+    messageHistory: newer,
+    messages: [message],
+  });
+  const store = createWorkspaceStore();
+  stop = store.getState().startSync();
+  const [onState] = vi.mocked(subscribeChatStream).mock.calls[0]!;
+  onState({ messages: [], messageHistory: older, streamingMessages: [message] });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(store.getState().data?.messages).toEqual([message]);
+  expect(store.getState().data?.messageHistory).toEqual(newer);
+  onState({ messages: [], messageHistory: older, streamingMessages: [message] });
+  expect(store.getState().data?.messages).toEqual([message]);
+  expect(store.getState().data?.streamingMessages).toEqual([message]);
+});

@@ -1,3 +1,4 @@
+import { mergeChatState } from './chat-state.ts';
 import { api } from '@/api.ts';
 import { subscribeChatStream } from '@/chat-stream.ts';
 import type { ChatStreamState, Snapshot } from '@pitchcrew/core';
@@ -7,7 +8,7 @@ export function createWorkspaceSync(set: WorkspaceSet) {
   let chatState: ChatStreamState | null = null;
   let stopSync: (() => void) | undefined;
   const applySnapshot = (snapshot: Snapshot) =>
-    set({ data: { ...snapshot, ...chatState }, error: '' });
+    set({ data: mergeChatState(snapshot, chatState), error: '' });
   const startSync = () => {
     if (stopSync) return stopSync;
     let active = true;
@@ -19,7 +20,7 @@ export function createWorkspaceSync(set: WorkspaceSet) {
       (state) => {
         if (!active) return;
         chatState = state;
-        set(({ data }) => ({ data: data ? { ...data, ...state } : data }));
+        set(({ data }) => ({ data: data ? mergeChatState(data, state) : data }));
       },
       () => {
         if (active) {
@@ -32,12 +33,18 @@ export function createWorkspaceSync(set: WorkspaceSet) {
     const poll = async () => {
       const generation = streamGeneration;
       try {
-        const snapshot = await api<Snapshot>('/snapshot', 'GET', undefined, controller.signal, {
-          etag,
-          updateEtag: (value) => {
-            if (active && generation === streamGeneration) etag = value;
+        const snapshot = await api<Snapshot>(
+          '/snapshot?view=workspace',
+          'GET',
+          undefined,
+          controller.signal,
+          {
+            etag,
+            updateEtag: (value) => {
+              if (active && generation === streamGeneration) etag = value;
+            },
           },
-        });
+        );
         if (active) {
           if (snapshot) applySnapshot(snapshot);
           else set((state) => (state.error ? { error: '' } : state));
