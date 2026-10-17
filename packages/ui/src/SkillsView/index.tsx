@@ -8,10 +8,11 @@ import { StarterSkillErrors } from '@/SkillsView/components/StarterSkillErrors.t
 import { StarterSkills } from '@/SkillsView/components/StarterSkills.tsx';
 import { useSkillsView } from '@/SkillsView/hooks/useSkillsView.ts';
 import type { SkillsViewProps } from '@/SkillsView/types.ts';
+import { SkillUpdates } from './components/SkillUpdates.tsx';
 
 export function SkillsView(props: SkillsViewProps) {
   const controller = useSkillsView(props);
-  const { data, skills, showingDetail } = controller;
+  const { data, skills, showingDetail, selected } = controller;
   return (
     <section
       className={`skills-view ${showingDetail ? 'showing-detail' : ''}`}
@@ -20,6 +21,9 @@ export function SkillsView(props: SkillsViewProps) {
       <div className="skills-controls">
         <SkillsToolbar {...controller} />
         <SkillFilters {...controller} />
+      </div>
+      <div className="max-h-[35%] shrink-0 overflow-y-auto border-b border-border px-4 py-3">
+        <SkillUpdates {...controller} />
       </div>
       <div className="skills-workspace">
         <aside className="skills-explorer" aria-label="Skill explorer">
@@ -46,7 +50,7 @@ export function SkillsView(props: SkillsViewProps) {
             <StarterSkills {...controller} />
           </div>
         </aside>
-        {skills.length ? (
+        {selected ? (
           <SkillPreview {...controller} />
         ) : (
           <div className="skill-document skill-document-empty">

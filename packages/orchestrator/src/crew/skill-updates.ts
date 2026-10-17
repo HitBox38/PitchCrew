@@ -20,6 +20,7 @@ export class SkillUpdates {
     const latest = await context.previewSkill(current.source!.url);
     if (JSON.stringify(this.current(context, id)) !== JSON.stringify(current))
       throw new Error('This skill changed while checking. Check for updates again.');
+    context.skillUpdateChecks.observe(context, current, latest);
     const review: SkillUpdatePreview = {
       id: randomUUID(),
       current: structuredClone(current),

@@ -50,6 +50,10 @@ function definition(text: string) {
 export class SkillDirectory {
   private readonly blobs = new Map<string, string>();
   constructor(private readonly fetcher: typeof fetch = (...args) => fetch(...args)) {}
+  /** A check sweep resolves each repository HEAD once; immutable blobs retain their own cache. */
+  batch() {
+    return new Map<string, Promise<z.infer<typeof treeSchema>>>();
+  }
   private async read(url: string, maxBytes: number, signal: AbortSignal) {
     const response = await this.fetcher(url, {
       redirect: 'error',
@@ -90,7 +94,11 @@ export class SkillDirectory {
     }
     return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
   }
-  async preview(value: string, parentSignal?: AbortSignal): Promise<SkillPreview> {
+  async preview(
+    value: string,
+    parentSignal?: AbortSignal,
+    batch?: ReturnType<SkillDirectory['batch']>,
+  ): Promise<SkillPreview> {
     const url = new URL(skillsShUrl.parse(value));
     const [owner, repo, slug] = url.pathname.split('/').filter(Boolean);
     const requestedRepository = `${owner}/${repo}`;
@@ -106,13 +114,16 @@ export class SkillDirectory {
       : AbortSignal.timeout(30000);
     signal.throwIfAborted();
     // Resolve HEAD on every load. Only immutable blob contents may be reused.
-    const tree = treeSchema.parse(
-      await this.read(
+    let treeRequest = batch?.get(repository.toLowerCase());
+    if (!treeRequest) {
+      treeRequest = this.read(
         `https://api.github.com/repos/${repository}/git/trees/HEAD?recursive=1`,
         2000000,
         signal,
-      ),
-    );
+      ).then((value) => treeSchema.parse(value));
+      batch?.set(repository.toLowerCase(), treeRequest);
+    }
+    const tree = await treeRequest;
     if (tree.truncated) throw new Error('This skill repository is too large to import.');
     const candidates = tree.tree.filter(
       (file) =>

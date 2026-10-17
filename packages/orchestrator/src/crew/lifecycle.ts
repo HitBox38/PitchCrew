@@ -193,6 +193,7 @@ export async function snapshot(
     onboarding: this.onboarding.get(),
     packetRules: this.packetRules.current(),
     instructionUpdates: instructionUpdates(this),
+    skillUpdates: this.skillUpdateChecks.current(this),
     trackingSignals: this.board.list<TrackingSignal>('tracking_signal'),
     trackingScans: this.board.list<TrackingScan>('tracking_scan'),
     cards: options?.workspace ? workspaceCards(this.board) : this.board.list<Card>('card'),
@@ -233,6 +234,7 @@ export async function close(this: CrewContext): Promise<void> {
   for (const controller of this.controllers.values()) controller.abort();
   await Promise.allSettled([
     ...this.modelRequests.values(),
+    this.skillUpdateChecks.close(),
     ...(this.starterRequest ? [this.starterRequest] : []),
   ]);
   await this.connectors.close();

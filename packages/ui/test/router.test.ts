@@ -12,6 +12,18 @@ async function setup(path: string) {
 }
 
 describe('workspace routes', () => {
+  it('restores exact update reviews and update-only filters from URLs', async () => {
+    const skill = 'bbcad931-dfda-4cc6-8ed5-8157c2f1c88a';
+    const { router } = await setup(`/skills?skill=${skill}&review=true&updates=true`);
+    expect(router.state.matches.at(-1)?.search).toMatchObject({
+      skill,
+      review: true,
+      updates: true,
+    });
+    await router.navigate({ to: '/crew', search: { review: 'scout', updates: true } });
+    await router.load();
+    expect(router.state.matches.at(-1)?.search).toMatchObject({ review: 'scout', updates: true });
+  });
   it('accepts custom role deep links and validates loaded stored roles', async () => {
     const history = createMemoryHistory({ initialEntries: ['/chat/research-assistant'] });
     const roles = [

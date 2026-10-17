@@ -1,6 +1,8 @@
 import { isNotificationMessage } from '@pitchcrew/core/message-notifications';
 import type { Snapshot } from '@pitchcrew/core';
 import { pendingInstructionUpdates } from '../lib/instruction-updates.ts';
+import { pendingSkillUpdates } from '../lib/skill-updates.ts';
+import { skillSourceRevision } from '@pitchcrew/core/skill-updates';
 import type { CrewNotification } from './types.ts';
 
 export function collectNotifications(data: Snapshot): CrewNotification[] {
@@ -84,12 +86,30 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
       title: `${roleName(update.roleId)} has new default instructions`,
       body: latest?.summary ?? 'Review the new default instructions in Crew.',
       target: '/crew',
+      reviewId: update.roleId,
       createdAt: `${latest?.date ?? '1970-01-01'}T00:00:00.000Z`,
+    });
+  }
+  for (const check of pendingSkillUpdates(data)) {
+    const skill = data.skills.find((item) => item.id === check.skillId)!;
+    notifications.push({
+      id: `skill-update:${skill.id}:${skillSourceRevision(check.latest!)}`,
+      kind: 'attention',
+      context: 'skill_update',
+      title: `${skill.name} has an upstream update`,
+      body: 'Review the new skill version before replacing your saved instructions.',
+      target: '/skills',
+      reviewId: skill.id,
+      createdAt: check.detectedAt ?? check.checkedAt,
     });
   }
   return notifications
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
-    .slice(0, 100);
+    .filter((item, index) => index < 100 || !notificationShouldAlert(item));
+}
+/** Maintenance notices remain visible without interrupting current work. */
+export function notificationShouldAlert(item: CrewNotification) {
+  return item.context !== 'instruction_update' && item.context !== 'skill_update';
 }
 export function readStored<T>(
   key: string,

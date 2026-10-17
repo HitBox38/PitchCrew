@@ -21,6 +21,7 @@ const message: ChatMessage = {
 const snapshot = {
   roles: [{ id: 'scout', name: 'Scout' }],
   cards: [],
+  skills: [],
   messages: [message],
   streamingMessages: [{ ...message, id: 'preview' }],
   approvals: [],
@@ -214,6 +215,7 @@ it('lists unanswered default instruction updates as attention items for Crew', (
       title: 'Scout has new default instructions',
       body: 'Fictional change summary.',
       target: '/crew',
+      reviewId: 'scout',
       createdAt: '2026-10-05T00:00:00.000Z',
     },
   ]);

@@ -2,6 +2,7 @@ import type { SkillFilter, SkillsViewProps } from '@/SkillsView/types.ts';
 import type { Skill } from '@pitchcrew/core';
 import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { useState } from 'react';
+import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
 
 export function useSkillsView({
   data,
@@ -9,6 +10,12 @@ export function useSkillsView({
   working,
   filter: requestedFilter,
   onFilter,
+  selectedId,
+  onSelect: setSelectedId,
+  updatesOnly,
+  onUpdatesOnly,
+  reviewId,
+  onReviewClose,
 }: SkillsViewProps) {
   const filter =
     ['all', 'shared'].includes(requestedFilter) ||
@@ -16,7 +23,6 @@ export function useSkillsView({
       ? requestedFilter
       : 'all';
   const [query, setQuery] = useState('');
-  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editing, setEditing] = useState<Skill | 'new' | 'import' | null>(null);
   const [starter, setStarter] = useState<BaseSkill | null>(null);
   const [deleting, setDeleting] = useState<Skill | null>(null);
@@ -32,8 +38,10 @@ export function useSkillsView({
   const creator = (skill: Skill) =>
     skill.source?.repository.split('/')[0] ??
     (skill.bundledId ? 'Pitchcrew' : (agentCreators.get(skill.id) ?? 'You'));
+  const pendingIds = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
   const skills = data.skills.filter(
     (skill) =>
+      (!updatesOnly || pendingIds.has(skill.id)) &&
       (filter === 'all' ||
         (filter === 'shared'
           ? skill.scope === 'all'
@@ -42,9 +50,12 @@ export function useSkillsView({
         .toLowerCase()
         .includes(query.toLowerCase()),
   );
+  skills.sort((a, b) => Number(pendingIds.has(b.id)) - Number(pendingIds.has(a.id)));
   const chosen = skills.find((skill) => skill.id === selectedId);
-  const selected = chosen ?? skills[0] ?? null;
-  const showingDetail = Boolean(chosen);
+  // A notification opens its exact review even when the existing local search hides that skill.
+  const requestedReview = data.skills.find((skill) => skill.id === reviewId);
+  const selected = requestedReview ?? chosen ?? skills[0] ?? null;
+  const showingDetail = Boolean(requestedReview ?? chosen);
   const filters: { value: SkillFilter; label: string }[] = [
     { value: 'all', label: 'All skills' },
     { value: 'shared', label: 'Shared' },
@@ -61,6 +72,10 @@ export function useSkillsView({
   }
   return {
     data,
+    updatesOnly,
+    onUpdatesOnly,
+    reviewId,
+    onReviewClose,
     action,
     working,
     filter,

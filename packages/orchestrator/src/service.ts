@@ -208,6 +208,16 @@ export class CrewService {
   previewSkillUpdate(id: string) {
     return this.skillUpdates.preview(this.context, id);
   }
+  checkSkillUpdates(automatic: boolean) {
+    return this.context.skillUpdateChecks.check(this.context, automatic);
+  }
+  configureSkillUpdates(automatic: boolean) {
+    this.context.skillUpdateChecks.setAutomatic(automatic);
+    return this.context.skillUpdateChecks.current(this.context);
+  }
+  dismissSkillUpdate(id: string, revision: string) {
+    return this.context.skillUpdateChecks.dismiss(this.context, id, revision);
+  }
   approveSkillUpdate(id: string, previewId: string) {
     return this.skillUpdates.approve(this.context, id, previewId);
   }
