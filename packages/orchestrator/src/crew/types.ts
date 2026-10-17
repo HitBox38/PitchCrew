@@ -37,6 +37,7 @@ export interface CrewContext {
   readonly daemonUrl: string;
   readonly mcpEntry: string;
   board: Board;
+  deepReviewExecutions: Map<string, import('./deep-reviews/types.ts').LiveDeepReview>;
   onboarding: OnboardingPreferences;
   instructionUpdatePreferences: InstructionUpdatePreferences;
   packetRules: PacketRulesStore;

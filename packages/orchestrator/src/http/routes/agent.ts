@@ -31,6 +31,7 @@ export function registerAgentRoutes(app: FastifyInstance, service: CrewService) 
         attachmentId: z.uuid().optional(),
       })
       .parse(req.body);
-    return res.send(await service.agentCall(token, body.action, body));
+    const { action, ...data } = body;
+    return res.send(await service.agentCall(token, action, data));
   });
 }

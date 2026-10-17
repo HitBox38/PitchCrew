@@ -1,3 +1,4 @@
+import { DeepResumeReview } from '@/DeepResumeReview/index.tsx';
 import { JobHistory } from '@/components/CardDetails/components/JobHistory.tsx';
 import { JobOverview } from '@/components/CardDetails/components/JobOverview.tsx';
 import { JobPacket } from '@/components/CardDetails/components/JobPacket.tsx';
@@ -38,6 +39,8 @@ export function JobTabs({
             description="Shortlist this job, then run Writer to draft one."
           />
         )
+      ) : tab === 'reviews' ? (
+        <DeepResumeReview key={card.id} card={card} data={data} />
       ) : (
         <JobHistory data={data} card={card} />
       )}

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { useCardDetails } from '@/components/CardDetails/hooks/useCardDetails.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import type { Card, Snapshot } from '@pitchcrew/core';
@@ -12,7 +13,7 @@ export interface CardDetailsProps {
 }
 export type CardDetailsModel = NonNullable<ReturnType<typeof useCardDetails>>;
 
-export type JobActionsProps = Pick<
+export type JobActionsProps = { extraActions?: ReactNode } & Pick<
   CardDetailsModel,
   'run' | 'act' | 'runRole' | 'working' | 'card' | 'exported' | 'onInbox'
 >;

@@ -129,3 +129,5 @@ export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telem
 export type { ProfileOrganization } from './profile-organization.ts';
 export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from './chat-history.ts';
 export { isNotificationMessage } from './message-notifications.ts';
+
+export * from './deep-reviews.ts';

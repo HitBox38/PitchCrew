@@ -1,3 +1,4 @@
+import type { DeepReview, ReviewSubagent } from './deep-reviews.ts';
 import type { UserInputRequest } from './user-input.ts';
 import type {
   Conversation,
@@ -20,8 +21,31 @@ import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface BoardEvent {
   id: number;
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20;
+  version:
+    | 1
+    | 2
+    | 3
+    | 4
+    | 5
+    | 6
+    | 7
+    | 8
+    | 9
+    | 10
+    | 11
+    | 12
+    | 13
+    | 14
+    | 15
+    | 16
+    | 17
+    | 18
+    | 19
+    | 20
+    | 21;
   kind:
+    | 'deep_review'
+    | 'review_subagent'
     | 'user_input'
     | 'conversation_session'
     | 'conversation'
@@ -49,6 +73,8 @@ export interface BoardEvent {
   actor: string;
   message: string;
   data:
+    | DeepReview
+    | ReviewSubagent
     | UserInputRequest
     | ConversationSession
     | Conversation
@@ -74,8 +100,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 20 retains bundled starter skill identity through edits, renames and deletion. */
-export const currentEventVersion = 20 as const;
+/** Version 21 persists managed deep resume reviews and temporary review subagents. */
+export const currentEventVersion = 21 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -98,7 +124,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 17 &&
     event.version !== 18 &&
     event.version !== 19 &&
-    event.version !== 20
+    event.version !== 20 &&
+    event.version !== 21
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

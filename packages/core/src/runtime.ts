@@ -1,3 +1,4 @@
+import type { DeepReviewRunContext, RuntimeDeadline } from './deep-reviews.ts';
 import type { Conversation } from './conversations.ts';
 import type { Card } from './cards.ts';
 import type { ChatMessage, ChatResult } from './chat.ts';
@@ -34,8 +35,15 @@ export interface RuntimeRecommendation extends RuntimeConfiguration {
   detail: string;
 }
 export interface RunContext {
-  purpose?: 'source-extraction' | 'application-draft' | 'application-review' | 'fit';
+  purpose?:
+    | 'source-extraction'
+    | 'application-draft'
+    | 'application-review'
+    | 'fit'
+    | 'deep-review';
   sourceText?: string;
+  deepReview?: DeepReviewRunContext;
+  deadline?: RuntimeDeadline;
   userAnswers?: { questionId: string; messageId: string; answer: string }[];
   card: Card;
   role: Role;
@@ -45,6 +53,7 @@ export interface RunContext {
   mcp: { command: string; args: string[]; env: Record<string, string> };
   signal: AbortSignal;
   onMessage: (message: string) => void;
+  onActivity?: (activity: RuntimeActivity) => void;
   request?: string;
   /** House rules checked mechanically on drafts, reviews and exports. */
   packetRules?: PacketRules;
@@ -52,6 +61,8 @@ export interface RunContext {
 export interface RuntimeAdapter {
   /** Audited launch disables native tools and ambient sessions for restricted application runs. */
   applicationIsolation?: true;
+  /** Audited independent restricted CLI children; no native shell/subagent tools. */
+  reviewSubagents?: { maxConcurrent: number };
   id: RuntimeId;
   sessionSupport?: 'resume';
   models: readonly RuntimeModel[];

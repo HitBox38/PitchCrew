@@ -1,3 +1,6 @@
+import { subagentCard } from './deep-reviews/inputs.ts';
+import { startDeepReview } from './deep-reviews/index.ts';
+import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from './chat-activity.ts';
 import { observeChatTool } from './gateway/activity.ts';
@@ -13,6 +16,7 @@ import {
   workflowSeat,
   draftingCard,
   runResultSchema,
+  reviewPerspectiveSchema,
   type Approval,
   type Card,
   type Role,
@@ -76,7 +80,18 @@ async function dispatchAgentCall(
   if (action === 'execution_access') {
     if (!activeRun || activeRun.status !== 'running')
       throw new Error('Run capability is invalid or expired.');
-    return { purpose: activeRun.purpose ?? null };
+    return {
+      purpose: activeRun.purpose ?? null,
+      reviewMode: activeRun.deepReviewId
+        ? activeRun.reviewSubagentId
+          ? 'subagent'
+          : activeRun.configuration?.role.workflow === 'writer'
+            ? 'writer'
+            : activeRun.reviewBudgetRequest
+              ? 'budget'
+              : 'parent'
+        : null,
+    };
   }
   if (activeRun?.purpose === 'source-extraction')
     throw new Error(
@@ -86,6 +101,25 @@ async function dispatchAgentCall(
     activeRun?.purpose === 'application-draft' ||
     activeRun?.purpose === 'application-review' ||
     activeRun?.purpose === 'fit';
+  if (
+    activeRun?.reviewBudgetRequest &&
+    !['card', 'profile', 'packet_rules', 'lint', 'notify_user', 'extend_review_deadline'].includes(
+      action,
+    )
+  )
+    throw new Error('A review deadline decision cannot perform this action.');
+  if (activeRun?.reviewSubagentId && ['ask_user', 'notify_user'].includes(action))
+    throw new Error(
+      'Review subagents return findings to the parent; only the parent asks the user.',
+    );
+  const reviewActions = [
+    'start_review_subagent',
+    'review_subagents',
+    'extend_review_deadline',
+    'request_review_time',
+  ];
+  if (activeRun?.deepReviewId && reviewActions.includes(action))
+    return reviewAgentAction(this, capability, action, data.input ?? data);
   if (
     isolated &&
     !['card', 'profile', 'packet_rules', 'lint', 'ask_user', 'notify_user'].includes(action)
@@ -220,6 +254,32 @@ async function dispatchAgentCall(
           workflow: workflowSeat(item),
         })),
     };
+  if (action === 'start_deep_review') {
+    if (!permissions.invokeAgents || !permissions.manageWorkflow)
+      throw new Error('Agent invocation and workflow permissions are required.');
+    const input = z
+      .object({
+        cardId: z.uuid().optional(),
+        secondOpinions: z.boolean().default(false),
+        requestedPerspectives: z.array(reviewPerspectiveSchema).max(11).default([]),
+      })
+      .strict()
+      .parse(data.input ?? data);
+    const cardId = capability.cardId ?? input.cardId;
+    if (!cardId) throw new Error('Ask the user to choose a job before starting deep review.');
+    if (capability.cardId && input.cardId && input.cardId !== capability.cardId)
+      throw new Error('Deep review is scoped to the attached job.');
+    const run = await startDeepReview(
+      this,
+      cardId,
+      { secondOpinions: input.secondOpinions, requestedPerspectives: input.requestedPerspectives },
+      undefined,
+      undefined,
+      activeRun?.threadId,
+      activeRun?.id,
+    );
+    return { run };
+  }
   if (action === 'messages') return readMessages.call(this, capability);
   if (action === 'chat_attachment') return readChatAttachment(this, capability, token, data);
   if (action === 'message' || action === 'invoke')
@@ -232,7 +292,13 @@ async function dispatchAgentCall(
     throw new Error('This chat has no attached application.');
   if (action === 'card') {
     const card = this.board.get<Card>('card', capability.cardId!);
-    return { card: isolated ? draftingCard(card, activeRun.purpose) : card };
+    return {
+      card: isolated
+        ? activeRun.reviewSubagentId
+          ? subagentCard(draftingCard(card, activeRun.purpose))
+          : draftingCard(card, activeRun.purpose)
+        : card,
+    };
   }
   if (action === 'profile') return { profile: await readProfile(this.directory) };
   if (action === 'history') {

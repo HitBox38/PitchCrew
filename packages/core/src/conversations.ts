@@ -25,6 +25,15 @@ export interface Conversation {
   summary?: { content: string; through: string; sources: string[] };
 }
 export interface ChatRequest {
+  deepReviewPreferences?: {
+    secondOpinions: boolean;
+    requestedPerspectives: import('./deep-review-labels.ts').ReviewPerspective[];
+  };
+  deepReviewRequest?: {
+    cardId: string;
+    resumeId?: string;
+    preferences?: ChatRequest['deepReviewPreferences'];
+  };
   id: string;
   threadId: string;
   messageId: string;
