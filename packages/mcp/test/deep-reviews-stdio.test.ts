@@ -158,6 +158,12 @@ it('gives a parent deadline decision only the extension tool and application rea
       requestedPerspectives: ['impact'],
     })
   ).result;
-  await finish(request, run.id);
+  // Four Demo stages plus a real MCP process can exceed finish's short poll budget.
+  await vi.waitFor(
+    () => expect(daemon.service.board.get<Run>('run', run.id).status).not.toBe('running'),
+    { timeout: 10000 },
+  );
+  const completed = daemon.service.board.get<Run>('run', run.id);
+  expect(completed.status, completed.message).toBe('completed');
   expect(decided).toBe(true);
 });
