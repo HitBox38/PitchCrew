@@ -5,6 +5,7 @@ import { readRecent } from './helpers.ts';
 import { createWorkspaceSync } from './sync.ts';
 import type { WorkspaceState } from './types.ts';
 import { createAppUpdateActions } from './updates.ts';
+import { createSkillUpdateActions } from './skill-updates.ts';
 
 export type { Action } from './types.ts';
 /** Each store owns one snapshot poller, one chat stream and its pending-action count. */
@@ -47,6 +48,7 @@ export function createWorkspaceStore() {
       startSync,
       ...createWorkspaceActions(set, get, applySnapshot),
       ...createAppUpdateActions(set, get),
+      ...createSkillUpdateActions(set, get),
     };
   });
 }

@@ -5,6 +5,7 @@ import type { ComparisonMode, InstructionUpdateProps } from '../types.ts';
 
 export function useInstructionUpdate({
   role,
+  initiallyExpanded = false,
   update,
   action,
   working,
@@ -13,7 +14,7 @@ export function useInstructionUpdate({
   setDefaultInstructionRevision,
 }: InstructionUpdateProps) {
   const [mode, setMode] = useState<ComparisonMode>('yours');
-  const [expanded, setExpanded] = useState(!update.dismissed);
+  const [expanded, setExpanded] = useState(initiallyExpanded || !update.dismissed);
   const [previous, setPrevious] = useState<string | null>(null);
   const [error, setError] = useState('');
   // Replacing text the user wrote takes a second, explicit click.

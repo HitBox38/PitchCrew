@@ -15,6 +15,7 @@ import { SettingsTabs } from './components/SettingsTabs.tsx';
 import { validateSettingsSearch } from './helpers.ts';
 import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
+import { SkillUpdateSettings } from '@/AgentUpdates/components/SkillUpdateSettings.tsx';
 
 export function SettingsPage() {
   const mobile = useIsMobile();
@@ -38,6 +39,7 @@ export function SettingsPage() {
         <AppearanceSettings />
         <NotificationSettings />
         <UpdateSettings />
+        <SkillUpdateSettings />
         <AnalyticsSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="accounts">

@@ -1,8 +1,8 @@
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { useSkillUpdate } from '../hooks/useSkillUpdate.ts';
 import { LoaderCircle } from 'lucide-react';
 import SkillUpdateChanges from './SkillUpdateChanges.tsx';
+import { SkillUpdateActions } from './SkillUpdateActions.tsx';
 
 export function SkillUpdateReview(c: ReturnType<typeof useSkillUpdate>) {
   return (
@@ -36,29 +36,7 @@ export function SkillUpdateReview(c: ReturnType<typeof useSkillUpdate>) {
           </p>
         ) : null}
       </div>
-      <footer className="profile-import-footer flex justify-end gap-2.5">
-        <Button className="button" onClick={c.close} disabled={c.working}>
-          {c.review?.changed ? 'Keep current' : 'Close'}
-        </Button>
-        {c.error ? (
-          <Button
-            className="button"
-            onClick={() => void c.check()}
-            disabled={c.loading || c.working}
-          >
-            Check again
-          </Button>
-        ) : null}
-        {c.review?.changed ? (
-          <Button
-            className="button primary"
-            onClick={() => void c.approve()}
-            disabled={c.working || Boolean(c.error)}
-          >
-            {c.working ? 'Updating…' : 'Approve update'}
-          </Button>
-        ) : null}
-      </footer>
+      <SkillUpdateActions {...c} />
     </Modal>
   );
 }

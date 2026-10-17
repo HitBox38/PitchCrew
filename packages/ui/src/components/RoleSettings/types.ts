@@ -4,6 +4,7 @@ import type { Role, Snapshot } from '@pitchcrew/core';
 import type { ReactNode } from 'react';
 
 export interface RoleSettingsProps {
+  reviewInstructions?: boolean;
   docked?: boolean;
   registerLeaveGuard?: (guard: ((action: () => void) => void) | null) => void;
   role: Role;
