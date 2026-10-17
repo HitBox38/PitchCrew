@@ -8,6 +8,7 @@ import { getWorkspaceModel } from '@/App/helpers.tsx';
 import { SidebarInset } from '@/components/ui/sidebar/components/SidebarInset.tsx';
 import { SidebarProvider } from '@/components/ui/sidebar/components/SidebarProvider.tsx';
 import { useAutomaticUpdates } from '@/AppUpdates/hooks/useAutomaticUpdates.ts';
+import { AgentUpdates } from '@/AgentUpdates/index.tsx';
 import type { ReadyWorkspaceProps } from '../types.ts';
 
 export function Workspace(props: ReadyWorkspaceProps) {
@@ -16,6 +17,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
   const { sidebarOpen, paletteMounted } = controller;
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
+      <AgentUpdates />
       <a className="skip-link" href="#main">
         Skip to content
       </a>

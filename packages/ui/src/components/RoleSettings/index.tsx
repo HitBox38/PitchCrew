@@ -28,6 +28,7 @@ export function RoleSettings(props: RoleSettingsProps) {
           onSubmit={(e) => void save(e)}
         >
           <div className="role-settings-body">
+            {props.reviewInstructions ? <RoleInstructionUpdate {...controller} /> : null}
             <IdentitySettings {...controller} />
             <RuntimeSettings {...controller} stacked={props.docked}>
               {!controller.creating && defaultRoleIds.some((id) => id === controller.role.id) ? (
@@ -48,7 +49,7 @@ export function RoleSettings(props: RoleSettingsProps) {
                 />
               ) : null}
             </RuntimeSettings>
-            <RoleInstructionUpdate {...controller} />
+            {!props.reviewInstructions ? <RoleInstructionUpdate {...controller} /> : null}
             <InstructionSettings {...controller} />
             <CapabilitySettings {...controller} />
             <BrowserSettings {...controller} />

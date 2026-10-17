@@ -28,7 +28,13 @@ export function NotificationLink({
   };
   if (item.target === '/crew')
     return (
-      <Link to="/crew" {...props}>
+      <Link to="/crew" search={{ review: item.reviewId }} {...props}>
+        {children}
+      </Link>
+    );
+  if (item.target === '/skills')
+    return (
+      <Link to="/skills" search={{ skill: item.reviewId, review: true }} {...props}>
         {children}
       </Link>
     );

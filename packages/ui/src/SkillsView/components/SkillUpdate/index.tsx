@@ -9,12 +9,16 @@ export function SkillUpdate({
   skill,
   action,
   working,
+  requested = false,
+  onReviewClose,
 }: {
   skill: Skill;
   action: Action;
   working: boolean;
+  requested?: boolean;
+  onReviewClose: () => void;
 }) {
-  const c = useSkillUpdate(skill, action, working);
+  const c = useSkillUpdate(skill, action, working, requested, onReviewClose);
   return (
     <>
       <Button

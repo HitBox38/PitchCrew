@@ -14,6 +14,7 @@ export interface DiffLine extends DiffSegment {
 export type ComparisonMode = 'yours' | 'default';
 
 export interface InstructionUpdateProps {
+  initiallyExpanded?: boolean;
   role: Role;
   update: InstructionUpdate;
   action: Action;

@@ -62,6 +62,16 @@
   background: var(--glaze-fill);
   box-shadow: var(--glaze);
 }
+[data-collapsible='icon'] [data-slot='sidebar-menu-badge'].sidebar-update-badge {
+  display: flex;
+  top: 0;
+  right: 0;
+  height: 8px;
+  min-width: 8px;
+  width: 8px;
+  padding: 0;
+  font-size: 0;
+}
 .brand-button .brand-mark {
   width: 32px;
   height: 32px;

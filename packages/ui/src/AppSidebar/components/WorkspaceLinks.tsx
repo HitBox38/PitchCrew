@@ -1,4 +1,5 @@
-import { viewIcons, viewTitles, workspaceViews } from '@/AppSidebar/constants.ts';
+import { WorkspaceNavLink } from './WorkspaceNavLink.tsx';
+import { workspaceViews } from '@/AppSidebar/constants.ts';
 import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
 import type { WorkspaceLinksProps } from '@/AppSidebar/types.ts';
 import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
@@ -7,13 +8,11 @@ import { CollapsibleTrigger } from '@/components/ui/collapsible/components/Colla
 import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
 import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
 import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
-import { SidebarMenuBadge } from '@/components/ui/sidebar/components/SidebarMenuBadge.tsx';
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 import { SidebarMenuSub } from '@/components/ui/sidebar/components/SidebarMenuSub.tsx';
 import { SidebarMenuSubButton } from '@/components/ui/sidebar/components/SidebarMenuSubButton.tsx';
 import { SidebarMenuSubItem } from '@/components/ui/sidebar/components/SidebarMenuSubItem.tsx';
-import { viewPaths } from '@/navigation.ts';
 import { Link } from '@tanstack/react-router';
 import { ChevronRight, LayoutDashboard } from 'lucide-react';
 
@@ -58,29 +57,9 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
               </SidebarMenuSub>
             </CollapsibleContent>
           </Collapsible>
-          {workspaceViews.map((id) => {
-            const Icon = viewIcons[id];
-            const count = counts[id] ?? 0;
-            return (
-              <SidebarMenuItem key={id}>
-                <SidebarMenuButton
-                  data-replay-surface={id}
-                  tooltip={count ? `${viewTitles[id]} (${count})` : viewTitles[id]}
-                  isActive={view === id}
-                  aria-current={view === id ? 'page' : undefined}
-                  render={<Link to={viewPaths[id]} />}
-                >
-                  <Icon />
-                  <span>{viewTitles[id]}</span>
-                </SidebarMenuButton>
-                {count ? (
-                  <SidebarMenuBadge className={id === 'inbox' ? 'attention' : ''}>
-                    {count}
-                  </SidebarMenuBadge>
-                ) : null}
-              </SidebarMenuItem>
-            );
-          })}
+          {workspaceViews.map((id) => (
+            <WorkspaceNavLink key={id} id={id} view={view} count={counts[id] ?? 0} />
+          ))}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarCategory>

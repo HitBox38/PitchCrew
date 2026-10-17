@@ -25,9 +25,35 @@ export function isChatThread(value: string): value is ChatThread {
   );
 }
 
-export function validateSkillSearch(search: Record<string, unknown>): { filter?: SkillFilter } {
+export function validateUpdateSearch(search: Record<string, unknown>): {
+  updates?: true;
+  review?: string;
+} {
+  return {
+    updates: search.updates === true || search.updates === 'true' ? true : undefined,
+    review:
+      typeof search.review === 'string' && isRoleId(search.review) ? search.review : undefined,
+  };
+}
+
+export function validateSkillSearch(search: Record<string, unknown>): {
+  filter?: SkillFilter;
+  updates?: true;
+  skill?: string;
+  review?: true;
+} {
   const filter = search.filter;
-  return typeof filter === 'string' && (filter === 'shared' || isRoleId(filter))
-    ? { filter: filter as SkillFilter }
-    : { filter: undefined };
+  return {
+    filter:
+      typeof filter === 'string' && (filter === 'shared' || isRoleId(filter))
+        ? (filter as SkillFilter)
+        : undefined,
+    updates: search.updates === true || search.updates === 'true' ? true : undefined,
+    skill:
+      typeof search.skill === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search.skill)
+        ? search.skill
+        : undefined,
+    review: search.review === true || search.review === 'true' ? true : undefined,
+  };
 }

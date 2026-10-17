@@ -39,6 +39,7 @@ export interface CrewContext {
   board: Board;
   onboarding: OnboardingPreferences;
   instructionUpdatePreferences: InstructionUpdatePreferences;
+  skillUpdateChecks: import('../skill-update-checks/index.ts').SkillUpdateChecks;
   packetRules: PacketRulesStore;
   connectors: ConnectorManager;
   profileSources: ProfileSourceManager;

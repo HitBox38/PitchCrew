@@ -13,7 +13,7 @@ import { validateSettingsSearch } from './SettingsPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
 import type { Role } from '@pitchcrew/core';
 import type { View } from './navigation.ts';
-import { isChatThread, validateSkillSearch } from './navigation.ts';
+import { isChatThread, validateSkillSearch, validateUpdateSearch } from './navigation.ts';
 
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
@@ -38,6 +38,7 @@ const boardRoute = createRoute({
 const crewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/crew',
+  validateSearch: validateUpdateSearch,
   staticData: { view: 'crew' },
   component: lazyRouteComponent(() => import('@/CrewPage/index.tsx'), 'CrewPage'),
 });

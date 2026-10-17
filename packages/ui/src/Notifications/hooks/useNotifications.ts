@@ -9,6 +9,7 @@ import {
   saveStored,
   NotificationTracker,
   notificationToastOptions,
+  notificationShouldAlert,
 } from '../helpers.ts';
 import type { CrewNotification } from '../types.ts';
 
@@ -72,7 +73,7 @@ export function useNotifications() {
         activeToasts.current.delete(id);
       }
     }
-    const fresh = seen.current.update(items);
+    const fresh = seen.current.update(items).filter(notificationShouldAlert);
     if (!fresh.length) return;
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;
     if (!open)
