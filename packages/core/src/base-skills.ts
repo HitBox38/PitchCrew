@@ -1,5 +1,6 @@
 // Kept free of schema dependencies so the browser can render the catalog directly.
 import type { RoleId } from './states.ts';
+import { improveSystem } from './starter-skills/improve-system.ts';
 import { promptInjectionGuard } from './starter-skills/prompt-injection-guard.ts';
 
 export const skillContentLimit = 50000;
@@ -24,6 +25,14 @@ export const baseSkills: BaseSkill[] = [
     defaultScope: 'all',
     defaultRoles: [],
     note: 'Included with Pitchcrew and available offline. Supplements the enforced safety checks.',
+  },
+  {
+    ...improveSystem,
+    source: 'Pitchcrew',
+    sourceType: 'bundled',
+    skillPath: 'src/starter-skills/improve-system.ts',
+    defaultRoles: ['pipeline-coach'],
+    note: 'Included offline for Pipeline Coach. Adapts improve-system to board evidence and user-reviewed proposals.',
   },
   {
     name: 'cover-letter',

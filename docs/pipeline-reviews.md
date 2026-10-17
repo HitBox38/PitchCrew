@@ -24,6 +24,14 @@ Crew work shows the author and target, exact before/after settings and review co
 
 Every new chat/workflow run records a full role snapshot (actual instructions, capabilities, runtime and model), its deterministic SHA-256 revision, assigned skill snapshots and a separate skill revision. Input and successful-output packet digests use the same card-bound hash as export approval. These identify actual persisted packet versions and are preserved through progress/completion events and replay. Failed, interrupted or legacy runs without an output digest/configuration remain unknown; they are never inferred from today's settings. Provider credentials, environments and raw process output are excluded.
 
+## Improve-system retrospective
+
+The bundled `improve-system` starter skill is assigned only to Pipeline Coach and is available offline. Startup adds it to new and existing workspaces when missing; user edits, assignment changes, renames and deletion survive restart and starter retries. It can be edited, removed or explicitly added again from Skills. Its retrospective runs on user request or within a user-configured review routine; adding the skill creates no schedule or run and grants no capabilities.
+
+Adapted from [gasserane/personal-skills/improve-system](https://skills.sh/gasserane/personal-skills/improve-system), it uses scoped pipeline reads, user lessons, saved feedback, launch configurations and review follow-ups. It requires two independent occurrences before recommending a standing rule, checks whether existing instructions already address the failure, and reports counts, denominators and evidence gaps. Duplicate events for one incident do not establish recurrence. Missing configurations, unread pages and unavailable cost data stay unknown. It does not read other agents' private session logs or infer causation from employer outcomes.
+
+Supported findings use the existing review and targeted-proposal tools. Existing skill edits are presented for the user to apply in Skills because `pitchcrew_propose_skill` adds a skill rather than updating one. A review with no supported findings produces a user-facing summary without a fabricated saved finding. Follow-ups measure observed results using the existing review record. For example, ask Pipeline Coach: “Review repeated crew corrections across applications updated in the last fourteen days. Check existing instructions before proposing changes and tell me how to evaluate each improvement.”
+
 ## Periodic batch reviews
 
 Create a normal routine through the user-managed Routines page once the desired role and permissions exist. Suggested prompt:
