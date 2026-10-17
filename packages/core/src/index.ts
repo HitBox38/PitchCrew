@@ -127,3 +127,5 @@ export {
 export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telemetry-mcp.ts';
 
 export type { ProfileOrganization } from './profile-organization.ts';
+export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from './chat-history.ts';
+export { isNotificationMessage } from './message-notifications.ts';

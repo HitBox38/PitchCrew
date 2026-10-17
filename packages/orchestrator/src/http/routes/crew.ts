@@ -1,3 +1,4 @@
+import { conversationHistory, searchConversationMessages } from '@pitchcrew/board';
 import { roleIdSchema, runtimeIds, chatAttachmentLimits, type ChatMessage } from '@pitchcrew/core';
 import { readAttachment } from '../../crew/attachments/storage.ts';
 import type { FastifyInstance } from 'fastify';
@@ -18,6 +19,16 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
   app.put<IdRoute>('/api/conversations/:id', async (req, res) =>
     res.send(await service.updateConversation(req.params.id, req.body)),
   );
+  app.get('/api/conversations/search', (req) => {
+    const { q } = z.object({ q: z.string().max(500) }).parse(req.query);
+    return { threads: searchConversationMessages(service.board, q) };
+  });
+  app.get<IdRoute>('/api/conversations/:id/history', (req) => {
+    const thread = z.union([roleIdSchema, z.literal('crew'), z.uuid()]).parse(req.params.id);
+    service.board.get('conversation', thread);
+    const { anchor } = z.object({ anchor: z.string().max(200).optional() }).parse(req.query);
+    return conversationHistory(service.board, thread, anchor);
+  });
   app.post<IdRoute>(
     '/api/conversations/:id/messages',
     { bodyLimit: Math.ceil(chatAttachmentLimits.bytes / 3) * 4 + 64 * 1024 },

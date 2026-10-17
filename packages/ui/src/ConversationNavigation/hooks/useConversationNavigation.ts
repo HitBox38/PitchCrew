@@ -1,3 +1,4 @@
+import { useHistorySearch } from './useHistorySearch.ts';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
@@ -23,9 +24,10 @@ export function useConversationNavigation(data: Snapshot) {
   const dmsOpen = useChatPreferenceStore((state) => state.dmsOpen);
   const setDmsOpen = useChatPreferenceStore((state) => state.setDmsOpen);
   const setCreatingConversation = useWorkspaceStore((state) => state.setCreatingConversation);
+  const history = useHistorySearch(query, data.messageHistory?.revision);
   const rows = useMemo(
-    () => conversationRows(data, query, archived, readAt),
-    [data, query, archived, readAt],
+    () => conversationRows(data, query, archived, readAt, history.matches),
+    [data, query, archived, readAt, history.matches],
   );
   const create = () => {
     setOpenMobile(false);
@@ -43,6 +45,7 @@ export function useConversationNavigation(data: Snapshot) {
   };
   return {
     query,
+    searchError: history.error,
     setQuery,
     archived,
     setArchived,

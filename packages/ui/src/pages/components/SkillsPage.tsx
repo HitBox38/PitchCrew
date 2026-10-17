@@ -1,4 +1,5 @@
-import { skillsRoute, SkillsView } from '@/pages/constants.ts';
+import { skillsRoute } from '@/pages/constants.ts';
+import { SkillsView } from '@/SkillsView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 

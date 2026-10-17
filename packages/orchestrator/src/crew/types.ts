@@ -76,7 +76,7 @@ export interface CrewContext {
   initialize(seedSkills?: boolean): Promise<void>;
   detect(): Promise<RuntimeInfo[]>;
   runtimeModels(id: RuntimeId, refresh?: boolean): Promise<RuntimeModelCatalog>;
-  snapshot(): Promise<Snapshot>;
+  snapshot(options?: { workspace?: boolean }): Promise<Snapshot>;
   skills(roleId?: RoleId): Skill[];
   hasStarterSkill(starter: BaseSkill): boolean;
   seedStarterSkills(rolesReady?: Promise<void>): Promise<Snapshot['starterSkillErrors']>;

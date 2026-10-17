@@ -1,10 +1,8 @@
-import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
-import { useState } from 'react';
-import type { ProfileSourcesProps } from '../../ProfileSources/types.ts';
+import { useRef, useState } from 'react';
+import type { ProposalReviewProps } from '../types.ts';
+import { saveReviewDecision } from '../api.ts';
 
-export function useProposalReview(
-  props: ProfileSourcesProps & { proposal: ProfileMaintenanceProposal },
-) {
+export function useProposalReview(props: ProposalReviewProps) {
   const { proposal } = props;
   const [selected, setSelected] = useState(
     proposal.selected ??
@@ -12,27 +10,34 @@ export function useProposalReview(
   );
   const [verified, setVerified] = useState(proposal.verifiedFacts ?? false);
   const [error, setError] = useState('');
+  const [progress, setProgress] = useState('');
+  const pending = !!progress;
+  const locked = useRef(false);
   const active = props.data.runs.some((run) => run.status === 'running');
   async function decide(approved: boolean) {
+    if (locked.current || props.working) return;
+    locked.current = true;
+    setProgress(
+      approved
+        ? proposal.documents.length
+          ? 'Applying profile updates…'
+          : 'Acknowledging source changes…'
+        : 'Rejecting profile updates…',
+    );
+    props.onPendingChange(true);
     try {
       setError('');
-      await props.action(
-        `/profile/proposals/${proposal.id}/decide`,
-        'POST',
-        {
-          approved,
-          names: selected,
-          verifiedFacts: verified,
-          snapshotDigest: proposal.snapshotDigest,
-        },
-        approved ? 'Verified profile updates applied' : 'Profile updates rejected',
-      );
-      if (approved) {
-        const file = proposal.documents.find((item) => selected.includes(item.name));
-        if (file) props.openImported({ name: file.name, content: file.content });
-      }
+      await saveReviewDecision(props.action, proposal, selected, verified, approved);
+      const file = approved
+        ? proposal.documents.find((item) => selected.includes(item.name))
+        : undefined;
+      props.onReviewed(file ? { name: file.name, content: file.content } : undefined, approved);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not decide profile updates.');
+    } finally {
+      locked.current = false;
+      setProgress('');
+      props.onPendingChange(false);
     }
   }
   function toggle(name: string) {
@@ -45,6 +50,8 @@ export function useProposalReview(
     verified,
     setVerified,
     error,
+    pending,
+    progress,
     active,
     toggle,
     decide: (approved: boolean) => props.requestImport(() => void decide(approved)),

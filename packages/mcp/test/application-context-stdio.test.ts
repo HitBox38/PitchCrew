@@ -65,8 +65,10 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
         }),
       );
       if (purpose === 'source-extraction') {
-        expect(client.getServerCapabilities()?.tools).toBeUndefined();
-        await expect(client.listTools()).rejects.toThrow('Method not found');
+        // Required MCP clients discover tools before starting a model turn.
+        // An empty extractor must answer discovery without exposing any actions.
+        expect(await client.listTools()).toEqual({ tools: [] });
+        expect(client.getServerCapabilities()?.tools).toEqual({});
         await expect(
           client.callTool({ name: 'pitchcrew_read_profile', arguments: {} }),
         ).rejects.toThrow('Method not found');

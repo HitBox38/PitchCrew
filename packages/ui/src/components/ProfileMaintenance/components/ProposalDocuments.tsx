@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
@@ -20,7 +21,7 @@ export function ProposalDocuments({
             {file.name} —{' '}
             {file.status === 'conflict' ? 'Replaces a local note; review carefully' : file.status}
           </summary>
-          <label className="checkbox-label my-3">
+          <label className="my-3 flex items-center gap-3">
             <Checkbox
               disabled={disabled}
               checked={selected.includes(file.name)}
@@ -33,12 +34,18 @@ export function ProposalDocuments({
           </a>
           <div className="mt-3 grid gap-3 wide:grid-cols-2">
             <div>
-              <h4>Current note</h4>
-              <pre className="profile-update-preview max-h-80">{file.before ?? 'New note'}</pre>
+              <SourceBlock
+                label="Current note"
+                value={file.before ?? 'New note'}
+                contentClassName="font-sans"
+              />
             </div>
             <div>
-              <h4>Proposed note</h4>
-              <pre className="profile-update-preview max-h-80">{file.content}</pre>
+              <SourceBlock
+                label="Proposed note"
+                value={file.content}
+                contentClassName="font-sans"
+              />
             </div>
           </div>
         </details>
@@ -49,7 +56,7 @@ export function ProposalDocuments({
           <a href={file.url} target="_blank" rel="noreferrer" className="underline">
             Pinned source
           </a>
-          <pre className="profile-update-preview mt-3 max-h-80">{file.content}</pre>
+          <SourceBlock label={file.path} value={file.content} contentClassName="font-sans" />
         </details>
       ))}
     </div>

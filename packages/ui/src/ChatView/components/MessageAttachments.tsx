@@ -1,7 +1,14 @@
 import type { ChatMessage } from '@pitchcrew/core';
 import { Download, Paperclip } from 'lucide-react';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Attachment } from '@/components/ui/attachment/components/Attachment.tsx';
+import { AttachmentMedia } from '@/components/ui/attachment/components/AttachmentMedia.tsx';
+import { AttachmentContent } from '@/components/ui/attachment/components/AttachmentContent.tsx';
+import { AttachmentTitle } from '@/components/ui/attachment/components/AttachmentTitle.tsx';
+import { AttachmentDescription } from '@/components/ui/attachment/components/AttachmentDescription.tsx';
+import { AttachmentActions } from '@/components/ui/attachment/components/AttachmentActions.tsx';
+import { AttachmentTrigger } from '@/components/ui/attachment/components/AttachmentTrigger.tsx';
+
 import { attachmentSize } from '../attachment-helpers.ts';
 import { downloadAttachment } from '../api.ts';
 
@@ -25,21 +32,23 @@ export function MessageAttachments({ message }: { message: ChatMessage }) {
       <ul className="flex flex-wrap gap-2" aria-label="Message attachments">
         {message.attachments.map((file) => (
           <li key={file.id} className="max-w-full min-w-0">
-            <Button
-              variant="outline"
-              size="sm"
-              className="max-w-full"
-              disabled={downloading}
-              aria-label={`Download ${file.name}`}
-              onClick={() => void download(file)}
-            >
-              <Paperclip size={13} />
-              <span className="min-w-0 truncate" title={file.name}>
-                {file.name}
-              </span>
-              <span className="shrink-0 text-muted-foreground">{attachmentSize(file.size)}</span>
-              <Download size={13} />
-            </Button>
+            <Attachment size="sm">
+              <AttachmentMedia>
+                <Paperclip size={13} />
+              </AttachmentMedia>
+              <AttachmentContent>
+                <AttachmentTitle title={file.name}>{file.name}</AttachmentTitle>
+                <AttachmentDescription>{attachmentSize(file.size)}</AttachmentDescription>
+              </AttachmentContent>
+              <AttachmentTrigger
+                disabled={downloading}
+                aria-label={`Download ${file.name}`}
+                onClick={() => void download(file)}
+              />
+              <AttachmentActions className="pointer-events-none">
+                <Download size={13} aria-hidden="true" />
+              </AttachmentActions>
+            </Attachment>
           </li>
         ))}
       </ul>

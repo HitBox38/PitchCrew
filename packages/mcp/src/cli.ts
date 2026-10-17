@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { createAgentClient } from './tools/client.ts';
 import { registerComputerTools } from './tools/computer.ts';
 import { registerConnectorsTools } from './tools/connectors.ts';
@@ -24,7 +25,12 @@ if (execution.isError || !execution.structuredContent)
   throw new Error('Cannot verify the scoped execution purpose.');
 const purpose = execution.structuredContent?.purpose;
 const isolated = ['application-draft', 'application-review', 'fit'].includes(String(purpose));
-if (purpose !== 'source-extraction') {
+if (purpose === 'source-extraction') {
+  // Required MCP clients discover tools even for runs with no callable actions.
+  // McpServer only installs discovery when a tool is registered.
+  server.server.registerCapabilities({ tools: {} });
+  server.server.setRequestHandler(ListToolsRequestSchema, () => ({ tools: [] }));
+} else {
   registerPacketTools(server, call, isolated);
 
   if (isolated) registerApplicationInputTools(server, call);

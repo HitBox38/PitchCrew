@@ -268,8 +268,7 @@
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-.instruction-diff,
-.instruction-update-previous {
+.instruction-diff {
   max-height: 320px;
   overflow: auto;
   padding: 10px 0;
@@ -278,12 +277,6 @@
   background: var(--paper);
   font-size: var(--text-label);
   line-height: 1.6;
-}
-.instruction-update-previous {
-  padding: 10px 12px;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  font: inherit;
 }
 .instruction-diff li {
   display: grid;

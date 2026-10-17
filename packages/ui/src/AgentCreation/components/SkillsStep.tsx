@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { skillSize } from '../helpers.ts';
 import type { StepProps } from '../types.ts';
@@ -44,7 +45,7 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
             </label>
             <details className="mt-3 ml-7">
               <summary className="cursor-pointer text-sm">Read instructions</summary>
-              <pre className="suggested-skill-content max-h-64 text-sm">{skill.content}</pre>
+              <SourceBlock label={skill.name} value={skill.content} contentClassName="max-h-64" />
             </details>
             {selected && selected.updatedAt !== skill.updatedAt ? (
               <p className="form-error" role="alert">

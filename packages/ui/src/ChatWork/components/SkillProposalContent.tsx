@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { SkillProposalsProps } from '@/ChatWork/types.ts';
 import type { SkillProposal } from '@pitchcrew/core';
 import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
@@ -42,7 +43,7 @@ export function SkillProposalContent({ proposal, name, working, act }: SkillProp
       ) : null}
       <details>
         <summary>Review skill instructions</summary>
-        <pre className="suggested-skill-content">{proposal.skill.content}</pre>
+        <SourceBlock label={proposal.skill.name} value={proposal.skill.content} />
       </details>
       <footer>
         <p>Applies to new runs after you add it.</p>

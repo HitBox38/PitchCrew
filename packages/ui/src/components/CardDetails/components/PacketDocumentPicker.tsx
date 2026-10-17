@@ -1,3 +1,4 @@
+import { packetDocumentLabels } from '@/lib/packet-labels.ts';
 import type { PacketDocumentPickerProps } from '@/components/CardDetails/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
@@ -10,13 +11,7 @@ export function PacketDocumentPicker({ document, setDocument }: PacketDocumentPi
           key={name}
           onClick={() => setDocument(name)}
         >
-          {name === 'coverLetter'
-            ? 'Cover letter'
-            : name === 'formAnswers'
-              ? 'Form answers'
-              : name === 'resume'
-                ? 'Resume'
-                : 'Note'}
+          {packetDocumentLabels[name]}
         </Button>
       ))}
     </div>

@@ -1,3 +1,6 @@
+import { createWorkspaceActivity } from './workspace-activity.ts';
+import { workspaceMessages } from '@pitchcrew/board';
+import { z } from 'zod';
 import type { FastifyInstance } from 'fastify';
 import type { ServerResponse } from 'node:http';
 import type { CrewService } from '../service.ts';
@@ -7,7 +10,9 @@ export function registerChatStream(
   service: CrewService,
   chatStreams: Set<ServerResponse>,
 ) {
-  app.get('/api/chat/stream', (_req, reply) => {
+  app.get('/api/chat/stream', (req, reply) => {
+    const workspace =
+      z.object({ view: z.literal('workspace').optional() }).parse(req.query).view === 'workspace';
     // Keep ownership of the response until disconnect, including Node backpressure.
     reply.hijack();
     const res = reply.raw;
@@ -19,10 +24,20 @@ export function registerChatStream(
     let blocked = false;
     let messagesChanged = true;
     let previousActivity = '';
+    const workspaceActivity = createWorkspaceActivity(service);
     const send = () => {
       timer = undefined;
       if (blocked || res.destroyed) return;
-      const update = service.chatUpdate(messagesChanged);
+      const update =
+        workspace && messagesChanged
+          ? {
+              ...service.chatUpdate(false),
+              ...workspaceMessages(service.board),
+              userInputs:
+                service.board.list<import('@pitchcrew/core').UserInputRequest>('user_input'),
+            }
+          : service.chatUpdate(messagesChanged && !workspace);
+      if (workspace) update.activityRuns = workspaceActivity(update.activityRuns ?? []);
       const activity = JSON.stringify(update.activityRuns);
       if (!messagesChanged && activity === previousActivity) delete update.activityRuns;
       previousActivity = activity ?? '';

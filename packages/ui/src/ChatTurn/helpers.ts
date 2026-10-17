@@ -1,8 +1,5 @@
-import type { ChatMessage, Run, RunActivity } from '@pitchcrew/core';
-
-export type TranscriptItem =
-  | { kind: 'message'; id: string; createdAt: string; message: ChatMessage }
-  | { kind: 'turn'; id: string; createdAt: string; run: Run };
+import type { ChatMessage, Run, RunActivity, TranscriptItem } from '@pitchcrew/core';
+export type { TranscriptItem } from '@pitchcrew/core';
 
 export function transcriptItems(
   messages: ChatMessage[],

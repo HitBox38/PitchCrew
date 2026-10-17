@@ -11,7 +11,7 @@ export function createWorkspaceActions(
   return {
     reload: async () => {
       try {
-        applySnapshot(await api<Snapshot>('/snapshot'));
+        applySnapshot(await api<Snapshot>('/snapshot?view=workspace'));
       } catch (error) {
         set({
           error: error instanceof Error ? error.message : 'Could not connect to the daemon.',

@@ -1,7 +1,7 @@
 import type { PromptInputSubmitProps } from '@/components/ai-elements/prompt-input/types.ts';
 import { InputGroupButton } from '@/components/ui/input-group/components/InputGroupButton.tsx';
 import { cn } from '@/lib/utils.ts';
-import { CornerDownLeftIcon, LoaderCircle, SquareIcon, XIcon } from 'lucide-react';
+import { ArrowUpIcon, LoaderCircle, SquareIcon, XIcon } from 'lucide-react';
 import { useCallback } from 'react';
 
 export const PromptInputSubmit = ({
@@ -16,7 +16,7 @@ export const PromptInputSubmit = ({
 }: PromptInputSubmitProps) => {
   const isGenerating = status === 'submitted' || status === 'streaming';
 
-  let Icon = <CornerDownLeftIcon className="primitive:size-4" />;
+  let Icon = <ArrowUpIcon className="primitive:size-4" />;
 
   if (status === 'submitted') {
     Icon = <LoaderCircle className="primitive:size-4 primitive:animate-spin" />;

@@ -4,9 +4,9 @@ import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.
 import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
 import { SidebarGroupAction } from '@/components/ui/sidebar/components/SidebarGroupAction.tsx';
 import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { ConversationSearch } from './components/ConversationSearch.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Search, Plus, Archive } from 'lucide-react';
+import { Plus, Archive } from 'lucide-react';
 import { ConversationList } from './components/ConversationList.tsx';
 import { ConversationShortcuts } from './components/ConversationShortcuts.tsx';
 import { useConversationNavigation } from './hooks/useConversationNavigation.ts';
@@ -15,6 +15,7 @@ export function ConversationNavigation({ data }: { data: Snapshot }) {
   const {
     rows,
     query,
+    searchError,
     setQuery,
     archived,
     setArchived,
@@ -45,16 +46,12 @@ export function ConversationNavigation({ data }: { data: Snapshot }) {
           <ConversationShortcuts openConversations={openConversations} create={create} />
         ) : (
           <nav aria-label="Conversations">
-            <div className="conversation-search">
-              <Search size={13} />
-              <Input
-                ref={searchRef}
-                aria-label="Search conversations and messages"
-                placeholder="Search conversations"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </div>
+            <ConversationSearch
+              query={query}
+              setQuery={setQuery}
+              error={searchError}
+              inputRef={searchRef}
+            />
             <ConversationList
               rows={rows.filter((row) => row.conversation.kind !== 'agent_dm')}
               thread={thread}

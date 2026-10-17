@@ -1,86 +1,42 @@
-import { SourceActions } from './SourceActions.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
+import { GitHubSourceFields } from './GitHubSourceFields.tsx';
+import { SourceActions } from './SourceActions.tsx';
+import { SourceConnection } from './SourceConnection.tsx';
+import { SourceProgress } from './SourceProgress.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
 export function SourceForm(c: ProfileSourcesModel) {
   return (
-    <form className="form profile-source-form" onSubmit={c.previewSource}>
-      <h3>
-        {c.provider === 'github' ? 'Read from a GitHub folder' : 'Read from a Google Drive folder'}
-      </h3>
-      {c.provider === 'github' ? (
-        <>
-          <label>
-            Repository URL or owner/repository
-            <Input
-              value={c.repository}
-              onChange={(e) => c.setRepository(e.target.value)}
-              placeholder="https://github.com/owner/resumes"
-              required
-              maxLength={300}
-            />
-          </label>
-          <div className="profile-source-fields">
-            <label>
-              Profile or project folder
+    <form className="grid gap-5" onSubmit={c.previewSource} aria-busy={!!c.progress}>
+      <fieldset disabled={c.busy} className="grid min-w-0 gap-4">
+        <legend className="sr-only">Source details</legend>
+        {c.provider === 'github' ? (
+          <GitHubSourceFields {...c} />
+        ) : (
+          <>
+            <label className="grid gap-2 text-sm">
+              Google Drive folder link
               <Input
-                value={c.path}
-                onChange={(e) => c.setPath(e.target.value)}
-                placeholder="about-me"
+                value={c.folder}
+                onChange={(e) => c.setFolder(e.target.value)}
+                placeholder="https://drive.google.com/drive/folders/…"
+                required
                 maxLength={500}
               />
             </label>
-            <label>
-              Branch or tag (optional)
-              <Input
-                value={c.branch}
-                onChange={(e) => c.setBranch(e.target.value)}
-                placeholder="Default branch"
-                maxLength={200}
-              />
-            </label>
-          </div>
-          <p className="quiet">
-            Choose your factual source folder. Nested work histories and projects stay separate. Add
-            a second source for a general resume. For a project watch, choose its code folder or
-            leave the folder empty for the repository. Watches detect repository commits and require
-            an enabled agent plus GitHub permission to investigate.
-          </p>
-        </>
-      ) : (
-        <>
-          <label>
-            Google Drive folder link
-            <Input
-              value={c.folder}
-              onChange={(e) => c.setFolder(e.target.value)}
-              placeholder="https://drive.google.com/drive/folders/…"
-              required
-              maxLength={500}
-            />
-          </label>
-          <p className="quiet">
-            Reads Google Docs, Markdown and text documents, including nested folders. PDFs and
-            shortcuts are skipped.
-          </p>
-        </>
-      )}
-      {!c.canRead ? (
-        <div className="profile-source-connect">
-          <p className="quiet">
-            {c.provider === 'github'
-              ? 'Connect GitHub with read access to this repository.'
-              : 'Connect Google and grant Drive read access.'}
-          </p>
-          <Button
-            className="button primary"
-            disabled={c.busy}
-            onClick={() => c.connection.setEditing(c.provider === 'github' ? 'github' : 'google')}
-          >
-            {c.provider === 'github' ? 'Connect GitHub' : 'Connect Google Drive'}
-          </Button>
-        </div>
+            <p className="text-xs leading-relaxed text-muted-foreground">
+              Reads Google Docs, Markdown and text documents, including nested folders. PDFs and
+              shortcuts are skipped. You will review documents before importing.
+            </p>
+          </>
+        )}
+      </fieldset>
+      <SourceConnection {...c} />
+      {c.progress ? <SourceProgress label={c.progress.label} /> : null}
+      {c.error && !c.preview ? (
+        <p role="alert" className="form-error">
+          {c.error}
+        </p>
       ) : null}
       <SourceActions {...c} />
     </form>

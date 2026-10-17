@@ -1,0 +1,13 @@
+/* Loaded with the chat route; shared tokens and responsive variants stay global. */
+@reference './theme.css';
+@import './chat/layout.css' layer(components);
+@import './chat/conversation.css' layer(components);
+@import './chat/activity.css' layer(components);
+@import './chat/composer.css' layer(components);
+@import './chat/queue.css' layer(components);
+@import './chat/work.css' layer(components);
+@import './chat/redesign.css' layer(components);
+@import './chat/questions.css' layer(components);
+@import './chat/header.css' layer(components);
+@import './chat/panels.css' layer(components);
+@import './chat/browser.css' layer(components);

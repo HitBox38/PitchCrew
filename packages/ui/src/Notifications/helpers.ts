@@ -1,3 +1,4 @@
+import { isNotificationMessage } from '@pitchcrew/core/message-notifications';
 import type { Snapshot } from '@pitchcrew/core';
 import { pendingInstructionUpdates } from '../lib/instruction-updates.ts';
 import type { CrewNotification } from './types.ts';
@@ -8,30 +9,11 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
     data.proposals.filter((p) => p.noticeMessageId).map((p) => [p.noticeMessageId, p]),
   );
   const reviewNotices = new Map((data.pipelineReviews ?? []).map((r) => [r.noticeMessageId, r]));
-  const notifications: CrewNotification[] = data.messages
-    .filter((m) => {
-      if (
-        m.userInput?.kind === 'question' &&
-        !data.userInputs?.some((q) => q.id === m.userInput?.id && q.status === 'pending')
-      )
-        return false;
-      if (m.from === 'user' || m.from === 'system') return false;
-      const conversation = data.conversations?.find((item) => item.id === m.threadId);
-      if (
-        !conversation ||
-        m.notification ||
-        proposalNotices.has(m.id) ||
-        reviewNotices.has(m.id) ||
-        conversation.notifyAll
-      )
-        return true;
-      if (['history', 'agent_dm'].includes(conversation.kind)) return false;
-      return (
-        conversation.kind === 'direct' ||
-        conversation.kind === 'routine' ||
-        m.from === conversation.leadId
-      );
-    })
+  const notices = new Set(
+    [...proposalNotices.keys(), ...reviewNotices.keys()].filter((id): id is string => !!id),
+  );
+  const notifications: CrewNotification[] = (data.notificationMessages ?? data.messages)
+    .filter((m) => isNotificationMessage(m, data, notices))
     .map<CrewNotification>((m) => ({
       id: `message:${m.id}`,
       kind: m.notification ?? 'message',

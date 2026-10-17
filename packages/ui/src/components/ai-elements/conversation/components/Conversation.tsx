@@ -1,13 +1,13 @@
-import type { ConversationProps } from '@/components/ai-elements/conversation/types.ts';
-import { cn } from '@/lib/utils.ts';
-import { StickToBottom } from 'use-stick-to-bottom';
+import type { ConversationProps } from '../types.ts';
+import { MessageScroller } from '@/components/ui/message-scroller/components/MessageScroller.tsx';
+import { MessageScrollerProvider } from '@/components/ui/message-scroller/components/MessageScrollerProvider.tsx';
 
-export const Conversation = ({ className, ...props }: ConversationProps) => (
-  <StickToBottom
-    className={cn('primitive:relative primitive:flex-1 primitive:overflow-y-hidden', className)}
-    initial="instant"
-    resize="instant"
-    role="log"
-    {...props}
-  />
+export const Conversation = ({
+  autoScroll = true,
+  defaultScrollPosition = 'end',
+  ...props
+}: ConversationProps) => (
+  <MessageScrollerProvider autoScroll={autoScroll} defaultScrollPosition={defaultScrollPosition}>
+    <MessageScroller {...props} />
+  </MessageScrollerProvider>
 );

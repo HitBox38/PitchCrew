@@ -2,7 +2,7 @@ import { conversationStarters, rolePurpose } from '@/ChatView/constants.ts';
 import type { ConversationWelcomeProps } from '@/ChatView/types.ts';
 import { ConversationEmptyState } from '@/components/ai-elements/conversation/components/ConversationEmptyState.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion/index.tsx';
 import { ArrowRight, Users } from 'lucide-react';
 
 export function ConversationWelcome({
@@ -34,50 +34,45 @@ export function ConversationWelcome({
             : `${role.description} Start with a question, or attach a job to work on an application.`}
       </p>
       {!readOnly ? (
-        <div className="chat-starters mt-6.25 grid w-full max-w-110 grid-cols-2 gap-2.5 max-chat:mt-5 max-chat:gap-2">
+        <Suggestions className="chat-starters mt-6.25 grid w-full max-w-110 grid-cols-2 gap-2.5 max-chat:mt-5 max-chat:gap-2">
           {group ? (
-            <Button
+            <Suggestion
               className="chat-starter"
               variant="outline"
-              onClick={() =>
-                applyStarter(
-                  'Explain how the crew can help me take an application from evaluation through review.',
-                )
-              }
+              suggestion="Explain how the crew can help me take an application from evaluation through review."
+              onClick={applyStarter}
             >
               <span>How does the crew work?</span>
               <ArrowRight size={15} />
-            </Button>
+            </Suggestion>
           ) : (
             <>
-              <Button
+              <Suggestion
                 className="chat-starter"
                 variant="outline"
-                onClick={() =>
-                  applyStarter(
-                    'What can you help me with, and how do you work with the other agents?',
-                  )
-                }
+                suggestion="What can you help me with, and how do you work with the other agents?"
+                onClick={applyStarter}
               >
                 <span>Ask about this role</span>
                 <ArrowRight size={15} />
-              </Button>
+              </Suggestion>
               {(conversationStarters[roleId] ?? [])
                 .filter((starter) => attached || !starter.prompt.includes('attached job'))
                 .map((starter) => (
-                  <Button
+                  <Suggestion
                     className="chat-starter"
                     variant="outline"
                     key={starter.label}
-                    onClick={() => applyStarter(starter.prompt)}
+                    suggestion={starter.prompt}
+                    onClick={applyStarter}
                   >
                     <span>{starter.label}</span>
                     <ArrowRight size={15} />
-                  </Button>
+                  </Suggestion>
                 ))}
             </>
           )}
-        </div>
+        </Suggestions>
       ) : null}
     </ConversationEmptyState>
   );

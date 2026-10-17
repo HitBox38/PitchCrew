@@ -1,3 +1,4 @@
+import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ConnectAccountDialogProps } from '../types.ts';
@@ -43,9 +44,10 @@ export function GoogleCliConnectionDialog({
             </li>
             <li>
               Follow the CLI’s setup guide to configure its Google Cloud app, then run:
-              <code className="mt-2 block rounded border border-border bg-background p-2 text-sm wrap-anywhere select-all">
-                gws auth login --readonly
-              </code>
+              <SourceBlock
+                label="Google Workspace sign-in command"
+                value="gws auth login --readonly"
+              />
               <p className="quiet">Choose your account and grant the services you want to read.</p>
             </li>
             <li>Return here and choose Connect with Workspace CLI.</li>

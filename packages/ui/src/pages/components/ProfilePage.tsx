@@ -1,4 +1,4 @@
-import { ProfileView } from '@/pages/constants.ts';
+import { ProfileView } from '@/components/ProfileView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 

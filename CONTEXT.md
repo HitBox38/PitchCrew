@@ -4,6 +4,22 @@ Pitchcrew helps a user manage a job search with a crew of agents and a shared ap
 
 ## Language
 
+**Removed source document**:
+A previously imported Profile document that is no longer present in its connected source. Its local copy is kept and remains available to the user and crew.
+_Avoid_: Deleted profile document
+
+**Manual status change**:
+A user's bookkeeping update to a job's board status. It does not start agent work or authorize packet export or application submission.
+_Avoid_: Workflow execution (when referring only to a recorded status change)
+
+**Withdrawn**:
+A closed job the user has decided not to pursue further, with its application history retained. Recording this status does not communicate a withdrawal to the employer.
+_Avoid_: Deleted job, employer notification
+
+**Deleted job**:
+A job removed from the board with its stored history and exported files retained, its queued follow-ups cancelled and its attached routines paused. It has no user-facing restore action.
+_Avoid_: Withdrawn job, erased history
+
 **Conversation**:
 A named exchange with its own message history, participants and optional job context. Separate conversations can cover different topics or jobs with the same agent or agents.
 _Avoid_: Agent chat history (when referring to an individual conversation)
@@ -59,3 +75,11 @@ _Avoid_: Scout assessment (when referring only to extracting a source), source v
 **Personal application answer**:
 A user-supplied response to an employer's question about the user's opinions, preferences, motivations or experiences, specific to that application unless the user explicitly saves it to Profile for reuse. An agent may polish the response but cannot substitute its own impressions or infer a personal answer from public research.
 _Avoid_: Research finding (when referring to the user's own opinion), inferred preference
+
+**Profile note import**:
+A user-reviewed copy of selected source documents into Profile as local notes about the user. Watching the source for later changes is optional; subsequent updates require review.
+_Avoid_: Automatic sync, project watch (when referring to copying personal documents)
+
+**Project watch**:
+A user-enabled GitHub source for an authorized agent to investigate project changes and propose profile notes for the user's review. Watching a project does not itself import documents or establish the user's personal contribution.
+_Avoid_: Profile note import, automatic profile update

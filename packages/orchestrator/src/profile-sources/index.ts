@@ -141,7 +141,7 @@ export class ProfileSourceManager {
         input.provider === 'github'
           ? await readGithubSource(this.connectors, input, signal)
           : await readDriveSource(this.connectors, input, signal);
-      if (remote.files.length || !allowEmpty) checkFiles(remote.files);
+      if (remote.files.length || (!allowEmpty && !previous?.files.length)) checkFiles(remote.files);
       const local = await readProfile(this.directory);
       const before = new Map<string, string | null>();
       const files = remote.files.map((file) => {
@@ -159,7 +159,7 @@ export class ProfileSourceManager {
               : currentDigest === incomingDigest
                 ? ('unchanged' as const)
                 : ('changed' as const);
-        return { ...file, name, digest: incomingDigest, status };
+        return { ...file, name, before: existing?.content ?? null, digest: incomingDigest, status };
       });
       const missing = (previous?.files ?? [])
         .filter((old) => !files.some((file) => file.key === old.key))
@@ -215,7 +215,7 @@ export class ProfileSourceManager {
     const previous = sources.find((source) => source.id === staged.preview.source.id);
     const records: ImportedProfileFile[] = [...(previous?.files ?? [])];
     for (const file of selected) {
-      const { content: _content, status: _status, ...record } = file;
+      const { content: _content, before: _before, status: _status, ...record } = file;
       const index = records.findIndex((prior) => prior.name === file.name);
       if (index < 0) records.push(record);
       else records[index] = record;
