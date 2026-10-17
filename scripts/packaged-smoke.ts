@@ -1,3 +1,4 @@
+import { defaultRoleIds } from '../packages/core/src/states.ts';
 import { execFileSync, spawn } from 'node:child_process';
 import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -62,7 +63,7 @@ try {
     throw new Error('Packaged smoke check showed or focused its window.');
   if (
     result.apiStatus !== 200 ||
-    result.roles !== 7 ||
+    result.roles !== defaultRoleIds.length ||
     !result.uiReady ||
     !result.iconLoaded ||
     result.requireType !== 'undefined' ||

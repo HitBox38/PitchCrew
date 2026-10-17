@@ -15,10 +15,10 @@ it('makes every support default usable through the generic creation and chat flo
   });
   const { daemon, directory, request } = await setup(14580);
   const initial = (await request<Snapshot>('/snapshot')).result;
-  expect(initial.roles).toHaveLength(7);
+  expect(initial.roles).toHaveLength(8);
   expect(initial.routines).toEqual([]);
   expect(initial.runs).toEqual([]);
-  for (const id of ['submitter', 'tracker', 'documenter', 'pipeline-coach']) {
+  for (const id of ['submitter', 'tracker', 'documenter', 'pipeline-coach', 'career-coach']) {
     const role = initial.roles.find((role) => role.id === id)!;
     const instructions = await readFile(join(directory, 'roles', id, 'AGENTS.md'), 'utf8');
     expect(instructions).toContain(role.instructions);
@@ -36,7 +36,7 @@ it('makes every support default usable through the generic creation and chat flo
       expect(daemon.service.board.get<Run>('run', run.id).configuration?.role).toEqual(target);
     }
   }
-  expect(turns).toHaveLength(8);
+  expect(turns).toHaveLength(10);
   expect(daemon.service.board.list('routine')).toEqual([]);
   expect(daemon.service.board.list('computer_approval')).toEqual([]);
 });

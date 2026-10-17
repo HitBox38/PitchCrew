@@ -53,6 +53,11 @@ export const recommendationPlans: Readonly<Record<string, RecommendationPlan>> =
     models: [astra, opus, sol, sonnet, pro, luna, haiku, flash],
     reasoning: 'high',
   },
+  'career-coach': {
+    runtime: 'codex',
+    models: [sol, astra, sonnet, opus, pro, luna, flash, haiku],
+    reasoning: 'high',
+  },
 };
 
 export const recommendedRuntimeOrder: readonly RuntimeId[] = [

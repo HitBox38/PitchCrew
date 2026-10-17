@@ -3,6 +3,7 @@ import { deepResumeReviewSkill } from './starter-skills/deep-resume-review.ts';
 import type { RoleId } from './states.ts';
 import { improveSystem } from './starter-skills/improve-system.ts';
 import { promptInjectionGuard } from './starter-skills/prompt-injection-guard.ts';
+import { careerSkills } from './starter-skills/career-ops/index.ts';
 
 export const skillContentLimit = 50000;
 interface BaseSkillMetadata {
@@ -18,6 +19,7 @@ interface BaseSkillMetadata {
 export type BaseSkill = BaseSkillMetadata &
   ({ sourceType: 'github' } | { sourceType: 'bundled'; content: string });
 export const baseSkills: BaseSkill[] = [
+  ...careerSkills,
   {
     ...deepResumeReviewSkill,
     source: 'Pitchcrew',

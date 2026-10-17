@@ -271,7 +271,7 @@ it('loads starter sources while native catalogs are pending, but waits for compl
   }
   const { request } = await starting;
   const snapshot = (await request<Snapshot>('/snapshot')).result;
-  expect(snapshot.roles).toHaveLength(7);
+  expect(snapshot.roles).toHaveLength(8);
   expect(snapshot.roles.every((role) => !role.enabled)).toBe(true);
   expect(snapshot.skills).toHaveLength(baseSkills.length);
   expect(snapshot.starterSkillErrors).toEqual([]);

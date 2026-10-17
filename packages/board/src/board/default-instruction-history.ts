@@ -138,6 +138,14 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary: 'First default: propose profile updates from sources you watch.',
     },
   ],
+  'career-coach': [
+    {
+      revision: '4c8f29e80e1aa262',
+      date: '2026-10-17',
+      summary:
+        'First default: interview coaching, career planning and grounded offer evaluation in chat.',
+    },
+  ],
   'pipeline-coach': [
     {
       revision: 'cda4f06a756c5694',
