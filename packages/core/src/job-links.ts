@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cardInput } from './cards.ts';
 import type { CardState } from './states.ts';
 import {
   comeetCompanyUidPattern,
@@ -255,6 +256,18 @@ export function recognizeJobLink(value: string): JobLinkRecognition {
 }
 
 export const jobLookupInput = z.object({ url: z.string().max(maxJobLinkLength) }).strict();
+/** Agent-extracted details from the public page returned by a needs_details result. */
+export const jobLinkDetails = cardInput
+  .pick({ company: true, title: true, location: true, salary: true, description: true })
+  .extend({
+    location: z.string().trim().max(120).default(''),
+    description: z.string().trim().min(1).max(20000),
+  })
+  .strict();
+export const jobLinkImportInput = jobLookupInput.extend({
+  cardId: z.uuid().optional(),
+  details: jobLinkDetails.optional(),
+});
 /**
  * Provenance the UI sends back when the user saves a fetched job. It is saved as the card's
  * `discovery` (event version 10 shape) with `sourceId` set to `jobLinkSourceId`. It never holds
@@ -299,8 +312,20 @@ export type JobLookupResult =
   | { status: 'found'; prefill: JobLookupPrefill; duplicates: JobLookupDuplicate[] }
   | { status: 'unrecognized' | 'failed'; reason: string };
 
-/** Agent imports add only leads; duplicate results expose existing IDs and statuses. */
+/** Agent imports create leads or refresh an explicit card; duplicates expose IDs and statuses. */
 export type JobLinkImportResult =
+  | {
+      status: 'updated';
+      card: {
+        id: string;
+        company: string;
+        title: string;
+        url: string;
+        state: CardState;
+        excerpt: string;
+      };
+    }
+  | { status: 'needs_details'; url: string; text: string; reason: string }
   | {
       status: 'added';
       lead: {

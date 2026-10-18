@@ -29,6 +29,9 @@ async function withImport() {
   const service = context.daemon.service;
   const boards = recordedPostings();
   service.jobSources.fetch = boards.fetcher;
+  service.jobSources.readPage = async () => {
+    throw new Error('Fixture unreadable page');
+  };
   const setDiscovery = (discoverJobs: boolean, patch: Partial<Role> = {}) => {
     const role = service.board.get<Role>('role', 'scout');
     service.board.record(
@@ -162,12 +165,12 @@ describe('agent posting link imports', () => {
     ])
       await expect(importLink(input)).rejects.toThrow();
     for (const url of [
-      'https://127.0.0.1/jobs/42',
-      'https://careers.example/jobs/42',
       'http://boards.greenhouse.io/northwindlabs/jobs/4010001001',
       'https://boards.greenhouse.io/northwindlabs/../jobs/4010001001',
     ])
       expect((await importLink({ url })).result.status).toBe('unrecognized');
+    for (const url of ['https://127.0.0.1/jobs/42', 'https://careers.example/jobs/42'])
+      expect((await importLink({ url })).result.status).toBe('failed');
     expect((await importLink({ url: postingLinks.comeet.link })).result).toMatchObject({
       status: 'failed',
       reason: expect.stringContaining('Comeet source'),

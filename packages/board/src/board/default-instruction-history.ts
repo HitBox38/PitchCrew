@@ -54,6 +54,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary:
         'Adds single posting link imports as leads when discovery is enabled, with duplicates left unchanged.',
     },
+    {
+      revision: '636c1211e847fe94',
+      date: '2026-10-19',
+      summary:
+        'Reads public posting pages and can attach a link and refresh an explicitly selected existing job.',
+    },
   ],
   writer: [
     {

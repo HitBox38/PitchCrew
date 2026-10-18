@@ -20,6 +20,7 @@ const labels: Record<string, string> = {
   recall_memory: 'Recalling saved context',
   save_memory: 'Saving a memory',
   scan_job_sources: 'Scanning saved job boards',
+  import_job_link: 'Reading job link and saving job details',
   job_sources: 'Reading job sources',
   computer_inspect: 'Inspecting browser',
   computer_request: 'Requesting browser action',
