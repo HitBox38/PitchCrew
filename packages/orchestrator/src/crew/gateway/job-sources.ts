@@ -1,12 +1,11 @@
-import type { Role, Run } from '@pitchcrew/core';
+import { jobLinkImportInput, type Role, type Run } from '@pitchcrew/core';
 import type { CrewContext, RunCapability } from '../types.ts';
 
 /** Agent scans of a source wait this long after its last successful scan. */
 export const agentScanIntervalMs = 15 * 60 * 1000;
 
 /**
- * Agents may scan saved sources or import supported posting links through fixed provider APIs.
- * There is no agent path to add, edit or remove a source, or to fetch arbitrary URLs.
+ * Agents may scan saved sources or read public job links. They cannot change saved sources.
  */
 export async function jobSourceAction(
   this: CrewContext,
@@ -45,15 +44,20 @@ export async function jobSourceAction(
         }),
       ),
     };
-  if (action === 'import_job_link')
+  if (action === 'import_job_link') {
+    const input = jobLinkImportInput.parse(data.input);
+    if (capability.cardId && input.cardId && capability.cardId !== input.cardId)
+      throw new Error('Job link updates are scoped to the attached job.');
     return {
       result: await this.jobSources.importLink({
         actor: capability.roleId,
-        input: data.input,
+        input,
+        runId: capability.runId,
         signal,
         authorize,
       }),
     };
+  }
   const summary = await this.jobSources.scan({
     actor: capability.roleId,
     input: data.input ?? {},

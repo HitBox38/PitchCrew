@@ -103,7 +103,7 @@ it('exposes scan and link import tools over actual stdio only with discoverJobs 
     expect(importTool!.annotations).toMatchObject({
       readOnlyHint: false,
       destructiveHint: false,
-      idempotentHint: true,
+      idempotentHint: false,
       openWorldHint: true,
     });
     const listed = await client.callTool({ name: 'pitchcrew_list_job_sources', arguments: {} });
@@ -142,11 +142,45 @@ it('exposes scan and link import tools over actual stdio only with discoverJobs 
     expect(duplicate.structuredContent).toEqual({
       result: { status: 'duplicate', duplicates: [{ id: result.lead.id, state: 'lead' }] },
     });
+    const publicUrl = 'https://careers.example/jobs/43';
+    daemon.service.jobSources.readPage = async () => ({
+      url: publicUrl,
+      html: '<h1>Engineer at Tailspin</h1><p>Build interfaces.</p>',
+    });
+    const page = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: publicUrl },
+    });
+    expect(page.structuredContent).toMatchObject({
+      result: { status: 'needs_details', text: expect.stringContaining('Tailspin') },
+    });
+    const publicImport = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: {
+        url: publicUrl,
+        details: { company: 'Tailspin', title: 'Engineer', description: 'Build interfaces.' },
+      },
+    });
+    expect(publicImport.isError).not.toBe(true);
+    expect(publicImport.structuredContent).toMatchObject({
+      result: { status: 'added', lead: { url: publicUrl, company: 'Tailspin' } },
+    });
+    daemon.service.jobSources.readPage = async () => {
+      throw new Error('Fixture unreadable page');
+    };
+    const updated = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: postingLinks.greenhouse.link, cardId: result.lead.id },
+    });
+    expect(updated.isError).not.toBe(true);
+    expect(updated.structuredContent).toMatchObject({
+      result: { status: 'updated', card: { id: result.lead.id } },
+    });
     const unsupported = await client.callTool({
       name: 'pitchcrew_import_job_link',
       arguments: { url: 'https://careers.example/jobs/42' },
     });
-    expect(unsupported.structuredContent).toMatchObject({ result: { status: 'unrecognized' } });
+    expect(unsupported.structuredContent).toMatchObject({ result: { status: 'failed' } });
     setDiscovery(false);
     const revoked = await client.callTool({ name: 'pitchcrew_scan_job_sources', arguments: {} });
     expect(revoked.isError).toBe(true);
