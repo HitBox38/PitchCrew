@@ -6,6 +6,8 @@ import { useChatPreferences } from './useChatPreferences.ts';
 import { encodeAttachment } from '../api.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
+import { trimmedReferences } from '@/ChatComposer/helpers.ts';
+import type { ChatReference } from '@pitchcrew/core';
 import type { ChatMessage } from '@pitchcrew/core';
 import { useMemo, useRef, useState } from 'react';
 
@@ -19,8 +21,11 @@ export function useChatView(props: ChatViewProps) {
   }, [props.data.runs, props.data.activityRuns]);
   const data = useMemo(() => ({ ...props.data, runs }), [props.data, runs]);
   const reduced = useAppReducedMotion();
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const inputRef = useRef<HTMLDivElement>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, ChatReference[]>>({});
+  const setDraftReferences = (references: ChatReference[]) =>
+    setReferenceDrafts((current) => ({ ...current, [thread]: references }));
   const [recipient, setRecipient] = useState('');
   const [panes, setPanes] = useState<Record<string, 'conversation' | 'work'>>({});
   const pane = panes[thread] ?? 'conversation';
@@ -132,6 +137,7 @@ export function useChatView(props: ChatViewProps) {
   };
   const applyStarter = (prompt: string) => {
     setDrafts((current) => ({ ...current, [thread]: prompt }));
+    setDraftReferences([]);
     inputRef.current?.focus();
   };
   async function send(text: string, intent: 'queue' | 'interrupt' = 'queue') {
@@ -143,17 +149,32 @@ export function useChatView(props: ChatViewProps) {
       !available
     )
       return;
+    if (text.trim().length > 8000) {
+      setError('Messages can contain at most 8,000 characters.');
+      return;
+    }
     const sentThread = thread;
     setPane('conversation');
     setError('');
     sendingRef.current = true;
     try {
       await action(`/conversations/${thread}/messages`, 'POST', {
-        content: text,
+        content: text.trim(),
+        references: trimmedReferences(text, referenceDrafts[thread] ?? []).map(
+          ({ kind, id, token, start, end, revision }) => ({
+            kind,
+            id,
+            token,
+            start,
+            end,
+            revision,
+          }),
+        ),
         attachments: await Promise.all(attachments.files.map(encodeAttachment)),
         intent,
       });
       setDrafts((current) => ({ ...current, [sentThread]: '' }));
+      setReferenceDrafts((current) => ({ ...current, [sentThread]: [] }));
       attachments.clearFiles(sentThread);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not send the message.');
@@ -174,6 +195,8 @@ export function useChatView(props: ChatViewProps) {
     reduced,
     inputRef,
     setDrafts,
+    draftReferences: referenceDrafts[thread] ?? [],
+    setDraftReferences,
     recipient: roleId,
     setRecipient,
     pane,

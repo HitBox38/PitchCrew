@@ -5,8 +5,12 @@ export function close(this: BoardContext): void {
   this.db.close();
 }
 export function list<T>(this: BoardContext, kind: BoardEvent['kind']): T[] {
+  const query =
+    kind === 'conversation'
+      ? "SELECT json FROM entities WHERE kind = ? AND json_extract(json,'$.deletedAt') IS NULL ORDER BY rowid"
+      : 'SELECT json FROM entities WHERE kind = ? ORDER BY rowid';
   return (
-    this.db.prepare('SELECT json FROM entities WHERE kind = ? ORDER BY rowid').all(kind) as {
+    this.db.prepare(query).all(kind) as {
       json: string;
     }[]
   ).map((x) => JSON.parse(x.json) as T);
@@ -15,7 +19,8 @@ export function get<T>(this: BoardContext, kind: BoardEvent['kind'], id: string)
   const row = this.db
     .prepare('SELECT json FROM entities WHERE kind = ? AND id = ?')
     .get(kind, id) as { json: string } | undefined;
-  if (!row) throw new Error(`${kind} not found.`);
+  if (!row || (kind === 'conversation' && JSON.parse(row.json).deletedAt))
+    throw new Error(`${kind} not found.`);
   return JSON.parse(row.json) as T;
 }
 export function record(
@@ -77,6 +82,28 @@ export function rebuild(this: BoardContext): void {
 }
 
 function project(this: BoardContext, event: BoardEvent): void {
+  // Keep conversation tombstones so startup migration cannot recreate deleted default chats.
+  const data = event.data as { deletedAt?: string; threadId?: string };
+  if (event.kind === 'conversation' && data.deletedAt)
+    this.db
+      .prepare(
+        "DELETE FROM entities WHERE kind IN ('message','chat_request','conversation_session') AND json_extract(json,'$.threadId') = ?",
+      )
+      .run(event.entityId);
+  if (
+    event.kind === 'conversation' ||
+    ['message', 'chat_request', 'conversation_session'].includes(event.kind)
+  ) {
+    const thread = event.kind === 'conversation' ? event.entityId : data.threadId;
+    if (
+      this.db
+        .prepare(
+          "SELECT 1 FROM entities WHERE kind='conversation' AND id=? AND json_extract(json,'$.deletedAt') IS NOT NULL",
+        )
+        .get(thread)
+    )
+      return;
+  }
   if (event.kind === 'card' && (event.data as Card).deletedAt) {
     this.db.prepare('DELETE FROM entities WHERE kind = ? AND id = ?').run('card', event.entityId);
     return;

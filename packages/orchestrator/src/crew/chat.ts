@@ -1,3 +1,4 @@
+import { selectedChatSkills } from './chat-references.ts';
 import { activityRuns, recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn, finishUserContinuation, waitingOnUser } from './user-input/lifecycle.ts';
@@ -68,6 +69,7 @@ export function addMessage(
   id: string = randomUUID(),
   notification?: ChatMessage['notification'],
   attachments?: ChatAttachment[],
+  references?: ChatMessage['references'],
 ): ChatMessage {
   const message: ChatMessage = {
     id,
@@ -80,6 +82,7 @@ export function addMessage(
     createdAt: new Date().toISOString(),
     ...(notification ? { notification } : {}),
     ...(attachments?.length ? { attachments } : {}),
+    ...(references?.length ? { references } : {}),
   };
   const currentConversation = conversations(this).find((item) => item.id === threadId);
   if (currentConversation)
@@ -144,6 +147,15 @@ export async function startChatRun(
     throw new Error('Answer or cancel this agent’s pending question first.');
   const storedRole = requireRole(this, roleId);
   const conversation = conversations(this).find((item) => item.id === threadId);
+  if (
+    !conversation &&
+    this.board.db
+      .prepare(
+        "SELECT 1 FROM entities WHERE kind='conversation' AND id=? AND json_extract(json,'$.deletedAt') IS NOT NULL",
+      )
+      .get(threadId)
+  )
+    throw new Error('This conversation was deleted. Start a new conversation.');
   if (conversation && !canReadConversation(this, roleId, threadId))
     throw new Error('This role cannot access the conversation.');
   const configuredRole = scheduled
@@ -156,6 +168,14 @@ export async function startChatRun(
       this.runtimes.find((runtime) => runtime.id === role.runtime)!,
     );
   const skills = this.skills(roleId);
+  const selectedSkills = delivery
+    ? selectedChatSkills(
+        this,
+        this.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', delivery.requestId)
+          .references,
+        roleId,
+      )
+    : [];
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
   if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
@@ -245,6 +265,7 @@ export async function startChatRun(
           card,
           role,
           skills,
+          selectedSkills,
           messages: nativeSession?.messages ?? messages,
           session: nativeSession
             ? {

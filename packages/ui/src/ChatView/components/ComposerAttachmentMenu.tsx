@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
+import { useImperativeHandle, useRef, useState, type RefObject } from 'react';
 import type { ChatComposerProps } from '../types.ts';
 import { chatAttachmentAccept } from '@pitchcrew/core/chat-attachments';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -12,11 +13,25 @@ import {
 import { Plus, Paperclip, BriefcaseBusiness } from 'lucide-react';
 import { ComposerJobPicker } from './ComposerJobPicker.tsx';
 
-export function ComposerAttachmentMenu(props: ChatComposerProps) {
+export function ComposerAttachmentMenu(
+  props: ChatComposerProps & {
+    contextActions?: RefObject<
+      ((action: NonNullable<ComposerSuggestion['action']>) => void) | null
+    >;
+  },
+) {
   const input = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const [choosingJob, setChoosingJob] = useState(false);
   const jobLocked = props.busy || !!props.messages.length;
+  useImperativeHandle(
+    props.contextActions,
+    () => (action) => {
+      if (action === 'attach' && props.available && !props.working) input.current?.click();
+      if (action === 'job' && !jobLocked && !props.working) setChoosingJob(true);
+    },
+    [props.available, props.working, jobLocked],
+  );
   return (
     <>
       <input

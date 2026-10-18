@@ -38,6 +38,6 @@ export const smokeConversations = `(async () => {
   document.querySelector('button[aria-label="Open conversations"]')?.click();
   const expanded = await waitFor(() => document.activeElement === document.querySelector('nav[aria-label="Conversations"] input'));
   document.querySelector('nav[aria-label="Conversations"] a[href="/chat/scout"]')?.click();
-  const navigated = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
+  const navigated = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'));
   return { commandSearch, created, singleSidebar, runtimeDefaults, chatPanels, filtered, collapsed, expanded, navigated };
 })()`;

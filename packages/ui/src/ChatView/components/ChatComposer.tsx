@@ -1,3 +1,5 @@
+import { useRef } from 'react';
+import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 import { ComposerInput } from './ComposerInput.tsx';
 import { ComposerFooter } from './ComposerFooter.tsx';
 import { ComposerContext } from './ComposerContext.tsx';
@@ -9,6 +11,9 @@ import { runtimeLabels } from '@/lib/labels.ts';
 export function ChatComposer(props: ChatComposerProps) {
   const { role, available, error, send, working, addFiles } = props;
   const disabled = working || !available;
+  const contextActions = useRef<
+    ((action: NonNullable<ComposerSuggestion['action']>) => void) | null
+  >(null);
   return (
     <div className="chat-compose">
       {props.participants.length === 1 && (!role.enabled || !available) ? (
@@ -38,8 +43,12 @@ export function ChatComposer(props: ChatComposerProps) {
         }}
       >
         <ComposerContext {...props} />
-        <ComposerInput {...props} disabled={disabled} />
-        <ComposerFooter {...props} />
+        <ComposerInput
+          {...props}
+          disabled={disabled}
+          onAction={(action) => contextActions.current?.(action)}
+        />
+        <ComposerFooter {...props} contextActions={contextActions} />
       </PromptInput>
       <ComposerHint role={role} />
     </div>

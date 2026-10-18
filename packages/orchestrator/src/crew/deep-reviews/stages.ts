@@ -1,3 +1,4 @@
+import { selectedChatSkills } from '../chat-references.ts';
 import { reviewChildren } from './subagents.ts';
 import { reviewClarifications } from './clarifications.ts';
 import { subagentCard } from './inputs.ts';
@@ -36,6 +37,15 @@ export async function executeReviewStage(
   assertApplicationRuntime(role);
   if (!context.runtimes.some((r) => r.id === role.runtime && r.available))
     throw new Error('The selected review runtime is unavailable.');
+  const rootRun = context.board.get<Run>('run', live.runId);
+  const selectedSkills = rootRun.requestId
+    ? selectedChatSkills(
+        context,
+        context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', rootRun.requestId)
+          .references,
+        role.id,
+      )
+    : [];
   const report = review(context, live.id);
   const card = assertReviewCurrent(context, live);
   const controller = new AbortController();
@@ -85,6 +95,7 @@ export async function executeReviewStage(
           purpose: run.purpose,
           role,
           skills: run.configuration!.skills,
+          selectedSkills,
           profile: live.profile,
           userAnswers: applicationUserAnswers(context, card.id, role.id, run.purpose),
           packetRules: context.packetRules.current().rules,

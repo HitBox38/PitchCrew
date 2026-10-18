@@ -3,6 +3,7 @@ import { snapshotRevision } from './crew/snapshot-revision.ts';
 import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answers.ts';
 import { extractApplicationContext } from './crew/application-context/extraction.ts';
 import { createConversation, updateConversation } from './crew/conversations.ts';
+import { deleteConversation } from './crew/delete-conversation.ts';
 import {
   sendConversation,
   updateRequest,
@@ -83,6 +84,9 @@ export class CrewService {
   }
   updateConversation(id: string, data: unknown) {
     return updateConversation(this.context, id, data);
+  }
+  deleteConversation(id: string) {
+    return deleteConversation(this.context, id);
   }
   sendConversation(id: string, data: unknown) {
     return sendConversation(this.context, id, data);

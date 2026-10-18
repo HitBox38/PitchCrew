@@ -1,10 +1,16 @@
+import type { RefObject } from 'react';
+import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 import { BrowserModePicker } from '@/AgentBrowser/components/BrowserModePicker.tsx';
 import { ComposerAttachmentMenu } from './ComposerAttachmentMenu.tsx';
 import type { ChatComposerProps } from '../types.ts';
 import { PromptInputFooter } from '@/components/ai-elements/prompt-input/components/PromptInputFooter.tsx';
 import { ComposerSendActions } from './ComposerSendActions.tsx';
 
-export function ComposerFooter(props: ChatComposerProps) {
+export function ComposerFooter(
+  props: ChatComposerProps & {
+    contextActions: RefObject<((action: NonNullable<ComposerSuggestion['action']>) => void) | null>;
+  },
+) {
   return (
     <PromptInputFooter
       className="chat-prompt-footer"

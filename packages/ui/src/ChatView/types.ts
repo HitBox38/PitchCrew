@@ -17,6 +17,9 @@ export type ChatViewModel = NonNullable<ReturnType<typeof useChatView>>;
 
 export type ChatComposerProps = Pick<
   ChatViewModel,
+  | 'data'
+  | 'draftReferences'
+  | 'setDraftReferences'
   | 'messages'
   | 'role'
   | 'available'

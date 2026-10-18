@@ -48,6 +48,8 @@ export interface RunContext {
   card: Card;
   role: Role;
   skills?: Skill[];
+  /** Explicit user-selected skills, validated by the daemon for this role and turn. */
+  selectedSkills?: Skill[];
   profile: ProfileFile[];
   directory: string;
   mcp: { command: string; args: string[]; env: Record<string, string> };

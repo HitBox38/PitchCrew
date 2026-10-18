@@ -1,3 +1,5 @@
+import { messageRecipients, resolveChatReferences } from './chat-references.ts';
+import { chatReferenceInput } from '@pitchcrew/core';
 import { failReviewContinuation } from './deep-reviews/state.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { isDeepReviewRequest, queueDeepReviewChat } from './deep-reviews/chat.ts';
@@ -14,7 +16,7 @@ import {
 } from '@pitchcrew/core';
 import { z } from 'zod';
 import { saveAttachments, removeAttachments } from './attachments/storage.ts';
-import { conversation, canReadConversation } from './conversations.ts';
+import { conversation, conversations, canReadConversation } from './conversations.ts';
 import type { CrewContext } from './types.ts';
 import { routineReadyBefore } from './routines/ready.ts';
 
@@ -35,12 +37,8 @@ export async function sendConversation(
   const { intent } = z
     .object({ intent: z.enum(['queue', 'interrupt']).default('queue') })
     .parse(data);
-  const mentions = [...input.content.matchAll(/(?:^|\s)@([a-z][a-z0-9-]*)\b/g)].map(
-    (match) => match[1]!,
-  );
-  const targets = mentions.length
-    ? item.participants.filter((roleId) => mentions.includes(roleId))
-    : item.participants;
+  const references = resolveChatReferences(context, item, input.content, input.references);
+  const targets = messageRecipients(input.content, item);
   if (!targets.length) throw new Error('Mention an agent participating in this conversation.');
   const eligible = targets.filter((id) => {
     const role = context.board.get<Role>('role', id);
@@ -58,7 +56,7 @@ export async function sendConversation(
     if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
       throw new Error('The conversation changed. Try sending again.');
     if (isDeepReviewRequest(input.content)) {
-      const request = queueDeepReviewChat(context, item, input.content, files);
+      const request = queueDeepReviewChat(context, item, input.content, files, references);
       void drainConversationQueue(context);
       return request;
     }
@@ -78,6 +76,7 @@ export async function sendConversation(
       threadId: id,
       messageId: randomUUID(),
       content: input.content,
+      references,
       attachments: files,
       createdAt: new Date().toISOString(),
       order:
@@ -103,6 +102,7 @@ export async function sendConversation(
         request.messageId,
         undefined,
         files,
+        references,
       );
       saveRequest(context, request);
     })();
@@ -123,6 +123,8 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
       .sort((a, b) => a.order - b.order)) {
       if (context.closing) break;
       for (const queued of request.deliveries.filter((delivery) => delivery.status === 'queued')) {
+        // Another turn may delete a later queued conversation while setup awaits.
+        if (!conversations(context).some((item) => item.id === request.threadId)) continue;
         const current = context.board.get<ChatRequest>('chat_request', request.id);
         const delivery = current.deliveries.find((entry) => entry.roleId === queued.roleId)!;
         if (delivery.status !== 'queued') continue;
@@ -355,6 +357,7 @@ export function updateRequest(context: CrewContext, id: string, data: unknown): 
     .object({
       action: z.enum(['edit', 'remove', 'next', 'resume', 'up', 'down', 'interrupt']),
       content: z.string().trim().max(8000).optional(),
+      references: z.array(chatReferenceInput).max(32).optional(),
     })
     .parse(data);
   const request = context.board.get<ChatRequest>('chat_request', id);
@@ -368,18 +371,31 @@ export function updateRequest(context: CrewContext, id: string, data: unknown): 
       throw new Error('Your answer is already saved. Send a correction instead.');
     if (
       request.deliveries.some(
-        (delivery) =>
-          delivery.runId || (delivery.status !== 'queued' && delivery.status !== 'paused'),
+        (delivery) => delivery.runId || !['queued', 'paused', 'failed'].includes(delivery.status),
       )
     )
       throw new Error('This message has started. Send a correction instead.');
     if (input.content === undefined || (!input.content && !request.attachments.length))
       throw new Error('Write a message or attach a file.');
+    const item = conversation(context, request.threadId);
+    const references = resolveChatReferences(context, item, input.content, input.references);
+    const targets = messageRecipients(input.content, item);
+    if (!targets.length) throw new Error('Mention an agent participating in this conversation.');
+    const paused = request.deliveries.some((delivery) =>
+      ['paused', 'failed'].includes(delivery.status),
+    );
+    request.deliveries = targets.map((roleId) => ({
+      roleId,
+      status: paused ? 'paused' : 'queued',
+      runId: null,
+      error: '',
+    }));
     request.content = input.content;
+    request.references = references;
     const message = context.board.get<ChatMessage>('message', request.messageId);
     context.board.record(
       'message',
-      { ...message, content: input.content },
+      { ...message, content: input.content, references },
       'user',
       'Edited queued message',
     );

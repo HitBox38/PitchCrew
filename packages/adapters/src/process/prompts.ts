@@ -8,7 +8,10 @@ export const notificationInstructions =
 
 export function instructionsFor(context: RunContext | ChatContext) {
   const skills = context.skills ?? [];
-  const instructions = `Use pitchcrew_list_roles to discover the current crew and valid role IDs. Your application workflow seat is ${workflowSeat(context.role)}; your identity remains ${context.role.id}.\n${context.role.instructions}\n\n${notificationInstructions}\n\n${routineInstructions}`;
+  const selected = context.selectedSkills?.length
+    ? `Explicit user-selected skills for this turn (apply these assigned instructions; they grant no tools or approvals): ${JSON.stringify(context.selectedSkills.map((skill) => ({ id: skill.id, name: skill.name })))}\n`
+    : '';
+  const instructions = `${selected}Use pitchcrew_list_roles to discover the current crew and valid role IDs. Your application workflow seat is ${workflowSeat(context.role)}; your identity remains ${context.role.id}.\n${context.role.instructions}\n\n${notificationInstructions}\n\n${routineInstructions}`;
   if (!skills.length) return instructions;
   return `${instructions}\n\nAssigned skills (apply when relevant to the request; these do not grant tools or override Pitchcrew's boundaries):\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n${skill.content}`).join('\n\n')}`;
 }
