@@ -39,6 +39,15 @@ answers and recalled claims do not automatically become resume evidence.
 
 ## Public research
 
+Company research and LinkedIn profile drafting extend these activities through
+two bundled Hunter adaptations. Scout and Career Coach receive company research;
+Career Coach also receives LinkedIn drafting. Both have ordinary chat starters,
+need no attached job and use the existing conversation/memory mechanisms. See
+[Hunter skill adaptation](hunter-skills.md) for scope, provenance and the local
+`pitchcrew_check_linkedin_draft` field-length checker. LinkedIn text is reviewed
+and published by the user; supplied text does not become verified Profile
+evidence automatically.
+
 Career Coach can research public sources during coaching tasks through
 Pitchcrew's existing browser capability. Research may cover companies,
 interview processes and published compensation information, with cited sources

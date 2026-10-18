@@ -12,6 +12,7 @@ import { requireRole } from './roles.ts';
 import { readChatAttachment } from './gateway/attachments.ts';
 import {
   defaultCapabilities,
+  checkLinkedInDraft,
   describePacketRules,
   workflowSeat,
   draftingCard,
@@ -160,6 +161,11 @@ async function dispatchAgentCall(
     ].includes(action)
   )
     throw new Error('This turn is waiting for user input. End the turn now.');
+  if (action === 'check_linkedin_draft') {
+    if (activeRun?.mode !== 'chat' || activeRun.status !== 'running')
+      throw new Error('LinkedIn draft checks require an active chat turn.');
+    return checkLinkedInDraft(data.input);
+  }
   if (action === 'report_progress') {
     if (activeRun?.mode !== 'chat') throw new Error('Progress updates require a chat turn.');
     const { content } = z.object({ content: z.string().trim().min(1).max(1200) }).parse(data);

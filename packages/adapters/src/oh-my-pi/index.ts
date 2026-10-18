@@ -76,6 +76,18 @@ export const ohMyPi = withChat({
         'lint_packet',
         'get_packet_rules',
         'export_packet',
+        ...('messages' in context && !context.purpose
+          ? [
+              'check_linkedin_draft',
+              'list_conversations',
+              'read_conversation',
+              'recall_memory',
+              'save_memory',
+              'message_agent',
+              'ask_user',
+              'report_progress',
+            ]
+          : []),
         ...(context.role.capabilities?.computerUse
           ? ['computer_inspect', 'computer_request', 'computer_execute']
           : []),

@@ -20,6 +20,8 @@ let browser: Browser;
 let page: Page;
 const errors: string[] = [];
 const starters = [
+  'Research a company',
+  'Improve my LinkedIn',
   'Prepare for an interview',
   'Practice with me',
   'Debrief an interview',
@@ -49,6 +51,10 @@ test('offers all coaching activities with or without an attached job, fills the 
     .waitFor({ timeout: 30000 });
   for (const label of starters)
     expect(await page.getByRole('button', { name: label, exact: true }).isVisible()).toBe(true);
+  await page.getByRole('button', { name: 'Improve my LinkedIn', exact: true }).click();
+  expect(await page.locator('textarea').inputValue()).toContain('measured length checks');
+  await page.getByRole('button', { name: 'Research a company', exact: true }).click();
+  expect(await page.locator('textarea').inputValue()).toContain('sourced brief');
   await page.getByRole('button', { name: 'Practice with me', exact: true }).click();
   expect(await page.locator('textarea').inputValue()).toContain('one question at a time');
   expect(host.daemon.service.board.list('run')).toEqual([]);
@@ -72,3 +78,28 @@ test('offers all coaching activities with or without an attached job, fills the 
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 }, 60000);
+
+test('offers Scout research with and without job context and keeps existing starters', async () => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(`${host.daemon.url}/chat/scout`);
+  for (const attached of [false, true]) {
+    if (attached) {
+      const card = host.daemon.service.board.list<Card>('card')[0];
+      expect(
+        (await host.request('/conversations/scout', 'PUT', { cardId: card.id })).response.status,
+      ).toBe(200);
+      await page.reload();
+      await page.getByRole('button', { name: 'Evaluate this job', exact: true }).waitFor();
+    }
+    await page.getByRole('button', { name: 'Research a company', exact: true }).click();
+    expect(await page.locator('textarea').inputValue()).toContain('sourced brief');
+    expect(
+      await page.getByRole('button', { name: 'What should I look for?', exact: true }).isVisible(),
+    ).toBe(true);
+    expect(
+      await page.getByRole('button', { name: 'Improve my LinkedIn', exact: true }).count(),
+    ).toBe(0);
+  }
+  expect(host.daemon.service.board.list('run')).toEqual([]);
+  expect(errors).toEqual([]);
+});

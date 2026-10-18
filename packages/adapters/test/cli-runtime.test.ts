@@ -313,6 +313,23 @@ describe.each([
       ).toBe(true);
     const request = await requestFor(context);
     expect(request.prompt).toContain('Fictional current request');
+    if (runtime === 'oh-my-pi') {
+      const tools = request.args[request.args.indexOf('--tools') + 1].split(',');
+      expect(tools).toEqual(
+        expect.arrayContaining([
+          'mcp__pitchcrew_check_linkedin_draft',
+          'mcp__pitchcrew_list_conversations',
+          'mcp__pitchcrew_read_conversation',
+          'mcp__pitchcrew_recall_memory',
+          'mcp__pitchcrew_save_memory',
+          'mcp__pitchcrew_message_agent',
+          'mcp__pitchcrew_ask_user',
+          'mcp__pitchcrew_report_progress',
+        ]),
+      );
+      expect(tools.every((tool) => tool.startsWith('mcp__pitchcrew_'))).toBe(true);
+      expect(request.args).toContain('--no-tools');
+    }
     expect(request.prompt).toContain(`Attached card: ${JSON.stringify(chat.card)}`);
     expect(request.environment.PITCHCREW_RUN_TOKEN).toBe('fictional-token');
   });

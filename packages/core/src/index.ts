@@ -132,3 +132,4 @@ export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from 
 export { isNotificationMessage } from './message-notifications.ts';
 
 export * from './deep-reviews.ts';
+export { checkLinkedInDraft, linkedInDraftInput, linkedInFieldLimits } from './linkedin-draft.ts';

@@ -119,6 +119,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     const listed = await client.listTools();
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
       [
+        'pitchcrew_check_linkedin_draft',
         'pitchcrew_list_conversations',
         'pitchcrew_read_conversation',
         'pitchcrew_create_group',

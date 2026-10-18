@@ -105,8 +105,16 @@ A user-enabled GitHub source for an authorized agent to investigate project chan
 _Avoid_: Profile note import, automatic profile update
 
 **Career Coach**:
-A crew agent that helps the user with interview preparation, practice and debriefs, career planning and offer evaluation.
+A crew agent that helps the user with interview preparation, practice and debriefs, career planning, offer evaluation, company research and LinkedIn profile drafting.
 _Avoid_: Pipeline Coach (when referring to career support rather than application pipeline or crew improvement)
+
+**Company research brief**:
+A sourced account of a company's business, recent developments, relevant team and reported interview process, with uncertainties identified. It is research about the employer, separate from the job brief and the user's personal motivations or verified Profile evidence.
+_Avoid_: Job brief (when referring to broader company research), verified Profile evidence
+
+**LinkedIn profile drafting**:
+Preparing proposed LinkedIn profile text grounded in the user's actual experience and target roles for the user to review and publish themselves.
+_Avoid_: LinkedIn automation, profile synchronization
 
 **Interview preparation**:
 Planning for a specific interview using the job's requirements, the user's experience and known interview details.

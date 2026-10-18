@@ -83,6 +83,11 @@ Pi requires **1.0.0 or newer** from the current `earendil-works/pi` project, whi
 
 oh-my-pi requires **18.4.9 or newer**. It receives isolated configuration and data paths and exposes Pitchcrew MCP tools. Ambient plugins, foreign configuration discovery, native tools, rules, skills, memory and auto-learning are disabled. On Windows, the Pitchcrew data folder must be on the same drive as the user home so OMP can isolate its configuration root.
 
+Ordinary oh-my-pi chat exposes the scoped LinkedIn draft checker and conversation,
+memory, crew-message, user-question and progress tools needed by the bundled
+career skills. These are Pitchcrew MCP tools, not native memory or shell tools;
+the daemon rechecks run access and role permissions on every call.
+
 Both inherit native provider authentication environment variables, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime default or use `provider/model`.
 
 ### Hermes Agent
