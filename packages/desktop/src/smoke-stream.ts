@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 
+export const smokeStreamInputRequest = 'Pitchcrew smoke insert stream request';
 export const smokeStreamRequest = 'Fixture: verify streamed reply.';
 export const smokeStreamPrefix = 'Pitchcrew smoke rendered: ';
 export const smokeStreamPartials = [

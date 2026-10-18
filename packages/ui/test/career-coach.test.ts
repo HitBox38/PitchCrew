@@ -52,11 +52,11 @@ test('offers all coaching activities with or without an attached job, fills the 
   for (const label of starters)
     expect(await page.getByRole('button', { name: label, exact: true }).isVisible()).toBe(true);
   await page.getByRole('button', { name: 'Improve my LinkedIn', exact: true }).click();
-  expect(await page.locator('textarea').inputValue()).toContain('measured length checks');
+  expect(await page.locator('.chat-rich-input').textContent()).toContain('measured length checks');
   await page.getByRole('button', { name: 'Research a company', exact: true }).click();
-  expect(await page.locator('textarea').inputValue()).toContain('sourced brief');
+  expect(await page.locator('.chat-rich-input').textContent()).toContain('sourced brief');
   await page.getByRole('button', { name: 'Practice with me', exact: true }).click();
-  expect(await page.locator('textarea').inputValue()).toContain('one question at a time');
+  expect(await page.locator('.chat-rich-input').textContent()).toContain('one question at a time');
   expect(host.daemon.service.board.list('run')).toEqual([]);
   const card = (
     await host.request<Card>('/cards', 'POST', {
@@ -74,7 +74,9 @@ test('offers all coaching activities with or without an attached job, fills the 
   for (const label of starters)
     expect(await page.getByRole('button', { name: label, exact: true }).isVisible()).toBe(true);
   await page.getByRole('button', { name: 'Evaluate an offer', exact: true }).click();
-  expect(await page.locator('textarea').inputValue()).toContain('compensation and contract terms');
+  expect(await page.locator('.chat-rich-input').textContent()).toContain(
+    'compensation and contract terms',
+  );
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 }, 60000);
@@ -92,7 +94,7 @@ test('offers Scout research with and without job context and keeps existing star
       await page.getByRole('button', { name: 'Evaluate this job', exact: true }).waitFor();
     }
     await page.getByRole('button', { name: 'Research a company', exact: true }).click();
-    expect(await page.locator('textarea').inputValue()).toContain('sourced brief');
+    expect(await page.locator('.chat-rich-input').textContent()).toContain('sourced brief');
     expect(
       await page.getByRole('button', { name: 'What should I look for?', exact: true }).isVisible(),
     ).toBe(true);
@@ -101,5 +103,44 @@ test('offers Scout research with and without job context and keeps existing star
     ).toBe(0);
   }
   expect(host.daemon.service.board.list('run')).toEqual([]);
+  expect(errors).toEqual([]);
+});
+
+test('completes agent and skill references in the real workspace and persists matching transcript chips', async () => {
+  const skill = await host.request<import('@pitchcrew/core').Skill>('/skills', 'POST', {
+    name: 'Fixture evidence check',
+    description: 'Check exact profile quotations.',
+    content: 'Use exact profile quotations.',
+    scope: 'all',
+  });
+  expect(skill.response.status).toBe(201);
+  const conversation = await host.request<import('@pitchcrew/core').Conversation>(
+    '/conversations',
+    'POST',
+    { title: 'Reference integration fixture', participants: ['scout', 'writer'] },
+  );
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto(`${host.daemon.url}/chat/${conversation.result.id}`);
+  const editor = page.getByRole('textbox', { name: 'Message the group', exact: true });
+  await editor.pressSequentially('@sco');
+  await page.keyboard.press('Enter');
+  await editor.pressSequentially('Use $fixture');
+  await page.keyboard.press('Tab');
+  await expect.poll(() => editor.locator('[data-reference-key]').count()).toBe(2);
+  await page.screenshot({ path: '/tmp/pitchcrew-inline-chat-draft.png' });
+  await page.keyboard.press('Enter');
+  await expect.poll(() => page.locator('.chat-message.is-user .chat-reference').count()).toBe(2);
+  const snapshot = await host.request<import('@pitchcrew/core').Snapshot>('/snapshot');
+  const message = snapshot.result.messages.find(
+    (message) => message.threadId === conversation.result.id && message.from === 'user',
+  );
+  expect(message?.references?.map((reference) => reference.kind)).toEqual(['agent', 'skill']);
+  expect(message?.references?.[1].id).toBe(skill.result.id);
+  await page.screenshot({ path: '/tmp/pitchcrew-inline-chat-desktop.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await editor.pressSequentially('$fixture');
+  await page.getByRole('listbox', { name: 'Message suggestions' }).waitFor();
+  await page.screenshot({ path: '/tmp/pitchcrew-inline-chat-mobile.png' });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });

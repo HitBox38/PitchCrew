@@ -2,8 +2,7 @@ import { AnswerMessage } from '@/UserQuestions/components/AnswerMessage.tsx';
 import type { ChatMessage, Snapshot } from '@pitchcrew/core';
 import { QuestionMessage } from '@/UserQuestions/components/QuestionMessage.tsx';
 import { MessageContent } from '@/components/ai-elements/message/components/MessageContent.tsx';
-import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
-import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
+import { ReferenceMessage } from '@/ChatReferences/index.tsx';
 import { MessageAttachments } from './MessageAttachments.tsx';
 export function TranscriptMessageContent({
   message,
@@ -26,13 +25,11 @@ export function TranscriptMessageContent({
       ) : question ? (
         <QuestionMessage question={question} data={data} onAnswer={answerQuestion} />
       ) : (
-        <MessageResponse
-          mode={streaming ? 'streaming' : 'static'}
-          isAnimating={streaming}
-          components={noRemoteImages}
-        >
-          {message.content}
-        </MessageResponse>
+        <ReferenceMessage
+          message={message}
+          catalog={{ roles: data.roles, skills: data.skills ?? [] }}
+          streaming={streaming}
+        />
       )}
       <MessageAttachments message={message} />
     </MessageContent>

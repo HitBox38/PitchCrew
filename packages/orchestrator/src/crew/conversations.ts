@@ -22,10 +22,23 @@ export function conversation(context: CrewContext, id: string): Conversation {
 }
 export function canReadConversation(context: CrewContext, roleId: string, id: string): boolean {
   const item = conversations(context).find((entry) => entry.id === id);
-  return item ? item.participants.includes(roleId) : id === roleId || id === 'crew';
+  if (item) return item.participants.includes(roleId);
+  if (id !== roleId && id !== 'crew') return false;
+  // Legacy direct chats may precede migration; a deletion tombstone always denies access.
+  return !context.board.db
+    .prepare(
+      "SELECT 1 FROM entities WHERE kind='conversation' AND id=? AND json_extract(json,'$.deletedAt') IS NOT NULL",
+    )
+    .get(id);
 }
-export function migrateConversations(context: CrewContext): void {
-  const existing = new Set(conversations(context).map((item) => item.id));
+export function migrateConversations(context: Pick<CrewContext, 'board'>): void {
+  const existing = new Set(
+    (
+      context.board.db.prepare("SELECT id FROM entities WHERE kind='conversation'").all() as {
+        id: string;
+      }[]
+    ).map((item) => item.id),
+  );
   const now = new Date().toISOString();
   const roles = context.board.list<Role>('role');
   for (const role of roles) {

@@ -1,3 +1,4 @@
+import type { ChatReference } from './chat-references.ts';
 import type { WorkspaceMessages } from './chat-history.ts';
 import type { Run } from './runs.ts';
 import type { UserInputRequest } from './user-input.ts';
@@ -24,6 +25,7 @@ export interface ChatMessage {
   notification?: 'message' | 'attention';
   attachments?: ChatAttachment[];
   memoryIds?: string[];
+  references?: ChatReference[];
 }
 export interface ChatStreamState extends WorkspaceMessages {
   activityRuns?: Run[];
@@ -39,9 +41,20 @@ export interface ChatStreamUpdate extends Partial<WorkspaceMessages> {
   messages?: ChatMessage[];
   streamingMessages: ChatMessage[];
 }
+export const chatReferenceInput = z
+  .object({
+    kind: z.enum(['agent', 'skill', 'action']),
+    id: z.string().min(1).max(128),
+    token: z.string().min(2).max(200),
+    start: z.number().int().min(0).max(8000),
+    end: z.number().int().min(1).max(8000),
+    revision: z.string().max(100).optional(),
+  })
+  .strict();
 export const chatInput = z
   .object({
     content: z.string().trim().max(8000).default(''),
+    references: z.array(chatReferenceInput).max(32).optional(),
     attachments: z
       .array(
         z.object({

@@ -1,9 +1,10 @@
 import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
-import { smokeUserQuestions } from './smoke-user-questions.ts';
+import { smokeUserQuestions, smokeDraftRequest, smokeDraftText } from './smoke-user-questions.ts';
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import {
   smokeStreamAckFile,
+  smokeStreamInputRequest,
   smokeStreamPartials,
   smokeStreamPrefix,
   smokeStreamRequest,
@@ -24,6 +25,20 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
   let windowFocused = window.isFocused();
   if (smokeFile) {
     window.webContents.on('console-message', (details) => {
+      if (details.message === smokeDraftRequest || details.message === smokeStreamInputRequest) {
+        void (async () => {
+          window.webContents.selectAll();
+          // Round-trip the renderer after the native edit command, without showing the window.
+          await window.webContents.executeJavaScript('0');
+          await window.webContents.insertText(
+            details.message === smokeDraftRequest ? smokeDraftText : smokeStreamRequest,
+          );
+        })().catch((error) => {
+          console.error('Could not type the smoke draft:', error);
+          app.exit(1);
+        });
+        return;
+      }
       const partial = details.message.slice(smokeStreamPrefix.length);
       if (!details.message.startsWith(smokeStreamPrefix) || !smokeStreamPartials.includes(partial))
         return;
@@ -80,13 +95,14 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
               await waitFor(() => !document.querySelector('[data-slot="toast"]'));
               document.querySelector('a[href="/chat"]')?.click();
-              chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('textarea[aria-label="Message Scout"]'));
+              chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
-              await waitFor(() => !!document.querySelector('textarea')?.value);
-              const streamingInput = document.querySelector('textarea');
-              Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(streamingInput, ${JSON.stringify(smokeStreamRequest)});
-              streamingInput.dispatchEvent(new Event('input', { bubbles: true }));
-              await waitFor(() => !streamingInput.form.querySelector('button[type="submit"]').disabled);
+              await waitFor(() => !!document.querySelector('.chat-rich-input')?.textContent);
+              const streamingInput = document.querySelector('.chat-rich-input');
+              streamingInput.focus();
+              console.info(${JSON.stringify(smokeStreamInputRequest)});
+              if (!await waitFor(() => document.querySelector('.chat-prompt input[name="message"]')?.value === ${JSON.stringify(smokeStreamRequest)})) throw new Error('Could not type the streaming fixture request: ' + document.querySelector('.chat-prompt input[name="message"]')?.value);
+              await waitFor(() => !streamingInput.closest('form').querySelector('button[type="submit"]').disabled);
               const partials = new Set();
               const observer = new MutationObserver(() => {
                 const message = document.querySelector('.chat-message-content[aria-busy="true"]');
@@ -96,7 +112,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
                 }
               });
               observer.observe(document.querySelector('.chat-transcript'), { subtree: true, childList: true, characterData: true, attributes: true });
-              document.querySelector('textarea')?.form?.requestSubmit();
+              document.querySelector('.chat-prompt')?.requestSubmit();
               chatResponded = await waitFor(() => [...document.querySelectorAll('.chat-message-content[aria-busy="false"]')].some((message) => message.textContent.includes('Second streaming checkpoint. This is a demo reply.')));
               observer.disconnect();
               const toastVisible = await waitFor(() => !!document.querySelector('[data-slot="toast"][data-kind="message"]:not([data-starting-style]):not([data-ending-style])'));
@@ -131,11 +147,11 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
               const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));
               document.querySelector('.chat-thread .role-avatar.writer')?.closest('a')?.click();
-              const writerReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('textarea[aria-label="Message Writer"]') && !!document.querySelector('.chat-empty'));
+              const writerReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('[role="textbox"][aria-label="Message Writer"]') && !!document.querySelector('.chat-empty'));
               document.querySelector('.chat-thread .role-avatar.scout')?.closest('a')?.click();
               await waitFor(() => !!document.querySelector('.chat-work-content'));
               history.back();
-              const backReady = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('textarea[aria-label="Message Writer"]'));
+              const backReady = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('[role="textbox"][aria-label="Message Writer"]'));
               history.forward();
               routerHistoryReady = backReady && await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('.chat-work-content'));
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Conversation'))?.click();
@@ -169,7 +185,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
               await waitFor(() => !document.querySelector('[data-slot="toast"]'));
               document.querySelector('a[href="/chat"]')?.click();
-              await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'));
+              await waitFor(() => !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'));
 
               await Promise.all(['scout', 'writer', 'reviewer'].map((role) => fetch('/api/roles/' + role + '/chat', {
                 method: 'POST', headers: { 'content-type': 'application/json', 'x-pitchcrew-client': 'ui' },
@@ -199,7 +215,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
           );
           // The title-bar checks below expect the bounded chat layout, not a scrolling Settings page.
           await window.webContents.executeJavaScript(
-            `(async () => { document.querySelector('a[href="/chat"]')?.click(); for (let i = 0; i < 80; i++) { if (document.querySelector('textarea[aria-label="Message Scout"]')) return; await new Promise((resolve) => setTimeout(resolve, 100)); } throw new Error('Could not restore chat after update checks.'); })()`,
+            `(async () => { document.querySelector('a[href="/chat"]')?.click(); for (let i = 0; i < 80; i++) { if (document.querySelector('[role="textbox"][aria-label="Message Scout"]')) return; await new Promise((resolve) => setTimeout(resolve, 100)); } throw new Error('Could not restore chat after update checks.'); })()`,
           );
         }
         const chrome = [];

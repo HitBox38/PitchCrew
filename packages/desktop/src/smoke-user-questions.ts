@@ -1,7 +1,9 @@
+export const smokeDraftRequest = 'Pitchcrew smoke insert separate draft';
+export const smokeDraftText = 'Keep this separate draft.';
 /** Exercise a real saved question, multi-select answer and targeted continuation in the renderer. */
 export const smokeUserQuestions = `(async () => {
   document.querySelector('nav[aria-label="Conversations"] a[href="/chat/scout"]')?.click();
-  if (!await waitFor(() => !!document.querySelector('textarea[aria-label="Message Scout"]'))) throw new Error('Question fixture chat did not open.');
+  if (!await waitFor(() => !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'))) throw new Error('Question fixture chat did not open.');
   let poppedUp = false, exitInert = false;
   const motionObserver = new MutationObserver(() => {
     const card = document.querySelector('.pending-user-questions-lane');
@@ -45,8 +47,10 @@ export const smokeUserQuestions = `(async () => {
   Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(custom, 'Mention the scheduling project.');
   custom.dispatchEvent(new Event('input', { bubbles: true }));
   const compose = document.querySelector('.chat-textarea');
-  Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(compose, 'Keep this separate draft.');
-  compose.dispatchEvent(new Event('input', { bubbles: true }));
+  await waitFor(() => compose.getAttribute('contenteditable') === 'true');
+  compose.focus();
+  console.info(${JSON.stringify(smokeDraftRequest)});
+  if (!await waitFor(() => document.querySelector('.chat-prompt input[name="message"]')?.value === ${JSON.stringify(smokeDraftText)})) throw new Error('Could not insert the separate composer draft.');
   const submit = question?.querySelector('button[type="submit"]');
   if (!await waitFor(() => !submit?.disabled)) throw new Error('Answer submission did not enable.');
   submit.click();
@@ -61,7 +65,7 @@ export const smokeUserQuestions = `(async () => {
     if (continued) break;
     await new Promise(resolve => setTimeout(resolve, 100));
   }
-  const draftKept = compose.value === 'Keep this separate draft.';
+  const draftKept = compose.textContent === 'Keep this separate draft.';
   const checks = { pending, motionReady, docked, exitInert, composerIsToaster, scrollbarStable, waiting, collapsed, focused, answered, continued, draftKept };
   if (!Object.values(checks).every(Boolean)) throw new Error('User question checks: ' + JSON.stringify(checks));
   return true;

@@ -4,6 +4,7 @@
 @import './chat/conversation.css' layer(components);
 @import './chat/activity.css' layer(components);
 @import './chat/composer.css' layer(components);
+@import './chat/references.css' layer(components);
 @import './chat/queue.css' layer(components);
 @import './chat/work.css' layer(components);
 @import './chat/redesign.css' layer(components);

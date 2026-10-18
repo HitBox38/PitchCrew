@@ -18,12 +18,21 @@ export function QueuedMessage({
 }) {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(request.content);
-  const update = (command: string, extra = {}) =>
-    action(`/chat-requests/${request.id}`, 'PUT', { action: command, ...extra }).catch(() => {});
+  const [error, setError] = useState('');
+  const update = async (command: string, extra = {}) => {
+    setError('');
+    try {
+      await action(`/chat-requests/${request.id}`, 'PUT', { action: command, ...extra });
+      return true;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not update the queued message.');
+      return false;
+    }
+  };
   const editable =
     !request.userInputId &&
     request.deliveries.every(
-      (delivery) => !delivery.runId && ['queued', 'paused'].includes(delivery.status),
+      (delivery) => !delivery.runId && ['queued', 'paused', 'failed'].includes(delivery.status),
     );
   return (
     <div className="chat-queued-message">
@@ -33,7 +42,9 @@ export function QueuedMessage({
             className="flex flex-wrap items-center gap-2"
             onSubmit={(event) => {
               event.preventDefault();
-              void update('edit', { content }).then(() => setEditing(false));
+              void update('edit', { content }).then((saved) => {
+                if (saved) setEditing(false);
+              });
             }}
           >
             <Input
@@ -64,6 +75,11 @@ export function QueuedMessage({
                 : request.content || `${request.attachments.length} attached files`}
           </p>
         )}
+        {error ? (
+          <p className="form-error" role="alert">
+            {error}
+          </p>
+        ) : null}
         <RequestDeliveryStatus request={request} data={data} />
       </div>
       {!editing ? (

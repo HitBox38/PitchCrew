@@ -126,6 +126,7 @@ export interface CrewContext {
     id?: string,
     notification?: ChatMessage['notification'],
     attachments?: ChatMessage['attachments'],
+    references?: ChatMessage['references'],
   ): ChatMessage;
   sendChat(roleId: RoleId, data: unknown): Promise<Run>;
   startChatRun(
