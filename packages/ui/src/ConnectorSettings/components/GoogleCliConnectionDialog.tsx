@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -25,11 +26,13 @@ export function GoogleCliConnectionDialog({
         >
           {working ? 'Checking connection…' : 'Connect with Workspace CLI'}
         </Button>
-        <details
+        <AccordionSection
+          key={google?.googleCliState ?? 'unknown'}
           className="rounded-lg border border-border bg-muted p-4"
-          open={!!google?.googleCliState && google.googleCliState !== 'ready'}
+          defaultOpen={!!google?.googleCliState && google.googleCliState !== 'ready'}
+          triggerClassName="cursor-pointer"
+          heading="Need to set up Workspace CLI?"
         >
-          <summary className="cursor-pointer">Need to set up Workspace CLI?</summary>
           <ol className="mt-3 flex list-decimal flex-col gap-3 pl-5">
             <li>
               <a
@@ -52,7 +55,7 @@ export function GoogleCliConnectionDialog({
             </li>
             <li>Return here and choose Connect with Workspace CLI.</li>
           </ol>
-        </details>
+        </AccordionSection>
         <p className="quiet">
           Credentials stay with gws. PitchCrew only makes read requests and checks that the account
           still matches. Disconnecting here keeps your CLI login. Enable services per agent in Crew.

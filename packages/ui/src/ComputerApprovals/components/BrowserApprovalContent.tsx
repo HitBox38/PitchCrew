@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ComputerApproval } from '@pitchcrew/core';
 import { browserActionTitles, browserStatusLabels } from '../helpers.ts';
@@ -34,23 +35,20 @@ export function BrowserApprovalContent({ approval, action, working, showActions 
         </p>
       ) : null}
       {approval.uploadPreview ? (
-        <details className="approval-preview">
-          <summary>Review generated upload text</summary>
+        <AccordionSection className="approval-preview" heading="Review generated upload text">
           <SourceBlock
             label="Generated upload text"
             value={approval.uploadPreview}
             contentClassName="font-sans"
           />
-        </details>
+        </AccordionSection>
       ) : null}
       {approval.uploadContent !== undefined ? (
-        <details className="approval-preview">
-          <summary>Review upload contents</summary>
+        <AccordionSection className="approval-preview" heading="Review upload contents">
           <SourceBlock label="Upload contents" value={approval.uploadContent} />
-        </details>
+        </AccordionSection>
       ) : null}
-      <details className="approval-preview">
-        <summary>Review the current page</summary>
+      <AccordionSection className="approval-preview" heading="Review the current page">
         <img
           className="computer-page-preview"
           src={`data:image/jpeg;base64,${approval.page.screenshot}`}
@@ -63,7 +61,7 @@ export function BrowserApprovalContent({ approval, action, working, showActions 
           value={approval.page.text}
           contentClassName="font-sans"
         />
-      </details>
+      </AccordionSection>
       <p className="browser-approval-note">
         This allows one interaction on this page. Clicks, typing and uploads may send information to
         the website.

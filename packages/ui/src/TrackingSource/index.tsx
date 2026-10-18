@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { TrackingSignal } from '@pitchcrew/core';
 
 export function TrackingSource({ signal }: { signal: TrackingSignal }) {
@@ -6,10 +7,12 @@ export function TrackingSource({ signal }: { signal: TrackingSignal }) {
       <blockquote className="my-2 border-l-2 border-border pl-3 whitespace-pre-wrap">
         {signal.quote}
       </blockquote>
-      <details className="my-2">
-        <summary>Read fetched email{signal.sourceTruncated ? ' (incomplete source)' : ''}</summary>
+      <AccordionSection
+        className="my-2"
+        heading={<>Read fetched email{signal.sourceTruncated ? ' (incomplete source)' : ''}</>}
+      >
         <p className="mt-2 max-h-80 overflow-auto whitespace-pre-wrap">{signal.sourceText}</p>
-      </details>
+      </AccordionSection>
     </>
   );
 }

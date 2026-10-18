@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalConfirmation } from './ExternalConfirmation.tsx';
 import type { JobOverviewProps } from '../types.ts';
@@ -33,15 +34,14 @@ export function SubmissionReceipts({
             <blockquote className="my-2 whitespace-pre-wrap">{attempt.evidence}</blockquote>
           ) : null}
           {attempt.confirmation ? (
-            <details>
-              <summary>Full confirmation evidence</summary>
+            <AccordionSection heading="Full confirmation evidence">
               <p>{attempt.confirmation.url}</p>
               <SourceBlock
                 label="Confirmation text"
                 value={attempt.confirmation.text}
                 contentClassName="font-sans"
               />
-            </details>
+            </AccordionSection>
           ) : null}
           {attempt.status === 'uncertain' ? (
             <div className="mt-2 flex flex-wrap gap-2">

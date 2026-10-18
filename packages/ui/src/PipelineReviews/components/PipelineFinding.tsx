@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { PipelineReview, RoleId } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import { ReviewEvidence } from './ReviewEvidence.tsx';
@@ -32,14 +33,13 @@ export function PipelineFinding({
       <p>
         <strong>Measure:</strong> {finding.measurement}
       </p>
-      <details>
-        <summary>Source evidence ({finding.evidenceEventIds.length})</summary>
+      <AccordionSection heading={<>Source evidence ({finding.evidenceEventIds.length})</>}>
         {review.evidence
           .filter((event) => finding.evidenceEventIds.includes(event.eventId))
           .map((event) => (
             <ReviewEvidence key={event.eventId} event={event} />
           ))}
-      </details>
+      </AccordionSection>
       <p>
         Follow-up: {followup?.status ?? 'open'}
         {followup?.result ? ` / ${followup.result}` : ''}
@@ -49,10 +49,9 @@ export function PipelineFinding({
           {metric.name}: {metric.value} {metric.unit}
         </p>
       ))}
-      <details>
-        <summary>Record follow-up</summary>
+      <AccordionSection heading="Record follow-up">
         <FollowupForm review={review} findingId={finding.id} working={working} action={action} />
-      </details>
+      </AccordionSection>
     </section>
   );
 }

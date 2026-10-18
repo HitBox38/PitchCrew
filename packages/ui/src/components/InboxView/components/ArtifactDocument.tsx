@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { lazy, Suspense, useState } from 'react';
 import type { Approval, PacketArtifact } from '@pitchcrew/core';
@@ -20,21 +21,23 @@ export function ArtifactDocument({
   const count = pageLabel(artifact, pages);
   const [opened, setPreviewOpened] = useState(false);
   return (
-    <details
+    <AccordionSection
       className="approval-preview"
-      onToggle={(event) => {
-        setOpened(event.currentTarget.open);
-        setPreviewOpened(event.currentTarget.open);
+      onOpenChange={(open) => {
+        setOpened(open);
+        setPreviewOpened(open);
       }}
+      heading={
+        <>
+          {artifact.name} · {count ? `${count} · ` : ''}
+          {(
+            (artifact.bytes.length * 3) / 4 -
+            (artifact.bytes.endsWith('==') ? 2 : artifact.bytes.endsWith('=') ? 1 : 0)
+          ).toLocaleString()}{' '}
+          bytes
+        </>
+      }
     >
-      <summary>
-        {artifact.name} · {count ? `${count} · ` : ''}
-        {(
-          (artifact.bytes.length * 3) / 4 -
-          (artifact.bytes.endsWith('==') ? 2 : artifact.bytes.endsWith('=') ? 1 : 0)
-        ).toLocaleString()}{' '}
-        bytes
-      </summary>
       <p className="quiet break-all">SHA-256: {artifact.digest}</p>
       <p className="quiet">{artifact.mimeType}</p>
       {artifact.mimeType === 'application/pdf' && opened ? (
@@ -48,19 +51,18 @@ export function ArtifactDocument({
           <PacketDocxPreview bytes={artifact.bytes} name={artifact.name} />
         </Suspense>
       ) : null}
-      <details>
-        <summary>Complete document text</summary>
+      <AccordionSection heading="Complete document text">
         <SourceBlock
           label={artifact.name}
           value={approval.packet[artifact.source]}
           contentClassName="font-sans"
         />
-      </details>
+      </AccordionSection>
       {approval.status === 'consumed' && approval.exportDirectory && url ? (
         <a className="text-button" href={url} download={artifact.name}>
           Download exported {artifact.name}
         </a>
       ) : null}
-    </details>
+    </AccordionSection>
   );
 }

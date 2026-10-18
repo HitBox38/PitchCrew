@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { BrowserAction } from '@pitchcrew/core';
 import { actionFields } from '../helpers.ts';
@@ -13,10 +14,9 @@ export function BrowserActionSummary({ action }: { action: BrowserAction }) {
           </div>
         ))}
       </dl>
-      <details className="approval-preview">
-        <summary>Exact action details</summary>
+      <AccordionSection className="approval-preview" heading="Exact action details">
         <SourceBlock label="Action JSON" value={JSON.stringify(action, null, 2)} />
-      </details>
+      </AccordionSection>
     </>
   );
 }
