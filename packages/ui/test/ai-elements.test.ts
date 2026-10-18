@@ -67,6 +67,25 @@ const atEnd = () =>
       (element) => Math.abs(element.scrollHeight - element.scrollTop - element.clientHeight) < 3,
     );
 
+test('shared disclosures preserve drafts and keep nested expansion independent', async () => {
+  const draft = page.getByRole('button', { name: 'Review draft', exact: true });
+  const evidence = page.getByRole('button', { name: 'Draft evidence', exact: true });
+  const input = page.getByRole('textbox', { name: 'Saved draft', exact: true });
+  expect(await draft.getAttribute('aria-expanded')).toBe('true');
+  expect(await evidence.getAttribute('aria-expanded')).toBe('false');
+  await input.fill('An unsaved local draft');
+  await evidence.click();
+  expect(await draft.getAttribute('aria-expanded')).toBe('true');
+  await draft.click();
+  expect(await input.isVisible()).toBe(false);
+  await draft.click();
+  expect(await input.inputValue()).toBe('An unsaved local draft');
+  expect(await evidence.getAttribute('aria-expanded')).toBe('true');
+  expect(await page.getByText('Fictional supporting evidence', { exact: true }).isVisible()).toBe(
+    true,
+  );
+});
+
 test('code fences preserve blank lines, copy exact text, and retain image and link safety', async () => {
   const code = page.locator('[data-slot="message-scroller-content"] [data-slot="code-block"]');
   expect(await code.count()).toBe(1);

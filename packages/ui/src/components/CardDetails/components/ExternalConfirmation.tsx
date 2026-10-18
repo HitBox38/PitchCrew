@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
@@ -14,8 +15,11 @@ export function ExternalConfirmation({
   const [evidence, setEvidence] = useState('');
   const [verified, setVerified] = useState(false);
   return (
-    <details className="form mt-3 space-y-3">
-      <summary>Verify a confirmation you checked outside this browser run</summary>
+    <AccordionSection
+      className="mt-3"
+      contentClassName="form space-y-3"
+      heading="Verify a confirmation you checked outside this browser run"
+    >
       <p className="quiet">
         This records your verification, including after a restart. The agent has not inspected this
         evidence.
@@ -53,6 +57,6 @@ export function ExternalConfirmation({
       >
         Save my verification
       </Button>
-    </details>
+    </AccordionSection>
   );
 }

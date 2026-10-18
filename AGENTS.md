@@ -77,6 +77,7 @@ docs/             # design decisions
 ## Code organization
 
 - Keep React component files at most 100 lines after formatting. `pnpm lint` checks every production TSX file.
+- App disclosure controls must use the shared shadcn/Base UI `Accordion` family for grouped rows, `AccordionSection` for a standalone section, or `Collapsible` for custom triggers. Never add native `<details>`/`<summary>` to `packages/ui/src`; `pnpm lint` rejects them. Import from `components/ui/accordion/` or `components/ui/collapsible/`, preserve initial expansion and independent row expansion, keep form drafts mounted, and use `onOpenChange` for lazy preview resources. Do not recreate disclosure behavior with ad hoc buttons and hidden panels.
 - Put each feature in a named folder with `index.tsx` as its public entry, `components/` for sections, `hooks/` for state/effects, and `__tests__/` for colocated tests. Use `types.ts`, `helpers.ts`, `constants.ts` and `api.ts` when the feature needs them; do not create empty placeholders.
 - Keep components focused on rendering. Put pure transformations in helpers, network operations in API modules, and reusable stateful behavior in hooks. Name handlers as actions; reserve `use` prefixes for hooks.
 - Share repeated domain labels, formatting and status calculations under `packages/ui/src/lib/`. Keep shadcn and AI Elements families under `components/ui/` and `components/ai-elements/` with explicit public exports.

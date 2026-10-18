@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { BrowserApprovalContent } from '@/ComputerApprovals/components/BrowserApprovalContent.tsx';
 import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
 import { browserActionTitles, actionFields } from '@/ComputerApprovals/helpers.ts';
@@ -41,15 +42,17 @@ export function BrowserPendingAction({
           thread={thread}
           control={control}
         />
-        <details className="browser-evidence">
-          <summary>Review exact action and page evidence</summary>
+        <AccordionSection
+          className="browser-evidence"
+          heading="Review exact action and page evidence"
+        >
           <BrowserApprovalContent
             approval={approval}
             action={action}
             working={working || paused}
             showActions={false}
           />
-        </details>
+        </AccordionSection>
         {paused ? (
           <p className="quiet">
             Return control before deciding. The agent will refresh its request.

@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { Card } from '@pitchcrew/core';
@@ -18,8 +19,7 @@ export function ExternalSubmissionRegistration({ card }: { card: Card }) {
   )
     return null;
   return (
-    <details className="my-4">
-      <summary>Already applied outside Pitchcrew?</summary>
+    <AccordionSection className="my-4" heading="Already applied outside Pitchcrew?">
       <p className="quiet my-2">
         Record a known submission on this application. The existing packet stays in history; this
         does not identify it as the packet you submitted.
@@ -42,6 +42,6 @@ export function ExternalSubmissionRegistration({ card }: { card: Card }) {
           Register external submission
         </Button>
       </form>
-    </details>
+    </AccordionSection>
   );
 }

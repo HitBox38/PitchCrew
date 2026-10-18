@@ -28,6 +28,8 @@ Production TSX files have a maximum of 100 lines after formatting. `scripts/chec
 
 Shared domain labels, time formatting and role status live in `src/lib`. Primitive families keep their original public exports in `components/ui` and `components/ai-elements`. Internal sections can import the specific primitive they need.
 
+App disclosures use the shared shadcn/Base UI controls: `Accordion`/`AccordionItem`/`AccordionTrigger`/`AccordionContent` for grouped rows, `AccordionSection` for a standalone expandable section, and `Collapsible` for custom trigger layouts. Never use native `<details>`/`<summary>` in `packages/ui/src` or recreate their behavior with ad hoc buttons; `pnpm lint` enforces the native-element restriction. `AccordionSection` composes the shared accordion, accepts `heading`, `defaultOpen`, `onOpenChange` and trigger/content classes, and keeps its content mounted so closing a form preserves drafts. Use `multiple` for independently expandable grouped rows. Preserve initially open sections and defer document preview resources until expansion. Disclosure styles target the shared `data-slot` and Base UI state attributes, not native `summary` or `[open]` selectors. The standalone public landing page is outside this app-only lint rule.
+
 ## Styling
 
 Use Tailwind utilities in feature JSX for ordinary flex/grid layout, spacing and responsive changes. Keep paper/clay materials, complex descendant selectors, Markdown formatting and shared motion in `src/styles`. Retain semantic class names when they identify materials, state or renderer smoke-test targets. Dynamic styles, such as card tilt and fit-meter widths, stay in Motion or inline styles.

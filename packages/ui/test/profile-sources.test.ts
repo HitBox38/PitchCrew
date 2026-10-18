@@ -424,7 +424,7 @@ test('unlinked proposals remain reviewable, local conflicts start unselected and
     .click();
   const review = page.getByRole('dialog', { name: 'Review profile updates' });
   await review
-    .locator('summary')
+    .getByRole('button')
     .filter({ hasText: 'Replaces a local note; review carefully' })
     .click();
   const selected = review.getByRole('checkbox', { name: 'Apply this document', exact: true });

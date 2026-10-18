@@ -85,10 +85,10 @@
   background: var(--ochre-soft);
   border-radius: 6px;
 }
-.chat-proposal details {
+.chat-proposal [data-slot='accordion'] {
   margin-top: 15px;
 }
-.chat-proposal summary {
+.chat-proposal [data-slot='accordion-trigger'] {
   cursor: pointer;
   font-size: var(--text-label);
   color: var(--primary);

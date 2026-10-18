@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { ReviewDetail } from '../types.ts';
 import { PerspectiveAssessment } from './PerspectiveAssessment.tsx';
 import { ReviewFindings } from './ReviewFindings.tsx';
@@ -18,11 +19,17 @@ export function SubagentResults({
     <section className="grid gap-3" aria-label="Targeted second opinions">
       <h3>Targeted second opinions</h3>
       {detail.subagents.map((child) => (
-        <details key={child.id} className="rounded-xl border border-border p-3">
-          <summary className="cursor-pointer">
-            {reviewPerspectives[child.perspective]} · {deepReviewStages[child.stage]} ·{' '}
-            {child.status}
-          </summary>
+        <AccordionSection
+          key={child.id}
+          className="rounded-xl border border-border p-3"
+          triggerClassName="cursor-pointer"
+          heading={
+            <>
+              {reviewPerspectives[child.perspective]} · {deepReviewStages[child.stage]} ·{' '}
+              {child.status}
+            </>
+          }
+        >
           <div className="mt-3 grid gap-3">
             <p>{child.focus}</p>
             <p className="optional">
@@ -42,7 +49,7 @@ export function SubagentResults({
               </>
             ) : null}
           </div>
-        </details>
+        </AccordionSection>
       ))}
       <nav className="flex gap-2" aria-label="Second opinion pages">
         <Button disabled={!offset} onClick={() => changePage(Math.max(0, offset - 20))}>

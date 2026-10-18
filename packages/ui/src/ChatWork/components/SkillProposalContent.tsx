@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { SkillProposalsProps } from '@/ChatWork/types.ts';
 import type { SkillProposal } from '@pitchcrew/core';
@@ -41,10 +42,9 @@ export function SkillProposalContent({ proposal, name, working, act }: SkillProp
           Only Markdown instructions are included.
         </p>
       ) : null}
-      <details>
-        <summary>Review skill instructions</summary>
+      <AccordionSection heading="Review skill instructions">
         <SourceBlock label={proposal.skill.name} value={proposal.skill.content} />
-      </details>
+      </AccordionSection>
       <footer>
         <p>Applies to new runs after you add it.</p>
         <div>

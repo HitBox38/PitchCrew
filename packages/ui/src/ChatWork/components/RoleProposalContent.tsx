@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { InstructionComparison } from '@/ChatWork/components/InstructionComparison.tsx';
 import type { RoleProposalsProps } from '@/ChatWork/types.ts';
 import type { RoleProposal, Role } from '@pitchcrew/core';
@@ -41,10 +42,9 @@ export function RoleProposalContent({
         {proposal.reason}
       </MessageResponse>
       {proposal.changes.instructions !== undefined ? (
-        <details>
-          <summary>Compare role instructions</summary>
+        <AccordionSection heading="Compare role instructions">
           <InstructionComparison current={proposal.beforeRole ?? current} proposal={proposal} />
-        </details>
+        </AccordionSection>
       ) : null}
       {proposal.changes.capabilities ? (
         <CapabilityChanges

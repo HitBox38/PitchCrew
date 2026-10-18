@@ -1,3 +1,5 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { Input } from '@/components/ui/input/components/Input.tsx';
 import { ServiceCommand } from '@/BackgroundServiceSettings/components/ServiceCommand.tsx';
 import { BrowserActionSummary } from '@/ComputerApprovals/components/BrowserActionSummary.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
@@ -160,6 +162,12 @@ function Fixture() {
           aria-label="Source preview examples"
           style={{ width: 320, maxWidth: '100%', margin: '24px auto' }}
         >
+          <AccordionSection heading="Review draft" defaultOpen>
+            <Input aria-label="Saved draft" defaultValue="Original draft" />
+            <AccordionSection heading="Draft evidence">
+              <p>Fictional supporting evidence</p>
+            </AccordionSection>
+          </AccordionSection>
           <ServiceCommand command="pnpm service status" />
           <BrowserActionSummary
             action={{
