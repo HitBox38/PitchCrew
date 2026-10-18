@@ -27,9 +27,14 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
     window.webContents.on('console-message', (details) => {
       if (details.message === smokeDraftRequest || details.message === smokeStreamInputRequest) {
         void (async () => {
-          window.webContents.selectAll();
-          // Round-trip the renderer after the native edit command, without showing the window.
-          await window.webContents.executeJavaScript('0');
+          // Let Lexical handle Select All so its model selection changes with the DOM.
+          // Native edit commands race selectionchange in hidden macOS windows.
+          await window.webContents.executeJavaScript(`
+            document.querySelector('.chat-rich-input').dispatchEvent(new KeyboardEvent('keydown', {
+              key: 'a', code: 'KeyA', bubbles: true, cancelable: true,
+              ${process.platform === 'darwin' ? 'metaKey' : 'ctrlKey'}: true,
+            }));
+          `);
           await window.webContents.insertText(
             details.message === smokeDraftRequest ? smokeDraftText : smokeStreamRequest,
           );
