@@ -92,6 +92,11 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
         const forbidden = await client.callTool({ name: 'pitchcrew_get_history', arguments: {} });
         expect(forbidden.isError).toBe(true);
       }
+      await expect(
+        daemon.service.agentCall(id, 'check_linkedin_draft', {
+          input: { fields: [{ field: 'headline', text: 'Fictional headline' }] },
+        }),
+      ).rejects.toThrow();
     } finally {
       await client.close();
       daemon.service.controllers.delete(id);

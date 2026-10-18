@@ -13,6 +13,16 @@ export const rolePurpose: Record<string, string> = {
 export const conversationStarters: Record<string, { label: string; prompt: string }[]> = {
   'career-coach': [
     {
+      label: 'Research a company',
+      prompt:
+        'Research a company for me and prepare a sourced brief covering its business, relevant team, recent developments, interview process and material concerns. Ask which company if it is not clear from context.',
+    },
+    {
+      label: 'Improve my LinkedIn',
+      prompt:
+        'Help me improve my LinkedIn profile for my target role family. Use my Profile and ask for current sections or essential missing context. Show section-by-section drafts, explanations and measured length checks for me to review and publish myself.',
+    },
+    {
       label: 'Prepare for an interview',
       prompt:
         'Help me prepare for an interview, using the job context if available. Ask for any essential missing details.',
@@ -39,6 +49,11 @@ export const conversationStarters: Record<string, { label: string; prompt: strin
     },
   ],
   scout: [
+    {
+      label: 'Research a company',
+      prompt:
+        'Research a company for me and prepare a sourced brief covering its business, relevant team, recent developments, interview process and material concerns. Ask which company if it is not clear from context.',
+    },
     {
       label: 'What should I look for?',
       prompt: 'Help me define what to look for in my next role, using my profile.',

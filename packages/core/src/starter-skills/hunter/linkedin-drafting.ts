@@ -1,0 +1,18 @@
+import { hunterSkill } from './common.ts';
+
+export const linkedInDrafting = hunterSkill(
+  'career-linkedin-drafting',
+  'Prepare evidence-grounded LinkedIn profile sections with before/after explanations and measured length warnings for manual publication.',
+  'hunter-linkedin',
+  `# Draft a LinkedIn profile
+
+Use when the user asks to improve their LinkedIn profile or a specific section. Establish the target role family, audience and requested scope from the user's goals rather than optimizing their public identity for one posting. No job is required. Ask the user to paste current sections or provide a text/PDF attachment; do not open, scrape, log into or edit LinkedIn. Work on supplied sections without requiring a complete profile for a narrow edit. Mark unavailable current text as not supplied rather than inventing a before version.
+
+Use saved Profile evidence and current LinkedIn text supplied by the user. The latter remains user-reported material, not automatically verified Profile evidence. Identify contradictions, missing facts and unsupported additions and ask the user before adding them. Preserve actual employers, titles, dates, responsibility, scale and achievements. Changing assisted to led changes ownership even if every keyword and number already exists elsewhere. Reusing a number for a different achievement is unsupported. Neither a lexical truth check nor a length check verifies a claim. Do not invent a metric to make a bullet stronger or infer personal motivations from company research. Reorder and rephrase only while preserving the supported meaning.
+
+Default to a section-by-section review of headline, About, skills and selected experience; honor narrower requests. Give each section's current text when supplied, ready-to-paste proposed text and a short explanation of changes. Make the headline clear about the actual target and strongest supported skills; make About readable and specific; prioritize relevant supported skills; make experience describe real contribution and outcomes. Avoid keyword stuffing, fabricated seniority and promises of recruiter reach, interviews or hiring outcomes. Flag unresolved evidence separately instead of filling gaps.
+
+Before presenting final text, call pitchcrew_check_linkedin_draft with input.fields containing each supplied draft's field (headline, about, position_title or position_description), exact text and an optional label distinguishing experience entries. For skills, supply the complete proposed list in input.skills when known; a partial selection cannot validate the entire profile's 100-skill allowance. Include returned measured counts and over-limit warnings beside the exact drafts. Respect the returned counting semantics and distinguish reported text limits from LinkedIn Help's skill-count limit. The checker measures UTF-16 code units, including spaces and line breaks without trimming or normalization, and also reports code-point counts. LinkedIn's live editor remains authoritative and may count Unicode differently. Do not claim the tool verified facts or predict search effectiveness. If a check fails or is unavailable, say lengths are unverified instead of estimating them as measured. Shorten over-limit text without altering its factual meaning and recheck the final exact version; report any unresolved warnings honestly.
+
+Keep results in chat for the user to review and paste themselves. Never publish, save profile edits, automate LinkedIn, contact recruiters or produce application copy through this activity. Save concise continuity notes about positioning decisions and unresolved facts, not a full duplicate of the user's profile.`,
+);

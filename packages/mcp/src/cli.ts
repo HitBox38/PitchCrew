@@ -13,6 +13,7 @@ import { registerRoutineTools } from './tools/routines.ts';
 import { registerTrackingTools } from './tools/tracking.ts';
 import { registerJobSourceTools } from './tools/job-sources.ts';
 import { registerApplicationInputTools } from './tools/application-input.ts';
+import { registerLinkedInTools } from './tools/linkedin.ts';
 
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
@@ -45,6 +46,7 @@ if (purpose === 'source-extraction') {
       );
   } else {
     registerCrewTools(server, call);
+    registerLinkedInTools(server, call);
     registerDeepReviewTools(server, call);
     registerRoutineTools(server, call);
     registerProfileTools(server, call);

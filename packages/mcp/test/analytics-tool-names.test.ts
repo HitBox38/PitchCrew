@@ -11,6 +11,7 @@ import { registerProfileTools } from '../src/tools/profile.ts';
 import { registerJobSourceTools } from '../src/tools/job-sources.ts';
 import { registerDeepReviewTools } from '../src/tools/deep-reviews.ts';
 import { registerRoutineTools } from '../src/tools/routines.ts';
+import { registerLinkedInTools } from '../src/tools/linkedin.ts';
 
 it('keeps reviewed telemetry names aligned with all advertised production tools', async () => {
   const server = new McpServer({ name: 'fixture', version: '1.0.0' });
@@ -29,6 +30,7 @@ it('keeps reviewed telemetry names aligned with all advertised production tools'
     },
   });
   registerCrewTools(server, call);
+  registerLinkedInTools(server, call);
   registerPacketTools(server, call);
   await registerComputerTools(server, call);
   await registerTrackingTools(server, call);
