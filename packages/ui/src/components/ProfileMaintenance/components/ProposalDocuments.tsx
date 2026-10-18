@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
@@ -16,11 +17,16 @@ export function ProposalDocuments({
   return (
     <div className="grid gap-3">
       {proposal.documents.map((file) => (
-        <details key={file.name} className="approval-preview">
-          <summary>
-            {file.name} —{' '}
-            {file.status === 'conflict' ? 'Replaces a local note; review carefully' : file.status}
-          </summary>
+        <AccordionSection
+          key={file.name}
+          className="approval-preview"
+          heading={
+            <>
+              {file.name} —{' '}
+              {file.status === 'conflict' ? 'Replaces a local note; review carefully' : file.status}
+            </>
+          }
+        >
           <label className="my-3 flex items-center gap-3">
             <Checkbox
               disabled={disabled}
@@ -48,16 +54,19 @@ export function ProposalDocuments({
               />
             </div>
           </div>
-        </details>
+        </AccordionSection>
       ))}
       {proposal.evidence?.map((file, index) => (
-        <details key={file.path + index} className="approval-preview">
-          <summary>Project evidence: {file.path}</summary>
+        <AccordionSection
+          key={file.path + index}
+          className="approval-preview"
+          heading={<>Project evidence: {file.path}</>}
+        >
           <a href={file.url} target="_blank" rel="noreferrer" className="underline">
             Pinned source
           </a>
           <SourceBlock label={file.path} value={file.content} contentClassName="font-sans" />
-        </details>
+        </AccordionSection>
       ))}
     </div>
   );

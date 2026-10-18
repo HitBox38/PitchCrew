@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
@@ -33,10 +34,15 @@ export function ApplicationTracking({ card }: { card: Card }) {
         <p className="prewrap">{card.tracking.note}</p>
       ) : null}
       {signals.map((signal) => (
-        <details className="my-2" key={signal.id}>
-          <summary>
-            {signal.status} · {signal.state} · {new Date(signal.effectiveAt).toLocaleString()}
-          </summary>
+        <AccordionSection
+          className="my-2"
+          key={signal.id}
+          heading={
+            <>
+              {signal.status} · {signal.state} · {new Date(signal.effectiveAt).toLocaleString()}
+            </>
+          }
+        >
           <p>
             {signal.subject} · {signal.from}
           </p>
@@ -44,7 +50,7 @@ export function ApplicationTracking({ card }: { card: Card }) {
           <p className="quiet">
             {signal.reason} Gmail message: {signal.messageId}
           </p>
-        </details>
+        </AccordionSection>
       ))}
       <h4>Linked Gmail threads</h4>
       {(card.tracking?.gmailThreads ?? []).map((link) => (

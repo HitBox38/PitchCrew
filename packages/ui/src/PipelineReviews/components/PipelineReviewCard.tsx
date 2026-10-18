@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { PipelineReview, RoleId } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import { PipelineFinding } from './PipelineFinding.tsx';
@@ -30,16 +31,14 @@ export function PipelineReviewCard({
           : 'All applications'}{' '}
         / {review.scope.from ?? 'Any start date'} to {review.scope.to ?? 'Present'}
       </p>
-      <details>
-        <summary>Evaluation criteria</summary>
+      <AccordionSection heading="Evaluation criteria">
         <ul>
           {review.criteria.map((criterion) => (
             <li key={criterion}>{criterion}</li>
           ))}
         </ul>
-      </details>
-      <details>
-        <summary>Seat assessments ({review.seats.length})</summary>
+      </AccordionSection>
+      <AccordionSection heading={<>Seat assessments ({review.seats.length})</>}>
         <ul>
           {review.seats.map((seat) => (
             <li key={seat.roleId}>
@@ -49,7 +48,7 @@ export function PipelineReviewCard({
             </li>
           ))}
         </ul>
-      </details>
+      </AccordionSection>
       {review.findings.map((finding) => (
         <PipelineFinding
           key={finding.id}

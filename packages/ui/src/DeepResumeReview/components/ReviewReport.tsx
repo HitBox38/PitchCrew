@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { ReviewDetail } from '../types.ts';
 import { PerspectiveAssessment } from './PerspectiveAssessment.tsx';
 import { ReviewFindings } from './ReviewFindings.tsx';
@@ -47,16 +48,21 @@ export function ReviewReport({
       ) : null}
       {report.before ? <ReviewFindings findings={report.before.findings} /> : null}
       {report.after ? (
-        <details open>
-          <summary className="cursor-pointer font-semibold">Final recheck</summary>
+        <AccordionSection
+          defaultOpen
+          triggerClassName="cursor-pointer font-semibold"
+          heading="Final recheck"
+        >
           <div className="mt-3 grid gap-4">
             <PerspectiveAssessment assessment={report.after} title="Rechecked perspectives" />
             <ReviewFindings findings={report.after.findings} />
           </div>
-        </details>
+        </AccordionSection>
       ) : null}
-      <details>
-        <summary className="cursor-pointer font-semibold">Before and after resume</summary>
+      <AccordionSection
+        triggerClassName="cursor-pointer font-semibold"
+        heading="Before and after resume"
+      >
         {report.originalResume ? (
           <SourceBlock label="Original resume" value={report.originalResume} />
         ) : (
@@ -67,13 +73,13 @@ export function ReviewReport({
         ) : (
           <p>The final recheck has not completed yet.</p>
         )}
-      </details>
+      </AccordionSection>
       <SubagentResults detail={detail} offset={childPage} changePage={changeChildPage} />
       {report.extensions.length ? (
-        <details>
-          <summary className="cursor-pointer">
-            Deadline extensions ({report.extensions.length})
-          </summary>
+        <AccordionSection
+          triggerClassName="cursor-pointer"
+          heading={<>Deadline extensions ({report.extensions.length})</>}
+        >
           <ul className="mt-3 list-disc space-y-2 pl-5">
             {report.extensions.map((extension, index) => (
               <li key={index}>
@@ -81,7 +87,7 @@ export function ReviewReport({
               </li>
             ))}
           </ul>
-        </details>
+        </AccordionSection>
       ) : null}
       <p className="optional">
         This report applies to the saved resume and job context it assessed. Current packet export

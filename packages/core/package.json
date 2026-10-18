@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/core",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -8,6 +8,7 @@
     "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
     "./states": "./src/states.ts",
+    "./chat-references": "./src/chat-references.ts",
     "./chat-attachments": "./src/chat-attachments.ts",
     "./insights": "./src/insights.ts",
     "./base-skills": "./src/base-skills.ts",

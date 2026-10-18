@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ReviewAlternativeRow, ReviewSupport } from '../types.ts';
 import { ReviewAlternative } from './ReviewAlternative.tsx';
@@ -17,8 +18,10 @@ export function ReviewAlternatives({
     (runtime) => runtime.available && runtime.applicationIsolation && runtime.reviewSubagents,
   );
   return (
-    <details>
-      <summary className="cursor-pointer">Optional subagent runtime alternatives</summary>
+    <AccordionSection
+      triggerClassName="cursor-pointer"
+      heading="Optional subagent runtime alternatives"
+    >
       <div className="mt-3 grid gap-3">
         <p className="optional">
           Subagents inherit Reviewer’s runtime and model. Add alternatives to allow Reviewer to
@@ -52,6 +55,6 @@ export function ReviewAlternatives({
         </Button>
         {error ? <p role="alert">{error}</p> : null}
       </div>
-    </details>
+    </AccordionSection>
   );
 }

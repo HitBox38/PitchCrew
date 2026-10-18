@@ -28,6 +28,7 @@ import { fetchBoard, ProviderRateLimiter, type FetchLike } from './fetch.ts';
 import { matchesFilters } from './filters.ts';
 import { lookupJobLink } from './lookup.ts';
 import { importJobLink } from './import-link.ts';
+import { readPublicJobPage, type ReadJobPage } from './public-page.ts';
 import {
   parsePostings,
   providerStatusMessages,
@@ -67,7 +68,7 @@ interface Fetched {
 
 /**
  * User-configured public job boards, saved in job-sources.json outside the event log. Agents can
- * trigger scans or import individual supported posting links; every source change goes through
+ * trigger scans, import public posting links or refresh an existing card; every source change goes through
  * user HTTP routes.
  */
 export class JobSourceManager {
@@ -81,6 +82,7 @@ export class JobSourceManager {
   ) {}
   /** The only network entry point; tests replace it with recorded fixtures. */
   fetch: FetchLike = (url, init) => fetch(url, init);
+  readPage: ReadJobPage = readPublicJobPage;
   private get path() {
     return join(this.directory, 'job-sources.json');
   }
@@ -215,12 +217,13 @@ export class JobSourceManager {
       signal: AbortSignal.any([this.lifetime.signal, ...(signal ? [signal] : [])]),
     });
   }
-  /** Import a single posting as a lead without changing saved sources or applying scan filters. */
+  /** Add or refresh one linked job without changing saved sources or applying scan filters. */
   importLink(options: {
     input: unknown;
     actor: string;
     signal: AbortSignal;
     authorize: () => void;
+    runId: string;
   }): Promise<JobLinkImportResult> {
     return importJobLink(options.input, {
       fetch: (url, init) => this.fetch(url, init),
@@ -228,6 +231,8 @@ export class JobSourceManager {
       board: this.board,
       sources: () => this.list(),
       actor: options.actor,
+      runId: options.runId,
+      readPage: (url, signal) => this.readPage(url, signal),
       authorize: options.authorize,
       signal: AbortSignal.any([this.lifetime.signal, options.signal]),
     });

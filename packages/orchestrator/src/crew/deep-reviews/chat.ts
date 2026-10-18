@@ -24,6 +24,7 @@ export function queueDeepReviewChat(
   item: Conversation,
   content: string,
   attachments: ChatMessage['attachments'] = [],
+  references: ChatMessage['references'] = [],
 ): ChatRequest {
   const reviewer = context.board
     .list<Role>('role')
@@ -50,6 +51,7 @@ export function queueDeepReviewChat(
     threadId: item.id,
     messageId: randomUUID(),
     content,
+    references,
     attachments: attachments ?? [],
     createdAt: new Date().toISOString(),
     order: Date.now(),
@@ -67,6 +69,7 @@ export function queueDeepReviewChat(
     request.messageId,
     undefined,
     attachments,
+    references,
   );
   if (!item.cardId) {
     const role = context.board.get<Role>('role', roleId);

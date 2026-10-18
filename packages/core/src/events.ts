@@ -42,7 +42,9 @@ export interface BoardEvent {
     | 18
     | 19
     | 20
-    | 21;
+    | 21
+    | 22
+    | 23;
   kind:
     | 'deep_review'
     | 'review_subagent'
@@ -100,8 +102,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 21 persists managed deep resume reviews and temporary review subagents. */
-export const currentEventVersion = 21 as const;
+/** Version 23 adds history-preserving conversation deletion tombstones. */
+export const currentEventVersion = 23 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -125,7 +127,9 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 18 &&
     event.version !== 19 &&
     event.version !== 20 &&
-    event.version !== 21
+    event.version !== 21 &&
+    event.version !== 22 &&
+    event.version !== 23
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

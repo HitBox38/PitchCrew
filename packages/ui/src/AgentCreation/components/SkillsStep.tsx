@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { skillSize } from '../helpers.ts';
@@ -43,10 +44,13 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
                 <span className="quiet font-normal">{skill.description}</span>
               </span>
             </label>
-            <details className="mt-3 ml-7">
-              <summary className="cursor-pointer text-sm">Read instructions</summary>
+            <AccordionSection
+              className="mt-3 ml-7"
+              triggerClassName="cursor-pointer text-sm"
+              heading="Read instructions"
+            >
               <SourceBlock label={skill.name} value={skill.content} contentClassName="max-h-64" />
-            </details>
+            </AccordionSection>
             {selected && selected.updatedAt !== skill.updatedAt ? (
               <p className="form-error" role="alert">
                 This skill changed. Deselect it, review the instructions, then select it again.

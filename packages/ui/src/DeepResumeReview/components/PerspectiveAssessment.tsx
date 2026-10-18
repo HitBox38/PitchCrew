@@ -1,5 +1,11 @@
 import type { ReviewAssessment } from '@pitchcrew/core';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
+import {
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@/components/ui/accordion/index.tsx';
 export function PerspectiveAssessment({
   assessment,
   title,
@@ -31,30 +37,34 @@ export function PerspectiveAssessment({
           ))}
         </ul>
       ) : null}
-      <div className="divide-y divide-border">
+      <Accordion multiple>
         {assessment.perspectives.map((item) => (
-          <details key={item.perspective} className="py-3">
-            <summary className="cursor-pointer">
-              <strong>{reviewPerspectives[item.perspective]}</strong> · {item.verdict}
-            </summary>
-            <div className="mt-2 grid gap-2">
-              <p>{item.rationale}</p>
-              {item.weakestLine ? (
-                <blockquote className="border-l-2 border-border pl-3">
-                  {item.weakestLine}
-                </blockquote>
-              ) : null}
-              {item.interviewQuestions.length ? (
-                <ul className="list-disc pl-5">
-                  {item.interviewQuestions.map((question, index) => (
-                    <li key={index}>{question}</li>
-                  ))}
-                </ul>
-              ) : null}
-            </div>
-          </details>
+          <AccordionItem key={item.perspective} value={item.perspective}>
+            <AccordionTrigger>
+              <span>
+                <strong>{reviewPerspectives[item.perspective]}</strong> · {item.verdict}
+              </span>
+            </AccordionTrigger>
+            <AccordionContent keepMounted>
+              <div className="mt-2 grid gap-2">
+                <p>{item.rationale}</p>
+                {item.weakestLine ? (
+                  <blockquote className="border-l-2 border-border pl-3">
+                    {item.weakestLine}
+                  </blockquote>
+                ) : null}
+                {item.interviewQuestions.length ? (
+                  <ul className="list-disc pl-5">
+                    {item.interviewQuestions.map((question, index) => (
+                      <li key={index}>{question}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </div>
+      </Accordion>
     </section>
   );
 }

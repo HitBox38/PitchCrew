@@ -2,9 +2,9 @@
 export const smokeRetainedRuntime = `(async () => {
   if (snapshot.runtimes.some((runtime) => runtime.id === 'demo')) throw new Error('Demo must be absent in production.');
   document.querySelector('a[href="/chat/writer"]')?.click();
-  const chat = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('textarea[aria-label="Message Writer"]'));
+  const chat = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('[role="textbox"][aria-label="Message Writer"]'));
   if (!chat) throw new Error('Retained Demo chat failed to render.');
-  const unavailable = document.querySelector('textarea[aria-label="Message Writer"]')?.disabled && document.querySelector('.chat-compose')?.textContent.includes('Choose an installed runtime');
+  const unavailable = document.querySelector('[role="textbox"][aria-label="Message Writer"]')?.getAttribute('contenteditable') === 'false' && document.querySelector('.chat-compose')?.textContent.includes('Choose an installed runtime');
   const blocked = await fetch('/api/roles/writer/chat', {
     method: 'POST', headers: { 'content-type': 'application/json', 'x-pitchcrew-client': 'ui' },
     body: JSON.stringify({ content: 'Fictional blocked Demo request.' }),
@@ -23,7 +23,7 @@ export const smokeRetainedRuntime = `(async () => {
   const selected = await waitFor(() => document.querySelector('#writer-runtime [data-slot="select-value"]')?.textContent === 'Claude Code');
   if (!selected) throw new Error('Could not select a real runtime for retained Demo role.');
   document.querySelector('.role-settings-form')?.requestSubmit();
-  const saved = await waitFor(() => !document.querySelector('.role-settings-panel') && !document.querySelector('textarea[aria-label="Message Writer"]')?.disabled);
+  const saved = await waitFor(() => !document.querySelector('.role-settings-panel') && document.querySelector('[role="textbox"][aria-label="Message Writer"]')?.getAttribute('contenteditable') === 'true');
   const after = await fetch('/api/snapshot', { headers: { 'x-pitchcrew-client': 'ui' } }).then((response) => response.json());
   const restored = after.roles.find((role) => role.id === 'writer');
   const original = snapshot.roles.find((role) => role.id === 'writer');

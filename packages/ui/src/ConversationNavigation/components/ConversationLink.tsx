@@ -4,14 +4,19 @@ import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMen
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Users, History, Circle, Pin, Archive, LoaderCircle, Clock } from 'lucide-react';
 import type { ConversationNavigationRow } from '../types.ts';
+import { ConversationMenu, type ConversationMenuActions } from './ConversationMenu.tsx';
 export function ConversationLink({
   row,
   selected,
   closeMobile,
+  actions,
+  working: actionWorking,
 }: {
   row: ConversationNavigationRow;
   selected: boolean;
   closeMobile: () => void;
+  actions: ConversationMenuActions;
+  working: boolean;
 }) {
   const { conversation: item, preview, unread, working, waiting, waitingForUser } = row;
   return (
@@ -54,6 +59,7 @@ export function ConversationLink({
           ) : null}
         </span>
       </SidebarMenuButton>
+      <ConversationMenu row={row} actions={actions} working={actionWorking} />
     </SidebarMenuItem>
   );
 }

@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { browserCommand } from '../api.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
@@ -9,8 +10,10 @@ export function BrowserSites({
   const session = browserPanel.session;
   if (!session?.runId || !session.allowedSites.length) return null;
   return (
-    <details className="browser-sites">
-      <summary>Allowed sites for this task ({session.allowedSites.length})</summary>
+    <AccordionSection
+      className="browser-sites"
+      heading={<>Allowed sites for this task ({session.allowedSites.length})</>}
+    >
       {session.allowedSites.map((origin) => (
         <div className="flex items-center justify-between gap-2" key={origin}>
           <span className="min-w-0 break-all">{origin}</span>
@@ -33,6 +36,6 @@ export function BrowserSites({
           </Button>
         </div>
       ))}
-    </details>
+    </AccordionSection>
   );
 }

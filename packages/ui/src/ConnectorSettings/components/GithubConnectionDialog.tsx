@@ -1,3 +1,4 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalLink, GitBranch } from 'lucide-react';
 import { Modal } from '@/components/Modal/index.tsx';
@@ -21,11 +22,15 @@ export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
         >
           <GitBranch size={16} /> {working ? 'Checking connection…' : 'Connect with GitHub CLI'}
         </Button>
-        <details
+        <AccordionSection
+          key={github?.githubCliState ?? 'unknown'}
           className="rounded-lg border border-border bg-muted p-4"
-          open={github?.githubCliState === 'missing' || github?.githubCliState === 'signed_out'}
+          defaultOpen={
+            github?.githubCliState === 'missing' || github?.githubCliState === 'signed_out'
+          }
+          triggerClassName="cursor-pointer"
+          heading="Need to set up GitHub CLI?"
         >
-          <summary className="cursor-pointer">Need to set up GitHub CLI?</summary>
           <ol className="mt-3 flex list-decimal flex-col gap-3 pl-5">
             <li>
               <a
@@ -50,7 +55,7 @@ export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
             </li>
             <li>Return here and choose Connect with GitHub CLI.</li>
           </ol>
-        </details>
+        </AccordionSection>
         <p className="quiet">
           Credentials stay with GitHub CLI. PitchCrew only makes read requests. GitHub CLI access
           follows your login and can cover more than one repository.
@@ -60,12 +65,13 @@ export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
             {error}
           </p>
         ) : null}
-        <details className="border-t border-border pt-3">
-          <summary className="cursor-pointer text-sm text-muted-foreground">
-            Advanced: use an access token
-          </summary>
+        <AccordionSection
+          className="border-t border-border pt-3"
+          triggerClassName="cursor-pointer text-sm text-muted-foreground"
+          heading="Advanced: use an access token"
+        >
           <GithubTokenForm {...props} />
-        </details>
+        </AccordionSection>
         <div className="flex justify-end">
           <Button className="button" disabled={working} onClick={close}>
             Cancel

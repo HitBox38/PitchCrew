@@ -25,11 +25,15 @@
 .conversation-link {
   height: 44px;
   gap: 8px;
-  padding: 7px 8px;
+  padding: 7px 32px 7px 8px;
   text-align: left;
 }
 .conversation-link > .role-avatar {
   flex-shrink: 0;
+}
+.conversation-menu-trigger {
+  top: 12px;
+  right: 6px;
 }
 .conversation-link-copy {
   display: grid;

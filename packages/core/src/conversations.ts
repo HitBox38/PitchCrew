@@ -17,6 +17,7 @@ export interface Conversation {
   createdAt: string;
   updatedAt: string;
   archived: boolean;
+  deletedAt?: string;
   pinned: boolean;
   notifyAll?: boolean;
   configurations: Record<string, Partial<RuntimeConfiguration>>;
@@ -39,6 +40,7 @@ export interface ChatRequest {
   messageId: string;
   content: string;
   attachments: ChatAttachment[];
+  references?: import('./chat-references.ts').ChatReference[];
   createdAt: string;
   order: number;
   deliveries: {

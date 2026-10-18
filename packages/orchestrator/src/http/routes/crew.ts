@@ -19,6 +19,9 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
   app.put<IdRoute>('/api/conversations/:id', async (req, res) =>
     res.send(await service.updateConversation(req.params.id, req.body)),
   );
+  app.delete<IdRoute>('/api/conversations/:id', (req, res) =>
+    res.send(service.deleteConversation(req.params.id)),
+  );
   app.get('/api/conversations/search', (req) => {
     const { q } = z.object({ q: z.string().max(500) }).parse(req.query);
     return { threads: searchConversationMessages(service.board, q) };

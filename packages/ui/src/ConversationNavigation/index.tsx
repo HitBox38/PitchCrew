@@ -1,7 +1,5 @@
 import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
-import { SidebarCategoryTrigger } from '@/AppSidebar/components/SidebarCategoryTrigger.tsx';
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
+import { ConversationDms } from './components/ConversationDms.tsx';
 import { SidebarGroupAction } from '@/components/ui/sidebar/components/SidebarGroupAction.tsx';
 import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
 import { ConversationSearch } from './components/ConversationSearch.tsx';
@@ -11,7 +9,10 @@ import { ConversationList } from './components/ConversationList.tsx';
 import { ConversationShortcuts } from './components/ConversationShortcuts.tsx';
 import { useConversationNavigation } from './hooks/useConversationNavigation.ts';
 import type { Snapshot } from '@pitchcrew/core';
+import { useConversationActions } from './hooks/useConversationActions.ts';
+import { DeleteConversationDialog } from './components/DeleteConversationDialog.tsx';
 export function ConversationNavigation({ data }: { data: Snapshot }) {
+  const actions = useConversationActions();
   const {
     rows,
     query,
@@ -56,28 +57,22 @@ export function ConversationNavigation({ data }: { data: Snapshot }) {
               rows={rows.filter((row) => row.conversation.kind !== 'agent_dm')}
               thread={thread}
               closeMobile={closeMobile}
+              actions={actions}
+              working={actions.working}
             />
             {!rows.length ? (
               <p className="quiet px-2 py-3 text-sm">No conversations found.</p>
             ) : null}
-            <Collapsible
-              className="conversation-dms"
-              open={query.trim() ? true : dmsOpen}
-              onOpenChange={(open) => {
-                if (!query.trim()) setDmsOpen(open);
-              }}
-            >
-              <SidebarCategoryTrigger label="Agent DMs" count={dmRows.length} />
-              <CollapsibleContent>
-                {dmRows.length ? (
-                  <ConversationList rows={dmRows} thread={thread} closeMobile={closeMobile} />
-                ) : (
-                  <p className="quiet px-2 py-3 text-xs">
-                    {query.trim() ? 'No matching agent DMs.' : 'No agent DMs yet.'}
-                  </p>
-                )}
-              </CollapsibleContent>
-            </Collapsible>
+            <ConversationDms
+              rows={dmRows}
+              query={query}
+              open={dmsOpen}
+              setOpen={setDmsOpen}
+              thread={thread}
+              closeMobile={closeMobile}
+              actions={actions}
+              working={actions.working}
+            />
             <Button
               className="conversation-archive"
               variant="ghost"
@@ -91,6 +86,12 @@ export function ConversationNavigation({ data }: { data: Snapshot }) {
           </nav>
         )}
       </SidebarGroupContent>
+      <DeleteConversationDialog
+        conversation={actions.deleting}
+        working={actions.working}
+        close={actions.close}
+        confirm={actions.confirm}
+      />
     </SidebarCategory>
   );
 }

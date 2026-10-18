@@ -57,8 +57,26 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
   expect(host.daemon.service.board.list('review_subagent')).toHaveLength(1);
   expect(report.options.alternatives).toEqual([{ runtime: 'demo', model: '', reasoning: null }]);
   expect(
-    await page.locator('section[aria-label="Initial seven perspectives"] summary').count(),
+    await page
+      .locator('section[aria-label="Initial seven perspectives"] [data-slot="accordion-trigger"]')
+      .count(),
   ).toBe(7);
+  const perspectives = page.locator('section[aria-label="Initial seven perspectives"]');
+  const firstPerspective = perspectives.getByRole('button').first();
+  expect(await firstPerspective.getAttribute('aria-expanded')).toBe('false');
+  await firstPerspective.focus();
+  await page.keyboard.press('Enter');
+  expect(await firstPerspective.getAttribute('aria-expanded')).toBe('true');
+  await page.keyboard.press('Tab');
+  expect(
+    await perspectives
+      .getByRole('button')
+      .nth(1)
+      .evaluate((node) => node === document.activeElement),
+  ).toBe(true);
+  await page.keyboard.press('Space');
+  expect(await perspectives.getByRole('button').nth(1).getAttribute('aria-expanded')).toBe('true');
+  expect(await firstPerspective.getAttribute('aria-expanded')).toBe('true');
   await page.getByText('Before and after resume', { exact: true }).click();
   expect(await page.getByLabel('Original resume', { exact: true }).innerText()).toContain(
     'Built a React interface.',
