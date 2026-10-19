@@ -1,3 +1,4 @@
+import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
 import { waitingOnUser } from './user-input/lifecycle.ts';
 import {
   agentDm,
@@ -166,6 +167,12 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         );
         continue;
       }
+      const taskRole = requireRole(this, task.roleId);
+      const taskConfig =
+        task.mode === 'workflow'
+          ? taskRole
+          : { ...taskRole, ...conversation(this, task.threadId).configurations[task.roleId] };
+      if (this.runtimeMaintenance.held(taskConfig)) continue;
       if (routineReadyBefore(this, task.roleId, Date.parse(task.createdAt))) continue;
       if (
         this.board
@@ -206,6 +213,7 @@ export async function drainTasks(this: CrewContext): Promise<void> {
           `Started queued ${task.roleId} ${task.mode}`,
         );
       } catch (error) {
+        if (error instanceof RuntimeHeldError) continue;
         if (this.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
         const message = error instanceof Error ? error.message : 'Could not start crew task.';
         this.board.record('task', { ...task, status: 'failed', error: message }, 'system', message);

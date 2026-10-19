@@ -128,7 +128,7 @@ export async function sendChat(this: CrewContext, roleId: RoleId, data: unknown)
     throw error;
   }
 }
-export async function startChatRun(
+async function startChatRunPrepared(
   this: CrewContext,
   roleId: RoleId,
   content: string,
@@ -437,4 +437,29 @@ export async function startChatRun(
       void this.drainTasks();
     });
   return run;
+}
+
+export async function startChatRun(
+  this: CrewContext,
+  ...args: Parameters<CrewContext['startChatRun']>
+): Promise<Run> {
+  const [roleId, , , threadId, , scheduled] = args;
+  const stored = requireRole(this, roleId);
+  const item = conversations(this).find((candidate) => candidate.id === threadId);
+  const role = scheduled ? stored : { ...stored, ...item?.configurations[roleId] };
+  if (!args[4] && !args[5] && !args[8]) await this.runtimeMaintenance.refreshOnRetry(role);
+  return this.runtimeMaintenance.guard(
+    role,
+    () => startChatRunPrepared.call(this, ...args),
+    false,
+    () => {
+      const currentRole = requireRole(this, roleId);
+      return scheduled
+        ? currentRole
+        : {
+            ...currentRole,
+            ...conversations(this).find((entry) => entry.id === threadId)?.configurations[roleId],
+          };
+    },
+  );
 }

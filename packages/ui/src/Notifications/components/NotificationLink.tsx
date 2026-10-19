@@ -26,6 +26,17 @@ export function NotificationLink({
         onOpen(item);
     },
   };
+  if (item.target === '/settings')
+    return (
+      <Link
+        to="/settings"
+        search={{ section: 'runtimes', runtime: item.reviewId }}
+        hash={item.reviewId ? `runtime-${item.reviewId}` : undefined}
+        {...props}
+      >
+        {children}
+      </Link>
+    );
   if (item.target === '/crew')
     return (
       <Link to="/crew" search={{ review: item.reviewId }} {...props}>

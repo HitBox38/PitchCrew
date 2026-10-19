@@ -14,6 +14,7 @@ export function routineReadyBefore(context: CrewContext, roleId: string, order: 
   if (
     !role.enabled ||
     role.retiredAt ||
+    context.runtimeMaintenance.held(role) ||
     !context.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
   )
     return false;

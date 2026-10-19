@@ -1,3 +1,4 @@
+import { waitForRuntimeUpdates } from './runtime-maintenance.ts';
 import {
   app,
   BrowserWindow,
@@ -12,7 +13,7 @@ import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isAllowedExternalUrl } from './external-url.ts';
 import { installSmokeCheck } from './smoke.ts';
-import { startPackagedDaemon, stopPackagedDaemon } from './packaged.ts';
+import { startPackagedDaemon, stopPackagedDaemon, ownsPackagedDaemon } from './packaged.ts';
 import { registerDesktopUpdates } from './updates/index.ts';
 
 app.setName('Pitchcrew');
@@ -133,7 +134,25 @@ if (primaryInstance)
       );
       app.quit();
     });
-app.on('before-quit', () => {
+let maintenanceQuitApproved = false;
+let checkingMaintenanceQuit = false;
+app.on('before-quit', (event) => {
+  const ownsDaemon = app.isPackaged
+    ? ownsPackagedDaemon()
+    : process.env.PITCHCREW_OWNS_DAEMON === '1';
+  if (ownsDaemon && !maintenanceQuitApproved && !updates?.isInstalling()) {
+    event.preventDefault();
+    if (checkingMaintenanceQuit) return;
+    checkingMaintenanceQuit = true;
+    void waitForRuntimeUpdates(new URL(url).origin, window).then((proceed) => {
+      checkingMaintenanceQuit = false;
+      if (proceed) {
+        maintenanceQuitApproved = true;
+        app.quit();
+      }
+    });
+    return;
+  }
   if (!updates?.isInstalling()) stopPackagedDaemon();
 });
 app.on('second-instance', () => {

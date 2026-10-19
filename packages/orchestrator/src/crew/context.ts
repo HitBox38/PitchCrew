@@ -1,3 +1,4 @@
+import { RuntimeMaintenance } from '../runtime-maintenance/index.ts';
 import { Board } from '@pitchcrew/board';
 import { ProfileOrganizationStore } from '../profile-organization.ts';
 import { InstructionUpdatePreferences } from '../instruction-updates.ts';
@@ -92,6 +93,7 @@ export function createCrewContext(
     configuring: new Set<RoleId>(),
     deciding: new Set<string>(),
     runtimes: [],
+    runtimeMaintenance: new RuntimeMaintenance(directory, () => context),
     modelCatalogs: new Map<RuntimeId, { catalog: RuntimeModelCatalog; expiresAt: number }>(),
     modelRequests: new Map<RuntimeId, Promise<RuntimeModelCatalog>>(),
     modelController: new AbortController(),

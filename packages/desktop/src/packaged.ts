@@ -3,6 +3,7 @@ import { join } from 'node:path';
 
 let launcher: ChildProcess | undefined;
 let canUpdate = false;
+let ownsDaemon = false;
 let requestId = 0;
 
 export async function startPackagedDaemon(resources: string) {
@@ -28,6 +29,7 @@ export async function startPackagedDaemon(resources: string) {
         reject(new Error('Invalid local daemon response.'));
         return;
       }
+      ownsDaemon = 'ownsDaemon' in message && message.ownsDaemon === true;
       canUpdate = 'canUpdate' in message && message.canUpdate === true;
       resolve(message.url);
     });
@@ -83,3 +85,5 @@ export function requestDaemonUpdate(action: 'prepare-update' | 'recover-update',
     });
   });
 }
+
+export const ownsPackagedDaemon = () => ownsDaemon;

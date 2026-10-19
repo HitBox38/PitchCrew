@@ -122,3 +122,7 @@ Start with `pnpm service status` and `pnpm service logs`.
 
 - The service does not wake a sleeping computer. Routines that come due while it sleeps follow the usual rules: repeats coalesce into one overdue run.
 - Automated tests check the generated definitions and commands against a simulated service manager. They never call schtasks, launchctl or systemctl.
+
+## Runtime CLI maintenance
+
+Runtime checks and updates appear in Settings > Runtimes. A service-owned daemon continues an explicitly requested runtime update after the desktop closes; an owned desktop daemon defers quitting until maintenance finishes. Stopping the service or a forced daemon shutdown interrupts its owned installer worker. On restart, Pitchcrew reconciles unfinished maintenance and rechecks the CLI before releasing held work; it never replays an installer automatically.
