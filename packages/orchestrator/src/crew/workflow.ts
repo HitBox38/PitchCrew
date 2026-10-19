@@ -1,3 +1,4 @@
+import { recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import {
   endQuestionTurn,
@@ -25,6 +26,7 @@ import {
   type RoleId,
   type Run,
   type RunResult,
+  type RuntimeActivity,
 } from '@pitchcrew/core';
 import { readProfile, warningFeedback, writePacket } from '@pitchcrew/packet';
 import { randomUUID } from 'node:crypto';
@@ -180,10 +182,19 @@ export async function startRun(
       env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
     },
     signal: controller.signal,
+    onActivity: (activity: RuntimeActivity) => recordChatActivity(this, run.id, activity),
     onMessage: (message: string) => {
       const current = this.board.get<Run>('run', run.id);
-      if (current.status === 'running')
+      if (current.status === 'running') {
         this.board.record('run', { ...current, message }, roleId, message);
+        recordChatActivity(this, run.id, {
+          id: 'workflow-progress',
+          kind: 'commentary',
+          label: 'Progress update',
+          text: message,
+          status: 'completed',
+        });
+      }
     },
   };
   const ai = beginAiRun(this.diagnostics, 'workflow');
@@ -241,6 +252,7 @@ export async function startRun(
         this.board.get<Card>('card', cardId).state === 'drafting'
       )
         this.board.move(cardId, 'changes_requested', roleId, 'Writer is waiting for your answer');
+      finishChatActivity(this, run.id);
       this.controllers.delete(run.id);
       this.capabilities.delete(token);
       finishUserContinuation(this, run);

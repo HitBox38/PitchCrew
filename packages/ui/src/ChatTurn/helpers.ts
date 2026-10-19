@@ -20,8 +20,9 @@ export function transcriptItems(
   for (const run of runs) {
     if (
       run.threadId !== thread ||
-      run.mode !== 'chat' ||
-      (!run.activity?.length && run.status !== 'running')
+      !['chat', 'workflow'].includes(run.mode ?? '') ||
+      run.reviewSeatReservation ||
+      (!run.activity?.length && !['running', 'waiting'].includes(run.status))
     )
       continue;
     const trigger = triggers.get(run.id);

@@ -19,7 +19,8 @@ export function useJobActionsMenu(props: JobActionsMenuProps) {
   const performCrew = () => {
     if (!shortcut || shortcut.reason || disabled) return;
     if (shortcut.needsBrief) {
-      openDetails();
+      managesFocus.current = true;
+      useWorkspaceStore.getState().openCard(card.id, 'application');
       useWorkspaceStore
         .getState()
         .setToast('Prepare and review the application brief in job details.');

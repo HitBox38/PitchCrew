@@ -9,6 +9,8 @@ import {
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { relatedConversation } from '../conversations.ts';
+import { recordChatActivity, finishChatActivity } from '../chat-activity.ts';
 import { requireRole } from '../roles.ts';
 import type { CrewContext } from '../types.ts';
 import { applicationSource } from './source.ts';
@@ -47,6 +49,14 @@ export async function extractApplicationContext(
     runtime: role.runtime,
     purpose: 'source-extraction',
     mode: 'workflow',
+    threadId: relatedConversation(
+      context,
+      'application',
+      cardId,
+      roleId,
+      cardId,
+      `${card.company}: Application work`,
+    ).id,
     status: 'running',
     message: 'Extracting job brief for your review…',
     startedAt: new Date().toISOString(),
@@ -82,7 +92,15 @@ export async function extractApplicationContext(
       role: isolatedRole,
       directory,
       signal: controller.signal,
-      onMessage: () => {},
+      onMessage: (message) =>
+        recordChatActivity(context, run.id, {
+          id: 'extraction-progress',
+          kind: 'commentary',
+          label: 'Progress update',
+          text: message,
+          status: 'completed',
+        }),
+      onActivity: (activity) => recordChatActivity(context, run.id, activity),
       mcp: {
         command: process.execPath,
         args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
@@ -149,6 +167,7 @@ export async function extractApplicationContext(
       );
     })
     .finally(() => {
+      finishChatActivity(context, run.id);
       context.controllers.delete(run.id);
       context.capabilities.delete(token);
     });

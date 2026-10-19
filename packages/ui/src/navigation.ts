@@ -57,3 +57,12 @@ export function validateSkillSearch(search: Record<string, unknown>): {
     review: search.review === true || search.review === 'true' ? true : undefined,
   };
 }
+
+export function validateChatSearch(search: Record<string, unknown>): { run?: string } {
+  return {
+    run:
+      typeof search.run === 'string' && /^[a-zA-Z0-9_-]{1,160}$/.test(search.run)
+        ? search.run
+        : undefined,
+  };
+}

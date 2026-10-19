@@ -1,87 +1,45 @@
-import { ExportRequest } from './ExportRequest.tsx';
-import type { JobActionsProps } from '@/components/CardDetails/types.ts';
+import type { JobActionsProps } from '../types.ts';
+import { JobActionFooter } from './JobActionFooter.tsx';
+import { jobNextAction } from '../next-action.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { ArrowRight, Check, LoaderCircle, Play, ShieldCheck } from 'lucide-react';
+import { runtimeLabels } from '@/lib/labels.ts';
 
-export function JobActions({
-  run,
-  act,
-  runRole,
-  working,
-  card,
-  exported,
-  extraActions,
-  onInbox,
-}: JobActionsProps) {
+export function JobActions(model: JobActionsProps) {
+  const next = jobNextAction(model);
+  const role = 'roleId' in next ? model.data.roles.find((role) => role.id === next.roleId) : null;
   return (
-    <div className="detail-actions">
-      {run ? (
+    <JobActionFooter
+      failure={model.failed && !model.run ? model.failed.message : undefined}
+      hint={
         <>
-          <span className="running-note">
-            <LoaderCircle size={16} className="spin" />
-            {run.message}
-          </span>
-          <Button className="button" onClick={() => act(`/runs/${run.id}/cancel`)}>
-            Cancel run
-          </Button>
-        </>
-      ) : (
-        <>
-          {runRole ? (
-            <Button
-              disabled={working}
-              className="button primary"
-              onClick={() =>
-                act(
-                  `/cards/${card.id}/run`,
-                  { roleId: runRole },
-                  `${runRole[0].toUpperCase() + runRole.slice(1)} started`,
-                )
-              }
-            >
-              <Play size={15} />
-              {card.state === 'lead'
-                ? 'Evaluate fit'
-                : ['shortlisted', 'changes_requested'].includes(card.state)
-                  ? 'Draft application'
-                  : 'Review packet'}
-            </Button>
-          ) : null}
-          {extraActions}
-          {card.state === 'lead' ? (
-            <Button
-              disabled={working}
-              className="button"
-              onClick={() => act(`/cards/${card.id}/move`, { state: 'shortlisted' }, 'Shortlisted')}
-            >
-              Shortlist <ArrowRight size={15} />
-            </Button>
-          ) : null}
-          {card.state === 'agreed' ? (
-            <ExportRequest card={card} act={act} working={working} />
-          ) : null}
-          {card.state === 'awaiting_approval' && !exported ? (
-            <Button className="button primary" onClick={onInbox}>
-              <ShieldCheck size={15} /> Open approval inbox
-            </Button>
-          ) : null}
-          {card.state === 'awaiting_approval' && exported ? (
-            <Button
-              disabled={working}
-              className="button primary"
-              onClick={() =>
-                act(
-                  `/cards/${card.id}/move`,
-                  { state: 'submitted' },
-                  'Recorded your manual submission',
-                )
-              }
-            >
-              <Check size={15} /> Record manual submission
-            </Button>
+          {next.hint ? <p className="action-hint">{next.hint}</p> : null}
+          {role ? (
+            <p className="action-hint">
+              {role.name} · {runtimeLabels[role.runtime]}
+              {role.runtime === 'demo' ? ' · No AI calls' : ' · Uses your CLI account'}
+            </p>
           ) : null}
         </>
-      )}
-    </div>
+      }
+    >
+      {model.card.state === 'lead' && !model.run ? (
+        <Button
+          disabled={model.busy}
+          variant="outline"
+          onClick={() =>
+            model.act(`/cards/${model.card.id}/move`, { state: 'shortlisted' }, 'Shortlisted')
+          }
+        >
+          Shortlist
+        </Button>
+      ) : null}
+      <Button
+        variant={'secondary' in next ? 'outline' : 'default'}
+        disabled={model.working || next.disabled}
+        onClick={next.perform}
+      >
+        {next.label}
+      </Button>
+    </JobActionFooter>
   );
 }

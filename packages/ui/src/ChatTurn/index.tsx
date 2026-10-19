@@ -15,7 +15,7 @@ export function ChatTurn({ run, name, replying }: { run: Run; name: string; repl
   const status = active
     ? replying
       ? 'Replying…'
-      : (phase?.label ?? 'Working…')
+      : (phase?.label ?? (run.message || 'Working…'))
     : run.status === 'waiting'
       ? 'Waiting for you'
       : run.status === 'cancelled'
@@ -34,7 +34,12 @@ export function ChatTurn({ run, name, replying }: { run: Run; name: string; repl
           : Check;
   const groups = activityGroups(run.activity ?? []);
   return (
-    <section className="chat-turn" aria-label={`${name} turn activity`}>
+    <section
+      id={`run-${run.id}`}
+      className="chat-turn scroll-mt-4"
+      tabIndex={-1}
+      aria-label={`${name} turn activity`}
+    >
       <div className="chat-turn-heading flex items-center gap-2 text-detail text-muted-foreground">
         <RoleAvatar agentRole={run.roleId} size="small" />
         <strong className="shrink-0 text-foreground">{name}</strong>
