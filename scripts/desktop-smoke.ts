@@ -76,6 +76,7 @@ try {
       (!result.onboardingReady ||
         !result.retainedRuntimeReady ||
         !result.appUpdatesReady ||
+        !result.runtimeUpdatesReady ||
         !result.insightsReady ||
         !result.chatReady ||
         !result.conversationNavigationReady ||

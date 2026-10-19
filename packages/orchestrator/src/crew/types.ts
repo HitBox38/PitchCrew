@@ -66,6 +66,7 @@ export interface CrewContext {
   configuring: Set<RoleId>;
   deciding: Set<string>;
   runtimes: RuntimeInfo[];
+  runtimeMaintenance: import('../runtime-maintenance/index.ts').RuntimeMaintenance;
   modelCatalogs: Map<RuntimeId, { catalog: RuntimeModelCatalog; expiresAt: number }>;
   modelRequests: Map<RuntimeId, Promise<RuntimeModelCatalog>>;
   modelController: AbortController;

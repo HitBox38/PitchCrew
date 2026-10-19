@@ -1,3 +1,4 @@
+import { RuntimeReadinessNotice } from '@/RuntimeMaintenance/components/RuntimeReadinessNotice.tsx';
 import '@/styles/chat.css';
 import { AgentBrowser } from '@/AgentBrowser/index.tsx';
 import type { CSSProperties } from 'react';
@@ -34,6 +35,7 @@ export function ChatView(props: ChatViewProps) {
         <RelatedConversations {...controller} />
         {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
         {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
+        <RuntimeReadinessNotice {...controller} />
         <ContinuationNotice {...controller} />
         <ConversationQueue {...controller} />
         <PendingQuestions {...controller} />

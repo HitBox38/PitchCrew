@@ -1,3 +1,4 @@
+import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
 import { messageRecipients, resolveChatReferences } from './chat-references.ts';
 import { chatReferenceInput } from '@pitchcrew/core';
 import { failReviewContinuation } from './deep-reviews/state.ts';
@@ -51,6 +52,12 @@ export async function sendConversation(
   });
   if (!eligible.length)
     throw new Error('No requested participant is enabled with an available runtime.');
+  await Promise.all(
+    eligible.map((roleId) => {
+      const role = context.board.get<Role>('role', roleId);
+      return context.runtimeMaintenance.refreshOnRetry({ ...role, ...item.configurations[roleId] });
+    }),
+  );
   const files = await saveAttachments(context.directory, input.attachments);
   try {
     if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
@@ -158,7 +165,8 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
           !context.runtimes.some(
             (runtime) => runtime.id === configuration.runtime && runtime.available,
           ) ||
-          context.configuring.has(role.id)
+          context.configuring.has(role.id) ||
+          context.runtimeMaintenance.held(configuration)
         )
           continue;
         if (
@@ -240,6 +248,16 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
           saveRequest(context, latest);
         } catch (error) {
           if (context.closing) return;
+          if (error instanceof RuntimeHeldError) {
+            const latest = context.board.get<ChatRequest>('chat_request', current.id);
+            const entry = latest.deliveries.find((entry) => entry.roleId === role.id)!;
+            if (entry.status === 'running') {
+              entry.status = 'queued';
+              entry.error = error.message;
+              saveRequest(context, latest);
+            }
+            continue;
+          }
           if (current.deepReviewRequest?.resumeId)
             failReviewContinuation(
               context,

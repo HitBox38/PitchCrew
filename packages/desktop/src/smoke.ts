@@ -1,3 +1,4 @@
+import { smokeRuntimeUpdates } from './smoke-runtime-updates.ts';
 import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
 import { smokeUserQuestions, smokeDraftRequest, smokeDraftText } from './smoke-user-questions.ts';
 import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
@@ -92,7 +93,7 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
             let userQuestionsReady = null;
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
             const notificationsInAppOnly = typeof window.pitchcrewNotifications === 'undefined';
-            let onboardingReady = null, insightsReady = null, appUpdatesReady = null, retainedRuntimeReady = null, chatAttachmentsReady = null;
+            let runtimeUpdatesReady = null, onboardingReady = null, insightsReady = null, appUpdatesReady = null, retainedRuntimeReady = null, chatAttachmentsReady = null;
             const sheetChecks = {};
             const interactionChecks = {};
             let conversationNavigationReady = null;
@@ -215,8 +216,9 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               chatAttachmentsReady = await ${smokeAttachments};
               appUpdatesReady = await ${smokeUpdates};
               userQuestionsReady = await ${smokeUserQuestions};
+              runtimeUpdatesReady = await ${smokeRuntimeUpdates};
             }
-            return { userQuestionsReady, conversationNavigationReady, interactionChecks, title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, retainedRuntimeReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatAttachmentsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { runtimeUpdatesReady, userQuestionsReady, conversationNavigationReady, interactionChecks, title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, retainedRuntimeReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatAttachmentsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         if (result.appUpdatesReady) {
