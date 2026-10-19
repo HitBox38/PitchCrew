@@ -24,7 +24,7 @@ import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review } from './state.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 
-export async function executeReviewStage(
+async function executeReviewStagePrepared(
   context: CrewContext,
   live: LiveDeepReview,
   role: Role,
@@ -196,4 +196,8 @@ export async function executeReviewStage(
     context.capabilities.delete(token);
     context.publishChat(true);
   }
+}
+
+export function executeReviewStage(...args: Parameters<typeof executeReviewStagePrepared>) {
+  return args[0].runtimeMaintenance.guard(args[2], () => executeReviewStagePrepared(...args));
 }

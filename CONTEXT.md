@@ -4,6 +4,18 @@ Pitchcrew helps a user manage a job search with a crew of agents and a shared ap
 
 ## Language
 
+**Crew runtime**:
+An installed agent CLI that Pitchcrew uses to carry out a crew agent's conversations and job workflows.
+_Avoid_: Model provider (when referring to the local CLI), Pitchcrew app
+
+**Runtime check**:
+An assessment of a crew runtime's installation, compatibility and authentication status. Authentication may be confirmed, missing or unable to be verified; the assessment is separate from a completed model request.
+_Avoid_: Test request, verified model access
+
+**Runtime update**:
+A user-requested upgrade of an installed crew runtime, with progress and an outcome visible in Pitchcrew.
+_Avoid_: Pitchcrew app update, agent instruction update, skill update
+
 **Removed source document**:
 A previously imported Profile document that is no longer present in its connected source. Its local copy is kept and remains available to the user and crew.
 _Avoid_: Deleted profile document

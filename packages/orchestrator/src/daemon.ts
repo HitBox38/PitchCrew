@@ -44,6 +44,10 @@ export async function runDaemon(argv: readonly string[]) {
         service,
         seedSkills: process.env.PITCHCREW_SEED_SKILLS !== '0',
         analytics: analyticsConfig(process.env, dev),
+        runtimeAuthenticationChecks: true,
+        runtimeUpdateChecks:
+          process.env.PITCHCREW_UPDATE_CHECKS !== '0' &&
+          process.env.PITCHCREW_RUNTIME_UPDATE_CHECKS !== '0',
         updates: { enabled: process.env.PITCHCREW_UPDATE_CHECKS !== '0', automatic: !dev },
       });
       break;
@@ -67,9 +71,10 @@ export async function runDaemon(argv: readonly string[]) {
     ),
   );
   let closing = false;
-  const stop = async () => {
+  const stop = async (finishUpdates = false) => {
     if (closing) return;
     closing = true;
+    if (finishUpdates) await daemon.service.runtimeMaintenance.finishBeforeShutdown();
     await daemon.close();
     process.exit(0);
   };
@@ -80,6 +85,6 @@ export async function runDaemon(argv: readonly string[]) {
     });
   // The packaged launcher uses IPC for graceful shutdown on Windows as well as Unix.
   process.on('message', (message) => {
-    if (message === 'pitchcrew:stop') void stop();
+    if (message === 'pitchcrew:stop') void stop(true);
   });
 }

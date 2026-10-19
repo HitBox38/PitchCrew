@@ -154,7 +154,9 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
       );
     const rolesReady = (async () => {
       await this.detect();
+      await this.runtimeMaintenance.recover();
       await seedRecommendedRoles(this);
+      await this.runtimeMaintenance.initializeAuthentication();
     })();
     // Public starter sources and CLI metadata can load together. Both must finish before the
     // daemon becomes ready; skill commits wait for role setup and recheck current assignments.
@@ -209,6 +211,7 @@ export async function snapshot(
     profile,
     profileOrganization: this.profileOrganization.get(),
     runtimes: this.runtimes,
+    runtimeMaintenance: this.runtimeMaintenance.current(),
     dataDirectory: this.directory,
     demoAvailable: this.dev && !this.board.list<Card>('card').some((c) => c.sample),
     ...(options?.workspace
@@ -235,6 +238,7 @@ export async function close(this: CrewContext): Promise<void> {
   await Promise.allSettled([
     ...this.modelRequests.values(),
     this.skillUpdateChecks.close(),
+    this.runtimeMaintenance.close(),
     ...(this.starterRequest ? [this.starterRequest] : []),
   ]);
   await this.connectors.close();

@@ -35,7 +35,7 @@ import { draftingCard, missingPersonalAnswers } from '@pitchcrew/core';
 import { assertApplicationRuntime } from './application-context/extraction.ts';
 import { applicationUserAnswers } from './application-context/answers.ts';
 
-export async function startRun(
+async function startRunPrepared(
   this: CrewContext,
   cardId: string,
   roleId: RoleId,
@@ -389,4 +389,18 @@ export function cancelRun(this: CrewContext, id: string): void {
       'user',
       'Cancelled queued crew task',
     );
+}
+
+export async function startRun(
+  this: CrewContext,
+  ...args: Parameters<CrewContext['startRun']>
+): Promise<Run> {
+  if (!args[2] && !args[3])
+    await this.runtimeMaintenance.refreshOnRetry(requireRole(this, args[1]));
+  return this.runtimeMaintenance.guard(
+    requireRole(this, args[1]),
+    () => startRunPrepared.call(this, ...args),
+    false,
+    () => requireRole(this, args[1]),
+  );
 }

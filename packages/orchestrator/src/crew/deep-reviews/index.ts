@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { RuntimeHeldError } from '../../runtime-maintenance/availability.ts';
 import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
 import {
   deepReviewOptionsSchema,
@@ -34,7 +35,7 @@ function workflowRole(context: CrewContext, seat: 'reviewer' | 'writer', id?: st
     throw new Error(`The ${seat} runtime is unavailable. Check Crew settings.`);
   return { ...role, workflow: seat };
 }
-export async function startDeepReview(
+async function startDeepReviewPrepared(
   context: CrewContext,
   cardId: string,
   input: unknown = {},
@@ -314,5 +315,28 @@ export function cancelWaitingDeepReview(context: CrewContext, id: string) {
     { ...run, status: 'cancelled', message: 'Deep review cancelled.' },
     'user',
     'Cancelled waiting deep review',
+  );
+}
+
+export function startDeepReview(...args: Parameters<typeof startDeepReviewPrepared>) {
+  const [context, , input] = args;
+  const options = deepReviewOptionsSchema.parse(input ?? {});
+  const reviewer = workflowRole(context, 'reviewer', options.reviewerId);
+  const writer = workflowRole(context, 'writer', options.writerId);
+  return context.runtimeMaintenance.guard(reviewer, () =>
+    context.runtimeMaintenance.guard(writer, () => {
+      const currentReviewer = workflowRole(context, 'reviewer', options.reviewerId);
+      const currentWriter = workflowRole(context, 'writer', options.writerId);
+      if (
+        currentReviewer.runtime !== reviewer.runtime ||
+        currentReviewer.model !== reviewer.model ||
+        currentWriter.runtime !== writer.runtime ||
+        currentWriter.model !== writer.model
+      )
+        throw new RuntimeHeldError(
+          'Review runtime settings changed. Retry with the current settings.',
+        );
+      return startDeepReviewPrepared(...args);
+    }),
   );
 }

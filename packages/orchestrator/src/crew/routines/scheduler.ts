@@ -24,6 +24,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
   if (this.closing || this.initializing || this.scheduling) return;
   this.scheduling = true;
   try {
+    await this.runtimeMaintenance.recover();
     await drainConversationQueue(this);
     for (const candidate of routines
       .call(this)
@@ -96,6 +97,13 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           (source.id !== role.id && !permissions.invokeAgents)
         )
           continue;
+      }
+      if (this.runtimeMaintenance.held(role)) continue;
+      try {
+        const auth = await this.runtimeMaintenance.authenticate(role);
+        if (auth.status === 'missing' || this.runtimeMaintenance.isUpdating(role.runtime)) continue;
+      } catch {
+        continue;
       }
       const scheduledFor = routine.nextRunAt;
       // Consume the occurrence before launching: a crash cannot replay it or spend tokens twice.

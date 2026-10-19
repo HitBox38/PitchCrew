@@ -36,6 +36,7 @@ export async function snapshotRevision(context: CrewContext): Promise<string> {
     skillUpdates: context.skillUpdateChecks.revision(),
     profileOrganization: context.profileOrganization.get(),
     runtimes: context.runtimes,
+    runtimeMaintenance: context.runtimeMaintenance.revision(),
     connectors: context.connectors.status(),
     starterSkillErrors: context.starterSkillErrors,
     streamingMessages: [...context.streamingMessages.values()],
