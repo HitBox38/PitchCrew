@@ -14,6 +14,7 @@ import { isAllowedExternalUrl } from './external-url.ts';
 import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon } from './packaged.ts';
 import { registerDesktopUpdates } from './updates/index.ts';
+import { installStartupTiming } from './startup.ts';
 
 app.setName('Pitchcrew');
 const hiddenSmoke =
@@ -28,6 +29,8 @@ const primaryInstance = app.requestSingleInstanceLock();
 if (!primaryInstance) app.quit();
 let window: BrowserWindow | null = null;
 let daemonReady = !app.isPackaged;
+let startupWindowCreated = false;
+let daemonReadyMs = 0;
 let updates: Awaited<ReturnType<typeof registerDesktopUpdates>> | undefined;
 const appIcon = nativeImage.createFromPath(
   fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
@@ -103,6 +106,10 @@ function createWindow() {
     window = null;
   });
   installSmokeCheck(window, appIcon);
+  if (!startupWindowCreated) {
+    startupWindowCreated = true;
+    installStartupTiming(window, new URL(url).origin, daemonReadyMs);
+  }
   void window.loadURL(url);
 }
 if (primaryInstance)
@@ -110,6 +117,7 @@ if (primaryInstance)
     .whenReady()
     .then(async () => {
       if (app.isPackaged) url = await startPackagedDaemon(process.resourcesPath);
+      daemonReadyMs = process.uptime() * 1000;
       updates = await registerDesktopUpdates(
         () => window,
         () => new URL(url).origin,

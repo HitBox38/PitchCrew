@@ -1,0 +1,45 @@
+{
+  "project_id": 295060,
+  "insight_id": 6694725,
+  "short_id": "4imW7uui",
+  "url": "https://eu.posthog.com/project/295060/insights/4imW7uui",
+  "event": "app_startup_finished",
+  "status": "saved; instrumentation awaits release and consented desktop launches",
+  "canonical": false,
+  "verification": {
+    "query_validated": true,
+    "saved_insight_executed": true,
+    "production_samples_sent": false
+  },
+  "query": {
+    "kind": "InsightVizNode",
+    "source": {
+      "kind": "TrendsQuery",
+      "series": [
+        {
+          "kind": "EventsNode",
+          "event": "app_startup_finished",
+          "math": "avg",
+          "math_property": "duration_ms",
+          "custom_name": "Average startup"
+        },
+        {
+          "kind": "EventsNode",
+          "event": "app_startup_finished",
+          "math": "p95",
+          "math_property": "duration_ms",
+          "custom_name": "p95 startup"
+        }
+      ],
+      "dateRange": {
+        "date_from": "-7d"
+      },
+      "interval": "day",
+      "trendsFilter": {
+        "display": "ActionsLineGraph",
+        "aggregationAxisFormat": "duration_ms",
+        "showLegend": true
+      }
+    }
+  }
+}
