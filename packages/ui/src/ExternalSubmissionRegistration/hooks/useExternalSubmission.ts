@@ -5,6 +5,8 @@ export function useExternalSubmission(cardId: string) {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [error, setError] = useState('');
+  const [dirty, setDirty] = useState(false);
+  const [revision, setRevision] = useState(0);
   async function registerSubmission(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -20,11 +22,13 @@ export function useExternalSubmission(cardId: string) {
         },
         'External submission registered',
       );
+      setDirty(false);
+      setRevision((value) => value + 1);
     } catch (failure) {
       setError(
         failure instanceof Error ? failure.message : 'Could not register external submission.',
       );
     }
   }
-  return { registerSubmission, error, working };
+  return { registerSubmission, error, working, dirty, setDirty, revision };
 }

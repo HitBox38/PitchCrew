@@ -1,4 +1,6 @@
 import { subagentCard } from './deep-reviews/inputs.ts';
+import { qualityAgentAction } from '../quality/agent.ts';
+import { inspectPacketDocuments } from '../quality/documents.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
@@ -31,6 +33,7 @@ import { connectorAccess, connectorAction } from './gateway/connectors.ts';
 import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
+import { correctJobDetails } from './gateway/job-details.ts';
 import { profileAction } from './gateway/profile.ts';
 import { routineAction } from './gateway/routines.ts';
 import { trackingAction } from './gateway/tracking.ts';
@@ -197,6 +200,7 @@ async function dispatchAgentCall(
   if (['recall_memory', 'save_memory'].includes(action))
     return memoryAction(this, capability, action, data);
   if (action === 'application_insights') return insightsAction(this, capability, token, data.input);
+  if (action === 'quality') return qualityAgentAction(this, capability, data.input);
   if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
     return trackingAction.call(this, capability, token, action, data);
   if (action === 'pipeline_access')
@@ -292,6 +296,11 @@ async function dispatchAgentCall(
     return queueMessage.call(this, capability, permissions, action, data);
   if (action === 'propose') return proposeRole.call(this, capability, role, data);
   if (action === 'propose_skill') return proposeSkill.call(this, capability, role, token, data);
+  if (action === 'update_job') {
+    if (!permissions.manageWorkflow)
+      throw new Error('Workflow capability is disabled for your role.');
+    return correctJobDetails(this, capability, data.input);
+  }
   if (['jobs', 'workflow', 'delete_job', 'bulk_move_jobs', 'bulk_delete_jobs'].includes(action))
     return changeWorkflow.call(this, capability, permissions, action, data);
   if (['card', 'history', 'export'].includes(action) && !capability.cardId)
@@ -325,6 +334,7 @@ async function dispatchAgentCall(
       problems: check.errors,
       warnings: check.warnings,
       findings: check.findings,
+      documents: await inspectPacketDocuments(this.directory, parsed.packet),
       layout: await checkLayout(parsed.packet, {
         fonts: systemFonts({ folders: [join(this.directory, 'fonts')] }),
       }),

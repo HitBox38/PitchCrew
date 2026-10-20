@@ -63,6 +63,7 @@ export { defaultInstructionHistory } from './board/default-instruction-history.t
 export { instructionStatus } from './board/default-instructions.ts';
 export { defaultRoles } from './board/default-roles.ts';
 export { changeJobState, deleteJob } from './board/job-management.ts';
+export { updateJobDetails } from './board/job-details.ts';
 export { assertJobLinkRefresh, saveReadJobLink } from './board/job-link-refresh.ts';
 export { instructionRevision, normalizeInstructions } from './board/instruction-revisions.ts';
 export class Board {
@@ -126,8 +127,12 @@ export class Board {
   move(id: string, state: CardState, actor: string, message?: string): Card {
     return this.context.move(id, state, actor, message);
   }
-  requestApproval(cardId: string, artifacts?: PacketArtifact[]): Approval {
-    return this.context.requestApproval(cardId, artifacts);
+  requestApproval(
+    cardId: string,
+    artifacts?: PacketArtifact[],
+    reports?: Approval['documentVerification'],
+  ): Approval {
+    return this.context.requestApproval(cardId, artifacts, reports);
   }
   decideApproval(id: string, approved: boolean): Approval {
     return this.context.decideApproval(id, approved);

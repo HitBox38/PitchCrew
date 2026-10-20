@@ -1,3 +1,4 @@
+import { guideForRun } from '../../quality/writing.ts';
 import { selectedChatSkills } from '../chat-references.ts';
 import { reviewChildren } from './subagents.ts';
 import { reviewClarifications } from './clarifications.ts';
@@ -24,7 +25,7 @@ import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review } from './state.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 
-export async function executeReviewStage(
+async function executeReviewStagePrepared(
   context: CrewContext,
   live: LiveDeepReview,
   role: Role,
@@ -54,6 +55,7 @@ export async function executeReviewStage(
   childSignal?.addEventListener('abort', abort, { once: true });
   if (childSignal?.aborted) controller.abort();
   const run: Run = {
+    writingGuide: guideForRun(context),
     id: child?.runId ?? randomUUID(),
     roleId: role.id,
     runtime: role.runtime,
@@ -128,6 +130,7 @@ export async function executeReviewStage(
             alternatives: child ? [] : report.options.alternatives,
           },
           deadline: live.deadline,
+          writingGuide: run.writingGuide,
           mcp: {
             command: process.execPath,
             args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
@@ -196,4 +199,8 @@ export async function executeReviewStage(
     context.capabilities.delete(token);
     context.publishChat(true);
   }
+}
+
+export function executeReviewStage(...args: Parameters<typeof executeReviewStagePrepared>) {
+  return args[0].runtimeMaintenance.guard(args[2], () => executeReviewStagePrepared(...args));
 }

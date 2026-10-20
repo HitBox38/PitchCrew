@@ -1,5 +1,5 @@
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
@@ -10,10 +10,18 @@ export function ExternalConfirmation({
   id,
   act,
   working,
-}: Pick<JobOverviewProps, 'act' | 'working'> & { id: string }) {
+  onDirtyChange,
+}: Pick<JobOverviewProps, 'act' | 'working'> & {
+  id: string;
+  onDirtyChange?: (id: string, dirty: boolean) => void;
+}) {
   const [url, setUrl] = useState('');
   const [evidence, setEvidence] = useState('');
   const [verified, setVerified] = useState(false);
+  useEffect(() => {
+    onDirtyChange?.(id, Boolean(url || evidence || verified));
+    return () => onDirtyChange?.(id, false);
+  }, [id, url, evidence, verified, onDirtyChange]);
   return (
     <AccordionSection
       className="mt-3"

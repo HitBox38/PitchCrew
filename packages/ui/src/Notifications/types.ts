@@ -6,7 +6,8 @@ export type NotificationContext =
   | 'role_proposal'
   | 'skill_proposal'
   | 'instruction_update'
-  | 'skill_update';
+  | 'skill_update'
+  | 'runtime_update';
 
 export interface CrewNotification {
   id: string;
@@ -14,7 +15,7 @@ export interface CrewNotification {
   context: NotificationContext;
   title: string;
   body: string;
-  target: '/inbox' | '/crew' | '/skills' | `/chat/${string}`;
+  target: '/settings' | '/inbox' | '/crew' | '/skills' | `/chat/${string}`;
   reviewId?: string;
   createdAt: string;
 }

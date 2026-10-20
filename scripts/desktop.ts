@@ -1,5 +1,5 @@
 // Run with `node --import tsx` so the launcher shares the daemon's TypeScript service logic.
-import { spawn } from 'node:child_process';
+import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { electronExecutable } from './electron-path.ts';
@@ -30,13 +30,17 @@ const { plan, child } = await prepareDaemon({
     spawn(
       process.execPath,
       ['--import', 'tsx', 'packages/orchestrator/src/cli.ts', ...(!production ? ['--dev'] : [])],
-      { cwd: root, stdio: 'inherit', windowsHide: true },
+      { cwd: root, stdio: ['inherit', 'inherit', 'inherit', 'ipc'], windowsHide: true },
     ),
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   log: (message) => console.log(message),
 });
-const daemon = stopsOnExit(plan) ? child : null;
-const desktopEnv: NodeJS.ProcessEnv = { ...process.env, PITCHCREW_URL: url };
+const daemon = stopsOnExit(plan) ? (child as ChildProcess | null) : null;
+const desktopEnv: NodeJS.ProcessEnv = {
+  ...process.env,
+  PITCHCREW_URL: url,
+  PITCHCREW_OWNS_DAEMON: daemon ? '1' : '0',
+};
 delete desktopEnv.ELECTRON_RUN_AS_NODE;
 const desktop = spawn(electronExecutable, [resolve(root, 'packages/desktop/dist/main.mjs')], {
   cwd: root,
@@ -56,6 +60,7 @@ desktop.on('error', (error) => {
   process.exitCode = 1;
 });
 desktop.on('exit', (code) => {
-  daemon?.kill();
+  if (daemon?.connected) daemon.send('pitchcrew:stop');
+  else daemon?.kill();
   process.exitCode = code ?? 0;
 });

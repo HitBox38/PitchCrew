@@ -1,3 +1,4 @@
+export { boardActionLabels } from './work-queue.ts';
 // Zod-free state machine and ids, safe to import from the UI bundle.
 export const states = [
   'lead',

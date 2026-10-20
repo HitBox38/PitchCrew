@@ -23,7 +23,12 @@ export const smokeInsights = `(async () => {
   const cardSelector = '.job-card[aria-label="Open Fictional Analyst at Fictional Learning 0"]';
   if (!await waitFor(() => !!document.querySelector(cardSelector))) return false;
   document.querySelector(cardSelector).click();
+  if (!await waitFor(() => !!document.querySelector('.detail-tabs'))) return false;
+  [...document.querySelectorAll('.detail-tabs button')].find((button) => button.textContent === 'Activity')?.click();
   if (!await waitFor(() => !!document.querySelector('.learning-signals'))) return false;
+  const lessons = [...document.querySelectorAll('.detail-activity [data-slot="accordion-trigger"]')].find((button) => button.textContent === 'What you learned');
+  if (lessons?.getAttribute('aria-expanded') !== 'true') lessons?.click();
+  if (!await waitFor(() => lessons?.getAttribute('aria-expanded') === 'true')) return false;
   const strongWin = () => [...document.querySelectorAll('.weight-control button')].find((button) => button.textContent === '+2 Strong win');
   strongWin()?.click();
   const weightReady = await waitFor(() => strongWin()?.getAttribute('aria-pressed') === 'true');
@@ -45,7 +50,9 @@ export const smokeInsights = `(async () => {
   } finally { window.fetch = originalFetch; }
   const weighted = (await request('/snapshot')).cards.find((card) => card.id === first.id);
   const lessonReady = weighted.weight === 2 && weighted.lessons?.[0]?.text === 'Fictional lesson from desktop smoke.';
+  if (!await waitFor(() => textarea.value === '')) return false;
   document.querySelector('[aria-label="Close dialog"]')?.click();
+  if (!await waitFor(() => !document.querySelector('.card-details-panel'))) return false;
   for (let index = 1; index < 201; index++) await register(index);
   document.querySelector('a[href="/insights"]')?.click();
   const insightsReady = await waitFor(() => location.pathname === '/insights' && !!document.querySelector('.insights-table'));

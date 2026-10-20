@@ -1,4 +1,5 @@
 import { recordMissingRequestedOpinions, prepareRequestedOpinions } from './requested-opinions.ts';
+import { inspectPacketDocuments } from '../../quality/documents.ts';
 import { digestPacket } from '@pitchcrew/board';
 import type { Card, ReviewAssessment } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
@@ -20,6 +21,15 @@ export async function reviewFlow(context: CrewContext, live: LiveDeepReview) {
   if (!initial || !['correction', 'recheck'].includes(live.stage)) {
     await prepareRequestedOpinions(context, live);
     const { assessment: before } = await assessStage(context, live, 'review');
+    const documents = await inspectPacketDocuments(context.directory, live.packet!);
+    for (const message of documents.repairable)
+      before.findings.push({
+        severity: 'advisory',
+        quote: '[MISSING: clean document layout]',
+        reason: message,
+        correction: 'Make a focused layout correction while preserving supported content.',
+        perspectives: ['screen'],
+      });
     recordMissingRequestedOpinions(context, live);
     updateReview(
       context,
@@ -42,27 +52,33 @@ export async function reviewFlow(context: CrewContext, live: LiveDeepReview) {
       (live.packet && (await context.packetRules.check(live.packet, live.profile)).errors.length))
   )
     await writeStage(context, live, 'correction', initial);
-  const { assessment: after, feedback: recheckFeedback } = await assessStage(
-    context,
-    live,
-    'recheck',
-  );
+  const {
+    assessment: after,
+    feedback: recheckFeedback,
+    changeSummary,
+  } = await assessStage(context, live, 'recheck');
   await assertReviewEvidence(context, live);
   const card = assertReviewCurrent(context, live);
   const blockers = after.findings
     .filter((f) => f.severity === 'blocking')
     .map((f) => `${f.quote}: ${f.reason} ${f.correction}`.slice(0, 2000));
   const feedback = [...new Set([...blockers, ...recheckFeedback])];
+  const documents = await inspectPacketDocuments(context.directory, live.packet!);
+  feedback.push(...documents.errors);
   await context.applyResult(
     card.id,
     live.reviewer,
     {
       role: 'reviewer',
+      changeSummary,
       passed: feedback.length === 0,
       feedback: feedback.slice(0, 30),
-      suggestions: after.findings
-        .filter((f) => f.severity === 'advisory')
-        .map((f) => `${f.quote}: ${f.reason}`.slice(0, 2000)),
+      suggestions: [
+        ...documents.warnings,
+        ...after.findings
+          .filter((f) => f.severity === 'advisory')
+          .map((f) => `${f.quote}: ${f.reason}`.slice(0, 2000)),
+      ],
     },
     live.profile,
     live.controller.signal,
@@ -162,6 +178,7 @@ async function assessStage(
   }
   return {
     assessment,
+    changeSummary: result.changeSummary,
     feedback:
       result.role === 'reviewer'
         ? result.feedback.length

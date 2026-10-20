@@ -168,6 +168,7 @@ export async function exportPacket(
   assertActive?: () => void,
 ): Promise<string> {
   const profileRevision = this.profileRevision;
+  const rulesRevision = JSON.stringify(this.packetRules.current());
   const approval = this.board.get<Approval>('approval', id);
   const { errors } = await this.packetRules.check(
     approval.packet,
@@ -180,5 +181,15 @@ export async function exportPacket(
     throw new Error(
       `This packet no longer passes its checks. Request changes and review it again.\n${errors.join('\n')}`,
     );
-  return exportApprovedPacket(this.board, this.directory, id);
+  return exportApprovedPacket(this.board, this.directory, id, () => {
+    assertActive?.();
+    if (
+      this.profileWriting ||
+      this.profileRevision !== profileRevision ||
+      JSON.stringify(this.packetRules.current()) !== rulesRevision
+    )
+      throw new Error(
+        'Profile or packet rules changed during document verification. Check again before exporting.',
+      );
+  });
 }

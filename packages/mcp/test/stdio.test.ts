@@ -120,6 +120,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
       [
         'pitchcrew_check_linkedin_draft',
+        'pitchcrew_application_quality',
         'pitchcrew_list_conversations',
         'pitchcrew_read_conversation',
         'pitchcrew_create_group',
@@ -147,6 +148,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
         'pitchcrew_propose_skill',
         'pitchcrew_change_workflow',
         'pitchcrew_list_jobs',
+        'pitchcrew_update_job',
         'pitchcrew_delete_job',
         'pitchcrew_bulk_move_jobs',
         'pitchcrew_bulk_delete_jobs',
@@ -278,8 +280,15 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet } }))
         .structuredContent,
-    ).toEqual({
+    ).toMatchObject({
       problems: [],
+      documents: {
+        errors: [],
+        reports: [
+          { name: 'resume.pdf', status: 'verified' },
+          { name: 'cover_letter.pdf', status: 'verified' },
+        ],
+      },
       warnings: [],
       findings: [],
       layout: { resumePages: 1, coverLetterPages: 1, warnings: [] },
@@ -350,6 +359,28 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
       expect(moved.isError, JSON.stringify(moved)).not.toBe(true);
       expect(moved.structuredContent).toMatchObject({ card: { id: disposable.id, state } });
     }
+    const corrected = await client.callTool({
+      name: 'pitchcrew_update_job',
+      arguments: {
+        changes: { company: 'Corrected Fixture' },
+        reason: 'User corrected the company',
+      },
+    });
+    expect(corrected.isError, JSON.stringify(corrected)).toBe(true);
+    // The original capability is a workflow fixture; corrections require ordinary chat.
+    const fixtureRun = board.get<import('@pitchcrew/core').Run>('run', 'fixture');
+    board.record('run', { ...fixtureRun, mode: 'chat' }, 'reviewer', 'Fixture chat');
+    const savedCorrection = await client.callTool({
+      name: 'pitchcrew_update_job',
+      arguments: {
+        changes: { company: 'Corrected Fixture' },
+        reason: 'User corrected the company',
+      },
+    });
+    expect(savedCorrection.isError, JSON.stringify(savedCorrection)).not.toBe(true);
+    expect(savedCorrection.structuredContent).toMatchObject({
+      card: { id: card.id, company: 'Corrected Fixture', packet },
+    });
     const deleted = await client.callTool({
       name: 'pitchcrew_delete_job',
       arguments: { cardId: disposable.id, reason: 'Remove fictional job' },
@@ -540,6 +571,10 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
     expect(connectorCall).toHaveBeenCalledTimes(1);
     for (const [name, args] of [
       ['pitchcrew_list_jobs', {}],
+      [
+        'pitchcrew_update_job',
+        { changes: { company: 'Corrected Fixture' }, reason: 'User correction' },
+      ],
       ['pitchcrew_change_workflow', { state: 'lead', reason: 'Reopen' }],
       ['pitchcrew_delete_job', { reason: 'Remove' }],
       ['pitchcrew_bulk_move_jobs', { cardIds: [randomUUID()], state: 'lead', reason: 'Reopen' }],

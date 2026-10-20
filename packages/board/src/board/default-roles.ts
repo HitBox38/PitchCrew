@@ -135,6 +135,7 @@ export function defaultRoles(runtime: RuntimeId, enabled: boolean): Role[] {
       capabilities: {
         ...support.capabilities,
         readApplications: true,
+        manageCareerPlans: true,
         computerUse: true,
       },
       instructions: [

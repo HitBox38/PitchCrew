@@ -1,3 +1,7 @@
+import { drainConversationQueue } from '../conversation-queue.ts';
+import { reserveLaunch } from '../queue/admission.ts';
+import { relatedConversation } from '../conversations.ts';
+import { ensureQueue } from '../queue/state.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { jobSourceRevision, saveApplicationContext } from '@pitchcrew/board';
 import {
@@ -9,6 +13,7 @@ import {
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { recordChatActivity, finishChatActivity } from '../chat-activity.ts';
 import { requireRole } from '../roles.ts';
 import type { CrewContext } from '../types.ts';
 import { applicationSource } from './source.ts';
@@ -19,7 +24,7 @@ export function assertApplicationRuntime(role: Role) {
       'This runtime does not support isolated application runs. Choose Codex, Claude Code or OpenCode, or prepare a brief manually.',
     );
 }
-export async function extractApplicationContext(
+async function extractApplicationContextPrepared(
   context: CrewContext,
   cardId: string,
   roleId: string,
@@ -30,12 +35,7 @@ export async function extractApplicationContext(
   if (!role.enabled || !context.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('Enable an available extraction runtime in Crew first.');
   const card = context.board.get<Card>('card', cardId);
-  if (
-    card.deletedAt ||
-    context.board.hasActiveRun(cardId) ||
-    context.configuring.has(roleId) ||
-    context.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running')
-  )
+  if (card.deletedAt || context.board.hasActiveRun(cardId) || context.configuring.has(roleId))
     throw new Error('Wait for active work to finish before extracting this job.');
   const sourceRevision = jobSourceRevision(card);
   const previousRevision = card.applicationContext?.revision ?? null;
@@ -47,6 +47,14 @@ export async function extractApplicationContext(
     runtime: role.runtime,
     purpose: 'source-extraction',
     mode: 'workflow',
+    threadId: relatedConversation(
+      context,
+      'application',
+      cardId,
+      roleId,
+      cardId,
+      `${card.company}: Application work`,
+    ).id,
     status: 'running',
     message: 'Extracting job brief for your review…',
     startedAt: new Date().toISOString(),
@@ -82,7 +90,15 @@ export async function extractApplicationContext(
       role: isolatedRole,
       directory,
       signal: controller.signal,
-      onMessage: () => {},
+      onMessage: (message) =>
+        recordChatActivity(context, run.id, {
+          id: 'extraction-progress',
+          kind: 'commentary',
+          label: 'Progress update',
+          text: message,
+          status: 'completed',
+        }),
+      onActivity: (activity) => recordChatActivity(context, run.id, activity),
       mcp: {
         command: process.execPath,
         args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
@@ -149,8 +165,35 @@ export async function extractApplicationContext(
       );
     })
     .finally(() => {
+      finishChatActivity(context, run.id);
       context.controllers.delete(run.id);
       context.capabilities.delete(token);
+      void drainConversationQueue(context);
     });
   return run;
+}
+
+export async function extractApplicationContext(
+  context: CrewContext,
+  cardId: string,
+  roleId: string,
+): Promise<Run> {
+  await context.runtimeMaintenance.refreshOnRetry(requireRole(context, roleId));
+  const threadId = relatedConversation(
+    context,
+    'application',
+    cardId,
+    roleId,
+    cardId,
+    `${context.board.get<Card>('card', cardId).company}: Application work`,
+  ).id;
+  ensureQueue(context, threadId);
+  return reserveLaunch(context, { cardId, threadId, roleId, isolated: true }, () =>
+    context.runtimeMaintenance.guard(
+      requireRole(context, roleId),
+      () => extractApplicationContextPrepared(context, cardId, roleId),
+      false,
+      () => requireRole(context, roleId),
+    ),
+  );
 }

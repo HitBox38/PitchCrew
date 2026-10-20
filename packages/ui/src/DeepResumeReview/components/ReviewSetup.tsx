@@ -49,7 +49,7 @@ export function ReviewSetup({
         />
         {error ? <p role="alert">{error}</p> : null}
         {!confirmed ? (
-          <p role="alert">Confirm this job’s brief in Overview before starting.</p>
+          <p role="alert">Confirm this job’s brief in Application before starting.</p>
         ) : null}
         {!available ? (
           <p role="alert">

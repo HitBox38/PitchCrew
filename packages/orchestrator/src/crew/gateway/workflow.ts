@@ -8,6 +8,7 @@ import {
 } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
+import { oneLineChangeSummary } from '../change-summary.ts';
 
 export function changeWorkflow(
   this: CrewContext,
@@ -77,10 +78,13 @@ function applyJobChange(
   state?: CardState,
 ) {
   return context.board.db.transaction(() => {
+    const description = oneLineChangeSummary(
+      `${state ? `Moved to ${state.replaceAll('_', ' ')}` : 'Deleted job'}: ${reason}`,
+    );
     const card = state
-      ? changeJobState(context.board, cardId, state, capability.roleId, reason)
+      ? changeJobState(context.board, cardId, state, capability.roleId, description)
       : null;
-    if (!state) deleteJob(context.board, cardId, capability.roleId, reason);
+    if (!state) deleteJob(context.board, cardId, capability.roleId, description);
     context.addMessage('crew', capability.roleId, 'crew', reason, cardId, capability.runId);
     return card;
   })();

@@ -1,3 +1,4 @@
+import { registerRuntimeMaintenanceRoutes } from './http/routes/runtime-maintenance.ts';
 import { registerSnapshot } from './http/snapshot.ts';
 import { recordOperationalLog } from './telemetry/logs.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
@@ -9,6 +10,7 @@ import { registerJsonBody } from './http/body.ts';
 import { registerAnalyticsRoutes, type AnalyticsConfig } from './http/analytics.ts';
 import { registerChatStream } from './http/chat-stream.ts';
 import { registerAgentRoutes } from './http/routes/agent.ts';
+import { registerQualityRoutes } from './http/routes/quality.ts';
 import { registerApprovalsRoutes } from './http/routes/approvals.ts';
 import { registerBrowserRoutes } from './http/routes/browser.ts';
 import { registerBoardRoutes } from './http/routes/board.ts';
@@ -52,6 +54,10 @@ export interface DaemonOptions {
   analytics?: AnalyticsConfig | null;
   /** CLI configures public release checks; direct construction stays offline by default. */
   updates?: AppUpdateOptions;
+  /** Public runtime release checks; direct construction remains offline. */
+  runtimeUpdateChecks?: boolean;
+  /** Explicit opt-in to local CLI account metadata probes for direct construction. */
+  runtimeAuthenticationChecks?: boolean;
 }
 
 export async function createDaemon(options: DaemonOptions) {
@@ -81,6 +87,8 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     options.browserLaunch,
     diagnostics,
   );
+  service.runtimeMaintenance.enabled = options.runtimeUpdateChecks ?? false;
+  service.runtimeMaintenance.authenticationEnabled = options.runtimeAuthenticationChecks ?? false;
   const app = Fastify({ bodyLimit: 1024 * 1024, forceCloseConnections: true });
   const http = app.server;
   const sessions = new Set<string>();
@@ -124,6 +132,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
       registerAgentRoutes,
+      registerQualityRoutes,
       registerBoardRoutes,
       registerOnboardingRoutes,
       registerPacketRulesRoutes,
@@ -132,6 +141,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
       registerProfileSourcesRoutes,
       registerJobSourcesRoutes,
       registerCrewRoutes,
+      registerRuntimeMaintenanceRoutes,
       registerSkillsRoutes,
       registerRoutinesRoutes,
       registerConnectorsRoutes,

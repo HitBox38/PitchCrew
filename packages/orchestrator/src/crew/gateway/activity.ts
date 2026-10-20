@@ -4,6 +4,7 @@ import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
 
 const labels: Record<string, string> = {
+  quality: 'Updating writing preferences and career plans',
   check_linkedin_draft: 'Checking LinkedIn draft lengths',
   start_deep_review: 'Starting deep resume review',
   start_review_subagent: 'Starting targeted second opinion',
@@ -32,6 +33,7 @@ const labels: Record<string, string> = {
   packet_rules: 'Reading packet rules',
   export: 'Exporting approved packet',
   workflow: 'Updating application workflow',
+  update_job: 'Correcting saved job details',
   message: 'Messaging a crew member',
   invoke: 'Requesting crew work',
   ask_user: 'Asking you a question',

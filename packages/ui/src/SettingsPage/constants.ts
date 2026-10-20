@@ -5,6 +5,7 @@ export const settingsSections = [
   { id: 'accounts', label: 'Accounts', icon: Link },
   { id: 'sources', label: 'Job sources', icon: Radar },
   { id: 'runtimes', label: 'Runtimes', icon: Terminal },
+  { id: 'writing', label: 'Writing', icon: ListChecks },
   { id: 'rules', label: 'Packet rules', icon: ListChecks },
   { id: 'data', label: 'Local data', icon: HardDrive },
 ] as const;

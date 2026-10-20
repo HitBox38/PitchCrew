@@ -7,6 +7,18 @@ import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
 export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
+  app.get('/api/queue', () => service.queue());
+  app.put('/api/queue/settings', (req) => service.configureQueue(req.body));
+  app.post('/api/queue/actions', (req, res) =>
+    res.status(202).send(service.queueBoardAction(req.body)),
+  );
+  app.put<IdRoute>('/api/queue/:id', (req) => service.updateQueue(req.params.id, req.body));
+  app.put<IdRoute>('/api/queue/requests/:id/order', (req) =>
+    service.moveQueueRequest(
+      req.params.id,
+      z.object({ beforeId: z.uuid().nullable() }).parse(req.body).beforeId,
+    ),
+  );
   app.post<IdRoute>('/api/user-input/:id/answer', (req, res) =>
     res.status(202).send(service.answerUserQuestion(req.params.id, req.body)),
   );
@@ -122,7 +134,12 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
       }),
     ),
   );
-  app.post('/api/runtimes/detect', async (_req, res) => res.send(await service.detect()));
+  app.post('/api/runtimes/detect', async (_req, res) => {
+    await service.detect();
+    await service.runtimeMaintenance.initializeAuthentication(true);
+    await service.runtimeMaintenance.check(false);
+    return res.send(service.runtimes);
+  });
   app.post<IdRoute>('/api/runtimes/:id/models', async (req, res) => {
     const { refresh } = z.object({ refresh: z.boolean().default(false) }).parse(req.body ?? {});
     res.send(await service.runtimeModels(z.enum(runtimeIds).parse(req.params.id), refresh));

@@ -3,20 +3,30 @@ import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { useState } from 'react';
 import { DateTimePicker } from '@/DateTimePicker/index.tsx';
 
-export function ExternalSubmissionFields({ jobIdentifier = '' }: { jobIdentifier?: string }) {
+export function ExternalSubmissionFields({
+  jobIdentifier = '',
+  onChange,
+}: {
+  jobIdentifier?: string;
+  onChange?: () => void;
+}) {
   const [submittedAt, setSubmittedAt] = useState('');
+  const [initialIdentifier] = useState(jobIdentifier);
   return (
     <>
       <DateTimePicker
         label="Submitted at"
         name="submittedAt"
         value={submittedAt}
-        onValueChange={setSubmittedAt}
+        onValueChange={(value) => {
+          setSubmittedAt(value);
+          onChange?.();
+        }}
         required
       />
       <label>
         Job identifier <span className="optional">optional</span>
-        <Input name="jobIdentifier" maxLength={200} defaultValue={jobIdentifier} />
+        <Input name="jobIdentifier" maxLength={200} defaultValue={initialIdentifier} />
       </label>
       <label>
         Submission evidence or note

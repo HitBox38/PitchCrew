@@ -1,6 +1,7 @@
 import type { View } from '@/navigation.ts';
 import {
   Activity,
+  ListOrdered,
   BookOpen,
   CalendarClock,
   FileUser,
@@ -14,6 +15,7 @@ import {
 
 export const viewIcons = {
   board: LayoutDashboard,
+  queue: ListOrdered,
   crew: Users,
   chat: MessageSquare,
   inbox: Inbox,
@@ -27,6 +29,7 @@ export const viewIcons = {
 
 export const viewTitles: Record<View, string> = {
   board: 'Board',
+  queue: 'Queue',
   crew: 'Crew',
   chat: 'Chat',
   inbox: 'Inbox',
@@ -40,6 +43,7 @@ export const viewTitles: Record<View, string> = {
 
 /** Sidebar order below Board; Settings stays pinned in the footer. */
 export const workspaceViews = [
+  'queue',
   'chat',
   'crew',
   'skills',

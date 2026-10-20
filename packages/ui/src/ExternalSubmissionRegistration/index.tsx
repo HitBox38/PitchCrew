@@ -1,11 +1,24 @@
+import { useEffect } from 'react';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { Card } from '@pitchcrew/core';
 import { useExternalSubmission } from './hooks/useExternalSubmission.ts';
 
-export function ExternalSubmissionRegistration({ card }: { card: Card }) {
-  const { registerSubmission, working, error } = useExternalSubmission(card.id);
+export function ExternalSubmissionRegistration({
+  card,
+  onDirtyChange,
+}: {
+  card: Card;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
+  const { registerSubmission, working, error, dirty, setDirty, revision } = useExternalSubmission(
+    card.id,
+  );
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
   if (
     ![
       'lead',
@@ -19,16 +32,21 @@ export function ExternalSubmissionRegistration({ card }: { card: Card }) {
   )
     return null;
   return (
-    <AccordionSection className="my-4" heading="Already applied outside Pitchcrew?">
+    <AccordionSection heading="Already applied outside Pitchcrew?">
       <p className="quiet my-2">
         Record a known submission on this application. The existing packet stays in history; this
         does not identify it as the packet you submitted.
       </p>
       <form
+        key={revision}
         className="form flex flex-col gap-3"
+        onChangeCapture={() => setDirty(true)}
         onSubmit={(event) => void registerSubmission(event)}
       >
-        <ExternalSubmissionFields jobIdentifier={card.tracking?.jobIdentifier} />
+        <ExternalSubmissionFields
+          jobIdentifier={card.tracking?.jobIdentifier}
+          onChange={() => setDirty(true)}
+        />
         {error ? (
           <p className="form-error" role="alert">
             {error}

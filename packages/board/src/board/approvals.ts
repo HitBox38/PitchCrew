@@ -9,6 +9,7 @@ export function requestApproval(
   this: BoardContext,
   cardId: string,
   artifacts?: PacketArtifact[],
+  documentVerification?: Approval['documentVerification'],
 ): Approval {
   return this.db.transaction(() => {
     const card = this.get<Card>('card', cardId);
@@ -21,6 +22,7 @@ export function requestApproval(
       action: 'export_packet',
       contextRevision: context.revision,
       ...(artifacts ? { artifacts, artifactDigest: digestArtifacts(artifacts) } : {}),
+      ...(documentVerification ? { documentVerification } : {}),
       packet: card.packet,
       digest: digestPacket(cardId, card.packet),
       status: 'pending',

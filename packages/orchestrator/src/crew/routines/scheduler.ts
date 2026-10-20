@@ -1,3 +1,9 @@
+import { launchProblem } from '../queue/admission.ts';
+import { queueMayStart } from '../queue/dispatch.ts';
+import { randomUUID } from 'node:crypto';
+import { saveRequest } from '../conversation-queue.ts';
+import { activeQueues, concurrency } from '../queue/state.ts';
+import { type ChatRequest } from '@pitchcrew/core';
 import { drainConversationQueue } from '../conversation-queue.ts';
 import { relatedConversation, conversation } from '../conversations.ts';
 import { profileUpdateInterrupted } from '../../profile-sources/mutation.ts';
@@ -24,6 +30,8 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
   if (this.closing || this.initializing || this.scheduling) return;
   this.scheduling = true;
   try {
+    await this.runtimeMaintenance.recover();
+    await this.drainTasks();
     await drainConversationQueue(this);
     for (const candidate of routines
       .call(this)
@@ -61,20 +69,28 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
         continue;
       if (
         this.board
+          .list<ChatRequest>('chat_request')
+          .some(
+            (r) =>
+              r.routine?.routineId === routine.id &&
+              r.deliveries.some((d) =>
+                ['queued', 'running', 'waiting', 'paused', 'failed'].includes(d.status),
+              ),
+          )
+      )
+        continue;
+      if (
+        this.board
           .list<Run>('run')
           .some(
             (run) =>
-              (run.status === 'running' ||
-                (run.status === 'waiting' &&
-                  (run.routineId === routine.id ||
-                    run.threadId === routine.conversationId ||
-                    (routine.lastRunId && run.rootRunId === routine.lastRunId)))) &&
-              (run.roleId === role.id ||
-                run.routineId === routine.id ||
+              ['running', 'waiting'].includes(run.status) &&
+              (run.routineId === routine.id ||
                 (routine.lastRunId && run.rootRunId === routine.lastRunId)),
           )
       )
         continue;
+      if (!routine.cardId && activeQueues(this).size >= concurrency(this)) continue;
       if (
         routine.lastRunId &&
         this.board
@@ -97,34 +113,82 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
         )
           continue;
       }
+      if (this.runtimeMaintenance.held(role)) continue;
+      try {
+        const auth = await this.runtimeMaintenance.authenticate(role);
+        if (auth.status === 'missing' || this.runtimeMaintenance.isUpdating(role.runtime)) continue;
+      } catch {
+        continue;
+      }
+      if (this.board.get<Routine>('routine', routine.id).updatedAt !== routine.updatedAt) continue;
+      const threadId =
+        routine.conversationId ??
+        relatedConversation(this, 'routine', routine.id, role.id, routine.cardId, routine.name).id;
+      if (
+        !routine.cardId &&
+        (launchProblem(this, { cardId: null, threadId, roleId: role.id, routineId: routine.id }) ||
+          !(await queueMayStart(this, `routine:${routine.id}`, routine.id)))
+      )
+        continue;
       const scheduledFor = routine.nextRunAt;
-      // Consume the occurrence before launching: a crash cannot replay it or spend tokens twice.
+      // Job occurrences commit with their queued request; background work consumes before launch.
       const runCount = routine.runCount + 1;
       const nextRunAt =
         routine.maxRuns && runCount >= routine.maxRuns
           ? null
           : nextOccurrence(routine, now.toISOString());
-      this.board.record(
-        'routine',
-        {
-          ...routine,
-          runCount,
-          nextRunAt,
-          lastScheduledAt: scheduledFor,
-          error: '',
-          updatedAt: now.toISOString(),
-        },
-        'system',
-        `Dispatched routine: ${routine.name}`,
-      );
+      const consume = () =>
+        this.board.record(
+          'routine',
+          {
+            ...routine,
+            runCount,
+            nextRunAt,
+            lastScheduledAt: scheduledFor,
+            error: '',
+            updatedAt: now.toISOString(),
+          },
+          'system',
+          `Dispatched routine: ${routine.name}`,
+        );
       try {
+        if (routine.cardId) {
+          const request: ChatRequest = {
+            id: randomUUID(),
+            messageId: randomUUID(),
+            threadId,
+            content: routine.content,
+            attachments: [],
+            createdAt: now.toISOString(),
+            order: Math.max(
+              Date.now(),
+              ...this.board.list<ChatRequest>('chat_request').map((r) => r.order + 1),
+            ),
+            routine: { routineId: routine.id, scheduledFor },
+            deliveries: [{ roleId: role.id, status: 'queued', runId: null, error: '' }],
+          };
+          this.board.db.transaction(() => {
+            consume();
+            this.addMessage(
+              threadId,
+              'system',
+              role.id,
+              `Scheduled action: ${routine.content}`,
+              routine.cardId,
+              null,
+              request.messageId,
+            );
+            saveRequest(this, request);
+          })();
+          await drainConversationQueue(this);
+          continue;
+        }
+        consume();
         const run = await this.startChatRun(
           role.id,
           routine.content,
           routine.cardId,
-          routine.conversationId ??
-            relatedConversation(this, 'routine', routine.id, role.id, routine.cardId, routine.name)
-              .id,
+          threadId,
           undefined,
           { routineId: routine.id, scheduledFor },
         );

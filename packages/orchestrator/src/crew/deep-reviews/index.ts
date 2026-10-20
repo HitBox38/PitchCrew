@@ -1,4 +1,7 @@
+import { QueueBusyError, reserveLaunch } from '../queue/admission.ts';
+import { ensureQueue } from '../queue/state.ts';
 import { randomUUID } from 'node:crypto';
+import { RuntimeHeldError } from '../../runtime-maintenance/availability.ts';
 import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
 import {
   deepReviewOptionsSchema,
@@ -9,6 +12,7 @@ import {
   type Run,
   type UserInputRequest,
   type ChatRequest,
+  type WorkQueue,
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
 import { assertProfileReady } from '../../profile-sources/mutation.ts';
@@ -34,7 +38,7 @@ function workflowRole(context: CrewContext, seat: 'reviewer' | 'writer', id?: st
     throw new Error(`The ${seat} runtime is unavailable. Check Crew settings.`);
   return { ...role, workflow: seat };
 }
-export async function startDeepReview(
+async function startDeepReviewPrepared(
   context: CrewContext,
   cardId: string,
   input: unknown = {},
@@ -99,6 +103,8 @@ export async function startDeepReview(
     );
   const profileRevision = context.profileRevision;
   const assertAvailable = () => {
+    if (context.board.list<WorkQueue>('work_queue').some((q) => q.cardId === cardId && q.paused))
+      throw new QueueBusyError('This queue was paused while the action was starting.');
     if (
       context.closing ||
       context.profileWriting ||
@@ -110,7 +116,7 @@ export async function startDeepReview(
           (r) =>
             r.status === 'running' &&
             ((r.mode !== 'chat' && r.cardId === cardId) ||
-              ([reviewer.id, writer.id].includes(r.roleId) &&
+              (r.cardId === cardId &&
                 !(sourceThreadId && r.threadId === sourceThreadId && r.mode === 'chat'))),
         ) ||
       [reviewer.id, writer.id].some((id) => context.configuring.has(id))
@@ -314,5 +320,45 @@ export function cancelWaitingDeepReview(context: CrewContext, id: string) {
     { ...run, status: 'cancelled', message: 'Deep review cancelled.' },
     'user',
     'Cancelled waiting deep review',
+  );
+}
+
+export function startDeepReview(...args: Parameters<typeof startDeepReviewPrepared>) {
+  const [context, , input] = args;
+  const options = deepReviewOptionsSchema.parse(input ?? {});
+  const reviewer = workflowRole(context, 'reviewer', options.reviewerId);
+  const writer = workflowRole(context, 'writer', options.writerId);
+  const threadId =
+    args[5] ??
+    relatedConversation(context, 'application', args[1], reviewer.id, args[1], 'Application work')
+      .id;
+  ensureQueue(context, threadId);
+  const source = args[6] ? context.board.get<Run>('run', args[6]) : undefined;
+  return reserveLaunch(
+    context,
+    {
+      isolated: true,
+      cardId: args[1],
+      threadId,
+      roleId: reviewer.id,
+      rootRunId: args[4]?.rootRunId ?? source?.rootRunId ?? source?.id,
+    },
+    () =>
+      context.runtimeMaintenance.guard(reviewer, () =>
+        context.runtimeMaintenance.guard(writer, () => {
+          const currentReviewer = workflowRole(context, 'reviewer', options.reviewerId);
+          const currentWriter = workflowRole(context, 'writer', options.writerId);
+          if (
+            currentReviewer.runtime !== reviewer.runtime ||
+            currentReviewer.model !== reviewer.model ||
+            currentWriter.runtime !== writer.runtime ||
+            currentWriter.model !== writer.model
+          )
+            throw new RuntimeHeldError(
+              'Review runtime settings changed. Retry with the current settings.',
+            );
+          return startDeepReviewPrepared(...args);
+        }),
+      ),
   );
 }

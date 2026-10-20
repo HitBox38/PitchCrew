@@ -1,4 +1,4 @@
-import { type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Conversation } from '@/components/ai-elements/conversation/components/Conversation.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ConversationContent } from '@/components/ai-elements/conversation/components/ConversationContent.tsx';
@@ -15,6 +15,15 @@ export function ConversationHistory({
   ...props
 }: MessageTranscriptProps & { children: ReactNode; label: string }) {
   const { page, total, loading, error, retry } = useConversationHistory(props);
+  const focused = useRef(false);
+  useEffect(() => {
+    if (loading || !props.focusRunId || focused.current) return;
+    const target = document.getElementById(`run-${props.focusRunId}`);
+    if (!target) return;
+    focused.current = true;
+    target.scrollIntoView({ block: 'start' });
+    target.focus({ preventScroll: true });
+  }, [loading, props.focusRunId, page.items]);
   if (loading)
     return error ? (
       <div role="alert">

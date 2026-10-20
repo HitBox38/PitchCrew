@@ -112,3 +112,7 @@ The collaborative browser verified full-brief editing, personal answers, unchang
 ## Shared default guard skill
 
 The starter catalog includes a bundled `prompt-injection-guard`, assigned to all agents by default, including future custom agents. It is available offline, editable and removable through Skills; user edits and deleted tombstones survive startup and retries. Users can add the bundled starter again explicitly from the catalog. It provides first-line guidance for source instructions, personal answers, persistence, disclosure and exact-action approvals, supplementing the enforced boundaries. Tools-free source extraction intentionally receives no assigned skills.
+
+## Saved job corrections
+
+An ordinary chat role with `manageWorkflow` can use `pitchcrew_update_job` to correct saved company, title, location or salary without fetching the source again. Only supplied fields change. Corrections share the posting-refresh transaction's invalidation of fit, application context, packet review evidence, form assessments and unused export/browser approvals; existing packet files and user bookkeeping remain. Identical corrections preserve existing confirmation and approvals. Other active job work, card ownership and uncertain submissions block changes, with an exemption for the editing chat itself. Correcting metadata never confirms a brief or rewrites a packet: fresh user confirmation and isolated drafting/review still apply. See [role permissions](roles.md).

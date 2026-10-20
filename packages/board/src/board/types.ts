@@ -48,7 +48,11 @@ export interface BoardContext {
     message: string,
   ): Card;
   move(id: string, state: CardState, actor: string, message?: string): Card;
-  requestApproval(cardId: string, artifacts?: PacketArtifact[]): Approval;
+  requestApproval(
+    cardId: string,
+    artifacts?: PacketArtifact[],
+    documentVerification?: Approval['documentVerification'],
+  ): Approval;
   decideApproval(id: string, approved: boolean): Approval;
   consumeApproval(id: string, cardId: string, digest: string): Packet;
   hasActiveRun(cardId: string): boolean;

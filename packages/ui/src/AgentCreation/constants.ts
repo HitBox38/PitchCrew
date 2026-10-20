@@ -29,7 +29,13 @@ export const toolGroups = [
   { title: 'Connected services', keys: ['github', 'gmail', 'drive', 'calendar', 'sheets'] },
   {
     title: 'Applications and learning',
-    keys: ['readApplications', 'trackApplications', 'reviewPipeline', 'proposeCrewChanges'],
+    keys: [
+      'readApplications',
+      'manageCareerPlans',
+      'trackApplications',
+      'reviewPipeline',
+      'proposeCrewChanges',
+    ],
   },
   { title: 'Job discovery', keys: ['discoverJobs'] },
   { title: 'Profile maintenance', keys: ['maintainProfile'] },
@@ -47,6 +53,8 @@ export const toolHelp = {
   calendar: 'Read-only access to calendar events.',
   sheets: 'Read-only access to spreadsheet ranges.',
   readApplications: 'Read across the applications database, beyond an attached job.',
+  manageCareerPlans:
+    'Requires application reads. Refresh chosen career plans and record user-reported action progress.',
   trackApplications:
     'Requires Gmail access and a connected Google account. Ambiguous evidence needs your review.',
   reviewPipeline: 'Read applications, run history and role configurations across the crew.',

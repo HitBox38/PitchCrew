@@ -1,4 +1,6 @@
 export * from './conversations.ts';
+export * from './application-quality.ts';
+export * from './work-queue.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
@@ -14,7 +16,13 @@ export type {
   InstructionUpdate,
 } from './default-instructions.ts';
 export { cardInput } from './cards.ts';
-export { bulkDeleteJobsInput, bulkMoveJobsInput, maxJobBatchSize } from './job-management.ts';
+export {
+  bulkDeleteJobsInput,
+  bulkMoveJobsInput,
+  maxJobBatchSize,
+  jobDetailsChanges,
+  updateJobInput,
+} from './job-management.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson } from './cards.ts';
 export * from './insights.ts';
@@ -26,7 +34,13 @@ export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
-export type { ArtifactLayout, Packet, PacketArtifact } from './packets.ts';
+export type {
+  ArtifactLayout,
+  Packet,
+  PacketArtifact,
+  DocumentFinding,
+  DocumentVerification,
+} from './packets.ts';
 export {
   capabilitySchema,
   defaultCapabilities,
@@ -132,6 +146,7 @@ export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from 
 export { isNotificationMessage } from './message-notifications.ts';
 
 export * from './deep-reviews.ts';
+export * from './runtime-maintenance.ts';
 export { checkLinkedInDraft, linkedInDraftInput, linkedInFieldLimits } from './linkedin-draft.ts';
 
 export type { ChatReference, ChatReferenceInput } from './chat-references.ts';

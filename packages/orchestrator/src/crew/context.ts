@@ -1,4 +1,6 @@
+import { RuntimeMaintenance } from '../runtime-maintenance/index.ts';
 import { Board } from '@pitchcrew/board';
+import { writingGuide, saveGuide } from '../quality/writing.ts';
 import { ProfileOrganizationStore } from '../profile-organization.ts';
 import { InstructionUpdatePreferences } from '../instruction-updates.ts';
 import { SkillUpdateChecks } from '../skill-update-checks/index.ts';
@@ -67,6 +69,8 @@ export function createCrewContext(
     daemonUrl,
     mcpEntry,
     board,
+    queueChains: new Map(),
+    queueReservations: new Map(),
     deepReviewExecutions: new Map(),
     onboarding,
     instructionUpdatePreferences: new InstructionUpdatePreferences(directory),
@@ -92,6 +96,7 @@ export function createCrewContext(
     configuring: new Set<RoleId>(),
     deciding: new Set<string>(),
     runtimes: [],
+    runtimeMaintenance: new RuntimeMaintenance(directory, () => context),
     modelCatalogs: new Map<RuntimeId, { catalog: RuntimeModelCatalog; expiresAt: number }>(),
     modelRequests: new Map<RuntimeId, Promise<RuntimeModelCatalog>>(),
     modelController: new AbortController(),
@@ -137,6 +142,7 @@ export function createCrewContext(
     agentCall: (...args) => agentCall.call(context, ...args),
     close: (...args) => close.call(context, ...args),
   };
+  if (!board.list('writing_guide').length) saveGuide(context, writingGuide(context), 'system');
   if (dev) context.board.seedRoles('demo', true);
   return context;
 }

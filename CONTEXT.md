@@ -4,6 +4,18 @@ Pitchcrew helps a user manage a job search with a crew of agents and a shared ap
 
 ## Language
 
+**Crew runtime**:
+An installed agent CLI that Pitchcrew uses to carry out a crew agent's conversations and job workflows.
+_Avoid_: Model provider (when referring to the local CLI), Pitchcrew app
+
+**Runtime check**:
+An assessment of a crew runtime's installation, compatibility and authentication status. Authentication may be confirmed, missing or unable to be verified; the assessment is separate from a completed model request.
+_Avoid_: Test request, verified model access
+
+**Runtime update**:
+A user-requested upgrade of an installed crew runtime, with progress and an outcome visible in Pitchcrew.
+_Avoid_: Pitchcrew app update, agent instruction update, skill update
+
 **Removed source document**:
 A previously imported Profile document that is no longer present in its connected source. Its local copy is kept and remains available to the user and crew.
 _Avoid_: Deleted profile document
@@ -11,6 +23,26 @@ _Avoid_: Deleted profile document
 **Manual status change**:
 A user's bookkeeping update to a job's board status. It does not start agent work or authorize packet export or application submission.
 _Avoid_: Workflow execution (when referring only to a recorded status change)
+
+**Workspace queue**:
+The ordered waiting line of eligible job queues and standalone conversation queues competing for available workspace capacity. The user can change their order.
+_Avoid_: Job queue (when referring to the order between different jobs)
+
+**Job queue**:
+An ordered collection of board actions and chat requests from all conversations attached to one job. Separate jobs have independent queues, even when their work uses the same crew agent.
+_Avoid_: Agent queue (when implying that an agent serializes work across all jobs)
+
+**Standalone conversation queue**:
+An ordered collection of chat requests for a conversation with no attached job, excluding job-free routine occurrences. It is independent of other conversations and job queues.
+_Avoid_: Agent queue (when implying that conversations with the same agent share one queue)
+
+**Queued board action**:
+A request in a job queue for one agent action on that job, such as evaluating fit on a lead.
+_Avoid_: Action chain (when referring to a single requested board action)
+
+**Crew follow-up**:
+Additional work requested by a crew agent as part of an initiating request or routine occurrence. It belongs to that request's work rather than a separate user-queued action.
+_Avoid_: Queued user action, review subagent
 
 **Withdrawn**:
 A closed job the user has decided not to pursue further, with its application history retained. Recording this status does not communicate a withdrawal to the employer.
@@ -67,6 +99,14 @@ _Avoid_: Trusted job description, sanitized instructions
 **Application draft**:
 Employer-facing application copy prepared for a job, including resumes, cover letters and application answers, whether produced in chat or a board workflow and regardless of the agent's identity. Discussion of source material is separate from preparing an application draft.
 _Avoid_: Packet (when implying that employer-facing chat copy is outside application drafting)
+
+**Document verification**:
+An assessment of an application document's readability, retained content and layout. Its findings do not establish factual accuracy, an employer's screening decision or permission to export.
+_Avoid_: ATS verdict, factual verification, export approval
+
+**Writing preferences**:
+Guidance about the user's preferred tone, phrasing and presentation for application drafts, stated directly or inferred from the user's edits. It is separate from factual evidence about the user's experience.
+_Avoid_: Verified Profile evidence, employer requirement (when referring to the user's preferred style)
 
 **Deep resume review**:
 An optional assessment of a tailored resume against a specific job's confirmed brief, using multiple hiring perspectives to identify supported strengths, weaknesses and corrections for Writer. Its findings do not constitute an employer's hiring decision or authorize packet export or submission.
@@ -139,6 +179,26 @@ _Avoid_: Employer feedback (when referring only to the user's recollection)
 **Career planning**:
 Exploring target roles, adjacent job titles, skill gaps and learning priorities in relation to the user's goals and experience.
 _Avoid_: Pipeline review (when referring to career direction rather than the application pipeline or crew performance)
+
+**Gap analysis scope**:
+The jobs selected by the user, directly or through role or tag filters, whose requirements inform career learning and evidence priorities. It can include relevant leads before an application is made.
+_Avoid_: Entire job history (when referring to the user's chosen target set)
+
+**Evidence gap**:
+A requirement that the user's Profile does not currently demonstrate, without establishing that the user lacks the capability.
+_Avoid_: Confirmed skill gap (when only supporting evidence is missing)
+
+**Confirmed skill gap**:
+A capability needed for the user's target work that the user is known to need to develop.
+_Avoid_: Evidence gap, inferred inability
+
+**Application coverage gap**:
+Relevant experience supported by Profile that is missing from an application draft.
+_Avoid_: Skill gap (when the experience already exists)
+
+**Career action plan**:
+A persistent set of prioritized next steps for addressing gaps in the user's target work, with supporting sources, completion criteria and progress. Completing a step does not itself establish verified evidence of a capability.
+_Avoid_: Verified Profile evidence, application packet
 
 **Offer evaluation**:
 Comparing an employment offer's stated compensation and contract terms with the user's priorities and reported promises, identifying uncertainties and preparing questions for the employer or a lawyer.

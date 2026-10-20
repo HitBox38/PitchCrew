@@ -1,3 +1,4 @@
+import { ensureQueue, patchQueue, nextOrder } from '../queue/state.ts';
 import { deepReviewQuestionRequest } from '../deep-reviews/chat.ts';
 import { cancelWaitingDeepReview } from '../deep-reviews/index.ts';
 import { originalQuestionTask, questionContinuationAllowed } from './context.ts';
@@ -145,6 +146,11 @@ export function answerUserQuestion(context: CrewContext, id: string, data: unkno
     context.board.record('chat_request', request, 'user', 'Queued the asking agent’s continuation');
   })();
   context.publishChat(true);
+  const queue = ensureQueue(context, question.sourceThreadId, original.rootRunId ?? original.id);
+  patchQueue(context, queue.id, {
+    order: nextOrder(context),
+    reason: queue.paused ? queue.reason : '',
+  });
   void drainConversationQueue(context);
   return request;
 }
