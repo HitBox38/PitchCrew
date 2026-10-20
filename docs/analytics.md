@@ -1,6 +1,6 @@
 # Analytics
 
-Pitchcrew supports PostHog product analytics in its shared browser and Electron renderer. Production installations use the bundled PitchCrew EU project and enable anonymous usage by default. Users can turn **Share anonymous usage** off in **Settings > General > Usage analytics**. The choice is saved separately for each browser or desktop origin and synchronized between open tabs on that origin.
+Pitchcrew supports PostHog product analytics in its shared browser and Electron renderer. Production installations use the bundled PitchCrew EU project and enable anonymous usage by default. Users can turn **Share anonymous usage** off in **Settings > Privacy > Usage analytics**. The choice is saved separately for each browser or desktop origin and synchronized between open tabs on that origin.
 
 Opted-out users and installations with `PITCHCREW_POSTHOG_DISABLED=1` send no analytics requests and do not load the SDK. Development capture is disabled unless explicitly enabled. Analytics failures do not affect app actions; disabled events are not queued for later upload.
 

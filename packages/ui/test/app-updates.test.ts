@@ -167,6 +167,7 @@ test('native download stays visible through navigation and enables restart only 
     'download',
   ]);
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('tab', { name: 'Updates', exact: true }).click();
   await page.getByRole('heading', { name: 'Pitchcrew updates' }).waitFor();
   expect(await action().textContent()).toContain('42%');
   expect(await page.locator('.sidebar-update-progress').getAttribute('style')).toContain('42%');

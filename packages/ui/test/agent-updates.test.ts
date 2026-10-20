@@ -172,7 +172,7 @@ test('collapsed and mobile sidebars retain the update reminder and a direct revi
 }, 30000);
 
 test('automatic-check preferences persist and failed manual checks retain the reminder', async () => {
-  await page.goto(`${host.daemon.url}/settings?section=general`, { waitUntil: 'domcontentloaded' });
+  await page.goto(`${host.daemon.url}/settings?section=updates`, { waitUntil: 'domcontentloaded' });
   const automatic = page.getByRole('switch', { name: /Check skills automatically/ });
   await automatic.waitFor();
   await automatic.click();

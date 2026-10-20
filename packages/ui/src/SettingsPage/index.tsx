@@ -17,8 +17,12 @@ import { validateSettingsSearch } from './helpers.ts';
 import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
 import { SkillUpdateSettings } from '@/AgentUpdates/components/SkillUpdateSettings.tsx';
+import { SettingsIntro } from './components/SettingsIntro.tsx';
+import { RuntimeUpdatesLink } from './components/RuntimeUpdatesLink.tsx';
+import { useSettingFocus } from './hooks/useSettingFocus.ts';
 
 export const SettingsPage = () => {
+  useSettingFocus();
   const mobile = useIsMobile();
   const { section } = useSearch({ from: '/settings' });
   const navigate = useNavigate({ from: '/settings' });
@@ -37,10 +41,27 @@ export const SettingsPage = () => {
     >
       <SettingsTabs />
       <TabsContent className="settings-content" value="general">
+        <SettingsIntro
+          title="General"
+          description="Make this workspace comfortable. These preferences save automatically on this device."
+        />
         <AppearanceSettings />
         <NotificationSettings />
+      </TabsContent>
+      <TabsContent className="settings-content" value="updates">
+        <SettingsIntro
+          title="Updates"
+          description="Keep Pitchcrew and your crew’s instructions current. You choose when to install or apply an update."
+        />
         <UpdateSettings />
         <SkillUpdateSettings />
+        <RuntimeUpdatesLink />
+      </TabsContent>
+      <TabsContent className="settings-content" value="privacy">
+        <SettingsIntro
+          title="Privacy"
+          description="Choose what you share to help improve Pitchcrew. Your preferences save automatically on this device."
+        />
         <AnalyticsSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="accounts">
@@ -59,6 +80,10 @@ export const SettingsPage = () => {
         <WritingSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="data">
+        <SettingsIntro
+          title="Local data"
+          description="Your workspace lives on this machine. Find its files and manage when Pitchcrew runs in the background."
+        />
         <DataSettings directory={data.dataDirectory} />
         <BackgroundServiceSettings />
       </TabsContent>

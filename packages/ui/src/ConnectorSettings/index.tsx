@@ -4,17 +4,22 @@ import { useConnectorSettings } from '@/ConnectorSettings/hooks/useConnectorSett
 import type { ConnectorSettingsProps } from '@/ConnectorSettings/types.ts';
 import { ExternalLink } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
+import { SettingsIntro } from '@/SettingsPage/components/SettingsIntro.tsx';
 
 export const ConnectorSettings = (props: ConnectorSettingsProps) => {
   const controller = useConnectorSettings(props);
   const { editing, authorizationUrl, google } = controller;
   return (
     <section className="connector-settings" aria-label="Connected accounts">
-      <h2 className="subheading">Connected accounts</h2>
-      <p className="quiet">
-        Give your crew source material for research, drafting and interview preparation. Enable each
-        service in a role’s settings after connecting.
-      </p>
+      <SettingsIntro
+        id="accounts-heading"
+        title="Accounts"
+        description="Connect source material for research, drafting and interview preparation. Choose which agents can read each connected service."
+      />
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <h3>Connected accounts</h3>
+        <span className="quiet">Read-only access</span>
+      </div>
       <ConnectedAccounts {...controller} />
       {authorizationUrl && google?.pending ? (
         <output className="connector-authorization">

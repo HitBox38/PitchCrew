@@ -14,34 +14,59 @@
   flex-direction: row;
   overflow: hidden;
 }
+.settings-navigation {
+  display: flex;
+  flex: 0 0 216px;
+  flex-direction: column;
+  width: 216px;
+  min-height: 0;
+  border-right: 1px solid var(--border);
+  background: rgb(var(--tint) / 0.025);
+}
+.settings-search-trigger {
+  margin: 16px 14px 0;
+  justify-content: flex-start;
+}
 .settings-tabs {
   display: flex;
-  flex: 0 0 178px;
+  flex: 1;
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
   gap: 4px;
-  width: 178px;
+  width: 100%;
+  min-height: 0;
   height: auto;
   padding: 16px 10px;
   border-radius: 0;
-  border-right: 1px solid var(--border);
-  background: rgb(var(--tint) / 0.025);
+  border-right: 0;
+  background: transparent;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .settings-tabs button {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
   justify-content: flex-start;
-  gap: 9px;
+  gap: 11px;
   min-height: 36px;
   height: auto;
-  padding: 9px 12px;
+  padding: 11px 12px;
   border: 0;
   border-radius: 9px 10px 9px 8px;
   color: var(--muted);
   font-size: 13px;
   font-weight: 600;
+}
+.settings-tab-description {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.3;
+  white-space: normal;
 }
 .settings-tabs button:hover {
   color: var(--ink);
@@ -55,7 +80,7 @@
 .settings-content {
   min-width: 0;
   min-height: 0;
-  padding: 24px 28px;
+  padding: 28px 32px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -64,6 +89,36 @@
 }
 .settings-section {
   max-width: 880px;
+}
+.settings-intro {
+  max-width: 880px;
+  margin-bottom: 28px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-content .settings-intro h2,
+.settings-content .settings-runtime-toolbar h2 {
+  margin-bottom: 8px;
+  font-size: 24px;
+  font-weight: 650;
+  letter-spacing: -0.5px;
+}
+.settings-related-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--ink);
+}
+.settings-related-link:hover {
+  background: rgb(var(--tint) / 0.035);
+}
+.settings-related-link:focus-visible,
+.runtime-text-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 .settings-section + .settings-section {
   margin-top: 24px;
@@ -102,7 +157,76 @@
   margin-top: 20px;
 }
 .settings-content .settings-runtimes .runtime-section {
+  margin-top: 0;
+}
+.runtime-overview {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin-block: 24px;
+  padding-block: 14px;
+  border-block: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+.runtime-overview strong {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.runtime-installations {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.runtime-installations:empty {
+  display: none;
+}
+.runtime-installation {
+  min-width: 0;
+  padding: 18px;
+  scroll-margin-block: 20px;
+}
+.runtime-installation + .runtime-installation {
+  border-top: 1px solid var(--border);
+}
+.runtime-installation .badge.runtime-available {
+  color: var(--primary-deep);
+  background: var(--primary-soft);
+}
+.runtime-auth-needed,
+.runtime-installation .badge.runtime-warning {
+  color: var(--ochre);
+  font-size: 12px;
+}
+.runtime-installation .badge.runtime-warning {
+  background: var(--ochre-soft);
+}
+.runtime-installation-details {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.runtime-operation {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgb(var(--tint) / 0.035);
+}
+.runtime-operation-failed {
+  background: var(--rose-soft);
+}
+.runtime-text-trigger {
+  border-radius: 3px;
+  color: var(--primary);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.runtime-update-preferences {
   margin-top: 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
 }
 .settings-content .runtime-list,
 .settings-source-list {
@@ -346,15 +470,41 @@
   max-width: none;
   min-height: 0;
 }
+.packet-rules-intro h2 {
+  font-size: 24px;
+}
+.packet-rule-forms,
+.account-installations {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.packet-rule-forms [data-slot='accordion-header'] {
+  margin: 0;
+}
+.account-installation {
+  padding: 20px;
+}
+.account-installation + .account-installation {
+  border-top: 1px solid var(--border);
+}
+.account-agent-access {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.settings-content h2:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
 .packet-rules-intro {
   flex-shrink: 0;
   padding: 24px 28px 20px;
   border-bottom: 1px solid var(--border);
 }
 .packet-rules-workspace {
-  display: grid;
+  display: flex;
   flex: 1;
-  grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.5fr);
   min-height: 0;
 }
 .packet-rules-summary {
@@ -365,6 +515,7 @@
 }
 .packet-rules-form {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
   min-height: 0;
@@ -376,6 +527,10 @@
   min-height: 0;
   overflow-y: auto;
   padding: 20px;
+}
+.packet-rules-editor > [data-slot='tabs'] {
+  width: 100%;
+  max-width: 880px;
 }
 .packet-rules-editor .packet-rules-json {
   flex: 1;
@@ -428,22 +583,45 @@
   .settings-layout {
     flex-direction: column;
   }
-  .settings-tabs {
+  .settings-navigation {
     flex: 0 0 auto;
     flex-direction: row;
-    flex-wrap: nowrap;
+    align-items: center;
     width: 100%;
-    padding: 10px;
-    overflow-x: auto;
     border-right: 0;
     border-bottom: 1px solid var(--border);
+  }
+  .settings-search-trigger {
+    flex-shrink: 0;
+    margin: 10px 0 10px 10px;
+  }
+  .settings-tabs {
+    flex: 1;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: auto;
+    padding: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    border-right: 0;
+    border-bottom: 0;
   }
   .settings-tabs button {
     justify-content: center;
     padding: 8px 12px;
   }
+  .settings-tab-description {
+    display: none;
+  }
   .settings-content {
     padding: 20px 16px;
+  }
+  .settings-intro {
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+  }
+  .runtime-installation {
+    padding: 16px;
   }
   .settings-content .runtime-row {
     flex-wrap: wrap;
