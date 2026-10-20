@@ -129,7 +129,11 @@ test('completes agent and skill references in the real workspace and persists ma
   await expect.poll(() => editor.locator('[data-reference-key]').count()).toBe(2);
   await page.screenshot({ path: '/tmp/pitchcrew-inline-chat-draft.png' });
   await page.keyboard.press('Enter');
-  await expect.poll(() => page.locator('.chat-message.is-user .chat-reference').count()).toBe(2);
+  // Sending reloads the compact snapshot and paged history before the transcript renders.
+  // Allow the same browser readiness budget as other UI waits on a busy CI runner.
+  await expect
+    .poll(() => page.locator('.chat-message.is-user .chat-reference').count(), { timeout: 10000 })
+    .toBe(2);
   const snapshot = await host.request<import('@pitchcrew/core').Snapshot>('/snapshot');
   const message = snapshot.result.messages.find(
     (message) => message.threadId === conversation.result.id && message.from === 'user',
