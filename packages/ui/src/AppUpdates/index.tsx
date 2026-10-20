@@ -1,82 +1,90 @@
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Popover, PopoverTrigger } from '@/components/ui/popover/index.tsx';
-import { SidebarIconButton } from '@/components/ui/sidebar/components/SidebarIconButton.tsx';
+import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { Download, RefreshCw } from 'lucide-react';
-import { useRef, useState } from 'react';
-import { UpdateDetails } from './components/UpdateDetails.tsx';
-import { useManualUpdateCheck } from './hooks/useManualUpdateCheck.ts';
-import { DesktopAppUpdates } from './components/DesktopAppUpdates.tsx';
+import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Download, RefreshCw, RotateCw, X } from 'lucide-react';
+import { useId, useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { useUpdateControl } from './hooks/useUpdateControl.ts';
+import { UpdateTooltip } from './components/UpdateTooltip.tsx';
 
 export function AppUpdates() {
+  const control = useUpdateControl();
   const trigger = useRef<HTMLButtonElement>(null);
-  const [open, setOpen] = useState(false);
-  const info = useWorkspaceStore((state) => state.appUpdate);
-  const dismissed = useWorkspaceStore((state) => state.dismissedAppUpdate);
-  const dismiss = useWorkspaceStore((state) => state.dismissAppUpdate);
-  const checking = useWorkspaceStore((state) => state.checkingAppUpdate);
-  const check = useManualUpdateCheck();
-  const native = useWorkspaceStore((state) => state.desktopUpdate?.enabled);
-  const disabled = info?.status === 'disabled';
-  const available = !!(
-    info?.status === 'available' &&
-    info.latest &&
-    dismissed !== info.latest.commit
-  );
-  const label = available
-    ? 'Pitchcrew update available'
-    : checking
-      ? 'Checking for updates…'
-      : disabled
-        ? 'Update checks disabled'
-        : 'Check for updates';
-  const dismissNotice = () => {
-    setOpen(false);
-    dismiss();
-  };
-  if (native) return <DesktopAppUpdates />;
+  const tooltipId = useId();
+  const { state, isMobile } = useSidebar();
+  const collapsed = state === 'collapsed' && !isMobile;
+  const Icon = control.ready ? RotateCw : control.visible ? Download : RefreshCw;
   return (
-    <SidebarMenuItem className="ml-auto shrink-0 group-data-[collapsible=icon]:ml-0">
-      <Popover open={available && open} onOpenChange={(next) => setOpen(available && next)}>
-        <PopoverTrigger
-          disabled={!available && (checking || disabled)}
-          aria-haspopup={available ? 'dialog' : undefined}
-          aria-expanded={available ? open : undefined}
-          render={
-            <SidebarIconButton
-              ref={trigger}
-              render={<button type="button" aria-label={label} disabled={!available && disabled} />}
-              className={available ? 'sidebar-update-button' : undefined}
-              label={label}
-              aria-busy={checking}
-              aria-disabled={!available && (checking || disabled)}
-              onClick={available || checking || disabled ? undefined : () => void check()}
-            />
-          }
-        >
-          {available ? (
-            <Download aria-hidden="true" />
-          ) : (
-            <RefreshCw
-              aria-hidden="true"
-              className={checking ? 'animate-spin motion-reduce:animate-none' : undefined}
-            />
+    <SidebarMenuItem
+      className={cn(
+        'shrink-0',
+        control.visible
+          ? 'order-first w-full group-data-[collapsible=icon]:w-auto'
+          : 'ml-auto group-data-[collapsible=icon]:ml-0',
+      )}
+    >
+      <div className="relative flex items-center gap-1 group-data-[collapsible=icon]:flex-col">
+        <SidebarMenuButton
+          ref={trigger}
+          type="button"
+          aria-label={control.label}
+          aria-describedby={tooltipId}
+          aria-disabled={control.disabled}
+          aria-busy={control.busy || control.checking}
+          onClick={control.activate}
+          className={cn(
+            'pointer-events-auto aria-disabled:opacity-100',
+            control.visible
+              ? 'sidebar-update-button h-9 flex-1 justify-center group-data-[collapsible=icon]:flex-none'
+              : 'size-8 justify-center p-2',
           )}
-        </PopoverTrigger>
-        {info?.latest && (
-          <UpdateDetails
-            url={info.latest.url}
-            dismiss={dismissNotice}
-            finalFocus={() => trigger.current}
+          tooltip={{
+            id: tooltipId,
+            role: 'tooltip',
+            hidden: false,
+            side: collapsed ? 'right' : 'top',
+            sideOffset: 8,
+            className: control.visible
+              ? 'max-w-[min(20rem,calc(100vw-2rem))] p-3 leading-relaxed'
+              : undefined,
+            children: control.visible ? <UpdateTooltip {...control} /> : control.label,
+          }}
+        >
+          {control.progress !== null ? (
+            <span
+              aria-hidden="true"
+              className="sidebar-update-progress"
+              style={{ width: `${control.progress}%` }}
+            />
+          ) : null}
+          <Icon
+            aria-hidden="true"
+            className={control.checking ? 'animate-spin motion-reduce:animate-none' : undefined}
           />
-        )}
-      </Popover>
+          <span className={control.visible ? 'group-data-[collapsible=icon]:sr-only' : 'sr-only'}>
+            {control.label}
+          </span>
+        </SidebarMenuButton>
+        {control.visible ? (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="size-8 shrink-0 text-muted-foreground"
+            aria-label="Dismiss update notice"
+            title="Dismiss for this session"
+            disabled={control.busy || control.checking}
+            onClick={() => {
+              control.dismiss();
+              trigger.current?.focus();
+            }}
+          >
+            <X aria-hidden="true" className="size-3.5" />
+          </Button>
+        ) : null}
+      </div>
       <output className="sr-only" aria-live="polite">
-        {available
-          ? 'A newer Pitchcrew build is available.'
-          : checking
-            ? 'Checking for updates…'
-            : ''}
+        {control.visible || control.checking ? `${control.label}. ${control.message ?? ''}` : ''}
       </output>
     </SidebarMenuItem>
   );

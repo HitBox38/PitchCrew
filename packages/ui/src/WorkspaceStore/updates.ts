@@ -44,6 +44,7 @@ export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): Ap
     },
     downloadDesktopUpdate: async () => {
       try {
+        set({ dismissedAppUpdate: null });
         const desktopUpdate = await desktopUpdateBridge()?.download();
         if (desktopUpdate) get().setDesktopUpdate(desktopUpdate);
       } catch {

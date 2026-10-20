@@ -1,14 +1,17 @@
 /** Real renderer checks using only the fixture daemon's injected release responses. */
 export const smokeUpdates = `(async () => {
-  const updateSelector = '[aria-label="Pitchcrew update available"][data-slot="sidebar-menu-button"]';
+  const updateSelector = '[aria-label="Download update"][data-slot="sidebar-menu-button"]';
   const refreshSelector = '[aria-label="Check for updates"][data-slot="sidebar-menu-button"]';
   const notice = await waitFor(() => !!document.querySelector(updateSelector));
   const indicator = document.querySelector(updateSelector);
   const footer = !!indicator?.closest('[data-slot="sidebar-footer"]');
   const utilityControls = [...indicator?.closest('[data-slot="sidebar-menu"]')?.querySelectorAll('[data-slot="sidebar-menu-button"]') ?? []];
   const utilityBounds = utilityControls.map((control) => control.getBoundingClientRect());
-  const compactFooter = utilityBounds.length === 3 && utilityBounds.every((bounds) => bounds.width > 0 && bounds.width <= 40 && bounds.height <= 40 && Math.abs(bounds.top - utilityBounds[0].top) < 1);
-  const spacedFooter = utilityBounds.every((bounds, index) => index === 0 || bounds.left >= utilityBounds[index - 1].right);
+  const updateBounds = indicator?.getBoundingClientRect();
+  const utilityOnly = utilityBounds.filter((bounds) => bounds.width <= 40);
+  const compactFooter = utilityOnly.length === 2 && utilityOnly.every((bounds) => bounds.width > 0 && bounds.height <= 40 && bounds.top >= updateBounds.bottom);
+  const inlineUpdate = updateBounds.width > 160 && !!document.querySelector('[aria-label="Dismiss update notice"]');
+  const spacedFooter = utilityOnly[1].left >= utilityOnly[0].right;
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
   document.querySelector('a[href="/settings?section=general"]')?.click();
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
@@ -18,12 +21,16 @@ export const smokeUpdates = `(async () => {
   const collapsed = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-collapsible="icon"]'));
   const indicatorBounds = indicator?.getBoundingClientRect();
   const compactIndicator = indicatorBounds && indicatorBounds.width > 0 && indicatorBounds.width <= 40;
-  indicator?.click();
-  const details = await waitFor(() => !!document.querySelector('[data-slot="popover-content"] [aria-label="Dismiss update notice"]'));
-  const detailsLink = document.querySelector('[data-slot="popover-content"] a[aria-label="View release and download"]');
-  const detailsRelease = detailsLink?.getAttribute('href') === 'https://github.com/HitBox38/PitchCrew/releases/tag/build-' + 'b'.repeat(40);
-  indicator?.click();
-  const closed = await waitFor(() => !document.querySelector('[data-slot="popover-content"]'));
+  const hover = { clientX: indicatorBounds.left + indicatorBounds.width / 2, clientY: indicatorBounds.top + indicatorBounds.height / 2 };
+  indicator?.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse', ...hover }));
+  indicator?.dispatchEvent(new MouseEvent('mouseenter', { relatedTarget: document.body, ...hover }));
+  indicator?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, movementX: 4, ...hover }));
+  const details = await waitFor(() => !!document.querySelector('[data-slot="tooltip-content"]')?.textContent.includes('Fictional inline updates'));
+  const detailsContent = document.querySelector('[data-slot="tooltip-content"]');
+  const detailsRelease = detailsContent?.textContent.includes('Version 0.2.0') && !detailsContent?.querySelector('a, button') && !document.querySelector('[data-slot="popover-content"]');
+  indicator?.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false, relatedTarget: document.body }));
+  document.body.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: innerWidth - 1, clientY: 1 }));
+  const closed = await waitFor(() => !document.querySelector('[data-slot="tooltip-content"]'));
   toggle?.click();
   const expanded = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-state="expanded"]'));
   const section = document.querySelector('#updates-heading')?.closest('section');
@@ -40,8 +47,8 @@ export const smokeUpdates = `(async () => {
   const restored = await waitFor(() => localStorage.getItem('pitchcrew-automatic-updates-v1') === 'true');
   const button = [...section?.querySelectorAll('button') ?? []].find((button) => button.textContent.includes('Check for updates'));
   button?.click();
+  await new Promise((resolve) => setTimeout(resolve, 0));
   const manual = await waitFor(() => section?.querySelector('output')?.textContent.includes('A newer Pitchcrew build is available.') && !button?.disabled);
-  indicator?.click();
   await waitFor(() => !!document.querySelector('[aria-label="Dismiss update notice"]'));
   document.querySelector('[aria-label="Dismiss update notice"]')?.click();
   const dismissed = await waitFor(() => !document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]'));
@@ -52,5 +59,6 @@ export const smokeUpdates = `(async () => {
   const checkedAgain = await waitFor(() => !!document.querySelector(updateSelector));
   const checkedAgainFocus = document.activeElement === document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]');
   section?.scrollIntoView({ block: 'center' });
-  return notice && footer && compactFooter && spacedFooter && noPageBanner && settings && retained && collapsed && compactIndicator && details && detailsRelease && closed && expanded && version && link && enabled && compactControl && disabled && restored && manual && dismissed && dismissalFocus && stillAvailable && checkedAgain && checkedAgainFocus;
+  interactionChecks.appUpdates = { notice, footer, inlineUpdate, compactFooter, spacedFooter, noPageBanner, settings, retained, collapsed, compactIndicator, details, detailsRelease, closed, expanded, version, link, enabled, compactControl, disabled, restored, manual, dismissed, dismissalFocus, stillAvailable, checkedAgain, checkedAgainFocus };
+  return Object.values(interactionChecks.appUpdates).every(Boolean);
 })()`;
