@@ -53,8 +53,6 @@ export function launchBlocker(data: Snapshot, roleId: string | undefined) {
     return 'Choose an isolated application runtime in Crew.';
   if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
     return 'Install this agent’s runtime in Settings.';
-  if (data.runs.some((run) => run.roleId === role.id && run.status === 'running'))
-    return 'This agent is working in another conversation.';
   if (!data.profile.some((note) => note.content.trim()))
     return 'Add your profile notes before starting the crew.';
   return null;

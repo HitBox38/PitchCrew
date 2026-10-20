@@ -1,4 +1,5 @@
 import { expect, it, vi } from 'vitest';
+import type { Run } from '@pitchcrew/core';
 import type { CardDetailsModel } from '../types.ts';
 import { jobNextAction } from '../next-action.ts';
 function model(patch: Partial<CardDetailsModel> = {}): CardDetailsModel {
@@ -55,6 +56,40 @@ it('requires a current confirmed brief and personal answers before the single dr
   expect(base.brief.startDraft).toHaveBeenCalledOnce();
   expect(base.act).not.toHaveBeenCalled();
 });
+it.each(['other-job', null])(
+  'allows application actions while the same agent runs in a separate queue (%s)',
+  (cardId) => {
+    for (const state of ['lead', 'shortlisted', 'in_review'] as const) {
+      const base = model();
+      const next = jobNextAction({
+        ...base,
+        card: { ...base.card, state, packet: {} as NonNullable<typeof base.card.packet> },
+        data: {
+          ...base.data,
+          runs: [{ id: 'other-run', roleId: 'writer', cardId, status: 'running' } as Run],
+        },
+      });
+      expect(next.label).toBe(
+        state === 'lead'
+          ? 'Evaluate fit'
+          : state === 'shortlisted'
+            ? 'Draft application'
+            : 'Review packet',
+      );
+      expect(next.disabled).toBe(false);
+      expect(next.hint).toBeNull();
+      next.perform();
+      if (state === 'lead')
+        expect(base.act).toHaveBeenCalledWith(
+          '/cards/job/run',
+          { roleId: 'writer' },
+          'Fit evaluation started',
+        );
+      else if (state === 'shortlisted') expect(base.brief.startDraft).toHaveBeenCalledOnce();
+      else expect(base.brief.reviewPacket).toHaveBeenCalledOnce();
+    }
+  },
+);
 it('prioritizes live cancellation, user questions and uncertain submission outcomes', () => {
   const base = model();
   const run = { id: 'active', status: 'running', message: 'Working' } as NonNullable<
@@ -63,6 +98,10 @@ it('prioritizes live cancellation, user questions and uncertain submission outco
   const next = jobNextAction({ ...base, run });
   next.perform();
   expect(base.act).toHaveBeenCalledWith('/runs/active/cancel');
+  expect(jobNextAction({ ...base, card: { ...base.card, owner: 'writer' } })).toMatchObject({
+    label: 'Work in progress',
+    disabled: true,
+  });
   const waiting = { ...run, status: 'waiting' as const, threadId: 'job-chat' };
   jobNextAction({ ...base, agents: [{ run: waiting, name: 'Writer' }] }).perform();
   expect(base.openChat).toHaveBeenCalledWith('job-chat', run.id);
