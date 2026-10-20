@@ -1,6 +1,14 @@
 * {
   box-sizing: border-box;
 }
+/* Width-only borders use paper hairlines rather than inheriting the text ink. */
+*,
+::before,
+::after,
+::backdrop,
+::file-selector-button {
+  border-color: var(--border);
+}
 body {
   margin: 0;
   min-width: 320px;

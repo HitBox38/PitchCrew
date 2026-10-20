@@ -7,7 +7,7 @@ export const CommandInput = ({ className, ...props }: CommandInputProps) => {
   return (
     <div
       data-slot="command-input-wrapper"
-      className="primitive:flex primitive:h-9 primitive:items-center primitive:gap-2 primitive:border-b primitive:px-3"
+      className="primitive:flex primitive:h-9 primitive:items-center primitive:gap-2 primitive:border-b primitive:border-border primitive:px-3"
     >
       <SearchIcon className="primitive:size-4 primitive:shrink-0 primitive:opacity-50" />
       <CommandPrimitive.Input

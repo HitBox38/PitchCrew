@@ -361,3 +361,7 @@
     font-size: 11px;
   }
 }
+.packet-pdf-preview {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}

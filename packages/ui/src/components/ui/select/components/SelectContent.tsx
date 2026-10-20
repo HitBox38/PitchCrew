@@ -28,7 +28,7 @@ export const SelectContent = ({
           data-slot="select-content"
           data-align-trigger={alignItemWithTrigger}
           className={cn(
-            'primitive:relative primitive:z-50 primitive:max-h-(--available-height) primitive:min-w-[max(8rem,var(--anchor-width))] primitive:origin-(--transform-origin) primitive:overflow-x-hidden primitive:overflow-y-auto primitive:rounded-md primitive:border primitive:bg-popover primitive:text-popover-foreground primitive:shadow-md primitive:data-[align-trigger=true]:animate-none',
+            'primitive:relative primitive:z-50 primitive:max-h-(--available-height) primitive:min-w-[max(8rem,var(--anchor-width))] primitive:origin-(--transform-origin) primitive:overflow-x-hidden primitive:overflow-y-auto primitive:rounded-md primitive:border primitive:border-border primitive:bg-popover primitive:text-popover-foreground primitive:shadow-md primitive:data-[align-trigger=true]:animate-none',
             !alignItemWithTrigger &&
               'primitive:data-[side=bottom]:translate-y-1 primitive:data-[side=left]:-translate-x-1 primitive:data-[side=right]:translate-x-1 primitive:data-[side=top]:-translate-y-1',
             className,

@@ -10,7 +10,7 @@ const PacketPdfPreview = ({ bytes, name }: { bytes: string; name: string }) => {
     );
   if (!pages.length) return <output className="quiet">Rendering document pages...</output>;
   return (
-    <div className="max-h-160 space-y-3 overflow-y-auto rounded border p-2">
+    <div className="packet-pdf-preview max-h-160 space-y-3 overflow-y-auto rounded-xl p-3">
       {pages.map((page, index) => (
         <figure key={index}>
           <img

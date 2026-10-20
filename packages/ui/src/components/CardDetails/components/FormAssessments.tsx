@@ -14,7 +14,7 @@ export const FormAssessments = ({ card }: { card: Card }) => {
         annotations.
       </p>
       {assessment.fields.map((field, index) => (
-        <div key={index} className="rounded border p-3">
+        <div key={index} className="border-b border-border py-3">
           <strong>{field.label || field.selector}</strong> · {field.type} ·{' '}
           {field.required ? 'Required' : 'No required flag'}
           {!field.assessed ? (

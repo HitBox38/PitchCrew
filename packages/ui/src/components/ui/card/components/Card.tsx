@@ -6,7 +6,7 @@ export const Card = ({ className, ...props }: CardProps) => {
     <div
       data-slot="card"
       className={cn(
-        'primitive:flex primitive:flex-col primitive:gap-6 primitive:rounded-xl primitive:border primitive:bg-card primitive:py-6 primitive:text-card-foreground primitive:shadow-sm',
+        'primitive:flex primitive:flex-col primitive:gap-6 primitive:rounded-xl primitive:border primitive:border-border primitive:bg-card primitive:py-6 primitive:text-card-foreground primitive:shadow-sm',
         className,
       )}
       {...props}
