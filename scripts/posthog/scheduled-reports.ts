@@ -1,91 +1,22 @@
 import type manifestDefinition from '../../posthog/scheduled-reports/reports.json';
 import { readFile, writeFile } from 'node:fs/promises';
 import { pathToFileURL } from 'node:url';
-
-export type ReportManifest = typeof manifestDefinition;
-interface ReportTile {
-  insightId: number;
-  status: string;
-  onDashboard?: boolean;
-  reviewed?: boolean;
-  deleted?: boolean;
-  emptyLabel?: string;
-}
-interface ReportBinding {
-  dashboardId: number;
-  periodDays: number;
-  filterTestAccounts: boolean;
-  coverageReviewed: boolean;
-  population?: string;
-  repositoryFiltersReviewed?: boolean;
-  tiles: ReportTile[];
-}
-export interface SubscriptionPayload {
-  dashboard: number;
-  dashboard_export_insights: number[];
-  target_type: string;
-  target_value: string;
-  frequency: string;
-  interval: number;
-  byweekday: string[];
-  start_date: string;
-  enabled: boolean;
-  title: string;
-  send_test_now: boolean;
-  summary_enabled: boolean;
-}
-export interface SavedSubscription extends Partial<SubscriptionPayload> {
-  id: number;
-  resource_type?: string;
-  deleted?: boolean;
-  until_date?: string | null;
-  count?: number | null;
-}
-export interface ReportBindings {
-  projectId: number;
-  featuresReady: boolean;
-  user: { email: string; is_email_verified: boolean };
-  schedule: {
-    confirmed: boolean;
-    recurrenceVerified: boolean;
-    weekday: string;
-    timeZone: string;
-    startDate: string;
-  };
-  existingSubscriptionsComplete: boolean;
-  existingSubscriptions: SavedSubscription[];
-  subscriptionLimit?: number | null;
-  reports: Record<string, ReportBinding>;
-}
-interface ReportOperation {
-  key: string;
-  action: string;
-  payload?: SubscriptionPayload;
-  subscriptionId?: number;
-  reason?: string;
-  coverageNote?: string;
-}
-
-const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-function fail(condition: unknown, message: string): asserts condition {
+const fail: (condition: unknown, message: string) => asserts condition = (
+  condition: unknown,
+  message: string,
+): asserts condition => {
   if (!condition) throw new Error(message);
-}
-const positiveId = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
-const sameSet = (left: unknown, right: unknown) =>
-  Array.isArray(left) &&
-  Array.isArray(right) &&
-  JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
+};
 
-function sameDestination(left: unknown, right: string) {
+const sameDestination = (left: unknown, right: string) => {
   return typeof left === 'string' && left.trim().toLowerCase() === right.toLowerCase();
-}
+};
 
-function sameSubscription(
+const sameSubscription = (
   saved: SavedSubscription,
   payload: SubscriptionPayload,
   timeZone: string,
-) {
+) => {
   const clock = (date: string) =>
     new Intl.DateTimeFormat('en-GB', {
       timeZone,
@@ -110,14 +41,14 @@ function sameSubscription(
     saved.until_date == null &&
     saved.count == null
   );
-}
+};
 
 /** Prepare only. This module has no network or delivery capability. */
-export function planScheduledReports(
+export const planScheduledReports = (
   manifest: ReportManifest,
   bindings: ReportBindings,
   now = new Date(),
-) {
+) => {
   fail(
     manifest.schemaVersion === 1 && manifest.projectId === 295060,
     'Unsupported report manifest/project',
@@ -300,9 +231,9 @@ export function planScheduledReports(
     scheduleTimeZone: timeZone,
     operations: plan,
   };
-}
+};
 
-export function publicReportPlan(plan: ReturnType<typeof planScheduledReports>) {
+export const publicReportPlan = (plan: ReturnType<typeof planScheduledReports>) => {
   return {
     ...plan,
     operations: plan.operations.map(({ payload, ...operation }) => ({
@@ -318,9 +249,9 @@ export function publicReportPlan(plan: ReturnType<typeof planScheduledReports>) 
         : {}),
     })),
   };
-}
+};
 
-async function main() {
+const main = async () => {
   const [bindingsPath, outputPath] = process.argv.slice(2);
   fail(
     bindingsPath,
@@ -337,7 +268,79 @@ async function main() {
   if (outputPath)
     await writeFile(outputPath, `${JSON.stringify(plan, null, 2)}\n`, { mode: 0o600, flag: 'wx' });
   console.log(JSON.stringify(publicReportPlan(plan), null, 2));
+};
+
+export type ReportManifest = typeof manifestDefinition;
+interface ReportTile {
+  insightId: number;
+  status: string;
+  onDashboard?: boolean;
+  reviewed?: boolean;
+  deleted?: boolean;
+  emptyLabel?: string;
 }
+interface ReportBinding {
+  dashboardId: number;
+  periodDays: number;
+  filterTestAccounts: boolean;
+  coverageReviewed: boolean;
+  population?: string;
+  repositoryFiltersReviewed?: boolean;
+  tiles: ReportTile[];
+}
+export interface SubscriptionPayload {
+  dashboard: number;
+  dashboard_export_insights: number[];
+  target_type: string;
+  target_value: string;
+  frequency: string;
+  interval: number;
+  byweekday: string[];
+  start_date: string;
+  enabled: boolean;
+  title: string;
+  send_test_now: boolean;
+  summary_enabled: boolean;
+}
+export interface SavedSubscription extends Partial<SubscriptionPayload> {
+  id: number;
+  resource_type?: string;
+  deleted?: boolean;
+  until_date?: string | null;
+  count?: number | null;
+}
+export interface ReportBindings {
+  projectId: number;
+  featuresReady: boolean;
+  user: { email: string; is_email_verified: boolean };
+  schedule: {
+    confirmed: boolean;
+    recurrenceVerified: boolean;
+    weekday: string;
+    timeZone: string;
+    startDate: string;
+  };
+  existingSubscriptionsComplete: boolean;
+  existingSubscriptions: SavedSubscription[];
+  subscriptionLimit?: number | null;
+  reports: Record<string, ReportBinding>;
+}
+interface ReportOperation {
+  key: string;
+  action: string;
+  payload?: SubscriptionPayload;
+  subscriptionId?: number;
+  reason?: string;
+  coverageNote?: string;
+}
+
+const weekdays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+const positiveId = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+const sameSet = (left: unknown, right: unknown) =>
+  Array.isArray(left) &&
+  Array.isArray(right) &&
+  JSON.stringify([...left].sort()) === JSON.stringify([...right].sort());
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch(() => {

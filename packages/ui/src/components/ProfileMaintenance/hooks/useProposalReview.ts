@@ -2,19 +2,8 @@ import { useRef, useState } from 'react';
 import type { ProposalReviewProps } from '../types.ts';
 import { saveReviewDecision } from '../api.ts';
 
-export function useProposalReview(props: ProposalReviewProps) {
-  const { proposal } = props;
-  const [selected, setSelected] = useState(
-    proposal.selected ??
-      proposal.documents.filter((file) => file.status !== 'conflict').map((file) => file.name),
-  );
-  const [verified, setVerified] = useState(proposal.verifiedFacts ?? false);
-  const [error, setError] = useState('');
-  const [progress, setProgress] = useState('');
-  const pending = !!progress;
-  const locked = useRef(false);
-  const active = props.data.runs.some((run) => run.status === 'running');
-  async function decide(approved: boolean) {
+export const useProposalReview = (props: ProposalReviewProps) => {
+  const decide = async (approved: boolean) => {
     if (locked.current || props.working) return;
     locked.current = true;
     setProgress(
@@ -39,12 +28,24 @@ export function useProposalReview(props: ProposalReviewProps) {
       setProgress('');
       props.onPendingChange(false);
     }
-  }
-  function toggle(name: string) {
+  };
+  const toggle = (name: string) => {
     setSelected((names) =>
       names.includes(name) ? names.filter((item) => item !== name) : [...names, name],
     );
-  }
+  };
+
+  const { proposal } = props;
+  const [selected, setSelected] = useState(
+    proposal.selected ??
+      proposal.documents.filter((file) => file.status !== 'conflict').map((file) => file.name),
+  );
+  const [verified, setVerified] = useState(proposal.verifiedFacts ?? false);
+  const [error, setError] = useState('');
+  const [progress, setProgress] = useState('');
+  const pending = !!progress;
+  const locked = useRef(false);
+  const active = props.data.runs.some((run) => run.status === 'running');
   return {
     selected,
     verified,
@@ -56,4 +57,4 @@ export function useProposalReview(props: ProposalReviewProps) {
     toggle,
     decide: (approved: boolean) => props.requestImport(() => void decide(approved)),
   };
-}
+};

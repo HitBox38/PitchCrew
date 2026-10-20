@@ -1,46 +1,15 @@
 import resource from '../../posthog/notebooks/resources.json' with { type: 'json' };
 import { buildSqlPlan } from './sql-library.ts';
 
-export interface NotebookBinding {
-  kind: string;
-  key: string;
-  id: string | number;
-  project_id: number;
-  [key: string]: unknown;
-}
-export interface NotebookOptions {
-  project_id: number;
-  cutoff: string;
-  bindings: NotebookBinding[];
-  existing_notebooks: { title: string }[];
-  listing_complete: boolean;
-  catalog: string;
-  [key: string]: unknown;
-}
-interface NotebookCell {
-  cell_type: string;
-  title?: string;
-  tag_name?: string;
-  props?: { id: string | number; view: string };
-  insight_short_id?: string | number;
-  markdown?: string;
-  code?: string;
-  dataframe_name?: string;
-  notebook_id?: string;
-}
-interface NotebookStep {
-  tool: string;
-  input: NotebookCell;
-}
-
-const notebooks = new Map(resource.notebooks.map((definition) => [definition.key, definition]));
-const shortIdPattern = /^[A-Za-z0-9]{1,64}$/;
-
-function exactKeys(
+const exactKeys: (
   value: unknown,
   keys: string[],
   label: string,
-): asserts value is Record<string, unknown> {
+) => asserts value is Record<string, unknown> = (
+  value: unknown,
+  keys: string[],
+  label: string,
+): asserts value is Record<string, unknown> => {
   if (
     !value ||
     typeof value !== 'object' ||
@@ -48,18 +17,18 @@ function exactKeys(
     Object.keys(value).some((key) => !keys.includes(key))
   )
     throw new Error(`Invalid ${label}`);
-}
+};
 
-function utcCutoff(value: unknown) {
+const utcCutoff = (value: unknown) => {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/.test(value))
     throw new Error('cutoff must be a whole-second UTC ISO timestamp');
   const date = new Date(value);
   if (!Number.isFinite(date.getTime()) || date.toISOString() !== value.replace('Z', '.000Z'))
     throw new Error('Invalid cutoff date');
   return date;
-}
+};
 
-function binding(bindings: NotebookBinding[], kind: string, key: string) {
+const binding = (bindings: NotebookBinding[], kind: string, key: string) => {
   const matches = bindings.filter((item) => item.kind === kind && item.key === key);
   if (matches.length !== 1) throw new Error(`One verified ${kind} binding required for ${key}`);
   const item = matches[0];
@@ -73,9 +42,9 @@ function binding(bindings: NotebookBinding[], kind: string, key: string) {
   )
     throw new Error(`Invalid ${kind} identity`);
   return item.id;
-}
+};
 
-export function listNotebookDefinitions() {
+export const listNotebookDefinitions = () => {
   return resource.notebooks.map(({ key, title, dashboards, insights, queries }) => ({
     key,
     title,
@@ -83,10 +52,10 @@ export function listNotebookDefinitions() {
     insights,
     queries,
   }));
-}
+};
 
 /** Build native-tool inputs only. Never performs network requests or starts compute. */
-export function buildNotebookPlan(key: string, input: unknown) {
+export const buildNotebookPlan = (key: string, input: unknown) => {
   exactKeys(
     input,
     ['project_id', 'cutoff', 'bindings', 'existing_notebooks', 'listing_complete', 'catalog'],
@@ -182,10 +151,13 @@ export function buildNotebookPlan(key: string, input: unknown) {
     cells: steps,
     verify: { tool: 'notebooks-get' },
   };
-}
+};
 
 /** Resolve the short ID returned by native creation after inspecting its response. */
-export function bindNotebookCells(plan: ReturnType<typeof buildNotebookPlan>, notebookId: string) {
+export const bindNotebookCells = (
+  plan: ReturnType<typeof buildNotebookPlan>,
+  notebookId: string,
+) => {
   if (typeof notebookId !== 'string' || !shortIdPattern.test(notebookId))
     throw new Error('Expected notebook short ID, not UUID or URL');
   const bound: {
@@ -197,4 +169,39 @@ export function bindNotebookCells(plan: ReturnType<typeof buildNotebookPlan>, no
   }));
   bound.push({ tool: 'notebooks-get', input: { short_id: notebookId } });
   return bound;
+};
+
+export interface NotebookBinding {
+  kind: string;
+  key: string;
+  id: string | number;
+  project_id: number;
+  [key: string]: unknown;
 }
+export interface NotebookOptions {
+  project_id: number;
+  cutoff: string;
+  bindings: NotebookBinding[];
+  existing_notebooks: { title: string }[];
+  listing_complete: boolean;
+  catalog: string;
+  [key: string]: unknown;
+}
+interface NotebookCell {
+  cell_type: string;
+  title?: string;
+  tag_name?: string;
+  props?: { id: string | number; view: string };
+  insight_short_id?: string | number;
+  markdown?: string;
+  code?: string;
+  dataframe_name?: string;
+  notebook_id?: string;
+}
+interface NotebookStep {
+  tool: string;
+  input: NotebookCell;
+}
+
+const notebooks = new Map(resource.notebooks.map((definition) => [definition.key, definition]));
+const shortIdPattern = /^[A-Za-z0-9]{1,64}$/;

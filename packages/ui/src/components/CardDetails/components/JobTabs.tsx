@@ -7,9 +7,7 @@ import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
 import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
 import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
 import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
-
-const sections = { job: 'Job', application: 'Application', activity: 'Activity' } as const;
-export function JobTabs(model: JobTabsProps) {
+export const JobTabs = (model: JobTabsProps) => {
   const [visited, setVisited] = useState<Set<JobSection>>(() => new Set([model.tab]));
   // Keep drafts and reading positions after a section is first opened.
   if (!visited.has(model.tab)) setVisited(new Set([...visited, model.tab]));
@@ -48,4 +46,6 @@ export function JobTabs(model: JobTabsProps) {
       ))}
     </Tabs>
   );
-}
+};
+
+const sections = { job: 'Job', application: 'Application', activity: 'Activity' } as const;

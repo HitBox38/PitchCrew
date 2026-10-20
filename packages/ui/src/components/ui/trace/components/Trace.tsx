@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function Trace({ className, ...props }: React.ComponentProps<'div'>) {
+export const Trace = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="trace"
@@ -12,4 +12,4 @@ export function Trace({ className, ...props }: React.ComponentProps<'div'>) {
       {...props}
     />
   );
-}
+};

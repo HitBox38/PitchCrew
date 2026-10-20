@@ -2,11 +2,11 @@ import { releasesUrl, repository } from '../lib/links';
 import { installerDefinitions } from './constants';
 import type { Installer, Platform, Release } from './types';
 
-function record(value: unknown): Record<string, unknown> | undefined {
+const record = (value: unknown): Record<string, unknown> | undefined => {
   return value && typeof value === 'object' ? (value as Record<string, unknown>) : undefined;
-}
+};
 
-function validAsset(value: unknown): { name: string; url: string; size: number } | undefined {
+const validAsset = (value: unknown): { name: string; url: string; size: number } | undefined => {
   const asset = record(value);
   if (
     !asset ||
@@ -33,9 +33,9 @@ function validAsset(value: unknown): { name: string; url: string; size: number }
   } catch {
     return;
   }
-}
+};
 
-export function parseRelease(input: unknown): Release {
+export const parseRelease = (input: unknown): Release => {
   const release = record(input);
   const assets =
     release?.draft === false && release?.prerelease === false && Array.isArray(release.assets)
@@ -51,15 +51,15 @@ export function parseRelease(input: unknown): Release {
     };
   });
   return { installers, available: installers.some((installer) => installer.filename !== null) };
-}
+};
 
-export function detectPlatform(userAgent: string): Platform | undefined {
+export const detectPlatform = (userAgent: string): Platform | undefined => {
   if (/Android|iPhone|iPad|Mobile/i.test(userAgent)) return;
   if (/Windows/i.test(userAgent)) return 'windows';
   if (/Macintosh|Mac OS X/i.test(userAgent)) return 'mac';
   if (/Linux|X11/i.test(userAgent)) return 'linux';
-}
+};
 
-export function installerSize(size: number): string {
+export const installerSize = (size: number): string => {
   return `${Math.round(size / 1_000_000)} MB`;
-}
+};

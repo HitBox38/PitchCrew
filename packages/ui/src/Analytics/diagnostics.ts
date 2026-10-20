@@ -4,6 +4,15 @@ import { sanitizeAiSpan, sanitizeAiTrace } from '@pitchcrew/core/telemetry-ai';
 import { sanitizeMcpToolCall } from '@pitchcrew/core/telemetry-mcp';
 import { sanitizeStartup } from './startup/sanitize.ts';
 
+export const sanitizeDiagnostic = (event: string, properties: Record<string, unknown>) => {
+  if (!Object.hasOwn(diagnosticSanitizers, event)) return null;
+  try {
+    return diagnosticSanitizers[event](properties);
+  } catch {
+    return null;
+  }
+};
+
 export type DiagnosticSanitizer = (
   properties: Record<string, unknown>,
 ) => Record<string, unknown> | null;
@@ -20,12 +29,3 @@ export const diagnosticSanitizers: Readonly<Record<string, DiagnosticSanitizer>>
   $ai_span: sanitizeAiSpan,
   $mcp_tool_call: sanitizeMcpToolCall,
 });
-
-export function sanitizeDiagnostic(event: string, properties: Record<string, unknown>) {
-  if (!Object.hasOwn(diagnosticSanitizers, event)) return null;
-  try {
-    return diagnosticSanitizers[event](properties);
-  } catch {
-    return null;
-  }
-}

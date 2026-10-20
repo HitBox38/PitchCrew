@@ -7,7 +7,7 @@ import type { EditorProps } from '../types.ts';
 import { ActionFields } from './ActionFields.tsx';
 import { ScheduleFields } from './ScheduleFields.tsx';
 
-export function RoutineEditor(props: EditorProps) {
+export const RoutineEditor = (props: EditorProps) => {
   const editor = useRoutineEditor(props);
   return (
     <Modal
@@ -51,4 +51,4 @@ export function RoutineEditor(props: EditorProps) {
       <DiscardChanges guard={editor.guard} />
     </Modal>
   );
-}
+};

@@ -7,7 +7,7 @@ import type { SidebarContextProps } from '@/components/ui/sidebar/types.ts';
 import { useIsMobile } from '@/hooks/use-mobile';
 import * as React from 'react';
 
-export function useSidebarState({
+export const useSidebarState = ({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
@@ -15,7 +15,7 @@ export function useSidebarState({
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-}) {
+}) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
   const [_open, _setOpen] = React.useState(defaultOpen);
@@ -62,4 +62,4 @@ export function useSidebarState({
     [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
   return contextValue;
-}
+};

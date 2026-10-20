@@ -1,7 +1,7 @@
 import type { SidebarMenuSubProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
+export const SidebarMenuSub = ({ className, ...props }: SidebarMenuSubProps) => {
   return (
     <ul
       data-slot="sidebar-menu-sub"
@@ -14,4 +14,4 @@ export function SidebarMenuSub({ className, ...props }: SidebarMenuSubProps) {
       {...props}
     />
   );
-}
+};

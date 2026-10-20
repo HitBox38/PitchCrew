@@ -1,26 +1,8 @@
 import { Download, FileUser, Wrench } from 'lucide-react';
 import { documentationUrl } from '../lib/links';
 
-const steps = [
-  {
-    icon: Download,
-    title: 'Download Pitchcrew.',
-    text: 'It includes the local server and browser the app needs.',
-  },
-  {
-    icon: Wrench,
-    title: 'Connect your AI tool.',
-    text: 'Install a supported tool, such as Codex or Claude Code, sign in following its own instructions, then pick it for your crew.',
-  },
-  {
-    icon: FileUser,
-    title: 'Add your background and a job.',
-    text: 'Write factual notes in Profile and add a job to Board. A setup checklist walks you through it.',
-  },
-];
-
 /** The download section's introduction: what setup takes, in three steps. */
-export function Setup() {
+export const Setup = () => {
   return (
     <div>
       <h2 id="download-title" className="section-title">
@@ -45,4 +27,22 @@ export function Setup() {
       </p>
     </div>
   );
-}
+};
+
+const steps = [
+  {
+    icon: Download,
+    title: 'Download Pitchcrew.',
+    text: 'It includes the local server and browser the app needs.',
+  },
+  {
+    icon: Wrench,
+    title: 'Connect your AI tool.',
+    text: 'Install a supported tool, such as Codex or Claude Code, sign in following its own instructions, then pick it for your crew.',
+  },
+  {
+    icon: FileUser,
+    title: 'Add your background and a job.',
+    text: 'Write factual notes in Profile and add a job to Board. A setup checklist walks you through it.',
+  },
+];

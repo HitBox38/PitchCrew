@@ -1,19 +1,6 @@
 import { crc32, deflateRawSync, inflateRawSync } from 'node:zlib';
 
-// Minimal ZIP reading and writing for DOCX packages. Writing uses fixed timestamps and the given
-// entry order so identical documents produce identical bytes.
-export interface ZipEntry {
-  name: string;
-  data: Buffer;
-}
-
-const endSignature = 0x06054b50;
-const centralSignature = 0x02014b50;
-const localSignature = 0x04034b50;
-// 1980-01-01 00:00, the earliest DOS timestamp.
-const dosDate = 0x21;
-
-export function readZip(bytes: Buffer): ZipEntry[] {
+export const readZip = (bytes: Buffer): ZipEntry[] => {
   let end = bytes.length - 22;
   while (end >= 0 && bytes.readUInt32LE(end) !== endSignature) end--;
   if (end < 0) throw new Error('Invalid DOCX archive.');
@@ -37,9 +24,9 @@ export function readZip(bytes: Buffer): ZipEntry[] {
     offset += 46 + nameLength + extraLength + commentLength;
   }
   return entries;
-}
+};
 
-export function writeZip(entries: ZipEntry[]): Buffer {
+export const writeZip = (entries: ZipEntry[]): Buffer => {
   const locals: Buffer[] = [];
   const centrals: Buffer[] = [];
   let offset = 0;
@@ -80,4 +67,17 @@ export function writeZip(entries: ZipEntry[]): Buffer {
   end.writeUInt32LE(directory.length, 12);
   end.writeUInt32LE(offset, 16);
   return Buffer.concat([...locals, directory, end]);
+};
+
+// Minimal ZIP reading and writing for DOCX packages. Writing uses fixed timestamps and the given
+// entry order so identical documents produce identical bytes.
+export interface ZipEntry {
+  name: string;
+  data: Buffer;
 }
+
+const endSignature = 0x06054b50;
+const centralSignature = 0x02014b50;
+const localSignature = 0x04034b50;
+// 1980-01-01 00:00, the earliest DOS timestamp.
+const dosDate = 0x21;

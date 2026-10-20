@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function CodeBlockHeader({ className, ...props }: React.ComponentProps<'div'>) {
+export const CodeBlockHeader = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="code-block-header"
@@ -12,4 +12,4 @@ export function CodeBlockHeader({ className, ...props }: React.ComponentProps<'d
       {...props}
     />
   );
-}
+};

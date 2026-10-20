@@ -12,11 +12,8 @@ import { htmlToText } from './html.ts';
 import { structuredJobDetails } from './page-details.ts';
 import type { ReadJobPage } from './public-page.ts';
 
-const providerHost =
-  /(^|\.)(greenhouse\.io|ashbyhq\.com|lever\.co|comeet\.co|comeet\.com|workable\.com)$/;
-
 /** Public-page fallback is agent-only; Add job keeps its fixed-provider lookup contract. */
-export async function importJobLink(
+export const importJobLink = async (
   value: unknown,
   dependencies: LookupDependencies & {
     actor: string;
@@ -24,7 +21,7 @@ export async function importJobLink(
     authorize: () => void;
     readPage: ReadJobPage;
   },
-): Promise<JobLinkImportResult> {
+): Promise<JobLinkImportResult> => {
   const { signal, authorize, actor, board, runId } = dependencies;
   authorize();
   signal.throwIfAborted();
@@ -134,4 +131,7 @@ export async function importJobLink(
       excerpt: card.description.slice(0, 1500),
     },
   };
-}
+};
+
+const providerHost =
+  /(^|\.)(greenhouse\.io|ashbyhq\.com|lever\.co|comeet\.co|comeet\.com|workable\.com)$/;

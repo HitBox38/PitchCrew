@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerApplicationInputTools(server: McpServer, call: AgentCall) {
+export const registerApplicationInputTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_ask_user',
     {
@@ -27,4 +27,4 @@ export function registerApplicationInputTools(server: McpServer, call: AgentCall
     },
     (input) => call('notify_user', input),
   );
-}
+};

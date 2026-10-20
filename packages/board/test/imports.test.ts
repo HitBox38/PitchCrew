@@ -16,16 +16,24 @@ import {
   registerExternalApplication,
   trackingConflict,
 } from '../src/index.ts';
+const fresh = () => {
+  const board = new Board(':memory:');
+  boards.push(board);
+  return board;
+};
+
+const apply = (board: Board, request: { format: string; content: string }) => {
+  const preview = previewApplicationImport(board, request);
+  return {
+    preview,
+    result: applyApplicationImport(board, { ...request, digest: preview.digest }),
+  };
+};
 
 const boards: Board[] = [];
 afterEach(() => {
   for (const board of boards.splice(0)) board.close();
 });
-function fresh() {
-  const board = new Board(':memory:');
-  boards.push(board);
-  return board;
-}
 const rows = [
   {
     company: 'Fictional Labs',
@@ -54,13 +62,6 @@ const rows = [
   { company: 'Sample Co', title: 'Data Analyst', attempt: 2, state: 'ready' },
 ];
 const json = (value: unknown) => ({ format: 'json', content: JSON.stringify(value) });
-function apply(board: Board, request: { format: string; content: string }) {
-  const preview = previewApplicationImport(board, request);
-  return {
-    preview,
-    result: applyApplicationImport(board, { ...request, digest: preview.digest }),
-  };
-}
 const byRow = (report: ApplicationImportReport, row: number) =>
   report.rows.find((value) => value.row === row)!;
 

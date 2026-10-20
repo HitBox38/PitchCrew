@@ -7,7 +7,7 @@ import { useInstructionUpdate } from './hooks/useInstructionUpdate.ts';
 import type { InstructionUpdateProps } from './types.ts';
 
 /** Shows a newer default for a seeded role. Nothing changes until the user chooses an action. */
-export function InstructionUpdate(props: InstructionUpdateProps) {
+export const InstructionUpdate = (props: InstructionUpdateProps) => {
   const model = useInstructionUpdate(props);
   if (!model.expanded) return <DismissedUpdate {...model} />;
   return (
@@ -34,4 +34,4 @@ export function InstructionUpdate(props: InstructionUpdateProps) {
       <UpdateActions {...model} />
     </section>
   );
-}
+};

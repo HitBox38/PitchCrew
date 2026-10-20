@@ -5,13 +5,13 @@ import { cn } from '@/lib/utils';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 import { XIcon } from 'lucide-react';
 
-export function DialogContent({
+export const DialogContent = ({
   className,
   children,
   showCloseButton = true,
   motion = true,
   ...props
-}: DialogContentProps) {
+}: DialogContentProps) => {
   return (
     <DialogPortal>
       <DialogOverlay data-motion={motion} />
@@ -37,4 +37,4 @@ export function DialogContent({
       </DialogPrimitive.Popup>
     </DialogPortal>
   );
-}
+};

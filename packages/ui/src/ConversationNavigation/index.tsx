@@ -11,7 +11,7 @@ import { useConversationNavigation } from './hooks/useConversationNavigation.ts'
 import type { Snapshot } from '@pitchcrew/core';
 import { useConversationActions } from './hooks/useConversationActions.ts';
 import { DeleteConversationDialog } from './components/DeleteConversationDialog.tsx';
-export function ConversationNavigation({ data }: { data: Snapshot }) {
+export const ConversationNavigation = ({ data }: { data: Snapshot }) => {
   const actions = useConversationActions();
   const {
     rows,
@@ -94,4 +94,4 @@ export function ConversationNavigation({ data }: { data: Snapshot }) {
       />
     </SidebarCategory>
   );
-}
+};

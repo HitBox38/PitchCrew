@@ -5,11 +5,13 @@ import { buildGovernancePlan, parseGovernanceArgs } from './governed-metrics.ts'
 import type { Inventory } from './governed-metrics.ts';
 import { buildSqlPlan } from './sql-library.ts';
 
-function verifiedInventory(plan: ReturnType<typeof buildGovernancePlan>): Inventory & {
+const verifiedInventory = (
+  plan: ReturnType<typeof buildGovernancePlan>,
+): Inventory & {
   source_coverage: Record<string, string>;
   metrics: NonNullable<Inventory['metrics']>;
   views: NonNullable<Inventory['views']>;
-} {
+} => {
   return {
     project_id: 295060,
     catalog_complete: true,
@@ -20,7 +22,7 @@ function verifiedInventory(plan: ReturnType<typeof buildGovernancePlan>): Invent
     views: [],
     source_coverage: Object.fromEntries(plan.models.map((model) => [model.query_key, 'verified'])),
   };
-}
+};
 
 test('default plan contains reusable virtual models and noncanonical proposals without network', () => {
   const plan = buildGovernancePlan();

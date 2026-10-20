@@ -6,7 +6,7 @@ import { packetStatusLabel } from '../helpers.ts';
 import type { PacketApprovalListProps } from '../types.ts';
 import { FolderOpen } from 'lucide-react';
 
-export function PacketApprovalList({ approvals, data, ...actions }: PacketApprovalListProps) {
+export const PacketApprovalList = ({ approvals, data, ...actions }: PacketApprovalListProps) => {
   return approvals.map((approval) => {
     const card = data.cards.find((item) => item.id === approval.cardId);
     return (
@@ -39,4 +39,4 @@ export function PacketApprovalList({ approvals, data, ...actions }: PacketApprov
       </ApprovalReviewFrame>
     );
   });
-}
+};

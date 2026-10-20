@@ -7,12 +7,12 @@ import { review, assertReviewCurrent } from './state.ts';
 import { reviewChildren, reviewAgentAction } from './subagents.ts';
 import { runConfiguration } from '../pipeline/snapshots.ts';
 
-function unperformed(
+const unperformed = (
   context: CrewContext,
   live: LiveDeepReview,
   perspective: ReviewPerspective,
   reason: string,
-) {
+) => {
   const report = review(context, live.id);
   const now = new Date().toISOString();
   const run: Run = {
@@ -57,9 +57,9 @@ function unperformed(
     live.reviewer.id,
     'User-requested second opinion incomplete',
   );
-}
+};
 /** Known user-selected work, scheduled by the app; the runtime still owns every model/tool loop. */
-export async function prepareRequestedOpinions(context: CrewContext, live: LiveDeepReview) {
+export const prepareRequestedOpinions = async (context: CrewContext, live: LiveDeepReview) => {
   const report = review(context, live.id);
   if (!report.options.secondOpinions) return;
   const perspectives: ReviewPerspective[] = report.options.requestedPerspectives.length
@@ -134,9 +134,9 @@ export async function prepareRequestedOpinions(context: CrewContext, live: LiveD
     );
     context.publishChat(true);
   }
-}
+};
 /** Never present omitted user-requested work as completed independent review. */
-export function recordMissingRequestedOpinions(context: CrewContext, live: LiveDeepReview) {
+export const recordMissingRequestedOpinions = (context: CrewContext, live: LiveDeepReview) => {
   const report = review(context, live.id);
   if (!report.options.secondOpinions) return;
   const children = reviewChildren(context, live.id).filter((child) => child.stage === 'review');
@@ -148,4 +148,4 @@ export function recordMissingRequestedOpinions(context: CrewContext, live: LiveD
         perspective,
         'The requested additional opinion was not performed. Available parent findings remain usable; this is an incomplete optional opinion.',
       );
-}
+};

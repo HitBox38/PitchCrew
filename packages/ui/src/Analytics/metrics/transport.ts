@@ -4,12 +4,12 @@ import { sanitizeRequestMetric, sanitizeRunMetric } from './sanitize.ts';
 /** OTLP JSON is a documented PostHog numeric transport. No SDK metric queues,
  * automatic network instrumentation, retries, persistence or user identifiers.
  */
-export function createMetricTransport(
+export const createMetricTransport = (
   allowed: () => boolean,
   context: () => Record<string, unknown>,
   send: typeof fetch = (...args) => fetch(...args),
   now: () => number = Date.now,
-) {
+) => {
   let config: AnalyticsConfig | null = null;
   const pending = new Map<AbortController, ReturnType<typeof setTimeout>>();
   const stop = () => {
@@ -20,12 +20,12 @@ export function createMetricTransport(
     pending.clear();
   };
   return {
-    configure(next: AnalyticsConfig | null) {
+    configure: (next: AnalyticsConfig | null) => {
       stop();
       config = next;
     },
     stop,
-    record(event: string, input: Record<string, unknown>) {
+    record: (event: string, input: Record<string, unknown>) => {
       if (!config || !allowed() || pending.size >= 2) return;
       const properties =
         event === 'api_request_finished'
@@ -122,4 +122,4 @@ export function createMetricTransport(
       }
     },
   };
-}
+};

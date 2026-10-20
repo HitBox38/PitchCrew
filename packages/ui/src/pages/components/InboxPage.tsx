@@ -2,7 +2,7 @@ import { InboxView } from '@/components/InboxView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 
-export function InboxPage() {
+export const InboxPage = () => {
   const { data, action, working, openCard } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
@@ -13,4 +13,4 @@ export function InboxPage() {
   );
   if (!data) return null;
   return <InboxView data={data} action={action} working={working} onOpen={openCard} />;
-}
+};

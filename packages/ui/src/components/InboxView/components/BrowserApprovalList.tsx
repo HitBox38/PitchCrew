@@ -3,11 +3,11 @@ import { BrowserApprovalContent } from '@/ComputerApprovals/components/BrowserAp
 import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
 import { ApprovalReviewFrame } from './ApprovalReviewFrame.tsx';
 
-export function BrowserApprovalList({
+export const BrowserApprovalList = ({
   computerApprovals,
   action,
   working,
-}: BrowserApprovalListProps) {
+}: BrowserApprovalListProps) => {
   return computerApprovals.map((approval) => (
     <ApprovalReviewFrame
       key={approval.id}
@@ -25,4 +25,4 @@ export function BrowserApprovalList({
       />
     </ApprovalReviewFrame>
   ));
-}
+};

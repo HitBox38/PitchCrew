@@ -1,8 +1,12 @@
-﻿import type { WorkspaceNotificationProps } from '@/App/types.ts';
+import type { WorkspaceNotificationProps } from '@/App/types.ts';
 import { workspaceToasts } from '@/Notifications/toasts.ts';
 import { useEffect } from 'react';
 
-export function WorkspaceNotification({ toast, toastType, setToast }: WorkspaceNotificationProps) {
+export const WorkspaceNotification = ({
+  toast,
+  toastType,
+  setToast,
+}: WorkspaceNotificationProps) => {
   useEffect(() => {
     if (!toast) return;
     workspaceToasts.add({
@@ -13,4 +17,4 @@ export function WorkspaceNotification({ toast, toastType, setToast }: WorkspaceN
     setToast('');
   }, [toast, toastType, setToast]);
   return null;
-}
+};

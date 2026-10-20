@@ -2,7 +2,7 @@ import type { JobScanSummary } from '@pitchcrew/core';
 import { Link } from '@tanstack/react-router';
 import { scanSummaryText } from '../helpers.ts';
 
-export function ScanSummary({ summary }: { summary: JobScanSummary }) {
+export const ScanSummary = ({ summary }: { summary: JobScanSummary }) => {
   const failed = summary.sources.filter((source) => source.status === 'failed');
   return (
     <output className="job-source-summary mt-4 block" aria-live="polite">
@@ -21,4 +21,4 @@ export function ScanSummary({ summary }: { summary: JobScanSummary }) {
       ) : null}
     </output>
   );
-}
+};

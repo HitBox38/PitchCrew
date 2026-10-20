@@ -3,7 +3,7 @@ import { maintenanceDefinitions, runtimeVersion } from './catalog.ts';
 import type { RuntimeInstallation } from './installation.ts';
 
 /** Public metadata only. Never follows a redirect or executes a downloaded installer. */
-async function readPublicText(url: string, signal?: AbortSignal): Promise<string> {
+const readPublicText = async (url: string, signal?: AbortSignal): Promise<string> => {
   const response = await fetch(url, {
     redirect: 'error',
     signal: AbortSignal.any([AbortSignal.timeout(10_000), ...(signal ? [signal] : [])]),
@@ -26,16 +26,16 @@ async function readPublicText(url: string, signal?: AbortSignal): Promise<string
     await reader.cancel();
   }
   return text;
-}
+};
 
-async function readPublicMetadata(url: string, signal?: AbortSignal): Promise<unknown> {
+const readPublicMetadata = async (url: string, signal?: AbortSignal): Promise<unknown> => {
   return JSON.parse(await readPublicText(url, signal));
-}
-export async function latestRuntimeVersion(
+};
+export const latestRuntimeVersion = async (
   id: Exclude<RuntimeId, 'demo'>,
   installation: RuntimeInstallation,
   signal?: AbortSignal,
-): Promise<string | null> {
+): Promise<string | null> => {
   const definition = maintenanceDefinitions[id];
   if (installation.installer === 'homebrew' && definition.brew) {
     const cask =
@@ -80,4 +80,4 @@ export async function latestRuntimeVersion(
     return version?.includes('-') ? null : version;
   }
   return null;
-}
+};

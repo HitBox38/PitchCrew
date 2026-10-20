@@ -9,26 +9,13 @@ export interface ConditionalRequest {
   updateEtag: (etag: string | null) => void;
 }
 
-export function api<T>(
-  path: string,
-  method?: string,
-  body?: unknown,
-  signal?: AbortSignal,
-): Promise<T>;
-export function api<T>(
-  path: string,
-  method: string,
-  body: unknown,
-  signal: AbortSignal | undefined,
-  conditional: ConditionalRequest,
-): Promise<T | undefined>;
-export async function api<T>(
+export const api = (async <T>(
   path: string,
   method = 'GET',
   body?: unknown,
   signal?: AbortSignal,
   conditional?: ConditionalRequest,
-): Promise<T | undefined> {
+): Promise<T | undefined> => {
   const tracked = actionEvent(path, method, body);
   const finishMetric = beginApiMetric(path, method, body);
   let result: 'success' | 'http_error' | 'network_error' | 'invalid_response' | 'aborted' =
@@ -70,4 +57,13 @@ export async function api<T>(
   } finally {
     finishMetric(result);
   }
-}
+}) as {
+  <T>(path: string, method?: string, body?: unknown, signal?: AbortSignal): Promise<T>;
+  <T>(
+    path: string,
+    method: string,
+    body: unknown,
+    signal: AbortSignal | undefined,
+    conditional: ConditionalRequest,
+  ): Promise<T | undefined>;
+};

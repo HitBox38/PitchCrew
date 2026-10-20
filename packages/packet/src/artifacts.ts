@@ -3,32 +3,14 @@ import { createHash } from 'node:crypto';
 import { type FontSearch, systemFonts } from './documents/font-search.ts';
 import { readZip } from './documents/zip.ts';
 
-export const digestBytes = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
-export const resumePageTarget = 1;
-export const resumePageWarning = (pages: number) =>
-  `The resume runs to ${pages} pages in the formatted layout. The target is one page.`;
-
-export { systemFonts, type FontLocation, type FontSearch } from './documents/font-search.ts';
-
-export interface RenderOptions {
-  /** Fallback fonts for characters the bundled fonts lack. Defaults to installed system fonts. */
-  fonts?: FontSearch;
-  sources?: ('resume' | 'coverLetter')[];
-}
-
-const mimeTypes = {
-  pdf: 'application/pdf',
-  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-};
-
 // Formatted layouts read Markdown structure; plain layouts print the Markdown literally. Neither
 // executes HTML, fetches URLs or silently drops text, and identical input gives identical bytes.
-export async function renderArtifacts(
+export const renderArtifacts = async (
   packet: Packet,
   formats: ('pdf' | 'docx')[],
   layout: ArtifactLayout = 'formatted',
   { fonts = systemFonts(), sources = ['resume', 'coverLetter'] }: RenderOptions = {},
-): Promise<PacketArtifact[]> {
+): Promise<PacketArtifact[]> => {
   const output: PacketArtifact[] = [];
   for (const source of sources) {
     const text = packet[source];
@@ -63,15 +45,15 @@ export async function renderArtifacts(
     }
   }
   return output;
-}
+};
 
-export function verifiedArtifact(artifact: PacketArtifact) {
+export const verifiedArtifact = (artifact: PacketArtifact) => {
   const bytes = Buffer.from(artifact.bytes, 'base64');
   if (digestBytes(bytes) !== artifact.digest) throw new Error('Reviewed artifact bytes changed.');
   return bytes;
-}
+};
 
-async function countPages(artifact: PacketArtifact): Promise<number | null> {
+const countPages = async (artifact: PacketArtifact): Promise<number | null> => {
   const bytes = verifiedArtifact(artifact);
   if (artifact.mimeType === mimeTypes.pdf) {
     const { PDFDocument } = await import('pdf-lib');
@@ -80,13 +62,13 @@ async function countPages(artifact: PacketArtifact): Promise<number | null> {
   const app = readZip(bytes).find((entry) => entry.name === 'docProps/app.xml');
   const pages = /<Pages>(\d+)<\/Pages>/.exec(app?.data.toString('utf8') ?? '')?.[1];
   return pages ? Number(pages) : null;
-}
-
-const pageCounts = new Map<string, Promise<number | null>>();
+};
 
 // Page counts come from the frozen bytes themselves, so earlier approvals need no stored field.
 // PDF counts are exact. DOCX counts are the formatted layout's estimate; Word may differ.
-export async function artifactPages(artifacts: PacketArtifact[]): Promise<Record<string, number>> {
+export const artifactPages = async (
+  artifacts: PacketArtifact[],
+): Promise<Record<string, number>> => {
   const pages: Record<string, number> = {};
   for (const artifact of artifacts) {
     let count = pageCounts.get(artifact.digest);
@@ -99,19 +81,13 @@ export async function artifactPages(artifacts: PacketArtifact[]): Promise<Record
     if (value !== null) pages[artifact.digest] = value;
   }
   return pages;
-}
-
-export interface LayoutReport {
-  resumePages: number | null;
-  coverLetterPages: number | null;
-  warnings: string[];
-}
+};
 
 // Renders the formatted PDFs without storing them, so agents can fit the resume to one page.
-export async function checkLayout(
+export const checkLayout = async (
   packet: Packet,
   { fonts = systemFonts() }: RenderOptions = {},
-): Promise<LayoutReport> {
+): Promise<LayoutReport> => {
   const { formattedPdf } = await import('./documents/pdf.ts');
   const warnings: string[] = [];
   const count = (source: 'resume' | 'coverLetter') =>
@@ -127,4 +103,30 @@ export async function checkLayout(
   if (resumePages !== null && resumePages > resumePageTarget)
     warnings.push(resumePageWarning(resumePages));
   return { resumePages, coverLetterPages, warnings };
+};
+
+export const digestBytes = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
+export const resumePageTarget = 1;
+export const resumePageWarning = (pages: number) =>
+  `The resume runs to ${pages} pages in the formatted layout. The target is one page.`;
+
+export { systemFonts, type FontLocation, type FontSearch } from './documents/font-search.ts';
+
+export interface RenderOptions {
+  /** Fallback fonts for characters the bundled fonts lack. Defaults to installed system fonts. */
+  fonts?: FontSearch;
+  sources?: ('resume' | 'coverLetter')[];
+}
+
+const mimeTypes = {
+  pdf: 'application/pdf',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+};
+
+const pageCounts = new Map<string, Promise<number | null>>();
+
+export interface LayoutReport {
+  resumePages: number | null;
+  coverLetterPages: number | null;
+  warnings: string[];
 }

@@ -7,21 +7,21 @@ import type {
 import { recommendationModel } from './models.ts';
 import { recommendationPlans, recommendedRuntimeOrder, previousModels } from './plans.ts';
 
-export function hasRuntimeRecommendation(roleId: string): boolean {
+export const hasRuntimeRecommendation = (roleId: string): boolean => {
   return Object.hasOwn(recommendationPlans, roleId);
-}
+};
 
-function selectModel(runtime: RuntimeInfo, key: string, effort: ReasoningLevel) {
+const selectModel = (runtime: RuntimeInfo, key: string, effort: ReasoningLevel) => {
   const matches = runtime.models.filter((model) => recommendationModel(runtime.id, model) === key);
   // Cursor embeds effort in the selector; preserve that exact native value.
   return matches.find((model) => model.value.endsWith(`-${effort}`)) ?? matches[0];
-}
+};
 
-function configuration(
+const configuration = (
   runtime: RuntimeInfo,
   model: RuntimeModel | undefined,
   effort: ReasoningLevel,
-): RuntimeRecommendation {
+): RuntimeRecommendation => {
   const levels = model?.reasoning?.levels ?? [];
   return {
     runtime: runtime.id,
@@ -37,12 +37,12 @@ function configuration(
           ? 'Recommended from installed runtimes and their reported models. Model access remains managed by the CLI.'
           : 'Recommended runtime is installed. This model is a suggestion; check native sign-in and model access.',
   };
-}
+};
 
-export function recommendRuntime(
+export const recommendRuntime = (
   roleId: string,
   runtimes: readonly RuntimeInfo[],
-): RuntimeRecommendation {
+): RuntimeRecommendation => {
   if (!hasRuntimeRecommendation(roleId))
     throw new Error('Runtime recommendations are available for built-in agents.');
   const plan = recommendationPlans[roleId];
@@ -63,4 +63,4 @@ export function recommendRuntime(
     ? undefined
     : selectModel(fallback, plan.models[0], plan.reasoning);
   return configuration(fallback, model, plan.reasoning);
-}
+};

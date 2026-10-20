@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Search, X } from 'lucide-react';
 
-export function BoardToolbar({
+export const BoardToolbar = ({
   showClosed,
   setShowClosed,
   data,
   active,
   query,
   setQuery,
-}: BoardToolbarProps) {
+}: BoardToolbarProps) => {
   return (
     <div className="board-toolbar workspace-toolbar shrink-0 gap-3">
       <fieldset className="view-switch" aria-label="Board view">
@@ -45,4 +45,4 @@ export function BoardToolbar({
       </div>
     </div>
   );
-}
+};

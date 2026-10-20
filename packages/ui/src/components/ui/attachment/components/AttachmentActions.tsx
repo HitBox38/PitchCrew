@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function AttachmentActions({ className, ...props }: React.ComponentProps<'div'>) {
+export const AttachmentActions = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="attachment-actions"
@@ -12,4 +12,4 @@ export function AttachmentActions({ className, ...props }: React.ComponentProps<
       {...props}
     />
   );
-}
+};

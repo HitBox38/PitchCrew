@@ -6,7 +6,7 @@ import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
-export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
+export const registerCrewRoutes = (app: FastifyInstance, service: CrewService) => {
   app.get('/api/queue', () => service.queue());
   app.put('/api/queue/settings', (req) => service.configureQueue(req.body));
   app.post('/api/queue/actions', (req, res) =>
@@ -144,4 +144,4 @@ export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
     const { refresh } = z.object({ refresh: z.boolean().default(false) }).parse(req.body ?? {});
     res.send(await service.runtimeModels(z.enum(runtimeIds).parse(req.params.id), refresh));
   });
-}
+};

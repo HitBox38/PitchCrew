@@ -11,7 +11,7 @@ import { useBrowserControl } from './hooks/useBrowserControl.ts';
 import { useBrowserPresentation } from './hooks/useBrowserPresentation.ts';
 import type { AgentBrowserProps } from './types.ts';
 
-export function AgentBrowser(props: AgentBrowserProps) {
+export const AgentBrowser = (props: AgentBrowserProps) => {
   const { browserPanel, thread } = props;
   const roleId = browserPanel.role?.id ?? '';
   const control = useBrowserControl(roleId, thread, browserPanel.refresh);
@@ -71,4 +71,4 @@ export function AgentBrowser(props: AgentBrowserProps) {
       <BrowserApprovals {...props} control={control} />
     </BrowserSurface>
   );
-}
+};

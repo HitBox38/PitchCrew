@@ -4,7 +4,13 @@ import { DocumentFindings } from './DocumentFindings.tsx';
 import type { Approval } from '@pitchcrew/core';
 import { type ArtifactPages, resumePageWarning } from '../helpers.ts';
 
-export function ArtifactPreview({ approval, pages }: { approval: Approval; pages: ArtifactPages }) {
+export const ArtifactPreview = ({
+  approval,
+  pages,
+}: {
+  approval: Approval;
+  pages: ArtifactPages;
+}) => {
   const warning = resumePageWarning(approval.artifacts ?? [], pages);
   return approval.artifacts?.length ? (
     <section className="my-3 space-y-2">
@@ -28,4 +34,4 @@ export function ArtifactPreview({ approval, pages }: { approval: Approval; pages
       ))}
     </section>
   ) : null;
-}
+};

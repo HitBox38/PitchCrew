@@ -11,6 +11,25 @@ const settings = { directory: 'C:\\Users\\Fixture User\\.pitchcrew', port: 4417 
 const installed = { installed: true, directory: 'c:\\users\\fixture user\\.pitchcrew', port: 4417 };
 
 describe('desktop launcher ownership', () => {
+  const deps = (
+    overrides: Partial<LauncherDeps>,
+    answers: (DaemonHealth | null)[],
+  ): LauncherDeps => {
+    const health = vi.fn(async () => (answers.length > 1 ? answers.shift()! : answers[0]));
+    return {
+      settings,
+      platform: 'windows',
+      health,
+      serviceStatus: async () => installed,
+      startService: vi.fn(async () => {}),
+      spawnDaemon: vi.fn(() => ({ kill: vi.fn() })),
+      sleep: async () => {},
+      log: () => {},
+      attempts: 5,
+      ...overrides,
+    };
+  };
+
   it('reuses running daemons, starts a matching service and only owns what it spawns', () => {
     const service: DaemonHealth = { app: 'pitchcrew', service: true };
     const other: DaemonHealth = { app: 'pitchcrew', service: false };
@@ -44,22 +63,6 @@ describe('desktop launcher ownership', () => {
       expect(stopsOnExit(plan)).toBe(owned);
     }
   });
-
-  function deps(overrides: Partial<LauncherDeps>, answers: (DaemonHealth | null)[]): LauncherDeps {
-    const health = vi.fn(async () => (answers.length > 1 ? answers.shift()! : answers[0]));
-    return {
-      settings,
-      platform: 'windows',
-      health,
-      serviceStatus: async () => installed,
-      startService: vi.fn(async () => {}),
-      spawnDaemon: vi.fn(() => ({ kill: vi.fn() })),
-      sleep: async () => {},
-      log: () => {},
-      attempts: 5,
-      ...overrides,
-    };
-  }
 
   it('never spawns or stops a daemon when the service owns it', async () => {
     const running = deps({}, [{ app: 'pitchcrew', service: true }]);

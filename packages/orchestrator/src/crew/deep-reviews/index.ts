@@ -25,7 +25,7 @@ import { executeDeepReview } from './lifecycle.ts';
 import { profileDigest, review, updateReview } from './state.ts';
 import type { LiveDeepReview } from './types.ts';
 
-function workflowRole(context: CrewContext, seat: 'reviewer' | 'writer', id?: string): Role {
+const workflowRole = (context: CrewContext, seat: 'reviewer' | 'writer', id?: string): Role => {
   const role = id
     ? requireRole(context, id)
     : context.board
@@ -37,8 +37,8 @@ function workflowRole(context: CrewContext, seat: 'reviewer' | 'writer', id?: st
   if (!context.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
     throw new Error(`The ${seat} runtime is unavailable. Check Crew settings.`);
   return { ...role, workflow: seat };
-}
-async function startDeepReviewPrepared(
+};
+const startDeepReviewPrepared = async (
   context: CrewContext,
   cardId: string,
   input: unknown = {},
@@ -46,7 +46,7 @@ async function startDeepReviewPrepared(
   delivery?: { requestId: string; rootRunId: string },
   sourceThreadId?: string,
   sourceRunId?: string,
-) {
+) => {
   if (sourceRunId) {
     const existing = context.board
       .list<DeepReview>('deep_review')
@@ -300,8 +300,8 @@ async function startDeepReviewPrepared(
   context.deepReviewExecutions.set(id, live);
   void executeDeepReview(context, live, run);
   return run;
-}
-export function cancelWaitingDeepReview(context: CrewContext, id: string) {
+};
+export const cancelWaitingDeepReview = (context: CrewContext, id: string) => {
   const report = review(context, id);
   if (report.status !== 'waiting') return;
   updateReview(
@@ -321,9 +321,9 @@ export function cancelWaitingDeepReview(context: CrewContext, id: string) {
     'user',
     'Cancelled waiting deep review',
   );
-}
+};
 
-export function startDeepReview(...args: Parameters<typeof startDeepReviewPrepared>) {
+export const startDeepReview = (...args: Parameters<typeof startDeepReviewPrepared>) => {
   const [context, , input] = args;
   const options = deepReviewOptionsSchema.parse(input ?? {});
   const reviewer = workflowRole(context, 'reviewer', options.reviewerId);
@@ -361,4 +361,4 @@ export function startDeepReview(...args: Parameters<typeof startDeepReviewPrepar
         }),
       ),
   );
-}
+};

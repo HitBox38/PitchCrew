@@ -1,10 +1,10 @@
 import { reasoningLevels, type ModelReasoning, type ReasoningLevel } from '@pitchcrew/core';
 
 /** Retain only recognized effort names, never arbitrary native catalog metadata. */
-export function modelReasoning(
+export const modelReasoning = (
   levels: unknown,
   defaultLevel?: unknown,
-): ModelReasoning | undefined {
+): ModelReasoning | undefined => {
   if (!Array.isArray(levels)) return undefined;
   const supported = [
     ...new Set(
@@ -21,7 +21,7 @@ export function modelReasoning(
       ? { default: defaultLevel as ReasoningLevel }
       : {}),
   };
-}
+};
 
 // Pi's native thinking switch is common across its reasoning models. The CLI
 // clamps provider-specific budgets; non-reasoning rows never get this control.

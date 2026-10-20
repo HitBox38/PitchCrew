@@ -4,12 +4,12 @@ import { AccordionSection } from '@/components/ui/accordion/components/Accordion
 import type { useApplicationBrief } from '../hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
 
-export function BriefActions({
+export const BriefActions = ({
   model,
 }: {
   model: ReturnType<typeof useApplicationBrief>;
   card: Card;
-}) {
+}) => {
   if (!model.available.length)
     return (
       <p className="quiet">
@@ -42,4 +42,4 @@ export function BriefActions({
       </p>
     </AccordionSection>
   );
-}
+};

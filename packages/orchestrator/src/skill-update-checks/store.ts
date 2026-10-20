@@ -39,28 +39,28 @@ export class SkillUpdateStore {
     }
   }
 
-  get() {
+  get = () => {
     return structuredClone(this.state);
-  }
+  };
 
-  automatic(automatic: boolean) {
+  automatic = (automatic: boolean) => {
     this.save({ ...this.state, automatic });
-  }
+  };
 
-  put(check: SkillUpdateCheck) {
+  put = (check: SkillUpdateCheck) => {
     this.save({
       ...this.state,
       checks: [...this.state.checks.filter((item) => item.skillId !== check.skillId), check].slice(
         -100,
       ),
     });
-  }
+  };
 
-  private save(state: z.infer<typeof schema>) {
+  private save = (state: z.infer<typeof schema>) => {
     const parsed = schema.parse(state);
     const temporary = `${this.path}.tmp`;
     writeFileSync(temporary, `${JSON.stringify(parsed)}\n`, { mode: 0o600 });
     renameSync(temporary, this.path);
     this.state = parsed;
-  }
+  };
 }

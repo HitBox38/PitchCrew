@@ -3,7 +3,7 @@ import { AccordionSection } from '@/components/ui/accordion/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function GapSources({ sources }: { sources: CareerGap['sources'] }) {
+export const GapSources = ({ sources }: { sources: CareerGap['sources'] }) => {
   const cards = useWorkspaceStore((s) => s.data?.cards);
   const open = useWorkspaceStore((s) => s.openCard);
   const jobs = new Set(sources.map((s) => s.cardId)).size;
@@ -24,4 +24,4 @@ export function GapSources({ sources }: { sources: CareerGap['sources'] }) {
       </ul>
     </AccordionSection>
   );
-}
+};

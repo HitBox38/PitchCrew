@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef } from 'react';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function useSourceDialogFocus(c: ProfileSourcesModel, open: boolean) {
+export const useSourceDialogFocus = (c: ProfileSourcesModel, open: boolean) => {
   const heading = useRef<HTMLHeadingElement>(null);
   const panel = useRef<HTMLDivElement>(null);
   const previous = useRef<string | null>(null);
@@ -33,4 +33,4 @@ export function useSourceDialogFocus(c: ProfileSourcesModel, open: boolean) {
     needsFocus.current = false;
   }, [open, c.screen, c.busy, c.returnFocus, c.sources.length]);
   return { heading, panel };
-}
+};

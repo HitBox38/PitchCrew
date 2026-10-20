@@ -1,12 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { SkillDirectory } from '../src/skills-directory.ts';
-
-const sha = 'a'.repeat(40);
-const otherSha = 'b'.repeat(40);
-const url = 'https://skills.sh/fictional/crew-skills/evidence-checklist';
-const text =
-  '---\nname: evidence-checklist\ndescription: >\n  Use when checking\n  profile claims.\n---\n\n# Evidence checklist\n\nVerify exact profile quotes.\n';
-function fixture(raw = text, path = 'skills/evidence-checklist/SKILL.md') {
+const fixture = (raw = text, path = 'skills/evidence-checklist/SKILL.md') => {
   const fetcher = vi.fn<typeof fetch>().mockImplementation(async (input) => {
     if (String(input).includes('/git/trees/'))
       return Response.json({
@@ -26,7 +20,13 @@ function fixture(raw = text, path = 'skills/evidence-checklist/SKILL.md') {
     throw new Error('Unexpected external request.');
   });
   return { fetcher, directory: new SkillDirectory(fetcher) };
-}
+};
+
+const sha = 'a'.repeat(40);
+const otherSha = 'b'.repeat(40);
+const url = 'https://skills.sh/fictional/crew-skills/evidence-checklist';
+const text =
+  '---\nname: evidence-checklist\ndescription: >\n  Use when checking\n  profile claims.\n---\n\n# Evidence checklist\n\nVerify exact profile quotes.\n';
 describe('skills.sh Markdown imports', () => {
   it('shares repository HEAD only within one bounded update sweep', async () => {
     const { directory, fetcher } = fixture();

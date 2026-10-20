@@ -1,11 +1,11 @@
 import type { ChatMessage, Run, RunActivity, TranscriptItem } from '@pitchcrew/core';
 export type { TranscriptItem } from '@pitchcrew/core';
 
-export function transcriptItems(
+export const transcriptItems = (
   messages: ChatMessage[],
   runs: Run[],
   thread: string,
-): TranscriptItem[] {
+): TranscriptItem[] => {
   const items: TranscriptItem[] = messages.map((message) => ({
     kind: 'message',
     id: message.id,
@@ -40,9 +40,9 @@ export function transcriptItems(
         ? 0
         : 2;
   return items.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || rank(a) - rank(b));
-}
+};
 
-export function activityGroups(entries: RunActivity[]) {
+export const activityGroups = (entries: RunActivity[]) => {
   const groups: { id: string; kind: 'commentary' | 'work'; entries: RunActivity[] }[] = [];
   for (const entry of entries) {
     if (entry.kind === 'commentary' && !entry.text?.trim()) continue;
@@ -52,13 +52,13 @@ export function activityGroups(entries: RunActivity[]) {
     else groups.push({ id: entry.id, kind, entries: [entry] });
   }
   return groups;
-}
+};
 
-export function durationLabel(startedAt: string, finishedAt: string | null, now: number) {
+export const durationLabel = (startedAt: string, finishedAt: string | null, now: number) => {
   const elapsed = Math.max(
     0,
     Math.floor(((finishedAt ? Date.parse(finishedAt) : now) - Date.parse(startedAt)) / 1000),
   );
   if (!Number.isFinite(elapsed)) return '0s';
   return elapsed < 60 ? `${elapsed}s` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
-}
+};

@@ -14,12 +14,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import { exportApprovedPacket } from '../src/index.ts';
 import { ComputerManager, resolveSubmission } from '../src/computer.ts';
-
-const cleanup: (() => Promise<void>)[] = [];
-afterEach(async () => {
-  for (const dispose of cleanup.splice(0)) await dispose();
-});
-async function fixture(formats: ('pdf' | 'docx')[] = []) {
+const fixture = async (formats: ('pdf' | 'docx')[] = []) => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-submitter-'));
   const board = new Board(join(directory, 'board.db'));
   const card = board.createCard(cardInput.parse({ company: 'Fixture Studio', title: 'Engineer' }));
@@ -78,7 +73,12 @@ async function fixture(formats: ('pdf' | 'docx')[] = []) {
     scope: { runId: 'fictional-chat', roleId: 'writer' as const, cardId: card.id },
     signal: new AbortController().signal,
   };
-}
+};
+
+const cleanup: (() => Promise<void>)[] = [];
+afterEach(async () => {
+  for (const dispose of cleanup.splice(0)) await dispose();
+});
 
 it('persists only server-inspected fields and clearly separates conditional annotations and unknown sections', async () => {
   const { board, card, manager, scope, page } = await fixture();

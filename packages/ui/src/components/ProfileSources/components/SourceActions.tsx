@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { LoaderCircle } from 'lucide-react';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceActions(c: ProfileSourcesModel) {
+export const SourceActions = (c: ProfileSourcesModel) => {
   return (
     <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
       <Button variant="outline" disabled={c.busy} onClick={c.back}>
@@ -24,4 +24,4 @@ export function SourceActions(c: ProfileSourcesModel) {
       </Button>
     </div>
   );
-}
+};

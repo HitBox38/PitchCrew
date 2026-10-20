@@ -1,6 +1,6 @@
 import { LoaderCircle } from 'lucide-react';
 
-export function SourceProgress({ label }: { label: string }) {
+export const SourceProgress = ({ label }: { label: string }) => {
   return (
     <output className="flex items-center gap-2 text-sm text-muted-foreground">
       <LoaderCircle
@@ -11,4 +11,4 @@ export function SourceProgress({ label }: { label: string }) {
       {label}
     </output>
   );
-}
+};

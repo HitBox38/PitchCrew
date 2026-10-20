@@ -12,9 +12,7 @@ import {
 import { createHash } from 'node:crypto';
 import { digestPacket } from './helpers.ts';
 import type { BoardContext } from './types.ts';
-
-const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
-export function jobSourceRevision(card: Card) {
+export const jobSourceRevision = (card: Card) => {
   return digest([
     card.company,
     card.title,
@@ -24,12 +22,12 @@ export function jobSourceRevision(card: Card) {
     card.description,
     card.sourceHtml ?? null,
   ]);
-}
-export function applicationRevision(sourceRevision: string, data: ExtractedJob) {
+};
+export const applicationRevision = (sourceRevision: string, data: ExtractedJob) => {
   const parsed = extractedJobSchema.parse(data);
   return digest([sourceRevision, parsed.brief, parsed.requirements, parsed.flagged]);
-}
-export function assertExtractedContext(card: Card): ApplicationContext {
+};
+export const assertExtractedContext = (card: Card): ApplicationContext => {
   const context = card.applicationContext;
   if (
     !context ||
@@ -42,14 +40,14 @@ export function assertExtractedContext(card: Card): ApplicationContext {
   )
     throw new Error('Extract or prepare this job’s application brief first.');
   return context;
-}
-export function assertConfirmedContext(card: Card): ApplicationContext {
+};
+export const assertConfirmedContext = (card: Card): ApplicationContext => {
   const context = assertExtractedContext(card);
   if (!context.confirmedAt || context.confirmedRevision !== context.revision)
     throw new Error('Review and confirm this job’s application brief before drafting.');
   return context;
-}
-export function assertReviewedContext(card: Card) {
+};
+export const assertReviewedContext = (card: Card) => {
   const context = assertConfirmedContext(card);
   if (missingPersonalAnswers(context).length)
     throw new Error(
@@ -63,15 +61,15 @@ export function assertReviewedContext(card: Card) {
   )
     throw new Error('This packet needs a fresh review against the confirmed application brief.');
   return context;
-}
-export function saveApplicationContext(
+};
+export const saveApplicationContext = (
   board: Pick<BoardContext, 'get' | 'record' | 'hasActiveRun' | 'db' | 'list'>,
   cardId: string,
   expectedSource: string,
   expectedRevision: string | null,
   data: unknown,
   confirm: boolean,
-): Card {
+): Card => {
   const extracted = extractedJobSchema.parse(data);
   return board.db.transaction(() => {
     const card = board.get<Card>('card', cardId);
@@ -145,4 +143,6 @@ export function saveApplicationContext(
     }
     return next;
   })();
-}
+};
+
+const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');

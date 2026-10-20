@@ -13,6 +13,59 @@ import {
 } from './fonts.ts';
 import type { DocumentKind } from './types.ts';
 
+export const unshapedCharacter = (character: string, kind: DocumentKind) => {
+  const script = shapedScripts.find(([pattern]) => pattern.test(character));
+  if (!script) return undefined;
+  return new Error(
+    `PDF text contains unsupported characters: "${character}" (U+${code(character)}) in the ${labels[kind]}. Its script ${script[1]}, which PDF export does not support yet. Use DOCX or revise the packet; no text was omitted.`,
+  );
+};
+
+export const unsupportedCharacter = (character: string, kind: DocumentKind) => {
+  const advice = isCjk(character)
+    ? 'Install a Japanese, Chinese or Korean font such as Noto Sans CJK or Yu Gothic, or copy one into the fonts folder in the Pitchcrew data folder. You can also use DOCX or revise the packet'
+    : 'Copy a font that has it into the fonts folder in the Pitchcrew data folder, use DOCX or revise the packet';
+  return new Error(
+    `PDF text contains unsupported characters: "${character}" (U+${code(character)}) in the ${labels[kind]}. No available font has it. ${advice}; no text was omitted.`,
+  );
+};
+
+// Faces pdf-lib can subset and embed as outlines: TrueType or CFF, not variable, not bitmap only.
+const usable = (font: Font | null | undefined): font is Font => {
+  const tables = (font as (Font & { directory?: { tables: Record<string, unknown> } }) | null)
+    ?.directory?.tables;
+  if (!font || !tables?.cmap) return false;
+  if (tables.fvar || tables.CFF2 || tables.CBDT || tables.sbix) return false;
+  return !!(tables.glyf || tables['CFF ']);
+};
+
+const face = (bytes: Uint8Array, font: Font, collection: boolean): FallbackFace => {
+  const name = font.postscriptName ?? 'Fallback';
+  return {
+    name,
+    family: font.familyName ?? name,
+    bold: isBold(font),
+    bytes,
+    face: collection ? name : undefined,
+    font,
+  };
+};
+
+const openFaces = async (location: FontLocation): Promise<FallbackFace[]> => {
+  try {
+    const bytes = await readFont(location.path);
+    const opened: unknown = fontkit.create(bytes);
+    if (!isCollection(opened))
+      return usable(opened as Font) ? [face(bytes, opened as Font, false)] : [];
+    // Collection faces are chosen by PostScript name when the document embeds them.
+    const fonts = opened.fonts.filter((font) => usable(font) && font.postscriptName);
+    const named = fonts.filter((font) => font.postscriptName === location.face);
+    return (named.length ? named : fonts).map((font) => face(bytes, font, true));
+  } catch {
+    return [];
+  }
+};
+
 /** A fallback font face: a bundled font or one face of a font file found by the search. */
 export interface FallbackFace {
   name: string;
@@ -51,59 +104,6 @@ const shapedScripts: [RegExp, string][] = [
 const code = (character: string) =>
   character.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0');
 
-export function unshapedCharacter(character: string, kind: DocumentKind) {
-  const script = shapedScripts.find(([pattern]) => pattern.test(character));
-  if (!script) return undefined;
-  return new Error(
-    `PDF text contains unsupported characters: "${character}" (U+${code(character)}) in the ${labels[kind]}. Its script ${script[1]}, which PDF export does not support yet. Use DOCX or revise the packet; no text was omitted.`,
-  );
-}
-
-export function unsupportedCharacter(character: string, kind: DocumentKind) {
-  const advice = isCjk(character)
-    ? 'Install a Japanese, Chinese or Korean font such as Noto Sans CJK or Yu Gothic, or copy one into the fonts folder in the Pitchcrew data folder. You can also use DOCX or revise the packet'
-    : 'Copy a font that has it into the fonts folder in the Pitchcrew data folder, use DOCX or revise the packet';
-  return new Error(
-    `PDF text contains unsupported characters: "${character}" (U+${code(character)}) in the ${labels[kind]}. No available font has it. ${advice}; no text was omitted.`,
-  );
-}
-
-// Faces pdf-lib can subset and embed as outlines: TrueType or CFF, not variable, not bitmap only.
-function usable(font: Font | null | undefined): font is Font {
-  const tables = (font as (Font & { directory?: { tables: Record<string, unknown> } }) | null)
-    ?.directory?.tables;
-  if (!font || !tables?.cmap) return false;
-  if (tables.fvar || tables.CFF2 || tables.CBDT || tables.sbix) return false;
-  return !!(tables.glyf || tables['CFF ']);
-}
-
-function face(bytes: Uint8Array, font: Font, collection: boolean): FallbackFace {
-  const name = font.postscriptName ?? 'Fallback';
-  return {
-    name,
-    family: font.familyName ?? name,
-    bold: isBold(font),
-    bytes,
-    face: collection ? name : undefined,
-    font,
-  };
-}
-
-async function openFaces(location: FontLocation): Promise<FallbackFace[]> {
-  try {
-    const bytes = await readFont(location.path);
-    const opened: unknown = fontkit.create(bytes);
-    if (!isCollection(opened))
-      return usable(opened as Font) ? [face(bytes, opened as Font, false)] : [];
-    // Collection faces are chosen by PostScript name when the document embeds them.
-    const fonts = opened.fonts.filter((font) => usable(font) && font.postscriptName);
-    const named = fonts.filter((font) => font.postscriptName === location.face);
-    return (named.length ? named : fonts).map((font) => face(bytes, font, true));
-  } catch {
-    return [];
-  }
-}
-
 /**
  * Chooses a font for every character: Liberation Sans first, then the bundled Hebrew fonts, then
  * the fonts the search finds. Combining marks stay with their base character's font.
@@ -119,7 +119,7 @@ export class FontChoice {
     private search: FontSearch,
   ) {}
 
-  static async open(search: FontSearch) {
+  static open = async (search: FontSearch) => {
     const main = {} as Record<FontStyle, Font>;
     for (const style of fontStyles) main[style] = fontkit.create(await fontBytes(style));
     const choice = new FontChoice(main, search);
@@ -128,13 +128,13 @@ export class FontChoice {
       choice.faces.push({ ...face(bytes, fontkit.create(bytes), false), ...font });
     }
     return choice;
-  }
+  };
 
-  covers(key: FontKey, code: number) {
+  covers = (key: FontKey, code: number) => {
     return (typeof key === 'string' ? this.main[key] : key.font).hasGlyphForCodePoint(code);
-  }
+  };
 
-  private fontFor(character: string, style: FontStyle, previous?: FontKey) {
+  private fontFor = (character: string, style: FontStyle, previous?: FontKey) => {
     const code = character.codePointAt(0)!;
     if (character === ' ' || this.covers(style, code)) return style;
     if (previous !== undefined && isMark(character) && this.covers(previous, code)) return previous;
@@ -150,10 +150,10 @@ export class FontChoice {
           item.font.hasGlyphForCodePoint(code),
       ) ?? first
     );
-  }
+  };
 
   /** One font per code point of already cleaned text; bidi controls get the run's style. */
-  fonts(text: string, style: FontStyle): FontKey[] {
+  fonts = (text: string, style: FontStyle): FontKey[] => {
     const keys: FontKey[] = [];
     let previous: FontKey | undefined;
     for (const character of text) {
@@ -163,10 +163,10 @@ export class FontChoice {
       previous = key;
     }
     return keys;
-  }
+  };
 
   /** Finds a font for every character, searching for fonts only when the bundled ones miss. */
-  async cover(texts: { text: string; style: FontStyle }[], kind: DocumentKind) {
+  cover = async (texts: { text: string; style: FontStyle }[], kind: DocumentKind) => {
     for (const { text, style } of texts) {
       // Every run style is embedded, as before fallback fonts, so earlier documents keep their bytes.
       this.usedStyles.add(style);
@@ -187,14 +187,14 @@ export class FontChoice {
         previous = key;
       }
     }
-  }
+  };
 
   /**
    * Embeds the fonts `cover` found, Liberation Sans styles first and fallbacks in order of first
    * use, with fixed subset names. Searched faces are named by position and PostScript name, so the
    * same text and fonts give the same bytes without recording file paths.
    */
-  async embed(document: PDFDocument) {
+  embed = async (document: PDFDocument) => {
     const kit = documentFontkit();
     document.registerFontkit(kit.fontkit);
     const embedded = new Map<FontKey, PDFFont>();
@@ -229,5 +229,5 @@ export class FontChoice {
       embedded.set(face, await embed(face.bytes, face.face, name, true));
     }
     return { embedded, shaped };
-  }
+  };
 }

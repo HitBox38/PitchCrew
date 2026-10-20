@@ -6,7 +6,7 @@ import { BrowserAgentPicker } from './BrowserAgentPicker.tsx';
 import { BrowserTaskDetails } from './BrowserTaskDetails.tsx';
 import { BrowserControls } from './BrowserControls.tsx';
 import { BrowserMaintenance } from './BrowserMaintenance.tsx';
-export function BrowserPanelHeading(
+export const BrowserPanelHeading = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'thread' | 'data' | 'onThread' | 'onOpenCard'> & {
     control: BrowserControl;
     narrow: boolean;
@@ -14,7 +14,7 @@ export function BrowserPanelHeading(
     toggleExpanded: () => void;
     waiting: boolean;
   },
-) {
+) => {
   const { browserPanel, thread, control, narrow, expanded, toggleExpanded, waiting } = props;
   const status = browserStatus(browserPanel.session, !!control.leaseId, waiting, thread);
   return (
@@ -57,4 +57,4 @@ export function BrowserPanelHeading(
       </div>
     </header>
   );
-}
+};

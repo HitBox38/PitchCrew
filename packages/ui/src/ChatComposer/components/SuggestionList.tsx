@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import type { ComposerSuggestion } from '../types.ts';
 import { ReferenceIcon } from '@/ChatReferences/components/ReferenceIcon.tsx';
 
-export function SuggestionList({
+export const SuggestionList = ({
   id,
   symbol,
   items,
@@ -16,7 +16,7 @@ export function SuggestionList({
   items: ComposerSuggestion[];
   active: number;
   choose: (item: ComposerSuggestion) => void;
-}) {
+}) => {
   const list = useRef<HTMLDivElement>(null);
   useEffect(() => {
     list.current?.querySelector('[aria-selected="true"]')?.scrollIntoView({ block: 'nearest' });
@@ -65,4 +65,4 @@ export function SuggestionList({
       <div className="chat-suggestions-help">↑ ↓ navigate · Tab / Enter choose · Escape close</div>
     </div>
   );
-}
+};

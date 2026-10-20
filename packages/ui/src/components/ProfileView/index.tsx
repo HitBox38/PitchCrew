@@ -12,7 +12,7 @@ import { useProfileWorkspace } from './hooks/useProfileWorkspace.ts';
 import type { ProfileViewProps } from './types.ts';
 import { FileText, Plus } from 'lucide-react';
 
-export function ProfileView(props: ProfileViewProps) {
+export const ProfileView = (props: ProfileViewProps) => {
   const controller = useProfileView(props);
   const workspace = useProfileWorkspace(controller);
   return (
@@ -60,4 +60,4 @@ export function ProfileView(props: ProfileViewProps) {
       <DiscardChanges guard={controller.guard} />
     </>
   );
-}
+};

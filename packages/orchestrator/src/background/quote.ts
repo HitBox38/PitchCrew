@@ -1,15 +1,15 @@
 /** Quoting for each service definition format, plus the parsers status uses to read them back. */
 
-export function escapeXml(value: string) {
+export const escapeXml = (value: string) => {
   return value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
-}
+};
 
-export function unescapeXml(value: string) {
+export const unescapeXml = (value: string) => {
   return value.replace(/&(#x[0-9a-f]+|#\d+|lt|gt|quot|apos|amp);/gi, (_match, entity: string) => {
     const named: Record<string, string> = { lt: '<', gt: '>', quot: '"', apos: "'", amp: '&' };
     if (entity[0] !== '#') return named[entity.toLowerCase()];
@@ -19,10 +19,10 @@ export function unescapeXml(value: string) {
         : parseInt(entity.slice(1), 10);
     return String.fromCodePoint(code);
   });
-}
+};
 
 /** Quotes one argument for the command line parsed by Windows programs (CommandLineToArgvW). */
-export function quoteWindowsArgument(value: string) {
+export const quoteWindowsArgument = (value: string) => {
   if (value && !/[\s"]/.test(value)) return value;
   let quoted = '"';
   let backslashes = 0;
@@ -35,10 +35,10 @@ export function quoteWindowsArgument(value: string) {
     backslashes = 0;
   }
   return `${quoted}${'\\'.repeat(backslashes * 2)}"`;
-}
+};
 
 /** Splits a Windows command line the way CommandLineToArgvW does. */
-export function parseWindowsArguments(line: string) {
+export const parseWindowsArguments = (line: string) => {
   const args: string[] = [];
   let index = 0;
   while (index < line.length) {
@@ -77,38 +77,38 @@ export function parseWindowsArguments(line: string) {
     args.push(arg);
   }
   return args;
-}
+};
 
-function assertSingleLine(value: string) {
+const assertSingleLine = (value: string) => {
   if (/[\0\r\n]/.test(value))
     throw new Error('Service paths and values cannot contain line breaks.');
   return value;
-}
+};
 
 /** Quotes an ExecStart= argument: systemd expands %-specifiers and $VARIABLES there. */
-export function quoteSystemdArgument(value: string) {
+export const quoteSystemdArgument = (value: string) => {
   return `"${assertSingleLine(value)
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .replace(/%/g, '%%')
     .replace(/\$/g, '$$$$')}"`;
-}
+};
 
 /** Quotes an Environment= assignment: systemd expands %-specifiers but not variables there. */
-export function quoteSystemdEnvironment(name: string, value: string) {
+export const quoteSystemdEnvironment = (name: string, value: string) => {
   return `"${name}=${assertSingleLine(value)
     .replace(/\\/g, '\\\\')
     .replace(/"/g, '\\"')
     .replace(/%/g, '%%')}"`;
-}
+};
 
 /** Escapes a path setting such as WorkingDirectory=, which is one unquoted value. */
-export function escapeSystemdPath(value: string) {
+export const escapeSystemdPath = (value: string) => {
   return assertSingleLine(value).replace(/%/g, '%%');
-}
+};
 
 /** Splits an ExecStart= line written by quoteSystemdArgument or plain unquoted words. */
-export function parseSystemdArguments(line: string) {
+export const parseSystemdArguments = (line: string) => {
   const args: string[] = [];
   let index = 0;
   while (index < line.length) {
@@ -135,4 +135,4 @@ export function parseSystemdArguments(line: string) {
     args.push(arg.replace(/%%/g, '%').replace(/\$\$/g, '$'));
   }
   return args;
-}
+};

@@ -315,7 +315,8 @@ it('resumes a final recheck without replacing the original before assessment or 
   await request(`/cards/${card.id}/deep-reviews`, 'POST', {});
   const waiting = await waitForSnapshot(
     request,
-    () =>
+    (snapshot) =>
+      snapshot.userInputs?.some((question) => question.status === 'pending') === true &&
       daemon.service.board.list<DeepReview>('deep_review')[0]?.status === 'waiting' &&
       daemon.service.controllers.size === 0,
   );
@@ -378,7 +379,8 @@ it('corrects the packet after a required personal answer changes the confirmed c
   await request(`/cards/${card.id}/deep-reviews`, 'POST', {});
   const waiting = await waitForSnapshot(
     request,
-    () =>
+    (snapshot) =>
+      snapshot.userInputs?.some((question) => question.status === 'pending') === true &&
       daemon.service.board.list<DeepReview>('deep_review')[0]?.status === 'waiting' &&
       daemon.service.controllers.size === 0,
   );

@@ -14,7 +14,7 @@ import {
 import type { Board } from '../index.ts';
 import { digestPacket } from './helpers.ts';
 
-export function searchApplications(board: Board, data: unknown) {
+export const searchApplications = (board: Board, data: unknown) => {
   const query = applicationQuery.parse(data);
   const cards = board
     .list<Card>('card')
@@ -45,12 +45,12 @@ export function searchApplications(board: Board, data: unknown) {
       .slice(-100),
     nextOffset: query.offset + query.limit < cards.length ? query.offset + query.limit : null,
   };
-}
+};
 /** Likely the same application: normalized company/title plus matching or missing URL, or job ID. */
-export function isLikelyDuplicateApplication(
+export const isLikelyDuplicateApplication = (
   card: Pick<Card, 'company' | 'title' | 'url' | 'tracking'>,
   input: { company: string; title: string; url: string; jobIdentifier: string },
-): boolean {
+): boolean => {
   return (
     normalizeApplicationText(card.company) === normalizeApplicationText(input.company) &&
     normalizeApplicationText(card.title) === normalizeApplicationText(input.title) &&
@@ -59,8 +59,8 @@ export function isLikelyDuplicateApplication(
       canonicalJobUrl(card.url) === canonicalJobUrl(input.url) ||
       (!!input.jobIdentifier && card.tracking?.jobIdentifier === input.jobIdentifier))
   );
-}
-export function registerExternalApplication(board: Board, data: unknown): Card {
+};
+export const registerExternalApplication = (board: Board, data: unknown): Card => {
   const { submittedAt, jobIdentifier, note, ...input } = externalApplicationInput.parse(data);
   if (Date.parse(submittedAt) > Date.now())
     throw new Error('Submission time cannot be in the future.');
@@ -79,14 +79,14 @@ export function registerExternalApplication(board: Board, data: unknown): Card {
       'Registered a known external submission; no outward action',
     );
   })();
-}
+};
 /** Saves a new submitted card with external provenance and no packet. Callers check duplicates. */
-export function recordExternalApplication(
+export const recordExternalApplication = (
   board: Board,
   input: CardInput,
   submission: { submittedAt: string; jobIdentifier: string; note: string },
   message: string,
-): Card {
+): Card => {
   const card = board.createCard(input);
   const external: Card = {
     ...card,
@@ -96,8 +96,8 @@ export function recordExternalApplication(
   };
   board.record('card', external, 'user', message);
   return external;
-}
-export function latestTrackingTime(board: Board, card: Card): number {
+};
+export const latestTrackingTime = (board: Board, card: Card): number => {
   let userBoundary = Date.parse(card.statusEffectiveAt ?? '') || 0;
   if (!userBoundary) {
     // Legacy cards have no explicit boundary. Find the latest user state change,
@@ -125,12 +125,12 @@ export function latestTrackingTime(board: Board, card: Card): number {
     .filter((signal) => signal.cardId === card.id && signal.status === 'applied')
     .map((signal) => Date.parse(signal.effectiveAt));
   return Math.max(0, Date.parse(card.tracking?.submittedAt ?? '') || 0, userBoundary, ...times);
-}
-export function registerExistingExternalSubmission(
+};
+export const registerExistingExternalSubmission = (
   board: Board,
   cardId: string,
   data: unknown,
-): Card {
+): Card => {
   const input = externalSubmissionInput.parse(data);
   if (Date.parse(input.submittedAt) > Date.now())
     throw new Error('Submission time cannot be in the future.');
@@ -179,8 +179,8 @@ export function registerExistingExternalSubmission(
     );
     return next;
   })();
-}
-export function trackingConflict(board: Board, signal: TrackingSignal, card: Card): string {
+};
+export const trackingConflict = (board: Board, signal: TrackingSignal, card: Card): string => {
   if (
     signal.state === 'submitted' &&
     card.state !== 'submitted' &&
@@ -208,13 +208,13 @@ export function trackingConflict(board: Board, signal: TrackingSignal, card: Car
   if (card.state !== signal.state && !transitions[card.state].includes(signal.state))
     return `Cannot move ${card.state} to ${signal.state}.`;
   return '';
-}
-export function applyTrackingSignal(
+};
+export const applyTrackingSignal = (
   board: Board,
   signal: TrackingSignal,
   card: Card,
   actor: string,
-): TrackingSignal {
+): TrackingSignal => {
   const conflict = trackingConflict(board, signal, card);
   if (conflict) throw new Error(conflict);
   if (card.state !== signal.state)
@@ -238,14 +238,14 @@ export function applyTrackingSignal(
   };
   board.record('tracking_signal', applied, actor, 'Applied tracking evidence');
   return applied;
-}
-export function decideTrackingSignal(
+};
+export const decideTrackingSignal = (
   board: Board,
   id: string,
   approved: boolean,
   cardId?: string,
   cardUpdatedAt?: string,
-): TrackingSignal {
+): TrackingSignal => {
   return board.db.transaction(() => {
     const signal = board.get<TrackingSignal>('tracking_signal', id);
     if (signal.status !== 'pending') throw new Error('Tracking proposal has already been decided.');
@@ -272,13 +272,13 @@ export function decideTrackingSignal(
     linkTrackingThread(board, cardId, signal.account, signal.threadId);
     return applied;
   })();
-}
-export function linkTrackingThread(
+};
+export const linkTrackingThread = (
   board: Board,
   cardId: string,
   account: string,
   threadId: string,
-): Card {
+): Card => {
   return board.db.transaction(() => {
     const card = board.get<Card>('card', cardId);
     const tracking = card.tracking ?? { origin: 'pitchcrew' as const, gmailThreads: [] };
@@ -303,12 +303,12 @@ export function linkTrackingThread(
     );
     return updated;
   })();
-}
-export function updateTrackingIdentifier(
+};
+export const updateTrackingIdentifier = (
   board: Board,
   cardId: string,
   jobIdentifier: string,
-): Card {
+): Card => {
   const card = board.get<Card>('card', cardId);
   const tracking = card.tracking ?? { origin: 'pitchcrew' as const, gmailThreads: [] };
   const updated = {
@@ -318,13 +318,13 @@ export function updateTrackingIdentifier(
   };
   board.record('card', updated, 'user', 'Updated application job identifier');
   return updated;
-}
-export function unlinkTrackingThread(
+};
+export const unlinkTrackingThread = (
   board: Board,
   cardId: string,
   account: string,
   threadId: string,
-): Card {
+): Card => {
   const card = board.get<Card>('card', cardId);
   if (!card.tracking) return card;
   const next = {
@@ -339,8 +339,8 @@ export function unlinkTrackingThread(
   };
   board.record('card', next, 'user', 'Removed Gmail thread link');
   return next;
-}
-export function refreshTrackingSignal(board: Board, id: string): TrackingSignal {
+};
+export const refreshTrackingSignal = (board: Board, id: string): TrackingSignal => {
   const signal = board.get<TrackingSignal>('tracking_signal', id);
   if (signal.status !== 'pending')
     throw new Error('Only pending tracking comparisons can be refreshed.');
@@ -358,8 +358,8 @@ export function refreshTrackingSignal(board: Board, id: string): TrackingSignal 
     'Refreshed comparison against current applications',
   );
   return refreshed;
-}
-export function completeTrackingMessage(board: Board, scan: TrackingScan, messageId: string) {
+};
+export const completeTrackingMessage = (board: Board, scan: TrackingScan, messageId: string) => {
   board.record(
     'tracking_scan',
     {
@@ -370,4 +370,4 @@ export function completeTrackingMessage(board: Board, scan: TrackingScan, messag
     scan.roleId,
     'Completed tracking message',
   );
-}
+};

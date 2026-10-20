@@ -7,9 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
 import { ComputerManager, assertPublicUrl, publicAddress } from '../src/computer.ts';
-
-const resources: { board: Board; manager: ComputerManager; directory: string }[] = [];
-async function setup() {
+const setup = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-computer-test-'));
   const board = new Board(join(directory, 'board.db'));
   const page: BrowserSnapshot = {
@@ -36,7 +34,9 @@ async function setup() {
     signal: new AbortController().signal,
     authorize: vi.fn(),
   };
-}
+};
+
+const resources: { board: Board; manager: ComputerManager; directory: string }[] = [];
 afterEach(async () => {
   for (const { board, manager, directory } of resources.splice(0)) {
     await manager.close();

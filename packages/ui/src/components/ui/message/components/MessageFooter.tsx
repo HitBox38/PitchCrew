@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function MessageFooter({ className, ...props }: React.ComponentProps<'div'>) {
+export const MessageFooter = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="message-footer"
@@ -12,4 +12,4 @@ export function MessageFooter({ className, ...props }: React.ComponentProps<'div
       {...props}
     />
   );
-}
+};

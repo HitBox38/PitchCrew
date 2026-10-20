@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { stateLabels } from '@/lib/labels.ts';
 import { LoaderCircle } from 'lucide-react';
 
-export function JobCard(props: JobCardProps) {
+export const JobCard = (props: JobCardProps) => {
   const { card, onOpen, actions, buttonRef } = props;
   return (
     <JobCardSurface {...props}>
@@ -57,4 +57,4 @@ export function JobCard(props: JobCardProps) {
       {actions}
     </JobCardSurface>
   );
-}
+};

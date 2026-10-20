@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 
-export function registerJsonBody(app: FastifyInstance) {
+export const registerJsonBody = (app: FastifyInstance) => {
   const parse = app.getDefaultJsonParser('error', 'error');
   app.removeContentTypeParser('application/json');
   app.addContentTypeParser<string>('application/json', { parseAs: 'string' }, (req, body, done) => {
@@ -13,4 +13,4 @@ export function registerJsonBody(app: FastifyInstance) {
       done(null, value);
     });
   });
-}
+};

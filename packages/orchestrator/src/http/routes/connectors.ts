@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
-export function registerConnectorsRoutes(app: FastifyInstance, service: CrewService) {
+export const registerConnectorsRoutes = (app: FastifyInstance, service: CrewService) => {
   app.post('/api/connectors/github/connect', async (req, res) =>
     res.send(await service.connectors.connectGithub(req.body)),
   );
@@ -22,4 +22,4 @@ export function registerConnectorsRoutes(app: FastifyInstance, service: CrewServ
       await service.connectors.disconnect(z.enum(['github', 'google']).parse(req.params.id)),
     ),
   );
-}
+};

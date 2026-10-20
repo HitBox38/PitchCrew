@@ -4,11 +4,11 @@ import { cliEnvironment } from '../process/environment.ts';
 import { terminateCli } from '../process/launch.ts';
 
 /** Account metadata only: no thread, session, model request or user turn is created. */
-export function readCodexAccount(
+export const readCodexAccount = (
   command: string,
   signal?: AbortSignal,
   prefix: string[] = [],
-): Promise<{ account: unknown; requiresOpenaiAuth: boolean }> {
+): Promise<{ account: unknown; requiresOpenaiAuth: boolean }> => {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const child = spawn(
@@ -115,4 +115,4 @@ export function readCodexAccount(
       params: { clientInfo: { name: 'pitchcrew', version: '0.9.0' } },
     });
   });
-}
+};

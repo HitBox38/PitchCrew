@@ -2,14 +2,14 @@ import type { ChatReference, Role, Skill } from '@pitchcrew/core';
 import { chatTokens, skillToken, type ChatToken } from '@pitchcrew/core/chat-references';
 import type { ComposerSuggestion } from './types.ts';
 
-export function composerSuggestions(
+export const composerSuggestions = (
   roles: Role[],
   skills: Skill[],
   participants: string[],
   text: string,
   jobLocked: boolean,
   unavailable: (role: Role) => string | undefined,
-): ComposerSuggestion[] {
+): ComposerSuggestion[] => {
   const mentions = chatTokens(text)
     .filter((token) => token.symbol === '@')
     .map((token) => token.query);
@@ -86,8 +86,8 @@ export function composerSuggestions(
     },
     ...assigned,
   ];
-}
-function score(query: string, text: string): number {
+};
+const score = (query: string, text: string): number => {
   text = text.toLowerCase();
   if (text === query) return 0;
   if (text.startsWith(query)) return 1;
@@ -99,11 +99,11 @@ function score(query: string, text: string): number {
     at++;
   }
   return 3;
-}
-export function filterSuggestions(
+};
+export const filterSuggestions = (
   items: ComposerSuggestion[],
   trigger: ChatToken,
-): ComposerSuggestion[] {
+): ComposerSuggestion[] => {
   const query = trigger.query.toLowerCase();
   return items
     .filter((item) =>
@@ -124,8 +124,8 @@ export function filterSuggestions(
     .filter((entry) => Number.isFinite(entry.rank))
     .sort((a, b) => a.rank - b.rank || a.index - b.index)
     .map((entry) => entry.item);
-}
-export function trimmedReferences(text: string, references: ChatReference[]) {
+};
+export const trimmedReferences = (text: string, references: ChatReference[]) => {
   const offset = text.length - text.trimStart().length;
   return references
     .map((reference) => ({
@@ -134,4 +134,4 @@ export function trimmedReferences(text: string, references: ChatReference[]) {
       end: reference.end - offset,
     }))
     .filter((ref) => ref.start >= 0 && ref.end <= text.trim().length);
-}
+};

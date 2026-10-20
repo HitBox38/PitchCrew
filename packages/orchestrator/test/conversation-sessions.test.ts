@@ -8,6 +8,18 @@ import type {
 } from '@pitchcrew/core';
 import { afterEach, expect, it } from 'vitest';
 import { prepareSession, finishSession } from '../src/crew/sessions.ts';
+const fixture = () => {
+  const board = new Board(':memory:');
+  boards.push(board);
+  return { board, directory: '/fixture' };
+};
+const checkpoint = (context: ReturnType<typeof fixture>) => {
+  const session = prepareSession(context, role, [], conversation, messages);
+  session.onSession('11111111-1111-4111-8111-111111111111');
+  finishSession(context, session.session, 'reply', false);
+  return session;
+};
+
 const boards: Board[] = [];
 afterEach(() => {
   for (const board of boards.splice(0)) board.close();
@@ -67,17 +79,6 @@ const messages: ChatMessage[] = [
     createdAt: '',
   },
 ];
-function fixture() {
-  const board = new Board(':memory:');
-  boards.push(board);
-  return { board, directory: '/fixture' };
-}
-function checkpoint(context: ReturnType<typeof fixture>) {
-  const session = prepareSession(context, role, [], conversation, messages);
-  session.onSession('11111111-1111-4111-8111-111111111111');
-  finishSession(context, session.session, 'reply', false);
-  return session;
-}
 it('resumes only the matching conversation participant and sends messages after its checkpoint', () => {
   const context = fixture();
   const first = checkpoint(context);

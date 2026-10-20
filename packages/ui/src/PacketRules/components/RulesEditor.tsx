@@ -2,7 +2,7 @@ import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { fileIssues, issueText } from '../helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 
-export function RulesEditor({ controller }: { controller: PacketRulesController }) {
+export const RulesEditor = ({ controller }: { controller: PacketRulesController }) => {
   const { text, setText, dirty, checking, issues } = controller;
   const general = fileIssues(issues);
   const status = checking
@@ -41,4 +41,4 @@ export function RulesEditor({ controller }: { controller: PacketRulesController 
       ) : null}
     </>
   );
-}
+};

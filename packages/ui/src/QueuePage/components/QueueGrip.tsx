@@ -1,7 +1,7 @@
 import { GripVertical, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button/index.tsx';
 
-export function QueueGrip({
+export const QueueGrip = ({
   group,
   id,
   disabled,
@@ -17,7 +17,7 @@ export function QueueGrip({
   last: boolean;
   up: () => void;
   down: () => void;
-}) {
+}) => {
   return (
     <div className="queue-grip">
       <Button
@@ -67,4 +67,4 @@ export function QueueGrip({
       </Button>
     </div>
   );
-}
+};

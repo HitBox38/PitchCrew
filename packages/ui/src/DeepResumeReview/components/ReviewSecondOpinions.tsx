@@ -1,7 +1,7 @@
 import type { ReviewPerspective } from '@pitchcrew/core/deep-review-labels';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-export function ReviewSecondOpinions({
+export const ReviewSecondOpinions = ({
   enabled,
   changeEnabled,
   selected,
@@ -11,7 +11,7 @@ export function ReviewSecondOpinions({
   changeEnabled: (enabled: boolean) => void;
   selected: ReviewPerspective[];
   changeSelected: (selected: ReviewPerspective[]) => void;
-}) {
+}) => {
   return (
     <section className="grid gap-3">
       <label className="flex cursor-pointer items-start gap-3">
@@ -38,4 +38,4 @@ export function ReviewSecondOpinions({
       ) : null}
     </section>
   );
-}
+};

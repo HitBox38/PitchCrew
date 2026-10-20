@@ -5,28 +5,28 @@ import { roleIdSchema, type ChatMessage } from '@pitchcrew/core';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export async function readMessages(
-  this: CrewContext,
+export const readMessages = async (
+  context: CrewContext,
   capability: RunCapability,
-): Promise<Record<string, unknown>> {
-  const run = this.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
+): Promise<Record<string, unknown>> => {
+  const run = context.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
   const threads = [
-    ...new Set(this.board.list<ChatMessage>('message').map((message) => message.threadId)),
-  ].filter((id) => canReadConversation(this, capability.roleId, id));
+    ...new Set(context.board.list<ChatMessage>('message').map((message) => message.threadId)),
+  ].filter((id) => canReadConversation(context, capability.roleId, id));
   return {
     messages: threads
-      .flatMap((id) => conversationMessages(this, id, capability.roleId, run.requestId))
+      .flatMap((id) => conversationMessages(context, id, capability.roleId, run.requestId))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
       .slice(-100),
   };
-}
-export async function queueMessage(
-  this: CrewContext,
+};
+export const queueMessage = async (
+  context: CrewContext,
   capability: RunCapability,
   permissions: AgentCapabilities,
   action: 'message' | 'invoke',
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   if (!permissions[action === 'message' ? 'messageAgents' : 'invokeAgents'])
     throw new Error('This capability is disabled for your role.');
   const input = z
@@ -40,7 +40,7 @@ export async function queueMessage(
   if (input.mode === 'workflow' && !permissions.manageWorkflow)
     throw new Error('Workflow capability is disabled for your role.');
   if (input.conversationId) {
-    const target = conversation(this, input.conversationId);
+    const target = conversation(context, input.conversationId);
     if (
       !target.participants.includes(capability.roleId) ||
       !target.participants.includes(input.roleId) ||
@@ -50,7 +50,7 @@ export async function queueMessage(
       throw new Error('Choose a shared conversation with the same job scope.');
   }
   return {
-    task: this.enqueue(
+    task: context.enqueue(
       capability,
       input.roleId,
       action === 'message' ? 'chat' : input.mode,
@@ -59,13 +59,13 @@ export async function queueMessage(
       input.conversationId,
     ),
   };
-}
+};
 
-export function notifyUser(
-  this: CrewContext,
+export const notifyUser = (
+  context: CrewContext,
   capability: RunCapability,
   data: Record<string, unknown>,
-): Record<string, unknown> {
+): Record<string, unknown> => {
   const input = z
     .object({
       content: z.string().trim().min(1).max(8000),
@@ -74,12 +74,12 @@ export function notifyUser(
     })
     .strict()
     .parse(data);
-  const messages = this.board.list<ChatMessage>('message');
+  const messages = context.board.list<ChatMessage>('message');
   if (messages.filter((m) => m.runId === capability.runId && m.notification).length >= 3)
     throw new Error('Three user notifications maximum per run.');
-  const run = this.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
+  const run = context.board.get<import('@pitchcrew/core').Run>('run', capability.runId);
   return {
-    message: this.addMessage(
+    message: context.addMessage(
       run.threadId ?? capability.roleId,
       capability.roleId,
       'user',
@@ -90,4 +90,4 @@ export function notifyUser(
       input.kind,
     ),
   };
-}
+};

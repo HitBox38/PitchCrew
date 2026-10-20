@@ -2,12 +2,12 @@ import type { Card, ChatMessage, Run, UserInputRequest } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 
 /** Recover user-authored answers directly; never copy agent continuation notes or requests. */
-export function applicationUserAnswers(
+export const applicationUserAnswers = (
   context: CrewContext,
   cardId: string,
   roleId: string,
   purpose: Run['purpose'],
-) {
+) => {
   const requirements =
     context.board.get<Card>('card', cardId).applicationContext?.requirements ?? [];
   return context.board
@@ -50,4 +50,4 @@ export function applicationUserAnswers(
       return [{ questionId: question.id, messageId: message.id, answer }];
     })
     .slice(-40);
-}
+};

@@ -1,7 +1,7 @@
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { TrackingSignal } from '@pitchcrew/core';
 
-export function TrackingSource({ signal }: { signal: TrackingSignal }) {
+export const TrackingSource = ({ signal }: { signal: TrackingSignal }) => {
   return (
     <>
       <blockquote className="my-2 border-l-2 border-border pl-3 whitespace-pre-wrap">
@@ -15,4 +15,4 @@ export function TrackingSource({ signal }: { signal: TrackingSignal }) {
       </AccordionSection>
     </>
   );
-}
+};

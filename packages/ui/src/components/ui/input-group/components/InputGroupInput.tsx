@@ -2,7 +2,7 @@ import type { InputGroupInputProps } from '@/components/ui/input-group/types.ts'
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { cn } from '@/lib/utils.ts';
 
-export function InputGroupInput({ className, ...props }: InputGroupInputProps) {
+export const InputGroupInput = ({ className, ...props }: InputGroupInputProps) => {
   return (
     <Input
       data-slot="input-group-control"
@@ -13,4 +13,4 @@ export function InputGroupInput({ className, ...props }: InputGroupInputProps) {
       {...props}
     />
   );
-}
+};

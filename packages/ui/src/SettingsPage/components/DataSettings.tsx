@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { copyDataDirectory } from '@/lib/data-directory.ts';
 import { Copy, Folder } from 'lucide-react';
 
-export function DataSettings({ directory }: { directory: string }) {
+export const DataSettings = ({ directory }: { directory: string }) => {
   return (
     <section className="settings-section" aria-labelledby="data-heading">
       <h2 id="data-heading">Saved on this device</h2>
@@ -17,4 +17,4 @@ export function DataSettings({ directory }: { directory: string }) {
       <p className="info-note">Keep this folder when moving or backing up your workspace.</p>
     </section>
   );
-}
+};

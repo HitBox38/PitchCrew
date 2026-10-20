@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { SkillImportProps } from '@/SkillsView/components/SkillEditor/types.ts';
 import { BookOpen, LoaderCircle } from 'lucide-react';
 
-export function SkillImport({
+export const SkillImport = ({
   url,
   setUrl,
   loading,
@@ -11,7 +11,7 @@ export function SkillImport({
   loadSkill,
   skill,
   starter,
-}: SkillImportProps) {
+}: SkillImportProps) => {
   return (
     <section className="role-settings-section" aria-labelledby="skill-import-heading">
       <h3 id="skill-import-heading">Import from skills.sh</h3>
@@ -40,4 +40,4 @@ export function SkillImport({
       {starter?.note ? <p className="quiet">{starter.note}</p> : null}
     </section>
   );
-}
+};

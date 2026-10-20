@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input/index.tsx';
 import { ParticipantFields } from './editor/ParticipantFields.tsx';
 import { ConversationEditorActions } from './editor/ConversationEditorActions.tsx';
 import { ConversationSelect } from './ConversationSelect.tsx';
-export function ConversationEditor({
+export const ConversationEditor = ({
   data,
   conversation,
   roleId,
@@ -15,7 +15,7 @@ export function ConversationEditor({
   onThread,
   working,
   jobItems,
-}: ConversationEditorProps) {
+}: ConversationEditorProps) => {
   const {
     current,
     title,
@@ -91,4 +91,4 @@ export function ConversationEditor({
       </form>
     </ChatSidePanel>
   );
-}
+};

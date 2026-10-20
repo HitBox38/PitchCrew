@@ -4,7 +4,7 @@ import { jobNextAction } from '../next-action.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
 
-export function JobActions(model: JobActionsProps) {
+export const JobActions = (model: JobActionsProps) => {
   const next = jobNextAction(model);
   const role = 'roleId' in next ? model.data.roles.find((role) => role.id === next.roleId) : null;
   return (
@@ -42,4 +42,4 @@ export function JobActions(model: JobActionsProps) {
       </Button>
     </JobActionFooter>
   );
-}
+};

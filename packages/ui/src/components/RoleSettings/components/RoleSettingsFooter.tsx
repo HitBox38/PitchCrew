@@ -2,7 +2,12 @@ import type { RoleSettingsFooterProps } from '@/components/RoleSettings/types.ts
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Check, LoaderCircle } from 'lucide-react';
 
-export function RoleSettingsFooter({ creating, error, onClose, working }: RoleSettingsFooterProps) {
+export const RoleSettingsFooter = ({
+  creating,
+  error,
+  onClose,
+  working,
+}: RoleSettingsFooterProps) => {
   return (
     <footer className="role-settings-footer">
       {error ? (
@@ -21,4 +26,4 @@ export function RoleSettingsFooter({ creating, error, onClose, working }: RoleSe
       </div>
     </footer>
   );
-}
+};

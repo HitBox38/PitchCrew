@@ -4,13 +4,13 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { SkillsToolbarProps } from '@/SkillsView/types.ts';
 import { Plus, Search } from 'lucide-react';
 
-export function SkillsToolbar({
+export const SkillsToolbar = ({
   query,
   setQuery,
   setStarter,
   setEditing,
   working,
-}: SkillsToolbarProps) {
+}: SkillsToolbarProps) => {
   return (
     <div className="skills-toolbar">
       <div className="search-input">
@@ -39,4 +39,4 @@ export function SkillsToolbar({
       </WorkspaceHeaderActions>
     </div>
   );
-}
+};

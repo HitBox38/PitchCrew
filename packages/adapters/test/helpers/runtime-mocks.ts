@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'node:url';
 import { vi } from 'vitest';
 
-export async function processMock() {
+export const processMock = async () => {
   const actual =
     await vi.importActual<typeof import('../../src/process.ts')>('../../src/process.ts');
   return {
@@ -21,8 +21,8 @@ export async function processMock() {
       );
     }),
   };
-}
-export async function acpMock() {
+};
+export const acpMock = async () => {
   const actual = await vi.importActual<typeof import('../../src/acp.ts')>('../../src/acp.ts');
   return {
     ...actual,
@@ -43,4 +43,4 @@ export async function acpMock() {
       );
     }),
   };
-}
+};

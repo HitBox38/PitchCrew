@@ -3,7 +3,7 @@ import { Textarea } from '@/components/ui/textarea/index.tsx';
 import { QuestionOptions } from './QuestionOptions.tsx';
 import { useQuestionAnswer } from '../hooks/useQuestionAnswer.ts';
 import type { QuestionFormProps } from '../types.ts';
-export function QuestionAnswerForm(props: QuestionFormProps) {
+export const QuestionAnswerForm = (props: QuestionFormProps) => {
   const { question } = props;
   const form = useQuestionAnswer(props);
   return (
@@ -67,4 +67,4 @@ export function QuestionAnswerForm(props: QuestionFormProps) {
       </div>
     </form>
   );
-}
+};

@@ -1,11 +1,11 @@
 import type { ChatMessage, ChatRequest, Run } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
-export function conversationMessages(
+export const conversationMessages = (
   context: CrewContext,
   threadId: string,
   roleId: string,
   requestId?: string,
-): ChatMessage[] {
+): ChatMessage[] => {
   const requests = context.board.list<ChatRequest>('chat_request');
   const unread = new Set(
     requests
@@ -31,4 +31,4 @@ export function conversationMessages(
         !unreadMessages.has(message.id) &&
         (!message.runId || !unread.has(runs.get(message.runId)?.rootRunId ?? message.runId)),
     );
-}
+};

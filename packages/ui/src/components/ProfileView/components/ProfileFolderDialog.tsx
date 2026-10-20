@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import type { ProfileFolderOperation } from '../types.ts';
 
-export function ProfileFolderDialog({
+export const ProfileFolderDialog = ({
   operation,
   folders,
   working,
@@ -25,7 +25,7 @@ export function ProfileFolderDialog({
   error: string;
   close: () => void;
   submit: (folder: string) => Promise<void>;
-}) {
+}) => {
   const { folder, setFolder, name, setName, validation, create, save } = useProfileFolderDialog(
     operation,
     folders,
@@ -89,4 +89,4 @@ export function ProfileFolderDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

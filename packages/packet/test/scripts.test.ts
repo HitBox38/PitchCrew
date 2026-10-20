@@ -23,23 +23,12 @@ import { documentFontkit } from '../src/documents/fontkit.ts';
 import { readZip } from '../src/documents/zip.ts';
 import { checkLayout, type FontSearch, renderArtifacts, verifiedArtifact } from '../src/index.ts';
 
-// Fictional people and places only. Hebrew reads right to left; `reversed` gives the order its
-// letters appear on the page from left to right.
-const fixtures = fileURLToPath(new URL('./fixtures/fonts/', import.meta.url));
-const collection = join(fixtures, 'NotoSansJP-Subset.ttc');
-const openType = join(fixtures, 'NotoSansCJKjp-Subset.otf');
-const noFonts: FontSearch = async () => [];
-const japaneseFonts: FontSearch = async () => [{ path: collection }];
-const reversed = (text: string) => [...text].reverse().join('');
-const resumePacket = (resume: string): Packet => ({ ...packet, resume });
-const right = 612 - 25.2;
-
-async function renderPdf(markdown: string, fonts: FontSearch = noFonts) {
+const renderPdf = async (markdown: string, fonts: FontSearch = noFonts) => {
   const [pdf] = await renderArtifacts(resumePacket(markdown), ['pdf'], 'formatted', { fonts });
   return verifiedArtifact(pdf);
-}
+};
 
-async function renderDocx(markdown: string) {
+const renderDocx = async (markdown: string) => {
   const [docx] = await renderArtifacts(resumePacket(markdown), ['docx'], 'formatted', {
     fonts: noFonts,
   });
@@ -48,18 +37,11 @@ async function renderDocx(markdown: string) {
       .find((entry) => entry.name === 'word/document.xml')
       ?.data.toString('utf8') ?? ''
   );
-}
-
-interface Line {
-  text: string;
-  left: number;
-  right: number;
-  items: { text: string; x: number; width: number }[];
-}
+};
 
 // Text on the first page by line, left to right. PDF.js reports right-to-left items in logical
 // order, so they are turned back into the order their glyphs were drawn.
-async function visualLines(bytes: Buffer): Promise<Line[]> {
+const visualLines = async (bytes: Buffer): Promise<Line[]> => {
   const task = getDocument({
     data: new Uint8Array(bytes),
     useSystemFonts: false,
@@ -86,9 +68,9 @@ async function visualLines(bytes: Buffer): Promise<Line[]> {
         items,
       };
     });
-}
+};
 
-async function fontNames(bytes: Buffer) {
+const fontNames = async (bytes: Buffer) => {
   const document = await PDFDocument.load(bytes);
   return document.context
     .enumerateIndirectObjects()
@@ -97,10 +79,9 @@ async function fontNames(bytes: Buffer) {
         ? [object.lookup(PDFName.of('BaseFont'), PDFName).decodeText()]
         : [],
     );
-}
+};
 
-const keyName = (key: FontKey) => (typeof key === 'string' ? key : key.name);
-function fontSegments(choice: FontChoice, text: string, style: 'regular' | 'bold' | 'italic') {
+const fontSegments = (choice: FontChoice, text: string, style: 'regular' | 'bold' | 'italic') => {
   const segments: [string, string][] = [];
   [...text].forEach((character, index) => {
     const name = keyName(choice.fonts(text, style)[index]);
@@ -109,7 +90,27 @@ function fontSegments(choice: FontChoice, text: string, style: 'regular' | 'bold
     else segments.push([name, character]);
   });
   return segments;
+};
+
+// Fictional people and places only. Hebrew reads right to left; `reversed` gives the order its
+// letters appear on the page from left to right.
+const fixtures = fileURLToPath(new URL('./fixtures/fonts/', import.meta.url));
+const collection = join(fixtures, 'NotoSansJP-Subset.ttc');
+const openType = join(fixtures, 'NotoSansCJKjp-Subset.otf');
+const noFonts: FontSearch = async () => [];
+const japaneseFonts: FontSearch = async () => [{ path: collection }];
+const reversed = (text: string) => [...text].reverse().join('');
+const resumePacket = (resume: string): Packet => ({ ...packet, resume });
+const right = 612 - 25.2;
+
+interface Line {
+  text: string;
+  left: number;
+  right: number;
+  items: { text: string; x: number; width: number }[];
 }
+
+const keyName = (key: FontKey) => (typeof key === 'string' ? key : key.name);
 
 describe('font fallback', () => {
   it('keeps Latin, digits and punctuation in Liberation Sans and uses bundled fonts for the rest', async () => {
@@ -429,14 +430,7 @@ describe('formatted documents with other scripts', () => {
 });
 
 describe('system font search', () => {
-  const directories: string[] = [];
-  afterAll(async () => {
-    for (const directory of directories) {
-      expect(directory.startsWith(tmpdir())).toBe(true);
-      await rm(directory, { recursive: true, force: true });
-    }
-  });
-  async function folder(...files: string[]) {
+  const folder = async (...files: string[]) => {
     const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-fonts-'));
     directories.push(directory);
     for (const file of files) {
@@ -444,7 +438,15 @@ describe('system font search', () => {
       await copyFile(collection, join(directory, file));
     }
     return directory;
-  }
+  };
+
+  const directories: string[] = [];
+  afterAll(async () => {
+    for (const directory of directories) {
+      expect(directory.startsWith(tmpdir())).toBe(true);
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
 
   it('lists pointed fonts, data folder fonts, then known system fonts', async () => {
     const home = await folder(

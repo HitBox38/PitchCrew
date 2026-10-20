@@ -7,7 +7,7 @@ import { DialogHeader } from '@/components/ui/dialog/components/DialogHeader.tsx
 import { DialogTitle } from '@/components/ui/dialog/components/DialogTitle.tsx';
 import { cn } from '@/lib/utils';
 
-export function CommandDialog({
+export const CommandDialog = ({
   title = 'Command Palette',
   description = 'Search for a command to run...',
   children,
@@ -15,7 +15,7 @@ export function CommandDialog({
   showCloseButton = true,
   commandProps,
   ...props
-}: CommandDialogProps) {
+}: CommandDialogProps) => {
   return (
     <Dialog {...props}>
       <DialogHeader className="primitive:sr-only">
@@ -36,4 +36,4 @@ export function CommandDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

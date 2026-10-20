@@ -2,19 +2,13 @@ import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { SourceDraft } from '../types.ts';
 
-const fields = [
-  { key: 'titleInclude', label: 'Title includes any of', placeholder: 'engineer, developer' },
-  { key: 'titleExclude', label: 'Title excludes', placeholder: 'intern, manager' },
-  { key: 'locationInclude', label: 'Location includes any of', placeholder: 'remote, Lisbon' },
-] as const;
-
-export function SourceFilters({
+export const SourceFilters = ({
   draft,
   update,
 }: {
   draft: SourceDraft;
   update: (patch: Partial<SourceDraft>) => void;
-}) {
+}) => {
   return (
     <fieldset className="grid gap-3.5">
       <legend className="mb-2 font-semibold">Filters</legend>
@@ -50,4 +44,10 @@ export function SourceFilters({
       </label>
     </fieldset>
   );
-}
+};
+
+const fields = [
+  { key: 'titleInclude', label: 'Title includes any of', placeholder: 'engineer, developer' },
+  { key: 'titleExclude', label: 'Title excludes', placeholder: 'intern, manager' },
+  { key: 'locationInclude', label: 'Location includes any of', placeholder: 'remote, Lisbon' },
+] as const;

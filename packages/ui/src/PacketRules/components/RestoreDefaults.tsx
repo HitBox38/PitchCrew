@@ -7,13 +7,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog/index.tsx';
 
-export function RestoreDefaults({
+export const RestoreDefaults = ({
   disabled,
   onConfirm,
 }: {
   disabled: boolean;
   onConfirm: () => void;
-}) {
+}) => {
   const [open, setOpen] = useState(false);
   const cancel = useRef<HTMLButtonElement>(null);
   return (
@@ -46,4 +46,4 @@ export function RestoreDefaults({
       </Dialog>
     </>
   );
-}
+};

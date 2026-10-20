@@ -52,12 +52,16 @@ import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
 import { runtimeRecommendation } from './crew/runtime-recommendations.ts';
 import { SkillUpdates } from './crew/skill-updates.ts';
+export const ensureDirectory = async (directory: string) => {
+  await mkdir(directory, { recursive: true });
+  await access(directory);
+};
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
-  qualityAction(data: unknown) {
+  qualityAction = (data: unknown) => {
     return qualityUserAction(this.context, data);
-  }
+  };
   private readonly context: CrewContext;
   private readonly skillUpdates = new SkillUpdates();
   constructor(
@@ -77,55 +81,55 @@ export class CrewService {
       diagnostics,
     );
   }
-  queue() {
+  queue = () => {
     return workspaceQueue(this.context);
-  }
-  queueBoardAction(data: unknown) {
+  };
+  queueBoardAction = (data: unknown) => {
     return queueBoardAction(this.context, data);
-  }
-  configureQueue(data: unknown) {
+  };
+  configureQueue = (data: unknown) => {
     return configureQueue(this.context, data);
-  }
-  updateQueue(id: string, data: unknown) {
+  };
+  updateQueue = (id: string, data: unknown) => {
     return updateQueue(this.context, id, data);
-  }
-  moveQueueRequest(id: string, beforeId: string | null) {
+  };
+  moveQueueRequest = (id: string, beforeId: string | null) => {
     return moveQueueRequest(this.context, id, beforeId);
-  }
+  };
   get diagnostics() {
     return this.context.diagnostics;
   }
-  answerUserQuestion(id: string, data: unknown) {
+  answerUserQuestion = (id: string, data: unknown) => {
     return answerUserQuestion(this.context, id, data);
-  }
-  cancelUserQuestion(id: string) {
+  };
+  cancelUserQuestion = (id: string) => {
     return cancelUserQuestion(this.context, id);
-  }
-  createConversation(data: unknown) {
+  };
+  createConversation = (data: unknown) => {
     return createConversation(this.context, data);
-  }
-  updateConversation(id: string, data: unknown) {
+  };
+  updateConversation = (id: string, data: unknown) => {
     return updateConversation(this.context, id, data);
-  }
-  deleteConversation(id: string) {
+  };
+  deleteConversation = (id: string) => {
     return deleteConversation(this.context, id);
-  }
-  sendConversation(id: string, data: unknown) {
+  };
+  sendConversation = (id: string, data: unknown) => {
     return sendConversation(this.context, id, data);
-  }
-  updateChatRequest(id: string, data: unknown) {
+  };
+  updateChatRequest = (id: string, data: unknown) => {
     return updateRequest(this.context, id, data);
-  }
-  stopConversation(id: string, roleId?: string) {
+  };
+  stopConversation = (id: string, roleId?: string) => {
     stopConversationWork(this.context, id, roleId);
     return { ok: true };
-  }
-  continueConversation(id: string) {
+  };
+  continueConversation = (id: string) => {
     return continueConversation(this.context, id);
-  }
-  editMemory(id: string, data?: unknown) {
+  };
+  editMemory = (id: string, data?: unknown) => {
     return editMemory(this.context, id, data);
-  }
+  };
   get board() {
     return this.context.board;
   }
@@ -147,27 +151,27 @@ export class CrewService {
   get jobSources() {
     return this.context.jobSources;
   }
-  scanJobSources(input: unknown) {
+  scanJobSources = (input: unknown) => {
     return this.context.jobSources.scan({ actor: 'user', input });
-  }
-  importProfileSource(input: unknown): Promise<ProfileFile[]> {
+  };
+  importProfileSource = (input: unknown): Promise<ProfileFile[]> => {
     assertProfileReady(this.context);
     return changeProfile(this.context, () => this.profileSources.import(input));
-  }
-  unlinkProfileSource(id: string): Promise<void> {
+  };
+  unlinkProfileSource = (id: string): Promise<void> => {
     assertProfileReady(this.context);
     return changeProfile(this.context, () => this.profileSources.unlink(id), true);
-  }
-  watchProfileProject(input: unknown) {
+  };
+  watchProfileProject = (input: unknown) => {
     assertProfileReady(this.context);
     return changeProfile(this.context, () => this.profileSources.watchProject(input));
-  }
-  setProfileSourceWatching(id: string, watching: boolean) {
+  };
+  setProfileSourceWatching = (id: string, watching: boolean) => {
     return changeProfile(this.context, () => this.profileSources.setWatching(id, watching), true);
-  }
-  decideProfileProposal(id: string, input: unknown) {
+  };
+  decideProfileProposal = (id: string, input: unknown) => {
     return decideProfileProposal(this.context, id, input);
-  }
+  };
   get computer() {
     return this.context.computer;
   }
@@ -183,139 +187,139 @@ export class CrewService {
   get runtimes() {
     return this.context.runtimes;
   }
-  chatState(): ChatStreamState {
+  chatState = (): ChatStreamState => {
     return this.context.chatState();
-  }
-  chatUpdate(includeMessages: boolean): ChatStreamUpdate {
+  };
+  chatUpdate = (includeMessages: boolean): ChatStreamUpdate => {
     return this.context.chatUpdate(includeMessages);
-  }
-  subscribeChat(listener: (messagesChanged: boolean) => void): () => void {
+  };
+  subscribeChat = (listener: (messagesChanged: boolean) => void): (() => void) => {
     return this.context.subscribeChat(listener);
-  }
-  initialize(seedSkills?: boolean): Promise<void> {
+  };
+  initialize = (seedSkills?: boolean): Promise<void> => {
     return this.context.initialize(seedSkills);
-  }
-  detect(): Promise<RuntimeInfo[]> {
+  };
+  detect = (): Promise<RuntimeInfo[]> => {
     return this.context.detect();
-  }
-  runtimeModels(id: RuntimeId, refresh?: boolean): Promise<RuntimeModelCatalog> {
+  };
+  runtimeModels = (id: RuntimeId, refresh?: boolean): Promise<RuntimeModelCatalog> => {
     return this.context.runtimeModels(id, refresh);
-  }
-  runtimeRecommendation(id: RoleId) {
+  };
+  runtimeRecommendation = (id: RoleId) => {
     return runtimeRecommendation(this.context, id);
-  }
-  snapshotRevision(): Promise<string> {
+  };
+  snapshotRevision = (): Promise<string> => {
     return snapshotRevision(this.context);
-  }
-  snapshot(options?: { workspace?: boolean }): Promise<Snapshot> {
+  };
+  snapshot = (options?: { workspace?: boolean }): Promise<Snapshot> => {
     return this.context.snapshot(options);
-  }
-  routines() {
-    return routines.call(this.context);
-  }
-  saveRoutine(data: unknown, id?: string) {
-    return saveRoutine.call(this.context, data, id);
-  }
-  deleteRoutine(id: string) {
-    return deleteRoutine.call(this.context, id);
-  }
-  startScheduler(): void {
-    startScheduler.call(this.context);
-  }
-  tickRoutines(now?: Date): Promise<void> {
-    return tickRoutines.call(this.context, now);
-  }
-  skills(roleId?: RoleId): Skill[] {
+  };
+  routines = () => {
+    return routines(this.context);
+  };
+  saveRoutine = (data: unknown, id?: string) => {
+    return saveRoutine(this.context, data, id);
+  };
+  deleteRoutine = (id: string) => {
+    return deleteRoutine(this.context, id);
+  };
+  startScheduler = (): void => {
+    startScheduler(this.context);
+  };
+  tickRoutines = (now?: Date): Promise<void> => {
+    return tickRoutines(this.context, now);
+  };
+  skills = (roleId?: RoleId): Skill[] => {
     return this.context.skills(roleId);
-  }
-  seedStarterSkills(): Promise<Snapshot['starterSkillErrors']> {
+  };
+  seedStarterSkills = (): Promise<Snapshot['starterSkillErrors']> => {
     return this.context.seedStarterSkills();
-  }
-  previewSkill(url: string): Promise<SkillPreview> {
+  };
+  previewSkill = (url: string): Promise<SkillPreview> => {
     return this.context.previewSkill(url);
-  }
-  previewSkillUpdate(id: string) {
+  };
+  previewSkillUpdate = (id: string) => {
     return this.skillUpdates.preview(this.context, id);
-  }
-  checkSkillUpdates(automatic: boolean) {
+  };
+  checkSkillUpdates = (automatic: boolean) => {
     return this.context.skillUpdateChecks.check(this.context, automatic);
-  }
-  configureSkillUpdates(automatic: boolean) {
+  };
+  configureSkillUpdates = (automatic: boolean) => {
     this.context.skillUpdateChecks.setAutomatic(automatic);
     return this.context.skillUpdateChecks.current(this.context);
-  }
-  dismissSkillUpdate(id: string, revision: string) {
+  };
+  dismissSkillUpdate = (id: string, revision: string) => {
     return this.context.skillUpdateChecks.dismiss(this.context, id, revision);
-  }
-  approveSkillUpdate(id: string, previewId: string) {
+  };
+  approveSkillUpdate = (id: string, previewId: string) => {
     return this.skillUpdates.approve(this.context, id, previewId);
-  }
-  saveSkill(data: unknown, id?: string, actor?: 'user' | 'system'): Skill {
+  };
+  saveSkill = (data: unknown, id?: string, actor?: 'user' | 'system'): Skill => {
     return this.context.saveSkill(data, id, actor);
-  }
-  deleteSkill(id: string): { ok: boolean } {
+  };
+  deleteSkill = (id: string): { ok: boolean } => {
     return this.context.deleteSkill(id);
-  }
-  writeRole(role: Role): Promise<void> {
+  };
+  writeRole = (role: Role): Promise<void> => {
     return this.context.writeRole(role);
-  }
-  createRole(data: unknown): Promise<Role> {
+  };
+  createRole = (data: unknown): Promise<Role> => {
     return this.context.createRole(data);
-  }
-  retireRole(id: RoleId): Promise<Role> {
+  };
+  retireRole = (id: RoleId): Promise<Role> => {
     return this.context.retireRole(id);
-  }
-  restoreRole(id: RoleId): Promise<Role> {
+  };
+  restoreRole = (id: RoleId): Promise<Role> => {
     return this.context.restoreRole(id);
-  }
-  configureRole(id: RoleId, data: unknown): Promise<Role> {
+  };
+  configureRole = (id: RoleId, data: unknown): Promise<Role> => {
     return configureReviewedRole(this.context, id, data);
-  }
+  };
   /** User-only: replace a default role's instructions with the reviewed new default. */
-  adoptDefaultInstructions(id: RoleId, data: unknown): Promise<Role> {
+  adoptDefaultInstructions = (id: RoleId, data: unknown): Promise<Role> => {
     return adoptDefaultInstructions(this.context, id, data);
-  }
+  };
   /** User-only: keep the current instructions and hide this default revision. */
-  dismissInstructionUpdate(id: RoleId, data: unknown) {
+  dismissInstructionUpdate = (id: RoleId, data: unknown) => {
     return dismissInstructionUpdate(this.context, id, data);
-  }
-  createCard(data: unknown): Card {
+  };
+  createCard = (data: unknown): Card => {
     return this.context.createCard(data);
-  }
-  moveCard(id: string, state: CardState): Card {
+  };
+  moveCard = (id: string, state: CardState): Card => {
     return this.context.moveCard(id, state);
-  }
-  saveProfile(name: string, content: string): Promise<ProfileFile[]> {
+  };
+  saveProfile = (name: string, content: string): Promise<ProfileFile[]> => {
     return this.context.saveProfile(name, content);
-  }
-  loadExamples(): Promise<void> {
+  };
+  loadExamples = (): Promise<void> => {
     return this.context.loadExamples();
-  }
-  startDeepReview(cardId: string, input: unknown = {}) {
+  };
+  startDeepReview = (cardId: string, input: unknown = {}) => {
     return startDeepReview(this.context, cardId, input);
-  }
-  startRun(cardId: string, roleId: RoleId, task?: AgentTask): Promise<Run> {
+  };
+  startRun = (cardId: string, roleId: RoleId, task?: AgentTask): Promise<Run> => {
     return this.context.startRun(cardId, roleId, task);
-  }
-  extractApplicationContext(cardId: string, roleId: RoleId): Promise<Run> {
+  };
+  extractApplicationContext = (cardId: string, roleId: RoleId): Promise<Run> => {
     return extractApplicationContext(this.context, cardId, roleId);
-  }
-  startApplicationDraft(cardId: string, roleId: RoleId): Promise<Run> {
+  };
+  startApplicationDraft = (cardId: string, roleId: RoleId): Promise<Run> => {
     return this.context.startRun(cardId, roleId, undefined, undefined, true);
-  }
-  applyResult(
+  };
+  applyResult = (
     cardId: string,
     role: Role,
     data: unknown,
     profile?: ProfileFile[],
     signal?: AbortSignal,
-  ): Promise<void> {
+  ): Promise<void> => {
     return this.context.applyResult(cardId, role, data, profile, signal);
-  }
-  cancelRun(id: string): void {
+  };
+  cancelRun = (id: string): void => {
     return this.context.cancelRun(id);
-  }
-  addMessage(
+  };
+  addMessage = (
     threadId: ChatMessage['threadId'],
     from: ChatMessage['from'],
     to: ChatMessage['to'],
@@ -323,36 +327,32 @@ export class CrewService {
     cardId: string | null,
     runId: string | null,
     id?: string,
-  ): ChatMessage {
+  ): ChatMessage => {
     return this.context.addMessage(threadId, from, to, content, cardId, runId, id);
-  }
-  sendChat(roleId: RoleId, data: unknown): Promise<Run> {
+  };
+  sendChat = (roleId: RoleId, data: unknown): Promise<Run> => {
     return this.context.sendChat(roleId, data);
-  }
-  updatePipelineReview(input: unknown) {
+  };
+  updatePipelineReview = (input: unknown) => {
     return updatePipelineReview(this.context, input, 'user');
-  }
-  decideProposal(id: string, approved: boolean): Promise<RoleProposal> {
+  };
+  decideProposal = (id: string, approved: boolean): Promise<RoleProposal> => {
     return this.context.decideProposal(id, approved);
-  }
-  decideSkillProposal(id: string, approved: boolean): SkillProposal {
+  };
+  decideSkillProposal = (id: string, approved: boolean): SkillProposal => {
     return this.context.decideSkillProposal(id, approved);
-  }
-  exportPacket(id: string): Promise<string> {
+  };
+  exportPacket = (id: string): Promise<string> => {
     return this.context.exportPacket(id);
-  }
-  agentCall(
+  };
+  agentCall = (
     token: string,
     action: string,
     data: Record<string, unknown>,
-  ): Promise<Record<string, unknown>> {
+  ): Promise<Record<string, unknown>> => {
     return this.context.agentCall(token, action, data);
-  }
-  close(): Promise<void> {
+  };
+  close = (): Promise<void> => {
     return this.context.close();
-  }
-}
-export async function ensureDirectory(directory: string) {
-  await mkdir(directory, { recursive: true });
-  await access(directory);
+  };
 }

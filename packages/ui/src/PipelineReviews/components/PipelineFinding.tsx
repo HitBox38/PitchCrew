@@ -4,7 +4,7 @@ import type { Action } from '@/WorkspaceStore/index.ts';
 import { ReviewEvidence } from './ReviewEvidence.tsx';
 import { FollowupForm } from './FollowupForm.tsx';
 
-export function PipelineFinding({
+export const PipelineFinding = ({
   finding,
   review,
   name,
@@ -16,7 +16,7 @@ export function PipelineFinding({
   name: (id: RoleId) => string;
   working: boolean;
   action: Action;
-}) {
+}) => {
   const followup = review.followups.find((item) => item.findingId === finding.id);
   return (
     <section className="space-y-3 border-t border-border py-3">
@@ -54,4 +54,4 @@ export function PipelineFinding({
       </AccordionSection>
     </section>
   );
-}
+};

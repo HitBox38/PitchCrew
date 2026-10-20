@@ -1,32 +1,31 @@
-import { useState } from 'react';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { SourceIntent, SourceProvider } from '../types.ts';
 
-export function useSourceSetup() {
-  const [adding, setAdding] = useState(false);
-  const [provider, setProvider] = useState<SourceProvider | null>(null);
-  const [intent, setIntent] = useState<SourceIntent | null>(null);
-  const [repository, setRepository] = useState('');
-  const [path, setPath] = useState('about-me');
-  const [branch, setBranch] = useState('');
-  const [folder, setFolder] = useState('');
-  function chooseProvider(provider: SourceProvider) {
-    setProvider(provider);
-    setIntent(provider === 'drive' ? 'notes' : null);
-    setAdding(true);
-  }
-  function chooseIntent(intent: SourceIntent) {
-    setIntent(intent);
-    setPath(intent === 'project' ? '' : 'about-me');
-  }
-  function startAdd(provider?: SourceProvider) {
-    setRepository('');
-    setPath('about-me');
-    setBranch('');
-    setFolder('');
-    setProvider(provider ?? null);
-    setIntent(provider === 'drive' ? 'notes' : null);
-    setAdding(true);
-  }
+export const useSourceSetup = () => {
+  const chooseProvider = (provider: SourceProvider) =>
+    update({ provider, intent: provider === 'drive' ? 'notes' : null, adding: true });
+  const chooseIntent = (intent: SourceIntent) =>
+    update({ intent, path: intent === 'project' ? '' : 'about-me' });
+  const startAdd = (provider?: SourceProvider) =>
+    update({
+      repository: '',
+      path: 'about-me',
+      branch: '',
+      folder: '',
+      provider: provider ?? null,
+      intent: provider === 'drive' ? 'notes' : null,
+      adding: true,
+    });
+
+  const { adding, provider, intent, repository, path, branch, folder } = useWorkspaceStore(
+    (state) => state.profileSources,
+  );
+  const update = useWorkspaceStore((state) => state.updateProfileSources);
+  const setAdding = (adding: boolean) => update({ adding });
+  const setRepository = (repository: string) => update({ repository });
+  const setPath = (path: string) => update({ path });
+  const setBranch = (branch: string) => update({ branch });
+  const setFolder = (folder: string) => update({ folder });
   return {
     adding,
     setAdding,
@@ -44,4 +43,4 @@ export function useSourceSetup() {
     chooseIntent,
     startAdd,
   };
-}
+};

@@ -12,12 +12,12 @@ import {
 import { requireRole } from '../roles.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export async function conversationAction(
+export const conversationAction = async (
   context: CrewContext,
   capability: RunCapability,
   action: string,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   const role = requireRole(context, capability.roleId);
   const permissions = role.capabilities ?? defaultCapabilities;
   if (action === 'conversations')
@@ -91,13 +91,13 @@ export async function conversationAction(
       role.id,
     ),
   };
-}
-export function memoryAction(
+};
+export const memoryAction = (
   context: CrewContext,
   capability: RunCapability,
   action: string,
   data: Record<string, unknown>,
-): Record<string, unknown> {
+): Record<string, unknown> => {
   if (action === 'recall_memory') {
     const { query } = z.object({ query: z.string().max(200).default('') }).parse(data);
     const words = query.toLowerCase().split(/\s+/).filter(Boolean);
@@ -141,8 +141,8 @@ export function memoryAction(
   };
   context.board.record('agent_memory', memory, capability.roleId, 'Saved source-backed memory');
   return { memory };
-}
-export function editMemory(context: CrewContext, id: string, data?: unknown): AgentMemory {
+};
+export const editMemory = (context: CrewContext, id: string, data?: unknown): AgentMemory => {
   const current = context.board.get<AgentMemory>('agent_memory', id);
   const memory = {
     ...current,
@@ -156,4 +156,4 @@ export function editMemory(context: CrewContext, id: string, data?: unknown): Ag
     data === undefined ? 'Deleted memory' : 'Edited memory',
   );
   return memory;
-}
+};

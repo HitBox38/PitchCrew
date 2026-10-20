@@ -23,7 +23,7 @@ beforeAll(async () => {
     plugins: [
       {
         name: 'profile-import-fixture',
-        configureServer(vite) {
+        configureServer: (vite) => {
           vite.middlewares.use('/__profile-import', async (_request, response) => {
             response.setHeader('Content-Type', 'text/html');
             response.end(
@@ -145,7 +145,7 @@ test('phone layout keeps search and actions visible while only the list scrolls'
   ).toBe(true);
 });
 
-test('removed-only and unchanged reviews have no importable documents, and busy review cannot close', async () => {
+test('removed-only and unchanged reviews have no importable documents, and busy review can close', async () => {
   for (const mode of ['removed', 'unchanged']) {
     await page.goto(`${origin}/__profile-import?mode=${mode}`);
     const button = page.getByRole('button', { name: 'Import 0 documents', exact: true });
@@ -164,7 +164,6 @@ test('removed-only and unchanged reviews have no importable documents, and busy 
     true,
   );
   await page.getByRole('button', { name: 'Close dialog' }).click();
-  await page.keyboard.press('Escape');
-  expect(await page.getByRole('dialog').isVisible()).toBe(true);
+  await expect.poll(() => page.getByRole('dialog').count()).toBe(0);
   expect(errors).toEqual([]);
 });

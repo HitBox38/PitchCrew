@@ -2,7 +2,7 @@ import { InstructionUpdate } from '@/components/InstructionUpdate/index.tsx';
 import type { RoleSettingsModel } from '@/components/RoleSettings/types.ts';
 import { instructionUpdateFor } from '@/lib/instruction-updates.ts';
 
-export function RoleInstructionUpdate({
+export const RoleInstructionUpdate = ({
   creating,
   role,
   data,
@@ -12,7 +12,7 @@ export function RoleInstructionUpdate({
   setInstructions,
   setDefaultInstructionRevision,
   reviewInstructions,
-}: RoleSettingsModel) {
+}: RoleSettingsModel) => {
   const update = creating ? undefined : instructionUpdateFor(data, role.id);
   if (!update || role.retiredAt) return null;
   return (
@@ -28,4 +28,4 @@ export function RoleInstructionUpdate({
       setDefaultInstructionRevision={setDefaultInstructionRevision}
     />
   );
-}
+};

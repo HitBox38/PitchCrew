@@ -7,17 +7,7 @@ import type { CrewContext, RunCapability } from '../../crew/types.ts';
 import { beginMcpToolCall } from '../mcp.ts';
 import { defaultCapabilities, sanitizeMcpToolCall } from '@pitchcrew/core';
 
-const resources: { context: CrewContext; directory: string }[] = [];
-afterEach(async () => {
-  vi.restoreAllMocks();
-  for (const { context, directory } of resources.splice(0)) {
-    context.controllers.clear();
-    await context.close();
-    await rm(directory, { recursive: true, force: true });
-  }
-});
-
-async function fixture() {
+const fixture = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-mcp-telemetry-'));
   const record = vi.fn();
   const context = createCrewContext(directory, 'http://127.0.0.1:4417', '', true, undefined, {
@@ -29,7 +19,17 @@ async function fixture() {
   context.capabilities.set('private-token', capability);
   context.controllers.set(capability.runId, new AbortController());
   return { context, record, capability };
-}
+};
+
+const resources: { context: CrewContext; directory: string }[] = [];
+afterEach(async () => {
+  vi.restoreAllMocks();
+  for (const { context, directory } of resources.splice(0)) {
+    context.controllers.clear();
+    await context.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 describe('MCP gateway observations', () => {
   it('measures actual calls, returns original results and never captures supplied private content', async () => {

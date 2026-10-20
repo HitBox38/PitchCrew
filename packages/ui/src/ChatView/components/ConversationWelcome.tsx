@@ -5,14 +5,14 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion/index.tsx';
 import { ArrowRight, Users } from 'lucide-react';
 
-export function ConversationWelcome({
+export const ConversationWelcome = ({
   roleId,
   role,
   applyStarter,
   attached,
   conversation,
   readOnly,
-}: ConversationWelcomeProps) {
+}: ConversationWelcomeProps) => {
   const group = (conversation?.participants.length ?? 1) > 1;
   return (
     <ConversationEmptyState className="chat-empty">
@@ -76,4 +76,4 @@ export function ConversationWelcome({
       ) : null}
     </ConversationEmptyState>
   );
-}
+};

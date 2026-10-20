@@ -1,7 +1,7 @@
 import type { RuntimeId, RuntimeInfo } from '@pitchcrew/core';
 
 // Stored roles can outlive a runtime entry (notably Demo in production).
-export function resolveRuntime(runtimes: readonly RuntimeInfo[], id: RuntimeId): RuntimeInfo {
+export const resolveRuntime = (runtimes: readonly RuntimeInfo[], id: RuntimeId): RuntimeInfo => {
   return (
     runtimes.find((runtime) => runtime.id === id) ?? {
       id,
@@ -16,4 +16,4 @@ export function resolveRuntime(runtimes: readonly RuntimeInfo[], id: RuntimeId):
           : 'This runtime is not available in this workspace. Choose another runtime.',
     }
   );
-}
+};

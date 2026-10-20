@@ -1,12 +1,12 @@
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { GoogleCredentialsProps } from '@/ConnectorSettings/types.ts';
 
-export function GoogleCredentials({
+export const GoogleCredentials = ({
   clientId,
   setClientId,
   clientSecret,
   setClientSecret,
-}: GoogleCredentialsProps) {
+}: GoogleCredentialsProps) => {
   return (
     <>
       <label>
@@ -32,4 +32,4 @@ export function GoogleCredentials({
       </label>
     </>
   );
-}
+};

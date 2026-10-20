@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { loadReview, loadReviews } from '../api.ts';
 import type { ReviewDetail, ReviewList } from '../types.ts';
-export function useDeepReviews(cardId: string, revision: string) {
+export const useDeepReviews = (cardId: string, revision: string) => {
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const [childPage, setChildPage] = useState(0);
@@ -54,4 +54,4 @@ export function useDeepReviews(cardId: string, revision: string) {
     },
     changeChildPage: setChildPage,
   };
-}
+};

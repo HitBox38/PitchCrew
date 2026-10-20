@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { CrewContext } from '../crew/types.ts';
 import { changeProfile } from './mutation.ts';
 
-export async function decideProfileProposal(context: CrewContext, id: string, data: unknown) {
+export const decideProfileProposal = async (context: CrewContext, id: string, data: unknown) => {
   const input = z
     .object({
       approved: z.boolean(),
@@ -86,4 +86,4 @@ export async function decideProfileProposal(context: CrewContext, id: string, da
     context.board.record('profile_proposal', applied, 'user', 'Applied approved profile snapshot');
     return applied;
   });
-}
+};

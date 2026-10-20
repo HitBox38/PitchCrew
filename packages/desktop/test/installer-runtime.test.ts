@@ -6,17 +6,17 @@ import {
 import { lstat, mkdir, mkdtemp, readFile, rm, symlink, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
-
-const directories: string[] = [];
-async function workspace() {
+const workspace = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-installer-'));
   directories.push(directory);
   return directory;
-}
-async function packageAt(path: string, name: string, extra: Record<string, unknown> = {}) {
+};
+const packageAt = async (path: string, name: string, extra: Record<string, unknown> = {}) => {
   await mkdir(path, { recursive: true });
   await writeFile(join(path, 'package.json'), JSON.stringify({ name, version: '1.0.0', ...extra }));
-}
+};
+
+const directories: string[] = [];
 afterEach(async () => {
   for (const directory of directories.splice(0)) {
     if (

@@ -8,7 +8,7 @@ import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.ts
 import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
 import { BriefcaseBusiness, Check } from 'lucide-react';
 
-export function ComposerJobPicker({
+export const ComposerJobPicker = ({
   jobItems,
   cardId,
   working,
@@ -16,7 +16,10 @@ export function ComposerJobPicker({
   patchConversation,
   onClose,
   returnFocus,
-}: ChatComposerProps & { onClose: () => void; returnFocus: RefObject<HTMLButtonElement | null> }) {
+}: ChatComposerProps & {
+  onClose: () => void;
+  returnFocus: RefObject<HTMLButtonElement | null>;
+}) => {
   const search = useRef<HTMLInputElement>(null);
   return (
     <Modal
@@ -70,4 +73,4 @@ export function ComposerJobPicker({
       ) : null}
     </Modal>
   );
-}
+};

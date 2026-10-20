@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-export function useElapsed(active: boolean) {
+export const useElapsed = (active: boolean) => {
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     if (!active) return;
@@ -7,4 +7,4 @@ export function useElapsed(active: boolean) {
     return () => clearInterval(timer);
   }, [active]);
   return now;
-}
+};

@@ -3,17 +3,8 @@ import { useNavigate } from '@tanstack/react-router';
 import type { CareerPlan, Conversation } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function useCareerPlans() {
-  const plans = useWorkspaceStore((s) => s.data?.quality?.careerPlans ?? []);
-  const roles = useWorkspaceStore((s) => s.data?.roles ?? []);
-  const action = useWorkspaceStore((s) => s.action);
-  const working = useWorkspaceStore((s) => s.working);
-  const navigate = useNavigate();
-  const [creating, setCreating] = useState(false);
-  const change = (data: Record<string, unknown>) =>
-    action('/quality', 'POST', data, 'Career plan updated');
-  const coach = roles.find((r) => r.id === 'career-coach' && !r.retiredAt);
-  async function discuss(plan: CareerPlan) {
+export const useCareerPlans = () => {
+  const discuss = async (plan: CareerPlan) => {
     const thread = (await action('/conversations', 'POST', {
       title: `Career plan: ${plan.name}`.slice(0, 120),
       participants: [coach!.id],
@@ -23,6 +14,16 @@ export function useCareerPlans() {
       intent: 'queue',
     });
     await navigate({ to: '/chat/$thread', params: { thread: thread.id } });
-  }
+  };
+
+  const plans = useWorkspaceStore((s) => s.data?.quality?.careerPlans ?? []);
+  const roles = useWorkspaceStore((s) => s.data?.roles ?? []);
+  const action = useWorkspaceStore((s) => s.action);
+  const working = useWorkspaceStore((s) => s.working);
+  const navigate = useNavigate();
+  const [creating, setCreating] = useState(false);
+  const change = (data: Record<string, unknown>) =>
+    action('/quality', 'POST', data, 'Career plan updated');
+  const coach = roles.find((r) => r.id === 'career-coach' && !r.retiredAt);
   return { plans, coach, working, creating, setCreating, change, discuss };
-}
+};

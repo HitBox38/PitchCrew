@@ -31,16 +31,16 @@ export class OnboardingPreferences {
     }
   }
 
-  get(): OnboardingState {
+  get = (): OnboardingState => {
     return { ...this.state };
-  }
+  };
 
-  save(input: unknown): OnboardingState {
+  save = (input: unknown): OnboardingState => {
     const state = stateSchema.parse(input);
     const temporary = `${this.path}.tmp`;
     writeFileSync(temporary, `${JSON.stringify(state)}\n`, { mode: 0o600 });
     renameSync(temporary, this.path);
     this.state = state;
     return this.get();
-  }
+  };
 }

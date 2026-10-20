@@ -2,13 +2,13 @@ import { useState, type KeyboardEvent, type RefObject } from 'react';
 import type { visibleProfileTree } from '../tree.ts';
 
 type Row = ReturnType<typeof visibleProfileTree>[number];
-export function useProfileTreeKeyboard(
+export const useProfileTreeKeyboard = (
   tree: RefObject<HTMLDivElement | null>,
   rows: Row[],
   collapsed: Set<string>,
   toggle: (path: string) => void,
   searching: boolean,
-) {
+) => {
   const [focused, setFocused] = useState('folder:');
   const focusKey = rows.some(({ node }) => node.key === focused) ? focused : rows[0]?.node.key;
   const focus = (key: string) => {
@@ -48,4 +48,4 @@ export function useProfileTreeKeyboard(
     event.preventDefault();
   };
   return { focusKey, setFocused, keyDown };
-}
+};

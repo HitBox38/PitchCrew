@@ -3,7 +3,7 @@ import type { CrewContext } from '../crew/types.ts';
 import { writingGuide } from './writing.ts';
 import { planRevision } from './plans.ts';
 
-export function qualitySnapshot(context: CrewContext, profile: ProfileFile[]): QualitySnapshot {
+export const qualitySnapshot = (context: CrewContext, profile: ProfileFile[]): QualitySnapshot => {
   return {
     writingGuide: writingGuide(context),
     writingCorrections: (
@@ -21,4 +21,4 @@ export function qualitySnapshot(context: CrewContext, profile: ProfileFile[]): Q
         stale: !plan.sourceRevision || planRevision(context, plan, profile) !== plan.sourceRevision,
       })),
   };
-}
+};

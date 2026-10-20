@@ -2,9 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { createStartupTracker } from '../tracker.ts';
 import { sanitizeEvent } from '../../helpers.ts';
 import { createAnalytics } from '../../client.ts';
-
-const timing = { duration_ms: 6000, daemon_ready_ms: 4000 };
-function fixture() {
+const fixture = () => {
   let allowed = true;
   let enabled = false;
   const read = vi.fn(async (): Promise<unknown> => timing);
@@ -26,7 +24,9 @@ function fixture() {
       enabled = true;
     },
   };
-}
+};
+
+const timing = { duration_ms: 6000, daemon_ready_ms: 4000 };
 
 it('freezes readiness before SDK initialization and captures once across repeat commits and flushes', async () => {
   const f = fixture();

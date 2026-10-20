@@ -7,13 +7,13 @@ interface ObservationRelayOptions {
 }
 
 /** Starts at the live cursor; opting back in never uploads a disabled period's backlog. */
-export function createObservationRelay({ allowed, read, capture }: ObservationRelayOptions) {
+export const createObservationRelay = ({ allowed, read, capture }: ObservationRelayOptions) => {
   let generation = 0;
   let streamId: string | undefined;
   let cursor: number | undefined;
   let pending = false;
   return {
-    async poll() {
+    poll: async () => {
       if (pending || !allowed()) return;
       pending = true;
       const turn = generation;
@@ -60,10 +60,10 @@ export function createObservationRelay({ allowed, read, capture }: ObservationRe
         pending = false;
       }
     },
-    reset() {
+    reset: () => {
       generation++;
       streamId = undefined;
       cursor = undefined;
     },
   };
-}
+};

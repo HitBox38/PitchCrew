@@ -4,7 +4,7 @@ import type { SkillPreviewProps } from '@/SkillsView/types.ts';
 import { SkillUpdate } from './SkillUpdate/index.tsx';
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 
-export function SkillDocumentHeading(c: SkillPreviewProps) {
+export const SkillDocumentHeading = (c: SkillPreviewProps) => {
   const skill = c.selected;
   if (!skill) return null;
   return (
@@ -55,4 +55,4 @@ export function SkillDocumentHeading(c: SkillPreviewProps) {
       </div>
     </header>
   );
-}
+};

@@ -8,7 +8,7 @@ import '@fontsource/source-sans-3/latin-400.css';
 import '@fontsource/source-sans-3/latin-600.css';
 import '@/styles.css';
 
-function file(name: string, status: ProfileImportFile['status']): ProfileImportFile {
+const file = (name: string, status: ProfileImportFile['status']): ProfileImportFile => {
   return {
     key: name,
     name,
@@ -24,7 +24,40 @@ function file(name: string, status: ProfileImportFile['status']): ProfileImportF
     content:
       '# Experience\n\nBuilt an accessible scheduling tool for eight teams.\n\n<script>window.injection = true</script>',
   };
-}
+};
+
+const Fixture = () => {
+  const [preview, setPreview] = useState<ProfileSourcePreview | null>(initial);
+  const [selected, setSelected] = useState(
+    initial.files.filter((f) => f.status === 'new' || f.status === 'changed').map((f) => f.name),
+  );
+  const [result, setResult] = useState('');
+  return (
+    <AppMotion>
+      <output aria-label="Imported names">{result}</output>
+      <ImportReview
+        preview={preview}
+        setPreview={setPreview}
+        closeReview={() => setPreview(null)}
+        selected={selected}
+        setSelected={setSelected}
+        toggle={(name) =>
+          setSelected((current) =>
+            current.includes(name) ? current.filter((n) => n !== name) : [...current, name],
+          )
+        }
+        progress={mode === 'busy' ? { label: 'Importing documents…' } : null}
+        busy={mode === 'busy'}
+        error=""
+        importSelected={() => {
+          setResult(JSON.stringify(selected));
+          setPreview(null);
+        }}
+      />
+    </AppMotion>
+  );
+};
+
 const files = [
   file('edited.md', 'conflict'),
   file('updated.md', 'changed'),
@@ -46,34 +79,4 @@ const initial: ProfileSourcePreview = {
   files: mode === 'removed' ? [] : mode === 'unchanged' ? [file('same.md', 'unchanged')] : files,
   missing: mode === 'unchanged' ? [] : ['Experience/retired.md'],
 };
-function Fixture() {
-  const [preview, setPreview] = useState<ProfileSourcePreview | null>(initial);
-  const [selected, setSelected] = useState(
-    initial.files.filter((f) => f.status === 'new' || f.status === 'changed').map((f) => f.name),
-  );
-  const [result, setResult] = useState('');
-  return (
-    <AppMotion>
-      <output aria-label="Imported names">{result}</output>
-      <ImportReview
-        preview={preview}
-        setPreview={setPreview}
-        selected={selected}
-        setSelected={setSelected}
-        toggle={(name) =>
-          setSelected((current) =>
-            current.includes(name) ? current.filter((n) => n !== name) : [...current, name],
-          )
-        }
-        progress={mode === 'busy' ? { label: 'Importing documents…' } : null}
-        busy={mode === 'busy'}
-        error=""
-        importSelected={() => {
-          setResult(JSON.stringify(selected));
-          setPreview(null);
-        }}
-      />
-    </AppMotion>
-  );
-}
 createRoot(document.getElementById('root')!).render(<Fixture />);

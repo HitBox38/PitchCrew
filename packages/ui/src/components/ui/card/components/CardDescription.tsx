@@ -1,7 +1,7 @@
 import type { CardDescriptionProps } from '@/components/ui/card/types.ts';
 import { cn } from '@/lib/utils';
 
-export function CardDescription({ className, ...props }: CardDescriptionProps) {
+export const CardDescription = ({ className, ...props }: CardDescriptionProps) => {
   return (
     <div
       data-slot="card-description"
@@ -9,4 +9,4 @@ export function CardDescription({ className, ...props }: CardDescriptionProps) {
       {...props}
     />
   );
-}
+};

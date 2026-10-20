@@ -1,6 +1,6 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function useManualUpdateCheck() {
+export const useManualUpdateCheck = () => {
   const check = useWorkspaceStore((state) => state.checkAppUpdate);
   return async () => {
     await check();
@@ -15,4 +15,4 @@ export function useManualUpdateCheck() {
           : 'info',
       );
   };
-}
+};

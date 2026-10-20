@@ -6,7 +6,7 @@ import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuI
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
 import { SidebarMenuBadge } from '@/components/ui/sidebar/components/SidebarMenuBadge.tsx';
 
-export function WorkspaceNavLink({
+export const WorkspaceNavLink = ({
   id,
   view,
   count,
@@ -14,7 +14,7 @@ export function WorkspaceNavLink({
   id: (typeof workspaceViews)[number];
   view?: View;
   count: number;
-}) {
+}) => {
   const Icon = viewIcons[id];
   const updates = id === 'crew' || id === 'skills';
   const label = count
@@ -42,4 +42,4 @@ export function WorkspaceNavLink({
       ) : null}
     </SidebarMenuItem>
   );
-}
+};

@@ -9,11 +9,8 @@ import {
 import { servicePath } from './environment.ts';
 import type { Inspection, PlatformDriver, ServiceHost, ServiceSpec } from './types.ts';
 
-export const systemdUnitPath = (spec: ServiceSpec) =>
-  posix.join(spec.configHome, 'systemd', 'user', systemdUnit);
-
 /** A systemd user unit; it starts with the user's session and restarts after a failure. */
-export function renderSystemdUnit(spec: ServiceSpec) {
+export const renderSystemdUnit = (spec: ServiceSpec) => {
   const command = [spec.node, ...daemonArguments(spec)].map(quoteSystemdArgument).join(' ');
   return `# Created by pnpm service install. Remove it with pnpm service uninstall.
 [Unit]
@@ -32,10 +29,10 @@ TimeoutStopSec=30
 [Install]
 WantedBy=default.target
 `;
-}
+};
 
 /** Reads `systemctl --user show` key=value output. */
-export function parseSystemctlShow(output: string) {
+export const parseSystemctlShow = (output: string) => {
   const values = Object.fromEntries(
     output
       .split(/\r?\n/)
@@ -50,14 +47,14 @@ export function parseSystemctlShow(output: string) {
     enabled: values.UnitFileState === 'enabled',
     pid: Number.isInteger(pid) && pid > 0 ? pid : null,
   };
-}
+};
 
-export function readExecStart(unit: string) {
+export const readExecStart = (unit: string) => {
   const line = unit.split(/\r?\n/).find((entry) => entry.startsWith('ExecStart='));
   return line ? parseSystemdArguments(line.slice('ExecStart='.length)).slice(1) : null;
-}
+};
 
-export function linuxDriver(spec: ServiceSpec, host: ServiceHost): PlatformDriver {
+export const linuxDriver = (spec: ServiceSpec, host: ServiceHost): PlatformDriver => {
   const file = systemdUnitPath(spec);
   const systemctl = (...args: string[]) => host.run('systemctl', ['--user', ...args]);
   const required = async (...args: string[]) => {
@@ -71,7 +68,7 @@ export function linuxDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
     file,
     definition: file,
     render: () => renderSystemdUnit(spec),
-    async inspect(): Promise<Inspection> {
+    inspect: async (): Promise<Inspection> => {
       const unit = await host.readFile(file);
       const show = await systemctl(
         'show',
@@ -92,13 +89,13 @@ export function linuxDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
         detail,
       };
     },
-    async register(changed, before) {
+    register: async (changed, before) => {
       await required('daemon-reload');
       await required('enable', '--now', systemdUnit);
       // enable --now leaves a running daemon alone, so apply a changed definition explicitly.
       if (changed && before.running) await required('restart', systemdUnit);
     },
-    async unregister(before) {
+    unregister: async (before) => {
       if (before.installed || before.running) await required('disable', '--now', systemdUnit);
       await host.remove(file);
       await systemctl('daemon-reload');
@@ -107,4 +104,7 @@ export function linuxDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
     start: () => required('start', systemdUnit),
     stop: () => required('stop', systemdUnit),
   };
-}
+};
+
+export const systemdUnitPath = (spec: ServiceSpec) =>
+  posix.join(spec.configHome, 'systemd', 'user', systemdUnit);

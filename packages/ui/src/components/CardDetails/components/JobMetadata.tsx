@@ -2,10 +2,7 @@ import type { JobMetadataProps } from '@/components/CardDetails/types.ts';
 import { jobProviderLabels } from '@/lib/labels.ts';
 import { ExternalLink, MapPin, Radar } from 'lucide-react';
 
-/** Matches `jobLinkSourceId` in core: the card was fetched from a pasted posting link. */
-const linkSourceId = 'link';
-
-export function JobMetadata({ card }: JobMetadataProps) {
+export const JobMetadata = ({ card }: JobMetadataProps) => {
   return (
     <div className="detail-meta">
       <span>
@@ -29,4 +26,7 @@ export function JobMetadata({ card }: JobMetadataProps) {
       ) : null}
     </div>
   );
-}
+};
+
+/** Matches `jobLinkSourceId` in core: the card was fetched from a pasted posting link. */
+const linkSourceId = 'link';

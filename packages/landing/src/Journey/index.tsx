@@ -6,7 +6,7 @@ import { JourneyPanel } from './components/JourneyPanel';
 import { stages } from './constants';
 import { useJourney } from './hooks/useJourney';
 
-export function Journey() {
+export const Journey = () => {
   const { stage, selectStage, advance, changed } = useJourney();
   return (
     <Tabs
@@ -21,4 +21,4 @@ export function Journey() {
       ))}
     </Tabs>
   );
-}
+};

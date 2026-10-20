@@ -9,11 +9,11 @@ import type { MessageTranscriptProps } from '../types.ts';
 import { HistoryNavigation } from './HistoryNavigation.tsx';
 import { MessageTranscript } from './MessageTranscript.tsx';
 
-export function ConversationHistory({
+export const ConversationHistory = ({
   children,
   label,
   ...props
-}: MessageTranscriptProps & { children: ReactNode; label: string }) {
+}: MessageTranscriptProps & { children: ReactNode; label: string }) => {
   const { page, total, loading, error, retry } = useConversationHistory(props);
   const focused = useRef(false);
   useEffect(() => {
@@ -61,4 +61,4 @@ export function ConversationHistory({
       </Conversation>
     </>
   );
-}
+};

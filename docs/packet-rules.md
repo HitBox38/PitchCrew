@@ -9,7 +9,7 @@ Rules are mechanical. They check words, lines and patterns. They do not prove th
 
 ## Where rules live
 
-Rules are stored in `packet-rules.json` in the data folder, next to `pitchcrew.db`. Edit them in **Settings > Packet rules**. The page lists each rule, shows problems next to the rule they belong to, and lets you import or export the file.
+Rules are stored in `packet-rules.json` in the data folder, next to `pitchcrew.db`. Edit them in **Settings > Packet rules**. The page opens in a form editor for word limits, bullets per section, allowed lines and text patterns. Each row summarizes its check, documents and blocking/warning behavior. Changes use the existing daemon validation and apply only after Save rules; Discard changes and navigation protection preserve drafts. Advanced JSON edits the same draft and holds import, export and restore-default actions. Invalid or unsupported imported source stays available for correction.
 
 Without a file, Pitchcrew uses the built-in defaults:
 

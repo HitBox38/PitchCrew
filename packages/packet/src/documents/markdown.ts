@@ -1,30 +1,18 @@
 import { parseInline, type References, visibleText } from './inline.ts';
 import type { Block, ListItem } from './types.ts';
 
-const heading = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$/;
-const rule = /^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/;
-const listItem = /^([ \t]*)([-*+]|\d{1,9}[.)])[ \t]+(.*)$/;
-const latexSection = /^\\(section|subsection|subsubsection)\*?\{(.*)\}\s*$/;
-const reference =
-  /^ {0,3}\[([^\]]+)\]:[ \t]*<?(\S+?)>?(?:[ \t]+(?:"[^"]*"|'[^']*'|\([^)]*\)))?[ \t]*$/;
-
-const indentOf = (line: string) => line.match(/^[ \t]*/)![0].replace(/\t/g, '    ').length;
-const hardBreak = (line: string) => / {2,}$|\\\\(\[[^\]]*\])?\s*$|(?<!\\)\\$/.test(line);
-const withoutBreak = (line: string) =>
-  line.replace(/ {2,}$|\\\\(\[[^\]]*\])?\s*$|(?<!\\)\\$/, '').trim();
-
 // Pandoc YAML metadata is configuration for another renderer; it is not printed.
-function withoutFrontmatter(lines: string[]) {
+const withoutFrontmatter = (lines: string[]) => {
   if (lines[0]?.trim() !== '---') return lines;
   const end = lines.findIndex((line, index) => index > 0 && /^(---|\.\.\.)\s*$/.test(line));
   const first = lines.slice(1, end).find((line) => line.trim());
   if (end < 0 || (first !== undefined && !/^\s*([\w-]+\s*:|#)/.test(first))) return lines;
   return lines.slice(end + 1);
-}
+};
 
 // Expands raw LaTeX fences into ordinary lines, keeps other fenced code literal and removes
 // pandoc div fences and reference definitions, which have no printed words.
-function prepare(lines: string[], references: References) {
+const prepare = (lines: string[], references: References) => {
   const output: { text: string; literal: boolean }[] = [];
   for (let index = 0; index < lines.length; index++) {
     const fence = /^ {0,3}(`{3,}|~{3,})\s*(.*)$/.exec(lines[index]);
@@ -52,9 +40,9 @@ function prepare(lines: string[], references: References) {
     output.push({ text: lines[index], literal: false });
   }
   return output;
-}
+};
 
-export function parseMarkdown(markdown: string): Block[] {
+export const parseMarkdown = (markdown: string): Block[] => {
   const source = markdown
     .replace(/^\ufeff/, '')
     .normalize('NFC')
@@ -187,4 +175,16 @@ export function parseMarkdown(markdown: string): Block[] {
   }
   closeAll();
   return blocks;
-}
+};
+
+const heading = /^ {0,3}(#{1,6})(?:[ \t]+(.*?))?(?:[ \t]+#+)?[ \t]*$/;
+const rule = /^ {0,3}([-*_])(?:[ \t]*\1){2,}[ \t]*$/;
+const listItem = /^([ \t]*)([-*+]|\d{1,9}[.)])[ \t]+(.*)$/;
+const latexSection = /^\\(section|subsection|subsubsection)\*?\{(.*)\}\s*$/;
+const reference =
+  /^ {0,3}\[([^\]]+)\]:[ \t]*<?(\S+?)>?(?:[ \t]+(?:"[^"]*"|'[^']*'|\([^)]*\)))?[ \t]*$/;
+
+const indentOf = (line: string) => line.match(/^[ \t]*/)![0].replace(/\t/g, '    ').length;
+const hardBreak = (line: string) => / {2,}$|\\\\(\[[^\]]*\])?\s*$|(?<!\\)\\$/.test(line);
+const withoutBreak = (line: string) =>
+  line.replace(/ {2,}$|\\\\(\[[^\]]*\])?\s*$|(?<!\\)\\$/, '').trim();

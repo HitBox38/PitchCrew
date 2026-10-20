@@ -1,7 +1,7 @@
 import { Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ChatViewModel } from '@/ChatView/types.ts';
-export function BrowserButton({ browserPanel }: Pick<ChatViewModel, 'browserPanel'>) {
+export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPanel'>) => {
   if (!browserPanel.available) return null;
   return (
     <Button
@@ -18,4 +18,4 @@ export function BrowserButton({ browserPanel }: Pick<ChatViewModel, 'browserPane
       ) : null}
     </Button>
   );
-}
+};

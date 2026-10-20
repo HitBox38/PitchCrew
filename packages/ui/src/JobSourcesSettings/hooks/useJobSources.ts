@@ -11,11 +11,34 @@ import {
   tokenFromInput,
 } from '../helpers.ts';
 import type { SourceDraft } from '../types.ts';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 
-const message = (error: unknown, fallback: string) =>
-  error instanceof Error ? error.message : fallback;
+export const useJobSources = () => {
+  const run = async (task: () => Promise<void>, fallback: string) => {
+    setPending(true);
+    setError('');
+    try {
+      await task();
+    } catch (e) {
+      setError(message(e, fallback));
+    } finally {
+      setPending(false);
+    }
+  };
 
-export function useJobSources() {
+  const edit = (next: SourceDraft | null, id: string | null = null) => {
+    previewController.current?.abort();
+    setDraft(next);
+    setEditingId(id);
+    setPreview(null);
+    setError('');
+  };
+  const update = (patch: Partial<SourceDraft>) => {
+    previewController.current?.abort();
+    setPreview(null);
+    setDraft((current) => (current ? { ...current, ...patch } : current));
+  };
+
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [sources, setSources] = useState<JobSource[]>([]);
@@ -26,6 +49,11 @@ export function useJobSources() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const previewController = useRef<AbortController | null>(null);
+  const original = editingId ? sources.find((source) => source.id === editingId) : null;
+  const dirty =
+    draft !== null &&
+    JSON.stringify(draft) !== JSON.stringify(original ? sourceDraft(original) : emptyDraft);
+  const guard = useUnsavedChanges(dirty, () => edit(null));
   useEffect(() => {
     const controller = new AbortController();
     void loadJobSources(controller.signal)
@@ -38,30 +66,7 @@ export function useJobSources() {
       previewController.current?.abort();
     };
   }, []);
-  async function run(task: () => Promise<void>, fallback: string) {
-    setPending(true);
-    setError('');
-    try {
-      await task();
-    } catch (e) {
-      setError(message(e, fallback));
-    } finally {
-      setPending(false);
-    }
-  }
   const refresh = async () => setSources(await loadJobSources());
-  function edit(next: SourceDraft | null, id: string | null = null) {
-    previewController.current?.abort();
-    setDraft(next);
-    setEditingId(id);
-    setPreview(null);
-    setError('');
-  }
-  function update(patch: Partial<SourceDraft>) {
-    previewController.current?.abort();
-    setPreview(null);
-    setDraft((current) => (current ? { ...current, ...patch } : current));
-  }
   const save = (event: FormEvent) => {
     event.preventDefault();
     if (!draft) return;
@@ -117,9 +122,11 @@ export function useJobSources() {
     summary,
     error,
     busy: working || pending,
-    startAdd: () => edit({ ...emptyDraft }),
-    startEdit: (source: JobSource) => edit(sourceDraft(source), source.id),
-    cancel: () => edit(null),
+    guard,
+    startAdd: () => guard.requestLeave(() => edit({ ...emptyDraft })),
+    startEdit: (source: JobSource) =>
+      guard.requestLeave(() => edit(sourceDraft(source), source.id)),
+    cancel: () => guard.requestLeave(() => edit(null)),
     update,
     setBoard: (value: string) => update(boardFromLink(value)),
     setToken: (value: string) => update(tokenFromInput(value)),
@@ -129,4 +136,7 @@ export function useJobSources() {
     setEnabled,
     scan,
   };
-}
+};
+
+const message = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;

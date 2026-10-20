@@ -18,11 +18,11 @@ export class SkillUpdateChecks {
     this.store = new SkillUpdateStore(directory);
   }
   /** Snapshot validators inspect maintenance state without reading skill projections. */
-  revision() {
+  revision = () => {
     return { ...this.store.get(), checking: Boolean(this.request) };
-  }
+  };
 
-  current(context: CrewContext): SkillUpdatesState {
+  current = (context: CrewContext): SkillUpdatesState => {
     const state = this.store.get();
     const skills = new Map(
       context
@@ -42,14 +42,14 @@ export class SkillUpdateChecks {
         );
       }),
     };
-  }
+  };
 
-  setAutomatic(automatic: boolean) {
+  setAutomatic = (automatic: boolean) => {
     this.store.automatic(automatic);
-  }
+  };
 
   /** Also record manual per-skill reviews, so all entry points share the same notice. */
-  observe(context: CrewContext, skill: Skill, latest: SkillPreview) {
+  observe = (context: CrewContext, skill: Skill, latest: SkillPreview) => {
     if (!skill.source || !latest.source || context.closing) return;
     const previous = this.previous(skill);
     const now = new Date().toISOString();
@@ -66,17 +66,17 @@ export class SkillUpdateChecks {
           : now,
       ...(previous?.dismissedRevision ? { dismissedRevision: previous.dismissedRevision } : {}),
     });
-  }
+  };
 
-  dismiss(context: CrewContext, id: string, revision: string) {
+  dismiss = (context: CrewContext, id: string, revision: string) => {
     const check = this.current(context).checks.find((item) => item.skillId === id);
     if (!check || !hasSkillUpdate(check) || skillSourceRevision(check.latest!) !== revision)
       throw new Error('The skill update changed. Review the latest version first.');
     this.store.put({ ...check, dismissedRevision: revision });
     return this.current(context);
-  }
+  };
 
-  check(context: CrewContext, automatic: boolean): Promise<SkillUpdatesState> {
+  check = (context: CrewContext, automatic: boolean): Promise<SkillUpdatesState> => {
     if (context.closing) return Promise.reject(new Error('The workspace is closing.'));
     if (automatic && !this.store.get().automatic) return Promise.resolve(this.current(context));
     if (this.request) return this.request.then(() => this.current(context));
@@ -84,13 +84,13 @@ export class SkillUpdateChecks {
       this.request = undefined;
     });
     return this.request.then(() => this.current(context));
-  }
+  };
 
-  async close() {
+  close = async () => {
     await this.request;
-  }
+  };
 
-  private async run(context: CrewContext, automatic: boolean): Promise<SkillUpdatesState> {
+  private run = async (context: CrewContext, automatic: boolean): Promise<SkillUpdatesState> => {
     const checks = new Map(this.current(context).checks.map((check) => [check.skillId, check]));
     const skills = context
       .skills()
@@ -123,16 +123,16 @@ export class SkillUpdateChecks {
       }
     }
     return this.current(context);
-  }
+  };
 
-  private unchanged(context: CrewContext, skill: Skill) {
+  private unchanged = (context: CrewContext, skill: Skill) => {
     return (
       !context.closing &&
       JSON.stringify(context.board.get<Skill>('skill', skill.id)) === JSON.stringify(skill)
     );
-  }
+  };
 
-  private previous(skill: Skill) {
+  private previous = (skill: Skill) => {
     const check = this.store.get().checks.find((item) => item.skillId === skill.id);
     return check &&
       skill.source &&
@@ -140,5 +140,5 @@ export class SkillUpdateChecks {
       skillSourceRevision(skill.source) === skillSourceRevision(check.installed)
       ? check
       : undefined;
-  }
+  };
 }

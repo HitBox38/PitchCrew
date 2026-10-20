@@ -3,14 +3,14 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
 import { ArrowRight, Check, Download, X } from 'lucide-react';
 
-export function PacketApprovalActions({
+export const PacketApprovalActions = ({
   approval,
   card,
   onOpen,
   working,
   act,
   action,
-}: PacketApprovalActionsProps) {
+}: PacketApprovalActionsProps) => {
   return (
     <div className="approval-footer">
       <Button className="text-button" onClick={() => onOpen(card.id)}>
@@ -64,4 +64,4 @@ export function PacketApprovalActions({
       ) : null}
     </div>
   );
-}
+};

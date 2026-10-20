@@ -1,7 +1,7 @@
 import type { CommandShortcutProps } from '@/components/ui/command/types.ts';
 import { cn } from '@/lib/utils';
 
-export function CommandShortcut({ className, ...props }: CommandShortcutProps) {
+export const CommandShortcut = ({ className, ...props }: CommandShortcutProps) => {
   return (
     <span
       data-slot="command-shortcut"
@@ -12,4 +12,4 @@ export function CommandShortcut({ className, ...props }: CommandShortcutProps) {
       {...props}
     />
   );
-}
+};

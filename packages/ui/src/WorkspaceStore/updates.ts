@@ -19,7 +19,7 @@ export interface AppUpdateState {
   dismissAppUpdate: () => void;
 }
 
-export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): AppUpdateState {
+export const createAppUpdateActions = (set: WorkspaceSet, get: WorkspaceGet): AppUpdateState => {
   let pending: Promise<void> | null = null;
   const run = (load: () => Promise<AppUpdateInfo>) => {
     if (pending) return pending;
@@ -44,6 +44,7 @@ export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): Ap
     },
     downloadDesktopUpdate: async () => {
       try {
+        set({ dismissedAppUpdate: null });
         const desktopUpdate = await desktopUpdateBridge()?.download();
         if (desktopUpdate) get().setDesktopUpdate(desktopUpdate);
       } catch {
@@ -95,4 +96,4 @@ export function createAppUpdateActions(set: WorkspaceSet, get: WorkspaceGet): Ap
           : (get().appUpdate?.latest?.commit ?? null),
       }),
   };
-}
+};

@@ -1,4 +1,31 @@
 import { z } from 'zod';
+export const boundedText = async (response: Response) => {
+  if (Number(response.headers.get('content-length')) > maxBytes) {
+    await response.body?.cancel();
+    throw new Error(
+      'Connector response is too large. Narrow the query or select a smaller file/range.',
+    );
+  }
+  const reader = response.body?.getReader();
+  if (!reader) return '';
+  let size = 0;
+  const chunks: Uint8Array[] = [];
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      size += value.byteLength;
+      if (size > maxBytes)
+        throw new Error(
+          'Connector response is too large. Narrow the query or select a smaller file/range.',
+        );
+      chunks.push(value);
+    }
+  } finally {
+    await reader.cancel();
+  }
+  return Buffer.concat(chunks).toString('utf8');
+};
 
 export const googleScopes = {
   gmail: 'https://www.googleapis.com/auth/gmail.readonly',
@@ -44,30 +71,3 @@ export const tokenResponse = z.object({
 });
 export const scopes = Object.values(googleScopes);
 export const maxBytes = 2_000_000;
-export async function boundedText(response: Response) {
-  if (Number(response.headers.get('content-length')) > maxBytes) {
-    await response.body?.cancel();
-    throw new Error(
-      'Connector response is too large. Narrow the query or select a smaller file/range.',
-    );
-  }
-  const reader = response.body?.getReader();
-  if (!reader) return '';
-  let size = 0;
-  const chunks: Uint8Array[] = [];
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      size += value.byteLength;
-      if (size > maxBytes)
-        throw new Error(
-          'Connector response is too large. Narrow the query or select a smaller file/range.',
-        );
-      chunks.push(value);
-    }
-  } finally {
-    await reader.cancel();
-  }
-  return Buffer.concat(chunks).toString('utf8');
-}

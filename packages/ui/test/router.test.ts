@@ -3,13 +3,13 @@ import { createMemoryHistory } from '@tanstack/react-router';
 import { describe, expect, it } from 'vitest';
 import { createAppRouter } from '../src/router.ts';
 
-async function setup(path: string) {
+const setup = async (path: string) => {
   const history = createMemoryHistory({ initialEntries: [path] });
   const router = createAppRouter(history);
   router.update({ isServer: false, origin: 'http://127.0.0.1', context: router.options.context });
   await router.load();
   return { router, history };
-}
+};
 
 describe('workspace routes', () => {
   it('restores exact update reviews and update-only filters from URLs', async () => {
@@ -109,7 +109,7 @@ describe('workspace routes', () => {
     expect(router.state.matches.at(-1)?.search).toEqual({ q: 'Writer', kind: 'run' });
   });
 
-  it.each(['accounts', 'sources', 'runtimes', 'rules', 'data'])(
+  it.each(['accounts', 'sources', 'runtimes', 'rules', 'data', 'updates', 'privacy'])(
     'opens the %s settings section from a deep link',
     async (section) => {
       const { router } = await setup(`/settings?section=${section}`);

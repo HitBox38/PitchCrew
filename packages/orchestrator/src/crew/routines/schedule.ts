@@ -1,7 +1,7 @@
 import { routineInput, type RoutineInput } from '@pitchcrew/core';
 import { CronExpressionParser } from 'cron-parser';
 
-export function parseRoutine(data: unknown): RoutineInput {
+export const parseRoutine = (data: unknown): RoutineInput => {
   const input = routineInput.parse(data);
   input.startAt = new Date(input.startAt).toISOString();
   if (input.endsAt) input.endsAt = new Date(input.endsAt).toISOString();
@@ -21,10 +21,10 @@ export function parseRoutine(data: unknown): RoutineInput {
     }).next();
   }
   return input;
-}
+};
 
 /** First occurrence at/after start, or the next occurrence strictly after a dispatch. */
-export function nextOccurrence(input: RoutineInput, after?: string): string | null {
+export const nextOccurrence = (input: RoutineInput, after?: string): string | null => {
   const start = Date.parse(input.startAt);
   let next: number;
   if (input.cron) {
@@ -45,4 +45,4 @@ export function nextOccurrence(input: RoutineInput, after?: string): string | nu
   }
   if (!Number.isFinite(next) || (input.endsAt && next > Date.parse(input.endsAt))) return null;
   return new Date(next).toISOString();
-}
+};

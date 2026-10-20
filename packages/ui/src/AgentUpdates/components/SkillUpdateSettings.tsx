@@ -2,7 +2,7 @@ import { Switch } from '@/components/ui/switch/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { SkillCheckButton } from './SkillCheckButton.tsx';
 
-export function SkillUpdateSettings() {
+export const SkillUpdateSettings = () => {
   const automatic = useWorkspaceStore((state) => state.data?.skillUpdates?.automatic ?? true);
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
@@ -34,4 +34,4 @@ export function SkillUpdateSettings() {
       </label>
     </section>
   );
-}
+};

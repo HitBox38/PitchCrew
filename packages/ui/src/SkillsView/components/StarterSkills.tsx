@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { StarterSkillsProps } from '@/SkillsView/types.ts';
 import { baseSkills } from '@pitchcrew/core/base-skills';
 
-export function StarterSkills({
+export const StarterSkills = ({
   data,
   query,
   working,
   setStarter,
   setEditing,
-}: StarterSkillsProps) {
+}: StarterSkillsProps) => {
   return (
     <Accordion className="starter-skills" defaultValue={data.skills.length ? [] : ['starter']}>
       <AccordionItem value="starter">
@@ -65,4 +65,4 @@ export function StarterSkills({
       </AccordionItem>
     </Accordion>
   );
-}
+};

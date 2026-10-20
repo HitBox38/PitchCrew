@@ -1,7 +1,7 @@
 import { Check, Circle } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function SetupItem({
+export const SetupItem = ({
   title,
   description,
   done,
@@ -15,7 +15,7 @@ export function SetupItem({
   label: string;
   action: () => void;
   disabled: boolean;
-}) {
+}) => {
   const Icon = done ? Check : Circle;
   return (
     <li className="grid grid-cols-[19px_minmax(0,1fr)_auto] items-start gap-3 border-t border-border py-4 max-phone:grid-cols-[19px_minmax(0,1fr)]">
@@ -40,4 +40,4 @@ export function SetupItem({
       </Button>
     </li>
   );
-}
+};

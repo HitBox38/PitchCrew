@@ -4,7 +4,10 @@ import { $draftState, $loadDraft } from '../editor-state.ts';
 import type { ComposerEditorProps } from '../types.ts';
 import { $getRoot, CLEAR_HISTORY_COMMAND, HISTORY_MERGE_TAG } from 'lexical';
 
-export function useEditorSync(props: ComposerEditorProps, onCaret: (caret: number | null) => void) {
+export const useEditorSync = (
+  props: ComposerEditorProps,
+  onCaret: (caret: number | null) => void,
+) => {
   const [editor] = useLexicalComposerContext();
   const last = useRef({ text: props.value, references: props.references });
   const callbacks = useRef({ onChange: props.onChange, onCaret });
@@ -57,4 +60,4 @@ export function useEditorSync(props: ComposerEditorProps, onCaret: (caret: numbe
     [editor, props.inputRef],
   );
   return editor;
-}
+};

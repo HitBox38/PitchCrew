@@ -4,7 +4,7 @@ import { useStaleCleanup } from '../hooks/useStaleCleanup.ts';
 import { StaleConfirm } from './StaleConfirm.tsx';
 import { StaleList } from './StaleList.tsx';
 
-export function StaleCleanup() {
+export const StaleCleanup = () => {
   const stale = useStaleCleanup();
   return (
     <div>
@@ -43,4 +43,4 @@ export function StaleCleanup() {
       {stale.confirming ? <StaleConfirm stale={stale} /> : null}
     </div>
   );
-}
+};

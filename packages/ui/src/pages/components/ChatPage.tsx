@@ -6,7 +6,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function ChatPage() {
+export const ChatPage = () => {
   const { data, action, working, setRoleId, openCard } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
@@ -51,4 +51,4 @@ export function ChatPage() {
       working={working}
     />
   );
-}
+};

@@ -7,7 +7,7 @@ import {
   type ToastObject,
 } from '@/components/ui/toast/index.tsx';
 import type { CrewNotification } from '../types.ts';
-export function ActionToast({ toast }: { toast: ToastObject<CrewNotification> }) {
+export const ActionToast = ({ toast }: { toast: ToastObject<CrewNotification> }) => {
   const Icon =
     toast.type === 'error' ? CircleAlert : toast.type === 'success' ? CheckCircle2 : Info;
   return (
@@ -26,4 +26,4 @@ export function ActionToast({ toast }: { toast: ToastObject<CrewNotification> })
       </ToastContent>
     </Toast>
   );
-}
+};

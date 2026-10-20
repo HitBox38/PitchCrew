@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { SkillDetailsProps } from '@/SkillsView/components/SkillEditor/types.ts';
 
-export function SkillDetails({
+export const SkillDetails = ({
   source,
   importing,
   creator,
@@ -9,7 +9,7 @@ export function SkillDetails({
   setName,
   description,
   setDescription,
-}: SkillDetailsProps) {
+}: SkillDetailsProps) => {
   return (
     <section className="role-settings-section" aria-label="Skill details">
       {source || !importing ? (
@@ -42,4 +42,4 @@ export function SkillDetails({
       </div>
     </section>
   );
-}
+};

@@ -9,7 +9,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export async function registerPipelineTools(server: McpServer, call: AgentCall) {
+export const registerPipelineTools = async (server: McpServer, call: AgentCall) => {
   const access = await call('pipeline_access');
   const permissions = access.structuredContent;
   if (permissions?.reviewPipeline !== true) return;
@@ -63,4 +63,4 @@ export async function registerPipelineTools(server: McpServer, call: AgentCall) 
     },
     (input) => call('propose_crew_changes', input),
   );
-}
+};

@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button/index.tsx';
 
-export function PickerActions({
+export const PickerActions = ({
   required,
   value,
   valid,
@@ -12,7 +12,7 @@ export function PickerActions({
   valid: boolean;
   onValueChange(value: string): void;
   close(): void;
-}) {
+}) => {
   return (
     <div className="flex justify-end gap-2 border-t border-border p-3">
       {!required && value ? (
@@ -31,4 +31,4 @@ export function PickerActions({
       </Button>
     </div>
   );
-}
+};

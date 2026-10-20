@@ -3,13 +3,13 @@ import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 import type { ExtractedJob } from '@pitchcrew/core';
 
-export function RequirementFields({
+export const RequirementFields = ({
   value,
   change,
 }: {
   value: ExtractedJob['requirements'];
   change: (value: ExtractedJob['requirements']) => void;
-}) {
+}) => {
   const update = (id: string, patch: Partial<ExtractedJob['requirements'][number]>) =>
     change(value.map((entry) => (entry.id === id ? { ...entry, ...patch } : entry)));
   return (
@@ -86,4 +86,4 @@ export function RequirementFields({
       </Button>
     </section>
   );
-}
+};

@@ -6,14 +6,14 @@ import { CommandShortcut } from '@/components/ui/command/components/CommandShort
 import { modKey } from '@/shortcuts.ts';
 import { Copy, PanelLeft, Plus, RefreshCw } from 'lucide-react';
 
-export function WorkspaceCommands({
+export const WorkspaceCommands = ({
   run,
   onAddJob,
   toggleSidebar,
   onCheckRuntimes,
   onCopyDirectory,
   onTheme,
-}: WorkspaceCommandsProps) {
+}: WorkspaceCommandsProps) => {
   return (
     <CommandGroup heading="Actions">
       <CommandItem value="new job add" onSelect={run(onAddJob)}>
@@ -39,4 +39,4 @@ export function WorkspaceCommands({
       ))}
     </CommandGroup>
   );
-}
+};

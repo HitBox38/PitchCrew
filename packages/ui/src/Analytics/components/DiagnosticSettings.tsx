@@ -1,7 +1,7 @@
 import { Switch } from '../../components/ui/switch/index.tsx';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 
-export function DiagnosticSettings() {
+export const DiagnosticSettings = () => {
   const allowed = useDevicePreferences((state) => state.analytics);
   const enabled = useDevicePreferences((state) => state.diagnostics);
   const setEnabled = useDevicePreferences((state) => state.setDiagnostics);
@@ -22,4 +22,4 @@ export function DiagnosticSettings() {
       />
     </label>
   );
-}
+};

@@ -5,7 +5,7 @@ import type { ChatRequest, Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
 import { Input } from '@/components/ui/input/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-export function QueuedMessage({
+export const QueuedMessage = ({
   request,
   data,
   action,
@@ -15,7 +15,7 @@ export function QueuedMessage({
   data: Snapshot;
   action: Action;
   working: boolean;
-}) {
+}) => {
   const [editing, setEditing] = useState(false);
   const [content, setContent] = useState(request.content);
   const [error, setError] = useState('');
@@ -93,4 +93,4 @@ export function QueuedMessage({
       ) : null}
     </div>
   );
-}
+};

@@ -3,6 +3,10 @@ import { driveTools } from './tools/drive.ts';
 import { githubTools } from './tools/github.ts';
 import { gmailTools } from './tools/gmail.ts';
 import { sheetsTools } from './tools/sheets.ts';
+export const getConnectorTool = (name: string) => {
+  if (!Object.hasOwn(connectorTools, name)) throw new Error('This connector tool is not allowed.');
+  return connectorTools[name as ConnectorToolName];
+};
 
 export type { ConnectorRequest } from './tools/helpers.ts';
 export const connectorTools = {
@@ -13,7 +17,3 @@ export const connectorTools = {
   ...calendarTools,
 };
 export type ConnectorToolName = keyof typeof connectorTools;
-export function getConnectorTool(name: string) {
-  if (!Object.hasOwn(connectorTools, name)) throw new Error('This connector tool is not allowed.');
-  return connectorTools[name as ConnectorToolName];
-}

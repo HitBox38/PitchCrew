@@ -2,17 +2,8 @@ import type { BrowserAction } from '@pitchcrew/core';
 import type { Page } from 'playwright';
 import { credentialSelector } from './credentials.ts';
 
-/** Hosted native forms only. Custom domains, frames, widgets and changed forms fail closed. */
-export const applicationHosts = {
-  greenhouse: ['boards.greenhouse.io', 'job-boards.greenhouse.io', 'boards.eu.greenhouse.io'],
-  ashby: ['jobs.ashbyhq.com'],
-  lever: ['jobs.lever.co'],
-  comeet: ['www.comeet.com', 'comeet.com'],
-  workable: ['apply.workable.com'],
-} as const;
-
 /** Only read-only hosted board/posting paths; never automate query-bearing navigation. */
-export function automaticNavigation(value: string) {
+export const automaticNavigation = (value: string) => {
   const url = new URL(value);
   if (
     url.protocol !== 'https:' ||
@@ -36,9 +27,9 @@ export function automaticNavigation(value: string) {
     workable: new RegExp(`^/${organization}(?:/j/[A-Za-z0-9]+(?:/apply)?)?/?$`),
   };
   return paths[provider].test(url.pathname);
-}
+};
 
-export async function automaticFormAction(page: Page, action: BrowserAction) {
+export const automaticFormAction = async (page: Page, action: BrowserAction) => {
   if (new URL(page.url()).protocol !== 'https:' || new URL(page.url()).port) return false;
   if (action.kind !== 'fill' && action.kind !== 'select' && action.kind !== 'upload') return false;
   if (
@@ -97,4 +88,13 @@ export async function automaticFormAction(page: Page, action: BrowserAction) {
     evidence.tag === 'TEXTAREA' ||
     (evidence.tag === 'INPUT' && ['text', 'email', 'tel', 'url', 'number'].includes(evidence.type))
   );
-}
+};
+
+/** Hosted native forms only. Custom domains, frames, widgets and changed forms fail closed. */
+export const applicationHosts = {
+  greenhouse: ['boards.greenhouse.io', 'job-boards.greenhouse.io', 'boards.eu.greenhouse.io'],
+  ashby: ['jobs.ashbyhq.com'],
+  lever: ['jobs.lever.co'],
+  comeet: ['www.comeet.com', 'comeet.com'],
+  workable: ['apply.workable.com'],
+} as const;

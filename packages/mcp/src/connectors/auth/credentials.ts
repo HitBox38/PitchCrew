@@ -5,56 +5,56 @@ import { join } from 'node:path';
 import { storeSchema } from './helpers.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
-export async function initialize(this: ConnectorManagerContext): Promise<void> {
-  await mkdir(this.folder, { recursive: true, mode: 0o700 });
-  await chmod(this.folder, 0o700);
+export const initialize = async (context: ConnectorManagerContext): Promise<void> => {
+  await mkdir(context.folder, { recursive: true, mode: 0o700 });
+  await chmod(context.folder, 0o700);
   try {
-    this.store = storeSchema.parse(JSON.parse(await readFile(this.file, 'utf8')));
-    await chmod(this.file, 0o600);
+    context.store = storeSchema.parse(JSON.parse(await readFile(context.file, 'utf8')));
+    await chmod(context.file, 0o600);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== 'ENOENT')
       throw new Error(
         'Cannot read connector credentials. Restore or remove the connectors/credentials.json file in your data directory.',
       );
   }
-}
-export function save(this: ConnectorManagerContext): Promise<void> {
-  const contents = JSON.stringify(this.store);
+};
+export const save = (context: ConnectorManagerContext): Promise<void> => {
+  const contents = JSON.stringify(context.store);
   // Serialize atomic replacements so a refresh cannot overwrite a disconnect.
-  const save = this.saving
+  const save = context.saving
     .catch(() => {})
     .then(async () => {
-      const temporary = join(this.folder, `${randomUUID()}.tmp`);
+      const temporary = join(context.folder, `${randomUUID()}.tmp`);
       try {
         await writeFile(temporary, contents, { mode: 0o600, flag: 'wx' });
-        await rename(temporary, this.file);
-        await chmod(this.file, 0o600);
+        await rename(temporary, context.file);
+        await chmod(context.file, 0o600);
       } finally {
         await rm(temporary, { force: true });
       }
     });
-  this.saving = save;
+  context.saving = save;
   return save;
-}
-export async function disconnect(
-  this: ConnectorManagerContext,
+};
+export const disconnect = async (
+  context: ConnectorManagerContext,
   provider: 'github' | 'google',
-): Promise<ConnectorStatus[]> {
-  this.lifetimes[provider].abort();
-  this.lifetimes[provider] = new AbortController();
+): Promise<ConnectorStatus[]> => {
+  context.lifetimes[provider].abort();
+  context.lifetimes[provider] = new AbortController();
   if (provider === 'google') {
-    this.cancelPending();
-    this.googleCliState = undefined;
+    context.cancelPending();
+    context.googleCliState = undefined;
   }
-  if (provider === 'github') this.githubCliState = undefined;
-  delete this.store[provider];
-  this.errors[provider] = '';
-  await this.save();
-  return this.status();
-}
-export async function close(this: ConnectorManagerContext): Promise<void> {
-  this.cancelPending();
-  this.lifetimes.github.abort();
-  this.lifetimes.google.abort();
-  await this.saving;
-}
+  if (provider === 'github') context.githubCliState = undefined;
+  delete context.store[provider];
+  context.errors[provider] = '';
+  await context.save();
+  return context.status();
+};
+export const close = async (context: ConnectorManagerContext): Promise<void> => {
+  context.cancelPending();
+  context.lifetimes.github.abort();
+  context.lifetimes.google.abort();
+  await context.saving;
+};

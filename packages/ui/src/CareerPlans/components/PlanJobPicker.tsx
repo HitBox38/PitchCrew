@@ -4,13 +4,13 @@ import { AccordionSection } from '@/components/ui/accordion/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 
-export function PlanJobPicker({
+export const PlanJobPicker = ({
   selected,
   change,
 }: {
   selected: string[];
   change: (ids: string[]) => void;
-}) {
+}) => {
   const cards = useWorkspaceStore((s) => s.data?.cards ?? []);
   const [query, setQuery] = useState('');
   const matching = cards.filter((c) =>
@@ -46,4 +46,4 @@ export function PlanJobPicker({
       </div>
     </AccordionSection>
   );
-}
+};

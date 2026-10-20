@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function Badge({ className, variant = 'default', render, ...props }: BadgeProps) {
+export const Badge = ({ className, variant = 'default', render, ...props }: BadgeProps) => {
   return useRender({
     defaultTagName: 'span',
     props: mergeProps<'span'>({ className: cn(badgeVariants({ variant }), className) }, props),
@@ -14,4 +14,4 @@ export function Badge({ className, variant = 'default', render, ...props }: Badg
       variant,
     },
   });
-}
+};

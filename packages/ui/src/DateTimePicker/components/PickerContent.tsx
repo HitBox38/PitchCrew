@@ -5,14 +5,14 @@ import type { DateTimePickerProps } from '../types.ts';
 import { TimeFields } from './TimeFields.tsx';
 import { PickerActions } from './PickerActions.tsx';
 
-export function PickerContent({
+export const PickerContent = ({
   id,
   label,
   value,
   onValueChange,
   required,
   close,
-}: DateTimePickerProps & { id: string; close(): void }) {
+}: DateTimePickerProps & { id: string; close(): void }) => {
   const date = pickerDate(value);
   const time = value.split('T')[1] || '09:00:00';
   return (
@@ -42,4 +42,4 @@ export function PickerContent({
       </TimeFields>
     </PopoverContent>
   );
-}
+};

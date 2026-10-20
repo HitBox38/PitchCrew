@@ -10,7 +10,7 @@ import { useSkillsView } from '@/SkillsView/hooks/useSkillsView.ts';
 import type { SkillsViewProps } from '@/SkillsView/types.ts';
 import { SkillUpdates } from './components/SkillUpdates.tsx';
 
-export function SkillsView(props: SkillsViewProps) {
+export const SkillsView = (props: SkillsViewProps) => {
   const controller = useSkillsView(props);
   const { data, skills, showingDetail, selected } = controller;
   return (
@@ -64,4 +64,4 @@ export function SkillsView(props: SkillsViewProps) {
       <SkillDialogs {...controller} />
     </section>
   );
-}
+};

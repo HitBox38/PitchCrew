@@ -12,13 +12,7 @@ import { qualitySnapshot } from '../src/quality/snapshot.ts';
 import { documentReviewCycle } from '../src/quality/repair.ts';
 import * as documents from '../src/quality/documents.ts';
 import { qualityAgentAction } from '../src/quality/agent.ts';
-
-const cleanups: (() => void)[] = [];
-afterEach(() => {
-  vi.restoreAllMocks();
-  for (const cleanup of cleanups.splice(0)) cleanup();
-});
-function fixture() {
+const fixture = () => {
   const directory = mkdtempSync(join(tmpdir(), 'pitchcrew-quality-'));
   const context = createCrewContext(directory, 'http://127.0.0.1:4417', '/fictional/mcp.ts', true);
   cleanups.push(() => {
@@ -26,12 +20,12 @@ function fixture() {
     rmSync(directory, { recursive: true, force: true });
   });
   return context;
-}
-function correction(
+};
+const correction = (
   context: ReturnType<typeof fixture>,
   cardId: string = randomUUID(),
   preference = 'Use shorter bullets',
-) {
+) => {
   const record: WritingCorrection = {
     id: randomUUID(),
     cardId,
@@ -48,11 +42,11 @@ function correction(
   };
   context.board.record('writing_correction', record, 'user', 'Fictional correction');
   return record;
-}
-function complete(context: ReturnType<typeof fixture>, record: WritingCorrection) {
+};
+const complete = (context: ReturnType<typeof fixture>, record: WritingCorrection) => {
   finishWritingCorrection(context, record.id, { resume: 'Short text', coverLetter: 'Letter' });
-}
-function planFixture(context: ReturnType<typeof fixture>) {
+};
+const planFixture = (context: ReturnType<typeof fixture>) => {
   const card = context.board.createCard({
     company: 'Fictional Labs',
     title: 'Platform engineer',
@@ -85,7 +79,13 @@ function planFixture(context: ReturnType<typeof fixture>) {
     rationale: 'A required capability in the selected job.',
   };
   return { card, plan, gap };
-}
+};
+
+const cleanups: (() => void)[] = [];
+afterEach(() => {
+  vi.restoreAllMocks();
+  for (const cleanup of cleanups.splice(0)) cleanup();
+});
 
 describe('writing guide learning and provenance', () => {
   it('requires independent applications and records examples once', () => {

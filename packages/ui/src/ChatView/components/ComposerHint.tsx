@@ -1,6 +1,6 @@
 import type { ComposerHintProps } from '@/ChatView/types.ts';
 
-export function ComposerHint({ role }: ComposerHintProps) {
+export const ComposerHint = ({ role }: ComposerHintProps) => {
   return (
     <p className="chat-compose-hint">
       <span>
@@ -9,4 +9,4 @@ export function ComposerHint({ role }: ComposerHintProps) {
       <span>{role.runtime === 'demo' ? 'Demo replies are scripted' : 'Saved on this device'}</span>
     </p>
   );
-}
+};

@@ -3,6 +3,13 @@ import { subscribeChatStream } from '@/chat-stream.ts';
 import type { ChatMessage, ChatStreamState, Snapshot } from '@pitchcrew/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWorkspaceStore } from '../index.ts';
+const deferred = <T>() => {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((done) => {
+    resolve = done;
+  });
+  return { promise, resolve };
+};
 
 vi.mock('@/api.ts', () => ({ api: vi.fn() }));
 vi.mock('@/chat-stream.ts', () => ({ subscribeChatStream: vi.fn() }));
@@ -39,13 +46,6 @@ const message: ChatMessage = {
   createdAt: '',
 };
 const stream: ChatStreamState = { messages: [], streamingMessages: [message] };
-function deferred<T>() {
-  let resolve!: (value: T) => void;
-  const promise = new Promise<T>((done) => {
-    resolve = done;
-  });
-  return { promise, resolve };
-}
 
 let stop: (() => void) | undefined;
 const unsubscribe = vi.fn();

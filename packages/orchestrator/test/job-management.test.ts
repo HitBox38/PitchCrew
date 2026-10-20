@@ -10,15 +10,10 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { randomUUID } from 'node:crypto';
 import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
 
-afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.controllers.delete('board-fixture');
-  await cleanup();
-});
-
-function scopedRun(
+const scopedRun = (
   daemon: Awaited<ReturnType<typeof setup>>['daemon'],
   cardId: string | null = null,
-) {
+) => {
   const id = 'board-fixture';
   daemon.service.board.record(
     'run',
@@ -39,7 +34,12 @@ function scopedRun(
   daemon.service.controllers.set(id, new AbortController());
   daemon.service.capabilities.set('board-token', { runId: id, roleId: 'scout', cardId });
   return 'board-token';
-}
+};
+
+afterEach(async () => {
+  for (const { daemon } of resources) daemon.service.controllers.delete('board-fixture');
+  await cleanup();
+});
 
 it('lists bounded summaries and changes or deletes explicit jobs from an unattached chat over HTTP', async () => {
   const { daemon, request } = await setup(15621);

@@ -1,7 +1,7 @@
 import type { DialogHeaderProps } from '@/components/ui/dialog/types.ts';
 import { cn } from '@/lib/utils';
 
-export function DialogHeader({ className, ...props }: DialogHeaderProps) {
+export const DialogHeader = ({ className, ...props }: DialogHeaderProps) => {
   return (
     <div
       data-slot="dialog-header"
@@ -12,4 +12,4 @@ export function DialogHeader({ className, ...props }: DialogHeaderProps) {
       {...props}
     />
   );
-}
+};

@@ -21,7 +21,7 @@ import { endQuestionTurn } from '../crew/user-input/lifecycle.ts';
 import { relatedConversation } from '../crew/conversations.ts';
 import { applicationUserAnswers } from '../crew/application-context/answers.ts';
 
-async function stagePrepared(
+const stagePrepared = async (
   context: CrewContext,
   parent: Run,
   role: Role,
@@ -29,7 +29,7 @@ async function stagePrepared(
   profile: ProfileFile[],
   request: string,
   signal: AbortSignal,
-) {
+) => {
   signal.throwIfAborted();
   if (!role.enabled) throw new Error(`${role.name} is unavailable for document correction.`);
   if (!adapters[role.runtime].applicationIsolation)
@@ -154,9 +154,9 @@ async function stagePrepared(
     context.capabilities.delete(token);
     context.controllers.delete(run.id);
   }
-}
+};
 
-function stage(...args: Parameters<typeof stagePrepared>) {
+const stage = (...args: Parameters<typeof stagePrepared>) => {
   const [context, parent, role] = args;
   return context.runtimeMaintenance.guard(role, () => {
     const thread = relatedConversation(
@@ -177,14 +177,14 @@ function stage(...args: Parameters<typeof stagePrepared>) {
     if (problem) throw new QueueBusyError(problem);
     return stagePrepared(...args);
   });
-}
+};
 
-export async function documentReviewCycle(
+export const documentReviewCycle = async (
   context: CrewContext,
   parent: Run,
   profile: ProfileFile[],
   signal: AbortSignal,
-) {
+) => {
   let card = context.board.get<Card>('card', parent.cardId!);
   if (!card.packet) return;
   let check = await inspectPacketDocuments(context.directory, card.packet);
@@ -263,4 +263,4 @@ export async function documentReviewCycle(
       'orchestrator',
       'Document verification needs attention',
     );
-}
+};

@@ -2,27 +2,12 @@ import type { Packet, PacketRules, ProfileFile } from '@pitchcrew/core';
 import { checkPacket, type PacketCheck } from '@pitchcrew/packet';
 import { Worker } from 'node:worker_threads';
 
-export const packetRulesTimeoutMs = 2000;
-const bootstrap = `
-import { parentPort, workerData } from 'node:worker_threads';
-import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
-register();
-const { checkPacket } = await import(workerData.module);
-parentPort.postMessage(checkPacket(workerData.packet, workerData.profile, workerData.rules));
-`;
-
-const failed = (message: string): PacketCheck => ({
-  findings: [{ ruleId: 'packet-rules', severity: 'error', document: 'rules', message }],
-  errors: [message],
-  warnings: [],
-});
-
 /** Regex heuristics cannot prove bounded execution. Keep pattern checks off the daemon thread. */
-export function boundedPacketCheck(
+export const boundedPacketCheck = (
   packet: Packet,
   profile: ProfileFile[],
   rules: PacketRules,
-): Promise<PacketCheck> {
+): Promise<PacketCheck> => {
   const patterns = rules.rules.some(
     (rule) => rule.kind !== 'word_limit' && (rule.kind !== 'max_bullets' || rule.heading),
   );
@@ -65,4 +50,19 @@ export function boundedPacketCheck(
       finish(failed('Packet rule checks stopped before completing. Try again before continuing.')),
     );
   });
-}
+};
+
+export const packetRulesTimeoutMs = 2000;
+const bootstrap = `
+import { parentPort, workerData } from 'node:worker_threads';
+import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
+register();
+const { checkPacket } = await import(workerData.module);
+parentPort.postMessage(checkPacket(workerData.packet, workerData.profile, workerData.rules));
+`;
+
+const failed = (message: string): PacketCheck => ({
+  findings: [{ ruleId: 'packet-rules', severity: 'error', document: 'rules', message }],
+  errors: [message],
+  warnings: [],
+});

@@ -7,7 +7,7 @@ import { CodeBlockContent } from '@/components/ui/code-block/components/CodeBloc
 import { cn } from '@/lib/utils.ts';
 
 /** Exact source text for review and copying; content is never parsed as markup. */
-export function SourceBlock({
+export const SourceBlock = ({
   value,
   label,
   className,
@@ -19,7 +19,7 @@ export function SourceBlock({
   className?: string;
   contentClassName?: string;
   wrap?: boolean;
-}) {
+}) => {
   return (
     <CodeBlock size="sm" className={cn('my-3', className)}>
       <CodeBlockHeader>
@@ -33,4 +33,4 @@ export function SourceBlock({
       </CodeBlockContent>
     </CodeBlock>
   );
-}
+};

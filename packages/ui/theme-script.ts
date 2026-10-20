@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { transformWithOxc, type Plugin } from 'vite';
 
 /** Keep theme initialization parser-blocking, before styles and the React entry. */
-export function themeScript(): Plugin {
+export const themeScript = (): Plugin => {
   const filename = fileURLToPath(new URL('./src/theme-init.ts', import.meta.url));
   const compile = async () =>
     (await transformWithOxc(await readFile(filename, 'utf8'), filename)).code;
@@ -13,7 +13,7 @@ export function themeScript(): Plugin {
       order: 'post',
       handler: () => [{ tag: 'script', attrs: { src: '/theme.js' }, injectTo: 'head-prepend' }],
     },
-    configureServer(server) {
+    configureServer: (server) => {
       server.middlewares.use('/theme.js', (_request, response, next) => {
         void compile().then((code) => {
           response.setHeader('Content-Type', 'text/javascript');
@@ -26,4 +26,4 @@ export function themeScript(): Plugin {
       this.emitFile({ type: 'asset', fileName: 'theme.js', source: await compile() });
     },
   };
-}
+};

@@ -7,7 +7,10 @@ export interface SkillUpdateActions {
   checkSkills: (manual?: boolean) => Promise<void>;
 }
 
-export function createSkillUpdateActions(set: WorkspaceSet, get: WorkspaceGet): SkillUpdateActions {
+export const createSkillUpdateActions = (
+  set: WorkspaceSet,
+  get: WorkspaceGet,
+): SkillUpdateActions => {
   let request: Promise<void> | undefined;
   return {
     checkingSkills: false,
@@ -40,4 +43,4 @@ export function createSkillUpdateActions(set: WorkspaceSet, get: WorkspaceGet): 
       return request;
     },
   };
-}
+};

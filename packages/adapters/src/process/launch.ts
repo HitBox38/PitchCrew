@@ -7,7 +7,7 @@ import { runtimeEnvironment, runtimeTimeLimit } from './environment.ts';
 import { chatPromptFor } from './prompts.ts';
 import { cleanResult, parseWorkflowResult } from './results.ts';
 
-export function terminateCli(child: ChildProcess) {
+export const terminateCli = (child: ChildProcess) => {
   if (process.platform === 'win32' && child.pid)
     spawn('taskkill', ['/pid', String(child.pid), '/T', '/F'], {
       windowsHide: true,
@@ -21,37 +21,37 @@ export function terminateCli(child: ChildProcess) {
     force.unref();
     child.once('close', () => clearTimeout(force));
   }
-}
-export async function chatCli(
+};
+export const chatCli = async (
   command: string,
   args: string[],
   context: ChatContext,
   extract: (event: Record<string, unknown>) => string | null,
-) {
+) => {
   const text = await runCliText(command, args, context, chatPromptFor(context), extract);
   return chatResultSchema.parse(JSON.parse(cleanResult(text)));
-}
-export async function runCli(
+};
+export const runCli = async (
   command: string,
   args: string[],
   context: RunContext,
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
   env: Record<string, string | undefined> = {},
-): Promise<RunResult> {
+): Promise<RunResult> => {
   return parseWorkflowResult(
     await runCliText(command, args, context, prompt, extract, env),
     context,
   );
-}
-export async function runCliText(
+};
+export const runCliText = async (
   command: string,
   args: string[],
   context: RunContext | ChatContext,
   prompt: string,
   extract: (event: Record<string, unknown>) => string | null,
   env: Record<string, string | undefined> = {},
-): Promise<string> {
+): Promise<string> => {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   const stream = chatEventStream(context);
   return new Promise((resolve, reject) => {
@@ -150,4 +150,4 @@ export async function runCliText(
     child.stdin.end(prompt);
     context.onMessage('CLI started with restricted tools; waiting for its result.');
   });
-}
+};

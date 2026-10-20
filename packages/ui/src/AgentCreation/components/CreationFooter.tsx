@@ -2,14 +2,14 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { creationSteps } from '../constants.ts';
 import type { CreationController } from '../types.ts';
 
-export function CreationFooter({
+export const CreationFooter = ({
   step,
   error,
   saving,
   working,
   goTo,
   close,
-}: Pick<CreationController, 'step' | 'error' | 'saving' | 'working' | 'goTo' | 'close'>) {
+}: Pick<CreationController, 'step' | 'error' | 'saving' | 'working' | 'goTo' | 'close'>) => {
   return (
     <footer className="role-settings-footer">
       {error ? (
@@ -31,4 +31,4 @@ export function CreationFooter({
       </div>
     </footer>
   );
-}
+};

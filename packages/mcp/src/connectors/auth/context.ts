@@ -9,12 +9,12 @@ import { createGithubCliRunner, type GithubCliRunner } from './github-cli-proces
 import { createGoogleCliRunner, type GoogleCliRunner } from './google-cli-process.ts';
 import { connectGoogleCli } from './google-cli.ts';
 
-export function createConnectorManagerContext(
+export const createConnectorManagerContext = (
   directory: string,
   fetcher: typeof globalThis.fetch = globalThis.fetch,
   runGithubCli: GithubCliRunner = createGithubCliRunner(),
   runGoogleCli: GoogleCliRunner = createGoogleCliRunner(),
-): ConnectorManagerContext {
+): ConnectorManagerContext => {
   const context: ConnectorManagerContext = {
     directory,
     fetcher,
@@ -34,19 +34,19 @@ export function createConnectorManagerContext(
     get file() {
       return join(context.folder, 'credentials.json');
     },
-    initialize: (...args) => initialize.call(context, ...args),
-    status: (...args) => status.call(context, ...args),
-    save: (...args) => save.call(context, ...args),
-    fetch: (...args) => fetch.call(context, ...args),
-    connectGithub: (...args) => connectGithub.call(context, ...args),
-    connectGoogle: (...args) => connectGoogle.call(context, ...args),
-    connectGoogleCli: () => connectGoogleCli.call(context),
-    cancelPending: (...args) => cancelPending.call(context, ...args),
-    disconnect: (...args) => disconnect.call(context, ...args),
-    googleAccessToken: (...args) => googleAccessToken.call(context, ...args),
-    call: (...args) => call.call(context, ...args),
-    close: (...args) => close.call(context, ...args),
+    initialize: (...args) => initialize(context, ...args),
+    status: (...args) => status(context, ...args),
+    save: (...args) => save(context, ...args),
+    fetch: (...args) => fetch(context, ...args),
+    connectGithub: (...args) => connectGithub(context, ...args),
+    connectGoogle: (...args) => connectGoogle(context, ...args),
+    connectGoogleCli: () => connectGoogleCli(context),
+    cancelPending: (...args) => cancelPending(context, ...args),
+    disconnect: (...args) => disconnect(context, ...args),
+    googleAccessToken: (...args) => googleAccessToken(context, ...args),
+    call: (...args) => call(context, ...args),
+    close: (...args) => close(context, ...args),
   };
 
   return context;
-}
+};

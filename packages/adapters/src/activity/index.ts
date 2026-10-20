@@ -1,7 +1,7 @@
 import type { ChatContext, RunContext, RuntimeActivity } from '@pitchcrew/core';
 
 /** Public text and phase signals only. Tool arguments/results and thinking text stay private. */
-export function activityStream(context: RunContext | ChatContext) {
+export const activityStream = (context: RunContext | ChatContext) => {
   let sequence = 0;
   let commentary: RuntimeActivity | undefined;
   let thinking: RuntimeActivity | undefined;
@@ -18,7 +18,7 @@ export function activityStream(context: RunContext | ChatContext) {
     commentary = undefined;
   };
   return {
-    thinking() {
+    thinking: () => {
       endText();
       if (!thinking) {
         thinking = {
@@ -30,11 +30,11 @@ export function activityStream(context: RunContext | ChatContext) {
         emit(thinking);
       }
     },
-    boundary() {
+    boundary: () => {
       endText();
       endThinking();
     },
-    text(raw: string) {
+    text: (raw: string) => {
       if (!raw) {
         endText();
         return;
@@ -54,4 +54,4 @@ export function activityStream(context: RunContext | ChatContext) {
       emit(commentary);
     },
   };
-}
+};

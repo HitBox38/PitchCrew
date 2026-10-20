@@ -9,7 +9,11 @@ import {
 import type { CrewContext } from '../types.ts';
 import { canReadConversation, conversation } from '../conversations.ts';
 /** Ready scheduled work takes its chronological place beside user input and agent tasks. */
-export function routineReadyBefore(context: CrewContext, roleId: string, order: number): boolean {
+export const routineReadyBefore = (
+  context: CrewContext,
+  roleId: string,
+  order: number,
+): boolean => {
   const role = context.board.get<Role>('role', roleId);
   if (
     !role.enabled ||
@@ -67,4 +71,4 @@ export function routineReadyBefore(context: CrewContext, roleId: string, order: 
       return false;
     return true;
   });
-}
+};

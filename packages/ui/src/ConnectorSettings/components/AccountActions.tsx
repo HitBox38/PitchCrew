@@ -7,11 +7,11 @@ type Props = Pick<ConnectedAccountsProps, 'working' | 'action' | 'open'> & {
   connector: ConnectorStatus;
 };
 
-export function AccountActions({ connector, working, action, open }: Props) {
+export const AccountActions = ({ connector, working, action, open }: Props) => {
   if (connector.connected || connector.pending)
     return (
       <Button
-        className="button max-compact:col-start-3 max-compact:row-start-2"
+        variant="outline"
         disabled={working}
         onClick={() =>
           void action(
@@ -22,17 +22,17 @@ export function AccountActions({ connector, working, action, open }: Props) {
           ).catch(() => {})
         }
       >
-        <Unplug size={14} /> {connector.pending ? 'Cancel sign-in' : 'Disconnect'}
+        <Unplug size={14} aria-hidden="true" />{' '}
+        {connector.pending ? 'Cancel sign-in' : 'Disconnect'}
       </Button>
     );
   return (
-    <div className="flex flex-col items-end gap-1 max-compact:col-start-3 max-compact:row-start-2">
-      <Button className="button" disabled={working} onClick={() => void open(connector.id)}>
+    <div className="flex flex-col items-end gap-1">
+      <Button disabled={working} onClick={() => void open(connector.id)}>
         {connector.id === 'google' ? 'Connect Google' : 'Connect'}
       </Button>
       {connector.id === 'google' ? (
         <Button
-          className="text-button"
           variant="link"
           size="sm"
           disabled={working}
@@ -43,4 +43,4 @@ export function AccountActions({ connector, working, action, open }: Props) {
       ) : null}
     </div>
   );
-}
+};

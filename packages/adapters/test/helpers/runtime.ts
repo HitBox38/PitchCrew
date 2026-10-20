@@ -3,9 +3,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { vi } from 'vitest';
-
-export const directories: string[] = [];
-export async function contextFor(
+export const contextFor = async (
   runtime:
     | 'gemini-cli'
     | 'opencode'
@@ -18,7 +16,7 @@ export async function contextFor(
     | 'oh-my-pi'
     | 'hermes',
   mode = '',
-): Promise<RunContext> {
+): Promise<RunContext> => {
   if (runtime === 'goose') vi.stubEnv('GOOSE_PROVIDER', 'openai');
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-adapter-'));
   directories.push(directory);
@@ -58,15 +56,17 @@ export async function contextFor(
     signal: new AbortController().signal,
     onMessage: vi.fn(),
   };
-}
-export async function requestFor(context: RunContext) {
+};
+export const requestFor = async (context: RunContext) => {
   return JSON.parse(await readFile(join(context.directory, 'cli-request.json'), 'utf8')) as {
     runtime: string;
     args: string[];
     prompt: string;
     environment: Record<string, string>;
   };
-}
+};
+
+export const directories: string[] = [];
 export const cleanup = async () => {
   vi.unstubAllEnvs();
   for (const directory of directories.splice(0)) {

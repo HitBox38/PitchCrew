@@ -4,7 +4,7 @@ import { QuestionMessage } from '@/UserQuestions/components/QuestionMessage.tsx'
 import { MessageContent } from '@/components/ai-elements/message/components/MessageContent.tsx';
 import { ReferenceMessage } from '@/ChatReferences/index.tsx';
 import { MessageAttachments } from './MessageAttachments.tsx';
-export function TranscriptMessageContent({
+export const TranscriptMessageContent = ({
   message,
   data,
   streaming,
@@ -14,7 +14,7 @@ export function TranscriptMessageContent({
   data: Snapshot;
   streaming: boolean;
   answerQuestion: (id: string) => void;
-}) {
+}) => {
   const question = message.userInput
     ? data.userInputs?.find((q) => q.id === message.userInput?.id)
     : undefined;
@@ -34,4 +34,4 @@ export function TranscriptMessageContent({
       <MessageAttachments message={message} />
     </MessageContent>
   );
-}
+};

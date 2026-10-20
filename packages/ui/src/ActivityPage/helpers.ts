@@ -1,8 +1,10 @@
 import { eventKindLabels } from './constants.ts';
-export function validateActivitySearch(search: Record<string, unknown>): {
+export const validateActivitySearch = (
+  search: Record<string, unknown>,
+): {
   q?: string;
   kind?: keyof typeof eventKindLabels;
-} {
+} => {
   return {
     q: typeof search.q === 'string' ? search.q.slice(0, 200) || undefined : undefined,
     kind:
@@ -10,4 +12,4 @@ export function validateActivitySearch(search: Record<string, unknown>): {
         ? (search.kind as keyof typeof eventKindLabels)
         : undefined,
   };
-}
+};

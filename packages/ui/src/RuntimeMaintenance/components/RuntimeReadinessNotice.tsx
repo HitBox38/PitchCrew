@@ -1,7 +1,7 @@
 import type { ChatViewModel } from '@/ChatView/types.ts';
 import { Link } from '@tanstack/react-router';
 
-export function RuntimeReadinessNotice({ data, role, conversation }: ChatViewModel) {
+export const RuntimeReadinessNotice = ({ data, role, conversation }: ChatViewModel) => {
   const config = { ...role, ...conversation?.configurations[role.id] };
   const maintenance = data.runtimeMaintenance;
   const update = maintenance?.updates.find((entry) => entry.id === config.runtime);
@@ -27,4 +27,4 @@ export function RuntimeReadinessNotice({ data, role, conversation }: ChatViewMod
       </Link>
     </output>
   );
-}
+};

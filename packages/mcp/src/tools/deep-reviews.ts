@@ -3,11 +3,11 @@ import { reviewSubagentInput, reviewTimeInput, reviewPerspectiveSchema } from '@
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
-export function registerDeepReviewTools(
+export const registerDeepReviewTools = (
   server: McpServer,
   call: AgentCall,
   mode?: 'parent' | 'subagent' | 'writer' | 'budget' | null,
-) {
+) => {
   if (!mode) {
     server.registerTool(
       'pitchcrew_start_deep_review',
@@ -70,9 +70,9 @@ export function registerDeepReviewTools(
     (data) => call('review_subagents', { input: data }),
   );
   registerReviewExtension(server, call);
-}
+};
 
-function registerReviewExtension(server: McpServer, call: AgentCall) {
+const registerReviewExtension = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_extend_review_deadline',
     {
@@ -84,4 +84,4 @@ function registerReviewExtension(server: McpServer, call: AgentCall) {
     },
     (data) => call('extend_review_deadline', { input: data }),
   );
-}
+};

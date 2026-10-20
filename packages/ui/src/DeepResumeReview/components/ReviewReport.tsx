@@ -5,7 +5,7 @@ import { ReviewFindings } from './ReviewFindings.tsx';
 import { SubagentResults } from './SubagentResults.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { deepReviewStages } from '@pitchcrew/core/deep-review-labels';
-export function ReviewReport({
+export const ReviewReport = ({
   detail,
   childPage,
   changeChildPage,
@@ -15,7 +15,7 @@ export function ReviewReport({
   currentReviewRunId?: string;
   childPage: number;
   changeChildPage: (offset: number) => void;
-}) {
+}) => {
   const { report } = detail;
   const screen = (stage: 'before' | 'after') =>
     report[stage]?.perspectives.find((p) => p.perspective === 'screen')?.verdict ?? 'Incomplete';
@@ -95,4 +95,4 @@ export function ReviewReport({
       </p>
     </article>
   );
-}
+};

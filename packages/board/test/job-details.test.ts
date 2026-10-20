@@ -4,13 +4,7 @@ import { assertReviewedContext, Board, updateJobDetails } from '../src/index.ts'
 import { reviewFixturePacket } from './fixtures/application-context.ts';
 import { packet } from './fixtures/packet.ts';
 
-const boards: Board[] = [];
-afterEach(() => {
-  vi.restoreAllMocks();
-  for (const board of boards.splice(0)) board.close();
-});
-
-function context() {
+const context = () => {
   const board = new Board(':memory:');
   boards.push(board);
   const initial = board.createCard(
@@ -51,7 +45,13 @@ function context() {
   const correct = (changes: unknown) =>
     updateJobDetails(board, card.id, changes, 'scout', 'chat', 'User correction');
   return { board, card, approval, correct };
-}
+};
+
+const boards: Board[] = [];
+afterEach(() => {
+  vi.restoreAllMocks();
+  for (const board of boards.splice(0)) board.close();
+});
 
 it('invalidates context-dependent evidence and approvals while preserving the card, files and bookkeeping', () => {
   const { board, card, approval, correct } = context();

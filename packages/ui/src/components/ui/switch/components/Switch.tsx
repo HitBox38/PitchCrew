@@ -1,7 +1,7 @@
 import { Switch as SwitchPrimitive } from '@base-ui/react/switch';
 import { cn } from '@/lib/utils';
 
-export function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
+export const Switch = ({ className, ...props }: SwitchPrimitive.Root.Props) => {
   return (
     <SwitchPrimitive.Root
       data-slot="switch"
@@ -17,4 +17,4 @@ export function Switch({ className, ...props }: SwitchPrimitive.Root.Props) {
       />
     </SwitchPrimitive.Root>
   );
-}
+};

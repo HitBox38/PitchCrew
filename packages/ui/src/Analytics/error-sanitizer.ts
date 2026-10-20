@@ -1,3 +1,29 @@
+/** Rebuild even already-encoded SDK payloads; never trust exception text or nested objects. */
+export const sanitizeException = (
+  input: Record<string, unknown>,
+): Record<string, unknown> | null => {
+  const source = input.error_source as ErrorSource;
+  const category = input.error_category as ErrorCategory;
+  if (!errorSources.includes(source) || !errorCategories.includes(category)) return null;
+  const action = errorActions.includes(input.error_action as ErrorAction)
+    ? (input.error_action as ErrorAction)
+    : undefined;
+  if (source === 'api_action' && !action) return null;
+  const handled =
+    source === 'react_boundary' || source === 'react_recoverable' || source === 'api_action';
+  const issue = `Pitchcrew ${source}: ${category}${source === 'api_action' ? ` (${action})` : ''}`;
+  return {
+    error_source: source,
+    error_category: category,
+    ...(source === 'api_action' ? { error_action: action } : {}),
+    $exception_list: [
+      { type: category, value: issue, mechanism: { type: source, handled, synthetic: true } },
+    ],
+    $exception_fingerprint: `pitchcrew-v1:${source}:${category}${source === 'api_action' ? `:${action}` : ''}`,
+    $exception_level: 'error',
+    $issue_name: issue,
+  };
+};
 export const errorSources = [
   'window_error',
   'unhandled_rejection',
@@ -39,28 +65,3 @@ export const errorActions = [
   'onboarding',
 ] as const;
 export type ErrorAction = (typeof errorActions)[number];
-
-/** Rebuild even already-encoded SDK payloads; never trust exception text or nested objects. */
-export function sanitizeException(input: Record<string, unknown>): Record<string, unknown> | null {
-  const source = input.error_source as ErrorSource;
-  const category = input.error_category as ErrorCategory;
-  if (!errorSources.includes(source) || !errorCategories.includes(category)) return null;
-  const action = errorActions.includes(input.error_action as ErrorAction)
-    ? (input.error_action as ErrorAction)
-    : undefined;
-  if (source === 'api_action' && !action) return null;
-  const handled =
-    source === 'react_boundary' || source === 'react_recoverable' || source === 'api_action';
-  const issue = `Pitchcrew ${source}: ${category}${source === 'api_action' ? ` (${action})` : ''}`;
-  return {
-    error_source: source,
-    error_category: category,
-    ...(source === 'api_action' ? { error_action: action } : {}),
-    $exception_list: [
-      { type: category, value: issue, mechanism: { type: source, handled, synthetic: true } },
-    ],
-    $exception_fingerprint: `pitchcrew-v1:${source}:${category}${source === 'api_action' ? `:${action}` : ''}`,
-    $exception_level: 'error',
-    $issue_name: issue,
-  };
-}

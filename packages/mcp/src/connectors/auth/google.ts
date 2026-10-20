@@ -5,10 +5,10 @@ import { createGoogleCallback } from './google-callback.ts';
 import { boundedText, GoogleToken, scopes, tokenResponse } from './helpers.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
-export async function connectGoogle(
-  this: ConnectorManagerContext,
+export const connectGoogle = async (
+  context: ConnectorManagerContext,
   value: unknown,
-): Promise<{ authorizationUrl: string }> {
+): Promise<{ authorizationUrl: string }> => {
   const input = z
     .object({
       clientId: z.string().trim().min(1).max(500).optional(),
@@ -24,17 +24,17 @@ export async function connectGoogle(
     throw new Error(
       'Google sign-in is not configured in this installation. Ask the person who manages Pitchcrew to finish setup, or use Advanced setup to connect your own Google app.',
     );
-  if (this.pending || this.googleStarting)
+  if (context.pending || context.googleStarting)
     throw new Error('Google sign-in is already in progress. Disconnect to cancel it.');
-  if (this.store.google) throw new Error('Disconnect Google before connecting another account.');
-  this.googleStarting = true;
-  this.errors.google = '';
+  if (context.store.google) throw new Error('Disconnect Google before connecting another account.');
+  context.googleStarting = true;
+  context.errors.google = '';
   const state = randomBytes(32).toString('base64url');
   const verifier = randomBytes(32).toString('base64url');
-  const lifetime = this.lifetimes.google.signal;
+  const lifetime = context.lifetimes.google.signal;
   let redirectUri = '';
   const server = createServer(
-    createGoogleCallback.call(this, {
+    createGoogleCallback(context, {
       clientId,
       clientSecret,
       state,
@@ -53,18 +53,18 @@ export async function connectGoogle(
     server.close();
     throw new Error('Cannot start Google sign-in callback. Try connecting again.');
   } finally {
-    this.googleStarting = false;
+    context.googleStarting = false;
   }
   const address = server.address();
   if (!address || typeof address === 'string')
     throw new Error('Cannot start Google sign-in callback.');
   redirectUri = `http://127.0.0.1:${address.port}/oauth/google`;
   const timer = setTimeout(() => {
-    this.errors.google = 'Google sign-in expired. Connect again.';
-    this.cancelPending();
+    context.errors.google = 'Google sign-in expired. Connect again.';
+    context.cancelPending();
   }, 600000);
   timer.unref();
-  this.pending = { server, timer, state, busy: false };
+  context.pending = { server, timer, state, busy: false };
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
   url.search = new URLSearchParams({
     client_id: clientId,
@@ -78,23 +78,23 @@ export async function connectGoogle(
     prompt: 'consent',
   }).toString();
   return { authorizationUrl: url.toString() };
-}
-export function cancelPending(this: ConnectorManagerContext): void {
-  if (!this.pending) return;
-  clearTimeout(this.pending.timer);
-  this.pending.server.close();
-  this.pending.server.closeIdleConnections();
-  this.pending = undefined;
-}
-export async function googleAccessToken(
-  this: ConnectorManagerContext,
+};
+export const cancelPending = (context: ConnectorManagerContext): void => {
+  if (!context.pending) return;
+  clearTimeout(context.pending.timer);
+  context.pending.server.close();
+  context.pending.server.closeIdleConnections();
+  context.pending = undefined;
+};
+export const googleAccessToken = async (
+  context: ConnectorManagerContext,
   token: GoogleToken,
   lifetime: AbortSignal,
-): Promise<string> {
+): Promise<string> => {
   if (token.expiresAt > Date.now() + 60000) return token.accessToken;
-  if (this.refreshing?.token === token) return this.refreshing.promise;
+  if (context.refreshing?.token === token) return context.refreshing.promise;
   const promise = (async () => {
-    const response = await this.fetch(
+    const response = await context.fetch(
       'https://oauth2.googleapis.com/token',
       {
         method: 'POST',
@@ -109,18 +109,18 @@ export async function googleAccessToken(
     );
     const result = tokenResponse.parse(JSON.parse(await boundedText(response)));
     lifetime.throwIfAborted();
-    if (this.store.google !== token) throw new Error('Google connection changed. Retry.');
+    if (context.store.google !== token) throw new Error('Google connection changed. Retry.');
     token.accessToken = result.access_token;
     token.expiresAt = Date.now() + result.expires_in * 1000;
     if (result.refresh_token) token.refreshToken = result.refresh_token;
     if (result.scope) token.scopes = result.scope.split(' ');
-    await this.save();
+    await context.save();
     return token.accessToken;
   })();
-  this.refreshing = { token, promise };
+  context.refreshing = { token, promise };
   try {
     return await promise;
   } finally {
-    if (this.refreshing?.promise === promise) this.refreshing = undefined;
+    if (context.refreshing?.promise === promise) context.refreshing = undefined;
   }
-}
+};

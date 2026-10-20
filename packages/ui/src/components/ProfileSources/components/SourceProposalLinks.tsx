@@ -2,13 +2,13 @@ import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceProposalLinks({
+export const SourceProposalLinks = ({
   proposals,
   controller: c,
 }: {
   proposals: ProfileMaintenanceProposal[];
   controller: ProfileSourcesModel;
-}) {
+}) => {
   if (!proposals.length) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -36,4 +36,4 @@ export function SourceProposalLinks({
       ))}
     </div>
   );
-}
+};

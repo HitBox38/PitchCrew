@@ -6,13 +6,13 @@ import { useApplicationTracking } from './hooks/useApplicationTracking.ts';
 import { TrackingSource } from '@/TrackingSource/index.tsx';
 import { TrackingIdentifier } from './components/TrackingIdentifier.tsx';
 
-export function ApplicationTracking({
+export const ApplicationTracking = ({
   card,
   onDirtyChange,
 }: {
   card: Card;
   onDirtyChange?: (dirty: boolean) => void;
-}) {
+}) => {
   const { working, threadId, setThreadId, setIdentifierDirty, signals, connected, unlink, link } =
     useApplicationTracking(card, onDirtyChange);
   return (
@@ -78,4 +78,4 @@ export function ApplicationTracking({
       ) : null}
     </section>
   );
-}
+};

@@ -11,18 +11,18 @@ import { describe, expect, it } from 'vitest';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import { bodyText, checkPacket, countWords, lintPacket, ruleInputLimit } from '../src/index.ts';
 
-const profile = [{ name: 'profile.md', content: '- Built React interfaces.' }];
-const rules = (input: unknown): PacketRules =>
-  packetRulesSchema.parse({ version: 1, rules: [input] });
-
 /** The limits that lintPacket hardcoded before packet rules existed. */
-function legacyLimits(packet: Packet) {
+const legacyLimits = (packet: Packet) => {
   const problems: string[] = [];
   if (packet.resume.split(/\s+/).length > 650) problems.push('Resume exceeds 650 words.');
   if (packet.coverLetter.split(/\s+/).length > 500)
     problems.push('Cover letter exceeds 500 words.');
   return problems;
-}
+};
+
+const profile = [{ name: 'profile.md', content: '- Built React interfaces.' }];
+const rules = (input: unknown): PacketRules =>
+  packetRulesSchema.parse({ version: 1, rules: [input] });
 
 describe('word counting', () => {
   it('counts body words without frontmatter, LaTeX commands, HTML or link targets', () => {

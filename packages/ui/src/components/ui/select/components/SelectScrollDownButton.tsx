@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { ChevronDownIcon } from 'lucide-react';
 
-export function SelectScrollDownButton({ className, ...props }: SelectScrollDownButtonProps) {
+export const SelectScrollDownButton = ({ className, ...props }: SelectScrollDownButtonProps) => {
   return (
     <SelectPrimitive.ScrollDownArrow
       data-slot="select-scroll-down-button"
@@ -16,4 +16,4 @@ export function SelectScrollDownButton({ className, ...props }: SelectScrollDown
       <ChevronDownIcon className="primitive:size-4" />
     </SelectPrimitive.ScrollDownArrow>
   );
-}
+};

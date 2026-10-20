@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createAnalytics, sdkConfig } from '../client.ts';
 import metadata from '../../../../../package.json';
+const sdkMock = () => {
+  return { init: vi.fn(), capture: vi.fn(), opt_in_capturing: vi.fn(), opt_out_capturing: vi.fn() };
+};
 
 const config = { token: 'phc_fixture123', host: 'https://eu.i.posthog.com' };
-function sdkMock() {
-  return { init: vi.fn(), capture: vi.fn(), opt_in_capturing: vi.fn(), opt_out_capturing: vi.fn() };
-}
 
 describe('analytics lifecycle', () => {
   it('attaches the shipped app version and renderer to every event without identifying users', async () => {

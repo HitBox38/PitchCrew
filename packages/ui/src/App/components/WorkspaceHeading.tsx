@@ -6,13 +6,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ImportApplications } from '@/ImportApplications/index.tsx';
 import { Plus } from 'lucide-react';
 
-export function WorkspaceHeading({
+export const WorkspaceHeading = ({
   view,
   summary,
   data,
   setAdd,
   actionsRef,
-}: WorkspaceHeadingProps & { actionsRef: Ref<HTMLDivElement> }) {
+}: WorkspaceHeadingProps & { actionsRef: Ref<HTMLDivElement> }) => {
   const Icon = view ? viewIcons[view] : viewIcons.board;
   return (
     <header className="workspace-heading">
@@ -38,4 +38,4 @@ export function WorkspaceHeading({
       </div>
     </header>
   );
-}
+};

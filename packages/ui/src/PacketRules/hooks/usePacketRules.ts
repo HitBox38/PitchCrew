@@ -6,7 +6,7 @@ import { formatRules, parseDraft, ruleViews } from '../helpers.ts';
 import type { PacketRulesProps } from '../types.ts';
 import { useRulesValidation } from './useRulesValidation.ts';
 
-export function usePacketRules({ state }: PacketRulesProps) {
+export const usePacketRules = ({ state }: PacketRulesProps) => {
   const action = useWorkspaceStore((store) => store.action);
   const working = useWorkspaceStore((store) => store.working);
   const setToast = useWorkspaceStore((store) => store.setToast);
@@ -19,8 +19,12 @@ export function usePacketRules({ state }: PacketRulesProps) {
   const guard = useUnsavedChanges(dirty, () => setDraft(null));
   const rules = ruleViews('value' in parsed ? parsed.value : null);
   const canSave = dirty && !checking && !issues.length && !working;
+  const restoreDefaults = () =>
+    void action('/packet-rules', 'DELETE', undefined, 'Restored the default packet rules')
+      .then(() => setDraft(null))
+      .catch(() => {});
 
-  async function save(event: FormEvent) {
+  const save = async (event: FormEvent) => {
     event.preventDefault();
     if (!canSave || !('value' in parsed)) return;
     try {
@@ -29,27 +33,23 @@ export function usePacketRules({ state }: PacketRulesProps) {
     } catch {
       // The action toast reports the failure; the draft stays for correction.
     }
-  }
-  async function importFile(file: File) {
+  };
+  const importFile = async (file: File) => {
     if (file.size > rulesFileBytes) {
       setToast(`Rules files can be at most ${rulesFileBytes / 1024} KB.`, 'error');
       return;
     }
     setDraft(await file.text());
     setToast(`Loaded ${file.name}. Review the rules, then save.`, 'info');
-  }
-  function exportFile() {
+  };
+  const exportFile = () => {
     const url = URL.createObjectURL(new Blob([saved], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url;
     link.download = rulesFileName;
     link.click();
     setTimeout(() => URL.revokeObjectURL(url), 0);
-  }
-  const restoreDefaults = () =>
-    void action('/packet-rules', 'DELETE', undefined, 'Restored the default packet rules')
-      .then(() => setDraft(null))
-      .catch(() => {});
+  };
 
   return {
     state,
@@ -68,5 +68,5 @@ export function usePacketRules({ state }: PacketRulesProps) {
     exportFile,
     restoreDefaults,
   };
-}
+};
 export type PacketRulesController = ReturnType<typeof usePacketRules>;

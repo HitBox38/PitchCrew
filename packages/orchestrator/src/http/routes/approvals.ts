@@ -8,7 +8,7 @@ import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
-export function registerApprovalsRoutes(app: FastifyInstance, service: CrewService) {
+export const registerApprovalsRoutes = (app: FastifyInstance, service: CrewService) => {
   app.post<IdRoute>('/api/cards/:id/approval', async (req, res) => {
     const { formats, layout } = z
       .object({
@@ -110,4 +110,4 @@ export function registerApprovalsRoutes(app: FastifyInstance, service: CrewServi
   app.post<IdRoute>('/api/approvals/:id/export', async (req, res) =>
     res.send({ directory: await service.exportPacket(req.params.id) }),
   );
-}
+};

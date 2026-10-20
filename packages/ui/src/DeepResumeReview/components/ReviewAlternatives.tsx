@@ -3,7 +3,7 @@ import type { Dispatch, SetStateAction } from 'react';
 import type { ReviewAlternativeRow, ReviewSupport } from '../types.ts';
 import { ReviewAlternative } from './ReviewAlternative.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-export function ReviewAlternatives({
+export const ReviewAlternatives = ({
   runtimes,
   alternatives,
   setAlternatives,
@@ -13,7 +13,7 @@ export function ReviewAlternatives({
   alternatives: ReviewAlternativeRow[];
   setAlternatives: Dispatch<SetStateAction<ReviewAlternativeRow[]>>;
   error: string;
-}) {
+}) => {
   const supported = runtimes.find(
     (runtime) => runtime.available && runtime.applicationIsolation && runtime.reviewSubagents,
   );
@@ -57,4 +57,4 @@ export function ReviewAlternatives({
       </div>
     </AccordionSection>
   );
-}
+};

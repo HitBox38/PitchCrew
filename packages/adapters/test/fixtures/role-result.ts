@@ -1,4 +1,4 @@
-export function roleResult(prompt: string, mode?: string) {
+export const roleResult = (prompt: string, mode?: string) => {
   const role = prompt.match(/You are Pitchcrew's (scout|writer|reviewer)/)?.[1];
   const packet = {
     resume: '# Fictional Candidate\n- Built café interfaces.',
@@ -20,4 +20,4 @@ export function roleResult(prompt: string, mode?: string) {
             ? { role, passed: true, feedback: [] }
             : { role: 'scout', fit: 87, reasons: ['Fixture result'] };
   return mode === 'invalid' ? 'This is not JSON.' : JSON.stringify(result);
-}
+};

@@ -10,7 +10,12 @@ type Props = Pick<ComputerApprovalsProps, 'action' | 'working'> & {
   approval: ComputerApproval;
   showActions?: boolean;
 };
-export function BrowserApprovalContent({ approval, action, working, showActions = true }: Props) {
+export const BrowserApprovalContent = ({
+  approval,
+  action,
+  working,
+  showActions = true,
+}: Props) => {
   const role = approval.roleId[0].toUpperCase() + approval.roleId.slice(1);
   return (
     <>
@@ -76,4 +81,4 @@ export function BrowserApprovalContent({ approval, action, working, showActions 
       ) : null}
     </>
   );
-}
+};

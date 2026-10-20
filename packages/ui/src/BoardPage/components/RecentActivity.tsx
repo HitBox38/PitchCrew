@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
 import { ArrowRight, History } from 'lucide-react';
 
-export function RecentActivity({ go, recent }: RecentActivityProps) {
+export const RecentActivity = ({ go, recent }: RecentActivityProps) => {
   return (
     <footer className="board-recent flex shrink-0 items-start gap-3 border-t border-border pt-2">
       <Accordion className="min-w-0 flex-1" defaultValue={[]}>
@@ -41,4 +41,4 @@ export function RecentActivity({ go, recent }: RecentActivityProps) {
       </Button>
     </footer>
   );
-}
+};

@@ -10,10 +10,10 @@ import {
 } from './runtime.ts';
 
 /** Called once the production-configured analytics SDK is ready. */
-export function installApplicationMetrics(
+export const installApplicationMetrics = (
   config: AnalyticsConfig,
   runLeadership: () => boolean = () => true,
-) {
+) => {
   configureApplicationMetrics(config);
   const runs = createRunMetrics(metricSink, () => applicationMetricsAllowed() && runLeadership());
   runs.observe(useWorkspaceStore.getState().data?.runs ?? []);
@@ -33,4 +33,4 @@ export function installApplicationMetrics(
     runs.reset();
     configureApplicationMetrics(null);
   };
-}
+};

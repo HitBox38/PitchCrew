@@ -5,7 +5,7 @@ import { MemoryNotebook } from '@/ChatView/components/MemoryNotebook.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { BookOpen } from 'lucide-react';
 import type { Snapshot } from '@pitchcrew/core';
-export function AgentMemory({ roleId }: { roleId: string }) {
+export const AgentMemory = ({ roleId }: { roleId: string }) => {
   const [open, setOpen] = useState(false);
   const data = useWorkspaceStore((state) => state.data);
   return (
@@ -21,8 +21,8 @@ export function AgentMemory({ roleId }: { roleId: string }) {
       ) : null}
     </section>
   );
-}
-function AgentMemoryPanel({
+};
+const AgentMemoryPanel = ({
   data,
   roleId,
   close,
@@ -30,7 +30,7 @@ function AgentMemoryPanel({
   data: Snapshot;
   roleId: string;
   close: () => void;
-}) {
+}) => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [selectedRole, setSelectedRole] = useState(roleId);
@@ -47,4 +47,4 @@ function AgentMemoryPanel({
       setDialog={close}
     />
   );
-}
+};

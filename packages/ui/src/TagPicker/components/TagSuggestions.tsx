@@ -1,7 +1,13 @@
 import { Combobox } from '@base-ui/react/combobox';
 import { Plus } from 'lucide-react';
 
-export function TagSuggestions({ custom, atLimit }: { custom: string | null; atLimit: boolean }) {
+export const TagSuggestions = ({
+  custom,
+  atLimit,
+}: {
+  custom: string | null;
+  atLimit: boolean;
+}) => {
   return (
     <Combobox.Portal>
       <Combobox.Positioner sideOffset={6} align="start" className="z-50">
@@ -27,4 +33,4 @@ export function TagSuggestions({ custom, atLimit }: { custom: string | null; atL
       </Combobox.Positioner>
     </Combobox.Portal>
   );
-}
+};

@@ -4,7 +4,7 @@ import { SetupChecklist } from './components/SetupChecklist.tsx';
 import { SetupProgress } from './components/SetupProgress.tsx';
 import { useMatches } from '@tanstack/react-router';
 
-export function Onboarding() {
+export const Onboarding = () => {
   const { data, working, error, save } = useOnboarding();
   const onBoard = useMatches({
     select: (matches) => matches.some((match) => match.staticData.view === 'board'),
@@ -21,4 +21,4 @@ export function Onboarding() {
       <SetupProgress data={data} />
     );
   return null;
-}
+};

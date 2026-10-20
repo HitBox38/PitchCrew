@@ -1,6 +1,14 @@
 import { EventEmitter } from 'node:events';
 import { afterEach, beforeEach, expect, test, vi, type Mock } from 'vitest';
 
+const start = async () => {
+  await import('../src/main.ts');
+  await vi.waitFor(() => expect(electron.windows).toHaveLength(1));
+  const window = electron.windows[0];
+  window.emit('ready-to-show');
+  return window;
+};
+
 type TestApp = EventEmitter & {
   setName: Mock;
   setPath: Mock;
@@ -26,9 +34,9 @@ const electron = vi.hoisted(() => ({
 vi.mock('electron', () => ({
   app: electron.app,
   BrowserWindow: class extends EventEmitter {
-    static getAllWindows() {
+    static getAllWindows = () => {
       return electron.windows;
-    }
+    };
     show = vi.fn();
     focus = vi.fn();
     restore = vi.fn();
@@ -79,14 +87,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
-
-async function start() {
-  await import('../src/main.ts');
-  await vi.waitFor(() => expect(electron.windows).toHaveLength(1));
-  const window = electron.windows[0];
-  window.emit('ready-to-show');
-  return window;
-}
 
 test('smoke startup and second-instance events never show or focus the window', async () => {
   vi.stubEnv('PITCHCREW_SMOKE_FILE', '/tmp/pitchcrew-fixture/result.json');

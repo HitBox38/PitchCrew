@@ -5,7 +5,7 @@ import { SourceConnection } from './SourceConnection.tsx';
 import { SourceProgress } from './SourceProgress.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceForm(c: ProfileSourcesModel) {
+export const SourceForm = (c: ProfileSourcesModel) => {
   return (
     <form className="grid gap-5" onSubmit={c.previewSource} aria-busy={!!c.progress}>
       <fieldset disabled={c.busy} className="grid min-w-0 gap-4">
@@ -41,4 +41,4 @@ export function SourceForm(c: ProfileSourcesModel) {
       <SourceActions {...c} />
     </form>
   );
-}
+};

@@ -1,7 +1,7 @@
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { InstructionComparisonProps } from '@/ChatWork/types.ts';
 
-export function InstructionComparison({ current, proposal }: InstructionComparisonProps) {
+export const InstructionComparison = ({ current, proposal }: InstructionComparisonProps) => {
   return (
     <div className="chat-instruction-comparison">
       <div>
@@ -20,4 +20,4 @@ export function InstructionComparison({ current, proposal }: InstructionComparis
       </div>
     </div>
   );
-}
+};

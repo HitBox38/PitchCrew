@@ -18,53 +18,7 @@ import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/compone
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import '@/styles.css';
 
-const code = 'const answer = 42;\n\nconsole.log(answer);\n';
-const initial: ChatMessage[] = Array.from({ length: 61 }, (_, index) => ({
-  id: `message-${index}`,
-  threadId: 'scout',
-  from: index === 60 || index % 2 ? 'scout' : 'user',
-  to: 'scout',
-  content:
-    index === 60
-      ? `Inline \`hello\`.\n\n\`\`\`js\n${code}\`\`\`\n\n![Private image](https://example.com/private.png)\n\n[External source](https://example.com/source)`
-      : `Message ${index}\n\n${'A fictional conversation for scroll verification.\n\n'.repeat(3)}`,
-  runId: null,
-  cardId: null,
-  createdAt: new Date(Date.UTC(2026, 9, 1, 0, index)).toISOString(),
-}));
-const data = { cards: [], runs: [], streamingMessages: [], roles: [] } as unknown as Snapshot;
-const entries: RunActivity[] = [
-  {
-    id: 'tool',
-    kind: 'tool',
-    label: 'Read profile',
-    status: 'failed',
-    startedAt: initial[0].createdAt,
-    finishedAt: initial[1].createdAt,
-  },
-  {
-    id: 'reasoning',
-    kind: 'reasoning',
-    label: 'Thinking',
-    status: 'completed',
-    startedAt: initial[0].createdAt,
-    finishedAt: initial[1].createdAt,
-    text: 'PRIVATE_REASONING_MUST_NEVER_RENDER',
-  },
-];
-
-const queued: ChatRequest = {
-  id: 'request',
-  threadId: 'scout',
-  messageId: 'pending',
-  content: 'Queued follow-up',
-  attachments: [],
-  createdAt: initial[0].createdAt,
-  order: 1,
-  deliveries: [{ roleId: 'scout', status: 'paused', runId: null, error: '' }],
-};
-
-function Fixture() {
+const Fixture = () => {
   const [messages, setMessages] = useState(initial);
   const [draft, setDraft] = useState('');
   const [files, setFiles] = useState([new File(['fictional'], 'resume.txt')]);
@@ -188,6 +142,52 @@ function Fixture() {
       </div>
     </AppMotion>
   );
-}
+};
+
+const code = 'const answer = 42;\n\nconsole.log(answer);\n';
+const initial: ChatMessage[] = Array.from({ length: 61 }, (_, index) => ({
+  id: `message-${index}`,
+  threadId: 'scout',
+  from: index === 60 || index % 2 ? 'scout' : 'user',
+  to: 'scout',
+  content:
+    index === 60
+      ? `Inline \`hello\`.\n\n\`\`\`js\n${code}\`\`\`\n\n![Private image](https://example.com/private.png)\n\n[External source](https://example.com/source)`
+      : `Message ${index}\n\n${'A fictional conversation for scroll verification.\n\n'.repeat(3)}`,
+  runId: null,
+  cardId: null,
+  createdAt: new Date(Date.UTC(2026, 9, 1, 0, index)).toISOString(),
+}));
+const data = { cards: [], runs: [], streamingMessages: [], roles: [] } as unknown as Snapshot;
+const entries: RunActivity[] = [
+  {
+    id: 'tool',
+    kind: 'tool',
+    label: 'Read profile',
+    status: 'failed',
+    startedAt: initial[0].createdAt,
+    finishedAt: initial[1].createdAt,
+  },
+  {
+    id: 'reasoning',
+    kind: 'reasoning',
+    label: 'Thinking',
+    status: 'completed',
+    startedAt: initial[0].createdAt,
+    finishedAt: initial[1].createdAt,
+    text: 'PRIVATE_REASONING_MUST_NEVER_RENDER',
+  },
+];
+
+const queued: ChatRequest = {
+  id: 'request',
+  threadId: 'scout',
+  messageId: 'pending',
+  content: 'Queued follow-up',
+  attachments: [],
+  createdAt: initial[0].createdAt,
+  order: 1,
+  deliveries: [{ roleId: 'scout', status: 'paused', runId: null, error: '' }],
+};
 
 createRoot(document.getElementById('root')!).render(<Fixture />);

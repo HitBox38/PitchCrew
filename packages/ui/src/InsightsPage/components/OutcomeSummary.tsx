@@ -2,7 +2,7 @@ import { outcomeLabels } from '@/lib/labels.ts';
 import { outcomes, type ApplicationInsights } from '@pitchcrew/core/insights';
 import { outcomeHints } from '../constants.ts';
 
-export function OutcomeSummary({ insights }: { insights: ApplicationInsights }) {
+export const OutcomeSummary = ({ insights }: { insights: ApplicationInsights }) => {
   return (
     <section aria-labelledby="insights-outcomes">
       <h2 id="insights-outcomes" className="sr-only">
@@ -27,4 +27,4 @@ export function OutcomeSummary({ insights }: { insights: ApplicationInsights }) 
       </dl>
     </section>
   );
-}
+};

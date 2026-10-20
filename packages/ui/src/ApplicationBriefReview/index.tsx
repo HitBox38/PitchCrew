@@ -7,13 +7,13 @@ import { RequirementFields } from './components/RequirementFields.tsx';
 import type { useApplicationBrief } from './hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
 
-export function ApplicationBriefReview({
+export const ApplicationBriefReview = ({
   card,
   model,
 }: {
   card: Card;
   model: ReturnType<typeof useApplicationBrief>;
-}) {
+}) => {
   const { draft, setDraft, loaded, editing, confirmed, disabled } = model;
   return (
     <section className="form grid gap-3" aria-label="Application brief review">
@@ -69,4 +69,4 @@ export function ApplicationBriefReview({
       <BriefActions model={model} card={card} />
     </section>
   );
-}
+};

@@ -22,6 +22,7 @@ export type ImportReviewProps = Pick<
   ProfileSourcesModel,
   | 'preview'
   | 'setPreview'
+  | 'closeReview'
   | 'selected'
   | 'setSelected'
   | 'toggle'

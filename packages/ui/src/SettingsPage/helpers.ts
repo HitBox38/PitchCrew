@@ -5,12 +5,16 @@ export type SettingsSection =
   | 'runtimes'
   | 'rules'
   | 'writing'
+  | 'updates'
+  | 'privacy'
   | 'data';
 
-export function validateSettingsSearch(search: Record<string, unknown>): {
+export const validateSettingsSearch = (
+  search: Record<string, unknown>,
+): {
   section: SettingsSection;
   runtime?: string;
-} {
+} => {
   const section = search.section;
   return {
     ...(typeof search.runtime === 'string' && search.runtime.length < 100
@@ -22,8 +26,10 @@ export function validateSettingsSearch(search: Record<string, unknown>): {
       section === 'runtimes' ||
       section === 'rules' ||
       section === 'writing' ||
+      section === 'updates' ||
+      section === 'privacy' ||
       section === 'data'
         ? section
         : 'general',
   };
-}
+};

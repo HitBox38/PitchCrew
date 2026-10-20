@@ -8,7 +8,11 @@ import {
 import { randomUUID } from 'node:crypto';
 import type { BoardContext } from './types.ts';
 
-export function createCard(this: BoardContext, input: CardInput, sample: boolean = false): Card {
+export const createCard = (
+  context: BoardContext,
+  input: CardInput,
+  sample: boolean = false,
+): Card => {
   const now = new Date().toISOString();
   const card: Card = {
     ...input,
@@ -22,11 +26,11 @@ export function createCard(this: BoardContext, input: CardInput, sample: boolean
     updatedAt: now,
     sample,
   };
-  this.record('card', card, 'user', `Added ${card.company} to the board`);
+  context.record('card', card, 'user', `Added ${card.company} to the board`);
   return card;
-}
-export function updateCard(
-  this: BoardContext,
+};
+export const updateCard = (
+  context: BoardContext,
   id: string,
   patch: Partial<
     Pick<
@@ -44,19 +48,19 @@ export function updateCard(
   >,
   actor: string,
   message: string,
-): Card {
-  const card = { ...this.get<Card>('card', id), ...patch, updatedAt: new Date().toISOString() };
-  this.record('card', card, actor, message);
+): Card => {
+  const card = { ...context.get<Card>('card', id), ...patch, updatedAt: new Date().toISOString() };
+  context.record('card', card, actor, message);
   return card;
-}
-export function move(
-  this: BoardContext,
+};
+export const move = (
+  context: BoardContext,
   id: string,
   state: CardState,
   actor: string,
   message?: string,
-): Card {
-  const card = this.get<Card>('card', id);
+): Card => {
+  const card = context.get<Card>('card', id);
   assertTransition(card.state, state);
   const now = new Date().toISOString();
   const next = {
@@ -65,11 +69,11 @@ export function move(
     updatedAt: now,
     ...(actor === 'user' ? { statusEffectiveAt: now } : {}),
   };
-  this.record('card', next, actor, message ?? `Moved to ${state.replaceAll('_', ' ')}`);
+  context.record('card', next, actor, message ?? `Moved to ${state.replaceAll('_', ' ')}`);
   return next;
-}
-export function hasActiveRun(this: BoardContext, cardId: string): boolean {
-  return this.list<Run>('run').some(
-    (run) => run.cardId === cardId && run.status === 'running' && run.mode !== 'chat',
-  );
-}
+};
+export const hasActiveRun = (context: BoardContext, cardId: string): boolean => {
+  return context
+    .list<Run>('run')
+    .some((run) => run.cardId === cardId && run.status === 'running' && run.mode !== 'chat');
+};

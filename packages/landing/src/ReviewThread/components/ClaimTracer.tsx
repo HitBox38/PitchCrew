@@ -7,7 +7,7 @@ import { announcement } from '../helpers';
 import { ClaimList } from './ClaimList';
 import { ReviewRail } from './ReviewRail';
 
-export function ClaimTracer({ intro, footer }: { intro: ReactNode; footer: ReactNode }) {
+export const ClaimTracer = ({ intro, footer }: { intro: ReactNode; footer: ReactNode }) => {
   const [selected, select] = useState(initialClaim);
   const [preview, setPreview] = useState<string | null>(null);
   const shown = claims.find((claim) => claim.id === (preview ?? selected)) ?? claims[0];
@@ -36,4 +36,4 @@ export function ClaimTracer({ intro, footer }: { intro: ReactNode; footer: React
       </MotionConfig>
     </LazyMotion>
   );
-}
+};

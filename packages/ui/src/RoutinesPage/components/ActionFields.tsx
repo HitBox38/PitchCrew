@@ -4,12 +4,12 @@ import { FormSelect } from '@/FormSelect/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 
-export function ActionFields({
+export const ActionFields = ({
   draft,
   change,
   roles,
   cards,
-}: DraftFieldsProps & { roles: Role[]; cards: Card[] }) {
+}: DraftFieldsProps & { roles: Role[]; cards: Card[] }) => {
   return (
     <>
       <label>
@@ -57,4 +57,4 @@ export function ActionFields({
       </label>
     </>
   );
-}
+};

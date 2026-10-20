@@ -4,7 +4,7 @@ import { RoleSettings } from '@/App/constants.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import type { Snapshot } from '@pitchcrew/core';
 
-export function CrewUpdateReview({
+export const CrewUpdateReview = ({
   data,
   action,
   working,
@@ -12,7 +12,7 @@ export function CrewUpdateReview({
   data: Snapshot;
   action: Action;
   working: boolean;
-}) {
+}) => {
   const { review } = useSearch({ from: '/crew' });
   const navigate = useNavigate({ from: '/crew' });
   const role = data.roles.find((item) => item.id === review && !item.retiredAt);
@@ -36,4 +36,4 @@ export function CrewUpdateReview({
       />
     </Suspense>
   );
-}
+};

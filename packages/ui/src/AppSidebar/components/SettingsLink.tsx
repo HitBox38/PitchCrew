@@ -8,11 +8,11 @@ import { TooltipProvider } from '@/components/ui/tooltip/components/TooltipProvi
 import { Link } from '@tanstack/react-router';
 import { Settings } from 'lucide-react';
 
-export function SettingsLink({ active }: { active: boolean }) {
+export const SettingsLink = ({ active }: { active: boolean }) => {
   return (
     <TooltipProvider delay={300}>
       <SidebarFooter>
-        <SidebarMenu className="flex-row items-center group-data-[collapsible=icon]:flex-col">
+        <SidebarMenu className="flex-row flex-wrap items-center group-data-[collapsible=icon]:flex-col">
           <SidebarMenuItem className="shrink-0">
             <SidebarIconButton
               label="Settings"
@@ -29,4 +29,4 @@ export function SettingsLink({ active }: { active: boolean }) {
       </SidebarFooter>
     </TooltipProvider>
   );
-}
+};

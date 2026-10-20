@@ -5,14 +5,14 @@ import { digestPacket, digestArtifacts } from './helpers.ts';
 import type { BoardContext } from './types.ts';
 import { assertReviewedContext } from './application-context.ts';
 
-export function requestApproval(
-  this: BoardContext,
+export const requestApproval = (
+  crewContext: BoardContext,
   cardId: string,
   artifacts?: PacketArtifact[],
   documentVerification?: Approval['documentVerification'],
-): Approval {
-  return this.db.transaction(() => {
-    const card = this.get<Card>('card', cardId);
+): Approval => {
+  return crewContext.db.transaction(() => {
+    const card = crewContext.get<Card>('card', cardId);
     const context = assertReviewedContext(card);
     if (card.state !== 'agreed' || !card.packet)
       throw new Error('A reviewed packet is required before requesting approval.');
@@ -29,18 +29,22 @@ export function requestApproval(
       createdAt: new Date().toISOString(),
       decidedAt: null,
     };
-    this.record('approval', approval, 'user', 'Requested approval to export packet');
-    this.move(cardId, 'awaiting_approval', 'user');
+    crewContext.record('approval', approval, 'user', 'Requested approval to export packet');
+    crewContext.move(cardId, 'awaiting_approval', 'user');
     return approval;
   })();
-}
-export function decideApproval(this: BoardContext, id: string, approved: boolean): Approval {
-  return this.db.transaction(() => {
-    const approval = this.get<Approval>('approval', id);
+};
+export const decideApproval = (
+  crewContext: BoardContext,
+  id: string,
+  approved: boolean,
+): Approval => {
+  return crewContext.db.transaction(() => {
+    const approval = crewContext.get<Approval>('approval', id);
     if (approval.artifacts && approval.artifactDigest !== digestArtifacts(approval.artifacts))
       throw new Error('Reviewed artifacts changed.');
     if (approval.status !== 'pending') throw new Error('This approval has already been decided.');
-    const card = this.get<Card>('card', approval.cardId);
+    const card = crewContext.get<Card>('card', approval.cardId);
     const context = assertReviewedContext(card);
     if (approval.contextRevision !== context.revision)
       throw new Error('Application context changed. Request a new approval.');
@@ -55,25 +59,25 @@ export function decideApproval(this: BoardContext, id: string, approved: boolean
       status: approved ? 'approved' : 'rejected',
       decidedAt: new Date().toISOString(),
     };
-    this.record(
+    crewContext.record(
       'approval',
       next,
       'user',
       approved ? 'Approved local packet export' : 'Rejected packet export',
     );
-    if (!approved) this.move(approval.cardId, 'agreed', 'user');
+    if (!approved) crewContext.move(approval.cardId, 'agreed', 'user');
     return next;
   })();
-}
-export function consumeApproval(
-  this: BoardContext,
+};
+export const consumeApproval = (
+  crewContext: BoardContext,
   id: string,
   cardId: string,
   digest: string,
-): Packet {
-  return this.db.transaction(() => {
-    const approval = this.get<Approval>('approval', id);
-    const card = this.get<Card>('card', cardId);
+): Packet => {
+  return crewContext.db.transaction(() => {
+    const approval = crewContext.get<Approval>('approval', id);
+    const card = crewContext.get<Card>('card', cardId);
     const context = assertReviewedContext(card);
     if (approval.contextRevision !== context.revision)
       throw new Error('Application context changed. Request a new approval.');
@@ -88,7 +92,7 @@ export function consumeApproval(
       digestPacket(cardId, card.packet) !== digest
     )
       throw new Error('An unused approval for this exact packet is required.');
-    this.record(
+    crewContext.record(
       'approval',
       { ...approval, status: 'consumed' },
       'mcp',
@@ -96,4 +100,4 @@ export function consumeApproval(
     );
     return approval.packet;
   })();
-}
+};

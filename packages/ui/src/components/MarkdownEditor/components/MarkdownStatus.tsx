@@ -1,4 +1,4 @@
-export function MarkdownStatus({ content, status }: { content: string; status: string }) {
+export const MarkdownStatus = ({ content, status }: { content: string; status: string }) => {
   return (
     <footer className="profile-editor-status">
       <output className="profile-save-state" aria-live="polite">
@@ -10,4 +10,4 @@ export function MarkdownStatus({ content, status }: { content: string; status: s
       <span>Markdown</span>
     </footer>
   );
-}
+};

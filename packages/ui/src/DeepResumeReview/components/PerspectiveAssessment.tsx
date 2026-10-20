@@ -6,13 +6,13 @@ import {
   AccordionTrigger,
   AccordionContent,
 } from '@/components/ui/accordion/index.tsx';
-export function PerspectiveAssessment({
+export const PerspectiveAssessment = ({
   assessment,
   title,
 }: {
   assessment: ReviewAssessment;
   title: string;
-}) {
+}) => {
   return (
     <section className="grid gap-3" aria-label={title}>
       <h3>{title}</h3>
@@ -67,4 +67,4 @@ export function PerspectiveAssessment({
       </Accordion>
     </section>
   );
-}
+};

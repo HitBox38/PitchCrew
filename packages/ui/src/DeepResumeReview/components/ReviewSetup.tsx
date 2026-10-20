@@ -5,13 +5,13 @@ import { ReviewAlternatives } from './ReviewAlternatives.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ReviewSetupIntro } from './ReviewSetupIntro.tsx';
-export function ReviewSetup({
+export const ReviewSetup = ({
   card,
   data,
   working,
   act,
   close,
-}: ReviewLaunchProps & { close: () => void }) {
+}: ReviewLaunchProps & { close: () => void }) => {
   const {
     reviewer,
     writer,
@@ -67,4 +67,4 @@ export function ReviewSetup({
       </div>
     </Modal>
   );
-}
+};

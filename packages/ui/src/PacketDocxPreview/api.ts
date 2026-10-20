@@ -1,4 +1,4 @@
-export async function renderDocx(bytes: string, signal: AbortSignal) {
+export const renderDocx = async (bytes: string, signal: AbortSignal) => {
   const { renderAsync } = await import('docx-preview');
   signal.throwIfAborted();
   // Keep document styles outside the workspace. Only embedded images may load in the preview.
@@ -40,4 +40,4 @@ export async function renderDocx(bytes: string, signal: AbortSignal) {
   `;
   preview.head.append(style);
   return `<!doctype html>${preview.documentElement.outerHTML}`;
-}
+};

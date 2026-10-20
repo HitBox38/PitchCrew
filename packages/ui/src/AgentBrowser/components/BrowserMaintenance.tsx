@@ -12,11 +12,11 @@ import { browserCommand } from '../api.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserReset } from './BrowserReset.tsx';
 
-export function BrowserMaintenance({
+export const BrowserMaintenance = ({
   browserPanel,
   thread,
   control,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) {
+}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) => {
   const [reset, setReset] = useState(false);
   const roleId = browserPanel.role!.id;
   return (
@@ -63,4 +63,4 @@ export function BrowserMaintenance({
       />
     </>
   );
-}
+};

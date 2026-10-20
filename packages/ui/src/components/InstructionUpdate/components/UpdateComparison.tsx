@@ -2,7 +2,13 @@ import type { InstructionUpdateModel } from '../types.ts';
 import { InstructionDiff } from './InstructionDiff.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function UpdateComparison({ update, mode, setMode, lines, counts }: InstructionUpdateModel) {
+export const UpdateComparison = ({
+  update,
+  mode,
+  setMode,
+  lines,
+  counts,
+}: InstructionUpdateModel) => {
   return (
     <div className="flex flex-col gap-2">
       {update.base ? (
@@ -31,4 +37,4 @@ export function UpdateComparison({ update, mode, setMode, lines, counts }: Instr
       <InstructionDiff lines={lines} />
     </div>
   );
-}
+};

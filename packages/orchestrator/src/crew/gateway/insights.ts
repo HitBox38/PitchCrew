@@ -9,10 +9,7 @@ import {
 } from '@pitchcrew/core';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export const insightsByteLimit = 64000;
-const lessonPreview = 500;
-
-function preview(insights: ApplicationInsights) {
+const preview = (insights: ApplicationInsights) => {
   return {
     ...insights,
     lessons: Object.fromEntries(
@@ -28,18 +25,18 @@ function preview(insights: ApplicationInsights) {
       ]),
     ),
   };
-}
+};
 
 /**
  * Read-only aggregate of applications the role can already read through application search
  * or pipeline review. Weights and lessons stay user-written; there is no agent write action.
  */
-export function insightsAction(
+export const insightsAction = (
   context: CrewContext,
   capability: RunCapability,
   token: string,
   input: unknown,
-): Record<string, unknown> {
+): Record<string, unknown> => {
   const role = context.board.get<Role>('role', capability.roleId);
   const permissions = { ...defaultCapabilities, ...role.capabilities };
   const signal = context.controllers.get(capability.runId)?.signal;
@@ -69,4 +66,7 @@ export function insightsAction(
     else if (tagLimit > 1) tagLimit = Math.floor(tagLimit / 2);
     else throw new Error('Insights exceed the 64 KB limit. Narrow the tag or date filter.');
   }
-}
+};
+
+export const insightsByteLimit = 64000;
+const lessonPreview = 500;

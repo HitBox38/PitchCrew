@@ -6,7 +6,7 @@ import { InboxTabs } from './components/InboxTabs.tsx';
 import { useInboxView } from './hooks/useInboxView.ts';
 import type { InboxViewProps } from './types.ts';
 
-export function InboxView(props: InboxViewProps) {
+export const InboxView = (props: InboxViewProps) => {
   const controller = useInboxView(props);
   const { tab, requests, selectedRequest, reviewOpen } = controller;
   return (
@@ -41,4 +41,4 @@ export function InboxView(props: InboxViewProps) {
       </p>
     </section>
   );
-}
+};

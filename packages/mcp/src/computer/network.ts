@@ -1,7 +1,7 @@
 import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 
-export function publicAddress(address: string) {
+export const publicAddress = (address: string) => {
   if (isIP(address) === 4) {
     const [a, b] = address.split('.').map(Number);
     return !(
@@ -18,9 +18,9 @@ export function publicAddress(address: string) {
   }
   // Only global unicast IPv6; this also excludes mapped IPv4 and loopback.
   return isIP(address) === 6 && /^[23][0-9a-f]{3}:/i.test(address);
-}
+};
 
-export async function assertPublicUrl(value: string) {
+export const assertPublicUrl = async (value: string) => {
   const url = new URL(value);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
     throw new Error('Only public HTTP(S) pages are available.');
@@ -30,4 +30,4 @@ export async function assertPublicUrl(value: string) {
     : await lookup(hostname, { all: true });
   if (!addresses.length || addresses.some(({ address }) => !publicAddress(address)))
     throw new Error('Local and private network access is blocked, including Pitchcrew itself.');
-}
+};

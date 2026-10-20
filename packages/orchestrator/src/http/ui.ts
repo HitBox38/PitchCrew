@@ -4,9 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const defaultUiRoot = fileURLToPath(new URL('../../../ui/', import.meta.url));
-
-export async function registerUi(app: FastifyInstance, dev: boolean, uiRoot = defaultUiRoot) {
+export const registerUi = async (app: FastifyInstance, dev: boolean, uiRoot = defaultUiRoot) => {
   if (dev) {
     const [{ default: middie }, { createServer }] = await Promise.all([
       import('@fastify/middie'),
@@ -39,4 +37,6 @@ export async function registerUi(app: FastifyInstance, dev: boolean, uiRoot = de
         .send('Build the UI with pnpm build, then pnpm start.');
     }
   });
-}
+};
+
+const defaultUiRoot = fileURLToPath(new URL('../../../ui/', import.meta.url));

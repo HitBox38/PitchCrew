@@ -3,10 +3,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { ipcMain, type BrowserWindow, type IpcMainInvokeEvent } from 'electron';
 import { installStartupTiming } from '../src/startup.ts';
 
-vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }));
-afterEach(() => vi.restoreAllMocks());
-
-function fixture() {
+const fixture = () => {
   const mainFrame = { url: 'http://127.0.0.1:4417/' };
   const webContents = Object.assign(new EventEmitter(), { mainFrame });
   const window = Object.assign(new EventEmitter(), { webContents });
@@ -14,7 +11,10 @@ function fixture() {
   const receive = vi.mocked(ipcMain.handle).mock.lastCall![1];
   const event = { sender: webContents, senderFrame: mainFrame } as unknown as IpcMainInvokeEvent;
   return { window, webContents, event, receive };
-}
+};
+
+vi.mock('electron', () => ({ ipcMain: { handle: vi.fn() } }));
+afterEach(() => vi.restoreAllMocks());
 
 it('measures from native process start, rejects other senders and subframes, and consumes once', () => {
   vi.spyOn(process, 'uptime').mockReturnValue(5);

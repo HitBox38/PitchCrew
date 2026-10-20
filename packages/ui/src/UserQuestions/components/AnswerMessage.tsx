@@ -1,5 +1,5 @@
 import type { UserInputRequest } from '@pitchcrew/core';
-export function AnswerMessage({ question }: { question: UserInputRequest }) {
+export const AnswerMessage = ({ question }: { question: UserInputRequest }) => {
   return (
     <div className="user-question-answer">
       {question.answer?.selected.length ? (
@@ -12,4 +12,4 @@ export function AnswerMessage({ question }: { question: UserInputRequest }) {
       {question.answer?.text ? <p>{question.answer.text}</p> : null}
     </div>
   );
-}
+};

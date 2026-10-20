@@ -5,11 +5,11 @@ import type { FastifyInstance } from 'fastify';
 import type { ServerResponse } from 'node:http';
 import type { CrewService } from '../service.ts';
 
-export function registerChatStream(
+export const registerChatStream = (
   app: FastifyInstance,
   service: CrewService,
   chatStreams: Set<ServerResponse>,
-) {
+) => {
   app.get('/api/chat/stream', (req, reply) => {
     const workspace =
       z.object({ view: z.literal('workspace').optional() }).parse(req.query).view === 'workspace';
@@ -67,4 +67,4 @@ export function registerChatStream(
     });
     send();
   });
-}
+};

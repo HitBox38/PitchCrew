@@ -1,44 +1,34 @@
 import resource from '../../posthog/endpoints/resources.json' with { type: 'json' };
 import { buildSqlPlan } from './sql-library.ts';
 
-type EndpointRecord = Record<string, unknown> & {
-  query?: Record<string, unknown> & { variables?: Record<string, Record<string, unknown>> };
-};
-interface AggregateResponse {
-  endpoint_version?: number;
-  columns?: unknown;
-  results?: unknown;
-  hasMore?: boolean;
-}
-
-const definitions = new Map(resource.endpoints.map((definition) => [definition.key, definition]));
-const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;
-
-function object(value: unknown, keys: string[]): asserts value is Record<string, unknown> {
+const object: (value: unknown, keys: string[]) => asserts value is Record<string, unknown> = (
+  value: unknown,
+  keys: string[],
+): asserts value is Record<string, unknown> => {
   if (!value || typeof value !== 'object' || Array.isArray(value))
     throw new Error('Expected an object');
   if (Object.keys(value).some((key) => !keys.includes(key))) throw new Error('Unknown option');
-}
+};
 
-function integer(value: unknown, fallback: number, maximum: number) {
+const integer = (value: unknown, fallback: number, maximum: number) => {
   value ??= fallback;
   if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > maximum)
     throw new Error(`Expected an integer from 1 to ${maximum}`);
   return value;
-}
+};
 
-function definition(key: string) {
+const definition = (key: string) => {
   const found = definitions.get(key);
   if (!found) throw new Error('Unknown endpoint key');
   return found;
-}
+};
 
-export function listEndpointDefinitions() {
+export const listEndpointDefinitions = () => {
   return resource.endpoints.map((entry) => ({ ...entry, definition_status: 'noncanonical' }));
-}
+};
 
 /** Preparation only. Never creates a variable or accesses credentials. */
-export function buildEndpointVariablePlan() {
+export const buildEndpointVariablePlan = () => {
   const { code_name: _codeName, ...input } = resource.variable;
   return {
     project_id: resource.project_id,
@@ -46,10 +36,10 @@ export function buildEndpointVariablePlan() {
     tool_input: input,
     expected_code_name: resource.variable.code_name,
   };
-}
+};
 
 /** Accept a verified native variable record; do not invent persistent native IDs. */
-export function buildEndpointDefinition(key: string, variable: unknown) {
+export const buildEndpointDefinition = (key: string, variable: unknown) => {
   definition(key);
   object(variable, ['id', 'name', 'code_name', 'type', 'default_value']);
   if (
@@ -85,10 +75,10 @@ export function buildEndpointDefinition(key: string, variable: unknown) {
     is_materialized: false,
     tags: ['pitchcrew', 'noncanonical', 'aggregate-only'],
   };
-}
+};
 
 /** Strict caller contract, independently bounded by the saved query itself. */
-export function buildEndpointRun(key: string, options: unknown = {}) {
+export const buildEndpointRun = (key: string, options: unknown = {}) => {
   object(options, ['days', 'limit']);
   return {
     name: definition(key).name,
@@ -96,9 +86,9 @@ export function buildEndpointRun(key: string, options: unknown = {}) {
     limit: integer(options.limit, 100, 200),
     refresh: 'cache',
   };
-}
+};
 
-function stable(value: unknown): unknown {
+const stable = (value: unknown): unknown => {
   if (Array.isArray(value)) return value.map(stable);
   if (value && typeof value === 'object')
     return Object.fromEntries(
@@ -107,11 +97,11 @@ function stable(value: unknown): unknown {
         .map((key) => [key, stable((value as Record<string, unknown>)[key])]),
     );
   return value;
-}
+};
 
 // Native serialization adds null optional fields, the resolved default value,
 // and sorts tags. These are equivalent; substantive extra fields still drift.
-function comparableEndpoint(value: EndpointRecord, variable: { id: string }) {
+const comparableEndpoint = (value: EndpointRecord, variable: { id: string }) => {
   const query = { ...value.query };
   for (const [name, field] of Object.entries(query)) if (field === null) delete query[name];
   if (query.variables?.[variable.id]) {
@@ -121,10 +111,10 @@ function comparableEndpoint(value: EndpointRecord, variable: { id: string }) {
     if (binding.isNull === false) delete binding.isNull;
   }
   return { ...value, query, tags: Array.isArray(value.tags) ? [...value.tags].sort() : value.tags };
-}
+};
 
 /** Require an unfiltered, fully paginated export and fail closed on name/query drift. */
-export function planEndpointDeployment(key: string, snapshot: unknown) {
+export const planEndpointDeployment = (key: string, snapshot: unknown) => {
   object(snapshot, ['project_id', 'complete', 'results', 'variable', 'catalog']);
   if (
     snapshot.project_id !== resource.project_id ||
@@ -167,14 +157,14 @@ export function planEndpointDeployment(key: string, snapshot: unknown) {
       require_variable_binding_test: true,
     },
   };
-}
+};
 
 /** Validate an aggregate result before consumers use it; no raw object/string fields. */
-export function validateEndpointResult(
+export const validateEndpointResult = (
   key: string,
   response: AggregateResponse,
   expectedVersion: number,
-) {
+) => {
   const schemas: Record<string, string[]> = {
     action_mix: [
       'day',
@@ -247,4 +237,17 @@ export function validateEndpointResult(
     coverage: response.results.length ? 'observations_available' : 'unknown_no_observations',
     rows: response.results,
   };
+};
+
+type EndpointRecord = Record<string, unknown> & {
+  query?: Record<string, unknown> & { variables?: Record<string, Record<string, unknown>> };
+};
+interface AggregateResponse {
+  endpoint_version?: number;
+  columns?: unknown;
+  results?: unknown;
+  hasMore?: boolean;
 }
+
+const definitions = new Map(resource.endpoints.map((definition) => [definition.key, definition]));
+const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$/i;

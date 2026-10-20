@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 
 export type ThemeChoice = 'system' | 'light' | 'dark';
 // Keep in sync with theme-init.ts, which applies the theme before the first paint.
-export function useTheme() {
+export const useTheme = () => {
   const choice = useDevicePreferences((state) => state.theme);
   const setChoice = useDevicePreferences((state) => state.setTheme);
   useEffect(() => {
@@ -18,4 +18,4 @@ export function useTheme() {
     return () => media.removeEventListener('change', apply);
   }, [choice]);
   return [choice, setChoice] as const;
-}
+};

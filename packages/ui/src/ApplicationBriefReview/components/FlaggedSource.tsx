@@ -1,6 +1,6 @@
 import type { ExtractedJob } from '@pitchcrew/core';
 
-export function FlaggedSource({ items }: { items: ExtractedJob['flagged'] }) {
+export const FlaggedSource = ({ items }: { items: ExtractedJob['flagged'] }) => {
   if (!items.length) return null;
   return (
     <section>
@@ -15,4 +15,4 @@ export function FlaggedSource({ items }: { items: ExtractedJob['flagged'] }) {
       </ul>
     </section>
   );
-}
+};

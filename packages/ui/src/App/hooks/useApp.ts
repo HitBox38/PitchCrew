@@ -8,7 +8,7 @@ import { useMatches, useNavigate, useRouter } from '@tanstack/react-router';
 import { useEffect, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
-export function useApp() {
+export const useApp = () => {
   const reduced = useAppReducedMotion();
   const {
     data,
@@ -135,4 +135,4 @@ export function useApp() {
     copyDirectory,
     checkRuntimes,
   };
-}
+};

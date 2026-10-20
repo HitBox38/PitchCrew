@@ -9,31 +9,7 @@ import {
   type MaintenanceCommand,
 } from '@pitchcrew/adapters';
 
-const controller = new AbortController();
-process.on('disconnect', () => controller.abort());
-process.on('SIGTERM', () => controller.abort());
-process.on('SIGINT', () => controller.abort());
-let started = false;
-process.on(
-  'message',
-  (input: {
-    action?: string;
-    command?: MaintenanceCommand;
-    lockKey?: string;
-    timeout?: number;
-  }) => {
-    if (input.action === 'cancel') {
-      controller.abort();
-      return;
-    }
-    if (started || input.action !== 'run' || !input.command || typeof input.lockKey !== 'string')
-      return;
-    started = true;
-    void execute(input.command, input.lockKey, input.timeout ?? 600_000);
-  },
-);
-
-async function execute(command: MaintenanceCommand, lockKey: string, timeout: number) {
+const execute = async (command: MaintenanceCommand, lockKey: string, timeout: number) => {
   let database: Database.Database | undefined;
   let pending = '';
   const emitOutput = (text: string) => {
@@ -68,7 +44,7 @@ async function execute(command: MaintenanceCommand, lockKey: string, timeout: nu
       signal: controller.signal,
       rejectPrompts: true,
       timeout,
-      onOutput(text) {
+      onOutput: (text) => {
         pending += text;
         const end = pending.lastIndexOf('\n');
         if (end >= 0) {
@@ -89,4 +65,28 @@ async function execute(command: MaintenanceCommand, lockKey: string, timeout: nu
     database?.close();
     if (process.connected) process.disconnect();
   }
-}
+};
+
+const controller = new AbortController();
+process.on('disconnect', () => controller.abort());
+process.on('SIGTERM', () => controller.abort());
+process.on('SIGINT', () => controller.abort());
+let started = false;
+process.on(
+  'message',
+  (input: {
+    action?: string;
+    command?: MaintenanceCommand;
+    lockKey?: string;
+    timeout?: number;
+  }) => {
+    if (input.action === 'cancel') {
+      controller.abort();
+      return;
+    }
+    if (started || input.action !== 'run' || !input.command || typeof input.lockKey !== 'string')
+      return;
+    started = true;
+    void execute(input.command, input.lockKey, input.timeout ?? 600_000);
+  },
+);

@@ -5,7 +5,7 @@ import { createAgent } from '../api.ts';
 import { initialCreation, stepError, suggestedId } from '../helpers.ts';
 import type { AgentCreationProps, CreationDraft } from '../types.ts';
 
-export function useAgentCreation(props: AgentCreationProps) {
+export const useAgentCreation = (props: AgentCreationProps) => {
   const [initial] = useState(() => initialCreation(props.data));
   const [draft, setDraft] = useState(initial);
   const [step, setStep] = useState(0);
@@ -93,4 +93,4 @@ export function useAgentCreation(props: AgentCreationProps) {
     data: props.data,
     working: props.working,
   };
-}
+};

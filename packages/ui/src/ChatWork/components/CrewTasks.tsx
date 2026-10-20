@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
 import { Check, Clock3, GitBranch } from 'lucide-react';
 
-export function CrewTasks({ tasks, data, name, onOpenCard, working, act }: CrewTasksProps) {
+export const CrewTasks = ({ tasks, data, name, onOpenCard, working, act }: CrewTasksProps) => {
   return (
     <WorkSection className="chat-work-section">
       <div className="chat-work-heading">
@@ -77,4 +77,4 @@ export function CrewTasks({ tasks, data, name, onOpenCard, working, act }: CrewT
       )}
     </WorkSection>
   );
-}
+};

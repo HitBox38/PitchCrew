@@ -1,6 +1,6 @@
 import type { CompanyMarkProps } from '@/components/CompanyMark/types.ts';
 
-export function CompanyMark({ name }: CompanyMarkProps) {
+export const CompanyMark = ({ name }: CompanyMarkProps) => {
   const colors = ['violet', 'blue', 'pink', 'green', 'orange'];
   let hash = 0;
   for (const c of name) hash += c.charCodeAt(0);
@@ -9,4 +9,4 @@ export function CompanyMark({ name }: CompanyMarkProps) {
       {name.slice(0, 1).toUpperCase()}
     </span>
   );
-}
+};

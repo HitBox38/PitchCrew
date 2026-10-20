@@ -1,60 +1,4 @@
-/** Replay uses a content-free wireframe; no source DOM attribute survives serialization. */
-export const replaySurfaces = [
-  'board',
-  'crew',
-  'chat',
-  'inbox',
-  'profile',
-  'skills',
-  'routines',
-  'insights',
-  'activity',
-  'settings',
-  'landing',
-] as const;
-export const replayBlockSelector = [
-  'main:not([data-replay-public])',
-  '[data-replay-block]',
-  '#agent-browser-panel',
-  '.sidebar-conversations',
-  '.recent-group',
-  '[data-replay-category="crew"]',
-  '[role="dialog"]:not(:has([data-slot="sidebar"]))',
-  '[data-slot="sheet-content"]:not(:has([data-slot="sidebar"]))',
-  '[role="menu"]',
-  '[role="listbox"]',
-  '[role="tooltip"]',
-  '[role="alert"]',
-  'iframe',
-  'canvas',
-  'video',
-  'audio',
-  'img',
-  'object',
-  'embed',
-  'script',
-  'style',
-  'input',
-  'textarea',
-  'select',
-  '[contenteditable]',
-].join(',');
-
-type ObjectValue = Record<string, unknown>;
-const object = (value: unknown): ObjectValue =>
-  value && typeof value === 'object' && !Array.isArray(value) ? (value as ObjectValue) : {};
-const number = (value: unknown, fallback = 0) =>
-  typeof value === 'number' && Number.isFinite(value)
-    ? Math.max(-100000, Math.min(100000, Math.round(value * 10) / 10))
-    : fallback;
-const id = (value: unknown) =>
-  typeof value === 'number' && Number.isSafeInteger(value) ? value : -1;
-const stylePattern =
-  /^position:(?:absolute|relative);left:-?[\d.]+px;top:-?[\d.]+px;width:[\d.]+px;height:[\d.]+px;overflow:hidden;box-sizing:border-box;background:#f5f2ec;border:1px solid #c8c2b8;$/;
-const rootTags = new Set(['html', 'head', 'body']);
-
-export type ReplayGeometry = (id: number) => Record<string, string>;
-export function wireframeGeometry(node: Node | null): Record<string, string> {
+export const wireframeGeometry = (node: Node | null): Record<string, string> => {
   if (!node || typeof Element === 'undefined' || !(node instanceof Element)) return {};
   const rect = node.getBoundingClientRect();
   const parent = node.parentElement?.getBoundingClientRect();
@@ -68,8 +12,8 @@ export function wireframeGeometry(node: Node | null): Record<string, string> {
       ? { 'data-replay-surface': surface! }
       : {}),
   };
-}
-function attributes(input: unknown) {
+};
+const attributes = (input: unknown) => {
   const source = object(input);
   const result: Record<string, unknown> = {};
   if (typeof source.style === 'string' && stylePattern.test(source.style))
@@ -77,8 +21,8 @@ function attributes(input: unknown) {
   if (replaySurfaces.includes(source['data-replay-surface'] as (typeof replaySurfaces)[number]))
     result['data-replay-surface'] = source['data-replay-surface'];
   return result;
-}
-function node(input: unknown, geometry?: ReplayGeometry, depth = 0): ObjectValue {
+};
+const node = (input: unknown, geometry?: ReplayGeometry, depth = 0): ObjectValue => {
   const source = object(input);
   const common = {
     id: id(source.id),
@@ -97,15 +41,18 @@ function node(input: unknown, geometry?: ReplayGeometry, depth = 0): ObjectValue
       childNodes: children(source.childNodes, geometry, depth),
     };
   return { ...common, type: 3, textContent: source.type === 3 ? '[masked]' : '' };
-}
-function children(input: unknown, geometry: ReplayGeometry | undefined, depth: number) {
+};
+const children = (input: unknown, geometry: ReplayGeometry | undefined, depth: number) => {
   return Array.isArray(input)
     ? input.slice(0, 20000).map((value) => node(value, geometry, depth + 1))
     : [];
-}
+};
 
 /** Rebuild every supported rrweb event. Unknown, CSS, media, canvas, plugin and network events drop. */
-export function sanitizeReplayEvent(input: unknown, geometry?: ReplayGeometry): ObjectValue | null {
+export const sanitizeReplayEvent = (
+  input: unknown,
+  geometry?: ReplayGeometry,
+): ObjectValue | null => {
   const source = object(input);
   if (typeof source.timestamp !== 'number' || !Number.isFinite(source.timestamp)) return null;
   const base = { type: source.type, timestamp: source.timestamp };
@@ -180,11 +127,11 @@ export function sanitizeReplayEvent(input: unknown, geometry?: ReplayGeometry): 
     Object.assign(fields, { width: number(data.width), height: number(data.height) });
   else return null; // Inputs are blocked and never recorded, even masked.
   return { ...base, data: fields };
-}
+};
 
-export function sanitizeReplayProperties(
+export const sanitizeReplayProperties = (
   input: Record<string, unknown>,
-): Record<string, unknown> | null {
+): Record<string, unknown> | null => {
   if (!Array.isArray(input.$snapshot_data) || input.$snapshot_data.length > 1000) return null;
   const snapshots = input.$snapshot_data.map((value) => sanitizeReplayEvent(value)).filter(Boolean);
   if (!snapshots.length || JSON.stringify(snapshots).length > 512000) return null;
@@ -198,4 +145,60 @@ export function sanitizeReplayProperties(
   for (const key of ['token', 'distinct_id', '$session_id', '$window_id', '$lib', '$lib_version'])
     if (typeof input[key] === 'string') properties[key] = input[key];
   return properties;
-}
+};
+/** Replay uses a content-free wireframe; no source DOM attribute survives serialization. */
+export const replaySurfaces = [
+  'board',
+  'crew',
+  'chat',
+  'inbox',
+  'profile',
+  'skills',
+  'routines',
+  'insights',
+  'activity',
+  'settings',
+  'landing',
+] as const;
+export const replayBlockSelector = [
+  'main:not([data-replay-public])',
+  '[data-replay-block]',
+  '#agent-browser-panel',
+  '.sidebar-conversations',
+  '.recent-group',
+  '[data-replay-category="crew"]',
+  '[role="dialog"]:not(:has([data-slot="sidebar"]))',
+  '[data-slot="sheet-content"]:not(:has([data-slot="sidebar"]))',
+  '[role="menu"]',
+  '[role="listbox"]',
+  '[role="tooltip"]',
+  '[role="alert"]',
+  'iframe',
+  'canvas',
+  'video',
+  'audio',
+  'img',
+  'object',
+  'embed',
+  'script',
+  'style',
+  'input',
+  'textarea',
+  'select',
+  '[contenteditable]',
+].join(',');
+
+type ObjectValue = Record<string, unknown>;
+const object = (value: unknown): ObjectValue =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as ObjectValue) : {};
+const number = (value: unknown, fallback = 0) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? Math.max(-100000, Math.min(100000, Math.round(value * 10) / 10))
+    : fallback;
+const id = (value: unknown) =>
+  typeof value === 'number' && Number.isSafeInteger(value) ? value : -1;
+const stylePattern =
+  /^position:(?:absolute|relative);left:-?[\d.]+px;top:-?[\d.]+px;width:[\d.]+px;height:[\d.]+px;overflow:hidden;box-sizing:border-box;background:#f5f2ec;border:1px solid #c8c2b8;$/;
+const rootTags = new Set(['html', 'head', 'body']);
+
+export type ReplayGeometry = (id: number) => Record<string, string>;

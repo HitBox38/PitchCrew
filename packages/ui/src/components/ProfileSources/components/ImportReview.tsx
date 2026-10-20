@@ -6,21 +6,19 @@ import { ImportReviewList } from './ImportReviewList.tsx';
 import { ImportReviewFooter } from './ImportReviewFooter.tsx';
 import type { ImportReviewProps } from '../types.ts';
 
-export function ImportReview(c: ImportReviewProps) {
+export const ImportReview = (c: ImportReviewProps) => {
   if (!c.preview) return null;
   return <ImportReviewContent key={c.preview.token} {...c} />;
-}
+};
 
-function ImportReviewContent(c: ImportReviewProps) {
+const ImportReviewContent = (c: ImportReviewProps) => {
   const [query, setQuery] = useState('');
   const preview = c.preview!;
   const changes = importChanges(preview.files);
   const conflicts = changes.filter(
     (file) => file.status === 'conflict' && c.selected.includes(file.name),
   ).length;
-  const close = () => {
-    if (!c.busy) c.setPreview(null);
-  };
+  const close = c.closeReview;
   return (
     <Modal title="Review profile documents" drawer className="profile-import-panel" onClose={close}>
       <div className="shrink-0 border-b border-border px-5 py-4">
@@ -52,4 +50,4 @@ function ImportReviewContent(c: ImportReviewProps) {
       <ImportReviewFooter {...c} conflicts={conflicts} close={close} />
     </Modal>
   );
-}
+};

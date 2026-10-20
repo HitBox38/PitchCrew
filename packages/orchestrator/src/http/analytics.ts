@@ -7,7 +7,7 @@ export interface AnalyticsConfig {
 }
 
 /** The public ingestion token is configuration, never a personal PostHog API key. */
-export function analyticsConfig(env: NodeJS.ProcessEnv, dev: boolean): AnalyticsConfig | null {
+export const analyticsConfig = (env: NodeJS.ProcessEnv, dev: boolean): AnalyticsConfig | null => {
   if (env.PITCHCREW_POSTHOG_DISABLED === '1') return null;
   const token = (env.PITCHCREW_POSTHOG_TOKEN ?? analyticsProject.token).trim();
   if (!token || (dev && env.PITCHCREW_POSTHOG_DEV !== '1')) return null;
@@ -26,8 +26,8 @@ export function analyticsConfig(env: NodeJS.ProcessEnv, dev: boolean): Analytics
       'PITCHCREW_POSTHOG_HOST must be an HTTPS origin without a path or credentials.',
     );
   return { token, host: host.origin };
-}
+};
 
-export function registerAnalyticsRoutes(app: FastifyInstance, config?: AnalyticsConfig | null) {
+export const registerAnalyticsRoutes = (app: FastifyInstance, config?: AnalyticsConfig | null) => {
   app.get('/api/analytics/config', () => config ?? null);
-}
+};

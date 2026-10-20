@@ -7,11 +7,11 @@ import type {
 } from '@pitchcrew/core';
 
 /** Bounded, nonpersistent observations; an opted-in renderer owns all outward transport. */
-export function createTelemetryBuffer(
+export const createTelemetryBuffer = (
   sanitize: DiagnosticSanitizer,
   enabled = false,
   { capacity = 256, lifetime = 60_000, now = Date.now } = {},
-): DiagnosticSink & { read(after?: number): TelemetryBatch; clear(): void } {
+): DiagnosticSink & { read(after?: number): TelemetryBatch; clear(): void } => {
   const streamId = randomUUID();
   let cursor = 0;
   let entries: { expires: number; observation: DiagnosticObservation }[] = [];
@@ -19,7 +19,7 @@ export function createTelemetryBuffer(
     entries = entries.filter((entry) => entry.expires > now());
   };
   return {
-    record(event, input) {
+    record: (event, input) => {
       if (!enabled) return;
       try {
         const properties = sanitize(event, input);
@@ -46,7 +46,7 @@ export function createTelemetryBuffer(
         /* Observability cannot change application behavior. */
       }
     },
-    read(after = cursor) {
+    read: (after = cursor) => {
       expire();
       return {
         enabled,
@@ -60,8 +60,8 @@ export function createTelemetryBuffer(
           })),
       };
     },
-    clear() {
+    clear: () => {
       entries = [];
     },
   };
-}
+};

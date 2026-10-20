@@ -1,6 +1,6 @@
 // Pi and its oh-my-pi fork share the native agent event protocol.
 // Only a completed agent turn may supply the structured role result.
-export function piResultExtractor() {
+export const piResultExtractor = () => {
   let failed = false;
   return (event: Record<string, unknown>): string | null => {
     if (event.type === 'error') failed = true;
@@ -23,4 +23,4 @@ export function piResultExtractor() {
         .join('') || 'The Pi runtime returned no assistant answer.'
     );
   };
-}
+};

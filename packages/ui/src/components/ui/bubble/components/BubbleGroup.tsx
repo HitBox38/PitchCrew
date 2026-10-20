@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function BubbleGroup({ className, ...props }: React.ComponentProps<'div'>) {
+export const BubbleGroup = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="bubble-group"
@@ -12,4 +12,4 @@ export function BubbleGroup({ className, ...props }: React.ComponentProps<'div'>
       {...props}
     />
   );
-}
+};

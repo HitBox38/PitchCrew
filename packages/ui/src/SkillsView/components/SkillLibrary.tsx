@@ -4,13 +4,13 @@ import type { SkillLibraryProps } from '@/SkillsView/types.ts';
 import { FileText } from 'lucide-react';
 import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
 
-export function SkillLibrary({
+export const SkillLibrary = ({
   skills,
   creator,
   data,
   selected,
   setSelectedId,
-}: SkillLibraryProps) {
+}: SkillLibraryProps) => {
   const pending = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
   return (
     <ul className="skill-library" aria-label="Saved skills">
@@ -35,4 +35,4 @@ export function SkillLibrary({
       ))}
     </ul>
   );
-}
+};

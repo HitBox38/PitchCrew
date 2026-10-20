@@ -10,7 +10,9 @@ type ToasterProps<Data extends object> = Omit<ToastPrimitive.Provider.Props, 'to
   toastManager?: ToastManager<Data>;
   renderToast?: (item: ToastObject<Data>) => ReactNode;
 };
-function ToastList<Data extends object>({ renderToast }: Pick<ToasterProps<Data>, 'renderToast'>) {
+const ToastList = <Data extends object>({
+  renderToast,
+}: Pick<ToasterProps<Data>, 'renderToast'>) => {
   const { toasts } = ToastPrimitive.useToastManager<Data>();
   return toasts.map((item) =>
     renderToast ? (
@@ -28,13 +30,13 @@ function ToastList<Data extends object>({ renderToast }: Pick<ToasterProps<Data>
       </Toast>
     ),
   );
-}
-export function Toaster<Data extends object>({
+};
+export const Toaster = <Data extends object>({
   children,
   toastManager = toast,
   renderToast,
   ...props
-}: ToasterProps<Data>) {
+}: ToasterProps<Data>) => {
   return (
     <ToastProvider toastManager={toastManager} {...props}>
       {children}
@@ -45,4 +47,4 @@ export function Toaster<Data extends object>({
       </ToastPortal>
     </ToastProvider>
   );
-}
+};

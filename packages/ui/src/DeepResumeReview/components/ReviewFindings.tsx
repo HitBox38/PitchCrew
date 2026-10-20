@@ -1,6 +1,6 @@
 import type { ReviewFinding } from '@pitchcrew/core';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
-export function ReviewFindings({ findings }: { findings: ReviewFinding[] }) {
+export const ReviewFindings = ({ findings }: { findings: ReviewFinding[] }) => {
   return (
     <section className="grid gap-3" aria-label="Review findings">
       <h3>Prioritized findings</h3>
@@ -31,4 +31,4 @@ export function ReviewFindings({ findings }: { findings: ReviewFinding[] }) {
       )}
     </section>
   );
-}
+};

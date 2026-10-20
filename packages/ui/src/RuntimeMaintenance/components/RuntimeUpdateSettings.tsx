@@ -1,7 +1,7 @@
 import { Switch } from '@/components/ui/switch/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function RuntimeUpdateSettings() {
+export const RuntimeUpdateSettings = () => {
   const maintenance = useWorkspaceStore((state) => state.data?.runtimeMaintenance);
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
@@ -11,7 +11,7 @@ export function RuntimeUpdateSettings() {
       <span>
         <strong>Check runtime updates automatically</strong>
         <span className="quiet block">
-          Check installed CLIs daily while Pitchcrew is open. Install updates using each runtime’s
+          Look for new versions daily while Pitchcrew is open. Installation always starts with your
           Update button.
         </span>
         {!maintenance.enabled ? (
@@ -23,9 +23,9 @@ export function RuntimeUpdateSettings() {
       <Switch
         id="automatic-runtime-updates"
         checked={maintenance.automatic}
-        disabled={working}
+        disabled={working || !maintenance.enabled}
         onCheckedChange={(automatic) => act('/runtimes/updates/preferences', 'PUT', { automatic })}
       />
     </label>
   );
-}
+};

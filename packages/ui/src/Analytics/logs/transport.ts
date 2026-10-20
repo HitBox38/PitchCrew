@@ -11,7 +11,7 @@ interface Dependencies {
   now?: () => number;
 }
 
-function validatedConfig(input: AnalyticsConfig | null): AnalyticsConfig | null {
+const validatedConfig = (input: AnalyticsConfig | null): AnalyticsConfig | null => {
   if (!input || !/^phc_[a-zA-Z0-9_-]{8,200}$/.test(input.token)) return null;
   try {
     const host = new URL(input.host);
@@ -28,10 +28,10 @@ function validatedConfig(input: AnalyticsConfig | null): AnalyticsConfig | null 
   } catch {
     return null;
   }
-}
+};
 
 /** Immediate bounded OTLP sends: no queue, retry, persistence, console interception or unload flush. */
-export function createOperationalLogTransport(dependencies: Dependencies) {
+export const createOperationalLogTransport = (dependencies: Dependencies) => {
   const send = dependencies.fetch ?? globalThis.fetch;
   const now = dependencies.now ?? Date.now;
   let config: AnalyticsConfig | null = null;
@@ -42,11 +42,11 @@ export function createOperationalLogTransport(dependencies: Dependencies) {
     pending.clear();
   };
   return {
-    setEnabled(enabled: boolean, next: AnalyticsConfig | null) {
+    setEnabled: (enabled: boolean, next: AnalyticsConfig | null) => {
       abort();
       config = !disposed && enabled && dependencies.consent() ? validatedConfig(next) : null;
     },
-    async capture(event: string, input: Record<string, unknown>): Promise<boolean> {
+    capture: async (event: string, input: Record<string, unknown>): Promise<boolean> => {
       if (event !== 'operational_log' || !config || !dependencies.consent() || pending.size >= 2)
         return false;
       const log = sanitizeOperationalLog(input);
@@ -87,10 +87,10 @@ export function createOperationalLogTransport(dependencies: Dependencies) {
         pending.delete(controller);
       }
     },
-    dispose() {
+    dispose: () => {
       disposed = true;
       config = null;
       abort();
     },
   };
-}
+};

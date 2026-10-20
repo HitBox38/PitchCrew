@@ -2,7 +2,7 @@ import { usePaletteReady } from '../hooks/usePaletteReady.ts';
 import { CommandPalette } from '../constants.ts';
 import type { WorkspacePaletteProps } from '@/App/types.ts';
 
-export function WorkspacePalette({
+export const WorkspacePalette = ({
   paletteOpen,
   setPaletteOpen,
   data,
@@ -14,7 +14,7 @@ export function WorkspacePalette({
   checkRuntimes,
   setTheme,
   copyDirectory,
-}: WorkspacePaletteProps) {
+}: WorkspacePaletteProps) => {
   const ready = usePaletteReady(paletteOpen, setPaletteOpen);
   if (!ready) return null;
   return (
@@ -33,4 +33,4 @@ export function WorkspacePalette({
       onCopyDirectory={copyDirectory}
     />
   );
-}
+};

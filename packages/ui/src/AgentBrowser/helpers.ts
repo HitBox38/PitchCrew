@@ -1,11 +1,11 @@
 import type { BrowserSessionInfo } from '@pitchcrew/core';
 
-export function browserStatus(
+export const browserStatus = (
   session: BrowserSessionInfo | undefined,
   hasControl: boolean,
   waiting: boolean,
   thread: string,
-) {
+) => {
   const manual = hasControl || !!session?.manual;
   const label = hasControl
     ? 'Your control'
@@ -35,19 +35,19 @@ export function browserStatus(
     manual,
     detail: `${detail}${elsewhere ? ' This browser belongs to another conversation. Open task details to see its source.' : ''}`,
   };
-}
+};
 
-export function remotePoint(
+export const remotePoint = (
   x: number,
   y: number,
   bounds: { left: number; top: number; width: number; height: number },
   frame: { width: number; height: number },
-) {
+) => {
   return {
     x: Math.max(0, Math.min(frame.width, ((x - bounds.left) * frame.width) / bounds.width)),
     y: Math.max(0, Math.min(frame.height, ((y - bounds.top) * frame.height) / bounds.height)),
   };
-}
-export function touchScroll(startY: number, endY: number, height: number, remoteHeight: number) {
+};
+export const touchScroll = (startY: number, endY: number, height: number, remoteHeight: number) => {
   return Math.max(-2000, Math.min(2000, ((startY - endY) * remoteHeight) / height));
-}
+};

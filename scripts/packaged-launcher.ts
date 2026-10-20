@@ -101,14 +101,14 @@ try {
     plan,
     matchesService: async () =>
       !process.env.APPIMAGE && !!service && (await service.matchesRuntime()),
-    async externalService() {
+    externalService: async () => {
       if (!service) return false;
       const status = await service.status();
       return status.installed && status.port === settings.port;
     },
     stopService: async () => service?.stop(),
     startService: async () => service?.start(),
-    async stopOwned() {
+    stopOwned: async () => {
       const owned = daemon;
       if (!owned || owned.exitCode !== null) return;
       const exited = new Promise((resolve) => owned.once('exit', resolve));
@@ -128,7 +128,7 @@ try {
         clearTimeout(timer);
       }
     },
-    async startOwned() {
+    startOwned: async () => {
       if (!daemon || daemon.exitCode !== null) spawnDaemon();
     },
     answers: async () => !!(await probeDaemon(settings.port)),

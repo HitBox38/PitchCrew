@@ -5,13 +5,7 @@ import { Check, Monitor, Moon, Sun } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { useTheme, type ThemeChoice } from './hooks/useTheme';
 
-const choices = [
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon },
-  { value: 'system', label: 'System', icon: Monitor },
-] as const;
-
-export function Theme() {
+export const Theme = () => {
   const { choice, select } = useTheme();
   const Icon = choices.find((item) => item.value === choice)?.icon ?? Monitor;
   return (
@@ -46,4 +40,10 @@ export function Theme() {
       </Menu.Portal>
     </Menu.Root>
   );
-}
+};
+
+const choices = [
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon },
+  { value: 'system', label: 'System', icon: Monitor },
+] as const;

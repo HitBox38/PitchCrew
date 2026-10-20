@@ -11,13 +11,13 @@ import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
 import { Clock3, CircleAlert } from 'lucide-react';
 
-export function ConversationQueue({
+export const ConversationQueue = ({
   queued,
   data,
   action,
   working,
   thread,
-}: Pick<ChatViewModel, 'queued' | 'data' | 'action' | 'working' | 'thread'>) {
+}: Pick<ChatViewModel, 'queued' | 'data' | 'action' | 'working' | 'thread'>) => {
   if (!queued.length) return null;
   const attention = queued.filter((request) =>
     request.deliveries.some(
@@ -59,4 +59,4 @@ export function ConversationQueue({
       </Queue>
     </section>
   );
-}
+};

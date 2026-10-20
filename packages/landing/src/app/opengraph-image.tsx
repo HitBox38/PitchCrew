@@ -2,19 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { ImageResponse } from 'next/og';
 
-export const alt = 'Pitchcrew — Your job search, with a crew behind you';
-export const size = { width: 1200, height: 630 };
-export const contentType = 'image/png';
-
-const font = readFile(
-  join(
-    process.cwd(),
-    'node_modules/@fontsource/source-sans-3/files/source-sans-3-latin-600-normal.woff',
-  ),
-);
-const logo = readFile(join(process.cwd(), 'public/favicon.svg'));
-
-export default async function OpenGraphImage() {
+const OpenGraphImage = async () => {
   const [fontData, logoData] = await Promise.all([font, logo]);
   return new ImageResponse(
     <div
@@ -66,4 +54,17 @@ export default async function OpenGraphImage() {
     </div>,
     { ...size, fonts: [{ name: 'Source Sans', data: fontData, weight: 600, style: 'normal' }] },
   );
-}
+};
+export default OpenGraphImage;
+
+export const alt = 'Pitchcrew — Your job search, with a crew behind you';
+export const size = { width: 1200, height: 630 };
+export const contentType = 'image/png';
+
+const font = readFile(
+  join(
+    process.cwd(),
+    'node_modules/@fontsource/source-sans-3/files/source-sans-3-latin-600-normal.woff',
+  ),
+);
+const logo = readFile(join(process.cwd(), 'public/favicon.svg'));

@@ -2,7 +2,7 @@ import { ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceConnection(c: ProfileSourcesModel) {
+export const SourceConnection = (c: ProfileSourcesModel) => {
   return (
     <>
       {!c.canRead ? (
@@ -39,4 +39,4 @@ export function SourceConnection(c: ProfileSourcesModel) {
       ) : null}
     </>
   );
-}
+};

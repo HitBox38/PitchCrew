@@ -8,13 +8,13 @@ import { SourceProgress } from './SourceProgress.tsx';
 import { SourceProposalLinks } from './SourceProposalLinks.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceRow({
+export const SourceRow = ({
   source,
   controller: c,
 }: {
   source: ProfileSource;
   controller: ProfileSourcesModel;
-}) {
+}) => {
   const Icon = source.input.provider === 'github' ? GitBranch : FolderOpen;
   const proposals = c.proposals.filter((p) => p.source.id === source.id);
   const project = source.mode === 'project';
@@ -80,4 +80,4 @@ export function SourceRow({
       ) : null}
     </li>
   );
-}
+};

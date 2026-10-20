@@ -4,7 +4,7 @@ import { useDroppable } from '@dnd-kit/react';
 import { pointerIntersection } from '@dnd-kit/collision';
 import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 
-export function StatusDropTarget({
+export const StatusDropTarget = ({
   state,
   active,
   data,
@@ -14,7 +14,7 @@ export function StatusDropTarget({
   active: Card;
   data: Snapshot;
   working: boolean;
-}) {
+}) => {
   const drop = statusDrop(active, state, data);
   const allowed = drop.kind === 'move' && !working;
   const { ref, isDropTarget } = useDroppable({
@@ -36,4 +36,4 @@ export function StatusDropTarget({
       {stateLabels[state]}
     </div>
   );
-}
+};

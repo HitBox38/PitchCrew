@@ -1,64 +1,59 @@
 import type { RuntimeUpdateInfo } from '@pitchcrew/core';
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible/index.tsx';
-import { LoaderCircle } from 'lucide-react';
+import { CircleCheck, CircleAlert, LoaderCircle } from 'lucide-react';
 
-const stageLabels = {
-  preparing: 'Preparing',
-  updating: 'Updating',
-  verifying: 'Verifying',
-  succeeded: 'Updated',
-  failed: 'Update failed',
-  interrupted: 'Update interrupted',
-};
-
-export function RuntimeUpdate({ update }: { update: RuntimeUpdateInfo }) {
-  const act = useWorkspaceStore((state) => state.act);
-  const working = useWorkspaceStore((state) => state.working);
+export const RuntimeUpdate = ({ update }: { update: RuntimeUpdateInfo }) => {
   const operation = update.operation;
   const running = !!operation && !operation.finishedAt;
   const busy = !!update.busyReasons?.length;
+  const failed = operation?.stage === 'failed' || operation?.stage === 'interrupted';
   return (
-    <div className="min-w-0 space-y-2 border-t border-border pt-3 text-sm">
-      <p>
-        <strong>
-          {update.status === 'available'
-            ? `Update available: ${update.latestVersion}`
-            : update.status === 'current'
-              ? 'Up to date'
-              : 'Update availability unknown'}
-        </strong>
-      </p>
-      <p className="quiet">{update.detail}</p>
-      {update.checkedAt ? (
-        <p className="quiet">
-          Last check: {new Date(update.checkedAt).toLocaleString()}
-          {update.lastSuccessAt && update.lastSuccessAt !== update.checkedAt
-            ? ` · Last verified: ${new Date(update.lastSuccessAt).toLocaleString()}`
-            : ''}
-        </p>
-      ) : null}
+    <div className="text-sm">
       {operation ? (
-        <div aria-live="polite" className="space-y-2">
-          <p className="flex items-center gap-2">
+        <div
+          aria-live="polite"
+          className={`runtime-operation ${failed ? 'runtime-operation-failed' : ''}`}
+        >
+          <div className="flex items-start gap-2">
             {running ? (
               <LoaderCircle
-                className="animate-spin motion-reduce:animate-none"
-                size={15}
+                className="mt-0.5 shrink-0 animate-spin motion-reduce:animate-none"
+                size={16}
                 aria-hidden="true"
               />
-            ) : null}
-            <strong>{stageLabels[operation.stage]}</strong>: {operation.detail}
-          </p>
+            ) : failed ? (
+              <CircleAlert className="mt-0.5 shrink-0" size={16} aria-hidden="true" />
+            ) : (
+              <CircleCheck className="mt-0.5 shrink-0" size={16} aria-hidden="true" />
+            )}
+            <div className="min-w-0 space-y-1 wrap-anywhere">
+              <p className="font-semibold">{stageLabels[operation.stage]}</p>
+              <p className="quiet">{operation.detail}</p>
+              {running ? (
+                <p className="quiet">
+                  You can leave this page. Queued work resumes after verification.
+                </p>
+              ) : null}
+            </div>
+          </div>
+          {failed && update.manualCommand ? (
+            <div className="mt-3 space-y-2">
+              <p className="quiet">
+                Run this command in your terminal to update manually, then recheck the runtime.
+              </p>
+              <SourceBlock value={update.manualCommand} label="Manual update command" />
+            </div>
+          ) : null}
           {operation.output ? (
-            <Collapsible>
-              <CollapsibleTrigger className="underline">Installer output</CollapsibleTrigger>
+            <Collapsible className="mt-2">
+              <CollapsibleTrigger className="runtime-text-trigger">
+                Installer output
+              </CollapsibleTrigger>
               <CollapsibleContent>
                 <SourceBlock value={operation.output} label="Installer output" />
               </CollapsibleContent>
@@ -66,20 +61,20 @@ export function RuntimeUpdate({ update }: { update: RuntimeUpdateInfo }) {
           ) : null}
         </div>
       ) : null}
-      {busy && !running ? (
-        <p className="quiet">Update is unavailable while busy: {update.busyReasons!.join(' ')}</p>
-      ) : null}
-      {update.status === 'available' && update.canUpdate ? (
-        <Button
-          disabled={working || busy || running}
-          onClick={() => act(`/runtimes/${update.id}/update`, 'POST', {}, 'Runtime update started')}
-        >
-          {operation?.stage === 'failed' ? 'Retry update' : 'Update'}
-        </Button>
-      ) : null}
-      {update.manualCommand ? (
-        <SourceBlock value={update.manualCommand} label="Manual update command" />
+      {busy && !running && update.status === 'available' ? (
+        <p id={`runtime-busy-${update.id}`} className="quiet mt-3" aria-live="polite">
+          Wait until this runtime is idle to update. {update.busyReasons!.join(' ')}
+        </p>
       ) : null}
     </div>
   );
-}
+};
+
+const stageLabels = {
+  preparing: 'Preparing update…',
+  updating: 'Installing update…',
+  verifying: 'Verifying installation…',
+  succeeded: 'Runtime updated',
+  failed: 'Update failed',
+  interrupted: 'Update interrupted',
+};

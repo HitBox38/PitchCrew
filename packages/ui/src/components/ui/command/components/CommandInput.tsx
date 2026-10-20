@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
 import { SearchIcon } from 'lucide-react';
 
-export function CommandInput({ className, ...props }: CommandInputProps) {
+export const CommandInput = ({ className, ...props }: CommandInputProps) => {
   return (
     <div
       data-slot="command-input-wrapper"
@@ -20,4 +20,4 @@ export function CommandInput({ className, ...props }: CommandInputProps) {
       />
     </div>
   );
-}
+};

@@ -17,11 +17,9 @@ import { randomUUID } from 'node:crypto';
 import type { Board } from '../index.ts';
 import { latestTrackingTime } from './tracking.ts';
 
-const day = 24 * 60 * 60 * 1000;
-
 // Weights, lessons, tag merges and stale cleanup are user-only board writes.
 // The HTTP session boundary exposes them; the agent gateway has no matching action.
-export function setCardWeight(board: Board, cardId: string, data: unknown): Card {
+export const setCardWeight = (board: Board, cardId: string, data: unknown): Card => {
   const { weight } = cardWeightInput.parse(data);
   return board.db.transaction(() => {
     const card = board.get<Card>('card', cardId);
@@ -34,8 +32,8 @@ export function setCardWeight(board: Board, cardId: string, data: unknown): Card
     );
     return next;
   })();
-}
-export function addCardLesson(board: Board, cardId: string, data: unknown): Card {
+};
+export const addCardLesson = (board: Board, cardId: string, data: unknown): Card => {
   const { text } = lessonInput.parse(data);
   return board.db.transaction(() => {
     const card = board.get<Card>('card', cardId);
@@ -53,8 +51,8 @@ export function addCardLesson(board: Board, cardId: string, data: unknown): Card
     board.record('card', next, 'user', 'Added a lesson');
     return next;
   })();
-}
-export function removeCardLesson(board: Board, cardId: string, lessonId: string): Card {
+};
+export const removeCardLesson = (board: Board, cardId: string, lessonId: string): Card => {
   return board.db.transaction(() => {
     const card = board.get<Card>('card', cardId);
     if (!card.lessons?.some((lesson) => lesson.id === lessonId))
@@ -67,12 +65,12 @@ export function removeCardLesson(board: Board, cardId: string, lessonId: string)
     board.record('card', next, 'user', 'Removed a lesson; history keeps the original');
     return next;
   })();
-}
+};
 /** Moves every card from one tag to another. Dropping the old tag keeps cards within 10 tags. */
-export function mergeTags(
+export const mergeTags = (
   board: Board,
   data: unknown,
-): { from: string; to: string; cards: Card[] } {
+): { from: string; to: string; cards: Card[] } => {
   const { from, to } = tagMergeInput.parse(data);
   const fromKey = tagKey(from);
   const toKey = tagKey(to);
@@ -97,12 +95,12 @@ export function mergeTags(
     if (!changed.length) throw new Error(`No application has the tag ${from}.`);
     return { from, to, cards: changed };
   })();
-}
-export function boardInsights(board: Board, data: unknown) {
+};
+export const boardInsights = (board: Board, data: unknown) => {
   const query = insightsQuery.parse(data ?? {});
   return applicationInsights(board.list<Card>('card'), query);
-}
-function enteredState(board: Board, card: Card): { actor: string; createdAt: string } | null {
+};
+const enteredState = (board: Board, card: Card): { actor: string; createdAt: string } | null => {
   let before: number | undefined;
   let newer: { actor: string; createdAt: string } | null = null;
   for (;;) {
@@ -115,9 +113,9 @@ function enteredState(board: Board, card: Card): { actor: string; createdAt: str
     if (page.length < 200) return newer;
     before = page.at(-1)!.id;
   }
-}
+};
 /** Effective time of the last status change, following the tracking effective-time rules. */
-export function statusSince(board: Board, card: Card): number {
+export const statusSince = (board: Board, card: Card): number => {
   const effective = latestTrackingTime(board, card);
   const entered = enteredState(board, card);
   // User changes and accepted tracking evidence carry their own effective time.
@@ -129,15 +127,15 @@ export function statusSince(board: Board, card: Card): number {
         signal.cardId === card.id && signal.status === 'applied' && signal.state === card.state,
     );
   return signalled && effective ? effective : Math.max(effective, Date.parse(entered.createdAt));
-}
-function blocked(board: Board, card: Card): string {
+};
+const blocked = (board: Board, card: Card): string => {
   return card.owner || board.hasActiveRun(card.id) ? 'Application has active workflow work.' : '';
-}
-export function staleSubmissions(
+};
+export const staleSubmissions = (
   board: Board,
   days: unknown,
   now: number = Date.now(),
-): { days: number; checkedAt: string; cards: StaleSubmission[] } {
+): { days: number; checkedAt: string; cards: StaleSubmission[] } => {
   const threshold = staleDays.parse(days);
   const cards = board
     .list<Card>('card')
@@ -158,9 +156,9 @@ export function staleSubmissions(
     .filter((card) => Date.parse(card.staleAt) <= now)
     .sort((a, b) => a.since.localeCompare(b.since));
   return { days: threshold, checkedAt: new Date(now).toISOString(), cards };
-}
+};
 /** Applies a reviewed preview. Every selected card is rechecked; any change rejects the batch. */
-export function markStaleSubmissions(board: Board, data: unknown): Card[] {
+export const markStaleSubmissions = (board: Board, data: unknown): Card[] => {
   const input = staleApplyInput.parse(data);
   return board.db.transaction(() => {
     const now = Date.now();
@@ -195,4 +193,6 @@ export function markStaleSubmissions(board: Board, data: unknown): Card[] {
       return next;
     });
   })();
-}
+};
+
+const day = 24 * 60 * 60 * 1000;

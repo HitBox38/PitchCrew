@@ -9,7 +9,7 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion/index.tsx';
 
-export function PacketPreview({ approval }: PacketPreviewProps) {
+export const PacketPreview = ({ approval }: PacketPreviewProps) => {
   return (
     <Accordion className="approval-preview approval-packet-preview" defaultValue={['packet']}>
       <AccordionItem value="packet">
@@ -34,4 +34,4 @@ export function PacketPreview({ approval }: PacketPreviewProps) {
       </AccordionItem>
     </Accordion>
   );
-}
+};

@@ -1,7 +1,7 @@
 import type { SidebarContentProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarContent({ className, ...props }: SidebarContentProps) {
+export const SidebarContent = ({ className, ...props }: SidebarContentProps) => {
   return (
     <div
       data-slot="sidebar-content"
@@ -13,4 +13,4 @@ export function SidebarContent({ className, ...props }: SidebarContentProps) {
       {...props}
     />
   );
-}
+};

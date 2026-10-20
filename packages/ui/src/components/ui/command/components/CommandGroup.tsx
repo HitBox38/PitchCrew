@@ -2,7 +2,7 @@ import type { CommandGroupProps } from '@/components/ui/command/types.ts';
 import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
 
-export function CommandGroup({ className, ...props }: CommandGroupProps) {
+export const CommandGroup = ({ className, ...props }: CommandGroupProps) => {
   return (
     <CommandPrimitive.Group
       data-slot="command-group"
@@ -13,4 +13,4 @@ export function CommandGroup({ className, ...props }: CommandGroupProps) {
       {...props}
     />
   );
-}
+};

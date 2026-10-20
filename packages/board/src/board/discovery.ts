@@ -13,42 +13,28 @@ import {
 import { randomUUID } from 'node:crypto';
 import type { Board } from '../index.ts';
 import { isLikelyDuplicateApplication } from './tracking.ts';
-
-export interface DiscoveredPosting {
-  source: Pick<JobSource, 'id' | 'name' | 'provider' | 'slug'>;
-  posting: JobPosting;
-}
-export interface DiscoveryKeys {
-  ids: Set<string>;
-  urls: Set<string>;
-  identifiers: Set<string>;
-}
-function discoveryKey(provider: string, slug: string, jobId: string) {
+const discoveryKey = (provider: string, slug: string, jobId: string) => {
   return `${provider}:${slug.toLowerCase()}:${jobId}`;
-}
-function identifierKey(company: string, identifier: string) {
+};
+const identifierKey = (company: string, identifier: string) => {
   return `${normalizeApplicationText(company)}\u0000${normalizeApplicationText(identifier)}`;
-}
-function addCardKeys(keys: DiscoveryKeys, card: Card) {
+};
+const addCardKeys = (keys: DiscoveryKeys, card: Card) => {
   if (card.discovery)
     keys.ids.add(discoveryKey(card.discovery.provider, card.discovery.slug, card.discovery.jobId));
   const url = canonicalJobUrl(card.url);
   if (url) keys.urls.add(url);
   if (card.tracking?.jobIdentifier)
     keys.identifiers.add(identifierKey(card.company, card.tracking.jobIdentifier));
-}
-const emptyKeys = (): DiscoveryKeys => ({
-  ids: new Set(),
-  urls: new Set(),
-  identifiers: new Set(),
-});
+};
+
 /** Keys of every card ever added, in any state: a withdrawn lead is never re-added. */
-export function discoveryKeys(board: Board): DiscoveryKeys {
+export const discoveryKeys = (board: Board): DiscoveryKeys => {
   const keys = emptyKeys();
   for (const card of board.list<Card>('card')) addCardKeys(keys, card);
   return keys;
-}
-export function isKnownPosting(keys: DiscoveryKeys, item: DiscoveredPosting): boolean {
+};
+export const isKnownPosting = (keys: DiscoveryKeys, item: DiscoveredPosting): boolean => {
   const { source, posting } = item;
   const url = canonicalJobUrl(posting.url);
   return (
@@ -56,18 +42,18 @@ export function isKnownPosting(keys: DiscoveryKeys, item: DiscoveredPosting): bo
     (!!url && keys.urls.has(url)) ||
     keys.identifiers.has(identifierKey(source.name, posting.jobId))
   );
-}
-function remember(keys: DiscoveryKeys, item: DiscoveredPosting) {
+};
+const remember = (keys: DiscoveryKeys, item: DiscoveredPosting) => {
   keys.ids.add(discoveryKey(item.source.provider, item.source.slug, item.posting.jobId));
   const url = canonicalJobUrl(item.posting.url);
   if (url) keys.urls.add(url);
   keys.identifiers.add(identifierKey(item.source.name, item.posting.jobId));
-}
+};
 /**
  * Dedupe against all cards and create leads in one transaction, so concurrent board writes
  * cannot slip a duplicate between the check and the insert.
  */
-export function recordDiscoveredLeads(
+export const recordDiscoveredLeads = (
   board: Board,
   items: DiscoveredPosting[],
   actor: string,
@@ -77,7 +63,7 @@ export function recordDiscoveredLeads(
   duplicate: DiscoveredPosting[];
   deferred: DiscoveredPosting[];
   invalid: DiscoveredPosting[];
-} {
+} => {
   return board.db.transaction(() => {
     const keys = discoveryKeys(board);
     const created: { card: Card; item: DiscoveredPosting }[] = [];
@@ -144,13 +130,13 @@ export function recordDiscoveredLeads(
     }
     return { created, duplicate, deferred, invalid };
   })();
-}
+};
 /**
  * Cards a fetched posting may duplicate: any card discovery would treat as the same posting
  * (provider/board/job ID, canonical URL or same-company job identifier), plus the company/title
  * match used for external registration. Checked against every card, in any state.
  */
-export function postingMatches(
+export const postingMatches = (
   board: Board,
   posting: {
     provider: JobPosting['provider'];
@@ -160,7 +146,7 @@ export function postingMatches(
     title: string;
     urls: string[];
   },
-): Card[] {
+): Card[] => {
   const urls = posting.urls.map(canonicalJobUrl).filter(Boolean);
   const id = discoveryKey(posting.provider, posting.slug, posting.jobId);
   const identifier = identifierKey(posting.company, posting.jobId);
@@ -181,18 +167,18 @@ export function postingMatches(
       )
     );
   });
-}
+};
 /**
  * Save a job fetched from a posting link. It gets the same `discovery` provenance and job
  * identifier as a discovered lead, so later scans skip it. User saves allow duplicates;
  * agent imports use recordLinkedJobIfNew to check them atomically.
  */
-export function recordLinkedJob(
+export const recordLinkedJob = (
   board: Board,
   input: CardInput,
   link: JobLinkProvenance,
   actor = 'user',
-): Card {
+): Card => {
   const now = new Date().toISOString();
   const card: Card = {
     ...input,
@@ -223,16 +209,16 @@ export function recordLinkedJob(
     `Added ${card.company} from a ${jobProviderLabels[link.provider]} job link`,
   );
   return card;
-}
+};
 
 /** Recheck all current cards and save a linked lead in one transaction for agent imports. */
-export function recordLinkedJobIfNew(
+export const recordLinkedJobIfNew = (
   board: Board,
   input: CardInput,
   link: JobLinkProvenance,
   actor: string,
   pastedUrl: string,
-): { card: Card | null; duplicates: Card[] } {
+): { card: Card | null; duplicates: Card[] } => {
   return board.db.transaction(() => {
     const duplicates = postingMatches(board, {
       provider: link.provider,
@@ -246,4 +232,19 @@ export function recordLinkedJobIfNew(
       ? { card: null, duplicates }
       : { card: recordLinkedJob(board, input, link, actor), duplicates: [] };
   })();
+};
+
+export interface DiscoveredPosting {
+  source: Pick<JobSource, 'id' | 'name' | 'provider' | 'slug'>;
+  posting: JobPosting;
 }
+export interface DiscoveryKeys {
+  ids: Set<string>;
+  urls: Set<string>;
+  identifiers: Set<string>;
+}
+const emptyKeys = (): DiscoveryKeys => ({
+  ids: new Set(),
+  urls: new Set(),
+  identifiers: new Set(),
+});

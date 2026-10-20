@@ -1,7 +1,7 @@
 import type { SidebarInsetProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarInset({ className, ...props }: SidebarInsetProps) {
+export const SidebarInset = ({ className, ...props }: SidebarInsetProps) => {
   return (
     <main
       data-slot="sidebar-inset"
@@ -13,4 +13,4 @@ export function SidebarInset({ className, ...props }: SidebarInsetProps) {
       {...props}
     />
   );
-}
+};

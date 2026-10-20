@@ -1,7 +1,7 @@
 import { launchBlocker, packetNeedsReview } from './helpers.ts';
 import type { CardDetailsModel } from './types.ts';
 
-export function jobNextAction(model: CardDetailsModel) {
+export const jobNextAction = (model: CardDetailsModel) => {
   const { card, brief, data, run, agents, openApplication, setTab, runRole, act } = model;
   const goBrief = () => openApplication('brief');
   const launch = (label: string, perform: () => void, roleId = runRole) => ({
@@ -144,4 +144,4 @@ export function jobNextAction(model: CardDetailsModel) {
     hint: 'Review the job’s application progress.',
     perform: () => setTab('application'),
   };
-}
+};

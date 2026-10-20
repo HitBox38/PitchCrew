@@ -2,13 +2,13 @@ import { Textarea } from '@/components/ui/textarea/index.tsx';
 import type { ExtractedJob } from '@pitchcrew/core';
 import { splitLines } from '../helpers.ts';
 
-export function BriefFields({
+export const BriefFields = ({
   value,
   change,
 }: {
   value: ExtractedJob['brief'];
   change: (value: ExtractedJob['brief']) => void;
-}) {
+}) => {
   return (
     <div className="grid gap-3">
       <label className="grid gap-1">
@@ -31,4 +31,4 @@ export function BriefFields({
       ))}
     </div>
   );
-}
+};

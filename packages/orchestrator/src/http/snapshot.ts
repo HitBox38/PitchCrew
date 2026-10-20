@@ -5,10 +5,10 @@ import type { FastifyInstance } from 'fastify';
 import type { CrewService } from '../service.ts';
 
 /** Conditional polling is private to the current daemon; ordinary callers still get a full snapshot. */
-export function registerSnapshot(
+export const registerSnapshot = (
   app: FastifyInstance,
   service: Pick<CrewService, 'snapshot' | 'snapshotRevision'>,
-) {
+) => {
   const instance = randomUUID();
   const inflight = new Map<string, Promise<Snapshot>>();
   app.get('/api/snapshot', async (request, reply) => {
@@ -32,4 +32,4 @@ export function registerSnapshot(
       if (inflight.get(etag) === pending) inflight.delete(etag);
     }
   });
-}
+};

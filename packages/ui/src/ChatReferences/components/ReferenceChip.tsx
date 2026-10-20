@@ -10,13 +10,13 @@ import {
 } from '@/components/ui/popover/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function ReferenceChip({
+export const ReferenceChip = ({
   reference,
   catalog,
 }: {
   reference: ChatReference;
   catalog: ReferenceCatalog;
-}) {
+}) => {
   const role = catalog.roles.find((role) => role.id === reference.id);
   const skill = catalog.skills.find((skill) => skill.id === reference.id && !skill.deletedAt);
   const unavailable =
@@ -55,4 +55,4 @@ export function ReferenceChip({
       </PopoverContent>
     </Popover>
   );
-}
+};

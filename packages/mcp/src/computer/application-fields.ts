@@ -5,7 +5,7 @@ import { hash } from './helpers.ts';
 import { normalizedValue } from './application-values.ts';
 
 /** Private manual input fingerprints stay in this browser's memory, never in events or prompts. */
-export async function captureManualField(page: Page, manual: Set<string>) {
+export const captureManualField = async (page: Page, manual: Set<string>) => {
   for (const frame of page.frames()) {
     const field = await frame
       .evaluate(() => {
@@ -35,13 +35,13 @@ export async function captureManualField(page: Page, manual: Set<string>) {
         }),
       );
   }
-}
-export async function validateApplicationFields(
+};
+export const validateApplicationFields = async (
   page: Page,
   action: BrowserAction,
   values: readonly string[],
   manual: Set<string>,
-) {
+) => {
   if (action.kind === 'navigate' || action.kind === 'dialog' || action.kind === 'upload') return;
   const target = action.frame
     ? page.frameLocator(action.frame).locator(action.selector)
@@ -131,4 +131,4 @@ export async function validateApplicationFields(
       'Application field contains an unreviewed answer. Save your answer in the confirmed brief or enter it privately with manual takeover.',
     );
   }
-}
+};

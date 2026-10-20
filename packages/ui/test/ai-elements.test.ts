@@ -24,7 +24,7 @@ beforeAll(async () => {
     plugins: [
       {
         name: 'ai-elements-fixture',
-        configureServer(vite) {
+        configureServer: (vite) => {
           vite.middlewares.use('/__ai-elements', async (_request, response) => {
             response.setHeader('Content-Type', 'text/html');
             response.end(

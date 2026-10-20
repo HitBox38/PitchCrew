@@ -10,12 +10,12 @@ interface RuntimeRecommendationProps {
   onApply(configuration: RuntimeConfiguration): void;
 }
 
-export function RuntimeRecommendation({
+export const RuntimeRecommendation = ({
   roleId,
   disabled,
   configuration,
   onApply,
-}: RuntimeRecommendationProps) {
+}: RuntimeRecommendationProps) => {
   const { checking, recommendation, error, recommend } = useRuntimeRecommendation(
     roleId,
     configuration,
@@ -39,4 +39,4 @@ export function RuntimeRecommendation({
       </p>
     </div>
   );
-}
+};

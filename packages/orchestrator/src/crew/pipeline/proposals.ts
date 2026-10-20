@@ -9,20 +9,11 @@ import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 import { configRevision } from './snapshots.ts';
-
-export const crewChangesInput = z.object({
-  targetRoleId: z.string().min(1).max(64),
-  targetRevision: z.string().regex(/^[a-f0-9]{64}$/),
-  pipelineReviewId: z.uuid(),
-  findingId: z.string().min(1).max(40),
-  reason: z.string().trim().min(1).max(2000),
-  changes: roleChanges,
-});
-export function proposeCrewChanges(
+export const proposeCrewChanges = (
   context: CrewContext,
   capability: RunCapability,
   input: unknown,
-) {
+) => {
   const parsed = crewChangesInput.parse(input);
   const review = context.board.get<PipelineReview>('pipeline_review', parsed.pipelineReviewId);
   if (review.roleId !== capability.roleId)
@@ -78,4 +69,13 @@ Review the exact before/after settings in Crew work. Your decision is required b
     );
     return { proposal };
   })();
-}
+};
+
+export const crewChangesInput = z.object({
+  targetRoleId: z.string().min(1).max(64),
+  targetRevision: z.string().regex(/^[a-f0-9]{64}$/),
+  pipelineReviewId: z.uuid(),
+  findingId: z.string().min(1).max(40),
+  reason: z.string().trim().min(1).max(2000),
+  changes: roleChanges,
+});

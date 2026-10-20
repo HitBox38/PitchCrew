@@ -1,6 +1,12 @@
 import type { RoleSettingsModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-export function RoleRetirement({ creating, role, retiring, retire, working }: RoleSettingsModel) {
+export const RoleRetirement = ({
+  creating,
+  role,
+  retiring,
+  retire,
+  working,
+}: RoleSettingsModel) => {
   if (creating || role.retiredAt) return null;
   return (
     <section className="role-settings-section">
@@ -19,4 +25,4 @@ export function RoleRetirement({ creating, role, retiring, retire, working }: Ro
       </Button>
     </section>
   );
-}
+};

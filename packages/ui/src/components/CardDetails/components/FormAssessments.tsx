@@ -1,6 +1,6 @@
 import type { Card } from '@pitchcrew/core';
 
-export function FormAssessments({ card }: { card: Card }) {
+export const FormAssessments = ({ card }: { card: Card }) => {
   const assessment = card.formAssessments?.at(-1);
   if (!assessment) return null;
   return (
@@ -40,4 +40,4 @@ export function FormAssessments({ card }: { card: Card }) {
       ))}
     </section>
   );
-}
+};

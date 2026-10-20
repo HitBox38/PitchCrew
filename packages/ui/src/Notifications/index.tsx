@@ -15,7 +15,7 @@ import { NotificationList } from './components/NotificationList.tsx';
 import { useNotifications } from './hooks/useNotifications.ts';
 import { ActionToast } from './components/ActionToast.tsx';
 
-export function Notifications() {
+export const Notifications = () => {
   const state = useNotifications();
   return (
     <Toaster
@@ -63,4 +63,4 @@ export function Notifications() {
       </Sheet>
     </Toaster>
   );
-}
+};

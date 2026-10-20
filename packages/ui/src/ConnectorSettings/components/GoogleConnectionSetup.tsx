@@ -4,7 +4,7 @@ import { GoogleInstructions } from '@/ConnectorSettings/components/GoogleInstruc
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { GoogleConnectionSetupProps } from '@/ConnectorSettings/types.ts';
 
-export function GoogleConnectionSetup(props: GoogleConnectionSetupProps) {
+export const GoogleConnectionSetup = (props: GoogleConnectionSetupProps) => {
   const { google, customGoogle, setCustomGoogle, setEditing, working } = props;
   return (
     <>
@@ -46,4 +46,4 @@ export function GoogleConnectionSetup(props: GoogleConnectionSetupProps) {
       </p>
     </>
   );
-}
+};

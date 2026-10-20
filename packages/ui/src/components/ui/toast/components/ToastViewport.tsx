@@ -1,15 +1,15 @@
 import { cn } from '@/lib/utils';
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 
-export function ToastPortal(props: ToastPrimitive.Portal.Props) {
+export const ToastPortal = (props: ToastPrimitive.Portal.Props) => {
   return <ToastPrimitive.Portal data-slot="toast-portal" {...props} />;
-}
-export function ToastViewport({
+};
+export const ToastViewport = ({
   className,
   onClick,
   onMouseLeave,
   ...props
-}: ToastPrimitive.Viewport.Props) {
+}: ToastPrimitive.Viewport.Props) => {
   return (
     <ToastPrimitive.Viewport
       data-slot="toast-viewport"
@@ -36,4 +36,4 @@ export function ToastViewport({
       {...props}
     />
   );
-}
+};

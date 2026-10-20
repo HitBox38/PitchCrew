@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import type { JobOverviewProps } from '../types.ts';
 
-export function ExternalConfirmation({
+export const ExternalConfirmation = ({
   id,
   act,
   working,
@@ -14,7 +14,7 @@ export function ExternalConfirmation({
 }: Pick<JobOverviewProps, 'act' | 'working'> & {
   id: string;
   onDirtyChange?: (id: string, dirty: boolean) => void;
-}) {
+}) => {
   const [url, setUrl] = useState('');
   const [evidence, setEvidence] = useState('');
   const [verified, setVerified] = useState(false);
@@ -67,4 +67,4 @@ export function ExternalConfirmation({
       </Button>
     </AccordionSection>
   );
-}
+};

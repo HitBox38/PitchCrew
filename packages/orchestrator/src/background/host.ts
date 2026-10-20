@@ -8,13 +8,47 @@ import { cliEntry, repositoryRoot, type DaemonSettings } from './settings.ts';
 import type { CommandResult, ServiceHost, ServiceSpec } from './types.ts';
 
 /** schtasks can write UTF-16 when its output is redirected; other tools write UTF-8. */
-export function decodeOutput(output: Buffer) {
+export const decodeOutput = (output: Buffer) => {
   if (output[0] === 0xff && output[1] === 0xfe) return output.subarray(2).toString('utf16le');
   const sample = output.subarray(0, 64);
   const zeros = sample.filter((byte, index) => index % 2 === 1 && byte === 0).length;
   if (sample.length >= 4 && zeros >= sample.length / 4) return output.toString('utf16le');
   return output.toString('utf8');
-}
+};
+
+export const currentPlatform = (): BackgroundServicePlatform | null => {
+  if (process.platform === 'win32') return 'windows';
+  if (process.platform === 'darwin') return 'macos';
+  if (process.platform === 'linux') return 'linux';
+  return null;
+};
+
+/** The definition values for this user, this Node executable and this checkout. */
+export const currentServiceSpec = (
+  settings: DaemonSettings,
+  env: NodeJS.ProcessEnv = process.env,
+): ServiceSpec | null => {
+  const platform = currentPlatform();
+  if (!platform) return null;
+  const home = homedir();
+  const username = env.USERNAME ?? userInfo().username;
+  return {
+    platform,
+    ...settings,
+    repository: repositoryRoot.replace(/[\\/]+$/, ''),
+    node: process.execPath,
+    cli: cliEntry,
+    home,
+    configHome:
+      env.XDG_CONFIG_HOME && isAbsolute(env.XDG_CONFIG_HOME)
+        ? env.XDG_CONFIG_HOME
+        : join(home, '.config'),
+    path: env.PATH ?? env.Path ?? '',
+    uid: process.getuid?.() ?? 0,
+    user: env.USERDOMAIN ? `${env.USERDOMAIN}\\${username}` : username,
+    systemRoot: env.SystemRoot ?? env.SYSTEMROOT ?? 'C:\\Windows',
+  };
+};
 
 export const nodeServiceHost: ServiceHost = {
   run: (command, args) =>
@@ -38,7 +72,7 @@ export const nodeServiceHost: ServiceHost = {
       );
     }),
   readFile: (path) => readFile(path).catch(() => null),
-  async writeFile(path, data) {
+  writeFile: async (path, data) => {
     await mkdir(dirname(path), { recursive: true });
     await writeFile(path, data);
   },
@@ -57,37 +91,3 @@ export const nodeServiceHost: ServiceHost = {
   },
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 };
-
-export function currentPlatform(): BackgroundServicePlatform | null {
-  if (process.platform === 'win32') return 'windows';
-  if (process.platform === 'darwin') return 'macos';
-  if (process.platform === 'linux') return 'linux';
-  return null;
-}
-
-/** The definition values for this user, this Node executable and this checkout. */
-export function currentServiceSpec(
-  settings: DaemonSettings,
-  env: NodeJS.ProcessEnv = process.env,
-): ServiceSpec | null {
-  const platform = currentPlatform();
-  if (!platform) return null;
-  const home = homedir();
-  const username = env.USERNAME ?? userInfo().username;
-  return {
-    platform,
-    ...settings,
-    repository: repositoryRoot.replace(/[\\/]+$/, ''),
-    node: process.execPath,
-    cli: cliEntry,
-    home,
-    configHome:
-      env.XDG_CONFIG_HOME && isAbsolute(env.XDG_CONFIG_HOME)
-        ? env.XDG_CONFIG_HOME
-        : join(home, '.config'),
-    path: env.PATH ?? env.Path ?? '',
-    uid: process.getuid?.() ?? 0,
-    user: env.USERDOMAIN ? `${env.USERDOMAIN}\\${username}` : username,
-    systemRoot: env.SystemRoot ?? env.SYSTEMROOT ?? 'C:\\Windows',
-  };
-}

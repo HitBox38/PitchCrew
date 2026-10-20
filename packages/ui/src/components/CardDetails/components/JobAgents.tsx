@@ -7,13 +7,13 @@ import { TooltipContent } from '@/components/ui/tooltip/components/TooltipConten
 import { TurnDuration } from '@/ChatTurn/components/TurnDuration.tsx';
 import { Link } from '@tanstack/react-router';
 
-export function JobAgents({
+export const JobAgents = ({
   agents,
   openChat,
 }: {
   agents: JobAgent[];
   openChat: (thread: string, runId: string) => void;
-}) {
+}) => {
   return (
     <div
       className="detail-agents flex flex-wrap items-center gap-2"
@@ -76,4 +76,4 @@ export function JobAgents({
       })}
     </div>
   );
-}
+};

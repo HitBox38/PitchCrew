@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export function useMarkdownSaveShortcut() {
+export const useMarkdownSaveShortcut = () => {
   const form = useRef<HTMLFormElement>(null);
   useEffect(() => {
     const save = (event: KeyboardEvent) => {
@@ -17,4 +17,4 @@ export function useMarkdownSaveShortcut() {
     return () => document.removeEventListener('keydown', save);
   }, []);
   return form;
-}
+};

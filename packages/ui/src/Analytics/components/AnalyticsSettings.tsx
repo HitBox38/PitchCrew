@@ -4,7 +4,7 @@ import { Switch } from '../../components/ui/switch/index.tsx';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 import { useAnalyticsConfig } from '../api.ts';
 
-export function AnalyticsSettings() {
+export const AnalyticsSettings = () => {
   const enabled = useDevicePreferences((state) => state.analytics);
   const setEnabled = useDevicePreferences((state) => state.setAnalytics);
   const configured = useAnalyticsConfig((state) => !!state.config);
@@ -40,4 +40,4 @@ export function AnalyticsSettings() {
       </p>
     </section>
   );
-}
+};

@@ -2,7 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { BrowserInput, BrowserViewport } from '@pitchcrew/core';
 import { browserCommand, browserInput } from '../api.ts';
 
-export function useBrowserControl(roleId: string, threadId: string, refresh: () => Promise<void>) {
+export const useBrowserControl = (
+  roleId: string,
+  threadId: string,
+  refresh: () => Promise<void>,
+) => {
   const [leases, setLeases] = useState<
     Record<string, { roleId: string; threadId: string; id: string }>
   >({});
@@ -110,4 +114,4 @@ export function useBrowserControl(roleId: string, threadId: string, refresh: () 
     command,
     forget,
   };
-}
+};

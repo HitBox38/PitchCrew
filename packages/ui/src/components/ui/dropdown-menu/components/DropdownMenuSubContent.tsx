@@ -2,14 +2,14 @@ import { DropdownMenuContent } from '@/components/ui/dropdown-menu/components/Dr
 import type { DropdownMenuSubContentProps } from '@/components/ui/dropdown-menu/types.ts';
 import { cn } from '@/lib/utils';
 
-export function DropdownMenuSubContent({
+export const DropdownMenuSubContent = ({
   align = 'start',
   alignOffset = -3,
   side = 'right',
   sideOffset = 0,
   className,
   ...props
-}: DropdownMenuSubContentProps) {
+}: DropdownMenuSubContentProps) => {
   return (
     <DropdownMenuContent
       data-slot="dropdown-menu-sub-content"
@@ -21,4 +21,4 @@ export function DropdownMenuSubContent({
       {...props}
     />
   );
-}
+};

@@ -9,7 +9,7 @@ import { AccordionTrigger } from '@/components/ui/accordion/components/Accordion
 import { AccordionContent } from '@/components/ui/accordion/components/AccordionContent.tsx';
 import { packetNeedsReview } from '../helpers.ts';
 
-export function JobApplication(model: CardDetailsModel) {
+export const JobApplication = (model: CardDetailsModel) => {
   const { card, brief, sections, setSections } = model;
   const [reviewOpened, setReviewOpened] = useState(false);
   if (!reviewOpened && sections.includes('reviews')) setReviewOpened(true);
@@ -92,4 +92,4 @@ export function JobApplication(model: CardDetailsModel) {
       ) : null}
     </div>
   );
-}
+};

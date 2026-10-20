@@ -1,18 +1,18 @@
 import type { Activity } from './types';
 
-const start = Date.parse('2026-10-14T09:20:00.000Z');
-const at = (seconds: number) => new Date(start + seconds * 1000).toISOString();
-
-function step(
+const step = (
   id: string,
   kind: Activity['kind'],
   label: string,
   from: number,
   to: number,
   text?: string,
-): Activity {
+): Activity => {
   return { id, kind, label, text, status: 'completed', startedAt: at(from), finishedAt: at(to) };
-}
+};
+
+const start = Date.parse('2026-10-14T09:20:00.000Z');
+const at = (seconds: number) => new Date(start + seconds * 1000).toISOString();
 
 export const request =
   'Tailor my resume for this role. Quote only my profile notes and flag anything you can’t support.';

@@ -13,18 +13,34 @@ import {
 import { afterEach, expect, it, vi } from 'vitest';
 import { Board, changeJobState, deleteJob } from '../src/index.ts';
 import { packet } from './fixtures/packet.ts';
+const setup = () => {
+  const board = new Board(':memory:');
+  boards.push(board);
+  const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));
+  return { board, card };
+};
+
+const approvals = (board: Board, cardId: string) => {
+  board.updateCard(cardId, { packet }, 'writer', 'Fixture packet');
+  changeJobState(board, cardId, 'agreed', 'reviewer', 'Fixture reviewed packet');
+  reviewFixturePacket(board, cardId);
+  const approval = board.requestApproval(cardId);
+  board.decideApproval(approval.id, true);
+  const browser = {
+    id: 'fixture-browser',
+    cardId,
+    status: 'approved',
+    decidedAt: null,
+  } as ComputerApproval;
+  board.record('computer_approval', browser, 'user', 'Fixture browser approval');
+  return approval;
+};
 
 const boards: Board[] = [];
 afterEach(() => {
   vi.restoreAllMocks();
   for (const board of boards.splice(0)) board.close();
 });
-function setup() {
-  const board = new Board(':memory:');
-  boards.push(board);
-  const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));
-  return { board, card };
-}
 
 it('allows every pair of statuses, including terminal states and same-state requests', () => {
   const { board, card } = setup();
@@ -58,22 +74,6 @@ it.each(states)('deletes a %s job durably without removing its history', (state)
   expect(board.list('card')).toEqual([]);
   expect(() => changeJobState(board, card.id, 'lead', 'scout', 'Restore')).toThrow('not found');
 });
-
-function approvals(board: Board, cardId: string) {
-  board.updateCard(cardId, { packet }, 'writer', 'Fixture packet');
-  changeJobState(board, cardId, 'agreed', 'reviewer', 'Fixture reviewed packet');
-  reviewFixturePacket(board, cardId);
-  const approval = board.requestApproval(cardId);
-  board.decideApproval(approval.id, true);
-  const browser = {
-    id: 'fixture-browser',
-    cardId,
-    status: 'approved',
-    decidedAt: null,
-  } as ComputerApproval;
-  board.record('computer_approval', browser, 'user', 'Fixture browser approval');
-  return approval;
-}
 
 it('invalidates unused approvals and prevents reuse after moving back to approval status', () => {
   const { board, card } = setup();

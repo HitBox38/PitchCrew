@@ -8,7 +8,7 @@ import {
 import type { NotebookOptions } from './notebooks-library.ts';
 import { notebooksCommand } from './notebooks.ts';
 
-function options(): NotebookOptions {
+const options = (): NotebookOptions => {
   return {
     project_id: 295060,
     cutoff: '2026-10-12T19:00:00Z',
@@ -29,7 +29,7 @@ function options(): NotebookOptions {
       { kind: 'insight', key: 'sanitized_errors', id: '79UVPFXi', project_id: 295060 },
     ],
   };
-}
+};
 
 test('both notebooks produce actual native create, dashboard, insight, markdown and SQL inputs', () => {
   for (const definition of listNotebookDefinitions()) {

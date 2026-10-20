@@ -2,11 +2,11 @@ import { api } from '@/api.ts';
 import type { Snapshot } from '@pitchcrew/core';
 import type { WorkspaceGet, WorkspaceSet, WorkspaceState } from './types.ts';
 
-export function createWorkspaceActions(
+export const createWorkspaceActions = (
   set: WorkspaceSet,
   get: WorkspaceGet,
   applySnapshot: (snapshot: Snapshot) => void,
-): Pick<WorkspaceState, 'reload' | 'action' | 'act'> {
+): Pick<WorkspaceState, 'reload' | 'action' | 'act'> => {
   let pendingActions = 0;
   return {
     reload: async () => {
@@ -48,4 +48,4 @@ export function createWorkspaceActions(
         .catch(() => {});
     },
   };
-}
+};

@@ -2,7 +2,7 @@ import { states, type Approval, type Card, type CardState, type Run } from '@pit
 import type { Board } from '../index.ts';
 
 /** User-only bookkeeping; never launches work, exports a packet or submits an application. */
-export function setCardStatus(board: Board, id: string, state: CardState): Card {
+export const setCardStatus = (board: Board, id: string, state: CardState): Card => {
   if (!states.includes(state)) throw new Error('Unknown job status.');
   return board.db.transaction(() => {
     const card = board.get<Card>('card', id);
@@ -26,4 +26,4 @@ export function setCardStatus(board: Board, id: string, state: CardState): Card 
     }
     return next;
   })();
-}
+};

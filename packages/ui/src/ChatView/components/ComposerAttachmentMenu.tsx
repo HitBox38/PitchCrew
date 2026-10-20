@@ -13,13 +13,13 @@ import {
 import { Plus, Paperclip, BriefcaseBusiness } from 'lucide-react';
 import { ComposerJobPicker } from './ComposerJobPicker.tsx';
 
-export function ComposerAttachmentMenu(
+export const ComposerAttachmentMenu = (
   props: ChatComposerProps & {
     contextActions?: RefObject<
       ((action: NonNullable<ComposerSuggestion['action']>) => void) | null
     >;
   },
-) {
+) => {
   const input = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const [choosingJob, setChoosingJob] = useState(false);
@@ -89,4 +89,4 @@ export function ComposerAttachmentMenu(
       ) : null}
     </>
   );
-}
+};

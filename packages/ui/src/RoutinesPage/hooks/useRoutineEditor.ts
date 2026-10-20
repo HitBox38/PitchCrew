@@ -3,7 +3,7 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { draftInput, initialDraft } from '../helpers.ts';
 import type { EditorProps, RoutineDraft } from '../types.ts';
 
-export function useRoutineEditor(props: EditorProps) {
+export const useRoutineEditor = (props: EditorProps) => {
   const [initial] = useState(() => ({
     ...initialDraft(props.routine),
     ...(!props.routine ? { roleId: props.roles.find((role) => !role.retiredAt)?.id ?? '' } : {}),
@@ -47,4 +47,4 @@ export function useRoutineEditor(props: EditorProps) {
     }
   };
   return { draft, change, guard, close, save, error };
-}
+};

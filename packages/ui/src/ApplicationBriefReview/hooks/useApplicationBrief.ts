@@ -5,7 +5,12 @@ import { useEffect, useRef, useState } from 'react';
 import { emptyBrief, normalizedBrief } from '../helpers.ts';
 import type { ApplicationBriefProps, ContextResponse } from '../types.ts';
 
-export function useApplicationBrief({ card, roles, busy, onDirtyChange }: ApplicationBriefProps) {
+export const useApplicationBrief = ({
+  card,
+  roles,
+  busy,
+  onDirtyChange,
+}: ApplicationBriefProps) => {
   const action = useWorkspaceStore((state) => state.action);
   const [loaded, setLoaded] = useState<ContextResponse | null>(null);
   const [draft, setDraft] = useState<ExtractedJob>(emptyBrief);
@@ -169,4 +174,4 @@ export function useApplicationBrief({ card, roles, busy, onDirtyChange }: Applic
     confirmed,
     disabled: busy || !loaded,
   };
-}
+};

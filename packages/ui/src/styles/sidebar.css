@@ -35,9 +35,21 @@
   color: var(--primary);
 }
 [data-slot='sidebar-menu-button'].sidebar-update-button {
+  position: relative;
   color: var(--teal);
   background: var(--teal-soft);
   font-weight: 600;
+}
+[data-slot='sidebar-menu-button'].sidebar-update-button:hover {
+  background: color-mix(in srgb, var(--teal-soft), var(--teal) 8%);
+}
+[data-slot='sidebar-menu-button'].sidebar-update-button > :not(.sidebar-update-progress) {
+  position: relative;
+}
+.sidebar-update-progress {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--teal), transparent 85%);
 }
 [data-slot='sidebar-menu-button'].sidebar-update-button > svg {
   color: inherit;

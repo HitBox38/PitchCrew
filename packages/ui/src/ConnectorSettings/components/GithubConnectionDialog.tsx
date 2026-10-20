@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { GithubTokenForm } from './GithubTokenForm.tsx';
 import type { ConnectAccountDialogProps } from '../types.ts';
 
-export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
+export const GithubConnectionDialog = (props: ConnectAccountDialogProps) => {
   const { close, connectGithubCli, github, error, working } = props;
   return (
     <Modal title="Connect GitHub" onClose={close}>
@@ -80,4 +80,4 @@ export function GithubConnectionDialog(props: ConnectAccountDialogProps) {
       </div>
     </Modal>
   );
-}
+};

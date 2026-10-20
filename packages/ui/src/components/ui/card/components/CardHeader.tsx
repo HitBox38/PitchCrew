@@ -1,7 +1,7 @@
 import type { CardHeaderProps } from '@/components/ui/card/types.ts';
 import { cn } from '@/lib/utils';
 
-export function CardHeader({ className, ...props }: CardHeaderProps) {
+export const CardHeader = ({ className, ...props }: CardHeaderProps) => {
   return (
     <div
       data-slot="card-header"
@@ -12,4 +12,4 @@ export function CardHeader({ className, ...props }: CardHeaderProps) {
       {...props}
     />
   );
-}
+};

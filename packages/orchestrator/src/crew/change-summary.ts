@@ -1,15 +1,7 @@
 import type { Packet, RunResult } from '@pitchcrew/core';
 
-const documents = {
-  resume: 'resume',
-  coverLetter: 'cover letter',
-  formAnswers: 'form answers',
-  note: 'application note',
-  claims: 'source claims',
-} as const;
-
 /** Keep activity concise without copying whole drafts or private runtime output. */
-export function changeSummary(result: RunResult, previous: Packet | null): string {
+export const changeSummary = (result: RunResult, previous: Packet | null): string => {
   if (result.changeSummary) return result.changeSummary;
   if (result.role === 'scout')
     return oneLineChangeSummary(
@@ -27,9 +19,17 @@ export function changeSummary(result: RunResult, previous: Packet | null): strin
   return changed.length
     ? `${previous ? 'Updated' : 'Created'} ${changed.map((key) => documents[key]).join(', ')}`
     : 'Checked the existing packet; document contents are unchanged';
-}
+};
 
-export function oneLineChangeSummary(text: string): string {
+export const oneLineChangeSummary = (text: string): string => {
   const normalized = text.replace(/\s+/gu, ' ').trim();
   return normalized.length > 300 ? `${normalized.slice(0, 299).trimEnd()}…` : normalized;
-}
+};
+
+const documents = {
+  resume: 'resume',
+  coverLetter: 'cover letter',
+  formAnswers: 'form answers',
+  note: 'application note',
+  claims: 'source claims',
+} as const;

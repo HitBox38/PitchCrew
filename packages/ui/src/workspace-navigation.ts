@@ -4,7 +4,7 @@ import type { ChatThread, View } from './navigation.ts';
 import { viewPaths } from './navigation.ts';
 import type { Conversation } from '@pitchcrew/core';
 
-export function useWorkspaceNavigation() {
+export const useWorkspaceNavigation = () => {
   const navigate = useNavigate();
   return {
     go: (view: View) => {
@@ -44,4 +44,4 @@ export function useWorkspaceNavigation() {
       state.setSelectedId(null);
     },
   };
-}
+};

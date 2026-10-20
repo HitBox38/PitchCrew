@@ -3,16 +3,7 @@ import { defaultCapabilities, type Card, type Role, type StaleSubmission } from 
 import { afterEach, describe, expect, it } from 'vitest';
 import { insightsByteLimit } from '../src/crew/gateway/insights.ts';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
-
-const day = 24 * 60 * 60 * 1000;
-afterEach(async () => {
-  for (const { daemon } of resources) {
-    daemon.service.controllers.delete('insights-fixture');
-    daemon.service.capabilities.delete('insights-token');
-  }
-  await cleanup();
-});
-async function fixture(port: number) {
+const fixture = async (port: number) => {
   const context = await setup(port);
   const { daemon } = context;
   const permit = (capabilities: Partial<typeof defaultCapabilities>) => {
@@ -39,7 +30,16 @@ async function fixture(port: number) {
     return { response, result: (await response.json()) as T & { error?: string } };
   };
   return { ...context, permit, agent };
-}
+};
+
+const day = 24 * 60 * 60 * 1000;
+afterEach(async () => {
+  for (const { daemon } of resources) {
+    daemon.service.controllers.delete('insights-fixture');
+    daemon.service.capabilities.delete('insights-token');
+  }
+  await cleanup();
+});
 
 describe('learning signals over HTTP', () => {
   it('keeps weights, lessons, tag merges and stale cleanup behind the user session', async () => {

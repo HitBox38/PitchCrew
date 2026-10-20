@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
 
-export function legacyTracker(file: string) {
+export const legacyTracker = (file: string) => {
   const db = new Database(file);
   db.exec(`
 CREATE TABLE applications (id INTEGER PRIMARY KEY, company TEXT NOT NULL, folder_path TEXT NOT NULL UNIQUE, role_title TEXT NOT NULL DEFAULT '', attempt INTEGER NOT NULL DEFAULT 1, status TEXT NOT NULL DEFAULT 'draft', weight INTEGER NOT NULL DEFAULT 0, lessons_learned TEXT, notes TEXT, applied_at TEXT, created_at TEXT NOT NULL, updated_at TEXT NOT NULL, UNIQUE(company, role_title, attempt));
@@ -84,4 +84,4 @@ CREATE TABLE application_tags (application_id INTEGER NOT NULL, tag_id INTEGER N
     link.run(1, id);
   }
   db.close();
-}
+};

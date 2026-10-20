@@ -4,7 +4,7 @@ import * as m from 'motion/react-m';
 import { BrowserApprovalContent } from './components/BrowserApprovalContent.tsx';
 import type { ComputerApprovalsProps } from './types.ts';
 
-export function ComputerApprovals({ approvals, action, working }: ComputerApprovalsProps) {
+export const ComputerApprovals = ({ approvals, action, working }: ComputerApprovalsProps) => {
   const reduced = useAppReducedMotion();
   return (
     <AnimatePresence initial={false}>
@@ -23,4 +23,4 @@ export function ComputerApprovals({ approvals, action, working }: ComputerApprov
       ))}
     </AnimatePresence>
   );
-}
+};

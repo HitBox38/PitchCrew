@@ -10,13 +10,13 @@ import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 import { oneLineChangeSummary } from '../change-summary.ts';
 
-export function changeWorkflow(
-  this: CrewContext,
+export const changeWorkflow = (
+  context: CrewContext,
   capability: RunCapability,
   permissions: AgentCapabilities,
   action: string,
   data: Record<string, unknown>,
-): Record<string, unknown> {
+): Record<string, unknown> => {
   if (!permissions.manageWorkflow)
     throw new Error('Workflow capability is disabled for your role.');
   if (action === 'bulk_move_jobs' || action === 'bulk_delete_jobs') {
@@ -26,7 +26,7 @@ export function changeWorkflow(
     const state = 'state' in input ? z.enum(states).parse(input.state) : undefined;
     const results = input.cardIds.map((cardId) => {
       try {
-        applyJobChange(this, capability, cardId, input.reason, state);
+        applyJobChange(context, capability, cardId, input.reason, state);
         return { cardId, ok: true, ...(state ? { state } : {}) };
       } catch (error) {
         return {
@@ -40,7 +40,7 @@ export function changeWorkflow(
     return { results, succeeded, failed: results.length - succeeded };
   }
   if (action === 'jobs') {
-    const { cards, nextOffset } = searchApplications(this.board, data.input ?? {});
+    const { cards, nextOffset } = searchApplications(context.board, data.input ?? {});
     return {
       jobs: cards.map(({ id, company, title, state, location, url }) => ({
         id,
@@ -62,21 +62,21 @@ export function changeWorkflow(
   const cardId = input.cardId ?? capability.cardId;
   if (!cardId) throw new Error('Choose a job ID or attach a job before changing the board.');
   if (action === 'delete_job') {
-    applyJobChange(this, capability, cardId, input.reason);
+    applyJobChange(context, capability, cardId, input.reason);
     return { ok: true, cardId };
   }
   const state = z.enum(states).parse(data.state);
-  const card = applyJobChange(this, capability, cardId, input.reason, state);
+  const card = applyJobChange(context, capability, cardId, input.reason, state);
   return { card };
-}
+};
 
-function applyJobChange(
+const applyJobChange = (
   context: CrewContext,
   capability: RunCapability,
   cardId: string,
   reason: string,
   state?: CardState,
-) {
+) => {
   return context.board.db.transaction(() => {
     const description = oneLineChangeSummary(
       `${state ? `Moved to ${state.replaceAll('_', ' ')}` : 'Deleted job'}: ${reason}`,
@@ -88,4 +88,4 @@ function applyJobChange(
     context.addMessage('crew', capability.roleId, 'crew', reason, cardId, capability.runId);
     return card;
   })();
-}
+};

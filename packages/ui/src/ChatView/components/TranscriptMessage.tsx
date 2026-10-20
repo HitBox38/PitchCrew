@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle } from 'lucide-react';
 
-export function TranscriptMessage({
+export const TranscriptMessage = ({
   message,
   data,
   streamingIds,
@@ -17,7 +17,7 @@ export function TranscriptMessage({
   thread,
   onOpenCard,
   answerQuestion,
-}: Omit<MessageTranscriptProps, 'messages'> & { message: ChatMessage }) {
+}: Omit<MessageTranscriptProps, 'messages'> & { message: ChatMessage }) => {
   const job = data.cards.find((card) => card.id === message.cardId);
   const streaming = streamingIds.has(message.id);
   return (
@@ -60,4 +60,4 @@ export function TranscriptMessage({
       ) : null}
     </AnimatedMessage>
   );
-}
+};

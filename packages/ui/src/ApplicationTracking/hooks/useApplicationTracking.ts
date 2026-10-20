@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { Card } from '@pitchcrew/core';
 
-export function useApplicationTracking(card: Card, onDirtyChange?: (dirty: boolean) => void) {
+export const useApplicationTracking = (card: Card, onDirtyChange?: (dirty: boolean) => void) => {
   const data = useWorkspaceStore((state) => state.data);
   const act = useWorkspaceStore((state) => state.act);
   const action = useWorkspaceStore((state) => state.action);
@@ -35,4 +35,4 @@ export function useApplicationTracking(card: Card, onDirtyChange?: (dirty: boole
         .catch(() => {});
     },
   };
-}
+};

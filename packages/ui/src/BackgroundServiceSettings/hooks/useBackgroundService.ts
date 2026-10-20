@@ -2,7 +2,7 @@ import type { BackgroundServiceInfo } from '@pitchcrew/core';
 import { useEffect, useRef, useState } from 'react';
 import { installBackgroundService, loadBackgroundService } from '../api.ts';
 
-export function useBackgroundService() {
+export const useBackgroundService = () => {
   const [info, setInfo] = useState<BackgroundServiceInfo | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -46,4 +46,4 @@ export function useBackgroundService() {
     }
   };
   return { info, error, loading, installing, checkAgain, install };
-}
+};

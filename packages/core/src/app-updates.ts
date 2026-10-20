@@ -9,6 +9,12 @@ export interface AppUpdateInfo {
   automatic: boolean;
   status: 'idle' | 'available' | 'current' | 'unknown' | 'error' | 'disabled';
   checkedAt: string | null;
-  latest: { commit: string; url: string } | null;
+  latest: {
+    commit: string;
+    url: string;
+    version?: string | null;
+    changes?: string[];
+    moreChanges?: boolean;
+  } | null;
   message: string;
 }

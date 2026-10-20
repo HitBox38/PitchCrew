@@ -16,13 +16,13 @@ import { capLogFile, createRotatingLog } from '../src/background/log.ts';
 import { resolveDaemonSettings } from '../src/background/settings.ts';
 import { createDaemon } from '../src/server.ts';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
-
-const folders: string[] = [];
-async function folder() {
+const folder = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
   folders.push(directory);
   return directory;
-}
+};
+
+const folders: string[] = [];
 afterEach(async () => {
   await cleanup();
   for (const directory of folders.splice(0)) {

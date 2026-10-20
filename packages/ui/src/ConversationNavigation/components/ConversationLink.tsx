@@ -5,7 +5,7 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Users, History, Circle, Pin, Archive, LoaderCircle, Clock } from 'lucide-react';
 import type { ConversationNavigationRow } from '../types.ts';
 import { ConversationMenu, type ConversationMenuActions } from './ConversationMenu.tsx';
-export function ConversationLink({
+export const ConversationLink = ({
   row,
   selected,
   closeMobile,
@@ -17,7 +17,7 @@ export function ConversationLink({
   closeMobile: () => void;
   actions: ConversationMenuActions;
   working: boolean;
-}) {
+}) => {
   const { conversation: item, preview, unread, working, waiting, waitingForUser } = row;
   return (
     <SidebarMenuItem>
@@ -62,4 +62,4 @@ export function ConversationLink({
       <ConversationMenu row={row} actions={actions} working={actionWorking} />
     </SidebarMenuItem>
   );
-}
+};

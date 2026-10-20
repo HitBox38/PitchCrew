@@ -7,7 +7,7 @@ import {
 import type { Card } from '@pitchcrew/core';
 
 /** Explicit user confirmation for fictional legacy test setups, never a production bypass. */
-export function confirmFixtureJob(board: Board, id: string) {
+export const confirmFixtureJob = (board: Board, id: string) => {
   const card = board.get<Card>('card', id);
   if (card.applicationContext?.confirmedAt) return card;
   return saveApplicationContext(
@@ -27,9 +27,9 @@ export function confirmFixtureJob(board: Board, id: string) {
     },
     true,
   );
-}
+};
 /** Test fixtures that directly construct a reviewed packet must include its review evidence. */
-export function reviewFixturePacket(board: Board, id: string) {
+export const reviewFixturePacket = (board: Board, id: string) => {
   const card = confirmFixtureJob(board, id);
   if (!card.packet) throw new Error('Fixture packet is missing.');
   const revision = card.applicationContext!.revision;
@@ -47,4 +47,4 @@ export function reviewFixturePacket(board: Board, id: string) {
     'reviewer',
     'Recorded fictional packet review evidence',
   );
-}
+};

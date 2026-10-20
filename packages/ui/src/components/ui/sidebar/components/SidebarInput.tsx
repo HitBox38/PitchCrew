@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { SidebarInputProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarInput({ className, ...props }: SidebarInputProps) {
+export const SidebarInput = ({ className, ...props }: SidebarInputProps) => {
   return (
     <Input
       data-slot="sidebar-input"
@@ -14,4 +14,4 @@ export function SidebarInput({ className, ...props }: SidebarInputProps) {
       {...props}
     />
   );
-}
+};

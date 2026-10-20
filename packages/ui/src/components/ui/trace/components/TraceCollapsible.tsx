@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
 
-export function TraceCollapsible({
+export const TraceCollapsible = ({
   className,
   ...props
 }: Omit<React.ComponentProps<typeof Collapsible>, 'open'> &
@@ -12,7 +12,7 @@ export function TraceCollapsible({
         open: boolean;
         onOpenChange: NonNullable<React.ComponentProps<typeof Collapsible>['onOpenChange']>;
       }
-  )) {
+  )) => {
   return (
     <Collapsible
       data-slot="trace-collapsible"
@@ -23,4 +23,4 @@ export function TraceCollapsible({
       {...props}
     />
   );
-}
+};

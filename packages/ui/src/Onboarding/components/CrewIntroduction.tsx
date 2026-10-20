@@ -1,5 +1,24 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 
+export const CrewIntroduction = () => {
+  return (
+    <ol className="onboarding-crew grid gap-4">
+      {seats.map((seat) => (
+        <li key={seat.id} className="flex items-start gap-4">
+          <RoleAvatar agentRole={seat.id} size="large" />
+          <div>
+            <p className="flex flex-wrap items-baseline gap-x-3">
+              <strong>{seat.name}</strong>
+              <span>{seat.task}</span>
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{seat.detail}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+};
+
 const seats = [
   {
     id: 'scout',
@@ -20,22 +39,3 @@ const seats = [
     detail: 'Checks the draft and its claims against your saved notes.',
   },
 ] as const;
-
-export function CrewIntroduction() {
-  return (
-    <ol className="onboarding-crew grid gap-4">
-      {seats.map((seat) => (
-        <li key={seat.id} className="flex items-start gap-4">
-          <RoleAvatar agentRole={seat.id} size="large" />
-          <div>
-            <p className="flex flex-wrap items-baseline gap-x-3">
-              <strong>{seat.name}</strong>
-              <span>{seat.task}</span>
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">{seat.detail}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-}

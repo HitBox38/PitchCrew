@@ -9,7 +9,7 @@ type Preference = {
   selectedId: string;
   width: number;
 };
-function readPreference(thread: string): Preference {
+const readPreference = (thread: string): Preference => {
   const fallback = { thread, open: false, dismissed: false, selectedId: '', width: 620 };
   try {
     const stored = JSON.parse(sessionStorage.getItem(`pitchcrew.browser.${thread}`) ?? 'null');
@@ -29,14 +29,14 @@ function readPreference(thread: string): Preference {
   } catch {
     return fallback;
   }
-}
-export function useBrowserPanel(
+};
+export const useBrowserPanel = (
   data: Snapshot,
   thread: string,
   participants: string[],
   readOnly: boolean,
   preferredRoleId?: string,
-) {
+) => {
   const roles = data.roles.filter(
     (role) => participants.includes(role.id) && role.capabilities?.computerUse && !role.retiredAt,
   );
@@ -86,4 +86,4 @@ export function useBrowserPanel(
     select: (selectedId: string) => setPreference((current) => ({ ...current, selectedId })),
     resize: (width: number) => setPreference((current) => ({ ...current, width })),
   };
-}
+};

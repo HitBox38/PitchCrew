@@ -7,6 +7,15 @@ import { expect, it } from 'vitest';
 import { ComputerManager, createBrowserDriver } from '../src/computer.ts';
 
 it('drives a real Chromium form through the approval gate without making external requests', async () => {
+  const act = async (input: unknown) => {
+    const approval = await manager.request(scope, input, 'Fixture interaction');
+    expect(await manager.execute(scope.runId, approval.id, signal, authorize, 0)).toMatchObject({
+      status: 'pending',
+    });
+    manager.decide(approval.id, true);
+    return manager.execute(scope.runId, approval.id, signal, authorize, 0);
+  };
+
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-browser-test-'));
   const board = new Board(join(directory, 'board.db'));
   const browser = await chromium.launch({ headless: true });
@@ -27,14 +36,6 @@ it('drives a real Chromium form through the approval gate without making externa
   const scope = { runId: 'fixture-browser', roleId: 'writer' as const, cardId: null };
   const signal = new AbortController().signal;
   const authorize = () => {};
-  async function act(input: unknown) {
-    const approval = await manager.request(scope, input, 'Fixture interaction');
-    expect(await manager.execute(scope.runId, approval.id, signal, authorize, 0)).toMatchObject({
-      status: 'pending',
-    });
-    manager.decide(approval.id, true);
-    return manager.execute(scope.runId, approval.id, signal, authorize, 0);
-  }
   try {
     const navigated = await act({ kind: 'navigate', url: 'https://8.8.8.8/application' });
     expect(navigated).toMatchObject({

@@ -3,7 +3,7 @@ import { SidebarIconButton } from '@/components/ui/sidebar/components/SidebarIco
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 import { useOnboarding } from '../hooks/useOnboarding.ts';
 
-export function SetupShortcut() {
+export const SetupShortcut = () => {
   const { data, working, save } = useOnboarding();
   if (!data?.onboarding) return null;
   return (
@@ -17,4 +17,4 @@ export function SetupShortcut() {
       </SidebarIconButton>
     </SidebarMenuItem>
   );
-}
+};

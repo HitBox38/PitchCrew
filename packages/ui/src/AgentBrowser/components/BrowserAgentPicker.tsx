@@ -11,10 +11,10 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu/index.tsx';
 import type { AgentBrowserProps } from '../types.ts';
-export function BrowserAgentPicker({
+export const BrowserAgentPicker = ({
   browserPanel,
   data,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'data'>) {
+}: Pick<AgentBrowserProps, 'browserPanel' | 'data'>) => {
   const role = browserPanel.role!;
   const identity = (
     <>
@@ -76,4 +76,4 @@ export function BrowserAgentPicker({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

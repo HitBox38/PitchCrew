@@ -7,7 +7,7 @@ import { FormSelect } from '@/FormSelect/index.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Plus } from 'lucide-react';
 
-export function AddQueueAction({ data, cardId }: { data: Snapshot; cardId?: string }) {
+export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: string }) => {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(cardId ?? data.cards[0]?.id ?? '');
   const [kind, setKind] = useState<BoardAction>('draft');
@@ -77,4 +77,4 @@ export function AddQueueAction({ data, cardId }: { data: Snapshot; cardId?: stri
       ) : null}
     </>
   );
-}
+};

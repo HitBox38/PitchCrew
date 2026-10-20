@@ -6,7 +6,7 @@ import { useState } from 'react';
 import { TrackingSource } from '@/TrackingSource/index.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
-export function TrackingProposal({ signal, cards }: { signal: TrackingSignal; cards: Card[] }) {
+export const TrackingProposal = ({ signal, cards }: { signal: TrackingSignal; cards: Card[] }) => {
   const candidates = cards.filter(
     (card) => !signal.candidateIds.length || signal.candidateIds.includes(card.id),
   );
@@ -78,4 +78,4 @@ export function TrackingProposal({ signal, cards }: { signal: TrackingSignal; ca
       </div>
     </article>
   );
-}
+};

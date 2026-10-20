@@ -1,7 +1,7 @@
 import type { RunContext } from '@pitchcrew/core';
 import { originalReviewPerspectives, reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 
-export function deepReviewInstructions(context: RunContext) {
+export const deepReviewInstructions = (context: RunContext) => {
   const review = context.deepReview;
   if (!review) return '';
   const timeBudget = `Shared deadline: ${new Date(context.deadline?.expiresAt ?? Date.now()).toISOString()}; ${Math.max(0, (context.deadline?.expiresAt ?? Date.now()) - Date.now())} milliseconds remain at turn start. Read pitchcrew_review_subagents for current remaining time when you are the parent. Request additional time early if unfinished work needs it.\n`;
@@ -15,4 +15,4 @@ export function deepReviewInstructions(context: RunContext) {
 Use PASS or REJECT for screen; INTERVIEW or NO for interview; HIRE, MAYBE or PASS for all other perspectives. Parent findings may also attribute completed specialist subagents, while the parent perspective assessments must contain exactly the seven originals.\nRequired perspectives: ${JSON.stringify(perspectives.map((id) => ({ id, name: reviewPerspectives[id] })))}.
 The automated screen is a heuristic, not an actual ATS test. Text alone cannot prove rendered PDF layout or column readability. Never invent competitors, impact metrics or reasons to reject a strong resume. Recruiter examines the top third; CEO examines impact; teammate examines collaboration; the two hiring managers separately assess interview decision and day-one readiness. Register exact quotations for findings; absent material uses [MISSING: specific section or requirement]. Every finding has severity blocking or advisory, reason, correction and perspective attribution. Use blocking only for evidence, factual, required-answer or other actual packet blockers. Subjective improvements are advisory. Feedback contains only blocking corrections; suggestions contains optional advice. A passing review can contain advisory suggestions. ${review.subagent ? 'Check only the supplied resume and your assigned perspective against confirmed context and Profile evidence.' : 'Recheck the complete packet against confirmed context, Profile evidence and packet rules.'}
 Include assessment in your reviewer JSON: {"summary":"...","perspectives":[{"perspective":"${perspectives[0]}","verdict":"PASS|REJECT|INTERVIEW|NO|HIRE|MAYBE","rationale":"...","weakestLine":"exact resume line or empty","interviewQuestions":[]}],"findings":[{"severity":"blocking|advisory","quote":"exact resume text or [MISSING: ...]","reason":"...","correction":"...","perspectives":["${perspectives[0]}"]}]}. Include every required perspective exactly once. Choose one verdict per item, never the pipe-separated example. Do not expose private reasoning.\n`;
-}
+};

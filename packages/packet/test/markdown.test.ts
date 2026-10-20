@@ -4,7 +4,7 @@ import { parseMarkdown } from '../src/documents/markdown.ts';
 import type { Block, Run } from '../src/documents/types.ts';
 
 // Compact notation: [b]bold[/], [i]italic[/], [bi]both[/], {url|text}, / for a line break.
-function show(runs: Run[]) {
+const show = (runs: Run[]) => {
   return runs
     .map((run) => {
       if (run.kind === 'break') return '/';
@@ -14,8 +14,8 @@ function show(runs: Run[]) {
       return run.href ? `{${run.href}|${text}}` : text;
     })
     .join('');
-}
-function outline(blocks: Block[]) {
+};
+const outline = (blocks: Block[]) => {
   return blocks.map((block) => {
     if (block.kind === 'rule') return '---';
     if (block.kind === 'heading') return `h${block.level} ${show(block.runs)}`;
@@ -25,7 +25,7 @@ function outline(blocks: Block[]) {
         `${'  '.repeat(item.depth)}${item.ordered ? `${item.number}.` : '-'} ${show(item.runs)}`,
     );
   });
-}
+};
 
 describe('Markdown document model', () => {
   it('ignores pandoc frontmatter and removes raw LaTeX without printing it', () => {

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { CheckIcon } from 'lucide-react';
 
-export function SelectItem({ className, children, ...props }: SelectItemProps) {
+export const SelectItem = ({ className, children, ...props }: SelectItemProps) => {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -25,4 +25,4 @@ export function SelectItem({ className, children, ...props }: SelectItemProps) {
       </SelectPrimitive.ItemIndicator>
     </SelectPrimitive.Item>
   );
-}
+};

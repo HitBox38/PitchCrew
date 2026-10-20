@@ -7,13 +7,13 @@ import { CodeBlockActions } from '@/components/ui/code-block/components/CodeBloc
 import { CodeBlockCopyButton } from '@/components/ui/code-block/components/CodeBlockCopyButton.tsx';
 import { CodeBlockContent } from '@/components/ui/code-block/components/CodeBlockContent.tsx';
 
-export function MarkdownCode({
+export const MarkdownCode = ({
   children,
   className,
   node: _node,
   'data-block': block,
   ...props
-}: ComponentProps<'code'> & ExtraProps & { 'data-block'?: string }) {
+}: ComponentProps<'code'> & ExtraProps & { 'data-block'?: string }) => {
   if (!block)
     return (
       <defaultComponents.code className={className} {...props}>
@@ -33,4 +33,4 @@ export function MarkdownCode({
       <CodeBlockContent className="max-h-96">{code}</CodeBlockContent>
     </CodeBlock>
   );
-}
+};

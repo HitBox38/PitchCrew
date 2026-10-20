@@ -3,7 +3,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { CommandPalette } from '../constants.ts';
 
 /** Resolve the palette before mounting its lazy component, avoiding the first-open fallback delay. */
-export function usePaletteReady(open: boolean, onOpenChange: (open: boolean) => void) {
+export const usePaletteReady = (open: boolean, onOpenChange: (open: boolean) => void) => {
   const [ready, setReady] = useState(false);
   useEffect(() => {
     if (!open || ready) return;
@@ -33,4 +33,4 @@ export function usePaletteReady(open: boolean, onOpenChange: (open: boolean) => 
     };
   }, [open, ready, onOpenChange]);
   return ready;
-}
+};

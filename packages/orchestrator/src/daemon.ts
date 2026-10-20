@@ -11,7 +11,7 @@ import { analyticsConfig } from './http/analytics.ts';
  * always runs the production UI, logs to its data folder and waits while another daemon owns the
  * data folder or port; an interactive start refuses instead.
  */
-export async function runDaemon(argv: readonly string[]) {
+export const runDaemon = async (argv: readonly string[]) => {
   const { directory, port } = resolveDaemonSettings(process.env, argv);
   const service = argv.includes('--service');
   const dev = argv.includes('--dev') && !service;
@@ -87,4 +87,4 @@ export async function runDaemon(argv: readonly string[]) {
   process.on('message', (message) => {
     if (message === 'pitchcrew:stop') void stop(true);
   });
-}
+};

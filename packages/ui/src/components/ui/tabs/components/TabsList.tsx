@@ -3,7 +3,7 @@ import type { TabsListProps } from '@/components/ui/tabs/types.ts';
 import { cn } from '@/lib/utils';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 
-export function TabsList({ className, variant = 'default', ...props }: TabsListProps) {
+export const TabsList = ({ className, variant = 'default', ...props }: TabsListProps) => {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
@@ -12,4 +12,4 @@ export function TabsList({ className, variant = 'default', ...props }: TabsListP
       {...props}
     />
   );
-}
+};

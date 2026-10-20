@@ -3,7 +3,7 @@ import type { Card } from '@pitchcrew/core';
 import { lessonLimits } from '@pitchcrew/core/insights';
 import { useEffect, useState } from 'react';
 
-export function useLessonDraft(card: Card, onDirtyChange?: (dirty: boolean) => void) {
+export const useLessonDraft = (card: Card, onDirtyChange?: (dirty: boolean) => void) => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [text, setText] = useState('');
@@ -36,4 +36,4 @@ export function useLessonDraft(card: Card, onDirtyChange?: (dirty: boolean) => v
     add,
     remove,
   };
-}
+};

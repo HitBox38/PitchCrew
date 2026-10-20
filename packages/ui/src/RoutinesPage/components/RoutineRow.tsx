@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge/index.tsx';
 import { RoutineActions } from './RoutineActions.tsx';
 import { RoutineSchedule } from './RoutineSchedule.tsx';
 
-export function RoutineRow({
+export const RoutineRow = ({
   routine,
   data,
   working,
@@ -17,7 +17,7 @@ export function RoutineRow({
   edit(): void;
   toggle(): void;
   remove(): void;
-}) {
+}) => {
   const role = data.roles.find((role) => role.id === routine.roleId);
   const lastRun = data.runs.find((run) => run.id === routine.lastRunId);
   const running = lastRun?.status === 'running';
@@ -57,4 +57,4 @@ export function RoutineRow({
       <RoutineActions {...{ routine, working, edit, toggle, remove }} />
     </li>
   );
-}
+};

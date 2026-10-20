@@ -3,14 +3,14 @@ import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
 import type { SidebarProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function Sidebar({
+export const Sidebar = ({
   side = 'left',
   variant = 'sidebar',
   collapsible = 'offcanvas',
   className,
   children,
   ...props
-}: SidebarProps) {
+}: SidebarProps) => {
   const { isMobile, state } = useSidebar();
 
   if (collapsible === 'none') {
@@ -82,4 +82,4 @@ export function Sidebar({
       </div>
     </div>
   );
-}
+};

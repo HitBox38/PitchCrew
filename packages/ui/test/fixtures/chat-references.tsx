@@ -8,37 +8,7 @@ import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/compone
 import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 import '@/styles.css';
 import '@/styles/chat.css';
-const suggestions: ComposerSuggestion[] = [
-  {
-    key: 'agent:reviewer',
-    label: 'Reviewer',
-    description: 'Review the packet',
-    reference: { kind: 'agent', id: 'reviewer', token: '@reviewer', label: 'Reviewer' },
-  },
-  {
-    key: 'agent:writer',
-    label: 'Writer',
-    description: 'Paused',
-    disabled: 'Paused',
-    reference: { kind: 'agent', id: 'writer', token: '@writer', label: 'Writer' },
-  },
-  {
-    key: 'skill:check',
-    label: 'Evidence check',
-    description: 'Check quotations',
-    reference: {
-      kind: 'skill',
-      id: 'check',
-      token: '$evidence-check',
-      label: 'Evidence check',
-      revision: 'first',
-    },
-  },
-  { key: 'action:attach', label: '/attach', description: 'Choose files', action: 'attach' },
-  { key: 'action:job', label: '/job', description: 'Choose a job', action: 'job' },
-  { key: 'action:skills', label: '/skills', description: 'Browse skills', action: 'skills' },
-];
-function Fixture() {
+const Fixture = () => {
   const [value, setValue] = useState('');
   const [references, setReferences] = useState<ChatReference[]>([]);
   const [sent, setSent] = useState<ChatMessage | null>(null);
@@ -135,5 +105,36 @@ function Fixture() {
       <pre id="references">{JSON.stringify(references)}</pre>
     </div>
   );
-}
+};
+
+const suggestions: ComposerSuggestion[] = [
+  {
+    key: 'agent:reviewer',
+    label: 'Reviewer',
+    description: 'Review the packet',
+    reference: { kind: 'agent', id: 'reviewer', token: '@reviewer', label: 'Reviewer' },
+  },
+  {
+    key: 'agent:writer',
+    label: 'Writer',
+    description: 'Paused',
+    disabled: 'Paused',
+    reference: { kind: 'agent', id: 'writer', token: '@writer', label: 'Writer' },
+  },
+  {
+    key: 'skill:check',
+    label: 'Evidence check',
+    description: 'Check quotations',
+    reference: {
+      kind: 'skill',
+      id: 'check',
+      token: '$evidence-check',
+      label: 'Evidence check',
+      revision: 'first',
+    },
+  },
+  { key: 'action:attach', label: '/attach', description: 'Choose files', action: 'attach' },
+  { key: 'action:job', label: '/job', description: 'Choose a job', action: 'job' },
+  { key: 'action:skills', label: '/skills', description: 'Browse skills', action: 'skills' },
+];
 createRoot(document.getElementById('root')!).render(<Fixture />);

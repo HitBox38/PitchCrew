@@ -1,16 +1,9 @@
 import { jobLinkDetails } from '@pitchcrew/core';
 import { parse, type DefaultTreeAdapterMap } from 'parse5';
 import { htmlToText } from './html.ts';
+import { microdataJobPostings } from './microdata.ts';
 
-type Node = DefaultTreeAdapterMap['node'];
-const object = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-const text = (value: unknown, limit: number) =>
-  typeof value === 'string' ? htmlToText(value).slice(0, limit) : '';
-
-function salaryText(value: unknown): string {
+const salaryText = (value: unknown): string => {
   if (typeof value === 'string') return text(value, 100);
   const salary = object(value);
   const range = object(salary.value);
@@ -26,11 +19,12 @@ function salaryText(value: unknown): string {
     .filter(Boolean)
     .join(' ')
     .slice(0, 100);
-}
+};
 
 /** Only an unambiguous schema.org JobPosting supplies automatic card fields. */
-export function structuredJobDetails(html: string) {
-  const nodes: Node[] = [parse(html)];
+export const structuredJobDetails = (html: string) => {
+  const root = parse(html);
+  const nodes: Node[] = [root];
   const postings: Record<string, unknown>[] = [];
   while (nodes.length) {
     const node = nodes.pop()!;
@@ -64,7 +58,12 @@ export function structuredJobDetails(html: string) {
     }
     if ('childNodes' in node) nodes.push(...node.childNodes);
   }
+  const microdata = microdataJobPostings(root);
+  if (microdata.length > 1) return null;
+  if (!postings.length) postings.push(...microdata);
   if (postings.length !== 1) return null;
+  if (microdata[0]?.title && text(microdata[0].title, 160) !== text(postings[0]!.title, 160))
+    return null;
   const posting = postings[0]!;
   const rawLocations = Array.isArray(posting.jobLocation)
     ? posting.jobLocation
@@ -79,13 +78,35 @@ export function structuredJobDetails(html: string) {
     })
     .filter(Boolean);
   const parsed = jobLinkDetails.safeParse({
-    company: text(object(posting.hiringOrganization).name, 100),
+    company: text(
+      typeof posting.hiringOrganization === 'string'
+        ? posting.hiringOrganization
+        : object(posting.hiringOrganization).name,
+      100,
+    ),
     title: text(posting.title, 160),
     location: (
       locations.join('; ') || (posting.jobLocationType === 'TELECOMMUTE' ? 'Remote' : '')
     ).slice(0, 120),
     salary: salaryText(posting.baseSalary),
-    description: text(posting.description, 20000),
+    description: [
+      ...new Set(
+        [posting.description, posting.responsibilities, posting.qualifications]
+          .flatMap((value) => (Array.isArray(value) ? value : [value]))
+          .map((value) => text(value, 20_000))
+          .filter(Boolean),
+      ),
+    ]
+      .join('\n\n')
+      .slice(0, 20_000),
   });
   return parsed.success ? parsed.data : null;
-}
+};
+
+type Node = DefaultTreeAdapterMap['node'];
+const object = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+const text = (value: unknown, limit: number) =>
+  typeof value === 'string' ? htmlToText(value).slice(0, limit) : '';

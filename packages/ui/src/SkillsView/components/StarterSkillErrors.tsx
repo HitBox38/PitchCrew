@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { StarterSkillErrorsProps } from '@/SkillsView/types.ts';
 
-export function StarterSkillErrors({ data, working, action }: StarterSkillErrorsProps) {
+export const StarterSkillErrors = ({ data, working, action }: StarterSkillErrorsProps) => {
   return (
     <div className="starter-skill-errors" aria-live="polite">
       <h3>Some starter skills could not be loaded</h3>
@@ -25,4 +25,4 @@ export function StarterSkillErrors({ data, working, action }: StarterSkillErrors
       </Button>
     </div>
   );
-}
+};

@@ -4,7 +4,7 @@ import { subscribeChatStream } from '@/chat-stream.ts';
 import type { ChatStreamState, Snapshot } from '@pitchcrew/core';
 import type { WorkspaceSet } from './types.ts';
 
-export function createWorkspaceSync(set: WorkspaceSet) {
+export const createWorkspaceSync = (set: WorkspaceSet) => {
   let chatState: ChatStreamState | null = null;
   let stopSync: (() => void) | undefined;
   const applySnapshot = (snapshot: Snapshot) =>
@@ -71,4 +71,4 @@ export function createWorkspaceSync(set: WorkspaceSet) {
     return stopSync;
   };
   return { applySnapshot, startSync };
-}
+};

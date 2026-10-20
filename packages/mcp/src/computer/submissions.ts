@@ -12,14 +12,12 @@ import {
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 
-export const pageEvidence = ({ screenshot: _screenshot, ...page }: BrowserSnapshot) => page;
-
-export function saveAssessment(
+export const saveAssessment = (
   board: Board,
   scope: { runId: string; roleId: RoleId; cardId: string | null },
   page: BrowserSnapshot,
   raw: unknown,
-) {
+) => {
   if (!scope.cardId) throw new Error('Attach an application to assess its form.');
   if (page.dialog)
     throw new Error('Resolve the browser dialog before assessing form requirements.');
@@ -73,14 +71,14 @@ export function saveAssessment(
     );
   })();
   return assessment;
-}
+};
 
-export function currentExport(
+export const currentExport = (
   board: Board,
   cardId: string | null,
   id: string | undefined,
   allowRecorded = false,
-) {
+) => {
   if (!cardId || !id)
     throw new Error('Submission requires an attached card and exact exported packet.');
   const card = board.get<Card>('card', cardId);
@@ -114,14 +112,14 @@ export function currentExport(
       'Submission requires an exported awaiting-approval packet with no competing workflow.',
     );
   return exported;
-}
+};
 
-export function assertNoUncertainSubmission(
+export const assertNoUncertainSubmission = (
   board: Board,
   cardId: string | null,
   action?: BrowserAction,
   runId?: string,
-) {
+) => {
   const uncertain = board
     .list<SubmissionAttempt>('submission_attempt')
     .filter((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain');
@@ -142,9 +140,9 @@ export function assertNoUncertainSubmission(
     throw new Error(
       'Submission outcome is uncertain. Inspect and capture confirmation, then ask the user to resolve it before any further browser interaction. Only an exact approved dialog continuation bound to this attempt is permitted.',
     );
-}
+};
 
-export function recordDialogContinuation(board: Board, approval: ComputerApproval) {
+export const recordDialogContinuation = (board: Board, approval: ComputerApproval) => {
   const action = approval.action;
   if (action.kind !== 'dialog' || !action.submissionAttemptId) return;
   assertNoUncertainSubmission(board, approval.cardId, action, approval.runId);
@@ -172,9 +170,9 @@ export function recordDialogContinuation(board: Board, approval: ComputerApprova
     'mcp',
     'Recorded submission dialog continuation',
   );
-}
+};
 
-export function beginSubmission(board: Board, approval: ComputerApproval) {
+export const beginSubmission = (board: Board, approval: ComputerApproval) => {
   const action = approval.action;
   if (!('purpose' in action) || action.purpose !== 'submission') return;
   assertNoUncertainSubmission(board, approval.cardId);
@@ -204,15 +202,15 @@ export function beginSubmission(board: Board, approval: ComputerApproval) {
     'mcp',
     'Recorded submission attempt',
   );
-}
+};
 
-export function resolveSubmission(
+export const resolveSubmission = (
   board: Board,
   id: string,
   confirmed: boolean,
   reason: string,
   external?: { url: string; evidence: string; verified: true },
-) {
+) => {
   return board.db.transaction(() => {
     const attempt = board.get<SubmissionAttempt>('submission_attempt', id);
     if (attempt.status !== 'uncertain') throw new Error('Submission was already resolved.');
@@ -261,8 +259,10 @@ export function resolveSubmission(
     );
     return next;
   })();
-}
+};
 
-export function isSubmission(action: BrowserAction) {
+export const isSubmission = (action: BrowserAction) => {
   return 'purpose' in action && action.purpose === 'submission';
-}
+};
+
+export const pageEvidence = ({ screenshot: _screenshot, ...page }: BrowserSnapshot) => page;

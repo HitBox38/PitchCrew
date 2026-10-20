@@ -1,14 +1,7 @@
-/** Shared closed vocabulary for manual AI traces. This module has no runtime/schema dependencies. */
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-const outcomes = ['completed', 'failed', 'cancelled', 'waiting'] as const;
-export type AiRunOutcome = (typeof outcomes)[number];
-export type AiRunMode = 'workflow' | 'chat';
-type Properties = Record<string, string | number | boolean>;
-
-export function sanitizeAiObservation(
+export const sanitizeAiObservation = (
   event: string,
   input: Record<string, unknown>,
-): Properties | null {
+): Properties | null => {
   if (!['$ai_trace', '$ai_span'].includes(event)) return null;
   if (typeof input.$ai_trace_id !== 'string' || !uuid.test(input.$ai_trace_id)) return null;
   if (!['workflow', 'chat'].includes(input.mode as string)) return null;
@@ -43,7 +36,13 @@ export function sanitizeAiObservation(
   )
     properties.observed_start_ms = input.observed_start_ms as number;
   return properties;
-}
+};
+/** Shared closed vocabulary for manual AI traces. This module has no runtime/schema dependencies. */
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+const outcomes = ['completed', 'failed', 'cancelled', 'waiting'] as const;
+export type AiRunOutcome = (typeof outcomes)[number];
+export type AiRunMode = 'workflow' | 'chat';
+type Properties = Record<string, string | number | boolean>;
 
 export const sanitizeAiTrace = (input: Record<string, unknown>) =>
   sanitizeAiObservation('$ai_trace', input);

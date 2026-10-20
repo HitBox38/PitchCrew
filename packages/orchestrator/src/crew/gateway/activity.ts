@@ -3,6 +3,39 @@ import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
 
+export const observeChatTool = (context: CrewContext, token: string, action: string) => {
+  try {
+    const capability = context.capabilities.get(token);
+    // Discovery/bootstrap and non-chat capabilities have no transcript activity.
+    if (
+      !capability ||
+      action.endsWith('_access') ||
+      action === 'report_progress' ||
+      !context.board
+        .list<Run>('run')
+        .some((run) => run.id === capability.runId && (run.mode === 'chat' || !!run.deepReviewId))
+    )
+      return () => {};
+    const label = labels[action] ?? 'Using a crew tool';
+    const id = `tool-${randomUUID()}`;
+    recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
+    return (failed: boolean) => {
+      try {
+        recordChatActivity(context, capability.runId, {
+          id,
+          kind: 'tool',
+          label,
+          status: failed ? 'failed' : 'completed',
+        });
+      } catch {
+        /* Activity must never change a tool's result or error. */
+      }
+    };
+  } catch {
+    return () => {};
+  }
+};
+
 const labels: Record<string, string> = {
   quality: 'Updating writing preferences and career plans',
   check_linkedin_draft: 'Checking LinkedIn draft lengths',
@@ -47,36 +80,3 @@ const labels: Record<string, string> = {
   application_insights: 'Reading application insights',
   routines: 'Reading routines',
 };
-
-export function observeChatTool(context: CrewContext, token: string, action: string) {
-  try {
-    const capability = context.capabilities.get(token);
-    // Discovery/bootstrap and non-chat capabilities have no transcript activity.
-    if (
-      !capability ||
-      action.endsWith('_access') ||
-      action === 'report_progress' ||
-      !context.board
-        .list<Run>('run')
-        .some((run) => run.id === capability.runId && (run.mode === 'chat' || !!run.deepReviewId))
-    )
-      return () => {};
-    const label = labels[action] ?? 'Using a crew tool';
-    const id = `tool-${randomUUID()}`;
-    recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
-    return (failed: boolean) => {
-      try {
-        recordChatActivity(context, capability.runId, {
-          id,
-          kind: 'tool',
-          label,
-          status: failed ? 'failed' : 'completed',
-        });
-      } catch {
-        /* Activity must never change a tool's result or error. */
-      }
-    };
-  } catch {
-    return () => {};
-  }
-}

@@ -8,7 +8,7 @@ export const goose = withChat({
   // These suggestions use only providers allowed by the scoped Goose launcher.
   models: apiModels,
   detect: () => detectCli('goose', 'goose'),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const separator = context.role.model.indexOf('/');
     const qualified = separator > 0 && separator < context.role.model.length - 1;

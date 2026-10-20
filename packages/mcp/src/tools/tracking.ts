@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerTrackingTools(server: McpServer, call: AgentCall) {
+export const registerTrackingTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_search_applications',
     {
@@ -49,4 +49,4 @@ export function registerTrackingTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('tracking_reconcile', input),
   );
-}
+};

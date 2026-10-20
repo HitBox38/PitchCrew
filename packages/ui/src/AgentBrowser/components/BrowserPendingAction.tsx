@@ -5,7 +5,7 @@ import { browserActionTitles, actionFields } from '@/ComputerApprovals/helpers.t
 import type { ComputerApproval } from '@pitchcrew/core';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserSiteRequest } from './BrowserSiteRequest.tsx';
-export function BrowserPendingAction({
+export const BrowserPendingAction = ({
   approval,
   browserPanel,
   thread,
@@ -15,7 +15,7 @@ export function BrowserPendingAction({
 }: Pick<AgentBrowserProps, 'browserPanel' | 'thread' | 'action' | 'working'> & {
   approval: ComputerApproval;
   control: BrowserControl;
-}) {
+}) => {
   const paused = !!browserPanel.session?.manual || !!control.leaseId;
   return (
     <section
@@ -71,4 +71,4 @@ export function BrowserPendingAction({
       />
     </section>
   );
-}
+};

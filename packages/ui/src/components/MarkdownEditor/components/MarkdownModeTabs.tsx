@@ -1,7 +1,7 @@
 import { TabsList, TabsTrigger } from '@/components/ui/tabs/index.tsx';
 import { Eye, PencilLine } from 'lucide-react';
 
-export function MarkdownModeTabs({ label }: { label: string }) {
+export const MarkdownModeTabs = ({ label }: { label: string }) => {
   return (
     <TabsList aria-label={label} className="profile-mode-tabs">
       <TabsTrigger value="write">
@@ -12,4 +12,4 @@ export function MarkdownModeTabs({ label }: { label: string }) {
       </TabsTrigger>
     </TabsList>
   );
-}
+};

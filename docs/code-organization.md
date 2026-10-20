@@ -62,7 +62,7 @@ Public package entry points retain the existing application API. Private modules
 
 Background service code in `orchestrator/src/background/` renders each definition as a pure function and sends every schtasks, launchctl and systemctl call and file write through a `ServiceHost`. Tests supply a simulated host, so they assert exact definitions and commands without touching the operating system.
 
-Stateful backend facades hold a private context. Feature functions declare their context with a typed `this` parameter; the context factory binds those functions to one instance. This lets cooperating modules share a board and lifecycle state without exporting mutable global state. Transactions, event append/replay and exact-action approval consumption stay within their owning modules.
+Stateful backend facades hold a private context. Feature arrow functions take their typed context as the first argument; the context factory closes over one instance and passes it explicitly. This lets cooperating modules share a board and lifecycle state without exporting mutable global state. Transactions, event append/replay and exact-action approval consumption stay within their owning modules.
 
 ## Verification
 

@@ -7,7 +7,15 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 
-export function ChatTurn({ run, name, replying }: { run: Run; name: string; replying: boolean }) {
+export const ChatTurn = ({
+  run,
+  name,
+  replying,
+}: {
+  run: Run;
+  name: string;
+  replying: boolean;
+}) => {
   const active = run.status === 'running';
   const phase = run.activity?.findLast(
     (entry) => entry.status === 'running' && entry.kind !== 'commentary',
@@ -70,4 +78,4 @@ export function ChatTurn({ run, name, replying }: { run: Run; name: string; repl
       </div>
     </section>
   );
-}
+};

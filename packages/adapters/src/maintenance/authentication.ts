@@ -3,20 +3,10 @@ import { maintenanceDefinitions } from './catalog.ts';
 import { findRuntimeExecutable } from './installation.ts';
 import { runMaintenanceCommand } from './process.ts';
 import { readCodexAccount } from './account.ts';
-
-const providerKeys: Record<string, string[]> = {
-  openai: ['OPENAI_API_KEY'],
-  'openai-api': ['OPENAI_API_KEY'],
-  anthropic: ['ANTHROPIC_API_KEY'],
-  google: ['GOOGLE_API_KEY', 'GEMINI_API_KEY'],
-  gemini: ['GOOGLE_API_KEY', 'GEMINI_API_KEY'],
-  openrouter: ['OPENROUTER_API_KEY'],
-  xai: ['XAI_API_KEY'],
-};
-export async function checkRuntimeAuthentication(
+export const checkRuntimeAuthentication = async (
   config: Pick<RuntimeConfiguration, 'runtime' | 'model'>,
   signal?: AbortSignal,
-): Promise<RuntimeAuthentication> {
+): Promise<RuntimeAuthentication> => {
   const { runtime, model } = config;
   const checkedAt = new Date().toISOString();
   const definition = runtime === 'demo' ? null : maintenanceDefinitions[runtime];
@@ -134,4 +124,14 @@ export async function checkRuntimeAuthentication(
     /* Probe failures are unknown, never proof of missing credentials. */
   }
   return unknown();
-}
+};
+
+const providerKeys: Record<string, string[]> = {
+  openai: ['OPENAI_API_KEY'],
+  'openai-api': ['OPENAI_API_KEY'],
+  anthropic: ['ANTHROPIC_API_KEY'],
+  google: ['GOOGLE_API_KEY', 'GEMINI_API_KEY'],
+  gemini: ['GOOGLE_API_KEY', 'GEMINI_API_KEY'],
+  openrouter: ['OPENROUTER_API_KEY'],
+  xai: ['XAI_API_KEY'],
+};

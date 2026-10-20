@@ -3,14 +3,14 @@ import { cn } from '@/lib/utils.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { CheckIcon, CopyIcon } from 'lucide-react';
 
-export function CodeBlockCopyButton({
+export const CodeBlockCopyButton = ({
   value,
   variant = 'ghost',
   size = 'icon-xs',
   className,
   onClick,
   ...props
-}: React.ComponentProps<typeof Button> & { value: string }) {
+}: React.ComponentProps<typeof Button> & { value: string }) => {
   const [copied, setCopied] = React.useState(false);
 
   React.useEffect(() => {
@@ -48,4 +48,4 @@ export function CodeBlockCopyButton({
       </span>
     </>
   );
-}
+};

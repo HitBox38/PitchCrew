@@ -4,7 +4,7 @@ import { draftInput, initialDraft } from '../RoutinesPage/helpers.ts';
 import { newAgentCapabilities } from './constants.ts';
 import type { CreationDraft } from './types.ts';
 
-export function suggestedId(name: string, roles: Role[]): string {
+export const suggestedId = (name: string, roles: Role[]): string => {
   const slug = name
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
@@ -15,8 +15,8 @@ export function suggestedId(name: string, roles: Role[]): string {
   let id = base;
   for (let n = 2; roles.some((role) => role.id === id); n++) id = `${base}-${n}`;
   return id;
-}
-export function initialCreation(data: Snapshot): CreationDraft {
+};
+export const initialCreation = (data: Snapshot): CreationDraft => {
   return {
     role: {
       id: '',
@@ -36,21 +36,21 @@ export function initialCreation(data: Snapshot): CreationDraft {
     scheduled: false,
     routine: { ...initialDraft(null), roleId: '', enabled: false },
   };
-}
-export function assignedSkills(draft: CreationDraft, data: Snapshot) {
+};
+export const assignedSkills = (draft: CreationDraft, data: Snapshot) => {
   return data.skills.filter(
     (skill) =>
       !skill.deletedAt &&
       (skill.scope === 'all' || draft.skills.some((reference) => reference.id === skill.id)),
   );
-}
-export function skillSize(draft: CreationDraft, data: Snapshot) {
+};
+export const skillSize = (draft: CreationDraft, data: Snapshot) => {
   return assignedSkills(draft, data).reduce(
     (size, skill) => size + skill.name.length + skill.description.length + skill.content.length,
     0,
   );
-}
-export function creationInput(draft: CreationDraft) {
+};
+export const creationInput = (draft: CreationDraft) => {
   return {
     ...draft.role,
     skills: draft.skills,
@@ -58,8 +58,8 @@ export function creationInput(draft: CreationDraft) {
       ? { routine: draftInput({ ...draft.routine, roleId: draft.role.id }) }
       : {}),
   };
-}
-export function stepError(step: number, draft: CreationDraft, data: Snapshot): string {
+};
+export const stepError = (step: number, draft: CreationDraft, data: Snapshot): string => {
   const { role } = draft;
   if (step === 0) {
     if (!role.name.trim() || !role.description.trim())
@@ -102,8 +102,8 @@ export function stepError(step: number, draft: CreationDraft, data: Snapshot): s
     }
   }
   return '';
-}
-export function setupWarnings(draft: CreationDraft, data: Snapshot): string[] {
+};
+export const setupWarnings = (draft: CreationDraft, data: Snapshot): string[] => {
   const caps = draft.role.capabilities ?? newAgentCapabilities;
   const warnings: string[] = [];
   if (!draft.role.enabled)
@@ -141,4 +141,4 @@ export function setupWarnings(draft: CreationDraft, data: Snapshot): string[] {
         : 'The first routine starts paused. Enable it on the Routines page when ready.',
     );
   return [...new Set(warnings)];
-}
+};

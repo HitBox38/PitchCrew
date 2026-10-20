@@ -1,51 +1,65 @@
+import { useState } from 'react';
 import type { RuntimeInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useSearch } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible/index.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
-import { RuntimeAuthentication } from './RuntimeAuthentication.tsx';
+import { ChevronDown } from 'lucide-react';
 import { RuntimeUpdate } from './RuntimeUpdate.tsx';
+import { RuntimeUpdateAction } from './RuntimeUpdateAction.tsx';
+import { RuntimeDetails } from './RuntimeDetails.tsx';
+import { RuntimeSummary } from './RuntimeSummary.tsx';
 
-export function RuntimeRow({ runtime }: { runtime: RuntimeInfo }) {
+export const RuntimeRow = ({ runtime }: { runtime: RuntimeInfo }) => {
   const state = useWorkspaceStore((store) => store.data?.runtimeMaintenance);
-  const act = useWorkspaceStore((store) => store.act);
-  const working = useWorkspaceStore((store) => store.working);
   const { runtime: selected } = useSearch({ from: '/settings' });
+  const [open, setOpen] = useState(selected === runtime.id);
   const update = state?.updates.find((entry) => entry.id === runtime.id);
   const authentication =
     state?.authentication.filter((entry) => entry.runtime === runtime.id) ?? [];
-  const updating = !!update?.operation && !update.operation.finishedAt;
+  const missingAuth = authentication.some((entry) => entry.result.status === 'missing');
+  const running = !!update?.operation && !update.operation.finishedAt;
+  const manual = update?.status === 'available' && !update.canUpdate && !running;
+  const label = runtimeLabels[runtime.id];
   return (
     <article
       id={`runtime-${runtime.id}`}
+      aria-label={label}
       tabIndex={-1}
-      className={`runtime-card space-y-3 rounded-xl p-4 ${selected === runtime.id ? 'ring-2 ring-ring' : ''}`}
+      className={`runtime-installation ${selected === runtime.id ? 'ring-2 ring-ring' : ''}`}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="font-semibold">{runtimeLabels[runtime.id]}</h3>
-        <span className={`badge ${runtime.available ? 'success' : ''}`}>
-          {runtime.available
-            ? 'Installed and compatible'
-            : runtime.version
-              ? 'Incompatible version'
-              : 'Not installed'}
-        </span>
-      </div>
-      <p className="quiet text-sm">{runtime.version}</p>
-      <p className="quiet text-sm">{runtime.detail}</p>
-      {authentication.map((entry) => (
-        <RuntimeAuthentication key={entry.model} model={entry.model} result={entry.result} />
-      ))}
-      {runtime.id !== 'demo' ? (
-        <Button
-          size="sm"
-          disabled={working || updating}
-          onClick={() => act(`/runtimes/${runtime.id}/recheck`, 'POST', {}, 'Runtime checked')}
-        >
-          Recheck
-        </Button>
-      ) : null}
-      {update ? <RuntimeUpdate update={update} /> : null}
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0 flex-1 basis-52">
+            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+              <h3>{label}</h3>
+              <span className="quiet text-sm wrap-anywhere tabular-nums">
+                {runtime.version || 'Not installed'}
+              </span>
+            </div>
+            <RuntimeSummary runtime={runtime} update={update} authentication={authentication} />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {update ? <RuntimeUpdateAction update={update} /> : null}
+            <CollapsibleTrigger
+              render={<Button variant="outline" size="sm" />}
+              aria-label={`${missingAuth ? 'Set up' : manual ? 'Update instructions for' : 'Details for'} ${label}`}
+            >
+              {missingAuth ? 'Set up' : manual && !running ? 'Update instructions' : 'Details'}
+              <ChevronDown size={14} aria-hidden="true" className={open ? 'rotate-180' : ''} />
+            </CollapsibleTrigger>
+          </div>
+        </div>
+        {update ? <RuntimeUpdate update={update} /> : null}
+        <CollapsibleContent>
+          <RuntimeDetails runtime={runtime} update={update} authentication={authentication} />
+        </CollapsibleContent>
+      </Collapsible>
     </article>
   );
-}
+};

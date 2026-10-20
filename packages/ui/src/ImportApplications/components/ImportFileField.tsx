@@ -2,7 +2,7 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import { maxImportRows } from '../constants.ts';
 import type { ImportUpload } from '../types.ts';
 
-export function ImportFileField({
+export const ImportFileField = ({
   busy,
   locked,
   upload,
@@ -12,7 +12,7 @@ export function ImportFileField({
   locked: boolean;
   upload: ImportUpload | null;
   chooseFile: (file: File | undefined) => Promise<void>;
-}) {
+}) => {
   return (
     <div className="form flex flex-col gap-2">
       <label>
@@ -51,4 +51,4 @@ export function ImportFileField({
       ) : null}
     </div>
   );
-}
+};

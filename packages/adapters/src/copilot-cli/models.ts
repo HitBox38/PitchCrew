@@ -9,11 +9,7 @@ import {
 import { modelReasoning } from '../reasoning.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
 
-// Native Copilot SDK transport: Content-Length framed JSON-RPC, with no session.create/send.
-// https://github.com/github/copilot-sdk/blob/main/nodejs/src/client.ts
-export const copilotModelArgs = ['--headless', '--stdio', '--no-auto-update'];
-
-export function parseCopilotModels(result: unknown): RuntimeModel[] {
+export const parseCopilotModels = (result: unknown): RuntimeModel[] => {
   const output = result as { models?: unknown } | undefined;
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid Copilot model catalog.');
   return normalizeModels(
@@ -37,14 +33,14 @@ export function parseCopilotModels(result: unknown): RuntimeModel[] {
       },
     ),
   );
-}
+};
 
-export async function readCopilotModels(
+export const readCopilotModels = async (
   command: string,
   args: string[],
   signal?: AbortSignal,
   timeout = modelDiscoveryTimeout,
-): Promise<RuntimeModel[]> {
+): Promise<RuntimeModel[]> => {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -160,4 +156,8 @@ export async function readCopilotModels(
     });
     send({ id: 1, method: 'connect', params: {} });
   });
-}
+};
+
+// Native Copilot SDK transport: Content-Length framed JSON-RPC, with no session.create/send.
+// https://github.com/github/copilot-sdk/blob/main/nodejs/src/client.ts
+export const copilotModelArgs = ['--headless', '--stdio', '--no-auto-update'];

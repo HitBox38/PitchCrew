@@ -1,6 +1,23 @@
 import { readFileSync } from 'node:fs';
 import type { FetchLike } from '../../src/job-sources/fetch.ts';
 
+/** Serve recorded fixtures for the fixed endpoints; any other URL is a test failure. */
+export const recordedBoards = (overrides: Record<string, () => Response> = {}) => {
+  const calls: { url: string; init: RequestInit }[] = [];
+  const fetcher: FetchLike = async (url, init) => {
+    calls.push({ url, init });
+    if (overrides[url]) return overrides[url]();
+    const entry = Object.entries({ ...fixtureUrls, ...moreFixtureUrls }).find(
+      ([, value]) => value === url,
+    );
+    if (!entry) return jsonResponse({ error: 'Not found' }, 404);
+    return jsonResponse(
+      boardFixture(entry[0] as keyof typeof fixtureUrls | keyof typeof moreFixtureUrls),
+    );
+  };
+  return { calls, fetcher };
+};
+
 export const boardFixture = (
   name: 'greenhouse' | 'ashby' | 'lever' | 'comeet' | 'workable',
 ): unknown =>
@@ -39,20 +56,3 @@ export const jsonResponse = (body: unknown, status = 200) =>
     status,
     headers: { 'content-type': 'application/json; charset=utf-8' },
   });
-
-/** Serve recorded fixtures for the fixed endpoints; any other URL is a test failure. */
-export function recordedBoards(overrides: Record<string, () => Response> = {}) {
-  const calls: { url: string; init: RequestInit }[] = [];
-  const fetcher: FetchLike = async (url, init) => {
-    calls.push({ url, init });
-    if (overrides[url]) return overrides[url]();
-    const entry = Object.entries({ ...fixtureUrls, ...moreFixtureUrls }).find(
-      ([, value]) => value === url,
-    );
-    if (!entry) return jsonResponse({ error: 'Not found' }, 404);
-    return jsonResponse(
-      boardFixture(entry[0] as keyof typeof fixtureUrls | keyof typeof moreFixtureUrls),
-    );
-  };
-  return { calls, fetcher };
-}

@@ -7,7 +7,7 @@ import { ProfileDocumentTab } from './ProfileDocumentTab.tsx';
 import { profileTabPlugins, profileTabSensors } from '../tab-drag.ts';
 import { profileTabModifiers } from '../tab-drag-modifier.ts';
 
-export function ProfileDocumentTabs(c: ProfileViewModel) {
+export const ProfileDocumentTabs = (c: ProfileViewModel) => {
   const [announcement, setAnnouncement] = useState('');
   return (
     <DragDropProvider
@@ -43,4 +43,4 @@ export function ProfileDocumentTabs(c: ProfileViewModel) {
       </output>
     </DragDropProvider>
   );
-}
+};

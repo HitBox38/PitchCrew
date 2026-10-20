@@ -2,10 +2,10 @@ import { useRef, type PointerEvent, type RefObject } from 'react';
 import { touchScroll } from '../helpers.ts';
 import type { BrowserViewProps } from '../types.ts';
 
-export function useBrowserTouch(
+export const useBrowserTouch = (
   { manual, frame, control }: BrowserViewProps,
   image: RefObject<HTMLButtonElement | null>,
-) {
+) => {
   const gesture = useRef<{ id: number; x: number; y: number; moved: boolean } | null>(null);
   const ignoreClick = useRef(false);
   const onPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
@@ -50,4 +50,4 @@ export function useBrowserTouch(
     handlers: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
     shouldIgnoreClick,
   };
-}
+};

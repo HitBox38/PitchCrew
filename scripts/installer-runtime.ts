@@ -11,7 +11,10 @@ import {
 } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 
-export async function pruneRuntimeDependencies(runtime: string, additionalPackages: string[] = []) {
+export const pruneRuntimeDependencies = async (
+  runtime: string,
+  additionalPackages: string[] = [],
+) => {
   runtime = await realpath(runtime);
   const modules = join(runtime, 'node_modules');
   const visited = new Set<string>();
@@ -74,10 +77,10 @@ export async function pruneRuntimeDependencies(runtime: string, additionalPackag
       for (const entry of await readdir(join(modules, name))) await removeUnused(join(name, entry));
     } else await removeUnused(name);
   }
-}
+};
 
 // Ship ordinary workspace package directories: Windows installers cannot retain pnpm links.
-export async function materializeWorkspacePackages(runtime: string) {
+export const materializeWorkspacePackages = async (runtime: string) => {
   runtime = await realpath(runtime);
   const packages = join(runtime, 'packages');
   for (const name of await readdir(packages)) {
@@ -97,4 +100,4 @@ export async function materializeWorkspacePackages(runtime: string) {
       await rename(copy, link);
     }
   }
-}
+};

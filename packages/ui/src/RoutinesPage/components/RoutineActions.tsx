@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Link } from '@tanstack/react-router';
 import { Pause, Play, Pencil, Trash2 } from 'lucide-react';
 
-export function RoutineActions({
+export const RoutineActions = ({
   routine,
   working,
   edit,
@@ -15,7 +15,7 @@ export function RoutineActions({
   edit(): void;
   toggle(): void;
   remove(): void;
-}) {
+}) => {
   return (
     <div className="routine-actions flex flex-wrap items-center gap-2">
       <Button className="text-button" variant="ghost" size="sm" disabled={working} onClick={edit}>
@@ -53,4 +53,4 @@ export function RoutineActions({
       ) : null}
     </div>
   );
-}
+};

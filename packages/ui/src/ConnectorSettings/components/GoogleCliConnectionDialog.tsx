@@ -4,14 +4,14 @@ import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ConnectAccountDialogProps } from '../types.ts';
 
-export function GoogleCliConnectionDialog({
+export const GoogleCliConnectionDialog = ({
   close,
   connectGoogleCli,
   google,
   error,
   working,
   setEditing,
-}: ConnectAccountDialogProps) {
+}: ConnectAccountDialogProps) => {
   return (
     <Modal title="Connect Google Workspace CLI" onClose={close}>
       <div className="flex flex-col gap-5">
@@ -76,4 +76,4 @@ export function GoogleCliConnectionDialog({
       </div>
     </Modal>
   );
-}
+};

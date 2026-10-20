@@ -13,7 +13,7 @@ import { installApplicationMetrics } from '../metrics/install.ts';
 import { isDiagnosticLeader, useDiagnosticLeader } from '../leadership.ts';
 import { startupTracker } from '../startup/index.ts';
 
-export function useAnalytics() {
+export const useAnalytics = () => {
   const leader = useDiagnosticLeader();
   const enabled = useDevicePreferences((state) => state.analytics);
   const config = useAnalyticsConfig((state) => state.config);
@@ -56,4 +56,4 @@ export function useAnalytics() {
     if (ready?.config === config && enabled && config)
       return installApplicationMetrics(config, isDiagnosticLeader);
   }, [ready, enabled, config, leader]);
-}
+};

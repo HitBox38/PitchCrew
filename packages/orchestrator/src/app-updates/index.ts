@@ -10,7 +10,7 @@ export interface AppUpdateOptions {
   now?: () => number;
 }
 
-export function createAppUpdateChecker(options?: AppUpdateOptions) {
+export const createAppUpdateChecker = (options?: AppUpdateOptions) => {
   const build = options?.current ? Promise.resolve(options.current) : readAppBuild();
   const now = options?.now ?? Date.now;
   const shutdown = new AbortController();
@@ -72,4 +72,4 @@ export function createAppUpdateChecker(options?: AppUpdateOptions) {
     }
   };
   return { info, check, close: () => shutdown.abort() };
-}
+};

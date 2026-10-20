@@ -1,7 +1,7 @@
 import type { RoleSkillsProps } from '@/components/RoleSettings/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function RoleSkills({ role, data, onManageSkills }: RoleSkillsProps) {
+export const RoleSkills = ({ role, data, onManageSkills }: RoleSkillsProps) => {
   return (
     <section className="role-settings-section" aria-labelledby={`${role.id}-skills-heading`}>
       <h3 id={`${role.id}-skills-heading`}>Skills</h3>
@@ -21,4 +21,4 @@ export function RoleSkills({ role, data, onManageSkills }: RoleSkillsProps) {
       </Button>
     </section>
   );
-}
+};

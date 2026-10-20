@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { ReactNode, MouseEvent } from 'react';
 import type { CrewNotification } from '../types.ts';
 
-export function NotificationLink({
+export const NotificationLink = ({
   item,
   onOpen,
   className,
@@ -12,7 +12,7 @@ export function NotificationLink({
   onOpen: (item: CrewNotification) => void;
   className?: string;
   children: ReactNode;
-}) {
+}) => {
   const props = {
     className,
     onClick: (event: MouseEvent<HTMLAnchorElement>) => {
@@ -58,4 +58,4 @@ export function NotificationLink({
       {children}
     </Link>
   );
-}
+};

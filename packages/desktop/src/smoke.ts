@@ -20,7 +20,7 @@ import { smokeRetainedRuntime } from './smoke-retained-runtime.ts';
 import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke-sheets.ts';
 
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
-export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
+export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) => {
   const smokeFile = process.env.PITCHCREW_SMOKE_FILE;
   let windowShown = window.isVisible();
   let windowFocused = window.isFocused();
@@ -280,4 +280,4 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
         app.exit(1);
       }
     });
-}
+};

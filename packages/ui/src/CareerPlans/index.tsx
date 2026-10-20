@@ -3,7 +3,7 @@ import { useCareerPlans } from './hooks/useCareerPlans.ts';
 import { PlanCreate } from './components/PlanCreate.tsx';
 import { PlanCard } from './components/PlanCard.tsx';
 
-export function CareerPlans() {
+export const CareerPlans = () => {
   const model = useCareerPlans();
   return (
     <section className="space-y-4" aria-labelledby="career-plans-heading">
@@ -44,4 +44,4 @@ export function CareerPlans() {
       ) : null}
     </section>
   );
-}
+};

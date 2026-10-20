@@ -8,9 +8,7 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, setup } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-function installed(ids: RuntimeId[]) {
+const installed = (ids: RuntimeId[]) => {
   for (const adapter of Object.values(adapters)) {
     vi.spyOn(adapter, 'detect').mockImplementation(async () => ({
       id: adapter.id,
@@ -20,7 +18,9 @@ function installed(ids: RuntimeId[]) {
     }));
     if (adapter.listModels) vi.spyOn(adapter, 'listModels').mockResolvedValue(adapter.models);
   }
-}
+};
+
+afterEach(cleanup);
 
 it('detects all runtimes and seeds paused production roles from native models and reasoning', async () => {
   installed(['codex', 'claude-code', 'opencode']);

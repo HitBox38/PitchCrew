@@ -7,7 +7,7 @@ import { AnimatePresence } from 'motion/react';
 import { QuestionAnswerForm } from './components/QuestionAnswerForm.tsx';
 import { QuestionToaster } from './components/QuestionToaster.tsx';
 import type { PendingQuestionsProps } from './types.ts';
-export function PendingQuestions(props: PendingQuestionsProps) {
+export const PendingQuestions = (props: PendingQuestionsProps) => {
   const active =
     props.activeQuestionId === ''
       ? ''
@@ -50,4 +50,4 @@ export function PendingQuestions(props: PendingQuestionsProps) {
       ) : null}
     </AnimatePresence>
   );
-}
+};

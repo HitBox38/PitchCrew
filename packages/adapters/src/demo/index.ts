@@ -15,7 +15,7 @@ export const demo: RuntimeAdapter = {
     version: 'Built in',
     detail: 'Deterministic example workflow. No AI calls.',
   }),
-  async chat(context) {
+  chat: async (context) => {
     if (context.purpose === 'source-extraction')
       return {
         reply: JSON.stringify({
@@ -60,7 +60,7 @@ export const demo: RuntimeAdapter = {
     context.onReply?.(reply);
     return { reply };
   },
-  async run(context) {
+  run: async (context) => {
     context.onMessage('Running the deterministic demo workflow.');
     await setTimeout(850, undefined, { signal: context.signal });
     if (workflowSeat(context.role) === 'scout') {

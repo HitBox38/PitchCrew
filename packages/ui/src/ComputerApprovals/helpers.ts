@@ -1,4 +1,21 @@
 import type { BrowserAction, ComputerApproval } from '@pitchcrew/core';
+export const actionFields = (action: BrowserAction): [string, string][] => {
+  if (action.kind === 'dialog')
+    return [
+      ['Decision', action.decision],
+      ...(action.submissionAttemptId
+        ? [['Submission attempt', action.submissionAttemptId] as [string, string]]
+        : []),
+    ];
+  if (action.kind === 'navigate') return [['Destination', action.url]];
+  const fields: [string, string][] = [['Page element', action.selector]];
+  if (action.frame) fields.push(['Frame', action.frame]);
+  if ('purpose' in action && action.purpose) fields.push(['Purpose', action.purpose]);
+  if (action.kind === 'fill' || action.kind === 'select') fields.push(['Value', action.value]);
+  if (action.kind === 'press') fields.push(['Key', action.key]);
+  if (action.kind === 'upload') fields.push(['File', action.file]);
+  return fields;
+};
 
 export const browserActionTitles: Record<BrowserAction['kind'], string> = {
   dialog: 'Resolve a browser dialog',
@@ -16,20 +33,3 @@ export const browserStatusLabels: Record<ComputerApproval['status'], string> = {
   consumed: 'Executed',
   failed: 'Failed',
 };
-export function actionFields(action: BrowserAction): [string, string][] {
-  if (action.kind === 'dialog')
-    return [
-      ['Decision', action.decision],
-      ...(action.submissionAttemptId
-        ? [['Submission attempt', action.submissionAttemptId] as [string, string]]
-        : []),
-    ];
-  if (action.kind === 'navigate') return [['Destination', action.url]];
-  const fields: [string, string][] = [['Page element', action.selector]];
-  if (action.frame) fields.push(['Frame', action.frame]);
-  if ('purpose' in action && action.purpose) fields.push(['Purpose', action.purpose]);
-  if (action.kind === 'fill' || action.kind === 'select') fields.push(['Value', action.value]);
-  if (action.kind === 'press') fields.push(['Key', action.key]);
-  if (action.kind === 'upload') fields.push(['File', action.file]);
-  return fields;
-}

@@ -10,7 +10,7 @@ import { mkdir } from 'node:fs/promises';
 import { credentialSelector } from './credentials.ts';
 import { captureManualField, validateApplicationFields } from './application-fields.ts';
 
-export async function launchBrowser(profile?: string): Promise<BrowserDriver> {
+export const launchBrowser = async (profile?: string): Promise<BrowserDriver> => {
   try {
     const { chromium } = await import('playwright');
     if (profile) {
@@ -42,33 +42,29 @@ export async function launchBrowser(profile?: string): Promise<BrowserDriver> {
       'Could not open the local browser. Install Chromium with pnpm browser:install.',
     );
   }
-}
-export async function createBrowserDriver(browser: Browser): Promise<BrowserDriver> {
+};
+export const createBrowserDriver = async (browser: Browser): Promise<BrowserDriver> => {
   const context = await browser.newContext({
     viewport: { width: 1280, height: 800 },
     acceptDownloads: false,
     serviceWorkers: 'block',
   });
   return sharedContextDriver(context, () => browser.close());
-}
-const browserUsers = new WeakMap<BrowserContext, number>();
-const creatingPages = new WeakMap<BrowserContext, number>();
-async function sessionPage(context: BrowserContext) {
+};
+
+const sessionPage = async (context: BrowserContext) => {
   creatingPages.set(context, (creatingPages.get(context) ?? 0) + 1);
   try {
     return await context.newPage();
   } finally {
     creatingPages.set(context, (creatingPages.get(context) ?? 1) - 1);
   }
-}
-const browserPolicies = new WeakMap<
-  BrowserContext,
-  Map<Page, ReturnType<typeof preparationGuard>>
->();
-async function sharedContextDriver(
+};
+
+const sharedContextDriver = async (
   context: BrowserContext,
   closeContext: () => Promise<void>,
-): Promise<BrowserDriver> {
+): Promise<BrowserDriver> => {
   let users = 0;
   const open = async (): Promise<BrowserDriver> => {
     users++;
@@ -89,11 +85,11 @@ async function sharedContextDriver(
     }
   };
   return open();
-}
-async function contextDriver(
+};
+const contextDriver = async (
   context: BrowserContext,
   close: () => Promise<void>,
-): Promise<BrowserDriver> {
+): Promise<BrowserDriver> => {
   const guard = preparationGuard();
   const manualFields = new Set<string>();
   let viewport = { width: 1280, height: 800 };
@@ -171,7 +167,7 @@ async function contextDriver(
     validateApplicationValues: (values, action) =>
       validateApplicationFields(page, action, values, manualFields),
     prepare: guard.prepare,
-    invalidate() {
+    invalidate: () => {
       previous = undefined;
     },
     resize: (requested) =>
@@ -220,7 +216,7 @@ async function contextDriver(
         page.setDefaultTimeout(10000);
       }),
     automatic: async (action) => !guard.blocked && (await automaticFormAction(page, action)),
-    async input(input) {
+    input: async (input) => {
       const before = new Set<string>();
       if (input.kind === 'key') await captureManualField(page, before);
       if (input.kind === 'dialog') {
@@ -331,7 +327,7 @@ async function contextDriver(
         };
         return previous;
       }),
-    async validate(action) {
+    validate: async (action) => {
       if (action.kind === 'navigate') return;
       if (action.kind === 'dialog') {
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
@@ -345,7 +341,7 @@ async function contextDriver(
       if ((await target.count()) !== 1)
         throw new Error('Choose a selector matching exactly one element.');
     },
-    async perform(action, file, automatic = false) {
+    perform: async (action, file, automatic = false) => {
       guard.prepare(automatic);
       if (action.kind === 'dialog') {
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
@@ -409,4 +405,11 @@ async function contextDriver(
       await close();
     },
   };
-}
+};
+
+const browserUsers = new WeakMap<BrowserContext, number>();
+const creatingPages = new WeakMap<BrowserContext, number>();
+const browserPolicies = new WeakMap<
+  BrowserContext,
+  Map<Page, ReturnType<typeof preparationGuard>>
+>();

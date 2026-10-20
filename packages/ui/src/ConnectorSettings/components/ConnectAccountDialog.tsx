@@ -1,11 +1,11 @@
-﻿import { Modal } from '@/components/Modal/index.tsx';
+import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { GoogleConnectionSetup } from '@/ConnectorSettings/components/GoogleConnectionSetup.tsx';
 import { GithubConnectionDialog } from './GithubConnectionDialog.tsx';
 import { GoogleCliConnectionDialog } from './GoogleCliConnectionDialog.tsx';
 import type { ConnectAccountDialogProps } from '@/ConnectorSettings/types.ts';
 
-export function ConnectAccountDialog(props: ConnectAccountDialogProps) {
+export const ConnectAccountDialog = (props: ConnectAccountDialogProps) => {
   const { editing, close, connect, google, error, working, customGoogle, clientId } = props;
   if (editing === 'github') return <GithubConnectionDialog {...props} />;
   if (editing === 'google-cli') return <GoogleCliConnectionDialog {...props} />;
@@ -33,4 +33,4 @@ export function ConnectAccountDialog(props: ConnectAccountDialogProps) {
       </form>
     </Modal>
   );
-}
+};

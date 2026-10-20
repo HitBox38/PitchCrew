@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { browserCommand } from '../api.ts';
 import type { ComputerApproval } from '@pitchcrew/core';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
-export function BrowserSiteRequest({
+export const BrowserSiteRequest = ({
   approval,
   browserPanel,
   thread,
@@ -10,7 +10,7 @@ export function BrowserSiteRequest({
 }: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & {
   approval: ComputerApproval;
   control: BrowserControl;
-}) {
+}) => {
   const site = approval.action.kind === 'navigate' ? approval.action.url : approval.page.url;
   const origin = site.startsWith('http') ? new URL(site).origin : '';
   if (
@@ -42,4 +42,4 @@ export function BrowserSiteRequest({
       </Button>
     </div>
   );
-}
+};

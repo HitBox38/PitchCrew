@@ -2,12 +2,12 @@ import type { ConversationHistoryPage, ChatMessage, Run } from '@pitchcrew/core'
 import { transcriptItems, type TranscriptItem } from '../ChatTurn/helpers.ts';
 import { HISTORY_PAGE_SIZE } from './history.ts';
 
-export function liveHistoryItems(
+export const liveHistoryItems = (
   page: ConversationHistoryPage,
   streaming: ChatMessage[],
   runs: Run[],
   thread: string,
-): TranscriptItem[] {
+): TranscriptItem[] => {
   const existing = new Map(page.items.map((item) => [item.id, item]));
   const pageRuns = new Map(
     page.items.flatMap((item) => (item.kind === 'turn' ? [[item.run.id, item.run] as const] : [])),
@@ -28,6 +28,6 @@ export function liveHistoryItems(
     .map((item) => ({ ...item, createdAt: existing.get(item.id)?.createdAt ?? item.createdAt }))
     .sort((a, b) => a.createdAt.localeCompare(b.createdAt) || rank(a) - rank(b))
     .slice(-HISTORY_PAGE_SIZE);
-}
+};
 const rank = (item: TranscriptItem) =>
   item.kind === 'turn' ? 1 : item.message.from === 'user' || item.message.from === 'system' ? 0 : 2;

@@ -14,17 +14,7 @@ import { boundedPacketCheck } from './packet-rules/check.ts';
 import { readFileSync, renameSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-export type PacketRulesValidation =
-  | { valid: true; rules: PacketRules; issues: [] }
-  | { valid: false; issues: PacketRuleIssue[] };
-
-export class PacketRulesError extends Error {
-  constructor(readonly issues: PacketRuleIssue[]) {
-    super('Fix the packet rule problems before saving.');
-  }
-}
-
-export function validatePacketRules(input: unknown): PacketRulesValidation {
+export const validatePacketRules = (input: unknown): PacketRulesValidation => {
   const size = Buffer.byteLength(JSON.stringify(input ?? null) ?? '');
   if (size > packetRuleLimits.fileBytes)
     return {
@@ -40,6 +30,16 @@ export function validatePacketRules(input: unknown): PacketRulesValidation {
   return parsed.success
     ? { valid: true, rules: parsed.data, issues: [] }
     : { valid: false, issues: packetRuleIssues(parsed.error) };
+};
+
+export type PacketRulesValidation =
+  | { valid: true; rules: PacketRules; issues: [] }
+  | { valid: false; issues: PacketRuleIssue[] };
+
+export class PacketRulesError extends Error {
+  constructor(readonly issues: PacketRuleIssue[]) {
+    super('Fix the packet rule problems before saving.');
+  }
 }
 
 const rulesSignature = (state: PacketRulesState) =>
@@ -63,7 +63,7 @@ export class PacketRulesStore {
     this.path = join(directory, 'packet-rules.json');
   }
 
-  current(): PacketRulesState {
+  current = (): PacketRulesState => {
     let key: string;
     try {
       const stat = statSync(this.path);
@@ -101,9 +101,9 @@ export class PacketRulesStore {
       );
     this.cache = { key, state: { rules: result.rules, custom: true, error: null } };
     return this.cache.state;
-  }
+  };
 
-  save(input: unknown): PacketRulesState {
+  save = (input: unknown): PacketRulesState => {
     const result = validatePacketRules(input);
     if (!result.valid) throw new PacketRulesError(result.issues);
     const temporary = `${this.path}.tmp`;
@@ -111,16 +111,16 @@ export class PacketRulesStore {
     renameSync(temporary, this.path);
     this.cache = undefined;
     return this.current();
-  }
+  };
 
-  reset(): PacketRulesState {
+  reset = (): PacketRulesState => {
     rmSync(this.path, { force: true });
     this.cache = undefined;
     return this.current();
-  }
+  };
 
   /** Applies current rules. An invalid rules file adds a blocking error instead of being ignored. */
-  async check(packet: Packet, profile: ProfileFile[]): Promise<PacketCheck> {
+  check = async (packet: Packet, profile: ProfileFile[]): Promise<PacketCheck> => {
     const state = this.current();
     const signature = rulesSignature(state);
     const result = await boundedPacketCheck(packet, profile, state.rules);
@@ -138,10 +138,10 @@ export class PacketRulesStore {
       errors: [...result.errors, message],
       warnings: result.warnings,
     };
-  }
+  };
 
-  private remember(key: string, error: string): PacketRulesState {
+  private remember = (key: string, error: string): PacketRulesState => {
     this.cache = { key, state: { rules: defaultPacketRules, custom: true, error } };
     return this.cache.state;
-  }
+  };
 }

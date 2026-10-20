@@ -3,7 +3,7 @@ import { AccordionSection } from '@/components/ui/accordion/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { GapItem } from './GapItem.tsx';
 
-export function PlanCard({
+export const PlanCard = ({
   plan,
   change,
   discuss,
@@ -15,7 +15,7 @@ export function PlanCard({
   discuss: () => void;
   working: boolean;
   canDiscuss: boolean;
-}) {
+}) => {
   return (
     <article className="space-y-3 border-b border-border pb-5">
       <h3>{plan.name}</h3>
@@ -51,4 +51,4 @@ export function PlanCard({
       </AccordionSection>
     </article>
   );
-}
+};

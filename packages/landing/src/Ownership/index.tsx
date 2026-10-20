@@ -1,21 +1,6 @@
 import { licenseUrl, repository } from '../lib/links';
 
-const runtimes = [
-  'Codex',
-  'Claude Code',
-  'Gemini CLI',
-  'OpenCode',
-  'GitHub Copilot CLI',
-  'Cursor Agent',
-  'Goose',
-  'Kiro CLI',
-  'Grok Build',
-  'Pi',
-  'oh-my-pi',
-  'Hermes Agent',
-];
-
-export function Ownership() {
+export const Ownership = () => {
   return (
     <section id="local" className="own-section" aria-labelledby="local-title">
       <div className="page-width section-space">
@@ -63,4 +48,19 @@ export function Ownership() {
       </div>
     </section>
   );
-}
+};
+
+const runtimes = [
+  'Codex',
+  'Claude Code',
+  'Gemini CLI',
+  'OpenCode',
+  'GitHub Copilot CLI',
+  'Cursor Agent',
+  'Goose',
+  'Kiro CLI',
+  'Grok Build',
+  'Pi',
+  'oh-my-pi',
+  'Hermes Agent',
+];

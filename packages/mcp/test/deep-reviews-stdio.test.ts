@@ -6,8 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { cleanup, finish } from '../../orchestrator/test/helpers/daemon.ts';
 import { assessment, deepReviewFixture } from '../../orchestrator/test/helpers/deep-reviews.ts';
-afterEach(cleanup);
-async function clientFor(context: RunContext, run: (client: Client) => Promise<void>) {
+const clientFor = async (context: RunContext, run: (client: Client) => Promise<void>) => {
   const client = new Client({ name: 'fictional-deep-review-test', version: '1.0.0' });
   try {
     await client.connect(
@@ -33,7 +32,9 @@ async function clientFor(context: RunContext, run: (client: Client) => Promise<v
   } finally {
     await client.close();
   }
-}
+};
+
+afterEach(cleanup);
 it('exposes distinct parent and child review tools over actual MCP stdio without granting native or crew tools', async () => {
   const { request, card } = await deepReviewFixture(24531);
   const original = adapters.demo.run.bind(adapters.demo);

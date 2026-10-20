@@ -2,10 +2,8 @@ import { lazy, Suspense } from 'react';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { TabsContent } from '@/components/ui/tabs/index.tsx';
 
-const MarkdownPreview = lazy(() => import('./components/MarkdownPreview.tsx'));
-
 /** Shared Profile and Skill document panels, inside their parent Tabs and form. */
-export function MarkdownEditor({
+export const MarkdownEditor = ({
   id,
   label,
   content,
@@ -23,7 +21,7 @@ export function MarkdownEditor({
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
-}) {
+}) => {
   return (
     <>
       <TabsContent value="write" keepMounted className="profile-write-panel">
@@ -48,4 +46,6 @@ export function MarkdownEditor({
       </TabsContent>
     </>
   );
-}
+};
+
+const MarkdownPreview = lazy(() => import('./components/MarkdownPreview.tsx'));

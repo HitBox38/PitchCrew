@@ -4,7 +4,7 @@ import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
 import { BrowserView } from './BrowserView.tsx';
 import { BrowserDialog } from './BrowserDialog.tsx';
-export function BrowserPage({
+export const BrowserPage = ({
   browserPanel,
   viewport: { attach, size },
   control,
@@ -17,7 +17,7 @@ export function BrowserPage({
   frame: BrowserFrame | null;
   zoom: number;
   panView: boolean;
-}) {
+}) => {
   return (
     <div className="browser-panel-body">
       {frame?.warning ? <p className="browser-dialog">{frame.warning}</p> : null}
@@ -59,4 +59,4 @@ export function BrowserPage({
       ) : null}
     </div>
   );
-}
+};

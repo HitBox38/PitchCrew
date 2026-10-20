@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
-export function registerSkillsRoutes(app: FastifyInstance, service: CrewService) {
+export const registerSkillsRoutes = (app: FastifyInstance, service: CrewService) => {
   app.post('/api/skills/updates/check', async (req, res) => {
     const { automatic } = z
       .object({ automatic: z.boolean().default(false) })
@@ -54,4 +54,4 @@ export function registerSkillsRoutes(app: FastifyInstance, service: CrewService)
       ),
     ),
   );
-}
+};

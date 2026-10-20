@@ -2,7 +2,7 @@ import type { Role } from '@pitchcrew/core';
 import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { ConversationSelect } from '../ConversationSelect.tsx';
-export function ParticipantFields({
+export const ParticipantFields = ({
   roles,
   participants,
   setParticipants,
@@ -14,7 +14,7 @@ export function ParticipantFields({
   setParticipants: (ids: string[]) => void;
   leadId: string;
   setLeadId: (id: string) => void;
-}) {
+}) => {
   return (
     <section className="grid gap-3">
       <h3 className="text-sm font-semibold">Participants</h3>
@@ -62,4 +62,4 @@ export function ParticipantFields({
       ) : null}
     </section>
   );
-}
+};

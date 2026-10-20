@@ -3,7 +3,7 @@ import { AppSidebar } from '@/AppSidebar/index.tsx';
 import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
 import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
 
-export function WorkspaceSidebar({
+export const WorkspaceSidebar = ({
   view,
   stageLinks,
   jumpToStage,
@@ -19,7 +19,7 @@ export function WorkspaceSidebar({
   setPaletteOpen,
   setAdd,
   working,
-}: WorkspaceSidebarProps) {
+}: WorkspaceSidebarProps) => {
   return (
     <AppSidebar
       data={data}
@@ -56,4 +56,4 @@ export function WorkspaceSidebar({
       working={working}
     />
   );
-}
+};

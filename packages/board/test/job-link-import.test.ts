@@ -1,6 +1,11 @@
 import { cardInput, states, type Card, type JobLinkProvenance } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Board, postingMatches, recordLinkedJobIfNew } from '../src/index.ts';
+const setup = () => {
+  const board = new Board(':memory:');
+  boards.push(board);
+  return board;
+};
 
 const boards: Board[] = [];
 afterEach(() => {
@@ -18,11 +23,6 @@ const link: JobLinkProvenance = {
   jobId: '4010001001',
   postedAt: null,
 };
-function setup() {
-  const board = new Board(':memory:');
-  boards.push(board);
-  return board;
-}
 
 it('rechecks duplicates even when an earlier posting lookup found none', () => {
   const board = setup();

@@ -4,13 +4,13 @@ import { FormSelect } from '@/FormSelect/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import type { useRoutinesPage } from '../hooks/useRoutinesPage.ts';
 
-export function RoutinesToolbar({
+export const RoutinesToolbar = ({
   controller,
   roles,
 }: {
   controller: ReturnType<typeof useRoutinesPage>;
   roles: Role[];
-}) {
+}) => {
   return (
     <div className="routines-toolbar">
       <div className="form grid items-end gap-3 sm:grid-cols-[minmax(0,1fr)_12rem]">
@@ -47,4 +47,4 @@ export function RoutinesToolbar({
       </div>
     </div>
   );
-}
+};

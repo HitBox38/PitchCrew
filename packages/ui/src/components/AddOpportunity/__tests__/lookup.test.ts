@@ -4,21 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { lookupJob } from '../api.ts';
 import { useJobLookup } from '../hooks/useJobLookup.ts';
 
-const { state } = vi.hoisted(() => ({ state: vi.fn() }));
-vi.mock('react', async (original) => ({
-  ...(await original<typeof import('react')>()),
-  useState: (value: unknown) => [value, state],
-  useRef: (value: unknown) => ({ current: value }),
-  useEffect: vi.fn(),
-}));
-vi.mock('../api.ts', () => ({ lookupJob: vi.fn() }));
-
-afterEach(() => {
-  vi.clearAllMocks();
-  vi.unstubAllGlobals();
-});
-
-function pendingLookup() {
+const pendingLookup = () => {
   class Input {
     value = 'https://job-boards.greenhouse.io/example/jobs/123';
   }
@@ -35,7 +21,21 @@ function pendingLookup() {
     currentTarget: { form },
   } as unknown as MouseEvent<HTMLButtonElement>);
   return { controller, pending, complete, url, company, title, fields };
-}
+};
+
+const { state } = vi.hoisted(() => ({ state: vi.fn() }));
+vi.mock('react', async (original) => ({
+  ...(await original<typeof import('react')>()),
+  useState: (value: unknown) => [value, state],
+  useRef: (value: unknown) => ({ current: value }),
+  useEffect: vi.fn(),
+}));
+vi.mock('../api.ts', () => ({ lookupJob: vi.fn() }));
+
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
 const result: JobLookupResult = {
   status: 'found',
   prefill: {
@@ -52,6 +52,28 @@ const result: JobLookupResult = {
 };
 
 describe('pending job lookups', () => {
+  it('offers Scout for the exact link when automatic reading is unsupported, preserving the form', async () => {
+    const lookup = pendingLookup();
+    lookup.complete({ status: 'unrecognized', reason: 'No complete structured posting.' });
+    await lookup.pending;
+    expect(state).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        scoutUrl: lookup.url.value,
+        message: 'No complete structured posting.',
+        pending: false,
+      }),
+    );
+    expect(lookup.company.value).toBe('My typed company');
+    expect(lookup.title.value).toBe('Original title');
+  });
+
+  it('keeps retries available after a supported provider fails', async () => {
+    const lookup = pendingLookup();
+    lookup.complete({ status: 'failed', reason: 'Try again later.' });
+    await lookup.pending;
+    expect(state).toHaveBeenLastCalledWith(expect.objectContaining({ scoutUrl: null }));
+  });
+
   it.each(['Updated by the user', ''])(
     'preserves a company edit to %j while filling fields left unchanged',
     async (company) => {
@@ -88,6 +110,7 @@ describe('pending job lookups', () => {
       message: '',
       prefill: null,
       duplicates: [],
+      scoutUrl: null,
     });
   });
 
@@ -103,6 +126,7 @@ describe('pending job lookups', () => {
       message: '',
       prefill: null,
       duplicates: [],
+      scoutUrl: null,
     });
   });
 });

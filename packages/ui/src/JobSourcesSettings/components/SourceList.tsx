@@ -2,7 +2,7 @@ import { Radar } from 'lucide-react';
 import type { JobSourcesModel } from '../types.ts';
 import { SourceRow } from './SourceRow.tsx';
 
-export function SourceList(model: JobSourcesModel) {
+export const SourceList = (model: JobSourcesModel) => {
   if (!model.sources.length)
     return (
       <div className="settings-empty mt-5 flex flex-col items-center justify-center gap-2 px-5 py-10 text-center">
@@ -20,4 +20,4 @@ export function SourceList(model: JobSourcesModel) {
       ))}
     </ul>
   );
-}
+};

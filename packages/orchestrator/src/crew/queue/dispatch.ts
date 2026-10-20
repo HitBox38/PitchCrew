@@ -4,11 +4,11 @@ import { requestProblem } from './requests.ts';
 import { activeQueues, queueRequests, queueWaiting, taskLane } from './state.ts';
 
 /** Keep an admitted action together; otherwise serve the oldest ready queue. */
-export async function queueMayStart(
+export const queueMayStart = async (
   context: CrewContext,
   id: string,
   root: string,
-): Promise<boolean> {
+): Promise<boolean> => {
   const active = activeQueues(context);
   if (active.get(id)?.has(root)) return true;
   const runs = context.board.list<Run>('run');
@@ -49,4 +49,4 @@ export async function queueMayStart(
     if (readyRequest || readyFollowUp) return queue.id === id;
   }
   return true;
-}
+};

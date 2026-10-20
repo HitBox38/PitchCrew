@@ -11,13 +11,13 @@ import { NotificationIcon } from './NotificationIcon.tsx';
 import type { CrewNotification } from '../types.ts';
 import { NotificationLink } from './NotificationLink.tsx';
 
-export function NotificationToast({
+export const NotificationToast = ({
   toast,
   onOpen,
 }: {
   toast: ToastObject<CrewNotification>;
   onOpen: (item: CrewNotification) => void;
-}) {
+}) => {
   const item = toast.data;
   if (!item) return null;
   return (
@@ -45,4 +45,4 @@ export function NotificationToast({
       </ToastContent>
     </Toast>
   );
-}
+};

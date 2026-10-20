@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { ProfileFile, ProfileSourceInput, ProfileSourcePreview } from '@pitchcrew/core';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import type { ProfileFile, ProfileSourceInput } from '@pitchcrew/core';
 import {
   addProjectWatch,
   importSourceDocuments,
@@ -14,14 +15,118 @@ import { useSourceList } from './useSourceList.ts';
 import { useSourceTask } from './useSourceTask.ts';
 import { useSourceSetup } from './useSourceSetup.ts';
 
-export function useProfileSources(props: ProfileSourcesProps, open: boolean) {
+export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => {
+  const back = () => {
+    setup.setAdding(false);
+    setProposalId(null);
+    task.setError('');
+  };
+  const complete = (result: SourceNotice) => {
+    setNotice(result);
+    setPreview(null);
+    back();
+  };
+  const load = async (input: ProfileSourceInput, sourceId?: string) => {
+    if (busy) return;
+    await task.perform(
+      input.provider === 'github' ? 'Reading GitHub documents…' : 'Reading Google Drive documents…',
+      async () => {
+        const result = await readSourceDocuments(input);
+        setPreview(result);
+        setSelected(
+          result.files.filter((f) => ['new', 'changed'].includes(f.status)).map((f) => f.name),
+        );
+      },
+      sourceId,
+    );
+  };
+  const previewSource = (event: FormEvent) => {
+    event.preventDefault();
+    if (busy) return;
+    try {
+      const input =
+        setup.provider === 'github'
+          ? githubInput(setup.repository, setup.path, setup.branch)
+          : driveInput(setup.folder);
+      if (setup.intent !== 'project') {
+        void load(input);
+        return;
+      }
+      void task.perform('Checking project…', async () => {
+        await addProjectWatch(props.action, input);
+        complete({ message: 'Project watch added. An authorized agent can check for changes.' });
+      });
+    } catch (error) {
+      task.setError(error instanceof Error ? error.message : 'Check your source link.');
+    }
+  };
+  const importSelected = async () => {
+    if (!preview || busy || !selected.length) return;
+    await task.perform('Importing documents…', async () => {
+      const files = await importSourceDocuments(props.action, preview.token, selected);
+      complete({
+        message: 'Profile notes imported.',
+        file: files.find((f) => selected.includes(f.name)),
+      });
+    });
+  };
+  const watch = async (id: string, watching: boolean) => {
+    if (busy) return;
+    await task.perform(
+      watching ? 'Enabling watching…' : 'Pausing watching…',
+      async () => {
+        await setSourceWatching(props.action, id, watching);
+        setNotice({ message: watching ? 'Source watching enabled.' : 'Source watching paused.' });
+      },
+      id,
+    );
+  };
+  const unlink = async (id: string) => {
+    if (busy) return;
+    await task.perform(
+      'Removing source…',
+      async () => {
+        await removeSource(props.action, id);
+        setNotice({ message: 'Source removed. Local notes were kept.' });
+        setReturnFocus('add');
+      },
+      id,
+    );
+  };
+  const startAdd = (provider?: SourceProvider) => {
+    setReturnFocus('add');
+    setNotice(null);
+    task.setError('');
+    setup.startAdd(provider);
+  };
+  const reviewProposal = (id: string) => {
+    setReturnFocus(`review-${id}`);
+    setNotice(null);
+    task.setError('');
+    setProposalId(id);
+  };
+  const reviewed = (file: ProfileFile | undefined, approved: boolean) => {
+    complete({
+      message: approved
+        ? file
+          ? 'Verified profile updates applied.'
+          : 'Source changes acknowledged.'
+        : 'Profile updates rejected.',
+      file,
+    });
+    void list.refresh();
+  };
+
   const connection = useConnectorSettings(props);
   const list = useSourceList(open);
   const task = useSourceTask();
   const setup = useSourceSetup();
-  const [preview, setPreview] = useState<ProfileSourcePreview | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [notice, setNotice] = useState<SourceNotice | null>(null);
+  const { preview, selected, notice } = useWorkspaceStore((state) => state.profileSources);
+  const update = useWorkspaceStore((state) => state.updateProfileSources);
+  const setPreview = (value: typeof preview) => update({ preview: value });
+  const setSelected = (value: string[] | ((current: string[]) => string[])) =>
+    update((state) => ({ selected: typeof value === 'function' ? value(state.selected) : value }));
+  const setNotice = (notice: SourceNotice | null) => update({ notice });
   const [proposalId, setProposalId] = useState<string | null>(null);
   const [proposalPending, setProposalPending] = useState(false);
   const [returnFocus, setReturnFocus] = useState('add');
@@ -37,109 +142,6 @@ export function useProfileSources(props: ProfileSourcesProps, open: boolean) {
     connected?.connected &&
     (setup.provider === 'github' || connected.services.includes('drive'))
   );
-  function back() {
-    setup.setAdding(false);
-    setProposalId(null);
-    task.setError('');
-  }
-  function complete(result: SourceNotice) {
-    setNotice(result);
-    setPreview(null);
-    back();
-  }
-  async function load(input: ProfileSourceInput, sourceId?: string) {
-    if (busy) return;
-    await task.perform(
-      input.provider === 'github' ? 'Reading GitHub documents…' : 'Reading Google Drive documents…',
-      async () => {
-        const result = await readSourceDocuments(input);
-        setPreview(result);
-        setSelected(
-          result.files.filter((f) => ['new', 'changed'].includes(f.status)).map((f) => f.name),
-        );
-      },
-      sourceId,
-    );
-  }
-  function previewSource(event: FormEvent) {
-    event.preventDefault();
-    if (busy) return;
-    try {
-      const input =
-        setup.provider === 'github'
-          ? githubInput(setup.repository, setup.path, setup.branch)
-          : driveInput(setup.folder);
-      if (setup.intent !== 'project') {
-        void load(input);
-        return;
-      }
-      void task.perform('Checking project…', async () => {
-        await addProjectWatch(props.action, input);
-        complete({ message: 'Project watch added. An authorized agent can check for changes.' });
-        await list.refresh();
-      });
-    } catch (error) {
-      task.setError(error instanceof Error ? error.message : 'Check your source link.');
-    }
-  }
-  async function importSelected() {
-    if (!preview || busy || !selected.length) return;
-    await task.perform('Importing documents…', async () => {
-      const files = await importSourceDocuments(props.action, preview.token, selected);
-      complete({
-        message: 'Profile notes imported.',
-        file: files.find((f) => selected.includes(f.name)),
-      });
-      await list.refresh();
-    });
-  }
-  async function watch(id: string, watching: boolean) {
-    if (busy) return;
-    await task.perform(
-      watching ? 'Enabling watching…' : 'Pausing watching…',
-      async () => {
-        await setSourceWatching(props.action, id, watching);
-        await list.refresh();
-      },
-      id,
-    );
-  }
-  async function unlink(id: string) {
-    if (busy) return;
-    await task.perform(
-      'Removing source…',
-      async () => {
-        await removeSource(props.action, id);
-        setNotice({ message: 'Source removed. Local notes were kept.' });
-        setReturnFocus('add');
-        await list.refresh();
-      },
-      id,
-    );
-  }
-  function startAdd(provider?: SourceProvider) {
-    setReturnFocus('add');
-    setNotice(null);
-    task.setError('');
-    setup.startAdd(provider);
-  }
-  function reviewProposal(id: string) {
-    setReturnFocus(`review-${id}`);
-    setNotice(null);
-    task.setError('');
-    setProposalId(id);
-  }
-  function reviewed(file: ProfileFile | undefined, approved: boolean) {
-    complete({
-      message: approved
-        ? file
-          ? 'Verified profile updates applied.'
-          : 'Source changes acknowledged.'
-        : 'Profile updates rejected.',
-      file,
-    });
-    void list.refresh();
-  }
   return {
     ...setup,
     ...list,
@@ -149,6 +151,7 @@ export function useProfileSources(props: ProfileSourcesProps, open: boolean) {
     connection,
     preview,
     setPreview,
+    closeReview: () => (task.progress ? update({ open: false }) : setPreview(null)),
     selected,
     setSelected,
     notice,
@@ -166,6 +169,7 @@ export function useProfileSources(props: ProfileSourcesProps, open: boolean) {
     maintenance: props,
     reviewed,
     setProposalPending,
+    proposalPending,
     pending: !!task.progress || proposalPending,
     screen: proposalId
       ? `proposal-${proposalId}`
@@ -185,4 +189,4 @@ export function useProfileSources(props: ProfileSourcesProps, open: boolean) {
         );
     },
   };
-}
+};

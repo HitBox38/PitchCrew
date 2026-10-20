@@ -2,7 +2,7 @@ import type { ProfileNotesProps } from '../types.ts';
 import { useState } from 'react';
 import { buildProfileTree, visibleProfileTree } from '../tree.ts';
 
-export function useProfileNotes({ data, sourceController, documents }: ProfileNotesProps) {
+export const useProfileNotes = ({ data, sourceController, documents }: ProfileNotesProps) => {
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState(new Set<string>());
   const [selectedFolder, setSelectedFolder] = useState('');
@@ -50,4 +50,4 @@ export function useProfileNotes({ data, sourceController, documents }: ProfileNo
     selectedFolder,
     setSelectedFolder,
   };
-}
+};

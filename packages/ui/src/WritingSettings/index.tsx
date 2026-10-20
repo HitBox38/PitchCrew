@@ -4,21 +4,26 @@ import { useWritingSettings } from './hooks/useWritingSettings.ts';
 import { GuidePreferences } from './components/GuidePreferences.tsx';
 import { GuideProposals } from './components/GuideProposals.tsx';
 import { PreferenceEditor } from './components/PreferenceEditor.tsx';
+import { SettingsIntro } from '@/SettingsPage/components/SettingsIntro.tsx';
 
-export function WritingSettings() {
+export const WritingSettings = () => {
   const model = useWritingSettings();
   const { guide, working, change } = model;
   if (!guide) return null;
   return (
     <section className="settings-section space-y-5" aria-labelledby="writing-heading">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="writing-heading">Writing guide</h2>
-        <Button onClick={() => model.setEditing(null)}>Add preference</Button>
+      <SettingsIntro
+        id="writing-heading"
+        title="Writing guide"
+        description="Tell Writer and Reviewer how you want your applications to read. Your explicit preferences take precedence over learned suggestions."
+        actions={<Button onClick={() => model.setEditing(null)}>Add preference</Button>}
+      />
+      <div className="flex flex-wrap gap-2">
+        <span className="badge">
+          {guide.preferences.filter((item) => item.enabled).length} active preferences
+        </span>
+        <span className="badge">Shared by Writer and Reviewer</span>
       </div>
-      <p className="quiet max-w-prose">
-        Writer and Reviewer share your guide. Explicit preferences take precedence. Pipeline Coach
-        can propose improvements for you to review.
-      </p>
       <label className="settings-row" htmlFor="writing-learning">
         <span>
           <strong>Learn from chat corrections</strong>
@@ -50,4 +55,4 @@ export function WritingSettings() {
       ) : null}
     </section>
   );
-}
+};

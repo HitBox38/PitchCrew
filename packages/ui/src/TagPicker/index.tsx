@@ -4,7 +4,7 @@ import { SelectedTags } from './components/SelectedTags.tsx';
 import { TagSuggestions } from './components/TagSuggestions.tsx';
 import type { TagPickerProps } from './types.ts';
 
-export function TagPicker(props: TagPickerProps) {
+export const TagPicker = (props: TagPickerProps) => {
   const {
     id,
     value,
@@ -72,4 +72,4 @@ export function TagPicker(props: TagPickerProps) {
       ) : null}
     </div>
   );
-}
+};

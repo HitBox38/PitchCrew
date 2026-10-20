@@ -3,12 +3,12 @@ import {
   originalReviewPerspectives,
   type ReviewPerspective,
 } from '@pitchcrew/core/deep-review-labels';
-export function assessmentFor(
+export const assessmentFor = (
   result: RunResult,
   resume: string,
   perspective?: ReviewPerspective,
   additionalPerspectives: ReviewPerspective[] = [],
-): ReviewAssessment {
+): ReviewAssessment => {
   if (result.role !== 'reviewer' || !result.assessment)
     throw new Error(
       'Reviewer did not return a structured deep-review assessment. Retry the review.',
@@ -56,4 +56,4 @@ export function assessmentFor(
       (a, b) => Number(b.severity === 'blocking') - Number(a.severity === 'blocking'),
     ),
   };
-}
+};

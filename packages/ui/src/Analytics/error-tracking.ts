@@ -8,7 +8,7 @@ import {
 } from './error-sanitizer.ts';
 import type { AnalyticsEvent } from './types.ts';
 
-function classifyError(error: unknown): ErrorCategory {
+const classifyError = (error: unknown): ErrorCategory => {
   if (error instanceof TypeError) return 'type_error';
   if (error instanceof ReferenceError) return 'reference_error';
   if (error instanceof RangeError) return 'range_error';
@@ -16,14 +16,14 @@ function classifyError(error: unknown): ErrorCategory {
   if (error instanceof URIError) return 'uri_error';
   if (error instanceof EvalError) return 'evaluation_error';
   return error instanceof Error ? 'generic_error' : 'non_error';
-}
+};
 
 /** At most 20 reports/minute, one per category/source/action/minute; no deferred queue. */
-export function createErrorReporter(
+export const createErrorReporter = (
   capture: (event: string, properties: Record<string, unknown>) => void,
   enabled: () => boolean,
   now: () => number = Date.now,
-) {
+) => {
   const fingerprints = new Map<string, number>();
   const seen = new WeakSet<object>();
   let windowStart = 0;
@@ -57,18 +57,10 @@ export function createErrorReporter(
       /* Proxy/getter, consent and transport failures must never replace application errors. */
     }
   };
-}
-
-export const reportErrorDiagnostic = createErrorReporter(
-  (event, properties) => analytics.captureDiagnostic(event, properties),
-  () => {
-    const preferences = useDevicePreferences.getState();
-    return preferences.analytics && preferences.diagnostics && analytics.diagnosticsEnabled();
-  },
-);
+};
 
 /** Normal browser reporting is left intact: listeners never preventDefault or rethrow. */
-export function installErrorTracking(target: Window, report = reportErrorDiagnostic) {
+export const installErrorTracking = (target: Window, report = reportErrorDiagnostic) => {
   const onError = (event: ErrorEvent) => report('window_error', event.error);
   const onRejection = (event: PromiseRejectionEvent) => report('unhandled_rejection', event.reason);
   target.addEventListener('error', onError);
@@ -77,9 +69,9 @@ export function installErrorTracking(target: Window, report = reportErrorDiagnos
     target.removeEventListener('error', onError);
     target.removeEventListener('unhandledrejection', onRejection);
   };
-}
+};
 
-export function apiErrorAction(event: AnalyticsEvent | undefined): ErrorAction | undefined {
+export const apiErrorAction = (event: AnalyticsEvent | undefined): ErrorAction | undefined => {
   if (!event) return undefined;
   if (event.startsWith('chat_') || event.startsWith('conversation_')) return 'chat';
   if (event.startsWith('user_question_')) return 'question';
@@ -102,4 +94,12 @@ export function apiErrorAction(event: AnalyticsEvent | undefined): ErrorAction |
       (action === 'approval' && event.startsWith('packet_'))
     )
       return action;
-}
+};
+
+export const reportErrorDiagnostic = createErrorReporter(
+  (event, properties) => analytics.captureDiagnostic(event, properties),
+  () => {
+    const preferences = useDevicePreferences.getState();
+    return preferences.analytics && preferences.diagnostics && analytics.diagnosticsEnabled();
+  },
+);

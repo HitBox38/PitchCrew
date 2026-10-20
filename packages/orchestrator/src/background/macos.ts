@@ -4,13 +4,8 @@ import { daemonArguments, launchdLabel, serviceFiles } from './paths.ts';
 import { escapeXml, unescapeXml } from './quote.ts';
 import type { Inspection, PlatformDriver, ServiceHost, ServiceSpec } from './types.ts';
 
-export const launchAgentPath = (spec: ServiceSpec) =>
-  posix.join(spec.home, 'Library', 'LaunchAgents', `${launchdLabel}.plist`);
-
-const string = (value: string) => `<string>${escapeXml(value)}</string>`;
-
 /** A per-user LaunchAgent; it loads at login and restarts after a failed exit. */
-export function renderLaunchAgent(spec: ServiceSpec) {
+export const renderLaunchAgent = (spec: ServiceSpec) => {
   const args = [spec.node, ...daemonArguments(spec)].map((arg) => `    ${string(arg)}`).join('\n');
   const log = serviceFiles('macos', spec.directory).launchdLog;
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -47,26 +42,26 @@ ${args}
 </dict>
 </plist>
 `;
-}
+};
 
-export function readProgramArguments(plist: string) {
+export const readProgramArguments = (plist: string) => {
   const array = /<key>ProgramArguments<\/key>\s*<array>([\s\S]*?)<\/array>/.exec(plist)?.[1];
   if (array === undefined) return null;
   return [...array.matchAll(/<string>([\s\S]*?)<\/string>/g)]
     .map((match) => unescapeXml(match[1]))
     .slice(1);
-}
+};
 
 /** launchctl uses disabled/enabled on newer macOS releases and true/false on older ones. */
-export function launchAgentDisabled(output: string) {
+export const launchAgentDisabled = (output: string) => {
   return output.split(/\r?\n/).some((line) => {
     const entry = /^\s*"([^"]+)"\s*=>\s*(disabled|true|1)\s*;?\s*$/.exec(line);
     return entry?.[1] === launchdLabel;
   });
-}
+};
 
 /** Reads `launchctl print gui/<uid>/<label>` output for the service's own state and process. */
-export function parseLaunchctlPrint(output: string) {
+export const parseLaunchctlPrint = (output: string) => {
   const state = /^\s*state = (.+)$/m.exec(output)?.[1]?.trim() ?? '';
   const pid = Number(/^\s*pid = (\d+)$/m.exec(output)?.[1]);
   return {
@@ -74,9 +69,9 @@ export function parseLaunchctlPrint(output: string) {
     running: state === 'running',
     pid: Number.isInteger(pid) && pid > 0 ? pid : null,
   };
-}
+};
 
-export function macosDriver(spec: ServiceSpec, host: ServiceHost): PlatformDriver {
+export const macosDriver = (spec: ServiceSpec, host: ServiceHost): PlatformDriver => {
   const file = launchAgentPath(spec);
   const domain = `gui/${spec.uid}`;
   const target = `${domain}/${launchdLabel}`;
@@ -100,7 +95,7 @@ export function macosDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
     file,
     definition: file,
     render: () => renderLaunchAgent(spec),
-    async inspect(): Promise<Inspection> {
+    inspect: async (): Promise<Inspection> => {
       const plist = await host.readFile(file);
       const print = await host.run('launchctl', ['print', target]);
       const disabled = await host.run('launchctl', ['print-disabled', domain]);
@@ -123,23 +118,28 @@ export function macosDriver(spec: ServiceSpec, host: ServiceHost): PlatformDrive
             : 'launchd has not loaded the agent.',
       };
     },
-    async register(changed, before) {
+    register: async (changed, before) => {
       await required('enable', target);
       if (before.loaded && changed) await bootout();
       if (!before.loaded || changed) await required('bootstrap', domain, file);
       else if (!before.running) await required('kickstart', target);
     },
-    async unregister(before) {
+    unregister: async (before) => {
       if (before.loaded) await bootout();
       await host.remove(file);
     },
-    async start(before) {
+    start: async (before) => {
       if (before.loaded) await required('kickstart', target);
       else await required('bootstrap', domain, file);
     },
     // Unloading keeps KeepAlive from restarting the daemon; the agent loads again at next login.
-    async stop(before) {
+    stop: async (before) => {
       if (before.loaded) await bootout();
     },
   };
-}
+};
+
+export const launchAgentPath = (spec: ServiceSpec) =>
+  posix.join(spec.home, 'Library', 'LaunchAgents', `${launchdLabel}.plist`);
+
+const string = (value: string) => `<string>${escapeXml(value)}</string>`;

@@ -3,7 +3,7 @@ import type { ChatContext, RunContext } from '@pitchcrew/core';
 
 // Decode only the reply string in the structured chat answer. Never display JSON,
 // reasoning, tool arguments/results or incomplete escape sequences in the chat.
-export function partialReply(raw: string): string {
+export const partialReply = (raw: string): string => {
   const match = raw.match(/^\s*(?:```(?:json)?\s*)?\{\s*"reply"\s*:\s*"/);
   if (!match) return '';
   let text = '';
@@ -33,9 +33,9 @@ export function partialReply(raw: string): string {
   }
   // Hold a trailing high surrogate until its matching low surrogate arrives.
   return text.slice(0, 12000).replace(/[\uD800-\uDBFF]$/, '');
-}
+};
 
-export function replyPreview(context: RunContext | ChatContext) {
+export const replyPreview = (context: RunContext | ChatContext) => {
   let previous = '';
   return (raw: string) => {
     if (!('messages' in context) || !context.onReply || context.signal.aborted) return;
@@ -44,19 +44,19 @@ export function replyPreview(context: RunContext | ChatContext) {
     previous = text;
     context.onReply(text);
   };
-}
+};
 
-function textParts(content: unknown): string {
+const textParts = (content: unknown): string => {
   if (!Array.isArray(content)) return '';
   return content
     .filter((part) => part?.type === 'text' && typeof part.text === 'string')
     .map((part) => part.text)
     .join('');
-}
+};
 
 // Native protocol handling belongs to adapters. Final result extraction remains
 // separate so a preview can never turn an incomplete/failed run into success.
-export function chatEventStream(context: RunContext | ChatContext) {
+export const chatEventStream = (context: RunContext | ChatContext) => {
   const preview = replyPreview(context);
   const activity = activityStream(context);
   let raw = '';
@@ -70,7 +70,7 @@ export function chatEventStream(context: RunContext | ChatContext) {
   return {
     replace,
     finish: () => activity.boundary(),
-    event(event: Record<string, unknown>) {
+    event: (event: Record<string, unknown>) => {
       if (!('messages' in context)) return;
       const data = event.data as Record<string, unknown> | undefined;
       const message = event.message as { role?: string; content?: unknown } | undefined;
@@ -216,4 +216,4 @@ export function chatEventStream(context: RunContext | ChatContext) {
       }
     },
   };
-}
+};

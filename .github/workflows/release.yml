@@ -47,6 +47,13 @@ jobs:
               exit 0
             fi
           else
+            version=$(find assets -maxdepth 1 -name 'Pitchcrew-*-win-x64.exe' | sed -n 's|.*/Pitchcrew-\([0-9]*\.[0-9]*\.[0-9]*\)-win-x64.exe|\1|p')
+            [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+            previous=$(gh release list --exclude-drafts --exclude-pre-releases --limit 100 --json tagName --jq '[.[] | select(.tagName | test("^build-[a-f0-9]{40}$"))][0].tagName // empty')
+            notes_args=(--generate-notes)
+            if test -n "$previous"; then
+              notes_args+=(--notes-start-tag "$previous")
+            fi
             cat > release-notes.md <<EOF
           Production installers from main at commit $BUILD_SHA. All CI checks and packaged-app smoke checks passed.
 
@@ -63,7 +70,7 @@ jobs:
           Windows and Linux users with updater-enabled builds can download in the app, then confirm installation and restart. Unsigned Mac builds use the manual .dmg installation. Update manifests and blockmaps are included for the in-app updater.
           EOF
             gh release create "$tag" --target "$BUILD_SHA" --draft \
-              --title "Production build ${BUILD_SHA:0:12}" --notes-file release-notes.md
+              --title "Pitchcrew $version" --notes-file release-notes.md "${notes_args[@]}"
           fi
           gh release upload "$tag" assets/* --clobber
           gh release edit "$tag" --draft=false

@@ -4,7 +4,7 @@ import { signedWeight, weightLabels } from '@/lib/labels.ts';
 import type { Card } from '@pitchcrew/core';
 import { cardWeight, weights } from '@pitchcrew/core/insights';
 
-export function WeightControl({ card }: { card: Card }) {
+export const WeightControl = ({ card }: { card: Card }) => {
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
   const current = cardWeight(card);
@@ -34,4 +34,4 @@ export function WeightControl({ card }: { card: Card }) {
       </div>
     </fieldset>
   );
-}
+};

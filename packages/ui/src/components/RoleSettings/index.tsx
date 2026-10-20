@@ -16,7 +16,7 @@ import { RoleSettingsSurface } from './components/RoleSettingsSurface.tsx';
 import { RuntimeRecommendation } from '@/RuntimeRecommendation/index.tsx';
 import { defaultRoleIds } from '@pitchcrew/core/states';
 
-export function RoleSettings(props: RoleSettingsProps) {
+export const RoleSettings = (props: RoleSettingsProps) => {
   const controller = useRoleSettings(props);
   const { onClose, save, guard } = controller;
   return (
@@ -67,4 +67,4 @@ export function RoleSettings(props: RoleSettingsProps) {
       <DiscardChanges guard={guard} />
     </>
   );
-}
+};

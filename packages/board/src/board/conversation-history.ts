@@ -1,26 +1,12 @@
 import type { ChatMessage, ConversationHistoryPage, Run } from '@pitchcrew/core';
 import type { Board } from '../index.ts';
 
-const pageSize = 50;
-interface Entry {
-  kind: 'message' | 'turn';
-  id: string;
-  createdAt: string;
-  rank: number;
-}
-interface MessageIndex {
-  id: string;
-  createdAt: string;
-  sender: string;
-  runId: string | null;
-}
-
 /** Index transcript positions without parsing saved message bodies or run configurations. */
-export function conversationHistory(
+export const conversationHistory = (
   board: Board,
   thread: string,
   anchor?: string,
-): ConversationHistoryPage {
+): ConversationHistoryPage => {
   const messages = board.db
     .prepare(`SELECT id, json_extract(json,'$.createdAt') AS createdAt,
     json_extract(json,'$.from') AS sender, json_extract(json,'$.runId') AS runId
@@ -72,14 +58,14 @@ export function conversationHistory(
           },
     ),
   };
-}
-function visibleRun(run: Run): Run {
+};
+const visibleRun = (run: Run): Run => {
   const { configuration: _configuration, ...visible } = run;
   return visible;
-}
+};
 
 /** Search every saved message and attachment, without retaining their bodies in the renderer. */
-export function searchConversationMessages(board: Board, query: string): string[] {
+export const searchConversationMessages = (board: Board, query: string): string[] => {
   const needle = query.trim().toLowerCase();
   if (!needle) return [];
   const matches = new Set<string>();
@@ -97,4 +83,18 @@ export function searchConversationMessages(board: Board, query: string): string[
       matches.add(row.thread);
   }
   return [...matches];
+};
+
+const pageSize = 50;
+interface Entry {
+  kind: 'message' | 'turn';
+  id: string;
+  createdAt: string;
+  rank: number;
+}
+interface MessageIndex {
+  id: string;
+  createdAt: string;
+  sender: string;
+  runId: string | null;
 }

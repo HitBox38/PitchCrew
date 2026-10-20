@@ -4,7 +4,7 @@ import { adapters } from '@pitchcrew/adapters';
 import type { DeepReview, ReviewSubagent } from '@pitchcrew/core';
 import type { CrewService } from '../../service.ts';
 import type { IdRoute } from '../types.ts';
-export function registerDeepReviewRoutes(app: FastifyInstance, service: CrewService) {
+export const registerDeepReviewRoutes = (app: FastifyInstance, service: CrewService) => {
   app.get('/api/deep-review-support', () => ({
     runtimes: service.runtimes.map((runtime) => ({
       ...runtime,
@@ -55,4 +55,4 @@ export function registerDeepReviewRoutes(app: FastifyInstance, service: CrewServ
       };
     },
   );
-}
+};

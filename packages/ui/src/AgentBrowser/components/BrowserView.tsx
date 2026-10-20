@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useBrowserInput } from '../hooks/useBrowserInput.ts';
 import type { BrowserViewProps } from '../types.ts';
-export function BrowserView(props: BrowserViewProps) {
+export const BrowserView = (props: BrowserViewProps) => {
   const { frame, control, name } = props;
   const manual = props.manual && !props.panView;
   const image = useRef<HTMLButtonElement>(null);
@@ -47,4 +47,4 @@ export function BrowserView(props: BrowserViewProps) {
       />
     </button>
   );
-}
+};

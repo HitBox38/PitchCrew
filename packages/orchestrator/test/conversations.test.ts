@@ -9,9 +9,7 @@ import type {
 } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import { setup, cleanup, waitForSnapshot } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-function heldTurns() {
+const heldTurns = () => {
   const turns: { context: ChatContext; complete: (reply?: string) => void }[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     (context) =>
@@ -23,7 +21,9 @@ function heldTurns() {
       }),
   );
   return turns;
-}
+};
+
+afterEach(cleanup);
 const fixture = () => setup(19541);
 const body = { title: 'Application planning', participants: ['scout', 'writer'], leadId: 'scout' };
 it('migrates history without rewriting messages and supports unlimited group membership with targeted mentions', async () => {

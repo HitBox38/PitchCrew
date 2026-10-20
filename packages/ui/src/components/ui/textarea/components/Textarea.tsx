@@ -1,7 +1,7 @@
 import type { TextareaProps } from '@/components/ui/textarea/types.ts';
 import { cn } from '@/lib/utils';
 
-export function Textarea({ className, rows = 3, ...props }: TextareaProps) {
+export const Textarea = ({ className, rows = 3, ...props }: TextareaProps) => {
   return (
     <textarea
       data-slot="textarea"
@@ -13,4 +13,4 @@ export function Textarea({ className, rows = 3, ...props }: TextareaProps) {
       {...props}
     />
   );
-}
+};

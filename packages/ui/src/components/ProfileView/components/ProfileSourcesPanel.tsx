@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ArrowLeft } from 'lucide-react';
 import type { ProfileViewModel } from '../types.ts';
 
-export function ProfileSourcesPanel(c: ProfileViewModel) {
+export const ProfileSourcesPanel = (c: ProfileViewModel) => {
   const sources = c.sourceController;
   const copy = sourceHeading(sources);
   const { heading: headingRef, panel: panelRef } = useSourceDialogFocus(sources, c.sourcesOpen);
@@ -20,8 +20,7 @@ export function ProfileSourcesPanel(c: ProfileViewModel) {
     <Dialog
       open={c.sourcesOpen}
       onOpenChange={(open) => {
-        if (!sources.pending) {
-          if (!open) sources.back();
+        if (!sources.proposalPending) {
           c.setSourcesOpen(open);
         }
       }}
@@ -29,7 +28,7 @@ export function ProfileSourcesPanel(c: ProfileViewModel) {
       <DialogContent
         className="modal profile-sources-dialog"
         initialFocus={headingRef}
-        showCloseButton={!sources.pending}
+        showCloseButton={!sources.proposalPending}
       >
         <DialogHeader className="shrink-0 gap-2 border-b border-border px-6 py-5 pr-12 text-left">
           {sources.screen !== 'list' ? (
@@ -55,9 +54,9 @@ export function ProfileSourcesPanel(c: ProfileViewModel) {
           </DialogDescription>
         </DialogHeader>
         <div ref={panelRef} className="profile-sources-panel">
-          <ProfileSources {...sources} />
+          {c.sourcesOpen ? <ProfileSources {...sources} /> : null}
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};

@@ -10,7 +10,7 @@ import { conversation } from './conversations.ts';
 import type { CrewContext } from './types.ts';
 
 /** User-only removal; append-only events and separately saved agent memories remain intact. */
-export function deleteConversation(context: CrewContext, id: string): { ok: true } {
+export const deleteConversation = (context: CrewContext, id: string): { ok: true } => {
   context.board.db.transaction(() => {
     const current = conversation(context, id);
     const runs = context.board.list<Run>('run');
@@ -99,4 +99,4 @@ export function deleteConversation(context: CrewContext, id: string): { ok: true
   })();
   context.publishChat(true);
   return { ok: true };
-}
+};

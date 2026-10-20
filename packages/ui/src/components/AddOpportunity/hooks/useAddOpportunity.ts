@@ -3,14 +3,10 @@ import { useState, type FormEvent } from 'react';
 import { tagValues } from '@/TagPicker/helpers.ts';
 import { provenanceFor } from '../helpers.ts';
 import { useJobLookup } from './useJobLookup.ts';
+import { useScoutJobImport } from './useScoutJobImport.ts';
 
-export function useAddOpportunity({ action, working, onClose }: AddOpportunityProps) {
-  const [error, setError] = useState('');
-  const [external, setExternal] = useState(false);
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagQuery, setTagQuery] = useState('');
-  const lookup = useJobLookup();
-  async function submit(e: FormEvent<HTMLFormElement>) {
+export const useAddOpportunity = (props: AddOpportunityProps) => {
+  const submit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (working || lookup.pending) return;
     const form = new FormData(e.currentTarget);
@@ -51,7 +47,16 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not add the job.');
     }
-  }
+  };
+
+  const { action, onClose } = props;
+  const scout = useScoutJobImport(props);
+  const working = props.working || scout.pending;
+  const [error, setError] = useState('');
+  const [external, setExternal] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [tagQuery, setTagQuery] = useState('');
+  const lookup = useJobLookup();
   return {
     working,
     onClose,
@@ -65,5 +70,6 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
     tagQuery,
     setTagQuery,
     lookup,
+    scout,
   };
-}
+};

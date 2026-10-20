@@ -3,6 +3,8 @@
   "plugins": ["typescript", "react", "jsx-a11y"],
   "categories": { "correctness": "error" },
   "rules": {
+    "func-style": ["error", "expression"],
+    "prefer-arrow-callback": "error",
     "no-unused-vars": "error",
     "jsx-a11y/label-has-associated-control": [
       "error",
