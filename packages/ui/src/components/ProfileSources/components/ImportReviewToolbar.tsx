@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ImportReviewProps } from '../types.ts';
 
-export function ImportReviewToolbar({
+export const ImportReviewToolbar = ({
   changes,
   query,
   setQuery,
@@ -17,7 +17,7 @@ export function ImportReviewToolbar({
   query: string;
   setQuery: (value: string) => void;
   unchanged: number;
-}) {
+}) => {
   const safe = changes.filter((file) => file.status !== 'conflict');
   return (
     <div className="shrink-0 border-b border-border px-5 py-3">
@@ -67,4 +67,4 @@ export function ImportReviewToolbar({
       ) : null}
     </div>
   );
-}
+};

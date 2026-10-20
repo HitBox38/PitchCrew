@@ -10,7 +10,7 @@ import {
   reorderDocument,
 } from '../helpers.ts';
 
-export function useProfileDocuments(data: ProfileViewProps['data']) {
+export const useProfileDocuments = (data: ProfileViewProps['data']) => {
   const [state, setState] = useState<ProfileDocumentsState>(() => {
     const note = data.profile[0] ?? initialProfileNote;
     return openDocument({ documents: [], activeId: null }, note, crypto.randomUUID());
@@ -42,4 +42,4 @@ export function useProfileDocuments(data: ProfileViewProps['data']) {
     discard: () => setState(discardDocuments),
     reorder: (id: string, index: number) => setState((state) => reorderDocument(state, id, index)),
   };
-}
+};

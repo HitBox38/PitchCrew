@@ -1,7 +1,7 @@
 import { api } from '@/api.ts';
 import { useEffect, useState } from 'react';
 
-export function useHistorySearch(query: string, revision?: string) {
+export const useHistorySearch = (query: string, revision?: string) => {
   const [result, setResult] = useState<{ query: string; threads: string[] }>({
     query: '',
     threads: [],
@@ -30,4 +30,4 @@ export function useHistorySearch(query: string, revision?: string) {
     };
   }, [query, revision]);
   return { matches: result.query === query ? result.threads : [], error };
-}
+};

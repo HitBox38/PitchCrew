@@ -3,7 +3,7 @@ import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { BrowserAction } from '@pitchcrew/core';
 import { actionFields } from '../helpers.ts';
 
-export function BrowserActionSummary({ action }: { action: BrowserAction }) {
+export const BrowserActionSummary = ({ action }: { action: BrowserAction }) => {
   return (
     <>
       <dl className="browser-action-summary">
@@ -19,4 +19,4 @@ export function BrowserActionSummary({ action }: { action: BrowserAction }) {
       </AccordionSection>
     </>
   );
-}
+};

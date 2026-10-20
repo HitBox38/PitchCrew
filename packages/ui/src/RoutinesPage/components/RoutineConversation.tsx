@@ -1,7 +1,7 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import type { DraftFieldsProps } from '../types.ts';
-export function RoutineConversation({ draft, change }: DraftFieldsProps) {
+export const RoutineConversation = ({ draft, change }: DraftFieldsProps) => {
   const conversations = useWorkspaceStore((state) => state.data?.conversations);
   const eligible = (conversations ?? []).filter(
     (item) =>
@@ -20,4 +20,4 @@ export function RoutineConversation({ draft, change }: DraftFieldsProps) {
       onValueChange={(conversationId) => change({ conversationId })}
     />
   );
-}
+};

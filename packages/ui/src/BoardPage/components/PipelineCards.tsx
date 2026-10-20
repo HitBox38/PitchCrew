@@ -3,7 +3,7 @@ import { DraggableJob } from './DraggableJob.tsx';
 import type { JobMenuActions } from './JobActionsMenu/types.ts';
 import type { Card, Snapshot } from '@pitchcrew/core';
 
-export function PipelineCards({
+export const PipelineCards = ({
   cards,
   data,
   working,
@@ -19,7 +19,7 @@ export function PipelineCards({
   openCard: (id: string) => void;
   empty: string | null;
   menuActions: JobMenuActions;
-}) {
+}) => {
   return (
     <div className="column-cards flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pb-1">
       <AnimatePresence initial={false}>
@@ -38,4 +38,4 @@ export function PipelineCards({
       {empty ? <p className="column-empty">{empty}</p> : null}
     </div>
   );
-}
+};

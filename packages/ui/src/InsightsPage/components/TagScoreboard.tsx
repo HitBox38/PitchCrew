@@ -4,13 +4,13 @@ import type { ApplicationInsights } from '@pitchcrew/core/insights';
 import { percent } from '../helpers.ts';
 import type { ChangeSearch } from '../types.ts';
 
-export function TagScoreboard({
+export const TagScoreboard = ({
   insights,
   change,
 }: {
   insights: ApplicationInsights;
   change: ChangeSearch;
-}) {
+}) => {
   return (
     <section className="insights-panel" aria-labelledby="insights-tags">
       <h2 id="insights-tags">Tag scoreboard</h2>
@@ -63,4 +63,4 @@ export function TagScoreboard({
       ) : null}
     </section>
   );
-}
+};

@@ -11,16 +11,12 @@ import { mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { z } from 'zod';
 
-const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
-export const attachmentPath = (directory: string, id: string) =>
-  join(directory, 'chat-attachments', z.uuid().parse(id));
-
-export async function removeAttachments(directory: string, files: ChatAttachment[]) {
+export const removeAttachments = async (directory: string, files: ChatAttachment[]) => {
   await Promise.all(files.map((file) => rm(attachmentPath(directory, file.id), { force: true })));
-}
+};
 
 /** Persist only validated bytes under server-generated IDs, never user-supplied paths. */
-export async function saveAttachments(directory: string, uploads: ChatAttachmentUpload[]) {
+export const saveAttachments = async (directory: string, uploads: ChatAttachmentUpload[]) => {
   const files: ChatAttachment[] = [];
   try {
     if (uploads.length)
@@ -43,9 +39,9 @@ export async function saveAttachments(directory: string, uploads: ChatAttachment
     await removeAttachments(directory, files);
     throw error;
   }
-}
+};
 
-export async function readAttachment(directory: string, file: ChatAttachment) {
+export const readAttachment = async (directory: string, file: ChatAttachment) => {
   const path = attachmentPath(directory, file.id);
   if ((await stat(path)).size > chatAttachmentLimits.bytes)
     throw new Error('Attachment is too large.');
@@ -53,14 +49,14 @@ export async function readAttachment(directory: string, file: ChatAttachment) {
   if (bytes.length !== file.size || digest(bytes) !== file.sha256)
     throw new Error('Attachment contents changed.');
   return bytes;
-}
+};
 
-export async function prepareAttachments(
+export const prepareAttachments = async (
   directory: string,
   runDirectory: string,
   messages: ChatMessage[],
   signal: AbortSignal,
-): Promise<NonNullable<ChatContext['attachments']>> {
+): Promise<NonNullable<ChatContext['attachments']>> => {
   const files: NonNullable<ChatContext['attachments']> = [];
   for (const message of messages)
     for (const file of message.attachments ?? []) {
@@ -74,4 +70,8 @@ export async function prepareAttachments(
     }
   signal.throwIfAborted();
   return files;
-}
+};
+
+const digest = (bytes: Uint8Array) => createHash('sha256').update(bytes).digest('hex');
+export const attachmentPath = (directory: string, id: string) =>
+  join(directory, 'chat-attachments', z.uuid().parse(id));

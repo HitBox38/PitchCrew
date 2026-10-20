@@ -1,7 +1,7 @@
 import type { JobHistoryProps } from '@/components/CardDetails/types.ts';
 import { timeAgo } from '@/lib/time.ts';
 
-export function JobHistory({ data, card }: JobHistoryProps) {
+export const JobHistory = ({ data, card }: JobHistoryProps) => {
   return (
     <div className="detail-history">
       {data.events
@@ -25,4 +25,4 @@ export function JobHistory({ data, card }: JobHistoryProps) {
         ))}
     </div>
   );
-}
+};

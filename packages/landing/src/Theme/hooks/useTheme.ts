@@ -3,13 +3,7 @@
 import { useSyncExternalStore } from 'react';
 import { themeEvent, themeKey } from '../constants';
 
-export type ThemeChoice = 'light' | 'dark' | 'system';
-const parse = (value: string | null | undefined): ThemeChoice =>
-  value === 'light' || value === 'dark' ? value : 'system';
-const snapshot = () => parse(document.documentElement.dataset.themeChoice);
-const serverSnapshot = (): ThemeChoice => 'system';
-
-function apply(choice: ThemeChoice) {
+const apply = (choice: ThemeChoice) => {
   const root = document.documentElement;
   const dark =
     choice === 'dark' ||
@@ -19,9 +13,9 @@ function apply(choice: ThemeChoice) {
   document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
     meta.setAttribute('content', dark ? '#1a1b1e' : '#f2f1ec');
   });
-}
+};
 
-function subscribe(notify: () => void) {
+const subscribe = (notify: () => void) => {
   const media = matchMedia('(prefers-color-scheme: dark)');
   const sync = () => {
     apply(snapshot());
@@ -42,9 +36,9 @@ function subscribe(notify: () => void) {
     window.removeEventListener('storage', storage);
     window.removeEventListener(themeEvent, sync);
   };
-}
+};
 
-export function useTheme() {
+export const useTheme = () => {
   const choice = useSyncExternalStore(subscribe, snapshot, serverSnapshot);
   const select = (value: ThemeChoice) => {
     apply(value);
@@ -57,4 +51,10 @@ export function useTheme() {
     window.dispatchEvent(new Event(themeEvent));
   };
   return { choice, select };
-}
+};
+
+export type ThemeChoice = 'light' | 'dark' | 'system';
+const parse = (value: string | null | undefined): ThemeChoice =>
+  value === 'light' || value === 'dark' ? value : 'system';
+const snapshot = () => parse(document.documentElement.dataset.themeChoice);
+const serverSnapshot = (): ThemeChoice => 'system';

@@ -1,7 +1,7 @@
 import type { Page, Request } from 'playwright';
 
 /** Preparation never authorizes a write or script-driven navigation. User-approved actions do. */
-export function preparationGuard() {
+export const preparationGuard = () => {
   let enabled = false;
   let sites: readonly string[] = [];
   let navigating = false;
@@ -22,7 +22,7 @@ export function preparationGuard() {
     get blocked() {
       return blocked;
     },
-    protect(urls: string[]) {
+    protect: (urls: string[]) => {
       submissions = new Set(
         urls.map((value) => {
           const url = new URL(value);
@@ -30,19 +30,19 @@ export function preparationGuard() {
         }),
       );
     },
-    reset() {
+    reset: () => {
       blocked = false;
       submissions.clear();
     },
-    prepare(value: boolean, allowedSites?: readonly string[]) {
+    prepare: (value: boolean, allowedSites?: readonly string[]) => {
       enabled = value;
       if (!value) blocked = false;
       if (allowedSites) sites = allowedSites;
     },
-    navigate(value: boolean) {
+    navigate: (value: boolean) => {
       navigating = value;
     },
-    async attach(page: Page) {
+    attach: async (page: Page) => {
       await page.route('**/*', async (route) => {
         const request = route.request();
         if (rejects(request)) {
@@ -53,4 +53,4 @@ export function preparationGuard() {
       });
     },
   };
-}
+};

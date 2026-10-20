@@ -2,13 +2,13 @@ import type { Routine } from '@pitchcrew/core';
 import { CalendarClock } from 'lucide-react';
 import { scheduleLabel } from '../helpers.ts';
 
-export function RoutineSchedule({
+export const RoutineSchedule = ({
   routine,
   lastStatus,
 }: {
   routine: Routine;
   lastStatus?: string;
-}) {
+}) => {
   const format = (instant: string) =>
     new Intl.DateTimeFormat(undefined, {
       timeZone: routine.timezone,
@@ -41,4 +41,4 @@ export function RoutineSchedule({
       ) : null}
     </div>
   );
-}
+};

@@ -1,6 +1,6 @@
 import type { AppUpdateInfo } from '@pitchcrew/core';
 
-export function UpdateTooltip({
+export const UpdateTooltip = ({
   release,
   version,
   message,
@@ -10,7 +10,7 @@ export function UpdateTooltip({
   version: string | null | undefined;
   message: string | undefined;
   ready: boolean;
-}) {
+}) => {
   const changes = release?.changes?.slice(0, 5) ?? [];
   return (
     <div className="flex flex-col gap-2 text-left text-pretty">
@@ -34,4 +34,4 @@ export function UpdateTooltip({
       {ready ? <p>Restarting interrupts running agents. Your work stays saved.</p> : null}
     </div>
   );
-}
+};

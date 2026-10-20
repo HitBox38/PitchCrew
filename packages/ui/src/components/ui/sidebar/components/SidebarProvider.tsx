@@ -9,7 +9,7 @@ import { TooltipProvider } from '@/components/ui/tooltip/components/TooltipProvi
 import { cn } from '@/lib/utils';
 import * as React from 'react';
 
-export function SidebarProvider({
+export const SidebarProvider = ({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
@@ -17,7 +17,7 @@ export function SidebarProvider({
   style,
   children,
   ...props
-}: SidebarProviderProps) {
+}: SidebarProviderProps) => {
   const contextValue = useSidebarState({ defaultOpen, open: openProp, onOpenChange: setOpenProp });
   return (
     <SidebarContext.Provider value={contextValue}>
@@ -42,4 +42,4 @@ export function SidebarProvider({
       </TooltipProvider>
     </SidebarContext.Provider>
   );
-}
+};

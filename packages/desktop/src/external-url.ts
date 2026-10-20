@@ -1,20 +1,20 @@
 // Only explicit setup and Pitchcrew release links can leave the sandboxed renderer.
-export function isAllowedExternalUrl(value: string) {
+export const isAllowedExternalUrl = (value: string) => {
   return (
     isConnectorExternalUrl(value) ||
     /^https:\/\/github\.com\/HitBox38\/PitchCrew\/releases\/tag\/build-[a-f0-9]{40}$/.test(value)
   );
-}
+};
 
-export function isConnectorExternalUrl(value: string) {
+export const isConnectorExternalUrl = (value: string) => {
   return (
     isGoogleAuthorizationUrl(value) ||
     value === 'https://cli.github.com/' ||
     value === 'https://github.com/googleworkspace/cli'
   );
-}
+};
 
-export function isGoogleAuthorizationUrl(value: string) {
+export const isGoogleAuthorizationUrl = (value: string) => {
   try {
     const url = new URL(value);
     const redirect = new URL(url.searchParams.get('redirect_uri') ?? '');
@@ -36,4 +36,4 @@ export function isGoogleAuthorizationUrl(value: string) {
   } catch {
     return false;
   }
-}
+};

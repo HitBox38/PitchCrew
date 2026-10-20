@@ -2,7 +2,7 @@ import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { useTagMerge } from '../hooks/useTagMerge.ts';
 
-export function TagMergeConfirm({ merge }: { merge: ReturnType<typeof useTagMerge> }) {
+export const TagMergeConfirm = ({ merge }: { merge: ReturnType<typeof useTagMerge> }) => {
   const close = () => {
     if (!merge.working) merge.setConfirming(false);
   };
@@ -34,4 +34,4 @@ export function TagMergeConfirm({ merge }: { merge: ReturnType<typeof useTagMerg
       </div>
     </Modal>
   );
-}
+};

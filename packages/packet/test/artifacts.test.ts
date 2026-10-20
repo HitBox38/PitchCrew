@@ -13,14 +13,7 @@ import {
 } from '../src/index.ts';
 import legacy from './fixtures/legacy-artifacts.json' with { type: 'json' };
 
-const docxFile = (bytes: Buffer, name: string) =>
-  readZip(bytes)
-    .find((entry) => entry.name === name)
-    ?.data.toString('utf8') ?? '';
-const resumePacket = (resume: string): Packet => ({ ...packet, resume });
-const noFonts = async () => [];
-
-async function pdfText(bytes: Buffer) {
+const pdfText = async (bytes: Buffer) => {
   const task = getDocument({
     data: new Uint8Array(bytes),
     useSystemFonts: false,
@@ -38,9 +31,9 @@ async function pdfText(bytes: Buffer) {
   }
   await task.destroy();
   return pages.join('\n');
-}
+};
 
-async function linkUris(bytes: Buffer) {
+const linkUris = async (bytes: Buffer) => {
   const document = await PDFDocument.load(bytes);
   return document.getPages().flatMap((page) => {
     const annotations = page.node.Annots() ?? PDFArray.withContext(document.context);
@@ -53,7 +46,14 @@ async function linkUris(bytes: Buffer) {
       return action.lookup(PDFName.of('URI'), PDFString).asString();
     });
   });
-}
+};
+
+const docxFile = (bytes: Buffer, name: string) =>
+  readZip(bytes)
+    .find((entry) => entry.name === name)
+    ?.data.toString('utf8') ?? '';
+const resumePacket = (resume: string): Packet => ({ ...packet, resume });
+const noFonts = async () => [];
 
 const resume = [
   '---',

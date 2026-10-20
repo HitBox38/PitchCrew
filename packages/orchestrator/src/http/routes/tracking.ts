@@ -17,7 +17,7 @@ import type { IdRoute } from '../types.ts';
 import type { CrewService } from '../../service.ts';
 import { readDatabaseImport } from '../../imports/database.ts';
 
-export function registerTrackingRoutes(app: FastifyInstance, service: CrewService) {
+export const registerTrackingRoutes = (app: FastifyInstance, service: CrewService) => {
   app.post<IdRoute>('/api/tracking/applications/:id/external', (req, res) =>
     res.send(registerExistingExternalSubmission(service.board, req.params.id, req.body)),
   );
@@ -95,4 +95,4 @@ export function registerTrackingRoutes(app: FastifyInstance, service: CrewServic
     if (!account) throw new Error('Connect Gmail before linking a thread.');
     res.send(linkTrackingThread(service.board, req.params.id, account, input.threadId));
   });
-}
+};

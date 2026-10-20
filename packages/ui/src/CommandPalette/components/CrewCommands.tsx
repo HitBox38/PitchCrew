@@ -3,7 +3,7 @@ import { CommandGroup } from '@/components/ui/command/components/CommandGroup.ts
 import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
 import { MessageSquare, SlidersHorizontal } from 'lucide-react';
 
-export function CrewCommands({ roles, run, onChatRole, onConfigureRole }: CrewCommandsProps) {
+export const CrewCommands = ({ roles, run, onChatRole, onConfigureRole }: CrewCommandsProps) => {
   return (
     <CommandGroup heading="Crew">
       {roles
@@ -23,4 +23,4 @@ export function CrewCommands({ roles, run, onChatRole, onConfigureRole }: CrewCo
         ))}
     </CommandGroup>
   );
-}
+};

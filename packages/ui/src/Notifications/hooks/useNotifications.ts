@@ -13,11 +13,7 @@ import {
 } from '../helpers.ts';
 import type { CrewNotification } from '../types.ts';
 
-const readKey = 'pitchcrew-notifications-read-v1';
-const isIds = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((id) => typeof id === 'string');
-
-export function useNotifications() {
+export const useNotifications = () => {
   const data = useWorkspaceStore((s) => s.data);
   const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());
@@ -99,4 +95,8 @@ export function useNotifications() {
     toastManager,
     openNotification,
   };
-}
+};
+
+const readKey = 'pitchcrew-notifications-read-v1';
+const isIds = (value: unknown): value is string[] =>
+  Array.isArray(value) && value.every((id) => typeof id === 'string');

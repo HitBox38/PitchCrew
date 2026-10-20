@@ -5,23 +5,10 @@ import { homedir } from 'node:os';
 import { pathFor, samePath } from './paths.ts';
 import { defaultPort, repositoryRoot, type DaemonSettings } from './settings.ts';
 
-export const unsupportedStatus: BackgroundServiceStatus = {
-  platform: null,
-  installed: false,
-  enabled: false,
-  running: false,
-  pid: null,
-  directory: null,
-  port: null,
-  definition: null,
-  logFile: null,
-  detail: 'The background service supports Windows, macOS and Linux.',
-};
-
 /** Reads this user's background service through the real service manager. */
-export async function readBackgroundService(
+export const readBackgroundService = async (
   settings: DaemonSettings,
-): Promise<BackgroundServiceStatus> {
+): Promise<BackgroundServiceStatus> => {
   const spec = currentServiceSpec(settings);
   if (!spec) return unsupportedStatus;
   try {
@@ -33,14 +20,14 @@ export async function readBackgroundService(
       detail: `Could not read the background service: ${error instanceof Error ? error.message : String(error)}`,
     };
   }
-}
+};
 
 /** Describes the background service relative to the daemon answering the request. */
-export function backgroundServiceInfo(
+export const backgroundServiceInfo = (
   status: BackgroundServiceStatus,
   daemon: DaemonSettings & { service: boolean },
   home = homedir(),
-): BackgroundServiceInfo {
+): BackgroundServiceInfo => {
   const platform = status.platform ?? currentPlatform() ?? 'linux';
   return {
     status,
@@ -60,4 +47,17 @@ export function backgroundServiceInfo(
       logs: 'pnpm service logs',
     },
   };
-}
+};
+
+export const unsupportedStatus: BackgroundServiceStatus = {
+  platform: null,
+  installed: false,
+  enabled: false,
+  running: false,
+  pid: null,
+  directory: null,
+  port: null,
+  definition: null,
+  logFile: null,
+  detail: 'The background service supports Windows, macOS and Linux.',
+};

@@ -5,7 +5,7 @@ import { ConversationList } from './ConversationList.tsx';
 import type { ConversationMenuActions } from './ConversationMenu.tsx';
 import type { ConversationNavigationRow } from '../types.ts';
 
-export function ConversationDms({
+export const ConversationDms = ({
   rows,
   query,
   open,
@@ -23,7 +23,7 @@ export function ConversationDms({
   closeMobile: () => void;
   actions: ConversationMenuActions;
   working: boolean;
-}) {
+}) => {
   return (
     <Collapsible
       className="conversation-dms"
@@ -50,4 +50,4 @@ export function ConversationDms({
       </CollapsibleContent>
     </Collapsible>
   );
-}
+};

@@ -3,7 +3,7 @@ import type { Routine, Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
 import { routineInput } from '../helpers.ts';
 
-export function useRoutinesPage(data: Snapshot, action: Action) {
+export const useRoutinesPage = (data: Snapshot, action: Action) => {
   const [editing, setEditing] = useState<Routine | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Routine | null>(null);
   const [query, setQuery] = useState('');
@@ -57,4 +57,4 @@ export function useRoutinesPage(data: Snapshot, action: Action) {
     toggle,
     remove,
   };
-}
+};

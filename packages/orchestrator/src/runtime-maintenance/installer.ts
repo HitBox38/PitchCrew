@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import type { MaintenanceCommand } from '@pitchcrew/adapters';
 
 /** Keep update execution alive across renderer disconnects, but owned by the daemon. */
-export function runRuntimeInstaller(
+export const runRuntimeInstaller = (
   command: MaintenanceCommand,
   options: {
     lockKey: string;
@@ -12,7 +12,7 @@ export function runRuntimeInstaller(
     onOutput?: (text: string) => void;
     onSpawn?: (pid: number) => void;
   },
-): Promise<{ code: number | null; stdout: string; stderr: string }> {
+): Promise<{ code: number | null; stdout: string; stderr: string }> => {
   if (options.signal?.aborted)
     return Promise.reject(new Error('Runtime maintenance was interrupted.'));
   return new Promise((resolve, reject) => {
@@ -49,4 +49,4 @@ export function runRuntimeInstaller(
       else resolve({ code, stdout: '', stderr: '' });
     });
   });
-}
+};

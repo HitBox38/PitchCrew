@@ -1,30 +1,17 @@
 import bidiFactory from 'bidi-js';
 
-// The Unicode Bidirectional Algorithm (UAX #9) from bidi-js. Levels are resolved per paragraph in
-// logical order; lines are wrapped in logical order and then reordered for display.
-const bidi = bidiFactory();
-
-export type Direction = 'ltr' | 'rtl';
-
 // Rules P2 and P3: the first strong character outside directional isolates decides the paragraph's
 // direction. Let the same algorithm that resolves the runs handle nested or unmatched isolates.
-export function baseDirection(text: string): Direction {
+export const baseDirection = (text: string): Direction => {
   return bidi.getEmbeddingLevels(text).paragraphs[0]?.level === 1 ? 'rtl' : 'ltr';
-}
-
-/** Embedding levels per UTF-16 code unit; odd levels are right-to-left. */
-export const embeddingLevels = (text: string, direction: Direction) =>
-  bidi.getEmbeddingLevels(text, direction).levels;
-
-/** Rule L4: brackets and similar characters swap at right-to-left levels. */
-export const mirrored = (character: string) => bidi.getMirroredCharacter(character) ?? character;
+};
 
 /**
  * Rule L2: from the highest level down to the lowest odd level, reverses every run of items at
  * that level or higher. Items keep their own text in logical order; the PDF writer lays out odd
  * levels right to left.
  */
-export function visualOrder<T>(items: T[], level: (item: T) => number): T[] {
+export const visualOrder = <T>(items: T[], level: (item: T) => number): T[] => {
   const levels = items.map(level);
   const odd = levels.filter((value) => value % 2);
   if (!odd.length) return items;
@@ -42,4 +29,17 @@ export function visualOrder<T>(items: T[], level: (item: T) => number): T[] {
       start = end;
     }
   return order.map((index) => items[index]);
-}
+};
+
+// The Unicode Bidirectional Algorithm (UAX #9) from bidi-js. Levels are resolved per paragraph in
+// logical order; lines are wrapped in logical order and then reordered for display.
+const bidi = bidiFactory();
+
+export type Direction = 'ltr' | 'rtl';
+
+/** Embedding levels per UTF-16 code unit; odd levels are right-to-left. */
+export const embeddingLevels = (text: string, direction: Direction) =>
+  bidi.getEmbeddingLevels(text, direction).levels;
+
+/** Rule L4: brackets and similar characters swap at right-to-left levels. */
+export const mirrored = (character: string) => bidi.getMirroredCharacter(character) ?? character;

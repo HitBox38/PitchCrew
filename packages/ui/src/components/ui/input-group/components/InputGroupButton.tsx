@@ -3,13 +3,13 @@ import { inputGroupButtonVariants } from '@/components/ui/input-group/constants.
 import type { InputGroupButtonProps } from '@/components/ui/input-group/types.ts';
 import { cn } from '@/lib/utils.ts';
 
-export function InputGroupButton({
+export const InputGroupButton = ({
   className,
   type = 'button',
   variant = 'ghost',
   size = 'xs',
   ...props
-}: InputGroupButtonProps) {
+}: InputGroupButtonProps) => {
   return (
     <Button
       type={type}
@@ -19,4 +19,4 @@ export function InputGroupButton({
       {...props}
     />
   );
-}
+};

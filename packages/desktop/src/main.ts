@@ -16,47 +16,7 @@ import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon, ownsPackagedDaemon } from './packaged.ts';
 import { registerDesktopUpdates } from './updates/index.ts';
 import { installStartupTiming } from './startup.ts';
-
-app.setName('Pitchcrew');
-const hiddenSmoke =
-  !!process.env.PITCHCREW_SMOKE_FILE && process.env.PITCHCREW_SMOKE_VISIBLE !== '1';
-if (hiddenSmoke && process.platform === 'darwin') app.setActivationPolicy('accessory');
-if (process.env.PITCHCREW_SMOKE_FILE)
-  app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
-let url = process.env.PITCHCREW_URL ?? 'http://127.0.0.1:4417';
-if (new URL(url).hostname !== '127.0.0.1')
-  throw new Error('Pitchcrew only opens its loopback daemon.');
-const primaryInstance = app.requestSingleInstanceLock();
-if (!primaryInstance) app.quit();
-let window: BrowserWindow | null = null;
-let daemonReady = !app.isPackaged;
-let startupWindowCreated = false;
-let daemonReadyMs = 0;
-let updates: Awaited<ReturnType<typeof registerDesktopUpdates>> | undefined;
-const appIcon = nativeImage.createFromPath(
-  fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
-);
-// Keep these colours in sync with the renderer's paper and ink tokens.
-const chromeColors = {
-  light: { color: '#f2f1ec', symbolColor: '#2b2d31' },
-  dark: { color: '#1a1b1e', symbolColor: '#e9e7e1' },
-};
-ipcMain.on('pitchcrew:theme', (event, theme: unknown, source: unknown) => {
-  if (
-    !window ||
-    event.sender !== window.webContents ||
-    event.senderFrame !== window.webContents.mainFrame ||
-    !event.senderFrame ||
-    new URL(event.senderFrame.url).origin !== new URL(url).origin ||
-    (theme !== 'light' && theme !== 'dark') ||
-    (source !== 'system' && source !== 'light' && source !== 'dark')
-  )
-    return;
-  nativeTheme.themeSource = source;
-  window.setBackgroundColor(chromeColors[theme].color);
-  if (process.platform !== 'darwin') window.setTitleBarOverlay(chromeColors[theme]);
-});
-function createWindow() {
+const createWindow = () => {
   window = new BrowserWindow({
     width: 1440,
     height: 960,
@@ -112,7 +72,47 @@ function createWindow() {
     installStartupTiming(window, new URL(url).origin, daemonReadyMs);
   }
   void window.loadURL(url);
-}
+};
+
+app.setName('Pitchcrew');
+const hiddenSmoke =
+  !!process.env.PITCHCREW_SMOKE_FILE && process.env.PITCHCREW_SMOKE_VISIBLE !== '1';
+if (hiddenSmoke && process.platform === 'darwin') app.setActivationPolicy('accessory');
+if (process.env.PITCHCREW_SMOKE_FILE)
+  app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
+let url = process.env.PITCHCREW_URL ?? 'http://127.0.0.1:4417';
+if (new URL(url).hostname !== '127.0.0.1')
+  throw new Error('Pitchcrew only opens its loopback daemon.');
+const primaryInstance = app.requestSingleInstanceLock();
+if (!primaryInstance) app.quit();
+let window: BrowserWindow | null = null;
+let daemonReady = !app.isPackaged;
+let startupWindowCreated = false;
+let daemonReadyMs = 0;
+let updates: Awaited<ReturnType<typeof registerDesktopUpdates>> | undefined;
+const appIcon = nativeImage.createFromPath(
+  fileURLToPath(new URL('../assets/icon.png', import.meta.url)),
+);
+// Keep these colours in sync with the renderer's paper and ink tokens.
+const chromeColors = {
+  light: { color: '#f2f1ec', symbolColor: '#2b2d31' },
+  dark: { color: '#1a1b1e', symbolColor: '#e9e7e1' },
+};
+ipcMain.on('pitchcrew:theme', (event, theme: unknown, source: unknown) => {
+  if (
+    !window ||
+    event.sender !== window.webContents ||
+    event.senderFrame !== window.webContents.mainFrame ||
+    !event.senderFrame ||
+    new URL(event.senderFrame.url).origin !== new URL(url).origin ||
+    (theme !== 'light' && theme !== 'dark') ||
+    (source !== 'system' && source !== 'light' && source !== 'dark')
+  )
+    return;
+  nativeTheme.themeSource = source;
+  window.setBackgroundColor(chromeColors[theme].color);
+  if (process.platform !== 'darwin') window.setTitleBarOverlay(chromeColors[theme]);
+});
 if (primaryInstance)
   void app
     .whenReady()

@@ -2,7 +2,7 @@ import type { UserInputRequest } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 import { Check } from 'lucide-react';
-export function QuestionOptions({
+export const QuestionOptions = ({
   question,
   selected,
   disabled,
@@ -12,7 +12,7 @@ export function QuestionOptions({
   selected: string[];
   disabled: boolean;
   toggleOption: (id: string) => void;
-}) {
+}) => {
   return (
     <div className="user-question-options" aria-label="Suggested answers">
       {question.options.map((option) =>
@@ -51,4 +51,4 @@ export function QuestionOptions({
       )}
     </div>
   );
-}
+};

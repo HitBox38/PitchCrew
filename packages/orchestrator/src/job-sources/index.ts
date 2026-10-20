@@ -86,15 +86,15 @@ export class JobSourceManager {
   private get path() {
     return join(this.directory, 'job-sources.json');
   }
-  async list(): Promise<JobSource[]> {
+  list = async (): Promise<JobSource[]> => {
     try {
       return storedSources.parse(JSON.parse(await readFile(this.path, 'utf8')));
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
       throw error;
     }
-  }
-  private mutate<T>(change: (sources: JobSource[]) => { sources: JobSource[]; result: T }) {
+  };
+  private mutate = <T>(change: (sources: JobSource[]) => { sources: JobSource[]; result: T }) => {
     const next = this.queue.then(async () => {
       const { sources, result } = change(await this.list());
       const temporary = `${this.path}.${randomUUID()}.tmp`;
@@ -108,12 +108,12 @@ export class JobSourceManager {
     });
     this.queue = next.catch(() => {});
     return next;
-  }
-  private assertUnique(
+  };
+  private assertUnique = (
     sources: JobSource[],
     candidate: Pick<JobSource, 'provider' | 'slug'>,
     id?: string,
-  ) {
+  ) => {
     if (
       sources.some(
         (source) =>
@@ -123,8 +123,8 @@ export class JobSourceManager {
       )
     )
       throw new Error('This job board is already a source.');
-  }
-  add(value: unknown): Promise<JobSource> {
+  };
+  add = (value: unknown): Promise<JobSource> => {
     const input = jobSourceInput.parse(value);
     return this.mutate((sources) => {
       if (sources.length >= maxJobSources)
@@ -134,8 +134,8 @@ export class JobSourceManager {
       const source: JobSource = { ...input, id: randomUUID(), createdAt: now, updatedAt: now };
       return { sources: [...sources, source], result: source };
     });
-  }
-  update(id: string, value: unknown): Promise<JobSource> {
+  };
+  update = (id: string, value: unknown): Promise<JobSource> => {
     const input = jobSourceInput.parse(value);
     return this.mutate((sources) => {
       const current = sources.find((source) => source.id === id);
@@ -155,14 +155,17 @@ export class JobSourceManager {
       };
       return { sources: sources.map((item) => (item.id === id ? source : item)), result: source };
     });
-  }
-  remove(id: string): Promise<void> {
+  };
+  remove = (id: string): Promise<void> => {
     return this.mutate((sources) => {
       if (!sources.some((source) => source.id === id)) throw new Error('Job source not found.');
       return { sources: sources.filter((source) => source.id !== id), result: undefined };
     });
-  }
-  private async read(source: Pick<JobSource, 'provider' | 'slug' | 'token'>, signal: AbortSignal) {
+  };
+  private read = async (
+    source: Pick<JobSource, 'provider' | 'slug' | 'token'>,
+    signal: AbortSignal,
+  ) => {
     let body: unknown;
     try {
       const url = sourceEndpoint(source.provider, source.slug, source.token);
@@ -181,9 +184,9 @@ export class JobSourceManager {
       postings: parsePostings(source.provider, source.slug, body, source.token),
       truncated: truncatedResponse(source.provider, body),
     };
-  }
+  };
   /** Show what a source would match without creating cards or saving anything. */
-  async preview(value: unknown, signal?: AbortSignal): Promise<JobSourcePreview> {
+  preview = async (value: unknown, signal?: AbortSignal): Promise<JobSourcePreview> => {
     const input = jobSourceInput.parse(value);
     const combined = AbortSignal.any([this.lifetime.signal, ...(signal ? [signal] : [])]);
     const { postings, truncated } = await this.read(input, combined);
@@ -206,9 +209,9 @@ export class JobSourceManager {
         onBoard: known[index]!,
       })),
     };
-  }
+  };
   /** Read one posting from a pasted link for the user-only Add job form. Creates nothing. */
-  lookup(value: unknown, signal?: AbortSignal): Promise<JobLookupResult> {
+  lookup = (value: unknown, signal?: AbortSignal): Promise<JobLookupResult> => {
     return lookupPublicJobLink(value, {
       fetch: (url, init) => this.fetch(url, init),
       limiter: this.limiter,
@@ -217,15 +220,15 @@ export class JobSourceManager {
       readPage: (url, signal) => this.readPage(url, signal),
       signal: AbortSignal.any([this.lifetime.signal, ...(signal ? [signal] : [])]),
     });
-  }
+  };
   /** Add or refresh one linked job without changing saved sources or applying scan filters. */
-  importLink(options: {
+  importLink = (options: {
     input: unknown;
     actor: string;
     signal: AbortSignal;
     authorize: () => void;
     runId: string;
-  }): Promise<JobLinkImportResult> {
+  }): Promise<JobLinkImportResult> => {
     return importJobLink(options.input, {
       fetch: (url, init) => this.fetch(url, init),
       limiter: this.limiter,
@@ -237,18 +240,18 @@ export class JobSourceManager {
       authorize: options.authorize,
       signal: AbortSignal.any([this.lifetime.signal, options.signal]),
     });
-  }
+  };
   /**
    * Scan saved, enabled sources and add new matching postings as leads. `recentMs` skips sources
    * scanned successfully within that window so scheduled agent scans cannot hammer public APIs.
    */
-  async scan(options: {
+  scan = async (options: {
     actor: string;
     input?: unknown;
     signal?: AbortSignal;
     recentMs?: number;
     authorize?: () => void;
-  }): Promise<JobScanSummary> {
+  }): Promise<JobScanSummary> => {
     const { sourceIds } = jobScanInput.parse(options.input ?? {});
     if (this.scanning) throw new Error('A job source scan is already running.');
     this.scanning = true;
@@ -392,8 +395,8 @@ export class JobSourceManager {
     } finally {
       this.scanning = false;
     }
-  }
-  close() {
+  };
+  close = () => {
     this.lifetime.abort();
-  }
+  };
 }

@@ -7,7 +7,7 @@ import type { CreationDraft } from './types.ts';
 import type { Snapshot } from '@pitchcrew/core';
 import { draftInput, scheduleLabel } from '../RoutinesPage/helpers.ts';
 
-export function reviewSections(draft: CreationDraft, data: Snapshot) {
+export const reviewSections = (draft: CreationDraft, data: Snapshot) => {
   const role = draft.role;
   const permissions = Object.entries(capabilityLabels).filter(
     ([key]) => role.capabilities?.[key as keyof typeof role.capabilities],
@@ -39,8 +39,8 @@ export function reviewSections(draft: CreationDraft, data: Snapshot) {
       text: routineReview(draft, data),
     },
   ];
-}
-function routineReview(draft: CreationDraft, data: Snapshot): string {
+};
+const routineReview = (draft: CreationDraft, data: Snapshot): string => {
   if (!draft.scheduled) return 'Start work in chat. No routine will be created.';
   const routine = draft.routine;
   const job = data.cards.find((card) => card.id === routine.cardId);
@@ -56,4 +56,4 @@ function routineReview(draft: CreationDraft, data: Snapshot): string {
   ]
     .filter(Boolean)
     .join('\n');
-}
+};

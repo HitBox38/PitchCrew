@@ -1,6 +1,6 @@
 import type { ChatAttachment, ChatAttachmentUpload } from '@pitchcrew/core';
 
-export function encodeAttachment(file: File): Promise<ChatAttachmentUpload> {
+export const encodeAttachment = (file: File): Promise<ChatAttachmentUpload> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () =>
@@ -10,9 +10,9 @@ export function encodeAttachment(file: File): Promise<ChatAttachmentUpload> {
     reader.onabort = () => reject(new Error('File reading was cancelled.'));
     reader.readAsDataURL(file);
   });
-}
+};
 
-export async function downloadAttachment(messageId: string, file: ChatAttachment) {
+export const downloadAttachment = async (messageId: string, file: ChatAttachment) => {
   const response = await fetch(`/api/chat/messages/${messageId}/attachments/${file.id}`, {
     headers: { 'x-pitchcrew-client': 'ui' },
   });
@@ -23,4 +23,4 @@ export async function downloadAttachment(messageId: string, file: ChatAttachment
   link.download = file.name;
   link.click();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
+};

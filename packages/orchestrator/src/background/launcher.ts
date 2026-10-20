@@ -2,28 +2,12 @@ import type { BackgroundServicePlatform, BackgroundServiceStatus } from '@pitchc
 import { samePath } from './paths.ts';
 import type { DaemonSettings } from './settings.ts';
 
-export interface DaemonHealth {
-  app: 'pitchcrew';
-  service: boolean;
-}
-
-/**
- * How the desktop launcher gets a daemon. Only a daemon the launcher spawned is stopped when the
- * window closes; a running daemon or the background service keeps running.
- */
-export type DaemonPlan =
-  | { action: 'reuse'; owner: 'service' | 'other' }
-  | { action: 'start-service' }
-  | { action: 'spawn' };
-
-type ServiceView = Pick<BackgroundServiceStatus, 'installed' | 'directory' | 'port'>;
-
-export function planDaemon(
+export const planDaemon = (
   health: DaemonHealth | null,
   service: ServiceView | null,
   settings: DaemonSettings,
   platform: BackgroundServicePlatform | null,
-): DaemonPlan {
+): DaemonPlan => {
   if (health) return { action: 'reuse', owner: health.service ? 'service' : 'other' };
   if (
     platform &&
@@ -33,25 +17,10 @@ export function planDaemon(
   )
     return { action: 'start-service' };
   return { action: 'spawn' };
-}
-
-export const stopsOnExit = (plan: DaemonPlan) => plan.action === 'spawn';
-
-export interface LauncherDeps {
-  settings: DaemonSettings;
-  platform: BackgroundServicePlatform | null;
-  health(): Promise<DaemonHealth | null>;
-  serviceStatus(): Promise<ServiceView | null>;
-  startService(): Promise<void>;
-  spawnDaemon(): { kill(): void };
-  sleep(ms: number): Promise<void>;
-  log(message: string): void;
-  /** Readiness checks, 500 ms apart. First startup can load starter skills for 30 seconds. */
-  attempts?: number;
-}
+};
 
 /** Finds, starts or spawns the daemon for the desktop window. */
-export async function prepareDaemon(deps: LauncherDeps) {
+export const prepareDaemon = async (deps: LauncherDeps) => {
   const health = await deps.health();
   const service = health ? null : await deps.serviceStatus().catch(() => null);
   const plan = planDaemon(health, service, deps.settings, deps.platform);
@@ -81,4 +50,35 @@ export async function prepareDaemon(deps: LauncherDeps) {
     throw new Error('The local daemon did not become ready.');
   }
   return { plan, child };
+};
+
+export interface DaemonHealth {
+  app: 'pitchcrew';
+  service: boolean;
+}
+
+/**
+ * How the desktop launcher gets a daemon. Only a daemon the launcher spawned is stopped when the
+ * window closes; a running daemon or the background service keeps running.
+ */
+export type DaemonPlan =
+  | { action: 'reuse'; owner: 'service' | 'other' }
+  | { action: 'start-service' }
+  | { action: 'spawn' };
+
+type ServiceView = Pick<BackgroundServiceStatus, 'installed' | 'directory' | 'port'>;
+
+export const stopsOnExit = (plan: DaemonPlan) => plan.action === 'spawn';
+
+export interface LauncherDeps {
+  settings: DaemonSettings;
+  platform: BackgroundServicePlatform | null;
+  health(): Promise<DaemonHealth | null>;
+  serviceStatus(): Promise<ServiceView | null>;
+  startService(): Promise<void>;
+  spawnDaemon(): { kill(): void };
+  sleep(ms: number): Promise<void>;
+  log(message: string): void;
+  /** Readiness checks, 500 ms apart. First startup can load starter skills for 30 seconds. */
+  attempts?: number;
 }

@@ -7,13 +7,13 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu/index.tsx';
 import { Ellipsis } from 'lucide-react';
-export function QueuedMessageMenu({
+export const QueuedMessageMenu = ({
   update,
   working,
 }: {
   update: (command: string) => Promise<unknown>;
   working: boolean;
-}) {
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -39,4 +39,4 @@ export function QueuedMessageMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

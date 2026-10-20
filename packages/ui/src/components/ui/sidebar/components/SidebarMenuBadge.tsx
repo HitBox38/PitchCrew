@@ -1,7 +1,7 @@
 import type { SidebarMenuBadgeProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarMenuBadge({ className, ...props }: SidebarMenuBadgeProps) {
+export const SidebarMenuBadge = ({ className, ...props }: SidebarMenuBadgeProps) => {
   return (
     <div
       data-slot="sidebar-menu-badge"
@@ -18,4 +18,4 @@ export function SidebarMenuBadge({ className, ...props }: SidebarMenuBadgeProps)
       {...props}
     />
   );
-}
+};

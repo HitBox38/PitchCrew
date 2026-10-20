@@ -4,11 +4,11 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
-export function PurposeStep({
+export const PurposeStep = ({
   draft,
   changeRole,
   changeName,
-}: StepProps & Pick<CreationController, 'changeName'>) {
+}: StepProps & Pick<CreationController, 'changeName'>) => {
   const role = draft.role;
   return (
     <div className="flex flex-col gap-5">
@@ -78,5 +78,5 @@ export function PurposeStep({
       </div>
     </div>
   );
-}
+};
 type RoleWorkflow = StepProps['draft']['role']['workflow'];

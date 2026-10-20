@@ -2,7 +2,7 @@ import { JobMetadata } from './JobMetadata.tsx';
 import type { JobOverviewProps } from '../types.ts';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 
-export function JobOverview({ card }: JobOverviewProps) {
+export const JobOverview = ({ card }: JobOverviewProps) => {
   return (
     <div className="detail-job space-y-6">
       {card.tags.length ? (
@@ -34,4 +34,4 @@ export function JobOverview({ card }: JobOverviewProps) {
       </AccordionSection>
     </div>
   );
-}
+};

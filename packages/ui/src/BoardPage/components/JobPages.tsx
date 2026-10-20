@@ -1,14 +1,14 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { useJobPage } from '../hooks/useJobPage.ts';
 
-export function JobPages({
+export const JobPages = ({
   label,
   disabled,
   ...model
 }: ReturnType<typeof useJobPage> & {
   label: string;
   disabled: boolean;
-}) {
+}) => {
   if (model.pages <= 1) return null;
   return (
     <nav
@@ -38,4 +38,4 @@ export function JobPages({
       </Button>
     </nav>
   );
-}
+};

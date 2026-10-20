@@ -3,7 +3,13 @@ import { useIsPresent } from 'motion/react';
 import * as m from 'motion/react-m';
 import type { ReactNode } from 'react';
 
-export function QuestionToaster({ children, reduced }: { children: ReactNode; reduced: boolean }) {
+export const QuestionToaster = ({
+  children,
+  reduced,
+}: {
+  children: ReactNode;
+  reduced: boolean;
+}) => {
   const present = useIsPresent();
   const hidden = reduced ? 'translateY(0%)' : 'translateY(100%)';
   return (
@@ -26,4 +32,4 @@ export function QuestionToaster({ children, reduced }: { children: ReactNode; re
       </div>
     </m.section>
   );
-}
+};

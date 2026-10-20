@@ -24,7 +24,12 @@ import {
   verifiedGmail,
 } from '../tracking/helpers.ts';
 
-function authorize(context: CrewContext, capability: RunCapability, token: string, write: boolean) {
+const authorize = (
+  context: CrewContext,
+  capability: RunCapability,
+  token: string,
+  write: boolean,
+) => {
   const role = context.board.get<Role>('role', capability.roleId);
   if (!role.enabled) throw new Error('Tracking is disabled for this role.');
   const permissions = {
@@ -42,31 +47,33 @@ function authorize(context: CrewContext, capability: RunCapability, token: strin
       'Enable read applications, and Gmail plus track applications for reconciliation.',
     );
   return signal;
-}
-function account(context: CrewContext): string {
+};
+const account = (context: CrewContext): string => {
   const google = context.connectors
     .status()
     .find((value) => value.id === 'google' && value.connected && value.services.includes('gmail'));
   if (!google?.account) throw new Error('Connect Gmail before scanning applications.');
   return google.account;
-}
-export async function trackingAction(
-  this: CrewContext,
+};
+export const trackingAction = async (
+  context: CrewContext,
   capability: RunCapability,
   token: string,
   action: string,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  const signal = authorize(this, capability, token, action !== 'applications');
-  if (action === 'applications') return searchApplications(this.board, data.input ?? {});
-  const mailbox = account(this);
+): Promise<Record<string, unknown>> => {
+  const signal = authorize(context, capability, token, action !== 'applications');
+  if (action === 'applications') return searchApplications(context.board, data.input ?? {});
+  const mailbox = account(context);
   if (action === 'tracking_scan') {
     const { query } = z
       .object({ query: z.string().trim().min(1).max(1000) })
       .strict()
       .parse(data.input);
     const id = trackingId(capability.roleId, mailbox, query);
-    const current = this.board.list<TrackingScan>('tracking_scan').find((scan) => scan.id === id);
+    const current = context.board
+      .list<TrackingScan>('tracking_scan')
+      .find((scan) => scan.id === id);
     if (current?.pendingIds.length) return { scan: current };
     const pageToken = current?.complete ? null : (current?.nextPageToken ?? null);
     const page = z
@@ -78,19 +85,21 @@ export async function trackingAction(
         nextPageToken: z.string().max(2000).optional(),
       })
       .parse(
-        await this.connectors.call(
+        await context.connectors.call(
           'gmail_search_messages',
           { query, limit: 20, ...(pageToken ? { pageToken } : {}) },
           signal,
         ),
       );
-    authorize(this, capability, token, true);
-    if (account(this) !== mailbox) throw new Error('Gmail account changed during the scan.');
-    return this.board.db.transaction(() => {
-      const latest = this.board.list<TrackingScan>('tracking_scan').find((scan) => scan.id === id);
+    authorize(context, capability, token, true);
+    if (account(context) !== mailbox) throw new Error('Gmail account changed during the scan.');
+    return context.board.db.transaction(() => {
+      const latest = context.board
+        .list<TrackingScan>('tracking_scan')
+        .find((scan) => scan.id === id);
       if (latest && latest.updatedAt !== current?.updatedAt) return { scan: latest };
       const processed = new Set(
-        this.board
+        context.board
           .list<TrackingSignal>('tracking_signal')
           .filter((value) => value.account === mailbox)
           .map((value) => value.messageId),
@@ -108,32 +117,37 @@ export async function trackingAction(
         complete: !page.nextPageToken,
         updatedAt: new Date().toISOString(),
       };
-      this.board.record('tracking_scan', scan, capability.roleId, 'Saved Gmail tracking scan page');
+      context.board.record(
+        'tracking_scan',
+        scan,
+        capability.roleId,
+        'Saved Gmail tracking scan page',
+      );
       return { scan };
     })();
   }
   const input = trackingReconciliation.parse(data.input);
-  const scan = this.board.get<TrackingScan>('tracking_scan', input.scanId);
+  const scan = context.board.get<TrackingScan>('tracking_scan', input.scanId);
   if (scan.roleId !== capability.roleId || scan.account !== mailbox)
     throw new Error('This scan belongs to another role or mailbox.');
   const id = trackingId(mailbox, input.messageId);
-  const existing = this.board
+  const existing = context.board
     .list<TrackingSignal>('tracking_signal')
     .find((value) => value.id === id);
   if (existing)
-    return this.board.db.transaction(() => {
-      const latest = this.board.get<TrackingScan>('tracking_scan', scan.id);
+    return context.board.db.transaction(() => {
+      const latest = context.board.get<TrackingScan>('tracking_scan', scan.id);
       if (latest.pendingIds.includes(input.messageId))
-        completeTrackingMessage(this.board, latest, input.messageId);
+        completeTrackingMessage(context.board, latest, input.messageId);
       return { evidence: existing };
     })();
   if (!scan.pendingIds.includes(input.messageId))
     throw new Error('Message is not in the pending scan page.');
   const message = verifiedGmail.parse(
-    await this.connectors.call('gmail_get_message', { messageId: input.messageId }, signal),
+    await context.connectors.call('gmail_get_message', { messageId: input.messageId }, signal),
   );
-  authorize(this, capability, token, true);
-  if (account(this) !== mailbox || message.id !== input.messageId)
+  authorize(context, capability, token, true);
+  if (account(context) !== mailbox || message.id !== input.messageId)
     throw new Error('Gmail source identity changed.');
   const body = messageBody(message);
   if (!body.includes(input.quote))
@@ -141,20 +155,20 @@ export async function trackingAction(
   const timestamp = Number(message.internalDate);
   if (!Number.isFinite(timestamp) || timestamp < 0 || timestamp > Date.now())
     throw new Error('Invalid Gmail evidence time.');
-  return this.board.db.transaction(() => {
-    const duplicate = this.board
+  return context.board.db.transaction(() => {
+    const duplicate = context.board
       .list<TrackingSignal>('tracking_signal')
       .find((value) => value.id === id);
     if (duplicate) {
-      const current = this.board.get<TrackingScan>('tracking_scan', scan.id);
+      const current = context.board.get<TrackingScan>('tracking_scan', scan.id);
       if (current.pendingIds.includes(input.messageId))
-        completeTrackingMessage(this.board, current, input.messageId);
+        completeTrackingMessage(context.board, current, input.messageId);
       return { evidence: duplicate };
     }
-    const latest = this.board.get<TrackingScan>('tracking_scan', scan.id);
+    const latest = context.board.get<TrackingScan>('tracking_scan', scan.id);
     if (!latest.pendingIds.includes(message.id))
       throw new Error('Scan message is no longer pending.');
-    const candidates = this.board
+    const candidates = context.board
       .list<Card>('card')
       .filter(
         (card) =>
@@ -232,12 +246,13 @@ export async function trackingAction(
       sourceState(input.quote) === input.state &&
       sourceState(body) === input.state
     ) {
-      const conflict = trackingConflict(this.board, evidence, card);
-      if (!conflict) evidence = applyTrackingSignal(this.board, evidence, card, capability.roleId);
+      const conflict = trackingConflict(context.board, evidence, card);
+      if (!conflict)
+        evidence = applyTrackingSignal(context.board, evidence, card, capability.roleId);
       else evidence.reason = conflict;
     }
     if (evidence.status !== 'applied')
-      this.board.record(
+      context.board.record(
         'tracking_signal',
         evidence,
         capability.roleId,
@@ -245,9 +260,9 @@ export async function trackingAction(
           ? 'Tracking evidence needs user review'
           : 'Ignored unrelated Gmail tracking message',
       );
-    completeTrackingMessage(this.board, latest, message.id);
+    completeTrackingMessage(context.board, latest, message.id);
     if (evidence.status === 'pending') {
-      const notification = this.addMessage(
+      const notification = context.addMessage(
         capability.roleId,
         capability.roleId,
         'user',
@@ -255,7 +270,7 @@ export async function trackingAction(
         card?.id ?? null,
         capability.runId,
       );
-      this.board.record(
+      context.board.record(
         'message',
         { ...notification, notification: 'attention' },
         capability.roleId,
@@ -264,4 +279,4 @@ export async function trackingAction(
     }
     return { evidence };
   })();
-}
+};

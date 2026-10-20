@@ -1,5 +1,5 @@
-export function createAgentClient(url: string, token: string) {
-  async function call(action: string, data: Record<string, unknown> = {}) {
+export const createAgentClient = (url: string, token: string) => {
+  const call = async (action: string, data: Record<string, unknown> = {}) => {
     try {
       const response = await fetch(`${url}/api/agent`, {
         method: 'POST',
@@ -47,7 +47,7 @@ export function createAgentClient(url: string, token: string) {
         ],
       };
     }
-  }
+  };
   return call;
-}
+};
 export type AgentCall = ReturnType<typeof createAgentClient>;

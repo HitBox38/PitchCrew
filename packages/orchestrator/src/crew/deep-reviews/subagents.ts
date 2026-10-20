@@ -15,20 +15,20 @@ import { assertReviewCurrent, review, updateReview } from './state.ts';
 import { requireRole } from '../roles.ts';
 import { executeReviewStage } from './stages.ts';
 
-export function reviewChildren(context: CrewContext, id: string) {
+export const reviewChildren = (context: CrewContext, id: string) => {
   const rows = context.board.db
     .prepare(
       "SELECT json FROM entities WHERE kind='review_subagent' AND json_extract(json,'$.reviewId')=? ORDER BY rowid",
     )
     .all(id) as { json: string }[];
   return rows.map((row) => JSON.parse(row.json) as ReviewSubagent);
-}
-export async function reviewAgentAction(
+};
+export const reviewAgentAction = async (
   context: CrewContext,
   capability: RunCapability,
   action: string,
   data: unknown,
-) {
+) => {
   const run = context.board.get<Run>('run', capability.runId);
   if (!run.deepReviewId || run.status !== 'running')
     throw new Error('An active deep-review execution is required.');
@@ -269,4 +269,4 @@ export async function reviewAgentAction(
     subagent: child,
     beyondDefault: reviewChildren(context, live.id).length > 2,
   };
-}
+};

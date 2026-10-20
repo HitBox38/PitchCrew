@@ -1,10 +1,10 @@
 import { Bot, Globe, Hand } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { BrowserControl, AgentBrowserProps } from '../types.ts';
-export function BrowserControls({
+export const BrowserControls = ({
   browserPanel,
   control,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) {
+}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) => {
   const opened = browserPanel.session?.status === 'open';
   const label = !opened
     ? 'Open browser'
@@ -34,4 +34,4 @@ export function BrowserControls({
       </Button>
     </div>
   );
-}
+};

@@ -6,7 +6,7 @@ import { RulesIntro } from './components/RulesIntro.tsx';
 import { usePacketRules } from './hooks/usePacketRules.ts';
 import type { PacketRulesProps } from './types.ts';
 
-export function PacketRulesSettings(props: PacketRulesProps) {
+export const PacketRulesSettings = (props: PacketRulesProps) => {
   const controller = usePacketRules(props);
   return (
     <section className="settings-section packet-rules" aria-labelledby="packet-rules-heading">
@@ -31,4 +31,4 @@ export function PacketRulesSettings(props: PacketRulesProps) {
       <DiscardChanges guard={controller.guard} />
     </section>
   );
-}
+};

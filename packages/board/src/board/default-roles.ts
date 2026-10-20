@@ -1,7 +1,7 @@
 import { customCapabilities, type Role, type RuntimeId } from '@pitchcrew/core';
 
 /** Stored defaults, not special identities: users can edit or retire every member. */
-export function defaultRoles(runtime: RuntimeId, enabled: boolean): Role[] {
+export const defaultRoles = (runtime: RuntimeId, enabled: boolean): Role[] => {
   const base = { runtime, model: '', enabled };
   const support = {
     ...base,
@@ -149,4 +149,4 @@ export function defaultRoles(runtime: RuntimeId, enabled: boolean): Role[] {
       ].join('\n\n'),
     },
   ];
-}
+};

@@ -1,7 +1,7 @@
 import type { InputGroupTextProps } from '@/components/ui/input-group/types.ts';
 import { cn } from '@/lib/utils.ts';
 
-export function InputGroupText({ className, ...props }: InputGroupTextProps) {
+export const InputGroupText = ({ className, ...props }: InputGroupTextProps) => {
   return (
     <span
       className={cn(
@@ -11,4 +11,4 @@ export function InputGroupText({ className, ...props }: InputGroupTextProps) {
       {...props}
     />
   );
-}
+};

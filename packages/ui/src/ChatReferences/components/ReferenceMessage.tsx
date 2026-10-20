@@ -8,11 +8,7 @@ import { ReferenceMarkdownChip } from './ReferenceMarkdownChip.tsx';
 import { ReferenceContext } from '../context.ts';
 import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
-
-const oneBlock = (text: string) => [text];
-const allowedTags = { 'chat-reference': ['index'] };
-const components = { ...noRemoteImages, 'chat-reference': ReferenceMarkdownChip };
-export function ReferenceMessage({
+export const ReferenceMessage = ({
   message,
   catalog,
   streaming,
@@ -20,7 +16,7 @@ export function ReferenceMessage({
   message: ChatMessage;
   catalog: ReferenceCatalog;
   streaming: boolean;
-}) {
+}) => {
   const references = message.references;
   const plugins = useMemo<StreamdownProps['remarkPlugins']>(
     () =>
@@ -45,4 +41,8 @@ export function ReferenceMessage({
       </div>
     </ReferenceContext>
   );
-}
+};
+
+const oneBlock = (text: string) => [text];
+const allowedTags = { 'chat-reference': ['index'] };
+const components = { ...noRemoteImages, 'chat-reference': ReferenceMarkdownChip };

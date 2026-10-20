@@ -2,7 +2,7 @@ import type { LucideIcon } from 'lucide-react';
 import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function SourceChoice({
+export const SourceChoice = ({
   icon: Icon,
   title,
   description,
@@ -16,7 +16,7 @@ export function SourceChoice({
   choose: () => void;
   disabled: boolean;
   focusKey?: string;
-}) {
+}) => {
   return (
     <Button
       variant="outline"
@@ -35,4 +35,4 @@ export function SourceChoice({
       <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
     </Button>
   );
-}
+};

@@ -3,49 +3,16 @@ import { states } from '@pitchcrew/core/states';
 import { viewPaths, type View } from '../navigation.ts';
 import type { AnalyticsEvent, AnalyticsProperties } from './types.ts';
 
-const events: AnalyticsEvent[] = [
-  '$pageview',
-  'workspace_setup_observed',
-  'job_created',
-  'application_registered',
-  'applications_imported',
-  'application_status_changed',
-  'workflow_started',
-  'chat_sent',
-  'conversation_created',
-  'chat_continued',
-  'user_question_answered',
-  'user_question_cancelled',
-  'browser_session_changed',
-  'pipeline_followup_saved',
-  'app_update_download_requested',
-  'app_update_install_requested',
-  'agent_created',
-  'agent_saved',
-  'agent_retired',
-  'agent_restored',
-  'skill_saved',
-  'skill_deleted',
-  'routine_saved',
-  'routine_deleted',
-  'profile_saved',
-  'job_sources_scanned',
-  'packet_export_requested',
-  'approval_decided',
-  'packet_exported',
-  'onboarding_updated',
-];
-
-export function analyticsPage(path: string): View | undefined {
+export const analyticsPage = (path: string): View | undefined => {
   if (/^\/chat(?:\/[^/]+)?$/.test(path)) return 'chat';
   return (Object.keys(viewPaths) as View[]).find((view) => viewPaths[view] === path);
-}
+};
 
 /** Rebuild properties from a closed vocabulary, including SDK-generated properties. */
-export function sanitizeEvent<T extends { event: string; properties: Record<string, unknown> }>(
+export const sanitizeEvent = <T extends { event: string; properties: Record<string, unknown> }>(
   event: T | null,
   diagnosticsAllowed = true,
-): T | null {
+): T | null => {
   if (!event) return null;
   const usage = events.includes(event.event as AnalyticsEvent);
   const diagnostic =
@@ -101,13 +68,13 @@ export function sanitizeEvent<T extends { event: string; properties: Record<stri
     if (input.step === 0 || input.step === 1) properties.step = input.step;
   }
   return { ...event, properties };
-}
+};
 
-export function actionEvent(
+export const actionEvent = (
   path: string,
   method: string,
   body: unknown,
-): { event: AnalyticsEvent; properties?: AnalyticsProperties } | undefined {
+): { event: AnalyticsEvent; properties?: AnalyticsProperties } | undefined => {
   // Match only the route. Thread IDs and all other query values never enter event properties.
   path = path.split('?')[0];
   const input = body && typeof body === 'object' ? (body as Record<string, unknown>) : {};
@@ -181,4 +148,37 @@ export function actionEvent(
     return {
       event: `${path.startsWith('/skills/') ? 'skill' : 'routine'}_${method === 'DELETE' ? 'deleted' : 'saved'}`,
     };
-}
+};
+
+const events: AnalyticsEvent[] = [
+  '$pageview',
+  'workspace_setup_observed',
+  'job_created',
+  'application_registered',
+  'applications_imported',
+  'application_status_changed',
+  'workflow_started',
+  'chat_sent',
+  'conversation_created',
+  'chat_continued',
+  'user_question_answered',
+  'user_question_cancelled',
+  'browser_session_changed',
+  'pipeline_followup_saved',
+  'app_update_download_requested',
+  'app_update_install_requested',
+  'agent_created',
+  'agent_saved',
+  'agent_retired',
+  'agent_restored',
+  'skill_saved',
+  'skill_deleted',
+  'routine_saved',
+  'routine_deleted',
+  'profile_saved',
+  'job_sources_scanned',
+  'packet_export_requested',
+  'approval_decided',
+  'packet_exported',
+  'onboarding_updated',
+];

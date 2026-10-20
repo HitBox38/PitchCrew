@@ -1,4 +1,4 @@
-export function timeAgo(date: string) {
+export const timeAgo = (date: string) => {
   const mins = Math.max(0, Math.round((Date.now() - new Date(date).getTime()) / 60000));
   return mins < 1
     ? 'Just now'
@@ -7,4 +7,4 @@ export function timeAgo(date: string) {
       : mins < 1440
         ? `${Math.floor(mins / 60)}h ago`
         : new Date(date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-}
+};

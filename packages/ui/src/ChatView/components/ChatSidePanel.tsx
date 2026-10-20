@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 
-export function ChatSidePanel({
+export const ChatSidePanel = ({
   title,
   children,
   onClose,
@@ -16,7 +16,7 @@ export function ChatSidePanel({
   onClose: () => void;
   className?: string;
   returnFocus?: string;
-}) {
+}) => {
   return (
     <SidePanel onClose={onClose} className={className} returnFocus={returnFocus}>
       <header className="chat-side-panel-heading">
@@ -28,4 +28,4 @@ export function ChatSidePanel({
       <div className="chat-side-panel-body">{children}</div>
     </SidePanel>
   );
-}
+};

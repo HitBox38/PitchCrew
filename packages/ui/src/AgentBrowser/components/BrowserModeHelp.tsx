@@ -6,7 +6,7 @@ import {
   PopoverContent,
   PopoverTitle,
 } from '@/components/ui/popover/index.tsx';
-export function BrowserModeHelp({ name }: { name: string }) {
+export const BrowserModeHelp = ({ name }: { name: string }) => {
   return (
     <Popover>
       <PopoverTrigger
@@ -39,4 +39,4 @@ export function BrowserModeHelp({ name }: { name: string }) {
       </PopoverContent>
     </Popover>
   );
-}
+};

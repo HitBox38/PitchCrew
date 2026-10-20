@@ -3,7 +3,7 @@ import type { SkillUpdatePreview } from '@pitchcrew/core';
 import { InstructionDiff } from '@/components/InstructionUpdate/components/InstructionDiff.tsx';
 import { diffInstructions } from '@/components/InstructionUpdate/helpers.ts';
 
-export default function SkillUpdateChanges({ review }: { review: SkillUpdatePreview }) {
+const SkillUpdateChanges = ({ review }: { review: SkillUpdatePreview }) => {
   const { current, latest } = review;
   const lines = useMemo(
     () => diffInstructions(current.content, latest.content),
@@ -55,4 +55,5 @@ export default function SkillUpdateChanges({ review }: { review: SkillUpdatePrev
       ) : null}
     </div>
   );
-}
+};
+export default SkillUpdateChanges;

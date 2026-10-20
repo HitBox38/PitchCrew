@@ -19,12 +19,12 @@ import { roleSetup, validateRoleSetup } from './role-setup.ts';
 import { saveRoutine } from './routines/index.ts';
 import { validateReasoning } from './reasoning.ts';
 
-export async function writeRunInstructions(
-  this: CrewContext,
+export const writeRunInstructions = async (
+  context: CrewContext,
   dir: string,
   role: Role,
   skills: Skill[],
-): Promise<void> {
+): Promise<void> => {
   await mkdir(dir, { recursive: true });
   for (const skill of skills) {
     const skillDir = join(dir, 'skills', skill.id);
@@ -41,10 +41,10 @@ export async function writeRunInstructions(
     'utf8',
   );
   await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
-}
-export async function writeRole(this: CrewContext, role: Role): Promise<void> {
+};
+export const writeRole = async (context: CrewContext, role: Role): Promise<void> => {
   roleIdSchema.parse(role.id);
-  const dir = join(this.directory, 'roles', role.id);
+  const dir = join(context.directory, 'roles', role.id);
   await mkdir(dir, { recursive: true });
   await writeFile(
     join(dir, 'AGENTS.md'),
@@ -52,20 +52,20 @@ export async function writeRole(this: CrewContext, role: Role): Promise<void> {
     'utf8',
   );
   await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
-}
-export async function configureRole(
-  this: CrewContext,
+};
+export const configureRole = async (
+  context: CrewContext,
   id: RoleId,
   data: unknown,
   message?: string,
   defaultInstructionBase?: Role['defaultInstructionBase'],
-): Promise<Role> {
-  if (this.configuring.has(id)) throw new Error('This role’s settings are being updated.');
-  if (this.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
+): Promise<Role> => {
+  if (context.configuring.has(id)) throw new Error('This role’s settings are being updated.');
+  if (context.board.list<Run>('run').some((r) => r.roleId === id && r.status === 'running'))
     throw new Error('Wait for this role’s active run or cancel it before changing settings.');
-  const current = requireRole(this, id);
+  const current = requireRole(context, id);
   const parsed = rolePatch.parse(data);
-  if (!this.dev && parsed.runtime === 'demo')
+  if (!context.dev && parsed.runtime === 'demo')
     throw new Error('Demo runtime is only available in development mode.');
   const role = {
     ...current,
@@ -85,74 +85,74 @@ export async function configureRole(
         : current.defaultInstructionBase),
     capabilities: { ...defaultCapabilities, ...current.capabilities, ...parsed.capabilities },
   };
-  this.configuring.add(id);
+  context.configuring.add(id);
   try {
-    if (role.reasoning != null) validateReasoning(role, await this.runtimeModels(role.runtime));
-    await this.writeRole(role);
-    this.board.record('role', role, 'user', message ?? `Updated ${role.name} settings`);
+    if (role.reasoning != null) validateReasoning(role, await context.runtimeModels(role.runtime));
+    await context.writeRole(role);
+    context.board.record('role', role, 'user', message ?? `Updated ${role.name} settings`);
   } finally {
-    this.configuring.delete(id);
+    context.configuring.delete(id);
   }
   return role;
-}
+};
 
-export function requireRole(context: CrewContext, id: RoleId): Role {
+export const requireRole = (context: CrewContext, id: RoleId): Role => {
   const role = context.board.get<Role>('role', roleIdSchema.parse(id));
   if (role.retiredAt) throw new Error('This role is retired.');
   return role;
-}
-export async function createRole(this: CrewContext, data: unknown): Promise<Role> {
+};
+export const createRole = async (context: CrewContext, data: unknown): Promise<Role> => {
   const { skills: selectedSkills, routine, ...input } = roleSetup.parse(data);
   const setup = { ...input, skills: selectedSkills, routine };
   if (
-    this.board.list<Role>('role').some((role) => role.id === input.id) ||
-    this.configuring.has(input.id)
+    context.board.list<Role>('role').some((role) => role.id === input.id) ||
+    context.configuring.has(input.id)
   )
     throw new Error('This role ID already exists, including retired roles.');
-  if (this.board.list<Role>('role').length + this.configuring.size >= 50)
+  if (context.board.list<Role>('role').length + context.configuring.size >= 50)
     throw new Error('You can store up to 50 roles.');
-  validateRoleSetup(this, setup);
+  validateRoleSetup(context, setup);
   const role: Role = {
     ...input,
     retiredAt: null,
     capabilities: { ...customCapabilities, ...input.capabilities },
   };
-  this.configuring.add(role.id);
+  context.configuring.add(role.id);
   try {
-    if (role.reasoning != null) validateReasoning(role, await this.runtimeModels(role.runtime));
-    await this.writeRole(role);
-    this.board.db.transaction(() => {
-      const skills = validateRoleSetup(this, setup);
-      this.board.record('role', role, 'user', `Created ${role.name}`);
+    if (role.reasoning != null) validateReasoning(role, await context.runtimeModels(role.runtime));
+    await context.writeRole(role);
+    context.board.db.transaction(() => {
+      const skills = validateRoleSetup(context, setup);
+      context.board.record('role', role, 'user', `Created ${role.name}`);
       for (const skill of skills.filter((item) => item.scope === 'roles'))
-        this.board.record(
+        context.board.record(
           'skill',
           { ...skill, roleIds: [...skill.roleIds, role.id], updatedAt: new Date().toISOString() },
           'user',
           `Assigned skill to ${role.name}: ${skill.name}`,
         );
-      if (routine) saveRoutine.call(this, routine);
+      if (routine) saveRoutine(context, routine);
     })();
   } finally {
-    this.configuring.delete(role.id);
+    context.configuring.delete(role.id);
   }
   return role;
-}
-export async function retireRole(this: CrewContext, id: RoleId): Promise<Role> {
-  const current = requireRole(this, id);
+};
+export const retireRole = async (context: CrewContext, id: RoleId): Promise<Role> => {
+  const current = requireRole(context, id);
   if (
-    this.configuring.has(id) ||
-    this.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
+    context.configuring.has(id) ||
+    context.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
   )
     throw new Error('Wait for this role active run or settings update before retiring it.');
   const role = { ...current, enabled: false, retiredAt: new Date().toISOString() };
-  this.board.db.transaction(() => {
-    this.board.record('role', role, 'user', `Retired ${role.name}; history retained`);
-    cancelUserQuestions(this, (q) => q.roleId === id, 'The asking agent was retired.');
-    for (const routine of this.board
+  context.board.db.transaction(() => {
+    context.board.record('role', role, 'user', `Retired ${role.name}; history retained`);
+    cancelUserQuestions(context, (q) => q.roleId === id, 'The asking agent was retired.');
+    for (const routine of context.board
       .list<Routine>('routine')
       .filter((item) => !item.deletedAt && (item.roleId === id || item.updatedBy === id)))
-      this.board.record(
+      context.board.record(
         'routine',
         {
           ...routine,
@@ -163,10 +163,10 @@ export async function retireRole(this: CrewContext, id: RoleId): Promise<Role> {
         'user',
         `Paused routine after retiring ${role.name}`,
       );
-    for (const task of this.board
+    for (const task of context.board
       .list<AgentTask>('task')
       .filter((item) => item.status === 'queued' && item.roleId === id))
-      this.board.record(
+      context.board.record(
         'task',
         { ...task, status: 'cancelled', error: 'The target role was retired.' },
         'user',
@@ -174,17 +174,17 @@ export async function retireRole(this: CrewContext, id: RoleId): Promise<Role> {
       );
   })();
   return role;
-}
+};
 
-export async function restoreRole(this: CrewContext, id: RoleId): Promise<Role> {
-  const current = this.board.get<Role>('role', roleIdSchema.parse(id));
+export const restoreRole = async (context: CrewContext, id: RoleId): Promise<Role> => {
+  const current = context.board.get<Role>('role', roleIdSchema.parse(id));
   if (!current.retiredAt) throw new Error('This role is not retired.');
   if (
-    this.configuring.has(id) ||
-    this.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
+    context.configuring.has(id) ||
+    context.board.list<Run>('run').some((run) => run.roleId === id && run.status === 'running')
   )
     throw new Error('Wait for this role active run or settings update before restoring it.');
   const role = { ...current, enabled: false, retiredAt: null };
-  this.board.record('role', role, 'user', `Restored ${role.name} paused; history retained`);
+  context.board.record('role', role, 'user', `Restored ${role.name} paused; history retained`);
   return role;
-}
+};

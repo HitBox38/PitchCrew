@@ -3,7 +3,7 @@ import { useNavigate, useParams } from '@tanstack/react-router';
 import type { Conversation } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function useConversationActions() {
+export const useConversationActions = () => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const { thread } = useParams({ strict: false });
@@ -52,4 +52,4 @@ export function useConversationActions() {
     }
   };
   return { archive, requestDelete, deleting, working, close, confirm };
-}
+};

@@ -1,15 +1,12 @@
 import { useEffect, useLayoutEffect, useRef } from 'react';
-
-export const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
-export const modKey = isMac ? '⌘' : 'Ctrl ';
-function typing(target: EventTarget | null) {
+const typing = (target: EventTarget | null) => {
   return (
     target instanceof HTMLElement &&
     (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
   );
-}
+};
 // Global shortcuts: ⌘K / Ctrl+K anywhere, single keys only when not typing or in a dialog.
-export function useShortcuts(handlers: { search: () => void; newJob: () => void }) {
+export const useShortcuts = (handlers: { search: () => void; newJob: () => void }) => {
   const ref = useRef(handlers);
   useLayoutEffect(() => {
     ref.current = handlers;
@@ -31,4 +28,7 @@ export function useShortcuts(handlers: { search: () => void; newJob: () => void 
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, []);
-}
+};
+
+export const isMac = /Mac|iPhone|iPad/.test(navigator.userAgent);
+export const modKey = isMac ? '⌘' : 'Ctrl ';

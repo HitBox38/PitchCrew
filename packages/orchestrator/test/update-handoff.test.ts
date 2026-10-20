@@ -4,7 +4,7 @@ import {
   type UpdateHandoffDependencies,
 } from '../src/background/update-handoff.ts';
 
-function fixture(overrides: Partial<UpdateHandoffDependencies> = {}) {
+const fixture = (overrides: Partial<UpdateHandoffDependencies> = {}) => {
   let running = true;
   const deps: UpdateHandoffDependencies = {
     plan: { action: 'spawn' },
@@ -26,7 +26,7 @@ function fixture(overrides: Partial<UpdateHandoffDependencies> = {}) {
     ...overrides,
   };
   return { deps, handoff: createUpdateHandoff(deps) };
-}
+};
 
 it('stops an owned daemon, waits for shutdown, and can recover the previous runtime', async () => {
   const { deps, handoff } = fixture();

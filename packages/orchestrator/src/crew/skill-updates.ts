@@ -7,15 +7,15 @@ import type { CrewContext } from './types.ts';
 export class SkillUpdates {
   private readonly reviews = new Map<string, SkillUpdatePreview>();
 
-  private current(context: CrewContext, id: string) {
+  private current = (context: CrewContext, id: string) => {
     if (context.closing) throw new Error('The workspace is closing.');
     const skill = context.board.get<Skill>('skill', z.uuid().parse(id));
     if (skill.deletedAt) throw new Error('This skill has been deleted.');
     if (!skill.source) throw new Error('This skill has no registry source to update.');
     return skill;
-  }
+  };
 
-  async preview(context: CrewContext, id: string): Promise<SkillUpdatePreview> {
+  preview = async (context: CrewContext, id: string): Promise<SkillUpdatePreview> => {
     const current = this.current(context, id);
     const latest = await context.previewSkill(current.source!.url);
     if (JSON.stringify(this.current(context, id)) !== JSON.stringify(current))
@@ -39,9 +39,9 @@ export class SkillUpdates {
     if (this.reviews.size >= 100) this.reviews.delete(this.reviews.keys().next().value!);
     if (review.changed) this.reviews.set(review.id, review);
     return structuredClone(review);
-  }
+  };
 
-  approve(context: CrewContext, id: string, previewId: string): Skill {
+  approve = (context: CrewContext, id: string, previewId: string): Skill => {
     const current = this.current(context, id);
     const review = this.reviews.get(previewId);
     if (!review || review.current.id !== id || Date.parse(review.expiresAt) <= Date.now())
@@ -59,5 +59,5 @@ export class SkillUpdates {
     );
     this.reviews.delete(previewId);
     return updated;
-  }
+  };
 }

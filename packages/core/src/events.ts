@@ -20,6 +20,38 @@ import type { Routine } from './routines.ts';
 import type { Skill, SkillProposal } from './skills.ts';
 import type { Approval } from './workspace.ts';
 import type { TrackingSignal, TrackingScan } from './tracking.ts';
+export const decodeEvent = (raw: string): BoardEvent => {
+  const event = JSON.parse(raw) as BoardEvent;
+  if (
+    event.version !== 1 &&
+    event.version !== 2 &&
+    event.version !== 3 &&
+    event.version !== 4 &&
+    event.version !== 5 &&
+    event.version !== 6 &&
+    event.version !== 7 &&
+    event.version !== 8 &&
+    event.version !== 9 &&
+    event.version !== 10 &&
+    event.version !== 11 &&
+    event.version !== 12 &&
+    event.version !== 13 &&
+    event.version !== 14 &&
+    event.version !== 15 &&
+    event.version !== 16 &&
+    event.version !== 17 &&
+    event.version !== 18 &&
+    event.version !== 19 &&
+    event.version !== 20 &&
+    event.version !== 21 &&
+    event.version !== 22 &&
+    event.version !== 23 &&
+    event.version !== 24 &&
+    event.version !== 25
+  )
+    throw new Error(`Unsupported event version: ${event.version}`);
+  return event;
+};
 
 export interface BoardEvent {
   id: number;
@@ -118,35 +150,3 @@ export interface BoardEvent {
 }
 /** Version 25 adds quality state alongside version 24 durable work queues. */
 export const currentEventVersion = 25 as const;
-export function decodeEvent(raw: string): BoardEvent {
-  const event = JSON.parse(raw) as BoardEvent;
-  if (
-    event.version !== 1 &&
-    event.version !== 2 &&
-    event.version !== 3 &&
-    event.version !== 4 &&
-    event.version !== 5 &&
-    event.version !== 6 &&
-    event.version !== 7 &&
-    event.version !== 8 &&
-    event.version !== 9 &&
-    event.version !== 10 &&
-    event.version !== 11 &&
-    event.version !== 12 &&
-    event.version !== 13 &&
-    event.version !== 14 &&
-    event.version !== 15 &&
-    event.version !== 16 &&
-    event.version !== 17 &&
-    event.version !== 18 &&
-    event.version !== 19 &&
-    event.version !== 20 &&
-    event.version !== 21 &&
-    event.version !== 22 &&
-    event.version !== 23 &&
-    event.version !== 24 &&
-    event.version !== 25
-  )
-    throw new Error(`Unsupported event version: ${event.version}`);
-  return event;
-}

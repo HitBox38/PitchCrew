@@ -8,7 +8,7 @@ import {
 import type { Card } from '@pitchcrew/core';
 import { useRef } from 'react';
 
-export function DeleteJobDialog({
+export const DeleteJobDialog = ({
   card,
   disabled,
   working,
@@ -20,7 +20,7 @@ export function DeleteJobDialog({
   working: boolean;
   close: () => void;
   confirm: () => void;
-}) {
+}) => {
   const cancel = useRef<HTMLButtonElement>(null);
   return (
     <Dialog
@@ -53,4 +53,4 @@ export function DeleteJobDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

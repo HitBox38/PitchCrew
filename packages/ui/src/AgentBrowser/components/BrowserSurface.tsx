@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet/index.tsx';
 import { useBrowserViewport } from '../hooks/useBrowserViewport.ts';
 
-export function BrowserSurface({
+export const BrowserSurface = ({
   modal,
   open,
   name,
@@ -14,7 +14,7 @@ export function BrowserSurface({
   name: string;
   hide: () => void;
   children: ReactNode;
-}) {
+}) => {
   const height = useBrowserViewport();
   if (!modal) {
     if (!open) return null;
@@ -59,4 +59,4 @@ export function BrowserSurface({
       </SheetContent>
     </Sheet>
   );
-}
+};

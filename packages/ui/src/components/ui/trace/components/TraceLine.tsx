@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function TraceLine({
+export const TraceLine = ({
   className,
   status,
   ...props
 }: React.ComponentProps<'span'> & {
   status?: 'running' | 'error' | 'pending';
-}) {
+}) => {
   return (
     <span
       data-slot="trace-line"
@@ -19,4 +19,4 @@ export function TraceLine({
       {...props}
     />
   );
-}
+};

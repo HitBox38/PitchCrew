@@ -3,13 +3,13 @@ import type { useProfileWorkspace } from '../hooks/useProfileWorkspace.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { FolderOpen, PanelLeft, GitBranch } from 'lucide-react';
 
-export function ProfileWorkspaceHeading({
+export const ProfileWorkspaceHeading = ({
   controller: c,
   workspace,
 }: {
   controller: ProfileViewModel;
   workspace: ReturnType<typeof useProfileWorkspace>;
-}) {
+}) => {
   const updates = (c.data.profileProposals ?? []).filter((proposal) =>
     ['pending', 'applying'].includes(proposal.status),
   ).length;
@@ -41,4 +41,4 @@ export function ProfileWorkspaceHeading({
       </Button>
     </header>
   );
-}
+};

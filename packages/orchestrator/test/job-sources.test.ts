@@ -523,7 +523,7 @@ describe('bounded fetch', () => {
     const streamed: FetchLike = async () =>
       new Response(
         new ReadableStream({
-          pull(controller) {
+          pull: (controller) => {
             controller.enqueue(new TextEncoder().encode('x'.repeat(1024)));
           },
         }),

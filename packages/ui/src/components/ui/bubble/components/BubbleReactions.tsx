@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 import { bubbleReactionsVariants } from '../constants.ts';
 
-export function BubbleReactions({
+export const BubbleReactions = ({
   side = 'bottom',
   align = 'end',
   className,
@@ -10,7 +10,7 @@ export function BubbleReactions({
 }: React.ComponentProps<'div'> & {
   align?: 'start' | 'end';
   side?: 'top' | 'bottom';
-}) {
+}) => {
   return (
     <div
       data-slot="bubble-reactions"
@@ -20,4 +20,4 @@ export function BubbleReactions({
       {...props}
     />
   );
-}
+};

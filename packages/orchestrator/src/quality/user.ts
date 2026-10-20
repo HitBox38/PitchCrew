@@ -4,7 +4,7 @@ import type { CrewContext } from '../crew/types.ts';
 import { addPreference, checkGuideRevision, saveGuide } from './writing.ts';
 import { currentPlan, savePlan } from './plans.ts';
 
-export function qualityUserAction(context: CrewContext, data: unknown) {
+export const qualityUserAction = (context: CrewContext, data: unknown) => {
   const input = qualityUserInput.parse(data);
   return context.board.db.transaction(() => {
     if (input.action === 'plan_create') {
@@ -102,4 +102,4 @@ export function qualityUserAction(context: CrewContext, data: unknown) {
     }
     return saveGuide(context, guide, 'user');
   })();
-}
+};

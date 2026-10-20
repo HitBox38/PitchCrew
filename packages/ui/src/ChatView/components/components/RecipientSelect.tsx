@@ -7,12 +7,12 @@ import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
 import { Select } from '@/components/ui/select/constants.ts';
 import type { RoleId } from '@pitchcrew/core';
 
-export function RecipientSelect({
+export const RecipientSelect = ({
   recipient,
   recipientItems,
   working,
   setRecipient,
-}: RecipientSelectProps) {
+}: RecipientSelectProps) => {
   return (
     <Select
       value={recipient}
@@ -40,4 +40,4 @@ export function RecipientSelect({
       </SelectContent>
     </Select>
   );
-}
+};

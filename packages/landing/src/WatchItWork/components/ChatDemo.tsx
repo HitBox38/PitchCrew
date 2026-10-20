@@ -7,17 +7,15 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { job, reply, request } from '../constants';
 import { DemoTurn } from './DemoTurn';
 
-const meta = 'chat-message-meta flex items-center gap-2 text-detail text-muted-foreground';
-
-function JobLink() {
+const JobLink = () => {
   return (
     <span className="chat-job-link">
       <BriefcaseBusiness size={12} aria-hidden="true" /> {job}
     </span>
   );
-}
+};
 
-export function ChatDemo() {
+export const ChatDemo = () => {
   return (
     <div className="chat-workspace writer chat-demo">
       <header className="chat-demo-header">
@@ -56,4 +54,6 @@ export function ChatDemo() {
       </div>
     </div>
   );
-}
+};
+
+const meta = 'chat-message-meta flex items-center gap-2 text-detail text-muted-foreground';

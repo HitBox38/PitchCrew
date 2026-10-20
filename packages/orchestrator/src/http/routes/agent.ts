@@ -3,7 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { CrewService } from '../../service.ts';
 
-export function registerAgentRoutes(app: FastifyInstance, service: CrewService) {
+export const registerAgentRoutes = (app: FastifyInstance, service: CrewService) => {
   app.post('/api/agent', async (req, res) => {
     const token = req.headers.authorization?.replace(/^Bearer /, '') ?? '';
     if (!service.capabilities.has(token))
@@ -34,4 +34,4 @@ export function registerAgentRoutes(app: FastifyInstance, service: CrewService) 
     const { action, ...data } = body;
     return res.send(await service.agentCall(token, action, data));
   });
-}
+};

@@ -4,17 +4,17 @@ import { join } from 'node:path';
 import { setTimeout } from 'node:timers/promises';
 import { afterEach, expect, test, vi } from 'vitest';
 import { smokeStreamPartials, streamSmokeReply } from '../src/smoke-stream.ts';
+const fixture = async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-smoke-stream-'));
+  directories.push(directory);
+  return join(directory, 'ack.txt');
+};
 
 const directories: string[] = [];
 afterEach(async () => {
   for (const directory of directories.splice(0))
     await rm(directory, { recursive: true, force: true });
 });
-async function fixture() {
-  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-smoke-stream-'));
-  directories.push(directory);
-  return join(directory, 'ack.txt');
-}
 
 test('holds each partial until the slow renderer acknowledges that exact checkpoint', async () => {
   const acknowledgement = await fixture();

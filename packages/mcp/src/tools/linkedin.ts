@@ -3,7 +3,7 @@ import { linkedInDraftInput } from '@pitchcrew/core';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerLinkedInTools(server: McpServer, call: AgentCall) {
+export const registerLinkedInTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_check_linkedin_draft',
     {
@@ -14,4 +14,4 @@ export function registerLinkedInTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('check_linkedin_draft', input),
   );
-}
+};

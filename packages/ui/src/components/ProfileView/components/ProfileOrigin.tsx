@@ -1,9 +1,9 @@
 import type { ProfileViewModel } from '../types.ts';
 
-export function ProfileOrigin({
+export const ProfileOrigin = ({
   name,
   sourceController,
-}: Pick<ProfileViewModel, 'name' | 'sourceController'>) {
+}: Pick<ProfileViewModel, 'name' | 'sourceController'>) => {
   const file = sourceController.sources
     .flatMap((source) => source.files)
     .find((entry) => entry.name === name);
@@ -21,4 +21,4 @@ export function ProfileOrigin({
       </span>
     </div>
   );
-}
+};

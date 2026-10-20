@@ -6,13 +6,13 @@ import { Tabs } from '@/components/ui/tabs/index.tsx';
 import type { SkillInstructionsProps } from '@/SkillsView/components/SkillEditor/types.ts';
 import { skillContentLimit } from '@pitchcrew/core/base-skills';
 
-export function SkillInstructions({
+export const SkillInstructions = ({
   content,
   setContent,
   source,
   working,
   loading,
-}: SkillInstructionsProps) {
+}: SkillInstructionsProps) => {
   const [mode, setMode] = useState('write');
   return (
     <section className="role-settings-section" aria-labelledby="skill-content-heading">
@@ -51,4 +51,4 @@ export function SkillInstructions({
       ) : null}
     </section>
   );
-}
+};

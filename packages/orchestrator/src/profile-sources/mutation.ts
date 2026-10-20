@@ -1,22 +1,22 @@
 import type { CrewContext } from '../crew/types.ts';
 
-export function profileUpdateInterrupted(context: CrewContext) {
+export const profileUpdateInterrupted = (context: CrewContext) => {
   return context.board
     .list<{ status: string }>('profile_proposal')
     .some((proposal) => proposal.status === 'applying');
-}
-export function assertProfileReady(context: CrewContext) {
+};
+export const assertProfileReady = (context: CrewContext) => {
   if (profileUpdateInterrupted(context))
     throw new Error(
       'Finish the approved profile update on Profile before starting runs or editing notes.',
     );
-}
+};
 
-export async function changeProfile<T>(
+export const changeProfile = async <T>(
   context: CrewContext,
   action: () => Promise<T>,
   allowActive = false,
-): Promise<T> {
+): Promise<T> => {
   if (
     !allowActive &&
     (context.controllers.size ||
@@ -31,4 +31,4 @@ export async function changeProfile<T>(
   } finally {
     context.profileWriting = false;
   }
-}
+};

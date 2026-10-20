@@ -5,13 +5,13 @@ import { cn } from '@/lib/utils';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { XIcon } from 'lucide-react';
 
-export function SheetContent({
+export const SheetContent = ({
   className,
   children,
   side = 'right',
   showCloseButton = true,
   ...props
-}: SheetContentProps) {
+}: SheetContentProps) => {
   return (
     <SheetPortal>
       <SheetOverlay />
@@ -46,4 +46,4 @@ export function SheetContent({
       </SheetPrimitive.Popup>
     </SheetPortal>
   );
-}
+};

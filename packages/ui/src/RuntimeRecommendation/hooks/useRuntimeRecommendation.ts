@@ -2,23 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import type { RuntimeConfiguration, RuntimeRecommendation } from '@pitchcrew/core';
 import { loadRuntimeRecommendation } from '../api.ts';
 
-export function useRuntimeRecommendation(
+export const useRuntimeRecommendation = (
   roleId: string,
   configuration: RuntimeConfiguration,
   apply: (configuration: RuntimeConfiguration) => void,
-) {
-  const request = useRef<AbortController | null>(null);
-  const latestConfiguration = useRef(configuration);
-  const { runtime, model, reasoning } = configuration;
-  useEffect(() => {
-    latestConfiguration.current = { runtime, model, reasoning };
-  }, [runtime, model, reasoning]);
-  const [checking, setChecking] = useState(false);
-  const [recommendation, setRecommendation] = useState<RuntimeRecommendation | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => () => request.current?.abort(), [roleId]);
-
-  async function recommend() {
+) => {
+  const recommend = async () => {
     request.current?.abort();
     const controller = new AbortController();
     request.current = controller;
@@ -43,6 +32,17 @@ export function useRuntimeRecommendation(
     } finally {
       if (!controller.signal.aborted) setChecking(false);
     }
-  }
+  };
+
+  const request = useRef<AbortController | null>(null);
+  const latestConfiguration = useRef(configuration);
+  const { runtime, model, reasoning } = configuration;
+  useEffect(() => {
+    latestConfiguration.current = { runtime, model, reasoning };
+  }, [runtime, model, reasoning]);
+  const [checking, setChecking] = useState(false);
+  const [recommendation, setRecommendation] = useState<RuntimeRecommendation | null>(null);
+  const [error, setError] = useState('');
+  useEffect(() => () => request.current?.abort(), [roleId]);
   return { checking, recommendation, error, recommend };
-}
+};

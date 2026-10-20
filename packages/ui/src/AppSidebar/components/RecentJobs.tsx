@@ -6,7 +6,7 @@ import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx'
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 
-export function RecentJobs({ recent, onOpenCard }: RecentJobsProps) {
+export const RecentJobs = ({ recent, onOpenCard }: RecentJobsProps) => {
   return (
     <SidebarCategory id="recent" label="Recently opened" className="recent-group">
       <SidebarGroupContent>
@@ -29,4 +29,4 @@ export function RecentJobs({ recent, onOpenCard }: RecentJobsProps) {
       </SidebarGroupContent>
     </SidebarCategory>
   );
-}
+};

@@ -1,5 +1,11 @@
 import type { ChatRequest, Snapshot } from '@pitchcrew/core';
-export function RequestDeliveryStatus({ request, data }: { request: ChatRequest; data: Snapshot }) {
+export const RequestDeliveryStatus = ({
+  request,
+  data,
+}: {
+  request: ChatRequest;
+  data: Snapshot;
+}) => {
   return (
     <div className="chat-deliveries">
       {request.deliveries.map((delivery) => {
@@ -34,4 +40,4 @@ export function RequestDeliveryStatus({ request, data }: { request: ChatRequest;
       })}
     </div>
   );
-}
+};

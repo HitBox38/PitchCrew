@@ -3,14 +3,14 @@ import type { DiagnosticSink } from '@pitchcrew/core';
 import { sanitizeRequestMetric, type requestResults } from './sanitize.ts';
 
 /** A per-request closure holds only a fixed operation and monotonic start time. */
-export function startRequestMetric(
+export const startRequestMetric = (
   path: string,
   method: string,
   body: unknown,
   sink: DiagnosticSink,
   allowed: () => boolean,
   now: () => number = () => performance.now(),
-) {
+) => {
   const operation = actionEvent(path, method, body)?.event;
   if (!operation || !allowed()) return () => {};
   const started = now();
@@ -28,4 +28,4 @@ export function startRequestMetric(
       }
     }
   };
-}
+};

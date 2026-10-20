@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 import { RestoreDefaults } from './RestoreDefaults.tsx';
 
-export function RulesActions({ controller }: { controller: PacketRulesController }) {
+export const RulesActions = ({ controller }: { controller: PacketRulesController }) => {
   const input = useRef<HTMLInputElement>(null);
   const { canSave, dirty, working, state, guard } = controller;
   return (
@@ -44,4 +44,4 @@ export function RulesActions({ controller }: { controller: PacketRulesController
       ) : null}
     </div>
   );
-}
+};

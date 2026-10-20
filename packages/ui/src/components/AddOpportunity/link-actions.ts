@@ -4,7 +4,7 @@ import { recognizePublicJobLink } from '@pitchcrew/core/public-job-links';
 import { workflowSeat } from '@pitchcrew/core/states';
 
 /** Choose the action without making a request or starting an agent. */
-export function jobLinkAction(value: string): 'fetch' | 'scout' | 'invalid' {
+export const jobLinkAction = (value: string): 'fetch' | 'scout' | 'invalid' => {
   const raw = value.trim();
   if (!raw || raw.length > maxJobLinkLength || /\s/.test(raw)) return 'invalid';
   try {
@@ -15,9 +15,9 @@ export function jobLinkAction(value: string): 'fetch' | 'scout' | 'invalid' {
     return 'invalid';
   }
   return recognizeJobLink(raw).recognized || recognizePublicJobLink(raw) ? 'fetch' : 'scout';
-}
+};
 
-export function scoutJobTarget(data: Pick<Snapshot, 'roles' | 'runtimes'>) {
+export const scoutJobTarget = (data: Pick<Snapshot, 'roles' | 'runtimes'>) => {
   const scouts = data.roles.filter((role) => !role.retiredAt && workflowSeat(role) === 'scout');
   const enabled = scouts.filter((role) => role.enabled);
   const permitted = enabled.filter((role) => role.capabilities?.discoverJobs);
@@ -32,7 +32,7 @@ export function scoutJobTarget(data: Pick<Snapshot, 'roles' | 'runtimes'>) {
         ? 'Install Scout’s runtime in Settings to ask Scout to add this job.'
         : '';
   return { role, blocker };
-}
+};
 
 export const scoutJobPrompt = (url: string) =>
   `Add this job to my board from its posting link:\n${url.trim()}\n\nUse the job-link import tool to read the posting and add it as a lead. If it is already on the board, show me the existing job instead. If you cannot read it, ask me for the posting text. Do not shortlist, apply or submit.`;

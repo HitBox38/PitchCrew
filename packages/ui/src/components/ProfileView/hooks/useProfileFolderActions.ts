@@ -2,10 +2,10 @@ import { useState } from 'react';
 import type { ProfileFolderOperation, ProfileNotesProps } from '../types.ts';
 import type { useProfileNotes } from './useProfileNotes.ts';
 
-export function useProfileFolderActions(
+export const useProfileFolderActions = (
   props: ProfileNotesProps,
   notes: ReturnType<typeof useProfileNotes>,
-) {
+) => {
   const [operation, setOperation] = useState<ProfileFolderOperation | null>(null);
   const start = (next: ProfileFolderOperation) => {
     props.organization.clearError();
@@ -24,4 +24,4 @@ export function useProfileFolderActions(
     }
   };
   return { operation, start, submit, close: () => setOperation(null) };
-}
+};

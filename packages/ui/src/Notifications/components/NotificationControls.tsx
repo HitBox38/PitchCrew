@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 import type { NotificationPreferences } from '../types.ts';
 
-export function NotificationControls({
+export const NotificationControls = ({
   preferences,
   onPreferences,
   unread,
@@ -12,7 +12,7 @@ export function NotificationControls({
   onPreferences: (value: NotificationPreferences) => void;
   unread: number;
   onReadAll: () => void;
-}) {
+}) => {
   return (
     <div className="notification-controls form">
       <label className="checkbox-label" htmlFor="notification-panel-sounds">
@@ -28,4 +28,4 @@ export function NotificationControls({
       </Button>
     </div>
   );
-}
+};

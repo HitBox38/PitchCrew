@@ -9,30 +9,11 @@ import {
   type ProfileFile,
 } from '@pitchcrew/core';
 
-export interface PacketFinding {
-  ruleId: string;
-  severity: PacketRuleSeverity;
-  document: PacketDocument | 'claims' | 'rules';
-  message: string;
-}
-export interface PacketCheck {
-  findings: PacketFinding[];
-  /** Blocking messages. Any error stops a draft, fails a review and blocks export. */
-  errors: string[];
-  /** Advisory messages that never block. */
-  warnings: string[];
-}
-
-/** Characters of each document that house rules read. Packet schemas already stay below this. */
-export const ruleInputLimit = 20_000;
-const matchLimit = 1000;
-const findingsPerRule = 20;
-
 /**
  * Removes formatting that is not read as prose: YAML frontmatter, HTML tags and comments,
  * Markdown link targets and raw LaTeX commands such as `\vspace{-4pt}`.
  */
-export function bodyText(text: string): string {
+export const bodyText = (text: string): string => {
   return text
     .replace(/^﻿?---[ \t]*\r?\n[\s\S]*?\r?\n(?:---|\.\.\.)[ \t]*(?:\r?\n|$)/, '')
     .replace(/<!--[\s\S]*?-->/g, ' ')
@@ -44,35 +25,18 @@ export function bodyText(text: string): string {
     .replace(/\\\\/g, ' ')
     .replace(/\\[A-Za-z@]+\*?(?:\[[^\]\n]*\])?(?:\{\s*-?[\d.]+\s*[a-z]{0,2}\s*\})*/g, ' ')
     .replace(/[{}]/g, ' ');
-}
+};
 
 /** `all` keeps the original whitespace split; `body` counts readable words only. */
-export function countWords(text: string, count: 'all' | 'body' = 'body'): number {
+export const countWords = (text: string, count: 'all' | 'body' = 'body'): number => {
   if (count === 'all') return text.split(/\s+/).length;
   return bodyText(text)
     .split(/\s+/)
     .filter((word) => /[\p{L}\p{N}]/u.test(word)).length;
-}
-
-const quote = (value: string) =>
-  JSON.stringify(value.length > 80 ? `${value.slice(0, 80)}…` : value);
-const located = (rule: PacketRule, fallback: string, location: string) =>
-  rule.message ? `${rule.message} (${location})` : fallback;
-
-function* matches(text: string, source: string, flags: string) {
-  const expression = new RegExp(source, `${flags}g`);
-  let count = 0;
-  for (const match of text.matchAll(expression)) {
-    yield match;
-    if (++count > matchLimit) return;
-  }
-}
-
-const bulletLine = /^ ?(?:[-*+]|\d{1,9}[.)])[ \t]+\S|^\s*\\item\b/;
-const markdownHeading = /^[ \t]{0,3}#{1,6}[ \t]+\S/;
+};
 
 /** Markdown headings and lines matching the rule's heading pattern both start a section. */
-function sections(text: string, rule: Extract<PacketRule, { kind: 'max_bullets' }>) {
+const sections = (text: string, rule: Extract<PacketRule, { kind: 'max_bullets' }>) => {
   const heading = rule.heading ? new RegExp(rule.heading, rule.flags) : null;
   const result = [{ heading: 'the start of the document', bullets: 0, checked: !heading }];
   for (const line of text.split(/\r?\n/)) {
@@ -82,9 +46,9 @@ function sections(text: string, rule: Extract<PacketRule, { kind: 'max_bullets' 
     else if (bulletLine.test(line)) result[result.length - 1].bullets++;
   }
   return result.filter((section) => section.checked);
-}
+};
 
-function evaluate(rule: PacketRule, document: PacketDocument, text: string): string[] {
+const evaluate = (rule: PacketRule, document: PacketDocument, text: string): string[] => {
   const label = packetDocumentLabels[document];
   if (rule.kind === 'word_limit') {
     const words = countWords(text, rule.count);
@@ -150,9 +114,9 @@ function evaluate(rule: PacketRule, document: PacketDocument, text: string): str
       `${label}: ${found.length} ${found.length === 1 ? 'match' : 'matches'}, ${sample}`,
     ),
   ];
-}
+};
 
-function claimFindings(packet: Packet, profile: ProfileFile[]): PacketFinding[] {
+const claimFindings = (packet: Packet, profile: ProfileFile[]): PacketFinding[] => {
   const messages: string[] = [];
   for (const claim of packet.claims) {
     const source = profile.find((file) => file.name === claim.source);
@@ -173,14 +137,14 @@ function claimFindings(packet: Packet, profile: ProfileFile[]): PacketFinding[] 
     document: 'claims',
     message,
   }));
-}
+};
 
 /** Checks claims against profile quotations, then applies the user's mechanical house rules. */
-export function checkPacket(
+export const checkPacket = (
   packet: Packet,
   profile: ProfileFile[],
   rules: PacketRules = defaultPacketRules,
-): PacketCheck {
+): PacketCheck => {
   const findings = claimFindings(packet, profile);
   for (const rule of rules.rules)
     for (const document of rule.documents) {
@@ -202,18 +166,55 @@ export function checkPacket(
     ...new Set(findings.filter((item) => item.severity === severity).map((item) => item.message)),
   ];
   return { findings, errors: messages('error'), warnings: messages('warn') };
-}
+};
 
 /** Blocking problems only. Prefer checkPacket when warnings are shown. */
-export function lintPacket(
+export const lintPacket = (
   packet: Packet,
   profile: ProfileFile[],
   rules: PacketRules = defaultPacketRules,
-): string[] {
+): string[] => {
   return checkPacket(packet, profile, rules).errors;
-}
+};
 
 /** Card feedback keeps plain strings; warnings are labeled so they read as advice. */
-export function warningFeedback(warnings: string[]): string[] {
+export const warningFeedback = (warnings: string[]): string[] => {
   return warnings.map((warning) => `Warning: ${warning}`);
+};
+
+export interface PacketFinding {
+  ruleId: string;
+  severity: PacketRuleSeverity;
+  document: PacketDocument | 'claims' | 'rules';
+  message: string;
 }
+export interface PacketCheck {
+  findings: PacketFinding[];
+  /** Blocking messages. Any error stops a draft, fails a review and blocks export. */
+  errors: string[];
+  /** Advisory messages that never block. */
+  warnings: string[];
+}
+
+/** Characters of each document that house rules read. Packet schemas already stay below this. */
+export const ruleInputLimit = 20_000;
+const matchLimit = 1000;
+const findingsPerRule = 20;
+
+const quote = (value: string) =>
+  JSON.stringify(value.length > 80 ? `${value.slice(0, 80)}…` : value);
+const located = (rule: PacketRule, fallback: string, location: string) =>
+  rule.message ? `${rule.message} (${location})` : fallback;
+
+const matches = (text: string, source: string, flags: string) => {
+  const expression = new RegExp(source, `${flags}g`);
+  const found: RegExpMatchArray[] = [];
+  for (const match of text.matchAll(expression)) {
+    found.push(match);
+    if (found.length > matchLimit) break;
+  }
+  return found;
+};
+
+const bulletLine = /^ ?(?:[-*+]|\d{1,9}[.)])[ \t]+\S|^\s*\\item\b/;
+const markdownHeading = /^[ \t]{0,3}#{1,6}[ \t]+\S/;

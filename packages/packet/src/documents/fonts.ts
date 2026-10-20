@@ -2,6 +2,22 @@ import { readFile, stat } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 
+// Small font files are read once per change. System CJK fonts can be 20 MB, so they are read again
+// for each document instead of staying in memory.
+export const readFont = async (path: string): Promise<Uint8Array> => {
+  const info = await stat(path);
+  if (info.size > cachedSize) return readFile(path);
+  const key = `${path}\0${info.size}\0${info.mtimeMs}`;
+  let bytes = cache.get(key);
+  if (!bytes) {
+    bytes = readFile(path);
+    bytes.catch(() => cache.delete(key));
+    cache.set(key, bytes);
+    if (cache.size > cacheLimit) cache.delete(cache.keys().next().value!);
+  }
+  return bytes;
+};
+
 // Liberation Sans ships with pdfjs-dist, which the UI already bundles for PDF previews. It is
 // metrically compatible with Arial and covers Latin, Greek, Cyrillic and common punctuation.
 // Its license (GPL v2 with a font exception) lets documents embed it without changing their terms.
@@ -44,22 +60,6 @@ const require = createRequire(import.meta.url);
 const cache = new Map<string, Promise<Uint8Array>>();
 const cacheLimit = 16;
 const cachedSize = 4 * 1024 * 1024;
-
-// Small font files are read once per change. System CJK fonts can be 20 MB, so they are read again
-// for each document instead of staying in memory.
-export async function readFont(path: string): Promise<Uint8Array> {
-  const info = await stat(path);
-  if (info.size > cachedSize) return readFile(path);
-  const key = `${path}\0${info.size}\0${info.mtimeMs}`;
-  let bytes = cache.get(key);
-  if (!bytes) {
-    bytes = readFile(path);
-    bytes.catch(() => cache.delete(key));
-    cache.set(key, bytes);
-    if (cache.size > cacheLimit) cache.delete(cache.keys().next().value!);
-  }
-  return bytes;
-}
 
 export const fontBytes = (style: FontStyle) =>
   readFont(require.resolve(`pdfjs-dist/standard_fonts/${files[style]}`));

@@ -6,7 +6,7 @@ import {
 } from 'react-aria-components/DateField';
 import { cn } from '@/lib/utils';
 
-export function TimeInput({ className, ...props }: Omit<DateInputProps, 'children'>) {
+export const TimeInput = ({ className, ...props }: Omit<DateInputProps, 'children'>) => {
   return (
     <DateInputPrimitive
       {...props}
@@ -28,4 +28,4 @@ export function TimeInput({ className, ...props }: Omit<DateInputProps, 'childre
       )}
     </DateInputPrimitive>
   );
-}
+};

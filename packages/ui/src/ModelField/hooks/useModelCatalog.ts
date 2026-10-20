@@ -2,7 +2,7 @@ import type { RuntimeId, RuntimeModelCatalog } from '@pitchcrew/core';
 import { useEffect, useEffectEvent, useState } from 'react';
 import { loadModelCatalog } from '../api.ts';
 
-export function useModelCatalog(runtime: RuntimeId, initialCatalog: RuntimeModelCatalog) {
+export const useModelCatalog = (runtime: RuntimeId, initialCatalog: RuntimeModelCatalog) => {
   const [state, setState] = useState({
     runtime,
     catalog: initialCatalog,
@@ -40,4 +40,4 @@ export function useModelCatalog(runtime: RuntimeId, initialCatalog: RuntimeModel
       : { catalog: initialCatalog, loading: runtime !== 'demo', error: '' }),
     refreshModels,
   };
-}
+};

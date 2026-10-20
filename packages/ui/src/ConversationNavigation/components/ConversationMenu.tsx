@@ -14,7 +14,7 @@ export interface ConversationMenuActions {
   archive: (item: Conversation) => Promise<void>;
   requestDelete: (item: Conversation) => void;
 }
-export function ConversationMenu({
+export const ConversationMenu = ({
   row,
   actions,
   working,
@@ -22,7 +22,7 @@ export function ConversationMenu({
   row: ConversationNavigationRow;
   actions: ConversationMenuActions;
   working: boolean;
-}) {
+}) => {
   const item = row.conversation;
   return (
     <DropdownMenu>
@@ -56,4 +56,4 @@ export function ConversationMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

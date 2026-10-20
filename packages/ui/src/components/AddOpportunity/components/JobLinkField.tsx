@@ -8,7 +8,7 @@ import { jobLinkAction } from '../link-actions.ts';
 import { LookupNotice } from './LookupNotice.tsx';
 
 /** Provider links fill the form; other posting links can be sent to Scout explicitly. */
-export function JobLinkField({
+export const JobLinkField = ({
   lookup,
   working,
   scout,
@@ -18,7 +18,7 @@ export function JobLinkField({
   working: boolean;
   scout: ReturnType<typeof useScoutJobImport>;
   external: boolean;
-}) {
+}) => {
   const id = useId();
   const mode = jobLinkAction(lookup.url);
   const askScout = mode === 'scout' || lookup.scoutUrl === lookup.url.trim();
@@ -74,4 +74,4 @@ export function JobLinkField({
       <LookupNotice message={lookup.message} duplicates={lookup.duplicates} />
     </div>
   );
-}
+};

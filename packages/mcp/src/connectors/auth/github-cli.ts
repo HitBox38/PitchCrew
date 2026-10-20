@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { GithubCliMissingError } from './github-cli-process.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
-export async function githubCliAccount(context: ConnectorManagerContext, signal: AbortSignal) {
+export const githubCliAccount = async (context: ConnectorManagerContext, signal: AbortSignal) => {
   const result = await context.runGithubCli(
     ['api', '--hostname', 'github.com', '--method', 'GET', 'user'],
     signal,
@@ -19,9 +19,9 @@ export async function githubCliAccount(context: ConnectorManagerContext, signal:
   } catch {
     throw new Error('GitHub CLI returned an invalid account response. Try connecting again.');
   }
-}
+};
 
-export async function connectGithubCli(context: ConnectorManagerContext, signal: AbortSignal) {
+export const connectGithubCli = async (context: ConnectorManagerContext, signal: AbortSignal) => {
   try {
     const version = await context.runGithubCli(['--version'], signal);
     signal.throwIfAborted();
@@ -41,14 +41,14 @@ export async function connectGithubCli(context: ConnectorManagerContext, signal:
     }
     throw error;
   }
-}
+};
 
-export async function githubCliRead(
+export const githubCliRead = async (
   context: ConnectorManagerContext,
   url: URL,
   account: string,
   signal: AbortSignal,
-) {
+) => {
   if (url.origin !== 'https://api.github.com' || url.username || url.password)
     throw new Error('GitHub CLI requests must use the fixed GitHub API.');
   const current = await githubCliAccount(context, signal);
@@ -84,4 +84,4 @@ export async function githubCliRead(
   } catch {
     throw new Error('GitHub CLI returned an invalid response. Try again.');
   }
-}
+};

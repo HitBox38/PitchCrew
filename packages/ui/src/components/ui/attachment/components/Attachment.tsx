@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils.ts';
 import type { VariantProps } from 'class-variance-authority';
 import { attachmentVariants } from '../constants.ts';
 
-export function Attachment({
+export const Attachment = ({
   className,
   state = 'done',
   size = 'default',
@@ -12,7 +12,7 @@ export function Attachment({
 }: React.ComponentProps<'div'> &
   VariantProps<typeof attachmentVariants> & {
     state?: 'idle' | 'uploading' | 'processing' | 'error' | 'done';
-  }) {
+  }) => {
   return (
     <div
       data-slot="attachment"
@@ -23,4 +23,4 @@ export function Attachment({
       {...props}
     />
   );
-}
+};

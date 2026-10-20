@@ -35,33 +35,36 @@ import { randomUUID, createHash } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 
-export function chatState(this: CrewContext): ChatStreamState {
+export const chatState = (context: CrewContext): ChatStreamState => {
   return {
-    activityRuns: activityRuns(this, true),
-    userInputs: this.board.list('user_input'),
-    messages: this.board.list<ChatMessage>('message'),
-    streamingMessages: [...this.streamingMessages.values()],
+    activityRuns: activityRuns(context, true),
+    userInputs: context.board.list('user_input'),
+    messages: context.board.list<ChatMessage>('message'),
+    streamingMessages: [...context.streamingMessages.values()],
   };
-}
-export function chatUpdate(this: CrewContext, includeMessages: boolean): ChatStreamUpdate {
+};
+export const chatUpdate = (context: CrewContext, includeMessages: boolean): ChatStreamUpdate => {
   return includeMessages
-    ? this.chatState()
-    : { streamingMessages: [...this.streamingMessages.values()], activityRuns: activityRuns(this) };
-}
-export function subscribeChat(
-  this: CrewContext,
+    ? context.chatState()
+    : {
+        streamingMessages: [...context.streamingMessages.values()],
+        activityRuns: activityRuns(context),
+      };
+};
+export const subscribeChat = (
+  context: CrewContext,
   listener: (messagesChanged: boolean) => void,
-): () => void {
-  this.chatListeners.add(listener);
+): (() => void) => {
+  context.chatListeners.add(listener);
   return () => {
-    this.chatListeners.delete(listener);
+    context.chatListeners.delete(listener);
   };
-}
-export function publishChat(this: CrewContext, messagesChanged: boolean = false): void {
-  for (const listener of this.chatListeners) listener(messagesChanged);
-}
-export function addMessage(
-  this: CrewContext,
+};
+export const publishChat = (context: CrewContext, messagesChanged: boolean = false): void => {
+  for (const listener of context.chatListeners) listener(messagesChanged);
+};
+export const addMessage = (
+  context: CrewContext,
   threadId: ChatMessage['threadId'],
   from: ChatMessage['from'],
   to: ChatMessage['to'],
@@ -72,7 +75,7 @@ export function addMessage(
   notification?: ChatMessage['notification'],
   attachments?: ChatAttachment[],
   references?: ChatMessage['references'],
-): ChatMessage {
+): ChatMessage => {
   const message: ChatMessage = {
     id,
     threadId,
@@ -86,36 +89,45 @@ export function addMessage(
     ...(attachments?.length ? { attachments } : {}),
     ...(references?.length ? { references } : {}),
   };
-  const currentConversation = conversations(this).find((item) => item.id === threadId);
+  const currentConversation = conversations(context).find((item) => item.id === threadId);
   if (currentConversation)
-    this.board.record(
+    context.board.record(
       'conversation',
       { ...currentConversation, archived: false, updatedAt: message.createdAt },
       from,
       'Conversation activity',
     );
-  this.board.record('message', message, from, `${from === 'user' ? 'You' : from} messaged ${to}`);
-  this.publishChat(true);
+  context.board.record(
+    'message',
+    message,
+    from,
+    `${from === 'user' ? 'You' : from} messaged ${to}`,
+  );
+  context.publishChat(true);
   return message;
-}
-export async function sendChat(this: CrewContext, roleId: RoleId, data: unknown): Promise<Run> {
+};
+export const sendChat = async (
+  context: CrewContext,
+  roleId: RoleId,
+  data: unknown,
+): Promise<Run> => {
   const input = chatInput.parse(data);
-  if (input.threadId === 'crew' && conversations(this).some((item) => item.id === 'crew'))
+  if (input.threadId === 'crew' && conversations(context).some((item) => item.id === 'crew'))
     throw new Error('Crew history is read-only. Start a group conversation.');
   if (input.threadId && input.threadId !== 'crew' && input.threadId !== roleId)
     throw new Error('Choose this role’s chat or the crew conversation.');
   // Validate the user override without mutating the saved role. startChatRun
   // rechecks it and reserves the role synchronously before setup awaits.
   if (input.reasoning != null) {
-    const role = requireRole(this, roleId);
+    const role = requireRole(context, roleId);
     validateReasoning(
       { ...role, reasoning: input.reasoning },
-      await this.runtimeModels(role.runtime),
+      await context.runtimeModels(role.runtime),
     );
   }
-  const attachments = await saveAttachments(this.directory, input.attachments);
+  const attachments = await saveAttachments(context.directory, input.attachments);
   try {
-    return await this.startChatRun(
+    return await context.startChatRun(
       roleId,
       input.content,
       input.cardId,
@@ -126,12 +138,12 @@ export async function sendChat(this: CrewContext, roleId: RoleId, data: unknown)
       attachments,
     );
   } catch (error) {
-    await removeAttachments(this.directory, attachments);
+    await removeAttachments(context.directory, attachments);
     throw error;
   }
-}
-async function startChatRunPrepared(
-  this: CrewContext,
+};
+const startChatRunPrepared = async (
+  context: CrewContext,
   roleId: RoleId,
   content: string,
   cardId: string | null,
@@ -141,24 +153,24 @@ async function startChatRunPrepared(
   reasoning?: Role['reasoning'],
   attachments?: ChatAttachment[],
   delivery?: { requestId: string; rootRunId: string },
-): Promise<Run> {
-  if (this.closing) throw new Error('The daemon is stopping.');
-  assertProfileReady(this);
-  if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
-  if (waitingOnUser(this, threadId, roleId))
+): Promise<Run> => {
+  if (context.closing) throw new Error('The daemon is stopping.');
+  assertProfileReady(context);
+  if (context.profileWriting) throw new Error('Wait for the profile update to finish.');
+  if (waitingOnUser(context, threadId, roleId))
     throw new Error('Answer or cancel this agent’s pending question first.');
-  const storedRole = requireRole(this, roleId);
-  const conversation = conversations(this).find((item) => item.id === threadId);
+  const storedRole = requireRole(context, roleId);
+  const conversation = conversations(context).find((item) => item.id === threadId);
   if (
     !conversation &&
-    this.board.db
+    context.board.db
       .prepare(
         "SELECT 1 FROM entities WHERE kind='conversation' AND id=? AND json_extract(json,'$.deletedAt') IS NOT NULL",
       )
       .get(threadId)
   )
     throw new Error('This conversation was deleted. Start a new conversation.');
-  if (conversation && !canReadConversation(this, roleId, threadId))
+  if (conversation && !canReadConversation(context, roleId, threadId))
     throw new Error('This role cannot access the conversation.');
   const configuredRole = scheduled
     ? storedRole
@@ -167,22 +179,22 @@ async function startChatRunPrepared(
   if (reasoning != null)
     validateReasoning(
       role,
-      this.runtimes.find((runtime) => runtime.id === role.runtime)!,
+      context.runtimes.find((runtime) => runtime.id === role.runtime)!,
     );
-  const skills = this.skills(roleId);
+  const skills = context.skills(roleId);
   const selectedSkills = delivery
     ? selectedChatSkills(
-        this,
-        this.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', delivery.requestId)
+        context,
+        context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', delivery.requestId)
           .references,
         roleId,
       )
     : [];
-  if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
+  if (context.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
-  if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
+  if (!context.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('This runtime is not installed. Check Crew settings.');
-  const card = cardId ? this.board.get<Card>('card', cardId) : null;
+  const card = cardId ? context.board.get<Card>('card', cardId) : null;
   const run: Run = {
     id: randomUUID(),
     cardId,
@@ -202,11 +214,11 @@ async function startChatRunPrepared(
   };
   const controller = new AbortController();
   const token = randomUUID();
-  this.controllers.set(run.id, controller);
-  this.capabilities.set(token, { runId: run.id, cardId, roleId });
-  this.board.record('run', run, roleId, `${role.name} started a chat turn`);
+  context.controllers.set(run.id, controller);
+  context.capabilities.set(token, { runId: run.id, cardId, roleId });
+  context.board.record('run', run, roleId, `${role.name} started a chat turn`);
   if (!task && !delivery)
-    this.addMessage(
+    context.addMessage(
       threadId,
       scheduled ? 'system' : 'user',
       roleId,
@@ -221,24 +233,24 @@ async function startChatRunPrepared(
     id: randomUUID(),
     threadId,
     from: roleId,
-    to: task ? this.board.get<Run>('run', task.parentRunId).roleId : 'user',
+    to: task ? context.board.get<Run>('run', task.parentRunId).roleId : 'user',
     content: '',
     cardId,
     runId: run.id,
     createdAt: new Date().toISOString(),
   };
   let acceptingReply = true;
-  const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
+  const dir = join(context.directory, 'roles', roleId, 'runs', run.id);
   let nativeSession: ReturnType<typeof prepareSession> | undefined;
-  const ai = beginAiRun(this.diagnostics, 'chat');
+  const ai = beginAiRun(context.diagnostics, 'chat');
   // Start in the background; HTTP returns the run so the user can cancel setup or execution.
   void (async () => {
-    await this.writeRunInstructions(dir, role, skills);
+    await context.writeRunInstructions(dir, role, skills);
     if (controller.signal.aborted) throw new Error('Run cancelled.');
-    if (!canReadConversation(this, roleId, threadId))
+    if (!canReadConversation(context, roleId, threadId))
       throw new Error('Conversation access was removed.');
     const summary = conversation?.summary;
-    const permittedMessages = conversationMessages(this, threadId, roleId, delivery?.requestId);
+    const permittedMessages = conversationMessages(context, threadId, roleId, delivery?.requestId);
     const messages = permittedMessages
       .filter((m) => m.threadId === threadId && (!summary || !summary.sources.includes(m.id)))
       .slice(-40);
@@ -254,15 +266,20 @@ async function startChatRunPrepared(
         createdAt: summary.through,
       });
     if (conversation && adapters[role.runtime].sessionSupport === 'resume') {
-      nativeSession = prepareSession(this, role, skills, conversation, messages);
-      await this.writeRunInstructions(nativeSession.directory, role, skills);
+      nativeSession = prepareSession(context, role, skills, conversation, messages);
+      await context.writeRunInstructions(nativeSession.directory, role, skills);
     }
-    const attachments = await prepareAttachments(this.directory, dir, messages, controller.signal);
-    const profile = await readProfile(this.directory);
-    this.board.record(
+    const attachments = await prepareAttachments(
+      context.directory,
+      dir,
+      messages,
+      controller.signal,
+    );
+    const profile = await readProfile(context.directory);
+    context.board.record(
       'run',
       {
-        ...this.board.get<Run>('run', run.id),
+        ...context.board.get<Run>('run', run.id),
         profileDigest: createHash('sha256').update(JSON.stringify(profile)).digest('hex'),
       },
       roleId,
@@ -297,39 +314,39 @@ async function startChatRunPrepared(
           directory: dir,
           mcp: {
             command: process.execPath,
-            args: ['--import', import.meta.resolve('tsx'), this.mcpEntry],
-            env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
+            args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
+            env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: context.daemonUrl },
           },
           signal: controller.signal,
           onActivity: (update) => {
-            if (acceptingReply) recordChatActivity(this, run.id, update);
+            if (acceptingReply) recordChatActivity(context, run.id, update);
           },
           onReply: (text) => {
-            if (!acceptingReply || controller.signal.aborted || this.closing) return;
+            if (!acceptingReply || controller.signal.aborted || context.closing) return;
             if (text)
-              this.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
-            else this.streamingMessages.delete(run.id);
-            this.publishChat();
+              context.streamingMessages.set(run.id, { ...reply, content: text.slice(0, 12000) });
+            else context.streamingMessages.delete(run.id);
+            context.publishChat();
           },
           onMessage: (message) => {
-            const current = this.board.get<Run>('run', run.id);
+            const current = context.board.get<Run>('run', run.id);
             if (!controller.signal.aborted)
-              this.board.record('run', { ...current, message }, roleId, message);
+              context.board.record('run', { ...current, message }, roleId, message);
           },
         }),
       controller.signal,
     );
     acceptingReply = false;
-    if (endQuestionTurn(this, run)) {
-      if (nativeSession) finishSession(this, nativeSession.session, null, true);
+    if (endQuestionTurn(context, run)) {
+      if (nativeSession) finishSession(context, nativeSession.session, null, true);
       return;
     }
     const result = chatResultSchema.parse(output);
     if (controller.signal.aborted) throw new Error('Run cancelled.');
-    this.streamingMessages.delete(run.id);
-    const memoryIds = this.board.get<Run>('run', run.id).memoryIds;
+    context.streamingMessages.delete(run.id);
+    const memoryIds = context.board.get<Run>('run', run.id).memoryIds;
     if (result.reply) {
-      const saved = this.addMessage(
+      const saved = context.addMessage(
         threadId,
         roleId,
         reply.to,
@@ -339,13 +356,13 @@ async function startChatRunPrepared(
         reply.id,
       );
       if (memoryIds?.length) {
-        this.board.record('message', { ...saved, memoryIds }, roleId, 'Recorded memory sources');
-        this.publishChat(true);
+        context.board.record('message', { ...saved, memoryIds }, roleId, 'Recorded memory sources');
+        context.publishChat(true);
       }
     }
     const summarizing =
       run.requestId &&
-      this.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', run.requestId)
+      context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', run.requestId)
         .summarize;
     if (
       !summarizing &&
@@ -359,7 +376,7 @@ async function startChatRunPrepared(
         ),
       ].filter((id) => conversation.participants.includes(id))) {
         try {
-          this.enqueue(
+          context.enqueue(
             { runId: run.id, roleId, cardId },
             target,
             'chat',
@@ -368,7 +385,7 @@ async function startChatRunPrepared(
             threadId,
           );
         } catch (error) {
-          this.addMessage(
+          context.addMessage(
             threadId,
             'system',
             'user',
@@ -381,26 +398,26 @@ async function startChatRunPrepared(
     }
     if (nativeSession)
       finishSession(
-        this,
+        context,
         nativeSession.session,
         result.reply ? reply.id : (messages.at(-1)?.id ?? null),
         false,
       );
-    await completeContinuation(this, run, result.reply, [
+    await completeContinuation(context, run, result.reply, [
       ...new Set([
         ...(summary?.sources ?? []),
         ...permittedMessages.map((message) => message.id),
         reply.id,
       ]),
     ]);
-    this.board.record(
+    context.board.record(
       'run',
       {
-        ...this.board.get<Run>('run', run.id),
+        ...context.board.get<Run>('run', run.id),
         status: 'completed',
-        memoryIds: this.board.get<Run>('run', run.id).memoryIds,
+        memoryIds: context.board.get<Run>('run', run.id).memoryIds,
         outputPacketDigest: packetDigest(
-          this.board.list<Card>('card').find((card) => card.id === cardId) ?? null,
+          context.board.list<Card>('card').find((card) => card.id === cardId) ?? null,
         ),
         message: `${role.name} replied`,
         finishedAt: new Date().toISOString(),
@@ -411,18 +428,18 @@ async function startChatRunPrepared(
   })()
     .catch((error: unknown) => {
       acceptingReply = false;
-      if (nativeSession) finishSession(this, nativeSession.session, null, true);
-      this.streamingMessages.delete(run.id);
-      if (endQuestionTurn(this, run)) return;
-      recordOperationalLog(this.diagnostics, {
+      if (nativeSession) finishSession(context, nativeSession.session, null, true);
+      context.streamingMessages.delete(run.id);
+      if (endQuestionTurn(context, run)) return;
+      recordOperationalLog(context.diagnostics, {
         code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
         area: 'chat',
       });
       const message = error instanceof Error ? error.message : 'Chat failed.';
-      this.board.record(
+      context.board.record(
         'run',
         {
-          ...this.board.get<Run>('run', run.id),
+          ...context.board.get<Run>('run', run.id),
           status: controller.signal.aborted ? 'cancelled' : 'failed',
           message,
           finishedAt: new Date().toISOString(),
@@ -430,37 +447,38 @@ async function startChatRunPrepared(
         roleId,
         message,
       );
-      this.addMessage(threadId, 'system', roleId, message, cardId, run.id);
+      context.addMessage(threadId, 'system', roleId, message, cardId, run.id);
     })
     .finally(async () => {
-      finishChatActivity(this, run.id);
-      const outcome = this.board.get<Run>('run', run.id).status;
+      finishChatActivity(context, run.id);
+      const outcome = context.board.get<Run>('run', run.id).status;
       ai.finish(outcome === 'running' ? 'failed' : outcome);
-      await this.computer.stop(run.id);
-      this.controllers.delete(run.id);
-      this.capabilities.delete(token);
-      finishUserContinuation(this, run);
-      this.finishTask(run);
-      finishDelivery(this, run);
-      void drainConversationQueue(this);
-      void this.drainTasks();
+      await context.computer.stop(run.id);
+      context.controllers.delete(run.id);
+      context.capabilities.delete(token);
+      finishUserContinuation(context, run);
+      context.finishTask(run);
+      finishDelivery(context, run);
+      void drainConversationQueue(context);
+      void context.drainTasks();
     });
   return run;
-}
+};
 
-export async function startChatRun(
-  this: CrewContext,
+export const startChatRun = async (
+  context: CrewContext,
   ...args: Parameters<CrewContext['startChatRun']>
-): Promise<Run> {
+): Promise<Run> => {
   const [roleId, , , threadId, , scheduled] = args;
-  const stored = requireRole(this, roleId);
+  const stored = requireRole(context, roleId);
   if (!stored.enabled) throw new Error('Enable this role in Crew first.');
-  const item = conversations(this).find((candidate) => candidate.id === threadId);
+  const item = conversations(context).find((candidate) => candidate.id === threadId);
   const role = scheduled ? stored : { ...stored, ...item?.configurations[roleId] };
-  if (!args[4] && !args[5] && !args[8]) await this.runtimeMaintenance.refreshOnRetry(role);
-  if (!scheduled || args[2]) ensureQueue(this, threadId, args[4]?.rootRunId ?? args[8]?.rootRunId);
+  if (!args[4] && !args[5] && !args[8]) await context.runtimeMaintenance.refreshOnRetry(role);
+  if (!scheduled || args[2])
+    ensureQueue(context, threadId, args[4]?.rootRunId ?? args[8]?.rootRunId);
   return reserveLaunch(
-    this,
+    context,
     {
       cardId: args[2],
       threadId,
@@ -469,21 +487,21 @@ export async function startChatRun(
       routineId: scheduled?.routineId,
     },
     () =>
-      this.runtimeMaintenance.guard(
+      context.runtimeMaintenance.guard(
         role,
-        () => startChatRunPrepared.call(this, ...args),
+        () => startChatRunPrepared(context, ...args),
         false,
         () => {
-          const currentRole = requireRole(this, roleId);
+          const currentRole = requireRole(context, roleId);
           return scheduled
             ? currentRole
             : {
                 ...currentRole,
-                ...conversations(this).find((entry) => entry.id === threadId)?.configurations[
+                ...conversations(context).find((entry) => entry.id === threadId)?.configurations[
                   roleId
                 ],
               };
         },
       ),
   );
-}
+};

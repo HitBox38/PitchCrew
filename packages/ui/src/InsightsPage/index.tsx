@@ -8,7 +8,7 @@ import { TagScoreboard } from './components/TagScoreboard.tsx';
 import { WeightDistribution } from './components/WeightDistribution.tsx';
 import { useInsightsPage } from './hooks/useInsightsPage.ts';
 
-export function InsightsPage() {
+export const InsightsPage = () => {
   const { cards, search, insights, tags, change } = useInsightsPage();
   if (!cards || !insights) return null;
   const filtered = Boolean(search.tag || search.from || search.to);
@@ -38,4 +38,4 @@ export function InsightsPage() {
       <InsightsTidyUp cards={cards} tags={tags} />
     </div>
   );
-}
+};

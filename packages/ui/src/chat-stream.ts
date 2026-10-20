@@ -1,9 +1,9 @@
 import type { ChatStreamState, ChatStreamUpdate } from '@pitchcrew/core';
 
-export async function readChatStream(
+export const readChatStream = async (
   body: ReadableStream<Uint8Array>,
   onState: (state: ChatStreamState) => void,
-) {
+) => {
   const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -40,14 +40,14 @@ export async function readChatStream(
     await reader.cancel().catch(() => {});
     reader.releaseLock();
   }
-}
+};
 
 // A single subscription per app; reconnect snapshots restore active previews and
 // completed messages without replaying deltas or duplicating chat bubbles.
-export function subscribeChatStream(
+export const subscribeChatStream = (
   onState: (state: ChatStreamState) => void,
   onDisconnect: () => void,
-) {
+) => {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const connect = async () => {
@@ -72,14 +72,14 @@ export function subscribeChatStream(
     controller.abort();
     clearTimeout(timer);
   };
-}
+};
 
 /** Keep live overlays and recent terminal handoffs; saved history is loaded page by page. */
-function mergeActivityRuns(
+const mergeActivityRuns = (
   previous: NonNullable<ChatStreamState['activityRuns']>,
   incoming: NonNullable<ChatStreamState['activityRuns']>,
   compact: boolean,
-) {
+) => {
   const runs = new Map(previous.map((run) => [run.id, run]));
   for (const run of incoming) {
     runs.delete(run.id);
@@ -92,4 +92,4 @@ function mergeActivityRuns(
         ...values.filter((run) => run.status === 'running'),
       ]
     : values;
-}
+};

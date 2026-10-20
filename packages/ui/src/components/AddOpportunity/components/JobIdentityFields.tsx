@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input/components/Input.tsx';
 
-export function JobIdentityFields() {
+export const JobIdentityFields = () => {
   return (
     <div className="form-row grid grid-cols-2 gap-3.5 max-compact:grid-cols-1">
       <label>
@@ -19,4 +19,4 @@ export function JobIdentityFields() {
       </label>
     </div>
   );
-}
+};

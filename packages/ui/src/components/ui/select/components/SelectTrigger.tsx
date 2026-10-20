@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { ChevronDownIcon } from 'lucide-react';
 
-export function SelectTrigger({
+export const SelectTrigger = ({
   className,
   size = 'default',
   children,
   ...props
-}: SelectTriggerProps) {
+}: SelectTriggerProps) => {
   return (
     <SelectPrimitive.Trigger
       data-slot="select-trigger"
@@ -25,4 +25,4 @@ export function SelectTrigger({
       />
     </SelectPrimitive.Trigger>
   );
-}
+};

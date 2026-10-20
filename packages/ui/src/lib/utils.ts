@@ -1,6 +1,10 @@
 import { clsx, type ClassValue } from 'clsx';
 import { extendTailwindMerge } from 'tailwind-merge';
 
+export const cn = (...inputs: ClassValue[]) => {
+  return mergeClasses(clsx(inputs));
+};
+
 // Keep custom typography/shadow tokens distinct from text/shadow color utilities.
 const mergeClasses = extendTailwindMerge({
   extend: {
@@ -11,7 +15,3 @@ const mergeClasses = extendTailwindMerge({
     },
   },
 });
-
-export function cn(...inputs: ClassValue[]) {
-  return mergeClasses(clsx(inputs));
-}

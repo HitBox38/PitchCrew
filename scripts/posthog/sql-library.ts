@@ -1,10 +1,6 @@
 import resource from '../../posthog/sql/resources.json' with { type: 'json' };
 
-const queries = new Map(resource.queries.map((query) => [query.key, query]));
-const catalogOutcomes = ['unavailable', 'no_match', 'proposed'];
-const timezones = ['UTC', 'Asia/Jerusalem'];
-
-export function listSqlQueries() {
+export const listSqlQueries = () => {
   return resource.queries.map(({ key, name, sources, coverage, caveats }) => ({
     key,
     name,
@@ -12,17 +8,17 @@ export function listSqlQueries() {
     coverage,
     caveats,
   }));
-}
+};
 
-function boundedInteger(value: unknown, fallback: number, maximum: number, name: string) {
+const boundedInteger = (value: unknown, fallback: number, maximum: number, name: string) => {
   value ??= fallback;
   if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < 1 || value > maximum)
     throw new Error(`${name} must be an integer between 1 and ${maximum}`);
   return value;
-}
+};
 
 /** Only reviewed aggregate templates are accepted. This is not an arbitrary SQL executor. */
-export function buildSqlPlan(key: string, input: unknown = {}) {
+export const buildSqlPlan = (key: string, input: unknown = {}) => {
   if (!input || typeof input !== 'object' || Array.isArray(input))
     throw new Error('Invalid options');
   const options = input as Record<string, unknown>;
@@ -64,4 +60,8 @@ export function buildSqlPlan(key: string, input: unknown = {}) {
       truncate: true,
     },
   };
-}
+};
+
+const queries = new Map(resource.queries.map((query) => [query.key, query]));
+const catalogOutcomes = ['unavailable', 'no_match', 'proposed'];
+const timezones = ['UTC', 'Asia/Jerusalem'];

@@ -1,6 +1,6 @@
 import type { ChatRequest } from '@pitchcrew/core';
 
-export function messageDay(date: string) {
+export const messageDay = (date: string) => {
   const value = new Date(date);
   if (value.toDateString() === new Date().toDateString()) return 'Today';
   return value.toLocaleDateString(undefined, {
@@ -8,9 +8,9 @@ export function messageDay(date: string) {
     day: 'numeric',
     year: value.getFullYear() === new Date().getFullYear() ? undefined : 'numeric',
   });
-}
+};
 
-export function queuedChatRequests(requests: ChatRequest[], thread: string) {
+export const queuedChatRequests = (requests: ChatRequest[], thread: string) => {
   return requests
     .filter(
       (request) =>
@@ -20,4 +20,4 @@ export function queuedChatRequests(requests: ChatRequest[], thread: string) {
         ),
     )
     .toSorted((a, b) => a.order - b.order);
-}
+};

@@ -1,7 +1,7 @@
 import type { SidebarFooterProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
+export const SidebarFooter = ({ className, ...props }: SidebarFooterProps) => {
   return (
     <div
       data-slot="sidebar-footer"
@@ -10,4 +10,4 @@ export function SidebarFooter({ className, ...props }: SidebarFooterProps) {
       {...props}
     />
   );
-}
+};

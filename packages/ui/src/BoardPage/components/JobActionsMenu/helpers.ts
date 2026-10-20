@@ -2,18 +2,7 @@ import type { Card, CardState, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import type { CrewShortcut } from './types.ts';
 
-export const shortcutLabels: Partial<Record<CardState, string>> = {
-  shortlisted: 'Shortlist',
-  submitted: 'Mark submitted',
-  screening: 'Record screening',
-  interviewing: 'Record interview',
-  offer: 'Record offer',
-  rejected: 'Mark rejected',
-  ghosted: 'Mark no response',
-  withdrawn: 'Mark withdrawn',
-};
-
-export function quickStatuses(state: CardState): CardState[] {
+export const quickStatuses = (state: CardState): CardState[] => {
   switch (state) {
     case 'lead':
       return ['shortlisted', 'withdrawn'];
@@ -32,9 +21,9 @@ export function quickStatuses(state: CardState): CardState[] {
     default:
       return ['submitted', 'withdrawn'];
   }
-}
+};
 
-export function crewShortcut(card: Card, data: Snapshot): CrewShortcut | null {
+export const crewShortcut = (card: Card, data: Snapshot): CrewShortcut | null => {
   const run = data.runs.find((run) => run.cardId === card.id && run.status === 'running');
   if (run) return { label: 'Cancel run', runId: run.id };
   const seat =
@@ -70,4 +59,15 @@ export function crewShortcut(card: Card, data: Snapshot): CrewShortcut | null {
       (seat !== 'scout' &&
         (!context.confirmedAt || context.confirmedRevision !== context.revision)),
   };
-}
+};
+
+export const shortcutLabels: Partial<Record<CardState, string>> = {
+  shortlisted: 'Shortlist',
+  submitted: 'Mark submitted',
+  screening: 'Record screening',
+  interviewing: 'Record interview',
+  offer: 'Record offer',
+  rejected: 'Mark rejected',
+  ghosted: 'Mark no response',
+  withdrawn: 'Mark withdrawn',
+};

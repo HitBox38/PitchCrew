@@ -2,13 +2,11 @@ import type { RuntimeHealth, RuntimeId } from '@pitchcrew/core';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { cliEnvironment } from './environment.ts';
-
-export const exec = promisify(execFile);
-export function requireCliVersion(
+export const requireCliVersion = (
   health: RuntimeHealth,
   minimum: readonly number[],
   command: string,
-): RuntimeHealth {
+): RuntimeHealth => {
   if (!health.available) return health;
   const match = health.version.match(/(?:^|[^\d])(\d+)\.(\d+)\.(\d+)\b/);
   const version = match?.slice(1).map(Number);
@@ -19,8 +17,8 @@ export function requireCliVersion(
     available: false,
     detail: `${command} ${minimum.join('.')} or newer is required for scoped MCP runs. Upgrade ${command} and retry.`,
   };
-}
-export async function detectCli(id: RuntimeId, command: string): Promise<RuntimeHealth> {
+};
+export const detectCli = async (id: RuntimeId, command: string): Promise<RuntimeHealth> => {
   try {
     const { stdout } = await exec(command, ['--version'], {
       env: cliEnvironment(),
@@ -41,4 +39,6 @@ export async function detectCli(id: RuntimeId, command: string): Promise<Runtime
       detail: `Install ${command} and configure its native authentication to connect.`,
     };
   }
-}
+};
+
+export const exec = promisify(execFile);

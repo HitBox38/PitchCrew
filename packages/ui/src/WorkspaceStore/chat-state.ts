@@ -1,7 +1,7 @@
 import type { ChatStreamState, Snapshot } from '@pitchcrew/core';
 
 /** A newer persisted projection also recovers messages written outside this stream. */
-export function mergeChatState(snapshot: Snapshot, state: ChatStreamState | null): Snapshot {
+export const mergeChatState = (snapshot: Snapshot, state: ChatStreamState | null): Snapshot => {
   const persisted = snapshot.messageHistory;
   const streamed = state?.messageHistory;
   if (
@@ -20,4 +20,4 @@ export function mergeChatState(snapshot: Snapshot, state: ChatStreamState | null
     };
   }
   return { ...snapshot, ...state };
-}
+};

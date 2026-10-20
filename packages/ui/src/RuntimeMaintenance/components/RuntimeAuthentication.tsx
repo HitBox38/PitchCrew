@@ -6,13 +6,13 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible/index.tsx';
 
-export function RuntimeAuthentication({
+export const RuntimeAuthentication = ({
   model,
   result,
 }: {
   model: string;
   result: Authentication;
-}) {
+}) => {
   const label =
     result.status === 'authenticated'
       ? 'Authentication confirmed'
@@ -37,4 +37,4 @@ export function RuntimeAuthentication({
       ) : null}
     </div>
   );
-}
+};

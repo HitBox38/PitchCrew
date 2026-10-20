@@ -3,12 +3,12 @@ import type { DialogFooterProps } from '@/components/ui/dialog/types.ts';
 import { cn } from '@/lib/utils';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 
-export function DialogFooter({
+export const DialogFooter = ({
   className,
   showCloseButton = false,
   children,
   ...props
-}: DialogFooterProps) {
+}: DialogFooterProps) => {
   return (
     <div
       data-slot="dialog-footer"
@@ -24,4 +24,4 @@ export function DialogFooter({
       )}
     </div>
   );
-}
+};

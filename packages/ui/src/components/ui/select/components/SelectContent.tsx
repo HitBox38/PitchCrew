@@ -4,7 +4,7 @@ import type { SelectContentProps } from '@/components/ui/select/types.ts';
 import { cn } from '@/lib/utils';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 
-export function SelectContent({
+export const SelectContent = ({
   className,
   children,
   side = 'bottom',
@@ -13,7 +13,7 @@ export function SelectContent({
   alignOffset = 0,
   alignItemWithTrigger = false,
   ...props
-}: SelectContentProps) {
+}: SelectContentProps) => {
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Positioner
@@ -47,4 +47,4 @@ export function SelectContent({
       </SelectPrimitive.Positioner>
     </SelectPrimitive.Portal>
   );
-}
+};

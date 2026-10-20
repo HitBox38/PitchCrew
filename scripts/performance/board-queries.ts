@@ -4,14 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { cardInput, type ChatMessage, type Role } from '../../packages/core/src/index.ts';
 import { Board } from '../../packages/board/src/index.ts';
-
-const samples = 7;
-const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-board-queries-'));
-const content =
-  '## Fictional project update\n\n- Improved accessibility and performance.\n- Used TypeScript and SQLite.\n\n'.repeat(
-    8,
-  );
-function message(index: number): ChatMessage {
+const message = (index: number): ChatMessage => {
   return {
     id: `message-${String((index * 7919) % 104729).padStart(8, '0')}`,
     threadId: 'scout',
@@ -22,8 +15,8 @@ function message(index: number): ChatMessage {
     runId: null,
     createdAt: '2026-10-14T00:00:00.000Z',
   };
-}
-function timed(action: () => unknown, setup = () => {}) {
+};
+const timed = (action: () => unknown, setup = () => {}) => {
   setup();
   action(); // Warm prepared paths before collecting samples.
   const durations: number[] = [];
@@ -35,8 +28,8 @@ function timed(action: () => unknown, setup = () => {}) {
   }
   const sorted = [...durations].sort((a, b) => a - b);
   return { samples: durations, median: sorted[Math.floor(samples / 2)], worst: sorted.at(-1) };
-}
-function measure(board: Board) {
+};
+const measure = (board: Board) => {
   const listSql = 'SELECT json FROM entities WHERE kind = ? ORDER BY rowid';
   const historySql =
     "SELECT id,json FROM events WHERE json_extract(json,'$.entityId') = ? AND id < ? ORDER BY id DESC LIMIT ?";
@@ -61,7 +54,14 @@ function measure(board: Board) {
       },
     ),
   };
-}
+};
+
+const samples = 7;
+const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-board-queries-'));
+const content =
+  '## Fictional project update\n\n- Improved accessibility and performance.\n- Used TypeScript and SQLite.\n\n'.repeat(
+    8,
+  );
 try {
   const results = [];
   for (const count of [5000, 25000]) {

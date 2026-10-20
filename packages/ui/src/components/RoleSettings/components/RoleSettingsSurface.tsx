@@ -3,7 +3,7 @@ import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
 import type { ReactNode } from 'react';
 
-export function RoleSettingsSurface({
+export const RoleSettingsSurface = ({
   docked,
   onClose,
   children,
@@ -11,7 +11,7 @@ export function RoleSettingsSurface({
   docked?: boolean;
   onClose: () => void;
   children: ReactNode;
-}) {
+}) => {
   if (docked)
     return (
       <SidePanel className="role-settings-panel" onClose={onClose}>
@@ -30,4 +30,4 @@ export function RoleSettingsSurface({
       </SheetContent>
     </Sheet>
   );
-}
+};

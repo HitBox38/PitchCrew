@@ -3,59 +3,11 @@ import { posix, win32 } from 'node:path';
 import { decodeOutput } from '../../src/background/host.ts';
 import type { CommandResult, ServiceHost, ServiceSpec } from '../../src/background/types.ts';
 
-const ok = (stdout = ''): CommandResult => ({ code: 0, stdout, stderr: '' });
-
-export const fixtureSpecs: Record<BackgroundServicePlatform, ServiceSpec> = {
-  windows: {
-    platform: 'windows',
-    directory: 'C:\\Users\\Fixture User\\Pitchcrew Data',
-    port: 4418,
-    repository: 'C:\\Projects\\Pitch Crew',
-    node: 'C:\\Program Files\\nodejs\\node.exe',
-    cli: 'C:\\Projects\\Pitch Crew\\packages\\orchestrator\\src\\cli.ts',
-    home: 'C:\\Users\\Fixture User',
-    configHome: 'C:\\Users\\Fixture User\\.config',
-    path: 'C:\\Windows\\System32',
-    uid: 0,
-    user: 'FIXTURE-PC\\Fixture User',
-    systemRoot: 'C:\\Windows',
-  },
-  macos: {
-    platform: 'macos',
-    directory: '/Users/fixture user/Pitchcrew Data & Notes',
-    port: 4418,
-    repository: '/Users/fixture user/Projects/Pitch Crew',
-    node: '/Users/fixture user/.nvm/versions/node/v22.18.0/bin/node',
-    cli: '/Users/fixture user/Projects/Pitch Crew/packages/orchestrator/src/cli.ts',
-    home: '/Users/fixture user',
-    configHome: '/Users/fixture user/.config',
-    path: '/opt/homebrew/bin:/usr/bin:/bin',
-    uid: 501,
-    user: 'fixture',
-    systemRoot: '',
-  },
-  linux: {
-    platform: 'linux',
-    directory: '/home/fixture user/data 100% $HOME "quoted"',
-    port: 4418,
-    repository: '/home/fixture user/Pitch Crew',
-    node: '/home/fixture user/.local/node/bin/node',
-    cli: '/home/fixture user/Pitch Crew/packages/orchestrator/src/cli.ts',
-    home: '/home/fixture user',
-    configHome: '/home/fixture user/.config',
-    // pnpm adds node_modules/.bin folders while scripts run; they never reach the unit.
-    path: '/home/fixture user/Pitch Crew/node_modules/.bin:/home/fixture user/.local/bin:/home/fixture user/.npm/_npx/1/node_modules/.bin:/usr/bin:relative:/bin:/usr/bin',
-    uid: 1000,
-    user: 'fixture',
-    systemRoot: '',
-  },
-};
-
 /**
  * An in-memory file system plus a simulated service manager that follows the commands it is
  * given. No schtasks, launchctl or systemctl process is ever started.
  */
-export function fakeServiceHost(platform: BackgroundServicePlatform, spec: ServiceSpec) {
+export const fakeServiceHost = (platform: BackgroundServicePlatform, spec: ServiceSpec) => {
   const path = platform === 'windows' ? win32 : posix;
   const files = new Map<string, Buffer>();
   const folders = new Set<string>();
@@ -162,25 +114,25 @@ export function fakeServiceHost(platform: BackgroundServicePlatform, spec: Servi
     return { code: 127, stdout: '', stderr: `${command} was not found.` };
   };
   const host: ServiceHost = {
-    async run(command, args) {
+    run: async (command, args) => {
       calls.push([command, ...args].join(' '));
       return respond(command, args);
     },
     readFile: async (file) => files.get(file) ?? null,
-    async writeFile(file, data) {
+    writeFile: async (file, data) => {
       files.set(file, Buffer.from(data));
     },
-    async makeFolder(folder) {
+    makeFolder: async (folder) => {
       folders.add(folder);
     },
-    async remove(target) {
+    remove: async (target) => {
       for (const file of [...files.keys()])
         if (file === target || file.startsWith(`${target}${path.sep}`)) files.delete(file);
       folders.delete(target);
     },
     isAlive: (pid) => alive.has(pid),
     answers: async () => manager.running,
-    kill(pid) {
+    kill: (pid) => {
       killed.push(pid);
       if (pid === manager.pid) stopDaemon();
       alive.delete(pid);
@@ -189,4 +141,52 @@ export function fakeServiceHost(platform: BackgroundServicePlatform, spec: Servi
   };
   files.set(path.join(spec.repository, 'packages', 'ui', 'dist', 'index.html'), Buffer.from('ui'));
   return { host, files, folders, calls, alive, killed, manager };
-}
+};
+
+const ok = (stdout = ''): CommandResult => ({ code: 0, stdout, stderr: '' });
+
+export const fixtureSpecs: Record<BackgroundServicePlatform, ServiceSpec> = {
+  windows: {
+    platform: 'windows',
+    directory: 'C:\\Users\\Fixture User\\Pitchcrew Data',
+    port: 4418,
+    repository: 'C:\\Projects\\Pitch Crew',
+    node: 'C:\\Program Files\\nodejs\\node.exe',
+    cli: 'C:\\Projects\\Pitch Crew\\packages\\orchestrator\\src\\cli.ts',
+    home: 'C:\\Users\\Fixture User',
+    configHome: 'C:\\Users\\Fixture User\\.config',
+    path: 'C:\\Windows\\System32',
+    uid: 0,
+    user: 'FIXTURE-PC\\Fixture User',
+    systemRoot: 'C:\\Windows',
+  },
+  macos: {
+    platform: 'macos',
+    directory: '/Users/fixture user/Pitchcrew Data & Notes',
+    port: 4418,
+    repository: '/Users/fixture user/Projects/Pitch Crew',
+    node: '/Users/fixture user/.nvm/versions/node/v22.18.0/bin/node',
+    cli: '/Users/fixture user/Projects/Pitch Crew/packages/orchestrator/src/cli.ts',
+    home: '/Users/fixture user',
+    configHome: '/Users/fixture user/.config',
+    path: '/opt/homebrew/bin:/usr/bin:/bin',
+    uid: 501,
+    user: 'fixture',
+    systemRoot: '',
+  },
+  linux: {
+    platform: 'linux',
+    directory: '/home/fixture user/data 100% $HOME "quoted"',
+    port: 4418,
+    repository: '/home/fixture user/Pitch Crew',
+    node: '/home/fixture user/.local/node/bin/node',
+    cli: '/home/fixture user/Pitch Crew/packages/orchestrator/src/cli.ts',
+    home: '/home/fixture user',
+    configHome: '/home/fixture user/.config',
+    // pnpm adds node_modules/.bin folders while scripts run; they never reach the unit.
+    path: '/home/fixture user/Pitch Crew/node_modules/.bin:/home/fixture user/.local/bin:/home/fixture user/.npm/_npx/1/node_modules/.bin:/usr/bin:relative:/bin:/usr/bin',
+    uid: 1000,
+    user: 'fixture',
+    systemRoot: '',
+  },
+};

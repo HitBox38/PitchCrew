@@ -1,7 +1,7 @@
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { Switch } from '@/components/ui/switch/index.tsx';
 
-export function NotificationSettings() {
+export const NotificationSettings = () => {
   const sound = useDevicePreferences((state) => state.sound);
   const setSound = useDevicePreferences((state) => state.setSound);
   return (
@@ -27,4 +27,4 @@ export function NotificationSettings() {
       <p className="info-note">Preferences save automatically on this device.</p>
     </section>
   );
-}
+};

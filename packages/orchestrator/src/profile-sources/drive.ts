@@ -1,13 +1,11 @@
 import type { ProfileSourceInput } from '@pitchcrew/core';
 import type { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { MAX_FILES, MAX_FOLDERS, object, text, type RemoteFile } from './helpers.ts';
-
-const folderType = 'application/vnd.google-apps.folder';
-export async function readDriveSource(
+export const readDriveSource = async (
   manager: ConnectorManager,
   input: Extract<ProfileSourceInput, { provider: 'drive' }>,
   signal: AbortSignal,
-): Promise<{ label: string; files: RemoteFile[] }> {
+): Promise<{ label: string; files: RemoteFile[] }> => {
   const root = object(
     (await manager.call('google_drive_get_file', { fileId: input.folderId }, signal)).data,
   );
@@ -88,4 +86,6 @@ export async function readDriveSource(
     } while (pageToken);
   }
   return { label, files };
-}
+};
+
+const folderType = 'application/vnd.google-apps.folder';

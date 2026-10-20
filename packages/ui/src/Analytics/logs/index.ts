@@ -4,7 +4,7 @@ import { analyticsContext } from '../context.ts';
 import { createOperationalLogTransport } from './transport.ts';
 
 /** Mounted shell installs once; central observation relay routes native records to capture. */
-export function installOperationalLogs(options: { getDistinctId: () => string | undefined }) {
+export const installOperationalLogs = (options: { getDistinctId: () => string | undefined }) => {
   const consent = () => {
     const preferences = useDevicePreferences.getState();
     return preferences.analytics && preferences.diagnostics;
@@ -28,10 +28,10 @@ export function installOperationalLogs(options: { getDistinctId: () => string | 
   configure();
   return {
     capture: transport.capture,
-    dispose() {
+    dispose: () => {
       unsubscribePreferences();
       unsubscribeConfig();
       transport.dispose();
     },
   };
-}
+};

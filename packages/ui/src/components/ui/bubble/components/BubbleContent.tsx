@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function BubbleContent({ className, render, ...props }: useRender.ComponentProps<'div'>) {
+export const BubbleContent = ({ className, render, ...props }: useRender.ComponentProps<'div'>) => {
   return useRender({
     defaultTagName: 'div',
     props: mergeProps<'div'>(
@@ -19,4 +19,4 @@ export function BubbleContent({ className, render, ...props }: useRender.Compone
       slot: 'bubble-content',
     },
   });
-}
+};

@@ -6,9 +6,12 @@ import {
   type Card,
   type CardState,
 } from '../src/index.ts';
-
-let sequence = 0;
-function card(company: string, state: CardState, tags: string[], extra: Partial<Card> = {}): Card {
+const card = (
+  company: string,
+  state: CardState,
+  tags: string[],
+  extra: Partial<Card> = {},
+): Card => {
   sequence += 1;
   return {
     id: `card-${sequence}`,
@@ -29,7 +32,9 @@ function card(company: string, state: CardState, tags: string[], extra: Partial<
     sample: false,
     ...extra,
   };
-}
+};
+
+let sequence = 0;
 const lesson = (id: string, text: string, createdAt: string) => ({ id, text, createdAt });
 
 describe('outcomes', () => {

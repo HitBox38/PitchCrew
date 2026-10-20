@@ -1,7 +1,7 @@
 import { siteOrigin } from '../lib/links';
 import { serializeJsonLd, structuredData } from './helpers';
 
-export function SEO() {
+export const SEO = () => {
   return (
     <script
       type="application/ld+json"
@@ -9,4 +9,4 @@ export function SEO() {
       dangerouslySetInnerHTML={{ __html: serializeJsonLd(structuredData(siteOrigin())) }}
     />
   );
-}
+};

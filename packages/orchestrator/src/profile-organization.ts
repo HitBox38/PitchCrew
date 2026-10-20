@@ -58,11 +58,11 @@ export class ProfileOrganizationStore {
       this.state = stateSchema.parse(JSON.parse(readFileSync(this.path, 'utf8')));
   }
 
-  get(): ProfileOrganization {
+  get = (): ProfileOrganization => {
     return structuredClone(this.state);
-  }
+  };
 
-  change(input: unknown): ProfileOrganization {
+  change = (input: unknown): ProfileOrganization => {
     const command = commandSchema.parse(input);
     const next = this.get();
     const path = command.action === 'create' ? command.path : command.folder;
@@ -80,5 +80,5 @@ export class ProfileOrganizationStore {
     renameSync(temporary, this.path);
     this.state = state;
     return this.get();
-  }
+  };
 }

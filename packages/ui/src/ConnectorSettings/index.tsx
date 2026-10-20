@@ -5,7 +5,7 @@ import type { ConnectorSettingsProps } from '@/ConnectorSettings/types.ts';
 import { ExternalLink } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
-export function ConnectorSettings(props: ConnectorSettingsProps) {
+export const ConnectorSettings = (props: ConnectorSettingsProps) => {
   const controller = useConnectorSettings(props);
   const { editing, authorizationUrl, google } = controller;
   return (
@@ -33,4 +33,4 @@ export function ConnectorSettings(props: ConnectorSettingsProps) {
       </AnimatePresence>
     </section>
   );
-}
+};

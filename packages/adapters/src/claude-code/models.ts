@@ -9,30 +9,7 @@ import {
 import { cliEnvironment, terminateCli } from '../process.ts';
 import { modelReasoning } from '../reasoning.ts';
 
-// SDK initialization reports the native model catalog without a user message or inference.
-// https://github.com/anthropics/claude-agent-sdk-python/blob/main/src/claude_agent_sdk/_internal/query.py
-export const claudeModelArgs = [
-  '-p',
-  '--input-format',
-  'stream-json',
-  '--output-format',
-  'stream-json',
-  '--verbose',
-  '--safe-mode',
-  '--restricted',
-  '--tools',
-  '',
-  '--strict-mcp-config',
-  '--mcp-config',
-  '{"mcpServers":{}}',
-  '--no-session-persistence',
-  '--setting-sources',
-  '',
-  '--settings',
-  '{"disableAllHooks":true}',
-];
-
-export function parseClaudeModels(result: unknown): RuntimeModel[] {
+export const parseClaudeModels = (result: unknown): RuntimeModel[] => {
   const output = result as { models?: unknown } | undefined;
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid Claude model catalog.');
   return normalizeModels(
@@ -51,14 +28,14 @@ export function parseClaudeModels(result: unknown): RuntimeModel[] {
       },
     ),
   );
-}
+};
 
-export async function readClaudeModels(
+export const readClaudeModels = async (
   command: string,
   args: string[],
   signal?: AbortSignal,
   timeout = modelDiscoveryTimeout,
-): Promise<RuntimeModel[]> {
+): Promise<RuntimeModel[]> => {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -164,4 +141,27 @@ export async function readClaudeModels(
     });
     send({ type: 'control_request', request_id: requestId, request: { subtype: 'initialize' } });
   });
-}
+};
+
+// SDK initialization reports the native model catalog without a user message or inference.
+// https://github.com/anthropics/claude-agent-sdk-python/blob/main/src/claude_agent_sdk/_internal/query.py
+export const claudeModelArgs = [
+  '-p',
+  '--input-format',
+  'stream-json',
+  '--output-format',
+  'stream-json',
+  '--verbose',
+  '--safe-mode',
+  '--restricted',
+  '--tools',
+  '',
+  '--strict-mcp-config',
+  '--mcp-config',
+  '{"mcpServers":{}}',
+  '--no-session-persistence',
+  '--setting-sources',
+  '',
+  '--settings',
+  '{"disableAllHooks":true}',
+];

@@ -13,18 +13,18 @@ import { z } from 'zod';
 import { skillDirectory } from '../../skills-directory.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export async function proposeRole(
-  this: CrewContext,
+export const proposeRole = async (
+  context: CrewContext,
   capability: RunCapability,
   role: Role,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   const input = z
     .object({ reason: z.string().trim().min(1).max(2000), changes: roleChanges })
     .parse(data);
   if (
-    this.board.list<RoleProposal>('proposal').filter((p) => p.runId === capability.runId).length >=
-    3
+    context.board.list<RoleProposal>('proposal').filter((p) => p.runId === capability.runId)
+      .length >= 3
   )
     throw new Error('Three proposals maximum per run.');
   const proposal: RoleProposal = {
@@ -35,26 +35,26 @@ export async function proposeRole(
     status: 'pending',
     createdAt: new Date().toISOString(),
   };
-  this.board.record(
+  context.board.record(
     'proposal',
     proposal,
     capability.roleId,
     `${role.name} proposed changes to its settings`,
   );
   return { proposal };
-}
-export async function proposeSkill(
-  this: CrewContext,
+};
+export const proposeSkill = async (
+  context: CrewContext,
   capability: RunCapability,
   role: Role,
   token: string,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   const input = z
     .object({ reason: z.string().trim().min(1).max(2000), suggestion: skillSuggestionInput })
     .parse(data);
   const proposalCount = () =>
-    this.board.list<SkillProposal>('skill_proposal').filter((p) => p.runId === capability.runId)
+    context.board.list<SkillProposal>('skill_proposal').filter((p) => p.runId === capability.runId)
       .length;
   if (proposalCount() >= 3) throw new Error('Three skill suggestions maximum per run.');
   const skill =
@@ -63,19 +63,19 @@ export async function proposeSkill(
       : skillInput.parse({
           ...(await skillDirectory.preview(
             input.suggestion.url,
-            this.controllers.get(capability.runId)?.signal,
+            context.controllers.get(capability.runId)?.signal,
           )),
           ...input.suggestion.assignment,
         });
   if (
-    this.closing ||
-    this.capabilities.get(token) !== capability ||
-    this.controllers.get(capability.runId)?.signal.aborted
+    context.closing ||
+    context.capabilities.get(token) !== capability ||
+    context.controllers.get(capability.runId)?.signal.aborted
   )
     throw new Error('Run capability is invalid or expired.');
   if (proposalCount() >= 3) throw new Error('Three skill suggestions maximum per run.');
-  for (const id of skill.roleIds) requireRole(this, id);
-  const run = this.board.get<Run>('run', capability.runId);
+  for (const id of skill.roleIds) requireRole(context, id);
+  const run = context.board.get<Run>('run', capability.runId);
   const proposal: SkillProposal = {
     id: randomUUID(),
     roleId: capability.roleId,
@@ -87,13 +87,13 @@ export async function proposeSkill(
     skillId: null,
     createdAt: new Date().toISOString(),
   };
-  this.board.record(
+  context.board.record(
     'skill_proposal',
     proposal,
     capability.roleId,
     `${role.name} suggested adding skill: ${skill.name}`,
   );
-  this.addMessage(
+  context.addMessage(
     proposal.threadId,
     capability.roleId,
     proposal.threadId,
@@ -102,4 +102,4 @@ export async function proposeSkill(
     capability.runId,
   );
   return { proposal };
-}
+};

@@ -5,6 +5,17 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { AppUpdateInfo, DesktopUpdateBridge, DesktopUpdateState } from '@pitchcrew/core';
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+const open = async () => {
+  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+  await action().waitFor({ timeout: 30000 });
+};
+const focusAction = async () => {
+  await page.keyboard.press('Tab');
+  await action().focus();
+};
+const update = async (patch: Partial<DesktopUpdateState>) => {
+  await page.evaluate((value) => (window as unknown as FixtureWindow).updateFixture(value), patch);
+};
 
 const viteCache = vi.hoisted(() => ({ directory: '' }));
 vi.mock('vite', async (importOriginal) => {
@@ -78,17 +89,6 @@ afterAll(async () => {
   await cleanup();
   await rm(viteCache.directory, { recursive: true, force: true });
 });
-async function open() {
-  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
-  await action().waitFor({ timeout: 30000 });
-}
-async function focusAction() {
-  await page.keyboard.press('Tab');
-  await action().focus();
-}
-async function update(patch: Partial<DesktopUpdateState>) {
-  await page.evaluate((value) => (window as unknown as FixtureWindow).updateFixture(value), patch);
-}
 
 test('manual download, changelog tooltip, collapse and session dismissal need no popover', async () => {
   await page.addInitScript(() => {

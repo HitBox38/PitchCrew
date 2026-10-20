@@ -2,13 +2,13 @@ import { useNavigate, useSearch } from '@tanstack/react-router';
 import type { RoleId, Snapshot } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function CrewUpdates({
+export const CrewUpdates = ({
   data,
   onReview,
 }: {
   data: Snapshot;
   onReview: (id: RoleId) => void;
-}) {
+}) => {
   const { updates } = useSearch({ from: '/crew' });
   const navigate = useNavigate({ from: '/crew' });
   const available = (data.instructionUpdates ?? []).filter((update) =>
@@ -49,4 +49,4 @@ export function CrewUpdates({
       )}
     </section>
   );
-}
+};

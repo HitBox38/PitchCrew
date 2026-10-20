@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
 import { afterApply, supportCrew } from './constants';
 
-export function Crew() {
+export const Crew = () => {
   return (
     <section id="crew" className="crew-section section-space" aria-labelledby="crew-title">
       <div className="page-width">
@@ -49,4 +49,4 @@ export function Crew() {
       </div>
     </section>
   );
-}
+};

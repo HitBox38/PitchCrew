@@ -5,14 +5,14 @@ import { ExternalConfirmation } from './ExternalConfirmation.tsx';
 import type { JobOverviewProps } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function SubmissionReceipts({
+export const SubmissionReceipts = ({
   card,
   act,
   working,
   onDirtyChange,
 }: Pick<JobOverviewProps, 'card' | 'act' | 'working'> & {
   onDirtyChange?: (dirty: boolean) => void;
-}) {
+}) => {
   const changeDirty = useReceiptDrafts(onDirtyChange);
   return card.submissionAttempts?.length ? (
     <section className="my-4 space-y-3">
@@ -95,4 +95,4 @@ export function SubmissionReceipts({
       ))}
     </section>
   ) : null;
-}
+};

@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea/index.tsx';
 import { useFollowupForm } from '../hooks/useFollowupForm.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
-export function FollowupForm({
+export const FollowupForm = ({
   review,
   findingId,
   working,
@@ -16,7 +16,7 @@ export function FollowupForm({
   findingId: string;
   working: boolean;
   action: Action;
-}) {
+}) => {
   const form = useFollowupForm(review, findingId, action);
   return (
     <form
@@ -72,4 +72,4 @@ export function FollowupForm({
       </Button>
     </form>
   );
-}
+};

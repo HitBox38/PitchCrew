@@ -1,7 +1,7 @@
 import type { KbdProps } from '@/components/ui/kbd/types.ts';
 import { cn } from '@/lib/utils';
 
-export function Kbd({ className, ...props }: KbdProps) {
+export const Kbd = ({ className, ...props }: KbdProps) => {
   return (
     <kbd
       data-slot="kbd"
@@ -14,4 +14,4 @@ export function Kbd({ className, ...props }: KbdProps) {
       {...props}
     />
   );
-}
+};

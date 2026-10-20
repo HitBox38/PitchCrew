@@ -1,17 +1,7 @@
 import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import fontUrl from 'pdfjs-dist/standard_fonts/LiberationSans-Regular.ttf?url';
 
-class LocalBinaryData {
-  async fetch({ kind, filename }: { kind: string; filename: string }) {
-    if (kind !== 'standardFontDataUrl' || filename !== 'LiberationSans-Regular.ttf')
-      throw new Error('Unexpected PDF resource.');
-    const response = await fetch(fontUrl);
-    if (!response.ok) throw new Error('Local PDF font failed to load.');
-    return new Uint8Array(await response.arrayBuffer());
-  }
-}
-
-export async function renderPdf(bytes: string, signal: AbortSignal) {
+export const renderPdf = async (bytes: string, signal: AbortSignal) => {
   const pdf = await import('pdfjs-dist');
   signal.throwIfAborted();
   pdf.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
@@ -51,4 +41,14 @@ export async function renderPdf(bytes: string, signal: AbortSignal) {
     signal.removeEventListener('abort', abort);
     await task.destroy();
   }
+};
+
+class LocalBinaryData {
+  fetch = async ({ kind, filename }: { kind: string; filename: string }) => {
+    if (kind !== 'standardFontDataUrl' || filename !== 'LiberationSans-Regular.ttf')
+      throw new Error('Unexpected PDF resource.');
+    const response = await fetch(fontUrl);
+    if (!response.ok) throw new Error('Local PDF font failed to load.');
+    return new Uint8Array(await response.arrayBuffer());
+  };
 }

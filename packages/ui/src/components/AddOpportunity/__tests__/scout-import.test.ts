@@ -4,19 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { useScoutJobImport } from '../hooks/useScoutJobImport.ts';
 import { scoutJobPrompt } from '../link-actions.ts';
 
-const { state, navigate } = vi.hoisted(() => ({ state: vi.fn(), navigate: vi.fn() }));
-vi.mock('react', async (original) => ({
-  ...(await original<typeof import('react')>()),
-  useState: (value: unknown) => [value, state],
-  useRef: (value: unknown) => ({ current: value }),
-}));
-vi.mock('@tanstack/react-router', () => ({ useNavigate: () => navigate }));
-afterEach(() => {
-  vi.clearAllMocks();
-  vi.unstubAllGlobals();
-});
-
-function setup(overrides: Partial<Role> = {}) {
+const setup = (overrides: Partial<Role> = {}) => {
   class Input {
     value = 'https://www.linkedin.com/jobs/view/1234567890';
   }
@@ -42,7 +30,19 @@ function setup(overrides: Partial<Role> = {}) {
     currentTarget: { form: { elements: { namedItem: () => input } } },
   } as unknown as MouseEvent<HTMLButtonElement>;
   return { controller, action, onClose, event, input };
-}
+};
+
+const { state, navigate } = vi.hoisted(() => ({ state: vi.fn(), navigate: vi.fn() }));
+vi.mock('react', async (original) => ({
+  ...(await original<typeof import('react')>()),
+  useState: (value: unknown) => [value, state],
+  useRef: (value: unknown) => ({ current: value }),
+}));
+vi.mock('@tanstack/react-router', () => ({ useNavigate: () => navigate }));
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
 
 it('creates an unattached Scout conversation, queues the prompt, then opens it', async () => {
   const { controller, action, onClose, event, input } = setup();

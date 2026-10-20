@@ -1,6 +1,6 @@
 import type { PacketRulesState } from '@pitchcrew/core';
 
-export function RulesIntro({ state }: { state: PacketRulesState }) {
+export const RulesIntro = ({ state }: { state: PacketRulesState }) => {
   return (
     <>
       <h2 id="packet-rules-heading">Packet rules</h2>
@@ -22,4 +22,4 @@ export function RulesIntro({ state }: { state: PacketRulesState }) {
       )}
     </>
   );
-}
+};

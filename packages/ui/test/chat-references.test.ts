@@ -5,6 +5,11 @@ import { join } from 'node:path';
 import { chromium, type Browser, type Page } from 'playwright';
 import { createServer, type ViteDevServer } from 'vite';
 import { afterAll, beforeAll, expect, test } from 'vitest';
+const clear = async () => {
+  await input().focus();
+  await page.keyboard.press('ControlOrMeta+a');
+  await page.keyboard.press('Backspace');
+};
 
 let server: ViteDevServer;
 let browser: Browser;
@@ -24,7 +29,7 @@ beforeAll(async () => {
     plugins: [
       {
         name: 'chat-references-fixture',
-        configureServer(vite) {
+        configureServer: (vite) => {
           vite.middlewares.use('/__chat-references', async (_request, response) => {
             response.setHeader('Content-Type', 'text/html');
             response.end(
@@ -61,11 +66,6 @@ afterAll(async () => {
 
 const input = () => page.getByRole('textbox', { name: 'Message the crew' });
 const canonical = () => page.locator('#canonical').textContent();
-async function clear() {
-  await input().focus();
-  await page.keyboard.press('ControlOrMeta+a');
-  await page.keyboard.press('Backspace');
-}
 test('keyboard selection creates atomic references, retains readable copy, and sends matching transcript chips', async () => {
   await input().pressSequentially('@rev');
   await page.getByRole('listbox').waitFor();

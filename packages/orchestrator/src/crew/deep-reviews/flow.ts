@@ -8,12 +8,12 @@ import { executeReviewStage } from './stages.ts';
 import { assessmentFor } from './assessment.ts';
 import type { LiveDeepReview } from './types.ts';
 
-async function settleChildren(live: LiveDeepReview) {
+const settleChildren = async (live: LiveDeepReview) => {
   const children = [...live.children.values()];
   for (const child of children) child.controller.abort();
   await Promise.allSettled(children.map((child) => child.done));
-}
-export async function reviewFlow(context: CrewContext, live: LiveDeepReview) {
+};
+export const reviewFlow = async (context: CrewContext, live: LiveDeepReview) => {
   const report = review(context, live.id);
   if (!live.packet || live.stage === 'draft') await writeStage(context, live, 'draft');
   let initial = report.before;
@@ -114,12 +114,12 @@ export async function reviewFlow(context: CrewContext, live: LiveDeepReview) {
     },
     passed ? 'Deep review completed' : 'Deep review needs further changes',
   );
-}
-async function assessStage(
+};
+const assessStage = async (
   context: CrewContext,
   live: LiveDeepReview,
   stage: 'review' | 'recheck',
-) {
+) => {
   live.stage = stage;
   const card = assertReviewCurrent(context, live);
   if (card.state !== 'in_review')
@@ -188,13 +188,13 @@ async function assessStage(
             : []
         : [],
   };
-}
-async function writeStage(
+};
+const writeStage = async (
   context: CrewContext,
   live: LiveDeepReview,
   stage: 'draft' | 'correction',
   assessment?: ReviewAssessment,
-) {
+) => {
   live.stage = stage;
   const card = assertReviewCurrent(context, live);
   context.board.record(
@@ -232,4 +232,4 @@ async function writeStage(
   live.packet = current.packet;
   live.expectedPacketDigest = digestPacket(card.id, current.packet!);
   await assertReviewEvidence(context, live);
-}
+};

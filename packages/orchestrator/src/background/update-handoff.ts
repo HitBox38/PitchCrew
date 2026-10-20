@@ -13,7 +13,7 @@ export interface UpdateHandoffDependencies {
 }
 
 /** Leaves external daemons alone and keeps service restart policy under its service manager. */
-export function createUpdateHandoff(deps: UpdateHandoffDependencies) {
+export const createUpdateHandoff = (deps: UpdateHandoffDependencies) => {
   let stopped = false;
   const serviceOwned =
     deps.plan.action === 'start-service' ||
@@ -23,7 +23,7 @@ export function createUpdateHandoff(deps: UpdateHandoffDependencies) {
     (serviceOwned && (await deps.matchesService()));
   return {
     available,
-    async prepare() {
+    prepare: async () => {
       if (!(await available()))
         throw new Error('Close the separately running daemon before updating.');
       // Remember partial stops as well, so failures can recover the previous runtime.
@@ -36,7 +36,7 @@ export function createUpdateHandoff(deps: UpdateHandoffDependencies) {
       }
       throw new Error('The daemon did not stop. The update was not installed.');
     },
-    async recover() {
+    recover: async () => {
       if (!stopped) return;
       if (serviceOwned) await deps.startService();
       else await deps.startOwned();
@@ -50,4 +50,4 @@ export function createUpdateHandoff(deps: UpdateHandoffDependencies) {
       throw new Error('The previous daemon could not restart.');
     },
   };
-}
+};

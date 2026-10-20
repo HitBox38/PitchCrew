@@ -2,7 +2,7 @@ import { ConversationSelect } from '@/ChatView/components/ConversationSelect.tsx
 import type { Conversation, Role } from '@pitchcrew/core';
 import { BrowserModeHelp } from './BrowserModeHelp.tsx';
 
-export function BrowserModePicker({
+export const BrowserModePicker = ({
   role,
   conversation,
   disabled,
@@ -12,7 +12,7 @@ export function BrowserModePicker({
   conversation?: Conversation;
   disabled: boolean;
   save: (configuration: unknown) => void;
-}) {
+}) => {
   const override = conversation?.configurations[role.id];
   return (
     <div className="flex min-w-0 items-center gap-1">
@@ -43,4 +43,4 @@ export function BrowserModePicker({
       <BrowserModeHelp name={role.name} />
     </div>
   );
-}
+};

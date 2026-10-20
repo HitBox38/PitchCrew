@@ -5,20 +5,20 @@ import type { CrewContext } from '../types.ts';
 import type { LiveDeepReview } from './types.ts';
 import { packetDigest } from '../pipeline/snapshots.ts';
 import { readProfile } from '@pitchcrew/packet';
-export function profileDigest(profile: ProfileFile[]) {
+export const profileDigest = (profile: ProfileFile[]) => {
   return createHash('sha256')
     .update(JSON.stringify([...profile].sort((a, b) => a.name.localeCompare(b.name))))
     .digest('hex');
-}
-export function review(context: CrewContext, id: string) {
+};
+export const review = (context: CrewContext, id: string) => {
   return context.board.get<DeepReview>('deep_review', id);
-}
-export function updateReview(
+};
+export const updateReview = (
   context: CrewContext,
   id: string,
   patch: Partial<DeepReview>,
   message: string,
-) {
+) => {
   const value = { ...review(context, id), ...patch, updatedAt: new Date().toISOString() };
   context.board.record('deep_review', value, value.reviewerId, message);
   const run = context.board.get<Run>('run', value.runId);
@@ -26,8 +26,8 @@ export function updateReview(
     context.board.record('run', { ...run, message }, value.reviewerId, message);
   context.publishChat(true);
   return value;
-}
-export function assertReviewCurrent(context: CrewContext, live: LiveDeepReview) {
+};
+export const assertReviewCurrent = (context: CrewContext, live: LiveDeepReview) => {
   if (live.controller.signal.aborted || context.closing) throw new Error('Deep review cancelled.');
   if (Date.now() >= live.deadline.expiresAt)
     throw new Error('Pitchcrew stopped the deep review at its shared deadline.');
@@ -39,15 +39,15 @@ export function assertReviewCurrent(context: CrewContext, live: LiveDeepReview) 
   if (packetDigest(card) !== live.expectedPacketDigest)
     throw new Error('Packet changed during deep review. Start a fresh review.');
   return card;
-}
-export async function assertReviewEvidence(context: CrewContext, live: LiveDeepReview) {
+};
+export const assertReviewEvidence = async (context: CrewContext, live: LiveDeepReview) => {
   const current = await readProfile(context.directory);
   assertReviewCurrent(context, live);
   if (profileDigest(current) !== live.profileDigest)
     throw new Error('Profile evidence changed during review. Start a fresh deep review.');
-}
+};
 
-export function failReviewContinuation(context: CrewContext, id: string, error: string) {
+export const failReviewContinuation = (context: CrewContext, id: string, error: string) => {
   const report = review(context, id);
   if (report.status !== 'waiting') return;
   updateReview(
@@ -90,4 +90,4 @@ export function failReviewContinuation(context: CrewContext, id: string, error: 
       );
     }
   }
-}
+};

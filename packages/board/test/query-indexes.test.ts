@@ -4,31 +4,22 @@ import { join } from 'node:path';
 import { cardInput, type ChatMessage, type Role } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { Board, deleteJob } from '../src/index.ts';
-
-const boards = new Set<Board>();
-const directories: string[] = [];
-function open(filename = ':memory:') {
+const open = (filename = ':memory:') => {
   const board = new Board(filename);
   boards.add(board);
   return board;
-}
-function close(board: Board) {
+};
+const close = (board: Board) => {
   board.close();
   boards.delete(board);
-}
-async function filename() {
+};
+const filename = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-query-indexes-'));
   directories.push(directory);
   return join(directory, 'board.sqlite');
-}
-afterEach(async () => {
-  vi.restoreAllMocks();
-  for (const board of boards) board.close();
-  boards.clear();
-  for (const directory of directories.splice(0))
-    await rm(directory, { recursive: true, force: true });
-});
-function message(id: string, content = id): ChatMessage {
+};
+
+const message = (id: string, content = id): ChatMessage => {
   return {
     id,
     content,
@@ -39,8 +30,8 @@ function message(id: string, content = id): ChatMessage {
     runId: null,
     createdAt: '',
   };
-}
-function plansFor(board: Board, action: () => unknown) {
+};
+const plansFor = (board: Board, action: () => unknown) => {
   const prepare = vi.spyOn(board.db, 'prepare');
   action();
   const queries = prepare.mock.calls.map(([sql]) => sql);
@@ -58,7 +49,17 @@ function plansFor(board: Board, action: () => unknown) {
       }[];
       return { sql, details: plan.map(({ detail }) => detail).join('\n') };
     });
-}
+};
+
+const boards = new Set<Board>();
+const directories: string[] = [];
+afterEach(async () => {
+  vi.restoreAllMocks();
+  for (const board of boards) board.close();
+  boards.clear();
+  for (const directory of directories.splice(0))
+    await rm(directory, { recursive: true, force: true });
+});
 
 it('keeps insertion order through updates, reopen and projection rebuild', async () => {
   const path = await filename();

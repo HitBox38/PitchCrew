@@ -1,18 +1,5 @@
 import type { ConnectorRequest } from '../tools/helpers.ts';
-
-// Only these existing read-only connector tools can reach the native CLI.
-const methods: Record<string, readonly string[]> = {
-  gmail_search_messages: ['gmail', 'users', 'messages', 'list'],
-  gmail_get_message: ['gmail', 'users', 'messages', 'get'],
-  gmail_get_thread: ['gmail', 'users', 'threads', 'get'],
-  google_drive_search_files: ['drive', 'files', 'list'],
-  google_drive_get_file: ['drive', 'files', 'get'],
-  google_drive_read_text_file: ['drive', 'files', 'get'],
-  google_docs_get_document: ['drive', 'files', 'export'],
-  google_sheets_read_range: ['sheets', 'spreadsheets', 'values', 'get'],
-  google_calendar_list_events: ['calendar', 'events', 'list'],
-};
-export function googleCliArgs(name: string, request: ConnectorRequest) {
+export const googleCliArgs = (name: string, request: ConnectorRequest) => {
   const method = methods[name];
   if (!method) throw new Error('Unsupported Google Workspace CLI read.');
   const { url } = request;
@@ -48,4 +35,17 @@ export function googleCliArgs(name: string, request: ConnectorRequest) {
       break;
   }
   return [...method, '--params', JSON.stringify(params)];
-}
+};
+
+// Only these existing read-only connector tools can reach the native CLI.
+const methods: Record<string, readonly string[]> = {
+  gmail_search_messages: ['gmail', 'users', 'messages', 'list'],
+  gmail_get_message: ['gmail', 'users', 'messages', 'get'],
+  gmail_get_thread: ['gmail', 'users', 'threads', 'get'],
+  google_drive_search_files: ['drive', 'files', 'list'],
+  google_drive_get_file: ['drive', 'files', 'get'],
+  google_drive_read_text_file: ['drive', 'files', 'get'],
+  google_docs_get_document: ['drive', 'files', 'export'],
+  google_sheets_read_range: ['sheets', 'spreadsheets', 'values', 'get'],
+  google_calendar_list_events: ['calendar', 'events', 'list'],
+};

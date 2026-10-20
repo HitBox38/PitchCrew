@@ -1,7 +1,7 @@
 import type { SidebarGroupProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarGroup({ className, ...props }: SidebarGroupProps) {
+export const SidebarGroup = ({ className, ...props }: SidebarGroupProps) => {
   return (
     <div
       data-slot="sidebar-group"
@@ -13,4 +13,4 @@ export function SidebarGroup({ className, ...props }: SidebarGroupProps) {
       {...props}
     />
   );
-}
+};

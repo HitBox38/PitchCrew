@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { modelListCommand, parseCursorModels } from '../model-discovery.ts';
 import { detectCli, runCliText, withChat } from '../process.ts';
 
-async function detectCursorAgent(): Promise<RuntimeHealth> {
+const detectCursorAgent = async (): Promise<RuntimeHealth> => {
   const health = await detectCli('cursor-agent', 'cursor-agent');
   if (!health.available) return health;
   const version = health.version.match(/\d{4}\.\d{2}\.\d{2}/)?.[0];
@@ -17,7 +17,7 @@ async function detectCursorAgent(): Promise<RuntimeHealth> {
     };
   }
   return health;
-}
+};
 
 export const cursorAgent = withChat({
   id: 'cursor-agent',
@@ -37,7 +37,7 @@ export const cursorAgent = withChat({
   detect: detectCursorAgent,
   listModels: async (signal) =>
     parseCursorModels(await modelListCommand('cursor-agent', ['--list-models'], signal)),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const health = await detectCursorAgent();
     if (!health.available) throw new Error(health.detail);

@@ -3,7 +3,7 @@ import { RefreshCw } from 'lucide-react';
 import { ServiceState } from './components/ServiceState.tsx';
 import { useBackgroundService } from './hooks/useBackgroundService.ts';
 
-export function BackgroundServiceSettings() {
+export const BackgroundServiceSettings = () => {
   const { info, error, loading, installing, checkAgain, install } = useBackgroundService();
   return (
     <section className="settings-section" aria-labelledby="background-service-heading">
@@ -32,4 +32,4 @@ export function BackgroundServiceSettings() {
       {!info && !error ? <p className="info-note">Checking the background service.</p> : null}
     </section>
   );
-}
+};

@@ -8,7 +8,7 @@ import { SkillsStep } from './SkillsStep.tsx';
 import { RoutineStep } from './RoutineStep.tsx';
 import { ReviewStep } from './ReviewStep.tsx';
 
-export function CreationBody(props: CreationController) {
+export const CreationBody = (props: CreationController) => {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();
@@ -31,4 +31,4 @@ export function CreationBody(props: CreationController) {
       {props.step === 5 ? <ReviewStep {...props} /> : null}
     </div>
   );
-}
+};

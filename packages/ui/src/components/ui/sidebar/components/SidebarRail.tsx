@@ -2,7 +2,7 @@ import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
 import type { SidebarRailProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarRail({ className, ...props }: SidebarRailProps) {
+export const SidebarRail = ({ className, ...props }: SidebarRailProps) => {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -25,4 +25,4 @@ export function SidebarRail({ className, ...props }: SidebarRailProps) {
       {...props}
     />
   );
-}
+};

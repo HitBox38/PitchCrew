@@ -6,7 +6,7 @@ import { useSortable } from '@dnd-kit/react/sortable';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { FileText, X } from 'lucide-react';
 
-export function ProfileDocumentTab({
+export const ProfileDocumentTab = ({
   document,
   index,
   count,
@@ -20,7 +20,7 @@ export function ProfileDocumentTab({
   active: boolean;
   close: () => void;
   reorder: (index: number) => void;
-}) {
+}) => {
   const reduced = useAppReducedMotion();
   const { ref, handleRef, isDragging } = useSortable({
     id: document.id,
@@ -69,4 +69,4 @@ export function ProfileDocumentTab({
       </Button>
     </div>
   );
-}
+};

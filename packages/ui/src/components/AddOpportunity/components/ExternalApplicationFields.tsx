@@ -1,7 +1,7 @@
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
-export function ExternalApplicationFields({
+export const ExternalApplicationFields = ({
   external,
   setExternal,
   jobIdentifier,
@@ -9,7 +9,7 @@ export function ExternalApplicationFields({
   external: boolean;
   setExternal: (value: boolean) => void;
   jobIdentifier: string;
-}) {
+}) => {
   return (
     <fieldset className="flex flex-col gap-3">
       <label className="checkbox-label">
@@ -27,4 +27,4 @@ export function ExternalApplicationFields({
       ) : null}
     </fieldset>
   );
-}
+};

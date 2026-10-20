@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea/index.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { writingScopes } from '@/lib/application-quality.ts';
 
-export function PreferenceEditor({
+export const PreferenceEditor = ({
   preference,
   revision,
   change,
@@ -22,7 +22,7 @@ export function PreferenceEditor({
   change: (data: Record<string, unknown>) => Promise<unknown>;
   close: () => void;
   working: boolean;
-}) {
+}) => {
   const [text, setText] = useState(preference?.text ?? '');
   const [scope, setScope] = useState<WritingPreference['scope']>(preference?.scope ?? 'all');
   const [baseRevision] = useState(revision);
@@ -86,4 +86,4 @@ export function PreferenceEditor({
       <DiscardChanges guard={guard} />
     </>
   );
-}
+};

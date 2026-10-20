@@ -2,13 +2,13 @@ import { FolderOpen, GitBranch } from 'lucide-react';
 import { SourceChoice } from './SourceChoice.tsx';
 import type { SourceProvider } from '../types.ts';
 
-export function SourceProviderChoices({
+export const SourceProviderChoices = ({
   choose,
   disabled,
 }: {
   choose: (provider: SourceProvider) => void;
   disabled: boolean;
-}) {
+}) => {
   return (
     <div className="grid gap-3 compact:grid-cols-2">
       <SourceChoice
@@ -28,4 +28,4 @@ export function SourceProviderChoices({
       />
     </div>
   );
-}
+};

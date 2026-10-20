@@ -1,7 +1,7 @@
 import { stateLabels } from '@/lib/labels.ts';
 import type { CardState } from '@pitchcrew/core';
 
-export function evidenceDetails(summary: string): string[] {
+export const evidenceDetails = (summary: string): string[] => {
   try {
     const data = JSON.parse(summary) as Record<string, unknown>;
     const lines: string[] = [];
@@ -18,4 +18,4 @@ export function evidenceDetails(summary: string): string[] {
   } catch {
     return [];
   }
-}
+};

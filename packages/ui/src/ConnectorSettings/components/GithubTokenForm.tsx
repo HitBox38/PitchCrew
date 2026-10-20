@@ -3,7 +3,12 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import { GithubInstructions } from './GithubInstructions.tsx';
 import type { ConnectAccountDialogProps } from '../types.ts';
 
-export function GithubTokenForm({ connect, token, setToken, working }: ConnectAccountDialogProps) {
+export const GithubTokenForm = ({
+  connect,
+  token,
+  setToken,
+  working,
+}: ConnectAccountDialogProps) => {
   return (
     <form className="form mt-3 flex flex-col gap-3" onSubmit={(e) => void connect(e)}>
       <GithubInstructions />
@@ -23,4 +28,4 @@ export function GithubTokenForm({ connect, token, setToken, working }: ConnectAc
       </Button>
     </form>
   );
-}
+};

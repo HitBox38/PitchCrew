@@ -8,6 +8,28 @@ import {
   maxJobSources,
   type JobProvider,
 } from './job-source-identifiers.ts';
+/** Check the saved identifiers against the strict pattern for the chosen provider. */
+export const refineJobSource = (
+  value: { provider: JobProvider; slug: string; token?: string | undefined },
+  context: z.RefinementCtx,
+) => {
+  const issue = (path: string, message: string) =>
+    context.addIssue({ code: 'custom', path: [path], message });
+  if (!jobSourceSlugPatterns[value.provider].test(value.slug))
+    issue(
+      'slug',
+      value.provider === 'comeet'
+        ? 'Use the company UID from the Comeet careers link, such as A1.B2C.'
+        : value.provider === 'ashby'
+          ? 'Use the board name from the Ashby link: letters, numbers, hyphens, underscores, and single dots or spaces between them.'
+          : 'Use the board name from the job board link: letters, numbers, hyphens or underscores.',
+    );
+  if (!jobProviderNeedsToken(value.provider)) {
+    if (value.token !== undefined) issue('token', 'Only Comeet sources use a token.');
+  } else if (!value.token || !comeetTokenPattern.test(value.token))
+    issue('token', 'Paste the Comeet careers token: letters, numbers, hyphens or underscores.');
+};
+
 export * from './job-source-identifiers.ts';
 
 const keywords = z
@@ -39,27 +61,6 @@ export const jobSourceFields = z
     }),
   })
   .strict();
-/** Check the saved identifiers against the strict pattern for the chosen provider. */
-export function refineJobSource(
-  value: { provider: JobProvider; slug: string; token?: string | undefined },
-  context: z.RefinementCtx,
-) {
-  const issue = (path: string, message: string) =>
-    context.addIssue({ code: 'custom', path: [path], message });
-  if (!jobSourceSlugPatterns[value.provider].test(value.slug))
-    issue(
-      'slug',
-      value.provider === 'comeet'
-        ? 'Use the company UID from the Comeet careers link, such as A1.B2C.'
-        : value.provider === 'ashby'
-          ? 'Use the board name from the Ashby link: letters, numbers, hyphens, underscores, and single dots or spaces between them.'
-          : 'Use the board name from the job board link: letters, numbers, hyphens or underscores.',
-    );
-  if (!jobProviderNeedsToken(value.provider)) {
-    if (value.token !== undefined) issue('token', 'Only Comeet sources use a token.');
-  } else if (!value.token || !comeetTokenPattern.test(value.token))
-    issue('token', 'Paste the Comeet careers token: letters, numbers, hyphens or underscores.');
-}
 export const jobSourceInput = jobSourceFields.superRefine(refineJobSource);
 export type JobSourceInput = z.infer<typeof jobSourceInput>;
 export type JobSourceFilters = z.infer<typeof jobSourceFilters>;

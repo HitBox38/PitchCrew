@@ -1,17 +1,12 @@
-let audio: AudioContext | undefined;
-let idleTimer: ReturnType<typeof setTimeout> | undefined;
-let generation = 0;
-let soundUntil = 0;
-
-function suspendWhenIdle(context: AudioContext, token: number, delay: number) {
+const suspendWhenIdle = (context: AudioContext, token: number, delay: number) => {
   if (token !== generation) return;
   clearTimeout(idleTimer);
   idleTimer = setTimeout(() => {
     if (token === generation) void context.suspend().catch(() => {});
   }, delay);
-}
+};
 
-export function unlockNotificationAudio() {
+export const unlockNotificationAudio = () => {
   if (audio) return;
   audio = new AudioContext();
   const context = audio;
@@ -20,8 +15,8 @@ export function unlockNotificationAudio() {
     .resume()
     .then(() => suspendWhenIdle(context, token, 100))
     .catch(() => {});
-}
-export function playNotificationSound(kind: 'message' | 'attention') {
+};
+export const playNotificationSound = (kind: 'message' | 'attention') => {
   try {
     audio ??= new AudioContext();
     const context = audio;
@@ -57,4 +52,8 @@ export function playNotificationSound(kind: 'message' | 'attention') {
   } catch {
     /* Audio support is optional; the visual notification remains. */
   }
-}
+};
+let audio: AudioContext | undefined;
+let idleTimer: ReturnType<typeof setTimeout> | undefined;
+let generation = 0;
+let soundUntil = 0;

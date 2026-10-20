@@ -14,7 +14,7 @@ import { useSuggestions } from '../hooks/useSuggestions.ts';
 import { SuggestionList } from './SuggestionList.tsx';
 import type { ComposerEditorProps } from '../types.ts';
 
-export function EditorSurface(props: ComposerEditorProps) {
+export const EditorSurface = (props: ComposerEditorProps) => {
   const [caret, setCaret] = useState<number | null>(null);
   const editor = useEditorSync(props, setCaret);
   const suggestions = useSuggestions(props, caret, editor);
@@ -58,4 +58,4 @@ export function EditorSurface(props: ComposerEditorProps) {
       <input type="hidden" name="message" value={props.value} />
     </div>
   );
-}
+};

@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { RefreshCw } from 'lucide-react';
 
-export function SkillCheckButton() {
+export const SkillCheckButton = () => {
   const check = useWorkspaceStore((state) => state.checkSkills);
   const busy = useWorkspaceStore(
     (state) => state.checkingSkills || state.data?.skillUpdates?.checking,
@@ -13,4 +13,4 @@ export function SkillCheckButton() {
       {busy ? 'Checking skills…' : 'Check now'}
     </Button>
   );
-}
+};

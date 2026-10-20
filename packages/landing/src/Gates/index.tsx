@@ -1,7 +1,7 @@
 import { InjectionExample } from './components/InjectionExample';
 import { gates } from './constants';
 
-export function Gates() {
+export const Gates = () => {
   return (
     <section id="gates" className="page-width section-space" aria-labelledby="gates-title">
       <div className="section-head">
@@ -31,4 +31,4 @@ export function Gates() {
       <InjectionExample />
     </section>
   );
-}
+};

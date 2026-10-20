@@ -6,7 +6,7 @@ import { SourceProposalLinks } from './SourceProposalLinks.tsx';
 import { SourceProgress } from './SourceProgress.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceListView(c: ProfileSourcesModel) {
+export const SourceListView = (c: ProfileSourcesModel) => {
   const unlinked = c.proposals.filter(
     (p) => !c.sources.some((source) => source.id === p.source.id),
   );
@@ -72,4 +72,4 @@ export function SourceListView(c: ProfileSourcesModel) {
       ) : null}
     </div>
   );
-}
+};

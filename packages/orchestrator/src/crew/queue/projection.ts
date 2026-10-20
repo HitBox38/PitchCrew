@@ -16,7 +16,7 @@ import {
   taskLane,
 } from './state.ts';
 
-export function workspaceQueue(context: CrewContext): WorkspaceQueue {
+export const workspaceQueue = (context: CrewContext): WorkspaceQueue => {
   const active = activeQueues(context);
   const cards = context.board.list<Card>('card');
   const conversations = context.board.list<Conversation>('conversation');
@@ -75,4 +75,4 @@ export function workspaceQueue(context: CrewContext): WorkspaceQueue {
     background: [...active.keys()].filter((id) => id.startsWith('routine:')).length,
     queues,
   };
-}
+};

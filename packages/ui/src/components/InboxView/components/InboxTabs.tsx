@@ -1,7 +1,7 @@
 import type { InboxTabsProps } from '@/components/InboxView/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function InboxTabs({ tab, setTab, data }: InboxTabsProps) {
+export const InboxTabs = ({ tab, setTab, data }: InboxTabsProps) => {
   return (
     <fieldset className="inbox-tabs" aria-label="Approval view">
       <Button
@@ -24,4 +24,4 @@ export function InboxTabs({ tab, setTab, data }: InboxTabsProps) {
       </Button>
     </fieldset>
   );
-}
+};

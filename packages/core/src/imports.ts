@@ -4,138 +4,10 @@ import { transitions, type CardState } from './states.ts';
 import { canonicalJobUrl } from './tracking.ts';
 import { lessonLimits } from './insights.ts';
 
-// Bulk import of applications tracked before Pitchcrew. Parsing and state
-// planning are pure; the board module checks duplicates and applies rows.
-export const importLimits = {
-  rows: 1000,
-  bytes: 2 * 1024 * 1024,
-  history: 100,
-  note: 6000,
-  tags: 10,
-  tagLength: 40,
-} as const;
-export const importStates = [
-  'lead',
-  'shortlisted',
-  'draft',
-  'ready',
-  'submitted',
-  'screening',
-  'interviewing',
-  'offer',
-  'rejected',
-  'withdrawn',
-  'ghosted',
-] as const;
-export type ImportState = (typeof importStates)[number];
-export const importColumns = [
-  'company',
-  'title',
-  'titleDerived',
-  'attempt',
-  'location',
-  'url',
-  'jobIdentifier',
-  'state',
-  'submittedAt',
-  'statusAt',
-  'history',
-  'tags',
-  'notes',
-  'weight',
-  'lessons',
-] as const;
-const importTime = z
-  .string()
-  .trim()
-  .transform((value, ctx) => {
-    const text = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value;
-    if (!z.iso.datetime({ offset: true }).safeParse(text).success) {
-      ctx.addIssue({
-        code: 'custom',
-        message:
-          'Use a date (2025-03-01) or a date and time with a timezone (2025-03-01T09:00:00Z).',
-      });
-      return z.NEVER;
-    }
-    return new Date(text).toISOString();
-  });
-export const importHistoryEntry = z
-  .object({
-    state: z.enum(importStates),
-    at: importTime,
-    note: z.string().trim().max(1000).default(''),
-  })
-  .strict();
-export const applicationImportRow = z
-  .object({
-    company: z.string().trim().min(1).max(100),
-    title: z.string().trim().max(160).default(''),
-    titleDerived: z.boolean().default(false),
-    attempt: z.number().int().min(1).max(99).default(1),
-    location: z.string().trim().max(120).default(''),
-    url: z
-      .string()
-      .trim()
-      .max(2000)
-      .default('')
-      .refine(
-        (value) => !value || (/^https?:\/\//i.test(value) && !!canonicalJobUrl(value)),
-        'Use an HTTP or HTTPS URL.',
-      ),
-    jobIdentifier: z.string().trim().max(200).default(''),
-    state: z.enum(importStates),
-    submittedAt: importTime.optional(),
-    statusAt: importTime.optional(),
-    history: z.array(importHistoryEntry).max(importLimits.history).default([]),
-    tags: z.array(z.string().max(200)).max(100).default([]),
-    notes: z.string().trim().max(4000).default(''),
-    weight: z.number().int().min(-2).max(2).optional(),
-    lessons: z.string().trim().max(2000).default(''),
-  })
-  .strict();
-export type ApplicationImportRow = z.infer<typeof applicationImportRow>;
-export const applicationImportRequest = z
-  .object({ format: z.enum(['json', 'csv']), content: z.string().min(1) })
-  .strict();
-export const applicationImportApply = applicationImportRequest
-  .extend({ digest: z.string().regex(/^[0-9a-f]{64}$/) })
-  .strict();
-export type ImportRowStatus = 'new' | 'created' | 'imported' | 'duplicate' | 'invalid' | 'failed';
-export interface ApplicationImportRowResult {
-  row: number;
-  key: string;
-  company: string;
-  title: string;
-  sourceState: string;
-  state: CardState | null;
-  path: CardState[];
-  status: ImportRowStatus;
-  reason: string;
-  cardIds: string[];
-  warnings: string[];
-}
-/** Database uploads use base64; conversion returns the normal, previewable JSON import. */
-export interface DatabaseImportConversion {
-  content: string;
-  warnings: string[];
-}
-
-export interface ApplicationImportReport {
-  digest: string;
-  rows: ApplicationImportRowResult[];
-  counts: Record<ImportRowStatus, number>;
-}
-export interface ParsedImportRow {
-  row: number;
-  data?: ApplicationImportRow;
-  error?: string;
-  company: string;
-  title: string;
-  state: string;
-}
-
-export function parseApplicationImport(format: 'json' | 'csv', content: string): ParsedImportRow[] {
+export const parseApplicationImport = (
+  format: 'json' | 'csv',
+  content: string,
+): ParsedImportRow[] => {
   const raw = format === 'json' ? jsonRows(content) : csvRows(content);
   if (!raw.length) throw new Error('The file has no applications.');
   if (raw.length > importLimits.rows)
@@ -154,13 +26,9 @@ export function parseApplicationImport(format: 'json' | 'csv', content: string):
         .join('; '),
     };
   });
-}
-interface RawRow {
-  row: number;
-  value: unknown;
-  error?: string;
-}
-function jsonRows(content: string): RawRow[] {
+};
+
+const jsonRows = (content: string): RawRow[] => {
   let value: unknown;
   try {
     value = JSON.parse(content.replace(/^﻿/, ''));
@@ -169,8 +37,8 @@ function jsonRows(content: string): RawRow[] {
   }
   if (!Array.isArray(value)) throw new Error('A JSON import must be an array of applications.');
   return value.map((item, index) => ({ row: index + 1, value: item }));
-}
-export function parseCsv(content: string): string[][] {
+};
+export const parseCsv = (content: string): string[][] => {
   const rows: string[][] = [];
   let row: string[] = [];
   let cell = '';
@@ -202,8 +70,8 @@ export function parseCsv(content: string): string[][] {
     rows.push(row);
   }
   return rows.filter((value) => value.some((cell) => cell.trim() !== ''));
-}
-function csvRows(content: string): RawRow[] {
+};
+const csvRows = (content: string): RawRow[] => {
   const [header, ...lines] = parseCsv(content);
   if (!header) return [];
   const columns = header.map((name) => {
@@ -241,34 +109,14 @@ function csvRows(content: string): RawRow[] {
     });
     return { row: index + 1, value };
   });
-}
+};
 
-const submittedStates = new Set<CardState>([
-  'submitted',
-  'screening',
-  'interviewing',
-  'offer',
-  'rejected',
-  'ghosted',
-]);
-export function importCardState(state: ImportState): CardState {
+export const importCardState = (state: ImportState): CardState => {
   return state === 'draft' || state === 'ready' ? 'lead' : state;
-}
-export interface ImportPlan {
-  input: CardInput;
-  jobIdentifier: string;
-  submittedAt: string | null;
-  start: 'lead' | 'submitted';
-  effectiveAt: string;
-  steps: { state: CardState; at: string }[];
-  state: CardState;
-  note: string;
-  warnings: string[];
-  weight?: number;
-  lessons: string[];
-}
+};
+
 // Split by Unicode code point so neither note contains half of a surrogate pair.
-function importedLessons(text: string): string[] {
+const importedLessons = (text: string): string[] => {
   const notes: string[] = [];
   let note = '';
   for (const character of text) {
@@ -280,8 +128,8 @@ function importedLessons(text: string): string[] {
   }
   if (note) notes.push(note.trim());
   return notes.filter(Boolean);
-}
-function shortestPath(from: CardState, to: CardState, allowed: Set<CardState>): CardState[] {
+};
+const shortestPath = (from: CardState, to: CardState, allowed: Set<CardState>): CardState[] => {
   const previous = new Map<CardState, CardState | null>([[from, null]]);
   const queue: CardState[] = [from];
   while (queue.length) {
@@ -298,8 +146,8 @@ function shortestPath(from: CardState, to: CardState, allowed: Set<CardState>): 
   for (let state: CardState | null = to; state && state !== from; state = previous.get(state)!)
     path.unshift(state);
   return path;
-}
-export function planImportRow(row: ApplicationImportRow, now: number = Date.now()): ImportPlan {
+};
+export const planImportRow = (row: ApplicationImportRow, now: number = Date.now()): ImportPlan => {
   const warnings: string[] = [];
   const state = importCardState(row.state);
   const history = row.history.map((entry) => ({ ...entry, state: importCardState(entry.state) }));
@@ -458,4 +306,162 @@ export function planImportRow(row: ApplicationImportRow, now: number = Date.now(
     weight: row.weight,
     lessons,
   };
+};
+
+// Bulk import of applications tracked before Pitchcrew. Parsing and state
+// planning are pure; the board module checks duplicates and applies rows.
+export const importLimits = {
+  rows: 1000,
+  bytes: 2 * 1024 * 1024,
+  history: 100,
+  note: 6000,
+  tags: 10,
+  tagLength: 40,
+} as const;
+export const importStates = [
+  'lead',
+  'shortlisted',
+  'draft',
+  'ready',
+  'submitted',
+  'screening',
+  'interviewing',
+  'offer',
+  'rejected',
+  'withdrawn',
+  'ghosted',
+] as const;
+export type ImportState = (typeof importStates)[number];
+export const importColumns = [
+  'company',
+  'title',
+  'titleDerived',
+  'attempt',
+  'location',
+  'url',
+  'jobIdentifier',
+  'state',
+  'submittedAt',
+  'statusAt',
+  'history',
+  'tags',
+  'notes',
+  'weight',
+  'lessons',
+] as const;
+const importTime = z
+  .string()
+  .trim()
+  .transform((value, ctx) => {
+    const text = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00:00Z` : value;
+    if (!z.iso.datetime({ offset: true }).safeParse(text).success) {
+      ctx.addIssue({
+        code: 'custom',
+        message:
+          'Use a date (2025-03-01) or a date and time with a timezone (2025-03-01T09:00:00Z).',
+      });
+      return z.NEVER;
+    }
+    return new Date(text).toISOString();
+  });
+export const importHistoryEntry = z
+  .object({
+    state: z.enum(importStates),
+    at: importTime,
+    note: z.string().trim().max(1000).default(''),
+  })
+  .strict();
+export const applicationImportRow = z
+  .object({
+    company: z.string().trim().min(1).max(100),
+    title: z.string().trim().max(160).default(''),
+    titleDerived: z.boolean().default(false),
+    attempt: z.number().int().min(1).max(99).default(1),
+    location: z.string().trim().max(120).default(''),
+    url: z
+      .string()
+      .trim()
+      .max(2000)
+      .default('')
+      .refine(
+        (value) => !value || (/^https?:\/\//i.test(value) && !!canonicalJobUrl(value)),
+        'Use an HTTP or HTTPS URL.',
+      ),
+    jobIdentifier: z.string().trim().max(200).default(''),
+    state: z.enum(importStates),
+    submittedAt: importTime.optional(),
+    statusAt: importTime.optional(),
+    history: z.array(importHistoryEntry).max(importLimits.history).default([]),
+    tags: z.array(z.string().max(200)).max(100).default([]),
+    notes: z.string().trim().max(4000).default(''),
+    weight: z.number().int().min(-2).max(2).optional(),
+    lessons: z.string().trim().max(2000).default(''),
+  })
+  .strict();
+export type ApplicationImportRow = z.infer<typeof applicationImportRow>;
+export const applicationImportRequest = z
+  .object({ format: z.enum(['json', 'csv']), content: z.string().min(1) })
+  .strict();
+export const applicationImportApply = applicationImportRequest
+  .extend({ digest: z.string().regex(/^[0-9a-f]{64}$/) })
+  .strict();
+export type ImportRowStatus = 'new' | 'created' | 'imported' | 'duplicate' | 'invalid' | 'failed';
+export interface ApplicationImportRowResult {
+  row: number;
+  key: string;
+  company: string;
+  title: string;
+  sourceState: string;
+  state: CardState | null;
+  path: CardState[];
+  status: ImportRowStatus;
+  reason: string;
+  cardIds: string[];
+  warnings: string[];
+}
+/** Database uploads use base64; conversion returns the normal, previewable JSON import. */
+export interface DatabaseImportConversion {
+  content: string;
+  warnings: string[];
+}
+
+export interface ApplicationImportReport {
+  digest: string;
+  rows: ApplicationImportRowResult[];
+  counts: Record<ImportRowStatus, number>;
+}
+export interface ParsedImportRow {
+  row: number;
+  data?: ApplicationImportRow;
+  error?: string;
+  company: string;
+  title: string;
+  state: string;
+}
+interface RawRow {
+  row: number;
+  value: unknown;
+  error?: string;
+}
+
+const submittedStates = new Set<CardState>([
+  'submitted',
+  'screening',
+  'interviewing',
+  'offer',
+  'rejected',
+  'ghosted',
+]);
+export interface ImportPlan {
+  input: CardInput;
+  jobIdentifier: string;
+  submittedAt: string | null;
+  start: 'lead' | 'submitted';
+  effectiveAt: string;
+  steps: { state: CardState; at: string }[];
+  state: CardState;
+  note: string;
+  warnings: string[];
+  weight?: number;
+  lessons: string[];
 }

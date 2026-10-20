@@ -2,11 +2,11 @@ import type { ProfileSourceInput } from '@pitchcrew/core';
 import type { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { MAX_FILES, MAX_FOLDERS, object, text, type RemoteFile } from './helpers.ts';
 
-export async function readGithubSource(
+export const readGithubSource = async (
   manager: ConnectorManager,
   input: Extract<ProfileSourceInput, { provider: 'github' }>,
   signal: AbortSignal,
-): Promise<{ label: string; files: RemoteFile[] }> {
+): Promise<{ label: string; files: RemoteFile[] }> => {
   const [owner, repo] = input.repository.split('/');
   const resolved = await manager.call(
     'github_get_revision',
@@ -68,4 +68,4 @@ export async function readGithubSource(
     }
   }
   return { label: `${input.repository}/${input.path || ''}`, files };
-}
+};

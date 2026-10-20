@@ -9,7 +9,7 @@ import { chatResultSchema } from '@pitchcrew/core';
 import { chatPromptFor, promptFor } from './prompts.ts';
 import { cleanResult, parseWorkflowResult } from './results.ts';
 
-export function withChat(adapter: {
+export const withChat = (adapter: {
   applicationIsolation?: true;
   reviewSubagents?: { maxConcurrent: number };
   id: RuntimeId;
@@ -17,7 +17,7 @@ export function withChat(adapter: {
   listModels?: RuntimeAdapter['listModels'];
   detect(): Promise<RuntimeHealth>;
   launch(context: RunContext | ChatContext, prompt: string): Promise<string>;
-}): RuntimeAdapter {
+}): RuntimeAdapter => {
   return {
     applicationIsolation: adapter.applicationIsolation,
     reviewSubagents: adapter.reviewSubagents,
@@ -32,4 +32,4 @@ export function withChat(adapter: {
         JSON.parse(cleanResult(await adapter.launch(context, chatPromptFor(context)))),
       ),
   };
-}
+};

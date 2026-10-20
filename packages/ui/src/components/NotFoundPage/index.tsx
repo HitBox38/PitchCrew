@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 
-export function NotFoundPage() {
+export const NotFoundPage = () => {
   return (
     <section className="empty-state">
       <h2>Page not found</h2>
@@ -8,4 +8,4 @@ export function NotFoundPage() {
       <Link to="/">Go to Board</Link>
     </section>
   );
-}
+};

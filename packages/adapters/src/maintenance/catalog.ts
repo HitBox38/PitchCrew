@@ -1,5 +1,32 @@
 import type { RuntimeId } from '@pitchcrew/core';
 
+export const runtimeVersion = (value: string): string | null => {
+  return value.match(/\b\d+\.\d+\.\d+(?:-[\w.-]+)?\b/)?.[0] ?? null;
+};
+export const compareRuntimeVersions = (a: string, b: string): number | null => {
+  const left = runtimeVersion(a),
+    right = runtimeVersion(b);
+  if (!left || !right) return null;
+  for (let i = 0; i < 3; i++) {
+    const delta = Number(left.split(/[.-]/)[i]) - Number(right.split(/[.-]/)[i]);
+    if (delta) return Math.sign(delta);
+  }
+  return left.includes('-') === right.includes('-') ? 0 : left.includes('-') ? -1 : 1;
+};
+
+/** Match the adapters' enforced minimums; newer untested releases remain eligible. */
+export const runtimeUpdateCompatible = (id: RuntimeId, version: string): boolean => {
+  const minimum: Partial<Record<RuntimeId, string>> = {
+    'cursor-agent': '2026.09.26',
+    grok: '1.0.45',
+    pi: '1.0.0',
+    'oh-my-pi': '18.4.9',
+    hermes: '0.21.5',
+  };
+  const required = minimum[id];
+  return !required || (compareRuntimeVersions(version, required) ?? -1) >= 0;
+};
+
 export interface MaintenanceDefinition {
   command: string;
   package?: string;
@@ -99,30 +126,3 @@ export const maintenanceDefinitions: Record<Exclude<RuntimeId, 'demo'>, Maintena
       'Set the selected provider’s API key in the daemon or service environment and restart it. Hermes login files and custom providers are not imported.',
   },
 };
-
-export function runtimeVersion(value: string): string | null {
-  return value.match(/\b\d+\.\d+\.\d+(?:-[\w.-]+)?\b/)?.[0] ?? null;
-}
-export function compareRuntimeVersions(a: string, b: string): number | null {
-  const left = runtimeVersion(a),
-    right = runtimeVersion(b);
-  if (!left || !right) return null;
-  for (let i = 0; i < 3; i++) {
-    const delta = Number(left.split(/[.-]/)[i]) - Number(right.split(/[.-]/)[i]);
-    if (delta) return Math.sign(delta);
-  }
-  return left.includes('-') === right.includes('-') ? 0 : left.includes('-') ? -1 : 1;
-}
-
-/** Match the adapters' enforced minimums; newer untested releases remain eligible. */
-export function runtimeUpdateCompatible(id: RuntimeId, version: string): boolean {
-  const minimum: Partial<Record<RuntimeId, string>> = {
-    'cursor-agent': '2026.09.26',
-    grok: '1.0.45',
-    pi: '1.0.0',
-    'oh-my-pi': '18.4.9',
-    hermes: '0.21.5',
-  };
-  const required = minimum[id];
-  return !required || (compareRuntimeVersions(version, required) ?? -1) >= 0;
-}

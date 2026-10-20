@@ -14,7 +14,7 @@ import { quickStatuses, shortcutLabels } from './helpers.ts';
 import { useJobActionsMenu } from './hooks/useJobActionsMenu.ts';
 import type { JobActionsMenuProps } from './types.ts';
 
-export function JobActionsMenu(props: JobActionsMenuProps) {
+export const JobActionsMenu = (props: JobActionsMenuProps) => {
   const { card, disabled } = props;
   const model = useJobActionsMenu(props);
   return (
@@ -82,4 +82,4 @@ export function JobActionsMenu(props: JobActionsMenuProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

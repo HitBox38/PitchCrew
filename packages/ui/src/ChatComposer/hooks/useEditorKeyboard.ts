@@ -7,11 +7,11 @@ import {
 } from 'lexical';
 import type { ComposerEditorProps } from '../types.ts';
 import type { useSuggestions } from './useSuggestions.ts';
-export function useEditorKeyboard(
+export const useEditorKeyboard = (
   editor: LexicalEditor,
   props: ComposerEditorProps,
   suggestions: ReturnType<typeof useSuggestions>,
-) {
+) => {
   useEffect(
     () =>
       editor.registerCommand(
@@ -68,4 +68,4 @@ export function useEditorKeyboard(
       ),
     [editor, props],
   );
-}
+};

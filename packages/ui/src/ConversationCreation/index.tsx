@@ -4,7 +4,7 @@ import { useParams } from '@tanstack/react-router';
 import type { Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
 
-export function ConversationCreation({
+export const ConversationCreation = ({
   data,
   action,
   working,
@@ -14,7 +14,7 @@ export function ConversationCreation({
   action: Action;
   working: boolean;
   onClose: () => void;
-}) {
+}) => {
   const { thread } = useParams({ strict: false });
   const { openChat } = useWorkspaceNavigation();
   const conversation = data.conversations?.find((item) => item.id === thread);
@@ -39,4 +39,4 @@ export function ConversationCreation({
       ]}
     />
   );
-}
+};

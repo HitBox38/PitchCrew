@@ -3,7 +3,7 @@ import type { Action } from '@/WorkspaceStore/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { useMemoryEntry } from '../hooks/useMemoryEntry.ts';
 
-export function MemoryEntryActions({
+export const MemoryEntryActions = ({
   note,
   editor,
   working,
@@ -15,7 +15,7 @@ export function MemoryEntryActions({
   working: boolean;
   action: Action;
   openSource: () => void;
-}) {
+}) => {
   const { editing, setEditing, deleting, setDeleting, content, setContent, setTags, save } = editor;
   return (
     <div className="flex flex-wrap items-center gap-3">
@@ -80,4 +80,4 @@ export function MemoryEntryActions({
       )}
     </div>
   );
-}
+};

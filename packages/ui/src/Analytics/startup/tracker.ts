@@ -1,11 +1,11 @@
 import { sanitizeStartup } from './sanitize.ts';
 
-export function createStartupTracker(deps: {
+export const createStartupTracker = (deps: {
   read: () => Promise<unknown>;
   allowed: () => boolean;
   enabled: () => boolean;
   capture: (event: string, properties: Record<string, number>) => void;
-}) {
+}) => {
   let started = false;
   let discarded = !deps.allowed();
   let pending: Record<string, number> | null = null;
@@ -17,11 +17,11 @@ export function createStartupTracker(deps: {
   };
   return {
     flush,
-    discard() {
+    discard: () => {
       discarded = true;
       pending = null;
     },
-    async ready() {
+    ready: async () => {
       if (started || discarded || !deps.allowed()) return;
       started = true;
       try {
@@ -34,4 +34,4 @@ export function createStartupTracker(deps: {
       }
     },
   };
-}
+};

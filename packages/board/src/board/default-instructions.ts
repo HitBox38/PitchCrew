@@ -14,29 +14,32 @@ import type { BoardContext } from './types.ts';
  * Compares each seeded, non-retired default role with the current default text.
  * Read-only: detection never changes a role. Cached until the next board event.
  */
-export function defaultInstructionStatuses(this: BoardContext): DefaultInstructionStatus[] {
-  const { id } = this.db.prepare('SELECT max(id) AS id FROM events').get() as { id: number | null };
+export const defaultInstructionStatuses = (context: BoardContext): DefaultInstructionStatus[] => {
+  const { id } = context.db.prepare('SELECT max(id) AS id FROM events').get() as {
+    id: number | null;
+  };
   const eventId = id ?? 0;
-  if (this.instructionStatusCache?.eventId === eventId) return this.instructionStatusCache.statuses;
-  const roles = this.list<Role>('role');
+  if (context.instructionStatusCache?.eventId === eventId)
+    return context.instructionStatusCache.statuses;
+  const roles = context.list<Role>('role');
   const statuses = defaultRoles('claude-code', false).flatMap((fallback) => {
     const role = roles.find((saved) => saved.id === fallback.id);
-    if (!role || role.retiredAt || !wasSeeded(this, role.id)) return [];
-    return [instructionStatus(role, fallback, () => savedInstructions(this, role.id))];
+    if (!role || role.retiredAt || !wasSeeded(context, role.id)) return [];
+    return [instructionStatus(role, fallback, () => savedInstructions(context, role.id))];
   });
-  this.instructionStatusCache = { eventId, statuses };
+  context.instructionStatusCache = { eventId, statuses };
   return statuses;
-}
+};
 
 /**
  * Pure detection for one role. `saved` lazily returns the role's instruction texts from its own
  * event history, newest first; it is read only when the stored text matches no known default.
  */
-export function instructionStatus(
+export const instructionStatus = (
   role: Role,
   fallback: Role,
   saved: () => string[],
-): DefaultInstructionStatus {
+): DefaultInstructionStatus => {
   const history = defaultInstructionHistory[fallback.id] ?? [];
   const revision = instructionRevision(fallback.instructions);
   const common = {
@@ -75,17 +78,17 @@ export function instructionStatus(
       };
   }
   return { ...common, state: 'unknown_base', changes: after(-1) };
-}
+};
 
-function toolDifferences(role: Role, fallback: Role): (keyof AgentCapabilities)[] {
+const toolDifferences = (role: Role, fallback: Role): (keyof AgentCapabilities)[] => {
   const current = { ...defaultCapabilities, ...role.capabilities };
   const expected = { ...defaultCapabilities, ...fallback.capabilities };
   return (Object.keys(defaultCapabilities) as (keyof AgentCapabilities)[]).filter(
     (key) => Boolean(current[key]) !== Boolean(expected[key]),
   );
-}
+};
 
-function savedInstructions(context: BoardContext, roleId: string): string[] {
+const savedInstructions = (context: BoardContext, roleId: string): string[] => {
   const rows = context.db
     .prepare(
       "SELECT json FROM events WHERE json_extract(json,'$.kind') = 'role' AND json_extract(json,'$.entityId') = ? ORDER BY id DESC",
@@ -95,14 +98,14 @@ function savedInstructions(context: BoardContext, roleId: string): string[] {
     const instructions = (decodeEvent(row.json).data as Partial<Role>).instructions;
     return typeof instructions === 'string' ? [instructions] : [];
   });
-}
+};
 
 /** A custom role can reserve a default ID before startup; its first event is user-owned. */
-function wasSeeded(context: BoardContext, roleId: string): boolean {
+const wasSeeded = (context: BoardContext, roleId: string): boolean => {
   const row = context.db
     .prepare(
       "SELECT json FROM events WHERE json_extract(json,'$.kind') = 'role' AND json_extract(json,'$.entityId') = ? ORDER BY id LIMIT 1",
     )
     .get(roleId) as { json: string } | undefined;
   return !!row && decodeEvent(row.json).actor === 'system';
-}
+};

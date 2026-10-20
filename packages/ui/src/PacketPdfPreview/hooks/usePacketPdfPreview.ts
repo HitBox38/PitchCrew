@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { renderPdf } from '../api.ts';
 
-export function usePacketPdfPreview(bytes: string) {
+export const usePacketPdfPreview = (bytes: string) => {
   const [result, setResult] = useState<{ bytes: string; pages: string[]; error: string }>({
     bytes: '',
     pages: [],
@@ -26,4 +26,4 @@ export function usePacketPdfPreview(bytes: string) {
   return result.bytes === bytes
     ? { pages: result.pages, error: result.error }
     : { pages: [], error: '' };
-}
+};

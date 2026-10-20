@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu/index.tsx';
 
-export function SourceMenu({
+export const SourceMenu = ({
   label,
   disabled,
   remove,
@@ -15,7 +15,7 @@ export function SourceMenu({
   label: string;
   disabled: boolean;
   remove: () => void;
-}) {
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -35,4 +35,4 @@ export function SourceMenu({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

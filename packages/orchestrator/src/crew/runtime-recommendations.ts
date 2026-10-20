@@ -3,10 +3,10 @@ import { defaultRoles } from '@pitchcrew/board';
 import type { Role, RuntimeInfo, RuntimeRecommendation } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 
-async function recommendationRuntimes(
+const recommendationRuntimes = async (
   context: CrewContext,
   refresh: boolean,
-): Promise<RuntimeInfo[]> {
+): Promise<RuntimeInfo[]> => {
   if (refresh) await context.detect();
   // All installed runtimes participate; metadata requests never start an inference turn.
   await Promise.all(
@@ -15,9 +15,9 @@ async function recommendationRuntimes(
       .map((runtime) => context.runtimeModels(runtime.id, refresh)),
   );
   return context.runtimes;
-}
+};
 
-export async function seedRecommendedRoles(context: CrewContext): Promise<void> {
+export const seedRecommendedRoles = async (context: CrewContext): Promise<void> => {
   if (context.dev) return;
   const existing = context.board.list<Role>('role');
   const missing = defaultRoles('claude-code', false).filter(
@@ -30,15 +30,15 @@ export async function seedRecommendedRoles(context: CrewContext): Promise<void> 
     false,
     new Map(missing.map((role) => [role.id, recommendRuntime(role.id, runtimes)])),
   );
-}
+};
 
-export async function runtimeRecommendation(
+export const runtimeRecommendation = async (
   context: CrewContext,
   roleId: string,
-): Promise<RuntimeRecommendation> {
+): Promise<RuntimeRecommendation> => {
   const role = context.board.get<Role>('role', roleId);
   if (role.retiredAt) throw new Error('This agent is retired.');
   if (!hasRuntimeRecommendation(roleId))
     throw new Error('Runtime recommendations are available for built-in agents.');
   return recommendRuntime(roleId, await recommendationRuntimes(context, true));
-}
+};

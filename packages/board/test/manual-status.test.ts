@@ -3,16 +3,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Board, setCardStatus } from '../src/index.ts';
 import { packet } from './fixtures/packet.ts';
 import { reviewFixturePacket } from './fixtures/application-context.ts';
-
-const boards: Board[] = [];
-function fixture() {
+const fixture = () => {
   const board = new Board(':memory:');
   boards.push(board);
   const card = board.createCard(
     cardInput.parse({ company: 'Fictional Studio', title: 'Engineer' }),
   );
   return { board, card };
-}
+};
+
+const boards: Board[] = [];
 afterEach(() => {
   vi.restoreAllMocks();
   for (const board of boards.splice(0)) board.close();

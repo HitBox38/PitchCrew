@@ -1,6 +1,6 @@
 import type { ExtractedJob } from '@pitchcrew/core';
 
-export function BriefSummary({ value }: { value: ExtractedJob }) {
+export const BriefSummary = ({ value }: { value: ExtractedJob }) => {
   return (
     <div className="grid gap-2">
       {value.brief.companyContext ? <p className="prewrap">{value.brief.companyContext}</p> : null}
@@ -38,4 +38,4 @@ export function BriefSummary({ value }: { value: ExtractedJob }) {
       )}
     </div>
   );
-}
+};

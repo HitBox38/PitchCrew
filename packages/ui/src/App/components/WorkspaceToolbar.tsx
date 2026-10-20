@@ -4,7 +4,7 @@ import { SidebarTrigger } from '@/components/ui/sidebar/components/SidebarTrigge
 import { modKey } from '@/shortcuts.ts';
 import { LoaderCircle } from 'lucide-react';
 
-export function WorkspaceToolbar({ running, data }: WorkspaceToolbarProps) {
+export const WorkspaceToolbar = ({ running, data }: WorkspaceToolbarProps) => {
   return (
     <div className="page-toolbar">
       <SidebarTrigger title={`Toggle sidebar (${modKey}B)`} />
@@ -23,4 +23,4 @@ export function WorkspaceToolbar({ running, data }: WorkspaceToolbarProps) {
       <Notifications />
     </div>
   );
-}
+};

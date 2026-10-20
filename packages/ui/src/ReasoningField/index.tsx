@@ -17,7 +17,7 @@ interface ReasoningFieldProps {
   conversation?: boolean;
 }
 
-export function ReasoningField({
+export const ReasoningField = ({
   id,
   reasoning,
   value,
@@ -26,7 +26,7 @@ export function ReasoningField({
   compact,
   agentDefault,
   conversation,
-}: ReasoningFieldProps) {
+}: ReasoningFieldProps) => {
   if (!reasoning?.levels.length && !agentDefault) return null;
   const items = [
     ...(agentDefault ? [{ value: 'agent', label: agentDefault }] : []),
@@ -71,4 +71,4 @@ export function ReasoningField({
       ) : null}
     </div>
   );
-}
+};

@@ -2,7 +2,7 @@ import { Analytics } from '../Analytics';
 import { Brand } from '../components/Brand';
 import { documentationUrl, licenseUrl, repository } from '../lib/links';
 
-export function Footer() {
+export const Footer = () => {
   return (
     <footer className="page-width border-t border-border py-9">
       <div className="flex flex-wrap items-center justify-between gap-7">
@@ -25,4 +25,4 @@ export function Footer() {
       </p>
     </footer>
   );
-}
+};

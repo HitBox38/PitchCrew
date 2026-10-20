@@ -2,7 +2,7 @@ import { expect, it } from 'vitest';
 import type { ChatMessage, ConversationHistoryPage } from '@pitchcrew/core';
 import { liveHistoryItems } from '../remote-history.ts';
 
-function message(id: string, from = 'scout'): ChatMessage {
+const message = (id: string, from = 'scout'): ChatMessage => {
   return {
     id,
     threadId: 'scout',
@@ -13,7 +13,7 @@ function message(id: string, from = 'scout'): ChatMessage {
     runId: null,
     createdAt: '2026-10-17T00:00:00.000Z',
   };
-}
+};
 it('merges live replies into the latest server page once and bounds the mounted transcript', () => {
   const messages = Array.from({ length: 50 }, (_, i) => message(String(i), 'user'));
   const page: ConversationHistoryPage = {

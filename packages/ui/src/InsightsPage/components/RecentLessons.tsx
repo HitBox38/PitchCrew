@@ -1,7 +1,7 @@
 import { outcomeLabels } from '@/lib/labels.ts';
 import { outcomes, type ApplicationInsights } from '@pitchcrew/core/insights';
 
-export function RecentLessons({ insights }: { insights: ApplicationInsights }) {
+export const RecentLessons = ({ insights }: { insights: ApplicationInsights }) => {
   const groups = outcomes.filter((outcome) => insights.lessons[outcome].length);
   return (
     <section className="insights-panel insights-lessons" aria-labelledby="insights-lessons">
@@ -28,4 +28,4 @@ export function RecentLessons({ insights }: { insights: ApplicationInsights }) {
       )}
     </section>
   );
-}
+};

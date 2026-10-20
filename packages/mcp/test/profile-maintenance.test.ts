@@ -18,13 +18,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { digest } from '../../orchestrator/src/profile-sources/helpers.ts';
 import { createDaemon } from '../../orchestrator/src/server.ts';
 import { cleanup, setup, resources } from '../../orchestrator/test/helpers/daemon.ts';
-
-afterEach(cleanup);
-const input = { provider: 'github', repository: 'fictional/profile', path: 'notes' };
-const first = 'a'.repeat(40);
-const second = 'b'.repeat(40);
-type Fixture = Awaited<ReturnType<typeof setup>>;
-function fixture(f: Fixture) {
+const fixture = (f: Fixture) => {
   let revision = first;
   const documents = new Map([
     ['notes/background.md', 'Built the fictional scheduling tool.'],
@@ -61,8 +55,8 @@ function fixture(f: Fixture) {
       revision = second;
     },
   };
-}
-async function imported(f: Fixture) {
+};
+const imported = async (f: Fixture) => {
   const preview = (await f.request<ProfileSourcePreview>('/profile/sources/preview', 'POST', input))
     .result;
   await f.request('/profile/sources/import', 'POST', {
@@ -72,8 +66,8 @@ async function imported(f: Fixture) {
   const sources = (await f.request<ProfileSource[]>('/profile/sources')).result;
   await f.request(`/profile/sources/${sources[0]!.id}/watch`, 'PUT', { watching: true });
   return { preview, source: sources[0]! };
-}
-function active(f: Fixture, id = 'fixture-profile-run') {
+};
+const active = (f: Fixture, id = 'fixture-profile-run') => {
   const role = f.daemon.service.board.get<Role>('role', 'scout');
   f.daemon.service.board.record(
     'role',
@@ -110,16 +104,16 @@ function active(f: Fixture, id = 'fixture-profile-run') {
       );
     },
   };
-}
-async function agent<T>(f: Fixture, token: string, action: string, input: unknown = {}) {
+};
+const agent = async <T>(f: Fixture, token: string, action: string, input: unknown = {}) => {
   const response = await fetch(`${f.daemon.url}/api/agent`, {
     method: 'POST',
     headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
     body: JSON.stringify({ action, input }),
   });
   return { response, result: (await response.json()) as T };
-}
-function decision(proposal: ProfileMaintenanceProposal, extra: Record<string, unknown> = {}) {
+};
+const decision = (proposal: ProfileMaintenanceProposal, extra: Record<string, unknown> = {}) => {
   return {
     approved: true,
     snapshotDigest: proposal.snapshotDigest,
@@ -127,7 +121,13 @@ function decision(proposal: ProfileMaintenanceProposal, extra: Record<string, un
     verifiedFacts: true,
     ...extra,
   };
-}
+};
+
+afterEach(cleanup);
+const input = { provider: 'github', repository: 'fictional/profile', path: 'notes' };
+const first = 'a'.repeat(40);
+const second = 'b'.repeat(40);
+type Fixture = Awaited<ReturnType<typeof setup>>;
 
 describe('profile maintenance', () => {
   it('stages exact source diffs, local conflicts and removals without writing, then applies the verified reviewed snapshot only when idle', async () => {

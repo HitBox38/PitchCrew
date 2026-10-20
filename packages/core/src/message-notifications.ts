@@ -1,11 +1,11 @@
 import type { ChatMessage } from './chat.ts';
 import type { Snapshot } from './workspace.ts';
 
-export function isNotificationMessage(
+export const isNotificationMessage = (
   message: ChatMessage,
   data: Pick<Snapshot, 'conversations' | 'userInputs'>,
   notices: ReadonlySet<string>,
-) {
+) => {
   if (
     message.userInput?.kind === 'question' &&
     !data.userInputs?.some((q) => q.id === message.userInput?.id && q.status === 'pending')
@@ -21,4 +21,4 @@ export function isNotificationMessage(
     conversation.kind === 'routine' ||
     message.from === conversation.leadId
   );
-}
+};

@@ -1,15 +1,13 @@
 import { realpathSync } from 'node:fs';
 import { basename, dirname, isAbsolute, relative, resolve, sep } from 'node:path';
 
-const boundaryMessage = 'PITCHCREW_HOME must be outside the repository.';
-
-function isOutside(root: string, directory: string): boolean {
+const isOutside = (root: string, directory: string): boolean => {
   const repoRelative = relative(root, directory);
   return isAbsolute(repoRelative) || repoRelative === '..' || repoRelative.startsWith(`..${sep}`);
-}
+};
 
 /** Resolve existing ancestors even when the data directory has not been created yet. */
-function physicalPath(path: string): string {
+const physicalPath = (path: string): string => {
   let ancestor = resolve(path);
   const missing: string[] = [];
   for (;;) {
@@ -23,10 +21,10 @@ function physicalPath(path: string): string {
       ancestor = parent;
     }
   }
-}
+};
 
 /** Keep mutable application data outside the repository, including filesystem aliases. */
-export function assertDataDirectoryOutsideRepository(root: string, directory: string): void {
+export const assertDataDirectoryOutsideRepository = (root: string, directory: string): void => {
   if (!isOutside(root, directory)) throw new Error(boundaryMessage);
   let physicalRoot: string;
   let physicalDirectory: string;
@@ -37,4 +35,6 @@ export function assertDataDirectoryOutsideRepository(root: string, directory: st
     throw new Error(`${boundaryMessage} Could not verify its physical location.`, { cause: error });
   }
   if (!isOutside(physicalRoot, physicalDirectory)) throw new Error(boundaryMessage);
-}
+};
+
+const boundaryMessage = 'PITCHCREW_HOME must be outside the repository.';

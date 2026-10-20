@@ -6,13 +6,7 @@ import { tmpdir } from 'node:os';
 import { afterEach, expect, it, vi } from 'vitest';
 import { ComputerManager } from '../src/computer.ts';
 import { BrowserSessions } from '../src/computer/sessions.ts';
-
-const resources: (() => Promise<void>)[] = [];
-afterEach(async () => {
-  for (const cleanup of resources.splice(0)) await cleanup();
-  vi.useRealTimers();
-});
-async function fixture() {
+const fixture = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-browser-sessions-'));
   const board = new Board(join(directory, 'board.db'));
   const page: BrowserSnapshot = {
@@ -56,7 +50,13 @@ async function fixture() {
     mode: 'autonomous',
   });
   return { manager, board, directory, launch, drivers, scope, page };
-}
+};
+
+const resources: (() => Promise<void>)[] = [];
+afterEach(async () => {
+  for (const cleanup of resources.splice(0)) await cleanup();
+  vi.useRealTimers();
+});
 it('keeps profiles and sign-in ownership per agent and starts fresh pages for other contexts', async () => {
   const { manager, scope, launch, drivers, directory } = await fixture();
   await manager.inspect(scope.runId);

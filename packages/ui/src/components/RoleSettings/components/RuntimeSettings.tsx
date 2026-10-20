@@ -8,7 +8,7 @@ import { Select } from '@/components/ui/select/constants.ts';
 import { ModelField } from '@/ModelField/index.tsx';
 import type { Role } from '@pitchcrew/core';
 
-export function RuntimeSettings({
+export const RuntimeSettings = ({
   role,
   runtime,
   setRuntime,
@@ -23,7 +23,7 @@ export function RuntimeSettings({
   setEnabled,
   children,
   stacked,
-}: RuntimeSettingsProps) {
+}: RuntimeSettingsProps) => {
   return (
     <section className="role-settings-section" aria-labelledby={`${role.id}-runtime-heading`}>
       <h3 id={`${role.id}-runtime-heading`}>Runtime and model</h3>
@@ -78,4 +78,4 @@ export function RuntimeSettings({
       </label>
     </section>
   );
-}
+};

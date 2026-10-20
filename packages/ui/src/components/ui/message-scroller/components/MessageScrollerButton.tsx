@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { MessageScroller as MessageScrollerPrimitive } from '@shadcn/react/message-scroller';
 import { ArrowDownIcon } from 'lucide-react';
 
-export function MessageScrollerButton({
+export const MessageScrollerButton = ({
   direction = 'end',
   className,
   children,
@@ -13,7 +13,7 @@ export function MessageScrollerButton({
   size = 'icon-sm',
   ...props
 }: React.ComponentProps<typeof MessageScrollerPrimitive.Button> &
-  Pick<React.ComponentProps<typeof Button>, 'variant' | 'size'>) {
+  Pick<React.ComponentProps<typeof Button>, 'variant' | 'size'>) => {
   return (
     <MessageScrollerPrimitive.Button
       data-slot="message-scroller-button"
@@ -38,4 +38,4 @@ export function MessageScrollerButton({
       )}
     </MessageScrollerPrimitive.Button>
   );
-}
+};

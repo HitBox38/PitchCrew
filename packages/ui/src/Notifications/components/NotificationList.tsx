@@ -5,7 +5,7 @@ import { notificationPresentation } from '../constants.ts';
 import { notificationPreview } from '../helpers.ts';
 import { timeAgo } from '@/lib/time.ts';
 
-export function NotificationList({
+export const NotificationList = ({
   items,
   read,
   onOpen,
@@ -13,7 +13,7 @@ export function NotificationList({
   items: CrewNotification[];
   read: string[];
   onOpen: (item: CrewNotification) => void;
-}) {
+}) => {
   if (!items.length)
     return (
       <p className="quiet notification-empty">
@@ -55,4 +55,4 @@ export function NotificationList({
       ))}
     </ul>
   );
-}
+};

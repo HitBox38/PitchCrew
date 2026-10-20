@@ -2,7 +2,7 @@ import type { DraftFieldsProps, Frequency, RoutineDraft } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 
-export function RepeatFields({ draft, change }: DraftFieldsProps) {
+export const RepeatFields = ({ draft, change }: DraftFieldsProps) => {
   return (
     <>
       <FormSelect
@@ -62,4 +62,4 @@ export function RepeatFields({ draft, change }: DraftFieldsProps) {
       ) : null}
     </>
   );
-}
+};

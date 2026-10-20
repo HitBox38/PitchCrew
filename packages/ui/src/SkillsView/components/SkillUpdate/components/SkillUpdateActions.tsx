@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { useSkillUpdate } from '../hooks/useSkillUpdate.ts';
 
-export function SkillUpdateActions(c: ReturnType<typeof useSkillUpdate>) {
+export const SkillUpdateActions = (c: ReturnType<typeof useSkillUpdate>) => {
   return (
     <footer className="profile-import-footer flex flex-wrap justify-end gap-2.5">
       <Button className="button" onClick={c.close} disabled={c.working}>
@@ -32,4 +32,4 @@ export function SkillUpdateActions(c: ReturnType<typeof useSkillUpdate>) {
       ) : null}
     </footer>
   );
-}
+};

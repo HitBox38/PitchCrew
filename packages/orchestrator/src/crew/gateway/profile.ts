@@ -18,22 +18,22 @@ import {
 import { digest } from '../../profile-sources/helpers.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export async function profileAction(
-  this: CrewContext,
+export const profileAction = async (
+  context: CrewContext,
   capability: RunCapability,
   token: string,
   action: string,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   const authorize = (source?: ProfileSource) => {
-    const role = this.board.get<Role>('role', capability.roleId);
-    const signal = this.controllers.get(capability.runId)?.signal;
+    const role = context.board.get<Role>('role', capability.roleId);
+    const signal = context.controllers.get(capability.runId)?.signal;
     if (
-      this.closing ||
-      this.capabilities.get(token) !== capability ||
+      context.closing ||
+      context.capabilities.get(token) !== capability ||
       !signal ||
       signal.aborted ||
-      this.board.get<Run>('run', capability.runId).status !== 'running' ||
+      context.board.get<Run>('run', capability.runId).status !== 'running' ||
       !role.enabled ||
       role.capabilities?.maintainProfile !== true
     )
@@ -44,7 +44,7 @@ export async function profileAction(
         role.capabilities?.[source.input.provider === 'github' ? 'github' : 'drive'] !== true
       )
         throw new Error('Source watching and the matching connector capability must be enabled.');
-      const account = this.connectors
+      const account = context.connectors
         .status()
         .find((item) => item.id === (source.input.provider === 'github' ? 'github' : 'google'));
       if (
@@ -57,7 +57,7 @@ export async function profileAction(
   };
   const payload = z.record(z.string(), z.unknown()).parse(data.input ?? {});
   const role = authorize();
-  const sources = await this.profileSources.list();
+  const sources = await context.profileSources.list();
   if (action === 'watched_profile_sources')
     return {
       sources: sources
@@ -76,7 +76,7 @@ export async function profileAction(
         })),
     };
   if (action === 'read_project_watch_file' || action === 'propose_profile_note') {
-    const proposal = this.board.get<ProfileMaintenanceProposal>(
+    const proposal = context.board.get<ProfileMaintenanceProposal>(
       'profile_proposal',
       z.uuid().parse(payload.proposalId),
     );
@@ -86,22 +86,24 @@ export async function profileAction(
     if (digest(JSON.stringify(watched.input)) !== digest(JSON.stringify(proposal.source.input)))
       throw new Error('The project watch changed since observation. Detect again.');
     if (action === 'propose_profile_note')
-      return projectNote(this, capability, proposal, payload, async () => {
-        const current = (await this.profileSources.list()).find((item) => item.id === watched.id);
+      return projectNote(context, capability, proposal, payload, async () => {
+        const current = (await context.profileSources.list()).find(
+          (item) => item.id === watched.id,
+        );
         if (!current || digest(JSON.stringify(current)) !== digest(JSON.stringify(watched)))
           throw new Error('Project watch changed during the read.');
         authorize(current);
-        if (this.profileWriting) throw new Error('Profile update is in progress.');
+        if (context.profileWriting) throw new Error('Profile update is in progress.');
       });
     const input = z.object({ proposalId: z.uuid(), path: projectFilePath }).strict().parse(payload);
     const file = await readProjectFile(
-      this,
+      context,
       capability,
       watched,
       proposal.observation.current,
       input.path,
     );
-    const current = (await this.profileSources.list()).find((item) => item.id === watched.id);
+    const current = (await context.profileSources.list()).find((item) => item.id === watched.id);
     if (!current || digest(JSON.stringify(current)) !== digest(JSON.stringify(watched)))
       throw new Error('Project watch changed during the read.');
     authorize(current);
@@ -114,22 +116,22 @@ export async function profileAction(
   const source = sources.find((item) => item.id === sourceId);
   if (!source) throw new Error('Profile source not found.');
   authorize(source);
-  const all = this.board.list<ProfileMaintenanceProposal>('profile_proposal');
+  const all = context.board.list<ProfileMaintenanceProposal>('profile_proposal');
   const existing = all.find(
     (p) => p.source.id === sourceId && ['pending', 'applying'].includes(p.status),
   );
   if (existing) return { proposal: visibleProposal(existing), detected: false };
   if (all.filter((p) => p.runId === capability.runId).length >= 3)
     throw new Error('Three profile proposals maximum per run.');
-  const revision = this.profileRevision;
+  const revision = context.profileRevision;
   let observation: ProfileMaintenanceProposal['observation'];
   let preview: Pick<ProfileSourcePreview, 'source' | 'files' | 'missing'>;
   if (source.mode === 'project' && source.input.provider === 'github') {
     const [owner, repo] = source.input.repository.split('/');
-    const result = await this.connectors.call(
+    const result = await context.connectors.call(
       'github_get_revision',
       { owner, repo, ref: source.input.ref },
-      this.controllers.get(capability.runId)!.signal,
+      context.controllers.get(capability.runId)!.signal,
     );
     const current = z
       .string()
@@ -138,26 +140,26 @@ export async function profileAction(
     if (current !== source.revision) observation = { previous: source.revision!, current };
     preview = { source, files: [], missing: [] };
   } else
-    preview = await this.profileSources.preview(
+    preview = await context.profileSources.preview(
       source.input,
-      this.controllers.get(capability.runId)!.signal,
+      context.controllers.get(capability.runId)!.signal,
       true,
     );
-  const currentSources = await this.profileSources.list();
+  const currentSources = await context.profileSources.list();
   const currentSource = currentSources.find((item) => item.id === sourceId);
   if (!currentSource || digest(JSON.stringify(sources)) !== digest(JSON.stringify(currentSources)))
     throw new Error('Profile source settings changed during detection.');
   authorize(currentSource);
-  if (this.profileWriting || revision !== this.profileRevision)
+  if (context.profileWriting || revision !== context.profileRevision)
     throw new Error('Profile notes changed during detection. Try again.');
-  const latest = this.board.list<ProfileMaintenanceProposal>('profile_proposal');
+  const latest = context.board.list<ProfileMaintenanceProposal>('profile_proposal');
   const pending = latest.find(
     (p) => p.source.id === sourceId && ['pending', 'applying'].includes(p.status),
   );
   if (pending) return { proposal: visibleProposal(pending), detected: false };
   if (latest.filter((p) => p.runId === capability.runId).length >= 3)
     throw new Error('Three profile proposals maximum per run.');
-  const notes = await readProfile(this.directory);
+  const notes = await readProfile(context.directory);
   authorize(currentSource);
   const changes = preview.files
     .filter((file) => file.status !== 'unchanged')
@@ -185,14 +187,14 @@ export async function profileAction(
     createdAt: new Date().toISOString(),
   };
   proposal.snapshotDigest = proposalDigest(proposal);
-  this.board.record(
+  context.board.record(
     'profile_proposal',
     proposal,
     capability.roleId,
     `Proposed profile updates from ${source.label}`,
   );
-  const run = this.board.get<Run>('run', capability.runId);
-  this.addMessage(
+  const run = context.board.get<Run>('run', capability.runId);
+  context.addMessage(
     run.threadId ?? 'crew',
     capability.roleId,
     run.threadId ?? 'crew',
@@ -203,4 +205,4 @@ export async function profileAction(
     'attention',
   );
   return { detected: true, proposal: visibleProposal(proposal) };
-}
+};

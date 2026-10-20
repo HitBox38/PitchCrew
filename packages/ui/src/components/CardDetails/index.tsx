@@ -8,7 +8,7 @@ import type { CardDetailsProps } from './types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 
-export function CardDetails(props: CardDetailsProps) {
+export const CardDetails = (props: CardDetailsProps) => {
   const source = useCardSource(props.card, props.data.workspace === true);
   if (!source.ready)
     return (
@@ -28,10 +28,10 @@ export function CardDetails(props: CardDetailsProps) {
       retrySource={source.retry}
     />
   );
-}
-function CardDetailsContent(
+};
+const CardDetailsContent = (
   props: CardDetailsProps & { sourceError: string; retrySource: () => void },
-) {
+) => {
   const model = useCardDetails(props);
   return (
     <JobSheet onClose={model.onClose}>
@@ -47,4 +47,4 @@ function CardDetailsContent(
       <DiscardChanges guard={model.guard} />
     </JobSheet>
   );
-}
+};

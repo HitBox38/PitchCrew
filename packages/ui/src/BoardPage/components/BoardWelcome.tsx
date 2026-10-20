@@ -3,7 +3,7 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { LoaderCircle, Plus } from 'lucide-react';
 
-export function BoardWelcome({ setAdd, working, act, data }: BoardWelcomeProps) {
+export const BoardWelcome = ({ setAdd, working, act, data }: BoardWelcomeProps) => {
   return (
     <section className="welcome">
       <h2>Start with a job post</h2>
@@ -57,4 +57,4 @@ export function BoardWelcome({ setAdd, working, act, data }: BoardWelcomeProps) 
       </div>
     </section>
   );
-}
+};

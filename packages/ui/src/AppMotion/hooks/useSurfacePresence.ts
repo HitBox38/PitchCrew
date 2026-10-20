@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { usePresence } from 'motion/react';
 import type { DialogProps } from '@/components/ui/dialog/types.ts';
 
-export function useSurfacePresence({ open, onOpenChangeComplete, ...props }: DialogProps) {
+export const useSurfacePresence = ({ open, onOpenChangeComplete, ...props }: DialogProps) => {
   const [present, remove] = usePresence();
   useEffect(() => {
     if (!present && !open) remove?.();
@@ -15,4 +15,4 @@ export function useSurfacePresence({ open, onOpenChangeComplete, ...props }: Dia
       if (!next && !present) remove?.();
     },
   };
-}
+};

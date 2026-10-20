@@ -4,21 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { lookupJob } from '../api.ts';
 import { useJobLookup } from '../hooks/useJobLookup.ts';
 
-const { state } = vi.hoisted(() => ({ state: vi.fn() }));
-vi.mock('react', async (original) => ({
-  ...(await original<typeof import('react')>()),
-  useState: (value: unknown) => [value, state],
-  useRef: (value: unknown) => ({ current: value }),
-  useEffect: vi.fn(),
-}));
-vi.mock('../api.ts', () => ({ lookupJob: vi.fn() }));
-
-afterEach(() => {
-  vi.clearAllMocks();
-  vi.unstubAllGlobals();
-});
-
-function pendingLookup() {
+const pendingLookup = () => {
   class Input {
     value = 'https://job-boards.greenhouse.io/example/jobs/123';
   }
@@ -35,7 +21,21 @@ function pendingLookup() {
     currentTarget: { form },
   } as unknown as MouseEvent<HTMLButtonElement>);
   return { controller, pending, complete, url, company, title, fields };
-}
+};
+
+const { state } = vi.hoisted(() => ({ state: vi.fn() }));
+vi.mock('react', async (original) => ({
+  ...(await original<typeof import('react')>()),
+  useState: (value: unknown) => [value, state],
+  useRef: (value: unknown) => ({ current: value }),
+  useEffect: vi.fn(),
+}));
+vi.mock('../api.ts', () => ({ lookupJob: vi.fn() }));
+
+afterEach(() => {
+  vi.clearAllMocks();
+  vi.unstubAllGlobals();
+});
 const result: JobLookupResult = {
   status: 'found',
   prefill: {

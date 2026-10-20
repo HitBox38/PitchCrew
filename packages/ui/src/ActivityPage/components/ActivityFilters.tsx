@@ -9,18 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select/index.tsx';
 import { Search, X } from 'lucide-react';
-
-type Props = {
-  query: string;
-  kind: string;
-  change: (query: string, kind: string) => void;
-  count: number;
-};
-const items = [
-  { value: 'all', label: 'All activity' },
-  ...Object.entries(eventKindLabels).map(([value, label]) => ({ value, label })),
-];
-export function ActivityFilters({ query, kind, change, count }: Props) {
+export const ActivityFilters = ({ query, kind, change, count }: Props) => {
   return (
     <div className="activity-toolbar flex shrink-0 flex-wrap items-center gap-3 border-b border-border px-5 py-3.5 max-mobile:px-3">
       <div className="search-input">
@@ -58,4 +47,15 @@ export function ActivityFilters({ query, kind, change, count }: Props) {
       </output>
     </div>
   );
-}
+};
+
+type Props = {
+  query: string;
+  kind: string;
+  change: (query: string, kind: string) => void;
+  count: number;
+};
+const items = [
+  { value: 'all', label: 'All activity' },
+  ...Object.entries(eventKindLabels).map(([value, label]) => ({ value, label })),
+];

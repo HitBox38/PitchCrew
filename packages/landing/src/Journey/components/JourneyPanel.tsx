@@ -2,7 +2,13 @@ import { TabsContent } from '../../components/ui/tabs';
 import type { JourneyStage } from '../constants';
 import { JobPanel } from './JobPanel';
 
-export function JourneyPanel({ stage, onAdvance }: { stage: JourneyStage; onAdvance: () => void }) {
+export const JourneyPanel = ({
+  stage,
+  onAdvance,
+}: {
+  stage: JourneyStage;
+  onAdvance: () => void;
+}) => {
   return (
     <TabsContent value={stage.id} className="journey-panel" data-role={stage.role}>
       <div className="journey-copy">
@@ -15,4 +21,4 @@ export function JourneyPanel({ stage, onAdvance }: { stage: JourneyStage; onAdva
       </div>
     </TabsContent>
   );
-}
+};

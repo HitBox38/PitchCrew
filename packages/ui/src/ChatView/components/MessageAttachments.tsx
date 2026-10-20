@@ -12,7 +12,7 @@ import { AttachmentTrigger } from '@/components/ui/attachment/components/Attachm
 import { attachmentSize } from '../attachment-helpers.ts';
 import { downloadAttachment } from '../api.ts';
 
-export function MessageAttachments({ message }: { message: ChatMessage }) {
+export const MessageAttachments = ({ message }: { message: ChatMessage }) => {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
   const download = async (file: NonNullable<ChatMessage['attachments']>[number]) => {
@@ -59,4 +59,4 @@ export function MessageAttachments({ message }: { message: ChatMessage }) {
       ) : null}
     </div>
   );
-}
+};

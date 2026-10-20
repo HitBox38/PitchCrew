@@ -79,6 +79,7 @@ docs/             # design decisions
 
 ## Code organization
 
+- Use `const` arrow functions for standalone functions, callbacks, object actions and owned class methods. Pass shared backend context as an explicit first argument; context factories close over their instance. Preserve constructors, accessors and library-required prototype methods or dynamically bound hooks (Lexical nodes, dnd-kit modifiers and Vite plugin hooks).
 - Keep React component files at most 100 lines after formatting. `pnpm lint` checks every production TSX file.
 - App disclosure controls must use the shared shadcn/Base UI `Accordion` family for grouped rows, `AccordionSection` for a standalone section, or `Collapsible` for custom triggers. Never add native `<details>`/`<summary>` to `packages/ui/src`; `pnpm lint` rejects them. Import from `components/ui/accordion/` or `components/ui/collapsible/`, preserve initial expansion and independent row expansion, keep form drafts mounted, and use `onOpenChange` for lazy preview resources. Do not recreate disclosure behavior with ad hoc buttons and hidden panels.
 - Put each feature in a named folder with `index.tsx` as its public entry, `components/` for sections, `hooks/` for state/effects, and `__tests__/` for colocated tests. Use `types.ts`, `helpers.ts`, `constants.ts` and `api.ts` when the feature needs them; do not create empty placeholders.

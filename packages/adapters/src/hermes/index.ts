@@ -11,7 +11,7 @@ export const hermes = withChat({
   // OpenRouter keeps the vendor/model selector intact after the Hermes provider prefix.
   models: apiModels.map((model) => ({ ...model, value: `openrouter:${model.value}` })),
   detect: async () => requireCliVersion(await detectCli('hermes', 'hermes'), [0, 21, 5], 'hermes'),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const separator = context.role.model.indexOf(':');
     const provider =

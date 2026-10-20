@@ -4,12 +4,8 @@ import { useEffect } from 'react';
 import { useDevicePreferences } from '../lib/device-preferences.ts';
 import { useAnalyticsConfig } from './api.ts';
 
-const leadership = createStore(() => ({ active: false }));
-export const isDiagnosticLeader = () => leadership.getState().active;
-export const useDiagnosticLeader = () => useStore(leadership, (state) => state.active);
-
 /** One renderer per origin observes shared runs/tools; user-action metrics stay per renderer. */
-export function useDiagnosticLeadership() {
+export const useDiagnosticLeadership = () => {
   const enabled = useDevicePreferences((state) => state.analytics && state.diagnostics);
   const configured = useAnalyticsConfig((state) => !!state.config);
   useEffect(() => {
@@ -43,4 +39,8 @@ export function useDiagnosticLeadership() {
       controller.abort();
     };
   }, [enabled, configured]);
-}
+};
+
+const leadership = createStore(() => ({ active: false }));
+export const isDiagnosticLeader = () => leadership.getState().active;
+export const useDiagnosticLeader = () => useStore(leadership, (state) => state.active);

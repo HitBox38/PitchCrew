@@ -1,11 +1,11 @@
 import { fileURLToPath } from 'node:url';
 import type { DocumentFinding } from '@pitchcrew/core';
 
-export async function extractDocument(
+export const extractDocument = async (
   bytes: Uint8Array,
   mimeType: string,
   headings: string[] = [],
-) {
+) => {
   if (mimeType !== 'application/pdf') {
     const { extractRawText } = await import('mammoth');
     const { value } = await extractRawText({ buffer: Buffer.from(bytes) });
@@ -122,4 +122,4 @@ export async function extractDocument(
   } finally {
     await task.destroy();
   }
-}
+};

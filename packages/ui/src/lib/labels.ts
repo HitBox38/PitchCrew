@@ -10,6 +10,10 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 
+export const signedWeight = (weight: number): string => {
+  return weight > 0 ? `+${weight}` : String(weight);
+};
+
 export const stateLabels: Record<CardState, string> = {
   lead: 'New lead',
   shortlisted: 'Shortlisted',
@@ -76,7 +80,3 @@ export const outcomeLabels = {
   neutral: 'Neutral',
   pending: 'Pending',
 } as const;
-
-export function signedWeight(weight: number): string {
-  return weight > 0 ? `+${weight}` : String(weight);
-}

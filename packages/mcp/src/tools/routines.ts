@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerRoutineTools(server: McpServer, call: AgentCall) {
+export const registerRoutineTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_list_routines',
     {
@@ -38,4 +38,4 @@ export function registerRoutineTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('delete_routine', input),
   );
-}
+};

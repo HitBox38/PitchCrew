@@ -6,12 +6,7 @@ import { cleanup, finish, setup } from './helpers/daemon.ts';
 import { beginAiRun } from '../src/telemetry/ai.ts';
 import { sanitizeAiObservation } from '@pitchcrew/core/telemetry-ai';
 import { createTelemetryBuffer } from '../src/telemetry/buffer.ts';
-
-const trace = 'b7cf24c4-2c2e-4fda-85d3-b4b45c6a1798';
-const span = '482416cb-8624-4b9f-9637-ad0dc6884169';
-const wall = 1_797_000_000_000;
-afterEach(cleanup);
-function fixture() {
+const fixture = () => {
   let now = 0;
   const record = vi.fn();
   const ids = [trace, span];
@@ -27,7 +22,12 @@ function fixture() {
       now += ms;
     },
   };
-}
+};
+
+const trace = 'b7cf24c4-2c2e-4fda-85d3-b4b45c6a1798';
+const span = '482416cb-8624-4b9f-9637-ad0dc6884169';
+const wall = 1_797_000_000_000;
+afterEach(cleanup);
 
 describe('AI runtime boundaries', () => {
   it('instruments actual workflow and chat launches without board IDs or private context', async () => {
@@ -147,7 +147,7 @@ describe('AI runtime boundaries', () => {
   it('does not change execution when the diagnostics sink throws', async () => {
     const ai = beginAiRun(
       {
-        record() {
+        record: () => {
           throw new Error('collector failure');
         },
       },

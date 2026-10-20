@@ -2,7 +2,7 @@ import type { CrewWorkPanelProps } from '@/ChatView/types.ts';
 import { ChatWork } from '@/ChatWork/index.tsx';
 import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
 
-export function CrewWorkPanel({
+export const CrewWorkPanel = ({
   data,
   thread,
   role,
@@ -14,7 +14,7 @@ export function CrewWorkPanel({
   onConfigure,
   roleId,
   onOpenCard,
-}: CrewWorkPanelProps) {
+}: CrewWorkPanelProps) => {
   return (
     <TabsContent value="work" className="chat-work-panel">
       <ChatWork
@@ -31,4 +31,4 @@ export function CrewWorkPanel({
       />
     </TabsContent>
   );
-}
+};

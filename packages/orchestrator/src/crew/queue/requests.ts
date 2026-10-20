@@ -17,15 +17,7 @@ import { assertApplicationRuntime } from '../application-context/extraction.ts';
 import { relatedConversation } from '../conversations.ts';
 import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
 import { ensureQueue, laneId, queueRequests, queueWaiting } from './state.ts';
-
-export const queueBoardInput = z.object({
-  cardId: z.uuid(),
-  action: z.enum(['fit', 'draft', 'review', 'deep-review']),
-  roleId: z.string().optional(),
-  repeat: z.boolean().default(false),
-  deepReviewOptions: deepReviewOptionsSchema.optional(),
-});
-export function queueBoardAction(context: CrewContext, data: unknown): ChatRequest {
+export const queueBoardAction = (context: CrewContext, data: unknown): ChatRequest => {
   const input = queueBoardInput.parse(data);
   const card = context.board.get<Card>('card', input.cardId);
   const seat = input.action === 'fit' ? 'scout' : input.action === 'draft' ? 'writer' : 'reviewer';
@@ -80,8 +72,11 @@ export function queueBoardAction(context: CrewContext, data: unknown): ChatReque
   })();
   void drainConversationQueue(context);
   return request;
-}
-export async function requestProblem(context: CrewContext, request: ChatRequest): Promise<string> {
+};
+export const requestProblem = async (
+  context: CrewContext,
+  request: ChatRequest,
+): Promise<string> => {
   const thread = context.board
     .list<Conversation>('conversation')
     .find((c) => c.id === request.threadId);
@@ -141,8 +136,16 @@ export async function requestProblem(context: CrewContext, request: ChatRequest)
     return error instanceof Error ? error.message : 'Check your Profile notes.';
   }
   return '';
-}
-export function requestIsHead(context: CrewContext, request: ChatRequest): boolean {
+};
+export const requestIsHead = (context: CrewContext, request: ChatRequest): boolean => {
   const entries = queueRequests(context, laneId(context, request.threadId, request.rootRunId));
   return entries[0]?.id === request.id;
-}
+};
+
+export const queueBoardInput = z.object({
+  cardId: z.uuid(),
+  action: z.enum(['fit', 'draft', 'review', 'deep-review']),
+  roleId: z.string().optional(),
+  repeat: z.boolean().default(false),
+  deepReviewOptions: deepReviewOptionsSchema.optional(),
+});

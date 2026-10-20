@@ -1,7 +1,7 @@
 import type { WritingGuide } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function GuideProposals({
+export const GuideProposals = ({
   guide,
   change,
   working,
@@ -9,7 +9,7 @@ export function GuideProposals({
   guide: WritingGuide;
   change: (data: Record<string, unknown>) => Promise<unknown>;
   working: boolean;
-}) {
+}) => {
   const proposals = guide.proposals.filter((p) => p.status === 'pending');
   if (!proposals.length) return null;
   return (
@@ -49,4 +49,4 @@ export function GuideProposals({
       ))}
     </section>
   );
-}
+};

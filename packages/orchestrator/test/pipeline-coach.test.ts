@@ -15,12 +15,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { configRevision } from '../src/crew/pipeline/snapshots.ts';
 import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
 import { packet, profile } from '../../mcp/test/fixtures/evaluation.ts';
-
-afterEach(async () => {
-  for (const resource of resources) resource.daemon.service.controllers.delete('coach-fixture');
-  await cleanup();
-});
-async function fixture(port = 14800) {
+const fixture = async (port = 14800) => {
   const state = await setup(port);
   const { daemon } = state;
   const role = daemon.service.board.get<Role>('role', 'scout');
@@ -80,7 +75,12 @@ async function fixture(port = 14800) {
   const call = (action: string, input: unknown) =>
     daemon.service.agentCall('coach-token', action, { input });
   return { ...state, card, run, input, evidence, call };
-}
+};
+
+afterEach(async () => {
+  for (const resource of resources) resource.daemon.service.controllers.delete('coach-fixture');
+  await cleanup();
+});
 
 it('requires explicit cross-application review permissions, scopes before pagination, bounds data and responds to revocation', async () => {
   const { daemon, card, call } = await fixture();

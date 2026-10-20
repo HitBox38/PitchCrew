@@ -1,6 +1,6 @@
 import { durationLabel } from '../helpers.ts';
 import { useElapsed } from '../hooks/useElapsed.ts';
-export function TurnDuration({
+export const TurnDuration = ({
   startedAt,
   finishedAt,
   active,
@@ -8,7 +8,7 @@ export function TurnDuration({
   startedAt: string;
   finishedAt: string | null;
   active: boolean;
-}) {
+}) => {
   const now = useElapsed(active);
   const duration = durationLabel(startedAt, finishedAt ?? (active ? null : startedAt), now);
   if (active && duration === '0s') return null;
@@ -17,4 +17,4 @@ export function TurnDuration({
       {duration === '0s' ? '<1s' : duration}
     </span>
   );
-}
+};

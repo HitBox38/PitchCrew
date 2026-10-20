@@ -1,36 +1,7 @@
 import Database from 'better-sqlite3';
 import { importLimits } from '@pitchcrew/core';
 
-export interface LegacyTrackerStats {
-  applications: number;
-  derivedTitles: number;
-  assumedUtc: number;
-  clipped: number;
-}
-interface LegacyApplication {
-  id: number;
-  company: string;
-  role_title: string;
-  folder_path: string;
-  attempt: number;
-  status: string;
-  applied_at: string | null;
-  updated_at: string;
-  notes: string | null;
-  weight: number;
-  lessons_learned: string | null;
-}
-interface LegacyEvent {
-  to_status: string;
-  note: string | null;
-  created_at: string;
-}
-const limits = { notes: 4000, lessons: 2000, historyNote: 1000, history: 100 };
-const clip = (value: string, max: number) =>
-  value.length > max ? `${value.slice(0, max - 1)}…` : value;
-const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
-
-export function normalizeTime(value: unknown, stats: LegacyTrackerStats) {
+export const normalizeTime = (value: unknown, stats: LegacyTrackerStats) => {
   const text = String(value ?? '').trim();
   if (!text) return undefined;
   if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
@@ -41,8 +12,8 @@ export function normalizeTime(value: unknown, stats: LegacyTrackerStats) {
   }
   const time = Date.parse(iso);
   return Number.isNaN(time) ? text : new Date(time).toISOString();
-}
-export function titleFromFolder(folder: string, company: string) {
+};
+export const titleFromFolder = (folder: string, company: string) => {
   const segments = String(folder)
     .split(/[\\/]+/)
     .map((segment) => segment.trim())
@@ -55,28 +26,10 @@ export function titleFromFolder(folder: string, company: string) {
     );
   const title = (segments.at(-1) ?? '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
   return (title.charAt(0).toUpperCase() + title.slice(1)).slice(0, 160);
-}
-const schema = {
-  applications: [
-    'id',
-    'company',
-    'role_title',
-    'folder_path',
-    'attempt',
-    'status',
-    'applied_at',
-    'updated_at',
-    'notes',
-    'weight',
-    'lessons_learned',
-  ],
-  status_events: ['id', 'application_id', 'to_status', 'note', 'created_at'],
-  tags: ['id', 'name'],
-  application_tags: ['application_id', 'tag_id'],
 };
 
 /** Read a legacy tracker from a file or an uploaded snapshot; never modify its contents. */
-export function convertLegacyTracker(source: string | Buffer) {
+export const convertLegacyTracker = (source: string | Buffer) => {
   const db = new Database(source, { readonly: true, fileMustExist: true });
   const stats: LegacyTrackerStats = {
     applications: 0,
@@ -165,4 +118,51 @@ export function convertLegacyTracker(source: string | Buffer) {
   } finally {
     db.close();
   }
+};
+
+export interface LegacyTrackerStats {
+  applications: number;
+  derivedTitles: number;
+  assumedUtc: number;
+  clipped: number;
 }
+interface LegacyApplication {
+  id: number;
+  company: string;
+  role_title: string;
+  folder_path: string;
+  attempt: number;
+  status: string;
+  applied_at: string | null;
+  updated_at: string;
+  notes: string | null;
+  weight: number;
+  lessons_learned: string | null;
+}
+interface LegacyEvent {
+  to_status: string;
+  note: string | null;
+  created_at: string;
+}
+const limits = { notes: 4000, lessons: 2000, historyNote: 1000, history: 100 };
+const clip = (value: string, max: number) =>
+  value.length > max ? `${value.slice(0, max - 1)}…` : value;
+const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '');
+const schema = {
+  applications: [
+    'id',
+    'company',
+    'role_title',
+    'folder_path',
+    'attempt',
+    'status',
+    'applied_at',
+    'updated_at',
+    'notes',
+    'weight',
+    'lessons_learned',
+  ],
+  status_events: ['id', 'application_id', 'to_status', 'note', 'created_at'],
+  tags: ['id', 'name'],
+  application_tags: ['application_id', 'tag_id'],
+};

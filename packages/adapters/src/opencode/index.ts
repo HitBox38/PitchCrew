@@ -14,7 +14,7 @@ export const opencode = withChat({
     parseOpenCodeModels(
       await modelListCommand('opencode', ['models', '--pure', '--verbose'], signal),
     ),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'opencode-config');
     await mkdir(configDirectory, { recursive: true });

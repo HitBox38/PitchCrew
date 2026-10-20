@@ -4,7 +4,7 @@ import { type BaseSkill } from '@pitchcrew/core/base-skills';
 import { useState } from 'react';
 import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
 
-export function useSkillsView({
+export const useSkillsView = ({
   data,
   action,
   working,
@@ -16,7 +16,17 @@ export function useSkillsView({
   onUpdatesOnly,
   reviewId,
   onReviewClose,
-}: SkillsViewProps) {
+}: SkillsViewProps) => {
+  const remove = async () => {
+    if (!deleting) return;
+    try {
+      await action(`/skills/${deleting.id}`, 'DELETE', undefined, 'Deleted skill');
+      setDeleting(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not delete skill.');
+    }
+  };
+
   const filter =
     ['all', 'shared'].includes(requestedFilter) ||
     data.roles.some((role) => role.id === requestedFilter)
@@ -61,15 +71,6 @@ export function useSkillsView({
     { value: 'shared', label: 'Shared' },
     ...data.roles.map((role) => ({ value: role.id, label: role.name })),
   ];
-  async function remove() {
-    if (!deleting) return;
-    try {
-      await action(`/skills/${deleting.id}`, 'DELETE', undefined, 'Deleted skill');
-      setDeleting(null);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not delete skill.');
-    }
-  }
   return {
     data,
     updatesOnly,
@@ -98,4 +99,4 @@ export function useSkillsView({
     filters,
     remove,
   };
-}
+};

@@ -7,27 +7,27 @@ import { seedRoles } from './roles.ts';
 import { defaultInstructionStatuses } from './default-instructions.ts';
 import type { BoardContext } from './types.ts';
 
-export function createBoardContext(filename: string): BoardContext {
+export const createBoardContext = (filename: string): BoardContext => {
   const context: BoardContext = {
     filename,
     db: new Database(filename),
 
-    close: (...args) => close.call(context, ...args),
-    list: <T>(kind: BoardEvent['kind']) => (list<T>).call(context, kind),
-    get: <T>(kind: BoardEvent['kind'], id: string) => (get<T>).call(context, kind, id),
-    record: (...args) => record.call(context, ...args),
-    events: (...args) => events.call(context, ...args),
-    history: (...args) => history.call(context, ...args),
-    rebuild: (...args) => rebuild.call(context, ...args),
-    createCard: (...args) => createCard.call(context, ...args),
-    updateCard: (...args) => updateCard.call(context, ...args),
-    move: (...args) => move.call(context, ...args),
-    requestApproval: (...args) => requestApproval.call(context, ...args),
-    decideApproval: (...args) => decideApproval.call(context, ...args),
-    consumeApproval: (...args) => consumeApproval.call(context, ...args),
-    hasActiveRun: (...args) => hasActiveRun.call(context, ...args),
-    seedRoles: (...args) => seedRoles.call(context, ...args),
-    defaultInstructionStatuses: () => defaultInstructionStatuses.call(context),
+    close: (...args) => close(context, ...args),
+    list: <T>(kind: BoardEvent['kind']) => list<T>(context, kind),
+    get: <T>(kind: BoardEvent['kind'], id: string) => get<T>(context, kind, id),
+    record: (...args) => record(context, ...args),
+    events: (...args) => events(context, ...args),
+    history: (...args) => history(context, ...args),
+    rebuild: (...args) => rebuild(context, ...args),
+    createCard: (...args) => createCard(context, ...args),
+    updateCard: (...args) => updateCard(context, ...args),
+    move: (...args) => move(context, ...args),
+    requestApproval: (...args) => requestApproval(context, ...args),
+    decideApproval: (...args) => decideApproval(context, ...args),
+    consumeApproval: (...args) => consumeApproval(context, ...args),
+    hasActiveRun: (...args) => hasActiveRun(context, ...args),
+    seedRoles: (...args) => seedRoles(context, ...args),
+    defaultInstructionStatuses: () => defaultInstructionStatuses(context),
   };
 
   context.db.pragma('journal_mode = WAL');
@@ -45,4 +45,4 @@ export function createBoardContext(filename: string): BoardContext {
       CREATE TRIGGER IF NOT EXISTS events_no_update BEFORE UPDATE ON events BEGIN SELECT RAISE(ABORT,'Events are append-only'); END;
       CREATE TRIGGER IF NOT EXISTS events_no_delete BEFORE DELETE ON events BEGIN SELECT RAISE(ABORT,'Events are append-only'); END;`);
   return context;
-}
+};

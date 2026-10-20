@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BrowserControl } from '../types.ts';
 
-export function useBrowserSize(enabled: boolean, resize: BrowserControl['resize']) {
+export const useBrowserSize = (enabled: boolean, resize: BrowserControl['resize']) => {
   const [element, attach] = useState<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [error, setError] = useState('');
@@ -42,4 +42,4 @@ export function useBrowserSize(enabled: boolean, resize: BrowserControl['resize'
     };
   }, [enabled, resize, size.width, size.height]);
   return { attach, size, error };
-}
+};

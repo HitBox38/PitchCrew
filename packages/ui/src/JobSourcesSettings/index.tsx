@@ -5,7 +5,7 @@ import { SourceEditor } from './components/SourceEditor.tsx';
 import { SourceList } from './components/SourceList.tsx';
 import { useJobSources } from './hooks/useJobSources.ts';
 
-export function JobSourcesSettings() {
+export const JobSourcesSettings = () => {
   const model = useJobSources();
   return (
     <section className="settings-section" aria-labelledby="job-sources-heading">
@@ -42,4 +42,4 @@ export function JobSourcesSettings() {
       </p>
     </section>
   );
-}
+};

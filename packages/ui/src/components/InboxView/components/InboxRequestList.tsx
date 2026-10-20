@@ -6,14 +6,14 @@ import { FileText, Globe } from 'lucide-react';
 import { packetStatusLabel } from '../helpers.ts';
 import type { InboxRequestListProps } from '../types.ts';
 
-export function InboxRequestList({
+export const InboxRequestList = ({
   requests,
   selectedRequest,
   selectRequest,
   data,
   tab,
   reviewOpen,
-}: InboxRequestListProps) {
+}: InboxRequestListProps) => {
   const list = useRef<HTMLElement>(null);
   const previous = useRef({ reviewOpen, tab });
   useEffect(() => {
@@ -72,4 +72,4 @@ export function InboxRequestList({
       </div>
     </aside>
   );
-}
+};

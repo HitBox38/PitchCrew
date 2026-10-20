@@ -2,11 +2,11 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
 
-export function TraceCollapsibleContent({
+export const TraceCollapsibleContent = ({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof CollapsibleContent>) {
+}: React.ComponentProps<typeof CollapsibleContent>) => {
   return (
     <CollapsibleContent
       data-slot="trace-collapsible-content"
@@ -24,4 +24,4 @@ export function TraceCollapsibleContent({
       </div>
     </CollapsibleContent>
   );
-}
+};

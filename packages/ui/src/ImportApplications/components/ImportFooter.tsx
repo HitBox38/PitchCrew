@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { LoaderCircle } from 'lucide-react';
 
-export function ImportFooter({
+export const ImportFooter = ({
   busy,
   ready,
   applied,
@@ -13,7 +13,7 @@ export function ImportFooter({
   applied: boolean;
   onClose: () => void;
   confirmImport: () => Promise<void>;
-}) {
+}) => {
   return (
     <div className="form-footer mt-4 flex justify-end gap-2.5 border-t border-border pt-4">
       <Button className="button" disabled={busy} onClick={onClose}>
@@ -37,4 +37,4 @@ export function ImportFooter({
       ) : null}
     </div>
   );
-}
+};

@@ -5,12 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import metadata from '../../../../package.json' with { type: 'json' };
 
-export const commitPattern = /^[a-f0-9]{40}$/;
-
 /** Installer metadata survives without Git. Source launches read HEAD once per daemon. */
-export async function readAppBuild(
+export const readAppBuild = async (
   root = new URL('../../../../', import.meta.url),
-): Promise<AppBuild> {
+): Promise<AppBuild> => {
   try {
     const value = JSON.parse(await readFile(new URL('build-info.json', root), 'utf8'));
     if (typeof value.commit === 'string' && commitPattern.test(value.commit))
@@ -31,4 +29,6 @@ export async function readAppBuild(
     // A missing build identity must never be reported as up to date.
   }
   return { version: metadata.version, commit: null, packaged: false };
-}
+};
+
+export const commitPattern = /^[a-f0-9]{40}$/;

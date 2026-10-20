@@ -3,7 +3,7 @@ import type { Card } from '@pitchcrew/core';
 import { useEffect, useState } from 'react';
 
 /** Source text is local to the opened job and released when its sheet closes. */
-export function useCardSource(card: Card, compact: boolean) {
+export const useCardSource = (card: Card, compact: boolean) => {
   const [source, setSource] = useState<{
     id: string;
     description: string;
@@ -44,4 +44,4 @@ export function useCardSource(card: Card, compact: boolean) {
       retry((value) => value + 1);
     },
   };
-}
+};

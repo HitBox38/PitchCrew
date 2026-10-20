@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
 import { Save } from 'lucide-react';
 
-export function ProfileEditorHeading(c: ProfileViewModel) {
+export const ProfileEditorHeading = (c: ProfileViewModel) => {
   return (
     <div className="profile-editor-heading flex min-h-13 shrink-0 flex-wrap items-center gap-3 border-b border-border px-4 py-2">
       <label className="sr-only" htmlFor="profile-file">
@@ -27,4 +27,4 @@ export function ProfileEditorHeading(c: ProfileViewModel) {
       </Button>
     </div>
   );
-}
+};

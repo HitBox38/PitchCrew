@@ -7,46 +7,12 @@ import { analyticsAllowed, replayAllowed, sanitizeEvent } from './helpers';
 import { analyticsContext } from './context';
 import { heatmapConfig } from './heatmaps';
 
-type Sdk = Pick<
-  PostHog,
-  'init' | 'capture' | 'set_config' | 'opt_in_capturing' | 'opt_out_capturing'
-> &
-  Partial<Pick<PostHog, 'sessionManager'>> & {
-    heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'>;
-  };
-export const sdkConfig: Partial<PostHogConfig> = {
-  autocapture: false,
-  capture_pageview: false,
-  capture_pageleave: true,
-  save_referrer: false,
-  save_campaign_params: false,
-  respect_dnt: true,
-  debug: false,
-  disable_persistence: false,
-  capture_dead_clicks: false,
-  rageclick: heatmapConfig.rageclick,
-  mask_all_text: true,
-  mask_all_element_attributes: true,
-  capture_heatmaps: false,
-  disable_session_recording: true,
-  disable_surveys: true,
-  capture_exceptions: false,
-  capture_performance: false,
-  advanced_disable_flags: true,
-  disable_external_dependency_loading: true,
-  person_profiles: 'never',
-  ip: false,
-  persistence: 'localStorage',
-  opt_out_persistence_by_default: true,
-  request_batching: false,
-};
-
-export function createAnalytics(
+export const createAnalytics = (
   load: () => Promise<Sdk>,
   allowed = () => true,
   replayConsent = () => false,
   loadRecorder = loadLocalRecorder,
-) {
+) => {
   let sdk: Sdk | undefined;
   let loading: Promise<Sdk> | undefined;
   let initialized = false;
@@ -83,10 +49,10 @@ export function createAnalytics(
     },
   );
   return {
-    setReplayEnabled(next: boolean) {
+    setReplayEnabled: (next: boolean) => {
       return replay.setEnabled(next && enabled);
     },
-    async setEnabled(next: boolean) {
+    setEnabled: async (next: boolean) => {
       const current = ++generation;
       enabled = false;
       replay.stop();
@@ -146,7 +112,7 @@ export function createAnalytics(
         loading = undefined;
       }
     },
-    capturePageview() {
+    capturePageview: () => {
       if (!enabled || !sdk || !allowed()) return;
       try {
         sdk.capture('$pageview', analyticsContext);
@@ -154,7 +120,7 @@ export function createAnalytics(
         /* BFCache restoration never depends on analytics. */
       }
     },
-    captureWebVital(metric: { name: string; value: number }) {
+    captureWebVital: (metric: { name: string; value: number }) => {
       if (!enabled || !sdk || !allowed()) return;
       const event = sanitizeEvent({
         event: '$web_vitals',
@@ -167,7 +133,7 @@ export function createAnalytics(
         /* Performance reporting never affects the page. */
       }
     },
-    capture(installer: Installer) {
+    capture: (installer: Installer) => {
       if (!enabled || !sdk || !allowed()) return;
       try {
         sdk.capture('landing_download_clicked', {
@@ -180,7 +146,45 @@ export function createAnalytics(
       }
     },
   };
-}
+};
+
+export const captureDownload = (installer: Installer) => {
+  analytics.capture(installer);
+};
+
+type Sdk = Pick<
+  PostHog,
+  'init' | 'capture' | 'set_config' | 'opt_in_capturing' | 'opt_out_capturing'
+> &
+  Partial<Pick<PostHog, 'sessionManager'>> & {
+    heatmaps?: Pick<NonNullable<PostHog['heatmaps']>, 'getAndClearBuffer'>;
+  };
+export const sdkConfig: Partial<PostHogConfig> = {
+  autocapture: false,
+  capture_pageview: false,
+  capture_pageleave: true,
+  save_referrer: false,
+  save_campaign_params: false,
+  respect_dnt: true,
+  debug: false,
+  disable_persistence: false,
+  capture_dead_clicks: false,
+  rageclick: heatmapConfig.rageclick,
+  mask_all_text: true,
+  mask_all_element_attributes: true,
+  capture_heatmaps: false,
+  disable_session_recording: true,
+  disable_surveys: true,
+  capture_exceptions: false,
+  capture_performance: false,
+  advanced_disable_flags: true,
+  disable_external_dependency_loading: true,
+  person_profiles: 'never',
+  ip: false,
+  persistence: 'localStorage',
+  opt_out_persistence_by_default: true,
+  request_batching: false,
+};
 
 export const analytics = createAnalytics(
   async () => {
@@ -210,6 +214,3 @@ export const analytics = createAnalytics(
     }
   },
 );
-export function captureDownload(installer: Installer) {
-  analytics.capture(installer);
-}

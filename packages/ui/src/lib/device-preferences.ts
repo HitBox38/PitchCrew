@@ -1,48 +1,41 @@
 import type { ThemeChoice } from '@/theme.ts';
 import { create } from 'zustand';
 
-const themeKey = 'pitchcrew-theme';
-const soundKey = 'pitchcrew-notifications-preferences-v1';
-export const analyticsKey = 'pitchcrew-analytics-enabled-v1';
-export const diagnosticsKey = 'pitchcrew-diagnostics-enabled-v1';
-export const replayKey = 'pitchcrew-replay-enabled-v1';
-export const updatesKey = 'pitchcrew-automatic-updates-v1';
-
-function readAutomaticUpdates(): boolean {
+const readAutomaticUpdates = (): boolean => {
   try {
     return localStorage.getItem(updatesKey) !== 'false';
   } catch {
     return true;
   }
-}
+};
 
-function readTelemetryPreference(key: string, fallback: boolean): boolean {
+const readTelemetryPreference = (key: string, fallback: boolean): boolean => {
   try {
     const value = localStorage.getItem(key);
     return value === null ? fallback : value === 'true';
   } catch {
     return fallback;
   }
-}
+};
 
-function readAnalytics(): boolean {
+const readAnalytics = (): boolean => {
   try {
     return localStorage.getItem(analyticsKey) !== 'false';
   } catch {
     return true;
   }
-}
+};
 
-function readTheme(): ThemeChoice {
+const readTheme = (): ThemeChoice => {
   try {
     const value = localStorage.getItem(themeKey);
     return value === 'light' || value === 'dark' ? value : 'system';
   } catch {
     return 'system';
   }
-}
+};
 
-function readSound(): boolean {
+const readSound = (): boolean => {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(soundKey) ?? 'null');
     return !!value &&
@@ -54,7 +47,41 @@ function readSound(): boolean {
   } catch {
     return true;
   }
-}
+};
+
+const persistTelemetryPreference = (key: string, value: boolean) => {
+  try {
+    localStorage.setItem(key, String(value));
+  } catch {
+    /* Consent still applies for this session when storage is unavailable. */
+  }
+};
+
+/** Update consent synchronously on storage events without writing back to another tab. */
+export const synchronizeTelemetryPreferences = (event: Pick<StorageEvent, 'key' | 'newValue'>) => {
+  const keys: Record<string, 'analytics' | 'diagnostics' | 'replay'> = {
+    [analyticsKey]: 'analytics',
+    [diagnosticsKey]: 'diagnostics',
+    [replayKey]: 'replay',
+  };
+  if (event.key === null) {
+    useDevicePreferences.setState({ analytics: true, diagnostics: true, replay: false });
+    return;
+  }
+  const preference = keys[event.key];
+  if (!preference) return;
+  const fallback = preference !== 'replay';
+  useDevicePreferences.setState({
+    [preference]: event.newValue === null ? fallback : event.newValue === 'true',
+  });
+};
+
+const themeKey = 'pitchcrew-theme';
+const soundKey = 'pitchcrew-notifications-preferences-v1';
+export const analyticsKey = 'pitchcrew-analytics-enabled-v1';
+export const diagnosticsKey = 'pitchcrew-diagnostics-enabled-v1';
+export const replayKey = 'pitchcrew-replay-enabled-v1';
+export const updatesKey = 'pitchcrew-automatic-updates-v1';
 
 interface DevicePreferences {
   theme: ThemeChoice;
@@ -121,30 +148,3 @@ export const useDevicePreferences = create<DevicePreferences>((set) => ({
     }
   },
 }));
-
-function persistTelemetryPreference(key: string, value: boolean) {
-  try {
-    localStorage.setItem(key, String(value));
-  } catch {
-    /* Consent still applies for this session when storage is unavailable. */
-  }
-}
-
-/** Update consent synchronously on storage events without writing back to another tab. */
-export function synchronizeTelemetryPreferences(event: Pick<StorageEvent, 'key' | 'newValue'>) {
-  const keys: Record<string, 'analytics' | 'diagnostics' | 'replay'> = {
-    [analyticsKey]: 'analytics',
-    [diagnosticsKey]: 'diagnostics',
-    [replayKey]: 'replay',
-  };
-  if (event.key === null) {
-    useDevicePreferences.setState({ analytics: true, diagnostics: true, replay: false });
-    return;
-  }
-  const preference = keys[event.key];
-  if (!preference) return;
-  const fallback = preference !== 'replay';
-  useDevicePreferences.setState({
-    [preference]: event.newValue === null ? fallback : event.newValue === 'true',
-  });
-}

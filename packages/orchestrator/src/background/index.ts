@@ -7,35 +7,22 @@ import { installedLocation, pathFor, samePath, serviceFiles } from './paths.ts';
 import type { ServiceHost, ServiceSpec } from './types.ts';
 import { windowsDriver } from './windows.ts';
 
-export type { ServiceHost, ServiceSpec } from './types.ts';
-
-const drivers = { windows: windowsDriver, macos: macosDriver, linux: linuxDriver };
-
 /** Install, inspect and control the per-user background service for one platform. */
-export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
-  const driver = drivers[spec.platform](spec, host);
-  const files = (directory: string) => serviceFiles(spec.platform, directory);
-  const checks = {
-    isAlive: (pid: number) => host.isAlive(pid),
-    answers: (port: number) => host.answers(port),
-    now: () => Date.now(),
-    bootTime: () => Date.now() - uptime() * 1000,
-  };
-
-  async function lockHolder(directory: string) {
+export const createBackgroundService = (spec: ServiceSpec, host: ServiceHost) => {
+  const lockHolder = async (directory: string) => {
     const lock = parseDaemonLock((await host.readFile(files(directory).lock))?.toString() ?? '');
     return lock && (await lockHeld(lock, checks)) ? lock : null;
-  }
+  };
 
-  async function inspect() {
+  const inspect = async () => {
     const before = await driver.inspect();
     const location = installedLocation(before.args);
     const directory = location.directory ?? spec.directory;
     const holder = await lockHolder(directory);
     return { before, location, directory, holder, servicePid: holder?.service ? holder.pid : null };
-  }
+  };
 
-  async function status(): Promise<BackgroundServiceStatus> {
+  const status = async (): Promise<BackgroundServiceStatus> => {
     const { before, location, directory, holder, servicePid } = await inspect();
     const running = before.installed && (before.running ?? servicePid !== null);
     const waiting = before.installed && holder && !holder.service;
@@ -53,9 +40,9 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
         ? `${before.detail} Another daemon (process ${holder.pid}) is using the data folder, so the service waits for it to stop.`
         : before.detail,
     };
-  }
+  };
 
-  async function assertInstallable() {
+  const assertInstallable = async () => {
     const path = pathFor(spec.platform);
     if (!(await host.readFile(path.join(spec.repository, 'packages', 'ui', 'dist', 'index.html'))))
       throw new Error(
@@ -67,20 +54,29 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
       [spec.node, spec.cli, spec.directory, spec.repository].some((value) => value.includes('%'))
     )
       throw new Error('Task Scheduler cannot run paths that contain a percent sign (%).');
-  }
+  };
 
-  async function installed() {
+  const installed = async () => {
     const current = await inspect();
     if (!current.before.installed)
       throw new Error('The background service is not installed. Run pnpm service install.');
     return current;
-  }
+  };
+
+  const driver = drivers[spec.platform](spec, host);
+  const files = (directory: string) => serviceFiles(spec.platform, directory);
+  const checks = {
+    isAlive: (pid: number) => host.isAlive(pid),
+    answers: (port: number) => host.answers(port),
+    now: () => Date.now(),
+    bootTime: () => Date.now() - uptime() * 1000,
+  };
 
   return {
     spec,
     status,
     /** Updates may stop only a service configured for this exact installed runtime. */
-    async matchesRuntime() {
+    matchesRuntime: async () => {
       const current = await inspect();
       return (
         current.before.installed &&
@@ -90,7 +86,7 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
       );
     },
     /** Writes and registers the definition; running it again applies new settings. */
-    async install() {
+    install: async () => {
       await assertInstallable();
       const current = await inspect();
       const content = driver.render();
@@ -122,7 +118,7 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
       return { changed, notes, status: await status() };
     },
     /** Stops the service and removes its definition, task file and logs. */
-    async uninstall() {
+    uninstall: async () => {
       const current = await inspect();
       await driver.unregister(current.before, current.servicePid);
       const folders = [current.location.directory, spec.directory]
@@ -135,16 +131,16 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
       for (const folder of folders) await host.remove(folder);
       return { removed: [...(current.before.installed ? [driver.definition] : []), ...folders] };
     },
-    async start() {
+    start: async () => {
       const current = await installed();
       await driver.start(current.before);
     },
-    async stop() {
+    stop: async () => {
       const current = await installed();
       await driver.stop(current.before, current.servicePid);
     },
     /** The newest lines from the service logs. */
-    async logs(lines = 200) {
+    logs: async (lines = 200) => {
       const { directory } = await inspect();
       const log = files(directory);
       const sources = [
@@ -163,6 +159,10 @@ export function createBackgroundService(spec: ServiceSpec, host: ServiceHost) {
       return { files: found, text: text.split(/\r?\n/).filter(Boolean).slice(-lines).join('\n') };
     },
   };
-}
+};
+
+export type { ServiceHost, ServiceSpec } from './types.ts';
+
+const drivers = { windows: windowsDriver, macos: macosDriver, linux: linuxDriver };
 
 export type BackgroundService = ReturnType<typeof createBackgroundService>;

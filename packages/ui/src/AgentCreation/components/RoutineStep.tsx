@@ -6,7 +6,7 @@ import { FormSelect } from '@/FormSelect/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 
-export function RoutineStep({ draft, changeDraft, data }: StepProps) {
+export const RoutineStep = ({ draft, changeDraft, data }: StepProps) => {
   const change = (patch: Partial<RoutineDraft>) =>
     changeDraft({ routine: { ...draft.routine, ...patch } });
   return (
@@ -70,4 +70,4 @@ export function RoutineStep({ draft, changeDraft, data }: StepProps) {
       ) : null}
     </div>
   );
-}
+};

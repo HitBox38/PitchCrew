@@ -1,14 +1,11 @@
 import { mergedPullRequestEvent, object, repository, runEvents } from './events.ts';
 import type { EngineeringEvent } from './events.ts';
-
-export type GitHubRead = (path: string) => Promise<unknown>;
-const maxPages = 10;
-export async function pages(
+export const pages = async (
   read: GitHubRead,
   path: string,
   field?: string,
   stop?: (items: unknown[]) => boolean,
-): Promise<unknown[]> {
+): Promise<unknown[]> => {
   const output: unknown[] = [];
   for (let page = 1; page <= maxPages; page++) {
     const data = await read(`${path}${path.includes('?') ? '&' : '?'}per_page=100&page=${page}`);
@@ -18,13 +15,13 @@ export async function pages(
     if (items.length < 100 || stop?.(items)) return output;
   }
   throw new Error('GitHub collection limit reached; narrow the lookback window');
-}
+};
 
-export async function collect(
+export const collect = async (
   readSource: GitHubRead,
   since: Date,
   now: Date,
-): Promise<EngineeringEvent[]> {
+): Promise<EngineeringEvent[]> => {
   let requests = 0;
   const read: GitHubRead = async (path) => {
     if (++requests > 500)
@@ -76,13 +73,13 @@ export async function collect(
     (item) =>
       Date.parse(item.timestamp) >= since.getTime() && Date.parse(item.timestamp) <= now.getTime(),
   );
-}
+};
 
-export async function send(
+export const send = async (
   events: EngineeringEvent[],
   token: string,
   fetcher: typeof fetch = fetch,
-): Promise<void> {
+): Promise<void> => {
   if (!/^phc_[a-zA-Z0-9]+$/.test(token))
     throw new Error('A PostHog public project token is required');
   for (let start = 0; start < events.length; start += 100) {
@@ -95,4 +92,7 @@ export async function send(
     });
     if (!response.ok) throw new Error(`PostHog capture failed (HTTP ${response.status})`);
   }
-}
+};
+
+export type GitHubRead = (path: string) => Promise<unknown>;
+const maxPages = 10;

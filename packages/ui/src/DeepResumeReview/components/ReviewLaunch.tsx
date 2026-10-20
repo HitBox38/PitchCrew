@@ -3,7 +3,7 @@ import { ScanSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ReviewLaunchProps } from '../types.ts';
 import { ReviewSetup } from './ReviewSetup.tsx';
-export function ReviewLaunch(props: ReviewLaunchProps) {
+export const ReviewLaunch = (props: ReviewLaunchProps) => {
   const [open, setOpen] = useState(false);
   const eligible = [
     'shortlisted',
@@ -22,4 +22,4 @@ export function ReviewLaunch(props: ReviewLaunchProps) {
       {open ? <ReviewSetup {...props} close={() => setOpen(false)} /> : null}
     </>
   );
-}
+};

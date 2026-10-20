@@ -12,7 +12,7 @@ import { drainConversationQueue, saveRequest } from '../conversation-queue.ts';
 import { laneId, patchQueue, nextOrder, queueRequests, runLane } from './state.ts';
 import { taskLane } from './state.ts';
 
-export function configureQueue(context: CrewContext, data: unknown) {
+export const configureQueue = (context: CrewContext, data: unknown) => {
   const { concurrency } = z.object({ concurrency: z.number().int().min(1).max(50) }).parse(data);
   context.board.record(
     'queue_settings',
@@ -23,8 +23,8 @@ export function configureQueue(context: CrewContext, data: unknown) {
   void drainConversationQueue(context);
   void context.drainTasks();
   return { concurrency };
-}
-export function updateQueue(context: CrewContext, id: string, data: unknown) {
+};
+export const updateQueue = (context: CrewContext, id: string, data: unknown) => {
   const input = z
     .object({
       action: z.enum(['pause', 'resume', 'stop', 'move', 'retry-follow-up', 'skip-follow-up']),
@@ -112,8 +112,8 @@ export function updateQueue(context: CrewContext, id: string, data: unknown) {
   void context.drainTasks();
   void drainConversationQueue(context);
   return context.board.get<WorkQueue>('work_queue', id);
-}
-export function moveQueueRequest(context: CrewContext, id: string, beforeId: string | null) {
+};
+export const moveQueueRequest = (context: CrewContext, id: string, beforeId: string | null) => {
   const request = context.board.get<ChatRequest>('chat_request', id);
   const queueId = laneId(context, request.threadId, request.rootRunId);
   const requests = queueRequests(context, queueId);
@@ -142,4 +142,4 @@ export function moveQueueRequest(context: CrewContext, id: string, beforeId: str
   )();
   void drainConversationQueue(context);
   return context.board.get<ChatRequest>('chat_request', id);
-}
+};

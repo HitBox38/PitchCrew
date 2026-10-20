@@ -17,7 +17,11 @@ import { drainConversationQueue } from '../conversation-queue.ts';
 import { cancelUserQuestions } from './lifecycle.ts';
 import type { CrewContext } from '../types.ts';
 
-export function answerUserQuestion(context: CrewContext, id: string, data: unknown): ChatRequest {
+export const answerUserQuestion = (
+  context: CrewContext,
+  id: string,
+  data: unknown,
+): ChatRequest => {
   const answer = userAnswerInput.parse(data);
   const question = context.board.get<UserInputRequest>('user_input', id);
   if (question.status !== 'pending')
@@ -153,8 +157,8 @@ export function answerUserQuestion(context: CrewContext, id: string, data: unkno
   });
   void drainConversationQueue(context);
   return request;
-}
-export function cancelUserQuestion(context: CrewContext, id: string) {
+};
+export const cancelUserQuestion = (context: CrewContext, id: string) => {
   const question = context.board.get<UserInputRequest>('user_input', id);
   if (question.status !== 'pending')
     throw new Error('This question is no longer awaiting an answer.');
@@ -164,4 +168,4 @@ export function cancelUserQuestion(context: CrewContext, id: string) {
   void context.drainTasks();
   void drainConversationQueue(context);
   return context.board.get<UserInputRequest>('user_input', id);
-}
+};

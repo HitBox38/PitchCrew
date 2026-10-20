@@ -3,7 +3,7 @@ import type { ComputerApproval } from '@pitchcrew/core';
 import type { ComputerApprovalsProps } from '../types.ts';
 
 type Props = Pick<ComputerApprovalsProps, 'action' | 'working'> & { approval: ComputerApproval };
-export function BrowserApprovalActions({ approval, action, working }: Props) {
+export const BrowserApprovalActions = ({ approval, action, working }: Props) => {
   if (approval.status !== 'pending') return null;
   const decide = (approved: boolean) => {
     void action(
@@ -25,4 +25,4 @@ export function BrowserApprovalActions({ approval, action, working }: Props) {
       </Button>
     </div>
   );
-}
+};

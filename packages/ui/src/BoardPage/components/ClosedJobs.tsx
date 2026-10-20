@@ -6,7 +6,7 @@ import * as m from 'motion/react-m';
 import { useJobPage } from '../hooks/useJobPage.ts';
 import { JobPages } from './JobPages.tsx';
 
-export function ClosedJobs({
+export const ClosedJobs = ({
   closed,
   openCard,
   data,
@@ -15,7 +15,7 @@ export function ClosedJobs({
   query,
   reveal,
   menuActions,
-}: ClosedJobsProps) {
+}: ClosedJobsProps) => {
   const page = useJobPage(closed, 40, query, reveal);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -47,4 +47,4 @@ export function ClosedJobs({
       </m.div>
     </div>
   );
-}
+};

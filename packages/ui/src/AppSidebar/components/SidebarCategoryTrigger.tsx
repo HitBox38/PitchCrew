@@ -2,7 +2,7 @@ import { CollapsibleTrigger } from '@/components/ui/collapsible/components/Colla
 import { SidebarGroupLabel } from '@/components/ui/sidebar/components/SidebarGroupLabel.tsx';
 import { ChevronRight } from 'lucide-react';
 
-export function SidebarCategoryTrigger({ label, count }: { label: string; count?: number }) {
+export const SidebarCategoryTrigger = ({ label, count }: { label: string; count?: number }) => {
   return (
     <CollapsibleTrigger
       render={
@@ -21,4 +21,4 @@ export function SidebarCategoryTrigger({ label, count }: { label: string; count?
       <ChevronRight aria-hidden="true" />
     </CollapsibleTrigger>
   );
-}
+};

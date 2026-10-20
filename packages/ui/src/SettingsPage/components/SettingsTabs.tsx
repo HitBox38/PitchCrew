@@ -2,7 +2,7 @@ import { settingsSections } from '../constants.ts';
 import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
 import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
 
-export function SettingsTabs() {
+export const SettingsTabs = () => {
   return (
     <TabsList className="settings-tabs" aria-label="Settings sections" activateOnFocus>
       {settingsSections.map(({ id, label, icon: Icon }) => (
@@ -12,4 +12,4 @@ export function SettingsTabs() {
       ))}
     </TabsList>
   );
-}
+};

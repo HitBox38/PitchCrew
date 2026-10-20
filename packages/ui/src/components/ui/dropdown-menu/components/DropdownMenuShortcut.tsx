@@ -1,7 +1,7 @@
 import type { DropdownMenuShortcutProps } from '@/components/ui/dropdown-menu/types.ts';
 import { cn } from '@/lib/utils';
 
-export function DropdownMenuShortcut({ className, ...props }: DropdownMenuShortcutProps) {
+export const DropdownMenuShortcut = ({ className, ...props }: DropdownMenuShortcutProps) => {
   return (
     <span
       data-slot="dropdown-menu-shortcut"
@@ -12,4 +12,4 @@ export function DropdownMenuShortcut({ className, ...props }: DropdownMenuShortc
       {...props}
     />
   );
-}
+};

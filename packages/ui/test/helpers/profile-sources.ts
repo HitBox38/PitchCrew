@@ -9,14 +9,7 @@ import type {
 import type { setup } from '../../../orchestrator/test/helpers/daemon.ts';
 import { digest } from '../../../orchestrator/src/profile-sources/helpers.ts';
 import { proposalDigest } from '../../../orchestrator/src/crew/gateway/profile-project.ts';
-
-type Host = Awaited<ReturnType<typeof setup>>;
-export const sourceInput = {
-  provider: 'github',
-  repository: 'fictional/profile',
-  path: 'about-me',
-};
-export function sourceFixture(host: Host) {
+export const sourceFixture = (host: Host) => {
   const remote = { content: '# Background\n\nBuilt a fictional scheduling tool.', fail: false };
   vi.spyOn(host.daemon.service.connectors, 'status').mockReturnValue([
     {
@@ -71,8 +64,8 @@ export function sourceFixture(host: Host) {
     throw new Error(`Unexpected fictional connector call: ${name}`);
   });
   return remote;
-}
-export async function importSource(host: Host) {
+};
+export const importSource = async (host: Host) => {
   const { result: preview } = await host.request<ProfileSourcePreview>(
     '/profile/sources/preview',
     'POST',
@@ -85,8 +78,8 @@ export async function importSource(host: Host) {
   const { result: sources } = await host.request<ProfileSource[]>('/profile/sources');
   await host.request(`/profile/sources/${sources[0].id}/watch`, 'PUT', { watching: true });
   return preview;
-}
-export async function createProposal(host: Host, applying = false) {
+};
+export const createProposal = async (host: Host, applying = false) => {
   const { result: sources } = await host.request<ProfileSource[]>('/profile/sources');
   const { result: preview } = await host.request<ProfileSourcePreview>(
     '/profile/sources/preview',
@@ -130,4 +123,11 @@ export async function createProposal(host: Host, applying = false) {
     'Fictional proposal',
   );
   return proposal;
-}
+};
+
+type Host = Awaited<ReturnType<typeof setup>>;
+export const sourceInput = {
+  provider: 'github',
+  repository: 'fictional/profile',
+  path: 'about-me',
+};

@@ -1,6 +1,6 @@
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { ChatMessage, Snapshot } from '@pitchcrew/core';
-export function MemoryUsed({ message, data }: { message: ChatMessage; data: Snapshot }) {
+export const MemoryUsed = ({ message, data }: { message: ChatMessage; data: Snapshot }) => {
   if (!message.memoryIds?.length) return null;
   return (
     <AccordionSection
@@ -19,4 +19,4 @@ export function MemoryUsed({ message, data }: { message: ChatMessage; data: Snap
       })}
     </AccordionSection>
   );
-}
+};

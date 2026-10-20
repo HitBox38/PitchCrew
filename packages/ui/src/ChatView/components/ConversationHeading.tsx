@@ -6,7 +6,7 @@ import { runtimeLabels } from '@/lib/labels.ts';
 import { ConversationActions } from './ConversationActions.tsx';
 import { ConversationViewSwitch } from './ConversationViewSwitch.tsx';
 import { Users, Square, Cpu } from 'lucide-react';
-export function ConversationHeading(props: ConversationHeadingProps) {
+export const ConversationHeading = (props: ConversationHeadingProps) => {
   const {
     conversation,
     roleId,
@@ -84,4 +84,4 @@ export function ConversationHeading(props: ConversationHeadingProps) {
       </div>
     </header>
   );
-}
+};

@@ -2,7 +2,7 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { qualityAgentInput } from '@pitchcrew/core';
 import type { AgentCall } from './client.ts';
 
-export function registerQualityTools(server: McpServer, call: AgentCall) {
+export const registerQualityTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_application_quality',
     {
@@ -13,4 +13,4 @@ export function registerQualityTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('quality', input),
   );
-}
+};

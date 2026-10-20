@@ -1,8 +1,6 @@
 import type { Role, Run, RuntimeId } from '@pitchcrew/core';
 import type { CrewContext } from '../crew/types.ts';
-
-export class RuntimeHeldError extends Error {}
-export function runtimeBusyReasons(context: CrewContext, id: RuntimeId): string[] {
+export const runtimeBusyReasons = (context: CrewContext, id: RuntimeId): string[] => {
   const roles = new Map(context.board.list<Role>('role').map((role) => [role.id, role.name]));
   const running = context.board.db
     .prepare(
@@ -26,4 +24,6 @@ export function runtimeBusyReasons(context: CrewContext, id: RuntimeId): string[
       reasons.push('A deep resume review is using this runtime.');
   }
   return [...new Set(reasons)].slice(0, 8);
-}
+};
+
+export class RuntimeHeldError extends Error {}

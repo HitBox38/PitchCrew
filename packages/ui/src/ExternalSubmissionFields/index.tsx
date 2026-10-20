@@ -3,13 +3,13 @@ import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { useState } from 'react';
 import { DateTimePicker } from '@/DateTimePicker/index.tsx';
 
-export function ExternalSubmissionFields({
+export const ExternalSubmissionFields = ({
   jobIdentifier = '',
   onChange,
 }: {
   jobIdentifier?: string;
   onChange?: () => void;
-}) {
+}) => {
   const [submittedAt, setSubmittedAt] = useState('');
   const [initialIdentifier] = useState(jobIdentifier);
   return (
@@ -39,4 +39,4 @@ export function ExternalSubmissionFields({
       </label>
     </>
   );
-}
+};

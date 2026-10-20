@@ -16,6 +16,47 @@ import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from './helpers/daemon.ts';
 
+const draftAndReview = async (request: Awaited<ReturnType<typeof setup>>['request']) => {
+  await request('/profile', 'PUT', {
+    name: 'profile.md',
+    content: '# Avery Example\n\n- Built React interfaces.\n',
+  });
+  const { result: card } = await request<Card>('/cards', 'POST', {
+    company: 'Fixture Co',
+    title: 'React Engineer',
+    description: 'Build React interfaces.',
+  });
+  await confirmFixtureApplication(request, card.id);
+  await request(`/cards/${card.id}/move`, 'POST', { state: 'shortlisted' });
+  const { result: writer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
+    roleId: 'writer',
+  });
+  await finish(request, writer.id);
+  const { result: reviewer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
+    roleId: 'reviewer',
+  });
+  const snapshot = await finish(request, reviewer.id);
+  return snapshot.cards.find((item) => item.id === card.id)!;
+};
+
+const pauseChecks = (service: Awaited<ReturnType<typeof setup>>['daemon']['service']) => {
+  let release!: () => void;
+  let entered!: () => void;
+  const resumed = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const started = new Promise<void>((resolve) => {
+    entered = resolve;
+  });
+  const check = service.packetRules.check.bind(service.packetRules);
+  vi.spyOn(service.packetRules, 'check').mockImplementation(async (...args) => {
+    entered();
+    await resumed;
+    return check(...args);
+  });
+  return { release, started };
+};
+
 afterEach(cleanup);
 
 const houseRules: PacketRules = {
@@ -49,47 +90,6 @@ const warnOnGreeting = {
   message: 'Address a named person when you can.',
 };
 const blockGreeting = { ...warnOnGreeting, id: 'greeting-block', severity: 'error' };
-
-async function draftAndReview(request: Awaited<ReturnType<typeof setup>>['request']) {
-  await request('/profile', 'PUT', {
-    name: 'profile.md',
-    content: '# Avery Example\n\n- Built React interfaces.\n',
-  });
-  const { result: card } = await request<Card>('/cards', 'POST', {
-    company: 'Fixture Co',
-    title: 'React Engineer',
-    description: 'Build React interfaces.',
-  });
-  await confirmFixtureApplication(request, card.id);
-  await request(`/cards/${card.id}/move`, 'POST', { state: 'shortlisted' });
-  const { result: writer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
-    roleId: 'writer',
-  });
-  await finish(request, writer.id);
-  const { result: reviewer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
-    roleId: 'reviewer',
-  });
-  const snapshot = await finish(request, reviewer.id);
-  return snapshot.cards.find((item) => item.id === card.id)!;
-}
-
-function pauseChecks(service: Awaited<ReturnType<typeof setup>>['daemon']['service']) {
-  let release!: () => void;
-  let entered!: () => void;
-  const resumed = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  const started = new Promise<void>((resolve) => {
-    entered = resolve;
-  });
-  const check = service.packetRules.check.bind(service.packetRules);
-  vi.spyOn(service.packetRules, 'check').mockImplementation(async (...args) => {
-    entered();
-    await resumed;
-    return check(...args);
-  });
-  return { release, started };
-}
 
 describe('packet rules', () => {
   it.each(['formatted', 'plain'] as const)(

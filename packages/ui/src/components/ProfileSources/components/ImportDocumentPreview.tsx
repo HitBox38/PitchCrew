@@ -6,7 +6,7 @@ import { diffCounts, diffInstructions } from '@/components/InstructionUpdate/hel
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function ImportDocumentPreview({ file }: { file: ProfileImportFile }) {
+export const ImportDocumentPreview = ({ file }: { file: ProfileImportFile }) => {
   const [full, setFull] = useState(false);
   const lines = useMemo(
     () => diffInstructions(file.before ?? '', file.content),
@@ -62,4 +62,4 @@ export function ImportDocumentPreview({ file }: { file: ProfileImportFile }) {
       <span className="sr-only">Saved as {file.name}</span>
     </div>
   );
-}
+};

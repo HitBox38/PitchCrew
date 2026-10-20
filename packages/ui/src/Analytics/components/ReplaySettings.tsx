@@ -1,7 +1,7 @@
 import { Switch } from '../../components/ui/switch/index.tsx';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 
-export function ReplaySettings() {
+export const ReplaySettings = () => {
   const allowed = useDevicePreferences((state) => state.analytics);
   const enabled = useDevicePreferences((state) => state.replay);
   const setEnabled = useDevicePreferences((state) => state.setReplay);
@@ -23,4 +23,4 @@ export function ReplaySettings() {
       />
     </label>
   );
-}
+};

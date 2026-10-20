@@ -1,16 +1,12 @@
 import { MarkdownContent } from '@/components/MarkdownContent/index.tsx';
 
-const components = {
-  img: ({ alt }: { alt?: string }) => <span className="quiet">[Image: {alt || 'image'}]</span>,
-};
-
-export default function MarkdownPreview({
+const MarkdownPreview = ({
   content,
   empty = 'Write a note to see its preview.',
 }: {
   content: string;
   empty?: string;
-}) {
+}) => {
   return content.trim() ? (
     <MarkdownContent controls={false} components={components}>
       {content}
@@ -18,4 +14,9 @@ export default function MarkdownPreview({
   ) : (
     <p className="quiet">{empty}</p>
   );
-}
+};
+export default MarkdownPreview;
+
+const components = {
+  img: ({ alt }: { alt?: string }) => <span className="quiet">[Image: {alt || 'image'}]</span>,
+};

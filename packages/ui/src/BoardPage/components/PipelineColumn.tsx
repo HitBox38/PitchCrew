@@ -11,7 +11,7 @@ import { useJobPage, type JobReveal } from '../hooks/useJobPage.ts';
 import { JobPages } from './JobPages.tsx';
 import type { JobMenuActions } from './JobActionsMenu/types.ts';
 
-export function PipelineColumn({
+export const PipelineColumn = ({
   stage,
   cards,
   active,
@@ -31,7 +31,7 @@ export function PipelineColumn({
   working: boolean;
   reveal: JobReveal;
   menuActions: JobMenuActions;
-}) {
+}) => {
   const page = useJobPage(cards, 20, query, reveal);
   const drop = active ? pipelineDrop(active, stage, data) : null;
   const allowed = !!drop && drop.kind !== 'blocked';
@@ -86,4 +86,4 @@ export function PipelineColumn({
       />
     </section>
   );
-}
+};

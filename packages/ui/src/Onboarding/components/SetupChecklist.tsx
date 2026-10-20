@@ -7,12 +7,12 @@ import { setupProgress } from '../helpers.ts';
 import type { OnboardingActions } from '../types.ts';
 import { SetupItem } from './SetupItem.tsx';
 
-export function SetupChecklist({
+export const SetupChecklist = ({
   data,
   working,
   error,
   save,
-}: OnboardingActions & { data: Snapshot }) {
+}: OnboardingActions & { data: Snapshot }) => {
   const { go } = useWorkspaceNavigation();
   const setAdd = useWorkspaceStore((state) => state.setAdd);
   const progress = setupProgress(data);
@@ -82,4 +82,4 @@ export function SetupChecklist({
       ) : null}
     </section>
   );
-}
+};

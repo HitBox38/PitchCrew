@@ -12,7 +12,7 @@ export const ohMyPi = withChat({
   detect: async () => requireCliVersion(await detectCli('oh-my-pi', 'omp'), [18, 4, 9], 'omp'),
   listModels: async (signal) =>
     parseOmpModels(await modelListCommand('omp', ['models', '--json', '--no-extensions'], signal)),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configRoot = join(context.directory, 'omp-home');
     const agentDir = join(configRoot, 'agent');

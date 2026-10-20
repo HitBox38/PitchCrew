@@ -3,7 +3,7 @@ import { SkillsView } from '@/SkillsView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 
-export function SkillsPage() {
+export const SkillsPage = () => {
   const { data, action, working } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
@@ -52,4 +52,4 @@ export function SkillsPage() {
       }}
     />
   );
-}
+};

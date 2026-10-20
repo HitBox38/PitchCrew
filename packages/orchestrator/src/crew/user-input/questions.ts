@@ -4,7 +4,7 @@ import { assertConfirmedContext } from '@pitchcrew/board';
 import { canReadConversation, conversations, relatedConversation } from '../conversations.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export function askUser(context: CrewContext, capability: RunCapability, data: unknown) {
+export const askUser = (context: CrewContext, capability: RunCapability, data: unknown) => {
   const input = userQuestionInput.parse(data);
   const run = context.board.get<Run>('run', capability.runId);
   if (run.status !== 'running') throw new Error('This execution is no longer active.');
@@ -91,4 +91,4 @@ export function askUser(context: CrewContext, capability: RunCapability, data: u
     instruction:
       'Your question is saved. End this turn now. Pitchcrew will continue your task when the user answers.',
   };
-}
+};

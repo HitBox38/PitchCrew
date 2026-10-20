@@ -7,7 +7,7 @@ import { RuntimeRow } from '@/RuntimeMaintenance/components/RuntimeRow.tsx';
 import type { Snapshot } from '@pitchcrew/core';
 import { ChevronDown } from 'lucide-react';
 
-function RuntimeRows({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
+const RuntimeRows = ({ runtimes }: { runtimes: Snapshot['runtimes'] }) => {
   return (
     <div className="space-y-4">
       {runtimes.map((runtime) => (
@@ -15,9 +15,9 @@ function RuntimeRows({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
       ))}
     </div>
   );
-}
+};
 
-export function RuntimeList({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
+export const RuntimeList = ({ runtimes }: { runtimes: Snapshot['runtimes'] }) => {
   const available = runtimes.filter((runtime) => runtime.available || !!runtime.version);
   const unavailable = runtimes.filter((runtime) => !runtime.available && !runtime.version);
   return (
@@ -44,4 +44,4 @@ export function RuntimeList({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
       </p>
     </section>
   );
-}
+};

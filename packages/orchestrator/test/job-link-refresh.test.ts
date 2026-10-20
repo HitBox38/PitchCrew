@@ -8,22 +8,7 @@ import {
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 import { recordedPostings, postingLinks } from './helpers/job-links.ts';
-
-const runId = 'link-refresh';
-const token = 'link-refresh-token';
-const url = 'https://careers.example/jobs/engineer';
-const details = {
-  company: 'Northwind Labs',
-  title: 'Engineer',
-  description: 'Build reliable applications.',
-};
-const html = `<h1>Engineer</h1><p>Northwind Labs</p><p>Build reliable applications.</p>`;
-const structured = `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'JobPosting', title: details.title, hiringOrganization: { name: details.company }, description: details.description })}</script>${html}`;
-afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.controllers.delete(runId);
-  await cleanup();
-});
-async function context() {
+const context = async () => {
   const { daemon, request } = await setup(15632);
   const service = daemon.service;
   const role = service.board.get<Role>('role', 'scout');
@@ -56,7 +41,22 @@ async function context() {
       result: JobLinkImportResult;
     }>;
   return { service, call, controller, run, request };
-}
+};
+
+const runId = 'link-refresh';
+const token = 'link-refresh-token';
+const url = 'https://careers.example/jobs/engineer';
+const details = {
+  company: 'Northwind Labs',
+  title: 'Engineer',
+  description: 'Build reliable applications.',
+};
+const html = `<h1>Engineer</h1><p>Northwind Labs</p><p>Build reliable applications.</p>`;
+const structured = `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@type': 'JobPosting', title: details.title, hiringOrganization: { name: details.company }, description: details.description })}</script>${html}`;
+afterEach(async () => {
+  for (const { daemon } of resources) daemon.service.controllers.delete(runId);
+  await cleanup();
+});
 
 it('creates a public-page lead through HTTP with structured data and deduplicates concurrent imports', async () => {
   const { service, request, call } = await context();

@@ -9,7 +9,7 @@ import { SidebarContent } from '@/components/ui/sidebar/components/SidebarConten
 import { SidebarRail } from '@/components/ui/sidebar/components/SidebarRail.tsx';
 import { ConversationNavigation } from '@/ConversationNavigation/index.tsx';
 
-export function AppSidebar(props: AppSidebarProps) {
+export const AppSidebar = (props: AppSidebarProps) => {
   const { recent } = props;
   return (
     <Sidebar collapsible="icon" aria-label="Sidebar">
@@ -24,4 +24,4 @@ export function AppSidebar(props: AppSidebarProps) {
       <SidebarRail />
     </Sidebar>
   );
-}
+};

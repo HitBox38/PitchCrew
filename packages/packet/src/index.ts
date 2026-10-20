@@ -2,12 +2,8 @@ import type { Packet, PacketArtifact, ProfileFile } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { verifiedArtifact } from './artifacts.ts';
-export * from './artifacts.ts';
-export * from './rules.ts';
-export * from './verification/index.ts';
-import { join } from 'node:path';
 
-export async function readProfile(directory: string): Promise<ProfileFile[]> {
+export const readProfile = async (directory: string): Promise<ProfileFile[]> => {
   const path = join(directory, 'profile');
   await mkdir(path, { recursive: true });
   const files = await readdir(path);
@@ -16,13 +12,13 @@ export async function readProfile(directory: string): Promise<ProfileFile[]> {
       .filter((name) => /^[\w.-]+\.md$/.test(name))
       .map(async (name) => ({ name, content: await readFile(join(path, name), 'utf8') })),
   );
-}
-export async function writePacket(
+};
+export const writePacket = async (
   directory: string,
   cardId: string,
   packet: Packet,
   artifacts: PacketArtifact[] = [],
-) {
+) => {
   const parent = join(directory, 'packets', cardId);
   await mkdir(parent, { recursive: true });
   const version = `try-${Date.now()}-${randomUUID().slice(0, 8)}`;
@@ -47,4 +43,9 @@ export async function writePacket(
   const output = join(parent, version);
   await rename(staging, output);
   return output;
-}
+};
+
+export * from './artifacts.ts';
+export * from './rules.ts';
+export * from './verification/index.ts';
+import { join } from 'node:path';

@@ -35,6 +35,61 @@ import { parseMarkdown } from './markdown.ts';
 import { ascent, descent, linkColor, ruleGray, type Template, templates } from './template.ts';
 import type { Block, DocumentKind, ListItem, Run } from './types.ts';
 
+// Every text the writer draws, with its style, so fonts are chosen before layout.
+const documentTexts = (blocks: Block[]) => {
+  const texts: { text: string; style: FontStyle }[] = [];
+  for (const block of blocks) {
+    for (const runs of blockRuns(block))
+      for (const run of runs)
+        if (run.kind === 'text') texts.push({ text: cleanText(run.text), style: styleOf(run) });
+    if (block.kind === 'list')
+      for (const item of block.items) texts.push({ text: marker(item), style: 'regular' });
+  }
+  return texts;
+};
+
+// PDF URI actions must be 7-bit ASCII; parentheses and backslashes are escaped as well.
+export const asciiUri = (href: string) => {
+  let output = '';
+  for (const character of href) {
+    const code = character.codePointAt(0)!;
+    output +=
+      code > 0x20 && code < 0x7f && !'()\\'.includes(character)
+        ? character
+        : [...new TextEncoder().encode(character)]
+            .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, '0')}`)
+            .join('');
+  }
+  return output;
+};
+
+/**
+ * Lays out Markdown as a formatted PDF. Liberation Sans prints what it can; Hebrew uses the bundled
+ * Noto font and other scripts use fonts from `fonts`, which defaults to installed system fonts.
+ * Text no font can show, or a script that needs shaping, stops the export with an error naming
+ * the character.
+ */
+export const formattedPdf = async (
+  markdown: string,
+  kind: DocumentKind,
+  fonts: FontSearch = systemFonts(),
+): Promise<RenderedDocument> => {
+  const blocks = parseMarkdown(markdown);
+  const document = await PDFDocument.create({ updateMetadata: false });
+  const choice = await FontChoice.open(fonts);
+  await choice.cover(documentTexts(blocks), kind);
+  const { embedded, shaped } = await choice.embed(document);
+  const writer = new PageWriter(document, templates[kind], { choice, embedded, shaped });
+  for (const block of blocks) writer.block(block);
+  const heading = blocks.find((block) => block.kind === 'heading');
+  document.setTitle(heading ? visibleText(heading.runs).trim() : labels[kind]);
+  document.setCreator('Pitchcrew');
+  document.setProducer('Pitchcrew');
+  document.setCreationDate(new Date(0));
+  document.setModificationDate(new Date(0));
+  return { bytes: Buffer.from(await document.save()), pages: document.getPageCount() };
+};
+
 export interface RenderedDocument {
   bytes: Buffer;
   pages: number;
@@ -57,34 +112,6 @@ const blockRuns = (block: Block): Run[][] =>
         : [];
 const marker = (item: ListItem) => (item.ordered ? `${item.number}.` : markers[item.depth]);
 
-// Every text the writer draws, with its style, so fonts are chosen before layout.
-function documentTexts(blocks: Block[]) {
-  const texts: { text: string; style: FontStyle }[] = [];
-  for (const block of blocks) {
-    for (const runs of blockRuns(block))
-      for (const run of runs)
-        if (run.kind === 'text') texts.push({ text: cleanText(run.text), style: styleOf(run) });
-    if (block.kind === 'list')
-      for (const item of block.items) texts.push({ text: marker(item), style: 'regular' });
-  }
-  return texts;
-}
-
-// PDF URI actions must be 7-bit ASCII; parentheses and backslashes are escaped as well.
-export function asciiUri(href: string) {
-  let output = '';
-  for (const character of href) {
-    const code = character.codePointAt(0)!;
-    output +=
-      code > 0x20 && code < 0x7f && !'()\\'.includes(character)
-        ? character
-        : [...new TextEncoder().encode(character)]
-            .map((byte) => `%${byte.toString(16).toUpperCase().padStart(2, '0')}`)
-            .join('');
-  }
-  return output;
-}
-
 class PageWriter {
   page!: PDFPage;
   y = 0;
@@ -101,25 +128,25 @@ class PageWriter {
   get right() {
     return this.template.page[0] - this.template.margin;
   }
-  newPage() {
+  newPage = () => {
     this.page = this.document.addPage(this.template.page);
     this.y = this.top;
-  }
-  ensure(height: number) {
+  };
+  ensure = (height: number) => {
     if (this.y - height < this.template.margin && this.y !== this.top) this.newPage();
-  }
-  space(amount: number) {
+  };
+  space = (amount: number) => {
     if (this.y !== this.top) this.y -= amount;
-  }
+  };
 
-  baseline(size: number, leading: number) {
+  baseline = (size: number, leading: number) => {
     this.ensure(leading);
     return this.y - (leading - (ascent + descent) * size) / 2 - ascent * size;
-  }
+  };
 
   // Draws pieces in visual order. Neighbours with the same font, link and direction share one text
   // operation; right-to-left groups go to fontkit in logical order behind the right-to-left mark.
-  pieces(pieces: Piece[], x: number, baseline: number, size: number) {
+  pieces = (pieces: Piece[], x: number, baseline: number, size: number) => {
     let cursor = x;
     for (let index = 0; index < pieces.length;) {
       const first = pieces[index];
@@ -148,14 +175,14 @@ class PageWriter {
       cursor += width;
       index = end;
     }
-  }
+  };
 
   // pdf-lib advances glyph by glyph and ignores the offsets fontkit gives marks, such as Hebrew
   // points. Fallback text with such offsets is shown as one text
   // array in which each mark moves by its horizontal offset and back. Advances stay the font's own
   // widths, as measured for wrapping. Vertical offsets are left out: a text rise would split the
   // word for PDF readers that extract text.
-  text(text: string, font: PDFFont, x: number, y: number, size: number, color: RGB) {
+  text = (text: string, font: PDFFont, x: number, y: number, size: number, color: RGB) => {
     const shaped = this.fonts.shaped.get(font);
     const run = shaped?.layout(text, { liga: false } as never);
     if (!shaped || !run || run.positions.every((position) => !position.xOffset)) {
@@ -179,18 +206,18 @@ class PageWriter {
       endText(),
       popGraphicsState(),
     );
-  }
+  };
 
   // Left-to-right lines start at `x`; right-to-left lines end at `x + width`. A fill takes the
   // space the line leaves, so the text after it reaches the far edge.
-  draw(
+  draw = (
     line: Atom[],
     x: number,
     size: number,
     leading: number,
     width: number,
     direction: Direction,
-  ) {
+  ) => {
     const baseline = this.baseline(size, leading);
     const extra = Math.max(0, width - line.reduce((sum, atom) => sum + atom.width, 0));
     let offset = 0;
@@ -200,9 +227,9 @@ class PageWriter {
       offset += chunk.width + (chunk.fill === undefined ? 0 : chunk.fill + extra);
     }
     this.y -= leading;
-  }
+  };
 
-  link(href: string, x: number, baseline: number, width: number, size: number) {
+  link = (href: string, x: number, baseline: number, width: number, size: number) => {
     const context = this.document.context;
     const annotation = context.obj({
       Type: 'Annot',
@@ -212,18 +239,18 @@ class PageWriter {
       A: { Type: 'Action', S: 'URI', URI: PDFString.of(asciiUri(href)) },
     });
     this.page.node.addAnnot(context.register(annotation));
-  }
+  };
 
-  rule(y: number, thickness: number) {
+  rule = (y: number, thickness: number) => {
     this.page.drawLine({
       start: { x: this.template.margin, y },
       end: { x: this.right, y },
       thickness,
       color: rgb(ruleGray, ruleGray, ruleGray),
     });
-  }
+  };
 
-  block(block: Block) {
+  block = (block: Block) => {
     const { template } = this;
     const left = template.margin;
     const width = this.right - left;
@@ -252,10 +279,10 @@ class PageWriter {
       for (const item of block.items) this.item(item);
       this.y -= Math.max(0, template.paragraphAfter - template.itemAfter);
     }
-  }
+  };
 
   // Right-to-left items mirror the hanging indent: the marker sits at the right edge.
-  item(item: ListItem) {
+  item = (item: ListItem) => {
     const { template } = this;
     const size = template.size;
     const left = template.margin;
@@ -293,32 +320,5 @@ class PageWriter {
         text.direction,
       );
     this.y -= template.itemAfter;
-  }
-}
-
-/**
- * Lays out Markdown as a formatted PDF. Liberation Sans prints what it can; Hebrew uses the bundled
- * Noto font and other scripts use fonts from `fonts`, which defaults to installed system fonts.
- * Text no font can show, or a script that needs shaping, stops the export with an error naming
- * the character.
- */
-export async function formattedPdf(
-  markdown: string,
-  kind: DocumentKind,
-  fonts: FontSearch = systemFonts(),
-): Promise<RenderedDocument> {
-  const blocks = parseMarkdown(markdown);
-  const document = await PDFDocument.create({ updateMetadata: false });
-  const choice = await FontChoice.open(fonts);
-  await choice.cover(documentTexts(blocks), kind);
-  const { embedded, shaped } = await choice.embed(document);
-  const writer = new PageWriter(document, templates[kind], { choice, embedded, shaped });
-  for (const block of blocks) writer.block(block);
-  const heading = blocks.find((block) => block.kind === 'heading');
-  document.setTitle(heading ? visibleText(heading.runs).trim() : labels[kind]);
-  document.setCreator('Pitchcrew');
-  document.setProducer('Pitchcrew');
-  document.setCreationDate(new Date(0));
-  document.setModificationDate(new Date(0));
-  return { bytes: Buffer.from(await document.save()), pages: document.getPageCount() };
+  };
 }

@@ -8,7 +8,47 @@ import { saveJobStatus, removeJob } from '../api.ts';
 import { jobFocusTarget, restoreJobFocus } from '../focus.ts';
 import type { JobReveal } from './useJobPage.ts';
 
-export function useBoardJobMutations() {
+export const useBoardJobMutations = () => {
+  const moveJob = async (id: string, state: CardState, follow = false) => {
+    const current = useWorkspaceStore.getState();
+    const card = current.data?.cards.find((card) => card.id === id);
+    if (
+      !card ||
+      !current.data ||
+      current.working ||
+      statusDrop(card, state, current.data).kind === 'blocked'
+    )
+      return;
+    focus.current = jobFocusTarget(id);
+    setPending({ id, from: card.state, to: state });
+    try {
+      await saveJobStatus(action, id, state);
+      if (follow) current.setShowClosed(closedStates.includes(state));
+    } catch {
+      // The workspace action reports errors; clearing the preview restores the original card.
+    } finally {
+      setReveal({ id });
+      setPending(null);
+    }
+  };
+
+  const requestDelete = (id: string) => {
+    focus.current = jobFocusTarget(id);
+    setDeletingId(id);
+  };
+
+  const confirmDelete = async () => {
+    const current = useWorkspaceStore.getState();
+    const card = current.data?.cards.find((card) => card.id === deletingId);
+    if (!card || !current.data || current.working || !canDragJob(card, current.data)) return;
+    try {
+      await removeJob(action, card.id);
+      setDeletingId(null);
+    } catch {
+      // Keep the confirmation open and let the workspace action show the error.
+    }
+  };
+
   const { data, working, action } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
@@ -32,46 +72,6 @@ export function useBoardJobMutations() {
     focus.current = null;
   }, [working, pending, deletingCard, data]);
 
-  async function moveJob(id: string, state: CardState, follow = false) {
-    const current = useWorkspaceStore.getState();
-    const card = current.data?.cards.find((card) => card.id === id);
-    if (
-      !card ||
-      !current.data ||
-      current.working ||
-      statusDrop(card, state, current.data).kind === 'blocked'
-    )
-      return;
-    focus.current = jobFocusTarget(id);
-    setPending({ id, from: card.state, to: state });
-    try {
-      await saveJobStatus(action, id, state);
-      if (follow) current.setShowClosed(closedStates.includes(state));
-    } catch {
-      // The workspace action reports errors; clearing the preview restores the original card.
-    } finally {
-      setReveal({ id });
-      setPending(null);
-    }
-  }
-
-  function requestDelete(id: string) {
-    focus.current = jobFocusTarget(id);
-    setDeletingId(id);
-  }
-
-  async function confirmDelete() {
-    const current = useWorkspaceStore.getState();
-    const card = current.data?.cards.find((card) => card.id === deletingId);
-    if (!card || !current.data || current.working || !canDragJob(card, current.data)) return;
-    try {
-      await removeJob(action, card.id);
-      setDeletingId(null);
-    } catch {
-      // Keep the confirmation open and let the workspace action show the error.
-    }
-  }
-
   return {
     data,
     working,
@@ -83,4 +83,4 @@ export function useBoardJobMutations() {
     confirmDelete,
     closeDelete: () => setDeletingId(null),
   };
-}
+};

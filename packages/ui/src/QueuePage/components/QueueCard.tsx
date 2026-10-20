@@ -8,7 +8,7 @@ import { QueueList } from './QueueList.tsx';
 import { QueueRequestRow } from './QueueRequestRow.tsx';
 import { AddQueueAction } from './AddQueueAction.tsx';
 
-export function QueueCard({
+export const QueueCard = ({
   queue,
   data,
   handle,
@@ -16,7 +16,7 @@ export function QueueCard({
   queue: WorkQueueView;
   data: Snapshot;
   handle?: ReactNode;
-}) {
+}) => {
   const action = useWorkspaceStore((s) => s.action);
   return (
     <article className="queue-card" aria-label={queue.title}>
@@ -55,4 +55,4 @@ export function QueueCard({
       </AccordionSection>
     </article>
   );
-}
+};

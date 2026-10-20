@@ -8,7 +8,7 @@ import { SelectContent } from '@/components/ui/select/components/SelectContent.t
 import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
 import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.tsx';
 import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
-export function ReviewAlternative({
+export const ReviewAlternative = ({
   value,
   index,
   runtimes,
@@ -20,7 +20,7 @@ export function ReviewAlternative({
   runtimes: ReviewSupport[];
   change: (value: ReviewRuntimeAlternative) => void;
   remove: () => void;
-}) {
+}) => {
   const runtime = runtimes.find((item) => item.id === value.runtime);
   const items = runtimes
     .filter((item) => item.available && item.applicationIsolation && item.reviewSubagents)
@@ -65,4 +65,4 @@ export function ReviewAlternative({
       </Button>
     </fieldset>
   );
-}
+};

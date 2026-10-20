@@ -8,7 +8,7 @@ import { modKey } from '@/shortcuts.ts';
 import { Link } from '@tanstack/react-router';
 import { Plus, Search } from 'lucide-react';
 
-export function SidebarHeading({ onSearch, onAddJob }: SidebarHeadingProps) {
+export const SidebarHeading = ({ onSearch, onAddJob }: SidebarHeadingProps) => {
   return (
     <SidebarHeader>
       <SidebarMenu>
@@ -45,4 +45,4 @@ export function SidebarHeading({ onSearch, onAddJob }: SidebarHeadingProps) {
       </SidebarMenu>
     </SidebarHeader>
   );
-}
+};

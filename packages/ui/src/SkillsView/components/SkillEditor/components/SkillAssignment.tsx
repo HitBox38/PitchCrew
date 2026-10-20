@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import type { SkillAssignmentProps } from '@/SkillsView/components/SkillEditor/types.ts';
 
-export function SkillAssignment({
+export const SkillAssignment = ({
   scope,
   setScope,
   roles,
   roleIds,
   setRoleIds,
-}: SkillAssignmentProps) {
+}: SkillAssignmentProps) => {
   return (
     <section className="role-settings-section" aria-labelledby="skill-assignment-heading">
       <h3 id="skill-assignment-heading">Who uses this skill?</h3>
@@ -54,4 +54,4 @@ export function SkillAssignment({
       )}
     </section>
   );
-}
+};

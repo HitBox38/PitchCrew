@@ -13,7 +13,7 @@ import type { CrewService } from '../../service.ts';
 
 // User-only learning signals. Session checks in http/security.ts guard every /api route;
 // agents reach the daemon only through /api/agent, which has no matching action.
-export function registerLearningRoutes(app: FastifyInstance, service: CrewService) {
+export const registerLearningRoutes = (app: FastifyInstance, service: CrewService) => {
   app.put<IdRoute>('/api/cards/:id/weight', (req, res) =>
     res.send(setCardWeight(service.board, req.params.id, req.body)),
   );
@@ -32,4 +32,4 @@ export function registerLearningRoutes(app: FastifyInstance, service: CrewServic
   app.post('/api/insights/stale', (req, res) =>
     res.send({ cards: markStaleSubmissions(service.board, req.body) }),
   );
-}
+};

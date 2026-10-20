@@ -8,7 +8,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog/index.tsx';
 
-export function DeleteConversationDialog({
+export const DeleteConversationDialog = ({
   conversation,
   working,
   close,
@@ -18,7 +18,7 @@ export function DeleteConversationDialog({
   working: boolean;
   close: () => void;
   confirm: () => Promise<void>;
-}) {
+}) => {
   const cancel = useRef<HTMLButtonElement>(null);
   return (
     <Dialog
@@ -50,4 +50,4 @@ export function DeleteConversationDialog({
       </DialogContent>
     </Dialog>
   );
-}
+};

@@ -7,7 +7,7 @@ import {
 import { randomUUID } from 'node:crypto';
 
 /** Records only local, content-free observations. Transport/consent belongs to the renderer. */
-export function beginAiRun(
+export const beginAiRun = (
   diagnostics: DiagnosticSink | undefined,
   mode: AiRunMode,
   {
@@ -19,7 +19,7 @@ export function beginAiRun(
     wallClock?: () => number;
     id?: () => string;
   } = {},
-) {
+) => {
   const traceId = diagnostics ? id() : undefined;
   const start = clock();
   const startedAt = wallClock();
@@ -38,7 +38,7 @@ export function beginAiRun(
     }
   };
   return {
-    async observe<T>(operation: () => Promise<T>, signal: AbortSignal): Promise<T> {
+    observe: async <T>(operation: () => Promise<T>, signal: AbortSignal): Promise<T> => {
       const spanId = diagnostics ? id() : undefined;
       const spanStart = clock();
       const spanStartedAt = wallClock();
@@ -59,7 +59,7 @@ export function beginAiRun(
         });
       }
     },
-    finish(outcome: AiRunOutcome) {
+    finish: (outcome: AiRunOutcome) => {
       if (finished) return;
       finished = true;
       record('$ai_trace', {
@@ -69,4 +69,4 @@ export function beginAiRun(
       });
     },
   };
-}
+};

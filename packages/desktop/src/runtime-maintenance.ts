@@ -1,12 +1,12 @@
 import { dialog, session, type BrowserWindow } from 'electron';
 import { waitForMaintenance } from './maintenance-quit.ts';
 
-export async function waitForRuntimeUpdates(
+export const waitForRuntimeUpdates = async (
   origin: string,
   window: BrowserWindow | null,
-): Promise<boolean> {
+): Promise<boolean> => {
   return waitForMaintenance({
-    async busy() {
+    busy: async () => {
       try {
         const response = await session.defaultSession.fetch(`${origin}/api/runtimes/maintenance`, {
           headers: { 'x-pitchcrew-client': 'ui' },
@@ -24,7 +24,7 @@ export async function waitForRuntimeUpdates(
         return false;
       }
     },
-    show(signal, cancel) {
+    show: (signal, cancel) => {
       const options = {
         type: 'info' as const,
         title: 'Finishing runtime update…',
@@ -47,4 +47,4 @@ export async function waitForRuntimeUpdates(
     },
     wait: () => new Promise((resolve) => setTimeout(resolve, 500)),
   });
-}
+};

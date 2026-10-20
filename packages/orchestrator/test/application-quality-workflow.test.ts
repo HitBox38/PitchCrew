@@ -10,10 +10,7 @@ import {
   waitForSnapshot,
 } from './helpers/daemon.ts';
 import * as documents from '../src/quality/documents.ts';
-
-afterEach(cleanup);
-const clearDocuments = { reports: [], errors: [], warnings: [], repairable: [] };
-async function prepared(port: number) {
+const prepared = async (port: number) => {
   const env = await setup(port);
   await env.request('/profile', 'PUT', { name: 'profile.md', content: 'Built React interfaces.' });
   const card = env.daemon.service.createCard({
@@ -24,7 +21,10 @@ async function prepared(port: number) {
   env.daemon.service.moveCard(card.id, 'shortlisted');
   await confirmFixtureApplication(env.request, card.id);
   return { ...env, card };
-}
+};
+
+afterEach(cleanup);
+const clearDocuments = { reports: [], errors: [], warnings: [], repairable: [] };
 
 it('queues a current user correction into an isolated draft, preserving before/after and guide provenance', async () => {
   const { daemon, request, card } = await prepared(24631);

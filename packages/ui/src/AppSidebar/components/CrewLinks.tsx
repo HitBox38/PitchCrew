@@ -22,7 +22,7 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 
-export function CrewLinks({
+export const CrewLinks = ({
   roles,
   runningRoles,
   roleStatus,
@@ -30,7 +30,7 @@ export function CrewLinks({
   onConfigureRole,
   working,
   onToggleRole,
-}: CrewLinksProps) {
+}: CrewLinksProps) => {
   return (
     <SidebarCategory id="crew" label="Crew">
       <SidebarGroupContent>
@@ -91,4 +91,4 @@ export function CrewLinks({
       </SidebarGroupContent>
     </SidebarCategory>
   );
-}
+};

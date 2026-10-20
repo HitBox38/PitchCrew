@@ -1,6 +1,6 @@
 import type { DeepReview } from '@pitchcrew/core';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
-export function reviewSummaryMessage(report: DeepReview) {
+export const reviewSummaryMessage = (report: DeepReview) => {
   const assessment = report.after ?? report.before;
   const lines = [`**Deep resume review:** ${report.summary}`];
   if (assessment) {
@@ -30,4 +30,4 @@ export function reviewSummaryMessage(report: DeepReview) {
     '\nOpen this job’s Deep reviews section for the full report and before/after resume. Export and submission require their existing approvals.',
   );
   return lines.join('\n');
-}
+};

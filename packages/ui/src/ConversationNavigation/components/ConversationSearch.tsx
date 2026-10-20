@@ -2,7 +2,7 @@ import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input/index.tsx';
 import type { Ref } from 'react';
 
-export function ConversationSearch({
+export const ConversationSearch = ({
   query,
   setQuery,
   error,
@@ -12,7 +12,7 @@ export function ConversationSearch({
   setQuery: (query: string) => void;
   error: string;
   inputRef: Ref<HTMLInputElement>;
-}) {
+}) => {
   return (
     <>
       <div className="conversation-search">
@@ -32,4 +32,4 @@ export function ConversationSearch({
       ) : null}
     </>
   );
-}
+};

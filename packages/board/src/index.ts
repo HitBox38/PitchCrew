@@ -74,36 +74,36 @@ export class Board {
   get db() {
     return this.context.db;
   }
-  close(): void {
+  close = (): void => {
     return this.context.close();
-  }
-  list<T>(kind: BoardEvent['kind']): T[] {
+  };
+  list = <T>(kind: BoardEvent['kind']): T[] => {
     return this.context.list<T>(kind);
-  }
-  get<T>(kind: BoardEvent['kind'], id: string): T {
+  };
+  get = <T>(kind: BoardEvent['kind'], id: string): T => {
     return this.context.get<T>(kind, id);
-  }
-  record(
+  };
+  record = (
     kind: BoardEvent['kind'],
     data: BoardEvent['data'],
     actor: string,
     message: string,
-  ): BoardEvent {
+  ): BoardEvent => {
     return this.context.record(kind, data, actor, message);
-  }
-  events(limit?: number): BoardEvent[] {
+  };
+  events = (limit?: number): BoardEvent[] => {
     return this.context.events(limit);
-  }
-  history(entityId: string, before?: number, limit?: number): BoardEvent[] {
+  };
+  history = (entityId: string, before?: number, limit?: number): BoardEvent[] => {
     return this.context.history(entityId, before, limit);
-  }
-  rebuild(): void {
+  };
+  rebuild = (): void => {
     return this.context.rebuild();
-  }
-  createCard(input: CardInput, sample?: boolean): Card {
+  };
+  createCard = (input: CardInput, sample?: boolean): Card => {
     return this.context.createCard(input, sample);
-  }
-  updateCard(
+  };
+  updateCard = (
     id: string,
     patch: Partial<
       Pick<
@@ -121,39 +121,39 @@ export class Board {
     >,
     actor: string,
     message: string,
-  ): Card {
+  ): Card => {
     return this.context.updateCard(id, patch, actor, message);
-  }
-  move(id: string, state: CardState, actor: string, message?: string): Card {
+  };
+  move = (id: string, state: CardState, actor: string, message?: string): Card => {
     return this.context.move(id, state, actor, message);
-  }
-  requestApproval(
+  };
+  requestApproval = (
     cardId: string,
     artifacts?: PacketArtifact[],
     reports?: Approval['documentVerification'],
-  ): Approval {
+  ): Approval => {
     return this.context.requestApproval(cardId, artifacts, reports);
-  }
-  decideApproval(id: string, approved: boolean): Approval {
+  };
+  decideApproval = (id: string, approved: boolean): Approval => {
     return this.context.decideApproval(id, approved);
-  }
-  consumeApproval(id: string, cardId: string, digest: string): Packet {
+  };
+  consumeApproval = (id: string, cardId: string, digest: string): Packet => {
     return this.context.consumeApproval(id, cardId, digest);
-  }
-  hasActiveRun(cardId: string): boolean {
+  };
+  hasActiveRun = (cardId: string): boolean => {
     return this.context.hasActiveRun(cardId);
-  }
-  seedRoles(
+  };
+  seedRoles = (
     runtime?: RuntimeId,
     enabled?: boolean,
     configurations?: ReadonlyMap<string, RuntimeConfiguration>,
-  ): void {
+  ): void => {
     return this.context.seedRoles(runtime, enabled, configurations);
-  }
+  };
   /** Read-only comparison of seeded default roles with the current default instructions. */
-  defaultInstructionStatuses(): DefaultInstructionStatus[] {
+  defaultInstructionStatuses = (): DefaultInstructionStatus[] => {
     return this.context.defaultInstructionStatuses();
-  }
+  };
 }
 export { workspaceMessages } from './board/workspace-messages.ts';
 export { conversationHistory, searchConversationMessages } from './board/conversation-history.ts';

@@ -3,7 +3,7 @@ import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { newAgentCapabilities, toolGroups, toolHelp } from '../constants.ts';
 import type { StepProps } from '../types.ts';
 
-export function ToolsStep({ draft, changeRole, data }: StepProps) {
+export const ToolsStep = ({ draft, changeRole, data }: StepProps) => {
   const capabilities = draft.role.capabilities ?? newAgentCapabilities;
   return (
     <div className="flex flex-col gap-6">
@@ -50,4 +50,4 @@ export function ToolsStep({ draft, changeRole, data }: StepProps) {
       </p>
     </div>
   );
-}
+};

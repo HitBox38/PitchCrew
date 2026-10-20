@@ -2,7 +2,7 @@ import type { DropdownMenuSeparatorProps } from '@/components/ui/dropdown-menu/t
 import { cn } from '@/lib/utils';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 
-export function DropdownMenuSeparator({ className, ...props }: DropdownMenuSeparatorProps) {
+export const DropdownMenuSeparator = ({ className, ...props }: DropdownMenuSeparatorProps) => {
   return (
     <MenuPrimitive.Separator
       data-slot="dropdown-menu-separator"
@@ -10,4 +10,4 @@ export function DropdownMenuSeparator({ className, ...props }: DropdownMenuSepar
       {...props}
     />
   );
-}
+};

@@ -4,7 +4,7 @@ import { PacketDocumentPicker } from '@/components/CardDetails/components/Packet
 import type { JobPacketProps } from '@/components/CardDetails/types.ts';
 import { ShieldCheck } from 'lucide-react';
 
-export function JobPacket({ document, setDocument, card }: JobPacketProps) {
+export const JobPacket = ({ document, setDocument, card }: JobPacketProps) => {
   if (!card.packet) return null;
   return (
     <>
@@ -29,4 +29,4 @@ export function JobPacket({ document, setDocument, card }: JobPacketProps) {
       ))}
     </>
   );
-}
+};

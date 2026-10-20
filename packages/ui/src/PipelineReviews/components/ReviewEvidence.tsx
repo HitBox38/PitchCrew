@@ -1,7 +1,7 @@
 import type { PipelineEvidence } from '@pitchcrew/core';
 import { evidenceDetails } from '../helpers.ts';
 
-export function ReviewEvidence({ event }: { event: PipelineEvidence }) {
+export const ReviewEvidence = ({ event }: { event: PipelineEvidence }) => {
   return (
     <div className="space-y-1 py-2">
       <p>
@@ -13,4 +13,4 @@ export function ReviewEvidence({ event }: { event: PipelineEvidence }) {
       ))}
     </div>
   );
-}
+};

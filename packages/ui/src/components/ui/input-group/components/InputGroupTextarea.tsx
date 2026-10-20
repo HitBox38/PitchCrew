@@ -2,7 +2,7 @@ import type { InputGroupTextareaProps } from '@/components/ui/input-group/types.
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { cn } from '@/lib/utils.ts';
 
-export function InputGroupTextarea({ className, ...props }: InputGroupTextareaProps) {
+export const InputGroupTextarea = ({ className, ...props }: InputGroupTextareaProps) => {
   return (
     <Textarea
       data-slot="input-group-control"
@@ -13,4 +13,4 @@ export function InputGroupTextarea({ className, ...props }: InputGroupTextareaPr
       {...props}
     />
   );
-}
+};

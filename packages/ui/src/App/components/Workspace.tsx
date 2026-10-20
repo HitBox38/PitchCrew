@@ -12,7 +12,7 @@ import { useAutomaticUpdates } from '@/AppUpdates/hooks/useAutomaticUpdates.ts';
 import { AgentUpdates } from '@/AgentUpdates/index.tsx';
 import type { ReadyWorkspaceProps } from '../types.ts';
 
-export function Workspace(props: ReadyWorkspaceProps) {
+export const Workspace = (props: ReadyWorkspaceProps) => {
   useAutomaticUpdates();
   const controller = getWorkspaceModel(props);
   const { sidebarOpen, paletteMounted } = controller;
@@ -33,4 +33,4 @@ export function Workspace(props: ReadyWorkspaceProps) {
       <WorkspacePanels {...controller} />
     </SidebarProvider>
   );
-}
+};

@@ -4,7 +4,7 @@ import { ConversationSelect } from './ConversationSelect.tsx';
 import { MemoryEntry } from './MemoryEntry.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { useState } from 'react';
-export function MemoryNotebook({
+export const MemoryNotebook = ({
   data,
   roleId,
   recipientItems,
@@ -23,7 +23,7 @@ export function MemoryNotebook({
   | 'action'
   | 'onThread'
   | 'working'
->) {
+>) => {
   const [query, setQuery] = useState('');
   const notes = (data.memories ?? [])
     .filter(
@@ -80,4 +80,4 @@ export function MemoryNotebook({
       </div>
     </ChatSidePanel>
   );
-}
+};

@@ -2,23 +2,10 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { maxBytes } from './helpers.ts';
 
-export type GithubCliRunner = (
-  args: readonly string[],
-  signal: AbortSignal,
-) => Promise<{
-  stdout: string;
-  exitCode: number;
-}>;
-export class GithubCliMissingError extends Error {
-  constructor() {
-    super('Install GitHub CLI, then try connecting again.');
-  }
-}
-
-export function createGithubCliRunner(
+export const createGithubCliRunner = (
   command = 'gh',
   prefix: readonly string[] = [],
-): GithubCliRunner {
+): GithubCliRunner => {
   return (args, signal) =>
     new Promise((resolve, reject) => {
       if (signal.aborted) {
@@ -76,4 +63,17 @@ export function createGithubCliRunner(
         resolve({ stdout: Buffer.concat(chunks).toString('utf8'), exitCode: code ?? 1 });
       });
     });
+};
+
+export type GithubCliRunner = (
+  args: readonly string[],
+  signal: AbortSignal,
+) => Promise<{
+  stdout: string;
+  exitCode: number;
+}>;
+export class GithubCliMissingError extends Error {
+  constructor() {
+    super('Install GitHub CLI, then try connecting again.');
+  }
 }

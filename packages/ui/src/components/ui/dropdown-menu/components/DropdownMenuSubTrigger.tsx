@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 import { ChevronRightIcon } from 'lucide-react';
 
-export function DropdownMenuSubTrigger({
+export const DropdownMenuSubTrigger = ({
   className,
   inset,
   children,
   ...props
-}: DropdownMenuSubTriggerProps) {
+}: DropdownMenuSubTriggerProps) => {
   return (
     <MenuPrimitive.SubmenuTrigger
       data-slot="dropdown-menu-sub-trigger"
@@ -23,4 +23,4 @@ export function DropdownMenuSubTrigger({
       <ChevronRightIcon className="primitive:ml-auto primitive:size-4" />
     </MenuPrimitive.SubmenuTrigger>
   );
-}
+};

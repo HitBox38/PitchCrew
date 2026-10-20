@@ -2,7 +2,7 @@ import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { useState } from 'react';
 import type { ProfileViewModel } from '../types.ts';
 
-export function useProfileWorkspace(controller: ProfileViewModel) {
+export const useProfileWorkspace = (controller: ProfileViewModel) => {
   const mobile = useIsMobile();
   const [desktopExplorer, setDesktopExplorer] = useState(true);
   const [mobileExplorer, setMobileExplorer] = useState(false);
@@ -28,4 +28,4 @@ export function useProfileWorkspace(controller: ProfileViewModel) {
       return opened;
     },
   };
-}
+};

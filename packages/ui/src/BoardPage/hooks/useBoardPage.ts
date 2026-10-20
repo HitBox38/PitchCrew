@@ -6,7 +6,7 @@ import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useBoardJobMutations } from './useBoardJobMutations.ts';
 
-export function useBoardPage() {
+export const useBoardPage = () => {
   const reduced = useAppReducedMotion();
   const jobMutations = useBoardJobMutations();
   const {
@@ -75,4 +75,4 @@ export function useBoardPage() {
     closed,
     recent,
   };
-}
+};

@@ -3,7 +3,7 @@ import type { ChatContext, RunContext, RuntimeAdapter } from '@pitchcrew/core';
 import { chatCli, detectCli, promptFor, runCli } from '../process.ts';
 import { claudeModelArgs, readClaudeModels } from './models.ts';
 
-function argsFor(context: RunContext | ChatContext) {
+const argsFor = (context: RunContext | ChatContext) => {
   const args = [
     '-p',
     '--output-format',
@@ -34,11 +34,11 @@ function argsFor(context: RunContext | ChatContext) {
   if (context.role.model) args.push('--model', context.role.model);
   if (context.role.reasoning) args.push('--effort', context.role.reasoning);
   return args;
-}
-function extract(event: Record<string, unknown>): string | null {
+};
+const extract = (event: Record<string, unknown>): string | null => {
   if (event.type === 'result' && typeof event.result === 'string') return event.result;
   return null;
-}
+};
 export const claudeCode: RuntimeAdapter = {
   applicationIsolation: true,
   reviewSubagents: { maxConcurrent: 4 },

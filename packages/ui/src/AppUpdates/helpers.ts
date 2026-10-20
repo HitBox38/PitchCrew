@@ -1,11 +1,11 @@
 import type { AppUpdateInfo, DesktopUpdateState } from '@pitchcrew/core';
 
-export function updateControl(
+export const updateControl = (
   info: AppUpdateInfo | null,
   desktop: DesktopUpdateState | null,
   dismissed: string | null,
   checking: boolean,
-) {
+) => {
   const native = desktop?.enabled ? desktop : null;
   const busy = native?.status === 'downloading' || native?.status === 'installing';
   const key = native ? native.availableVersion : info?.latest?.commit;
@@ -41,4 +41,4 @@ export function updateControl(
     ready: !!native?.downloadedVersion,
     progress: native?.status === 'downloading' ? (native.downloadPercent ?? 0) : null,
   };
-}
+};

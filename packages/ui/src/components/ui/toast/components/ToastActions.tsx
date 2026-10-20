@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 import { X } from 'lucide-react';
 
-export function ToastAction({
+export const ToastAction = ({
   className,
   render = <Button variant="outline" size="sm" />,
   ...props
-}: ToastPrimitive.Action.Props) {
+}: ToastPrimitive.Action.Props) => {
   return (
     <ToastPrimitive.Action
       data-slot="toast-action"
@@ -16,13 +16,13 @@ export function ToastAction({
       {...props}
     />
   );
-}
-export function ToastClose({
+};
+export const ToastClose = ({
   className,
   children,
   render = <Button variant="ghost" size="icon-sm" />,
   ...props
-}: ToastPrimitive.Close.Props) {
+}: ToastPrimitive.Close.Props) => {
   return (
     <ToastPrimitive.Close
       data-slot="toast-close"
@@ -34,4 +34,4 @@ export function ToastClose({
       {children ?? <X size={15} aria-hidden="true" />}
     </ToastPrimitive.Close>
   );
-}
+};

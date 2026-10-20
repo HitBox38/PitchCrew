@@ -7,7 +7,7 @@ import { resolveRuntime } from '@/lib/runtimes.ts';
 import type { BrowserMode, ReasoningLevel } from '@pitchcrew/core';
 import { useEffect, useState, type FormEvent } from 'react';
 
-export function useRoleSettings({
+export const useRoleSettings = ({
   role,
   reviewInstructions = false,
   creating = false,
@@ -17,7 +17,50 @@ export function useRoleSettings({
   onClose,
   onManageSkills,
   registerLeaveGuard,
-}: RoleSettingsProps) {
+}: RoleSettingsProps) => {
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    if (working) return;
+    try {
+      await action(
+        creating ? '/roles' : `/roles/${role.id}`,
+        creating ? 'POST' : 'PUT',
+        {
+          ...(creating ? { id } : {}),
+          name,
+          description,
+          workflow,
+          runtime,
+          model,
+          reasoning,
+          enabled,
+          instructions,
+          ...(defaultInstructionDraft && instructions !== defaultInstructionDraft.previous
+            ? { defaultInstructionRevision: defaultInstructionDraft.revision }
+            : {}),
+          capabilities,
+          browserMode,
+        },
+        creating ? `${name} created` : `${name} settings saved`,
+      );
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not save settings.');
+    }
+  };
+  const retire = async () => {
+    if (!retiring) {
+      setRetiring(true);
+      return;
+    }
+    try {
+      await action(`/roles/${role.id}/retire`, 'POST', {}, `${role.name} retired`);
+      onClose();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not retire role.');
+    }
+  };
+
   const [id, setId] = useState(role.id);
   const [name, setName] = useState(role.name);
   const [description, setDescription] = useState(role.description);
@@ -66,48 +109,6 @@ export function useRoleSettings({
     label: `${runtimeLabels[r.id]}${r.available ? '' : ' (unavailable)'}`,
   }));
   const runtimeAvailable = runtimeCatalog.available;
-  async function save(e: FormEvent) {
-    e.preventDefault();
-    if (working) return;
-    try {
-      await action(
-        creating ? '/roles' : `/roles/${role.id}`,
-        creating ? 'POST' : 'PUT',
-        {
-          ...(creating ? { id } : {}),
-          name,
-          description,
-          workflow,
-          runtime,
-          model,
-          reasoning,
-          enabled,
-          instructions,
-          ...(defaultInstructionDraft && instructions !== defaultInstructionDraft.previous
-            ? { defaultInstructionRevision: defaultInstructionDraft.revision }
-            : {}),
-          capabilities,
-          browserMode,
-        },
-        creating ? `${name} created` : `${name} settings saved`,
-      );
-      onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not save settings.');
-    }
-  }
-  async function retire() {
-    if (!retiring) {
-      setRetiring(true);
-      return;
-    }
-    try {
-      await action(`/roles/${role.id}/retire`, 'POST', {}, `${role.name} retired`);
-      onClose();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Could not retire role.');
-    }
-  }
   return {
     reviewInstructions,
     creating,
@@ -150,4 +151,4 @@ export function useRoleSettings({
     runtimeAvailable,
     save,
   };
-}
+};

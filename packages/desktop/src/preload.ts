@@ -8,7 +8,7 @@ const updates: DesktopUpdateBridge = {
   check: () => ipcRenderer.invoke(updateChannels.check),
   download: () => ipcRenderer.invoke(updateChannels.download),
   install: () => ipcRenderer.invoke(updateChannels.install),
-  subscribe(listener) {
+  subscribe: (listener) => {
     const receive = (_event: unknown, state: DesktopUpdateState) => listener(state);
     ipcRenderer.on(updateChannels.changed, receive);
     return () => {

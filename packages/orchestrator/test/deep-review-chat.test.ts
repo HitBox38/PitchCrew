@@ -3,15 +3,16 @@ import type { ChatRequest, DeepReview } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, waitForSnapshot } from './helpers/daemon.ts';
 import { assessment, deepReviewFixture } from './helpers/deep-reviews.ts';
-afterEach(cleanup);
-function mockReview() {
+const mockReview = () => {
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) =>
     context.role.workflow === 'reviewer'
       ? { role: 'reviewer', passed: true, feedback: [], assessment: assessment() }
       : original(context),
   );
-}
+};
+
+afterEach(cleanup);
 it('starts the managed flow from a natural chat request on an attached job', async () => {
   const { daemon, request, card } = await deepReviewFixture(24521);
   mockReview();

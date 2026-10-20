@@ -5,7 +5,7 @@ import { GuidePreferences } from './components/GuidePreferences.tsx';
 import { GuideProposals } from './components/GuideProposals.tsx';
 import { PreferenceEditor } from './components/PreferenceEditor.tsx';
 
-export function WritingSettings() {
+export const WritingSettings = () => {
   const model = useWritingSettings();
   const { guide, working, change } = model;
   if (!guide) return null;
@@ -50,4 +50,4 @@ export function WritingSettings() {
       ) : null}
     </section>
   );
-}
+};

@@ -17,14 +17,7 @@ import {
 } from './helpers/job-boards.ts';
 import { postingLinks, recordedPostings } from './helpers/job-links.ts';
 
-const runId = 'agent-link-import';
-const token = 'agent-link-import-token';
-afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.controllers.delete(runId);
-  await cleanup();
-});
-
-async function withImport() {
+const withImport = async () => {
   const context = await setup(15631);
   const service = context.daemon.service;
   const boards = recordedPostings();
@@ -67,12 +60,19 @@ async function withImport() {
       result: JobLinkImportResult;
     }>;
   return { ...context, service, boards, setDiscovery, controller, run, importLink };
-}
+};
 
-function added(result: JobLinkImportResult) {
+const added = (result: JobLinkImportResult) => {
   if (result.status !== 'added') throw new Error(`Unexpected import status: ${result.status}`);
   return result.lead;
-}
+};
+
+const runId = 'agent-link-import';
+const token = 'agent-link-import-token';
+afterEach(async () => {
+  for (const { daemon } of resources) daemon.service.controllers.delete(runId);
+  await cleanup();
+});
 
 describe('agent posting link imports', () => {
   it.each([

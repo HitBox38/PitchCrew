@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import type { ProfileFolderOperation } from '../types.ts';
 
-export function useProfileFolderDialog(
+export const useProfileFolderDialog = (
   operation: ProfileFolderOperation,
   folders: string[],
   submit: (folder: string) => Promise<void>,
-) {
+) => {
   const [folder, setFolder] = useState(
     operation.kind === 'create' ? operation.parent : operation.current,
   );
@@ -27,4 +27,4 @@ export function useProfileFolderDialog(
     void submit(path);
   };
   return { folder, setFolder, name, setName, validation, create, save };
-}
+};

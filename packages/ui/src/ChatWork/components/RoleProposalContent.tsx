@@ -16,14 +16,14 @@ type RoleProposalContentProps = Pick<RoleProposalsProps, 'working' | 'act'> & {
   active: boolean;
   sourceName?: string;
 };
-export function RoleProposalContent({
+export const RoleProposalContent = ({
   proposal,
   current,
   active,
   working,
   sourceName,
   act,
-}: RoleProposalContentProps) {
+}: RoleProposalContentProps) => {
   return (
     <>
       <header>
@@ -83,4 +83,4 @@ export function RoleProposalContent({
       </footer>
     </>
   );
-}
+};

@@ -2,7 +2,7 @@ import { prepareVerifiedArtifacts, systemFonts } from '@pitchcrew/packet';
 import type { Packet } from '@pitchcrew/core';
 import { join } from 'node:path';
 
-export async function inspectPacketDocuments(directory: string, packet: Packet) {
+export const inspectPacketDocuments = async (directory: string, packet: Packet) => {
   const { reports } = await prepareVerifiedArtifacts(packet, ['pdf'], 'formatted', {
     fonts: systemFonts({ folders: [join(directory, 'fonts')] }),
   });
@@ -36,4 +36,4 @@ export async function inspectPacketDocuments(directory: string, packet: Packet) 
       }
   }
   return { reports, errors, warnings, repairable };
-}
+};

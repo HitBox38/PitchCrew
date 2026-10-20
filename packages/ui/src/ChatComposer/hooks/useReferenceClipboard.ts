@@ -16,9 +16,9 @@ import {
 } from '@lexical/clipboard';
 
 /** Keep atomic identity within Pitchcrew, and readable tokens when pasting elsewhere. */
-export function useReferenceClipboard(editor: LexicalEditor) {
+export const useReferenceClipboard = (editor: LexicalEditor) => {
   useEffect(() => {
-    function copy(event: ClipboardEvent | KeyboardEvent | null, cut = false) {
+    const copy = (event: ClipboardEvent | KeyboardEvent | null, cut = false) => {
       if (!(event instanceof ClipboardEvent) || !event.clipboardData) return false;
       const selection = $getSelection();
       if (!$isRangeSelection(selection) || selection.isCollapsed()) return false;
@@ -29,7 +29,7 @@ export function useReferenceClipboard(editor: LexicalEditor) {
       );
       if (cut) selection.removeText();
       return true;
-    }
+    };
     return mergeRegister(
       editor.registerCommand(COPY_COMMAND, (event) => copy(event), COMMAND_PRIORITY_HIGH),
       editor.registerCommand(CUT_COMMAND, (event) => copy(event, true), COMMAND_PRIORITY_HIGH),
@@ -51,4 +51,4 @@ export function useReferenceClipboard(editor: LexicalEditor) {
       ),
     );
   }, [editor]);
-}
+};

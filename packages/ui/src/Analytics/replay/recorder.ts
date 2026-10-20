@@ -7,11 +7,11 @@ type Recorder = {
 };
 export type ReplayTransport = (events: Record<string, unknown>[]) => void;
 
-export function createReplay(
+export const createReplay = (
   load: () => Promise<Recorder>,
   allowed: () => boolean,
   send: ReplayTransport,
-) {
+) => {
   let generation = 0;
   let stopRecording: (() => void) | undefined;
   let timer: ReturnType<typeof setInterval> | undefined;
@@ -49,7 +49,7 @@ export function createReplay(
   };
   return {
     stop,
-    async setEnabled(enabled: boolean) {
+    setEnabled: async (enabled: boolean) => {
       if (!enabled || !allowed()) {
         stop();
         return;
@@ -75,7 +75,7 @@ export function createReplay(
           plugins: [],
           sampling: { mousemove: 200, scroll: 200, input: 'last', media: 100000 },
           checkoutEveryNms: 30000,
-          emit(input) {
+          emit: (input) => {
             if (current !== generation || !allowed()) {
               stop();
               return;
@@ -104,9 +104,9 @@ export function createReplay(
       }
     },
   };
-}
+};
 
-export async function loadLocalRecorder(): Promise<Recorder> {
+export const loadLocalRecorder = async (): Promise<Recorder> => {
   const { record } = await import('posthog-js/rrweb');
   return { record, node: (id) => record.mirror.getNode(id) };
-}
+};

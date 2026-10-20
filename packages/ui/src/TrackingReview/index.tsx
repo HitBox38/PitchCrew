@@ -1,7 +1,7 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { TrackingProposal } from './components/TrackingProposal.tsx';
 
-export function TrackingReview() {
+export const TrackingReview = () => {
   const data = useWorkspaceStore((state) => state.data);
   const pending = data?.trackingSignals?.filter((signal) => signal.status === 'pending') ?? [];
   if (!data || !pending.length) return null;
@@ -20,4 +20,4 @@ export function TrackingReview() {
       ))}
     </section>
   );
-}
+};

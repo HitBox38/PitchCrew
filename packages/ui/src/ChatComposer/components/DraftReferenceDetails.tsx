@@ -2,7 +2,7 @@ import { Popover } from '@base-ui/react/popover';
 import type { ReferenceValue } from '@/ChatReferences/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function DraftReferenceDetails({
+export const DraftReferenceDetails = ({
   anchor,
   reference,
   close,
@@ -12,7 +12,7 @@ export function DraftReferenceDetails({
   reference: ReferenceValue;
   close: () => void;
   remove: () => void;
-}) {
+}) => {
   return (
     <Popover.Root
       open
@@ -46,4 +46,4 @@ export function DraftReferenceDetails({
       </Popover.Portal>
     </Popover.Root>
   );
-}
+};

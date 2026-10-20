@@ -5,6 +5,47 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { basename, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
+const launch = async (path: string) => {
+  await mkdir(dirname(path), { recursive: true });
+  await link(process.execPath, path).catch(() => copyFile(process.execPath, path));
+  const child = spawn(path, ['-e', 'setInterval(() => {}, 1000)'], {
+    windowsHide: true,
+    stdio: 'ignore',
+  });
+  children.push(child);
+  await new Promise<void>((resolve, reject) => {
+    child.once('spawn', resolve);
+    child.once('error', reject);
+  });
+  return child;
+};
+const check = async (path = installer) => {
+  await rm(result, { force: true });
+  try {
+    await execute(path, ['/S'], { env, windowsHide: true, timeout: 60000 });
+  } catch (error) {
+    throw new Error(
+      `NSIS process check exited ${error instanceof Error && 'code' in error ? error.code : 'unknown'}: ${await readFile(result, 'utf8').catch(() => 'No result written.')}`,
+    );
+  }
+  assert.equal(await readFile(result, 'utf8'), 'passed');
+};
+const cleanup = async () => {
+  await Promise.all(
+    children.map(async (child) => {
+      if (child.exitCode !== null || child.signalCode !== null) return;
+      const exited = new Promise((resolve) => child.once('exit', resolve));
+      child.kill();
+      await exited;
+    }),
+  );
+  if (
+    dirname(directory) !== resolve(tmpdir()) ||
+    !basename(directory).startsWith('pitchcrew-nsis-check-')
+  )
+    throw new Error('Unsafe NSIS fixture cleanup path.');
+  await rm(directory, { recursive: true, force: true });
+};
 
 if (process.platform !== 'win32') throw new Error('This installer check requires Windows.');
 const require = createRequire(import.meta.url);
@@ -25,47 +66,6 @@ const env = {
   PITCHCREW_TEST_INSTALL_DIRECTORY: `${root}\\`,
   PITCHCREW_TEST_RESULT: result,
 };
-async function launch(path: string) {
-  await mkdir(dirname(path), { recursive: true });
-  await link(process.execPath, path).catch(() => copyFile(process.execPath, path));
-  const child = spawn(path, ['-e', 'setInterval(() => {}, 1000)'], {
-    windowsHide: true,
-    stdio: 'ignore',
-  });
-  children.push(child);
-  await new Promise<void>((resolve, reject) => {
-    child.once('spawn', resolve);
-    child.once('error', reject);
-  });
-  return child;
-}
-async function check(path = installer) {
-  await rm(result, { force: true });
-  try {
-    await execute(path, ['/S'], { env, windowsHide: true, timeout: 60000 });
-  } catch (error) {
-    throw new Error(
-      `NSIS process check exited ${error instanceof Error && 'code' in error ? error.code : 'unknown'}: ${await readFile(result, 'utf8').catch(() => 'No result written.')}`,
-    );
-  }
-  assert.equal(await readFile(result, 'utf8'), 'passed');
-}
-async function cleanup() {
-  await Promise.all(
-    children.map(async (child) => {
-      if (child.exitCode !== null || child.signalCode !== null) return;
-      const exited = new Promise((resolve) => child.once('exit', resolve));
-      child.kill();
-      await exited;
-    }),
-  );
-  if (
-    dirname(directory) !== resolve(tmpdir()) ||
-    !basename(directory).startsWith('pitchcrew-nsis-check-')
-  )
-    throw new Error('Unsafe NSIS fixture cleanup path.');
-  await rm(directory, { recursive: true, force: true });
-}
 try {
   await mkdir(root, { recursive: true });
   const powershell = join(

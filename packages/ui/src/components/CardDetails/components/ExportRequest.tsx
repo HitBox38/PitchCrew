@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { JobActionsProps } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
-export function ExportRequest({
+export const ExportRequest = ({
   card,
   act,
   working,
-}: Pick<JobActionsProps, 'card' | 'act' | 'working'>) {
+}: Pick<JobActionsProps, 'card' | 'act' | 'working'>) => {
   const [format, setFormat] = useState('markdown');
   const [layout, setLayout] = useState('formatted');
   return (
@@ -51,4 +51,4 @@ export function ExportRequest({
       </Button>
     </div>
   );
-}
+};

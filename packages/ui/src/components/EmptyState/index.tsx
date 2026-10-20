@@ -1,6 +1,6 @@
 import type { EmptyStateProps } from '@/components/EmptyState/types.ts';
 
-export function EmptyState({ title, description, children }: EmptyStateProps) {
+export const EmptyState = ({ title, description, children }: EmptyStateProps) => {
   return (
     <div className="empty-state">
       <h3>{title}</h3>
@@ -8,4 +8,4 @@ export function EmptyState({ title, description, children }: EmptyStateProps) {
       {children}
     </div>
   );
-}
+};

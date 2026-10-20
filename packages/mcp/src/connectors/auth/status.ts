@@ -3,42 +3,42 @@ import { googleScopes } from './helpers.ts';
 import { googleCliServices } from './google-cli.ts';
 import type { ConnectorManagerContext } from './types.ts';
 
-export function status(this: ConnectorManagerContext): ConnectorStatus[] {
+export const status = (context: ConnectorManagerContext): ConnectorStatus[] => {
   return [
     {
       id: 'github',
-      connected: !!this.store.github,
-      account: this.store.github?.account ?? '',
-      services: this.store.github ? ['github'] : [],
+      connected: !!context.store.github,
+      account: context.store.github?.account ?? '',
+      services: context.store.github ? ['github'] : [],
       configured: true,
-      pending: this.githubConnecting,
-      error: this.errors.github,
-      connectionMethod: this.store.github
-        ? 'mode' in this.store.github
+      pending: context.githubConnecting,
+      error: context.errors.github,
+      connectionMethod: context.store.github
+        ? 'mode' in context.store.github
           ? 'cli'
           : 'token'
         : undefined,
-      githubCliState: this.githubCliState,
+      githubCliState: context.githubCliState,
     },
     {
       id: 'google',
-      connected: !!this.store.google,
-      account: this.store.google?.account ?? '',
+      connected: !!context.store.google,
+      account: context.store.google?.account ?? '',
       services:
-        this.store.google && 'mode' in this.store.google
-          ? googleCliServices(this.store.google.scopes)
+        context.store.google && 'mode' in context.store.google
+          ? googleCliServices(context.store.google.scopes)
           : Object.entries(googleScopes)
-              .filter(([, scope]) => this.store.google?.scopes.includes(scope))
+              .filter(([, scope]) => context.store.google?.scopes.includes(scope))
               .map(([name]) => name),
       configured: !!process.env.PITCHCREW_GOOGLE_CLIENT_ID,
-      pending: !!this.pending || this.googleStarting,
-      error: this.errors.google,
-      connectionMethod: this.store.google
-        ? 'mode' in this.store.google
+      pending: !!context.pending || context.googleStarting,
+      error: context.errors.google,
+      connectionMethod: context.store.google
+        ? 'mode' in context.store.google
           ? 'cli'
           : 'oauth'
         : undefined,
-      googleCliState: this.googleCliState,
+      googleCliState: context.googleCliState,
     },
   ];
-}
+};

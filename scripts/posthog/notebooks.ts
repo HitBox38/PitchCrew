@@ -6,26 +6,22 @@ type ReadBindings = (path: string, encoding: 'utf8') => string;
 type NotebookCommandResult =
   | ReturnType<typeof listNotebookDefinitions>
   | ReturnType<typeof buildNotebookPlan>;
-export function notebooksCommand(
-  args: ['list'],
-  read?: ReadBindings,
-): ReturnType<typeof listNotebookDefinitions>;
-export function notebooksCommand(
-  args: ['plan', string, string],
-  read?: ReadBindings,
-): ReturnType<typeof buildNotebookPlan>;
-export function notebooksCommand(args: string[], read?: ReadBindings): NotebookCommandResult;
-export function notebooksCommand(
+
+export const notebooksCommand = ((
   args: string[],
   read: ReadBindings = readFileSync,
-): NotebookCommandResult {
+): NotebookCommandResult => {
   if (args.length === 1 && args[0] === 'list') return listNotebookDefinitions();
   if (args.length !== 3 || args[0] !== 'plan')
     throw new Error('Usage: notebooks.ts list | plan <key> <verified-bindings.json>');
   const content = read(args[2], 'utf8');
   if (Buffer.byteLength(content) > 100_000) throw new Error('Bindings file too large');
   return buildNotebookPlan(args[1], JSON.parse(content));
-}
+}) as {
+  (args: ['list'], read?: ReadBindings): ReturnType<typeof listNotebookDefinitions>;
+  (args: ['plan', string, string], read?: ReadBindings): ReturnType<typeof buildNotebookPlan>;
+  (args: string[], read?: ReadBindings): NotebookCommandResult;
+};
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {

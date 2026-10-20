@@ -1,6 +1,6 @@
 import { ReducedMotion } from '@/AppMotion/constants.ts';
 import { useContext } from 'react';
 
-export function useAppReducedMotion() {
+export const useAppReducedMotion = () => {
   return useContext(ReducedMotion);
-}
+};

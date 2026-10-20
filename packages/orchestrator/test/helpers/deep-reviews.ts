@@ -1,7 +1,7 @@
 import type { ReviewAssessment } from '@pitchcrew/core';
 import { originalReviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import { confirmFixtureApplication, setup } from './daemon.ts';
-export function assessment(): ReviewAssessment {
+export const assessment = (): ReviewAssessment => {
   return {
     summary: 'Supported fictional experience is clear.',
     perspectives: originalReviewPerspectives.map((perspective) => ({
@@ -14,8 +14,8 @@ export function assessment(): ReviewAssessment {
     })),
     findings: [],
   };
-}
-export async function deepReviewFixture(port: number) {
+};
+export const deepReviewFixture = async (port: number) => {
   const env = await setup(port);
   await env.request('/profile', 'PUT', {
     name: 'profile.md',
@@ -29,4 +29,4 @@ export async function deepReviewFixture(port: number) {
   env.daemon.service.moveCard(card.id, 'shortlisted');
   await confirmFixtureApplication(env.request, card.id);
   return { ...env, card };
-}
+};

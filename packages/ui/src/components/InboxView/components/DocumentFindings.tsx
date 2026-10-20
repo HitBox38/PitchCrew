@@ -1,6 +1,6 @@
 import type { Approval } from '@pitchcrew/core';
 
-export function DocumentFindings({ approval }: { approval: Approval }) {
+export const DocumentFindings = ({ approval }: { approval: Approval }) => {
   if (!approval.documentVerification?.length) return null;
   return (
     <section className="space-y-2" aria-label="Document verification">
@@ -25,4 +25,4 @@ export function DocumentFindings({ approval }: { approval: Approval }) {
       </p>
     </section>
   );
-}
+};

@@ -6,7 +6,7 @@ import type { MessageTranscriptProps } from '../types.ts';
 import { liveHistoryItems } from '../remote-history.ts';
 import { useHistoryWindow } from './useHistoryWindow.ts';
 
-export function useConversationHistory(props: MessageTranscriptProps) {
+export const useConversationHistory = (props: MessageTranscriptProps) => {
   const { thread, data, messages } = props;
   const remote = data.messageHistory !== undefined;
   const localItems = useMemo(
@@ -88,4 +88,4 @@ export function useConversationHistory(props: MessageTranscriptProps) {
         },
       }
     : { page: local, total: localItems.length, loading: false, error: '', retry: () => {} };
-}
+};

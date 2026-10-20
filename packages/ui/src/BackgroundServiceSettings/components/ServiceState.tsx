@@ -4,7 +4,7 @@ import { Download, LoaderCircle } from 'lucide-react';
 import { serviceBadges, serviceCommands, serviceNotes } from '../helpers.ts';
 import { ServiceCommand } from './ServiceCommand.tsx';
 
-export function ServiceState({
+export const ServiceState = ({
   info,
   installing,
   disabled,
@@ -14,7 +14,7 @@ export function ServiceState({
   installing: boolean;
   disabled: boolean;
   install: () => Promise<void>;
-}) {
+}) => {
   const commands = serviceCommands(info);
   const canInstall = !!info.status.platform && (!info.status.installed || !info.matches);
   return (
@@ -69,4 +69,4 @@ export function ServiceState({
       ) : null}
     </>
   );
-}
+};

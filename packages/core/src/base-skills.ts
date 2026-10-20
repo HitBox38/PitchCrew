@@ -5,6 +5,9 @@ import { improveSystem } from './starter-skills/improve-system.ts';
 import { promptInjectionGuard } from './starter-skills/prompt-injection-guard.ts';
 import { careerSkills } from './starter-skills/career-ops/index.ts';
 import { hunterSkills } from './starter-skills/hunter/index.ts';
+export const baseSkillUrl = (skill: BaseSkill) => {
+  return skill.sourceType === 'github' ? `https://skills.sh/${skill.source}/${skill.name}` : '';
+};
 
 export const skillContentLimit = 50000;
 interface BaseSkillMetadata {
@@ -131,6 +134,3 @@ export const baseSkills: BaseSkill[] = [
     skillPath: 'skills/in-progress/writing-shape/SKILL.md',
   },
 ];
-export function baseSkillUrl(skill: BaseSkill) {
-  return skill.sourceType === 'github' ? `https://skills.sh/${skill.source}/${skill.name}` : '';
-}

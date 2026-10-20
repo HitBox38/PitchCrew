@@ -1,10 +1,10 @@
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserPendingAction } from './BrowserPendingAction.tsx';
-export function BrowserApprovals(
+export const BrowserApprovals = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'> & {
     control: BrowserControl;
   },
-) {
+) => {
   const approvals = props.data.computerApprovals.filter(
     (approval) =>
       approval.roleId === props.browserPanel.role?.id &&
@@ -19,4 +19,4 @@ export function BrowserApprovals(
       ))}
     </footer>
   );
-}
+};

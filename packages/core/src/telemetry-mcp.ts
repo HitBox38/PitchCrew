@@ -1,3 +1,27 @@
+/** Shared by the local buffer and renderer; rebuild, never spread untrusted properties. */
+export const sanitizeMcpToolCall = (input: Record<string, unknown>) => {
+  if (
+    typeof input.$mcp_tool_name !== 'string' ||
+    !names.has(input.$mcp_tool_name) ||
+    typeof input.$mcp_is_error !== 'boolean' ||
+    typeof input.$mcp_duration_ms !== 'number' ||
+    !Number.isFinite(input.$mcp_duration_ms) ||
+    input.$mcp_duration_ms < 0 ||
+    input.$mcp_duration_ms > 1_800_000 ||
+    typeof input.$mcp_session_id !== 'string' ||
+    !uuid.test(input.$mcp_session_id)
+  )
+    return null;
+  return {
+    $mcp_tool_name: input.$mcp_tool_name,
+    $mcp_is_error: input.$mcp_is_error,
+    $mcp_duration_ms: Math.round(input.$mcp_duration_ms),
+    $mcp_server_name: 'pitchcrew',
+    $mcp_session_id: input.$mcp_session_id,
+    $session_id: input.$mcp_session_id,
+    mcp_observation_level: 'scoped_gateway',
+  };
+};
 /** Reviewed tool names only. Discovery/bootstrap gateway actions are intentionally absent. */
 export const mcpGatewayTools = Object.freeze({
   quality: 'pitchcrew_application_quality',
@@ -81,28 +105,3 @@ export const mcpConnectorTools = Object.freeze([
 
 const names = new Set<string>([...Object.values(mcpGatewayTools), ...mcpConnectorTools]);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
-
-/** Shared by the local buffer and renderer; rebuild, never spread untrusted properties. */
-export function sanitizeMcpToolCall(input: Record<string, unknown>) {
-  if (
-    typeof input.$mcp_tool_name !== 'string' ||
-    !names.has(input.$mcp_tool_name) ||
-    typeof input.$mcp_is_error !== 'boolean' ||
-    typeof input.$mcp_duration_ms !== 'number' ||
-    !Number.isFinite(input.$mcp_duration_ms) ||
-    input.$mcp_duration_ms < 0 ||
-    input.$mcp_duration_ms > 1_800_000 ||
-    typeof input.$mcp_session_id !== 'string' ||
-    !uuid.test(input.$mcp_session_id)
-  )
-    return null;
-  return {
-    $mcp_tool_name: input.$mcp_tool_name,
-    $mcp_is_error: input.$mcp_is_error,
-    $mcp_duration_ms: Math.round(input.$mcp_duration_ms),
-    $mcp_server_name: 'pitchcrew',
-    $mcp_session_id: input.$mcp_session_id,
-    $session_id: input.$mcp_session_id,
-    mcp_observation_level: 'scoped_gateway',
-  };
-}

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { Select as SelectPrimitive } from '@base-ui/react/select';
 import { ChevronUpIcon } from 'lucide-react';
 
-export function SelectScrollUpButton({ className, ...props }: SelectScrollUpButtonProps) {
+export const SelectScrollUpButton = ({ className, ...props }: SelectScrollUpButtonProps) => {
   return (
     <SelectPrimitive.ScrollUpArrow
       data-slot="select-scroll-up-button"
@@ -16,4 +16,4 @@ export function SelectScrollUpButton({ className, ...props }: SelectScrollUpButt
       <ChevronUpIcon className="primitive:size-4" />
     </SelectPrimitive.ScrollUpArrow>
   );
-}
+};

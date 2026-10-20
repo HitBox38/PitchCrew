@@ -5,6 +5,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, expect, test } from 'vitest';
 import { waitForSmokeExit } from '../../../scripts/desktop-smoke-exit.ts';
+const fixture = async (source: string) => {
+  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-smoke-exit-'));
+  directories.push(directory);
+  const child = spawn(process.execPath, ['-e', source], { stdio: ['ignore', 'pipe', 'pipe'] });
+  children.push(child);
+  return { child, evidence: join(directory, 'result.json') };
+};
 
 const children: ChildProcess[] = [];
 const directories: string[] = [];
@@ -14,13 +21,6 @@ afterEach(async () => {
     directories.map((directory) => rm(directory, { recursive: true, force: true })),
   );
 });
-async function fixture(source: string) {
-  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-smoke-exit-'));
-  directories.push(directory);
-  const child = spawn(process.execPath, ['-e', source], { stdio: ['ignore', 'pipe', 'pipe'] });
-  children.push(child);
-  return { child, evidence: join(directory, 'result.json') };
-}
 
 test('reports actual process exit separately from the native quit event', async () => {
   const { child, evidence } = await fixture('setTimeout(() => process.exit(0), 250)');

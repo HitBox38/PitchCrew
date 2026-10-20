@@ -6,7 +6,7 @@ import { runtimeLabels } from '@/lib/labels.ts';
 import { RuntimeAuthentication } from './RuntimeAuthentication.tsx';
 import { RuntimeUpdate } from './RuntimeUpdate.tsx';
 
-export function RuntimeRow({ runtime }: { runtime: RuntimeInfo }) {
+export const RuntimeRow = ({ runtime }: { runtime: RuntimeInfo }) => {
   const state = useWorkspaceStore((store) => store.data?.runtimeMaintenance);
   const act = useWorkspaceStore((store) => store.act);
   const working = useWorkspaceStore((store) => store.working);
@@ -48,4 +48,4 @@ export function RuntimeRow({ runtime }: { runtime: RuntimeInfo }) {
       {update ? <RuntimeUpdate update={update} /> : null}
     </article>
   );
-}
+};

@@ -6,6 +6,38 @@ import { join } from 'node:path';
 import type { ProfileMaintenanceProposal, ProfileSource, Snapshot } from '@pitchcrew/core';
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
 import { createProposal, importSource, sourceFixture } from './helpers/profile-sources.ts';
+const openSources = async () => {
+  await page.goto(`${host.daemon.url}/profile`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Set up later', exact: true }).click();
+  await page.getByRole('button', { name: /^Sources/ }).click();
+  await dialog().waitFor();
+};
+const githubNotes = async () => {
+  await sources()
+    .getByRole('button', { name: /^GitHub / })
+    .click();
+  await sources()
+    .getByRole('button', { name: /^Import profile notes / })
+    .click();
+  await sources()
+    .getByRole('textbox', { name: 'Repository URL or owner/repository' })
+    .fill('fictional/profile');
+};
+const deferred = async (pattern: string) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  releases.push(release);
+  await page.route(pattern, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  return release;
+};
+const focused = async () => {
+  return page.evaluate(() => document.activeElement?.textContent);
+};
 
 const viteCache = vi.hoisted(() => ({ directory: '' }));
 vi.mock('vite', async (importOriginal) => {
@@ -51,38 +83,6 @@ afterAll(async () => {
   await browser?.close();
   await rm(viteCache.directory, { recursive: true, force: true });
 });
-async function openSources() {
-  await page.goto(`${host.daemon.url}/profile`, { waitUntil: 'domcontentloaded' });
-  await page.getByRole('button', { name: 'Set up later', exact: true }).click();
-  await page.getByRole('button', { name: /^Sources/ }).click();
-  await dialog().waitFor();
-}
-async function githubNotes() {
-  await sources()
-    .getByRole('button', { name: /^GitHub / })
-    .click();
-  await sources()
-    .getByRole('button', { name: /^Import profile notes / })
-    .click();
-  await sources()
-    .getByRole('textbox', { name: 'Repository URL or owner/repository' })
-    .fill('fictional/profile');
-}
-async function deferred(pattern: string) {
-  let release!: () => void;
-  const gate = new Promise<void>((resolve) => {
-    release = resolve;
-  });
-  releases.push(release);
-  await page.route(pattern, async (route) => {
-    await gate;
-    await route.continue();
-  });
-  return release;
-}
-async function focused() {
-  return page.evaluate(() => document.activeElement?.textContent);
-}
 
 test('initial loading has a spinner, failed loading has retry, and setup stays in the dialog', async () => {
   const release = await deferred('**/api/profile/sources');

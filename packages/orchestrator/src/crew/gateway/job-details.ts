@@ -2,11 +2,11 @@ import { updateJobDetails } from '@pitchcrew/board';
 import { updateJobInput, type Run } from '@pitchcrew/core';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export function correctJobDetails(
+export const correctJobDetails = (
   context: CrewContext,
   capability: RunCapability,
   data: unknown,
-): Record<string, unknown> {
+): Record<string, unknown> => {
   const run = context.board.get<Run>('run', capability.runId);
   if (context.closing || run.status !== 'running' || run.mode !== 'chat' || run.purpose)
     throw new Error('Job corrections require an active ordinary chat turn.');
@@ -25,4 +25,4 @@ export function correctJobDetails(
       input.reason,
     ),
   };
-}
+};

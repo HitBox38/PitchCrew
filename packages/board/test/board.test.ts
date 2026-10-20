@@ -3,17 +3,13 @@ import { cardInput, currentEventVersion, decodeEvent, type Card } from '@pitchcr
 import { afterEach, describe, expect, it } from 'vitest';
 import { Board, digestPacket } from '../src/index.ts';
 import { packet } from './fixtures/packet.ts';
-
-const boards: Board[] = [];
-function create() {
+const create = () => {
   const board = new Board(':memory:');
   boards.push(board);
   return board;
-}
-afterEach(() => {
-  for (const board of boards.splice(0)) board.close();
-});
-function reviewed(board: Board) {
+};
+
+const reviewed = (board: Board) => {
   const card = board.createCard(cardInput.parse({ company: 'Example', title: 'Engineer' }));
   board.move(card.id, 'shortlisted', 'user');
   board.move(card.id, 'drafting', 'writer');
@@ -22,7 +18,12 @@ function reviewed(board: Board) {
   board.move(card.id, 'agreed', 'reviewer');
   reviewFixturePacket(board, card.id);
   return card.id;
-}
+};
+
+const boards: Board[] = [];
+afterEach(() => {
+  for (const board of boards.splice(0)) board.close();
+});
 describe('event-sourced board', () => {
   it('rejects illegal transitions without recording an event', () => {
     const board = create();

@@ -22,7 +22,7 @@ export interface SaveJobLinkOptions {
 }
 
 /** Duplicate check, refresh and approval invalidation commit as a single unit. */
-export function saveReadJobLink(board: Board, options: SaveJobLinkOptions) {
+export const saveReadJobLink = (board: Board, options: SaveJobLinkOptions) => {
   return board.db.transaction(() => {
     const { input, actor, pastedUrl, provenance, target } = options;
     const duplicates = (
@@ -72,10 +72,10 @@ export function saveReadJobLink(board: Board, options: SaveJobLinkOptions) {
     board.record('card', card, actor, 'Added job from a public posting link');
     return { card, duplicates: [] };
   })();
-}
+};
 
 /** Caller holds the save transaction, including its duplicate check. */
-function refreshJobLink(
+const refreshJobLink = (
   board: Board,
   options: {
     cardId: string;
@@ -85,7 +85,7 @@ function refreshJobLink(
     actor: string;
     provenance?: JobLinkProvenance;
   },
-): Card {
+): Card => {
   const { cardId, runId, expectedSource, input, actor, provenance } = options;
   const card = assertJobDetailsChange(board, cardId, runId);
   if (jobSourceRevision(card) !== expectedSource)
@@ -127,4 +127,4 @@ function refreshJobLink(
     actor,
     'Updated job details from a posting link; application brief needs fresh review',
   );
-}
+};

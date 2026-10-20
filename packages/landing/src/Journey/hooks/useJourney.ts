@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { stages, type JourneyStage } from '../constants';
 
-export function useJourney() {
+export const useJourney = () => {
   const [stage, setStage] = useState<JourneyStage['id']>('fit');
   const [changed, setChanged] = useState(false);
   const selectStage = (value: unknown) => {
@@ -15,4 +15,4 @@ export function useJourney() {
     if (next) selectStage(next.id);
   };
   return { stage, selectStage, advance, changed };
-}
+};

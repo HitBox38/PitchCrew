@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function CodeBlockTitle({ className, ...props }: React.ComponentProps<'div'>) {
+export const CodeBlockTitle = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="code-block-title"
@@ -12,4 +12,4 @@ export function CodeBlockTitle({ className, ...props }: React.ComponentProps<'di
       {...props}
     />
   );
-}
+};

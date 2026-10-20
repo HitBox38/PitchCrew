@@ -1,12 +1,12 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ArrowUpRight } from 'lucide-react';
 import type { AgentBrowserProps } from '../types.ts';
-export function BrowserTask({
+export const BrowserTask = ({
   browserPanel,
   data,
   onThread,
   onOpenCard,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'onThread' | 'onOpenCard'>) {
+}: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'onThread' | 'onOpenCard'>) => {
   const session = browserPanel.session;
   const card = data.cards.find((item) => item.id === session?.cardId);
   const conversation = data.conversations?.find((item) => item.id === session?.threadId);
@@ -51,4 +51,4 @@ export function BrowserTask({
       ) : null}
     </div>
   );
-}
+};

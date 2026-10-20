@@ -3,13 +3,13 @@ import { cn } from '@/lib/utils.ts';
 import type { VariantProps } from 'class-variance-authority';
 import { codeBlockVariants } from '../constants.ts';
 
-export function CodeBlock({
+export const CodeBlock = ({
   className,
   variant = 'default',
   size = 'default',
   ...props
 }: React.ComponentProps<'div'> &
-  VariantProps<typeof codeBlockVariants> & { size?: 'default' | 'sm' }) {
+  VariantProps<typeof codeBlockVariants> & { size?: 'default' | 'sm' }) => {
   return (
     <div
       data-slot="code-block"
@@ -19,4 +19,4 @@ export function CodeBlock({
       {...props}
     />
   );
-}
+};

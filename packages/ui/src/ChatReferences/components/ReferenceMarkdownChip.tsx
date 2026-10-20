@@ -1,10 +1,10 @@
 import { useContext, type ComponentProps } from 'react';
 import { ReferenceContext } from '../context.ts';
 import { ReferenceChip } from './ReferenceChip.tsx';
-export function ReferenceMarkdownChip({
+export const ReferenceMarkdownChip = ({
   index,
   children,
-}: ComponentProps<'span'> & { index?: string | number }) {
+}: ComponentProps<'span'> & { index?: string | number }) => {
   const { references, catalog } = useContext(ReferenceContext);
   const reference = references[Number(index)];
   return reference ? (
@@ -12,4 +12,4 @@ export function ReferenceMarkdownChip({
   ) : (
     <span>{children}</span>
   );
-}
+};

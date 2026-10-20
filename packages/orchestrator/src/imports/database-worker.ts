@@ -2,7 +2,7 @@ import { convertLegacyTracker } from '@pitchcrew/board';
 import { importLimits } from '@pitchcrew/core';
 import type { DatabaseImportConversion } from '@pitchcrew/core';
 
-export function convertDatabase(bytes: Uint8Array): DatabaseImportConversion {
+export const convertDatabase = (bytes: Uint8Array): DatabaseImportConversion => {
   const { rows, stats } = convertLegacyTracker(Buffer.from(bytes));
   const content = JSON.stringify(rows);
   if (Buffer.byteLength(content) > importLimits.bytes)
@@ -19,4 +19,4 @@ export function convertDatabase(bytes: Uint8Array): DatabaseImportConversion {
       `${stats.clipped} applications had long text, tags or history shortened to fit import limits.`,
     );
   return { content, warnings };
-}
+};

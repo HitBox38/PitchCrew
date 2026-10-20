@@ -1,81 +1,29 @@
 import { createHash } from 'node:crypto';
 
-export const repository = 'HitBox38/PitchCrew';
-const conclusions = new Set([
-  'success',
-  'failure',
-  'cancelled',
-  'timed_out',
-  'skipped',
-  'neutral',
-  'action_required',
-  'startup_failure',
-  'stale',
-]);
-const triggers = new Set(['pull_request', 'push', 'merge_group', 'workflow_dispatch']);
-const jobs: Record<string, string> = {
-  'Lint, format, types and build': 'quality',
-  'Tests (Node 22)': 'tests_node22',
-  'Tests (Node 24)': 'tests_node24',
-  'Electron smoke (macos-15)': 'desktop_macos',
-  'Electron smoke (windows-2025)': 'desktop_windows',
-  'Packaged app (ubuntu-24.04)': 'installer_linux',
-  'Packaged app (macos-15)': 'installer_macos_arm64',
-  'Packaged app (macos-15-intel)': 'installer_macos_x64',
-  'Packaged app (windows-2025)': 'installer_windows',
-  CI: 'aggregate',
-};
-const steps: Record<string, string> = {
-  Lint: 'lint',
-  'Check formatting': 'format',
-  'Check types': 'types',
-  'Build browser and Electron bundles': 'app_build',
-  'Build public landing page': 'landing_build',
-  'Build installers': 'installer_build',
-  'Run unit, HTTP, adapter, MCP and browser tests': 'tests',
-  'Build and verify the actual Electron renderer': 'desktop_smoke',
-  'Verify Windows installer process handling': 'installer_process_smoke',
-  'Verify packaged app (Linux)': 'packaged_smoke',
-  'Verify packaged app (Windows and macOS)': 'packaged_smoke',
-};
-
-export type RecordData = Record<string, unknown>;
-export interface EngineeringEvent {
-  event:
-    | 'pitchcrew_ci_run_completed'
-    | 'pitchcrew_ci_job_completed'
-    | 'pitchcrew_ci_step_completed'
-    | 'pitchcrew_pr_merged';
-  uuid: string;
-  timestamp: string;
-  distinct_id: 'pitchcrew_repository_ci';
-  properties: Record<string, string | number | boolean>;
-}
-
-export function object(value: unknown): RecordData {
+export const object = (value: unknown): RecordData => {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
     ? (value as RecordData)
     : {};
-}
-function time(value: unknown): number | undefined {
+};
+const time = (value: unknown): number | undefined => {
   if (typeof value !== 'string') return;
   const parsed = Date.parse(value);
   return Number.isFinite(parsed) ? parsed : undefined;
-}
-function seconds(start: unknown, end: unknown): number | undefined {
+};
+const seconds = (start: unknown, end: unknown): number | undefined => {
   const from = time(start);
   const to = time(end);
   return from !== undefined && to !== undefined && to >= from ? (to - from) / 1000 : undefined;
-}
-function conclusion(value: unknown): string {
+};
+const conclusion = (value: unknown): string => {
   return typeof value === 'string' && conclusions.has(value) ? value : 'other';
-}
-function event(
+};
+const event = (
   name: EngineeringEvent['event'],
   key: string,
   timestamp: unknown,
   properties: EngineeringEvent['properties'],
-): EngineeringEvent | undefined {
+): EngineeringEvent | undefined => {
   const at = time(timestamp);
   if (at === undefined) return;
   const bytes = createHash('sha256')
@@ -99,12 +47,12 @@ function event(
       $ip: '0.0.0.0',
     },
   };
-}
-function id(value: unknown): value is number {
+};
+const id = (value: unknown): value is number => {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
-}
+};
 
-export function runEvents(raw: unknown, rawJobs: unknown[]): EngineeringEvent[] {
+export const runEvents = (raw: unknown, rawJobs: unknown[]): EngineeringEvent[] => {
   const run = object(raw);
   if (run.name !== 'CI' || run.status !== 'completed' || !id(run.id) || !id(run.run_attempt))
     return [];
@@ -186,9 +134,9 @@ export function runEvents(raw: unknown, rawJobs: unknown[]): EngineeringEvent[] 
     }
   }
   return output;
-}
+};
 
-export function mergedPullRequestEvent(raw: unknown): EngineeringEvent | undefined {
+export const mergedPullRequestEvent = (raw: unknown): EngineeringEvent | undefined => {
   const pr = object(raw);
   const user = object(pr.user);
   const author = typeof user.login === 'string' ? user.login : '';
@@ -210,4 +158,56 @@ export function mergedPullRequestEvent(raw: unknown): EngineeringEvent | undefin
     target_branch: base.ref as string,
     open_to_merge_seconds: duration,
   });
+};
+
+export const repository = 'HitBox38/PitchCrew';
+const conclusions = new Set([
+  'success',
+  'failure',
+  'cancelled',
+  'timed_out',
+  'skipped',
+  'neutral',
+  'action_required',
+  'startup_failure',
+  'stale',
+]);
+const triggers = new Set(['pull_request', 'push', 'merge_group', 'workflow_dispatch']);
+const jobs: Record<string, string> = {
+  'Lint, format, types and build': 'quality',
+  'Tests (Node 22)': 'tests_node22',
+  'Tests (Node 24)': 'tests_node24',
+  'Electron smoke (macos-15)': 'desktop_macos',
+  'Electron smoke (windows-2025)': 'desktop_windows',
+  'Packaged app (ubuntu-24.04)': 'installer_linux',
+  'Packaged app (macos-15)': 'installer_macos_arm64',
+  'Packaged app (macos-15-intel)': 'installer_macos_x64',
+  'Packaged app (windows-2025)': 'installer_windows',
+  CI: 'aggregate',
+};
+const steps: Record<string, string> = {
+  Lint: 'lint',
+  'Check formatting': 'format',
+  'Check types': 'types',
+  'Build browser and Electron bundles': 'app_build',
+  'Build public landing page': 'landing_build',
+  'Build installers': 'installer_build',
+  'Run unit, HTTP, adapter, MCP and browser tests': 'tests',
+  'Build and verify the actual Electron renderer': 'desktop_smoke',
+  'Verify Windows installer process handling': 'installer_process_smoke',
+  'Verify packaged app (Linux)': 'packaged_smoke',
+  'Verify packaged app (Windows and macOS)': 'packaged_smoke',
+};
+
+export type RecordData = Record<string, unknown>;
+export interface EngineeringEvent {
+  event:
+    | 'pitchcrew_ci_run_completed'
+    | 'pitchcrew_ci_job_completed'
+    | 'pitchcrew_ci_step_completed'
+    | 'pitchcrew_pr_merged';
+  uuid: string;
+  timestamp: string;
+  distinct_id: 'pitchcrew_repository_ci';
+  properties: Record<string, string | number | boolean>;
 }

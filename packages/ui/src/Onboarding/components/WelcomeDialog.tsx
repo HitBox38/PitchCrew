@@ -7,7 +7,12 @@ import { CrewIntroduction } from './CrewIntroduction.tsx';
 import { ApprovalIntroduction } from './ApprovalIntroduction.tsx';
 import type { OnboardingActions } from '../types.ts';
 
-export function WelcomeDialog({ step, working, error, save }: OnboardingActions & { step: 0 | 1 }) {
+export const WelcomeDialog = ({
+  step,
+  working,
+  error,
+  save,
+}: OnboardingActions & { step: 0 | 1 }) => {
   return (
     <Dialog
       open
@@ -63,4 +68,4 @@ export function WelcomeDialog({ step, working, error, save }: OnboardingActions 
       </DialogContent>
     </Dialog>
   );
-}
+};

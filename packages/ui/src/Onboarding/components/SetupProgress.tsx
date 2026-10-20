@@ -4,7 +4,7 @@ import { Compass } from 'lucide-react';
 import { WorkspaceNotice } from '@/WorkspaceNotice/index.tsx';
 import { setupProgress } from '../helpers.ts';
 
-export function SetupProgress({ data }: { data: Snapshot }) {
+export const SetupProgress = ({ data }: { data: Snapshot }) => {
   const count = Object.values(setupProgress(data)).filter(Boolean).length;
   return (
     <WorkspaceNotice
@@ -20,4 +20,4 @@ export function SetupProgress({ data }: { data: Snapshot }) {
       <output>{count} of 3 ready</output>
     </WorkspaceNotice>
   );
-}
+};

@@ -4,6 +4,25 @@ import { join, resolve } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ConnectorManager, googleScopes } from '../src/connectors/manager.ts';
 import { getConnectorTool } from '../src/connectors/tools.ts';
+const googleFixture = async (overrides: Record<string, unknown> = {}) => {
+  await writeFile(
+    join(directory, 'connectors/credentials.json'),
+    JSON.stringify({
+      version: 1,
+      google: {
+        account: 'fixture@example.com',
+        accessToken: 'fixture-access',
+        refreshToken: 'fixture-refresh',
+        expiresAt: Date.now() + 3600000,
+        scopes: Object.values(googleScopes),
+        clientId: 'fixture-client',
+        clientSecret: 'fixture-secret',
+        ...overrides,
+      },
+    }),
+  );
+  await manager.initialize();
+};
 
 let directory: string;
 let manager: ConnectorManager;
@@ -23,25 +42,6 @@ afterEach(async () => {
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-connectors-test-'))).toBe(true);
   await rm(directory, { recursive: true, force: true });
 });
-async function googleFixture(overrides: Record<string, unknown> = {}) {
-  await writeFile(
-    join(directory, 'connectors/credentials.json'),
-    JSON.stringify({
-      version: 1,
-      google: {
-        account: 'fixture@example.com',
-        accessToken: 'fixture-access',
-        refreshToken: 'fixture-refresh',
-        expiresAt: Date.now() + 3600000,
-        scopes: Object.values(googleScopes),
-        clientId: 'fixture-client',
-        clientSecret: 'fixture-secret',
-        ...overrides,
-      },
-    }),
-  );
-  await manager.initialize();
-}
 describe('connector credentials and API boundaries', () => {
   it('has side-effect-free status and rejects access until connected', async () => {
     expect(manager.status().every((c) => !c.connected)).toBe(true);

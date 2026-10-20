@@ -29,19 +29,19 @@ export interface GovernanceOptions {
   [key: string]: unknown;
 }
 
-export function definitionHash(value: unknown) {
+export const definitionHash = (value: unknown) => {
   return createHash('sha256').update(JSON.stringify(value)).digest('hex');
-}
+};
 
 // The SQL library limits standalone results. A reusable relation must retain all groups.
-function aggregateRelation(source: ReturnType<typeof buildSqlPlan>) {
+const aggregateRelation = (source: ReturnType<typeof buildSqlPlan>) => {
   const query = source.tool_input.query;
   if (!/\s+LIMIT 200\s*$/.test(query))
     throw new Error('Shared aggregate consumer limit changed; review model relation');
   return query.replace(/\s+LIMIT 200\s*$/, '');
-}
+};
 
-function inventoryIndex(inventory: Inventory, field: 'metrics' | 'views') {
+const inventoryIndex = (inventory: Inventory, field: 'metrics' | 'views') => {
   const rows = inventory?.[field] ?? [];
   if (!Array.isArray(rows)) throw new Error('Inventory must contain arrays');
   const map = new Map<string, InventoryEntry>();
@@ -51,10 +51,10 @@ function inventoryIndex(inventory: Inventory, field: 'metrics' | 'views') {
     map.set(row.name, row);
   }
   return map;
-}
+};
 
 /** Network-free proposal planner. It cannot approve, overwrite, materialize, or send data. */
-export function buildGovernancePlan(options: GovernanceOptions = {}) {
+export const buildGovernancePlan = (options: GovernanceOptions = {}) => {
   for (const key of Object.keys(options))
     if (!['days', 'timezone', 'inventory'].includes(key))
       throw new Error('Unknown governance option');
@@ -188,9 +188,9 @@ export function buildGovernancePlan(options: GovernanceOptions = {}) {
       'Do not materialize, certify sources, infer joins or approve metrics from this plan.',
     ],
   };
-}
+};
 
-export function parseGovernanceArgs(args: string[]) {
+export const parseGovernanceArgs = (args: string[]) => {
   const options: GovernanceOptions = {};
   const seen = new Set();
   for (let index = 0; index < args.length; index += 2) {
@@ -205,7 +205,7 @@ export function parseGovernanceArgs(args: string[]) {
     if (key === '--inventory') options.inventory = JSON.parse(readFileSync(value, 'utf8'));
   }
   return options;
-}
+};
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {

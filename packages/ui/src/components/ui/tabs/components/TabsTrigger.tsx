@@ -2,7 +2,7 @@ import type { TabsTriggerProps } from '@/components/ui/tabs/types.ts';
 import { cn } from '@/lib/utils';
 import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
 
-export function TabsTrigger({ className, ...props }: TabsTriggerProps) {
+export const TabsTrigger = ({ className, ...props }: TabsTriggerProps) => {
   return (
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
@@ -16,4 +16,4 @@ export function TabsTrigger({ className, ...props }: TabsTriggerProps) {
       {...props}
     />
   );
-}
+};

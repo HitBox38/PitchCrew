@@ -3,7 +3,7 @@ import { writeFileSync } from 'node:fs';
 import { performance } from 'node:perf_hooks';
 
 /** Isolated smoke evidence only; ordinary quits and renderer unload guards are unchanged. */
-export function installSmokeShutdownCheck(window: BrowserWindow, file: string) {
+export const installSmokeShutdownCheck = (window: BrowserWindow, file: string) => {
   let requestedAt: number | undefined;
   let started = 0;
   const events: Record<string, number> = {};
@@ -27,4 +27,4 @@ export function installSmokeShutdownCheck(window: BrowserWindow, file: string) {
     record('requested');
     app.quit();
   };
-}
+};

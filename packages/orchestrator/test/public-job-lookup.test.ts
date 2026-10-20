@@ -8,16 +8,7 @@ import { ProviderRateLimiter } from '../src/job-sources/fetch.ts';
 import { lookupPublicJobLink } from '../src/job-sources/lookup-public.ts';
 import { structuredJobDetails } from '../src/job-sources/page-details.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-const pageUrl = 'https://careers.example.com/jobs/frontend-engineer';
-const fixture = (name: string) =>
-  readFile(new URL(`./fixtures/job-pages/${name}.html`, import.meta.url), 'utf8');
-const found = (result: JobLookupResult) => {
-  if (result.status !== 'found') throw new Error(result.reason);
-  return result;
-};
-async function createContext() {
+const createContext = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-public-lookup-'));
   const board = new Board(join(directory, 'board.db'));
   const readPage = vi.fn().mockResolvedValue({ url: pageUrl, html: await fixture('structured') });
@@ -38,7 +29,16 @@ async function createContext() {
       await rm(directory, { recursive: true, force: true });
     },
   };
-}
+};
+
+afterEach(cleanup);
+const pageUrl = 'https://careers.example.com/jobs/frontend-engineer';
+const fixture = (name: string) =>
+  readFile(new URL(`./fixtures/job-pages/${name}.html`, import.meta.url), 'utf8');
+const found = (result: JobLookupResult) => {
+  if (result.status !== 'found') throw new Error(result.reason);
+  return result;
+};
 
 it.each(['structured', 'microdata'])(
   'prefills a %s public page without saving or inventing provider provenance',

@@ -1,19 +1,11 @@
 import { Worker } from 'node:worker_threads';
 
-const bootstrap = `
-import { parentPort, workerData } from 'node:worker_threads';
-import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
-register();
-const { attachmentText } = await import(workerData.module);
-parentPort.postMessage(await attachmentText(workerData.bytes, workerData.mimeType));
-`;
-
 /** Keep document decompression/parsing off the daemon thread and bound its lifetime and heap. */
-export async function readAttachmentText(
+export const readAttachmentText = async (
   bytes: Uint8Array,
   mimeType: string,
   signal: AbortSignal,
-): Promise<{ text: string; truncated: boolean }> {
+): Promise<{ text: string; truncated: boolean }> => {
   signal.throwIfAborted();
   return new Promise((resolve, reject) => {
     const worker = new Worker(new URL(`data:text/javascript,${encodeURIComponent(bootstrap)}`), {
@@ -53,4 +45,12 @@ export async function readAttachmentText(
       finish(undefined, new Error('Attachment reading stopped before completing.')),
     );
   });
-}
+};
+
+const bootstrap = `
+import { parentPort, workerData } from 'node:worker_threads';
+import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
+register();
+const { attachmentText } = await import(workerData.module);
+parentPort.postMessage(await attachmentText(workerData.bytes, workerData.mimeType));
+`;

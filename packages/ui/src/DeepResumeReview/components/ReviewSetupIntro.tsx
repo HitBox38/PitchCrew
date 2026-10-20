@@ -1,6 +1,6 @@
 import type { Card, Role } from '@pitchcrew/core';
 import { runtimeLabels } from '@/lib/labels.ts';
-export function ReviewSetupIntro({
+export const ReviewSetupIntro = ({
   card,
   reviewer,
   writer,
@@ -8,7 +8,7 @@ export function ReviewSetupIntro({
   card: Card;
   reviewer?: Role;
   writer?: Role;
-}) {
+}) => {
   return (
     <div className="space-y-3">
       <p>
@@ -32,4 +32,4 @@ export function ReviewSetupIntro({
       )}
     </div>
   );
-}
+};

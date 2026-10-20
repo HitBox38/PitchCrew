@@ -1,18 +1,18 @@
 import { create } from 'zustand';
-function read<T>(key: string, fallback: T): T {
+const read = <T>(key: string, fallback: T): T => {
   try {
     return JSON.parse(localStorage.getItem(key) ?? 'null') ?? fallback;
   } catch {
     return fallback;
   }
-}
-function write(key: string, value: unknown) {
+};
+const write = (key: string, value: unknown) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     /* Device preferences are best effort. */
   }
-}
+};
 interface ChatPreferences {
   width: string;
   sendMode: 'queue' | 'interrupt';

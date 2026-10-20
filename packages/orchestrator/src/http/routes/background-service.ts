@@ -5,7 +5,7 @@ import { installBackgroundService } from '../../background/install.ts';
 import type { DaemonOptions } from '../../server.ts';
 
 /** Session-protected service status and user-requested installation for this workspace. */
-export function registerBackgroundServiceRoutes(app: FastifyInstance, options: DaemonOptions) {
+export const registerBackgroundServiceRoutes = (app: FastifyInstance, options: DaemonOptions) => {
   const settings = { directory: options.directory, port: options.port };
   const daemon = { ...settings, service: options.service ?? false };
   let installing: Promise<BackgroundServiceInfo> | null = null;
@@ -26,4 +26,4 @@ export function registerBackgroundServiceRoutes(app: FastifyInstance, options: D
     }
     return installing;
   });
-}
+};

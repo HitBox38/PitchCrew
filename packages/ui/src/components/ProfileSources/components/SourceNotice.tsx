@@ -2,7 +2,7 @@ import { CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceNotice(c: ProfileSourcesModel) {
+export const SourceNotice = (c: ProfileSourcesModel) => {
   if (!c.notice) return null;
   return (
     <div className="mb-5 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-primary/5 p-3">
@@ -17,4 +17,4 @@ export function SourceNotice(c: ProfileSourcesModel) {
       ) : null}
     </div>
   );
-}
+};

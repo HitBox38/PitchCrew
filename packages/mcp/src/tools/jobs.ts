@@ -10,7 +10,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerJobTools(server: McpServer, call: AgentCall) {
+export const registerJobTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_update_job',
     {
@@ -94,4 +94,4 @@ export function registerJobTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('delete_job', input),
   );
-}
+};

@@ -2,7 +2,7 @@ import { Separator } from '@/components/ui/separator/components/Separator.tsx';
 import type { SidebarSeparatorProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarSeparator({ className, ...props }: SidebarSeparatorProps) {
+export const SidebarSeparator = ({ className, ...props }: SidebarSeparatorProps) => {
   return (
     <Separator
       data-slot="sidebar-separator"
@@ -11,4 +11,4 @@ export function SidebarSeparator({ className, ...props }: SidebarSeparatorProps)
       {...props}
     />
   );
-}
+};

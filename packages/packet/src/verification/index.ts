@@ -4,32 +4,7 @@ import { createHash } from 'node:crypto';
 import { verifiedArtifact, renderArtifacts, type RenderOptions } from '../artifacts.ts';
 import { parseMarkdown } from '../documents/markdown.ts';
 import { visibleText } from '../documents/inline.ts';
-
-const bootstrap = `import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
-import { parentPort, workerData } from 'node:worker_threads';
-register();
-const { extractDocument } = await import(workerData.module);
-parentPort.postMessage(await extractDocument(workerData.bytes, workerData.mimeType, workerData.headings));`;
-
-export const expectedDocumentText = (source: string, layout: ArtifactLayout) =>
-  layout === 'plain'
-    ? source
-    : parseMarkdown(source)
-        .map((block) =>
-          block.kind === 'rule'
-            ? ''
-            : block.kind === 'list'
-              ? block.items.map((item) => visibleText(item.runs)).join('\n')
-              : visibleText(block.runs),
-        )
-        .join('\n');
-// Compare content independently of line wrapping, bidi visual order and compatibility glyphs.
-// Layout and reading-order judgments remain advisory; this is not an ATS compatibility test.
-const characters = (value: string) =>
-  Array.from(
-    value.normalize('NFKC').replace(/[\s\u00ad\u200b-\u200f\u202a-\u202e\u2066-\u2069]/gu, ''),
-  );
-export function missingContent(expected: string, actual: string) {
+export const missingContent = (expected: string, actual: string) => {
   const available = new Map<string, number>();
   for (const c of characters(actual)) available.set(c, (available.get(c) ?? 0) + 1);
   const missing: string[] = [];
@@ -39,14 +14,14 @@ export function missingContent(expected: string, actual: string) {
     else missing.push(c);
   }
   return missing.join('');
-}
+};
 
-async function verifyDocumentUncached(
+const verifyDocumentUncached = async (
   artifact: PacketArtifact,
   expected: string | string[],
   timeoutMs = 15000,
   headings: string[] = [],
-): Promise<DocumentVerification> {
+): Promise<DocumentVerification> => {
   const report: DocumentVerification = {
     name: artifact.name,
     digest: artifact.digest,
@@ -124,14 +99,14 @@ async function verifyDocumentUncached(
   }
   report.status = report.findings.some((f) => f.severity === 'error') ? 'blocked' : 'verified';
   return report;
-}
+};
 
-export async function prepareVerifiedArtifacts(
+export const prepareVerifiedArtifacts = async (
   packet: Packet,
   formats: ('pdf' | 'docx')[],
   layout: ArtifactLayout = 'formatted',
   options: RenderOptions = {},
-) {
+) => {
   const artifacts: PacketArtifact[] = [];
   const reports: DocumentVerification[] = [];
   for (const format of [...new Set(formats)]) {
@@ -173,15 +148,14 @@ export async function prepareVerifiedArtifacts(
     }
   }
   return { artifacts, reports };
-}
+};
 
-const verifiedCache = new Map<string, Promise<DocumentVerification>>();
-export async function verifyDocument(
+export const verifyDocument = async (
   artifact: PacketArtifact,
   expected: string | string[],
   timeoutMs = 15000,
   headings: string[] = [],
-): Promise<DocumentVerification> {
+): Promise<DocumentVerification> => {
   // Validate bytes even on a cache hit; metadata must never authorize changed content.
   try {
     verifiedArtifact(artifact);
@@ -210,4 +184,31 @@ export async function verifyDocument(
     if (verifiedCache.size > 200) verifiedCache.delete(verifiedCache.keys().next().value!);
   }
   return structuredClone(await pending);
-}
+};
+
+const bootstrap = `import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
+import { parentPort, workerData } from 'node:worker_threads';
+register();
+const { extractDocument } = await import(workerData.module);
+parentPort.postMessage(await extractDocument(workerData.bytes, workerData.mimeType, workerData.headings));`;
+
+export const expectedDocumentText = (source: string, layout: ArtifactLayout) =>
+  layout === 'plain'
+    ? source
+    : parseMarkdown(source)
+        .map((block) =>
+          block.kind === 'rule'
+            ? ''
+            : block.kind === 'list'
+              ? block.items.map((item) => visibleText(item.runs)).join('\n')
+              : visibleText(block.runs),
+        )
+        .join('\n');
+// Compare content independently of line wrapping, bidi visual order and compatibility glyphs.
+// Layout and reading-order judgments remain advisory; this is not an ATS compatibility test.
+const characters = (value: string) =>
+  Array.from(
+    value.normalize('NFKC').replace(/[\s\u00ad\u200b-\u200f\u202a-\u202e\u2066-\u2069]/gu, ''),
+  );
+
+const verifiedCache = new Map<string, Promise<DocumentVerification>>();

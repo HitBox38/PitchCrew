@@ -9,7 +9,7 @@ import { JobCard } from '@/components/JobCard/index.tsx';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
 import * as m from 'motion/react-m';
 
-export function JobPipeline({ filtered, showClosed, jobMutations, ...props }: JobPipelineProps) {
+export const JobPipeline = ({ filtered, showClosed, jobMutations, ...props }: JobPipelineProps) => {
   const { data, working, active, pending, reveal, startDrag, endDrag, moveJob, requestDelete } =
     usePipelineDrag(jobMutations);
   if (!data) return null;
@@ -69,4 +69,4 @@ export function JobPipeline({ filtered, showClosed, jobMutations, ...props }: Jo
       </DragOverlay>
     </DragDropProvider>
   );
-}
+};

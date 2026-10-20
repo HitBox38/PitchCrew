@@ -95,7 +95,7 @@ describe('private exception capture', () => {
     const proxy = new Proxy(
       {},
       {
-        getPrototypeOf() {
+        getPrototypeOf: () => {
           throw new Error('private');
         },
       },

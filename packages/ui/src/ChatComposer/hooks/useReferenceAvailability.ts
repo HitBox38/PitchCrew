@@ -3,7 +3,10 @@ import type { LexicalEditor } from 'lexical';
 import { $getNodeByKey } from 'lexical';
 import type { ComposerSuggestion } from '../types.ts';
 import { ReferenceNode } from '../ReferenceNode.ts';
-export function useReferenceAvailability(editor: LexicalEditor, suggestions: ComposerSuggestion[]) {
+export const useReferenceAvailability = (
+  editor: LexicalEditor,
+  suggestions: ComposerSuggestion[],
+) => {
   useEffect(() => {
     editor.getEditorState().read(() => {
       for (const element of editor
@@ -22,4 +25,4 @@ export function useReferenceAvailability(editor: LexicalEditor, suggestions: Com
       }
     });
   }, [editor, suggestions]);
-}
+};

@@ -1,6 +1,6 @@
 import { Separator } from '@/components/ui/separator/index.tsx';
 import type { AgentBrowserProps } from '../types.ts';
-export function BrowserResizer({ browserPanel }: Pick<AgentBrowserProps, 'browserPanel'>) {
+export const BrowserResizer = ({ browserPanel }: Pick<AgentBrowserProps, 'browserPanel'>) => {
   return (
     <Separator
       orientation="vertical"
@@ -36,4 +36,4 @@ export function BrowserResizer({ browserPanel }: Pick<AgentBrowserProps, 'browse
       onPointerUp={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
     />
   );
-}
+};

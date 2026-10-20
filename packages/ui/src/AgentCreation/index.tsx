@@ -8,7 +8,7 @@ import { CreationSuccess } from './components/CreationSuccess.tsx';
 import { useAgentCreation } from './hooks/useAgentCreation.ts';
 import type { AgentCreationProps } from './types.ts';
 
-export function AgentCreation(props: AgentCreationProps) {
+export const AgentCreation = (props: AgentCreationProps) => {
   const controller = useAgentCreation(props);
   return (
     <Sheet
@@ -38,4 +38,4 @@ export function AgentCreation(props: AgentCreationProps) {
       <DiscardChanges guard={controller.guard} />
     </Sheet>
   );
-}
+};

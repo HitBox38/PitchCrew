@@ -2,13 +2,13 @@ import { JobActionFooter } from '@/components/CardDetails/components/JobActionFo
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { JourneyStage } from '../constants';
 
-export function JobPanelFooter({
+export const JobPanelFooter = ({
   stage,
   advance,
 }: {
   stage: JourneyStage['id'];
   advance: () => void;
-}) {
+}) => {
   if (stage === 'track') return null;
   const labels = { fit: 'Draft application', draft: 'Review packet', review: 'Prepare export' };
   return (
@@ -22,4 +22,4 @@ export function JobPanelFooter({
       <Button onClick={advance}>{labels[stage]}</Button>
     </JobActionFooter>
   );
-}
+};

@@ -4,12 +4,12 @@ import { readPipeline } from '../pipeline/query.ts';
 import { savePipelineReview, updatePipelineReview } from '../pipeline/reviews.ts';
 import { proposeCrewChanges } from '../pipeline/proposals.ts';
 
-export function pipelineAction(
+export const pipelineAction = (
   context: CrewContext,
   capability: RunCapability,
   action: string,
   input: unknown,
-) {
+) => {
   const run = context.board.get<Run>('run', capability.runId);
   const controller = context.controllers.get(capability.runId);
   if (context.closing || !controller || controller.signal.aborted || run.status !== 'running')
@@ -28,4 +28,4 @@ export function pipelineAction(
   if (action === 'read_pipeline') return readPipeline(context.board, input);
   if (action === 'save_pipeline_review') return savePipelineReview(context, capability, input);
   return updatePipelineReview(context, input, capability.roleId);
-}
+};

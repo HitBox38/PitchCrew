@@ -1,10 +1,7 @@
 import type { DiffLine } from '../types.ts';
 
-const signs = { same: ' ', added: '+', removed: '-' };
-const labels = { same: 'Unchanged', added: 'Added', removed: 'Removed' };
-
 /** Unified diff: removed lines are struck through, added lines are highlighted. */
-export function InstructionDiff({ lines }: { lines: DiffLine[] }) {
+export const InstructionDiff = ({ lines }: { lines: DiffLine[] }) => {
   return (
     <ol
       className="instruction-diff focus-visible:outline-2 focus-visible:outline-ring"
@@ -35,4 +32,7 @@ export function InstructionDiff({ lines }: { lines: DiffLine[] }) {
       ))}
     </ol>
   );
-}
+};
+
+const signs = { same: ' ', added: '+', removed: '-' };
+const labels = { same: 'Unchanged', added: 'Added', removed: 'Removed' };

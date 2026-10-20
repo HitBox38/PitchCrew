@@ -1,11 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-afterEach(() => {
-  vi.unstubAllGlobals();
-  vi.resetModules();
-});
-
-function storage(values: Record<string, string> = {}) {
+const storage = (values: Record<string, string> = {}) => {
   const entries = new Map(Object.entries(values));
   vi.stubGlobal('localStorage', {
     getItem: (key: string) => entries.get(key) ?? null,
@@ -13,7 +8,12 @@ function storage(values: Record<string, string> = {}) {
     removeItem: (key: string) => entries.delete(key),
   });
   return entries;
-}
+};
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  vi.resetModules();
+});
 
 describe('shared device preferences', () => {
   it('defaults analytics on and preserves an explicit opt-out across reloads', async () => {

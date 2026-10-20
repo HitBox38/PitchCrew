@@ -1,6 +1,15 @@
 import { useState } from 'react';
 
-export function useCategoryOpen(id: string) {
+export const useCategoryOpen = (id: string) => {
+  const changeOpen = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    try {
+      localStorage.setItem(key, String(nextOpen));
+    } catch {
+      /* The category still toggles when storage is unavailable. */
+    }
+  };
+
   const key = `pitchcrew-sidebar-category-${id}-v1`;
   const [open, setOpen] = useState(() => {
     try {
@@ -10,14 +19,5 @@ export function useCategoryOpen(id: string) {
     }
   });
 
-  function changeOpen(nextOpen: boolean) {
-    setOpen(nextOpen);
-    try {
-      localStorage.setItem(key, String(nextOpen));
-    } catch {
-      /* The category still toggles when storage is unavailable. */
-    }
-  }
-
   return { open, changeOpen };
-}
+};

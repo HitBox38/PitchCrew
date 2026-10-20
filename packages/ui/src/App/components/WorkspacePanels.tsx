@@ -9,7 +9,7 @@ import type { WorkspacePanelsProps } from '@/App/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { Suspense } from 'react';
 
-export function WorkspacePanels({
+export const WorkspacePanels = ({
   add,
   action,
   working,
@@ -21,7 +21,7 @@ export function WorkspacePanels({
   selectedRole,
   navigate,
   setRoleId,
-}: WorkspacePanelsProps) {
+}: WorkspacePanelsProps) => {
   const selectedJobSection = useWorkspaceStore((state) => state.selectedJobSection);
   const creatingConversation = useWorkspaceStore((state) => state.creatingConversation);
   const setCreatingConversation = useWorkspaceStore((state) => state.setCreatingConversation);
@@ -79,4 +79,4 @@ export function WorkspacePanels({
       </AnimatePresence>
     </Suspense>
   );
-}
+};

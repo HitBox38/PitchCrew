@@ -9,26 +9,12 @@ import {
 import { modelReasoning } from '../reasoning.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
 
-// https://learn.chatgpt.com/docs/app-server#list-models-modellist
-// Initialize a private stdio connection, list models, then exit. No thread or turn is created.
-export const codexModelArgs = [
-  'app-server',
-  '--listen',
-  'stdio://',
-  '-c',
-  'features.apps=false',
-  '-c',
-  'features.hooks=false',
-  '-c',
-  'analytics.enabled=false',
-];
-
-export async function readCodexModels(
+export const readCodexModels = async (
   command: string,
   args: string[],
   signal?: AbortSignal,
   timeout = modelDiscoveryTimeout,
-): Promise<RuntimeModel[]> {
+): Promise<RuntimeModel[]> => {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, {
@@ -175,4 +161,18 @@ export async function readCodexModels(
       params: { clientInfo: { name: 'pitchcrew', version: '0.1.0' } },
     });
   });
-}
+};
+
+// https://learn.chatgpt.com/docs/app-server#list-models-modellist
+// Initialize a private stdio connection, list models, then exit. No thread or turn is created.
+export const codexModelArgs = [
+  'app-server',
+  '--listen',
+  'stdio://',
+  '-c',
+  'features.apps=false',
+  '-c',
+  'features.hooks=false',
+  '-c',
+  'analytics.enabled=false',
+];

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { QuestionFormProps } from '../types.ts';
-export function useQuestionAnswer({ question, action, working }: QuestionFormProps) {
+export const useQuestionAnswer = ({ question, action, working }: QuestionFormProps) => {
   const [selected, setSelected] = useState<string[]>([]);
   const [text, setText] = useState('');
   const [error, setError] = useState('');
@@ -44,4 +44,4 @@ export function useQuestionAnswer({ question, action, working }: QuestionFormPro
     disabled: working || submitting,
     canAnswer: selected.length > 0 || !!text.trim(),
   };
-}
+};

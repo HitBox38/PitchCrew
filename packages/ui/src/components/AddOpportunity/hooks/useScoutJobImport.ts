@@ -5,14 +5,8 @@ import type { AddOpportunityProps } from '../types.ts';
 import { jobLinkAction, scoutJobPrompt, scoutJobTarget } from '../link-actions.ts';
 
 /** An explicit user click sends an ordinary, capability-gated Scout chat request. */
-export function useScoutJobImport({ data, action, working, onClose }: AddOpportunityProps) {
-  const navigate = useNavigate();
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState('');
-  const sending = useRef(false);
-  const conversation = useRef<{ roleId: string; id: string } | null>(null);
-  const { role, blocker } = scoutJobTarget(data);
-  async function askScout(event: MouseEvent<HTMLButtonElement>, fallbackUrl?: string | null) {
+export const useScoutJobImport = ({ data, action, working, onClose }: AddOpportunityProps) => {
+  const askScout = async (event: MouseEvent<HTMLButtonElement>, fallbackUrl?: string | null) => {
     const field = event.currentTarget.form?.elements.namedItem('url');
     if (!(field instanceof HTMLInputElement)) return;
     const mode = jobLinkAction(field.value);
@@ -43,6 +37,13 @@ export function useScoutJobImport({ data, action, working, onClose }: AddOpportu
       sending.current = false;
       setPending(false);
     }
-  }
+  };
+
+  const navigate = useNavigate();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState('');
+  const sending = useRef(false);
+  const conversation = useRef<{ roleId: string; id: string } | null>(null);
+  const { role, blocker } = scoutJobTarget(data);
   return { pending, error, blocker, askScout };
-}
+};

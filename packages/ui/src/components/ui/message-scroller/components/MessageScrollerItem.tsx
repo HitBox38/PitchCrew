@@ -2,11 +2,11 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 import { MessageScroller as MessageScrollerPrimitive } from '@shadcn/react/message-scroller';
 
-export function MessageScrollerItem({
+export const MessageScrollerItem = ({
   className,
   scrollAnchor = false,
   ...props
-}: React.ComponentProps<typeof MessageScrollerPrimitive.Item>) {
+}: React.ComponentProps<typeof MessageScrollerPrimitive.Item>) => {
   return (
     <MessageScrollerPrimitive.Item
       data-slot="message-scroller-item"
@@ -18,4 +18,4 @@ export function MessageScrollerItem({
       {...props}
     />
   );
-}
+};

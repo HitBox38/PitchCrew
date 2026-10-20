@@ -4,7 +4,7 @@ import { SourceProviderChoices } from './SourceProviderChoices.tsx';
 import { SourceForm } from './SourceForm.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function SourceSetup(c: ProfileSourcesModel) {
+export const SourceSetup = (c: ProfileSourcesModel) => {
   if (!c.provider) return <SourceProviderChoices choose={c.chooseProvider} disabled={c.busy} />;
   if (c.provider === 'github' && !c.intent)
     return (
@@ -26,4 +26,4 @@ export function SourceSetup(c: ProfileSourcesModel) {
       </div>
     );
   return <SourceForm {...c} />;
-}
+};

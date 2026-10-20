@@ -9,7 +9,7 @@ export interface MaintenanceCommand {
   args: string[];
   env?: NodeJS.ProcessEnv;
 }
-export function redactMaintenanceOutput(text: string): string {
+export const redactMaintenanceOutput = (text: string): string => {
   // oxlint-disable-next-line no-control-regex -- Remove terminal escape and control sequences from installer logs.
   let result = text
     .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')
@@ -22,10 +22,10 @@ export function redactMaintenanceOutput(text: string): string {
     .replace(/(?:Bearer\s+)[\w.\-+/=]+/gi, 'Bearer [redacted]')
     .replace(/\b(?:sk-|gh[pousr]_|github_pat_)[\w-]+/g, '[redacted]')
     .replace(/(https?:\/\/)[^\s/@]+:[^\s/@]+@/g, '$1[redacted]@');
-}
+};
 
 /** Fixed server-owned argv only. Never launches a shell or opens an interactive stdin. */
-export async function runMaintenanceCommand(
+export const runMaintenanceCommand = async (
   command: MaintenanceCommand,
   options: {
     signal?: AbortSignal;
@@ -35,7 +35,7 @@ export async function runMaintenanceCommand(
     onSpawn?: (pid: number) => void;
     rejectPrompts?: boolean;
   } = {},
-): Promise<{ code: number | null; stdout: string; stderr: string }> {
+): Promise<{ code: number | null; stdout: string; stderr: string }> => {
   options.signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
     const child = spawn(command.file, command.args, {
@@ -103,4 +103,4 @@ export async function runMaintenanceCommand(
       else resolve({ code, stdout, stderr });
     });
   });
-}
+};

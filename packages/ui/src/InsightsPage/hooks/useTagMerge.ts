@@ -3,7 +3,7 @@ import type { Card } from '@pitchcrew/core';
 import { useState } from 'react';
 import { cardsWithTag } from '../helpers.ts';
 
-export function useTagMerge(cards: Card[]) {
+export const useTagMerge = (cards: Card[]) => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [from, setFrom] = useState('');
@@ -36,4 +36,4 @@ export function useTagMerge(cards: Card[]) {
     setConfirming,
     merge,
   };
-}
+};

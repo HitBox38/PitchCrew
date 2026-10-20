@@ -1,6 +1,6 @@
 import { useRuntimeUpdateChecks } from './hooks/useRuntimeUpdateChecks.ts';
 
-export function RuntimeMaintenance() {
+export const RuntimeMaintenance = () => {
   useRuntimeUpdateChecks();
   return null;
-}
+};

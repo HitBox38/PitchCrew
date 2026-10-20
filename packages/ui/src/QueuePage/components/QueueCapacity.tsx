@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input/index.tsx';
 import { Button } from '@/components/ui/button/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function QueueCapacity({ queue }: { queue: WorkspaceQueue }) {
+export const QueueCapacity = ({ queue }: { queue: WorkspaceQueue }) => {
   const [draft, setDraft] = useState<string | null>(null);
   const action = useWorkspaceStore((s) => s.action);
   const working = useWorkspaceStore((s) => s.working);
@@ -54,4 +54,4 @@ export function QueueCapacity({ queue }: { queue: WorkspaceQueue }) {
       </div>
     </div>
   );
-}
+};

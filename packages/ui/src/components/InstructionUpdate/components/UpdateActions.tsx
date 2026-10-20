@@ -1,7 +1,7 @@
 import type { InstructionUpdateModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function UpdateActions({
+export const UpdateActions = ({
   update,
   working,
   ownText,
@@ -12,7 +12,7 @@ export function UpdateActions({
   startFromDefault,
   previous,
   error,
-}: InstructionUpdateModel) {
+}: InstructionUpdateModel) => {
   return (
     <>
       {unsaved ? (
@@ -52,4 +52,4 @@ export function UpdateActions({
       </div>
     </>
   );
-}
+};

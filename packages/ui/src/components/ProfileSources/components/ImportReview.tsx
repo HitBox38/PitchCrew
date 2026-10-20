@@ -6,12 +6,12 @@ import { ImportReviewList } from './ImportReviewList.tsx';
 import { ImportReviewFooter } from './ImportReviewFooter.tsx';
 import type { ImportReviewProps } from '../types.ts';
 
-export function ImportReview(c: ImportReviewProps) {
+export const ImportReview = (c: ImportReviewProps) => {
   if (!c.preview) return null;
   return <ImportReviewContent key={c.preview.token} {...c} />;
-}
+};
 
-function ImportReviewContent(c: ImportReviewProps) {
+const ImportReviewContent = (c: ImportReviewProps) => {
   const [query, setQuery] = useState('');
   const preview = c.preview!;
   const changes = importChanges(preview.files);
@@ -52,4 +52,4 @@ function ImportReviewContent(c: ImportReviewProps) {
       <ImportReviewFooter {...c} conflicts={conflicts} close={close} />
     </Modal>
   );
-}
+};

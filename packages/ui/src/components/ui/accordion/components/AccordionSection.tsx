@@ -5,7 +5,7 @@ import { AccordionTrigger } from './AccordionTrigger.tsx';
 import { AccordionContent } from './AccordionContent.tsx';
 
 /** A standalone disclosure using the shared accordion controls. */
-export function AccordionSection({
+export const AccordionSection = ({
   heading,
   children,
   className,
@@ -21,7 +21,7 @@ export function AccordionSection({
   contentClassName?: string;
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
-}) {
+}) => {
   return (
     <Accordion
       className={className}
@@ -38,4 +38,4 @@ export function AccordionSection({
       </AccordionItem>
     </Accordion>
   );
-}
+};

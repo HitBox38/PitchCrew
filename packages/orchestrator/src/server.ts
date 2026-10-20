@@ -60,7 +60,7 @@ export interface DaemonOptions {
   runtimeAuthenticationChecks?: boolean;
 }
 
-export async function createDaemon(options: DaemonOptions) {
+export const createDaemon = async (options: DaemonOptions) => {
   await ensureDirectory(options.directory);
   // Claim the data folder before opening the board, so a second daemon cannot recover its runs.
   const lock = await acquireDaemonLock(
@@ -74,9 +74,9 @@ export async function createDaemon(options: DaemonOptions) {
     await lock.release();
     throw error;
   }
-}
+};
 
-async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<void>) {
+const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<void>) => {
   const url = `http://127.0.0.1:${options.port}`;
   const diagnostics = createTelemetryBuffer(sanitizeBackendObservation, !!options.analytics);
   const service = new CrewService(
@@ -167,4 +167,4 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     await app.close();
     throw error;
   }
-}
+};

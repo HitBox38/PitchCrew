@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 
 /** Match readProfile's inputs without reading note contents or the board's large projections. */
-async function profileRevision(directory: string) {
+const profileRevision = async (directory: string) => {
   const path = join(directory, 'profile');
   const files = await readdir(path).catch((error: NodeJS.ErrnoException) => {
     if (error.code === 'ENOENT') return [];
@@ -17,14 +17,14 @@ async function profileRevision(directory: string) {
       return [name, info.ino, info.size, info.mtimeMs, info.ctimeMs];
     }),
   );
-}
+};
 
 /**
  * Every snapshot input outside SQLite belongs here. Compare values rather than mutation hooks:
  * connector transitions, runtime discovery, file edits and live activity have no board event.
  * SQLite's two counters cover writes both on this connection and on other connections.
  */
-export async function snapshotRevision(context: CrewContext): Promise<string> {
+export const snapshotRevision = async (context: CrewContext): Promise<string> => {
   const profile = await profileRevision(context.directory);
   const revision = {
     database: context.board.db.prepare('SELECT total_changes() AS changes').get(),
@@ -45,4 +45,4 @@ export async function snapshotRevision(context: CrewContext): Promise<string> {
     queueReservations: [...context.queueReservations],
   };
   return createHash('sha256').update(JSON.stringify(revision)).digest('hex');
-}
+};

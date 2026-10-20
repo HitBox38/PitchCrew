@@ -1,10 +1,7 @@
 import { maxJobLinkLength } from './job-link-recognition.ts';
 
-export const isProviderJobHost = (host: string) =>
-  /(^|\.)(greenhouse\.io|ashbyhq\.com|lever\.co|comeet\.co|comeet\.com|workable\.com)$/.test(host);
-
 /** Single-posting lookups beyond the saved-board providers. No network access. */
-export function recognizePublicJobLink(value: string) {
+export const recognizePublicJobLink = (value: string) => {
   const raw = value.trim();
   if (!raw || raw.length > maxJobLinkLength || /\s/.test(raw)) return null;
   let url: URL;
@@ -29,4 +26,7 @@ export function recognizePublicJobLink(value: string) {
       /^\/o\/[^/]+\/?$/.test(url.pathname))
     ? { kind: 'page' as const }
     : null;
-}
+};
+
+export const isProviderJobHost = (host: string) =>
+  /(^|\.)(greenhouse\.io|ashbyhq\.com|lever\.co|comeet\.co|comeet\.com|workable\.com)$/.test(host);

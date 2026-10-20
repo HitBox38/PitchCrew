@@ -4,7 +4,7 @@ import { Download } from 'lucide-react';
 import { platforms } from '../../Downloads/constants';
 import { usePlatform } from '../../Downloads/hooks/usePlatform';
 
-export function ApprovalBar() {
+export const ApprovalBar = () => {
   const { platform } = usePlatform();
   const label = platforms.find(({ id }) => id === platform)?.label ?? 'your computer';
   return (
@@ -24,4 +24,4 @@ export function ApprovalBar() {
       </div>
     </div>
   );
-}
+};

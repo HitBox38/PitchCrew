@@ -3,18 +3,10 @@ import type { BackgroundService } from './index.ts';
 import { samePath } from './paths.ts';
 import { flagValue } from './settings.ts';
 
-export const serviceUsage = `Usage: pnpm service <command>
-
-  install     Run the production daemon in the background at login
-  uninstall   Stop the background service and remove its files
-  status      Show whether it is installed and running (--json for details)
-  start       Start the background daemon now
-  stop        Stop the background daemon until the next login
-  logs        Show recent log lines (--lines <count>)
-
-The service uses PITCHCREW_HOME and PITCHCREW_PORT from this shell.`;
-
-export function formatServiceStatus(status: BackgroundServiceStatus, service: BackgroundService) {
+export const formatServiceStatus = (
+  status: BackgroundServiceStatus,
+  service: BackgroundService,
+) => {
   if (!status.installed) return [`Background service: not installed`, status.detail];
   const state = [
     'installed',
@@ -35,14 +27,14 @@ export function formatServiceStatus(status: BackgroundServiceStatus, service: Ba
       `This shell uses ${spec.directory} on port ${spec.port}. Run pnpm service install to switch the service to it.`,
     );
   return lines;
-}
+};
 
 /** Runs `pnpm service <command>` and returns the process exit code. */
-export async function runServiceCommand(
+export const runServiceCommand = async (
   args: readonly string[],
   service: BackgroundService | null,
   print: (line: string) => void = (line) => console.log(line),
-) {
+) => {
   const [command] = args;
   if (!command || command === 'help' || command === '--help') {
     print(serviceUsage);
@@ -108,4 +100,15 @@ export async function runServiceCommand(
       print(`Unknown service command: ${command}\n\n${serviceUsage}`);
       return 1;
   }
-}
+};
+
+export const serviceUsage = `Usage: pnpm service <command>
+
+  install     Run the production daemon in the background at login
+  uninstall   Stop the background service and remove its files
+  status      Show whether it is installed and running (--json for details)
+  start       Start the background daemon now
+  stop        Stop the background daemon until the next login
+  logs        Show recent log lines (--lines <count>)
+
+The service uses PITCHCREW_HOME and PITCHCREW_PORT from this shell.`;

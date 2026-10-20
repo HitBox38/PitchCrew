@@ -1,7 +1,7 @@
 import { useChatPreferenceStore } from '@/ChatView/preferences.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
-export function ChatReadingWidth() {
+export const ChatReadingWidth = () => {
   const width = useChatPreferenceStore((state) => state.width);
   const setWidth = useChatPreferenceStore((state) => state.setWidth);
   return (
@@ -23,4 +23,4 @@ export function ChatReadingWidth() {
       </p>
     </div>
   );
-}
+};

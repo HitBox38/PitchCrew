@@ -1,7 +1,7 @@
 import { capabilityDefaults, capabilityLabels } from '@/agent-capabilities.ts';
 import type { CapabilityChangesProps } from '../types.ts';
 
-export function CapabilityChanges({ current, changes }: CapabilityChangesProps) {
+export const CapabilityChanges = ({ current, changes }: CapabilityChangesProps) => {
   return (
     <ul className="chat-capability-changes">
       {Object.entries(changes).map(([key, enabled]) => {
@@ -20,4 +20,4 @@ export function CapabilityChanges({ current, changes }: CapabilityChangesProps) 
       })}
     </ul>
   );
-}
+};

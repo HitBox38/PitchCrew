@@ -6,17 +6,12 @@ import {
   boardInsights,
   previewApplicationImport,
 } from '../src/index.ts';
-
-const boards: Board[] = [];
-afterEach(() => {
-  for (const board of boards.splice(0)) board.close();
-});
-function create() {
+const create = () => {
   const board = new Board(':memory:');
   boards.push(board);
   return board;
-}
-function request(lessons = 'Lead with platform work.', weight = 2) {
+};
+const request = (lessons = 'Lead with platform work.', weight = 2) => {
   return {
     format: 'json',
     content: JSON.stringify([
@@ -32,7 +27,12 @@ function request(lessons = 'Lead with platform work.', weight = 2) {
       },
     ]),
   };
-}
+};
+
+const boards: Board[] = [];
+afterEach(() => {
+  for (const board of boards.splice(0)) board.close();
+});
 it('imports structured signals into historical Insights and replays without changing retry keys', () => {
   const board = create();
   const input = request();

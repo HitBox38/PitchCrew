@@ -2,7 +2,7 @@ import type { FormControl } from '@pitchcrew/core';
 import type { Page } from 'playwright';
 import { credentialSelector, redactCredentials } from './credentials.ts';
 
-export async function inspectControls(page: Page) {
+export const inspectControls = async (page: Page) => {
   const controls: FormControl[] = [];
   const frames: unknown[] = [];
   const texts: string[] = [];
@@ -76,4 +76,4 @@ export async function inspectControls(page: Page) {
     }
   }
   return { controls, frames, uninspected, text: texts.join('\n').slice(0, 30000) };
-}
+};

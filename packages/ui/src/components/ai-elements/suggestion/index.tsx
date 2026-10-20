@@ -2,7 +2,7 @@ import type { ComponentProps } from 'react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { cn } from '@/lib/utils.ts';
 
-export function Suggestions({ className, ...props }: ComponentProps<'div'>) {
+export const Suggestions = ({ className, ...props }: ComponentProps<'div'>) => {
   return (
     <div
       className={cn(
@@ -12,8 +12,8 @@ export function Suggestions({ className, ...props }: ComponentProps<'div'>) {
       {...props}
     />
   );
-}
-export function Suggestion({
+};
+export const Suggestion = ({
   suggestion,
   onClick,
   className,
@@ -21,7 +21,7 @@ export function Suggestion({
 }: Omit<ComponentProps<typeof Button>, 'onClick'> & {
   suggestion: string;
   onClick: (suggestion: string) => void;
-}) {
+}) => {
   return (
     <Button
       variant="outline"
@@ -31,4 +31,4 @@ export function Suggestion({
       {...props}
     />
   );
-}
+};

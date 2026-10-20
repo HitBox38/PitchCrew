@@ -42,43 +42,43 @@ import { jobSourceAction } from './gateway/job-sources.ts';
 import type { CrewContext } from './types.ts';
 import { beginMcpToolCall } from '../telemetry/mcp.ts';
 
-export async function agentCall(
-  this: CrewContext,
+export const agentCall = async (
+  context: CrewContext,
   token: string,
   action: string,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   let finish: (isError: boolean) => void = () => {};
   try {
-    finish = beginMcpToolCall(this, token, action, data);
+    finish = beginMcpToolCall(context, token, action, data);
   } catch {
     // Telemetry initialization must never prevent a scoped tool invocation.
   }
-  const finishActivity = observeChatTool(this, token, action);
+  const finishActivity = observeChatTool(context, token, action);
   let isError = true;
   try {
-    const result = await dispatchAgentCall.call(this, token, action, data);
+    const result = await dispatchAgentCall(context, token, action, data);
     isError = false;
     return result;
   } finally {
     finishActivity(isError);
     finish(isError);
   }
-}
+};
 
-async function dispatchAgentCall(
-  this: CrewContext,
+const dispatchAgentCall = async (
+  context: CrewContext,
   token: string,
   action: string,
   data: Record<string, unknown>,
-): Promise<Record<string, unknown>> {
-  const capability = this.capabilities.get(token);
-  if (!capability || this.controllers.get(capability.runId)?.signal.aborted)
+): Promise<Record<string, unknown>> => {
+  const capability = context.capabilities.get(token);
+  if (!capability || context.controllers.get(capability.runId)?.signal.aborted)
     throw new Error('Run capability is invalid or expired.');
-  const role = requireRole(this, capability.roleId);
+  const role = requireRole(context, capability.roleId);
   if (!role.enabled) throw new Error('This role is paused.');
   const permissions = role.capabilities ?? defaultCapabilities;
-  const activeRun = this.board
+  const activeRun = context.board
     .list<import('@pitchcrew/core').Run>('run')
     .find((run) => run.id === capability.runId);
   if (action === 'execution_access') {
@@ -123,22 +123,22 @@ async function dispatchAgentCall(
     'request_review_time',
   ];
   if (activeRun?.deepReviewId && reviewActions.includes(action))
-    return reviewAgentAction(this, capability, action, data.input ?? data);
+    return reviewAgentAction(context, capability, action, data.input ?? data);
   if (
     isolated &&
     !['card', 'profile', 'packet_rules', 'lint', 'ask_user', 'notify_user'].includes(action)
   )
     throw new Error('This tool is not available in an isolated application run.');
   if (isolated) {
-    const card = this.board.get<Card>('card', capability.cardId!);
+    const card = context.board.get<Card>('card', capability.cardId!);
     if (card.applicationContext?.revision !== activeRun.contextRevision)
       throw new Error('Application context changed during this run.');
   }
-  if (activeRun?.threadId && !canReadConversation(this, capability.roleId, activeRun.threadId))
+  if (activeRun?.threadId && !canReadConversation(context, capability.roleId, activeRun.threadId))
     throw new Error('Conversation access was removed.');
   if (
     activeRun?.requestId &&
-    this.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', activeRun.requestId)
+    context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', activeRun.requestId)
       .summarize &&
     ![
       'messages',
@@ -152,7 +152,7 @@ async function dispatchAgentCall(
   )
     throw new Error('Summarization turns can only read their permitted context.');
   if (
-    questionForRun(this, capability.runId) &&
+    questionForRun(context, capability.runId) &&
     ![
       'messages',
       'conversation_messages',
@@ -173,11 +173,11 @@ async function dispatchAgentCall(
     if (activeRun?.mode !== 'chat') throw new Error('Progress updates require a chat turn.');
     const { content } = z.object({ content: z.string().trim().min(1).max(1200) }).parse(data);
     const count =
-      this.runActivities
+      context.runActivities
         .get(capability.runId)
         ?.entries.filter((entry) => entry.id.startsWith('progress-')).length ?? 0;
     if (count >= 8) throw new Error('Eight progress updates maximum per turn.');
-    recordChatActivity(this, capability.runId, {
+    recordChatActivity(context, capability.runId, {
       id: `progress-${randomUUID()}`,
       kind: 'commentary',
       label: 'Progress update',
@@ -186,7 +186,7 @@ async function dispatchAgentCall(
     });
     return { ok: true };
   }
-  if (action === 'ask_user') return askUser(this, capability, data.input ?? data);
+  if (action === 'ask_user') return askUser(context, capability, data.input ?? data);
   if (
     [
       'conversations',
@@ -196,13 +196,14 @@ async function dispatchAgentCall(
       'transfer_lead',
     ].includes(action)
   )
-    return conversationAction(this, capability, action, data);
+    return conversationAction(context, capability, action, data);
   if (['recall_memory', 'save_memory'].includes(action))
-    return memoryAction(this, capability, action, data);
-  if (action === 'application_insights') return insightsAction(this, capability, token, data.input);
-  if (action === 'quality') return qualityAgentAction(this, capability, data.input);
+    return memoryAction(context, capability, action, data);
+  if (action === 'application_insights')
+    return insightsAction(context, capability, token, data.input);
+  if (action === 'quality') return qualityAgentAction(context, capability, data.input);
   if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
-    return trackingAction.call(this, capability, token, action, data);
+    return trackingAction(context, capability, token, action, data);
   if (action === 'pipeline_access')
     return {
       reviewPipeline: role.enabled && permissions.reviewPipeline === true,
@@ -216,13 +217,13 @@ async function dispatchAgentCall(
       'propose_crew_changes',
     ].includes(action)
   )
-    return pipelineAction(this, capability, action, data.input);
+    return pipelineAction(context, capability, action, data.input);
   if (action === 'job_discovery_access')
     return { discoverJobs: role.enabled && permissions.discoverJobs === true };
   if (['job_sources', 'scan_job_sources', 'import_job_link'].includes(action))
-    return jobSourceAction.call(this, capability, token, action, data);
+    return jobSourceAction(context, capability, token, action, data);
   if (['routines', 'save_routine', 'delete_routine'].includes(action))
-    return routineAction.call(this, capability, action, data);
+    return routineAction(context, capability, action, data);
   if (
     [
       'watched_profile_sources',
@@ -231,7 +232,7 @@ async function dispatchAgentCall(
       'propose_profile_note',
     ].includes(action)
   )
-    return profileAction.call(this, capability, token, action, data);
+    return profileAction(context, capability, token, action, data);
   if (action === 'computer_access')
     return {
       enabled: permissions.computerUse === true,
@@ -247,13 +248,13 @@ async function dispatchAgentCall(
       'capture_submission',
     ].includes(action)
   )
-    return computerAction.call(this, capability, token, action, data);
-  if (action === 'connector_access') return connectorAccess.call(this, permissions);
-  if (action === 'connector') return connectorAction.call(this, capability, permissions, data);
-  if (action === 'notify_user') return notifyUser.call(this, capability, data);
+    return computerAction(context, capability, token, action, data);
+  if (action === 'connector_access') return connectorAccess(context, permissions);
+  if (action === 'connector') return connectorAction(context, capability, permissions, data);
+  if (action === 'notify_user') return notifyUser(context, capability, data);
   if (action === 'roles')
     return {
-      roles: this.board
+      roles: context.board
         .list<Role>('role')
         .filter((item) => !item.retiredAt)
         .map((item) => ({
@@ -280,7 +281,7 @@ async function dispatchAgentCall(
     if (capability.cardId && input.cardId && input.cardId !== capability.cardId)
       throw new Error('Deep review is scoped to the attached job.');
     const run = await startDeepReview(
-      this,
+      context,
       cardId,
       { secondOpinions: input.secondOpinions, requestedPerspectives: input.requestedPerspectives },
       undefined,
@@ -290,23 +291,23 @@ async function dispatchAgentCall(
     );
     return { run };
   }
-  if (action === 'messages') return readMessages.call(this, capability);
-  if (action === 'chat_attachment') return readChatAttachment(this, capability, token, data);
+  if (action === 'messages') return readMessages(context, capability);
+  if (action === 'chat_attachment') return readChatAttachment(context, capability, token, data);
   if (action === 'message' || action === 'invoke')
-    return queueMessage.call(this, capability, permissions, action, data);
-  if (action === 'propose') return proposeRole.call(this, capability, role, data);
-  if (action === 'propose_skill') return proposeSkill.call(this, capability, role, token, data);
+    return queueMessage(context, capability, permissions, action, data);
+  if (action === 'propose') return proposeRole(context, capability, role, data);
+  if (action === 'propose_skill') return proposeSkill(context, capability, role, token, data);
   if (action === 'update_job') {
     if (!permissions.manageWorkflow)
       throw new Error('Workflow capability is disabled for your role.');
-    return correctJobDetails(this, capability, data.input);
+    return correctJobDetails(context, capability, data.input);
   }
   if (['jobs', 'workflow', 'delete_job', 'bulk_move_jobs', 'bulk_delete_jobs'].includes(action))
-    return changeWorkflow.call(this, capability, permissions, action, data);
+    return changeWorkflow(context, capability, permissions, action, data);
   if (['card', 'history', 'export'].includes(action) && !capability.cardId)
     throw new Error('This chat has no attached application.');
   if (action === 'card') {
-    const card = this.board.get<Card>('card', capability.cardId!);
+    const card = context.board.get<Card>('card', capability.cardId!);
     return {
       card: isolated
         ? activeRun.reviewSubagentId
@@ -315,7 +316,7 @@ async function dispatchAgentCall(
         : card,
     };
   }
-  if (action === 'profile') return { profile: await readProfile(this.directory) };
+  if (action === 'profile') return { profile: await readProfile(context.directory) };
   if (action === 'history') {
     const query = z
       .object({
@@ -323,25 +324,28 @@ async function dispatchAgentCall(
         limit: z.number().int().min(1).max(200).default(100),
       })
       .parse(data);
-    const events = this.board.history(capability.cardId!, query.beforeEventId, query.limit);
+    const events = context.board.history(capability.cardId!, query.beforeEventId, query.limit);
     return { events, nextCursor: events.length === query.limit ? events.at(-1)!.id : null };
   }
   if (action === 'lint') {
     const parsed = runResultSchema.parse({ role: 'writer', packet: data.packet });
     if (parsed.role !== 'writer') throw new Error('Invalid packet.');
-    const check = await this.packetRules.check(parsed.packet, await readProfile(this.directory));
+    const check = await context.packetRules.check(
+      parsed.packet,
+      await readProfile(context.directory),
+    );
     return {
       problems: check.errors,
       warnings: check.warnings,
       findings: check.findings,
-      documents: await inspectPacketDocuments(this.directory, parsed.packet),
+      documents: await inspectPacketDocuments(context.directory, parsed.packet),
       layout: await checkLayout(parsed.packet, {
-        fonts: systemFonts({ folders: [join(this.directory, 'fonts')] }),
+        fonts: systemFonts({ folders: [join(context.directory, 'fonts')] }),
       }),
     };
   }
   if (action === 'packet_rules') {
-    const state = this.packetRules.current();
+    const state = context.packetRules.current();
     return {
       rules: state.rules,
       custom: state.custom,
@@ -350,19 +354,20 @@ async function dispatchAgentCall(
     };
   }
   if (action === 'export') {
-    const approval = this.board.get<Approval>('approval', String(data.approvalId));
+    const approval = context.board.get<Approval>('approval', String(data.approvalId));
     if (approval.cardId !== capability.cardId)
       throw new Error('This run cannot access another application.');
     return {
-      directory: await this.exportPacket(approval.id, () => {
+      directory: await context.exportPacket(approval.id, () => {
         if (
-          this.capabilities.get(token) !== capability ||
-          this.controllers.get(capability.runId)?.signal.aborted
+          context.capabilities.get(token) !== capability ||
+          context.controllers.get(capability.runId)?.signal.aborted
         )
           throw new Error('Run capability is invalid or expired.');
-        if (!requireRole(this, capability.roleId).enabled) throw new Error('This role is paused.');
+        if (!requireRole(context, capability.roleId).enabled)
+          throw new Error('This role is paused.');
       }),
     };
   }
   throw new Error('This tool is not allowed.');
-}
+};

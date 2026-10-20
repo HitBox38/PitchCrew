@@ -1,7 +1,7 @@
 import { ApprovalBar } from './components/ApprovalBar';
 import { ClaimTracer } from './components/ClaimTracer';
 
-export function ReviewThread() {
+export const ReviewThread = () => {
   return (
     <section id="review" className="thread" aria-labelledby="review-title">
       <ClaimTracer
@@ -20,4 +20,4 @@ export function ReviewThread() {
       />
     </section>
   );
-}
+};

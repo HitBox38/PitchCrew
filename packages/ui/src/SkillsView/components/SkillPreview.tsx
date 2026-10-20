@@ -4,11 +4,7 @@ import type { SkillPreviewProps } from '@/SkillsView/types.ts';
 import { SkillDocumentHeading } from './SkillDocumentHeading.tsx';
 import { SkillDocumentInfo } from './SkillDocumentInfo.tsx';
 
-const MarkdownPreview = lazy(
-  () => import('@/components/MarkdownEditor/components/MarkdownPreview.tsx'),
-);
-
-export function SkillPreview(c: SkillPreviewProps) {
+export const SkillPreview = (c: SkillPreviewProps) => {
   const skill = c.selected;
   if (!skill) return null;
   return (
@@ -25,4 +21,8 @@ export function SkillPreview(c: SkillPreviewProps) {
       <MarkdownStatus content={skill.content} status="Used in future runs" />
     </article>
   );
-}
+};
+
+const MarkdownPreview = lazy(
+  () => import('@/components/MarkdownEditor/components/MarkdownPreview.tsx'),
+);

@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge/index.tsx';
 import type { JobSourcePreview } from '@pitchcrew/core';
 
-export function SourcePreview({ preview }: { preview: JobSourcePreview }) {
+export const SourcePreview = ({ preview }: { preview: JobSourcePreview }) => {
   return (
     <output className="job-source-summary block" aria-live="polite">
       <p>
@@ -31,4 +31,4 @@ export function SourcePreview({ preview }: { preview: JobSourcePreview }) {
       ) : null}
     </output>
   );
-}
+};

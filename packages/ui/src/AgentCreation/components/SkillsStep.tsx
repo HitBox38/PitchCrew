@@ -4,7 +4,7 @@ import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import { skillSize } from '../helpers.ts';
 import type { StepProps } from '../types.ts';
 
-export function SkillsStep({ draft, changeDraft, data }: StepProps) {
+export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
   const skills = data.skills.filter((skill) => !skill.deletedAt);
   return (
     <div className="flex flex-col gap-5">
@@ -79,4 +79,4 @@ export function SkillsStep({ draft, changeDraft, data }: StepProps) {
       </p>
     </div>
   );
-}
+};

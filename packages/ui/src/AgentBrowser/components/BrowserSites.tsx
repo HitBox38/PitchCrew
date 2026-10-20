@@ -2,11 +2,11 @@ import { AccordionSection } from '@/components/ui/accordion/components/Accordion
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { browserCommand } from '../api.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
-export function BrowserSites({
+export const BrowserSites = ({
   browserPanel,
   thread,
   control,
-}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) {
+}: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) => {
   const session = browserPanel.session;
   if (!session?.runId || !session.allowedSites.length) return null;
   return (
@@ -38,4 +38,4 @@ export function BrowserSites({
       ))}
     </AccordionSection>
   );
-}
+};

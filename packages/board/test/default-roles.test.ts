@@ -2,13 +2,13 @@ import { roleCreate, type Role, type Skill } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { Board } from '../src/index.ts';
 import { defaultRoles } from '../src/board/default-roles.ts';
-
-const boards: Board[] = [];
-function create() {
+const create = () => {
   const board = new Board(':memory:');
   boards.push(board);
   return board;
-}
+};
+
+const boards: Board[] = [];
 afterEach(() => boards.splice(0).forEach((board) => board.close()));
 const ids = [
   'scout',

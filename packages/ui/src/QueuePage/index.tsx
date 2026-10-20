@@ -6,7 +6,7 @@ import { QueueCard } from './components/QueueCard.tsx';
 import { QueueList } from './components/QueueList.tsx';
 import { AddQueueAction } from './components/AddQueueAction.tsx';
 
-export function QueuePage() {
+export const QueuePage = () => {
   const data = useWorkspaceStore((s) => s.data);
   const action = useWorkspaceStore((s) => s.action);
   const queue = data?.queue;
@@ -61,4 +61,4 @@ export function QueuePage() {
       </div>
     </section>
   );
-}
+};

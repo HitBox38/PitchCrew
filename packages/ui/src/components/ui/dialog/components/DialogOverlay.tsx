@@ -2,7 +2,7 @@ import type { DialogOverlayProps } from '@/components/ui/dialog/types.ts';
 import { cn } from '@/lib/utils';
 import { Dialog as DialogPrimitive } from '@base-ui/react/dialog';
 
-export function DialogOverlay({ className, ...props }: DialogOverlayProps) {
+export const DialogOverlay = ({ className, ...props }: DialogOverlayProps) => {
   return (
     <DialogPrimitive.Backdrop
       data-slot="dialog-overlay"
@@ -13,4 +13,4 @@ export function DialogOverlay({ className, ...props }: DialogOverlayProps) {
       {...props}
     />
   );
-}
+};

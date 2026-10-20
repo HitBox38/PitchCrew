@@ -1,7 +1,7 @@
 import { useBlocker } from '@tanstack/react-router';
 import { useEffect, useRef, useState } from 'react';
 
-export function useUnsavedChanges(dirty: boolean, onRouteDiscard?: () => void) {
+export const useUnsavedChanges = (dirty: boolean, onRouteDiscard?: () => void) => {
   const allowed = useRef(false);
   useEffect(() => {
     if (!dirty) allowed.current = false;
@@ -37,4 +37,4 @@ export function useUnsavedChanges(dirty: boolean, onRouteDiscard?: () => void) {
     keepEditing,
     discard,
   };
-}
+};

@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip/index.tsx';
 import { Square } from 'lucide-react';
 
-export function ComposerStop({
+export const ComposerStop = ({
   action,
   thread,
   participants,
   working,
   inputRef,
-}: Pick<ChatComposerProps, 'action' | 'thread' | 'participants' | 'working' | 'inputRef'>) {
+}: Pick<ChatComposerProps, 'action' | 'thread' | 'participants' | 'working' | 'inputRef'>) => {
   const label = participants.length > 1 ? 'Stop conversation' : 'Stop response';
   return (
     <Tooltip>
@@ -34,4 +34,4 @@ export function ComposerStop({
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>
   );
-}
+};

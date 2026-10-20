@@ -1,7 +1,7 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function DesktopUpdateActions() {
+export const DesktopUpdateActions = () => {
   const state = useWorkspaceStore((store) => store.desktopUpdate);
   const download = useWorkspaceStore((store) => store.downloadDesktopUpdate);
   const install = useWorkspaceStore((store) => store.installDesktopUpdate);
@@ -36,4 +36,4 @@ export function DesktopUpdateActions() {
       ) : null}
     </div>
   );
-}
+};

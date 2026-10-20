@@ -2,7 +2,7 @@ import type { Run } from '@pitchcrew/core';
 import type { CrewService } from '../service.ts';
 
 /** Each stream sends active runs and their final saved state once, without replaying old activity. */
-export function createWorkspaceActivity(service: CrewService) {
+export const createWorkspaceActivity = (service: CrewService) => {
   let previous = new Set<string>();
   return (live: Run[]): Run[] => {
     const saved = service.board.db
@@ -28,4 +28,4 @@ export function createWorkspaceActivity(service: CrewService) {
     );
     return [...runs.values()];
   };
-}
+};

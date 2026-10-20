@@ -4,7 +4,7 @@ import type { Action } from '@/WorkspaceStore/index.ts';
 import { PipelineFinding } from './PipelineFinding.tsx';
 import { timeAgo } from '@/lib/time.ts';
 
-export function PipelineReviewCard({
+export const PipelineReviewCard = ({
   review,
   name,
   working,
@@ -14,7 +14,7 @@ export function PipelineReviewCard({
   name: (id: RoleId) => string;
   working: boolean;
   action: Action;
-}) {
+}) => {
   return (
     <article className="chat-proposal" aria-label={`Pipeline review: ${review.title}`}>
       <header>
@@ -65,4 +65,4 @@ export function PipelineReviewCard({
       </p>
     </article>
   );
-}
+};

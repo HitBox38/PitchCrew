@@ -1,25 +1,16 @@
 import type { ConnectorSettingsProps } from '@/ConnectorSettings/types.ts';
 import { useState, type FormEvent } from 'react';
 
-export function useConnectorSettings({ data, action, working }: ConnectorSettingsProps) {
-  const [editing, setEditing] = useState<'github' | 'google' | 'google-cli' | null>(null);
-  const [token, setToken] = useState('');
-  const [clientId, setClientId] = useState('');
-  const [clientSecret, setClientSecret] = useState('');
-  const [authorizationUrl, setAuthorizationUrl] = useState('');
-  const [error, setError] = useState('');
-  const [customGoogle, setCustomGoogle] = useState(false);
-  const google = data.connectors.find((c) => c.id === 'google');
-  const github = data.connectors.find((c) => c.id === 'github');
-  function close() {
+export const useConnectorSettings = ({ data, action, working }: ConnectorSettingsProps) => {
+  const close = () => {
     setEditing(null);
     setToken('');
     setClientId('');
     setClientSecret('');
     setError('');
     setCustomGoogle(false);
-  }
-  async function prepareGoogle(custom = false) {
+  };
+  const prepareGoogle = async (custom = false) => {
     setAuthorizationUrl('');
     const result = (await action(
       '/connectors/google/connect',
@@ -28,8 +19,8 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
     )) as { authorizationUrl: string };
     setAuthorizationUrl(result.authorizationUrl);
     close();
-  }
-  async function open(provider: 'github' | 'google', advanced = false) {
+  };
+  const open = async (provider: 'github' | 'google', advanced = false) => {
     setError('');
     setCustomGoogle(advanced);
     if (provider !== 'google' || advanced || !google?.configured) {
@@ -42,8 +33,8 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
       setError(e instanceof Error ? e.message : 'Could not start Google sign-in.');
       setEditing('google');
     }
-  }
-  async function connect(event: FormEvent) {
+  };
+  const connect = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
     try {
@@ -59,8 +50,8 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
       setToken('');
       setClientSecret('');
     }
-  }
-  async function connectGithubCli() {
+  };
+  const connectGithubCli = async () => {
     setError('');
     try {
       await action('/connectors/github/connect', 'POST', { mode: 'cli' }, 'GitHub connected');
@@ -68,8 +59,8 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not connect GitHub CLI.');
     }
-  }
-  async function connectGoogleCli() {
+  };
+  const connectGoogleCli = async () => {
     setError('');
     try {
       await action('/connectors/google/connect', 'POST', { mode: 'cli' }, 'Google connected');
@@ -77,7 +68,17 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not connect Google Workspace CLI.');
     }
-  }
+  };
+
+  const [editing, setEditing] = useState<'github' | 'google' | 'google-cli' | null>(null);
+  const [token, setToken] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [clientSecret, setClientSecret] = useState('');
+  const [authorizationUrl, setAuthorizationUrl] = useState('');
+  const [error, setError] = useState('');
+  const [customGoogle, setCustomGoogle] = useState(false);
+  const google = data.connectors.find((c) => c.id === 'google');
+  const github = data.connectors.find((c) => c.id === 'github');
   return {
     data,
     action,
@@ -103,4 +104,4 @@ export function useConnectorSettings({ data, action, working }: ConnectorSetting
     close,
     connect,
   };
-}
+};

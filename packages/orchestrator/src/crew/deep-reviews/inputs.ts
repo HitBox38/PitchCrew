@@ -1,6 +1,6 @@
 import type { Card } from '@pitchcrew/core';
 /** Targeted readers receive the candidate resume and evidence, never peer notes or conclusions. */
-export function subagentCard(card: Card): Card {
+export const subagentCard = (card: Card): Card => {
   return {
     ...card,
     feedback: [],
@@ -15,4 +15,4 @@ export function subagentCard(card: Card): Card {
         }
       : null,
   };
-}
+};

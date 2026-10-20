@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 import { CheckIcon } from 'lucide-react';
 
-export function DropdownMenuCheckboxItem({
+export const DropdownMenuCheckboxItem = ({
   className,
   children,
   checked,
   ...props
-}: DropdownMenuCheckboxItemProps) {
+}: DropdownMenuCheckboxItemProps) => {
   return (
     <MenuPrimitive.CheckboxItem
       data-slot="dropdown-menu-checkbox-item"
@@ -27,4 +27,4 @@ export function DropdownMenuCheckboxItem({
       {children}
     </MenuPrimitive.CheckboxItem>
   );
-}
+};

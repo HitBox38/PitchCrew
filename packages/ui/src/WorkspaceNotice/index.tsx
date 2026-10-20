@@ -9,13 +9,13 @@ interface WorkspaceNoticeProps {
   className?: string;
 }
 
-export function WorkspaceNotice({
+export const WorkspaceNotice = ({
   title,
   icon,
   children,
   actions,
   className,
-}: WorkspaceNoticeProps) {
+}: WorkspaceNoticeProps) => {
   return (
     <aside
       className={cn('workspace-notice mb-5 flex flex-wrap items-center gap-4', className)}
@@ -35,4 +35,4 @@ export function WorkspaceNotice({
       </div>
     </aside>
   );
-}
+};

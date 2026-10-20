@@ -8,7 +8,7 @@ import { TooltipProvider } from '@/components/ui/tooltip/components/TooltipProvi
 import { Link } from '@tanstack/react-router';
 import { Settings } from 'lucide-react';
 
-export function SettingsLink({ active }: { active: boolean }) {
+export const SettingsLink = ({ active }: { active: boolean }) => {
   return (
     <TooltipProvider delay={300}>
       <SidebarFooter>
@@ -29,4 +29,4 @@ export function SettingsLink({ active }: { active: boolean }) {
       </SidebarFooter>
     </TooltipProvider>
   );
-}
+};

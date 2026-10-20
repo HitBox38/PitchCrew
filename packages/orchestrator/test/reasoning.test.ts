@@ -8,9 +8,7 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-async function reasoningSetup(port: number) {
+const reasoningSetup = async (port: number) => {
   vi.spyOn(adapters['claude-code'], 'detect').mockResolvedValue({
     id: 'claude-code',
     available: true,
@@ -33,7 +31,9 @@ async function reasoningSetup(port: number) {
     turns,
     role: { ...role, runtime: 'claude-code' as const, model: 'sonnet', reasoning: 'high' as const },
   };
-}
+};
+
+afterEach(cleanup);
 
 it('saves defaults, applies chat overrides and CLI default, and replays exact effective run settings', async () => {
   const { daemon, request, role, turns } = await reasoningSetup(14951);

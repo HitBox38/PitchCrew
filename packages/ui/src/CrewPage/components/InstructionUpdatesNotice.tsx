@@ -5,13 +5,13 @@ import { Sparkles } from 'lucide-react';
 import { WorkspaceNotice } from '@/WorkspaceNotice/index.tsx';
 
 /** Crew summary of unanswered default instruction updates. */
-export function InstructionUpdatesNotice({
+export const InstructionUpdatesNotice = ({
   data,
   onReview,
 }: {
   data: Snapshot;
   onReview: (id: RoleId) => void;
-}) {
+}) => {
   const updates = pendingInstructionUpdates(data);
   if (!updates.length) return null;
   const name = (id: RoleId) => data.roles.find((role) => role.id === id)?.name ?? id;
@@ -33,4 +33,4 @@ export function InstructionUpdatesNotice({
       you review and choose.
     </WorkspaceNotice>
   );
-}
+};

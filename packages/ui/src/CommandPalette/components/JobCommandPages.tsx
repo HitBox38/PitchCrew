@@ -2,7 +2,7 @@ import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx'
 import { jobPagePrefix } from '../helpers.ts';
 import type { useJobCommands } from '../hooks/useJobCommands.ts';
 
-export function JobCommandPages({ page, pages, setPage }: ReturnType<typeof useJobCommands>) {
+export const JobCommandPages = ({ page, pages, setPage }: ReturnType<typeof useJobCommands>) => {
   if (pages <= 1) return null;
   return (
     <>
@@ -18,4 +18,4 @@ export function JobCommandPages({ page, pages, setPage }: ReturnType<typeof useJ
       ) : null}
     </>
   );
-}
+};

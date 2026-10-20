@@ -8,7 +8,7 @@ import {
 import { X } from 'lucide-react';
 import { browserCommand } from '../api.ts';
 import type { BrowserControl } from '../types.ts';
-export function BrowserReset({
+export const BrowserReset = ({
   roleId,
   thread,
   control,
@@ -20,7 +20,7 @@ export function BrowserReset({
   control: BrowserControl;
   open: boolean;
   setOpen: (open: boolean) => void;
-}) {
+}) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="modal" showCloseButton={false}>
@@ -60,4 +60,4 @@ export function BrowserReset({
       </DialogContent>
     </Dialog>
   );
-}
+};

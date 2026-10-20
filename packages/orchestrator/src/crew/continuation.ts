@@ -4,7 +4,7 @@ import { conversation } from './conversations.ts';
 import { saveRequest, drainConversationQueue, sendConversation } from './conversation-queue.ts';
 import type { CrewContext } from './types.ts';
 
-export function continueConversation(context: CrewContext, id: string): ChatRequest {
+export const continueConversation = (context: CrewContext, id: string): ChatRequest => {
   const item = conversation(context, id);
   if (['history', 'agent_dm'].includes(item.kind))
     throw new Error('Continue through a user conversation.');
@@ -59,13 +59,13 @@ export function continueConversation(context: CrewContext, id: string): ChatRequ
   saveRequest(context, request);
   void drainConversationQueue(context);
   return request;
-}
-export async function completeContinuation(
+};
+export const completeContinuation = async (
   context: CrewContext,
   run: Run,
   reply: string,
   sourceIds: string[],
-): Promise<void> {
+): Promise<void> => {
   if (!run.requestId) return;
   const request = context.board.get<ChatRequest>('chat_request', run.requestId);
   if (!request.summarize) return;
@@ -91,4 +91,4 @@ export async function completeContinuation(
     content:
       'Continue the remaining work from the continuation summary. Preserve the original request and agreed constraints.',
   });
-}
+};

@@ -14,7 +14,13 @@ interface SidebarCategoryProps {
   action?: ReactNode;
 }
 
-export function SidebarCategory({ id, label, className, children, action }: SidebarCategoryProps) {
+export const SidebarCategory = ({
+  id,
+  label,
+  className,
+  children,
+  action,
+}: SidebarCategoryProps) => {
   const { open, changeOpen } = useCategoryOpen(id);
   const { state, isMobile } = useSidebar();
   const iconOnly = !isMobile && state === 'collapsed';
@@ -30,4 +36,4 @@ export function SidebarCategory({ id, label, className, children, action }: Side
       <CollapsibleContent keepMounted>{children}</CollapsibleContent>
     </Collapsible>
   );
-}
+};
