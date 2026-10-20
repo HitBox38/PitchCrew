@@ -40,7 +40,7 @@ vi.mock('electron', () => ({
     }
   },
   dialog: { showErrorBox: vi.fn() },
-  ipcMain: new EventEmitter(),
+  ipcMain: Object.assign(new EventEmitter(), { handle: vi.fn() }),
   nativeImage: { createFromPath: vi.fn() },
   nativeTheme: { shouldUseDarkColors: false },
   session: { defaultSession: { setPermissionRequestHandler: vi.fn() } },

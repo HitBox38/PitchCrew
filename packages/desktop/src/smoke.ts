@@ -76,6 +76,12 @@ export function installSmokeCheck(window: BrowserWindow, appIcon: NativeImage) {
               return false;
             };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
+            const startup = window.pitchcrewStartup;
+            if (!startup || Object.keys(startup).join(',') !== 'getTiming')
+              throw new Error('Desktop startup bridge is missing or exposes extra capabilities.');
+            const timing = await startup.getTiming();
+            if (timing !== null && (!Number.isFinite(timing.duration_ms) || !Number.isFinite(timing.daemon_ready_ms) || timing.duration_ms < timing.daemon_ready_ms))
+              throw new Error('Desktop startup bridge returned invalid timings.');
             const desktopUpdater = window.pitchcrewUpdates;
             if (!desktopUpdater || Object.keys(desktopUpdater).sort().join(',') !== 'check,download,getState,install,subscribe')
               throw new Error('Desktop updater bridge is missing or exposes extra capabilities.');
