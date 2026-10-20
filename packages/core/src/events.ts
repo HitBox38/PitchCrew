@@ -1,3 +1,4 @@
+import type { WritingGuide, WritingCorrection, CareerPlan } from './application-quality.ts';
 import type { DeepReview, ReviewSubagent } from './deep-reviews.ts';
 import type { WorkQueue, QueueSettings } from './work-queue.ts';
 import type { UserInputRequest } from './user-input.ts';
@@ -46,8 +47,12 @@ export interface BoardEvent {
     | 21
     | 22
     | 23
-    | 24;
+    | 24
+    | 25;
   kind:
+    | 'writing_guide'
+    | 'writing_correction'
+    | 'career_plan'
     | 'work_queue'
     | 'queue_settings'
     | 'deep_review'
@@ -79,6 +84,9 @@ export interface BoardEvent {
   actor: string;
   message: string;
   data:
+    | WritingGuide
+    | WritingCorrection
+    | CareerPlan
     | WorkQueue
     | QueueSettings
     | DeepReview
@@ -108,8 +116,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 24 adds durable job/conversation scheduling and queued board actions. */
-export const currentEventVersion = 24 as const;
+/** Version 25 adds quality state alongside version 24 durable work queues. */
+export const currentEventVersion = 25 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -136,7 +144,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 21 &&
     event.version !== 22 &&
     event.version !== 23 &&
-    event.version !== 24
+    event.version !== 24 &&
+    event.version !== 25
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

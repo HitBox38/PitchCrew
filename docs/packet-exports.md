@@ -2,6 +2,33 @@
 
 When you request export approval, Pitchcrew can render the resume and cover letter as PDF and DOCX files. Approval requires user-confirmed application context and a packet review bound to that context and exact packet bytes. Existing packets need these checks before another export or managed browser submission. Approval freezes the exact bytes and their SHA-256 manifest. Export, upload and preview all use those frozen bytes. The daemon loads PDF, DOCX and font-rendering engines only when rendering, checking layout or counting a frozen PDF’s pages; ordinary startup and snapshots without documents do not initialize them.
 
+## Verification before approval
+
+Each requested PDF/DOCX is checked from its actual bytes before it reaches
+Inbox. Unreadable files, empty text and missing expected content block that file;
+an essential extraction failure or timeout also blocks it until a successful
+retry. Valid alternative files can still proceed, so DOCX remains usable when
+PDF fonts/scripts are unsupported. If every requested file fails, the approval
+request returns the findings instead of creating an unusable approval.
+
+Inbox shows per-file findings, with page numbers where available. Large gaps,
+possible stranded headings, unusual extraction order and page-target overruns
+are warnings. An unavailable advisory check warns that layout was not checked.
+DOCX text is verified, but final Word layout is not; its page count is an estimate.
+
+Content retention compares normalized character counts against the expected
+visible text, tolerating wrapping, Unicode compatibility glyphs and bidi ordering.
+It detects omissions but cannot prove sentence order or compatibility with every
+ATS. Factual review and exact user export approval remain separate checks.
+
+Drafting and review can make one automatic Writer formatting correction followed
+by independent Reviewer recheck, within the original time budget. Renderer and
+font failures are reported directly. Remaining warnings stay advisory; essential
+failures block only the affected files. Final export checks the frozen bytes again
+and rechecks current permissions, Profile and packet rules before consuming approval.
+See [application process quality](application-process-quality.md) for check limits,
+source isolation and writing preferences.
+
 ## Layouts
 
 **Formatted** is the default. It reads the Markdown and lays it out as a one-column document:

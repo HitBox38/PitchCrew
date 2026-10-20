@@ -4,6 +4,7 @@ import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import { verifiedArtifact } from './artifacts.ts';
 export * from './artifacts.ts';
 export * from './rules.ts';
+export * from './verification/index.ts';
 import { join } from 'node:path';
 
 export async function readProfile(directory: string): Promise<ProfileFile[]> {

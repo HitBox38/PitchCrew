@@ -1,5 +1,6 @@
 import { RuntimeMaintenance } from '../runtime-maintenance/index.ts';
 import { Board } from '@pitchcrew/board';
+import { writingGuide, saveGuide } from '../quality/writing.ts';
 import { ProfileOrganizationStore } from '../profile-organization.ts';
 import { InstructionUpdatePreferences } from '../instruction-updates.ts';
 import { SkillUpdateChecks } from '../skill-update-checks/index.ts';
@@ -141,6 +142,7 @@ export function createCrewContext(
     agentCall: (...args) => agentCall.call(context, ...args),
     close: (...args) => close.call(context, ...args),
   };
+  if (!board.list('writing_guide').length) saveGuide(context, writingGuide(context), 'system');
   if (dev) context.board.seedRoles('demo', true);
   return context;
 }

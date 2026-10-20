@@ -4,6 +4,7 @@ import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
 
 const labels: Record<string, string> = {
+  quality: 'Updating writing preferences and career plans',
   check_linkedin_draft: 'Checking LinkedIn draft lengths',
   start_deep_review: 'Starting deep resume review',
   start_review_subagent: 'Starting targeted second opinion',

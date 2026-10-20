@@ -33,12 +33,14 @@ export interface Approval {
   exportDirectory?: string;
   artifacts?: PacketArtifact[];
   artifactDigest?: string;
+  documentVerification?: import('./packets.ts').DocumentVerification[];
 }
 export interface ProfileFile {
   name: string;
   content: string;
 }
 export interface Snapshot extends WorkspaceMessages {
+  quality?: import('./application-quality.ts').QualitySnapshot;
   queue?: import('./work-queue.ts').WorkspaceQueue;
   /** UI projection: job source text is fetched when its details are opened. */
   workspace?: true;

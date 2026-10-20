@@ -1,3 +1,4 @@
+import { guideForRun } from '../../quality/writing.ts';
 import { selectedChatSkills } from '../chat-references.ts';
 import { reviewChildren } from './subagents.ts';
 import { reviewClarifications } from './clarifications.ts';
@@ -54,6 +55,7 @@ async function executeReviewStagePrepared(
   childSignal?.addEventListener('abort', abort, { once: true });
   if (childSignal?.aborted) controller.abort();
   const run: Run = {
+    writingGuide: guideForRun(context),
     id: child?.runId ?? randomUUID(),
     roleId: role.id,
     runtime: role.runtime,
@@ -128,6 +130,7 @@ async function executeReviewStagePrepared(
             alternatives: child ? [] : report.options.alternatives,
           },
           deadline: live.deadline,
+          writingGuide: run.writingGuide,
           mcp: {
             command: process.execPath,
             args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],

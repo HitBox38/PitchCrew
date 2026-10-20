@@ -19,18 +19,28 @@ export function ApplicationSectionContent({
   const { card, brief, busy } = model;
   if (section === 'brief') return <ApplicationBriefReview card={card} model={brief} />;
   if (section === 'documents')
-    return card.packet ? (
-      <JobPacket {...model} />
-    ) : (
-      <p className="quiet">
-        {brief.confirmed
-          ? 'Use Draft application below to prepare your documents.'
-          : 'Review and confirm the brief, then draft your application.'}
-      </p>
+    return (
+      <div className="space-y-3">
+        <Button variant="link" onClick={model.openWriting}>
+          Writing guide
+        </Button>
+        {card.packet ? (
+          <JobPacket {...model} />
+        ) : (
+          <p className="quiet">
+            {brief.confirmed
+              ? 'Use Draft application below to prepare your documents.'
+              : 'Review and confirm the brief, then draft your application.'}
+          </p>
+        )}
+      </div>
     );
   if (section === 'reviews')
     return (
       <div className="space-y-5">
+        <Button variant="link" onClick={model.openWriting}>
+          Writing guide
+        </Button>
         <ReviewLaunch
           card={card}
           data={model.data}

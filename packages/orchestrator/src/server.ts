@@ -10,6 +10,7 @@ import { registerJsonBody } from './http/body.ts';
 import { registerAnalyticsRoutes, type AnalyticsConfig } from './http/analytics.ts';
 import { registerChatStream } from './http/chat-stream.ts';
 import { registerAgentRoutes } from './http/routes/agent.ts';
+import { registerQualityRoutes } from './http/routes/quality.ts';
 import { registerApprovalsRoutes } from './http/routes/approvals.ts';
 import { registerBrowserRoutes } from './http/routes/browser.ts';
 import { registerBoardRoutes } from './http/routes/board.ts';
@@ -131,6 +132,7 @@ async function startDaemon(options: DaemonOptions, releaseLock: () => Promise<vo
     registerChatStream(app, service, chatStreams);
     for (const registerRoutes of [
       registerAgentRoutes,
+      registerQualityRoutes,
       registerBoardRoutes,
       registerOnboardingRoutes,
       registerPacketRulesRoutes,

@@ -1,3 +1,4 @@
+import { WritingSettings } from '@/WritingSettings/index.tsx';
 import { BackgroundServiceSettings } from '@/BackgroundServiceSettings/index.tsx';
 import { AnalyticsSettings } from '@/Analytics/components/AnalyticsSettings.tsx';
 import { ConnectorSettings } from '@/ConnectorSettings/index.tsx';
@@ -53,6 +54,9 @@ export function SettingsPage() {
       </TabsContent>
       <TabsContent className="settings-content settings-rules-content" value="rules">
         {data.packetRules ? <PacketRulesSettings state={data.packetRules} /> : null}
+      </TabsContent>
+      <TabsContent className="settings-content" value="writing">
+        <WritingSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="data">
         <DataSettings directory={data.dataDirectory} />

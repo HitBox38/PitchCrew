@@ -2,6 +2,7 @@ import { expect, it, vi } from 'vitest';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { mcpGatewayTools, mcpConnectorTools } from '@pitchcrew/core';
 import { connectorTools } from '../src/connectors/tools.ts';
+import { registerQualityTools } from '../src/tools/quality.ts';
 import { registerCrewTools } from '../src/tools/crew.ts';
 import { registerPacketTools } from '../src/tools/packet.ts';
 import { registerComputerTools } from '../src/tools/computer.ts';
@@ -30,6 +31,7 @@ it('keeps reviewed telemetry names aligned with all advertised production tools'
     },
   });
   registerCrewTools(server, call);
+  registerQualityTools(server, call);
   registerLinkedInTools(server, call);
   registerPacketTools(server, call);
   await registerComputerTools(server, call);

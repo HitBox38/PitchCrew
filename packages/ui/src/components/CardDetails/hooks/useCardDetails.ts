@@ -1,3 +1,4 @@
+import { useNavigate } from '@tanstack/react-router';
 import type { ApplicationSection, CardDetailsProps, JobSection } from '../types.ts';
 import { jobAgents, jobRole, latestJobFailure } from '../helpers.ts';
 import type { Packet } from '@pitchcrew/core';
@@ -8,6 +9,7 @@ import { useApplicationBrief } from '@/ApplicationBriefReview/hooks/useApplicati
 
 export function useCardDetails(props: CardDetailsProps) {
   const { card, data, action, working } = props;
+  const navigate = useNavigate();
   const [tab, setTab] = useState<JobSection>(props.initialSection ?? 'job');
   const [briefDirty, setBriefDirty] = useState(false);
   const [activityDirty, setActivityDirty] = useState(false);
@@ -81,6 +83,11 @@ export function useCardDetails(props: CardDetailsProps) {
     failed: latestJobFailure(card.id, data.runs),
     onClose: () => guard.requestLeave(props.onClose),
     openInbox: () => guard.requestLeave(props.onInbox),
+    openWriting: () =>
+      guard.requestLeave(() => {
+        props.onClose();
+        void navigate({ to: '/settings', search: { section: 'writing' } });
+      }),
     openChat: (thread: string, runId: string) =>
       guard.requestLeave(() => props.onChat(thread, runId)),
   };

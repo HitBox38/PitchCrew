@@ -468,8 +468,15 @@ describe('packet rules', () => {
     const lint = await daemon.service.agentCall('fixture-token', 'lint', {
       packet: { ...packet, coverLetter: 'Dear Fixture Co team,\nBuilt React interfaces.' },
     });
-    expect(lint).toEqual({
+    expect(lint).toMatchObject({
       problems: [],
+      documents: {
+        errors: [],
+        reports: [
+          { name: 'resume.pdf', status: 'verified' },
+          { name: 'cover_letter.pdf', status: 'verified' },
+        ],
+      },
       layout: { resumePages: 1, coverLetterPages: 1, warnings: [] },
       warnings: [
         'Address a named person when you can. (Cover letter: 1 match, "Dear Fixture Co team,")',

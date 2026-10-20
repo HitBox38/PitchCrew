@@ -26,7 +26,9 @@ Conversations can attach a job when relevant. The first version does not add a
 dedicated Career workspace.
 
 Coaching results stay in persistent chat with existing copy controls and concise
-memory summaries. The first version does not introduce downloadable coaching
+memory summaries. Scoped gap analyses and career action plans additionally persist
+in Insights, with source requirements, up to three user-selected priorities and
+progress that survives conversations. See [application process quality](application-process-quality.md). The first version does not introduce downloadable coaching
 reports or extend the application-packet PDF/DOCX exporter.
 
 ## Coaching continuity
@@ -134,6 +136,10 @@ use in Supervised mode. Follow the existing support-role pattern for scoped crew
 messaging; coaching needs no agent invocation, workflow mutations, account
 connectors, profile maintenance, submission or crew-change capabilities.
 Existing role identities and user configurations retain their saved settings.
+Career plan refresh/progress additionally uses the optional `manageCareerPlans`
+capability alongside `readApplications`. Newly seeded Career Coach roles receive
+it; enable it in Crew for an existing Coach when needed. This does not grant
+application bookkeeping or Profile evidence writes.
 
 Add the five activity starters through the existing chat welcome suggestions.
 Starters express a user request; they do not introduce a second workflow engine.

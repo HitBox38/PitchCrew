@@ -1,4 +1,5 @@
 import { registerDeepReviewTools } from './tools/deep-reviews.ts';
+import { registerQualityTools } from './tools/quality.ts';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
@@ -46,6 +47,7 @@ if (purpose === 'source-extraction') {
       );
   } else {
     registerCrewTools(server, call);
+    registerQualityTools(server, call);
     registerLinkedInTools(server, call);
     registerDeepReviewTools(server, call);
     registerRoutineTools(server, call);

@@ -196,3 +196,15 @@ test('previews the live workflow turn and opens that exact job chat without canc
   );
   expect(errors).toEqual([]);
 }, 30000);
+
+test('opens Writing settings from the redesigned application documents and closes the job sheet', async () => {
+  await page.getByRole('tab', { name: 'Application', exact: true }).click();
+  await page.getByRole('button', { name: /^Documents/ }).click();
+  await page.getByRole('button', { name: 'Writing guide', exact: true }).click();
+  await page.getByRole('heading', { name: 'Writing guide', exact: true }).waitFor();
+  expect(new URL(page.url()).searchParams.get('section')).toBe('writing');
+  await expect
+    .poll(() => page.getByRole('dialog', { name: 'Job details', exact: true }).count())
+    .toBe(0);
+  expect(errors).toEqual([]);
+});

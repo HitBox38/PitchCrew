@@ -17,6 +17,9 @@ export interface RunActivity {
 }
 export type RuntimeActivity = Pick<RunActivity, 'id' | 'kind' | 'label' | 'status' | 'text'>;
 export interface Run {
+  writingGuide?: Pick<import('./application-quality.ts').WritingGuide, 'revision' | 'preferences'>;
+  writingCorrectionId?: string;
+  documentRepair?: boolean;
   profileDigest?: string;
   purpose?:
     | 'source-extraction'
@@ -55,6 +58,7 @@ export interface Run {
   outputPacketDigest?: string | null;
 }
 export interface AgentTask {
+  writingCorrectionId?: string;
   id: string;
   parentRunId: string;
   rootRunId: string;

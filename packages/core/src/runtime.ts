@@ -35,6 +35,10 @@ export interface RuntimeRecommendation extends RuntimeConfiguration {
   detail: string;
 }
 export interface RunContext {
+  writingGuide?: {
+    revision: number;
+    preferences: import('./application-quality.ts').WritingPreference[];
+  };
   purpose?:
     | 'source-extraction'
     | 'application-draft'
