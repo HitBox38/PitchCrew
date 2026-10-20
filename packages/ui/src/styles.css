@@ -21,6 +21,7 @@
 @import './styles/insights.css' layer(components);
 @import './styles/routines.css' layer(components);
 @import './styles/queue.css' layer(components);
+@import './styles/queue-widget.css' layer(components);
 @import './styles/dialogs.css' layer(components);
 @import './styles/imports.css' layer(components);
 @import './styles/agent-creation.css' layer(components);

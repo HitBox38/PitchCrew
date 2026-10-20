@@ -3,13 +3,17 @@ import type { WorkQueueView } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
+import { queueStateLabels } from '@/lib/work-queue.ts';
+import { MessageSquare, BriefcaseBusiness } from 'lucide-react';
 
 export const QueueCardHeading = ({
   queue,
   handle,
+  answerThreadId,
 }: {
   queue: WorkQueueView;
   handle?: ReactNode;
+  answerThreadId?: string;
 }) => {
   const action = useWorkspaceStore((s) => s.action);
   const openCard = useWorkspaceStore((s) => s.openCard);
@@ -21,17 +25,13 @@ export const QueueCardHeading = ({
     <div className="queue-card-heading">
       {handle}
       <div className="min-w-0 flex-1">
+        <span className="queue-kind">
+          {queue.cardId ? <BriefcaseBusiness size={12} /> : <MessageSquare size={12} />}
+          {queue.cardId ? 'Job' : 'Conversation'}
+        </span>
         <h3>{queue.title}</h3>
         <span className={`queue-state queue-state-${queue.state}`}>
-          {
-            {
-              ready: 'Waiting for a slot',
-              running: 'Working',
-              waiting: 'Waiting for your answer',
-              paused: 'Paused',
-              blocked: 'Needs attention',
-            }[queue.state]
-          }
+          {queueStateLabels[queue.state]}
         </span>
       </div>
       <div className="queue-row-actions">
@@ -39,10 +39,12 @@ export const QueueCardHeading = ({
           variant="outline"
           size="sm"
           onClick={() =>
-            queue.cardId ? openCard(queue.cardId) : void navigation.openChat(queue.threadId)
+            queue.cardId && queue.state !== 'waiting'
+              ? openCard(queue.cardId)
+              : void navigation.openChat(answerThreadId ?? queue.threadId)
           }
         >
-          Open
+          {queue.state === 'waiting' ? 'Answer' : 'Open'}
         </Button>
         {queue.state === 'running' ? (
           <Button variant="outline" size="sm" disabled={working} onClick={() => command('stop')}>

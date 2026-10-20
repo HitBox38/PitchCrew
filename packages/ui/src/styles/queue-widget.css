@@ -1,0 +1,99 @@
+.queue-widget-trigger {
+  min-width: 0;
+  height: 30px;
+  gap: 8px;
+  padding-inline: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 400;
+  box-shadow: none;
+}
+.queue-widget-trigger > .queue-slots {
+  width: 42px;
+  gap: 2px;
+}
+.queue-widget-trigger .queue-slots > span {
+  height: 12px;
+  border-radius: 2px;
+}
+.queue-widget-trigger > .queue-slots[data-dense='true'] {
+  gap: 0.5px;
+}
+.queue-widget-trigger > .queue-widget-pending {
+  color: var(--muted);
+  border-left: 1px solid var(--border);
+  padding-left: 8px;
+}
+.queue-widget-held {
+  color: var(--ochre);
+}
+.queue-widget-panel {
+  width: min(420px, calc(100vw - 24px));
+  padding: 16px;
+}
+.queue-widget-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 4px;
+}
+.queue-widget-heading h2 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.queue-widget-heading > span {
+  color: var(--teal);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.queue-widget-panel > .queue-slots {
+  margin-block: 14px;
+}
+.queue-widget-work-list {
+  max-height: min(400px, 50dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  list-style: none;
+  padding: 0;
+  margin-bottom: 12px;
+}
+.queue-widget-work {
+  padding-block: 12px;
+  border-top: 1px solid var(--border);
+  font-size: 12px;
+}
+.queue-widget-work .queue-state {
+  flex-shrink: 0;
+}
+.queue-widget-agent {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 8px;
+}
+.queue-widget-work > .quiet {
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.queue-widget-empty,
+.queue-widget-background {
+  color: var(--muted);
+  font-size: 12px;
+  padding-block: 12px;
+}
+@variant max-phone {
+  .queue-widget-trigger > .queue-slots {
+    width: 30px;
+  }
+  .queue-widget-trigger > .queue-widget-pending {
+    display: none;
+  }
+  .queue-widget-trigger {
+    gap: 6px;
+    padding-inline: 7px;
+  }
+}

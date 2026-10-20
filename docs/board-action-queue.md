@@ -42,7 +42,11 @@ The general workspace queue view supports both levels: users reorder waiting job
 
 ## Queue page
 
-The general workspace queue view lives on a dedicated **Queue** page in the Workspace sidebar, with a pending count. A shortcut in the board header opens it. The page provides room for running work, waiting jobs and standalone conversations, and expandable lists of their requests.
+The general workspace queue view lives on a dedicated **Queue** page in the Workspace sidebar, with a pending count. A shortcut in the board header opens it. A shared capacity strip shows occupied and available workspace slots, including background routines, alongside the concurrency setting. **Working now** shows independent job and conversation queues side by side, with each executing agent's identity, runtime and latest public activity. Activity links open the exact conversation and run. Managed review seat reservations hold their queue's slot but are excluded from executing-agent counts. Multiple agent runs within one queue still consume only one workspace slot.
+
+**Up next** contains eligible queues in their saved priority order. **On hold** separates paused queues, unanswered questions and prerequisite problems; these queues release their slots. Both groups retain keyboard and drag ordering within their group, and expandable request lists retain editing, removal, recovery and per-job ordering. Running request lists start collapsed; pending lists start expanded. Answer opens the waiting request's conversation.
+
+The toolbar's queue widget remains available throughout the workspace, including when idle. It shows the same slot occupancy, ready count and on-hold count. Its keyboard-accessible popover shows all concurrent visible queues and their individual executing agents, a separate background routine count, held work and a link to the Queue page. The list scrolls within a bounded popover on small screens. It replaces the previous comma-separated running-agent ticker.
 
 Routines without a job remain outside this view as specified below.
 
@@ -114,7 +118,7 @@ Manual takeover applies to the selected job's browser tab. Browser action approv
 
 Event version 24 adds `work_queue` and `queue_settings`; existing events remain replayable. Queue HTTP mutations require the same local UI session, client header, Host and Origin checks as other user actions. `GET /api/queue` reads the view, `PUT /api/queue/settings` changes capacity, `POST /api/queue/actions` adds a board action, `PUT /api/queue/:id` controls a queue and `PUT /api/queue/requests/:id/order` changes inner order. Existing chat-request routes retain editing, removal and explicit recovery.
 
-Deterministic HTTP tests exercise same-agent concurrency, job-wide serialization, global priority, questions releasing capacity, scoped Stop/Resume, failed follow-up recovery, prerequisite rejection, duplicates, explicit repeats and restart replay. Headless UI tests cover keyboard ordering, rejected-order rollback, repeated actions, capacity changes and narrow/reduced-motion layouts. Browser tests cover one shared persistent login context with independent job pages, manual leases and closure. Automated verification makes no live provider calls.
+Deterministic HTTP tests exercise same-agent concurrency, job-wide serialization, global priority, questions releasing capacity, scoped Stop/Resume, failed follow-up recovery, prerequisite rejection, duplicates, explicit repeats and restart replay. Headless UI tests cover keyboard ordering, rejected-order rollback, repeated actions, capacity changes, parallel agent runs versus queue slots, reserved seats, background occupancy, ready/on-hold grouping, exact-run activity links, widget keyboard focus and narrow dark/reduced-motion layouts. Browser tests cover one shared persistent login context with independent job pages, manual leases and closure. Automated verification makes no live provider calls.
 
 ## Reference behavior
 
