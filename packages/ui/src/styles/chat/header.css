@@ -1,3 +1,10 @@
+.runtime-readiness-notice {
+  display: block;
+  background: var(--ochre-soft);
+  box-shadow: inset 3px 0 var(--ochre);
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
 .chat-panel {
   container: chat-desk / inline-size;
   gap: 0;

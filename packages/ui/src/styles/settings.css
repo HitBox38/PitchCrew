@@ -1,4 +1,8 @@
 /* Settings share Profile's quiet navigation and a contained paper work surface. */
+.runtime-card {
+  background: var(--surface);
+  box-shadow: var(--sheet);
+}
 .workspace-body.settings-workspace-body {
   display: flex;
   flex-direction: column;

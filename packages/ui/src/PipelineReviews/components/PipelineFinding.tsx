@@ -19,7 +19,7 @@ export function PipelineFinding({
 }) {
   const followup = review.followups.find((item) => item.findingId === finding.id);
   return (
-    <section className="space-y-3 border-t py-3">
+    <section className="space-y-3 border-t border-border py-3">
       <h5>
         {name(finding.targetRoleId as RoleId)} /{' '}
         {finding.kind === 'hypothesis' ? 'Hypothesis: needs testing' : 'Observation'}

@@ -16,7 +16,7 @@ export function TraceCollapsibleContent({
       <div
         data-slot="trace-collapsible-content-inner"
         className={cn(
-          'primitive:mt-2 primitive:mb-1 primitive:ml-[calc(--spacing(2)-1px)] primitive:min-w-0 primitive:border-l primitive:pr-1 primitive:pl-4 primitive:leading-relaxed primitive:wrap-break-word primitive:text-muted-foreground',
+          'primitive:mt-2 primitive:mb-1 primitive:ml-[calc(--spacing(2)-1px)] primitive:min-w-0 primitive:border-l primitive:border-border primitive:pr-1 primitive:pl-4 primitive:leading-relaxed primitive:wrap-break-word primitive:text-muted-foreground',
           className,
         )}
       >

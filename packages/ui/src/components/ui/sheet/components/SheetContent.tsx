@@ -20,7 +20,7 @@ export function SheetContent({
         data-sheet-content=""
         data-side={side}
         className={cn(
-          'primitive:fixed primitive:z-50 primitive:flex primitive:flex-col primitive:gap-4 primitive:bg-background primitive:shadow-lg',
+          'primitive:fixed primitive:z-50 primitive:flex primitive:flex-col primitive:gap-4 primitive:border-border primitive:bg-background primitive:shadow-pop',
           side === 'right' &&
             'primitive:inset-y-0 primitive:right-0 primitive:h-full primitive:w-3/4 primitive:border-l primitive:sm:max-w-sm',
           side === 'left' &&

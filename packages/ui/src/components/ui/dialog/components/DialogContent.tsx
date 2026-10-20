@@ -19,7 +19,7 @@ export function DialogContent({
         data-slot="dialog-content"
         data-motion={motion}
         className={cn(
-          'primitive:fixed primitive:top-[50%] primitive:left-[50%] primitive:z-50 primitive:grid primitive:w-full primitive:max-w-[calc(100%-2rem)] primitive:translate-x-[-50%] primitive:translate-y-[-50%] primitive:gap-4 primitive:rounded-lg primitive:border primitive:bg-background primitive:p-6 primitive:shadow-lg primitive:outline-none primitive:sm:max-w-lg',
+          'primitive:fixed primitive:top-[50%] primitive:left-[50%] primitive:z-50 primitive:grid primitive:w-full primitive:max-w-[calc(100%-2rem)] primitive:translate-x-[-50%] primitive:translate-y-[-50%] primitive:gap-4 primitive:rounded-lg primitive:border primitive:border-border primitive:bg-background primitive:p-6 primitive:shadow-lg primitive:outline-none primitive:sm:max-w-lg',
           className,
         )}
         {...props}
