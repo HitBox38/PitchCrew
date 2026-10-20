@@ -25,7 +25,7 @@ export function registerJobSourcesRoutes(app: FastifyInstance, service: CrewServ
     });
     res.send(await service.jobSources.preview(req.body, controller.signal));
   });
-  // Fills the Add job form from a posting link. It fetches only fixed provider endpoints.
+  // Fills Add job from fixed provider APIs or bounded, public structured posting pages.
   app.post('/api/jobs/lookup', async (req, res) => {
     const controller = new AbortController();
     res.raw.once('close', () => {

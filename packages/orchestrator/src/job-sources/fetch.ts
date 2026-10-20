@@ -10,10 +10,10 @@ export type FetchLike = (url: string, init: RequestInit) => Promise<Response>;
 
 /** Space requests to the same provider; different providers proceed independently. */
 export class ProviderRateLimiter {
-  private readonly next = new Map<JobProvider, Promise<void>>();
+  private readonly next = new Map<JobProvider | 'smartrecruiters' | 'public-page', Promise<void>>();
   constructor(private readonly intervalMs = providerIntervalMs) {}
   async schedule<T>(
-    provider: JobProvider,
+    provider: JobProvider | 'smartrecruiters' | 'public-page',
     task: () => Promise<T>,
     signal?: AbortSignal,
   ): Promise<T> {

@@ -3,8 +3,12 @@ import { useState, type FormEvent } from 'react';
 import { tagValues } from '@/TagPicker/helpers.ts';
 import { provenanceFor } from '../helpers.ts';
 import { useJobLookup } from './useJobLookup.ts';
+import { useScoutJobImport } from './useScoutJobImport.ts';
 
-export function useAddOpportunity({ action, working, onClose }: AddOpportunityProps) {
+export function useAddOpportunity(props: AddOpportunityProps) {
+  const { action, onClose } = props;
+  const scout = useScoutJobImport(props);
+  const working = props.working || scout.pending;
   const [error, setError] = useState('');
   const [external, setExternal] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
@@ -65,5 +69,6 @@ export function useAddOpportunity({ action, working, onClose }: AddOpportunityPr
     tagQuery,
     setTagQuery,
     lookup,
+    scout,
   };
 }

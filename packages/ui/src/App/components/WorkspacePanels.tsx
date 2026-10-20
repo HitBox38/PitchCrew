@@ -40,6 +40,7 @@ export function WorkspacePanels({
         {add ? (
           <AddOpportunity
             key="add-job"
+            data={data}
             action={action}
             working={working}
             onClose={() => setAdd(false)}
