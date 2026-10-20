@@ -14,24 +14,14 @@ export const readSourceDocuments = (input: ProfileSourceInput) => {
   return api<ProfileSourcePreview>('/profile/sources/preview', 'POST', input);
 };
 export const importSourceDocuments = async (action: Action, token: string, names: string[]) => {
-  return (await action(
-    '/profile/sources/import',
-    'POST',
-    { token, names },
-    'Profile documents imported',
-  )) as ProfileFile[];
+  return (await action('/profile/sources/import', 'POST', { token, names })) as ProfileFile[];
 };
 export const addProjectWatch = (action: Action, input: ProfileSourceInput) => {
-  return action('/profile/sources/project', 'POST', input, 'Project watch added');
+  return action('/profile/sources/project', 'POST', input);
 };
 export const setSourceWatching = (action: Action, id: string, watching: boolean) => {
-  return action(
-    `/profile/sources/${id}/watch`,
-    'PUT',
-    { watching },
-    watching ? 'Source watching enabled' : 'Source watching paused',
-  );
+  return action(`/profile/sources/${id}/watch`, 'PUT', { watching });
 };
 export const removeSource = (action: Action, id: string) => {
-  return action(`/profile/sources/${id}`, 'DELETE', undefined, 'Source removed; local notes kept');
+  return action(`/profile/sources/${id}`, 'DELETE');
 };

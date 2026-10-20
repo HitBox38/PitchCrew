@@ -18,9 +18,7 @@ const ImportReviewContent = (c: ImportReviewProps) => {
   const conflicts = changes.filter(
     (file) => file.status === 'conflict' && c.selected.includes(file.name),
   ).length;
-  const close = () => {
-    if (!c.busy) c.setPreview(null);
-  };
+  const close = c.closeReview;
   return (
     <Modal title="Review profile documents" drawer className="profile-import-panel" onClose={close}>
       <div className="shrink-0 border-b border-border px-5 py-4">
