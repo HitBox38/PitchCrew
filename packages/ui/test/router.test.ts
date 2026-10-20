@@ -109,7 +109,7 @@ describe('workspace routes', () => {
     expect(router.state.matches.at(-1)?.search).toEqual({ q: 'Writer', kind: 'run' });
   });
 
-  it.each(['accounts', 'sources', 'runtimes', 'rules', 'data'])(
+  it.each(['accounts', 'sources', 'runtimes', 'rules', 'data', 'updates', 'privacy'])(
     'opens the %s settings section from a deep link',
     async (section) => {
       const { router } = await setup(`/settings?section=${section}`);

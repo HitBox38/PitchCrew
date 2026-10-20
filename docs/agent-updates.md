@@ -12,7 +12,7 @@ Detection compares saved seeded roles against the defaults shipped in the runnin
 
 The mounted workspace shell requests automatic checks when opened, then when the next daily check is due. The daemon enforces a 24-hour interval per imported skill and deduplicates simultaneous clients, so browser tabs and Electron share one check. Closing every renderer stops scheduling; a daemon running as a login service alone does not check sources. Adding an imported skill makes it eligible without waiting for an existing batch's interval. Checks never launch an agent or apply instructions.
 
-**Check now** in Skills or Settings > General checks all saved imported skills immediately and shows a result toast. **Check skills automatically** in General defaults on and is a workspace preference shared by both renderers. Disabling it leaves manual checks available. Skills without registry provenance, including bundled Markdown-only skills, have no upstream check.
+**Check now** in Skills or Settings > Updates checks all saved imported skills immediately and shows a result toast. **Check skills automatically** in Updates defaults on and is a workspace preference shared by both renderers. Disabling it leaves manual checks available. Skills without registry provenance, including bundled Markdown-only skills, have no upstream check.
 
 Checks reuse the bounded public GitHub reader used by skills.sh imports: no credentials, redirects, repository installation or execution. One sweep shares each repository's resolved HEAD and cached immutable blobs, has a three-minute deadline and aborts on shutdown. All routes require the user session and same-origin checks; there is no agent gateway equivalent.
 

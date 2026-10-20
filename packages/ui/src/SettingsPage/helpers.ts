@@ -5,6 +5,8 @@ export type SettingsSection =
   | 'runtimes'
   | 'rules'
   | 'writing'
+  | 'updates'
+  | 'privacy'
   | 'data';
 
 export const validateSettingsSearch = (
@@ -24,6 +26,8 @@ export const validateSettingsSearch = (
       section === 'runtimes' ||
       section === 'rules' ||
       section === 'writing' ||
+      section === 'updates' ||
+      section === 'privacy' ||
       section === 'data'
         ? section
         : 'general',

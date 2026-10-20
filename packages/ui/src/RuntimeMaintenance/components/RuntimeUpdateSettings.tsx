@@ -11,7 +11,7 @@ export const RuntimeUpdateSettings = () => {
       <span>
         <strong>Check runtime updates automatically</strong>
         <span className="quiet block">
-          Check installed CLIs daily while Pitchcrew is open. Install updates using each runtime’s
+          Look for new versions daily while Pitchcrew is open. Installation always starts with your
           Update button.
         </span>
         {!maintenance.enabled ? (
@@ -23,7 +23,7 @@ export const RuntimeUpdateSettings = () => {
       <Switch
         id="automatic-runtime-updates"
         checked={maintenance.automatic}
-        disabled={working}
+        disabled={working || !maintenance.enabled}
         onCheckedChange={(automatic) => act('/runtimes/updates/preferences', 'PUT', { automatic })}
       />
     </label>
