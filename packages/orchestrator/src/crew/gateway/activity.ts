@@ -32,6 +32,7 @@ const labels: Record<string, string> = {
   packet_rules: 'Reading packet rules',
   export: 'Exporting approved packet',
   workflow: 'Updating application workflow',
+  update_job: 'Correcting saved job details',
   message: 'Messaging a crew member',
   invoke: 'Requesting crew work',
   ask_user: 'Asking you a question',
