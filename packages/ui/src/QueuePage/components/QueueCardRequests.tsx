@@ -11,7 +11,7 @@ import { QueueList } from './QueueList.tsx';
 import { QueueRequestRow } from './QueueRequestRow.tsx';
 import { QueueFollowUps } from './QueueFollowUps.tsx';
 import { AddQueueAction } from './AddQueueAction.tsx';
-import { useQueueActions } from '../hooks/useQueueActions.ts';
+import { useQueueActions } from '@/hooks/useQueueActions.ts';
 
 export const QueueCardRequests = ({ queue, data }: { queue: WorkQueueView; data: Snapshot }) => {
   const action = useWorkspaceStore((state) => state.action);
@@ -20,7 +20,7 @@ export const QueueCardRequests = ({ queue, data }: { queue: WorkQueueView; data:
   const hasContent = queue.requests.length || queue.tasks.length || queue.cardId;
   const heading =
     queue.requests.length || queue.tasks.length
-      ? `${queue.requests.length} ${queue.requests.length === 1 ? 'request' : 'requests'}${queue.tasks.length ? ` · ${queue.tasks.length} crew follow-ups` : ''}`
+      ? `${queue.requests.length} ${queue.requests.length === 1 ? 'request' : 'requests'}${queue.tasks.length ? ` · ${queue.tasks.length} crew ${queue.tasks.length === 1 ? 'follow-up' : 'follow-ups'}` : ''}`
       : 'Add the next action';
   if (!hasContent && !running) return null;
   return (
@@ -46,10 +46,10 @@ export const QueueCardRequests = ({ queue, data }: { queue: WorkQueueView; data:
               }
               commit={(id, beforeId) => action(`/queue/requests/${id}/order`, 'PUT', { beforeId })}
               render={(request, handle) => (
-                <QueueRequestRow request={request} handle={handle} queueId={queue.id} />
+                <QueueRequestRow request={request} handle={handle} queueId={queue.id} data={data} />
               )}
             />
-            <QueueFollowUps tasks={queue.tasks} queueId={queue.id} />
+            <QueueFollowUps tasks={queue.tasks} queueId={queue.id} data={data} />
             {queue.cardId ? (
               <div className="px-3 pt-2">
                 <AddQueueAction data={data} cardId={queue.cardId} />

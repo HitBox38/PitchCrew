@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/popover/index.tsx';
 import { queueSummary } from '@/lib/work-queue.ts';
 import { QueueSlots } from './components/QueueSlots.tsx';
-import { QueueWidgetWork } from './components/QueueWidgetWork.tsx';
+import { QueueWidgetQueues } from './components/QueueWidgetQueues.tsx';
 
 export const QueueWidget = ({ data }: { data: Snapshot }) => {
   const [open, setOpen] = useState(false);
@@ -44,20 +44,12 @@ export const QueueWidget = ({ data }: { data: Snapshot }) => {
             : 'Independent jobs and conversations work in parallel.'}
         </PopoverDescription>
         <QueueSlots queue={queue} />
-        <ul className="queue-widget-work-list" aria-label="Current work">
-          {running.map((item) => (
-            <QueueWidgetWork key={item.id} queue={item} data={data} />
-          ))}
-          {queue.background ? (
-            <li className="queue-widget-background">
-              {queue.background} background {queue.background === 1 ? 'routine' : 'routines'}{' '}
-              running
-            </li>
-          ) : null}
-          {held.map((item) => (
-            <QueueWidgetWork key={item.id} queue={item} data={data} />
-          ))}
-        </ul>
+        {queue.background ? (
+          <p className="queue-widget-background">
+            {queue.background} background {queue.background === 1 ? 'routine' : 'routines'} running
+          </p>
+        ) : null}
+        <QueueWidgetQueues queue={queue} data={data} close={() => setOpen(false)} />
         {!queue.active && !held.length ? (
           <p className="queue-widget-empty">
             {ready.length

@@ -1,29 +1,55 @@
-import type { AgentTask } from '@pitchcrew/core';
+import type { AgentTask, Snapshot } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/index.tsx';
+import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { taskLabels } from '@/lib/task-status.ts';
 
-export const QueueFollowUps = ({ tasks, queueId }: { tasks: AgentTask[]; queueId: string }) => {
-  const action = useWorkspaceStore((s) => s.action);
-  const working = useWorkspaceStore((s) => s.working);
-  const recover = (taskId: string, kind: string) =>
+export const QueueFollowUps = ({
+  tasks,
+  queueId,
+  data,
+}: {
+  tasks: AgentTask[];
+  queueId: string;
+  data: Snapshot;
+}) => {
+  const action = useWorkspaceStore((state) => state.action);
+  const working = useWorkspaceStore((state) => state.working);
+  const recover = (taskId: string, kind: 'retry-follow-up' | 'skip-follow-up') =>
     void action(`/queue/${encodeURIComponent(queueId)}`, 'PUT', { action: kind, taskId }).catch(
       () => {},
     );
   return tasks.length ? (
-    <ul className="queue-follow-ups">
+    <ul className="queue-follow-ups" aria-label="Crew follow-ups">
       {tasks.map((task) => (
         <li key={task.id}>
-          <p>
-            {task.roleId}: {task.content.slice(0, 180)}{' '}
-            <span className="quiet">({task.status})</span>
+          <div className="queue-follow-up-heading">
+            <RoleAvatar agentRole={task.roleId} size="small" />
+            <strong>
+              {data.roles.find((role) => role.id === task.roleId)?.name ?? task.roleId}
+            </strong>
+            <span>{taskLabels[task.status]}</span>
+          </div>
+          <p className="line-clamp-3" title={task.content}>
+            {task.content}
           </p>
           {task.status === 'failed' ? (
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="form-error">{task.error}</span>
-              <Button disabled={working} onClick={() => recover(task.id, 'retry-follow-up')}>
+            <div className="queue-row-actions mt-2">
+              <p className="form-error w-full">{task.error}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={working}
+                onClick={() => recover(task.id, 'retry-follow-up')}
+              >
                 Retry follow-up
               </Button>
-              <Button disabled={working} onClick={() => recover(task.id, 'skip-follow-up')}>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={working}
+                onClick={() => recover(task.id, 'skip-follow-up')}
+              >
                 Skip and continue
               </Button>
             </div>

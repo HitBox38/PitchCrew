@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import type { ChatRequest, Run, WorkQueue, UserInputRequest } from '@pitchcrew/core';
+import type { ChatMessage, ChatRequest, Run, WorkQueue, UserInputRequest } from '@pitchcrew/core';
 import type { CrewService } from '../../../orchestrator/src/service.ts';
 
 /** Fixed public queue state; no runtime or provider is launched. */
@@ -11,7 +11,7 @@ export const seedParallelQueue = (service: CrewService) => {
     const card = job ? service.createCard({ company: title, title: 'Product Engineer' }) : null;
     const thread = service.createConversation({
       title,
-      participants: ['scout', 'writer'],
+      participants: ['scout', 'writer', 'reviewer'],
       cardId: card?.id ?? null,
     });
     const queue: WorkQueue = {
@@ -65,6 +65,17 @@ export const seedParallelQueue = (service: CrewService) => {
       order: Date.now(),
       deliveries: [{ roleId, status: 'queued', runId: null, error: '' }],
     };
+    const message: ChatMessage = {
+      id: request.messageId,
+      threadId: queue.threadId,
+      from: 'user',
+      to: roleId,
+      cardId: queue.cardId,
+      runId: null,
+      content,
+      createdAt: now,
+    };
+    board.record('message', message, 'user', 'Fixture message');
     board.record('chat_request', request, 'user', 'Fixture request');
     return request;
   };

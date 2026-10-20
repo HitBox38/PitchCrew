@@ -1,4 +1,19 @@
-import type { Run, Snapshot, WorkspaceQueue, WorkQueueView } from '@pitchcrew/core';
+import type { ChatRequest, Run, Snapshot, WorkspaceQueue, WorkQueueView } from '@pitchcrew/core';
+
+export const requestDeliveryLabels: Record<ChatRequest['deliveries'][number]['status'], string> = {
+  queued: 'Queued',
+  paused: 'Paused',
+  running: 'Working',
+  waiting: 'Needs your answer',
+  completed: 'Completed',
+  failed: 'Failed',
+  cancelled: 'Stopped',
+};
+
+export const queueIdentity = (queue: WorkQueueView, data: Snapshot) => {
+  const card = data.cards.find((item) => item.id === queue.cardId);
+  return { title: card?.company ?? queue.title, subtitle: card?.title ?? 'Conversation' };
+};
 
 export const queueStateLabels = {
   ready: 'Ready to start',

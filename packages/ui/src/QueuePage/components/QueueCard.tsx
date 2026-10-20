@@ -19,6 +19,7 @@ export const QueueCard = ({
     <article className="queue-card" data-state={queue.state} aria-label={queue.title}>
       <QueueCardHeading
         queue={queue}
+        data={data}
         handle={handle}
         answerThreadId={queue.state === 'waiting' ? queueAnswerThread(queue, data) : undefined}
       />

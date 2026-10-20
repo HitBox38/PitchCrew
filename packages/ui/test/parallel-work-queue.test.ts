@@ -171,6 +171,31 @@ test('keeps page and widget within a narrow viewport in dark mode and reduced mo
   expect(errors).toEqual([]);
 });
 
+test('shows ready queues in the widget and opens a selected job or exact agent activity', async () => {
+  const trigger = page.getByRole('button', { name: /^Work queue:/ });
+  await trigger.click();
+  const panel = page.getByRole('dialog', { name: 'Work queue', exact: true });
+  const ready = panel.getByRole('region', { name: 'Up next queues' });
+  await ready
+    .getByRole('button', { name: 'Open Maple Systems: Product Engineer', exact: true })
+    .click();
+  const details = page.getByRole('dialog', { name: 'Job details', exact: true });
+  await details.waitFor();
+  expect(await details.textContent()).toContain('Maple Systems');
+  await page.keyboard.press('Escape');
+  await details.waitFor({ state: 'hidden' });
+  await trigger.click();
+  const activity = panel.getByRole('link', {
+    name: 'View Scout activity for Northstar Labs: Product Engineer',
+    exact: true,
+  });
+  expect(await activity.getAttribute('href')).toContain(`run=${fixture.scout.id}`);
+  await activity.click();
+  await page.waitForURL(`**/chat/${fixture.first.threadId}?run=${fixture.scout.id}`);
+  await page.goto(`${host.daemon.url}/queue`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('region', { name: 'Running work', exact: true }).waitFor();
+});
+
 test('opens the conversation containing a forwarded question without using another slot', async () => {
   const answerThread = fixture.addWaitingQuestion();
   const card = page.getByRole('article', { name: 'Willow Robotics: Product Engineer' });
@@ -183,5 +208,40 @@ test('opens the conversation containing a forwarded question without using anoth
   );
   await card.getByRole('button', { name: 'Answer', exact: true }).click();
   await page.waitForURL(`**/chat/${answerThread}`);
+  expect(errors).toEqual([]);
+});
+
+test('edits and removes a queued request from its menu while preserving keyboard focus', async () => {
+  await page.goto(`${host.daemon.url}/queue`, { waitUntil: 'domcontentloaded' });
+  const card = page.getByRole('article', { name: 'Offer comparison', exact: true });
+  const request = card.locator('.queue-request');
+  const trigger = request.getByRole('button', { name: 'Queued request actions', exact: true });
+  await trigger.click();
+  await page.getByRole('menuitem', { name: 'Edit message', exact: true }).click();
+  const editor = request.getByRole('textbox', { name: 'Edit queued message', exact: true });
+  await expect
+    .poll(() => editor.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  await editor.fill('Compare compensation and growth opportunities');
+  const save = page.waitForResponse(
+    (result) => result.url().includes('/chat-requests/') && result.request().method() === 'PUT',
+  );
+  await request.getByRole('button', { name: 'Save message', exact: true }).click();
+  expect((await save).status()).toBe(200);
+  await editor.waitFor({ state: 'hidden' });
+  await expect
+    .poll(() => request.textContent())
+    .toContain('Compare compensation and growth opportunities');
+  await expect
+    .poll(() => trigger.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  expect(await request.getByRole('list', { name: 'Assigned agents' }).textContent()).toContain(
+    'Writer',
+  );
+  await page.keyboard.press('Enter');
+  await page.getByRole('menuitem', { name: 'Remove request', exact: true }).click();
+  await expect
+    .poll(() => host.daemon.service.queue().queues.some((queue) => queue.id === fixture.paused.id))
+    .toBe(false);
   expect(errors).toEqual([]);
 });

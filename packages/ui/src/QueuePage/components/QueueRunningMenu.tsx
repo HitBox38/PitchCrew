@@ -8,7 +8,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu/index.tsx';
-import { useQueueActions } from '../hooks/useQueueActions.ts';
+import { useQueueActions } from '@/hooks/useQueueActions.ts';
 
 export const QueueRunningMenu = ({ queue }: { queue: WorkQueueView }) => {
   const { command, working, resumeBlocked } = useQueueActions(queue);
