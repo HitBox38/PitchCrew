@@ -8,6 +8,8 @@ Job opens with the original description, tags and crew assessment. Posting prove
 
 The next action prioritizes current work, pending user questions and uncertain submissions. An unavailable brief leads to preparation; a current extracted brief supports fit evaluation; drafting requires confirmation and personal answers. Drafting uses the isolated application draft endpoint with the chosen application agent. Packet review, exact-document export approval and recording an actual manual submission remain separate decisions. Runtime/account details appear beside launch actions, and unavailable agents explain what needs attention.
 
+An agent working on another job or standalone conversation does not disable this job's launch actions. The same agent can run across independent queues within the workspace concurrency limit; active work and pending questions on this job retain their existing protections.
+
 Activity contains status bookkeeping, external application registration, lessons, tracking evidence, submission receipts and saved history. Uncertain submission outcomes open their evidence rather than suggesting another submission. Recording a status never contacts an employer or grants export/submission permission.
 
 ## Live agents and job chat
