@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChatRequest } from '@pitchcrew/core';
 import { chatTokens } from '@pitchcrew/core/chat-references';
 import { Button } from '@/components/ui/button/index.tsx';
@@ -12,6 +12,10 @@ export const EditQueueMessage = ({
   request: ChatRequest;
   close: () => void;
 }) => {
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
+  useEffect(() => {
+    inputRef.current?.focus();
+  }, []);
   const [content, setContent] = useState(request.content);
   const [error, setError] = useState('');
   const action = useWorkspaceStore((s) => s.action);
@@ -41,6 +45,7 @@ export const EditQueueMessage = ({
   return (
     <div className="grid gap-2">
       <Textarea
+        ref={inputRef}
         aria-label="Edit queued message"
         value={content}
         onChange={(e) => setContent(e.target.value)}

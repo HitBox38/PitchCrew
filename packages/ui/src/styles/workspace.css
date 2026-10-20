@@ -20,16 +20,6 @@
   color: var(--ink);
   background: rgb(var(--tint) / 0.06);
 }
-.run-status {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 3px 10px;
-  font-size: var(--text-caption);
-  color: var(--primary);
-  background: var(--primary-soft);
-  border-radius: 999px;
-}
 .page {
   padding: 6px 40px 48px;
   max-width: 1680px;
@@ -55,13 +45,6 @@
   }
 }
 
-.run-status {
-  min-width: 0;
-  max-width: min(70%, 620px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 .page-heading > div {
   min-width: 0;
 }
