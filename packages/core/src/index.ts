@@ -1,4 +1,5 @@
 export * from './conversations.ts';
+export * from './application-quality.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
@@ -26,7 +27,13 @@ export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
 export { packetSchema } from './packets.ts';
-export type { ArtifactLayout, Packet, PacketArtifact } from './packets.ts';
+export type {
+  ArtifactLayout,
+  Packet,
+  PacketArtifact,
+  DocumentFinding,
+  DocumentVerification,
+} from './packets.ts';
 export {
   capabilitySchema,
   defaultCapabilities,

@@ -20,6 +20,7 @@ import {
   type TrackingScan,
 } from '@pitchcrew/core';
 import { artifactPages, readProfile } from '@pitchcrew/packet';
+import { qualitySnapshot } from '../quality/snapshot.ts';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
@@ -184,6 +185,7 @@ export async function snapshot(
   const profile = await readProfile(this.directory);
   migrateConversations(this);
   const snapshot: Snapshot = {
+    quality: qualitySnapshot(this, profile),
     userInputs: this.board.list('user_input'),
     conversations: conversations(this),
     chatRequests: this.board.list('chat_request'),

@@ -54,6 +54,7 @@ export async function executeReviewStage(
   childSignal?.addEventListener('abort', abort, { once: true });
   if (childSignal?.aborted) controller.abort();
   const run: Run = {
+    writingGuide: guideForRun(context),
     id: child?.runId ?? randomUUID(),
     roleId: role.id,
     runtime: role.runtime,
@@ -128,6 +129,7 @@ export async function executeReviewStage(
             alternatives: child ? [] : report.options.alternatives,
           },
           deadline: live.deadline,
+          writingGuide: run.writingGuide,
           mcp: {
             command: process.execPath,
             args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
@@ -197,3 +199,4 @@ export async function executeReviewStage(
     context.publishChat(true);
   }
 }
+import { guideForRun } from '../../quality/writing.ts';

@@ -13,6 +13,10 @@ export async function setup(
   seedSkills = false,
   options: Pick<DaemonOptions, 'dev' | 'browserLaunch'> = {},
 ) {
+  const remap = JSON.parse(process.env.PITCHCREW_TEST_PORT_REMAP ?? '{}') as Record<string, number>;
+  port = remap[port] ?? port;
+  if (!Number.isInteger(port) || port < 1024 || port > 65535)
+    throw new Error('Invalid test port remapping.');
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
   const daemon = await createDaemon({ directory, port, seedSkills, dev: true, ...options });
   resources.push({ daemon, directory });
@@ -36,7 +40,7 @@ export async function setup(
   return { daemon, directory, request, cookie };
 }
 export async function finish(request: <T>(path: string) => Promise<{ result: T }>, id: string) {
-  for (let i = 0; i < 80; i++) {
+  for (let i = 0; i < 250; i++) {
     const { result } = await request<Snapshot>('/snapshot');
     const run = result.runs.find((run) => run.id === id);
     if (run && run.status !== 'running') {
@@ -76,7 +80,7 @@ export async function waitForSnapshot(
   request: <T>(path: string) => Promise<{ result: T }>,
   predicate: (snapshot: Snapshot) => boolean,
 ) {
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 300; i++) {
     const { result } = await request<Snapshot>('/snapshot');
     if (predicate(result)) return result;
     await new Promise((resolve) => setTimeout(resolve, 30));

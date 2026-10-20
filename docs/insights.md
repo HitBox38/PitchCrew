@@ -2,6 +2,27 @@
 
 Learning signals let you record what each application taught you, so you and your crew can learn from outcomes before writing the next one. You set every signal. Agents with the right access can read a summary, but they never change it.
 
+## Career action plans
+
+Create a named plan in Insights, choosing saved jobs and/or a target title or tag.
+Combined filters intersect, and matching leads are included. **Analyze with Career
+Coach** starts an ordinary chat that reads that scope and saves source-linked gaps,
+next steps and completion criteria. Enable Career Coach with application reads and
+career plan management in Crew first; existing role settings are preserved.
+
+Findings distinguish missing evidence, user-confirmed skill gaps and application
+coverage gaps. Each cites actual job requirements. Choose up to three active
+priorities and track Planned, In progress or Completed. Clear user progress reports
+in chat retain the quoted source message. You can also update progress manually.
+Completing an action never adds verified Profile evidence automatically.
+
+Changes to matching jobs, packet text or Profile mark a plan stale. Request a
+refresh in chat or use an existing routine you choose to configure; none is created
+automatically. Refresh preserves priorities and progress and identifies retained
+actions omitted from the latest analysis. See [application process quality](application-process-quality.md)
+for permissions, limits and interpretation caveats. These plans are separate from
+the user-only weights and lessons below.
+
 ## What you record
 
 Open a job and find **What you learned** under Outcome.

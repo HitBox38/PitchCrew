@@ -90,6 +90,24 @@ New production workspaces start with paused Claude Code agents. Development defa
 
 PDF and DOCX exports use the **Formatted** layout by default. It turns Markdown headings, bold and italic text, lists and links into a one-column document with clickable blue links. The resume gets tight margins and 10 point text for a one-page fit. Pandoc frontmatter and LaTeX spacing commands such as `\vspace{-8pt}` are left out. **Plain text** prints the Markdown literally, as earlier versions did. Inbox previews every document and shows its page count. It warns when a resume runs past one page. PDF names any character its font cannot show, while DOCX preserves Unicode. DOCX layout may differ in Word. See [packet exports](docs/packet-exports.md).
 
+PDF/DOCX verification checks the actual files before export approval. Unreadable
+files, empty text, lost content and incomplete essential checks block the affected
+file; suspected layout issues warn with an explanation. Valid DOCX files can still
+proceed when PDF fails. Draft/review can make one automatic formatting correction
+with a Reviewer recheck. Word controls final DOCX layout.
+
+**Settings > Writing** holds your shared writing guide for Writer and Reviewer.
+Add explicit preferences or correct a specific draft in its attached chat. Matching
+user corrections across two applications can activate a preference automatically,
+with before/after evidence, Edit, Disable and Undo. Automatic learning has a switch;
+agent critiques propose changes for you to review. No direct draft editor is added.
+
+**Insights** also holds scoped career action plans. Choose jobs or a role/tag filter,
+then analyze with Career Coach. Keep up to three active priorities, source-linked
+gaps and progress across chats. Source/Profile changes mark plans stale; refresh
+when ready. Existing Career Coach roles need career plan management enabled in Crew.
+See [application process quality](docs/application-process-quality.md).
+
 **Settings > Packet rules** holds your own mechanical house rules, such as word limits, bullets per job, exact employer headers and banned phrases. Errors block drafts, reviews and exports; warnings appear in review notes. See [packet rules](docs/packet-rules.md).
 
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
@@ -115,7 +133,7 @@ Choose **Create agent** in Crew to define another role, select tools and skills,
 
 Updates never overwrite your agents. When a release changes a default agent's instructions, its Crew card shows **Instructions update available** and the notification bell lists it. Its settings show what changed and a diff against your text. Choose **Use new default**, **Keep mine**, or, if you edited the instructions, **Edit from new default** to start over while keeping your old text in view. Tools never change this way. See [default instruction updates](docs/roles.md#default-instruction-updates).
 
-Career Coach offers seven chat starters: interview preparation, practice, debrief, career planning, offer evaluation, company research and LinkedIn profile drafting. Scout also offers company research. Briefs cite dated sources and cover relevant employer concerns; LinkedIn drafts include measured length checks for you to review and publish yourself. Practice defaults to feedback after each answer; ask for a mock interview to receive feedback at the end. Coaching results stay in chat, with concise source-linked agent memory. Offer support includes compensation comparisons, a guided terms walkthrough and negotiation drafts on request, which you review and send. Production starts Career Coach paused; configure and enable it in Crew. See [career support](docs/career-support.md) and [Hunter adaptations](docs/hunter-skills.md).
+Career Coach offers seven chat starters: interview preparation, practice, debrief, career planning, offer evaluation, company research and LinkedIn profile drafting. Scout also offers company research. Briefs cite dated sources and cover relevant employer concerns; LinkedIn drafts include measured length checks for you to review and publish yourself. Practice defaults to feedback after each answer; ask for a mock interview to receive feedback at the end. Coaching results stay in chat, with concise source-linked agent memory; scoped career action plans also persist in Insights. Offer support includes compensation comparisons, a guided terms walkthrough and negotiation drafts on request, which you review and send. Production starts Career Coach paused; configure and enable it in Crew. See [career support](docs/career-support.md) and [Hunter adaptations](docs/hunter-skills.md).
 
 ### Runtimes
 

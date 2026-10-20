@@ -1,4 +1,5 @@
 import { ReviewLaunch } from '@/DeepResumeReview/components/ReviewLaunch.tsx';
+import { Link } from '@tanstack/react-router';
 import { JobActions } from './JobActions.tsx';
 import { JobHeading } from './JobHeading.tsx';
 import { JobMetadata } from './JobMetadata.tsx';
@@ -25,6 +26,9 @@ export function JobSummary(controller: CardDetailsModel) {
           />
         }
       />
+      <Link className="text-button" to="/settings" search={{ section: 'writing' }}>
+        Writing guide
+      </Link>
       {role ? (
         <p className="action-hint">
           Uses {runtimeLabels[role.runtime]}.{' '}

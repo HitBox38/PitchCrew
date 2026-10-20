@@ -20,10 +20,24 @@ export type Packet = z.infer<typeof packetSchema>;
 
 // Formatted exports lay out headings, lists and links; plain exports print the Markdown literally.
 export type ArtifactLayout = 'formatted' | 'plain';
+export interface DocumentFinding {
+  severity: 'error' | 'warn';
+  check: 'readability' | 'content' | 'layout' | 'render';
+  message: string;
+  page?: number;
+}
+export interface DocumentVerification {
+  name: PacketArtifact['name'];
+  digest?: string;
+  status: 'verified' | 'blocked';
+  findings: DocumentFinding[];
+}
 export interface PacketArtifact {
   name: 'resume.pdf' | 'resume.docx' | 'cover_letter.pdf' | 'cover_letter.docx';
   mimeType: string;
   digest: string;
   bytes: string;
   source: 'resume' | 'coverLetter';
+  layout?: ArtifactLayout;
+  verification?: DocumentVerification;
 }

@@ -1,4 +1,5 @@
 import { startDeepReview } from './crew/deep-reviews/index.ts';
+import { qualityUserAction } from './quality/user.ts';
 import { snapshotRevision } from './crew/snapshot-revision.ts';
 import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answers.ts';
 import { extractApplicationContext } from './crew/application-context/extraction.ts';
@@ -51,6 +52,9 @@ import { SkillUpdates } from './crew/skill-updates.ts';
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
+  qualityAction(data: unknown) {
+    return qualityUserAction(this.context, data);
+  }
   private readonly context: CrewContext;
   private readonly skillUpdates = new SkillUpdates();
   constructor(

@@ -68,6 +68,14 @@ _Avoid_: Trusted job description, sanitized instructions
 Employer-facing application copy prepared for a job, including resumes, cover letters and application answers, whether produced in chat or a board workflow and regardless of the agent's identity. Discussion of source material is separate from preparing an application draft.
 _Avoid_: Packet (when implying that employer-facing chat copy is outside application drafting)
 
+**Document verification**:
+An assessment of an application document's readability, retained content and layout. Its findings do not establish factual accuracy, an employer's screening decision or permission to export.
+_Avoid_: ATS verdict, factual verification, export approval
+
+**Writing preferences**:
+Guidance about the user's preferred tone, phrasing and presentation for application drafts, stated directly or inferred from the user's edits. It is separate from factual evidence about the user's experience.
+_Avoid_: Verified Profile evidence, employer requirement (when referring to the user's preferred style)
+
 **Deep resume review**:
 An optional assessment of a tailored resume against a specific job's confirmed brief, using multiple hiring perspectives to identify supported strengths, weaknesses and corrections for Writer. Its findings do not constitute an employer's hiring decision or authorize packet export or submission.
 _Avoid_: Hiring panel (when implying actual employer participation), ATS verdict (when referring to a model's assessment)
@@ -139,6 +147,26 @@ _Avoid_: Employer feedback (when referring only to the user's recollection)
 **Career planning**:
 Exploring target roles, adjacent job titles, skill gaps and learning priorities in relation to the user's goals and experience.
 _Avoid_: Pipeline review (when referring to career direction rather than the application pipeline or crew performance)
+
+**Gap analysis scope**:
+The jobs selected by the user, directly or through role or tag filters, whose requirements inform career learning and evidence priorities. It can include relevant leads before an application is made.
+_Avoid_: Entire job history (when referring to the user's chosen target set)
+
+**Evidence gap**:
+A requirement that the user's Profile does not currently demonstrate, without establishing that the user lacks the capability.
+_Avoid_: Confirmed skill gap (when only supporting evidence is missing)
+
+**Confirmed skill gap**:
+A capability needed for the user's target work that the user is known to need to develop.
+_Avoid_: Evidence gap, inferred inability
+
+**Application coverage gap**:
+Relevant experience supported by Profile that is missing from an application draft.
+_Avoid_: Skill gap (when the experience already exists)
+
+**Career action plan**:
+A persistent set of prioritized next steps for addressing gaps in the user's target work, with supporting sources, completion criteria and progress. Completing a step does not itself establish verified evidence of a capability.
+_Avoid_: Verified Profile evidence, application packet
 
 **Offer evaluation**:
 Comparing an employment offer's stated compensation and contract terms with the user's priorities and reported promises, identifying uncertainties and preparing questions for the employer or a lawyer.

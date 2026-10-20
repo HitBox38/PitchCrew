@@ -1,4 +1,5 @@
 import { EmptyState } from '@/components/EmptyState/index.tsx';
+import { CareerPlans } from '@/CareerPlans/index.tsx';
 import { InsightsFilters } from './components/InsightsFilters.tsx';
 import { OutcomeSummary } from './components/OutcomeSummary.tsx';
 import { RecentLessons } from './components/RecentLessons.tsx';
@@ -13,6 +14,7 @@ export function InsightsPage() {
   const filtered = Boolean(search.tag || search.from || search.to);
   return (
     <div className="insights flex min-w-0 flex-col gap-5">
+      <CareerPlans />
       <InsightsFilters search={search} tags={tags} change={change} />
       {insights.total ? (
         <>

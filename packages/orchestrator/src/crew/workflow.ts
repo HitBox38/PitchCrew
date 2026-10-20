@@ -1,4 +1,6 @@
 import { recordOperationalLog } from '../telemetry/logs.ts';
+import { documentReviewCycle } from '../quality/repair.ts';
+import { guideForRun, finishWritingCorrection } from '../quality/writing.ts';
 import {
   endQuestionTurn,
   finishUserContinuation,
@@ -54,6 +56,20 @@ export async function startRun(
   let role = applicationDraft ? { ...storedRole, workflow: 'writer' as const } : storedRole;
   const skills = this.skills(roleId);
   const card = this.board.get<Card>('card', cardId);
+  const correction = task?.writingCorrectionId
+    ? this.board.get<import('@pitchcrew/core').WritingCorrection>(
+        'writing_correction',
+        task.writingCorrectionId,
+      )
+    : undefined;
+  if (
+    correction &&
+    (!card.packet ||
+      correction.cardId !== card.id ||
+      digestPacket(card.id, card.packet) !== correction.packetDigest ||
+      correction.after)
+  )
+    throw new Error('The correction draft changed. Request a fresh correction.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
   if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('This runtime is not installed. Check Crew settings.');
@@ -96,6 +112,8 @@ export async function startRun(
   const profile = await readProfile(this.directory);
   if (!profile.length) throw new Error('Add your profile notes before starting the crew.');
   const run: Run = {
+    writingGuide: seat === 'scout' ? undefined : guideForRun(this),
+    writingCorrectionId: correction?.id,
     id: randomUUID(),
     cardId,
     roleId,
@@ -166,6 +184,9 @@ export async function startRun(
   );
   this.board.record('run', run, 'orchestrator', `Started ${role.name} on ${role.runtime}`);
   const context = {
+    writingGuide: run.writingGuide,
+    request: correction?.instruction,
+    deadline: { expiresAt: Date.now() + 30 * 60_000 },
     card: draftingCard(this.board.get<Card>('card', cardId), run.purpose),
     purpose: run.purpose,
     userAnswers,
@@ -196,6 +217,9 @@ export async function startRun(
         contextRevision: applicationContext.revision,
         runId: run.id,
       });
+      if (correction && result.role === 'writer')
+        finishWritingCorrection(this, correction.id, this.board.get<Card>('card', cardId).packet!);
+      if (seat !== 'scout') await documentReviewCycle(this, run, profile, controller.signal);
       this.board.record(
         'run',
         {

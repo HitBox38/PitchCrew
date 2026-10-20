@@ -126,8 +126,12 @@ export class Board {
   move(id: string, state: CardState, actor: string, message?: string): Card {
     return this.context.move(id, state, actor, message);
   }
-  requestApproval(cardId: string, artifacts?: PacketArtifact[]): Approval {
-    return this.context.requestApproval(cardId, artifacts);
+  requestApproval(
+    cardId: string,
+    artifacts?: PacketArtifact[],
+    reports?: Approval['documentVerification'],
+  ): Approval {
+    return this.context.requestApproval(cardId, artifacts, reports);
   }
   decideApproval(id: string, approved: boolean): Approval {
     return this.context.decideApproval(id, approved);

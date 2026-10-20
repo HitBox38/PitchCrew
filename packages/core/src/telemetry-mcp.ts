@@ -1,5 +1,6 @@
 /** Reviewed tool names only. Discovery/bootstrap gateway actions are intentionally absent. */
 export const mcpGatewayTools = Object.freeze({
+  quality: 'pitchcrew_application_quality',
   check_linkedin_draft: 'pitchcrew_check_linkedin_draft',
   start_deep_review: 'pitchcrew_start_deep_review',
   start_review_subagent: 'pitchcrew_start_review_subagent',

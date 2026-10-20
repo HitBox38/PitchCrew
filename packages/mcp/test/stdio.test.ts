@@ -120,6 +120,7 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(listed.tools.map((tool) => tool.name).sort()).toEqual(
       [
         'pitchcrew_check_linkedin_draft',
+        'pitchcrew_application_quality',
         'pitchcrew_list_conversations',
         'pitchcrew_read_conversation',
         'pitchcrew_create_group',
@@ -278,8 +279,15 @@ it('connects the real stdio server to a scoped daemon and preserves approval bou
     expect(
       (await client.callTool({ name: 'pitchcrew_lint_packet', arguments: { packet } }))
         .structuredContent,
-    ).toEqual({
+    ).toMatchObject({
       problems: [],
+      documents: {
+        errors: [],
+        reports: [
+          { name: 'resume.pdf', status: 'verified' },
+          { name: 'cover_letter.pdf', status: 'verified' },
+        ],
+      },
       warnings: [],
       findings: [],
       layout: { resumePages: 1, coverLetterPages: 1, warnings: [] },

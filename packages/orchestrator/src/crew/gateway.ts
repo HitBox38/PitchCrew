@@ -1,4 +1,6 @@
 import { subagentCard } from './deep-reviews/inputs.ts';
+import { qualityAgentAction } from '../quality/agent.ts';
+import { inspectPacketDocuments } from '../quality/documents.ts';
 import { startDeepReview } from './deep-reviews/index.ts';
 import { reviewAgentAction } from './deep-reviews/subagents.ts';
 import { randomUUID } from 'node:crypto';
@@ -197,6 +199,7 @@ async function dispatchAgentCall(
   if (['recall_memory', 'save_memory'].includes(action))
     return memoryAction(this, capability, action, data);
   if (action === 'application_insights') return insightsAction(this, capability, token, data.input);
+  if (action === 'quality') return qualityAgentAction(this, capability, data.input);
   if (['applications', 'tracking_scan', 'tracking_reconcile'].includes(action))
     return trackingAction.call(this, capability, token, action, data);
   if (action === 'pipeline_access')
@@ -325,6 +328,7 @@ async function dispatchAgentCall(
       problems: check.errors,
       warnings: check.warnings,
       findings: check.findings,
+      documents: await inspectPacketDocuments(this.directory, parsed.packet),
       layout: await checkLayout(parsed.packet, {
         fonts: systemFonts({ folders: [join(this.directory, 'fonts')] }),
       }),

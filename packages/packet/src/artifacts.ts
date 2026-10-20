@@ -13,6 +13,7 @@ export { systemFonts, type FontLocation, type FontSearch } from './documents/fon
 export interface RenderOptions {
   /** Fallback fonts for characters the bundled fonts lack. Defaults to installed system fonts. */
   fonts?: FontSearch;
+  sources?: ('resume' | 'coverLetter')[];
 }
 
 const mimeTypes = {
@@ -26,10 +27,10 @@ export async function renderArtifacts(
   packet: Packet,
   formats: ('pdf' | 'docx')[],
   layout: ArtifactLayout = 'formatted',
-  { fonts = systemFonts() }: RenderOptions = {},
+  { fonts = systemFonts(), sources = ['resume', 'coverLetter'] }: RenderOptions = {},
 ): Promise<PacketArtifact[]> {
   const output: PacketArtifact[] = [];
-  for (const source of ['resume', 'coverLetter'] as const) {
+  for (const source of sources) {
     const text = packet[source];
     let pdf: Promise<{ bytes: Buffer; pages: number }> | undefined;
     const formatted = () =>

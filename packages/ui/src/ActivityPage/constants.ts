@@ -1,4 +1,7 @@
 export const eventKindLabels = {
+  writing_guide: 'Writing preferences',
+  writing_correction: 'Writing corrections',
+  career_plan: 'Career action plans',
   deep_review: 'Deep resume reviews',
   review_subagent: 'Review subagents',
   user_input: 'User questions',
