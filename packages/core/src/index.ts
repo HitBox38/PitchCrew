@@ -1,4 +1,5 @@
 export * from './conversations.ts';
+export * from './work-queue.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';
 export * from './pipeline-reviews.ts';

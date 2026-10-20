@@ -71,11 +71,11 @@ describe('single daemon per data folder', () => {
 
   it('removes its lock on close and reports whether the service started it', async () => {
     const directory = await folder();
-    const daemon = await createDaemon({ directory, port: 15373, seedSkills: false, service: true });
-    await new Promise<void>((resolve) => daemon.http.listen(15373, '127.0.0.1', resolve));
-    expect(await probeDaemon(15373)).toEqual({ app: 'pitchcrew', service: true });
+    const daemon = await createDaemon({ directory, port: 23971, seedSkills: false, service: true });
+    await new Promise<void>((resolve) => daemon.http.listen(23971, '127.0.0.1', resolve));
+    expect(await probeDaemon(23971)).toEqual({ app: 'pitchcrew', service: true });
     await daemon.close();
-    expect(await probeDaemon(15373)).toBeNull();
+    expect(await probeDaemon(23971)).toBeNull();
     await expect(readFile(join(directory, 'daemon.lock'))).rejects.toThrow();
   });
 

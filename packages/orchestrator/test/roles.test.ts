@@ -272,7 +272,7 @@ describe('stored configurable roles', () => {
     const source = daemon.service.board.get<Role>('role', 'scout');
     daemon.service.board.record(
       'run',
-      { ...run, id: 'queued-parent', roleId: source.id },
+      { ...run, id: 'queued-parent', roleId: source.id, status: 'completed' },
       'system',
       'Fictional parent',
     );

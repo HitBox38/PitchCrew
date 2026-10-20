@@ -1,4 +1,6 @@
 export const eventKindLabels = {
+  work_queue: 'Work queues',
+  queue_settings: 'Queue settings',
   deep_review: 'Deep resume reviews',
   review_subagent: 'Review subagents',
   user_input: 'User questions',

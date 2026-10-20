@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import type { WorkspaceHeadingProps } from '@/App/types.ts';
 import { viewIcons, viewTitles } from '@/AppSidebar/constants.ts';
 import type { Ref } from 'react';
@@ -23,6 +24,9 @@ export function WorkspaceHeading({
       <div className="workspace-heading-actions" ref={actionsRef}>
         {view === 'board' ? (
           <>
+            <Button render={<Link to="/queue" />}>
+              Queue{data.queue?.queues.length ? ` (${data.queue.queues.length})` : ''}
+            </Button>
             <ImportApplications />
             {data.cards.length ? (
               <Button className="button primary" onClick={() => setAdd(true)}>

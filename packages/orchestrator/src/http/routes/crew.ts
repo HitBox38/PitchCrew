@@ -7,6 +7,18 @@ import type { IdRoute } from '../types.ts';
 import { CrewService } from '../../service.ts';
 
 export function registerCrewRoutes(app: FastifyInstance, service: CrewService) {
+  app.get('/api/queue', () => service.queue());
+  app.put('/api/queue/settings', (req) => service.configureQueue(req.body));
+  app.post('/api/queue/actions', (req, res) =>
+    res.status(202).send(service.queueBoardAction(req.body)),
+  );
+  app.put<IdRoute>('/api/queue/:id', (req) => service.updateQueue(req.params.id, req.body));
+  app.put<IdRoute>('/api/queue/requests/:id/order', (req) =>
+    service.moveQueueRequest(
+      req.params.id,
+      z.object({ beforeId: z.uuid().nullable() }).parse(req.body).beforeId,
+    ),
+  );
   app.post<IdRoute>('/api/user-input/:id/answer', (req, res) =>
     res.status(202).send(service.answerUserQuestion(req.params.id, req.body)),
   );

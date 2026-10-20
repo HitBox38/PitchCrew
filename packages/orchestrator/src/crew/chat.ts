@@ -1,3 +1,5 @@
+import { reserveLaunch } from './queue/admission.ts';
+import { ensureQueue } from './queue/state.ts';
 import { selectedChatSkills } from './chat-references.ts';
 import { activityRuns, recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
@@ -29,7 +31,7 @@ import {
   type Role,
 } from '@pitchcrew/core';
 import { readProfile } from '@pitchcrew/packet';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 
@@ -180,8 +182,6 @@ async function startChatRunPrepared(
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
   if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('This runtime is not installed. Check Crew settings.');
-  if (this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running'))
-    throw new Error('This role is busy. Wait for its run or cancel it first.');
   const card = cardId ? this.board.get<Card>('card', cardId) : null;
   const run: Run = {
     id: randomUUID(),
@@ -259,6 +259,15 @@ async function startChatRunPrepared(
     }
     const attachments = await prepareAttachments(this.directory, dir, messages, controller.signal);
     const profile = await readProfile(this.directory);
+    this.board.record(
+      'run',
+      {
+        ...this.board.get<Run>('run', run.id),
+        profileDigest: createHash('sha256').update(JSON.stringify(profile)).digest('hex'),
+      },
+      roleId,
+      'Recorded run Profile version',
+    );
     const output = await ai.observe(
       () =>
         adapters[role.runtime].chat({
@@ -387,7 +396,7 @@ async function startChatRunPrepared(
     this.board.record(
       'run',
       {
-        ...run,
+        ...this.board.get<Run>('run', run.id),
         status: 'completed',
         memoryIds: this.board.get<Run>('run', run.id).memoryIds,
         outputPacketDigest: packetDigest(
@@ -413,7 +422,7 @@ async function startChatRunPrepared(
       this.board.record(
         'run',
         {
-          ...run,
+          ...this.board.get<Run>('run', run.id),
           status: controller.signal.aborted ? 'cancelled' : 'failed',
           message,
           finishedAt: new Date().toISOString(),
@@ -445,21 +454,36 @@ export async function startChatRun(
 ): Promise<Run> {
   const [roleId, , , threadId, , scheduled] = args;
   const stored = requireRole(this, roleId);
+  if (!stored.enabled) throw new Error('Enable this role in Crew first.');
   const item = conversations(this).find((candidate) => candidate.id === threadId);
   const role = scheduled ? stored : { ...stored, ...item?.configurations[roleId] };
   if (!args[4] && !args[5] && !args[8]) await this.runtimeMaintenance.refreshOnRetry(role);
-  return this.runtimeMaintenance.guard(
-    role,
-    () => startChatRunPrepared.call(this, ...args),
-    false,
-    () => {
-      const currentRole = requireRole(this, roleId);
-      return scheduled
-        ? currentRole
-        : {
-            ...currentRole,
-            ...conversations(this).find((entry) => entry.id === threadId)?.configurations[roleId],
-          };
+  if (!scheduled || args[2]) ensureQueue(this, threadId, args[4]?.rootRunId ?? args[8]?.rootRunId);
+  return reserveLaunch(
+    this,
+    {
+      cardId: args[2],
+      threadId,
+      roleId,
+      rootRunId: args[4]?.rootRunId ?? args[8]?.rootRunId,
+      routineId: scheduled?.routineId,
     },
+    () =>
+      this.runtimeMaintenance.guard(
+        role,
+        () => startChatRunPrepared.call(this, ...args),
+        false,
+        () => {
+          const currentRole = requireRole(this, roleId);
+          return scheduled
+            ? currentRole
+            : {
+                ...currentRole,
+                ...conversations(this).find((entry) => entry.id === threadId)?.configurations[
+                  roleId
+                ],
+              };
+        },
+      ),
   );
 }

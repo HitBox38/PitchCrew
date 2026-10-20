@@ -30,13 +30,25 @@ type Session = {
 export class BrowserSessions {
   private readonly agents = new Map<string, Session>();
   private readonly runs = new Map<string, string>();
+  private readonly profiles = new Map<string, Promise<BrowserDriver>>();
+  key(roleId: string, threadId?: string | null, cardId?: string | null) {
+    return cardId
+      ? `${roleId}:job:${cardId}`
+      : threadId
+        ? `${roleId}:conversation:${threadId}`
+        : roleId;
+  }
+  keyForRun(runId: string) {
+    return this.runs.get(runId) ?? runId;
+  }
   constructor(
     private readonly directory: string,
     private readonly launch: (profile?: string) => Promise<BrowserDriver>,
     private readonly idleMs = 10 * 60_000,
   ) {}
   bind(input: Binding) {
-    let session = this.agents.get(input.roleId);
+    const key = this.key(input.roleId, input.threadId, input.cardId);
+    let session = this.agents.get(key);
     if (!session) {
       session = {
         info: {
@@ -55,7 +67,7 @@ export class BrowserSessions {
         fresh: false,
         closing: false,
       };
-      this.agents.set(input.roleId, session);
+      this.agents.set(key, session);
     }
     if (session.closing) throw new Error('Browser is closing. Try again shortly.');
     if (session.info.runId === input.runId) return;
@@ -79,13 +91,17 @@ export class BrowserSessions {
     });
     session.configure = true;
     clearTimeout(session.timer);
-    this.runs.set(input.runId, input.roleId);
+    this.runs.set(input.runId, key);
   }
   forRun(id: string) {
-    return this.agents.get(this.runs.get(id) ?? id);
+    const direct = this.agents.get(this.runs.get(id) ?? id);
+    if (direct) return direct;
+    const matches = [...this.agents.values()].filter((s) => s.info.roleId === id);
+    if (matches.length > 1) throw new Error('Choose the browser for this job or conversation.');
+    return matches[0];
   }
   forRole(id: string) {
-    const session = this.agents.get(id);
+    const session = this.forRun(id);
     if (!session || session.closing) throw new Error('This agent has no open browser.');
     return session;
   }
@@ -110,14 +126,24 @@ export class BrowserSessions {
     if (session.closing) throw new Error('Browser is closing.');
     if (!session.driver) {
       const current = session;
-      current.driver = this.profile(current.info.roleId)
-        .then((path) => this.launch(path))
+      const roleId = current.info.roleId;
+      const primary = this.profiles.get(roleId);
+      current.driver = primary
+        ? primary.then((driver) =>
+            driver.newTab
+              ? driver.newTab()
+              : this.profile(roleId).then((path) => this.launch(path)),
+          )
+        : this.profile(roleId).then((path) => this.launch(path));
+      if (!primary) this.profiles.set(roleId, current.driver);
+      current.driver = current.driver
         .then((driver) => {
           current.info.status = 'open';
           return driver;
         })
         .catch((error) => {
           current.driver = undefined;
+          if (!primary) this.profiles.delete(roleId);
           current.info.status = 'closed';
           throw error;
         });
@@ -148,17 +174,12 @@ export class BrowserSessions {
     return frame;
   }
   async openRole(roleId: RoleId, threadId: string, cardId: string | null) {
-    const existing = this.agents.get(roleId);
-    if (
-      !existing ||
-      (!existing.info.runId &&
-        !existing.info.manual &&
-        (existing.info.threadId !== threadId || existing.info.cardId !== cardId))
-    ) {
-      this.bind({ runId: `user:${roleId}`, roleId, threadId, cardId });
-      this.stop(`user:${roleId}`);
+    const key = this.key(roleId, threadId, cardId);
+    if (!this.agents.has(key)) {
+      this.bind({ runId: `user:${key}`, roleId, threadId, cardId });
+      this.stop(`user:${key}`);
     }
-    await this.driver(roleId);
+    await this.driver(key);
   }
   take(roleId: string) {
     const session = this.forRole(roleId);
@@ -200,13 +221,35 @@ export class BrowserSessions {
   }
   stop(runId: string) {
     const session = this.forRun(runId);
-    this.runs.delete(runId);
+
     if (!session || session.info.runId !== runId) return;
     session.info.runId = null;
     this.touch(session);
   }
   async closeRole(roleId: string, reset = false) {
-    const session = this.agents.get(roleId);
+    if (!this.agents.has(roleId)) {
+      const siblings = [...this.agents].filter(([, s]) => s.info.roleId === roleId);
+      if (siblings.length > 1) {
+        if (reset && siblings.some(([, s]) => s.info.runId || s.info.manual))
+          throw new Error('Finish this agent’s other browser work before resetting shared logins.');
+        for (const [key] of siblings) await this.closeRole(key, false);
+        if (reset) {
+          await rm(await this.profile(roleId), { recursive: true, force: true });
+          for (const [key] of siblings) this.agents.delete(key);
+        }
+        return;
+      }
+    }
+
+    const session = this.forRun(roleId);
+    const actualRole = session?.info.roleId ?? roleId;
+    if (
+      reset &&
+      [...this.agents.values()].some(
+        (s) => s !== session && s.info.roleId === actualRole && (s.info.runId || s.info.manual),
+      )
+    )
+      throw new Error('Finish this agent’s other browser work before resetting shared logins.');
     if (session) {
       session.closing = true;
       clearTimeout(session.timer);
@@ -218,12 +261,18 @@ export class BrowserSessions {
         session.info.manual = false;
         session.lease = undefined;
         session.closing = false;
+        if (![...this.agents.values()].some((s) => s.info.roleId === actualRole && s.driver))
+          this.profiles.delete(actualRole);
       }
     }
     if (reset) {
-      const profile = await this.profile(roleId);
+      for (const [key, other] of this.agents)
+        if (other !== session && other.info.roleId === actualRole) await this.closeRole(key);
+      const profile = await this.profile(actualRole);
       await rm(profile, { recursive: true, force: true });
-      this.agents.delete(roleId);
+      for (const [key, other] of this.agents)
+        if (other.info.roleId === actualRole) this.agents.delete(key);
+      this.profiles.delete(actualRole);
     }
   }
   async close() {
@@ -233,7 +282,9 @@ export class BrowserSessions {
     clearTimeout(session.timer);
     if (!session.info.runId) {
       session.timer = setTimeout(() => {
-        void this.closeRole(session.info.roleId).catch(() => {});
+        void this.closeRole(
+          this.key(session.info.roleId, session.info.threadId, session.info.cardId),
+        ).catch(() => {});
       }, this.idleMs);
       session.timer.unref();
     }

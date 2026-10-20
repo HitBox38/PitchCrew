@@ -39,6 +39,7 @@ export interface ProfileFile {
   content: string;
 }
 export interface Snapshot extends WorkspaceMessages {
+  queue?: import('./work-queue.ts').WorkspaceQueue;
   /** UI projection: job source text is fetched when its details are opened. */
   workspace?: true;
   userInputs?: UserInputRequest[];

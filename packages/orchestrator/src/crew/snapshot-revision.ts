@@ -41,6 +41,8 @@ export async function snapshotRevision(context: CrewContext): Promise<string> {
     starterSkillErrors: context.starterSkillErrors,
     streamingMessages: [...context.streamingMessages.values()],
     activity: [...context.runActivities],
+    queueChains: [...context.queueChains],
+    queueReservations: [...context.queueReservations],
   };
   return createHash('sha256').update(JSON.stringify(revision)).digest('hex');
 }

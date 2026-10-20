@@ -75,3 +75,46 @@ it('refuses symlinked profiles for launch and reset', async () => {
     await rm(outside, { recursive: true, force: true });
   }
 });
+
+it('shares one persistent login context while keeping job pages, takeover and closure independent', async () => {
+  const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-parallel-tabs-'));
+  const board = new Board(join(directory, 'board.db'));
+  const launch = chromium.launchPersistentContext.bind(chromium);
+  const contexts: BrowserContext[] = [];
+  const spy = vi
+    .spyOn(chromium, 'launchPersistentContext')
+    .mockImplementation(async (profile, options) => {
+      const context = await launch(profile, { ...options, chromiumSandbox: false });
+      contexts.push(context);
+      return context;
+    });
+  const manager = new ComputerManager(board, directory);
+  try {
+    await manager.browsers.openRole('writer', 'chat-a', 'job-a');
+    const first = manager.browsers.key('writer', 'chat-a', 'job-a');
+    await contexts[0].pages()[0].setContent('<title>Job A</title><p>Application A</p>');
+    await contexts[0].addCookies([
+      { name: 'fixture_login', value: 'shared', domain: 'example.com', path: '/' },
+    ]);
+    await manager.browsers.openRole('writer', 'chat-b', 'job-b');
+    const second = manager.browsers.key('writer', 'chat-b', 'job-b');
+    expect(contexts).toHaveLength(1);
+    expect(contexts[0].pages()).toHaveLength(2);
+    await contexts[0].pages()[1].setContent('<title>Job B</title><p>Application B</p>');
+    expect((await manager.browsers.frame(first))?.title).toBe('Job A');
+    expect((await manager.browsers.frame(second))?.title).toBe('Job B');
+    expect(await contexts[0].cookies()).toMatchObject([{ name: 'fixture_login', value: 'shared' }]);
+    const lease = manager.browsers.take(first);
+    expect(() => manager.browsers.assertAgent(first)).toThrow('Manual control');
+    expect(() => manager.browsers.assertAgent(second)).not.toThrow();
+    manager.browsers.release(first, lease);
+    await manager.browsers.closeRole(first);
+    expect(contexts[0].pages()).toHaveLength(1);
+    expect((await manager.browsers.frame(second))?.title).toBe('Job B');
+  } finally {
+    await manager.close();
+    spy.mockRestore();
+    board.close();
+    await rm(directory, { recursive: true, force: true });
+  }
+}, 30000);

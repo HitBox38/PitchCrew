@@ -105,12 +105,24 @@ export function useApplicationBrief({ card, roles, busy, onDirtyChange }: Applic
     );
   const extract = () =>
     perform('application-context/extract', { roleId }, 'Source extraction started');
-  const startDraft = () => perform('draft', { roleId }, 'Isolated application draft started');
+  const startDraft = () =>
+    action(
+      '/queue/actions',
+      'POST',
+      { cardId: card.id, roleId, action: 'draft' },
+      'Application draft queued',
+    );
   const reviewer = available.find(
     (role) => role.workflow === 'reviewer' || (!role.workflow && role.id === 'reviewer'),
   );
   const reviewPacket = () =>
-    reviewer && perform('run', { roleId: reviewer.id }, 'Packet review started');
+    reviewer &&
+    action(
+      '/queue/actions',
+      'POST',
+      { cardId: card.id, roleId: reviewer.id, action: 'review' },
+      'Packet review queued',
+    );
   const confirmed = Boolean(
     loaded?.context?.confirmedAt &&
     loaded.context.confirmedRevision === loaded.context.revision &&

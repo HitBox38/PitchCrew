@@ -1,3 +1,4 @@
+import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { copyText } from '@/lib/clipboard.ts';
 import { cancelJobRun, startJobWork } from '../../../api.ts';
@@ -8,6 +9,7 @@ import { useRef } from 'react';
 
 export function useJobActionsMenu(props: JobActionsMenuProps) {
   const action = useWorkspaceStore((state) => state.action);
+  const navigation = useWorkspaceNavigation();
   const { card, data, disabled, openCard, moveJob } = props;
   const shortcut = crewShortcut(card, data);
   const mutable = canDragJob(card, data) && !disabled;
@@ -18,6 +20,16 @@ export function useJobActionsMenu(props: JobActionsMenuProps) {
   };
   const performCrew = () => {
     if (!shortcut || shortcut.reason || disabled) return;
+    const kind = shortcut.draft ? 'draft' : card.state === 'lead' ? 'fit' : 'review';
+    if (
+      !shortcut.runId &&
+      data.queue?.queues.some(
+        (q) => q.cardId === card.id && q.requests.some((r) => r.boardAction === kind),
+      )
+    ) {
+      navigation.go('queue');
+      return;
+    }
     if (shortcut.needsBrief) {
       openDetails();
       useWorkspaceStore
