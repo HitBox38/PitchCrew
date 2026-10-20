@@ -25,6 +25,66 @@ const create = (fetcher: typeof fetch, extra = {}) =>
   });
 
 describe('public build update checks', () => {
+  it('exposes a version and bounded text changelog without installer or contributor details', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      json({
+        ...release,
+        name: 'Pitchcrew 0.11.0',
+        body: [
+          'Installer instructions.',
+          "## What's Changed",
+          '* **Inline updates** by @fictional in https://github.com/HitBox38/PitchCrew/pull/1',
+          '* [Better keyboard focus](https://example.test) <img src=x onerror=alert(1)>',
+          '* ' + 'Long change '.repeat(30),
+          '* Third improvement',
+          '* Fourth improvement',
+          '* Fifth improvement',
+          '## New Contributors',
+          '* @fictional',
+        ].join('\n'),
+      }),
+    );
+    const result = await create(fetcher, { current: { ...current, commit: null } }).check();
+    expect(result.latest).toMatchObject({
+      version: '0.11.0',
+      changes: [
+        'Inline updates',
+        'Better keyboard focus',
+        expect.stringMatching(/…$/),
+        'Third improvement',
+        'Fourth improvement',
+      ],
+      moreChanges: true,
+    });
+    expect(result.latest?.changes?.[2].length).toBe(180);
+  });
+
+  it.each([undefined, null, 'Production installer instructions.', { malformed: true }])(
+    'retains update availability when older or malformed release notes are unavailable',
+    async (body) => {
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(json({ ...release, body }));
+      expect(
+        await create(fetcher, { current: { ...current, commit: null } }).check(),
+      ).toMatchObject({
+        status: 'unknown',
+        latest: { version: null, changes: [], moreChanges: false },
+      });
+    },
+  );
+
+  it('accepts the What changed heading and does not include later release sections', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      json({
+        ...release,
+        name: 'Pitchcrew 0.11.0',
+        body: '## What changed\n- Keep keyboard focus\n## Downloads\n- Windows installer',
+      }),
+    );
+    expect(
+      (await create(fetcher, { current: { ...current, commit: null } }).check()).latest,
+    ).toMatchObject({ changes: ['Keep keyboard focus'], moreChanges: false });
+  });
+
   it('reads installer build identity without Git and rejects malformed metadata', async () => {
     const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-build-test-'));
     const root = pathToFileURL(directory + '/');

@@ -56,7 +56,13 @@ const daemon = await createDaemon({
       new Response(
         JSON.stringify(
           String(url).includes('/releases/')
-            ? { tag_name: 'build-' + 'b'.repeat(40), draft: false, prerelease: false }
+            ? {
+                tag_name: 'build-' + 'b'.repeat(40),
+                draft: false,
+                prerelease: false,
+                name: 'Pitchcrew 0.2.0',
+                body: '## What changed\n- Fictional inline updates\n- Fictional keyboard improvements',
+              }
             : { status: 'ahead' },
         ),
       ),
