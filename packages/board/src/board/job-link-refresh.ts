@@ -1,18 +1,17 @@
 import {
   canonicalJobUrl,
-  type Approval,
   type Card,
   type CardInput,
-  type ComputerApproval,
   type JobLinkProvenance,
-  type Run,
-  type SubmissionAttempt,
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import type { Board } from '../index.ts';
 import { jobSourceRevision } from './application-context.ts';
+import { assertJobDetailsChange, recordJobSourceChange } from './job-details.ts';
 import { postingMatches, recordLinkedJob } from './discovery.ts';
 import { isLikelyDuplicateApplication } from './tracking.ts';
+
+export { assertJobDetailsChange as assertJobLinkRefresh } from './job-details.ts';
 
 export interface SaveJobLinkOptions {
   input: CardInput;
@@ -75,30 +74,6 @@ export function saveReadJobLink(board: Board, options: SaveJobLinkOptions) {
   })();
 }
 
-/** The importing chat may refresh its own card; all other active work must finish first. */
-export function assertJobLinkRefresh(board: Board, cardId: string, runId: string): Card {
-  const card = board.get<Card>('card', cardId);
-  if (card.deletedAt) throw new Error('This job was deleted.');
-  if (
-    card.owner ||
-    board
-      .list<Run>('run')
-      .some(
-        (run) =>
-          run.cardId === cardId &&
-          run.status === 'running' &&
-          (run.id !== runId || run.mode !== 'chat'),
-      ) ||
-    board
-      .list<SubmissionAttempt>('submission_attempt')
-      .some((attempt) => attempt.cardId === cardId && attempt.status === 'uncertain')
-  )
-    throw new Error(
-      'Finish active job work and resolve uncertain submissions before updating this job.',
-    );
-  return card;
-}
-
 /** Caller holds the save transaction, including its duplicate check. */
 function refreshJobLink(
   board: Board,
@@ -112,7 +87,7 @@ function refreshJobLink(
   },
 ): Card {
   const { cardId, runId, expectedSource, input, actor, provenance } = options;
-  const card = assertJobLinkRefresh(board, cardId, runId);
+  const card = assertJobDetailsChange(board, cardId, runId);
   if (jobSourceRevision(card) !== expectedSource)
     throw new Error('The job changed while reading the link. Read it again before updating.');
   const now = new Date().toISOString();
@@ -145,36 +120,11 @@ function refreshJobLink(
         }
       : { discovery: undefined }),
   };
-  if (jobSourceRevision(next) === jobSourceRevision(card)) return card;
-  Object.assign(next, {
-    updatedAt: now,
-    fit: null,
-    applicationContext: undefined,
-    packetContextRevision: undefined,
-    packetReview: undefined,
-    formAssessments: undefined,
-  });
-  board.record(
-    'card',
+  return recordJobSourceChange(
+    board,
+    card,
     next,
     actor,
     'Updated job details from a posting link; application brief needs fresh review',
   );
-  for (const approval of board.list<Approval>('approval'))
-    if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
-      board.record(
-        'approval',
-        { ...approval, status: 'rejected', decidedAt: now },
-        actor,
-        'Invalidated export approval after job details changed',
-      );
-  for (const approval of board.list<ComputerApproval>('computer_approval'))
-    if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
-      board.record(
-        'computer_approval',
-        { ...approval, status: 'rejected', decidedAt: now },
-        actor,
-        'Invalidated browser approval after job details changed',
-      );
-  return next;
 }

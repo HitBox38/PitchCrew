@@ -14,7 +14,13 @@ export type {
   InstructionUpdate,
 } from './default-instructions.ts';
 export { cardInput } from './cards.ts';
-export { bulkDeleteJobsInput, bulkMoveJobsInput, maxJobBatchSize } from './job-management.ts';
+export {
+  bulkDeleteJobsInput,
+  bulkMoveJobsInput,
+  maxJobBatchSize,
+  jobDetailsChanges,
+  updateJobInput,
+} from './job-management.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson } from './cards.ts';
 export * from './insights.ts';
