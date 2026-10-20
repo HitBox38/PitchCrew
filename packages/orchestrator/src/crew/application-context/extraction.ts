@@ -19,7 +19,7 @@ export function assertApplicationRuntime(role: Role) {
       'This runtime does not support isolated application runs. Choose Codex, Claude Code or OpenCode, or prepare a brief manually.',
     );
 }
-export async function extractApplicationContext(
+async function extractApplicationContextPrepared(
   context: CrewContext,
   cardId: string,
   roleId: string,
@@ -153,4 +153,18 @@ export async function extractApplicationContext(
       context.capabilities.delete(token);
     });
   return run;
+}
+
+export async function extractApplicationContext(
+  context: CrewContext,
+  cardId: string,
+  roleId: string,
+): Promise<Run> {
+  await context.runtimeMaintenance.refreshOnRetry(requireRole(context, roleId));
+  return context.runtimeMaintenance.guard(
+    requireRole(context, roleId),
+    () => extractApplicationContextPrepared(context, cardId, roleId),
+    false,
+    () => requireRole(context, roleId),
+  );
 }

@@ -9,11 +9,12 @@ import { smokeStreamRequest, streamSmokeReply } from '../packages/desktop/src/sm
 const directory = resolve(process.env.PITCHCREW_HOME ?? '');
 if (!directory.startsWith(resolve(tmpdir(), 'pitchcrew-electron-check-')))
   throw new Error('The desktop fixture daemon requires an isolated temporary workspace.');
+let runtimeVersion = '1.0.0';
 for (const adapter of Object.values(adapters))
   adapter.detect = async () => ({
     id: adapter.id,
     available: adapter.id === 'claude-code',
-    version: 'Fixture',
+    version: runtimeVersion,
     detail: 'Isolated desktop test fixture.',
   });
 adapters['claude-code'].chat = async (context) => {
@@ -61,6 +62,34 @@ const daemon = await createDaemon({
       ),
   },
 });
+const maintenance = daemon.service.runtimeMaintenance;
+maintenance.enabled = true;
+maintenance.authenticationEnabled = true;
+maintenance.configure(false);
+maintenance.host.authenticate = async () => ({
+  status: 'unknown',
+  checkedAt: new Date().toISOString(),
+  detail: 'Fixture authentication unverified.',
+  instructions: 'Fixture setup instructions.',
+});
+maintenance.host.resolve = async () => ({
+  executable: '/fixture/claude',
+  realPath: '/fixture/claude',
+  identity: 'fixture-installation',
+  installer: 'native',
+  command: { file: '/fixture/claude', args: ['update'] },
+  manualCommand: 'fixture update',
+  detail: 'Isolated fixture updater.',
+});
+maintenance.host.latest = async () => '1.1.0';
+maintenance.host.run = async (_command, options) => {
+  options.onOutput?.('Fixture installer started\n');
+  await new Promise((resolve) => setTimeout(resolve, 4500));
+  options.onOutput?.('Fixture installer completed\n');
+  runtimeVersion = '1.1.0';
+  return { code: 0, stdout: '', stderr: '' };
+};
+await maintenance.initializeAuthentication();
 for (const role of daemon.service.board.list<Role>('role'))
   await daemon.service.configureRole(role.id, { ...role, enabled: true });
 // Reproduce a role retained from development without enabling Demo in the production daemon.

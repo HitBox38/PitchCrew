@@ -101,6 +101,7 @@ it('runs at most one document correction plus Reviewer recheck, with scoped tool
     repairable: ['resume.pdf page 2: possible stranded heading'],
     warnings: ['Check the preview.'],
   });
+  const guard = vi.spyOn(daemon.service.runtimeMaintenance, 'guard');
   const calls: string[] = [];
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
     calls.push(context.purpose!);
@@ -114,6 +115,12 @@ it('runs at most one document correction plus Reviewer recheck, with scoped tool
   const run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' })).result;
   const snapshot = await finish(request, run.id);
   expect(calls).toEqual(['application-draft', 'application-draft', 'application-review']);
+  expect(guard.mock.calls.map(([role]) => role.runtime)).toEqual(['demo', 'demo', 'demo']);
+  expect(guard.mock.calls.map(([role]) => (role as Role).id)).toEqual([
+    'writer',
+    'writer',
+    'reviewer',
+  ]);
   const current = snapshot.cards.find((c) => c.id === card.id)!;
   expect(current.state).toBe('agreed');
   expect(current.feedback).toContain('Warning: Check the preview.');

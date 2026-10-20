@@ -71,6 +71,7 @@ export interface Snapshot extends WorkspaceMessages {
   profile: ProfileFile[];
   profileOrganization?: ProfileOrganization;
   runtimes: RuntimeInfo[];
+  runtimeMaintenance?: import('./runtime-maintenance.ts').RuntimeMaintenanceState;
   dataDirectory: string;
   demoAvailable: boolean;
   messages: ChatMessage[];

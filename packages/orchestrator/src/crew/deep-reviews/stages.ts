@@ -1,3 +1,4 @@
+import { guideForRun } from '../../quality/writing.ts';
 import { selectedChatSkills } from '../chat-references.ts';
 import { reviewChildren } from './subagents.ts';
 import { reviewClarifications } from './clarifications.ts';
@@ -24,7 +25,7 @@ import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review } from './state.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 
-export async function executeReviewStage(
+async function executeReviewStagePrepared(
   context: CrewContext,
   live: LiveDeepReview,
   role: Role,
@@ -199,4 +200,7 @@ export async function executeReviewStage(
     context.publishChat(true);
   }
 }
-import { guideForRun } from '../../quality/writing.ts';
+
+export function executeReviewStage(...args: Parameters<typeof executeReviewStagePrepared>) {
+  return args[0].runtimeMaintenance.guard(args[2], () => executeReviewStagePrepared(...args));
+}

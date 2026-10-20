@@ -20,7 +20,7 @@ import { endQuestionTurn } from '../crew/user-input/lifecycle.ts';
 import { relatedConversation } from '../crew/conversations.ts';
 import { applicationUserAnswers } from '../crew/application-context/answers.ts';
 
-async function stage(
+async function stagePrepared(
   context: CrewContext,
   parent: Run,
   role: Role,
@@ -157,6 +157,10 @@ async function stage(
     context.capabilities.delete(token);
     context.controllers.delete(run.id);
   }
+}
+
+function stage(...args: Parameters<typeof stagePrepared>) {
+  return args[0].runtimeMaintenance.guard(args[2], () => stagePrepared(...args));
 }
 
 export async function documentReviewCycle(

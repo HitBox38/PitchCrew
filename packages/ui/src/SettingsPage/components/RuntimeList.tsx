@@ -3,37 +3,28 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible/index.tsx';
-import { runtimeLabels } from '@/lib/labels.ts';
+import { RuntimeRow } from '@/RuntimeMaintenance/components/RuntimeRow.tsx';
 import type { Snapshot } from '@pitchcrew/core';
 import { ChevronDown } from 'lucide-react';
 
 function RuntimeRows({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
   return (
-    <div className="runtime-list">
+    <div className="space-y-4">
       {runtimes.map((runtime) => (
-        <div className="runtime-row" key={runtime.id}>
-          <div>
-            <strong>{runtimeLabels[runtime.id]}</strong>
-            <p>{runtime.detail}</p>
-          </div>
-          {runtime.version ? <small>{runtime.version}</small> : null}
-          <span className={`badge ${runtime.available ? 'success' : ''}`}>
-            {runtime.available ? 'Available' : 'Unavailable'}
-          </span>
-        </div>
+        <RuntimeRow key={runtime.id} runtime={runtime} />
       ))}
     </div>
   );
 }
 
 export function RuntimeList({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
-  const available = runtimes.filter((runtime) => runtime.available);
-  const unavailable = runtimes.filter((runtime) => !runtime.available);
+  const available = runtimes.filter((runtime) => runtime.available || !!runtime.version);
+  const unavailable = runtimes.filter((runtime) => !runtime.available && !runtime.version);
   return (
     <section className="runtime-section" aria-labelledby="runtime-heading">
       <div className="section-heading mb-3 flex items-baseline justify-between gap-3">
         <h2 id="runtime-heading">Runtimes on this machine</h2>
-        <span className="subtle">{available.length} available</span>
+        <span className="subtle">{available.length} installed</span>
       </div>
       <RuntimeRows runtimes={available} />
       {unavailable.length ? (

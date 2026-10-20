@@ -1,3 +1,4 @@
+import { RuntimeUpdateSettings } from '@/RuntimeMaintenance/components/RuntimeUpdateSettings.tsx';
 import { RuntimeList } from './RuntimeList.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
@@ -25,6 +26,7 @@ export function RuntimeSettings({ runtimes }: { runtimes: Snapshot['runtimes'] }
           <RefreshCw size={15} /> Check runtimes
         </Button>
       </div>
+      <RuntimeUpdateSettings />
       <RuntimeList runtimes={runtimes} />
     </section>
   );
