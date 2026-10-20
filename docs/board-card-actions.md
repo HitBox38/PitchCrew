@@ -15,7 +15,7 @@ Manual status changes record local bookkeeping. They do not start agents, export
 - **Copy job posting link**, available when the job has a URL.
 - **Delete job…**, separated at the bottom and requiring confirmation.
 
-Deletion uses the existing job deletion behavior: remove the card from the board, retain stored history and exported files, cancel queued follow-ups and pause attached routines. There is no Trash or user-facing restore action. The confirmation dialog explains these consequences and initially focuses **Keep job**. **Mark withdrawn** is the alternative for a job the user may want to revisit.
+Deletion uses the existing job deletion behavior: remove the card from the board, retain stored history and exported files, cancel queued requests and follow-ups and pause attached routines. There is no Trash or user-facing restore action. The confirmation dialog explains these consequences and initially focuses **Keep job**. **Mark withdrawn** is the alternative for a job the user may want to revisit.
 
 ## Status shortcuts
 
@@ -39,7 +39,7 @@ Show the relevant existing workflow action for the job's stage:
 - **Review packet** at the review stage.
 - **Cancel run** while an agent is working.
 
-Required brief confirmations and approval steps retain their existing flows. If a brief needs preparation or confirmation, a crew shortcut opens job details rather than starting work. Disabled crew actions explain missing agents, runtimes, profile notes, packets or busy agents. Status changes and deletion remain disabled while the job is owned or has an active workflow or attached chat run. The daemon rechecks these restrictions for user status changes and deletion.
+Required brief confirmations and approval steps retain their existing flows. If a brief needs preparation or confirmation, a crew shortcut opens job details rather than starting work. Crew actions enter the shared job queue. A duplicate shortcut opens its pending entry; work for another job does not disable the same agent. Disabled actions explain missing agents, runtimes, profile notes or packets. The Queue page supports future stages and intentional repeats. Status changes and deletion remain disabled while the job is owned or has an active workflow or attached chat run. The daemon rechecks these restrictions for user status changes and deletion.
 
 ## Persistence and focus
 

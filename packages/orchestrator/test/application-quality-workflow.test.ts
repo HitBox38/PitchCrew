@@ -202,3 +202,38 @@ it('offers verified DOCX files for approval and export when PDF rendering fails'
     'consumed',
   );
 });
+
+it('does not start a document repair stage after the user pauses its job queue', async () => {
+  const { daemon, request, card } = await prepared(24635);
+  vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue({
+    ...clearDocuments,
+    repairable: ['Possible stranded heading'],
+  });
+  const launch = vi.spyOn(adapters.demo, 'run').mockImplementation(async () => {
+    const queue = daemon.service.board
+      .list<import('@pitchcrew/core').WorkQueue>('work_queue')
+      .find((q) => q.cardId === card.id)!;
+    daemon.service.board.record(
+      'work_queue',
+      { ...queue, paused: true, pauseKind: 'user', reason: 'Paused by you.' },
+      'user',
+      'Pause this job',
+    );
+    return { role: 'writer', packet };
+  });
+  const run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' })).result;
+  const snapshot = await waitForSnapshot(request, (s) =>
+    s.runs.some((r) => r.id === run.id && r.status !== 'running'),
+  );
+  expect(launch).toHaveBeenCalledTimes(1);
+  expect(snapshot.runs.find((r) => r.id === run.id)).toMatchObject({
+    status: 'failed',
+    message: 'Paused by you.',
+  });
+  expect(snapshot.cards.find((c) => c.id === card.id)?.packetReview).toBeUndefined();
+  expect(
+    daemon.service.board
+      .list<import('@pitchcrew/core').WorkQueue>('work_queue')
+      .find((q) => q.cardId === card.id)?.paused,
+  ).toBe(true);
+});

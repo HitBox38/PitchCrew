@@ -41,6 +41,7 @@ export interface ProfileFile {
 }
 export interface Snapshot extends WorkspaceMessages {
   quality?: import('./application-quality.ts').QualitySnapshot;
+  queue?: import('./work-queue.ts').WorkspaceQueue;
   /** UI projection: job source text is fetched when its details are opened. */
   workspace?: true;
   userInputs?: UserInputRequest[];

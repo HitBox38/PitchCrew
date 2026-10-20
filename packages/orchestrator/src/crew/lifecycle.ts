@@ -1,3 +1,5 @@
+import { workspaceQueue } from './queue/projection.ts';
+import { ensureQueue, patchQueue } from './queue/state.ts';
 import { workspaceCards, workspaceRuns, workspaceEvents } from './workspace-projection.ts';
 import { workspaceMessages } from '@pitchcrew/board';
 import { activityRuns } from './chat-activity.ts';
@@ -31,6 +33,7 @@ import { seedRecommendedRoles } from './runtime-recommendations.ts';
 
 export async function initialize(this: CrewContext, seedSkills: boolean = true): Promise<void> {
   this.initializing = true;
+  const interruptedTasks: AgentTask[] = [];
   try {
     await this.connectors.initialize();
     for (const approval of this.board
@@ -134,25 +137,22 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
       );
     for (const task of this.board
       .list<AgentTask>('task')
-      .filter((t) => ['queued', 'running'].includes(t.status)))
+      .filter((t) => ['queued', 'running'].includes(t.status))) {
+      const parent = this.board.get<Run>('run', task.runId ?? task.parentRunId);
+      if (task.status === 'queued' && parent.status === 'completed') continue;
+      const status = parent.status === 'waiting' ? (task.runId ? 'waiting' : 'queued') : 'failed';
       this.board.record(
         'task',
         {
           ...task,
-          status:
-            this.board.get<Run>('run', task.runId ?? task.parentRunId).status === 'waiting'
-              ? task.runId
-                ? 'waiting'
-                : 'queued'
-              : 'failed',
-          error:
-            this.board.get<Run>('run', task.runId ?? task.parentRunId).status === 'waiting'
-              ? ''
-              : 'The daemon stopped. Start a new conversation to retry.',
+          status,
+          error: status === 'failed' ? 'The daemon stopped. Retry or skip this follow-up.' : '',
         },
         'system',
         'Recovered interrupted crew task',
       );
+      if (status === 'failed') interruptedTasks.push(task);
+    }
     const rolesReady = (async () => {
       await this.detect();
       await this.runtimeMaintenance.recover();
@@ -164,16 +164,32 @@ export async function initialize(this: CrewContext, seedSkills: boolean = true):
     await Promise.all([rolesReady, ...(seedSkills ? [this.seedStarterSkills(rolesReady)] : [])]);
     for (const role of this.board.list<Role>('role')) await this.writeRole(role);
     migrateConversations(this);
+    for (const task of interruptedTasks) {
+      const queue = ensureQueue(this, task.threadId, task.rootRunId);
+      if (!queue.id.startsWith('routine:'))
+        patchQueue(this, queue.id, {
+          paused: true,
+          pauseKind: 'interrupted',
+          reason: 'Interrupted by daemon restart. Retry or skip this follow-up.',
+        });
+    }
     for (const request of this.board.list<import('@pitchcrew/core').ChatRequest>('chat_request')) {
       if (!request.deliveries.some((delivery) => ['queued', 'running'].includes(delivery.status)))
         continue;
       for (const delivery of request.deliveries)
-        if (['queued', 'running'].includes(delivery.status))
+        if (delivery.status === 'running')
           delivery.status =
             delivery.runId && this.board.get<Run>('run', delivery.runId).status === 'waiting'
               ? 'waiting'
               : 'paused';
-      this.board.record('chat_request', request, 'system', 'Paused interrupted user request');
+      this.board.record('chat_request', request, 'system', 'Recovered saved user request');
+      const queue = ensureQueue(this, request.threadId, request.rootRunId);
+      if (request.deliveries.some((d) => d.status === 'paused' && d.runId))
+        patchQueue(this, queue.id, {
+          paused: true,
+          pauseKind: 'interrupted',
+          reason: 'Interrupted by daemon restart. Retry or skip this request.',
+        });
     }
   } finally {
     this.initializing = false;
@@ -188,6 +204,7 @@ export async function snapshot(
   migrateConversations(this);
   const snapshot: Snapshot = {
     quality: qualitySnapshot(this, profile),
+    queue: workspaceQueue(this),
     userInputs: this.board.list('user_input'),
     conversations: conversations(this),
     chatRequests: this.board.list('chat_request'),
@@ -236,6 +253,17 @@ export async function close(this: CrewContext): Promise<void> {
   clearInterval(this.schedulerTimer);
   this.modelController.abort();
   this.jobSources.close();
+  for (const run of this.board
+    .list<Run>('run')
+    .filter((r) => r.status === 'running' && r.threadId)) {
+    const queue = ensureQueue(this, run.threadId!, run.rootRunId);
+    if (!queue.id.startsWith('routine:'))
+      patchQueue(this, queue.id, {
+        paused: true,
+        pauseKind: 'interrupted',
+        reason: 'Interrupted when the daemon stopped. Retry or skip this request.',
+      });
+  }
   for (const controller of this.controllers.values()) controller.abort();
   await Promise.allSettled([
     ...this.modelRequests.values(),

@@ -20,6 +20,7 @@ export interface Run {
   writingGuide?: Pick<import('./application-quality.ts').WritingGuide, 'revision' | 'preferences'>;
   writingCorrectionId?: string;
   documentRepair?: boolean;
+  profileDigest?: string;
   purpose?:
     | 'source-extraction'
     | 'application-draft'
@@ -72,15 +73,23 @@ export interface AgentTask {
   error: string;
   createdAt: string;
 }
+// Older runtime results remain accepted; the daemon supplies a factual activity fallback.
+const changeSummary = z
+  .string()
+  .transform((text) => text.replace(/\s+/gu, ' ').trim())
+  .pipe(z.string().min(1).max(300))
+  .optional();
 export const runResultSchema = z.discriminatedUnion('role', [
   z.object({
     role: z.literal('scout'),
+    changeSummary,
     fit: z.number().int().min(0).max(100),
     reasons: z.array(z.string().max(1000)).max(10),
   }),
-  z.object({ role: z.literal('writer'), packet: packetSchema }),
+  z.object({ role: z.literal('writer'), packet: packetSchema, changeSummary }),
   z.object({
     role: z.literal('reviewer'),
+    changeSummary,
     passed: z.boolean(),
     feedback: z.array(z.string().max(2000)).max(30),
     suggestions: z.array(z.string().max(2000)).max(60).optional(),

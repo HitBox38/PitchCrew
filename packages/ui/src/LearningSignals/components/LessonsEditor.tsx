@@ -5,8 +5,14 @@ import { lessonLimits } from '@pitchcrew/core/insights';
 import { Trash2 } from 'lucide-react';
 import { useLessonDraft } from '../hooks/useLessonDraft.ts';
 
-export function LessonsEditor({ card }: { card: Card }) {
-  const draft = useLessonDraft(card);
+export function LessonsEditor({
+  card,
+  onDirtyChange,
+}: {
+  card: Card;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
+  const draft = useLessonDraft(card, onDirtyChange);
   return (
     <div className="my-3">
       <h4>Lessons</h4>

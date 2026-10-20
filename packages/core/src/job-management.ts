@@ -1,5 +1,25 @@
 import { z } from 'zod';
 import { states } from './states.ts';
+import { cardInput } from './cards.ts';
+
+export const jobDetailsChanges = cardInput
+  .pick({ company: true, title: true, location: true, salary: true })
+  .extend({
+    location: cardInput.shape.location.unwrap(),
+    salary: cardInput.shape.salary.unwrap(),
+  })
+  .partial()
+  .strict()
+  .refine((changes) => Object.values(changes).some((value) => value !== undefined), {
+    message: 'Supply at least one job detail to correct.',
+  });
+export const updateJobInput = z
+  .object({
+    cardId: z.uuid().optional(),
+    changes: jobDetailsChanges,
+    reason: z.string().trim().min(1).max(2000),
+  })
+  .strict();
 
 export const maxJobBatchSize = 100;
 export const bulkDeleteJobsInput = z

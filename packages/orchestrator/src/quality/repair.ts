@@ -9,7 +9,8 @@ import {
   type Run,
   type RunContext,
 } from '@pitchcrew/core';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
+import { launchProblem, QueueBusyError } from '../crew/queue/admission.ts';
 import { join } from 'node:path';
 import type { CrewContext } from '../crew/types.ts';
 import { runConfiguration } from '../crew/pipeline/snapshots.ts';
@@ -30,13 +31,7 @@ async function stagePrepared(
   signal: AbortSignal,
 ) {
   signal.throwIfAborted();
-  if (
-    !role.enabled ||
-    context.board
-      .list<Run>('run')
-      .some((r) => r.id !== parent.id && r.roleId === role.id && r.status === 'running')
-  )
-    throw new Error(`${role.name} is unavailable for document correction.`);
+  if (!role.enabled) throw new Error(`${role.name} is unavailable for document correction.`);
   if (!adapters[role.runtime].applicationIsolation)
     throw new Error('This runtime cannot isolate document correction.');
   const card = context.board.get<Card>('card', parent.cardId!);
@@ -54,6 +49,8 @@ async function stagePrepared(
     ).id,
     mode: 'workflow',
     documentRepair: true,
+    profileDigest:
+      parent.profileDigest ?? createHash('sha256').update(JSON.stringify(profile)).digest('hex'),
     startedAt: new Date().toISOString(),
     finishedAt: null,
     writingGuide: parent.writingGuide ?? guideForRun(context),
@@ -160,7 +157,26 @@ async function stagePrepared(
 }
 
 function stage(...args: Parameters<typeof stagePrepared>) {
-  return args[0].runtimeMaintenance.guard(args[2], () => stagePrepared(...args));
+  const [context, parent, role] = args;
+  return context.runtimeMaintenance.guard(role, () => {
+    const thread = relatedConversation(
+      context,
+      'application',
+      parent.cardId!,
+      role.id,
+      parent.cardId!,
+      'Application work',
+    );
+    const problem = launchProblem(context, {
+      isolated: true,
+      cardId: parent.cardId,
+      threadId: thread.id,
+      roleId: role.id,
+      rootRunId: parent.rootRunId ?? parent.id,
+    });
+    if (problem) throw new QueueBusyError(problem);
+    return stagePrepared(...args);
+  });
 }
 
 export async function documentReviewCycle(
@@ -183,12 +199,7 @@ export async function documentReviewCycle(
     );
   if (check.repairable.length && !alreadyCorrected) {
     const roles = context.board.list<Role>('role');
-    const available = (r: Role) =>
-      r.enabled &&
-      adapters[r.runtime].applicationIsolation &&
-      !context.board
-        .list<Run>('run')
-        .some((run) => run.id !== parent.id && run.roleId === r.id && run.status === 'running');
+    const available = (r: Role) => r.enabled && adapters[r.runtime].applicationIsolation;
     const candidates = [
       ...roles.filter((r) => r.id === parent.roleId),
       ...roles.filter((r) => r.id !== parent.roleId),

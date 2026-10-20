@@ -1,6 +1,6 @@
 import { FileCheck, FileText, History, X } from 'lucide-react';
 import { useState } from 'react';
-import { JobActions } from '@/components/CardDetails/components/JobActions.tsx';
+import { JobPanelFooter } from './JobPanelFooter';
 import { JobHeading } from '@/components/CardDetails/components/JobHeading.tsx';
 import { JobHistory } from '@/components/CardDetails/components/JobHistory.tsx';
 import { JobMetadata } from '@/components/CardDetails/components/JobMetadata.tsx';
@@ -42,18 +42,6 @@ export function JobPanel({
         <JobHeading card={view.card} />
         <JobMetadata card={view.card} />
         <JobState card={view.card} />
-        <JobActions
-          run={undefined}
-          act={act}
-          runRole={view.runRole}
-          working={false}
-          card={view.card}
-          exported={false}
-          onInbox={act}
-        />
-        {stage === 'track' ? null : (
-          <p className="action-hint">In this example, the button moves to the next stage.</p>
-        )}
       </div>
       <Tabs
         className="job-sections gap-0"
@@ -61,12 +49,13 @@ export function JobPanel({
         onValueChange={(value) => setTab(value as DemoTab)}
       >
         <div className="detail-navigation px-5 pb-3 max-mobile:px-4">
-          <TabsList className="detail-tabs" aria-label="Job sections">
+          <TabsList variant="line" className="detail-tabs" aria-label="Job sections">
             {(['overview', 'packet', 'history'] as const).map((name) => {
               const Icon = icons[name];
               return (
                 <TabsTrigger key={name} value={name}>
-                  <Icon size={15} /> {name[0].toUpperCase() + name.slice(1)}
+                  <Icon size={15} />{' '}
+                  {{ overview: 'Job', packet: 'Application', history: 'Activity' }[name]}
                 </TabsTrigger>
               );
             })}
@@ -81,7 +70,7 @@ export function JobPanel({
             ) : (
               <EmptyState
                 title="No packet yet"
-                description="Writer hasn’t drafted one yet. Press Draft application above to see it."
+                description="Writer hasn’t drafted one yet. Press Draft application below to see it."
               />
             )
           ) : mounted ? (
@@ -92,6 +81,7 @@ export function JobPanel({
           ) : null}
         </TabsContent>
       </Tabs>
+      <JobPanelFooter stage={stage} advance={act} />
     </div>
   );
 }

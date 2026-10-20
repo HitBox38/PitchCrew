@@ -1,0 +1,25 @@
+# Job details
+
+The job sheet has three sections: Job, Application and Activity. Its compact header keeps the company, title, location, compensation, board status and fit score visible. The original posting and close controls share that header. A persistent footer presents one next action based on the current work and prerequisites, plus Shortlist for idle leads. Each section has its own reading position inside the sheet's main work area; the header and footer never scroll independently.
+
+## Information and decisions
+
+Job opens with the original description, tags and crew assessment. Posting provenance lives in a secondary disclosure. Application groups the complete brief and requirements, documents, reviews and export. Confirmed briefs use a compact summary until the user chooses to review or edit them. Deep-review reports load only when Reviews first opens. Export format/layout controls live beside their approval request rather than in the persistent header.
+
+The next action prioritizes current work, pending user questions and uncertain submissions. An unavailable brief leads to preparation; a current extracted brief supports fit evaluation; drafting requires confirmation and personal answers. Drafting uses the isolated application draft endpoint with the chosen application agent. Packet review, exact-document export approval and recording an actual manual submission remain separate decisions. Runtime/account details appear beside launch actions, and unavailable agents explain what needs attention.
+
+Activity contains status bookkeeping, external application registration, lessons, tracking evidence, submission receipts and saved history. Uncertain submission outcomes open their evidence rather than suggesting another submission. Recording a status never contacts an employer or grants export/submission permission.
+
+## Live agents and job chat
+
+Active workflow and attached conversation runs appear as named agent avatars in the header. Hover and keyboard focus show their public current activity, latest commentary and elapsed time. Clicking an avatar opens its existing conversation at `/chat/<thread>?run=<run-id>` and focuses the matching turn. Touch users can open the same conversation directly. Multiple workers retain separate links; administrative seat reservations and coordinating parents with an active worker are omitted. Waiting agents show Waiting for you. Opening chat never cancels a run.
+
+Ordinary application workflows and source extraction use the same bounded, sanitized activity channel as chat and deep-review stages. Source extraction joins the existing application conversation or creates one. Provider activity retains at most 80 entries and 4,000 characters per commentary entry; private reasoning bodies and raw tool payloads are excluded. Completed activity is saved on the run and included in indexed conversation history. Compact streams overlay only active runs and a terminal handoff, keeping saved history paged. Run-targeted links load the relevant history page and continue following live work when it is the latest page.
+
+## Drafts and accessibility
+
+Sections mount on first visit and remain mounted afterward. Collapsed editors use the shared accordion's mounted panels, so tab and disclosure changes preserve drafts. Brief edits, lesson text, tracking identifiers, email thread drafts, external submission fields and external verification evidence participate in the sheet's unsaved-changes guard. Closing, leaving the page or following a job-chat link requires saving or explicitly discarding pending edits. Selecting another section does not discard them.
+
+The sheet uses Base UI dialog semantics, focus management, tabs and accordions, with the same shared materials and reduced-motion treatment as the rest of the app. Recessed segmented tabs, raised clay reading and application sections, a serif job title and tactile agent controls preserve the app's material identity within the compact layout. Its footer accounts for mobile safe areas, and Electron's existing title-bar bounds apply to the sheet and backdrop.
+
+Regression coverage includes initial reading layout, mobile bounds, draft preservation/save/close behavior, live workflow previews, turn-targeted chat navigation, saved turn replay, source-extraction progress and existing deep-review/board flows. Provider calls remain outside automated verification.

@@ -27,6 +27,17 @@ export function WorkspaceSidebar({
       stages={stageLinks}
       onStage={jumpToStage}
       counts={{
+        queue:
+          data.queue?.queues.reduce(
+            (count, q) =>
+              count +
+              q.requests.filter((r) =>
+                r.deliveries.some((d) =>
+                  ['queued', 'paused', 'failed', 'waiting'].includes(d.status),
+                ),
+              ).length,
+            0,
+          ) ?? 0,
         inbox: pending,
         profile: data.profile.length,
         crew: pendingInstructionUpdates(data).length,

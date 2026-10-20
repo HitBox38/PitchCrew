@@ -7,7 +7,8 @@ export function createWorkspaceActivity(service: CrewService) {
   return (live: Run[]): Run[] => {
     const saved = service.board.db
       .prepare(`SELECT json_remove(json,'$.configuration') AS json
-      FROM entities WHERE kind='run' AND (json_extract(json,'$.mode')='chat' OR json_extract(json,'$.deepReviewId') IS NOT NULL)
+      FROM entities WHERE kind='run' AND json_extract(json,'$.threadId') IS NOT NULL
+      AND COALESCE(json_extract(json,'$.reviewSeatReservation'),0)=0
       AND json_extract(json,'$.status')='running' ORDER BY rowid`)
       .all() as { json: string }[];
     const runs = new Map(

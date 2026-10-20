@@ -1,10 +1,27 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { applicationQuery, bulkDeleteJobsInput, bulkMoveJobsInput, states } from '@pitchcrew/core';
+import {
+  applicationQuery,
+  bulkDeleteJobsInput,
+  bulkMoveJobsInput,
+  states,
+  updateJobInput,
+} from '@pitchcrew/core';
 import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
 export function registerJobTools(server: McpServer, call: AgentCall) {
+  server.registerTool(
+    'pitchcrew_update_job',
+    {
+      title: 'Correct saved job details',
+      description:
+        'Requires manageWorkflow. Correct a saved company, title, location or salary from user-provided corrections or reliable evidence, without fetching or reimporting the posting. Supply only changed fields in changes and a reason. Omit cardId for the attached job; attached chats cannot edit another job. Preserves status, posting source, notes and packet files. A change clears stale fit and application context/review evidence and invalidates unused export/browser approvals; the user must review and confirm a fresh brief before drafting and a fresh packet review is required before export. Cannot edit or confirm the brief, rewrite a packet or submit. Finish other active job work and resolve uncertain submissions first; the calling chat may edit its own job. Report success only after the saved result.',
+      inputSchema: updateJobInput,
+      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: true },
+    },
+    (input) => call('update_job', { input }),
+  );
   server.registerTool(
     'pitchcrew_bulk_move_jobs',
     {

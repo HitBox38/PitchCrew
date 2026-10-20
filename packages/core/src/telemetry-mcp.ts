@@ -18,6 +18,7 @@ export const mcpGatewayTools = Object.freeze({
   propose: 'pitchcrew_propose_role_changes',
   workflow: 'pitchcrew_change_workflow',
   jobs: 'pitchcrew_list_jobs',
+  update_job: 'pitchcrew_update_job',
   delete_job: 'pitchcrew_delete_job',
   bulk_move_jobs: 'pitchcrew_bulk_move_jobs',
   bulk_delete_jobs: 'pitchcrew_bulk_delete_jobs',

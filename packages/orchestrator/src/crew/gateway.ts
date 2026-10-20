@@ -33,6 +33,7 @@ import { connectorAccess, connectorAction } from './gateway/connectors.ts';
 import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
+import { correctJobDetails } from './gateway/job-details.ts';
 import { profileAction } from './gateway/profile.ts';
 import { routineAction } from './gateway/routines.ts';
 import { trackingAction } from './gateway/tracking.ts';
@@ -295,6 +296,11 @@ async function dispatchAgentCall(
     return queueMessage.call(this, capability, permissions, action, data);
   if (action === 'propose') return proposeRole.call(this, capability, role, data);
   if (action === 'propose_skill') return proposeSkill.call(this, capability, role, token, data);
+  if (action === 'update_job') {
+    if (!permissions.manageWorkflow)
+      throw new Error('Workflow capability is disabled for your role.');
+    return correctJobDetails(this, capability, data.input);
+  }
   if (['jobs', 'workflow', 'delete_job', 'bulk_move_jobs', 'bulk_delete_jobs'].includes(action))
     return changeWorkflow.call(this, capability, permissions, action, data);
   if (['card', 'history', 'export'].includes(action) && !capability.cardId)

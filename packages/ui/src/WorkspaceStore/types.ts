@@ -18,6 +18,7 @@ export interface WorkspaceState extends AppUpdateState, SkillUpdateActions {
   add: boolean;
   creatingConversation: boolean;
   selectedId: string | null;
+  selectedJobSection: 'job' | 'application' | 'activity';
   roleId: RoleId | null;
   recentIds: string[];
   query: string;
@@ -35,7 +36,7 @@ export interface WorkspaceState extends AppUpdateState, SkillUpdateActions {
   setQuery: (query: string) => void;
   setShowClosed: (showClosed: boolean) => void;
   setFlashStage: (flashStage: string | null) => void;
-  openCard: (id: string) => void;
+  openCard: (id: string, section?: 'job' | 'application' | 'activity') => void;
   closePanels: () => void;
 }
 export type WorkspaceSet = StoreApi<WorkspaceState>['setState'];

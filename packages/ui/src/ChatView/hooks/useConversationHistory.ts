@@ -13,8 +13,10 @@ export function useConversationHistory(props: MessageTranscriptProps) {
     () => (remote ? [] : transcriptItems(messages, data.runs, thread)),
     [remote, messages, data.runs, thread],
   );
-  const local = useHistoryWindow(localItems);
-  const [anchor, selectAnchor] = useState<string | null>(null);
+  const local = useHistoryWindow(localItems, props.focusRunId);
+  const [anchor, selectAnchor] = useState<string | null>(
+    props.focusRunId ? `turn-${props.focusRunId}` : null,
+  );
   const [loaded, setLoaded] = useState<{
     thread: string;
     anchor: string | null;
@@ -54,14 +56,17 @@ export function useConversationHistory(props: MessageTranscriptProps) {
     selectAnchor(next);
     retry((value) => value + 1);
   };
+  const following =
+    displayedAnchor === null ||
+    (displayedAnchor === `turn-${props.focusRunId}` && saved?.newer === null);
   const items = useMemo(
     () =>
       saved
-        ? displayedAnchor === null
+        ? following
           ? liveHistoryItems(saved, data.streamingMessages, data.runs, thread)
           : saved.items
         : [],
-    [saved, displayedAnchor, data.streamingMessages, data.runs, thread],
+    [saved, following, data.streamingMessages, data.runs, thread],
   );
   const total = saved ? Math.max(saved.total, saved.start + items.length) : 0;
   return remote
@@ -72,7 +77,7 @@ export function useConversationHistory(props: MessageTranscriptProps) {
           anchor: displayedAnchor,
           navigate,
           pending: displayedAnchor !== anchor && !error,
-          latest: displayedAnchor === null,
+          latest: following,
         },
         total,
         loading: saved === null,

@@ -41,15 +41,20 @@ export function useReviewSetup({
   const start = () => {
     if (!reviewer || !writer || !confirmed || !available) return;
     act(
-      `/cards/${card.id}/deep-reviews`,
+      '/queue/actions',
       {
-        reviewerId: reviewer.id,
-        writerId: writer.id,
-        secondOpinions,
-        requestedPerspectives: secondOpinions ? requestedPerspectives : [],
-        alternatives: alternatives.map(({ id: _id, ...value }) => value),
+        cardId: card.id,
+        action: 'deep-review',
+        roleId: reviewer.id,
+        deepReviewOptions: {
+          reviewerId: reviewer.id,
+          writerId: writer.id,
+          secondOpinions,
+          requestedPerspectives: secondOpinions ? requestedPerspectives : [],
+          alternatives: alternatives.map(({ id: _id, ...value }) => value),
+        },
       },
-      'Deep resume review started',
+      'Deep resume review queued',
     );
     close();
   };

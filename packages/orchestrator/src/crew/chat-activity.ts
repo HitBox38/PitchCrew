@@ -6,7 +6,7 @@ const textLimit = 4000;
 
 export function activityRuns(context: CrewContext, includeSaved = false): Run[] {
   const runs = includeSaved
-    ? context.board.list<Run>('run').filter((run) => run.mode === 'chat' || !!run.deepReviewId)
+    ? context.board.list<Run>('run').filter((run) => !!run.threadId && !run.reviewSeatReservation)
     : [...context.runActivities.keys()].map((id) => context.board.get<Run>('run', id));
   return runs.map((run) => {
     const live = context.runActivities.get(run.id);
@@ -22,7 +22,8 @@ export function activityRuns(context: CrewContext, includeSaved = false): Run[] 
 export function recordChatActivity(context: CrewContext, runId: string, update: RuntimeActivity) {
   const run = context.board.get<Run>('run', runId);
   if (
-    (run.mode !== 'chat' && !run.deepReviewId) ||
+    !run.threadId ||
+    run.reviewSeatReservation ||
     run.status !== 'running' ||
     context.closing ||
     context.controllers.get(runId)?.signal.aborted

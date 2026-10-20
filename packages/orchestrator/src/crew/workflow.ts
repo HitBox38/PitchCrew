@@ -1,3 +1,6 @@
+import { recordChatActivity, finishChatActivity } from './chat-activity.ts';
+import { QueueBusyError, reserveLaunch } from './queue/admission.ts';
+import { ensureQueue, patchQueue, runLane } from './queue/state.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { documentReviewCycle } from '../quality/repair.ts';
 import { guideForRun, finishWritingCorrection } from '../quality/writing.ts';
@@ -27,15 +30,17 @@ import {
   type RoleId,
   type Run,
   type RunResult,
+  type RuntimeActivity,
 } from '@pitchcrew/core';
 import { readProfile, warningFeedback, writePacket } from '@pitchcrew/packet';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
 import { assertConfirmedContext, assertExtractedContext, digestPacket } from '@pitchcrew/board';
 import { draftingCard, missingPersonalAnswers } from '@pitchcrew/core';
 import { assertApplicationRuntime } from './application-context/extraction.ts';
 import { applicationUserAnswers } from './application-context/answers.ts';
+import { changeSummary } from './change-summary.ts';
 
 async function startRunPrepared(
   this: CrewContext,
@@ -50,8 +55,6 @@ async function startRunPrepared(
   if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
   const profileRevision = this.profileRevision;
   if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
-  if (this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running'))
-    throw new Error('Wait for this role’s chat turn to finish.');
   const storedRole = requireRole(this, roleId);
   let role = applicationDraft ? { ...storedRole, workflow: 'writer' as const } : storedRole;
   const skills = this.skills(roleId);
@@ -115,6 +118,7 @@ async function startRunPrepared(
     writingGuide: seat === 'scout' ? undefined : guideForRun(this),
     writingCorrectionId: correction?.id,
     id: randomUUID(),
+    profileDigest: createHash('sha256').update(JSON.stringify(profile)).digest('hex'),
     cardId,
     roleId,
     runtime: role.runtime,
@@ -148,6 +152,8 @@ async function startRunPrepared(
   }
   const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
   await this.writeRunInstructions(dir, role, skills);
+  if (ensureQueue(this, run.threadId!, run.rootRunId).paused)
+    throw new QueueBusyError('This queue was paused while the action was starting.');
   if (
     this.closing ||
     this.profileWriting ||
@@ -160,8 +166,7 @@ async function startRunPrepared(
     this.board.get<Card>('card', cardId).applicationContext?.revision !==
       applicationContext.revision ||
     this.configuring.has(roleId) ||
-    JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(storedRole) ||
-    this.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running')
+    JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(storedRole)
   )
     throw new Error('This application changed or was claimed by another run. Refresh and retry.');
   const controller = new AbortController();
@@ -201,10 +206,19 @@ async function startRunPrepared(
       env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
     },
     signal: controller.signal,
+    onActivity: (activity: RuntimeActivity) => recordChatActivity(this, run.id, activity),
     onMessage: (message: string) => {
       const current = this.board.get<Run>('run', run.id);
-      if (current.status === 'running')
+      if (current.status === 'running') {
         this.board.record('run', { ...current, message }, roleId, message);
+        recordChatActivity(this, run.id, {
+          id: 'workflow-progress',
+          kind: 'commentary',
+          label: 'Progress update',
+          text: message,
+          status: 'completed',
+        });
+      }
     },
   };
   const ai = beginAiRun(this.diagnostics, 'workflow');
@@ -265,6 +279,7 @@ async function startRunPrepared(
         this.board.get<Card>('card', cardId).state === 'drafting'
       )
         this.board.move(cardId, 'changes_requested', roleId, 'Writer is waiting for your answer');
+      finishChatActivity(this, run.id);
       this.controllers.delete(run.id);
       this.capabilities.delete(token);
       finishUserContinuation(this, run);
@@ -303,12 +318,13 @@ export async function applyResult(
       throw new Error('Application context changed during this run. Confirm and run again.');
   };
   assertCurrent();
+  const summary = changeSummary(result, this.board.get<Card>('card', cardId).packet);
   if (result.role === 'scout') {
     this.board.updateCard(
       cardId,
       { fit: result.fit, feedback: result.reasons },
       role.id,
-      'Evaluated job fit',
+      `Evaluated job fit: ${summary}`,
     );
   }
   if (result.role === 'writer') {
@@ -326,7 +342,7 @@ export async function applyResult(
         feedback: warningFeedback(check.warnings),
       },
       role.id,
-      'Drafted application packet',
+      `Drafted application packet: ${summary}`,
     );
     this.board.move(cardId, 'in_review', role.id);
   }
@@ -359,6 +375,15 @@ export async function applyResult(
         ...warningFeedback(check.warnings),
       ]),
     ];
+    const reviewSummary = changeSummary(
+      {
+        ...result,
+        feedback,
+        // Describe server-enforced blockers when they override the agent's verdict.
+        changeSummary: passed === result.passed ? result.changeSummary : undefined,
+      },
+      card.packet,
+    );
     this.board.updateCard(
       cardId,
       {
@@ -374,7 +399,7 @@ export async function applyResult(
           : undefined,
       },
       role.id,
-      passed ? 'Reviewer approved the packet' : 'Reviewer requested changes',
+      `${passed ? 'Reviewer approved the packet' : 'Reviewer requested changes'}: ${reviewSummary}`,
     );
     this.board.move(cardId, passed ? 'agreed' : 'changes_requested', role.id);
   }
@@ -384,6 +409,11 @@ export function cancelRun(this: CrewContext, id: string): void {
   const parentId = reviewRun.deepReviewId
     ? (this.deepReviewExecutions.get(reviewRun.deepReviewId)?.runId ?? id)
     : id;
+  const queue = this.board
+    .list<import('@pitchcrew/core').WorkQueue>('work_queue')
+    .find((q) => q.id === runLane(this, reviewRun));
+  if (queue && !queue.id.startsWith('routine:'))
+    patchQueue(this, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
   const controller = this.controllers.get(parentId);
   if (!controller) throw new Error('This run is no longer active.');
   controller.abort();
@@ -421,10 +451,31 @@ export async function startRun(
 ): Promise<Run> {
   if (!args[2] && !args[3])
     await this.runtimeMaintenance.refreshOnRetry(requireRole(this, args[1]));
-  return this.runtimeMaintenance.guard(
-    requireRole(this, args[1]),
-    () => startRunPrepared.call(this, ...args),
-    false,
-    () => requireRole(this, args[1]),
+  const [cardId, roleId, task, delivery] = args;
+  const threadId =
+    task?.threadId ??
+    (delivery
+      ? this.board.get<ChatRequest>('chat_request', delivery.requestId).threadId
+      : relatedConversation(
+          this,
+          'application',
+          cardId,
+          roleId,
+          cardId,
+          `${this.board.get<Card>('card', cardId).company}: Application work`,
+        ).id);
+  const queue = ensureQueue(this, threadId);
+  if (!task && !delivery)
+    patchQueue(this, queue.id, { paused: false, pauseKind: undefined, reason: '' });
+  return reserveLaunch(
+    this,
+    { cardId, roleId, threadId, isolated: true, rootRunId: task?.rootRunId ?? delivery?.rootRunId },
+    () =>
+      this.runtimeMaintenance.guard(
+        requireRole(this, args[1]),
+        () => startRunPrepared.call(this, ...args),
+        false,
+        () => requireRole(this, args[1]),
+      ),
   );
 }

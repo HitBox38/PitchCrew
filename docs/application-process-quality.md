@@ -283,7 +283,8 @@ routines can request refreshes; no routine is created automatically.
 
 ### Persistence and existing boundaries
 
-Event version 24 adds writing guides, correction evidence and career plans.
+Event version 25 adds writing guides, correction evidence and career plans.
+Version 24 queue events and prerelease quality events remain readable.
 Projection updates and events share board transactions and survive replay.
 Optimistic revisions protect edits and analysis. Board-backed changes participate
 in existing snapshot revision checks; Profile changes additionally affect plan

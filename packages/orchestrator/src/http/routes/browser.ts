@@ -41,6 +41,7 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
           .list()
           .filter(
             (item) =>
+              (thread.cardId ? item.cardId === thread.cardId : item.threadId === thread.id) &&
               thread.participants.includes(item.roleId) &&
               service.board.get<Role>('role', item.roleId).capabilities?.computerUse === true &&
               !service.board.get<Role>('role', item.roleId).retiredAt,
@@ -49,8 +50,9 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
   });
   app.get<Route>('/api/browser/:id/stream', async (req, res) => {
     const { id } = req.params;
-    authorize(req.query.threadId, id);
-    const first = await service.computer.browsers.frame(id);
+    const thread = authorize(req.query.threadId, id);
+    const sessionKey = service.computer.browsers.key(id, thread.id, thread.cardId);
+    const first = await service.computer.browsers.frame(sessionKey);
     res.raw.writeHead(200, {
       'Content-Type': 'application/x-ndjson',
       'Cache-Control': 'no-store',
@@ -77,7 +79,7 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
           });
         }
         await delay(350, undefined, { signal: controller.signal });
-        frame = await service.computer.browsers.frame(id);
+        frame = await service.computer.browsers.frame(sessionKey);
       }
     } catch (error) {
       if (!controller.signal.aborted)
@@ -95,38 +97,42 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
     return { ok: true };
   });
   app.post<Route>('/api/browser/:id/control', async (req) => {
-    authorize(req.query.threadId, req.params.id);
+    const thread = authorize(req.query.threadId, req.params.id);
+    const sessionKey = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
     const input = z
       .object({ operation: z.enum(['take', 'release', 'renew']), leaseId: z.uuid().optional() })
       .strict()
       .parse(req.body);
-    if (input.operation === 'take') return { leaseId: service.computer.takeControl(req.params.id) };
+    if (input.operation === 'take') return { leaseId: service.computer.takeControl(sessionKey) };
     const leaseId = z.uuid().parse(input.leaseId);
-    if (input.operation === 'release') await service.computer.returnControl(req.params.id, leaseId);
-    else service.computer.browsers.renew(req.params.id, leaseId);
+    if (input.operation === 'release') await service.computer.returnControl(sessionKey, leaseId);
+    else service.computer.browsers.renew(sessionKey, leaseId);
     return { ok: true };
   });
   app.post<Route>('/api/browser/:id/viewport', async (req) => {
-    authorize(req.query.threadId, req.params.id);
+    const thread = authorize(req.query.threadId, req.params.id);
+    const sessionKey = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
     const { width, height, leaseId } = browserViewportSchema
       .extend({ leaseId: z.uuid().optional() })
       .strict()
       .parse(req.body);
     return {
-      applied: await service.computer.resizeBrowser(req.params.id, { width, height }, leaseId),
+      applied: await service.computer.resizeBrowser(sessionKey, { width, height }, leaseId),
     };
   });
   app.post<Route>('/api/browser/:id/input', async (req) => {
-    authorize(req.query.threadId, req.params.id);
+    const thread = authorize(req.query.threadId, req.params.id);
+    const sessionKey = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
     const { leaseId, input } = z
       .object({ leaseId: z.uuid(), input: browserInputSchema })
       .strict()
       .parse(req.body);
-    await service.computer.manualInput(req.params.id, leaseId, input);
+    await service.computer.manualInput(sessionKey, leaseId, input);
     return { ok: true };
   });
   app.post<Route>('/api/browser/:id/sites', async (req) => {
-    authorize(req.query.threadId, req.params.id);
+    const thread = authorize(req.query.threadId, req.params.id);
+    const sessionKey = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
     const { taskId, url, allowed, approvalId } = z
       .object({
         taskId: z.string().min(1).max(100),
@@ -138,21 +144,27 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
       .parse(req.body);
     await assertPublicUrl(url);
     authorize(req.query.threadId, req.params.id);
-    service.computer.allowSite(req.params.id, taskId, new URL(url).origin, allowed, approvalId);
+    service.computer.allowSite(sessionKey, taskId, new URL(url).origin, allowed, approvalId);
     return { ok: true };
   });
   app.post<Route>('/api/browser/:id/close', async (req) => {
-    authorize(req.query.threadId, req.params.id);
+    const thread = authorize(req.query.threadId, req.params.id);
+    const sessionKey = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
     const { reset } = z
       .object({ reset: z.boolean().default(false) })
       .strict()
       .parse(req.body ?? {});
-    const session = service.computer.browsers.list().find((item) => item.roleId === req.params.id);
+    const session = service.computer.browsers
+      .list()
+      .find(
+        (item) =>
+          service.computer.browsers.key(item.roleId, item.threadId, item.cardId) === sessionKey,
+      );
     if (session?.runId) {
       if (service.controllers.has(session.runId)) service.cancelRun(session.runId);
       await service.computer.stop(session.runId);
     }
-    await service.computer.browsers.closeRole(req.params.id, reset);
+    await service.computer.browsers.closeRole(sessionKey, reset);
     return { ok: true };
   });
 }

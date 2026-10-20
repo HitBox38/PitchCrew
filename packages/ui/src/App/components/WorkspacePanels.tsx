@@ -22,6 +22,7 @@ export function WorkspacePanels({
   navigate,
   setRoleId,
 }: WorkspacePanelsProps) {
+  const selectedJobSection = useWorkspaceStore((state) => state.selectedJobSection);
   const creatingConversation = useWorkspaceStore((state) => state.creatingConversation);
   const setCreatingConversation = useWorkspaceStore((state) => state.setCreatingConversation);
   return (
@@ -52,7 +53,12 @@ export function WorkspacePanels({
             action={action}
             working={working}
             onClose={() => setSelectedId(null)}
+            initialSection={selectedJobSection}
             onInbox={() => go('inbox')}
+            onChat={(thread, run) => {
+              setSelectedId(null);
+              void navigate({ to: '/chat/$thread', params: { thread }, search: { run } });
+            }}
           />
         ) : null}
         {selectedRole ? (

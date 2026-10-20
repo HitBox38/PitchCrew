@@ -1,3 +1,6 @@
+import { queueMayStart } from './queue/dispatch.ts';
+import { patchQueue, taskLane } from './queue/state.ts';
+import { launchProblem, QueueBusyError } from './queue/admission.ts';
 import { RuntimeHeldError } from '../runtime-maintenance/availability.ts';
 import { waitingOnUser } from './user-input/lifecycle.ts';
 import {
@@ -7,7 +10,6 @@ import {
   conversation,
 } from './conversations.ts';
 import { drainConversationQueue } from './conversation-queue.ts';
-import { routineReadyBefore } from './routines/ready.ts';
 import { requireRole } from './roles.ts';
 import {
   defaultCapabilities,
@@ -167,40 +169,35 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         );
         continue;
       }
+      if (
+        task.cardId &&
+        this.board
+          .list<Run>('run')
+          .some(
+            (r) =>
+              r.cardId === task.cardId && (r.status === 'running' || this.controllers.has(r.id)),
+          )
+      )
+        continue;
       const taskRole = requireRole(this, task.roleId);
       const taskConfig =
         task.mode === 'workflow'
           ? taskRole
           : { ...taskRole, ...conversation(this, task.threadId).configurations[task.roleId] };
-      if (this.runtimeMaintenance.held(taskConfig)) continue;
-      if (routineReadyBefore(this, task.roleId, Date.parse(task.createdAt))) continue;
+      if (this.runtimeMaintenance.held(taskConfig)) {
+        this.queueChains.delete(taskLane(this, task));
+        continue;
+      }
       if (
-        this.board
-          .list<import('@pitchcrew/core').ChatRequest>('chat_request')
-          .some(
-            (request) =>
-              request.order < Date.parse(task.createdAt) &&
-              canReadConversation(this, task.roleId, request.threadId) &&
-              this.runtimes.some(
-                (runtime) =>
-                  runtime.available &&
-                  runtime.id ===
-                    (conversation(this, request.threadId).configurations[task.roleId]?.runtime ??
-                      requireRole(this, task.roleId).runtime),
-              ) &&
-              request.deliveries.some(
-                (delivery) => delivery.roleId === task.roleId && delivery.status === 'queued',
-              ),
-          )
+        launchProblem(this, {
+          cardId: task.cardId,
+          threadId: task.threadId,
+          roleId: task.roleId,
+          rootRunId: task.rootRunId,
+        })
       )
         continue;
-      if (
-        this.board
-          .list<Run>('run')
-          .some((r) => r.roleId === task.roleId && r.status === 'running') ||
-        (task.cardId && this.board.hasActiveRun(task.cardId) && task.mode === 'workflow')
-      )
-        continue;
+      if (!(await queueMayStart(this, taskLane(this, task), task.rootRunId))) continue;
       try {
         const run =
           task.mode === 'workflow'
@@ -213,10 +210,17 @@ export async function drainTasks(this: CrewContext): Promise<void> {
           `Started queued ${task.roleId} ${task.mode}`,
         );
       } catch (error) {
-        if (error instanceof RuntimeHeldError) continue;
+        if (error instanceof RuntimeHeldError || error instanceof QueueBusyError) continue;
         if (this.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
         const message = error instanceof Error ? error.message : 'Could not start crew task.';
         this.board.record('task', { ...task, status: 'failed', error: message }, 'system', message);
+        const queueId = taskLane(this, task);
+        if (!queueId.startsWith('routine:'))
+          patchQueue(this, queueId, {
+            paused: true,
+            pauseKind: 'failed',
+            reason: message,
+          });
         this.addMessage(
           task.threadId,
           'system',

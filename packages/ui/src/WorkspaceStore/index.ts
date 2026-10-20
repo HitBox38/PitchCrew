@@ -21,6 +21,7 @@ export function createWorkspaceStore() {
       add: false,
       creatingConversation: false,
       selectedId: null,
+      selectedJobSection: 'job',
       roleId: null,
       recentIds: readRecent(),
       query: '',
@@ -34,9 +35,9 @@ export function createWorkspaceStore() {
       setQuery: (query) => set({ query }),
       setShowClosed: (showClosed) => set({ showClosed }),
       setFlashStage: (flashStage) => set({ flashStage }),
-      openCard: (id) => {
+      openCard: (id, section = 'job') => {
         const recentIds = [id, ...get().recentIds.filter((other) => other !== id)].slice(0, 5);
-        set({ selectedId: id, recentIds });
+        set({ selectedId: id, selectedJobSection: section, recentIds });
         try {
           localStorage.setItem(recentKey, JSON.stringify(recentIds));
         } catch {

@@ -1,64 +1,97 @@
-import type { CardDetailsProps } from '@/components/CardDetails/types.ts';
+import { useNavigate } from '@tanstack/react-router';
+import type { ApplicationSection, CardDetailsProps, JobSection } from '../types.ts';
+import { jobAgents, jobRole, latestJobFailure } from '../helpers.ts';
 import type { Packet } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { useState } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
+import { useApplicationBrief } from '@/ApplicationBriefReview/hooks/useApplicationBrief.ts';
 
-export function useCardDetails({
-  card,
-  data,
-  action,
-  working,
-  onClose,
-  onInbox,
-}: CardDetailsProps) {
-  const [tab, setTab] = useState<'overview' | 'packet' | 'reviews' | 'history'>('overview');
+export function useCardDetails(props: CardDetailsProps) {
+  const { card, data, action, working } = props;
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<JobSection>(props.initialSection ?? 'job');
   const [briefDirty, setBriefDirty] = useState(false);
-  const guard = useUnsavedChanges(briefDirty);
+  const [activityDirty, setActivityDirty] = useState(false);
+  const guard = useUnsavedChanges(briefDirty || activityDirty);
   const [document, setDocument] = useState<keyof Omit<Packet, 'claims'>>('resume');
+  const [sections, setSections] = useState<ApplicationSection[]>(
+    props.initialSection === 'application' ? ['brief'] : [],
+  );
+  const agents = jobAgents(card.id, data);
+  const run = agents.find(({ run }) => run.status === 'running')?.run;
+  const busy = working || Boolean(run) || Boolean(card.owner);
+  const brief = useApplicationBrief({
+    card,
+    roles: data.roles,
+    busy,
+    onDirtyChange: setBriefDirty,
+  });
   const act = (path: string, body?: unknown, success?: string) => {
-    void action(path, 'POST', body, success).catch(() => {});
+    if (path === `/cards/${card.id}/run`) {
+      const roleId = (body as { roleId: string }).roleId;
+      const seat = workflowSeat(data.roles.find((r) => r.id === roleId)!);
+      void action(
+        '/queue/actions',
+        'POST',
+        {
+          cardId: card.id,
+          roleId,
+          action: seat === 'scout' ? 'fit' : seat === 'writer' ? 'draft' : 'review',
+        },
+        'Crew action queued',
+      ).catch(() => {});
+    } else void action(path, 'POST', body, success).catch(() => {});
   };
-  const run = data.runs.find((r) => r.cardId === card.id && r.status === 'running');
-  const failed = data.runs.find((r) => r.cardId === card.id && r.status === 'failed');
+  const openApplication = (section: ApplicationSection) => {
+    setTab('application');
+    setSections((current) => (current.includes(section) ? current : [...current, section]));
+    requestAnimationFrame(() => documentElement(section)?.focus());
+  };
   const exported = data.approvals.some(
-    (a) =>
-      a.cardId === card.id &&
-      a.status === 'consumed' &&
-      a.exportDirectory &&
-      JSON.stringify(a.packet) === JSON.stringify(card.packet),
+    (approval) =>
+      approval.cardId === card.id &&
+      approval.status === 'consumed' &&
+      approval.exportDirectory &&
+      JSON.stringify(approval.packet) === JSON.stringify(card.packet),
   );
   const seat =
     card.state === 'lead'
       ? 'scout'
       : ['shortlisted', 'changes_requested'].includes(card.state)
         ? 'writer'
-        : card.state === 'in_review'
-          ? 'reviewer'
-          : null;
-  const runRole =
-    data.roles.find((role) => role.enabled && !role.retiredAt && workflowSeat(role) === seat)?.id ??
-    null;
+        : 'reviewer';
+  const runRole = seat === 'writer' ? brief.roleId : jobRole(data, seat)?.id;
   return {
-    card,
-    data,
-    working,
-    onClose: () => guard.requestLeave(onClose),
-    guard,
-    setBriefDirty,
-    onInbox,
+    ...props,
     tab,
-    setTab: (next: typeof tab) =>
-      guard.requestLeave(() => {
-        setBriefDirty(false);
-        setTab(next);
-      }),
+    setTab,
     document,
     setDocument,
-    act,
+    brief,
+    sections,
+    setSections,
+    openApplication,
+    setActivityDirty,
+    guard,
+    agents,
     run,
-    failed,
+    busy,
+    act,
     exported,
     runRole,
+    failed: latestJobFailure(card.id, data.runs),
+    onClose: () => guard.requestLeave(props.onClose),
+    openInbox: () => guard.requestLeave(props.onInbox),
+    openWriting: () =>
+      guard.requestLeave(() => {
+        props.onClose();
+        void navigate({ to: '/settings', search: { section: 'writing' } });
+      }),
+    openChat: (thread: string, runId: string) =>
+      guard.requestLeave(() => props.onChat(thread, runId)),
   };
+}
+function documentElement(section: ApplicationSection) {
+  return document.getElementById(`job-section-${section}`);
 }

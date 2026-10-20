@@ -52,11 +52,11 @@ export async function reviewFlow(context: CrewContext, live: LiveDeepReview) {
       (live.packet && (await context.packetRules.check(live.packet, live.profile)).errors.length))
   )
     await writeStage(context, live, 'correction', initial);
-  const { assessment: after, feedback: recheckFeedback } = await assessStage(
-    context,
-    live,
-    'recheck',
-  );
+  const {
+    assessment: after,
+    feedback: recheckFeedback,
+    changeSummary,
+  } = await assessStage(context, live, 'recheck');
   await assertReviewEvidence(context, live);
   const card = assertReviewCurrent(context, live);
   const blockers = after.findings
@@ -70,6 +70,7 @@ export async function reviewFlow(context: CrewContext, live: LiveDeepReview) {
     live.reviewer,
     {
       role: 'reviewer',
+      changeSummary,
       passed: feedback.length === 0,
       feedback: feedback.slice(0, 30),
       suggestions: [
@@ -177,6 +178,7 @@ async function assessStage(
   }
   return {
     assessment,
+    changeSummary: result.changeSummary,
     feedback:
       result.role === 'reviewer'
         ? result.feedback.length

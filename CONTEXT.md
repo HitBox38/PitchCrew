@@ -24,6 +24,26 @@ _Avoid_: Deleted profile document
 A user's bookkeeping update to a job's board status. It does not start agent work or authorize packet export or application submission.
 _Avoid_: Workflow execution (when referring only to a recorded status change)
 
+**Workspace queue**:
+The ordered waiting line of eligible job queues and standalone conversation queues competing for available workspace capacity. The user can change their order.
+_Avoid_: Job queue (when referring to the order between different jobs)
+
+**Job queue**:
+An ordered collection of board actions and chat requests from all conversations attached to one job. Separate jobs have independent queues, even when their work uses the same crew agent.
+_Avoid_: Agent queue (when implying that an agent serializes work across all jobs)
+
+**Standalone conversation queue**:
+An ordered collection of chat requests for a conversation with no attached job, excluding job-free routine occurrences. It is independent of other conversations and job queues.
+_Avoid_: Agent queue (when implying that conversations with the same agent share one queue)
+
+**Queued board action**:
+A request in a job queue for one agent action on that job, such as evaluating fit on a lead.
+_Avoid_: Action chain (when referring to a single requested board action)
+
+**Crew follow-up**:
+Additional work requested by a crew agent as part of an initiating request or routine occurrence. It belongs to that request's work rather than a separate user-queued action.
+_Avoid_: Queued user action, review subagent
+
 **Withdrawn**:
 A closed job the user has decided not to pursue further, with its application history retained. Recording this status does not communicate a withdrawal to the employer.
 _Avoid_: Deleted job, employer notification

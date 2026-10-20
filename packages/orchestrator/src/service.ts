@@ -1,3 +1,6 @@
+import { queueBoardAction } from './crew/queue/requests.ts';
+import { workspaceQueue } from './crew/queue/projection.ts';
+import { configureQueue, updateQueue, moveQueueRequest } from './crew/queue/commands.ts';
 import { startDeepReview } from './crew/deep-reviews/index.ts';
 import { qualityUserAction } from './quality/user.ts';
 import { snapshotRevision } from './crew/snapshot-revision.ts';
@@ -73,6 +76,21 @@ export class CrewService {
       browserLaunch,
       diagnostics,
     );
+  }
+  queue() {
+    return workspaceQueue(this.context);
+  }
+  queueBoardAction(data: unknown) {
+    return queueBoardAction(this.context, data);
+  }
+  configureQueue(data: unknown) {
+    return configureQueue(this.context, data);
+  }
+  updateQueue(id: string, data: unknown) {
+    return updateQueue(this.context, id, data);
+  }
+  moveQueueRequest(id: string, beforeId: string | null) {
+    return moveQueueRequest(this.context, id, beforeId);
   }
   get diagnostics() {
     return this.context.diagnostics;

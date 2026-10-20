@@ -2,10 +2,21 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { Card } from '@pitchcrew/core';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
-export function TrackingIdentifier({ card }: { card: Card }) {
+export function TrackingIdentifier({
+  card,
+  onDirtyChange,
+}: {
+  card: Card;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const [jobIdentifier, setJobIdentifier] = useState(card.tracking?.jobIdentifier ?? '');
+  const dirty = jobIdentifier !== (card.tracking?.jobIdentifier ?? '');
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    return () => onDirtyChange?.(false);
+  }, [dirty, onDirtyChange]);
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
   return (

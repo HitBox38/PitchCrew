@@ -3,6 +3,7 @@ import type { RoleId } from '@pitchcrew/core';
 
 export const viewPaths = {
   board: '/',
+  queue: '/queue',
   crew: '/crew',
   chat: '/chat',
   inbox: '/inbox',
@@ -55,5 +56,14 @@ export function validateSkillSearch(search: Record<string, unknown>): {
         ? search.skill
         : undefined,
     review: search.review === true || search.review === 'true' ? true : undefined,
+  };
+}
+
+export function validateChatSearch(search: Record<string, unknown>): { run?: string } {
+  return {
+    run:
+      typeof search.run === 'string' && /^[a-zA-Z0-9_-]{1,160}$/.test(search.run)
+        ? search.run
+        : undefined,
   };
 }

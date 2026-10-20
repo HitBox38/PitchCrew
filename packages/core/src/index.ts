@@ -1,5 +1,6 @@
 export * from './conversations.ts';
 export * from './application-quality.ts';
+export * from './work-queue.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
@@ -15,7 +16,13 @@ export type {
   InstructionUpdate,
 } from './default-instructions.ts';
 export { cardInput } from './cards.ts';
-export { bulkDeleteJobsInput, bulkMoveJobsInput, maxJobBatchSize } from './job-management.ts';
+export {
+  bulkDeleteJobsInput,
+  bulkMoveJobsInput,
+  maxJobBatchSize,
+  jobDetailsChanges,
+  updateJobInput,
+} from './job-management.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson } from './cards.ts';
 export * from './insights.ts';
