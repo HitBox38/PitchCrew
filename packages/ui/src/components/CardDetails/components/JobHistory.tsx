@@ -17,7 +17,8 @@ export function JobHistory({ data, card }: JobHistoryProps) {
             <div>
               <strong>{event.message}</strong>
               <p>
-                {event.actor} · {timeAgo(event.createdAt)}
+                {data.roles.find((role) => role.id === event.actor)?.name ?? event.actor} ·{' '}
+                {timeAgo(event.createdAt)}
               </p>
             </div>
           </div>
