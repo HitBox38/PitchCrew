@@ -120,7 +120,7 @@ test('initial loading has a spinner, failed loading has retry, and setup stays i
   await sources().getByRole('heading', { name: 'Bring your background together' }).waitFor();
 }, 30000);
 
-test('GitHub import shows fetching and saving separately, saves the reviewed snapshot and opens notes only explicitly', async () => {
+test('source reads and imports survive closing and navigation while retaining the reviewed snapshot', async () => {
   await openSources();
   await githubNotes();
   const read = await deferred('**/api/profile/sources/preview');
@@ -132,15 +132,48 @@ test('GitHub import shows fetching and saving separately, saves the reviewed sna
       .isDisabled(),
   ).toBe(true);
   await page.keyboard.press('Escape');
-  expect(await sources().isVisible()).toBe(true);
+  await expect.poll(() => sources().isVisible()).toBe(false);
+  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  const activity = page.getByRole('region', { name: 'Profile source activity' });
+  await activity.getByRole('status').filter({ hasText: 'Reading GitHub documents…' }).waitFor();
   read();
+  await activity
+    .getByRole('status')
+    .filter({ hasText: 'Profile documents ready to review.' })
+    .waitFor();
+  expect(
+    await page.locator('.profile-sources-dialog, .profile-import-panel').allTextContents(),
+  ).toEqual([]);
+  await activity.getByRole('link', { name: 'Open profile sources' }).click();
   const review = page.getByRole('dialog', { name: 'Review profile documents' });
   await review.waitFor();
   remote.content = 'Changed after the review snapshot';
   const save = await deferred('**/api/profile/sources/import');
   await review.getByRole('button', { name: 'Import 1 document', exact: true }).click();
   await review.getByRole('status').filter({ hasText: 'Importing documents…' }).waitFor();
+  await review.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await expect
+    .poll(() => page.locator('.profile-sources-dialog, .profile-import-panel').count())
+    .toBe(0);
+  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  await activity.getByRole('status').filter({ hasText: 'Importing documents…' }).waitFor();
+  await activity.getByRole('link', { name: 'Open profile sources' }).click();
+  await review.getByRole('button', { name: 'Importing…', exact: true }).waitFor();
+  expect(await review.getByRole('button', { name: 'Importing…', exact: true }).isDisabled()).toBe(
+    true,
+  );
+  await page.keyboard.press('Escape');
+  await expect
+    .poll(() => page.locator('.profile-sources-dialog, .profile-import-panel').count())
+    .toBe(0);
+  await page.getByRole('link', { name: 'Activity', exact: true }).click();
   save();
+  await expect.poll(() => activity.count()).toBe(0);
+  expect(
+    await page.locator('.profile-sources-dialog, .profile-import-panel').allTextContents(),
+  ).toEqual([]);
+  await page.getByRole('link', { name: /^Profile(?: \(\d+\))?$/ }).click();
+  await page.getByRole('button', { name: /^Sources/ }).click();
   await dialog().getByRole('status').filter({ hasText: 'Profile notes imported.' }).waitFor();
   const { result: snapshot } = await host.request<Snapshot>('/snapshot');
   const note = snapshot.profile.find((file) =>
@@ -443,4 +476,34 @@ test('unlinked proposals remain reviewable, local conflicts start unselected and
     )?.content,
   ).toBe('A local verified edit.');
   expect(await dialog().getByRole('button', { name: 'Open note', exact: true }).count()).toBe(0);
+});
+
+test('failed background reads preserve setup and allow retry after returning to Profile', async () => {
+  await openSources();
+  await githubNotes();
+  remote.fail = true;
+  const release = await deferred('**/api/profile/sources/preview');
+  await sources().getByRole('button', { name: 'Review documents', exact: true }).click();
+  await sources().getByRole('status').filter({ hasText: 'Reading GitHub documents…' }).waitFor();
+  await sources().getByRole('button', { name: 'Close', exact: true }).click();
+  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  release();
+  await expect
+    .poll(() => page.getByRole('region', { name: 'Profile source activity' }).count())
+    .toBe(0);
+  await page.getByRole('link', { name: /^Profile(?: \(\d+\))?$/ }).click();
+  await page.getByRole('button', { name: /^Sources/ }).click();
+  await sources()
+    .getByRole('alert')
+    .filter({ hasText: 'Fictional source is temporarily unavailable.' })
+    .waitFor();
+  expect(
+    await sources()
+      .getByRole('textbox', { name: 'Repository URL or owner/repository' })
+      .inputValue(),
+  ).toBe('fictional/profile');
+  remote.fail = false;
+  await page.unroute('**/api/profile/sources/preview');
+  await sources().getByRole('button', { name: 'Review documents', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Review profile documents' }).waitFor();
 });

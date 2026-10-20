@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { ProfileFile, ProfileSourceInput, ProfileSourcePreview } from '@pitchcrew/core';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import type { ProfileFile, ProfileSourceInput } from '@pitchcrew/core';
 import {
   addProjectWatch,
   importSourceDocuments,
@@ -54,7 +55,6 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
       void task.perform('Checking project…', async () => {
         await addProjectWatch(props.action, input);
         complete({ message: 'Project watch added. An authorized agent can check for changes.' });
-        await list.refresh();
       });
     } catch (error) {
       task.setError(error instanceof Error ? error.message : 'Check your source link.');
@@ -68,7 +68,6 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
         message: 'Profile notes imported.',
         file: files.find((f) => selected.includes(f.name)),
       });
-      await list.refresh();
     });
   };
   const watch = async (id: string, watching: boolean) => {
@@ -77,7 +76,7 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
       watching ? 'Enabling watching…' : 'Pausing watching…',
       async () => {
         await setSourceWatching(props.action, id, watching);
-        await list.refresh();
+        setNotice({ message: watching ? 'Source watching enabled.' : 'Source watching paused.' });
       },
       id,
     );
@@ -90,7 +89,6 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
         await removeSource(props.action, id);
         setNotice({ message: 'Source removed. Local notes were kept.' });
         setReturnFocus('add');
-        await list.refresh();
       },
       id,
     );
@@ -123,9 +121,12 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
   const list = useSourceList(open);
   const task = useSourceTask();
   const setup = useSourceSetup();
-  const [preview, setPreview] = useState<ProfileSourcePreview | null>(null);
-  const [selected, setSelected] = useState<string[]>([]);
-  const [notice, setNotice] = useState<SourceNotice | null>(null);
+  const { preview, selected, notice } = useWorkspaceStore((state) => state.profileSources);
+  const update = useWorkspaceStore((state) => state.updateProfileSources);
+  const setPreview = (value: typeof preview) => update({ preview: value });
+  const setSelected = (value: string[] | ((current: string[]) => string[])) =>
+    update((state) => ({ selected: typeof value === 'function' ? value(state.selected) : value }));
+  const setNotice = (notice: SourceNotice | null) => update({ notice });
   const [proposalId, setProposalId] = useState<string | null>(null);
   const [proposalPending, setProposalPending] = useState(false);
   const [returnFocus, setReturnFocus] = useState('add');
@@ -150,6 +151,7 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
     connection,
     preview,
     setPreview,
+    closeReview: () => (task.progress ? update({ open: false }) : setPreview(null)),
     selected,
     setSelected,
     notice,
@@ -167,6 +169,7 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
     maintenance: props,
     reviewed,
     setProposalPending,
+    proposalPending,
     pending: !!task.progress || proposalPending,
     screen: proposalId
       ? `proposal-${proposalId}`
