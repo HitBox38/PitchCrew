@@ -54,8 +54,12 @@ test('distinguishes slots from parallel agent runs, background routines and queu
   expect(await working.getByRole('article').count()).toBe(3);
   expect(await working.locator('.queue-agent-run').count()).toBe(5);
   expect(await working.textContent()).toContain('5 agent runs');
-  expect(await page.locator('.queue-capacity').textContent()).toContain('4 of 4');
-  expect(await page.locator('.queue-capacity').textContent()).toContain('1 background routine');
+  expect(await page.getByRole('button', { name: /^Capacity settings,/ }).textContent()).toContain(
+    '4 of 4',
+  );
+  expect(await page.locator('.queue-background-note').textContent()).toContain(
+    '1 background routine',
+  );
   expect(await page.getByRole('region', { name: 'Ready work' }).textContent()).toContain(
     'Maple Systems',
   );
@@ -70,6 +74,60 @@ test('distinguishes slots from parallel agent runs, background routines and queu
   ).toContain(`run=${fixture.scout.id}`);
   expect(await page.getByText('Reserved review seat', { exact: true }).count()).toBe(0);
   await page.screenshot({ path: '/tmp/pitchcrew-parallel-queue-desktop.png' });
+});
+test('edits capacity from the header without interrupting active work and returns focus', async () => {
+  const trigger = page.getByRole('button', { name: /^Capacity settings,/ });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  const panel = page.getByRole('dialog', { name: 'Capacity settings', exact: true });
+  const input = panel.getByRole('spinbutton', { name: 'Concurrent work', exact: true });
+  await input.fill('0');
+  expect(await panel.getByRole('button', { name: 'Save limit' }).isDisabled()).toBe(true);
+  await input.fill('3');
+  await panel.getByRole('button', { name: 'Save limit' }).click();
+  await expect.poll(() => host.daemon.service.queue().concurrency).toBe(3);
+  expect(host.daemon.service.queue().active).toBe(4);
+  await expect
+    .poll(() => trigger.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  await trigger.click();
+  expect(await panel.textContent()).toContain('Running work will finish before new work starts.');
+  await expect.poll(() => panel.evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
+  await page.screenshot({ path: '/tmp/pitchcrew-queue-capacity-popover.png' });
+  await input.fill('4');
+  await panel.getByRole('button', { name: 'Save limit' }).click();
+  await expect.poll(() => host.daemon.service.queue().concurrency).toBe(4);
+});
+test('scopes Pause, Resume and Stop in the running-card menu to the selected queue', async () => {
+  const card = page.getByRole('article', { name: 'Northstar Labs: Product Engineer' });
+  const trigger = card.getByRole('button', { name: /^Queue actions for/ });
+  const selected = () =>
+    host.daemon.service.queue().queues.find((queue) => queue.id === fixture.first.id)!;
+  for (const [label, command] of [
+    ['Pause queue', 'pause'],
+    ['Resume queue', 'resume'],
+    ['Stop current work', 'stop'],
+    ['Resume queue', 'resume'],
+  ] as const) {
+    await trigger.focus();
+    await page.keyboard.press('Enter');
+    const response = page.waitForResponse(
+      (result) =>
+        result.url().endsWith(`/queue/${encodeURIComponent(fixture.first.id)}`) &&
+        result.request().method() === 'PUT',
+    );
+    await page.getByRole('menuitem', { name: label, exact: true }).click();
+    const result = await response;
+    expect(result.status()).toBe(200);
+    expect(result.request().postDataJSON()).toEqual({ action: command });
+    expect(selected().paused).toBe(command !== 'resume');
+    expect(
+      host.daemon.service
+        .queue()
+        .queues.filter((queue) => queue.state === 'running' && queue.id !== fixture.first.id)
+        .every((queue) => !queue.paused),
+    ).toBe(true);
+  }
 });
 test('opens a bounded widget with each simultaneous agent run and restores keyboard focus', async () => {
   const trigger = page.getByRole('button', { name: /^Work queue:/ });
@@ -102,6 +160,14 @@ test('keeps page and widget within a narrow viewport in dark mode and reduced mo
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: '/tmp/pitchcrew-parallel-queue-mobile.png' });
   await page.keyboard.press('Escape');
+  await panel.waitFor({ state: 'hidden' });
+  await page.screenshot({ path: '/tmp/pitchcrew-quiet-queue-mobile.png' });
+  await page.getByRole('button', { name: /^Capacity settings,/ }).click();
+  const capacity = page.getByRole('dialog', { name: 'Capacity settings', exact: true });
+  const capacityBounds = await capacity.boundingBox();
+  expect(capacityBounds!.x).toBeGreaterThanOrEqual(0);
+  expect(capacityBounds!.x + capacityBounds!.width).toBeLessThanOrEqual(390);
+  await page.keyboard.press('Escape');
   expect(errors).toEqual([]);
 });
 
@@ -112,7 +178,9 @@ test('opens the conversation containing a forwarded question without using anoth
   expect(await page.getByRole('region', { name: 'Work on hold' }).textContent()).toContain(
     'Willow Robotics',
   );
-  expect(await page.locator('.queue-capacity').textContent()).toContain('4 of 4');
+  expect(await page.getByRole('button', { name: /^Capacity settings,/ }).textContent()).toContain(
+    '4 of 4',
+  );
   await card.getByRole('button', { name: 'Answer', exact: true }).click();
   await page.waitForURL(`**/chat/${answerThread}`);
   expect(errors).toEqual([]);

@@ -5,9 +5,8 @@ import { QueueCapacity } from './components/QueueCapacity.tsx';
 import { QueueCard } from './components/QueueCard.tsx';
 import { AddQueueAction } from './components/AddQueueAction.tsx';
 import { QueuePending } from './components/QueuePending.tsx';
-import { QueueSectionHeading } from './components/QueueSectionHeading.tsx';
 import { queueSummary } from '@/lib/work-queue.ts';
-import { Layers3 } from 'lucide-react';
+import { Layers3, RotateCw } from 'lucide-react';
 
 export const QueuePage = () => {
   const data = useWorkspaceStore((s) => s.data);
@@ -20,13 +19,16 @@ export const QueuePage = () => {
         <AddQueueAction data={data} />
       </WorkspaceHeaderActions>
       <div className="queue-work-area">
-        <QueueCapacity queue={queue} />
         <section aria-label="Running work" className="queue-running-section">
-          <QueueSectionHeading title="Working now" count={running.length}>
-            {agents.length
-              ? `${agents.length} agent ${agents.length === 1 ? 'run' : 'runs'} working across independent jobs and conversations.`
-              : 'Jobs and conversations can work side by side, even with the same agent.'}
-          </QueueSectionHeading>
+          <div className="queue-running-heading">
+            <h2>
+              Working now <span>{running.length}</span>
+            </h2>
+            <QueueCapacity queue={queue} />
+          </div>
+          <p className="sr-only">
+            {agents.length} agent runs across {running.length} active queues.
+          </p>
           {running.length ? (
             <div className="queue-running-grid">
               {running.map((q) => (
@@ -42,6 +44,13 @@ export const QueuePage = () => {
                   : 'No jobs or conversations are running. Ready work starts automatically when it can.'}
               </p>
             </div>
+          ) : null}
+          {queue.background ? (
+            <p className="queue-background-note">
+              <RotateCw size={13} aria-hidden="true" />
+              {queue.background} background {queue.background === 1 ? 'routine is' : 'routines are'}{' '}
+              also running
+            </p>
           ) : null}
         </section>
         {queue.queues.length ? (

@@ -12,11 +12,9 @@ export const QueueRun = ({ run, data }: { run: Run; data: Snapshot }) => {
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <strong>{role?.name ?? run.roleId}</strong>
-          <span className="quiet text-xs">{runtimeLabels[run.runtime]}</span>
-          <span className="queue-agent-status">
-            <span />
-            Working
-          </span>
+          <span className="queue-agent-status" aria-hidden="true" />
+          <span className="sr-only">Working</span>
+          <span className="sr-only">{runtimeLabels[run.runtime]}</span>
         </div>
         <p className="line-clamp-2" title={runActivityLabel(run)}>
           {runActivityLabel(run)}

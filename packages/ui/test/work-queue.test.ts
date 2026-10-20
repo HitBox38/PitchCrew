@@ -45,8 +45,9 @@ afterAll(async () => {
 test('opens the dedicated queue, saves capacity and reorders jobs with keyboard controls', async () => {
   await page.getByRole('heading', { name: 'Queue', exact: true }).waitFor();
   expect(await page.getByRole('heading', { name: 'Queue', exact: true }).count()).toBe(1);
+  await page.getByRole('button', { name: /^Capacity settings,/ }).click();
   await page.getByLabel('Concurrent work', { exact: true }).fill('2');
-  await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page.getByRole('button', { name: 'Save limit', exact: true }).click();
   await expect.poll(() => host.daemon.service.queue().concurrency).toBe(2);
   const card = page.getByRole('article', { name: 'Fictional B: Designer' });
   await card.getByRole('button', { name: 'Drag to reorder, or use arrow keys' }).first().focus();
