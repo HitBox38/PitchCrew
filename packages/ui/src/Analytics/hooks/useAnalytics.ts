@@ -11,6 +11,7 @@ import { analytics } from '../client.ts';
 import { analyticsPage } from '../helpers.ts';
 import { installApplicationMetrics } from '../metrics/install.ts';
 import { isDiagnosticLeader, useDiagnosticLeader } from '../leadership.ts';
+import { startupTracker } from '../startup/index.ts';
 
 export function useAnalytics() {
   const leader = useDiagnosticLeader();
@@ -41,6 +42,7 @@ export function useAnalytics() {
       if (!active) return;
       setReady(ready && config ? { config } : null);
       if (ready) {
+        startupTracker.flush();
         analytics.capture('$pageview', { page: latestPage.current });
         if (latestSetup.current) analytics.capture('workspace_setup_observed', latestSetup.current);
       }
