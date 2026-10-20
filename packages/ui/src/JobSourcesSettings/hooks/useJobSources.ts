@@ -11,6 +11,7 @@ import {
   tokenFromInput,
 } from '../helpers.ts';
 import type { SourceDraft } from '../types.ts';
+import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 
 export const useJobSources = () => {
   const run = async (task: () => Promise<void>, fallback: string) => {
@@ -48,6 +49,11 @@ export const useJobSources = () => {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState('');
   const previewController = useRef<AbortController | null>(null);
+  const original = editingId ? sources.find((source) => source.id === editingId) : null;
+  const dirty =
+    draft !== null &&
+    JSON.stringify(draft) !== JSON.stringify(original ? sourceDraft(original) : emptyDraft);
+  const guard = useUnsavedChanges(dirty, () => edit(null));
   useEffect(() => {
     const controller = new AbortController();
     void loadJobSources(controller.signal)
@@ -116,9 +122,11 @@ export const useJobSources = () => {
     summary,
     error,
     busy: working || pending,
-    startAdd: () => edit({ ...emptyDraft }),
-    startEdit: (source: JobSource) => edit(sourceDraft(source), source.id),
-    cancel: () => edit(null),
+    guard,
+    startAdd: () => guard.requestLeave(() => edit({ ...emptyDraft })),
+    startEdit: (source: JobSource) =>
+      guard.requestLeave(() => edit(sourceDraft(source), source.id)),
+    cancel: () => guard.requestLeave(() => edit(null)),
     update,
     setBoard: (value: string) => update(boardFromLink(value)),
     setToken: (value: string) => update(tokenFromInput(value)),

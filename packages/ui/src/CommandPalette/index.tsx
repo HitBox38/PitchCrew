@@ -10,6 +10,7 @@ import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.ts
 import { CommandInput } from '@/components/ui/command/components/CommandInput.tsx';
 import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
 import { CommandSeparator } from '@/components/ui/command/components/CommandSeparator.tsx';
+import { SettingCommands } from '@/SettingsPage/components/SettingCommands.tsx';
 
 export const CommandPalette = (props: CommandPaletteProps) => {
   const controller = useCommandPalette(props);
@@ -28,6 +29,7 @@ export const CommandPalette = (props: CommandPaletteProps) => {
       <CommandList>
         <CommandEmpty>No matches.</CommandEmpty>
         <NavigationCommands {...controller} />
+        <SettingCommands run={controller.run} />
         {cards.length ? <JobCommands {...controller} /> : null}
         <CrewCommands {...controller} />
         <CommandSeparator />

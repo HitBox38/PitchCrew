@@ -32,15 +32,24 @@ The initial alternative of individual runtime cards repeated setup text, timesta
 - `packages/ui/src/SettingsPage/index.tsx`: General mixed appearance, notifications, application updates, skill maintenance and telemetry. **Updates** and **Privacy** have dedicated URL-backed sections. An Updates link leads directly to runtime maintenance.
 - `packages/ui/src/SettingsPage/components/SettingsTabs.tsx`: terse navigation and offscreen selected tabs on mobile. Desktop descriptions clarify each destination; mobile direct links reveal the selected tab.
 
-## Suggested next changes
+## Further improvements implemented
 
-1. **Make packet rules editable without JSON.** `packages/ui/src/PacketRules/components/RulesEditor.tsx` exposes the full source document as the primary editor. Add ordinary controls for rule type, severity and conditions, a plain-language preview, and an Advanced source editor. Preserve current validation, explicit save and unsaved-change protection. Success: a user can add a warning rule without learning the schema.
-2. **Finish account connection with a clear agent handoff.** `packages/ui/src/ConnectorSettings/index.tsx` tells users to enable services separately in role settings. After connecting, offer **Choose agents** and show which agents already have access. Keep every capability change explicit. Success: a connected account’s usefulness and next step are visible in the same flow.
-3. **Add search within Settings.** Nine sections make navigation clearer but still require users to know where a preference lives. Extend the command palette with setting names and synonyms such as “sound,” “telemetry” and “CLI update”; open the exact section, reveal its control and move keyboard focus there. Success: a preference can be found without searching unrelated pages.
-4. **Offer guided runtime sign-in where the CLI supports it.** Setup still involves copying a command into a terminal. Investigate an explicit user-launched native sign-in flow, with completion followed by Recheck. Keep unknown authentication distinct from missing authentication and never read credential files. This requires runtime-specific work beyond a visual redesign.
+Packet rules now opens in a form editor for word limits, bullets per section, allowed lines and text patterns. Collapsed rows describe the check in plain language and show whether it blocks the packet or warns. Each form controls the affected documents, limits, patterns and message; the existing daemon validation remains authoritative. Incomplete fields remain editable. Advanced JSON shares the same draft and retains malformed or unsupported imported source for correction. Import, export and reset live under Advanced JSON. Save, Discard and validation status remain in the persistent footer.
+
+Accounts uses the same heading and list hierarchy as Runtimes. Connected accounts list granted services and agents with effective service access. Choose agents opens the existing agent configuration flow; it never grants a capability automatically. The shared connection and authentication flows remain intact.
+
+Find a setting searches preference names and synonyms. The global command palette includes the same catalog when a query is entered. Both navigate to an explicit section and hash, reveal the control and move focus to the actual interactive element, including Base UI controls backed by hidden inputs.
+
+Job sources shows saved/watching counts, a primary Add source action and switches for watching. Edited drafts use the shared unsaved-changes guard when cancelling, switching editors or navigating. Removing a source has a confirmation that explains that existing leads stay. Writing and Local data now share the heading hierarchy, and Writing shows active preference counts and a useful empty state.
+
+Settings editor discard dialogs return focus to their own editor when users keep editing. Returning focus to an automatically activated navigation tab would reopen the navigation attempt and the same dialog.
+
+## Suggested next change
+
+**Offer guided runtime sign-in where the CLI supports it.** Setup still involves copying a command into a terminal. Investigate an explicit user-launched native sign-in flow, with completion followed by Recheck. Keep unknown authentication distinct from missing authentication and never read credential files. This requires runtime-specific work beyond a visual redesign.
 
 ## Verification
 
-Browser fixtures exercise the real user-session HTTP updater with fictional installers: release checks, a single update click from a collapsed row, progress across navigation, verified completion, missing sign-in after installation, busy blocking, installer failure and retry availability, manual instructions, unavailable-runtime deep links, dark mobile layout and keyboard tab navigation. Existing runtime maintenance tests retain coverage for ownership checks, duplicate operations and queue reservations. No test updates an installed runtime or makes a provider inference request.
+Browser fixtures also cover guided-rule saves and JSON round trips, all four rule types, malformed source preservation, unsaved-change decisions, Settings and global search focus, explicit account configuration handoffs, and mobile source draft/removal behavior. Runtime fixtures exercise the real user-session HTTP updater with fictional installers: release checks, a single update click from a collapsed row, progress across navigation, verified completion, missing sign-in after installation, busy blocking, installer failure and retry availability, manual instructions, unavailable-runtime deep links, dark mobile layout and keyboard tab navigation. Existing runtime maintenance tests retain coverage for ownership checks, duplicate operations and queue reservations. No test updates an installed runtime or makes a provider inference request.
 
 The interface review also applies the [Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md): named controls, focus visibility, live async status, text overflow, reduced motion, URL-backed navigation and shared disclosure semantics.

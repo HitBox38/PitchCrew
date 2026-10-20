@@ -19,8 +19,10 @@ import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
 import { SkillUpdateSettings } from '@/AgentUpdates/components/SkillUpdateSettings.tsx';
 import { SettingsIntro } from './components/SettingsIntro.tsx';
 import { RuntimeUpdatesLink } from './components/RuntimeUpdatesLink.tsx';
+import { useSettingFocus } from './hooks/useSettingFocus.ts';
 
 export const SettingsPage = () => {
+  useSettingFocus();
   const mobile = useIsMobile();
   const { section } = useSearch({ from: '/settings' });
   const navigate = useNavigate({ from: '/settings' });
@@ -78,6 +80,10 @@ export const SettingsPage = () => {
         <WritingSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="data">
+        <SettingsIntro
+          title="Local data"
+          description="Your workspace lives on this machine. Find its files and manage when Pitchcrew runs in the background."
+        />
         <DataSettings directory={data.dataDirectory} />
         <BackgroundServiceSettings />
       </TabsContent>
