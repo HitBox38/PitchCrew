@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function MessageContent({ className, ...props }: React.ComponentProps<'div'>) {
+export const MessageContent = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="message-content"
@@ -12,4 +12,4 @@ export function MessageContent({ className, ...props }: React.ComponentProps<'di
       {...props}
     />
   );
-}
+};

@@ -18,38 +18,36 @@ import type { CrewContext } from '../types.ts';
 import { nextOccurrence } from './schedule.ts';
 import { routines } from './index.ts';
 
-export function startScheduler(this: CrewContext): void {
-  if (this.schedulerTimer || this.closing) return;
-  this.schedulerTimer = setInterval(() => {
-    void tickRoutines.call(this);
+export const startScheduler = (context: CrewContext): void => {
+  if (context.schedulerTimer || context.closing) return;
+  context.schedulerTimer = setInterval(() => {
+    void tickRoutines(context);
   }, 1000);
-  this.schedulerTimer.unref();
-}
+  context.schedulerTimer.unref();
+};
 
-export async function tickRoutines(this: CrewContext, now = new Date()): Promise<void> {
-  if (this.closing || this.initializing || this.scheduling) return;
-  this.scheduling = true;
+export const tickRoutines = async (context: CrewContext, now = new Date()): Promise<void> => {
+  if (context.closing || context.initializing || context.scheduling) return;
+  context.scheduling = true;
   try {
-    await this.runtimeMaintenance.recover();
-    await this.drainTasks();
-    await drainConversationQueue(this);
-    for (const candidate of routines
-      .call(this)
-      .sort(
-        (a, b) => Date.parse(a.nextRunAt ?? a.createdAt) - Date.parse(b.nextRunAt ?? b.createdAt),
-      )) {
-      if (this.closing) break;
-      const routine = this.board.get<Routine>('routine', candidate.id);
+    await context.runtimeMaintenance.recover();
+    await context.drainTasks();
+    await drainConversationQueue(context);
+    for (const candidate of routines(context).sort(
+      (a, b) => Date.parse(a.nextRunAt ?? a.createdAt) - Date.parse(b.nextRunAt ?? b.createdAt),
+    )) {
+      if (context.closing) break;
+      const routine = context.board.get<Routine>('routine', candidate.id);
       if (routine.deletedAt) continue;
       if (routine.conversationId) {
-        const target = conversation(this, routine.conversationId);
+        const target = conversation(context, routine.conversationId);
         if (!target.participants.includes(routine.roleId) || target.cardId !== routine.cardId)
           continue;
       }
       if (!routine.enabled || !routine.nextRunAt || Date.parse(routine.nextRunAt) > now.getTime())
         continue;
       if (routine.endsAt && Date.parse(routine.endsAt) < now.getTime()) {
-        this.board.record(
+        context.board.record(
           'routine',
           { ...routine, nextRunAt: null, updatedAt: now.toISOString() },
           'system',
@@ -57,18 +55,18 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
         );
         continue;
       }
-      const role = this.board.get<Role>('role', routine.roleId);
+      const role = context.board.get<Role>('role', routine.roleId);
       if (
         !role.enabled ||
         role.retiredAt ||
-        this.profileWriting ||
-        profileUpdateInterrupted(this) ||
-        this.configuring.has(role.id) ||
-        !this.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
+        context.profileWriting ||
+        profileUpdateInterrupted(context) ||
+        context.configuring.has(role.id) ||
+        !context.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
       )
         continue;
       if (
-        this.board
+        context.board
           .list<ChatRequest>('chat_request')
           .some(
             (r) =>
@@ -80,7 +78,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
       )
         continue;
       if (
-        this.board
+        context.board
           .list<Run>('run')
           .some(
             (run) =>
@@ -90,10 +88,10 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           )
       )
         continue;
-      if (!routine.cardId && activeQueues(this).size >= concurrency(this)) continue;
+      if (!routine.cardId && activeQueues(context).size >= concurrency(context)) continue;
       if (
         routine.lastRunId &&
-        this.board
+        context.board
           .list<AgentTask>('task')
           .some(
             (task) =>
@@ -103,7 +101,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
       )
         continue;
       if (routine.updatedBy !== 'user') {
-        const source = this.board.get<Role>('role', routine.updatedBy);
+        const source = context.board.get<Role>('role', routine.updatedBy);
         const permissions = { ...defaultCapabilities, ...source.capabilities };
         if (
           !source.enabled ||
@@ -113,21 +111,29 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
         )
           continue;
       }
-      if (this.runtimeMaintenance.held(role)) continue;
+      if (context.runtimeMaintenance.held(role)) continue;
       try {
-        const auth = await this.runtimeMaintenance.authenticate(role);
-        if (auth.status === 'missing' || this.runtimeMaintenance.isUpdating(role.runtime)) continue;
+        const auth = await context.runtimeMaintenance.authenticate(role);
+        if (auth.status === 'missing' || context.runtimeMaintenance.isUpdating(role.runtime))
+          continue;
       } catch {
         continue;
       }
-      if (this.board.get<Routine>('routine', routine.id).updatedAt !== routine.updatedAt) continue;
+      if (context.board.get<Routine>('routine', routine.id).updatedAt !== routine.updatedAt)
+        continue;
       const threadId =
         routine.conversationId ??
-        relatedConversation(this, 'routine', routine.id, role.id, routine.cardId, routine.name).id;
+        relatedConversation(context, 'routine', routine.id, role.id, routine.cardId, routine.name)
+          .id;
       if (
         !routine.cardId &&
-        (launchProblem(this, { cardId: null, threadId, roleId: role.id, routineId: routine.id }) ||
-          !(await queueMayStart(this, `routine:${routine.id}`, routine.id)))
+        (launchProblem(context, {
+          cardId: null,
+          threadId,
+          roleId: role.id,
+          routineId: routine.id,
+        }) ||
+          !(await queueMayStart(context, `routine:${routine.id}`, routine.id)))
       )
         continue;
       const scheduledFor = routine.nextRunAt;
@@ -138,7 +144,7 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           ? null
           : nextOccurrence(routine, now.toISOString());
       const consume = () =>
-        this.board.record(
+        context.board.record(
           'routine',
           {
             ...routine,
@@ -162,14 +168,14 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
             createdAt: now.toISOString(),
             order: Math.max(
               Date.now(),
-              ...this.board.list<ChatRequest>('chat_request').map((r) => r.order + 1),
+              ...context.board.list<ChatRequest>('chat_request').map((r) => r.order + 1),
             ),
             routine: { routineId: routine.id, scheduledFor },
             deliveries: [{ roleId: role.id, status: 'queued', runId: null, error: '' }],
           };
-          this.board.db.transaction(() => {
+          context.board.db.transaction(() => {
             consume();
-            this.addMessage(
+            context.addMessage(
               threadId,
               'system',
               role.id,
@@ -178,13 +184,13 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
               null,
               request.messageId,
             );
-            saveRequest(this, request);
+            saveRequest(context, request);
           })();
-          await drainConversationQueue(this);
+          await drainConversationQueue(context);
           continue;
         }
         consume();
-        const run = await this.startChatRun(
+        const run = await context.startChatRun(
           role.id,
           routine.content,
           routine.cardId,
@@ -192,8 +198,8 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
           undefined,
           { routineId: routine.id, scheduledFor },
         );
-        const latest = this.board.get<Routine>('routine', routine.id);
-        this.board.record(
+        const latest = context.board.get<Routine>('routine', routine.id);
+        context.board.record(
           'routine',
           { ...latest, lastRunId: run.id },
           'system',
@@ -202,17 +208,23 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Could not start the scheduled action.';
-        const latest = this.board.get<Routine>('routine', routine.id);
-        this.board.record(
+        const latest = context.board.get<Routine>('routine', routine.id);
+        context.board.record(
           'routine',
           { ...latest, error: message },
           'system',
           `Routine failed: ${routine.name}`,
         );
-        this.addMessage(
+        context.addMessage(
           routine.conversationId ??
-            relatedConversation(this, 'routine', routine.id, role.id, routine.cardId, routine.name)
-              .id,
+            relatedConversation(
+              context,
+              'routine',
+              routine.id,
+              role.id,
+              routine.cardId,
+              routine.name,
+            ).id,
           'system',
           role.id,
           `Routine “${routine.name}” could not start: ${message}`,
@@ -222,6 +234,6 @@ export async function tickRoutines(this: CrewContext, now = new Date()): Promise
       }
     }
   } finally {
-    this.scheduling = false;
+    context.scheduling = false;
   }
-}
+};

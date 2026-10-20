@@ -6,7 +6,7 @@ import { BrowserApprovalList } from './BrowserApprovalList.tsx';
 import { PacketApprovalList } from './PacketApprovalList.tsx';
 import type { InboxReviewProps } from '../types.ts';
 
-export function InboxReview(props: InboxReviewProps) {
+export const InboxReview = (props: InboxReviewProps) => {
   const { request, reviewOpen, showRequests } = props;
   const review = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -35,4 +35,4 @@ export function InboxReview(props: InboxReviewProps) {
       </AnimatePresence>
     </section>
   );
-}
+};

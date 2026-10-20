@@ -7,6 +7,14 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, setup } from './helpers/daemon.ts';
 import { cleanup as cleanupContexts, contextFor } from '../../adapters/test/helpers/runtime.ts';
+const install = async (bin: string, command: string) => {
+  await mkdir(bin, { recursive: true });
+  await writeFile(
+    join(bin, command),
+    `#!/bin/sh\nexec ${quote(process.execPath)} --import ${quote(loader)} ${quote(fixture)} ${quote(command)} "$@"\n`,
+    { mode: 0o700 },
+  );
+};
 
 vi.mock('node:os', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:os')>();
@@ -31,14 +39,6 @@ const fixture = fileURLToPath(
 );
 const loader = fileURLToPath(import.meta.resolve('tsx'));
 const quote = (value: string) => "'" + value.replaceAll("'", "'\\''") + "'";
-async function install(bin: string, command: string) {
-  await mkdir(bin, { recursive: true });
-  await writeFile(
-    join(bin, command),
-    `#!/bin/sh\nexec ${quote(process.execPath)} --import ${quote(loader)} ${quote(fixture)} ${quote(command)} "$@"\n`,
-    { mode: 0o700 },
-  );
-}
 afterEach(async () => {
   await cleanup();
   await cleanupContexts();

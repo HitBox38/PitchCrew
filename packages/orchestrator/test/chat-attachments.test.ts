@@ -11,13 +11,7 @@ import { readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, setup } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-const upload = (
-  name = 'notes.md',
-  text = '# Fictional candidate\nBuilt accessible interfaces. שלום',
-) => ({ name, data: Buffer.from(text).toString('base64') });
-function holdChats() {
+const holdChats = () => {
   const turns: { context: ChatContext; complete: () => void }[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     (context) =>
@@ -29,7 +23,13 @@ function holdChats() {
       ),
   );
   return turns;
-}
+};
+
+afterEach(cleanup);
+const upload = (
+  name = 'notes.md',
+  text = '# Fictional candidate\nBuilt accessible interfaces. שלום',
+) => ({ name, data: Buffer.from(text).toString('base64') });
 
 it('persists attachments outside events, prepares isolated copies, serves exact bytes and restores history', async () => {
   const turns = holdChats();

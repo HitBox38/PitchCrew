@@ -10,22 +10,22 @@ import { activityStream } from './activity/index.ts';
 import { replyPreview } from './streaming.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
-export async function runAcp(
+export const runAcp = async (
   command: string,
   args: string[],
   context: RunContext,
   prompt: string,
   env: Record<string, string> = {},
-): Promise<RunResult> {
+): Promise<RunResult> => {
   return parseWorkflowResult(await runAcpText(command, args, context, prompt, env), context);
-}
-export async function runAcpText(
+};
+export const runAcpText = async (
   command: string,
   args: string[],
   context: RunContext | ChatContext,
   prompt: string,
   env: Record<string, string> = {},
-): Promise<string> {
+): Promise<string> => {
   if (context.signal.aborted) throw new Error('Run cancelled.');
   const preview = replyPreview(context);
   const activity = activityStream(context);
@@ -217,4 +217,4 @@ export async function runAcpText(
     });
     context.onMessage('CLI started with scoped MCP tools; waiting for its result.');
   });
-}
+};

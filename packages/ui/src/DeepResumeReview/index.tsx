@@ -2,7 +2,7 @@ import type { Card, Snapshot } from '@pitchcrew/core';
 import { useDeepReviews } from './hooks/useDeepReviews.ts';
 import { ReviewReport } from './components/ReviewReport.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-export function DeepResumeReview({ card, data }: { card: Card; data: Snapshot }) {
+export const DeepResumeReview = ({ card, data }: { card: Card; data: Snapshot }) => {
   const revision = data.runs
     .filter((run) => run.cardId === card.id && run.deepReviewId)
     .map((run) => `${run.id}:${run.status}:${run.message}`)
@@ -71,4 +71,4 @@ export function DeepResumeReview({ card, data }: { card: Card; data: Snapshot })
       ) : null}
     </div>
   );
-}
+};

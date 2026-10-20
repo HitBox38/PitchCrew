@@ -13,9 +13,7 @@ import type {
 } from '@pitchcrew/core';
 import { setup, cleanup, waitForSnapshot } from './helpers/daemon.ts';
 import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
-
-afterEach(cleanup);
-function held() {
+const held = () => {
   const turns: { context: ChatContext; complete: () => void; fail: () => void }[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     (context) =>
@@ -31,7 +29,9 @@ function held() {
       }),
   );
   return turns;
-}
+};
+
+afterEach(cleanup);
 it('runs five independent conversations through the same agent and honors manual global priority', async () => {
   const { request } = await setup(23901);
   const turns = held();

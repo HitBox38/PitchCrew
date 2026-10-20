@@ -2,7 +2,7 @@ import { RuntimeSettings } from '@/components/RoleSettings/components/RuntimeSet
 import { runtimeLabels } from '@/lib/labels.ts';
 import type { StepProps } from '../types.ts';
 
-export function RuntimeStep({ draft, changeRole, data }: StepProps) {
+export const RuntimeStep = ({ draft, changeRole, data }: StepProps) => {
   const role = draft.role;
   const catalog = data.runtimes.find((runtime) => runtime.id === role.runtime);
   if (!catalog)
@@ -59,4 +59,4 @@ export function RuntimeStep({ draft, changeRole, data }: StepProps) {
       ) : null}
     </div>
   );
-}
+};

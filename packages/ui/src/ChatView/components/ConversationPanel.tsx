@@ -3,7 +3,7 @@ import { ConversationHistory } from './ConversationHistory.tsx';
 import type { ConversationPanelProps } from '@/ChatView/types.ts';
 import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
 
-export function ConversationPanel({
+export const ConversationPanel = ({
   answerQuestion,
   focusRunId,
   thread,
@@ -19,7 +19,7 @@ export function ConversationPanel({
   onOpenCard,
   conversation,
   readOnly,
-}: ConversationPanelProps) {
+}: ConversationPanelProps) => {
   return (
     <TabsContent value="conversation" className="chat-conversation-panel flex min-h-0 flex-col">
       <ConversationHistory
@@ -49,4 +49,4 @@ export function ConversationPanel({
       </ConversationHistory>
     </TabsContent>
   );
-}
+};

@@ -12,12 +12,7 @@ import { cleanup, resources, setup } from '../../orchestrator/test/helpers/daemo
 import { fixtureSources, recordedBoards } from '../../orchestrator/test/helpers/job-boards.ts';
 import { postingLinks, recordedPostings } from '../../orchestrator/test/helpers/job-links.ts';
 
-afterEach(async () => {
-  for (const resource of resources) resource.daemon.service.controllers.delete('stdio-discovery');
-  await cleanup();
-});
-
-async function connect(url: string) {
+const connect = async (url: string) => {
   const client = new Client({ name: 'job-discovery-contract-test', version: '1.0.0' });
   await client.connect(
     new StdioClientTransport({
@@ -40,7 +35,12 @@ async function connect(url: string) {
     }),
   );
   return client;
-}
+};
+
+afterEach(async () => {
+  for (const resource of resources) resource.daemon.service.controllers.delete('stdio-discovery');
+  await cleanup();
+});
 
 it('exposes scan and link import tools over actual stdio only with discoverJobs and rechecks it per call', async () => {
   const { daemon, request } = await setup(15471);

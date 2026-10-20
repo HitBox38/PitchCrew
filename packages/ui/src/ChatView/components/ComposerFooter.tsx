@@ -6,11 +6,11 @@ import type { ChatComposerProps } from '../types.ts';
 import { PromptInputFooter } from '@/components/ai-elements/prompt-input/components/PromptInputFooter.tsx';
 import { ComposerSendActions } from './ComposerSendActions.tsx';
 
-export function ComposerFooter(
+export const ComposerFooter = (
   props: ChatComposerProps & {
     contextActions: RefObject<((action: NonNullable<ComposerSuggestion['action']>) => void) | null>;
   },
-) {
+) => {
   return (
     <PromptInputFooter
       className="chat-prompt-footer"
@@ -28,4 +28,4 @@ export function ComposerFooter(
       <ComposerSendActions {...props} />
     </PromptInputFooter>
   );
-}
+};

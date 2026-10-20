@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { BriefcaseBusiness, LockKeyhole, X } from 'lucide-react';
 import { ComposerAttachments } from './ComposerAttachments.tsx';
 
-export function ComposerContext(props: ChatComposerProps) {
+export const ComposerContext = (props: ChatComposerProps) => {
   const { attached, files, working, available, busy, messages, patchConversation, onOpenCard } =
     props;
   if (!attached && !files.length) return null;
@@ -49,4 +49,4 @@ export function ComposerContext(props: ChatComposerProps) {
       />
     </PromptInputHeader>
   );
-}
+};

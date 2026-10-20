@@ -8,7 +8,7 @@ import {
 import { trustedUpdateSender } from '../src/updates/ipc.ts';
 import type { IpcMainInvokeEvent } from 'electron';
 
-function fixture(overrides: Partial<UpdateDependencies> = {}) {
+const fixture = (overrides: Partial<UpdateDependencies> = {}) => {
   const events = new EventEmitter();
   const driver: UpdateDriver = {
     autoDownload: true,
@@ -34,7 +34,7 @@ function fixture(overrides: Partial<UpdateDependencies> = {}) {
     ...overrides,
   };
   return { events, deps, driver, updates: createDesktopUpdater(deps) };
-}
+};
 
 it('checks without downloading, then downloads without stopping work, and confirms before installing', async () => {
   const { updates, driver, deps } = fixture();

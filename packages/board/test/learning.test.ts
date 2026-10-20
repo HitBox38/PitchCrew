@@ -13,29 +13,30 @@ import {
   staleSubmissions,
   trackingConflict,
 } from '../src/index.ts';
-
-const day = 24 * 60 * 60 * 1000;
-const boards: Board[] = [];
-function create() {
+const create = () => {
   const board = new Board(':memory:');
   boards.push(board);
   return board;
-}
-afterEach(() => {
-  vi.useRealTimers();
-  for (const board of boards.splice(0)) board.close();
-});
-function lead(board: Board, company: string, tags: string[] = []) {
+};
+
+const lead = (board: Board, company: string, tags: string[] = []) => {
   return board.createCard(cardInput.parse({ company, title: 'Fictional Engineer', tags }));
-}
-function external(board: Board, company: string, submittedAt: string) {
+};
+const external = (board: Board, company: string, submittedAt: string) => {
   return registerExternalApplication(board, {
     company,
     title: 'Fictional Engineer',
     submittedAt,
     note: 'Confirmed on a fictional careers page.',
   });
-}
+};
+
+const day = 24 * 60 * 60 * 1000;
+const boards: Board[] = [];
+afterEach(() => {
+  vi.useRealTimers();
+  for (const board of boards.splice(0)) board.close();
+});
 
 describe('current learning events', () => {
   it.each([1, 2, 3, 4, 5, 6, 7, 8, 9] as const)(

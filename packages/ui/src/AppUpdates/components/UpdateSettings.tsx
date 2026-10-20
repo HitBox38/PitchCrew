@@ -6,7 +6,7 @@ import { RefreshCw } from 'lucide-react';
 import { ReleaseLink } from './ReleaseLink.tsx';
 import { DesktopUpdateActions } from './DesktopUpdateActions.tsx';
 
-export function UpdateSettings() {
+export const UpdateSettings = () => {
   const info = useWorkspaceStore((state) => state.appUpdate);
   const native = useWorkspaceStore((state) => state.desktopUpdate);
   const loading = useWorkspaceStore((state) => state.checkingAppUpdate);
@@ -71,4 +71,4 @@ export function UpdateSettings() {
       ) : null}
     </section>
   );
-}
+};

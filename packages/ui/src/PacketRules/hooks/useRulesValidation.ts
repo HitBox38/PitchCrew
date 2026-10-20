@@ -4,7 +4,7 @@ import { validationDelay } from '../constants.ts';
 import type { DraftResult, RuleIssue } from '../types.ts';
 
 /** Debounced daemon validation, so regex safety rules have a single source of truth. */
-export function useRulesValidation(draft: DraftResult, dirty: boolean) {
+export const useRulesValidation = (draft: DraftResult, dirty: boolean) => {
   const [result, setResult] = useState<{ for: DraftResult; issues: RuleIssue[] } | null>(null);
   useEffect(() => {
     if (!dirty || 'error' in draft) return;
@@ -27,4 +27,4 @@ export function useRulesValidation(draft: DraftResult, dirty: boolean) {
   if ('error' in draft) return { issues: [{ path: [], message: draft.error }], checking: false };
   if (result?.for !== draft) return { issues: [], checking: true };
   return { issues: result.issues, checking: false };
-}
+};

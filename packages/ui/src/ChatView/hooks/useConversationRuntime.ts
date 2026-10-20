@@ -3,13 +3,13 @@ import type { ReasoningLevel, RuntimeId } from '@pitchcrew/core';
 import { resolveRuntime } from '@/lib/runtimes.ts';
 import type { ChatViewModel } from '../types.ts';
 
-export function useConversationRuntime({
+export const useConversationRuntime = ({
   data,
   role,
   conversation,
   patchConversation,
   setDialog,
-}: ChatViewModel) {
+}: ChatViewModel) => {
   const defaults = data.roles.find((agent) => agent.id === role.id)!;
   const override = conversation?.configurations[role.id];
   const [runtime, setRuntime] = useState<RuntimeId | undefined>(override?.runtime);
@@ -49,4 +49,4 @@ export function useConversationRuntime({
       selected.available ||
       (runtime === undefined && model === undefined && reasoning === undefined),
   };
-}
+};

@@ -2,10 +2,10 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 import { MessageScroller as MessageScrollerPrimitive } from '@shadcn/react/message-scroller';
 
-export function MessageScrollerViewport({
+export const MessageScrollerViewport = ({
   className,
   ...props
-}: React.ComponentProps<typeof MessageScrollerPrimitive.Viewport>) {
+}: React.ComponentProps<typeof MessageScrollerPrimitive.Viewport>) => {
   return (
     <MessageScrollerPrimitive.Viewport
       data-slot="message-scroller-viewport"
@@ -16,4 +16,4 @@ export function MessageScrollerViewport({
       {...props}
     />
   );
-}
+};

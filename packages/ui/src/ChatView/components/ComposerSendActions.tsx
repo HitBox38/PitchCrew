@@ -4,7 +4,7 @@ import { ConversationSelect } from './ConversationSelect.tsx';
 import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/components/PromptInputSubmit.tsx';
 import { Send } from 'lucide-react';
 
-export function ComposerSendActions(props: ChatComposerProps) {
+export const ComposerSendActions = (props: ChatComposerProps) => {
   const hasInput = !!props.draft.trim() || !!props.files.length;
   const canStop = !!props.running.length;
   const interruptLabel = props.busyElsewhere ? 'Stop current and send' : 'Interrupt and send';
@@ -37,4 +37,4 @@ export function ComposerSendActions(props: ChatComposerProps) {
       ) : null}
     </div>
   );
-}
+};

@@ -12,7 +12,12 @@ import { Check, X } from 'lucide-react';
 type SkillProposalContentProps = Pick<SkillProposalsProps, 'name' | 'working' | 'act'> & {
   proposal: SkillProposal;
 };
-export function SkillProposalContent({ proposal, name, working, act }: SkillProposalContentProps) {
+export const SkillProposalContent = ({
+  proposal,
+  name,
+  working,
+  act,
+}: SkillProposalContentProps) => {
   return (
     <>
       <header>
@@ -66,4 +71,4 @@ export function SkillProposalContent({ proposal, name, working, act }: SkillProp
       </footer>
     </>
   );
-}
+};

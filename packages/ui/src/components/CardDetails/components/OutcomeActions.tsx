@@ -4,7 +4,7 @@ import { stateLabels } from '@/lib/labels.ts';
 import type { CardState } from '@pitchcrew/core';
 import { transitions } from '@pitchcrew/core/states';
 
-export function OutcomeActions({ card, working, run, act }: OutcomeActionsProps) {
+export const OutcomeActions = ({ card, working, run, act }: OutcomeActionsProps) => {
   return (
     <div className="tracking-actions">
       {transitions[card.state]
@@ -37,4 +37,4 @@ export function OutcomeActions({ card, working, run, act }: OutcomeActionsProps)
         ))}
     </div>
   );
-}
+};

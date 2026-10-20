@@ -16,7 +16,7 @@ import { SidebarMenuSubItem } from '@/components/ui/sidebar/components/SidebarMe
 import { Link } from '@tanstack/react-router';
 import { ChevronRight, LayoutDashboard } from 'lucide-react';
 
-export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinksProps) {
+export const WorkspaceLinks = ({ view, stages, onStage, counts }: WorkspaceLinksProps) => {
   return (
     <SidebarCategory id="workspace" label="Workspace">
       <SidebarGroupContent>
@@ -64,4 +64,4 @@ export function WorkspaceLinks({ view, stages, onStage, counts }: WorkspaceLinks
       </SidebarGroupContent>
     </SidebarCategory>
   );
-}
+};

@@ -3,34 +3,14 @@ import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from '
 import { lookupJob } from '../api.ts';
 import { fillJobForm, snapshotJobForm } from '../helpers.ts';
 
-export interface JobLookupState {
-  pending: boolean;
-  message: string;
-  prefill: JobLookupPrefill | null;
-  duplicates: JobLookupDuplicate[];
-  scoutUrl: string | null;
-}
-const idle: JobLookupState = {
-  pending: false,
-  message: '',
-  prefill: null,
-  duplicates: [],
-  scoutUrl: null,
-};
-
 /** Fetch a pasted posting link and fill the Add job form for the user to review. */
-export function useJobLookup() {
-  const [url, setUrl] = useState('');
-  const [state, setState] = useState<JobLookupState>(idle);
-  const controller = useRef<AbortController | null>(null);
-  const lastPrefill = useRef<JobLookupPrefill | null>(null);
-  useEffect(() => () => controller.current?.abort(), []);
-  function changeLink(event?: ChangeEvent<HTMLInputElement>) {
+export const useJobLookup = () => {
+  const changeLink = (event?: ChangeEvent<HTMLInputElement>) => {
     controller.current?.abort();
     setUrl(event?.currentTarget.value ?? '');
     setState(idle);
-  }
-  async function fetchFromLink(event: MouseEvent<HTMLButtonElement>) {
+  };
+  const fetchFromLink = async (event: MouseEvent<HTMLButtonElement>) => {
     const form = event.currentTarget.form;
     const url = form?.elements.namedItem('url');
     if (!form || !(url instanceof HTMLInputElement)) return;
@@ -68,6 +48,27 @@ export function useJobLookup() {
         message: error instanceof Error ? error.message : 'Could not read the job posting.',
       });
     }
-  }
+  };
+
+  const [url, setUrl] = useState('');
+  const [state, setState] = useState<JobLookupState>(idle);
+  const controller = useRef<AbortController | null>(null);
+  const lastPrefill = useRef<JobLookupPrefill | null>(null);
+  useEffect(() => () => controller.current?.abort(), []);
   return { ...state, url, fetchFromLink, changeLink };
+};
+
+export interface JobLookupState {
+  pending: boolean;
+  message: string;
+  prefill: JobLookupPrefill | null;
+  duplicates: JobLookupDuplicate[];
+  scoutUrl: string | null;
 }
+const idle: JobLookupState = {
+  pending: false,
+  message: '',
+  prefill: null,
+  duplicates: [],
+  scoutUrl: null,
+};

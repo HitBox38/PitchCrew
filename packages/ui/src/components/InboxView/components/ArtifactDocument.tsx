@@ -5,10 +5,7 @@ import type { Approval, PacketArtifact } from '@pitchcrew/core';
 import { useArtifactUrl } from '../hooks/useArtifactUrl.ts';
 import { type ArtifactPages, pageLabel } from '../helpers.ts';
 
-const PacketPdfPreview = lazy(() => import('@/PacketPdfPreview/index.tsx'));
-const PacketDocxPreview = lazy(() => import('@/PacketDocxPreview/index.tsx'));
-
-export function ArtifactDocument({
+export const ArtifactDocument = ({
   approval,
   artifact,
   pages,
@@ -16,7 +13,7 @@ export function ArtifactDocument({
   approval: Approval;
   artifact: PacketArtifact;
   pages: ArtifactPages;
-}) {
+}) => {
   const { url, setOpened } = useArtifactUrl(artifact);
   const count = pageLabel(artifact, pages);
   const [opened, setPreviewOpened] = useState(false);
@@ -65,4 +62,7 @@ export function ArtifactDocument({
       ) : null}
     </AccordionSection>
   );
-}
+};
+
+const PacketPdfPreview = lazy(() => import('@/PacketPdfPreview/index.tsx'));
+const PacketDocxPreview = lazy(() => import('@/PacketDocxPreview/index.tsx'));

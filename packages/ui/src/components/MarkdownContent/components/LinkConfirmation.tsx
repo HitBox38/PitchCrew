@@ -5,12 +5,12 @@ import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { DialogDescription } from '@/components/ui/dialog/index.tsx';
 
-export function LinkConfirmation(props: LinkSafetyModalProps) {
+export const LinkConfirmation = (props: LinkSafetyModalProps) => {
   if (!props.isOpen) return null;
   return <LinkConfirmationDialog {...props} />;
-}
+};
 
-function LinkConfirmationDialog({ url, onClose, onConfirm }: LinkSafetyModalProps) {
+const LinkConfirmationDialog = ({ url, onClose, onConfirm }: LinkSafetyModalProps) => {
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied' | 'failed'>('idle');
   const copyLink = async () => {
     try {
@@ -49,4 +49,4 @@ function LinkConfirmationDialog({ url, onClose, onConfirm }: LinkSafetyModalProp
       </output>
     </Modal>
   );
-}
+};

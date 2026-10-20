@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
-export function BrowserAddress({
+export const BrowserAddress = ({
   frame,
   control,
   url,
@@ -11,7 +11,7 @@ export function BrowserAddress({
   frame: BrowserFrame | null;
   control: BrowserControl;
   url: string;
-}) {
+}) => {
   const address = url === 'about:blank' ? '' : url;
   return (
     <form
@@ -52,4 +52,4 @@ export function BrowserAddress({
       ) : null}
     </form>
   );
-}
+};

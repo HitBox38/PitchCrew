@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import type { ProfileViewProps } from '../types.ts';
 
-export function useProfileOrganization({ action }: Pick<ProfileViewProps, 'action'>) {
-  const [error, setError] = useState('');
-  async function change(
+export const useProfileOrganization = ({ action }: Pick<ProfileViewProps, 'action'>) => {
+  const change = async (
     body: { action: 'create'; path: string } | { action: 'move'; name: string; folder: string },
-  ) {
+  ) => {
     setError('');
     try {
       await action(
@@ -19,6 +18,8 @@ export function useProfileOrganization({ action }: Pick<ProfileViewProps, 'actio
       setError(error instanceof Error ? error.message : 'Could not organize profile notes.');
       return false;
     }
-  }
+  };
+
+  const [error, setError] = useState('');
   return { error, change, clearError: () => setError('') };
-}
+};

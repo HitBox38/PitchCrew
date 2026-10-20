@@ -25,7 +25,7 @@ it('reads split SSE frames and UTF-8 text, ignoring heartbeats', async () => {
     ': heartbeat\n\n' + states.map((state) => `data: ${JSON.stringify(state)}\n\n`).join(''),
   );
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
+    start: (controller) => {
       for (const byte of bytes) controller.enqueue(new Uint8Array([byte]));
       controller.close();
     },
@@ -47,7 +47,7 @@ it('retains saved messages across preview-only updates', async () => {
     createdAt: '',
   };
   const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
+    start: (controller) => {
       controller.enqueue(
         new TextEncoder().encode(
           `data: ${JSON.stringify({ messages: [message], streamingMessages: [] })}\n\ndata: {"streamingMessages":[]}\n\n`,
@@ -72,7 +72,7 @@ it('merges activity snapshots by run ID across reply-only frames and terminal up
     { streamingMessages: [] },
   ];
   const body = new ReadableStream<Uint8Array>({
-    start(controller) {
+    start: (controller) => {
       controller.enqueue(
         new TextEncoder().encode(
           frames.map((frame) => `data: ${JSON.stringify(frame)}\n\n`).join(''),
@@ -114,7 +114,7 @@ it('bounds compact terminal activity while retaining active runs and recent comp
     { streamingMessages: [], activityRuns: [activity('long', 'completed')] },
   ];
   const body = new ReadableStream<Uint8Array>({
-    start(controller) {
+    start: (controller) => {
       for (const update of updates)
         controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(update)}\n\n`));
       controller.close();

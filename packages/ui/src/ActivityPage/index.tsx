@@ -5,7 +5,7 @@ import { EmptyState } from '@/components/EmptyState/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 
-export function ActivityPage() {
+export const ActivityPage = () => {
   const events = useWorkspaceStore((state) => state.data?.events);
   const search = useSearch({ from: '/activity' });
   const navigate = useNavigate({ from: '/activity' });
@@ -47,4 +47,4 @@ export function ActivityPage() {
       )}
     </div>
   );
-}
+};

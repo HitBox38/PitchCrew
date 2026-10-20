@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function AttachmentDescription({ className, ...props }: React.ComponentProps<'span'>) {
+export const AttachmentDescription = ({ className, ...props }: React.ComponentProps<'span'>) => {
   return (
     <span
       data-slot="attachment-description"
@@ -13,4 +13,4 @@ export function AttachmentDescription({ className, ...props }: React.ComponentPr
       {...props}
     />
   );
-}
+};

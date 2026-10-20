@@ -1,7 +1,7 @@
 import type { JobHeadingProps } from '@/components/CardDetails/types.ts';
 import { CompanyMark } from '@/components/CompanyMark/index.tsx';
 
-export function JobHeading({ card }: JobHeadingProps) {
+export const JobHeading = ({ card }: JobHeadingProps) => {
   return (
     <div className="detail-company">
       <CompanyMark name={card.company} />
@@ -14,4 +14,4 @@ export function JobHeading({ card }: JobHeadingProps) {
       </div>
     </div>
   );
-}
+};

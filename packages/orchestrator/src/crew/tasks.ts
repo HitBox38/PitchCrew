@@ -22,24 +22,24 @@ import {
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from './types.ts';
 
-export function enqueue(
-  this: CrewContext,
+export const enqueue = (
+  context: CrewContext,
   capability: { runId: string; cardId: string | null; roleId: RoleId },
   roleId: RoleId,
   mode: AgentTask['mode'],
   content: string,
   trigger: AgentTask['trigger'],
   conversationId?: string,
-): AgentTask {
-  const parent = this.board.get<Run>('run', capability.runId);
+): AgentTask => {
+  const parent = context.board.get<Run>('run', capability.runId);
   const rootRunId = parent.rootRunId ?? parent.id;
-  const role = requireRole(this, roleId);
+  const role = requireRole(context, roleId);
   if (!role.enabled) throw new Error('The target role is paused.');
-  if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
+  if (!context.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('The target runtime is not available.');
   if (mode === 'workflow' && !capability.cardId)
     throw new Error('Attach a job before invoking a workflow.');
-  if (this.board.list<AgentTask>('task').filter((t) => t.rootRunId === rootRunId).length >= 6)
+  if (context.board.list<AgentTask>('task').filter((t) => t.rootRunId === rootRunId).length >= 6)
     throw new Error(
       'This run chain reached its six follow-up limit. Ask the user to start another turn.',
     );
@@ -55,35 +55,42 @@ export function enqueue(
       conversationId ??
       (mode === 'workflow'
         ? relatedConversation(
-            this,
+            context,
             'application',
             capability.cardId!,
             roleId,
             capability.cardId,
             'Application work',
           ).id
-        : agentDm(this, capability.roleId, roleId, capability.cardId, parent.threadId).id),
+        : agentDm(context, capability.roleId, roleId, capability.cardId, parent.threadId).id),
     content,
     status: 'queued',
     runId: null,
     error: '',
     createdAt: new Date().toISOString(),
   };
-  this.board.record(
+  context.board.record(
     'task',
     task,
     capability.roleId,
     `${capability.roleId} queued ${roleId} ${mode}`,
   );
-  this.addMessage(task.threadId, capability.roleId, roleId, content, capability.cardId, parent.id);
+  context.addMessage(
+    task.threadId,
+    capability.roleId,
+    roleId,
+    content,
+    capability.cardId,
+    parent.id,
+  );
   // Children start after their parent finishes, so a self-invocation never shares a session.
   return task;
-}
-export function finishTask(this: CrewContext, run: Run): void {
-  const finished = this.board.get<Run>('run', run.id);
+};
+export const finishTask = (context: CrewContext, run: Run): void => {
+  const finished = context.board.get<Run>('run', run.id);
   if (run.routineId) {
-    const routine = this.board.get<Routine>('routine', run.routineId);
-    this.board.record(
+    const routine = context.board.get<Routine>('routine', run.routineId);
+    context.board.record(
       'routine',
       {
         ...routine,
@@ -94,8 +101,8 @@ export function finishTask(this: CrewContext, run: Run): void {
     );
   }
   if (run.taskId) {
-    const task = this.board.get<AgentTask>('task', run.taskId);
-    this.board.record(
+    const task = context.board.get<AgentTask>('task', run.taskId);
+    context.board.record(
       'task',
       {
         ...task,
@@ -114,45 +121,45 @@ export function finishTask(this: CrewContext, run: Run): void {
     );
   }
   if (run.mode === 'workflow' && finished.status !== 'waiting')
-    this.addMessage(
+    context.addMessage(
       run.threadId ?? 'crew',
       run.roleId,
       'crew',
-      workflowResultMessage(this, finished),
+      workflowResultMessage(context, finished),
       run.cardId,
       run.id,
     );
-}
-export function taskPermissionsAllow(this: CrewContext, task: AgentTask): boolean {
-  const parent = this.board.get<Run>('run', task.parentRunId);
-  const source = this.board.get<Role>('role', parent.roleId);
+};
+export const taskPermissionsAllow = (context: CrewContext, task: AgentTask): boolean => {
+  const parent = context.board.get<Run>('run', task.parentRunId);
+  const source = context.board.get<Role>('role', parent.roleId);
   const permissions = source.capabilities ?? defaultCapabilities;
   return (
-    canReadConversation(this, task.roleId, task.threadId) &&
+    canReadConversation(context, task.roleId, task.threadId) &&
     source.enabled &&
     !source.retiredAt &&
     permissions[task.trigger === 'message' ? 'messageAgents' : 'invokeAgents'] &&
     (task.mode !== 'workflow' || permissions.manageWorkflow)
   );
-}
-export async function drainTasks(this: CrewContext): Promise<void> {
-  if (this.closing || this.initializing) return;
-  if (this.draining) {
-    this.drainAgain = true;
+};
+export const drainTasks = async (context: CrewContext): Promise<void> => {
+  if (context.closing || context.initializing) return;
+  if (context.draining) {
+    context.drainAgain = true;
     return;
   }
-  this.draining = true;
+  context.draining = true;
   try {
-    for (const task of this.board.list<AgentTask>('task').filter((t) => t.status === 'queued')) {
-      if (this.closing) break;
-      const parent = this.board.get<Run>('run', task.parentRunId);
+    for (const task of context.board.list<AgentTask>('task').filter((t) => t.status === 'queued')) {
+      if (context.closing) break;
+      const parent = context.board.get<Run>('run', task.parentRunId);
       if (
         ['running', 'waiting'].includes(parent.status) ||
-        waitingOnUser(this, task.threadId, task.roleId)
+        waitingOnUser(context, task.threadId, task.roleId)
       )
         continue;
       if (parent.status !== 'completed') {
-        this.board.record(
+        context.board.record(
           'task',
           { ...task, status: 'cancelled', error: 'The parent run did not complete.' },
           'system',
@@ -160,8 +167,8 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         );
         continue;
       }
-      if (!this.taskPermissionsAllow(task)) {
-        this.board.record(
+      if (!context.taskPermissionsAllow(task)) {
+        context.board.record(
           'task',
           { ...task, status: 'cancelled', error: 'The originating role’s capabilities changed.' },
           'system',
@@ -171,25 +178,25 @@ export async function drainTasks(this: CrewContext): Promise<void> {
       }
       if (
         task.cardId &&
-        this.board
+        context.board
           .list<Run>('run')
           .some(
             (r) =>
-              r.cardId === task.cardId && (r.status === 'running' || this.controllers.has(r.id)),
+              r.cardId === task.cardId && (r.status === 'running' || context.controllers.has(r.id)),
           )
       )
         continue;
-      const taskRole = requireRole(this, task.roleId);
+      const taskRole = requireRole(context, task.roleId);
       const taskConfig =
         task.mode === 'workflow'
           ? taskRole
-          : { ...taskRole, ...conversation(this, task.threadId).configurations[task.roleId] };
-      if (this.runtimeMaintenance.held(taskConfig)) {
-        this.queueChains.delete(taskLane(this, task));
+          : { ...taskRole, ...conversation(context, task.threadId).configurations[task.roleId] };
+      if (context.runtimeMaintenance.held(taskConfig)) {
+        context.queueChains.delete(taskLane(context, task));
         continue;
       }
       if (
-        launchProblem(this, {
+        launchProblem(context, {
           cardId: task.cardId,
           threadId: task.threadId,
           roleId: task.roleId,
@@ -197,13 +204,19 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         })
       )
         continue;
-      if (!(await queueMayStart(this, taskLane(this, task), task.rootRunId))) continue;
+      if (!(await queueMayStart(context, taskLane(context, task), task.rootRunId))) continue;
       try {
         const run =
           task.mode === 'workflow'
-            ? await this.startRun(task.cardId!, task.roleId, task)
-            : await this.startChatRun(task.roleId, task.content, task.cardId, task.threadId, task);
-        this.board.record(
+            ? await context.startRun(task.cardId!, task.roleId, task)
+            : await context.startChatRun(
+                task.roleId,
+                task.content,
+                task.cardId,
+                task.threadId,
+                task,
+              );
+        context.board.record(
           'task',
           { ...task, status: 'running', runId: run.id },
           'orchestrator',
@@ -211,17 +224,22 @@ export async function drainTasks(this: CrewContext): Promise<void> {
         );
       } catch (error) {
         if (error instanceof RuntimeHeldError || error instanceof QueueBusyError) continue;
-        if (this.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
+        if (context.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
         const message = error instanceof Error ? error.message : 'Could not start crew task.';
-        this.board.record('task', { ...task, status: 'failed', error: message }, 'system', message);
-        const queueId = taskLane(this, task);
+        context.board.record(
+          'task',
+          { ...task, status: 'failed', error: message },
+          'system',
+          message,
+        );
+        const queueId = taskLane(context, task);
         if (!queueId.startsWith('routine:'))
-          patchQueue(this, queueId, {
+          patchQueue(context, queueId, {
             paused: true,
             pauseKind: 'failed',
             reason: message,
           });
-        this.addMessage(
+        context.addMessage(
           task.threadId,
           'system',
           task.roleId,
@@ -232,16 +250,16 @@ export async function drainTasks(this: CrewContext): Promise<void> {
       }
     }
   } finally {
-    this.draining = false;
-    void drainConversationQueue(this);
-    if (this.drainAgain) {
-      this.drainAgain = false;
-      void this.drainTasks();
+    context.draining = false;
+    void drainConversationQueue(context);
+    if (context.drainAgain) {
+      context.drainAgain = false;
+      void context.drainTasks();
     }
   }
-}
+};
 
-function workflowResultMessage(context: CrewContext, run: Run): string {
+const workflowResultMessage = (context: CrewContext, run: Run): string => {
   if (run.status !== 'completed' || !run.cardId) return run.message;
   const card = context.board.get<import('@pitchcrew/core').Card>('card', run.cardId);
   const role = requireRole(context, run.roleId);
@@ -251,4 +269,4 @@ function workflowResultMessage(context: CrewContext, run: Run): string {
   if (seat === 'writer')
     return `${role.name} saved an application packet. It is ready for review; open the job to read the draft.`;
   return `${role.name} ${card.state === 'agreed' ? 'approved the packet' : 'requested changes'}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved review.`;
-}
+};

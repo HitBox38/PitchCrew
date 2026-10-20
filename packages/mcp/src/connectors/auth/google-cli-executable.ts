@@ -3,7 +3,7 @@ import { basename, delimiter, dirname, join } from 'node:path';
 
 // Run the installed native binary directly, including npm installations. This
 // avoids shell wrappers, auto-installation and wrapper subprocesses on Windows.
-export async function googleCliExecutable() {
+export const googleCliExecutable = async () => {
   const binary = process.platform === 'win32' ? 'gws.exe' : 'gws';
   for (const folder of (process.env.PATH ?? '').split(delimiter).filter(Boolean)) {
     const candidates = [
@@ -23,4 +23,4 @@ export async function googleCliExecutable() {
     }
   }
   return undefined;
-}
+};

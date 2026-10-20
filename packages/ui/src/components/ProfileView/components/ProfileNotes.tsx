@@ -7,7 +7,7 @@ import { ProfileExplorerControls } from './ProfileExplorerControls.tsx';
 import { ProfileTreeRow } from './ProfileTreeRow.tsx';
 import { ProfileFolderDialog } from './ProfileFolderDialog.tsx';
 
-export function ProfileNotes(props: ProfileNotesProps) {
+export const ProfileNotes = (props: ProfileNotesProps) => {
   const c = useProfileNotes(props);
   const tree = useRef<HTMLDivElement>(null);
   const keyboard = useProfileTreeKeyboard(
@@ -82,4 +82,4 @@ export function ProfileNotes(props: ProfileNotesProps) {
       ) : null}
     </aside>
   );
-}
+};

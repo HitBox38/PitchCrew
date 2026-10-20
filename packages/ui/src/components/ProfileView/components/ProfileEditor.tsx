@@ -7,7 +7,7 @@ import { MarkdownEditor } from '@/components/MarkdownEditor/index.tsx';
 import { MarkdownStatus } from '@/components/MarkdownEditor/components/MarkdownStatus.tsx';
 import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
 
-export function ProfileEditor(c: ProfileViewModel) {
+export const ProfileEditor = (c: ProfileViewModel) => {
   const [mode, setMode] = useState('write');
   const form = useMarkdownSaveShortcut();
   return (
@@ -46,4 +46,4 @@ export function ProfileEditor(c: ProfileViewModel) {
       />
     </form>
   );
-}
+};

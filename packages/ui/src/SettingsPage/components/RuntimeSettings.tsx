@@ -6,7 +6,7 @@ import type { Snapshot } from '@pitchcrew/core';
 import { Link } from '@tanstack/react-router';
 import { RefreshCw } from 'lucide-react';
 
-export function RuntimeSettings({ runtimes }: { runtimes: Snapshot['runtimes'] }) {
+export const RuntimeSettings = ({ runtimes }: { runtimes: Snapshot['runtimes'] }) => {
   const working = useWorkspaceStore((state) => state.working);
   const act = useWorkspaceStore((state) => state.act);
   return (
@@ -30,4 +30,4 @@ export function RuntimeSettings({ runtimes }: { runtimes: Snapshot['runtimes'] }
       <RuntimeList runtimes={runtimes} />
     </section>
   );
-}
+};

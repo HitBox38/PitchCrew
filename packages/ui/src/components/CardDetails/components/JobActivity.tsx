@@ -8,7 +8,7 @@ import { ApplicationTracking } from '@/ApplicationTracking/index.tsx';
 import { ExternalSubmissionRegistration } from '@/ExternalSubmissionRegistration/index.tsx';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 
-export function JobActivity(model: CardDetailsModel) {
+export const JobActivity = (model: CardDetailsModel) => {
   const [lessonDirty, setLessonDirty] = useState(false);
   const [trackingDirty, setTrackingDirty] = useState(false);
   const [submissionDirty, setSubmissionDirty] = useState(false);
@@ -44,4 +44,4 @@ export function JobActivity(model: CardDetailsModel) {
       </AccordionSection>
     </div>
   );
-}
+};

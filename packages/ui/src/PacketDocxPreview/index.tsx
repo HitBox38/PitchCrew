@@ -1,6 +1,6 @@
 import { usePacketDocxPreview } from './hooks/usePacketDocxPreview.ts';
 
-export default function PacketDocxPreview({ bytes, name }: { bytes: string; name: string }) {
+const PacketDocxPreview = ({ bytes, name }: { bytes: string; name: string }) => {
   const { document, error } = usePacketDocxPreview(bytes);
   if (error)
     return (
@@ -21,4 +21,5 @@ export default function PacketDocxPreview({ bytes, name }: { bytes: string; name
       />
     </div>
   );
-}
+};
+export default PacketDocxPreview;

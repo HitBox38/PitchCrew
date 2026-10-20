@@ -6,13 +6,7 @@ import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.t
 import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
 import { SelectContent } from '@/components/ui/select/components/SelectContent.tsx';
 import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
-const seats = [
-  { value: 'chat', label: 'Chat and scoped tools' },
-  { value: 'scout', label: 'Evaluate job fit' },
-  { value: 'writer', label: 'Draft application packets' },
-  { value: 'reviewer', label: 'Review application packets' },
-];
-export function IdentitySettings({
+export const IdentitySettings = ({
   creating,
   id,
   setId,
@@ -22,7 +16,7 @@ export function IdentitySettings({
   setDescription,
   workflow,
   setWorkflow,
-}: RoleSettingsModel) {
+}: RoleSettingsModel) => {
   return (
     <section className="role-settings-section">
       <h3>Responsibilities and actions</h3>
@@ -89,4 +83,11 @@ export function IdentitySettings({
       </p>
     </section>
   );
-}
+};
+
+const seats = [
+  { value: 'chat', label: 'Chat and scoped tools' },
+  { value: 'scout', label: 'Evaluate job fit' },
+  { value: 'writer', label: 'Draft application packets' },
+  { value: 'reviewer', label: 'Review application packets' },
+];

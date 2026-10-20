@@ -1,6 +1,6 @@
 import { usePacketPdfPreview } from './hooks/usePacketPdfPreview.ts';
 
-export default function PacketPdfPreview({ bytes, name }: { bytes: string; name: string }) {
+const PacketPdfPreview = ({ bytes, name }: { bytes: string; name: string }) => {
   const { pages, error } = usePacketPdfPreview(bytes);
   if (error)
     return (
@@ -25,4 +25,5 @@ export default function PacketPdfPreview({ bytes, name }: { bytes: string; name:
       ))}
     </div>
   );
-}
+};
+export default PacketPdfPreview;

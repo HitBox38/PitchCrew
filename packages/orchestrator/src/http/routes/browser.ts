@@ -12,7 +12,7 @@ import { z } from 'zod';
 import type { CrewService } from '../../service.ts';
 
 type Route = { Params: { id: string }; Querystring: { threadId: string } };
-export function registerBrowserRoutes(app: FastifyInstance, service: CrewService) {
+export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService) => {
   const authorize = (threadId: string, roleId?: string) => {
     const thread = service.board.get<Conversation>(
       'conversation',
@@ -167,4 +167,4 @@ export function registerBrowserRoutes(app: FastifyInstance, service: CrewService
     await service.computer.browsers.closeRole(sessionKey, reset);
     return { ok: true };
   });
-}
+};

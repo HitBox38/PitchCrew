@@ -2,18 +2,8 @@ import type { PipelineReview } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import { useState } from 'react';
 
-export function useFollowupForm(review: PipelineReview, findingId: string, action: Action) {
-  const previous = review.followups.find((item) => item.findingId === findingId);
-  const [status, setStatus] = useState<'open' | 'evaluating' | 'resolved' | 'dismissed'>(
-    previous?.status ?? 'open',
-  );
-  const [result, setResult] = useState(previous?.result ?? '');
-  const [evidence, setEvidence] = useState(previous?.evidenceEventIds.join(', ') ?? '');
-  const [metric, setMetric] = useState(previous?.metrics[0]?.name ?? '');
-  const [value, setValue] = useState(previous?.metrics[0]?.value.toString() ?? '');
-  const [unit, setUnit] = useState(previous?.metrics[0]?.unit ?? '');
-  const [error, setError] = useState('');
-  async function save() {
+export const useFollowupForm = (review: PipelineReview, findingId: string, action: Action) => {
+  const save = async () => {
     setError('');
     try {
       const ids = evidence.trim() ? evidence.split(',').map((id) => Number(id.trim())) : [];
@@ -34,7 +24,18 @@ export function useFollowupForm(review: PipelineReview, findingId: string, actio
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not save follow-up.');
     }
-  }
+  };
+
+  const previous = review.followups.find((item) => item.findingId === findingId);
+  const [status, setStatus] = useState<'open' | 'evaluating' | 'resolved' | 'dismissed'>(
+    previous?.status ?? 'open',
+  );
+  const [result, setResult] = useState(previous?.result ?? '');
+  const [evidence, setEvidence] = useState(previous?.evidenceEventIds.join(', ') ?? '');
+  const [metric, setMetric] = useState(previous?.metrics[0]?.name ?? '');
+  const [value, setValue] = useState(previous?.metrics[0]?.value.toString() ?? '');
+  const [unit, setUnit] = useState(previous?.metrics[0]?.unit ?? '');
+  const [error, setError] = useState('');
   return {
     status,
     setStatus,
@@ -51,4 +52,4 @@ export function useFollowupForm(review: PipelineReview, findingId: string, actio
     error,
     save,
   };
-}
+};

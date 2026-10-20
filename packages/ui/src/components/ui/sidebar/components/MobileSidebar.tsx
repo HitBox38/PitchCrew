@@ -8,7 +8,7 @@ import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
 import type { MobileSidebarProps } from '@/components/ui/sidebar/types.ts';
 import * as React from 'react';
 
-export function MobileSidebar({ side, children, ...props }: MobileSidebarProps) {
+export const MobileSidebar = ({ side, children, ...props }: MobileSidebarProps) => {
   const { openMobile, setOpenMobile } = useSidebar();
   return (
     <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
@@ -34,4 +34,4 @@ export function MobileSidebar({ side, children, ...props }: MobileSidebarProps) 
       </SheetContent>
     </Sheet>
   );
-}
+};

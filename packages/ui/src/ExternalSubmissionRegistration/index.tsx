@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { Card } from '@pitchcrew/core';
 import { useExternalSubmission } from './hooks/useExternalSubmission.ts';
 
-export function ExternalSubmissionRegistration({
+export const ExternalSubmissionRegistration = ({
   card,
   onDirtyChange,
 }: {
   card: Card;
   onDirtyChange?: (dirty: boolean) => void;
-}) {
+}) => {
   const { registerSubmission, working, error, dirty, setDirty, revision } = useExternalSubmission(
     card.id,
   );
@@ -62,4 +62,4 @@ export function ExternalSubmissionRegistration({
       </form>
     </AccordionSection>
   );
-}
+};

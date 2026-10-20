@@ -2,12 +2,12 @@ import { cn } from '@/lib/utils.ts';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function AttachmentTrigger({
+export const AttachmentTrigger = ({
   className,
   render,
   type,
   ...props
-}: useRender.ComponentProps<'button'>) {
+}: useRender.ComponentProps<'button'>) => {
   return useRender({
     defaultTagName: 'button',
     props: mergeProps<'button'>(
@@ -25,4 +25,4 @@ export function AttachmentTrigger({
       slot: 'attachment-trigger',
     },
   });
-}
+};

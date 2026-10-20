@@ -2,7 +2,7 @@ import type { CommandItemProps } from '@/components/ui/command/types.ts';
 import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
 
-export function CommandItem({ className, ...props }: CommandItemProps) {
+export const CommandItem = ({ className, ...props }: CommandItemProps) => {
   return (
     <CommandPrimitive.Item
       data-slot="command-item"
@@ -13,4 +13,4 @@ export function CommandItem({ className, ...props }: CommandItemProps) {
       {...props}
     />
   );
-}
+};

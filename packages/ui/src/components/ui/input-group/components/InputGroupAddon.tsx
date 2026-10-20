@@ -2,11 +2,11 @@ import { inputGroupAddonVariants } from '@/components/ui/input-group/constants.t
 import type { InputGroupAddonProps } from '@/components/ui/input-group/types.ts';
 import { cn } from '@/lib/utils.ts';
 
-export function InputGroupAddon({
+export const InputGroupAddon = ({
   className,
   align = 'inline-start',
   ...props
-}: InputGroupAddonProps) {
+}: InputGroupAddonProps) => {
   return (
     <div
       data-slot="input-group-addon"
@@ -15,4 +15,4 @@ export function InputGroupAddon({
       {...props}
     />
   );
-}
+};

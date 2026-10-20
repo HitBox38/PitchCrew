@@ -14,18 +14,18 @@ import type { CrewContext } from '../types.ts';
 import { askUser } from '../user-input/questions.ts';
 import { endQuestionTurn } from '../user-input/lifecycle.ts';
 
-export function isDeepReviewRequest(content: string) {
+export const isDeepReviewRequest = (content: string) => {
   return /^\s*(?:@[a-z][a-z0-9-]*\s+)*(?:\/hiring-panel\b|(?:please\s+)?(?:(?:run|start|do|perform)\s+)?(?:a\s+)?(?:deep\s+(?:resume\s+review|review\s+(?:(?:my|the|this)\s+)?resume)|hiring[- ]panel)\b)/i.test(
     content,
   );
-}
-export function queueDeepReviewChat(
+};
+export const queueDeepReviewChat = (
   context: CrewContext,
   item: Conversation,
   content: string,
   attachments: ChatMessage['attachments'] = [],
   references: ChatMessage['references'] = [],
-): ChatRequest {
+): ChatRequest => {
   const reviewer = context.board
     .list<Role>('role')
     .find((role) => role.enabled && !role.retiredAt && workflowSeat(role) === 'reviewer');
@@ -118,14 +118,14 @@ export function queueDeepReviewChat(
     context.board.record('chat_request', request, 'user', 'Queued deep resume review from chat');
   context.publishChat(true);
   return request;
-}
-export function deepReviewQuestionRequest(
+};
+export const deepReviewQuestionRequest = (
   context: CrewContext,
   origin: Run,
   question: UserInputRequest,
   selected: string[],
   text: string,
-) {
+) => {
   if (!origin.deepReviewId && !origin.deepReviewSelection) return undefined;
   const report = origin.deepReviewId
     ? context.board.get<import('@pitchcrew/core').DeepReview>('deep_review', origin.deepReviewId)
@@ -164,4 +164,4 @@ export function deepReviewQuestionRequest(
         ? context.board.get<ChatRequest>('chat_request', origin.requestId).deepReviewPreferences
         : undefined,
   };
-}
+};

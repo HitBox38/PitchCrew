@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { validateAttachments } from '../attachment-helpers.ts';
 import type { ChatThread } from '../types.ts';
 
-export function useChatAttachments(thread: ChatThread, setError: (message: string) => void) {
+export const useChatAttachments = (thread: ChatThread, setError: (message: string) => void) => {
   const [drafts, setDrafts] = useState<Partial<Record<ChatThread, File[]>>>({});
   const files = drafts[thread] ?? [];
   const addFiles = (selected: File[]) => {
@@ -24,4 +24,4 @@ export function useChatAttachments(thread: ChatThread, setError: (message: strin
   const clearFiles = (sentThread: ChatThread) =>
     setDrafts((current) => ({ ...current, [sentThread]: [] }));
   return { files, addFiles, removeFile, clearFiles };
-}
+};

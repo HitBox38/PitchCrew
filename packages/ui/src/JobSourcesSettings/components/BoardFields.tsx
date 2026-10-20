@@ -3,11 +3,11 @@ import { boardExamples, boardHelp, boardLabels, tokenHelp, tokenProviders } from
 import type { JobSourcesModel, SourceDraft } from '../types.ts';
 
 /** The board identifier, plus the careers token for providers that need one. */
-export function BoardFields({
+export const BoardFields = ({
   draft,
   setBoard,
   setToken,
-}: Pick<JobSourcesModel, 'setBoard' | 'setToken'> & { draft: SourceDraft }) {
+}: Pick<JobSourcesModel, 'setBoard' | 'setToken'> & { draft: SourceDraft }) => {
   const needsToken = tokenProviders.has(draft.provider);
   return (
     <div className={needsToken ? 'grid grid-cols-2 gap-3.5 max-compact:grid-cols-1' : 'grid'}>
@@ -39,4 +39,4 @@ export function BoardFields({
       ) : null}
     </div>
   );
-}
+};

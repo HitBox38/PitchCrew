@@ -3,25 +3,25 @@ import type { ChatReference, ChatReferenceInput, Conversation, Role, Skill } fro
 import { chatTokens, skillToken } from '@pitchcrew/core/chat-references';
 import type { CrewContext } from './types.ts';
 
-export function skillDigest(skill: Skill): string {
+export const skillDigest = (skill: Skill): string => {
   return createHash('sha256')
     .update(JSON.stringify([skill.name, skill.description, skill.content]))
     .digest('hex');
-}
-export function messageRecipients(content: string, conversation: Conversation): string[] {
+};
+export const messageRecipients = (content: string, conversation: Conversation): string[] => {
   const mentions = chatTokens(content)
     .filter((token) => token.symbol === '@')
     .map((token) => token.query);
   return mentions.length
     ? conversation.participants.filter((id) => mentions.includes(id))
     : conversation.participants;
-}
-export function resolveChatReferences(
+};
+export const resolveChatReferences = (
   context: CrewContext,
   conversation: Conversation,
   content: string,
   supplied: ChatReferenceInput[] = [],
-): ChatReference[] {
+): ChatReference[] => {
   const tokens = chatTokens(content);
   const targets = messageRecipients(content, conversation).filter((id) => {
     const role = context.board.list<Role>('role').find((entry) => entry.id === id);
@@ -114,14 +114,14 @@ export function resolveChatReferences(
   }
   if (references.length > 32) throw new Error('Use at most 32 references in one message.');
   return references;
-}
+};
 
 /** Revalidate at dispatch: queued messages cannot silently adopt changed instructions. */
-export function selectedChatSkills(
+export const selectedChatSkills = (
   context: CrewContext,
   references: ChatReference[] = [],
   roleId: string,
-): Skill[] {
+): Skill[] => {
   const selected: Skill[] = [];
   for (const ref of references.filter((ref) => ref.kind === 'skill')) {
     const skill = context.board.list<Skill>('skill').find((skill) => skill.id === ref.id);
@@ -139,4 +139,4 @@ export function selectedChatSkills(
   return selected.filter(
     (skill, index) => selected.findIndex((other) => other.id === skill.id) === index,
   );
-}
+};

@@ -4,7 +4,7 @@ import { CommandGroup } from '@/components/ui/command/components/CommandGroup.ts
 import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
 import type { View } from '@/navigation.ts';
 
-export function NavigationCommands({ run, onNavigate }: NavigationCommandsProps) {
+export const NavigationCommands = ({ run, onNavigate }: NavigationCommandsProps) => {
   return (
     <CommandGroup heading="Go to">
       {(Object.keys(viewTitles) as View[]).map((id) => {
@@ -17,4 +17,4 @@ export function NavigationCommands({ run, onNavigate }: NavigationCommandsProps)
       })}
     </CommandGroup>
   );
-}
+};

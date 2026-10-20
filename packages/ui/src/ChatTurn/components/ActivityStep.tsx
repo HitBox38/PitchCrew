@@ -11,14 +11,7 @@ import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
 import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { TraceDescription } from '@/components/ui/trace/components/TraceDescription.tsx';
 import { TurnDuration } from './TurnDuration.tsx';
-
-const outcomes = {
-  running: 'In progress',
-  completed: 'Finished',
-  failed: 'Tool failed',
-  interrupted: 'Outcome unavailable',
-};
-export function ActivityStep({ entry }: { entry: RunActivity }) {
+export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
   const Icon =
     entry.status === 'running'
       ? LoaderCircle
@@ -75,4 +68,11 @@ export function ActivityStep({ entry }: { entry: RunActivity }) {
       </Content>
     </Root>
   );
-}
+};
+
+const outcomes = {
+  running: 'In progress',
+  completed: 'Finished',
+  failed: 'Tool failed',
+  interrupted: 'Outcome unavailable',
+};

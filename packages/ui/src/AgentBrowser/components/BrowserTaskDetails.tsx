@@ -9,11 +9,11 @@ import {
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserTask } from './BrowserTask.tsx';
 import { BrowserSites } from './BrowserSites.tsx';
-export function BrowserTaskDetails(
+export const BrowserTaskDetails = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'onThread' | 'onOpenCard'> & {
     control: BrowserControl;
   },
-) {
+) => {
   const session = props.browserPanel.session;
   const elsewhere = !!session?.threadId && session.threadId !== props.thread;
   return (
@@ -62,4 +62,4 @@ export function BrowserTaskDetails(
       </PopoverContent>
     </Popover>
   );
-}
+};

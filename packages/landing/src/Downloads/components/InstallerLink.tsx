@@ -5,7 +5,7 @@ import { captureDownload } from '../../Analytics/client';
 import { installerSize } from '../helpers';
 import type { Installer } from '../types';
 
-export function InstallerLink({ installer }: { installer: Installer }) {
+export const InstallerLink = ({ installer }: { installer: Installer }) => {
   const available = installer.filename !== null;
   return (
     <a className="installer-link" href={installer.url} onClick={() => captureDownload(installer)}>
@@ -23,4 +23,4 @@ export function InstallerLink({ installer }: { installer: Installer }) {
       </span>
     </a>
   );
-}
+};

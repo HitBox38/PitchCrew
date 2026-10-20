@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 import { CodeBlockLine } from './CodeBlockLine.tsx';
 
-export function CodeBlockContent({
+export const CodeBlockContent = ({
   className,
   children,
   style,
@@ -14,7 +14,7 @@ export function CodeBlockContent({
   wrap?: boolean;
   lineNumbers?: boolean;
   startLine?: number;
-}) {
+}) => {
   return (
     <pre
       data-slot="code-block-content"
@@ -43,4 +43,4 @@ export function CodeBlockContent({
       </code>
     </pre>
   );
-}
+};

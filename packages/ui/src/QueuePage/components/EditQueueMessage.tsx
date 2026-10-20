@@ -5,7 +5,13 @@ import { Button } from '@/components/ui/button/index.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function EditQueueMessage({ request, close }: { request: ChatRequest; close: () => void }) {
+export const EditQueueMessage = ({
+  request,
+  close,
+}: {
+  request: ChatRequest;
+  close: () => void;
+}) => {
   const [content, setContent] = useState(request.content);
   const [error, setError] = useState('');
   const action = useWorkspaceStore((s) => s.action);
@@ -50,4 +56,4 @@ export function EditQueueMessage({ request, close }: { request: ChatRequest; clo
       </div>
     </div>
   );
-}
+};

@@ -1,35 +1,7 @@
 import { z } from 'zod';
 
-const reportedSource =
-  'https://github.com/Jakeschincariol/hunter-skill/blob/f40d6a94b61283785b20e47a237608d5b1976b1c/skills/hunter-linkedin/limits.json';
-const reviewedAt = '2026-10-18';
-export const linkedInFieldLimits = Object.freeze({
-  headline: 220,
-  about: 2600,
-  position_title: 100,
-  position_description: 2000,
-});
-export const linkedInDraftInput = z
-  .strictObject({
-    fields: z
-      .array(
-        z.strictObject({
-          field: z.enum(['headline', 'about', 'position_title', 'position_description']),
-          label: z.string().max(120).optional(),
-          text: z.string().max(12000),
-        }),
-      )
-      .min(1)
-      .max(30)
-      .optional(),
-    skills: z.array(z.string().min(1).max(200)).max(200).optional(),
-  })
-  .refine((value) => value.fields !== undefined || value.skills !== undefined, {
-    message: 'Supply draft fields or a complete proposed skills list.',
-  });
-
 /** Measures exact supplied text locally; never rewrites it or verifies its claims. */
-export function checkLinkedInDraft(input: unknown) {
+export const checkLinkedInDraft = (input: unknown) => {
   const data = linkedInDraftInput.parse(input);
   const fields = (data.fields ?? []).map(({ field, label, text }) => {
     const count = text.length;
@@ -83,4 +55,32 @@ export function checkLinkedInDraft(input: unknown) {
           },
         }),
   };
-}
+};
+
+const reportedSource =
+  'https://github.com/Jakeschincariol/hunter-skill/blob/f40d6a94b61283785b20e47a237608d5b1976b1c/skills/hunter-linkedin/limits.json';
+const reviewedAt = '2026-10-18';
+export const linkedInFieldLimits = Object.freeze({
+  headline: 220,
+  about: 2600,
+  position_title: 100,
+  position_description: 2000,
+});
+export const linkedInDraftInput = z
+  .strictObject({
+    fields: z
+      .array(
+        z.strictObject({
+          field: z.enum(['headline', 'about', 'position_title', 'position_description']),
+          label: z.string().max(120).optional(),
+          text: z.string().max(12000),
+        }),
+      )
+      .min(1)
+      .max(30)
+      .optional(),
+    skills: z.array(z.string().min(1).max(200)).max(200).optional(),
+  })
+  .refine((value) => value.fields !== undefined || value.skills !== undefined, {
+    message: 'Supply draft fields or a complete proposed skills list.',
+  });

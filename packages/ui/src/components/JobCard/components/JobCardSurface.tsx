@@ -3,7 +3,7 @@ import type { JobCardProps } from '../types.ts';
 import type { ReactNode } from 'react';
 import * as m from 'motion/react-m';
 
-export function JobCardSurface({ children, ...props }: JobCardProps & { children: ReactNode }) {
+export const JobCardSurface = ({ children, ...props }: JobCardProps & { children: ReactNode }) => {
   const { card, reduced, stationary, tiltX, tiltY, rotateX, rotateY } = useJobCard(props);
   return (
     <m.div
@@ -39,4 +39,4 @@ export function JobCardSurface({ children, ...props }: JobCardProps & { children
       {children}
     </m.div>
   );
-}
+};

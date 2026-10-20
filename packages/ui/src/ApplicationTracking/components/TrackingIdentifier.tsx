@@ -4,13 +4,13 @@ import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { Card } from '@pitchcrew/core';
 import { useEffect, useState } from 'react';
 
-export function TrackingIdentifier({
+export const TrackingIdentifier = ({
   card,
   onDirtyChange,
 }: {
   card: Card;
   onDirtyChange?: (dirty: boolean) => void;
-}) {
+}) => {
   const [jobIdentifier, setJobIdentifier] = useState(card.tracking?.jobIdentifier ?? '');
   const dirty = jobIdentifier !== (card.tracking?.jobIdentifier ?? '');
   useEffect(() => {
@@ -45,4 +45,4 @@ export function TrackingIdentifier({
       </Button>
     </div>
   );
-}
+};

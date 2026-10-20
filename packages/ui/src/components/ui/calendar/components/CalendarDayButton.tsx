@@ -3,12 +3,12 @@ import type { DayButton } from 'react-day-picker';
 import { Button } from '@/components/ui/button/index.tsx';
 import { cn } from '@/lib/utils';
 
-export function CalendarDayButton({
+export const CalendarDayButton = ({
   className,
   day,
   modifiers,
   ...props
-}: ComponentProps<typeof DayButton>) {
+}: ComponentProps<typeof DayButton>) => {
   const ref = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (modifiers.focused) ref.current?.focus();
@@ -23,4 +23,4 @@ export function CalendarDayButton({
       {...props}
     />
   );
-}
+};

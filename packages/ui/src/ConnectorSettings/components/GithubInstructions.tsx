@@ -1,4 +1,4 @@
-export function GithubInstructions() {
+export const GithubInstructions = () => {
   return (
     <p className="modal-intro">
       Create a fine-grained personal access token for the repositories your crew should read. Give
@@ -6,4 +6,4 @@ export function GithubInstructions() {
       included by GitHub.
     </p>
   );
-}
+};

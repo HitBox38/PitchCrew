@@ -4,12 +4,12 @@ import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
 import type { SkillEditorHeadingProps } from '@/SkillsView/components/SkillEditor/types.ts';
 import { BookOpen, X } from 'lucide-react';
 
-export function SkillEditorHeading({
+export const SkillEditorHeading = ({
   skill,
   importing,
   working,
   onClose,
-}: SkillEditorHeadingProps) {
+}: SkillEditorHeadingProps) => {
   return (
     <header className="role-settings-heading">
       <BookOpen size={26} />
@@ -29,4 +29,4 @@ export function SkillEditorHeading({
       </Button>
     </header>
   );
-}
+};

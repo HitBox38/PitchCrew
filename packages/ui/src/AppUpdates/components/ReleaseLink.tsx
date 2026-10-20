@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ExternalLink } from 'lucide-react';
 
-export function ReleaseLink({ url }: { url: string }) {
+export const ReleaseLink = ({ url }: { url: string }) => {
   return (
     <Button
       className="button"
@@ -18,4 +18,4 @@ export function ReleaseLink({ url }: { url: string }) {
       <ExternalLink size={15} aria-hidden="true" /> View release & download
     </Button>
   );
-}
+};

@@ -3,25 +3,8 @@ import type { DatabaseImportConversion } from '@pitchcrew/core';
 import { Worker } from 'node:worker_threads';
 import { z } from 'zod';
 
-const request = z
-  .object({
-    content: z
-      .string()
-      .min(1)
-      .max(Math.ceil(importLimits.bytes / 3) * 4),
-  })
-  .strict();
-const bootstrap = `
-import { parentPort, workerData } from 'node:worker_threads';
-import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
-register();
-const { convertDatabase } = await import(workerData.module);
-try { parentPort.postMessage({ result: convertDatabase(workerData.bytes) }); }
-catch (error) { parentPort.postMessage({ error: error.message }); }
-`;
-
 /** Uploaded databases stay in memory; a bounded worker keeps SQLite off the HTTP thread. */
-export async function readDatabaseImport(data: unknown): Promise<DatabaseImportConversion> {
+export const readDatabaseImport = async (data: unknown): Promise<DatabaseImportConversion> => {
   const { content } = request.parse(data);
   const bytes = Buffer.from(content, 'base64');
   if (bytes.length > importLimits.bytes) throw new Error('Import files can be at most 2 MB.');
@@ -68,4 +51,21 @@ export async function readDatabaseImport(data: unknown): Promise<DatabaseImportC
       finish(undefined, new Error('Database reading stopped before completing.')),
     );
   });
-}
+};
+
+const request = z
+  .object({
+    content: z
+      .string()
+      .min(1)
+      .max(Math.ceil(importLimits.bytes / 3) * 4),
+  })
+  .strict();
+const bootstrap = `
+import { parentPort, workerData } from 'node:worker_threads';
+import { register } from ${JSON.stringify(import.meta.resolve('tsx/esm/api'))};
+register();
+const { convertDatabase } = await import(workerData.module);
+try { parentPort.postMessage({ result: convertDatabase(workerData.bytes) }); }
+catch (error) { parentPort.postMessage({ error: error.message }); }
+`;

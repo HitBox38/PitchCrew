@@ -1,12 +1,12 @@
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
 
-export function registerSessionSecurity(
+export const registerSessionSecurity = (
   app: FastifyInstance,
   options: { port: number; dev?: boolean; analyticsHost?: string },
   url: string,
   sessions: Set<string>,
-) {
+) => {
   app.addHook('onRequest', async (req, res) => {
     if (req.headers.host !== `127.0.0.1:${options.port}`) {
       return res.status(403).send({ error: 'Use the loopback address printed by Pitchcrew.' });
@@ -48,4 +48,4 @@ export function registerSessionSecurity(
       );
     }
   });
-}
+};

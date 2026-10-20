@@ -4,12 +4,12 @@ import { z } from 'zod';
 import { digest } from '../../profile-sources/helpers.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export function visibleProposal(proposal: ProfileMaintenanceProposal) {
+export const visibleProposal = (proposal: ProfileMaintenanceProposal) => {
   const { baseSources: _sources, baseProfile: _profile, ...visible } = proposal;
   return visible;
-}
+};
 
-export function proposalDigest(proposal: ProfileMaintenanceProposal) {
+export const proposalDigest = (proposal: ProfileMaintenanceProposal) => {
   return digest(
     JSON.stringify({
       source: proposal.source,
@@ -23,15 +23,15 @@ export function proposalDigest(proposal: ProfileMaintenanceProposal) {
       generated: proposal.generated,
     }),
   );
-}
+};
 
-export async function readProjectFile(
+export const readProjectFile = async (
   context: CrewContext,
   capability: RunCapability,
   source: ProfileSource,
   revision: string,
   path: string,
-) {
+) => {
   const input = source.input;
   if (input.provider !== 'github' || source.mode !== 'project')
     throw new Error('Choose a GitHub project watch.');
@@ -54,26 +54,15 @@ export async function readProjectFile(
     revision,
     url: `https://github.com/${input.repository}/blob/${revision}/${path.split('/').map(encodeURIComponent).join('/')}`,
   };
-}
+};
 
-export const projectFilePath = z
-  .string()
-  .min(1)
-  .max(500)
-  .refine(
-    (path) =>
-      !path.startsWith('/') &&
-      !path.includes('\\') &&
-      !path.split('/').some((part) => part === '.' || part === '..'),
-  );
-
-export async function projectNote(
+export const projectNote = async (
   context: CrewContext,
   capability: RunCapability,
   proposal: ProfileMaintenanceProposal,
   data: Record<string, unknown>,
   authorize: () => Promise<void>,
-) {
+) => {
   const input = z
     .object({
       proposalId: z.uuid(),
@@ -152,4 +141,15 @@ export async function projectNote(
     'Proposed a project profile note for factual verification',
   );
   return { proposal: visibleProposal(updated) };
-}
+};
+
+export const projectFilePath = z
+  .string()
+  .min(1)
+  .max(500)
+  .refine(
+    (path) =>
+      !path.startsWith('/') &&
+      !path.includes('\\') &&
+      !path.split('/').some((part) => part === '.' || part === '..'),
+  );

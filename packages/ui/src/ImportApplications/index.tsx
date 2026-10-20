@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ImportDialog } from './components/ImportDialog.tsx';
 
 /** Board entry for importing applications tracked before Pitchcrew. */
-export function ImportApplications() {
+export const ImportApplications = () => {
   const [open, setOpen] = useState(false);
   return (
     <>
@@ -14,4 +14,4 @@ export function ImportApplications() {
       {open ? <ImportDialog onClose={() => setOpen(false)} /> : null}
     </>
   );
-}
+};

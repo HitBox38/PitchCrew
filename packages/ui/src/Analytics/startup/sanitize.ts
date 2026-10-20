@@ -1,4 +1,4 @@
-export function sanitizeStartup(input: Record<string, unknown>): Record<string, number> | null {
+export const sanitizeStartup = (input: Record<string, unknown>): Record<string, number> | null => {
   const { duration_ms, daemon_ready_ms } = input;
   if (
     typeof duration_ms !== 'number' ||
@@ -12,4 +12,4 @@ export function sanitizeStartup(input: Record<string, unknown>): Record<string, 
   )
     return null;
   return { duration_ms: Math.round(duration_ms), daemon_ready_ms: Math.round(daemon_ready_ms) };
-}
+};

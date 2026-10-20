@@ -3,7 +3,7 @@ import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { useState, type ReactNode } from 'react';
 
 /** A non-modal sheet docked in its parent's layout, keeping the workspace usable. */
-export function SidePanel({
+export const SidePanel = ({
   children,
   onClose,
   className = '',
@@ -13,7 +13,7 @@ export function SidePanel({
   onClose: () => void;
   className?: string;
   returnFocus?: string;
-}) {
+}) => {
   const [container, setContainer] = useState<HTMLDivElement | null>(null);
   return (
     <div className="chat-side-panel-slot" ref={setContainer}>
@@ -39,4 +39,4 @@ export function SidePanel({
       </Sheet>
     </div>
   );
-}
+};

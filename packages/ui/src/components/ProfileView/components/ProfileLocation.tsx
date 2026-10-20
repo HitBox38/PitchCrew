@@ -1,7 +1,7 @@
 import type { ProfileLocationProps } from '@/components/ProfileView/types.ts';
 import { FolderOpen } from 'lucide-react';
 
-export function ProfileLocation({ data }: ProfileLocationProps) {
+export const ProfileLocation = ({ data }: ProfileLocationProps) => {
   return (
     <footer className="data-location">
       <FolderOpen size={17} />
@@ -14,4 +14,4 @@ export function ProfileLocation({ data }: ProfileLocationProps) {
       </span>
     </footer>
   );
-}
+};

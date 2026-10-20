@@ -4,26 +4,14 @@ import { GoogleCliMissingError } from './google-cli-process.ts';
 import { googleCliArgs } from './google-cli-requests.ts';
 import type { ConnectorManagerContext } from './types.ts';
 import type { ConnectorRequest } from '../tools/helpers.ts';
-
-const accountSchema = z.object({
-  token_valid: z.literal(true),
-  user: z.email(),
-  scopes: z.array(z.string()),
-});
-const broaderScopes: Record<string, string[]> = {
-  gmail: ['https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/'],
-  drive: ['https://www.googleapis.com/auth/drive'],
-  sheets: ['https://www.googleapis.com/auth/spreadsheets'],
-  calendar: ['https://www.googleapis.com/auth/calendar'],
-};
-export function googleCliServices(scopes: readonly string[]) {
+export const googleCliServices = (scopes: readonly string[]) => {
   return Object.entries(googleScopes)
     .filter(([service, scope]) =>
       [scope, ...broaderScopes[service]!].some((grant) => scopes.includes(grant)),
     )
     .map(([service]) => service);
-}
-async function account(context: ConnectorManagerContext, signal: AbortSignal) {
+};
+const account = async (context: ConnectorManagerContext, signal: AbortSignal) => {
   const result = await context.runGoogleCli(['auth', 'status'], signal);
   signal.throwIfAborted();
   let parsed: ReturnType<typeof accountSchema.safeParse>;
@@ -39,49 +27,50 @@ async function account(context: ConnectorManagerContext, signal: AbortSignal) {
     throw new Error('Sign in with gws auth login --readonly, then try connecting again.');
   }
   return parsed.data;
-}
-export async function connectGoogleCli(this: ConnectorManagerContext) {
-  if (this.googleStarting || this.pending)
+};
+export const connectGoogleCli = async (context: ConnectorManagerContext) => {
+  if (context.googleStarting || context.pending)
     throw new Error('Google sign-in is already in progress.');
-  if (this.store.google)
+  if (context.store.google)
     throw new Error('Disconnect the current Google account before connecting again.');
-  this.googleStarting = true;
-  this.errors.google = '';
-  const signal = this.lifetimes.google.signal;
+  context.googleStarting = true;
+  context.errors.google = '';
+  const signal = context.lifetimes.google.signal;
   try {
-    const version = await this.runGoogleCli(['--version'], signal);
+    const version = await context.runGoogleCli(['--version'], signal);
     if (version.exitCode !== 0)
       throw new Error('Google Workspace CLI could not start. Check its installation.');
-    const current = await account(this, signal);
+    const current = await account(context, signal);
     if (!googleCliServices(current.scopes).length) {
-      this.googleCliState = 'scopes_missing';
+      context.googleCliState = 'scopes_missing';
       throw new Error(
         'No supported Google read permissions were granted. Run gws auth login --readonly and reconnect.',
       );
     }
     signal.throwIfAborted();
-    this.store.google = { mode: 'cli', account: current.user, scopes: current.scopes };
-    this.googleCliState = 'ready';
-    await this.save();
-    this.googleStarting = false;
-    return this.status();
+    context.store.google = { mode: 'cli', account: current.user, scopes: current.scopes };
+    context.googleCliState = 'ready';
+    await context.save();
+    context.googleStarting = false;
+    return context.status();
   } catch (error) {
-    if (!signal.aborted && error instanceof GoogleCliMissingError) this.googleCliState = 'missing';
+    if (!signal.aborted && error instanceof GoogleCliMissingError)
+      context.googleCliState = 'missing';
     if (!signal.aborted)
-      this.errors.google =
+      context.errors.google =
         error instanceof Error ? error.message : 'Google Workspace CLI connection failed.';
     throw error;
   } finally {
-    this.googleStarting = false;
+    context.googleStarting = false;
   }
-}
-export async function googleCliRead(
+};
+export const googleCliRead = async (
   context: ConnectorManagerContext,
   name: string,
   request: ConnectorRequest,
   permission: string,
   signal: AbortSignal,
-) {
+) => {
   const binding = context.store.google;
   if (!binding || !('mode' in binding)) throw new Error('Google Workspace CLI is not connected.');
   const args = googleCliArgs(name, request);
@@ -122,4 +111,16 @@ export async function googleCliRead(
       'Google Workspace CLI returned an unsupported read response. Update gws and try again.',
     );
   }
-}
+};
+
+const accountSchema = z.object({
+  token_valid: z.literal(true),
+  user: z.email(),
+  scopes: z.array(z.string()),
+});
+const broaderScopes: Record<string, string[]> = {
+  gmail: ['https://www.googleapis.com/auth/gmail.modify', 'https://mail.google.com/'],
+  drive: ['https://www.googleapis.com/auth/drive'],
+  sheets: ['https://www.googleapis.com/auth/spreadsheets'],
+  calendar: ['https://www.googleapis.com/auth/calendar'],
+};

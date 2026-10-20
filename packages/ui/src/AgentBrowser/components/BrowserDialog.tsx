@@ -3,13 +3,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
-export function BrowserDialog({
+export const BrowserDialog = ({
   dialog,
   control,
 }: {
   dialog: NonNullable<BrowserFrame['dialog']>;
   control: BrowserControl;
-}) {
+}) => {
   const [text, setText] = useState('');
   return (
     <section className="browser-dialog" aria-label="Website dialog">
@@ -47,4 +47,4 @@ export function BrowserDialog({
       )}
     </section>
   );
-}
+};

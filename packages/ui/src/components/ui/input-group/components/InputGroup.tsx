@@ -1,7 +1,7 @@
 import type { InputGroupProps } from '@/components/ui/input-group/types.ts';
 import { cn } from '@/lib/utils.ts';
 
-export function InputGroup({ className, ...props }: InputGroupProps) {
+export const InputGroup = ({ className, ...props }: InputGroupProps) => {
   return (
     <div
       data-slot="input-group"
@@ -12,4 +12,4 @@ export function InputGroup({ className, ...props }: InputGroupProps) {
       {...props}
     />
   );
-}
+};

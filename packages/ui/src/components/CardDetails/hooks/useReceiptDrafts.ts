@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export function useReceiptDrafts(onDirtyChange?: (dirty: boolean) => void) {
+export const useReceiptDrafts = (onDirtyChange?: (dirty: boolean) => void) => {
   const [dirty, setDirty] = useState<Record<string, boolean>>({});
   const changeDirty = useCallback(
     (id: string, value: boolean) =>
@@ -13,4 +13,4 @@ export function useReceiptDrafts(onDirtyChange?: (dirty: boolean) => void) {
     return () => onDirtyChange?.(false);
   }, [hasDraft, onDirtyChange]);
   return changeDirty;
-}
+};

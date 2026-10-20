@@ -6,7 +6,7 @@ import type { SkillDialogsProps } from '@/SkillsView/types.ts';
 import { Trash2 } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
-export function SkillDialogs({
+export const SkillDialogs = ({
   editing,
   starter,
   creator,
@@ -19,7 +19,7 @@ export function SkillDialogs({
   setDeleting,
   error,
   remove,
-}: SkillDialogsProps) {
+}: SkillDialogsProps) => {
   return (
     <AnimatePresence>
       {editing ? (
@@ -71,4 +71,4 @@ export function SkillDialogs({
       ) : null}
     </AnimatePresence>
   );
-}
+};

@@ -1,7 +1,7 @@
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { ProfileSourcesModel } from '../types.ts';
 
-export function GitHubSourceFields(c: ProfileSourcesModel) {
+export const GitHubSourceFields = (c: ProfileSourcesModel) => {
   const project = c.intent === 'project';
   return (
     <>
@@ -44,4 +44,4 @@ export function GitHubSourceFields(c: ProfileSourcesModel) {
       </p>
     </>
   );
-}
+};

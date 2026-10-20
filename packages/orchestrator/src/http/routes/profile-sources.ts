@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
 import type { CrewService } from '../../service.ts';
 
-export function registerProfileSourcesRoutes(app: FastifyInstance, service: CrewService) {
+export const registerProfileSourcesRoutes = (app: FastifyInstance, service: CrewService) => {
   app.post('/api/profile/organization', (req, res) =>
     res.send(service.profileOrganization.change(req.body)),
   );
@@ -39,4 +39,4 @@ export function registerProfileSourcesRoutes(app: FastifyInstance, service: Crew
     );
     res.send({ ok: true });
   });
-}
+};

@@ -2,19 +2,7 @@ import { z } from 'zod';
 import { commitPattern } from './build.ts';
 import { releaseNotes } from './release-notes.ts';
 
-const apiRoot = 'https://api.github.com/repos/HitBox38/PitchCrew';
-const releaseSchema = z.object({
-  tag_name: z.string().regex(/^build-[a-f0-9]{40}$/),
-  draft: z.literal(false),
-  prerelease: z.literal(false),
-  name: z.string().max(256).nullish().catch(null),
-  body: z.string().max(125_000).nullish().catch(null),
-});
-const comparisonSchema = z.object({
-  status: z.enum(['ahead', 'behind', 'identical', 'diverged']),
-});
-
-export async function githubJson(path: string, fetcher: typeof fetch, signal: AbortSignal) {
+export const githubJson = async (path: string, fetcher: typeof fetch, signal: AbortSignal) => {
   const response = await fetcher(`${apiRoot}${path}`, {
     signal,
     redirect: 'error',
@@ -44,13 +32,13 @@ export async function githubJson(path: string, fetcher: typeof fetch, signal: Ab
   } finally {
     await reader.cancel().catch(() => {});
   }
-}
+};
 
-export async function checkGitHubRelease(
+export const checkGitHubRelease = async (
   commit: string | null,
   fetcher: typeof fetch,
   signal: AbortSignal,
-) {
+) => {
   const release = releaseSchema.parse(await githubJson('/releases/latest', fetcher, signal));
   const latest = {
     commit: release.tag_name.slice(6),
@@ -76,4 +64,16 @@ export async function checkGitHubRelease(
         ? ('unknown' as const)
         : ('current' as const);
   return { latest, status };
-}
+};
+
+const apiRoot = 'https://api.github.com/repos/HitBox38/PitchCrew';
+const releaseSchema = z.object({
+  tag_name: z.string().regex(/^build-[a-f0-9]{40}$/),
+  draft: z.literal(false),
+  prerelease: z.literal(false),
+  name: z.string().max(256).nullish().catch(null),
+  body: z.string().max(125_000).nullish().catch(null),
+});
+const comparisonSchema = z.object({
+  status: z.enum(['ahead', 'behind', 'identical', 'diverged']),
+});

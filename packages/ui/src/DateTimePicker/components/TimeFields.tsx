@@ -3,7 +3,7 @@ import { TimeField, TimeInput } from '@/components/ui/time-field/index.tsx';
 import { useTimeFields } from '../hooks/useTimeFields.ts';
 import type { ReactNode } from 'react';
 
-export function TimeFields({
+export const TimeFields = ({
   value,
   onValueChange,
   children,
@@ -11,7 +11,7 @@ export function TimeFields({
   value: string;
   onValueChange(value: string): void;
   children(valid: boolean): ReactNode;
-}) {
+}) => {
   const { time, change } = useTimeFields(value, onValueChange);
   return (
     <TimeField
@@ -35,4 +35,4 @@ export function TimeFields({
       )}
     </TimeField>
   );
-}
+};

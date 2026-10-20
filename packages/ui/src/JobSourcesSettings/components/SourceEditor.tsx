@@ -8,7 +8,7 @@ import { BoardFields } from './BoardFields.tsx';
 import { SourceFilters } from './SourceFilters.tsx';
 import { SourcePreview } from './SourcePreview.tsx';
 
-export function SourceEditor(model: JobSourcesModel & { draft: SourceDraft }) {
+export const SourceEditor = (model: JobSourcesModel & { draft: SourceDraft }) => {
   const { draft, update } = model;
   return (
     <form className="form job-source-editor mt-5 grid gap-4" onSubmit={model.save}>
@@ -52,4 +52,4 @@ export function SourceEditor(model: JobSourcesModel & { draft: SourceDraft }) {
       {model.preview ? <SourcePreview preview={model.preview} /> : null}
     </form>
   );
-}
+};

@@ -8,7 +8,7 @@ import { createObservationRelay } from '../observations.ts';
 import { useDiagnosticLeader } from '../leadership.ts';
 import { installOperationalLogs } from '../logs/index.ts';
 
-export function useBackendObservations() {
+export const useBackendObservations = () => {
   const enabled = useDevicePreferences((state) => state.analytics && state.diagnostics);
   const configured = useAnalyticsConfig((state) => !!state.config);
   const leader = useDiagnosticLeader();
@@ -48,4 +48,4 @@ export function useBackendObservations() {
       clearTimeout(timer);
     };
   }, [enabled, configured, leader]);
-}
+};

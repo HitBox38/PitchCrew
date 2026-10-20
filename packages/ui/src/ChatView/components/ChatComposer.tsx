@@ -8,7 +8,7 @@ import type { ChatComposerProps } from '@/ChatView/types.ts';
 import { PromptInput } from '@/components/ai-elements/prompt-input/components/PromptInput.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
 
-export function ChatComposer(props: ChatComposerProps) {
+export const ChatComposer = (props: ChatComposerProps) => {
   const { role, available, error, send, working, addFiles } = props;
   const disabled = working || !available;
   const contextActions = useRef<
@@ -53,4 +53,4 @@ export function ChatComposer(props: ChatComposerProps) {
       <ComposerHint role={role} />
     </div>
   );
-}
+};

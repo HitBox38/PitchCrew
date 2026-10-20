@@ -5,16 +5,12 @@ import { promisify, stripVTControlCharacters } from 'node:util';
 import { modelReasoning, piReasoning } from './reasoning.ts';
 import { cliEnvironment } from './process.ts';
 
-const exec = promisify(execFile);
-export const modelDiscoveryTimeout = 10000;
-export const modelDiscoveryMaxBytes = 2_000_000;
-
 // Only native model-list operations belong here. Never start a turn or inspect auth files.
-export async function modelListCommand(
+export const modelListCommand = async (
   command: string,
   args: string[],
   signal?: AbortSignal,
-): Promise<string> {
+): Promise<string> => {
   const result = exec(command, args, {
     cwd: tmpdir(),
     env: cliEnvironment({ NO_COLOR: '1', FORCE_COLOR: '0' }),
@@ -27,9 +23,9 @@ export async function modelListCommand(
   });
   result.child.stdin?.end();
   return stripVTControlCharacters((await result).stdout);
-}
+};
 
-export function normalizeModels(models: readonly RuntimeModel[]): RuntimeModel[] {
+export const normalizeModels = (models: readonly RuntimeModel[]): RuntimeModel[] => {
   if (models.length > 5000) throw new Error('Model catalog exceeded its limit.');
   const unique = new Map<string, RuntimeModel>();
   for (const model of models) {
@@ -57,9 +53,9 @@ export function normalizeModels(models: readonly RuntimeModel[]): RuntimeModel[]
       });
   }
   return [...unique.values()];
-}
+};
 
-export function suggestedModels(adapter: RuntimeAdapter, detail?: string): RuntimeModelCatalog {
+export const suggestedModels = (adapter: RuntimeAdapter, detail?: string): RuntimeModelCatalog => {
   return {
     models: adapter.models,
     modelSource: adapter.id === 'demo' ? 'none' : 'fallback',
@@ -68,13 +64,13 @@ export function suggestedModels(adapter: RuntimeAdapter, detail?: string): Runti
         ? 'Demo does not use a model.'
         : (detail ?? 'Suggested models. Open settings to check the runtime.'),
   };
-}
+};
 
-export async function discoverModels(
+export const discoverModels = async (
   adapter: RuntimeAdapter,
   available: boolean,
   signal?: AbortSignal,
-): Promise<RuntimeModelCatalog> {
+): Promise<RuntimeModelCatalog> => {
   if (adapter.id === 'demo') return suggestedModels(adapter);
   if (!available) return suggestedModels(adapter, 'Runtime unavailable. Showing suggested models.');
   if (!adapter.listModels)
@@ -95,9 +91,9 @@ export async function discoverModels(
     // CLI stderr and arbitrary provider metadata must never enter snapshots or the UI.
     return suggestedModels(adapter, 'Could not load models from the runtime. Showing suggestions.');
   }
-}
+};
 
-export function parseCursorModels(text: string): RuntimeModel[] {
+export const parseCursorModels = (text: string): RuntimeModel[] => {
   const models = stripVTControlCharacters(text)
     .split(/\r?\n/)
     .flatMap((line) => {
@@ -106,9 +102,9 @@ export function parseCursorModels(text: string): RuntimeModel[] {
     });
   if (!models.length) throw new Error('Unrecognized Cursor model list.');
   return normalizeModels(models);
-}
+};
 
-export function parseOpenCodeModels(text: string): RuntimeModel[] {
+export const parseOpenCodeModels = (text: string): RuntimeModel[] => {
   const lines = stripVTControlCharacters(text).trim().split(/\r?\n/).filter(Boolean);
   const models: RuntimeModel[] = [];
   for (let index = 0; index < lines.length; index++) {
@@ -130,11 +126,11 @@ export function parseOpenCodeModels(text: string): RuntimeModel[] {
     models.push({ value, label, ...(reasoning ? { reasoning } : {}) });
   }
   return normalizeModels(models);
-}
+};
 
 // Pi prints a whitespace-aligned table; keep both provider and model in the selector.
 // https://github.com/earendil-works/pi/blob/main/packages/coding-agent/src/cli/list-models.ts
-export function parsePiModels(text: string): RuntimeModel[] {
+export const parsePiModels = (text: string): RuntimeModel[] => {
   const clean = stripVTControlCharacters(text).trim();
   if (/^No models available\b/.test(clean)) return [];
   const lines = clean.split(/\r?\n/).filter((line) => line.trim());
@@ -155,11 +151,11 @@ export function parsePiModels(text: string): RuntimeModel[] {
     };
   });
   return normalizeModels(models);
-}
+};
 
 // Only selectors and names are retained from OMP's richer catalog response.
 // https://github.com/can1357/oh-my-pi/blob/main/docs/models.md
-export function parseOmpModels(text: string): RuntimeModel[] {
+export const parseOmpModels = (text: string): RuntimeModel[] => {
   const output = JSON.parse(text) as { models?: unknown };
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid OMP model list.');
   return normalizeModels(
@@ -185,10 +181,10 @@ export function parseOmpModels(text: string): RuntimeModel[] {
       },
     ),
   );
-}
+};
 
 // https://kiro.dev/docs/reference/cli-commands/
-export function parseKiroModels(text: string): RuntimeModel[] {
+export const parseKiroModels = (text: string): RuntimeModel[] => {
   const output = JSON.parse(text) as { models?: unknown };
   if (!output || !Array.isArray(output.models)) throw new Error('Invalid Kiro model list.');
   return normalizeModels(
@@ -198,10 +194,10 @@ export function parseKiroModels(text: string): RuntimeModel[] {
       return { value: row.model_id, label: row.model_name };
     }),
   );
-}
+};
 
 // https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/src/models.rs
-export function parseGrokModels(text: string): RuntimeModel[] {
+export const parseGrokModels = (text: string): RuntimeModel[] => {
   const lines = stripVTControlCharacters(text).trim().split(/\r?\n/);
   const header = lines.findIndex((line) => line.trim() === 'Available models:');
   if (header < 0) throw new Error('Unrecognized Grok model list.');
@@ -215,4 +211,8 @@ export function parseGrokModels(text: string): RuntimeModel[] {
         return { value: match[1], label: match[1] };
       }),
   );
-}
+};
+
+const exec = promisify(execFile);
+export const modelDiscoveryTimeout = 10000;
+export const modelDiscoveryMaxBytes = 2_000_000;

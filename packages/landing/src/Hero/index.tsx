@@ -1,6 +1,6 @@
 import { Journey } from '../Journey';
 
-export function Hero() {
+export const Hero = () => {
   return (
     <section className="hero page-wide" aria-labelledby="hero-title">
       <div className="hero-intro">
@@ -14,4 +14,4 @@ export function Hero() {
       <Journey />
     </section>
   );
-}
+};

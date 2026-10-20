@@ -6,69 +6,16 @@ import { rtlMark } from './fontkit.ts';
 import { styleOf } from './fonts.ts';
 import type { Run } from './types.ts';
 
-/** Text in one font, link and bidi level, in logical order. */
-export interface Piece {
-  text: string;
-  font: PDFFont;
-  href?: string;
-  level: number;
-  width: number;
-  space: boolean;
-}
-/** A word, a space, a hard break or a fill that pushes the rest of the line to the far edge. */
-export interface Atom {
-  kind: 'word' | 'space' | 'break' | 'fill';
-  pieces: Piece[];
-  width: number;
-}
-export interface Paragraph {
-  atoms: Atom[];
-  direction: Direction;
-}
-export interface Fonts {
-  choice: FontChoice;
-  embedded: Map<FontKey, PDFFont>;
-  shaped: Map<PDFFont, Font>;
-}
-
-// Invisible formatting characters are removed and other spacing becomes a plain space, so the
-// font check only rejects characters that would print.
-export const cleanText = (text: string) =>
-  text
-    .replace(/[\u00ad\u200b-\u200d\u2060\ufeff]|\p{Variation_Selector}/gu, '')
-    .replace(/[\t\n\v\f\r\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ');
-
-// Chinese and Japanese text has no spaces, so a line may break next to any ideograph or kana,
-// except before closing punctuation and small kana or after opening brackets.
-const breaksAround =
-  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\u3000-\u303f\uff01-\uff60]/u;
-const noBreakBefore =
-  /[、。，．・：；？！ー〜」』）〕］｝〉》】ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ々ゝゞヽヾ!%),.:;?\]}]/u;
-const noBreakAfter = /[「『（〔［｛〈《【([{]/u;
-const canBreak = (before: string, after: string) =>
-  (breaksAround.test(before) || breaksAround.test(after)) &&
-  !noBreakBefore.test(after) &&
-  !noBreakAfter.test(before);
-
-export const measure = (piece: Omit<Piece, 'width'>, size: number) =>
-  piece.font.widthOfTextAtSize(piece.level % 2 ? rtlMark + piece.text : piece.text, size);
-
-const atomOf = (kind: Atom['kind'], pieces: Piece[], width?: number): Atom => ({
-  kind,
-  pieces,
-  width: width ?? pieces.reduce((sum, piece) => sum + piece.width, 0),
-});
-
 /**
  * Splits runs into atoms. Each character gets the first font that has it, and each atom keeps its
  * pieces in logical order with their bidi levels. `direction` overrides the paragraph's own.
  */
-export function paragraph(
+export const paragraph = (
   runs: Run[],
   size: number,
   fonts: Fonts,
   direction?: Direction,
-): Paragraph {
+): Paragraph => {
   const texts = runs.map((run) =>
     run.kind === 'text' ? cleanText(run.text) : run.kind === 'fill' ? '\t' : '\u2028',
   );
@@ -131,10 +78,10 @@ export function paragraph(
   });
   finish();
   return { atoms, direction: base };
-}
+};
 
 // The first `count` characters of a word, and the rest, with their widths measured again.
-function splitWord(word: Atom, count: number, size: number): [Atom, Atom] {
+const splitWord = (word: Atom, count: number, size: number): [Atom, Atom] => {
   const head: Piece[] = [];
   const tail: Piece[] = [];
   let left = count;
@@ -149,10 +96,10 @@ function splitWord(word: Atom, count: number, size: number): [Atom, Atom] {
       if (text) target.push({ ...piece, text, width: measure({ ...piece, text }, size) });
   }
   return [atomOf('word', head), atomOf('word', tail)];
-}
+};
 
 /** Greedy word wrapping in logical order; a word wider than the line is split between characters. */
-export function wrap(atoms: Atom[], size: number, width: number): Atom[][] {
+export const wrap = (atoms: Atom[], size: number, width: number): Atom[][] => {
   const lines: Atom[][] = [];
   let line: Atom[] = [];
   let used = 0;
@@ -191,20 +138,13 @@ export function wrap(atoms: Atom[], size: number, width: number): Atom[][] {
   }
   if (line.length) lines.push(line);
   return lines;
-}
-
-export interface Chunk {
-  pieces: Piece[];
-  width: number;
-  // Width of the fill after this chunk, if any.
-  fill?: number;
-}
+};
 
 /**
  * Splits a line at its fills and puts each part in visual order. Rule L1 first returns spaces at
  * the end of a part to the paragraph level, so they stay at the line's trailing edge.
  */
-export function visualChunks(line: Atom[], direction: Direction): Chunk[] {
+export const visualChunks = (line: Atom[], direction: Direction): Chunk[] => {
   const base = direction === 'rtl' ? 1 : 0;
   const chunks: Chunk[] = [{ pieces: [], width: 0 }];
   for (const atom of line) {
@@ -224,4 +164,64 @@ export function visualChunks(line: Atom[], direction: Direction): Chunk[] {
     chunk.pieces = visualOrder(pieces, (piece) => piece.level);
   }
   return chunks;
+};
+
+/** Text in one font, link and bidi level, in logical order. */
+export interface Piece {
+  text: string;
+  font: PDFFont;
+  href?: string;
+  level: number;
+  width: number;
+  space: boolean;
+}
+/** A word, a space, a hard break or a fill that pushes the rest of the line to the far edge. */
+export interface Atom {
+  kind: 'word' | 'space' | 'break' | 'fill';
+  pieces: Piece[];
+  width: number;
+}
+export interface Paragraph {
+  atoms: Atom[];
+  direction: Direction;
+}
+export interface Fonts {
+  choice: FontChoice;
+  embedded: Map<FontKey, PDFFont>;
+  shaped: Map<PDFFont, Font>;
+}
+
+// Invisible formatting characters are removed and other spacing becomes a plain space, so the
+// font check only rejects characters that would print.
+export const cleanText = (text: string) =>
+  text
+    .replace(/[\u00ad\u200b-\u200d\u2060\ufeff]|\p{Variation_Selector}/gu, '')
+    .replace(/[\t\n\v\f\r\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]/g, ' ');
+
+// Chinese and Japanese text has no spaces, so a line may break next to any ideograph or kana,
+// except before closing punctuation and small kana or after opening brackets.
+const breaksAround =
+  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\u3000-\u303f\uff01-\uff60]/u;
+const noBreakBefore =
+  /[、。，．・：；？！ー〜」』）〕］｝〉》】ぁぃぅぇぉっゃゅょゎゕゖァィゥェォッャュョヮヵヶ々ゝゞヽヾ!%),.:;?\]}]/u;
+const noBreakAfter = /[「『（〔［｛〈《【([{]/u;
+const canBreak = (before: string, after: string) =>
+  (breaksAround.test(before) || breaksAround.test(after)) &&
+  !noBreakBefore.test(after) &&
+  !noBreakAfter.test(before);
+
+export const measure = (piece: Omit<Piece, 'width'>, size: number) =>
+  piece.font.widthOfTextAtSize(piece.level % 2 ? rtlMark + piece.text : piece.text, size);
+
+const atomOf = (kind: Atom['kind'], pieces: Piece[], width?: number): Atom => ({
+  kind,
+  pieces,
+  width: width ?? pieces.reduce((sum, piece) => sum + piece.width, 0),
+});
+
+export interface Chunk {
+  pieces: Piece[];
+  width: number;
+  // Width of the fill after this chunk, if any.
+  fill?: number;
 }

@@ -5,7 +5,7 @@ import type { CrewService } from '../../service.ts';
 import type { IdRoute } from '../types.ts';
 
 /** Loopback user session only. Not exposed through the agent gateway. */
-export function registerRuntimeMaintenanceRoutes(app: FastifyInstance, service: CrewService) {
+export const registerRuntimeMaintenanceRoutes = (app: FastifyInstance, service: CrewService) => {
   app.get('/api/runtimes/maintenance', () => service.runtimeMaintenance.current());
   app.post('/api/runtimes/updates/check', async (req) => {
     const { automatic } = z
@@ -43,4 +43,4 @@ export function registerRuntimeMaintenanceRoutes(app: FastifyInstance, service: 
     await service.runtimeMaintenance.initializeAuthentication(true);
     return service.runtimeMaintenance.current();
   });
-}
+};

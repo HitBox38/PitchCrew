@@ -1,5 +1,135 @@
 import type { Run } from './types.ts';
 
+export const safeHref = (target: string): string | undefined => {
+  const url = target.trim();
+  if (/^(https?:\/\/|mailto:|tel:)\S+$/i.test(url)) return url;
+  if (/^[\w.+-]+@[\w-]+(\.[\w-]+)+$/.test(url)) return `mailto:${url}`;
+  if (/^(www\.)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(url)) return `https://${url}`;
+  return undefined;
+};
+
+const runLength = (text: string, index: number, character: string) => {
+  let end = index;
+  while (text[end] === character) end++;
+  return end - index;
+};
+
+// Returns the end index (exclusive) of a balanced group that starts at `index`.
+const groupEnd = (text: string, index: number, open: string, close: string) => {
+  if (text[index] !== open) return -1;
+  let depth = 0;
+  for (let cursor = index; cursor < text.length; cursor++) {
+    if (text[cursor] === '\\') cursor++;
+    else if (text[cursor] === open) depth++;
+    else if (text[cursor] === close && --depth === 0) return cursor + 1;
+  }
+  return -1;
+};
+
+const codeSpanEnd = (text: string, index: number) => {
+  const length = runLength(text, index, '`');
+  for (let cursor = index + length; cursor < text.length; cursor++) {
+    if (text[cursor] !== '`') continue;
+    const closing = runLength(text, cursor, '`');
+    if (closing === length) return cursor + closing;
+    cursor += closing - 1;
+  }
+  return -1;
+};
+
+// Finds the closing delimiter run for emphasis opened with `length` characters.
+const closer = (text: string, from: number, character: string, length: number): number => {
+  for (let cursor = from; cursor < text.length;) {
+    const current = text[cursor];
+    if (current === '\\') {
+      cursor += 2;
+      continue;
+    }
+    if (current === '`') {
+      const end = codeSpanEnd(text, cursor);
+      cursor = end < 0 ? cursor + runLength(text, cursor, '`') : end;
+      continue;
+    }
+    if (current !== character) {
+      cursor++;
+      continue;
+    }
+    const run = runLength(text, cursor, character);
+    const before = text[cursor - 1];
+    const after = text[cursor + run];
+    const canClose = cursor > from && !isSpace(before) && (character !== '_' || !isWord(after));
+    const canOpen = !isSpace(after) && (character !== '_' || !isWord(before));
+    if (canClose && (run === length || (run > length && !canOpen))) return cursor;
+    if (canOpen) {
+      const nested = closer(text, cursor + run, character, run);
+      if (nested >= 0) {
+        cursor = nested + run;
+        continue;
+      }
+    }
+    cursor += run;
+  }
+  return -1;
+};
+
+const destination = (text: string, index: number): Destination | undefined => {
+  if (text[index] !== '(') return undefined;
+  let cursor = index + 1;
+  while (text[cursor] === ' ') cursor++;
+  let href = '';
+  if (text[cursor] === '<') {
+    const end = text.indexOf('>', cursor);
+    if (end < 0) return undefined;
+    href = text.slice(cursor + 1, end);
+    cursor = end + 1;
+  } else {
+    let depth = 0;
+    while (cursor < text.length && !/\s/.test(text[cursor])) {
+      if (text[cursor] === '(') depth++;
+      if (text[cursor] === ')' && depth-- === 0) break;
+      href += text[cursor++];
+    }
+  }
+  while (text[cursor] === ' ') cursor++;
+  if (text[cursor] === '"' || text[cursor] === "'") {
+    const end = text.indexOf(text[cursor], cursor + 1);
+    if (end < 0) return undefined;
+    cursor = end + 1;
+    while (text[cursor] === ' ') cursor++;
+  }
+  return text[cursor] === ')' ? { href, end: cursor + 1 } : undefined;
+};
+
+export const mergeRuns = (runs: Run[]): Run[] => {
+  const output: Run[] = [];
+  for (const run of runs) {
+    const last = output.at(-1);
+    if (run.kind === 'text' && !run.text) continue;
+    if (
+      run.kind === 'text' &&
+      last?.kind === 'text' &&
+      last.bold === run.bold &&
+      last.italic === run.italic &&
+      last.href === run.href
+    )
+      output[output.length - 1] = { ...last, text: last.text + run.text };
+    else output.push(run);
+  }
+  while (output[0]?.kind === 'break') output.shift();
+  while (output.at(-1)?.kind === 'break') output.pop();
+  const first = output[0];
+  if (first?.kind === 'text') output[0] = { ...first, text: first.text.trimStart() };
+  const last = output.at(-1);
+  if (last?.kind === 'text') output[output.length - 1] = { ...last, text: last.text.trimEnd() };
+  return output.filter((run) => run.kind !== 'text' || run.text);
+};
+
+export const parseInline = (source: string, references: References = new Map()): Run[] => {
+  const parser = new InlineParser(references);
+  parser.parse(source, { bold: false, italic: false });
+  return mergeRuns(parser.runs);
+};
+
 // Inline Markdown with the raw LaTeX that pandoc resumes commonly carry. Nothing is fetched or
 // executed: links become annotations, HTML stays visible text and LaTeX commands are not printed.
 interface Style {
@@ -64,108 +194,9 @@ const symbols: Record<string, string> = {
 const isSpace = (character: string | undefined) => !character || /\s/.test(character);
 const isWord = (character: string | undefined) => !!character && /[\p{L}\p{N}]/u.test(character);
 
-export function safeHref(target: string): string | undefined {
-  const url = target.trim();
-  if (/^(https?:\/\/|mailto:|tel:)\S+$/i.test(url)) return url;
-  if (/^[\w.+-]+@[\w-]+(\.[\w-]+)+$/.test(url)) return `mailto:${url}`;
-  if (/^(www\.)?[\w-]+(\.[\w-]+)+(\/\S*)?$/i.test(url)) return `https://${url}`;
-  return undefined;
-}
-
-function runLength(text: string, index: number, character: string) {
-  let end = index;
-  while (text[end] === character) end++;
-  return end - index;
-}
-
-// Returns the end index (exclusive) of a balanced group that starts at `index`.
-function groupEnd(text: string, index: number, open: string, close: string) {
-  if (text[index] !== open) return -1;
-  let depth = 0;
-  for (let cursor = index; cursor < text.length; cursor++) {
-    if (text[cursor] === '\\') cursor++;
-    else if (text[cursor] === open) depth++;
-    else if (text[cursor] === close && --depth === 0) return cursor + 1;
-  }
-  return -1;
-}
-
-function codeSpanEnd(text: string, index: number) {
-  const length = runLength(text, index, '`');
-  for (let cursor = index + length; cursor < text.length; cursor++) {
-    if (text[cursor] !== '`') continue;
-    const closing = runLength(text, cursor, '`');
-    if (closing === length) return cursor + closing;
-    cursor += closing - 1;
-  }
-  return -1;
-}
-
-// Finds the closing delimiter run for emphasis opened with `length` characters.
-function closer(text: string, from: number, character: string, length: number): number {
-  for (let cursor = from; cursor < text.length;) {
-    const current = text[cursor];
-    if (current === '\\') {
-      cursor += 2;
-      continue;
-    }
-    if (current === '`') {
-      const end = codeSpanEnd(text, cursor);
-      cursor = end < 0 ? cursor + runLength(text, cursor, '`') : end;
-      continue;
-    }
-    if (current !== character) {
-      cursor++;
-      continue;
-    }
-    const run = runLength(text, cursor, character);
-    const before = text[cursor - 1];
-    const after = text[cursor + run];
-    const canClose = cursor > from && !isSpace(before) && (character !== '_' || !isWord(after));
-    const canOpen = !isSpace(after) && (character !== '_' || !isWord(before));
-    if (canClose && (run === length || (run > length && !canOpen))) return cursor;
-    if (canOpen) {
-      const nested = closer(text, cursor + run, character, run);
-      if (nested >= 0) {
-        cursor = nested + run;
-        continue;
-      }
-    }
-    cursor += run;
-  }
-  return -1;
-}
-
 interface Destination {
   href: string;
   end: number;
-}
-function destination(text: string, index: number): Destination | undefined {
-  if (text[index] !== '(') return undefined;
-  let cursor = index + 1;
-  while (text[cursor] === ' ') cursor++;
-  let href = '';
-  if (text[cursor] === '<') {
-    const end = text.indexOf('>', cursor);
-    if (end < 0) return undefined;
-    href = text.slice(cursor + 1, end);
-    cursor = end + 1;
-  } else {
-    let depth = 0;
-    while (cursor < text.length && !/\s/.test(text[cursor])) {
-      if (text[cursor] === '(') depth++;
-      if (text[cursor] === ')' && depth-- === 0) break;
-      href += text[cursor++];
-    }
-  }
-  while (text[cursor] === ' ') cursor++;
-  if (text[cursor] === '"' || text[cursor] === "'") {
-    const end = text.indexOf(text[cursor], cursor + 1);
-    if (end < 0) return undefined;
-    cursor = end + 1;
-    while (text[cursor] === ' ') cursor++;
-  }
-  return text[cursor] === ')' ? { href, end: cursor + 1 } : undefined;
 }
 
 // Pandoc-style dashes for date ranges, leaving HTML comment markers such as <!-- untouched.
@@ -176,7 +207,7 @@ class InlineParser {
   readonly runs: Run[] = [];
   constructor(private references: References) {}
 
-  text(text: string, style: Style, literal = false) {
+  text = (text: string, style: Style, literal = false) => {
     if (!text) return;
     if (literal || style.href) {
       this.runs.push({
@@ -200,9 +231,9 @@ class InlineParser {
       last = match.index + url.length;
     }
     this.text(smartDashes(text.slice(last)), style, true);
-  }
+  };
 
-  latex(source: string, index: number, style: Style): number {
+  latex = (source: string, index: number, style: Style): number => {
     const name = /^[A-Za-z]+\*?/.exec(source.slice(index + 1))![0];
     let cursor = index + 1 + name.length;
     const command = name.replace('*', '');
@@ -228,9 +259,9 @@ class InlineParser {
     else if (command === 'textcolor') this.parse(args.slice(1).join(' '), style);
     else if (!dropped.has(command)) this.parse(args.join(' '), style);
     return cursor;
-  }
+  };
 
-  link(source: string, index: number, style: Style): number {
+  link = (source: string, index: number, style: Style): number => {
     const image = source[index] === '!';
     const open = image ? index + 1 : index;
     const close = groupEnd(source, open, '[', ']');
@@ -261,9 +292,9 @@ class InlineParser {
     // Images are never loaded; their alternative text stays visible.
     this.parse(label, image ? style : { ...style, href: style.href ?? safeHref(href) });
     return end;
-  }
+  };
 
-  angle(source: string, index: number, style: Style): number {
+  angle = (source: string, index: number, style: Style): number => {
     const end = source.indexOf('>', index);
     if (end < 0) return -1;
     const inner = source.slice(index + 1, end);
@@ -277,9 +308,9 @@ class InlineParser {
     if (!href) return -1;
     this.text(inner, { ...style, href: style.href ?? href }, true);
     return end + 1;
-  }
+  };
 
-  parse(source: string, style: Style) {
+  parse = (source: string, style: Style) => {
     let plain = '';
     const flush = () => {
       this.text(plain, style);
@@ -370,37 +401,7 @@ class InlineParser {
       }
     }
     flush();
-  }
-}
-
-export function mergeRuns(runs: Run[]): Run[] {
-  const output: Run[] = [];
-  for (const run of runs) {
-    const last = output.at(-1);
-    if (run.kind === 'text' && !run.text) continue;
-    if (
-      run.kind === 'text' &&
-      last?.kind === 'text' &&
-      last.bold === run.bold &&
-      last.italic === run.italic &&
-      last.href === run.href
-    )
-      output[output.length - 1] = { ...last, text: last.text + run.text };
-    else output.push(run);
-  }
-  while (output[0]?.kind === 'break') output.shift();
-  while (output.at(-1)?.kind === 'break') output.pop();
-  const first = output[0];
-  if (first?.kind === 'text') output[0] = { ...first, text: first.text.trimStart() };
-  const last = output.at(-1);
-  if (last?.kind === 'text') output[output.length - 1] = { ...last, text: last.text.trimEnd() };
-  return output.filter((run) => run.kind !== 'text' || run.text);
-}
-
-export function parseInline(source: string, references: References = new Map()): Run[] {
-  const parser = new InlineParser(references);
-  parser.parse(source, { bold: false, italic: false });
-  return mergeRuns(parser.runs);
+  };
 }
 
 export const visibleText = (runs: Run[]) =>

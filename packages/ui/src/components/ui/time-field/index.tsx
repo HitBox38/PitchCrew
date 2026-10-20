@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 
 export { TimeInput } from './components/TimeInput.tsx';
 
-export function TimeField<T extends TimeValue>({ className, ...props }: TimeFieldProps<T>) {
+export const TimeField = <T extends TimeValue>({ className, ...props }: TimeFieldProps<T>) => {
   return (
     <TimeFieldPrimitive
       {...props}
@@ -21,4 +21,4 @@ export function TimeField<T extends TimeValue>({ className, ...props }: TimeFiel
       }
     />
   );
-}
+};

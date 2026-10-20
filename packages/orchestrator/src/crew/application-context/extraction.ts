@@ -18,17 +18,17 @@ import { requireRole } from '../roles.ts';
 import type { CrewContext } from '../types.ts';
 import { applicationSource } from './source.ts';
 
-export function assertApplicationRuntime(role: Role) {
+export const assertApplicationRuntime = (role: Role) => {
   if (!adapters[role.runtime].applicationIsolation)
     throw new Error(
       'This runtime does not support isolated application runs. Choose Codex, Claude Code or OpenCode, or prepare a brief manually.',
     );
-}
-async function extractApplicationContextPrepared(
+};
+const extractApplicationContextPrepared = async (
   context: CrewContext,
   cardId: string,
   roleId: string,
-): Promise<Run> {
+): Promise<Run> => {
   if (context.closing) throw new Error('The daemon is stopping.');
   const role = requireRole(context, roleId);
   assertApplicationRuntime(role);
@@ -171,13 +171,13 @@ async function extractApplicationContextPrepared(
       void drainConversationQueue(context);
     });
   return run;
-}
+};
 
-export async function extractApplicationContext(
+export const extractApplicationContext = async (
   context: CrewContext,
   cardId: string,
   roleId: string,
-): Promise<Run> {
+): Promise<Run> => {
   await context.runtimeMaintenance.refreshOnRetry(requireRole(context, roleId));
   const threadId = relatedConversation(
     context,
@@ -196,4 +196,4 @@ export async function extractApplicationContext(
       () => requireRole(context, roleId),
     ),
   );
-}
+};

@@ -28,19 +28,8 @@ import {
 } from './helpers/job-boards.ts';
 import { ashbyJobId, leverJobId, postingLinks, recordedPostings } from './helpers/job-links.ts';
 
-afterEach(cleanup);
-
-const found = (result: JobLookupResult) => {
-  if (result.status !== 'found') throw new Error(`Lookup ${result.status}: ${result.reason}`);
-  return result;
-};
-const reasonOf = (result: JobLookupResult) => {
-  if (result.status === 'found') throw new Error('Lookup unexpectedly found a posting.');
-  return result;
-};
-
 /** Run a lookup against a temporary board without starting the daemon. */
-async function withBoard<T>(run: (board: Board) => Promise<T>): Promise<T> {
+const withBoard = async <T>(run: (board: Board) => Promise<T>): Promise<T> => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
   if (!resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-test-')))
     throw new Error('Refusing unsafe cleanup target.');
@@ -51,7 +40,18 @@ async function withBoard<T>(run: (board: Board) => Promise<T>): Promise<T> {
     board.close();
     await rm(directory, { recursive: true, force: true });
   }
-}
+};
+
+afterEach(cleanup);
+
+const found = (result: JobLookupResult) => {
+  if (result.status !== 'found') throw new Error(`Lookup ${result.status}: ${result.reason}`);
+  return result;
+};
+const reasonOf = (result: JobLookupResult) => {
+  if (result.status === 'found') throw new Error('Lookup unexpectedly found a posting.');
+  return result;
+};
 const lookup = (board: Board, url: string, fetcher: FetchLike, extra = {}) =>
   lookupJobLink(
     { url },

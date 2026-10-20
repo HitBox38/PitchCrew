@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function SidebarGroupLabel({ className, render, ...props }: SidebarGroupLabelProps) {
+export const SidebarGroupLabel = ({ className, render, ...props }: SidebarGroupLabelProps) => {
   return useRender({
     defaultTagName: 'div',
     props: mergeProps<'div'>(
@@ -22,4 +22,4 @@ export function SidebarGroupLabel({ className, render, ...props }: SidebarGroupL
       sidebar: 'group-label',
     },
   });
-}
+};

@@ -1,10 +1,7 @@
 import type { Run, RuntimeActivity } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 
-const entryLimit = 80;
-const textLimit = 4000;
-
-export function activityRuns(context: CrewContext, includeSaved = false): Run[] {
+export const activityRuns = (context: CrewContext, includeSaved = false): Run[] => {
   const runs = includeSaved
     ? context.board.list<Run>('run').filter((run) => !!run.threadId && !run.reviewSeatReservation)
     : [...context.runActivities.keys()].map((id) => context.board.get<Run>('run', id));
@@ -17,9 +14,13 @@ export function activityRuns(context: CrewContext, includeSaved = false): Run[] 
       ...(live ? { activity: live.entries, activityTruncated: live.truncated } : {}),
     };
   });
-}
+};
 
-export function recordChatActivity(context: CrewContext, runId: string, update: RuntimeActivity) {
+export const recordChatActivity = (
+  context: CrewContext,
+  runId: string,
+  update: RuntimeActivity,
+) => {
   const run = context.board.get<Run>('run', runId);
   if (
     !run.threadId ||
@@ -54,9 +55,9 @@ export function recordChatActivity(context: CrewContext, runId: string, update: 
     : [...state.entries, entry];
   context.runActivities.set(runId, state);
   context.publishChat();
-}
+};
 
-export function finishChatActivity(context: CrewContext, runId: string) {
+export const finishChatActivity = (context: CrewContext, runId: string) => {
   const state = context.runActivities.get(runId);
   if (state) {
     const run = context.board.get<Run>('run', runId);
@@ -75,4 +76,7 @@ export function finishChatActivity(context: CrewContext, runId: string) {
     context.runActivities.delete(runId);
   }
   context.publishChat(true);
-}
+};
+
+const entryLimit = 80;
+const textLimit = 4000;

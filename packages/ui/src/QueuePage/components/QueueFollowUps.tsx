@@ -2,7 +2,7 @@ import type { AgentTask } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function QueueFollowUps({ tasks, queueId }: { tasks: AgentTask[]; queueId: string }) {
+export const QueueFollowUps = ({ tasks, queueId }: { tasks: AgentTask[]; queueId: string }) => {
   const action = useWorkspaceStore((s) => s.action);
   const working = useWorkspaceStore((s) => s.working);
   const recover = (taskId: string, kind: string) =>
@@ -32,4 +32,4 @@ export function QueueFollowUps({ tasks, queueId }: { tasks: AgentTask[]; queueId
       ))}
     </ul>
   ) : null;
-}
+};

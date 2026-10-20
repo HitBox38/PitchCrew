@@ -26,7 +26,7 @@ export interface UpdateDependencies {
 }
 
 /** Serializes all updater actions; only a confirmed, fully downloaded update can stop work. */
-export function createDesktopUpdater(deps: UpdateDependencies) {
+export const createDesktopUpdater = (deps: UpdateDependencies) => {
   let state: DesktopUpdateState = {
     enabled: !deps.disabledReason,
     currentVersion: deps.version,
@@ -150,4 +150,4 @@ export function createDesktopUpdater(deps: UpdateDependencies) {
         }
       }),
   };
-}
+};

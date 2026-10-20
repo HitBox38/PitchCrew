@@ -8,7 +8,7 @@ import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 import { review, updateReview } from './state.ts';
 import { reviewSummaryMessage } from './summary.ts';
 
-export async function executeDeepReview(context: CrewContext, live: LiveDeepReview, run: Run) {
+export const executeDeepReview = async (context: CrewContext, live: LiveDeepReview, run: Run) => {
   const { id, controller, deadline, reviewer } = live;
   const { cardId, threadId } = review(context, id);
   let timer: ReturnType<typeof setTimeout>;
@@ -131,4 +131,4 @@ export async function executeDeepReview(context: CrewContext, live: LiveDeepRevi
       void context.drainTasks();
       void drainConversationQueue(context);
     });
-}
+};

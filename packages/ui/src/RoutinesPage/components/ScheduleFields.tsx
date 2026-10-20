@@ -4,7 +4,7 @@ import { DateTimePicker } from '@/DateTimePicker/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/index.tsx';
 
-export function ScheduleFields(props: DraftFieldsProps) {
+export const ScheduleFields = (props: DraftFieldsProps) => {
   const { draft, change } = props;
   return (
     <fieldset className="routine-editor-section flex min-w-0 flex-col gap-4">
@@ -52,4 +52,4 @@ export function ScheduleFields(props: DraftFieldsProps) {
       </label>
     </fieldset>
   );
-}
+};

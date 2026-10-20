@@ -3,13 +3,13 @@ import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function SidebarMenuSubButton({
+export const SidebarMenuSubButton = ({
   render,
   size = 'md',
   isActive = false,
   className,
   ...props
-}: SidebarMenuSubButtonProps) {
+}: SidebarMenuSubButtonProps) => {
   return useRender({
     defaultTagName: 'a',
     props: mergeProps<'a'>(
@@ -33,4 +33,4 @@ export function SidebarMenuSubButton({
       active: isActive,
     },
   });
-}
+};

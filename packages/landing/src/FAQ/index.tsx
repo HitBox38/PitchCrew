@@ -1,7 +1,7 @@
 import { Plus } from 'lucide-react';
 import { questions } from './constants';
 
-export function FAQ() {
+export const FAQ = () => {
   return (
     <section id="faq" className="page-width section-space" aria-labelledby="faq-title">
       <div className="grid gap-10 lg:grid-cols-[0.8fr_1.2fr] lg:gap-24">
@@ -27,4 +27,4 @@ export function FAQ() {
       </div>
     </section>
   );
-}
+};

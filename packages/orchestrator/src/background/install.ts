@@ -9,7 +9,7 @@ import type { DaemonSettings } from './settings.ts';
 import type { ServiceHost } from './types.ts';
 
 /** Build with the checkout's installed Vite, without a shell or a global package manager. */
-async function buildServiceUi(repository: string) {
+const buildServiceUi = async (repository: string) => {
   const directory = join(repository, 'packages', 'ui');
   try {
     const require = createRequire(join(directory, 'package.json'));
@@ -25,14 +25,14 @@ async function buildServiceUi(repository: string) {
       'Could not build the production UI. Check the installed dependencies and try again.',
     );
   }
-}
+};
 
 /** Packaged apps already have the UI; source launches build it only when it is missing. */
-export async function installServiceWithUi(
+export const installServiceWithUi = async (
   service: BackgroundService,
   host: ServiceHost,
   buildUi: (repository: string) => Promise<void> = buildServiceUi,
-) {
+) => {
   const { spec } = service;
   const index = pathFor(spec.platform).join(
     spec.repository,
@@ -43,11 +43,11 @@ export async function installServiceWithUi(
   );
   if (!(await host.readFile(index))) await buildUi(spec.repository);
   return (await service.install()).status;
-}
+};
 
 /** Installs for the daemon's resolved folder and port, independent of shell defaults. */
-export async function installBackgroundService(settings: DaemonSettings) {
+export const installBackgroundService = async (settings: DaemonSettings) => {
   const spec = currentServiceSpec(settings);
   if (!spec) throw new Error('The background service supports Windows, macOS and Linux.');
   return installServiceWithUi(createBackgroundService(spec, nodeServiceHost), nodeServiceHost);
-}
+};

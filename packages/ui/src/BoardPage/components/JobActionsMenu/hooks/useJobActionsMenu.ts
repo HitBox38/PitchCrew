@@ -7,7 +7,7 @@ import { crewShortcut } from '../helpers.ts';
 import type { JobActionsMenuProps } from '../types.ts';
 import { useRef } from 'react';
 
-export function useJobActionsMenu(props: JobActionsMenuProps) {
+export const useJobActionsMenu = (props: JobActionsMenuProps) => {
   const action = useWorkspaceStore((state) => state.action);
   const navigation = useWorkspaceNavigation();
   const { card, data, disabled, openCard, moveJob } = props;
@@ -64,4 +64,4 @@ export function useJobActionsMenu(props: JobActionsMenuProps) {
     },
     copyLink: () => copyText(card.url, 'Job posting link copied'),
   };
-}
+};

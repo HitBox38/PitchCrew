@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { boardTags, insightsFilter } from '../helpers.ts';
 import type { ChangeSearch } from '../types.ts';
 
-export function useInsightsPage() {
+export const useInsightsPage = () => {
   const cards = useWorkspaceStore((state) => state.data?.cards);
   const search = useSearch({ from: '/insights' });
   const navigate = useNavigate({ from: '/insights' });
@@ -18,4 +18,4 @@ export function useInsightsPage() {
     void navigate({ search: (previous) => ({ ...previous, ...patch }), replace: true });
   };
   return { cards, search, insights, tags, change };
-}
+};

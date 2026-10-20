@@ -3,13 +3,13 @@ import { createMemoryHistory } from '@tanstack/react-router';
 import { describe, expect, it } from 'vitest';
 import { createAppRouter } from '../src/router.ts';
 
-async function setup(path: string) {
+const setup = async (path: string) => {
   const history = createMemoryHistory({ initialEntries: [path] });
   const router = createAppRouter(history);
   router.update({ isServer: false, origin: 'http://127.0.0.1', context: router.options.context });
   await router.load();
   return { router, history };
-}
+};
 
 describe('workspace routes', () => {
   it('restores exact update reviews and update-only filters from URLs', async () => {

@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu/index.tsx';
 import { ArrowRightLeft, Check } from 'lucide-react';
 
-export function MoveToMenu({
+export const MoveToMenu = ({
   card,
   disabled,
   move,
@@ -21,7 +21,7 @@ export function MoveToMenu({
   disabled: boolean;
   move: (state: CardState) => void;
   finalFocus: () => boolean;
-}) {
+}) => {
   return (
     <DropdownMenuSub>
       <DropdownMenuSubTrigger disabled={disabled}>
@@ -51,4 +51,4 @@ export function MoveToMenu({
       </DropdownMenuSubContent>
     </DropdownMenuSub>
   );
-}
+};

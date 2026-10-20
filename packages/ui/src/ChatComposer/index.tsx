@@ -5,7 +5,7 @@ import { EditorSurface } from './components/EditorSurface.tsx';
 import { $loadDraft } from './editor-state.ts';
 import type { ComposerEditorProps } from './types.ts';
 
-export function ChatComposerEditor(props: ComposerEditorProps) {
+export const ChatComposerEditor = (props: ComposerEditorProps) => {
   return (
     <LexicalComposer
       key={props.thread}
@@ -23,4 +23,4 @@ export function ChatComposerEditor(props: ComposerEditorProps) {
       <HistoryPlugin />
     </LexicalComposer>
   );
-}
+};

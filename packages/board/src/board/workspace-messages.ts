@@ -10,7 +10,7 @@ import {
 import type { Board } from '../index.ts';
 
 /** Project small previews and the same latest 100 eligible notifications as the UI. */
-export function workspaceMessages(board: Board): WorkspaceMessages {
+export const workspaceMessages = (board: Board): WorkspaceMessages => {
   const rows = board.db
     .prepare(`SELECT json_extract(json,'$.threadId') AS thread,
     count(*) AS count, max(rowid) AS latest,
@@ -58,4 +58,4 @@ export function workspaceMessages(board: Board): WorkspaceMessages {
       ),
     },
   };
-}
+};

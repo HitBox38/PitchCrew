@@ -10,22 +10,7 @@ import {
 } from '@pitchcrew/core';
 import type { Board } from '@pitchcrew/board';
 import { configRevision, packetDigest } from './snapshots.ts';
-
-export const pipelineEvidenceKinds = [
-  'card',
-  'run',
-  'role',
-  'proposal',
-  'skill',
-  'skill_proposal',
-  'pipeline_review',
-  'tracking_signal',
-  'tracking_scan',
-  'profile_proposal',
-  'form_assessment',
-  'submission_attempt',
-];
-export function eventSummary(event: BoardEvent) {
+export const eventSummary = (event: BoardEvent) => {
   const base = {
     id: event.id,
     kind: event.kind,
@@ -73,15 +58,15 @@ export function eventSummary(event: BoardEvent) {
       .map((key) => [key, data[key]]),
   );
   return { ...base, ...metadata };
-}
-function boundedDetail(value: Record<string, unknown>): Record<string, unknown> {
+};
+const boundedDetail = (value: Record<string, unknown>): Record<string, unknown> => {
   if (Buffer.byteLength(JSON.stringify(value), 'utf8') > 512000)
     throw new Error(
       'Selected review data exceeds the 512 KB detail limit. Narrow the review or skills assignment.',
     );
   return value;
-}
-export function readPipeline(board: Board, input: unknown): Record<string, unknown> {
+};
+export const readPipeline = (board: Board, input: unknown): Record<string, unknown> => {
   const query = pipelineQuery.parse(input);
   if (['run_configuration', 'role_configuration', 'packet', 'review'].includes(query.section)) {
     if (!query.entityId) throw new Error('Select an entity ID for a detailed review.');
@@ -262,4 +247,19 @@ export function readPipeline(board: Board, input: unknown): Record<string, unkno
     limits: { maximumItems: 50, maximumBytes: 160000 },
     note: 'Board evidence describes observations. Application outcomes alone do not establish causation. Missing historical run configurations remain unknown. Role listings ignore card/date filters so every seat can be assessed.',
   };
-}
+};
+
+export const pipelineEvidenceKinds = [
+  'card',
+  'run',
+  'role',
+  'proposal',
+  'skill',
+  'skill_proposal',
+  'pipeline_review',
+  'tracking_signal',
+  'tracking_scan',
+  'profile_proposal',
+  'form_assessment',
+  'submission_attempt',
+];

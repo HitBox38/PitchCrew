@@ -3,7 +3,7 @@ import { stateLabels } from '@/lib/labels.ts';
 import { importStatusLabels } from '../constants.ts';
 import { importPath } from '../helpers.ts';
 
-export function ImportPreviewTable({ report }: { report: ApplicationImportReport }) {
+export const ImportPreviewTable = ({ report }: { report: ApplicationImportReport }) => {
   return (
     <div className="mt-3 max-h-[55vh] overflow-auto rounded-md border border-border">
       <table className="import-table w-full border-collapse text-label">
@@ -44,4 +44,4 @@ export function ImportPreviewTable({ report }: { report: ApplicationImportReport
       </table>
     </div>
   );
-}
+};

@@ -5,14 +5,26 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { expect, vi } from 'vitest';
 import { type DaemonOptions, createDaemon } from '../../src/server.ts';
-
-export const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] =
-  [];
-export async function setup(
+export const setup = async (
   port: number,
   seedSkills = false,
   options: Pick<DaemonOptions, 'dev' | 'browserLaunch'> = {},
-) {
+) => {
+  const request = async <T>(
+    path: string,
+    method = 'GET',
+    body?: unknown,
+    extra: Record<string, string> = {},
+  ) => {
+    const response = await fetch(`${daemon.url}/api${path}`, {
+      method,
+      headers: { cookie, 'x-pitchcrew-client': 'ui', 'content-type': 'application/json', ...extra },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    const result = (await response.json()) as T;
+    return { response, result };
+  };
+
   const remap = JSON.parse(process.env.PITCHCREW_TEST_PORT_REMAP ?? '{}') as Record<string, number>;
   port = remap[port] ?? port;
   if (!Number.isInteger(port) || port < 1024 || port > 65535)
@@ -23,23 +35,9 @@ export async function setup(
   await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
   const response = await fetch(daemon.url);
   const cookie = response.headers.get('set-cookie')!.split(';')[0];
-  async function request<T>(
-    path: string,
-    method = 'GET',
-    body?: unknown,
-    extra: Record<string, string> = {},
-  ) {
-    const response = await fetch(`${daemon.url}/api${path}`, {
-      method,
-      headers: { cookie, 'x-pitchcrew-client': 'ui', 'content-type': 'application/json', ...extra },
-      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    });
-    const result = (await response.json()) as T;
-    return { response, result };
-  }
   return { daemon, directory, request, cookie };
-}
-export async function finish(request: <T>(path: string) => Promise<{ result: T }>, id: string) {
+};
+export const finish = async (request: <T>(path: string) => Promise<{ result: T }>, id: string) => {
   for (let i = 0; i < 250; i++) {
     const { result } = await request<Snapshot>('/snapshot');
     const run = result.runs.find((run) => run.id === id);
@@ -50,12 +48,12 @@ export async function finish(request: <T>(path: string) => Promise<{ result: T }
     await new Promise((resolve) => setTimeout(resolve, 40));
   }
   throw new Error('Run did not finish.');
-}
+};
 /** Explicit UI confirmation used by existing fictional workflow fixtures. */
-export async function confirmFixtureApplication(
+export const confirmFixtureApplication = async (
   request: Awaited<ReturnType<typeof setup>>['request'],
   id: string,
-) {
+) => {
   const { result } = await request<{
     sourceRevision: string;
     context: { revision: string } | null;
@@ -75,34 +73,23 @@ export async function confirmFixtureApplication(
     },
   });
   expect(response.response.status).toBe(200);
-}
-export async function waitForSnapshot(
+};
+export const waitForSnapshot = async (
   request: <T>(path: string) => Promise<{ result: T }>,
   predicate: (snapshot: Snapshot) => boolean,
-) {
+) => {
   for (let i = 0; i < 300; i++) {
     const { result } = await request<Snapshot>('/snapshot');
     if (predicate(result)) return result;
     await new Promise((resolve) => setTimeout(resolve, 30));
   }
   throw new Error('Crew did not reach the expected state.');
-}
-export const directorySkill: SkillPreview = {
-  name: 'evidence-checklist',
-  description: 'Check each profile quotation.',
-  content: '# Evidence checklist\n\nCheck every claim against an exact profile quote.',
-  source: {
-    url: 'https://skills.sh/fictional/crew-skills/evidence-checklist',
-    repository: 'fictional/crew-skills',
-    path: 'skills/evidence-checklist/SKILL.md',
-    blobSha: 'a'.repeat(40),
-    fetchedAt: '2026-10-02T00:00:00.000Z',
-  },
 };
-export function starterFixture(
+
+export const starterFixture = (
   starter: BaseSkill,
   content = `Fictional instructions for ${starter.name}.`,
-): SkillPreview {
+): SkillPreview => {
   if (starter.sourceType === 'bundled')
     return {
       name: starter.name,
@@ -122,7 +109,22 @@ export function starterFixture(
       fetchedAt: '2026-10-02T00:00:00.000Z',
     },
   };
-}
+};
+
+export const resources: { daemon: Awaited<ReturnType<typeof createDaemon>>; directory: string }[] =
+  [];
+export const directorySkill: SkillPreview = {
+  name: 'evidence-checklist',
+  description: 'Check each profile quotation.',
+  content: '# Evidence checklist\n\nCheck every claim against an exact profile quote.',
+  source: {
+    url: 'https://skills.sh/fictional/crew-skills/evidence-checklist',
+    repository: 'fictional/crew-skills',
+    path: 'skills/evidence-checklist/SKILL.md',
+    blobSha: 'a'.repeat(40),
+    fetchedAt: '2026-10-02T00:00:00.000Z',
+  },
+};
 export const cleanup = async () => {
   vi.restoreAllMocks();
   for (const { daemon, directory } of resources.splice(0)) {

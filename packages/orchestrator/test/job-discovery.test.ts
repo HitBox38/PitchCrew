@@ -25,16 +25,7 @@ import {
   recordedBoards,
 } from './helpers/job-boards.ts';
 
-const fakeRuns: string[] = [];
-afterEach(async () => {
-  for (const { daemon } of resources)
-    for (const id of fakeRuns) daemon.service.controllers.delete(id);
-  fakeRuns.length = 0;
-  await cleanup();
-});
-type Request = Awaited<ReturnType<typeof setup>>['request'];
-
-async function withSources(port: number) {
+const withSources = async (port: number) => {
   const context = await setup(port);
   const boards = recordedBoards();
   context.daemon.service.jobSources.fetch = boards.fetcher;
@@ -45,11 +36,9 @@ async function withSources(port: number) {
     added.push(result);
   }
   return { ...context, boards, added };
-}
-const scan = (request: Request, body: unknown = {}) =>
-  request<JobScanSummary>('/job-sources/scan', 'POST', body);
-const discovered = (cards: Card[]) => cards.filter((card) => card.discovery);
-function enableDiscovery(daemon: Awaited<ReturnType<typeof setup>>['daemon'], on: boolean) {
+};
+
+const enableDiscovery = (daemon: Awaited<ReturnType<typeof setup>>['daemon'], on: boolean) => {
   const scout = daemon.service.board.get<Role>('role', 'scout');
   daemon.service.board.record(
     'role',
@@ -57,8 +46,8 @@ function enableDiscovery(daemon: Awaited<ReturnType<typeof setup>>['daemon'], on
     'user',
     'Fixture discovery setting',
   );
-}
-function fakeRun(daemon: Awaited<ReturnType<typeof setup>>['daemon'], id: string) {
+};
+const fakeRun = (daemon: Awaited<ReturnType<typeof setup>>['daemon'], id: string) => {
   daemon.service.board.record(
     'run',
     {
@@ -80,7 +69,19 @@ function fakeRun(daemon: Awaited<ReturnType<typeof setup>>['daemon'], id: string
   fakeRuns.push(id);
   daemon.service.capabilities.set(`${id}-token`, { runId: id, roleId: 'scout', cardId: null });
   return `${id}-token`;
-}
+};
+
+const fakeRuns: string[] = [];
+afterEach(async () => {
+  for (const { daemon } of resources)
+    for (const id of fakeRuns) daemon.service.controllers.delete(id);
+  fakeRuns.length = 0;
+  await cleanup();
+});
+type Request = Awaited<ReturnType<typeof setup>>['request'];
+const scan = (request: Request, body: unknown = {}) =>
+  request<JobScanSummary>('/job-sources/scan', 'POST', body);
+const discovered = (cards: Card[]) => cards.filter((card) => card.discovery);
 
 describe('job sources over HTTP', () => {
   it('keeps source management and scans behind the local UI session', async () => {
@@ -467,7 +468,7 @@ describe('event version 10', () => {
 });
 
 describe('Comeet and Workable sources', () => {
-  async function withMoreSources(port: number) {
+  const withMoreSources = async (port: number) => {
     const context = await setup(port);
     const boards = recordedBoards();
     context.daemon.service.jobSources.fetch = boards.fetcher;
@@ -478,7 +479,7 @@ describe('Comeet and Workable sources', () => {
       added.push(result);
     }
     return { ...context, boards, added };
-  }
+  };
   const eventText = (daemon: Awaited<ReturnType<typeof setup>>['daemon']) =>
     (daemon.service.board.db.prepare('SELECT json FROM events').all() as { json: string }[])
       .map((row) => row.json)

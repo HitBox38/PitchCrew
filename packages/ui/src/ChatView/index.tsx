@@ -15,7 +15,7 @@ import { useChatView } from '@/ChatView/hooks/useChatView.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
 import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
 
-export function ChatView(props: ChatViewProps) {
+export const ChatView = (props: ChatViewProps) => {
   const controller = useChatView(props);
   const { pane, setPane } = controller;
   return (
@@ -53,4 +53,4 @@ export function ChatView(props: ChatViewProps) {
       <AgentBrowser {...controller} hidden={!!controller.dialog} />
     </section>
   );
-}
+};

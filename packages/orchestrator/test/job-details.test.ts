@@ -9,14 +9,7 @@ import {
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 
-const runId = 'details-fixture';
-const token = 'details-token';
-afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.controllers.delete(runId);
-  await cleanup();
-});
-
-async function context() {
+const context = async () => {
   const { daemon, request } = await setup(15633);
   const service = daemon.service;
   const card = service.board.createCard(
@@ -38,7 +31,14 @@ async function context() {
   service.capabilities.set(token, { runId, roleId: 'scout', cardId: card.id });
   const call = (input: unknown) => service.agentCall(token, 'update_job', { input });
   return { service, card, run, call, request };
-}
+};
+
+const runId = 'details-fixture';
+const token = 'details-token';
+afterEach(async () => {
+  for (const { daemon } of resources) daemon.service.controllers.delete(runId);
+  await cleanup();
+});
 
 it('corrects the attached company through the agent HTTP gateway without refetching the posting', async () => {
   const { service, card, request } = await context();

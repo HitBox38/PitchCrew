@@ -5,7 +5,7 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { filterSummary, lastScanText } from '../helpers.ts';
 import type { JobSourcesModel } from '../types.ts';
 
-export function SourceRow({ source, model }: { source: JobSource; model: JobSourcesModel }) {
+export const SourceRow = ({ source, model }: { source: JobSource; model: JobSourcesModel }) => {
   return (
     <li className="job-source-row">
       <div className="min-w-0 flex-1">
@@ -51,4 +51,4 @@ export function SourceRow({ source, model }: { source: JobSource; model: JobSour
       </div>
     </li>
   );
-}
+};

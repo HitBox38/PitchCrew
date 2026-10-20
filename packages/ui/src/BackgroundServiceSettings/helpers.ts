@@ -5,7 +5,7 @@ export interface ServiceBadge {
   success: boolean;
 }
 
-export function serviceBadges({ status, matches }: BackgroundServiceInfo): ServiceBadge[] {
+export const serviceBadges = ({ status, matches }: BackgroundServiceInfo): ServiceBadge[] => {
   if (!status.platform) return [{ label: 'Unavailable', success: false }];
   if (!status.installed) return [{ label: 'Not installed', success: false }];
   return [
@@ -13,9 +13,9 @@ export function serviceBadges({ status, matches }: BackgroundServiceInfo): Servi
     { label: status.running ? 'Running' : 'Stopped', success: status.running },
     ...(status.enabled ? [] : [{ label: 'Does not start at login', success: false }]),
   ];
-}
+};
 
-export function serviceNotes(info: BackgroundServiceInfo): string[] {
+export const serviceNotes = (info: BackgroundServiceInfo): string[] => {
   const { status } = info;
   if (!status.platform) return [status.detail];
   const notes = [
@@ -31,12 +31,12 @@ export function serviceNotes(info: BackgroundServiceInfo): string[] {
   if (info.customLocation && !info.matches)
     notes.push('Installation uses this workspace’s data folder and port automatically.');
   return notes;
-}
+};
 
 /** CLI commands worth showing for the current state, in the order to run them. */
-export function serviceCommands({ status, matches, commands }: BackgroundServiceInfo): string[] {
+export const serviceCommands = ({ status, matches, commands }: BackgroundServiceInfo): string[] => {
   if (!status.platform) return [];
   if (!status.installed) return [];
   if (!matches) return [commands.uninstall];
   return [commands.status, commands.logs, commands.uninstall];
-}
+};

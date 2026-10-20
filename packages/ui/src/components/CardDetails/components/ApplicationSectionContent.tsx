@@ -7,7 +7,7 @@ import { ExportRequest } from './ExportRequest.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { packetNeedsReview } from '../helpers.ts';
 
-export function ApplicationSectionContent({
+export const ApplicationSectionContent = ({
   model,
   section,
   reviewOpened,
@@ -15,7 +15,7 @@ export function ApplicationSectionContent({
   model: CardDetailsModel;
   section: ApplicationSection;
   reviewOpened: boolean;
-}) {
+}) => {
   const { card, brief, busy } = model;
   if (section === 'brief') return <ApplicationBriefReview card={card} model={brief} />;
   if (section === 'documents')
@@ -67,4 +67,4 @@ export function ApplicationSectionContent({
       ) : null}
     </>
   );
-}
+};

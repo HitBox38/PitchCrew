@@ -9,16 +9,7 @@ import {
 } from '@/components/ui/collapsible/index.tsx';
 import { LoaderCircle } from 'lucide-react';
 
-const stageLabels = {
-  preparing: 'Preparing',
-  updating: 'Updating',
-  verifying: 'Verifying',
-  succeeded: 'Updated',
-  failed: 'Update failed',
-  interrupted: 'Update interrupted',
-};
-
-export function RuntimeUpdate({ update }: { update: RuntimeUpdateInfo }) {
+export const RuntimeUpdate = ({ update }: { update: RuntimeUpdateInfo }) => {
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
   const operation = update.operation;
@@ -82,4 +73,13 @@ export function RuntimeUpdate({ update }: { update: RuntimeUpdateInfo }) {
       ) : null}
     </div>
   );
-}
+};
+
+const stageLabels = {
+  preparing: 'Preparing',
+  updating: 'Updating',
+  verifying: 'Verifying',
+  succeeded: 'Updated',
+  failed: 'Update failed',
+  interrupted: 'Update interrupted',
+};

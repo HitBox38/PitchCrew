@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function ConversationEditorActions({
+export const ConversationEditorActions = ({
   editing,
   working,
   disabled,
@@ -10,7 +10,7 @@ export function ConversationEditorActions({
   working: boolean;
   disabled: boolean;
   close: () => void;
-}) {
+}) => {
   return (
     <div className="flex justify-end gap-3">
       <Button className="text-button" variant="ghost" disabled={working} onClick={close}>
@@ -21,4 +21,4 @@ export function ConversationEditorActions({
       </Button>
     </div>
   );
-}
+};

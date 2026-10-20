@@ -2,7 +2,7 @@ import { expect, it, vi } from 'vitest';
 import type { Run } from '@pitchcrew/core';
 import type { CardDetailsModel } from '../types.ts';
 import { jobNextAction } from '../next-action.ts';
-function model(patch: Partial<CardDetailsModel> = {}): CardDetailsModel {
+const model = (patch: Partial<CardDetailsModel> = {}): CardDetailsModel => {
   return {
     card: { id: 'job', state: 'shortlisted', owner: null, packet: null },
     data: {
@@ -30,7 +30,7 @@ function model(patch: Partial<CardDetailsModel> = {}): CardDetailsModel {
     openChat: vi.fn(),
     ...patch,
   } as unknown as CardDetailsModel;
-}
+};
 it('requires a current confirmed brief and personal answers before the single draft action', () => {
   const base = model();
   expect(

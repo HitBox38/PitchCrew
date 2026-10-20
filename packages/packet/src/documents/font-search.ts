@@ -2,6 +2,98 @@ import { readdir, stat } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { basename, delimiter, join } from 'node:path';
 
+const systemFolders = ({
+  env,
+  platform,
+  home,
+  root,
+}: Required<Omit<SystemFontOptions, 'folders'>>) => {
+  const fixed = (path: string) => join(root, path);
+  if (platform === 'win32')
+    return [
+      join(env.WINDIR ?? env.SystemRoot ?? 'C:\\Windows', 'Fonts'),
+      ...(env.LOCALAPPDATA ? [join(env.LOCALAPPDATA, 'Microsoft', 'Windows', 'Fonts')] : []),
+    ];
+  if (platform === 'darwin')
+    return [
+      fixed('/System/Library/Fonts'),
+      fixed('/System/Library/Fonts/Supplemental'),
+      fixed('/Library/Fonts'),
+      join(home, 'Library', 'Fonts'),
+    ];
+  // The folders fontconfig reads by default.
+  return [
+    join(env.XDG_DATA_HOME ?? join(home, '.local', 'share'), 'fonts'),
+    join(home, '.fonts'),
+    fixed('/usr/local/share/fonts'),
+    fixed('/usr/share/fonts'),
+  ];
+};
+
+// Font files under a folder in sorted order, so the same folders always give the same list.
+const fontFiles = async (folder: string, depth = folderDepth, budget = { left: entryBudget }) => {
+  const files: string[] = [];
+  let entries;
+  try {
+    entries = await readdir(folder, { withFileTypes: true });
+  } catch {
+    return files;
+  }
+  entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+  for (const entry of entries) {
+    if (--budget.left < 0) break;
+    const path = join(folder, entry.name);
+    if (entry.isDirectory() && depth > 0) files.push(...(await fontFiles(path, depth - 1, budget)));
+    else if (fontFile.test(entry.name) && (entry.isFile() || entry.isSymbolicLink()))
+      files.push(path);
+  }
+  return files;
+};
+
+const pointedFonts = async (entry: string): Promise<string[]> => {
+  try {
+    const info = await stat(entry);
+    if (info.isDirectory()) return fontFiles(entry);
+    return info.isFile() && fontFile.test(entry) ? [entry] : [];
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Fonts named by `PITCHCREW_FONTS` (files or folders, separated like PATH), then fonts in the
+ * given folders, then well-known CJK fonts in the platform font folders.
+ */
+export const systemFonts = (options: SystemFontOptions = {}): FontSearch => {
+  return async () => {
+    const env = options.env ?? process.env;
+    const platform = options.platform ?? process.platform;
+    const locations: FontLocation[] = [];
+    for (const entry of (env.PITCHCREW_FONTS ?? '').split(delimiter))
+      if (entry.trim())
+        for (const path of await pointedFonts(entry.trim())) locations.push({ path });
+    for (const folder of options.folders ?? [])
+      for (const path of await fontFiles(folder)) locations.push({ path });
+    const installed = new Map<string, string>();
+    const home = options.home ?? homedir();
+    const root = options.root ?? '/';
+    for (const folder of systemFolders({ env, platform, home, root }))
+      for (const path of await fontFiles(folder)) {
+        const key = fileKey(basename(path));
+        if (!installed.has(key)) installed.set(key, path);
+      }
+    for (const [file, face] of known) {
+      const path = installed.get(fileKey(file));
+      if (path) locations.push({ path, face });
+    }
+    const seen = new Set<string>();
+    return locations.filter((location) => {
+      const key = `${location.path}\0${location.face ?? ''}`;
+      return !seen.has(key) && !!seen.add(key);
+    });
+  };
+};
+
 /** A font file to try, with the face to use when the file is a collection. */
 export interface FontLocation {
   path: string;
@@ -78,95 +170,3 @@ const known: [file: string, face?: string][] = [
 
 // macOS may store Japanese file names decomposed, and Windows ignores case.
 const fileKey = (name: string) => name.normalize('NFC').toLowerCase();
-
-function systemFolders({
-  env,
-  platform,
-  home,
-  root,
-}: Required<Omit<SystemFontOptions, 'folders'>>) {
-  const fixed = (path: string) => join(root, path);
-  if (platform === 'win32')
-    return [
-      join(env.WINDIR ?? env.SystemRoot ?? 'C:\\Windows', 'Fonts'),
-      ...(env.LOCALAPPDATA ? [join(env.LOCALAPPDATA, 'Microsoft', 'Windows', 'Fonts')] : []),
-    ];
-  if (platform === 'darwin')
-    return [
-      fixed('/System/Library/Fonts'),
-      fixed('/System/Library/Fonts/Supplemental'),
-      fixed('/Library/Fonts'),
-      join(home, 'Library', 'Fonts'),
-    ];
-  // The folders fontconfig reads by default.
-  return [
-    join(env.XDG_DATA_HOME ?? join(home, '.local', 'share'), 'fonts'),
-    join(home, '.fonts'),
-    fixed('/usr/local/share/fonts'),
-    fixed('/usr/share/fonts'),
-  ];
-}
-
-// Font files under a folder in sorted order, so the same folders always give the same list.
-async function fontFiles(folder: string, depth = folderDepth, budget = { left: entryBudget }) {
-  const files: string[] = [];
-  let entries;
-  try {
-    entries = await readdir(folder, { withFileTypes: true });
-  } catch {
-    return files;
-  }
-  entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-  for (const entry of entries) {
-    if (--budget.left < 0) break;
-    const path = join(folder, entry.name);
-    if (entry.isDirectory() && depth > 0) files.push(...(await fontFiles(path, depth - 1, budget)));
-    else if (fontFile.test(entry.name) && (entry.isFile() || entry.isSymbolicLink()))
-      files.push(path);
-  }
-  return files;
-}
-
-async function pointedFonts(entry: string): Promise<string[]> {
-  try {
-    const info = await stat(entry);
-    if (info.isDirectory()) return fontFiles(entry);
-    return info.isFile() && fontFile.test(entry) ? [entry] : [];
-  } catch {
-    return [];
-  }
-}
-
-/**
- * Fonts named by `PITCHCREW_FONTS` (files or folders, separated like PATH), then fonts in the
- * given folders, then well-known CJK fonts in the platform font folders.
- */
-export function systemFonts(options: SystemFontOptions = {}): FontSearch {
-  return async () => {
-    const env = options.env ?? process.env;
-    const platform = options.platform ?? process.platform;
-    const locations: FontLocation[] = [];
-    for (const entry of (env.PITCHCREW_FONTS ?? '').split(delimiter))
-      if (entry.trim())
-        for (const path of await pointedFonts(entry.trim())) locations.push({ path });
-    for (const folder of options.folders ?? [])
-      for (const path of await fontFiles(folder)) locations.push({ path });
-    const installed = new Map<string, string>();
-    const home = options.home ?? homedir();
-    const root = options.root ?? '/';
-    for (const folder of systemFolders({ env, platform, home, root }))
-      for (const path of await fontFiles(folder)) {
-        const key = fileKey(basename(path));
-        if (!installed.has(key)) installed.set(key, path);
-      }
-    for (const [file, face] of known) {
-      const path = installed.get(fileKey(file));
-      if (path) locations.push({ path, face });
-    }
-    const seen = new Set<string>();
-    return locations.filter((location) => {
-      const key = `${location.path}\0${location.face ?? ''}`;
-      return !seen.has(key) && !!seen.add(key);
-    });
-  };
-}

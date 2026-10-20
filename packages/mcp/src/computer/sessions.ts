@@ -31,22 +31,22 @@ export class BrowserSessions {
   private readonly agents = new Map<string, Session>();
   private readonly runs = new Map<string, string>();
   private readonly profiles = new Map<string, Promise<BrowserDriver>>();
-  key(roleId: string, threadId?: string | null, cardId?: string | null) {
+  key = (roleId: string, threadId?: string | null, cardId?: string | null) => {
     return cardId
       ? `${roleId}:job:${cardId}`
       : threadId
         ? `${roleId}:conversation:${threadId}`
         : roleId;
-  }
-  keyForRun(runId: string) {
+  };
+  keyForRun = (runId: string) => {
     return this.runs.get(runId) ?? runId;
-  }
+  };
   constructor(
     private readonly directory: string,
     private readonly launch: (profile?: string) => Promise<BrowserDriver>,
     private readonly idleMs = 10 * 60_000,
   ) {}
-  bind(input: Binding) {
+  bind = (input: Binding) => {
     const key = this.key(input.roleId, input.threadId, input.cardId);
     let session = this.agents.get(key);
     if (!session) {
@@ -92,32 +92,32 @@ export class BrowserSessions {
     session.configure = true;
     clearTimeout(session.timer);
     this.runs.set(input.runId, key);
-  }
-  forRun(id: string) {
+  };
+  forRun = (id: string) => {
     const direct = this.agents.get(this.runs.get(id) ?? id);
     if (direct) return direct;
     const matches = [...this.agents.values()].filter((s) => s.info.roleId === id);
     if (matches.length > 1) throw new Error('Choose the browser for this job or conversation.');
     return matches[0];
-  }
-  forRole(id: string) {
+  };
+  forRole = (id: string) => {
     const session = this.forRun(id);
     if (!session || session.closing) throw new Error('This agent has no open browser.');
     return session;
-  }
-  list() {
+  };
+  list = () => {
     return [...this.agents.values()].map((session) => ({
       ...session.info,
       allowedSites: [...session.info.allowedSites],
     }));
-  }
-  assertAgent(id: string) {
+  };
+  assertAgent = (id: string) => {
     const session = this.forRun(id);
     if (session?.info.manual)
       throw new Error('Manual control is active. Wait for the user to return browser control.');
     if (session?.closing) throw new Error('Browser is closing.');
-  }
-  async driver(id: string) {
+  };
+  driver = async (id: string) => {
     let session = this.forRun(id);
     if (!session) {
       this.bind({ runId: id, roleId: id, cardId: null });
@@ -162,8 +162,8 @@ export class BrowserSessions {
     }
     this.touch(session);
     return driver;
-  }
-  async frame(roleId: string): Promise<BrowserFrame | null> {
+  };
+  frame = async (roleId: string): Promise<BrowserFrame | null> => {
     const session = this.forRole(roleId);
     if (!session.driver) return null;
     const driver = await this.driver(roleId);
@@ -172,16 +172,16 @@ export class BrowserSessions {
       : { ...(await driver.snapshot()), width: 1280, height: 800 };
     Object.assign(session.info, { url: frame.url, title: frame.title });
     return frame;
-  }
-  async openRole(roleId: RoleId, threadId: string, cardId: string | null) {
+  };
+  openRole = async (roleId: RoleId, threadId: string, cardId: string | null) => {
     const key = this.key(roleId, threadId, cardId);
     if (!this.agents.has(key)) {
       this.bind({ runId: `user:${key}`, roleId, threadId, cardId });
       this.stop(`user:${key}`);
     }
     await this.driver(key);
-  }
-  take(roleId: string) {
+  };
+  take = (roleId: string) => {
     const session = this.forRole(roleId);
     if (session.info.status !== 'open' || !session.driver)
       throw new Error('Open the browser before taking control.');
@@ -191,24 +191,24 @@ export class BrowserSessions {
     session.lease = { id: randomUUID(), until: Date.now() + 45_000 };
     this.touch(session);
     return session.lease.id;
-  }
-  lease(roleId: string, id: string) {
+  };
+  lease = (roleId: string, id: string) => {
     const session = this.forRole(roleId);
     if (!session.info.manual || session.lease?.id !== id || session.lease.until <= Date.now())
       throw new Error('Manual control expired. Take control again.');
     return session;
-  }
-  renew(roleId: string, id: string) {
+  };
+  renew = (roleId: string, id: string) => {
     this.lease(roleId, id).lease!.until = Date.now() + 45_000;
-  }
-  release(roleId: string, id: string) {
+  };
+  release = (roleId: string, id: string) => {
     const session = this.lease(roleId, id);
     session.info.manual = false;
     session.lease = undefined;
     session.configure = true;
     this.touch(session);
-  }
-  allowSite(roleId: string, taskId: string, origin: string, allowed = true) {
+  };
+  allowSite = (roleId: string, taskId: string, origin: string, allowed = true) => {
     const session = this.forRole(roleId);
     if (new URL(origin).protocol !== 'https:' || new URL(origin).origin !== origin)
       throw new Error('Autonomous preparation requires an exact HTTPS origin.');
@@ -218,15 +218,15 @@ export class BrowserSessions {
       session.info.allowedSites = session.info.allowedSites.filter((site) => site !== origin);
     else if (!session.info.allowedSites.includes(origin)) session.info.allowedSites.push(origin);
     session.configure = true;
-  }
-  stop(runId: string) {
+  };
+  stop = (runId: string) => {
     const session = this.forRun(runId);
 
     if (!session || session.info.runId !== runId) return;
     session.info.runId = null;
     this.touch(session);
-  }
-  async closeRole(roleId: string, reset = false) {
+  };
+  closeRole = async (roleId: string, reset = false) => {
     if (!this.agents.has(roleId)) {
       const siblings = [...this.agents].filter(([, s]) => s.info.roleId === roleId);
       if (siblings.length > 1) {
@@ -274,11 +274,11 @@ export class BrowserSessions {
         if (other.info.roleId === actualRole) this.agents.delete(key);
       this.profiles.delete(actualRole);
     }
-  }
-  async close() {
+  };
+  close = async () => {
     await Promise.all([...this.agents.keys()].map((id) => this.closeRole(id)));
-  }
-  private touch(session: Session) {
+  };
+  private touch = (session: Session) => {
     clearTimeout(session.timer);
     if (!session.info.runId) {
       session.timer = setTimeout(() => {
@@ -288,8 +288,8 @@ export class BrowserSessions {
       }, this.idleMs);
       session.timer.unref();
     }
-  }
-  private async profile(roleId: string) {
+  };
+  private profile = async (roleId: string) => {
     roleIdSchema.parse(roleId);
     const root = join(this.directory, 'browser-profiles');
     const path = join(root, roleId);
@@ -299,5 +299,5 @@ export class BrowserSessions {
         throw new Error('Browser profiles cannot use symbolic links.');
     }
     return path;
-  }
+  };
 }

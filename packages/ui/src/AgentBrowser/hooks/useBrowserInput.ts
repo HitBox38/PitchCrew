@@ -2,23 +2,10 @@ import { useEffect, type RefObject, type KeyboardEvent } from 'react';
 import type { BrowserViewProps } from '../types.ts';
 import { useBrowserTouch } from './useBrowserTouch.ts';
 import { remotePoint } from '../helpers.ts';
-const keys = new Set([
-  'Tab',
-  'Enter',
-  'Escape',
-  'Backspace',
-  'Delete',
-  'ArrowLeft',
-  'ArrowRight',
-  'ArrowUp',
-  'ArrowDown',
-  'Home',
-  'End',
-]);
-export function useBrowserInput(
+export const useBrowserInput = (
   props: BrowserViewProps,
   image: RefObject<HTMLButtonElement | null>,
-) {
+) => {
   const { frame, manual, control } = props;
   const touch = useBrowserTouch(props, image);
   const sendInput = control.input;
@@ -79,4 +66,18 @@ export function useBrowserInput(
     });
   };
   return { press, click, touch: touch.handlers };
-}
+};
+
+const keys = new Set([
+  'Tab',
+  'Enter',
+  'Escape',
+  'Backspace',
+  'Delete',
+  'ArrowLeft',
+  'ArrowRight',
+  'ArrowUp',
+  'ArrowDown',
+  'Home',
+  'End',
+]);

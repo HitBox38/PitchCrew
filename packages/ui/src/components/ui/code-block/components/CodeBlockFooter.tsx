@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function CodeBlockFooter({ className, ...props }: React.ComponentProps<'div'>) {
+export const CodeBlockFooter = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="code-block-footer"
@@ -12,4 +12,4 @@ export function CodeBlockFooter({ className, ...props }: React.ComponentProps<'d
       {...props}
     />
   );
-}
+};

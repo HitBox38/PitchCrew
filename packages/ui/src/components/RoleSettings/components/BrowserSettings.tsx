@@ -2,11 +2,11 @@ import { ConversationSelect } from '@/ChatView/components/ConversationSelect.tsx
 import type { BrowserMode } from '@pitchcrew/core';
 import type { RoleSettingsModel } from '../types.ts';
 
-export function BrowserSettings({
+export const BrowserSettings = ({
   capabilities,
   browserMode,
   setBrowserMode,
-}: Pick<RoleSettingsModel, 'capabilities' | 'browserMode' | 'setBrowserMode'>) {
+}: Pick<RoleSettingsModel, 'capabilities' | 'browserMode' | 'setBrowserMode'>) => {
   if (!capabilities.computerUse) return null;
   return (
     <section className="role-settings-section grid gap-3">
@@ -28,4 +28,4 @@ export function BrowserSettings({
       </p>
     </section>
   );
-}
+};

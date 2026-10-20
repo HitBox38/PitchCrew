@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input/components/Input.tsx';
 
-export function JobLocationFields() {
+export const JobLocationFields = () => {
   return (
     <div className="form-row grid grid-cols-2 gap-3.5 max-compact:grid-cols-1">
       <label>
@@ -20,4 +20,4 @@ export function JobLocationFields() {
       </label>
     </div>
   );
-}
+};

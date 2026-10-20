@@ -8,14 +8,22 @@ import {
   instructionStatus,
   normalizeInstructions,
 } from '../src/index.ts';
-
-const boards: Board[] = [];
-function create() {
+const create = () => {
   const board = new Board(':memory:');
   boards.push(board);
   board.seedRoles('claude-code', false);
   return board;
-}
+};
+
+const edit = (board: Board, id: string, patch: Partial<Role>, actor = 'user') => {
+  const role = board.get<Role>('role', id);
+  board.record('role', { ...role, ...patch }, actor, `Fixture edit of ${role.name}`);
+};
+const status = (board: Board, id: string) => {
+  return board.defaultInstructionStatuses().find((item) => item.roleId === id);
+};
+
+const boards: Board[] = [];
 afterEach(() => boards.splice(0).forEach((board) => board.close()));
 
 // The one-line defaults every workspace seeded before 2026-10-04.
@@ -25,14 +33,6 @@ const firstWriter =
   'Write a tailored application packet. Every factual claim must appear verbatim in a profile source and include a source and quote. Never invent achievements.';
 const firstReviewer =
   'Check every statement in the packet against the profile. Reject unverifiable claims and explain required changes. Review independently.';
-
-function edit(board: Board, id: string, patch: Partial<Role>, actor = 'user') {
-  const role = board.get<Role>('role', id);
-  board.record('role', { ...role, ...patch }, actor, `Fixture edit of ${role.name}`);
-}
-function status(board: Board, id: string) {
-  return board.defaultInstructionStatuses().find((item) => item.roleId === id);
-}
 
 describe('default instruction revisions', () => {
   it('records the current default of every seeded role as its latest revision', () => {

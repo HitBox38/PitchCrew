@@ -1,21 +1,21 @@
 import type { ProfileFile, ProfileOrganization } from '@pitchcrew/core';
 import type { ProfileTreeNode } from './types.ts';
 
-export function noteFolder(
+export const noteFolder = (
   name: string,
   organization: ProfileOrganization | undefined,
   paths: Map<string, string>,
-) {
+) => {
   if (organization && Object.hasOwn(organization.locations, name))
     return organization.locations[name];
   return paths.get(name)?.split('/').slice(0, -1).filter(Boolean).join('/') ?? '';
-}
+};
 
-export function buildProfileTree(
+export const buildProfileTree = (
   notes: ProfileFile[],
   paths: Map<string, string>,
   organization?: ProfileOrganization,
-) {
+) => {
   const root: ProfileTreeNode = {
     key: 'folder:',
     label: 'profile',
@@ -58,9 +58,13 @@ export function buildProfileTree(
         a.label.localeCompare(b.label, undefined, { numeric: true }),
     );
   return { root, folders: [...folders.keys()].sort((a, b) => a.localeCompare(b)) };
-}
+};
 
-export function visibleProfileTree(root: ProfileTreeNode, collapsed: Set<string>, query: string) {
+export const visibleProfileTree = (
+  root: ProfileTreeNode,
+  collapsed: Set<string>,
+  query: string,
+) => {
   const rows: {
     node: ProfileTreeNode;
     depth: number;
@@ -89,4 +93,4 @@ export function visibleProfileTree(root: ProfileTreeNode, collapsed: Set<string>
   };
   visit(root, 1, null, 1, 1);
   return rows;
-}
+};

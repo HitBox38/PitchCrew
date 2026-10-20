@@ -9,7 +9,7 @@ import { AttachmentAction } from '@/components/ui/attachment/components/Attachme
 
 import { attachmentSize } from '../attachment-helpers.ts';
 
-export function ComposerAttachments({
+export const ComposerAttachments = ({
   files,
   removeFile,
   disabled,
@@ -17,7 +17,7 @@ export function ComposerAttachments({
   files: File[];
   removeFile: (index: number) => void;
   disabled: boolean;
-}) {
+}) => {
   if (!files.length) return null;
   return (
     <ul aria-label="Files to attach" className="flex w-full flex-wrap gap-2">
@@ -47,4 +47,4 @@ export function ComposerAttachments({
       ))}
     </ul>
   );
-}
+};

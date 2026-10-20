@@ -6,30 +6,14 @@ import {
 } from '@pitchcrew/core';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
-
-export const trackingId = (...parts: string[]) =>
-  createHash('sha256').update(JSON.stringify(parts)).digest('hex');
-export const verifiedGmail = z.object({
-  id: z.string().min(1),
-  threadId: z.string().min(1),
-  internalDate: z.string().regex(/^\d+$/),
-  text: z.string().max(60000),
-  textTruncated: z.boolean().optional(),
-  snippet: z.string().max(10000).optional(),
-  headers: z
-    .array(z.object({ name: z.string().max(200), value: z.string().max(8000) }))
-    .max(100)
-    .default([]),
-});
-export type VerifiedGmail = z.infer<typeof verifiedGmail>;
-export function messageBody(message: VerifiedGmail): string {
+export const messageBody = (message: VerifiedGmail): string => {
   return [
     message.headers.find((header) => header.name.toLowerCase() === 'subject')?.value ?? '',
     message.text,
     message.snippet ?? '',
   ].join('\n');
-}
-export function sourceState(body: string): CardState | null {
+};
+export const sourceState = (body: string): CardState | null => {
   // Quoted conversations can contain older, contradictory decisions.
   if (
     /^\s*>|\bon .{0,100}wrote:|forwarded message|original message|^from:.*\n(?:sent|date):/im.test(
@@ -63,13 +47,13 @@ export function sourceState(body: string): CardState | null {
   )
     return null;
   return state;
-}
-export function sourceMatches(
+};
+export const sourceMatches = (
   card: Card,
   body: string,
   account: string,
   threadId: string,
-): boolean {
+): boolean => {
   if (
     card.tracking?.gmailThreads.some(
       (link) => link.account === account && link.threadId === threadId,
@@ -93,11 +77,27 @@ export function sourceMatches(
   return (
     !!canonical && urls.some((url) => canonicalJobUrl(url.replace(/[.,;]+$/, '')) === canonical)
   );
-}
-export function identityInSource(company: string, title: string, body: string): boolean {
+};
+export const identityInSource = (company: string, title: string, body: string): boolean => {
   const text = normalizeApplicationText(body);
   return (
     text.includes(normalizeApplicationText(company)) &&
     text.includes(normalizeApplicationText(title))
   );
-}
+};
+
+export const trackingId = (...parts: string[]) =>
+  createHash('sha256').update(JSON.stringify(parts)).digest('hex');
+export const verifiedGmail = z.object({
+  id: z.string().min(1),
+  threadId: z.string().min(1),
+  internalDate: z.string().regex(/^\d+$/),
+  text: z.string().max(60000),
+  textTruncated: z.boolean().optional(),
+  snippet: z.string().max(10000).optional(),
+  headers: z
+    .array(z.object({ name: z.string().max(200), value: z.string().max(8000) }))
+    .max(100)
+    .default([]),
+});
+export type VerifiedGmail = z.infer<typeof verifiedGmail>;

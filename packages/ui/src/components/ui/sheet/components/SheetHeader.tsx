@@ -1,7 +1,7 @@
 import type { SheetHeaderProps } from '@/components/ui/sheet/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SheetHeader({ className, ...props }: SheetHeaderProps) {
+export const SheetHeader = ({ className, ...props }: SheetHeaderProps) => {
   return (
     <div
       data-slot="sheet-header"
@@ -9,4 +9,4 @@ export function SheetHeader({ className, ...props }: SheetHeaderProps) {
       {...props}
     />
   );
-}
+};

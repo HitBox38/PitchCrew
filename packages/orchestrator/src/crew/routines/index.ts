@@ -5,23 +5,23 @@ import { randomUUID } from 'node:crypto';
 import type { CrewContext } from '../types.ts';
 import { nextOccurrence, parseRoutine } from './schedule.ts';
 
-export function routines(this: CrewContext): Routine[] {
-  return this.board.list<Routine>('routine').filter((routine) => !routine.deletedAt);
-}
+export const routines = (context: CrewContext): Routine[] => {
+  return context.board.list<Routine>('routine').filter((routine) => !routine.deletedAt);
+};
 
-export function saveRoutine(
-  this: CrewContext,
+export const saveRoutine = (
+  context: CrewContext,
   data: unknown,
   id?: string,
   actor: 'user' | RoleId = 'user',
-): Routine {
+): Routine => {
   const input = parseRoutine(data);
-  const current = id ? this.board.get<Routine>('routine', id) : undefined;
+  const current = id ? context.board.get<Routine>('routine', id) : undefined;
   if (current?.deletedAt) throw new Error('This routine was deleted.');
-  requireRole(this, input.roleId);
-  if (input.cardId) this.board.get<Card>('card', input.cardId);
+  requireRole(context, input.roleId);
+  if (input.cardId) context.board.get<Card>('card', input.cardId);
   if (input.conversationId) {
-    const target = conversation(this, input.conversationId);
+    const target = conversation(context, input.conversationId);
     if (
       !target.participants.includes(input.roleId) ||
       target.cardId !== input.cardId ||
@@ -59,23 +59,23 @@ export function saveRoutine(
     lastScheduledAt: current?.lastScheduledAt ?? null,
     error: '',
   };
-  this.board.record(
+  context.board.record(
     'routine',
     routine,
     actor,
     `${current ? 'Updated' : 'Created'} routine: ${routine.name}`,
   );
   return routine;
-}
+};
 
-export function deleteRoutine(
-  this: CrewContext,
+export const deleteRoutine = (
+  context: CrewContext,
   id: string,
   actor: 'user' | RoleId = 'user',
-): { ok: boolean } {
-  const routine = this.board.get<Routine>('routine', id);
+): { ok: boolean } => {
+  const routine = context.board.get<Routine>('routine', id);
   if (!routine.deletedAt)
-    this.board.record(
+    context.board.record(
       'routine',
       {
         ...routine,
@@ -88,4 +88,4 @@ export function deleteRoutine(
       `Deleted routine: ${routine.name}`,
     );
   return { ok: true };
-}
+};

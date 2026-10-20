@@ -5,7 +5,7 @@ import { tagKey, type TagSort } from '@pitchcrew/core/insights';
 import { sortOptions } from '../constants.ts';
 import type { ChangeSearch, InsightsSearch } from '../types.ts';
 
-export function InsightsFilters({
+export const InsightsFilters = ({
   search,
   tags,
   change,
@@ -13,7 +13,7 @@ export function InsightsFilters({
   search: InsightsSearch;
   tags: string[];
   change: ChangeSearch;
-}) {
+}) => {
   const tagOptions = [
     { value: '', label: 'All tags' },
     ...tags.map((tag) => ({ value: tag, label: tag })),
@@ -56,4 +56,4 @@ export function InsightsFilters({
       ) : null}
     </section>
   );
-}
+};

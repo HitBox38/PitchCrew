@@ -2,7 +2,7 @@ import { BriefSummary } from '@/ApplicationBriefReview/components/BriefSummary.t
 import { brief } from '../demo/data';
 
 // Mirrors the app's ApplicationBriefReview wrapper; the summary inside is the app component.
-export function JobBrief() {
+export const JobBrief = () => {
   return (
     <section className="my-4 grid gap-3 rounded-lg border p-4" aria-label="Application brief">
       <div>
@@ -14,4 +14,4 @@ export function JobBrief() {
       <BriefSummary value={brief} />
     </section>
   );
-}
+};

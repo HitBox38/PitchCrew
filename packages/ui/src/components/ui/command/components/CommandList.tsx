@@ -2,7 +2,7 @@ import type { CommandListProps } from '@/components/ui/command/types.ts';
 import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
 
-export function CommandList({ className, ...props }: CommandListProps) {
+export const CommandList = ({ className, ...props }: CommandListProps) => {
   return (
     <CommandPrimitive.List
       data-slot="command-list"
@@ -13,4 +13,4 @@ export function CommandList({ className, ...props }: CommandListProps) {
       {...props}
     />
   );
-}
+};

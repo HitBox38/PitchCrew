@@ -17,15 +17,10 @@ import type { Board } from '../index.ts';
 import { isLikelyDuplicateApplication, recordExternalApplication } from './tracking.ts';
 import { addCardLesson, setCardWeight } from './learning.ts';
 
-// Imported cards carry a stable per-row key in their import event message, so
-// a retried apply skips rows it already created without a new event shape.
-const keyMessage = 'Imported a past application (import key ';
-type Known = Pick<Card, 'company' | 'title' | 'url' | 'tracking'> & { id?: string; row?: number };
-
-function sha256(value: string) {
+const sha256 = (value: string) => {
   return createHash('sha256').update(value).digest('hex');
-}
-function importedKeys(board: Board): Map<string, string> {
+};
+const importedKeys = (board: Board): Map<string, string> => {
   const rows = board.db
     .prepare(
       "SELECT json_extract(json,'$.entityId') AS id, json_extract(json,'$.message') AS message FROM events WHERE json_extract(json,'$.kind') = 'card' AND json_extract(json,'$.message') LIKE ?",
@@ -37,8 +32,8 @@ function importedKeys(board: Board): Map<string, string> {
       return key ? [[key, row.id] as const] : [];
     }),
   );
-}
-function readRequest(data: unknown, apply: boolean) {
+};
+const readRequest = (data: unknown, apply: boolean) => {
   const request = (apply ? applicationImportApply : applicationImportRequest).parse(data);
   if (Buffer.byteLength(request.content) > importLimits.bytes)
     throw new Error(`Import files can be at most ${importLimits.bytes / 1024 / 1024} MB.`);
@@ -46,8 +41,8 @@ function readRequest(data: unknown, apply: boolean) {
   if ('digest' in request && request.digest !== digest)
     throw new Error('The file changed after the preview. Preview it again.');
   return { ...request, digest };
-}
-function createImported(board: Board, plan: ImportPlan, key: string): Card {
+};
+const createImported = (board: Board, plan: ImportPlan, key: string): Card => {
   const message = `${keyMessage}${key})`;
   let card: Card;
   if (plan.start === 'submitted')
@@ -96,9 +91,9 @@ function createImported(board: Board, plan: ImportPlan, key: string): Card {
   if (plan.weight !== undefined) card = setCardWeight(board, card.id, { weight: plan.weight });
   for (const text of plan.lessons) card = addCardLesson(board, card.id, { text });
   return card;
-}
+};
 
-function processImport(board: Board, data: unknown, apply: boolean): ApplicationImportReport {
+const processImport = (board: Board, data: unknown, apply: boolean): ApplicationImportReport => {
   const { format, content, digest } = readRequest(data, apply);
   const parsed = parseApplicationImport(format, content);
   const now = Date.now();
@@ -195,12 +190,17 @@ function processImport(board: Board, data: unknown, apply: boolean): Application
     ),
   ) as Record<ImportRowStatus, number>;
   return { digest, rows, counts };
-}
+};
 /** Parses and checks every row without changing the board. */
-export function previewApplicationImport(board: Board, data: unknown): ApplicationImportReport {
+export const previewApplicationImport = (board: Board, data: unknown): ApplicationImportReport => {
   return processImport(board, data, false);
-}
+};
 /** Applies the previewed file. Rows already imported or likely duplicates are skipped. */
-export function applyApplicationImport(board: Board, data: unknown): ApplicationImportReport {
+export const applyApplicationImport = (board: Board, data: unknown): ApplicationImportReport => {
   return processImport(board, data, true);
-}
+};
+
+// Imported cards carry a stable per-row key in their import event message, so
+// a retried apply skips rows it already created without a new event shape.
+const keyMessage = 'Imported a past application (import key ';
+type Known = Pick<Card, 'company' | 'title' | 'url' | 'tracking'> & { id?: string; row?: number };

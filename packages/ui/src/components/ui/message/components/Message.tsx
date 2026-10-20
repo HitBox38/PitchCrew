@@ -1,11 +1,11 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function Message({
+export const Message = ({
   className,
   align = 'start',
   ...props
-}: React.ComponentProps<'div'> & { align?: 'start' | 'end' }) {
+}: React.ComponentProps<'div'> & { align?: 'start' | 'end' }) => {
   return (
     <div
       data-slot="message"
@@ -17,4 +17,4 @@ export function Message({
       {...props}
     />
   );
-}
+};

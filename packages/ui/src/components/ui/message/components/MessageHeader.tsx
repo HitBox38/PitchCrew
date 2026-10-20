@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function MessageHeader({ className, ...props }: React.ComponentProps<'div'>) {
+export const MessageHeader = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="message-header"
@@ -12,4 +12,4 @@ export function MessageHeader({ className, ...props }: React.ComponentProps<'div
       {...props}
     />
   );
-}
+};

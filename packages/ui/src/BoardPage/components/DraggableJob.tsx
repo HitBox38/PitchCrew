@@ -6,7 +6,7 @@ import { JobActionsMenu } from './JobActionsMenu/index.tsx';
 import type { JobMenuActions } from './JobActionsMenu/types.ts';
 import { useIsPresent } from 'motion/react';
 
-export function DraggableJob({
+export const DraggableJob = ({
   card,
   data,
   disabled,
@@ -20,7 +20,7 @@ export function DraggableJob({
   dragging: boolean;
   openCard: (id: string) => void;
   menuActions: JobMenuActions;
-}) {
+}) => {
   const present = useIsPresent();
   const movable = present && !disabled && canDragJob(card, data);
   // Gate pointer activation instead of disabling the container and its action menu.
@@ -56,4 +56,4 @@ export function DraggableJob({
       />
     </div>
   );
-}
+};

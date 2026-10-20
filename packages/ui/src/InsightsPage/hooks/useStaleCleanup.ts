@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { previewStaleSubmissions } from '../api.ts';
 import { staleSelection } from '../helpers.ts';
 
-export function useStaleCleanup() {
+export const useStaleCleanup = () => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [days, setDays] = useState(String(staleDefaults.days));
@@ -76,5 +76,5 @@ export function useStaleCleanup() {
     load,
     apply,
   };
-}
+};
 export type StaleCleanupModel = ReturnType<typeof useStaleCleanup>;

@@ -2,7 +2,7 @@ import type { ChatWorkModel } from '@/ChatWork/types.ts';
 import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import { PipelineReviewCard } from './components/PipelineReviewCard.tsx';
 
-export function PipelineReviews({ data, thread, name, working, action }: ChatWorkModel) {
+export const PipelineReviews = ({ data, thread, name, working, action }: ChatWorkModel) => {
   const reviews = (data.pipelineReviews ?? []).filter(
     (review) =>
       thread === 'crew' ||
@@ -29,4 +29,4 @@ export function PipelineReviews({ data, thread, name, working, action }: ChatWor
       ))}
     </WorkSection>
   );
-}
+};

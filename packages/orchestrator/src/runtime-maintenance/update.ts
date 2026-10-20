@@ -3,10 +3,10 @@ import type { RuntimeId } from '@pitchcrew/core';
 import type { RuntimeMaintenance } from './index.ts';
 import { drainConversationQueue } from '../crew/conversation-queue.ts';
 
-export async function executeRuntimeUpdate(
+export const executeRuntimeUpdate = async (
   manager: RuntimeMaintenance,
   id: RuntimeId,
-): Promise<void> {
+): Promise<void> => {
   const update = manager.store.state.updates.find((entry) => entry.id === id)!;
   const operation = update.operation!;
   const stage = (value: typeof operation.stage, detail: string) => {
@@ -117,4 +117,4 @@ export async function executeRuntimeUpdate(
       void manager.context().drainTasks();
     }
   }
-}
+};

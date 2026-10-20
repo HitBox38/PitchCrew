@@ -1,6 +1,6 @@
 import { ShieldAlert } from 'lucide-react';
 
-export function InjectionExample() {
+export const InjectionExample = () => {
   return (
     <div className="injection">
       <div className="injection-copy">
@@ -31,4 +31,4 @@ export function InjectionExample() {
       </figure>
     </div>
   );
-}
+};

@@ -2,6 +2,28 @@ import { skillInput, skillsShUrl, type SkillPreview } from '@pitchcrew/core';
 import { baseSkills, skillContentLimit } from '@pitchcrew/core/base-skills';
 import { parseDocument } from 'yaml';
 import { z } from 'zod';
+const definition = (text: string) => {
+  const match = text
+    .replace(/^\uFEFF/, '')
+    .replace(/\r\n/g, '\n')
+    .match(/^---\n([\s\S]*?)\n---(?:\n|$)([\s\S]*)$/);
+  if (!match || match[1].length > 8000)
+    throw new Error('The skill needs valid YAML frontmatter and Markdown instructions.');
+  const document = parseDocument(match[1], {
+    schema: 'failsafe',
+    stringKeys: true,
+    logLevel: 'silent',
+  });
+  if (document.errors.length || document.warnings.length)
+    throw new Error('The skill has invalid YAML frontmatter.');
+  const metadata = z
+    .object({
+      name: z.string().trim().min(1).max(80),
+      description: z.string().trim().max(500).default(''),
+    })
+    .parse(document.toJS({ maxAliasCount: 0 }));
+  return { ...metadata, content: match[2].trim() };
+};
 
 const treeSchema = z.object({
   truncated: z.boolean(),
@@ -23,38 +45,16 @@ const blobSchema = z.object({
   content: z.string().max(100000),
   size: z.number().max(64000),
 });
-function definition(text: string) {
-  const match = text
-    .replace(/^\uFEFF/, '')
-    .replace(/\r\n/g, '\n')
-    .match(/^---\n([\s\S]*?)\n---(?:\n|$)([\s\S]*)$/);
-  if (!match || match[1].length > 8000)
-    throw new Error('The skill needs valid YAML frontmatter and Markdown instructions.');
-  const document = parseDocument(match[1], {
-    schema: 'failsafe',
-    stringKeys: true,
-    logLevel: 'silent',
-  });
-  if (document.errors.length || document.warnings.length)
-    throw new Error('The skill has invalid YAML frontmatter.');
-  const metadata = z
-    .object({
-      name: z.string().trim().min(1).max(80),
-      description: z.string().trim().max(500).default(''),
-    })
-    .parse(document.toJS({ maxAliasCount: 0 }));
-  return { ...metadata, content: match[2].trim() };
-}
 
 // Only public GitHub objects are read. No CLI installer, credentials, redirects or repository code.
 export class SkillDirectory {
   private readonly blobs = new Map<string, string>();
   constructor(private readonly fetcher: typeof fetch = (...args) => fetch(...args)) {}
   /** A check sweep resolves each repository HEAD once; immutable blobs retain their own cache. */
-  batch() {
+  batch = () => {
     return new Map<string, Promise<z.infer<typeof treeSchema>>>();
-  }
-  private async read(url: string, maxBytes: number, signal: AbortSignal) {
+  };
+  private read = async (url: string, maxBytes: number, signal: AbortSignal) => {
     const response = await this.fetcher(url, {
       redirect: 'error',
       signal,
@@ -93,12 +93,12 @@ export class SkillDirectory {
       reader.releaseLock();
     }
     return JSON.parse(Buffer.concat(chunks).toString('utf8')) as unknown;
-  }
-  async preview(
+  };
+  preview = async (
     value: string,
     parentSignal?: AbortSignal,
     batch?: ReturnType<SkillDirectory['batch']>,
-  ): Promise<SkillPreview> {
+  ): Promise<SkillPreview> => {
     const url = new URL(skillsShUrl.parse(value));
     const [owner, repo, slug] = url.pathname.split('/').filter(Boolean);
     const requestedRepository = `${owner}/${repo}`;
@@ -187,6 +187,6 @@ export class SkillDirectory {
         ? `The starter skill could not be loaded from ${starter.skillPath}. Its upstream file may have moved or changed.`
         : 'No matching SKILL.md was found. Imports support public GitHub repositories and check up to 20 skill definitions.',
     );
-  }
+  };
 }
 export const skillDirectory = new SkillDirectory();

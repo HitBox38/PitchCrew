@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProfileSource } from '@pitchcrew/core';
 import { readSources } from '../api.ts';
 
-export function useSourceList(open: boolean) {
+export const useSourceList = (open: boolean) => {
   const [sources, setSources] = useState<ProfileSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -34,4 +34,4 @@ export function useSourceList(open: boolean) {
     return () => controller.abort();
   }, [open, refresh]);
   return { sources, loading, loaded, listError, refresh };
-}
+};

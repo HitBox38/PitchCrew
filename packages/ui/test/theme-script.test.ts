@@ -6,7 +6,7 @@ import { build, createServer } from 'vite';
 import { expect, test } from 'vitest';
 import { themeScript } from '../theme-script.ts';
 
-function checkBootstrap(html: string, script: string) {
+const checkBootstrap = (html: string, script: string) => {
   expect(html).toContain('<script src="/theme.js"></script>');
   expect(html.indexOf('/theme.js')).toBeLessThan(html.indexOf('name="theme-color"'));
   for (const [choice, systemDark, expected] of [
@@ -35,7 +35,7 @@ function checkBootstrap(html: string, script: string) {
     window: { matchMedia: () => ({ matches: true }) },
   });
   expect(document.documentElement.dataset.theme).toBe('dark');
-}
+};
 
 test('development and production preserve the blocking theme bootstrap', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-theme-script-'));

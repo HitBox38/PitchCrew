@@ -2,7 +2,7 @@ import type { InboxTab, InboxViewProps } from '../types.ts';
 import { approvalRequests, selectedApprovalRequest } from '../helpers.ts';
 import { useState } from 'react';
 
-export function useInboxView({ data, action, working, onOpen }: InboxViewProps) {
+export const useInboxView = ({ data, action, working, onOpen }: InboxViewProps) => {
   const [tab, changeTab] = useState<InboxTab>('pending');
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
@@ -35,4 +35,4 @@ export function useInboxView({ data, action, working, onOpen }: InboxViewProps) 
     showRequests,
     act,
   };
-}
+};

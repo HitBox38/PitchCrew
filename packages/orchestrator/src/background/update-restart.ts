@@ -2,20 +2,14 @@ import { readFile, rm, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { AppBuild } from '@pitchcrew/core';
 
-const fileName = 'update-restart.json';
-const versionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
-
 /** A relaunched desktop verifies its new daemon instead of silently reusing the previous build. */
-export async function markUpdateRestart(directory: string, version: unknown) {
+export const markUpdateRestart = async (directory: string, version: unknown) => {
   if (typeof version !== 'string' || !versionPattern.test(version))
     throw new Error('Invalid update version.');
   await writeFile(join(directory, fileName), JSON.stringify({ version }), { mode: 0o600 });
-}
+};
 
-export const clearUpdateRestart = (directory: string) =>
-  rm(join(directory, fileName), { force: true });
-
-export async function verifyUpdateRestart(directory: string, build: AppBuild, url: string) {
+export const verifyUpdateRestart = async (directory: string, build: AppBuild, url: string) => {
   const text = await readFile(join(directory, fileName), 'utf8').catch(() => null);
   if (text === null) return;
   const expected = JSON.parse(text) as { version?: unknown };
@@ -42,4 +36,10 @@ export async function verifyUpdateRestart(directory: string, build: AppBuild, ur
   }
   // Reopening the previous build after a failed OS installer is a supported recovery path.
   await clearUpdateRestart(directory);
-}
+};
+
+const fileName = 'update-restart.json';
+const versionPattern = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
+
+export const clearUpdateRestart = (directory: string) =>
+  rm(join(directory, fileName), { force: true });

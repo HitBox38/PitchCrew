@@ -6,7 +6,7 @@ import { SourceNotice } from './components/SourceNotice.tsx';
 import { ImportReview } from './components/ImportReview.tsx';
 import type { ProfileSourcesModel } from './types.ts';
 
-export function ProfileSources(c: ProfileSourcesModel) {
+export const ProfileSources = (c: ProfileSourcesModel) => {
   return (
     <section className="profile-sources" aria-label="Profile sources">
       {c.proposalId ? (
@@ -37,4 +37,4 @@ export function ProfileSources(c: ProfileSourcesModel) {
       {c.connection.editing ? <ConnectAccountDialog {...c.connection} /> : null}
     </section>
   );
-}
+};

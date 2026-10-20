@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import type { BrowserFrame } from '@pitchcrew/core';
 import { streamBrowser } from '../api.ts';
 
-export function useBrowserFrame(roleId: string, threadId: string, enabled: boolean) {
+export const useBrowserFrame = (roleId: string, threadId: string, enabled: boolean) => {
   const [state, setState] = useState<{
     key: string;
     enabled: boolean;
@@ -43,4 +43,4 @@ export function useBrowserFrame(roleId: string, threadId: string, enabled: boole
     };
   }, [roleId, threadId, enabled, key]);
   return state.key === key ? state : { key, frame: null, error: '' };
-}
+};

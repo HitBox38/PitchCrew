@@ -1,7 +1,7 @@
 import { Combobox } from '@base-ui/react/combobox';
 import { X } from 'lucide-react';
 
-export function SelectedTags({ value }: { value: string[] }) {
+export const SelectedTags = ({ value }: { value: string[] }) => {
   return value.map((tag) => (
     <Combobox.Chip
       key={tag}
@@ -15,4 +15,4 @@ export function SelectedTags({ value }: { value: string[] }) {
       </Combobox.ChipRemove>
     </Combobox.Chip>
   ));
-}
+};

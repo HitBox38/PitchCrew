@@ -9,25 +9,7 @@ import {
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 import { sourceState } from '../src/crew/tracking/helpers.ts';
-
-const mailbox = 'fixture@example.com';
-const external = {
-  company: 'Fictional Labs',
-  title: 'Frontend Engineer',
-  url: 'https://jobs.example.com/roles/123?utm_source=board',
-  submittedAt: '2025-01-01T00:00:00Z',
-  note: 'Confirmed on the external careers page.',
-};
-const body =
-  'Fictional Labs Frontend Engineer: we would like to invite you to an interview. https://jobs.example.com/roles/123';
-afterEach(async () => {
-  for (const { daemon } of resources) {
-    daemon.service.controllers.delete('tracking-fixture');
-    daemon.service.capabilities.delete('tracking-token');
-  }
-  await cleanup();
-});
-async function fixture() {
+const fixture = async () => {
   const context = await setup(14586);
   const { daemon, request } = context;
   const current = daemon.service.board.get<Role>('role', 'scout');
@@ -105,7 +87,25 @@ async function fixture() {
       ...patch,
     });
   return { ...context, gmail, agent, register, scan, reconcile };
-}
+};
+
+const mailbox = 'fixture@example.com';
+const external = {
+  company: 'Fictional Labs',
+  title: 'Frontend Engineer',
+  url: 'https://jobs.example.com/roles/123?utm_source=board',
+  submittedAt: '2025-01-01T00:00:00Z',
+  note: 'Confirmed on the external careers page.',
+};
+const body =
+  'Fictional Labs Frontend Engineer: we would like to invite you to an interview. https://jobs.example.com/roles/123';
+afterEach(async () => {
+  for (const { daemon } of resources) {
+    daemon.service.controllers.delete('tracking-fixture');
+    daemon.service.capabilities.delete('tracking-token');
+  }
+  await cleanup();
+});
 
 describe('verified application reconciliation', () => {
   it('lets only users register a known external submission on an existing lead without duplicating it or exporting a packet', async () => {

@@ -7,9 +7,7 @@ import { writerNote } from '../helpers';
 import type { Claim } from '../types';
 import { ReviewNote } from './ReviewNote';
 
-const revised = claims.filter((claim) => claim.verdict === 'revised').length;
-
-export function ReviewRail({ claim }: { claim: Claim }) {
+export const ReviewRail = ({ claim }: { claim: Claim }) => {
   const reduced = useReducedMotion();
   return (
     <aside className="thread-rail" aria-label="Review notes">
@@ -44,4 +42,6 @@ export function ReviewRail({ claim }: { claim: Claim }) {
       </p>
     </aside>
   );
-}
+};
+
+const revised = claims.filter((claim) => claim.verdict === 'revised').length;

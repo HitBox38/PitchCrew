@@ -4,7 +4,7 @@ import type { Action } from '@/WorkspaceStore/types.ts';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
 import { MemoryEntryActions } from './MemoryEntryActions.tsx';
-export function MemoryEntry({
+export const MemoryEntry = ({
   note,
   working,
   action,
@@ -14,7 +14,7 @@ export function MemoryEntry({
   working: boolean;
   action: Action;
   openSource: () => void;
-}) {
+}) => {
   const editor = useMemoryEntry(note, action);
   const { editing, content, setContent, tags, setTags } = editor;
   return (
@@ -57,4 +57,4 @@ export function MemoryEntry({
       />
     </article>
   );
-}
+};

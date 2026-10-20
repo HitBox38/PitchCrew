@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { EditQueueMessage } from './EditQueueMessage.tsx';
 
-export function QueueRequestRow({
+export const QueueRequestRow = ({
   request,
   handle,
   queueId,
@@ -13,7 +13,7 @@ export function QueueRequestRow({
   request: ChatRequest;
   handle: ReactNode;
   queueId: string;
-}) {
+}) => {
   const [editing, setEditing] = useState(false);
   const action = useWorkspaceStore((s) => s.action);
   const working = useWorkspaceStore((s) => s.working);
@@ -94,4 +94,4 @@ export function QueueRequestRow({
       ) : null}
     </div>
   );
-}
+};

@@ -3,7 +3,7 @@ import { PacketRulesError, validatePacketRules } from '../../packet-rules.ts';
 import type { CrewService } from '../../service.ts';
 
 /** User-only rule edits. Agents reach rules through the read-only gateway action instead. */
-export function registerPacketRulesRoutes(app: FastifyInstance, service: CrewService) {
+export const registerPacketRulesRoutes = (app: FastifyInstance, service: CrewService) => {
   app.get('/api/packet-rules', () => service.packetRules.current());
   app.post('/api/packet-rules/validate', (req) => {
     const result = validatePacketRules(req.body);
@@ -18,4 +18,4 @@ export function registerPacketRulesRoutes(app: FastifyInstance, service: CrewSer
     }
   });
   app.delete('/api/packet-rules', () => service.packetRules.reset());
-}
+};

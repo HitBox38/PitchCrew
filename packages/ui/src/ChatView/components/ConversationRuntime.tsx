@@ -5,7 +5,7 @@ import { ModelField } from '@/ModelField/index.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { ConversationSelect } from './ConversationSelect.tsx';
 import { useConversationRuntime } from '../hooks/useConversationRuntime.ts';
-export function ConversationRuntime(props: ChatViewModel) {
+export const ConversationRuntime = (props: ChatViewModel) => {
   const { data, role, recipientItems, setRecipient, setDialog, working, error } = props;
   const state = useConversationRuntime(props);
   const { runtime, model, reasoning, defaults, effectiveRuntime, selected } = state;
@@ -88,4 +88,4 @@ export function ConversationRuntime(props: ChatViewModel) {
       </form>
     </ChatSidePanel>
   );
-}
+};

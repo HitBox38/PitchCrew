@@ -2,7 +2,7 @@ import type { SeparatorProps } from '@/components/ui/separator/types.ts';
 import { cn } from '@/lib/utils';
 import { Separator as SeparatorPrimitive } from '@base-ui/react/separator';
 
-export function Separator({ className, orientation = 'horizontal', ...props }: SeparatorProps) {
+export const Separator = ({ className, orientation = 'horizontal', ...props }: SeparatorProps) => {
   return (
     <SeparatorPrimitive
       data-slot="separator"
@@ -14,4 +14,4 @@ export function Separator({ className, orientation = 'horizontal', ...props }: S
       {...props}
     />
   );
-}
+};

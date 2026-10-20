@@ -8,7 +8,7 @@ import {
 import { StaleCleanup } from './StaleCleanup.tsx';
 import { TagMerge } from './TagMerge.tsx';
 
-export function InsightsTidyUp({ cards, tags }: { cards: Card[]; tags: string[] }) {
+export const InsightsTidyUp = ({ cards, tags }: { cards: Card[]; tags: string[] }) => {
   return (
     <Collapsible className="insights-tidy">
       <h2>
@@ -30,4 +30,4 @@ export function InsightsTidyUp({ cards, tags }: { cards: Card[]; tags: string[] 
       </CollapsibleContent>
     </Collapsible>
   );
-}
+};

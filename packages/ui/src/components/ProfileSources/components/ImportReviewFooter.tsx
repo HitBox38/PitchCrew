@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { SourceProgress } from './SourceProgress.tsx';
 import type { ImportReviewProps } from '../types.ts';
 
-export function ImportReviewFooter({
+export const ImportReviewFooter = ({
   selected,
   busy,
   error,
@@ -13,7 +13,7 @@ export function ImportReviewFooter({
 }: Pick<ImportReviewProps, 'selected' | 'busy' | 'error' | 'progress' | 'importSelected'> & {
   conflicts: number;
   close: () => void;
-}) {
+}) => {
   return (
     <div className="profile-import-footer">
       {conflicts ? (
@@ -41,4 +41,4 @@ export function ImportReviewFooter({
       </div>
     </div>
   );
-}
+};

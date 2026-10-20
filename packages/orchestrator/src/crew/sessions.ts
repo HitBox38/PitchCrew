@@ -11,13 +11,13 @@ import type {
 } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 
-export function prepareSession(
+export const prepareSession = (
   context: Pick<CrewContext, 'board' | 'directory'>,
   role: Role,
   skills: Skill[],
   conversation: Conversation,
   messages: ChatMessage[],
-) {
+) => {
   const revision = createHash('sha256')
     .update(
       JSON.stringify({
@@ -70,17 +70,17 @@ export function prepareSession(
       );
     },
   };
-}
-export function finishSession(
+};
+export const finishSession = (
   context: Pick<CrewContext, 'board'>,
   session: ConversationSession,
   lastMessageId: string | null,
   invalid: boolean,
-) {
+) => {
   context.board.record(
     'conversation_session',
     { ...session, lastMessageId, invalid },
     session.roleId,
     invalid ? 'Invalidated interrupted runtime session' : 'Saved runtime session checkpoint',
   );
-}
+};

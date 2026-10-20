@@ -61,7 +61,7 @@ export class RuntimeMaintenance {
   get checking() {
     return !!this.checkRequest;
   }
-  revision() {
+  revision = () => {
     return {
       state: this.store.state,
       checking: this.checking,
@@ -71,14 +71,14 @@ export class RuntimeMaintenance {
       installations: [...this.installations].map(([id, entry]) => [id, entry.identity]),
       enabled: this.enabled,
     };
-  }
-  isUpdating(id: RuntimeId) {
+  };
+  isUpdating = (id: RuntimeId) => {
     return this.active.has(id) || !!this.store.state.running[id];
-  }
-  hasUpdatesRunning() {
+  };
+  hasUpdatesRunning = () => {
     return this.active.size > 0 || Object.keys(this.store.state.running).length > 0;
-  }
-  current(): RuntimeMaintenanceState {
+  };
+  current = (): RuntimeMaintenanceState => {
     return structuredClone({
       enabled: this.enabled,
       automatic: this.store.state.automatic,
@@ -98,34 +98,34 @@ export class RuntimeMaintenance {
         result,
       })),
     });
-  }
-  configure(automatic: boolean) {
+  };
+  configure = (automatic: boolean) => {
     this.store.state.automatic = automatic;
     this.store.save();
     return this.current();
-  }
-  busy(id: RuntimeId) {
+  };
+  busy = (id: RuntimeId) => {
     return [
       ...runtimeBusyReasons(this.context(), id),
       ...(this.preparations.get(id) ? ['Runtime startup or metadata checks are in progress.'] : []),
     ];
-  }
-  held(config: Configuration) {
+  };
+  held = (config: Configuration) => {
     const cached = this.authentication.get(this.key(config))?.result;
     return (
       this.isUpdating(config.runtime) ||
       (cached?.status === 'missing' && this.host.now() - Date.parse(cached.checkedAt) < 5 * 60_000)
     );
-  }
-  private key(config: Configuration) {
+  };
+  private key = (config: Configuration) => {
     const environment = Object.entries(process.env)
       .filter(([key]) => /AUTH|TOKEN|KEY|PROVIDER|BASE_URL|HOME|PATH/i.test(key))
       .sort(([a], [b]) => a.localeCompare(b));
     return createHash('sha256')
       .update(JSON.stringify([config.runtime, config.model, environment]))
       .digest('hex');
-  }
-  async authenticate(config: Configuration, force = false): Promise<RuntimeAuthentication> {
+  };
+  authenticate = async (config: Configuration, force = false): Promise<RuntimeAuthentication> => {
     if (!this.authenticationEnabled && config.runtime !== 'demo')
       return {
         status: 'unknown',
@@ -163,13 +163,13 @@ export class RuntimeMaintenance {
       });
     this.authRequests.set(key, request);
     return request;
-  }
-  async guard<T>(
+  };
+  guard = async <T>(
     config: Configuration,
     action: () => Promise<T>,
     force = false,
     current: () => Configuration = () => config,
-  ): Promise<T> {
+  ): Promise<T> => {
     if (this.context().closing || this.controller.signal.aborted)
       throw new RuntimeHeldError('The workspace is closing.');
     if (this.isUpdating(config.runtime))
@@ -196,8 +196,8 @@ export class RuntimeMaintenance {
         Math.max(0, (this.preparations.get(config.runtime) ?? 1) - 1),
       );
     }
-  }
-  async metadata<T>(id: RuntimeId, action: () => Promise<T>): Promise<T> {
+  };
+  metadata = async <T>(id: RuntimeId, action: () => Promise<T>): Promise<T> => {
     if (this.isUpdating(id))
       throw new RuntimeHeldError('This runtime is updating. Wait for verification.');
     this.preparations.set(id, (this.preparations.get(id) ?? 0) + 1);
@@ -206,8 +206,8 @@ export class RuntimeMaintenance {
     } finally {
       this.preparations.set(id, Math.max(0, (this.preparations.get(id) ?? 1) - 1));
     }
-  }
-  async initializeAuthentication(force = false) {
+  };
+  initializeAuthentication = async (force = false) => {
     const context = this.context();
     const configs: Configuration[] = context.runtimes
       .filter((runtime) => runtime.available)
@@ -237,8 +237,8 @@ export class RuntimeMaintenance {
           : this.guard(config, async () => {}, force).catch(() => {}),
       ),
     );
-  }
-  check(automatic = false): Promise<RuntimeMaintenanceState> {
+  };
+  check = (automatic = false): Promise<RuntimeMaintenanceState> => {
     if (!this.enabled) return Promise.resolve(this.current());
     if (this.context().closing) return Promise.reject(new Error('The workspace is closing.'));
     if (this.checkRequest) return this.checkRequest;
@@ -347,8 +347,8 @@ export class RuntimeMaintenance {
       });
     this.checkRequest = request;
     return request;
-  }
-  startUpdate(id: RuntimeId) {
+  };
+  startUpdate = (id: RuntimeId) => {
     if (!this.enabled)
       throw new Error('Runtime release checks and in-app updates are disabled in this daemon.');
     if (this.active.has(id)) return this.current();
@@ -377,24 +377,24 @@ export class RuntimeMaintenance {
       .finally(() => this.active.delete(id));
     this.active.set(id, operation);
     return this.current();
-  }
-  clearAuthentication(id: RuntimeId) {
+  };
+  clearAuthentication = (id: RuntimeId) => {
     for (const [key, entry] of this.authentication)
       if (entry.config.runtime === id) this.authentication.delete(key);
-  }
-  async refreshOnRetry(config: Configuration) {
+  };
+  refreshOnRetry = async (config: Configuration) => {
     if (
       !this.isUpdating(config.runtime) &&
       this.authentication.get(this.key(config))?.result.status === 'missing'
     )
       await this.authenticate(config, true);
-  }
-  output(id: RuntimeId, chunk: string) {
+  };
+  output = (id: RuntimeId, chunk: string) => {
     const operation = this.store.state.updates.find((entry) => entry.id === id)?.operation;
     if (operation)
       operation.output = redactMaintenanceOutput(operation.output + chunk).slice(-16_000);
-  }
-  async recover() {
+  };
+  recover = async () => {
     if (this.recovered || this.active.size) return;
     let waiting = false;
     for (const update of this.store.state.updates) {
@@ -450,8 +450,8 @@ export class RuntimeMaintenance {
       this.store.save();
     }
     this.recovered = !waiting;
-  }
-  async finishBeforeShutdown() {
+  };
+  finishBeforeShutdown = async () => {
     this.context().closing = true;
     await Promise.allSettled([...this.active.values()]);
     while (Object.keys(this.store.state.running).length) {
@@ -459,13 +459,13 @@ export class RuntimeMaintenance {
       if (Object.keys(this.store.state.running).length)
         await new Promise((resolve) => setTimeout(resolve, 250));
     }
-  }
-  async close() {
+  };
+  close = async () => {
     this.controller.abort();
     await Promise.allSettled([
       ...this.active.values(),
       ...this.authRequests.values(),
       ...(this.checkRequest ? [this.checkRequest] : []),
     ]);
-  }
+  };
 }

@@ -2,7 +2,7 @@ import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 
-export function StaleConfirm({ stale }: { stale: StaleCleanupModel }) {
+export const StaleConfirm = ({ stale }: { stale: StaleCleanupModel }) => {
   const cards = stale.preview!.cards.filter((card) => stale.selected.includes(card.id));
   const close = () => {
     if (!stale.working) stale.setConfirming(false);
@@ -35,4 +35,4 @@ export function StaleConfirm({ stale }: { stale: StaleCleanupModel }) {
       </div>
     </Modal>
   );
-}
+};

@@ -6,22 +6,23 @@ type ObservedRun = Pick<Run, 'id' | 'status' | 'mode' | 'startedAt' | 'finishedA
 /** Observe only active runs first seen after this observer was installed. IDs stay local.
  * Stop admitting runs at capacity rather than evicting dedup state and replaying history.
  */
-export function createRunMetrics(
+export const createRunMetrics = (
   sink: DiagnosticSink,
   allowed: () => boolean,
   now: () => number = Date.now,
   capacity = 512,
-) {
+) => {
   let sessionStart = now();
   const observed = new Map<string, { start: number; finished: boolean }>();
+  const reset = () => {
+    observed.clear();
+    sessionStart = now();
+  };
   return {
-    reset() {
-      observed.clear();
-      sessionStart = now();
-    },
-    observe(runs: readonly ObservedRun[]) {
+    reset,
+    observe: (runs: readonly ObservedRun[]) => {
       if (!allowed()) {
-        this.reset();
+        reset();
         return;
       }
       for (const run of runs) {
@@ -64,4 +65,4 @@ export function createRunMetrics(
       }
     },
   };
-}
+};

@@ -1,10 +1,7 @@
 import { assertConfirmedContext, assertReviewedContext, type Board } from '@pitchcrew/board';
 import type { Card } from '@pitchcrew/core';
 import { bodyText, readProfile } from '@pitchcrew/packet';
-
-export const normalizedValue = (value: string) =>
-  value.normalize('NFKC').replace(/\s+/g, ' ').trim();
-function textValues(text: string) {
+const textValues = (text: string) => {
   const plain = bodyText(text).replace(/^\s*(?:#{1,6}|[-*+])\s+/gm, '');
   const lines = plain
     .split('\n')
@@ -18,9 +15,9 @@ function textValues(text: string) {
   ]
     .map(normalizedValue)
     .filter(Boolean);
-}
+};
 /** Exact complete answers/paragraphs/lines, not arbitrary substrings of source text. */
-export async function applicationValues(board: Board, directory: string, cardId: string) {
+export const applicationValues = async (board: Board, directory: string, cardId: string) => {
   const card = board.get<Card>('card', cardId);
   const context = assertConfirmedContext(card);
   const values = context.requirements
@@ -35,4 +32,7 @@ export async function applicationValues(board: Board, directory: string, cardId:
   if (assertConfirmedContext(board.get<Card>('card', cardId)).revision !== context.revision)
     throw new Error('Application context changed while checking form values.');
   return [...new Set(values)];
-}
+};
+
+export const normalizedValue = (value: string) =>
+  value.normalize('NFKC').replace(/\s+/g, ' ').trim();

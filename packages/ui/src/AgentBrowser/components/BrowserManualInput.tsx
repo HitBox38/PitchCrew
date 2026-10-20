@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
 import type { BrowserControl } from '../types.ts';
 import { BrowserInputKeys } from './BrowserInputKeys.tsx';
-export function BrowserManualInput({ control }: { control: BrowserControl }) {
+export const BrowserManualInput = ({ control }: { control: BrowserControl }) => {
   const [open, setOpen] = useState(false);
   const [text, setText] = useState('');
   return (
@@ -68,4 +68,4 @@ export function BrowserManualInput({ control }: { control: BrowserControl }) {
       ) : null}
     </div>
   );
-}
+};

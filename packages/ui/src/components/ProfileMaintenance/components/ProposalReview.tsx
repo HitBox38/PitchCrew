@@ -5,7 +5,7 @@ import { SourceProgress } from '../../ProfileSources/components/SourceProgress.t
 import { useProposalReview } from '../hooks/useProposalReview.ts';
 import { ProposalDocuments } from './ProposalDocuments.tsx';
 
-export function ProposalReview(props: ProposalReviewProps) {
+export const ProposalReview = (props: ProposalReviewProps) => {
   const c = useProposalReview(props);
   const { proposal } = props;
   return (
@@ -73,4 +73,4 @@ export function ProposalReview(props: ProposalReviewProps) {
       </div>
     </article>
   );
-}
+};

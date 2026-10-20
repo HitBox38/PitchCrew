@@ -2,7 +2,7 @@ import { ReducedMotion, surfaceSpring } from '@/AppMotion/constants.ts';
 import type { AppMotionProps } from '@/AppMotion/types.ts';
 import { LazyMotion, MotionConfig, domMax, useReducedMotion } from 'motion/react';
 
-export function AppMotion({ children }: AppMotionProps) {
+export const AppMotion = ({ children }: AppMotionProps) => {
   const reduced = useReducedMotion();
   return (
     <ReducedMotion value={reduced ?? true}>
@@ -13,4 +13,4 @@ export function AppMotion({ children }: AppMotionProps) {
       </MotionConfig>
     </ReducedMotion>
   );
-}
+};

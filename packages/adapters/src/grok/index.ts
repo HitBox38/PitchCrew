@@ -14,7 +14,7 @@ export const grok = withChat({
   detect: async () => requireCliVersion(await detectCli('grok', 'grok'), [1, 0, 45], 'grok'),
   listModels: async (signal) =>
     parseGrokModels(await modelListCommand('grok', ['--no-auto-update', 'models'], signal)),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const grokHome = join(context.directory, 'grok-home');
     const promptPath = join(context.directory, 'grok-prompt.txt');

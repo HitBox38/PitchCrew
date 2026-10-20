@@ -2,13 +2,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { SkillEditorFooterProps } from '@/SkillsView/components/SkillEditor/types.ts';
 import { Check, LoaderCircle } from 'lucide-react';
 
-export function SkillEditorFooter({
+export const SkillEditorFooter = ({
   error,
   working,
   onClose,
   loading,
   skill,
-}: SkillEditorFooterProps) {
+}: SkillEditorFooterProps) => {
   return (
     <footer className="role-settings-footer">
       {error ? (
@@ -27,4 +27,4 @@ export function SkillEditorFooter({
       </div>
     </footer>
   );
-}
+};

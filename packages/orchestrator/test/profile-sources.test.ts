@@ -5,11 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { lintPacket } from '@pitchcrew/packet';
 import { ProfileSourceManager } from '../src/profile-sources/index.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-const input = { provider: 'github', repository: 'fictional/resumes', path: 'about-me' };
-const sha = 'a'.repeat(40);
-function githubFixture(daemon: Awaited<ReturnType<typeof setup>>['daemon']) {
+const githubFixture = (daemon: Awaited<ReturnType<typeof setup>>['daemon']) => {
   const documents = new Map([
     [
       'about-me/LinkedIn-About.md',
@@ -44,7 +40,11 @@ function githubFixture(daemon: Awaited<ReturnType<typeof setup>>['daemon']) {
     return { entries: [...entries.values()] };
   });
   return { documents, spy };
-}
+};
+
+afterEach(cleanup);
+const input = { provider: 'github', repository: 'fictional/resumes', path: 'about-me' };
+const sha = 'a'.repeat(40);
 describe('reviewed profile sources', () => {
   it('imports only selected exact reviewed files, pins nested reads, persists provenance and consumes previews', async () => {
     const { daemon, directory, request } = await setup(14501);

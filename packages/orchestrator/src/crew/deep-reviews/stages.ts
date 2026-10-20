@@ -25,7 +25,7 @@ import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review } from './state.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 
-async function executeReviewStagePrepared(
+const executeReviewStagePrepared = async (
   context: CrewContext,
   live: LiveDeepReview,
   role: Role,
@@ -34,7 +34,7 @@ async function executeReviewStagePrepared(
   child?: ReviewSubagent,
   childSignal?: AbortSignal,
   budgetRequest?: { minutes: number; reason: string },
-) {
+) => {
   assertApplicationRuntime(role);
   if (!context.runtimes.some((r) => r.id === role.runtime && r.available))
     throw new Error('The selected review runtime is unavailable.');
@@ -199,8 +199,8 @@ async function executeReviewStagePrepared(
     context.capabilities.delete(token);
     context.publishChat(true);
   }
-}
+};
 
-export function executeReviewStage(...args: Parameters<typeof executeReviewStagePrepared>) {
+export const executeReviewStage = (...args: Parameters<typeof executeReviewStagePrepared>) => {
   return args[0].runtimeMaintenance.guard(args[2], () => executeReviewStagePrepared(...args));
-}
+};

@@ -8,7 +8,7 @@ import '@fontsource/source-sans-3/latin-400.css';
 import '@fontsource/source-sans-3/latin-600.css';
 import '@/styles.css';
 
-function file(name: string, status: ProfileImportFile['status']): ProfileImportFile {
+const file = (name: string, status: ProfileImportFile['status']): ProfileImportFile => {
   return {
     key: name,
     name,
@@ -24,29 +24,9 @@ function file(name: string, status: ProfileImportFile['status']): ProfileImportF
     content:
       '# Experience\n\nBuilt an accessible scheduling tool for eight teams.\n\n<script>window.injection = true</script>',
   };
-}
-const files = [
-  file('edited.md', 'conflict'),
-  file('updated.md', 'changed'),
-  file('added.md', 'new'),
-  file('same.md', 'unchanged'),
-  ...Array.from({ length: 22 }, (_, i) => file(`Project-${String(i).padStart(2, '0')}.md`, 'new')),
-];
-const mode = new URLSearchParams(location.search).get('mode');
-const initial: ProfileSourcePreview = {
-  token: 'fixture',
-  expiresAt: '2099-01-01T00:00:00Z',
-  source: {
-    id: 'fixture',
-    label: 'Fictional profile notes',
-    input: { provider: 'github', repository: 'fictional/notes', path: 'about-me' },
-    importedAt: '',
-    files: [],
-  },
-  files: mode === 'removed' ? [] : mode === 'unchanged' ? [file('same.md', 'unchanged')] : files,
-  missing: mode === 'unchanged' ? [] : ['Experience/retired.md'],
 };
-function Fixture() {
+
+const Fixture = () => {
   const [preview, setPreview] = useState<ProfileSourcePreview | null>(initial);
   const [selected, setSelected] = useState(
     initial.files.filter((f) => f.status === 'new' || f.status === 'changed').map((f) => f.name),
@@ -75,5 +55,27 @@ function Fixture() {
       />
     </AppMotion>
   );
-}
+};
+
+const files = [
+  file('edited.md', 'conflict'),
+  file('updated.md', 'changed'),
+  file('added.md', 'new'),
+  file('same.md', 'unchanged'),
+  ...Array.from({ length: 22 }, (_, i) => file(`Project-${String(i).padStart(2, '0')}.md`, 'new')),
+];
+const mode = new URLSearchParams(location.search).get('mode');
+const initial: ProfileSourcePreview = {
+  token: 'fixture',
+  expiresAt: '2099-01-01T00:00:00Z',
+  source: {
+    id: 'fixture',
+    label: 'Fictional profile notes',
+    input: { provider: 'github', repository: 'fictional/notes', path: 'about-me' },
+    importedAt: '',
+    files: [],
+  },
+  files: mode === 'removed' ? [] : mode === 'unchanged' ? [file('same.md', 'unchanged')] : files,
+  missing: mode === 'unchanged' ? [] : ['Experience/retired.md'],
+};
 createRoot(document.getElementById('root')!).render(<Fixture />);

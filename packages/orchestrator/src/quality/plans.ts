@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import type { Card, CareerPlan, CareerGap, ProfileFile, GapInput } from '@pitchcrew/core';
 import type { CrewContext } from '../crew/types.ts';
 
-export function planCards(context: CrewContext, plan: CareerPlan) {
+export const planCards = (context: CrewContext, plan: CareerPlan) => {
   const cards = context.board.list<Card>('card');
   return cards.filter(
     (card) =>
@@ -11,8 +11,8 @@ export function planCards(context: CrewContext, plan: CareerPlan) {
         card.tags.some((tag) => tag.toLowerCase() === plan.scope.tag.toLowerCase())) &&
       (!plan.scope.title || card.title.toLowerCase().includes(plan.scope.title.toLowerCase())),
   );
-}
-export function planRevision(context: CrewContext, plan: CareerPlan, profile: ProfileFile[]) {
+};
+export const planRevision = (context: CrewContext, plan: CareerPlan, profile: ProfileFile[]) => {
   return createHash('sha256')
     .update(
       JSON.stringify({
@@ -31,8 +31,8 @@ export function planRevision(context: CrewContext, plan: CareerPlan, profile: Pr
       }),
     )
     .digest('hex');
-}
-export function requirementTexts(card: Card) {
+};
+export const requirementTexts = (card: Card) => {
   const c = card.applicationContext;
   if (!c)
     return card.description
@@ -45,20 +45,20 @@ export function requirementTexts(card: Card) {
     ...c.brief.constraints,
     ...c.requirements.map((r) => r.question),
   ];
-}
-export function savePlan(context: CrewContext, plan: CareerPlan, actor: string) {
+};
+export const savePlan = (context: CrewContext, plan: CareerPlan, actor: string) => {
   const next = { ...plan, revision: plan.revision + 1, updatedAt: new Date().toISOString() };
   context.board.record('career_plan', next, actor, 'Updated career action plan');
   return next;
-}
-export function currentPlan(context: CrewContext, id: string, revision?: number) {
+};
+export const currentPlan = (context: CrewContext, id: string, revision?: number) => {
   const plan = context.board.get<CareerPlan>('career_plan', id);
   if (!plan.name) throw new Error('This career plan was removed.');
   if (revision !== undefined && plan.revision !== revision)
     throw new Error('The career plan changed. Refresh and try again.');
   return structuredClone(plan);
-}
-export function refreshPlan(
+};
+export const refreshPlan = (
   context: CrewContext,
   plan: CareerPlan,
   gaps: GapInput[],
@@ -66,7 +66,7 @@ export function refreshPlan(
   sourceRevision: string,
   coverage: string,
   actor = 'career-coach',
-) {
+) => {
   if (planRevision(context, plan, profile) !== sourceRevision)
     throw new Error('Source jobs or Profile changed. Read the scope again.');
   const cards = new Map(planCards(context, plan).map((c) => [c.id, c]));
@@ -109,4 +109,4 @@ export function refreshPlan(
     if (!keys.has(gap.id) && (gap.active || gap.progress !== 'planned'))
       updated.push({ ...gap, supportedInLatestAnalysis: false });
   return savePlan(context, { ...plan, gaps: updated, sourceRevision, coverage }, actor);
-}
+};

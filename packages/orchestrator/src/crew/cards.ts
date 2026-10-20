@@ -21,22 +21,21 @@ import { join } from 'node:path';
 import { exampleProfile, examples } from '../../test/fixtures/examples.ts';
 import type { CrewContext } from './types.ts';
 import { assertProfileReady, changeProfile } from '../profile-sources/mutation.ts';
-
-/** A user-added job; `provenance` is present when the user fetched it from a posting link. */
-const newCard = cardInput.extend({ provenance: jobLinkProvenance.optional() });
-export function createCard(this: CrewContext, data: unknown): Card {
+export const createCard = (context: CrewContext, data: unknown): Card => {
   const { provenance, ...input } = newCard.parse(data);
-  return provenance ? recordLinkedJob(this.board, input, provenance) : this.board.createCard(input);
-}
-export function moveCard(this: CrewContext, id: string, state: CardState): Card {
-  if (this.board.hasActiveRun(id))
+  return provenance
+    ? recordLinkedJob(context.board, input, provenance)
+    : context.board.createCard(input);
+};
+export const moveCard = (context: CrewContext, id: string, state: CardState): Card => {
+  if (context.board.hasActiveRun(id))
     throw new Error('Wait for the active run or cancel it before moving this card.');
-  const card = this.board.get<Card>('card', id);
+  const card = context.board.get<Card>('card', id);
   if (['drafting', 'in_review', 'agreed', 'awaiting_approval'].includes(state))
     throw new Error('Use the crew workflow for this transition.');
   if (
     state === 'submitted' &&
-    !this.board
+    !context.board
       .list<Approval>('approval')
       .some(
         (a) =>
@@ -48,51 +47,51 @@ export function moveCard(this: CrewContext, id: string, state: CardState): Card 
       )
   )
     throw new Error('Approve and export the reviewed packet before recording a manual submission.');
-  const next = this.board.move(
+  const next = context.board.move(
     id,
     state,
     'user',
     state === 'submitted' ? 'User recorded a manual submission' : undefined,
   );
   if (state === 'changes_requested')
-    for (const approval of this.board
+    for (const approval of context.board
       .list<Approval>('approval')
       .filter((a) => a.cardId === card.id && ['pending', 'approved'].includes(a.status)))
-      this.board.record(
+      context.board.record(
         'approval',
         { ...approval, status: 'rejected', decidedAt: new Date().toISOString() },
         'user',
         'Invalidated approval after requesting changes',
       );
   return next;
-}
-export async function saveProfile(
-  this: CrewContext,
+};
+export const saveProfile = async (
+  context: CrewContext,
   name: string,
   content: string,
-): Promise<ProfileFile[]> {
+): Promise<ProfileFile[]> => {
   if (!/^[\w.-]+\.md$/.test(name) || name.includes('..'))
     throw new Error('Use a simple Markdown filename.');
-  assertProfileReady(this);
-  return changeProfile(this, async () => {
-    await writeFile(join(this.directory, 'profile', name), content, 'utf8');
-    return readProfile(this.directory);
+  assertProfileReady(context);
+  return changeProfile(context, async () => {
+    await writeFile(join(context.directory, 'profile', name), content, 'utf8');
+    return readProfile(context.directory);
   });
-}
-export async function loadExamples(this: CrewContext): Promise<void> {
-  if (!this.dev) throw new Error('Example data is only available in development mode.');
-  if (this.board.list<Card>('card').some((c) => c.sample))
+};
+export const loadExamples = async (context: CrewContext): Promise<void> => {
+  if (!context.dev) throw new Error('Example data is only available in development mode.');
+  if (context.board.list<Card>('card').some((c) => c.sample))
     throw new Error('Example opportunities have already been loaded.');
-  const profile = await readProfile(this.directory);
+  const profile = await readProfile(context.directory);
   if (profile.length)
     throw new Error(
       'Example data uses a fictional profile. Try it in a separate PITCHCREW_HOME to keep your current profile intact.',
     );
-  await this.saveProfile('example.md', exampleProfile);
-  const cards = examples.map((input) => this.board.createCard(input, true));
+  await context.saveProfile('example.md', exampleProfile);
+  const cards = examples.map((input) => context.board.createCard(input, true));
   for (const card of cards)
     saveApplicationContext(
-      this.board,
+      context.board,
       card.id,
       jobSourceRevision(card),
       null,
@@ -109,12 +108,12 @@ export async function loadExamples(this: CrewContext): Promise<void> {
       true,
     );
   const packetFor = async (card: Card) => {
-    const role = this.board.get<Role>('role', 'writer');
+    const role = context.board.get<Role>('role', 'writer');
     const result = await adapters.demo.run({
       card,
       role,
-      profile: await readProfile(this.directory),
-      directory: this.directory,
+      profile: await readProfile(context.directory),
+      directory: context.directory,
       mcp: { command: '', args: [], env: {} },
       signal: new AbortController().signal,
       onMessage: () => {},
@@ -124,19 +123,19 @@ export async function loadExamples(this: CrewContext): Promise<void> {
   };
   for (let i = 1; i < cards.length; i++) {
     const card = cards[i];
-    this.board.updateCard(card.id, { fit: 88 - i * 3 }, 'demo', 'Example fit score');
-    this.board.move(card.id, 'shortlisted', 'demo');
+    context.board.updateCard(card.id, { fit: 88 - i * 3 }, 'demo', 'Example fit score');
+    context.board.move(card.id, 'shortlisted', 'demo');
     if (i >= 2) {
-      this.board.move(card.id, 'drafting', 'demo');
+      context.board.move(card.id, 'drafting', 'demo');
       const packet = await packetFor(card);
-      await writePacket(this.directory, card.id, packet);
-      this.board.updateCard(card.id, { packet }, 'demo', 'Created a fictional sample packet');
-      this.board.move(card.id, 'in_review', 'demo');
+      await writePacket(context.directory, card.id, packet);
+      context.board.updateCard(card.id, { packet }, 'demo', 'Created a fictional sample packet');
+      context.board.move(card.id, 'in_review', 'demo');
     }
     if (i >= 3) {
-      const current = this.board.get<Card>('card', card.id);
+      const current = context.board.get<Card>('card', card.id);
       const revision = current.applicationContext!.revision;
-      this.board.updateCard(
+      context.board.updateCard(
         card.id,
         {
           packetContextRevision: revision,
@@ -150,46 +149,49 @@ export async function loadExamples(this: CrewContext): Promise<void> {
         'demo',
         'Simulated review of the fictional example brief',
       );
-      this.board.move(card.id, 'agreed', 'demo');
+      context.board.move(card.id, 'agreed', 'demo');
     }
-    if (i === 4) this.board.requestApproval(card.id);
+    if (i === 4) context.board.requestApproval(card.id);
     if (i === 5) {
-      const approval = this.board.requestApproval(card.id);
-      this.board.decideApproval(approval.id, true);
-      await exportApprovedPacket(this.board, this.directory, approval.id);
-      this.board.move(card.id, 'submitted', 'demo', 'Example of a manually tracked submission');
-      this.board.move(card.id, 'interviewing', 'demo', 'Example interview stage');
+      const approval = context.board.requestApproval(card.id);
+      context.board.decideApproval(approval.id, true);
+      await exportApprovedPacket(context.board, context.directory, approval.id);
+      context.board.move(card.id, 'submitted', 'demo', 'Example of a manually tracked submission');
+      context.board.move(card.id, 'interviewing', 'demo', 'Example interview stage');
     }
   }
-}
-export async function exportPacket(
-  this: CrewContext,
+};
+export const exportPacket = async (
+  context: CrewContext,
   id: string,
   assertActive?: () => void,
-): Promise<string> {
-  const profileRevision = this.profileRevision;
-  const rulesRevision = JSON.stringify(this.packetRules.current());
-  const approval = this.board.get<Approval>('approval', id);
-  const { errors } = await this.packetRules.check(
+): Promise<string> => {
+  const profileRevision = context.profileRevision;
+  const rulesRevision = JSON.stringify(context.packetRules.current());
+  const approval = context.board.get<Approval>('approval', id);
+  const { errors } = await context.packetRules.check(
     approval.packet,
-    await readProfile(this.directory),
+    await readProfile(context.directory),
   );
-  if (this.profileWriting || this.profileRevision !== profileRevision)
+  if (context.profileWriting || context.profileRevision !== profileRevision)
     throw new Error('Profile changed while checking the packet. Check it again before exporting.');
   assertActive?.();
   if (errors.length)
     throw new Error(
       `This packet no longer passes its checks. Request changes and review it again.\n${errors.join('\n')}`,
     );
-  return exportApprovedPacket(this.board, this.directory, id, () => {
+  return exportApprovedPacket(context.board, context.directory, id, () => {
     assertActive?.();
     if (
-      this.profileWriting ||
-      this.profileRevision !== profileRevision ||
-      JSON.stringify(this.packetRules.current()) !== rulesRevision
+      context.profileWriting ||
+      context.profileRevision !== profileRevision ||
+      JSON.stringify(context.packetRules.current()) !== rulesRevision
     )
       throw new Error(
         'Profile or packet rules changed during document verification. Check again before exporting.',
       );
   });
-}
+};
+
+/** A user-added job; `provenance` is present when the user fetched it from a posting link. */
+const newCard = cardInput.extend({ provenance: jobLinkProvenance.optional() });

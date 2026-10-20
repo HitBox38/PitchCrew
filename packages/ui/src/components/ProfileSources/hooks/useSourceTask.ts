@@ -1,10 +1,7 @@
 import { useRef, useState } from 'react';
 
-export function useSourceTask() {
-  const lock = useRef(false);
-  const [progress, setProgress] = useState<{ label: string; sourceId?: string } | null>(null);
-  const [error, setError] = useState('');
-  async function perform(label: string, action: () => Promise<void>, sourceId?: string) {
+export const useSourceTask = () => {
+  const perform = async (label: string, action: () => Promise<void>, sourceId?: string) => {
     if (lock.current) return;
     lock.current = true;
     setError('');
@@ -17,6 +14,10 @@ export function useSourceTask() {
       lock.current = false;
       setProgress(null);
     }
-  }
+  };
+
+  const lock = useRef(false);
+  const [progress, setProgress] = useState<{ label: string; sourceId?: string } | null>(null);
+  const [error, setError] = useState('');
   return { progress, error, setError, perform };
-}
+};

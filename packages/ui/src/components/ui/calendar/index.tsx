@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { calendarClasses } from './constants.ts';
 import { CalendarDayButton } from './components/CalendarDayButton.tsx';
 
-export function Calendar({ className, classNames, components, ...props }: DayPickerProps) {
+export const Calendar = ({ className, classNames, components, ...props }: DayPickerProps) => {
   return (
     <DayPicker
       showOutsideDays
@@ -23,4 +23,4 @@ export function Calendar({ className, classNames, components, ...props }: DayPic
       {...props}
     />
   );
-}
+};

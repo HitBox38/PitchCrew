@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils.ts';
 import type { VariantProps } from 'class-variance-authority';
 import { bubbleVariants } from '../constants.ts';
 
-export function Bubble({
+export const Bubble = ({
   variant = 'default',
   align = 'start',
   className,
@@ -11,7 +11,7 @@ export function Bubble({
 }: React.ComponentProps<'div'> &
   VariantProps<typeof bubbleVariants> & {
     align?: 'start' | 'end';
-  }) {
+  }) => {
   return (
     <div
       data-slot="bubble"
@@ -21,4 +21,4 @@ export function Bubble({
       {...props}
     />
   );
-}
+};

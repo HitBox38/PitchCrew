@@ -1,10 +1,12 @@
 import { ipcMain, type BrowserWindow } from 'electron';
 import { trustedUpdateSender } from './updates/ipc.ts';
 
-export const startupChannel = 'pitchcrew:startup:timing';
-
 /** One initial document in the first window can read the process launch clock once. */
-export function installStartupTiming(window: BrowserWindow, origin: string, daemonReadyMs: number) {
+export const installStartupTiming = (
+  window: BrowserWindow,
+  origin: string,
+  daemonReadyMs: number,
+) => {
   let navigations = 0;
   let consumed = false;
   window.webContents.on('did-start-navigation', (details) => {
@@ -21,4 +23,6 @@ export function installStartupTiming(window: BrowserWindow, origin: string, daem
       daemon_ready_ms: Math.round(daemonReadyMs),
     };
   });
-}
+};
+
+export const startupChannel = 'pitchcrew:startup:timing';

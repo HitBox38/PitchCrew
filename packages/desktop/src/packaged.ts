@@ -1,12 +1,7 @@
 import { fork, type ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
 
-let launcher: ChildProcess | undefined;
-let canUpdate = false;
-let ownsDaemon = false;
-let requestId = 0;
-
-export async function startPackagedDaemon(resources: string) {
+export const startPackagedDaemon = async (resources: string) => {
   const runtime = join(resources, 'runtime');
   launcher = fork(join(runtime, 'scripts/packaged-launcher.ts'), [], {
     execPath: join(runtime, 'node', process.platform === 'win32' ? 'node.exe' : 'node'),
@@ -34,15 +29,16 @@ export async function startPackagedDaemon(resources: string) {
       resolve(message.url);
     });
   });
-}
+};
 
-export function stopPackagedDaemon() {
+export const stopPackagedDaemon = () => {
   if (launcher?.connected) launcher.send('stop');
-}
+};
 
-export const canUpdatePackagedDaemon = () => canUpdate;
-
-export function requestDaemonUpdate(action: 'prepare-update' | 'recover-update', version?: string) {
+export const requestDaemonUpdate = (
+  action: 'prepare-update' | 'recover-update',
+  version?: string,
+) => {
   return new Promise<void>((resolve, reject) => {
     const child = launcher;
     if (!child?.connected) {
@@ -84,6 +80,13 @@ export function requestDaemonUpdate(action: 'prepare-update' | 'recover-update',
       }
     });
   });
-}
+};
+
+let launcher: ChildProcess | undefined;
+let canUpdate = false;
+let ownsDaemon = false;
+let requestId = 0;
+
+export const canUpdatePackagedDaemon = () => canUpdate;
 
 export const ownsPackagedDaemon = () => ownsDaemon;

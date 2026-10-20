@@ -4,7 +4,13 @@ import { Button } from '@/components/ui/button/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 
-export function QueueCardHeading({ queue, handle }: { queue: WorkQueueView; handle?: ReactNode }) {
+export const QueueCardHeading = ({
+  queue,
+  handle,
+}: {
+  queue: WorkQueueView;
+  handle?: ReactNode;
+}) => {
   const action = useWorkspaceStore((s) => s.action);
   const openCard = useWorkspaceStore((s) => s.openCard);
   const working = useWorkspaceStore((s) => s.working);
@@ -56,4 +62,4 @@ export function QueueCardHeading({ queue, handle }: { queue: WorkQueueView; hand
       </div>
     </div>
   );
-}
+};

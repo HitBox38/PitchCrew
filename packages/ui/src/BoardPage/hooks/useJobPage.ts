@@ -4,7 +4,7 @@ import { pageRange } from '../../lib/pagination.ts';
 import { revealedJobPage, type JobReveal } from '../pagination.ts';
 export type { JobReveal } from '../pagination.ts';
 
-export function useJobPage(cards: Card[], size: number, query: string, reveal: JobReveal) {
+export const useJobPage = (cards: Card[], size: number, query: string, reveal: JobReveal) => {
   const [position, setPosition] = useState(() => ({
     page: revealedJobPage(cards, size, reveal),
     query,
@@ -22,4 +22,4 @@ export function useJobPage(cards: Card[], size: number, query: string, reveal: J
     cards: cards.slice(range.start, range.end),
     setPage: (page: number) => setPosition({ page, query, reveal }),
   };
-}
+};

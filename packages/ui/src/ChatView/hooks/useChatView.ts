@@ -11,7 +11,7 @@ import type { ChatReference } from '@pitchcrew/core';
 import type { ChatMessage } from '@pitchcrew/core';
 import { useMemo, useRef, useState } from 'react';
 
-export function useChatView(props: ChatViewProps) {
+export const useChatView = (props: ChatViewProps) => {
   const { thread, action, working } = props;
   const runs = useMemo(() => {
     const runsById = new Map(props.data.runs.map((run) => [run.id, run]));
@@ -141,7 +141,7 @@ export function useChatView(props: ChatViewProps) {
     setDraftReferences([]);
     inputRef.current?.focus();
   };
-  async function send(text: string, intent: 'queue' | 'interrupt' = 'queue') {
+  const send = async (text: string, intent: 'queue' | 'interrupt' = 'queue') => {
     if (
       (!text.trim() && !attachments.files.length) ||
       working ||
@@ -182,7 +182,8 @@ export function useChatView(props: ChatViewProps) {
     } finally {
       sendingRef.current = false;
     }
-  }
+  };
+
   return {
     ...props,
     data,
@@ -235,4 +236,4 @@ export function useChatView(props: ChatViewProps) {
     ],
     recipientItems: participants.map((id) => ({ value: id, label: name(id) })),
   };
-}
+};

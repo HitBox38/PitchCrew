@@ -1,7 +1,7 @@
 import { signedWeight, weightLabels } from '@/lib/labels.ts';
 import type { ApplicationInsights } from '@pitchcrew/core/insights';
 
-export function WeightDistribution({ insights }: { insights: ApplicationInsights }) {
+export const WeightDistribution = ({ insights }: { insights: ApplicationInsights }) => {
   const largest = Math.max(1, ...insights.weights.map((item) => item.count));
   return (
     <section className="insights-panel" aria-labelledby="insights-weights">
@@ -26,4 +26,4 @@ export function WeightDistribution({ insights }: { insights: ApplicationInsights
       </ul>
     </section>
   );
-}
+};

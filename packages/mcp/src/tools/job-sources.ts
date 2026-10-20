@@ -4,7 +4,7 @@ import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
 /** Registered only for roles with discoverJobs; the daemon rechecks the capability on each call. */
-export async function registerJobSourceTools(server: McpServer, call: AgentCall) {
+export const registerJobSourceTools = async (server: McpServer, call: AgentCall) => {
   const access = await call('job_discovery_access');
   if (access.structuredContent?.discoverJobs !== true) return;
   server.registerTool(
@@ -40,4 +40,4 @@ export async function registerJobSourceTools(server: McpServer, call: AgentCall)
     },
     (input) => call('scan_job_sources', input),
   );
-}
+};

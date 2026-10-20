@@ -6,7 +6,7 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { turn } from '../constants';
 
 // Mirrors the app's ChatTurn markup; commentary is plain text, so it skips the Markdown renderer.
-export function DemoTurn() {
+export const DemoTurn = () => {
   return (
     <section className="chat-turn" aria-label="Writer turn activity">
       <div className="chat-turn-heading flex items-center gap-2 text-detail text-muted-foreground">
@@ -29,4 +29,4 @@ export function DemoTurn() {
       </div>
     </section>
   );
-}
+};

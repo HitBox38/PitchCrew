@@ -12,19 +12,7 @@ import type {
   UserInputRequest,
 } from '@pitchcrew/core';
 import { setup, cleanup, waitForSnapshot } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-const fixture = () => setup(19544);
-const questionBody = {
-  question: 'Which achievement should I emphasize?',
-  reason: 'The draft needs a clear focus.',
-  continuationNotes: 'I have reviewed the profile. Next, draft the opening.',
-  options: [
-    { id: 'accessibility', label: 'Accessibility' },
-    { id: 'performance', label: 'Performance' },
-  ],
-};
-function heldTurns() {
+const heldTurns = () => {
   const turns: { context: ChatContext; complete: () => void }[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     (context) =>
@@ -36,8 +24,8 @@ function heldTurns() {
       }),
   );
   return turns;
-}
-async function begin() {
+};
+const begin = async () => {
   const fixtureData = await fixture();
   const turns = heldTurns();
   const group = (
@@ -53,7 +41,19 @@ async function begin() {
   await vi.waitFor(() => expect(turns).toHaveLength(1));
   const token = turns[0].context.mcp.env.PITCHCREW_RUN_TOKEN;
   return { ...fixtureData, turns, group, token };
-}
+};
+
+afterEach(cleanup);
+const fixture = () => setup(19544);
+const questionBody = {
+  question: 'Which achievement should I emphasize?',
+  reason: 'The draft needs a clear focus.',
+  continuationNotes: 'I have reviewed the profile. Next, draft the opening.',
+  options: [
+    { id: 'accessibility', label: 'Accessibility' },
+    { id: 'performance', label: 'Performance' },
+  ],
+};
 it('saves an inline question, ends execution and routes its answer only to the asking agent', async () => {
   const { daemon, request, turns, group, token } = await begin();
   const result = await daemon.service.agentCall(token, 'ask_user', questionBody);

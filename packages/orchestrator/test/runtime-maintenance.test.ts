@@ -4,21 +4,7 @@ import type { RuntimeAuthentication, RuntimeMaintenanceState, Snapshot } from '@
 import { RuntimeHeldError } from '../src/runtime-maintenance/availability.ts';
 import { RuntimeMaintenance } from '../src/runtime-maintenance/index.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
-
-afterEach(cleanup);
-const installation: RuntimeInstallation = {
-  executable: '/fixture/codex',
-  realPath: '/fixture/codex',
-  identity: 'fixture-codex-npm',
-  installer: 'npm',
-  command: {
-    file: '/fixture/node',
-    args: ['fixture-npm.js', 'install', '--global', '--prefix', '/fixture', '@openai/codex@latest'],
-  },
-  manualCommand: 'fixture manual update',
-  detail: 'Fixture installer',
-};
-async function fixture() {
+const fixture = async () => {
   const test = await setup(14991);
   const manager = test.daemon.service.runtimeMaintenance;
   manager.enabled = true;
@@ -50,7 +36,21 @@ async function fixture() {
     detail: 'Fixture runtime',
   });
   return { ...test, manager };
-}
+};
+
+afterEach(cleanup);
+const installation: RuntimeInstallation = {
+  executable: '/fixture/codex',
+  realPath: '/fixture/codex',
+  identity: 'fixture-codex-npm',
+  installer: 'npm',
+  command: {
+    file: '/fixture/node',
+    args: ['fixture-npm.js', 'install', '--global', '--prefix', '/fixture', '@openai/codex@latest'],
+  },
+  manualCommand: 'fixture manual update',
+  detail: 'Fixture installer',
+};
 
 it('requires a local UI session and rejects renderer-supplied installer arguments', async () => {
   const { daemon, request } = await fixture();

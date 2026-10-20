@@ -3,10 +3,10 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { LoaderCircle } from 'lucide-react';
 import type { useApp } from '../hooks/useApp.ts';
 
-export function WorkspaceBoot({
+export const WorkspaceBoot = ({
   error,
   reload,
-}: Pick<ReturnType<typeof useApp>, 'error' | 'reload'>) {
+}: Pick<ReturnType<typeof useApp>, 'error' | 'reload'>) => {
   return (
     <div className="boot">
       <Brand />
@@ -20,4 +20,4 @@ export function WorkspaceBoot({
       )}
     </div>
   );
-}
+};

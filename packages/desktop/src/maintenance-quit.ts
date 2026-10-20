@@ -1,9 +1,9 @@
 /** Native-independent lifecycle logic, also exercised by deterministic desktop fixtures. */
-export async function waitForMaintenance(deps: {
+export const waitForMaintenance = async (deps: {
   busy: () => Promise<boolean>;
   show: (signal: AbortSignal, cancel: () => void) => void;
   wait: () => Promise<void>;
-}): Promise<boolean> {
+}): Promise<boolean> => {
   if (!(await deps.busy())) return true;
   const controller = new AbortController();
   let cancelled = false;
@@ -19,4 +19,4 @@ export async function waitForMaintenance(deps: {
   } finally {
     controller.abort();
   }
-}
+};

@@ -14,18 +14,11 @@ import { lookupDeadlineMs, lookupJobLink, type LookupDependencies } from './look
 import { structuredJobDetails } from './page-details.ts';
 import type { ReadJobPage } from './public-page.ts';
 
-const record = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-const text = (value: unknown) => (typeof value === 'string' ? htmlToText(value) : '');
-const unsupported = (reason: string): JobLookupResult => ({ status: 'unrecognized', reason });
-
 /** Fixed SmartRecruiters posting API; response URLs and references never drive requests. */
-async function smartRecruiters(
+const smartRecruiters = async (
   link: { company: string; id: string },
   dependencies: LookupDependencies,
-) {
+) => {
   const endpoint = new URL(
     `https://api.smartrecruiters.com/v1/companies/${link.company}/postings/${link.id}`,
   );
@@ -59,15 +52,15 @@ async function smartRecruiters(
       .slice(0, 20_000),
   });
   return parsed.success ? parsed.data : null;
-}
+};
 
 /** Read-only user prefill: provider APIs first, then structured public posting pages. */
-export async function lookupPublicJobLink(
+export const lookupPublicJobLink = async (
   value: unknown,
   provided: LookupDependencies & {
     readPage: ReadJobPage;
   },
-): Promise<JobLookupResult> {
+): Promise<JobLookupResult> => {
   const { url } = jobLookupInput.parse(value);
   const dependencies = {
     ...provided,
@@ -130,4 +123,11 @@ export async function lookupPublicJobLink(
       'Could not read this public posting automatically. Ask Scout to read it, or paste the posting text.',
     );
   }
-}
+};
+
+const record = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+const text = (value: unknown) => (typeof value === 'string' ? htmlToText(value) : '');
+const unsupported = (reason: string): JobLookupResult => ({ status: 'unrecognized', reason });

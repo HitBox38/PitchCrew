@@ -4,7 +4,7 @@ import { LoaderCircle } from 'lucide-react';
 import SkillUpdateChanges from './SkillUpdateChanges.tsx';
 import { SkillUpdateActions } from './SkillUpdateActions.tsx';
 
-export function SkillUpdateReview(c: ReturnType<typeof useSkillUpdate>) {
+export const SkillUpdateReview = (c: ReturnType<typeof useSkillUpdate>) => {
   return (
     <Modal title="Review skill update" onClose={c.close} className="skill-update-dialog">
       <div className="skill-update-scroll">
@@ -39,4 +39,4 @@ export function SkillUpdateReview(c: ReturnType<typeof useSkillUpdate>) {
       <SkillUpdateActions {...c} />
     </Modal>
   );
-}
+};

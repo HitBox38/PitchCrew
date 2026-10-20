@@ -5,7 +5,7 @@ import type { Snapshot } from '@pitchcrew/core';
 import type { useRoutinesPage } from '../hooks/useRoutinesPage.ts';
 import { RoutineEditor } from './RoutineEditor.tsx';
 
-export function RoutineDialogs({
+export const RoutineDialogs = ({
   controller,
   data,
   action,
@@ -15,7 +15,7 @@ export function RoutineDialogs({
   data: Snapshot;
   action: Action;
   working: boolean;
-}) {
+}) => {
   return (
     <>
       {controller.editing ? (
@@ -65,4 +65,4 @@ export function RoutineDialogs({
       ) : null}
     </>
   );
-}
+};

@@ -2,7 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { Snapshot, UserInputRequest } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { MessageCircleQuestion, Check, X } from 'lucide-react';
-export function QuestionMessage({
+export const QuestionMessage = ({
   question,
   data,
   onAnswer,
@@ -10,7 +10,7 @@ export function QuestionMessage({
   question: UserInputRequest;
   data: Snapshot;
   onAnswer: (id: string) => void;
-}) {
+}) => {
   const continuation = data.chatRequests?.find(
     (request) => request.id === question.continuationRequestId,
   );
@@ -61,4 +61,4 @@ export function QuestionMessage({
       ) : null}
     </div>
   );
-}
+};

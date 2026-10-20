@@ -2,17 +2,17 @@ import type { Metadata } from 'next';
 import { documentationUrl, releasesUrl, repository } from '../lib/links';
 import { searchDescription, searchTitle } from './constants';
 
-export function canIndex(
+export const canIndex = (
   origin: string | undefined,
   runtime: string | undefined,
   deployment: string | undefined,
-) {
+) => {
   return (
     Boolean(origin) && runtime === 'production' && (!deployment || deployment === 'production')
   );
-}
+};
 
-export function createMetadata(origin: string | undefined, index: boolean): Metadata {
+export const createMetadata = (origin: string | undefined, index: boolean): Metadata => {
   return {
     title: searchTitle,
     description: searchDescription,
@@ -35,9 +35,9 @@ export function createMetadata(origin: string | undefined, index: boolean): Meta
     },
     twitter: { card: 'summary_large_image', title: searchTitle, description: searchDescription },
   };
-}
+};
 
-export function structuredData(origin: string | undefined) {
+export const structuredData = (origin: string | undefined) => {
   const app = {
     '@type': 'SoftwareApplication',
     name: 'Pitchcrew',
@@ -88,8 +88,8 @@ export function structuredData(origin: string | undefined) {
         ]
       : [app],
   };
-}
+};
 
-export function serializeJsonLd(value: unknown): string {
+export const serializeJsonLd = (value: unknown): string => {
   return JSON.stringify(value).replace(/</g, '\\u003c');
-}
+};

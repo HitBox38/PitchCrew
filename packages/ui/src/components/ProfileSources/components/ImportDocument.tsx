@@ -8,7 +8,7 @@ import type { ProfileImportFile } from '@pitchcrew/core';
 import { importStatus } from '../helpers.ts';
 import { ImportDocumentPreview } from './ImportDocumentPreview.tsx';
 
-export function ImportDocument({
+export const ImportDocument = ({
   file,
   selected,
   toggle,
@@ -20,7 +20,7 @@ export function ImportDocument({
   toggle: (name: string) => void;
   busy: boolean;
   expanded: boolean;
-}) {
+}) => {
   return (
     <AccordionItem value={file.name} className="profile-import-document" data-status={file.status}>
       <div className="flex items-center gap-1 pr-2" data-selected={selected || undefined}>
@@ -42,4 +42,4 @@ export function ImportDocument({
       <AccordionContent>{expanded ? <ImportDocumentPreview file={file} /> : null}</AccordionContent>
     </AccordionItem>
   );
-}
+};

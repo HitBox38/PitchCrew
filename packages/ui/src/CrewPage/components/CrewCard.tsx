@@ -5,7 +5,7 @@ import { runtimeLabels } from '@/lib/labels.ts';
 import { instructionUpdateTitle } from '@/lib/instruction-updates.ts';
 import { MessageSquare, RotateCcw, SlidersHorizontal, Sparkles } from 'lucide-react';
 
-export function CrewCard({
+export const CrewCard = ({
   role,
   status,
   update,
@@ -13,7 +13,7 @@ export function CrewCard({
   onChat,
   onRestore,
   working,
-}: CrewCardProps) {
+}: CrewCardProps) => {
   return (
     <section className={`crew-card ${role.id}`} data-retired={role.retiredAt ? '' : undefined}>
       <div className="crew-card-top">
@@ -67,4 +67,4 @@ export function CrewCard({
       ) : null}
     </section>
   );
-}
+};

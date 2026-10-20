@@ -3,7 +3,7 @@ import { connectorTools } from '../connectors/tools.ts';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export async function registerConnectorsTools(server: McpServer, call: AgentCall) {
+export const registerConnectorsTools = async (server: McpServer, call: AgentCall) => {
   const access = await call('connector_access');
   const allowed = new Set(
     'structuredContent' in access && Array.isArray(access.structuredContent?.tools)
@@ -22,4 +22,4 @@ export async function registerConnectorsTools(server: McpServer, call: AgentCall
       (input: Record<string, unknown>) => call('connector', { tool: name, input }),
     );
   }
-}
+};

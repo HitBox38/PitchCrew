@@ -3,7 +3,7 @@ import { Brand } from '../components/Brand';
 import { repository } from '../lib/links';
 import { Theme } from '../Theme';
 
-export function Header() {
+export const Header = () => {
   return (
     <header className="site-header">
       <Brand />
@@ -28,4 +28,4 @@ export function Header() {
       </nav>
     </header>
   );
-}
+};

@@ -1,7 +1,7 @@
 import type { SidebarMenuProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
+export const SidebarMenu = ({ className, ...props }: SidebarMenuProps) => {
   return (
     <ul
       data-slot="sidebar-menu"
@@ -13,4 +13,4 @@ export function SidebarMenu({ className, ...props }: SidebarMenuProps) {
       {...props}
     />
   );
-}
+};

@@ -10,7 +10,7 @@ import type { Board } from '../index.ts';
 import { jobSourceRevision } from './application-context.ts';
 
 /** The editing chat may update its own card; other active work must finish first. */
-export function assertJobDetailsChange(board: Board, cardId: string, runId: string): Card {
+export const assertJobDetailsChange = (board: Board, cardId: string, runId: string): Card => {
   const card = board.get<Card>('card', cardId);
   if (card.deletedAt) throw new Error('This job was deleted.');
   if (
@@ -31,16 +31,16 @@ export function assertJobDetailsChange(board: Board, cardId: string, runId: stri
       'Finish active job work and resolve uncertain submissions before updating this job.',
     );
   return card;
-}
+};
 
 /** Caller holds the transaction that checked ownership and the current source. */
-export function recordJobSourceChange(
+export const recordJobSourceChange = (
   board: Board,
   card: Card,
   next: Card,
   actor: string,
   reason: string,
-): Card {
+): Card => {
   if (jobSourceRevision(next) === jobSourceRevision(card)) return card;
   const now = new Date().toISOString();
   const saved: Card = {
@@ -70,16 +70,16 @@ export function recordJobSourceChange(
         'Invalidated browser approval after job details changed',
       );
   return saved;
-}
+};
 
-export function updateJobDetails(
+export const updateJobDetails = (
   board: Board,
   cardId: string,
   data: unknown,
   actor: string,
   runId: string,
   reason: string,
-): Card {
+): Card => {
   const changes = jobDetailsChanges.parse(data);
   return board.db.transaction(() => {
     const card = assertJobDetailsChange(board, cardId, runId);
@@ -88,4 +88,4 @@ export function updateJobDetails(
       if (changes[key] !== undefined) next[key] = changes[key];
     return recordJobSourceChange(board, card, next, actor, reason);
   })();
-}
+};

@@ -1,11 +1,6 @@
 import { serialize, type DefaultTreeAdapterMap } from 'parse5';
 
-type Node = DefaultTreeAdapterMap['node'];
-type Element = DefaultTreeAdapterMap['element'];
-const attr = (node: Element, name: string) => node.attrs.find((item) => item.name === name)?.value;
-const skipped = new Set(['script', 'style', 'template', 'noscript']);
-
-function scope(root: Element, depth = 0): Record<string, unknown> {
+const scope = (root: Element, depth = 0): Record<string, unknown> => {
   const values = new Map<string, unknown[]>();
   const nodes: Node[] = [...root.childNodes].reverse();
   if (depth > 12) return {};
@@ -29,10 +24,10 @@ function scope(root: Element, depth = 0): Record<string, unknown> {
   return Object.fromEntries(
     [...values].map(([key, entries]) => [key, entries.length === 1 ? entries[0] : entries]),
   );
-}
+};
 
 /** Read schema.org microdata only; nested organizations and addresses retain their scopes. */
-export function microdataJobPostings(root: Node) {
+export const microdataJobPostings = (root: Node) => {
   const nodes: Node[] = [root];
   const postings: Record<string, unknown>[] = [];
   while (nodes.length) {
@@ -49,4 +44,9 @@ export function microdataJobPostings(root: Node) {
     if ('childNodes' in node) nodes.push(...node.childNodes);
   }
   return postings;
-}
+};
+
+type Node = DefaultTreeAdapterMap['node'];
+type Element = DefaultTreeAdapterMap['element'];
+const attr = (node: Element, name: string) => node.attrs.find((item) => item.name === name)?.value;
+const skipped = new Set(['script', 'style', 'template', 'noscript']);

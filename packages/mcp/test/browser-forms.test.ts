@@ -11,6 +11,10 @@ vi.mock('node:dns/promises', () => ({ lookup: async () => [{ address: '8.8.8.8',
 it.each(Object.entries(applicationHosts))(
   'prepares %s native controls but gates submission and blocks automatic writes',
   async (_provider, hosts) => {
+    const execute = async (approvalId: string) => {
+      return manager.execute(scope.runId, approvalId, new AbortController().signal, () => {}, 0);
+    };
+
     const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-browser-form-'));
     const board = new Board(join(directory, 'board.db'));
     const browser = await chromium.launch({ headless: true });
@@ -32,9 +36,6 @@ it.each(Object.entries(applicationHosts))(
     const scope = { runId: 'native-form-run', roleId: 'writer', cardId: null };
     const origin = `https://${hosts[0]}`;
     manager.browsers.bind({ ...scope, taskId: 'task', mode: 'autonomous' });
-    async function execute(approvalId: string) {
-      return manager.execute(scope.runId, approvalId, new AbortController().signal, () => {}, 0);
-    }
     try {
       const navigation = await manager.request(
         scope,

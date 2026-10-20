@@ -3,7 +3,7 @@ import { writerNote } from '../helpers';
 import { profileFile } from '../constants';
 import type { Claim } from '../types';
 
-export function ReviewNote({
+export const ReviewNote = ({
   claim,
   className = '',
   writer = false,
@@ -11,7 +11,7 @@ export function ReviewNote({
   claim: Claim;
   className?: string;
   writer?: boolean;
-}) {
+}) => {
   return (
     <div className={`review-note ${className}`}>
       <p className="note-who">
@@ -40,4 +40,4 @@ export function ReviewNote({
       {writer ? <p className="note-writer">Writer: {writerNote(claim)}</p> : null}
     </div>
   );
-}
+};

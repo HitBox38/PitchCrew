@@ -7,7 +7,7 @@ import { useJobCommands } from '../hooks/useJobCommands.ts';
 import { JobCommandPages } from './JobCommandPages.tsx';
 import { stateLabels } from '@/lib/labels.ts';
 
-export function JobCommands({ cards, run, onOpenCard }: JobCommandsProps) {
+export const JobCommands = ({ cards, run, onOpenCard }: JobCommandsProps) => {
   const page = useJobCommands(cards);
   if (!page.total) return null;
   return (
@@ -29,4 +29,4 @@ export function JobCommands({ cards, run, onOpenCard }: JobCommandsProps) {
       <JobCommandPages {...page} />
     </CommandGroup>
   );
-}
+};

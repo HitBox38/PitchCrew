@@ -1,7 +1,7 @@
 import type { SheetFooterProps } from '@/components/ui/sheet/types.ts';
 import { cn } from '@/lib/utils';
 
-export function SheetFooter({ className, ...props }: SheetFooterProps) {
+export const SheetFooter = ({ className, ...props }: SheetFooterProps) => {
   return (
     <div
       data-slot="sheet-footer"
@@ -12,4 +12,4 @@ export function SheetFooter({ className, ...props }: SheetFooterProps) {
       {...props}
     />
   );
-}
+};

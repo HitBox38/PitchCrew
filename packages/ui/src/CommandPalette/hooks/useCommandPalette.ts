@@ -1,7 +1,7 @@
 import type { CommandPaletteProps } from '@/CommandPalette/types.ts';
 import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
 
-export function useCommandPalette({
+export const useCommandPalette = ({
   open,
   onOpenChange,
   cards,
@@ -14,7 +14,7 @@ export function useCommandPalette({
   onCheckRuntimes,
   onTheme,
   onCopyDirectory,
-}: CommandPaletteProps) {
+}: CommandPaletteProps) => {
   const { toggleSidebar } = useSidebar();
   const run = (fn: () => void) => () => {
     onOpenChange(false);
@@ -36,4 +36,4 @@ export function useCommandPalette({
     toggleSidebar,
     run,
   };
-}
+};

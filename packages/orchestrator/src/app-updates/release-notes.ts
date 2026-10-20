@@ -1,5 +1,5 @@
 /** A bounded text-only preview of GitHub's generated changelog, never release HTML. */
-export function releaseNotes(body: string | null | undefined) {
+export const releaseNotes = (body: string | null | undefined) => {
   const section = body?.split(/^##\s+what(?:'s|’s)?\s+changed\s*$/im)[1]?.split(/^##\s/m)[0];
   const changes = (section?.split('\n') ?? [])
     .filter((line) => /^\s*[-*]\s+/.test(line))
@@ -22,4 +22,4 @@ export function releaseNotes(body: string | null | undefined) {
       .map((change) => (change.length > 180 ? `${change.slice(0, 179)}…` : change)),
     moreChanges: changes.length > 5 || changes.some((change) => change.length > 180),
   };
-}
+};

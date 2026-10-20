@@ -5,30 +5,12 @@ import { filterSuggestions } from '../helpers.ts';
 import { $createReferenceNode } from '../ReferenceNode.ts';
 import type { ComposerEditorProps, ComposerSuggestion } from '../types.ts';
 
-export function useSuggestions(
+export const useSuggestions = (
   props: ComposerEditorProps,
   caret: number | null,
   editor: LexicalEditor,
-) {
-  const id = useId();
-  const [activeState, setActive] = useState({ signature: '', index: 0 });
-  const [dismissed, setDismissed] = useState<string | null>(null);
-  const trigger = caret === null ? null : chatTrigger(props.value, caret);
-  const signature = trigger ? `${trigger.start}:${trigger.symbol}:${trigger.query}` : '';
-  const items = trigger
-    ? filterSuggestions(props.suggestions, trigger).map((item) =>
-        item.reference?.kind === 'action' &&
-        !/^\s*(?:@[a-z][a-z0-9-]*\s+)*$/.test(props.value.slice(0, trigger.start))
-          ? { ...item, disabled: 'Use this action at the start of the message' }
-          : item,
-      )
-    : [];
-  const active =
-    activeState.signature === signature
-      ? Math.min(activeState.index, items.length - 1)
-      : items.findIndex((item) => !item.disabled);
-  const open = !!trigger && dismissed !== signature && !props.disabled;
-  function choose(item: ComposerSuggestion) {
+) => {
+  const choose = (item: ComposerSuggestion) => {
     if (!trigger || item.disabled) return;
     editor.update(() => {
       const selection = $getSelection();
@@ -64,8 +46,8 @@ export function useSuggestions(
       } else props.onAction(item.action);
     }
     editor.focus();
-  }
-  function move(direction: number) {
+  };
+  const move = (direction: number) => {
     for (let step = 1; step <= items.length; step++) {
       const index = (Math.max(active, 0) + direction * step + items.length * 2) % items.length;
       if (!items[index]?.disabled) {
@@ -73,6 +55,25 @@ export function useSuggestions(
         break;
       }
     }
-  }
+  };
+
+  const id = useId();
+  const [activeState, setActive] = useState({ signature: '', index: 0 });
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const trigger = caret === null ? null : chatTrigger(props.value, caret);
+  const signature = trigger ? `${trigger.start}:${trigger.symbol}:${trigger.query}` : '';
+  const items = trigger
+    ? filterSuggestions(props.suggestions, trigger).map((item) =>
+        item.reference?.kind === 'action' &&
+        !/^\s*(?:@[a-z][a-z0-9-]*\s+)*$/.test(props.value.slice(0, trigger.start))
+          ? { ...item, disabled: 'Use this action at the start of the message' }
+          : item,
+      )
+    : [];
+  const active =
+    activeState.signature === signature
+      ? Math.min(activeState.index, items.length - 1)
+      : items.findIndex((item) => !item.disabled);
+  const open = !!trigger && dismissed !== signature && !props.disabled;
   return { id, open, trigger, items, active, choose, move, close: () => setDismissed(signature) };
-}
+};

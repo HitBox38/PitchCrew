@@ -1,13 +1,13 @@
 import type { JobLookupDuplicate } from '@pitchcrew/core';
 import { duplicateText } from '../helpers.ts';
 
-export function LookupNotice({
+export const LookupNotice = ({
   message,
   duplicates,
 }: {
   message: string;
   duplicates: JobLookupDuplicate[];
-}) {
+}) => {
   if (!message && !duplicates.length) return null;
   return (
     <output className="quiet block font-normal" aria-live="polite">
@@ -24,4 +24,4 @@ export function LookupNotice({
       ) : null}
     </output>
   );
-}
+};

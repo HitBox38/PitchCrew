@@ -1,13 +1,13 @@
 import type { ApplicationImportReport } from '@pitchcrew/core';
 import { importCounts } from '../helpers.ts';
 
-export function ImportSummary({
+export const ImportSummary = ({
   report,
   applied,
 }: {
   report: ApplicationImportReport;
   applied: boolean;
-}) {
+}) => {
   return (
     <section className="mt-4" aria-live="polite">
       <h3>{applied ? 'Import result' : 'Preview'}</h3>
@@ -22,4 +22,4 @@ export function ImportSummary({
       ) : null}
     </section>
   );
-}
+};

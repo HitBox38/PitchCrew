@@ -5,23 +5,10 @@ import { join, resolve } from 'node:path';
 import { maxBytes } from './helpers.ts';
 import { googleCliExecutable } from './google-cli-executable.ts';
 
-export type GoogleCliRunner = (
-  args: readonly string[],
-  signal: AbortSignal,
-  download?: boolean,
-) => Promise<{ stdout: string; exitCode: number; text?: string; mimeType?: string }>;
-export class GoogleCliMissingError extends Error {
-  constructor() {
-    super('Install Google Workspace CLI (gws), then try connecting again.');
-  }
-}
-const tooLarge = () =>
-  new Error('Connector response is too large. Narrow the query or select a smaller file.');
-
-export function createGoogleCliRunner(
+export const createGoogleCliRunner = (
   command?: string,
   prefix: readonly string[] = [],
-): GoogleCliRunner {
+): GoogleCliRunner => {
   return async (args, signal, download = false) => {
     signal.throwIfAborted();
     const executable = command ?? (await googleCliExecutable());
@@ -84,16 +71,16 @@ export function createGoogleCliRunner(
         await rm(folder, { recursive: true, force: true });
     }
   };
-}
+};
 
-function execute(
+const execute = (
   command: string,
   prefix: readonly string[],
   args: readonly string[],
   signal: AbortSignal,
   folder: string,
   output?: string,
-) {
+) => {
   return new Promise<{ stdout: string; exitCode: number }>((resolveResult, reject) => {
     const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: '1' };
     // auth status reports the saved OAuth account. Ignore alternate credential
@@ -156,4 +143,17 @@ function execute(
       else resolveResult({ stdout: Buffer.concat(chunks).toString('utf8'), exitCode: code ?? 1 });
     });
   });
+};
+
+export type GoogleCliRunner = (
+  args: readonly string[],
+  signal: AbortSignal,
+  download?: boolean,
+) => Promise<{ stdout: string; exitCode: number; text?: string; mimeType?: string }>;
+export class GoogleCliMissingError extends Error {
+  constructor() {
+    super('Install Google Workspace CLI (gws), then try connecting again.');
+  }
 }
+const tooLarge = () =>
+  new Error('Connector response is too large. Narrow the query or select a smaller file.');

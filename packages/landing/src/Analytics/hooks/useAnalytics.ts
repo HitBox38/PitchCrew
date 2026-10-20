@@ -5,16 +5,16 @@ import { analytics } from '../client';
 import { analyticsConfigured } from '../config';
 import { analyticsAllowed, preferenceKey } from '../helpers';
 
-function allowed(): boolean {
+const allowed = (): boolean => {
   try {
     return analyticsAllowed(window.localStorage, navigator.doNotTrack);
   } catch {
     return false;
   }
-}
+};
 
 /** Website analytics is on by default when configured; visitors can opt out on this device. */
-export function useAnalytics() {
+export const useAnalytics = () => {
   const [enabled, setEnabled] = useState(false);
   const [available, setAvailable] = useState(false);
   useEffect(() => {
@@ -54,4 +54,4 @@ export function useAnalytics() {
     window.dispatchEvent(new Event('pitchcrew-landing-consent'));
   };
   return { enabled, available, toggle };
-}
+};

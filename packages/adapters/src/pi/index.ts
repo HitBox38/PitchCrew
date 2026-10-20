@@ -17,7 +17,7 @@ export const pi = withChat({
         signal,
       ),
     ),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const agentDir = join(context.directory, 'pi-home');
     await mkdir(agentDir, { recursive: true });

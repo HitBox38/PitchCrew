@@ -4,7 +4,7 @@ import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { staleBatchLimit } from '@pitchcrew/core/insights';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 
-export function StaleList({ stale }: { stale: StaleCleanupModel }) {
+export const StaleList = ({ stale }: { stale: StaleCleanupModel }) => {
   const preview = stale.preview!;
   if (!preview.cards.length)
     return (
@@ -64,4 +64,4 @@ export function StaleList({ stale }: { stale: StaleCleanupModel }) {
       </div>
     </div>
   );
-}
+};

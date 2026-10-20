@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { TagPicker } from '@/TagPicker/index.tsx';
 import { LoaderCircle, Plus } from 'lucide-react';
 
-export function AddOpportunity(props: AddOpportunityProps) {
+export const AddOpportunity = (props: AddOpportunityProps) => {
   const controller = useAddOpportunity(props);
   const {
     working,
@@ -81,4 +81,4 @@ export function AddOpportunity(props: AddOpportunityProps) {
       </form>
     </Modal>
   );
-}
+};

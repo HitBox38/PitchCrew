@@ -2,7 +2,7 @@ import type { ChatContext, RunContext, RuntimeAdapter } from '@pitchcrew/core';
 import { chatCli, detectCli, promptFor, runCli } from '../process.ts';
 import { codexModelArgs, readCodexModels } from './models.ts';
 
-function argsFor(context: RunContext | ChatContext) {
+const argsFor = (context: RunContext | ChatContext) => {
   const args = [
     'exec',
     '--json',
@@ -47,13 +47,13 @@ function argsFor(context: RunContext | ChatContext) {
   } else args.push('--ephemeral');
   args.push('-');
   return args;
-}
-function extract(event: Record<string, unknown>): string | null {
+};
+const extract = (event: Record<string, unknown>): string | null => {
   const item = event.item as { type?: string; text?: string } | undefined;
   if (event.type === 'item.completed' && item?.type === 'agent_message' && item.text)
     return item.text;
   return null;
-}
+};
 export const codex: RuntimeAdapter = {
   applicationIsolation: true,
   reviewSubagents: { maxConcurrent: 4 },

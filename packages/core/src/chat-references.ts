@@ -17,7 +17,7 @@ export interface ChatToken {
   end: number;
 }
 
-export function skillToken(name: string, id?: string): string {
+export const skillToken = (name: string, id?: string): string => {
   const slug =
     name
       .normalize('NFKD')
@@ -26,10 +26,10 @@ export function skillToken(name: string, id?: string): string {
       .replace(/[^a-z0-9_-]+/g, '-')
       .replace(/^-+|-+$/g, '') || 'skill';
   return `$${slug}${id ? `-${id.slice(0, 8)}` : ''}`;
-}
+};
 
 /** Code, links and URLs cannot accidentally select instructions or recipients. */
-export function protectedChatRanges(text: string): [number, number][] {
+export const protectedChatRanges = (text: string): [number, number][] => {
   const ranges: [number, number][] = [];
   const pattern = /(`+|~{3,})|!?\[[^\]\n]*\]\([^\n)]*\)|https?:\/\/\S+/g;
   for (let match = pattern.exec(text); match; match = pattern.exec(text)) {
@@ -42,9 +42,9 @@ export function protectedChatRanges(text: string): [number, number][] {
     pattern.lastIndex = end;
   }
   return ranges;
-}
+};
 
-export function chatTokens(text: string): ChatToken[] {
+export const chatTokens = (text: string): ChatToken[] => {
   const protectedRanges = protectedChatRanges(text);
   const tokens: ChatToken[] = [];
   for (const match of text.matchAll(/(?:^|\s)([@$/])([a-zA-Z][a-zA-Z0-9_-]*)(?=$|\s|[.,!?;:])/g)) {
@@ -58,9 +58,9 @@ export function chatTokens(text: string): ChatToken[] {
     });
   }
   return tokens;
-}
+};
 
-export function chatTrigger(text: string, caret: number): ChatToken | null {
+export const chatTrigger = (text: string, caret: number): ChatToken | null => {
   const prefix = text.slice(0, caret);
   const match = /(?:^|\s)([@$/])([a-zA-Z][a-zA-Z0-9_-]*|)$/.exec(prefix);
   if (!match) return null;
@@ -74,16 +74,16 @@ export function chatTrigger(text: string, caret: number): ChatToken | null {
     start,
     end: caret + (text.slice(caret).match(/^[a-zA-Z0-9_-]*/)?.[0].length ?? 0),
   };
-}
+};
 
-export function validChatReferences(
+export const validChatReferences = (
   text: string,
   references: readonly ChatReference[],
-): ChatReference[] {
+): ChatReference[] => {
   const tokens = chatTokens(text);
   return references.filter(
     (ref) =>
       text.slice(ref.start, ref.end) === ref.token &&
       tokens.some((token) => token.start === ref.start && token.end === ref.end),
   );
-}
+};

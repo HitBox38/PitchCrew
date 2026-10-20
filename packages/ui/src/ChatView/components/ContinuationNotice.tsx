@@ -1,13 +1,13 @@
 import type { ChatViewModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-export function ContinuationNotice({
+export const ContinuationNotice = ({
   data,
   thread,
   action,
   working,
   running,
   readOnly,
-}: ChatViewModel) {
+}: ChatViewModel) => {
   if (readOnly) return null;
   const latest = data.chatRequests?.findLast(
     (request) => request.threadId === thread && !request.summarize,
@@ -29,4 +29,4 @@ export function ContinuationNotice({
       </Button>
     </div>
   );
-}
+};

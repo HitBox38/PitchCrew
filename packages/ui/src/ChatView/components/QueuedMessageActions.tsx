@@ -2,7 +2,7 @@ import type { ChatRequest } from '@pitchcrew/core';
 import { QueuedMessageMenu } from './QueuedMessageMenu.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ArrowUp, Pencil, X, Play } from 'lucide-react';
-export function QueuedMessageActions({
+export const QueuedMessageActions = ({
   request,
   editable,
   working,
@@ -14,7 +14,7 @@ export function QueuedMessageActions({
   working: boolean;
   update: (command: string) => Promise<unknown>;
   edit: () => void;
-}) {
+}) => {
   if (
     !request.deliveries.some((delivery) => ['queued', 'paused', 'failed'].includes(delivery.status))
   )
@@ -62,4 +62,4 @@ export function QueuedMessageActions({
       ) : null}
     </div>
   );
-}
+};

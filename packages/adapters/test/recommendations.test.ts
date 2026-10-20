@@ -7,7 +7,7 @@ import {
 import { describe, expect, it } from 'vitest';
 import { adapters, recommendRuntime, suggestedModels } from '../src/index.ts';
 
-function runtime(id: RuntimeId, models: RuntimeModel[] = [], available = true): RuntimeInfo {
+const runtime = (id: RuntimeId, models: RuntimeModel[] = [], available = true): RuntimeInfo => {
   return {
     id,
     available,
@@ -17,7 +17,7 @@ function runtime(id: RuntimeId, models: RuntimeModel[] = [], available = true): 
     modelSource: 'runtime',
     modelDetail: '',
   };
-}
+};
 const sol: RuntimeModel = {
   value: 'gpt-6.1-sol',
   label: 'Sol',

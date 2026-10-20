@@ -2,17 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { type Run, type WorkQueue } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { activeQueues, concurrency, runLane, queueWaiting } from './state.ts';
-
-export class QueueBusyError extends Error {}
-export interface LaunchScope {
-  isolated?: boolean;
-  cardId: string | null;
-  threadId: string;
-  roleId: string;
-  rootRunId?: string;
-  routineId?: string;
-}
-export function launchProblem(context: CrewContext, input: LaunchScope): string {
+export const launchProblem = (context: CrewContext, input: LaunchScope): string => {
   const lane =
     input.routineId && !input.cardId
       ? `routine:${input.routineId}`
@@ -45,12 +35,12 @@ export function launchProblem(context: CrewContext, input: LaunchScope): string 
   )
     return 'This conversation participant is starting a turn.';
   return '';
-}
-export async function reserveLaunch<T extends { id: string; rootRunId?: string }>(
+};
+export const reserveLaunch = async <T extends { id: string; rootRunId?: string }>(
   context: CrewContext,
   input: LaunchScope,
   launch: () => Promise<T>,
-): Promise<T> {
+): Promise<T> => {
   const problem = launchProblem(context, input);
   if (problem) throw new QueueBusyError(problem);
   const key = randomUUID();
@@ -71,4 +61,14 @@ export async function reserveLaunch<T extends { id: string; rootRunId?: string }
   } finally {
     context.queueReservations.delete(key);
   }
+};
+
+export class QueueBusyError extends Error {}
+export interface LaunchScope {
+  isolated?: boolean;
+  cardId: string | null;
+  threadId: string;
+  roleId: string;
+  rootRunId?: string;
+  routineId?: string;
 }

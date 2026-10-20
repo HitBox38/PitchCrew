@@ -2,15 +2,12 @@ import { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from '@pitchc
 import { randomUUID } from 'node:crypto';
 import type { CrewContext } from '../crew/types.ts';
 
-// Weak keys are the local capability objects, not their run/card/role identifiers.
-const sessions = new WeakMap<object, string>();
-
-export function beginMcpToolCall(
+export const beginMcpToolCall = (
   context: CrewContext,
   token: string,
   action: string,
   data: Record<string, unknown>,
-) {
+) => {
   const capability = context.capabilities.get(token);
   const name =
     action === 'connector'
@@ -44,4 +41,7 @@ export function beginMcpToolCall(
       // Observation failures must never alter tool behavior or approvals.
     }
   };
-}
+};
+
+// Weak keys are the local capability objects, not their run/card/role identifiers.
+const sessions = new WeakMap<object, string>();

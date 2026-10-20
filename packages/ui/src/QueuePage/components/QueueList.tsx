@@ -3,7 +3,7 @@ import { m } from 'motion/react';
 import { QueueGrip } from './QueueGrip.tsx';
 import { useQueueOrder } from '../hooks/useQueueOrder.ts';
 
-export function QueueList<T extends { id: string }>({
+export const QueueList = <T extends { id: string }>({
   items,
   group,
   commit,
@@ -15,7 +15,7 @@ export function QueueList<T extends { id: string }>({
   commit: (id: string, beforeId: string | null) => Promise<unknown>;
   render: (item: T, handle: ReactNode) => ReactNode;
   movable?: (item: T) => boolean;
-}) {
+}) => {
   const model = useQueueOrder(items, commit);
   return (
     <ol className="queue-list" aria-label={group}>
@@ -61,4 +61,4 @@ export function QueueList<T extends { id: string }>({
       })}
     </ol>
   );
-}
+};

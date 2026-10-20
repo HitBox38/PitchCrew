@@ -2,7 +2,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import { FilePlus2, FolderPlus, Search } from 'lucide-react';
 
-export function ProfileExplorerControls({
+export const ProfileExplorerControls = ({
   query,
   setQuery,
   folder,
@@ -16,7 +16,7 @@ export function ProfileExplorerControls({
   working: boolean;
   createNote: () => void;
   createFolder: () => void;
-}) {
+}) => {
   return (
     <>
       <div className="flex shrink-0 items-center justify-between px-4 py-3">
@@ -59,4 +59,4 @@ export function ProfileExplorerControls({
       </div>
     </>
   );
-}
+};

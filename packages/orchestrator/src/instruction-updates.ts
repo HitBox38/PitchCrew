@@ -29,26 +29,26 @@ export class InstructionUpdatePreferences {
     }
   }
 
-  dismissed(): Record<string, string> {
+  dismissed = (): Record<string, string> => {
     return { ...this.state.dismissed };
-  }
+  };
 
-  dismiss(roleId: string, revision: string): void {
+  dismiss = (roleId: string, revision: string): void => {
     this.save({ version: 1, dismissed: { ...this.state.dismissed, [roleId]: revision } });
-  }
+  };
 
-  clear(roleId: string): void {
+  clear = (roleId: string): void => {
     if (!(roleId in this.state.dismissed)) return;
     const dismissed = { ...this.state.dismissed };
     delete dismissed[roleId];
     this.save({ version: 1, dismissed });
-  }
+  };
 
-  private save(input: State): void {
+  private save = (input: State): void => {
     const state = stateSchema.parse(input);
     const temporary = `${this.path}.tmp`;
     writeFileSync(temporary, `${JSON.stringify(state)}\n`, { mode: 0o600 });
     renameSync(temporary, this.path);
     this.state = state;
-  }
+  };
 }

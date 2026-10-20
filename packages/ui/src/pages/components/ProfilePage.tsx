@@ -2,7 +2,7 @@ import { ProfileView } from '@/components/ProfileView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
 
-export function ProfilePage() {
+export const ProfilePage = () => {
   const { data, action, working } = useWorkspaceStore(
     useShallow((state) => ({
       data: state.data,
@@ -12,4 +12,4 @@ export function ProfilePage() {
   );
   if (!data) return null;
   return <ProfileView data={data} action={action} working={working} />;
-}
+};

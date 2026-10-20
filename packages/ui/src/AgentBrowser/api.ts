@@ -1,34 +1,11 @@
 import { api } from '@/api.ts';
 import type { BrowserFrame, BrowserInput, BrowserSessionInfo } from '@pitchcrew/core';
-
-export const browserPath = (roleId: string, threadId: string, action: string) =>
-  `/browser/${encodeURIComponent(roleId)}/${action}?threadId=${encodeURIComponent(threadId)}`;
-export const browserSessions = (threadId: string, signal?: AbortSignal) =>
-  api<BrowserSessionInfo[]>(
-    `/browser?threadId=${encodeURIComponent(threadId)}`,
-    'GET',
-    undefined,
-    signal,
-  );
-export const browserCommand = <T>(
-  roleId: string,
-  threadId: string,
-  action: string,
-  input?: unknown,
-  signal?: AbortSignal,
-) => api<T>(browserPath(roleId, threadId, action), 'POST', input ?? {}, signal);
-export const browserInput = (
-  roleId: string,
-  threadId: string,
-  leaseId: string,
-  input: BrowserInput,
-) => browserCommand(roleId, threadId, 'input', { leaseId, input });
-export async function streamBrowser(
+export const streamBrowser = async (
   roleId: string,
   threadId: string,
   signal: AbortSignal,
   receive: (frame: BrowserFrame) => void,
-) {
+) => {
   const response = await fetch(`/api${browserPath(roleId, threadId, 'stream')}`, {
     signal,
     headers: { 'x-pitchcrew-client': 'ui' },
@@ -62,4 +39,27 @@ export async function streamBrowser(
     await reader.cancel().catch(() => {});
     reader.releaseLock();
   }
-}
+};
+
+export const browserPath = (roleId: string, threadId: string, action: string) =>
+  `/browser/${encodeURIComponent(roleId)}/${action}?threadId=${encodeURIComponent(threadId)}`;
+export const browserSessions = (threadId: string, signal?: AbortSignal) =>
+  api<BrowserSessionInfo[]>(
+    `/browser?threadId=${encodeURIComponent(threadId)}`,
+    'GET',
+    undefined,
+    signal,
+  );
+export const browserCommand = <T>(
+  roleId: string,
+  threadId: string,
+  action: string,
+  input?: unknown,
+  signal?: AbortSignal,
+) => api<T>(browserPath(roleId, threadId, action), 'POST', input ?? {}, signal);
+export const browserInput = (
+  roleId: string,
+  threadId: string,
+  leaseId: string,
+  input: BrowserInput,
+) => browserCommand(roleId, threadId, 'input', { leaseId, input });

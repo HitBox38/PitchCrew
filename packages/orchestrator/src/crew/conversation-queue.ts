@@ -32,10 +32,7 @@ import { z } from 'zod';
 import { saveAttachments, removeAttachments } from './attachments/storage.ts';
 import { conversation, conversations, canReadConversation } from './conversations.ts';
 import type { CrewContext } from './types.ts';
-
-const draining = new WeakSet<CrewContext>();
-const drainAgain = new WeakSet<CrewContext>();
-export function saveRequest(context: CrewContext, request: ChatRequest): void {
+export const saveRequest = (context: CrewContext, request: ChatRequest): void => {
   const queue = ensureQueue(context, request.threadId, request.rootRunId);
   if (
     !context.board.list<ChatRequest>('chat_request').some((r) => r.id === request.id) &&
@@ -45,12 +42,12 @@ export function saveRequest(context: CrewContext, request: ChatRequest): void {
     patchQueue(context, queue.id, { order: nextOrder(context) });
   context.board.record('chat_request', request, 'user', 'Updated queued message');
   context.publishChat(true);
-}
-export async function sendConversation(
+};
+export const sendConversation = async (
   context: CrewContext,
   id: string,
   data: unknown,
-): Promise<ChatRequest> {
+): Promise<ChatRequest> => {
   const item = conversation(context, id);
   if (item.kind === 'history' || item.kind === 'agent_dm')
     throw new Error('This conversation is read-only.');
@@ -138,8 +135,8 @@ export async function sendConversation(
     await removeAttachments(context.directory, files);
     throw error;
   }
-}
-export async function drainConversationQueue(context: CrewContext): Promise<void> {
+};
+export const drainConversationQueue = async (context: CrewContext): Promise<void> => {
   if (context.closing || context.initializing || context.profileWriting) return;
   if (draining.has(context)) {
     drainAgain.add(context);
@@ -333,8 +330,8 @@ export async function drainConversationQueue(context: CrewContext): Promise<void
       void drainConversationQueue(context);
     }
   }
-}
-export function finishDelivery(context: CrewContext, run: Run): void {
+};
+export const finishDelivery = (context: CrewContext, run: Run): void => {
   finishQueueRun(context, run);
   if (!run.requestId) return;
   const request = context.board.get<ChatRequest>('chat_request', run.requestId);
@@ -352,13 +349,13 @@ export function finishDelivery(context: CrewContext, run: Run): void {
     delivery.error = finished.status === 'failed' ? finished.message : '';
     saveRequest(context, request);
   }
-}
-function stopConversationBranch(
+};
+const stopConversationBranch = (
   context: CrewContext,
   id: string,
   roleId?: string,
   rootId?: string,
-): void {
+): void => {
   const runs = context.board.list<Run>('run');
   const tasks = context.board.list<AgentTask>('task');
   const roots = new Set(
@@ -426,13 +423,13 @@ function stopConversationBranch(
     if (changed) saveRequest(context, request);
   }
   context.publishChat(true);
-}
-export function stopConversationWork(
+};
+export const stopConversationWork = (
   context: CrewContext,
   id: string,
   roleId?: string,
   rootId?: string,
-): void {
+): void => {
   if (roleId) return stopConversationBranch(context, id, roleId, rootId);
   const queue = ensureQueue(context, id);
   patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
@@ -469,8 +466,8 @@ export function stopConversationWork(
     saveRequest(context, request);
   }
   context.publishChat(true);
-}
-export function finishQueueRun(context: CrewContext, run: Run): void {
+};
+export const finishQueueRun = (context: CrewContext, run: Run): void => {
   const finished = context.board.get<Run>('run', run.id);
   const thread = run.threadId;
   if (
@@ -489,8 +486,8 @@ export function finishQueueRun(context: CrewContext, run: Run): void {
     patchQueue(context, queue.id, { paused: true, pauseKind: 'failed', reason: finished.message });
   else if (!activeQueues(context).has(queue.id))
     patchQueue(context, queue.id, { order: nextOrder(context) });
-}
-export function updateRequest(context: CrewContext, id: string, data: unknown): ChatRequest {
+};
+export const updateRequest = (context: CrewContext, id: string, data: unknown): ChatRequest => {
   const input = z
     .object({
       action: z.enum(['edit', 'remove', 'next', 'resume', 'up', 'down', 'interrupt']),
@@ -602,4 +599,7 @@ export function updateRequest(context: CrewContext, id: string, data: unknown): 
     );
   void drainConversationQueue(context);
   return context.board.get<ChatRequest>('chat_request', id);
-}
+};
+
+const draining = new WeakSet<CrewContext>();
+const drainAgain = new WeakSet<CrewContext>();

@@ -18,27 +18,11 @@ type EndpointCommandResult =
   | ReturnType<typeof buildEndpointVariablePlan>
   | ReturnType<typeof planEndpointDeployment>
   | RunPlan;
-export function endpointCommand(
-  args: ['list'],
-  read?: ReadSnapshot,
-): ReturnType<typeof listEndpointDefinitions>;
-export function endpointCommand(
-  args: ['variable-plan'],
-  read?: ReadSnapshot,
-): ReturnType<typeof buildEndpointVariablePlan>;
-export function endpointCommand(
-  args: ['plan', string, string],
-  read?: ReadSnapshot,
-): ReturnType<typeof planEndpointDeployment>;
-export function endpointCommand(
-  args: ['run-plan', string, ...string[]],
-  read?: ReadSnapshot,
-): RunPlan;
-export function endpointCommand(args: string[], read?: ReadSnapshot): EndpointCommandResult;
-export function endpointCommand(
+
+export const endpointCommand = ((
   args: string[],
   read: ReadSnapshot = (path) => JSON.parse(readFileSync(path, 'utf8')),
-): EndpointCommandResult {
+): EndpointCommandResult => {
   if (args.length === 1 && args[0] === 'list') return listEndpointDefinitions();
   if (args.length === 1 && args[0] === 'variable-plan') return buildEndpointVariablePlan();
   if (args.length === 3 && args[0] === 'plan')
@@ -64,7 +48,13 @@ export function endpointCommand(
     tool: 'endpoint-run',
     tool_input: buildEndpointRun(args[1], options),
   };
-}
+}) as {
+  (args: ['list'], read?: ReadSnapshot): ReturnType<typeof listEndpointDefinitions>;
+  (args: ['variable-plan'], read?: ReadSnapshot): ReturnType<typeof buildEndpointVariablePlan>;
+  (args: ['plan', string, string], read?: ReadSnapshot): ReturnType<typeof planEndpointDeployment>;
+  (args: ['run-plan', string, ...string[]], read?: ReadSnapshot): RunPlan;
+  (args: string[], read?: ReadSnapshot): EndpointCommandResult;
+};
 
 // Deliberately offline: the coordinator executes reviewed typed MCP calls later.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

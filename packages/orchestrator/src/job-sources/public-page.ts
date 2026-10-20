@@ -6,15 +6,8 @@ import { publicAddress } from '@pitchcrew/mcp/computer';
 import { maxJobLinkLength, recognizeJobLink } from '@pitchcrew/core';
 import { requestTimeoutMs, userAgent } from './fetch.ts';
 
-export interface PublicJobPage {
-  url: string;
-  html: string;
-}
-export type ReadJobPage = (url: string, signal: AbortSignal) => Promise<PublicJobPage>;
-const maxBytes = 400_000;
-
 /** Resolve once, reject every private answer, and pin the connection to a checked address. */
-async function readPage(value: string, signal: AbortSignal) {
+const readPage = async (value: string, signal: AbortSignal) => {
   if (value.length > maxJobLinkLength) throw new Error('This job URL is too long.');
   const url = new URL(value);
   if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.port)
@@ -78,7 +71,14 @@ async function readPage(value: string, signal: AbortSignal) {
     request.on('error', reject);
     request.end();
   });
+};
+
+export interface PublicJobPage {
+  url: string;
+  html: string;
 }
+export type ReadJobPage = (url: string, signal: AbortSignal) => Promise<PublicJobPage>;
+const maxBytes = 400_000;
 
 /** No cookies, scripts or subresources. Every redirect gets a new public-address check. */
 export const readPublicJobPage: ReadJobPage = async (value, cancellation) => {

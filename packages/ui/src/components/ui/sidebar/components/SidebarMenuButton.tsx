@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function SidebarMenuButton({
+export const SidebarMenuButton = ({
   render,
   isActive = false,
   variant = 'default',
@@ -16,7 +16,7 @@ export function SidebarMenuButton({
   tooltip,
   className,
   ...props
-}: SidebarMenuButtonProps) {
+}: SidebarMenuButtonProps) => {
   const { isMobile, state } = useSidebar();
   const comp = useRender({
     defaultTagName: 'button',
@@ -54,4 +54,4 @@ export function SidebarMenuButton({
       />
     </Tooltip>
   );
-}
+};

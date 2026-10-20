@@ -58,15 +58,15 @@ export class ProfileSourceManager {
   private get manifest() {
     return join(this.directory, 'profile-sources.json');
   }
-  async list(): Promise<ProfileSource[]> {
+  list = async (): Promise<ProfileSource[]> => {
     try {
       return storedSources.parse(JSON.parse(await readFile(this.manifest, 'utf8')));
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
       throw error;
     }
-  }
-  private async store(sources: ProfileSource[]) {
+  };
+  private store = async (sources: ProfileSource[]) => {
     const temporary = `${this.manifest}.${randomUUID()}.tmp`;
     try {
       await writeFile(temporary, JSON.stringify(sources, null, 2), { mode: 0o600 });
@@ -74,13 +74,13 @@ export class ProfileSourceManager {
     } finally {
       await rm(temporary, { force: true });
     }
-  }
-  async unlink(id: string) {
+  };
+  unlink = async (id: string) => {
     const sources = await this.list();
     if (!sources.some((source) => source.id === id)) throw new Error('Profile source not found.');
     await this.store(sources.filter((source) => source.id !== id));
-  }
-  async watchProject(value: unknown) {
+  };
+  watchProject = async (value: unknown) => {
     const input = sourceInput.parse(value);
     if (input.provider !== 'github')
       throw new Error('Project watches currently support GitHub repositories.');
@@ -111,20 +111,20 @@ export class ProfileSourceManager {
     };
     await this.store([...sources, source]);
     return this.list();
-  }
-  async setWatching(id: string, watching: boolean) {
+  };
+  setWatching = async (id: string, watching: boolean) => {
     const sources = await this.list();
     if (!sources.some((source) => source.id === id)) throw new Error('Profile source not found.');
     await this.store(
       sources.map((source) => (source.id === id ? { ...source, watching } : source)),
     );
     return this.list();
-  }
-  async preview(
+  };
+  preview = async (
     value: unknown,
     runSignal?: AbortSignal,
     allowEmpty = false,
-  ): Promise<ProfileSourcePreview> {
+  ): Promise<ProfileSourcePreview> => {
     if (this.previewing) throw new Error('Wait for the current source preview to finish.');
     const input = sourceInput.parse(value);
     this.previewing = true;
@@ -189,8 +189,8 @@ export class ProfileSourceManager {
     } finally {
       this.previewing = false;
     }
-  }
-  async import(value: unknown): Promise<ProfileFile[]> {
+  };
+  import = async (value: unknown): Promise<ProfileFile[]> => {
     const { token, names } = z
       .object({ token: z.uuid(), names: z.array(z.string()).min(1).max(100) })
       .strict()
@@ -246,13 +246,13 @@ export class ProfileSourceManager {
     }
     this.previews.delete(token);
     return readProfile(this.directory);
-  }
-  async commitMaintenance(
+  };
+  commitMaintenance = async (
     proposal: ProfileMaintenanceProposal,
     names: string[],
     recovering: boolean,
     validateOnly = false,
-  ) {
+  ) => {
     const sources = await this.list();
     const selected = proposal.documents.filter((file) => names.includes(file.name));
     if (selected.length !== new Set(names).size) throw new Error('Select only proposed files.');
@@ -308,8 +308,8 @@ export class ProfileSourceManager {
       }
       throw error;
     }
-  }
-  private async writeNote(name: string, content: string) {
+  };
+  private writeNote = async (name: string, content: string) => {
     const target = join(this.directory, 'profile', name);
     const temporary = `${target}.${randomUUID()}.tmp`;
     try {
@@ -318,5 +318,5 @@ export class ProfileSourceManager {
     } finally {
       await rm(temporary, { force: true });
     }
-  }
+  };
 }

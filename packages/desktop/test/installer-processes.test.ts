@@ -6,6 +6,15 @@ import { basename, dirname, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 
+const removeFixture = async (directory: string) => {
+  if (
+    dirname(directory) !== resolve(tmpdir()) ||
+    !basename(directory).startsWith('pitchcrew-installer-processes-')
+  )
+    throw new Error('Unsafe installer fixture cleanup path.');
+  await rm(directory, { recursive: true, force: true });
+};
+
 const windowsTest = test.skipIf(process.platform !== 'win32');
 const script = fileURLToPath(new URL('../installer/processes.ps1', import.meta.url));
 const powershell = join(
@@ -15,15 +24,6 @@ const powershell = join(
 const execute = promisify(execFile);
 const options = { windowsHide: true, timeout: 30000 };
 const flags = ['-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass'];
-
-async function removeFixture(directory: string) {
-  if (
-    dirname(directory) !== resolve(tmpdir()) ||
-    !basename(directory).startsWith('pitchcrew-installer-processes-')
-  )
-    throw new Error('Unsafe installer fixture cleanup path.');
-  await rm(directory, { recursive: true, force: true });
-}
 
 windowsTest(
   'process selection excludes installers, unrelated binaries, sibling folders and the calling installer',

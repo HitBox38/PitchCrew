@@ -3,7 +3,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import type { Role } from '@pitchcrew/core';
 
-export function CreationSuccess({
+export const CreationSuccess = ({
   role,
   scheduled,
   close,
@@ -11,7 +11,7 @@ export function CreationSuccess({
   role: Role;
   scheduled: boolean;
   close(): void;
-}) {
+}) => {
   const setRoleId = useWorkspaceStore((state) => state.setRoleId);
   const { openChat } = useWorkspaceNavigation();
   return (
@@ -51,4 +51,4 @@ export function CreationSuccess({
       </div>
     </div>
   );
-}
+};

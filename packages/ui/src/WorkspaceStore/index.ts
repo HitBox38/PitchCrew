@@ -9,7 +9,7 @@ import { createSkillUpdateActions } from './skill-updates.ts';
 
 export type { Action } from './types.ts';
 /** Each store owns one snapshot poller, one chat stream and its pending-action count. */
-export function createWorkspaceStore() {
+export const createWorkspaceStore = () => {
   return create<WorkspaceState>()((set, get) => {
     const { applySnapshot, startSync } = createWorkspaceSync(set);
     return {
@@ -52,5 +52,5 @@ export function createWorkspaceStore() {
       ...createSkillUpdateActions(set, get),
     };
   });
-}
+};
 export const useWorkspaceStore = createWorkspaceStore();

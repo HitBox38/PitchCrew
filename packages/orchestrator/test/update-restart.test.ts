@@ -3,15 +3,15 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { markUpdateRestart, verifyUpdateRestart } from '../src/background/update-restart.ts';
-
-const directories: string[] = [];
-const build = { version: '0.2.0', commit: 'b'.repeat(40), packaged: true };
-async function fixture() {
+const fixture = async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-update-restart-'));
   directories.push(directory);
   await markUpdateRestart(directory, '0.2.0');
   return directory;
-}
+};
+
+const directories: string[] = [];
+const build = { version: '0.2.0', commit: 'b'.repeat(40), packaged: true };
 afterEach(async () => {
   vi.unstubAllGlobals();
   for (const directory of directories.splice(0))

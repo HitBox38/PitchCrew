@@ -3,13 +3,13 @@ import { useIsPresent } from 'motion/react';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import * as m from 'motion/react-m';
 
-export function ApprovalReviewFrame({
+export const ApprovalReviewFrame = ({
   children,
   actions,
 }: {
   children: ReactNode;
   actions: ReactNode;
-}) {
+}) => {
   const reduced = useAppReducedMotion();
   const present = useIsPresent();
   return (
@@ -26,4 +26,4 @@ export function ApprovalReviewFrame({
       {actions ? <div className="inbox-review-actions">{actions}</div> : null}
     </m.section>
   );
-}
+};

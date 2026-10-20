@@ -22,7 +22,7 @@ export const copilotCli = withChat({
   ],
   detect: () => detectCli('copilot-cli', 'copilot'),
   listModels: (signal) => readCopilotModels('copilot', copilotModelArgs, signal),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const configDirectory = join(context.directory, 'copilot-config');
     await mkdir(configDirectory, { recursive: true });

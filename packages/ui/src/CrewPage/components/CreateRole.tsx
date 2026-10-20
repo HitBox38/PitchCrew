@@ -4,10 +4,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { WorkspaceHeaderActions } from '@/App/components/WorkspacePage.tsx';
 import { Plus } from 'lucide-react';
-const AgentCreation = lazy(() =>
-  import('@/AgentCreation/index.tsx').then((module) => ({ default: module.AgentCreation })),
-);
-export function CreateRole({ data, working }: { data: Snapshot; working: boolean }) {
+export const CreateRole = ({ data, working }: { data: Snapshot; working: boolean }) => {
   const [open, setOpen] = useState(false);
   const reload = useWorkspaceStore((state) => state.reload);
   const setToast = useWorkspaceStore((state) => state.setToast);
@@ -40,4 +37,8 @@ export function CreateRole({ data, working }: { data: Snapshot; working: boolean
       ) : null}
     </>
   );
-}
+};
+
+const AgentCreation = lazy(() =>
+  import('@/AgentCreation/index.tsx').then((module) => ({ default: module.AgentCreation })),
+);

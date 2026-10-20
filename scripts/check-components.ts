@@ -1,11 +1,7 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const maximumLines = 100;
-const violations: string[] = [];
-let components = 0;
-
-async function checkDirectory(directory: string, requireSharedDisclosures = false) {
+const checkDirectory = async (directory: string, requireSharedDisclosures = false) => {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
     const filename = join(directory, entry.name);
     if (entry.isDirectory()) {
@@ -25,7 +21,11 @@ async function checkDirectory(directory: string, requireSharedDisclosures = fals
       }
     }
   }
-}
+};
+
+const maximumLines = 100;
+const violations: string[] = [];
+let components = 0;
 
 await checkDirectory('packages/ui/src', true);
 await checkDirectory('packages/landing/src');

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function TraceDescription({ className, ...props }: React.ComponentProps<'span'>) {
+export const TraceDescription = ({ className, ...props }: React.ComponentProps<'span'>) => {
   return (
     <span
       data-slot="trace-description"
@@ -12,4 +12,4 @@ export function TraceDescription({ className, ...props }: React.ComponentProps<'
       {...props}
     />
   );
-}
+};

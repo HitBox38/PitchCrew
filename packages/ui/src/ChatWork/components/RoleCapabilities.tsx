@@ -4,7 +4,7 @@ import type { RoleCapabilitiesProps } from '@/ChatWork/types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { SlidersHorizontal } from 'lucide-react';
 
-export function RoleCapabilities({ role, onConfigure }: RoleCapabilitiesProps) {
+export const RoleCapabilities = ({ role, onConfigure }: RoleCapabilitiesProps) => {
   return (
     <WorkSection className="chat-work-section chat-role-summary">
       <div className="chat-work-heading">
@@ -35,4 +35,4 @@ export function RoleCapabilities({ role, onConfigure }: RoleCapabilitiesProps) {
       </p>
     </WorkSection>
   );
-}
+};

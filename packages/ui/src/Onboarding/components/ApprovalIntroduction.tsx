@@ -1,6 +1,6 @@
 import { FileText, FolderCheck, ShieldCheck } from 'lucide-react';
 
-export function ApprovalIntroduction() {
+export const ApprovalIntroduction = () => {
   return (
     <div className="grid gap-5">
       <div
@@ -27,4 +27,4 @@ export function ApprovalIntroduction() {
       </p>
     </div>
   );
-}
+};

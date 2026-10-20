@@ -1,7 +1,7 @@
 import type { Routine, RoutineInput } from '@pitchcrew/core';
 import type { Frequency, RoutineDraft } from './types.ts';
 
-export function localTime(instant: string, timezone: string): string {
+export const localTime = (instant: string, timezone: string): string => {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: timezone,
     year: 'numeric',
@@ -15,8 +15,8 @@ export function localTime(instant: string, timezone: string): string {
   const get = (type: Intl.DateTimeFormatPartTypes) =>
     parts.find((part) => part.type === type)!.value;
   return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
-}
-export function instantTime(local: string, timezone: string): string {
+};
+export const instantTime = (local: string, timezone: string): string => {
   const normalized = /T\d{2}:\d{2}$/.test(local) ? `${local}:00` : local;
   const wall = Date.parse(`${normalized}Z`);
   if (!Number.isFinite(wall)) throw new Error('Choose a valid date and time.');
@@ -30,8 +30,8 @@ export function instantTime(local: string, timezone: string): string {
       'This time does not exist during the daylight-saving change. Choose another time.',
     );
   return new Date(result).toISOString();
-}
-export function initialDraft(routine: Routine | null): RoutineDraft {
+};
+export const initialDraft = (routine: Routine | null): RoutineDraft => {
   const timezone = routine?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
   const startLocal = localTime(
     routine?.startAt ?? new Date(Date.now() + 3600000).toISOString(),
@@ -61,8 +61,8 @@ export function initialDraft(routine: Routine | null): RoutineDraft {
     endLocal: routine?.endsAt ? localTime(routine.endsAt, timezone) : '',
     enabled: routine?.enabled ?? true,
   };
-}
-export function draftInput(draft: RoutineDraft): RoutineInput {
+};
+export const draftInput = (draft: RoutineDraft): RoutineInput => {
   const patterns = calendarPatterns(draft.startLocal, draft.cron);
   return {
     name: draft.name,
@@ -81,8 +81,8 @@ export function draftInput(draft: RoutineDraft): RoutineInput {
     endsAt: draft.endLocal ? instantTime(draft.endLocal, draft.timezone) : null,
     enabled: draft.enabled,
   };
-}
-function calendarPatterns(startLocal: string, custom: string): Record<Frequency, string | null> {
+};
+const calendarPatterns = (startLocal: string, custom: string): Record<Frequency, string | null> => {
   const [date, time] = startLocal.split('T');
   if (!date || !time) throw new Error('Choose a start date and time.');
   const [hour, minute] = time.split(':').map(Number);
@@ -97,8 +97,8 @@ function calendarPatterns(startLocal: string, custom: string): Record<Frequency,
     once: null,
     interval: null,
   };
-}
-export function scheduleLabel(routine: Pick<Routine, 'cron' | 'intervalMinutes'>): string {
+};
+export const scheduleLabel = (routine: Pick<Routine, 'cron' | 'intervalMinutes'>): string => {
   if (routine.intervalMinutes) {
     const units = [
       [10080, 'week'],
@@ -123,8 +123,8 @@ export function scheduleLabel(routine: Pick<Routine, 'cron' | 'intervalMinutes'>
     if (/^\d+$/.test(day) && weekday === '*') return `Monthly on day ${day} at ${time}`;
   }
   return `Custom schedule: ${routine.cron}`;
-}
-export function routineInput(routine: Routine): RoutineInput {
+};
+export const routineInput = (routine: Routine): RoutineInput => {
   const {
     name,
     roleId,
@@ -151,4 +151,4 @@ export function routineInput(routine: Routine): RoutineInput {
     endsAt,
     enabled,
   };
-}
+};

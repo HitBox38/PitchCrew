@@ -11,17 +11,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-let board: Board;
-let directory: string;
-beforeEach(async () => {
-  directory = await mkdtemp(join(tmpdir(), 'pitchcrew-history-'));
-  board = new Board(join(directory, 'board.db'));
-});
-afterEach(async () => {
-  board.close();
-  await rm(directory, { recursive: true, force: true });
-});
-function message(i: number, patch: Partial<ChatMessage> = {}): ChatMessage {
+const message = (i: number, patch: Partial<ChatMessage> = {}): ChatMessage => {
   const m: ChatMessage = {
     id: randomUUID(),
     threadId: 'scout',
@@ -35,7 +25,18 @@ function message(i: number, patch: Partial<ChatMessage> = {}): ChatMessage {
   };
   board.record('message', m, 'scout', 'Fixture');
   return m;
-}
+};
+
+let board: Board;
+let directory: string;
+beforeEach(async () => {
+  directory = await mkdtemp(join(tmpdir(), 'pitchcrew-history-'));
+  board = new Board(join(directory, 'board.db'));
+});
+afterEach(async () => {
+  board.close();
+  await rm(directory, { recursive: true, force: true });
+});
 it('pages every message and turn in the same order as the existing transcript, including timestamp ties', () => {
   const messages = Array.from({ length: 121 }, (_, i) => message(i));
   const run: Run = {

@@ -11,13 +11,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu/index.tsx';
-const levels = [
-  { value: '1', label: 'Fit to panel' },
-  { value: '1.5', label: '150%' },
-  { value: '2', label: '200%' },
-  { value: '3.5', label: '350%' },
-];
-export function BrowserZoom({
+export const BrowserZoom = ({
   zoom,
   setZoom,
   panView,
@@ -27,7 +21,7 @@ export function BrowserZoom({
   setZoom: (zoom: number) => void;
   panView: boolean;
   setPanView: (pan: boolean) => void;
-}) {
+}) => {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger
@@ -70,4 +64,11 @@ export function BrowserZoom({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};
+
+const levels = [
+  { value: '1', label: 'Fit to panel' },
+  { value: '1.5', label: '150%' },
+  { value: '2', label: '200%' },
+  { value: '3.5', label: '350%' },
+];

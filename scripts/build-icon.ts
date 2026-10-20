@@ -31,11 +31,7 @@ if (!process.versions.electron) {
     await rm(directory, { recursive: true, force: true, maxRetries: 3 });
   }
 } else {
-  const { app, BrowserWindow } = await import('electron');
-  if (process.platform === 'darwin') app.setActivationPolicy('accessory');
-  app.setPath('userData', process.argv[2]);
-  app.on('window-all-closed', () => {});
-  async function renderIcon() {
+  const renderIcon = async () => {
     let window;
     let exitCode = 0;
     try {
@@ -68,7 +64,12 @@ if (!process.versions.electron) {
       window?.destroy();
       app.exit(exitCode);
     }
-  }
+  };
+
+  const { app, BrowserWindow } = await import('electron');
+  if (process.platform === 'darwin') app.setActivationPolicy('accessory');
+  app.setPath('userData', process.argv[2]);
+  app.on('window-all-closed', () => {});
   void renderIcon().catch((error) => {
     console.error(error);
     app.exit(1);

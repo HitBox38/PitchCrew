@@ -1,7 +1,7 @@
 import { parseRelease } from './helpers';
 import type { Release } from './types';
 
-export async function latestRelease(): Promise<Release> {
+export const latestRelease = async (): Promise<Release> => {
   try {
     const response = await fetch(
       'https://api.github.com/repos/HitBox38/PitchCrew/releases/latest',
@@ -16,4 +16,4 @@ export async function latestRelease(): Promise<Release> {
     /* The page and Releases fallback remain usable offline. */
   }
   return parseRelease(null);
-}
+};

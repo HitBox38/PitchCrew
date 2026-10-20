@@ -5,7 +5,10 @@ import { join } from 'node:path';
  * SQLite's process locks serialize stale-lock reclamation and release. The separate, empty
  * database never opens the board, and its locks are released by the OS if a daemon crashes.
  */
-export async function withLockMutation<T>(directory: string, action: () => Promise<T>): Promise<T> {
+export const withLockMutation = async <T>(
+  directory: string,
+  action: () => Promise<T>,
+): Promise<T> => {
   const database = new Database(join(directory, 'daemon-lock.sqlite'), { timeout: 0 });
   try {
     for (let attempt = 0; ; attempt++) {
@@ -22,4 +25,4 @@ export async function withLockMutation<T>(directory: string, action: () => Promi
     if (database.inTransaction) database.exec('ROLLBACK');
     database.close();
   }
-}
+};

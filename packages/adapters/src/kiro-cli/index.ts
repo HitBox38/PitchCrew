@@ -18,7 +18,7 @@ export const kiroCli = withChat({
     parseKiroModels(
       await modelListCommand('kiro-cli', ['chat', '--list-models', '--format', 'json'], signal),
     ),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const kiroHome = join(context.directory, 'kiro-home');
     const agentsDirectory = join(kiroHome, 'agents');

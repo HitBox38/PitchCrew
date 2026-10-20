@@ -1,7 +1,7 @@
 import { issueText, issuesForRule } from '../helpers.ts';
 import type { RuleIssue, RuleView } from '../types.ts';
 
-export function RuleList({ rules, issues }: { rules: RuleView[]; issues: RuleIssue[] }) {
+export const RuleList = ({ rules, issues }: { rules: RuleView[]; issues: RuleIssue[] }) => {
   if (!rules.length)
     return <p className="quiet">No house rules. Only the exact quotation checks run.</p>;
   return (
@@ -39,4 +39,4 @@ export function RuleList({ rules, issues }: { rules: RuleView[]; issues: RuleIss
       })}
     </ul>
   );
-}
+};

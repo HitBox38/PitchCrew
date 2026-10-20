@@ -20,50 +20,18 @@ import {
   sourceEndpoint,
 } from './providers.ts';
 
-/** A lookup waits behind any running scan's provider spacing, then makes one request. */
-export const lookupDeadlineMs = 60_000;
-
-/**
- * Fixed official single-posting endpoints. Only the validated board name and job ID vary.
- * Providers without one are read through their board endpoint and the posting is picked by ID.
- */
-const singlePosting: Partial<
-  Record<
-    JobProvider,
-    {
-      origin: string;
-      path: (board: string, id: string) => string;
-      query: string;
-      wrap: (body: unknown) => unknown;
-    }
-  >
-> = {
-  greenhouse: {
-    origin: 'https://boards-api.greenhouse.io',
-    path: (board, id) => `/v1/boards/${board}/jobs/${id}`,
-    query: '?content=true',
-    wrap: (body) => ({ jobs: [body] }),
-  },
-  lever: {
-    origin: 'https://api.lever.co',
-    path: (board, id) => `/v0/postings/${board}/${id}`,
-    query: '?mode=json',
-    wrap: (body) => [body],
-  },
-};
-
-function assertJobId(provider: JobProvider, id: string): string {
+const assertJobId = (provider: JobProvider, id: string): string => {
   if (!isJobLinkId(provider, id)) throw new Error('Invalid job ID.');
   return id;
-}
+};
 /**
  * The one URL a lookup may request: a fixed single-posting template, or the provider's board
  * endpoint built exactly as scans build it (so Ashby names are encoded the same way).
  */
-export function postingEndpoint(
+export const postingEndpoint = (
   link: Pick<JobLink, 'provider' | 'board' | 'jobId'>,
   token?: string,
-): URL {
+): URL => {
   const template = singlePosting[link.provider];
   if (!template) return sourceEndpoint(link.provider, link.board, token);
   const path = template.path(
@@ -75,32 +43,25 @@ export function postingEndpoint(
   if (url.origin !== template.origin || url.pathname !== path || url.search !== template.query)
     throw new Error('Invalid job link.');
   return url;
-}
+};
 
 /** Title-case a board name, used when neither a saved source nor the provider names the company. */
-export function companyFromBoard(board: string): string {
+export const companyFromBoard = (board: string): string => {
   return board
     .split(/[-_. ]+/)
     .filter(Boolean)
     .map((word) => word[0]!.toUpperCase() + word.slice(1))
     .join(' ')
     .slice(0, 100);
-}
-const record = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-const name = (value: unknown, token?: string) =>
-  typeof value === 'string'
-    ? redactToken(value, token).replace(/\s+/g, ' ').trim().slice(0, 100)
-    : '';
+};
+
 /** The company name a provider response carries, if any. */
-function providerCompany(
+const providerCompany = (
   provider: JobProvider,
   body: unknown,
   jobId: string,
   token?: string,
-): string {
+): string => {
   if (provider === 'greenhouse') return name(record(body).company_name, token);
   if (provider === 'workable') return name(record(body).name, token);
   if (provider === 'comeet' && Array.isArray(body))
@@ -114,27 +75,13 @@ function providerCompany(
       token,
     );
   return '';
-}
+};
 
-export interface LookupDependencies {
-  fetch: FetchLike;
-  limiter: ProviderRateLimiter;
-  board: Board;
-  sources: () => Promise<JobSource[]>;
-  signal: AbortSignal;
-  /** Per-request timeout; defaults to the discovery request timeout. */
-  timeoutMs?: number;
-}
-const sameBoard = (source: JobSource, link: JobLink) =>
-  source.provider === link.provider && source.slug.toLowerCase() === link.board.toLowerCase();
-export const comeetSourceNeeded =
-  'Add this company as a Comeet source in Settings > Job sources to fetch its postings.';
-
-async function readPosting(
+const readPosting = async (
   link: JobLink,
   token: string | undefined,
   { fetch, limiter, signal, timeoutMs }: LookupDependencies,
-): Promise<{ posting: JobPosting; company: string }> {
+): Promise<{ posting: JobPosting; company: string }> => {
   const label = jobProviderLabels[link.provider];
   const template = singlePosting[link.provider];
   const statusMessages = providerStatusMessages[link.provider];
@@ -187,17 +134,17 @@ async function readPosting(
         : `This posting is not on the public ${label} board. It may be closed.`,
     );
   return { posting, company: providerCompany(link.provider, body, posting.jobId, token) };
-}
+};
 
 /**
  * Read one posting from a pasted link and return form values for the user to review. Creates
  * nothing. Unrecognized links and provider failures are results, not errors. A Comeet token from
  * an embed link is used for this lookup only; no token appears in the result.
  */
-export async function lookupJobLink(
+export const lookupJobLink = async (
   value: unknown,
   dependencies: Omit<LookupDependencies, 'signal'> & { signal?: AbortSignal },
-): Promise<JobLookupResult> {
+): Promise<JobLookupResult> => {
   const { url } = jobLookupInput.parse(value);
   const recognition = recognizeJobLink(url);
   if (!recognition.recognized) return { status: 'unrecognized', reason: recognition.reason };
@@ -256,4 +203,58 @@ export async function lookupJobLink(
       state,
     })),
   };
+};
+
+/** A lookup waits behind any running scan's provider spacing, then makes one request. */
+export const lookupDeadlineMs = 60_000;
+
+/**
+ * Fixed official single-posting endpoints. Only the validated board name and job ID vary.
+ * Providers without one are read through their board endpoint and the posting is picked by ID.
+ */
+const singlePosting: Partial<
+  Record<
+    JobProvider,
+    {
+      origin: string;
+      path: (board: string, id: string) => string;
+      query: string;
+      wrap: (body: unknown) => unknown;
+    }
+  >
+> = {
+  greenhouse: {
+    origin: 'https://boards-api.greenhouse.io',
+    path: (board, id) => `/v1/boards/${board}/jobs/${id}`,
+    query: '?content=true',
+    wrap: (body) => ({ jobs: [body] }),
+  },
+  lever: {
+    origin: 'https://api.lever.co',
+    path: (board, id) => `/v0/postings/${board}/${id}`,
+    query: '?mode=json',
+    wrap: (body) => [body],
+  },
+};
+const record = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+const name = (value: unknown, token?: string) =>
+  typeof value === 'string'
+    ? redactToken(value, token).replace(/\s+/g, ' ').trim().slice(0, 100)
+    : '';
+
+export interface LookupDependencies {
+  fetch: FetchLike;
+  limiter: ProviderRateLimiter;
+  board: Board;
+  sources: () => Promise<JobSource[]>;
+  signal: AbortSignal;
+  /** Per-request timeout; defaults to the discovery request timeout. */
+  timeoutMs?: number;
 }
+const sameBoard = (source: JobSource, link: JobLink) =>
+  source.provider === link.provider && source.slug.toLowerCase() === link.board.toLowerCase();
+export const comeetSourceNeeded =
+  'Add this company as a Comeet source in Settings > Job sources to fetch its postings.';

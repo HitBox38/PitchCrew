@@ -1,12 +1,12 @@
 import type { Snapshot } from '@pitchcrew/core';
 import type { ConversationNavigationRow } from './types.ts';
-export function conversationRows(
+export const conversationRows = (
   data: Snapshot,
   query: string,
   includeArchived: boolean,
   readAt: Record<string, string>,
   historyMatches: readonly string[] = [],
-): ConversationNavigationRow[] {
+): ConversationNavigationRow[] => {
   const needle = query.trim().toLowerCase();
   const roles = new Map(data.roles.map((role) => [role.id, role.name]));
   const messages = new Map<string, { preview: string; unread: boolean }>();
@@ -65,4 +65,4 @@ export function conversationRows(
         data.userInputs?.some((q) => q.threadId === conversation.id && q.status === 'pending') ??
         false,
     }));
-}
+};

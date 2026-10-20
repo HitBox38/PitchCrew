@@ -11,12 +11,12 @@ import { eventSummary, pipelineEvidenceKinds } from './query.ts';
 import { randomUUID } from 'node:crypto';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-function validateEvidence(
+const validateEvidence = (
   context: CrewContext,
   ids: number[],
   scope: PipelineReview['scope'],
   targetRoleId?: string,
-) {
+) => {
   const evidence: PipelineReview['evidence'] = [];
   for (const id of ids) {
     const row = context.board.db.prepare('SELECT json FROM events WHERE id = ?').get(id) as
@@ -57,12 +57,12 @@ function validateEvidence(
       throw new Error('Role evidence must describe the assessed role.');
   }
   return evidence;
-}
-export function savePipelineReview(
+};
+export const savePipelineReview = (
   context: CrewContext,
   capability: RunCapability,
   input: unknown,
-) {
+) => {
   const parsed = pipelineReviewInput.parse(input);
   if (
     context.board
@@ -128,8 +128,12 @@ export function savePipelineReview(
     );
     return { review };
   })();
-}
-export function updatePipelineReview(context: CrewContext, input: unknown, actor: RoleId | 'user') {
+};
+export const updatePipelineReview = (
+  context: CrewContext,
+  input: unknown,
+  actor: RoleId | 'user',
+) => {
   const { reviewId, ...followup } = pipelineFollowupInput.parse(input);
   const current = context.board.get<PipelineReview>('pipeline_review', reviewId);
   if (!current.findings.some((finding) => finding.id === followup.findingId))
@@ -159,4 +163,4 @@ export function updatePipelineReview(context: CrewContext, input: unknown, actor
     `Updated pipeline finding follow-up: ${followup.findingId}`,
   );
   return { review };
-}
+};

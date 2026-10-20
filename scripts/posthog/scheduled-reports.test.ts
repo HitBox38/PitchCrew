@@ -7,9 +7,7 @@ import test from 'node:test';
 import type { ReportBindings } from './scheduled-reports.ts';
 import manifest from '../../posthog/scheduled-reports/reports.json' with { type: 'json' };
 import { planScheduledReports, publicReportPlan } from './scheduled-reports.ts';
-
-const now = new Date('2026-10-12T00:00:00Z');
-function bindings(): ReportBindings {
+const bindings = (): ReportBindings => {
   return {
     projectId: 295060,
     featuresReady: true,
@@ -37,7 +35,9 @@ function bindings(): ReportBindings {
       ]),
     ),
   };
-}
+};
+
+const now = new Date('2026-10-12T00:00:00Z');
 
 test('prepares five weekly dashboard snapshots without immediate messages, AI or private stdout', () => {
   const plan = planScheduledReports(manifest, bindings(), now);

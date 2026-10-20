@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function MessageAvatar({ className, ...props }: React.ComponentProps<'div'>) {
+export const MessageAvatar = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="message-avatar"
@@ -12,4 +12,4 @@ export function MessageAvatar({ className, ...props }: React.ComponentProps<'div
       {...props}
     />
   );
-}
+};

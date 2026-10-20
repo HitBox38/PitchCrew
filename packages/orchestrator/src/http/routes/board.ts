@@ -8,7 +8,7 @@ import { CrewService } from '../../service.ts';
 import type { Card, Run } from '@pitchcrew/core';
 import { registerApplicationContextRoutes } from './application-context.ts';
 
-export function registerBoardRoutes(app: FastifyInstance, service: CrewService) {
+export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) => {
   registerApplicationContextRoutes(app, service);
   registerDeepReviewRoutes(app, service);
   app.get<IdRoute>('/api/cards/:id', (req) =>
@@ -65,4 +65,4 @@ export function registerBoardRoutes(app: FastifyInstance, service: CrewService) 
     await service.loadExamples();
     res.send({ ok: true });
   });
-}
+};

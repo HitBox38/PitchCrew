@@ -8,7 +8,7 @@ import { platforms } from './constants';
 import { usePlatform } from './hooks/usePlatform';
 import type { Platform, Release } from './types';
 
-export function Downloads({ release }: { release: Release }) {
+export const Downloads = ({ release }: { release: Release }) => {
   const { platform, select } = usePlatform();
   return (
     <section
@@ -65,4 +65,4 @@ export function Downloads({ release }: { release: Release }) {
       </div>
     </section>
   );
-}
+};

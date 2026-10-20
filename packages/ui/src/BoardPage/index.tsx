@@ -8,7 +8,7 @@ import { TrackingReview } from '@/TrackingReview/index.tsx';
 import { DeleteJobDialog } from './components/DeleteJobDialog.tsx';
 import { canDragJob } from './helpers.ts';
 
-export function BoardPage() {
+export const BoardPage = () => {
   const controller = useBoardPage();
   if (!controller) return null;
   const {
@@ -70,4 +70,4 @@ export function BoardPage() {
       />
     </div>
   );
-}
+};

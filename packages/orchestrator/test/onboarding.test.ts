@@ -5,13 +5,13 @@ import type { Snapshot } from '@pitchcrew/core';
 import { afterEach, describe, expect, it } from 'vitest';
 import { OnboardingPreferences } from '../src/onboarding.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
-
-const directories: string[] = [];
-async function directory() {
+const directory = async () => {
   const path = await mkdtemp(join(tmpdir(), 'pitchcrew-onboarding-test-'));
   directories.push(path);
   return path;
-}
+};
+
+const directories: string[] = [];
 afterEach(async () => {
   await cleanup();
   for (const path of directories.splice(0)) {

@@ -1,11 +1,11 @@
 import type { InstructionSettingsProps } from '@/components/RoleSettings/types.ts';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 
-export function InstructionSettings({
+export const InstructionSettings = ({
   role,
   instructions,
   setInstructions,
-}: InstructionSettingsProps) {
+}: InstructionSettingsProps) => {
   return (
     <section className="role-settings-section" aria-labelledby={`${role.id}-instructions-heading`}>
       <h3 id={`${role.id}-instructions-heading`}>
@@ -21,4 +21,4 @@ export function InstructionSettings({
       />
     </section>
   );
-}
+};

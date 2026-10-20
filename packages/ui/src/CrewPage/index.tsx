@@ -10,7 +10,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { Role } from '@pitchcrew/core';
 import { useShallow } from 'zustand/react/shallow';
 
-export function CrewPage() {
+export const CrewPage = () => {
   const navigate = useNavigate({ from: '/crew' });
   const { updates: updatesOnly } = useSearch({ from: '/crew' });
   const { data, working, setRoleId, act, action } = useWorkspaceStore(
@@ -63,4 +63,4 @@ export function CrewPage() {
       </div>
     </>
   );
-}
+};

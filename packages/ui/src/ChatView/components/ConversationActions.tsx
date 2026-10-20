@@ -8,7 +8,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu/index.tsx';
 import { Ellipsis, Pin, Archive, Users, BookOpen, Settings, Play, Bell } from 'lucide-react';
-export function ConversationActions({
+export const ConversationActions = ({
   questions,
   conversation,
   patchConversation,
@@ -21,7 +21,7 @@ export function ConversationActions({
   running,
   messages,
   working,
-}: ConversationHeadingProps) {
+}: ConversationHeadingProps) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -78,4 +78,4 @@ export function ConversationActions({
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+};

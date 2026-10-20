@@ -18,7 +18,7 @@ import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
 import { SkillUpdateSettings } from '@/AgentUpdates/components/SkillUpdateSettings.tsx';
 
-export function SettingsPage() {
+export const SettingsPage = () => {
   const mobile = useIsMobile();
   const { section } = useSearch({ from: '/settings' });
   const navigate = useNavigate({ from: '/settings' });
@@ -64,4 +64,4 @@ export function SettingsPage() {
       </TabsContent>
     </Tabs>
   );
-}
+};

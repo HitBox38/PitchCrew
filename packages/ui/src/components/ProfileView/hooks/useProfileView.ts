@@ -6,7 +6,29 @@ import { useProfileDocuments } from './useProfileDocuments.ts';
 import { useProfileOrganization } from './useProfileOrganization.ts';
 import { documentDirty } from '../helpers.ts';
 
-export function useProfileView({ data, action, working }: ProfileViewProps) {
+export const useProfileView = ({ data, action, working }: ProfileViewProps) => {
+  const save = async (e: FormEvent) => {
+    e.preventDefault();
+    const note = documents.active;
+    if (working || !note) return;
+    const snapshot = { name: note.name, content: note.content };
+    try {
+      await action('/profile', 'PUT', snapshot, 'Profile note saved');
+      const previousFolder = data.profileOrganization?.locations[note.saved.name];
+      if (note.name !== note.saved.name && previousFolder !== undefined) {
+        if (
+          !(await organization.change({ action: 'move', name: note.name, folder: previousFolder }))
+        )
+          return;
+      }
+      documents.update(note.id, { saved: snapshot, error: '' });
+    } catch (e) {
+      documents.update(note.id, {
+        error: e instanceof Error ? e.message : 'Could not save profile.',
+      });
+    }
+  };
+
   const documents = useProfileDocuments(data);
   const organization = useProfileOrganization({ action });
   const [closing, setClosing] = useState<string | null>(null);
@@ -42,27 +64,6 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
     documents.open({ name, content: '# Project\n\n- Add a source-backed fact.\n' });
     return true;
   };
-  async function save(e: FormEvent) {
-    e.preventDefault();
-    const note = documents.active;
-    if (working || !note) return;
-    const snapshot = { name: note.name, content: note.content };
-    try {
-      await action('/profile', 'PUT', snapshot, 'Profile note saved');
-      const previousFolder = data.profileOrganization?.locations[note.saved.name];
-      if (note.name !== note.saved.name && previousFolder !== undefined) {
-        if (
-          !(await organization.change({ action: 'move', name: note.name, folder: previousFolder }))
-        )
-          return;
-      }
-      documents.update(note.id, { saved: snapshot, error: '' });
-    } catch (e) {
-      documents.update(note.id, {
-        error: e instanceof Error ? e.message : 'Could not save profile.',
-      });
-    }
-  }
   return {
     data,
     working,
@@ -107,4 +108,4 @@ export function useProfileView({ data, action, working }: ProfileViewProps) {
     sourcesOpen,
     setSourcesOpen,
   };
-}
+};

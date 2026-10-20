@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function SidebarGroupAction({ className, render, ...props }: SidebarGroupActionProps) {
+export const SidebarGroupAction = ({ className, render, ...props }: SidebarGroupActionProps) => {
   return useRender({
     defaultTagName: 'button',
     props: mergeProps<'button'>(
@@ -24,4 +24,4 @@ export function SidebarGroupAction({ className, render, ...props }: SidebarGroup
       sidebar: 'group-action',
     },
   });
-}
+};

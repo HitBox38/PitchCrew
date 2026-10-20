@@ -1,13 +1,13 @@
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
 
-export function saveReviewDecision(
+export const saveReviewDecision = (
   action: Action,
   proposal: ProfileMaintenanceProposal,
   names: string[],
   verifiedFacts: boolean,
   approved: boolean,
-) {
+) => {
   return action(
     `/profile/proposals/${proposal.id}/decide`,
     'POST',
@@ -19,4 +19,4 @@ export function saveReviewDecision(
     },
     approved ? 'Verified profile updates applied' : 'Profile updates rejected',
   );
-}
+};

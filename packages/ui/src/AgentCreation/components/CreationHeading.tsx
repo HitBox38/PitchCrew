@@ -5,14 +5,14 @@ import { SheetDescription } from '@/components/ui/sheet/components/SheetDescript
 import { creationSteps } from '../constants.ts';
 import type { CreationController } from '../types.ts';
 
-export function CreationHeading({
+export const CreationHeading = ({
   step,
   close,
   created,
   saving,
   working,
   goTo,
-}: Pick<CreationController, 'step' | 'close' | 'created' | 'saving' | 'working' | 'goTo'>) {
+}: Pick<CreationController, 'step' | 'close' | 'created' | 'saving' | 'working' | 'goTo'>) => {
   return (
     <>
       <header className="role-settings-heading">
@@ -56,4 +56,4 @@ export function CreationHeading({
       ) : null}
     </>
   );
-}
+};

@@ -6,10 +6,10 @@ import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { MessageScrollerItem } from '@/components/ui/message-scroller/components/MessageScrollerItem.tsx';
 
-export function MessageTranscript({
+export const MessageTranscript = ({
   items,
   ...props
-}: MessageTranscriptProps & { items: TranscriptItem[] }) {
+}: MessageTranscriptProps & { items: TranscriptItem[] }) => {
   const replyingRuns = new Set(props.data.streamingMessages.map((message) => message.runId));
   return (
     <AnimatePresence initial={false}>
@@ -40,4 +40,4 @@ export function MessageTranscript({
       ))}
     </AnimatePresence>
   );
-}
+};

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function CodeBlockActions({ className, ...props }: React.ComponentProps<'div'>) {
+export const CodeBlockActions = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="code-block-actions"
@@ -12,4 +12,4 @@ export function CodeBlockActions({ className, ...props }: React.ComponentProps<'
       {...props}
     />
   );
-}
+};

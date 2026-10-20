@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils.ts';
 import { Accordion as AccordionPrimitive } from '@base-ui/react/accordion';
 import { ChevronDown } from 'lucide-react';
 
-export function AccordionTrigger({ className, children, ...props }: AccordionTriggerProps) {
+export const AccordionTrigger = ({ className, children, ...props }: AccordionTriggerProps) => {
   return (
     <AccordionPrimitive.Header data-slot="accordion-header" className="primitive:flex">
       <AccordionPrimitive.Trigger
@@ -22,4 +22,4 @@ export function AccordionTrigger({ className, children, ...props }: AccordionTri
       </AccordionPrimitive.Trigger>
     </AccordionPrimitive.Header>
   );
-}
+};

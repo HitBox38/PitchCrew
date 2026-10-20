@@ -5,14 +5,12 @@ import { readAttachment } from '../attachments/storage.ts';
 import { readAttachmentText } from '../attachments/text.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-const reading = new WeakMap<CrewContext, Set<string>>();
-
-export async function readChatAttachment(
+export const readChatAttachment = async (
   context: CrewContext,
   capability: RunCapability,
   token: string,
   data: unknown,
-) {
+) => {
   const input = z.object({ messageId: z.uuid(), attachmentId: z.uuid() }).parse(data);
   const message = context.board.get<ChatMessage>('message', input.messageId);
   if (!canReadConversation(context, capability.roleId, message.threadId))
@@ -42,4 +40,6 @@ export async function readChatAttachment(
   } finally {
     pending.delete(capability.runId);
   }
-}
+};
+
+const reading = new WeakMap<CrewContext, Set<string>>();

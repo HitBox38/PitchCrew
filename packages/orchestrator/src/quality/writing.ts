@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import type { WritingGuide, WritingPreference, WritingCorrection } from '@pitchcrew/core';
 import type { CrewContext } from '../crew/types.ts';
 
-export function writingGuide(context: CrewContext): WritingGuide {
+export const writingGuide = (context: CrewContext): WritingGuide => {
   return (
     context.board.list<WritingGuide>('writing_guide')[0] ?? {
       id: 'writing-guide',
@@ -13,27 +13,27 @@ export function writingGuide(context: CrewContext): WritingGuide {
       proposals: [],
     }
   );
-}
-export function saveGuide(context: CrewContext, guide: WritingGuide, actor: string) {
+};
+export const saveGuide = (context: CrewContext, guide: WritingGuide, actor: string) => {
   if (guide.preferences.length > 100 || guide.proposals.length > 100)
     throw new Error('The writing guide limit is 100 preferences and 100 proposals.');
   const next = { ...guide, revision: guide.revision + 1 };
   context.board.record('writing_guide', next, actor, 'Updated writing preferences');
   return next;
-}
-export function checkGuideRevision(context: CrewContext, revision: number) {
+};
+export const checkGuideRevision = (context: CrewContext, revision: number) => {
   const guide = writingGuide(context);
   if (guide.revision !== revision)
     throw new Error('The writing guide changed. Refresh and try again.');
   return structuredClone(guide);
-}
-export function addPreference(
+};
+export const addPreference = (
   guide: WritingGuide,
   text: string,
   scope: WritingPreference['scope'],
   origin: WritingPreference['origin'],
   correctionIds: string[] = [],
-) {
+) => {
   const existing = guide.preferences.find((p) => p.text === text && p.scope === scope);
   if (existing) {
     if (origin === 'explicit') {
@@ -53,8 +53,8 @@ export function addPreference(
   };
   guide.preferences.push(item);
   return item;
-}
-export function guideForRun(context: CrewContext) {
+};
+export const guideForRun = (context: CrewContext) => {
   const guide = writingGuide(context);
   return {
     revision: guide.revision,
@@ -62,12 +62,12 @@ export function guideForRun(context: CrewContext) {
       .filter((p) => p.enabled)
       .sort((a, b) => Number(b.origin === 'explicit') - Number(a.origin === 'explicit')),
   };
-}
-export function finishWritingCorrection(
+};
+export const finishWritingCorrection = (
   context: CrewContext,
   id: string,
   packet: { resume: string; coverLetter: string },
-) {
+) => {
   const correction = context.board.get<WritingCorrection>('writing_correction', id);
   if (correction.after) return;
   const next = { ...correction, after: { resume: packet.resume, coverLetter: packet.coverLetter } };
@@ -123,4 +123,4 @@ export function finishWritingCorrection(
     matches.map((c) => c.id),
   );
   saveGuide(context, guide, 'orchestrator');
-}
+};

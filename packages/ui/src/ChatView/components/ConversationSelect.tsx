@@ -5,7 +5,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select/index.tsx';
-export function ConversationSelect({
+export const ConversationSelect = ({
   label,
   id,
   value,
@@ -21,7 +21,7 @@ export function ConversationSelect({
   onChange: (value: string) => void;
   disabled?: boolean;
   compact?: boolean;
-}) {
+}) => {
   return (
     <Select
       value={value}
@@ -48,4 +48,4 @@ export function ConversationSelect({
       </SelectContent>
     </Select>
   );
-}
+};

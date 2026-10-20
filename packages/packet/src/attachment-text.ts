@@ -2,7 +2,7 @@ import { chatAttachmentLimits } from '@pitchcrew/core/chat-attachments';
 import { fileURLToPath } from 'node:url';
 
 /** Plain text only: never render HTML, follow document links or enable external file access. */
-export async function attachmentText(bytes: Uint8Array, mimeType: string) {
+export const attachmentText = async (bytes: Uint8Array, mimeType: string) => {
   const limit = chatAttachmentLimits.text;
   if (mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
     const mammoth = await import('mammoth');
@@ -49,4 +49,4 @@ export async function attachmentText(bytes: Uint8Array, mimeType: string) {
   const text = new TextDecoder('utf-8', { fatal: true }).decode(bytes);
   if (text.includes('\0')) throw new Error('This file is not UTF-8 text.');
   return { text: text.slice(0, limit), truncated: text.length > limit };
-}
+};

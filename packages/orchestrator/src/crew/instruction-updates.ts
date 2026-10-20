@@ -10,7 +10,7 @@ import { requireRole } from './roles.ts';
 import type { CrewContext } from './types.ts';
 
 /** Seeded default roles with newer default instructions. Shown only to the user's session. */
-export function instructionUpdates(context: CrewContext): InstructionUpdate[] {
+export const instructionUpdates = (context: CrewContext): InstructionUpdate[] => {
   const dismissed = context.instructionUpdatePreferences.dismissed();
   return context.board.defaultInstructionStatuses().flatMap((status) =>
     status.state === 'up_to_date'
@@ -23,10 +23,10 @@ export function instructionUpdates(context: CrewContext): InstructionUpdate[] {
           },
         ],
   );
-}
+};
 
 /** The user's decision must name the exact revision they reviewed. */
-function reviewedUpdate(context: CrewContext, id: RoleId, input: unknown): InstructionUpdate {
+const reviewedUpdate = (context: CrewContext, id: RoleId, input: unknown): InstructionUpdate => {
   const { revision } = instructionUpdateDecision.parse(input);
   requireRole(context, id);
   const update = instructionUpdates(context).find((item) => item.roleId === id);
@@ -34,18 +34,14 @@ function reviewedUpdate(context: CrewContext, id: RoleId, input: unknown): Instr
   if (update.revision !== revision)
     throw new Error('The default instructions changed. Review the latest update first.');
   return update;
-}
-
-const reviewedRoleSettings = rolePatch.extend({
-  defaultInstructionRevision: defaultInstructionRevisionId.optional(),
-});
+};
 
 /** User settings may explicitly start from the exact default the user reviewed. */
-export async function configureReviewedRole(
+export const configureReviewedRole = async (
   context: CrewContext,
   id: RoleId,
   input: unknown,
-): Promise<Role> {
+): Promise<Role> => {
   const { defaultInstructionRevision, ...settings } = reviewedRoleSettings.parse(input);
   const update = defaultInstructionRevision
     ? reviewedUpdate(context, id, { revision: defaultInstructionRevision })
@@ -56,18 +52,18 @@ export async function configureReviewedRole(
     undefined,
     update ? { revision: update.revision, instructions: update.instructions } : undefined,
   );
-}
+};
 
 /**
  * Use new default: an ordinary user settings change through configureRole, so the active-run,
  * settings-write and instruction-limit checks apply and generated AGENTS.md/CLAUDE.md refresh.
  * Only instructions change; runtime, model, enabled state, seat and tools stay as saved.
  */
-export async function adoptDefaultInstructions(
+export const adoptDefaultInstructions = async (
   context: CrewContext,
   id: RoleId,
   input: unknown,
-): Promise<Role> {
+): Promise<Role> => {
   const update = reviewedUpdate(context, id, input);
   const role = requireRole(context, id);
   const saved = await context.configureRole(
@@ -87,15 +83,19 @@ export async function adoptDefaultInstructions(
   );
   context.instructionUpdatePreferences.clear(id);
   return saved;
-}
+};
 
 /** Keep mine: hides this revision until a newer default ships. The role is not changed. */
-export function dismissInstructionUpdate(
+export const dismissInstructionUpdate = (
   context: CrewContext,
   id: RoleId,
   input: unknown,
-): InstructionUpdate {
+): InstructionUpdate => {
   const update = reviewedUpdate(context, id, input);
   context.instructionUpdatePreferences.dismiss(id, update.revision);
   return { ...update, dismissed: true };
-}
+};
+
+const reviewedRoleSettings = rolePatch.extend({
+  defaultInstructionRevision: defaultInstructionRevisionId.optional(),
+});

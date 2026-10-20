@@ -4,7 +4,7 @@ import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
 import { BrowserAddress } from './BrowserAddress.tsx';
 import { BrowserZoom } from './BrowserZoom.tsx';
-export function BrowserToolbar({
+export const BrowserToolbar = ({
   frame,
   control,
   url,
@@ -20,7 +20,7 @@ export function BrowserToolbar({
   setZoom: (zoom: number) => void;
   panView: boolean;
   setPanView: (pan: boolean) => void;
-}) {
+}) => {
   const address = frame?.url || url;
   return (
     <div className="browser-toolbar">
@@ -38,4 +38,4 @@ export function BrowserToolbar({
       <BrowserZoom zoom={zoom} setZoom={setZoom} panView={panView} setPanView={setPanView} />
     </div>
   );
-}
+};

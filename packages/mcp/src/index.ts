@@ -8,12 +8,12 @@ import {
 } from '@pitchcrew/packet';
 
 // All export callers enter the same MCP gate. No UI/HTTP code consumes tokens directly.
-export async function exportApprovedPacket(
+export const exportApprovedPacket = async (
   board: Board,
   directory: string,
   approvalId: string,
   assertReady?: () => void,
-) {
+) => {
   const approval = board.get<Approval>('approval', approvalId);
   if (approval.artifacts && approval.artifactDigest !== digestArtifacts(approval.artifacts))
     throw new Error('Reviewed artifacts changed.');
@@ -46,4 +46,4 @@ export async function exportApprovedPacket(
     'Exported approved packet locally',
   );
   return output;
-}
+};

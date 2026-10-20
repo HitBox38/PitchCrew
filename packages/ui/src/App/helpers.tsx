@@ -3,7 +3,7 @@ import { closedStates, stages } from '@/board-stages.ts';
 import { getRoleStatus } from '@/lib/role-status.ts';
 import type { Role } from '@pitchcrew/core';
 
-export function getWorkspaceModel(props: ReadyWorkspaceProps) {
+export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
   const { data, recentIds, act, view, pending } = props;
   const active = data.cards.filter((c) => !closedStates.includes(c.state));
   const strong = data.cards.filter((c) => c.fit !== null && c.fit >= 80).length;
@@ -77,4 +77,4 @@ export function getWorkspaceModel(props: ReadyWorkspaceProps) {
       `${role.name} ${role.enabled ? 'paused' : 'resumed'}`,
     );
   return { ...props, active, running, roleStatus, summary, stageLinks, recentCards, toggleRole };
-}
+};

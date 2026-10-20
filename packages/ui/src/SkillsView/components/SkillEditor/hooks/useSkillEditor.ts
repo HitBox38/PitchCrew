@@ -5,7 +5,7 @@ import { baseSkillUrl } from '@pitchcrew/core/base-skills';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { previewSkill } from '../api.ts';
 
-export function useSkillEditor({
+export const useSkillEditor = ({
   skill,
   creator,
   roles,
@@ -15,38 +15,8 @@ export function useSkillEditor({
   action,
   working,
   onClose,
-}: SkillEditorProps) {
-  const [name, setName] = useState(skill?.name ?? starter?.name ?? '');
-  const [description, setDescription] = useState(skill?.description ?? starter?.description ?? '');
-  const initialContent =
-    skill?.content ?? (starter?.sourceType === 'bundled' ? starter.content : '');
-  const initialScope =
-    skill?.scope ?? starter?.defaultScope ?? (initialRole || starter ? 'roles' : 'all');
-  const initialRoles =
-    skill?.roleIds ??
-    (starter?.defaultScope === 'all'
-      ? []
-      : initialRole
-        ? [initialRole]
-        : (starter?.defaultRoles ?? []));
-  const [content, setContent] = useState(initialContent);
-  const [scope, setScope] = useState<'all' | 'roles'>(initialScope);
-  const [roleIds, setRoleIds] = useState<RoleId[]>(initialRoles);
-  const [error, setError] = useState('');
-  const [source, setSource] = useState(skill?.source);
-  const [url, setUrl] = useState(skill?.source?.url ?? (starter ? baseSkillUrl(starter) : ''));
-  const [loading, setLoading] = useState(false);
-  const dirty =
-    name !== (skill?.name ?? starter?.name ?? '') ||
-    description !== (skill?.description ?? starter?.description ?? '') ||
-    content !== initialContent ||
-    scope !== initialScope ||
-    JSON.stringify(roleIds) !== JSON.stringify(initialRoles);
-  const guard = useUnsavedChanges(dirty, onClose);
-  const close = () => guard.requestLeave(onClose);
-  const importRequest = useRef<AbortController | null>(null);
-  useEffect(() => () => importRequest.current?.abort(), []);
-  async function loadSkill() {
+}: SkillEditorProps) => {
+  const loadSkill = async () => {
     importRequest.current?.abort();
     const controller = new AbortController();
     importRequest.current = controller;
@@ -65,8 +35,8 @@ export function useSkillEditor({
     } finally {
       if (!controller.signal.aborted) setLoading(false);
     }
-  }
-  async function save(event: FormEvent) {
+  };
+  const save = async (event: FormEvent) => {
     event.preventDefault();
     if (loading || working) return;
     setError('');
@@ -99,7 +69,38 @@ export function useSkillEditor({
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save skill.');
     }
-  }
+  };
+
+  const [name, setName] = useState(skill?.name ?? starter?.name ?? '');
+  const [description, setDescription] = useState(skill?.description ?? starter?.description ?? '');
+  const initialContent =
+    skill?.content ?? (starter?.sourceType === 'bundled' ? starter.content : '');
+  const initialScope =
+    skill?.scope ?? starter?.defaultScope ?? (initialRole || starter ? 'roles' : 'all');
+  const initialRoles =
+    skill?.roleIds ??
+    (starter?.defaultScope === 'all'
+      ? []
+      : initialRole
+        ? [initialRole]
+        : (starter?.defaultRoles ?? []));
+  const [content, setContent] = useState(initialContent);
+  const [scope, setScope] = useState<'all' | 'roles'>(initialScope);
+  const [roleIds, setRoleIds] = useState<RoleId[]>(initialRoles);
+  const [error, setError] = useState('');
+  const [source, setSource] = useState(skill?.source);
+  const [url, setUrl] = useState(skill?.source?.url ?? (starter ? baseSkillUrl(starter) : ''));
+  const [loading, setLoading] = useState(false);
+  const dirty =
+    name !== (skill?.name ?? starter?.name ?? '') ||
+    description !== (skill?.description ?? starter?.description ?? '') ||
+    content !== initialContent ||
+    scope !== initialScope ||
+    JSON.stringify(roleIds) !== JSON.stringify(initialRoles);
+  const guard = useUnsavedChanges(dirty, onClose);
+  const close = () => guard.requestLeave(onClose);
+  const importRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => importRequest.current?.abort(), []);
   return {
     skill,
     creator: starter?.sourceType === 'bundled' ? 'Pitchcrew' : creator,
@@ -129,4 +130,4 @@ export function useSkillEditor({
     loadSkill,
     save,
   };
-}
+};

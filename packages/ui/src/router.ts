@@ -20,6 +20,15 @@ import {
   validateUpdateSearch,
 } from './navigation.ts';
 
+// Both browser and Electron render from the daemon's HTTP origin.
+// Tests provide memory history to exercise the same route tree without a DOM.
+export const createAppRouter = (
+  history?: RouterHistory,
+  getRoles: () => Role[] | undefined = () => undefined,
+) => {
+  return createRouter({ routeTree, history, context: { getRoles } });
+};
+
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
     view?: View;
@@ -149,12 +158,3 @@ const routeTree = rootRoute.addChildren([
   activityRoute,
   settingsRoute,
 ]);
-
-// Both browser and Electron render from the daemon's HTTP origin.
-// Tests provide memory history to exercise the same route tree without a DOM.
-export function createAppRouter(
-  history?: RouterHistory,
-  getRoles: () => Role[] | undefined = () => undefined,
-) {
-  return createRouter({ routeTree, history, context: { getRoles } });
-}

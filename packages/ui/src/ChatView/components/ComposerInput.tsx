@@ -5,12 +5,12 @@ import { ChatComposerEditor } from '@/ChatComposer/index.tsx';
 import { composerSuggestions } from '@/ChatComposer/helpers.ts';
 import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 
-export function ComposerInput(
+export const ComposerInput = (
   props: ChatComposerProps & {
     disabled: boolean;
     onAction: (action: NonNullable<ComposerSuggestion['action']>) => void;
   },
-) {
+) => {
   const suggestions = useMemo(
     () =>
       composerSuggestions(
@@ -75,4 +75,4 @@ export function ComposerInput(
       />
     </PromptInputBody>
   );
-}
+};

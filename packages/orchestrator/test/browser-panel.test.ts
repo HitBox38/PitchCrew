@@ -8,12 +8,7 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, setup, resources, finish } from './helpers/daemon.ts';
-
-afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.controllers.delete('browser-panel-run');
-  await cleanup();
-});
-async function fixture(port: number) {
+const fixture = async (port: number) => {
   const driver = {
     snapshot: vi.fn(async () => ({
       url: 'https://8.8.8.8/application',
@@ -72,7 +67,12 @@ async function fixture(port: number) {
   });
   await service.agentCall('browser-fixture-token', 'computer_inspect', {});
   return { ...fixture, service, driver, run };
-}
+};
+
+afterEach(async () => {
+  for (const { daemon } of resources) daemon.service.controllers.delete('browser-panel-run');
+  await cleanup();
+});
 it('protects browser frames, manual input and task permissions with the user session and conversation membership', async () => {
   const { daemon, request, cookie, service, driver, run } = await fixture(14516);
   const path = '/browser/writer/control?threadId=writer';

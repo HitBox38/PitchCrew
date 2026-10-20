@@ -4,7 +4,7 @@ import { normalizeDocx } from './docx.ts';
 
 // The original plain text layout: literal Markdown, syntax included, in Helvetica. Its PDF bytes
 // match exports made before formatted layouts, so earlier documents can be reproduced exactly.
-function unsupported(font: PDFFont, text: string) {
+const unsupported = (font: PDFFont, text: string) => {
   for (const character of text.replace(/[\r\n\t]/g, ' ')) {
     try {
       font.encodeText(character);
@@ -14,9 +14,9 @@ function unsupported(font: PDFFont, text: string) {
     }
   }
   return undefined;
-}
+};
 
-export async function plainPdf(text: string) {
+export const plainPdf = async (text: string) => {
   const document = await PDFDocument.create();
   const font = await document.embedFont(StandardFonts.Helvetica);
   try {
@@ -52,11 +52,11 @@ export async function plainPdf(text: string) {
     y -= 15;
   }
   return { bytes: Buffer.from(await document.save()), pages: document.getPageCount() };
-}
+};
 
-export async function plainDocx(text: string) {
+export const plainDocx = async (text: string) => {
   const document = new Document({
     sections: [{ children: text.split(/\r?\n/).map((line) => new Paragraph({ text: line })) }],
   });
   return normalizeDocx(await Packer.toBuffer(document));
-}
+};

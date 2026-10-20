@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export async function registerComputerTools(server: McpServer, call: AgentCall) {
+export const registerComputerTools = async (server: McpServer, call: AgentCall) => {
   const computerAccess = await call('computer_access');
   if ('structuredContent' in computerAccess && computerAccess.structuredContent?.enabled === true) {
     if (computerAccess.structuredContent?.assessForms === true)
@@ -65,4 +65,4 @@ export async function registerComputerTools(server: McpServer, call: AgentCall) 
       (input) => call('computer_execute', input),
     );
   }
-}
+};

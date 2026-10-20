@@ -1,7 +1,7 @@
 import type { CommandEmptyProps } from '@/components/ui/command/types.ts';
 import { Command as CommandPrimitive } from 'cmdk';
 
-export function CommandEmpty({ ...props }: CommandEmptyProps) {
+export const CommandEmpty = ({ ...props }: CommandEmptyProps) => {
   return (
     <CommandPrimitive.Empty
       data-slot="command-empty"
@@ -9,4 +9,4 @@ export function CommandEmpty({ ...props }: CommandEmptyProps) {
       {...props}
     />
   );
-}
+};

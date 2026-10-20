@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ArrowLeft } from 'lucide-react';
 import type { ProfileViewModel } from '../types.ts';
 
-export function ProfileSourcesPanel(c: ProfileViewModel) {
+export const ProfileSourcesPanel = (c: ProfileViewModel) => {
   const sources = c.sourceController;
   const copy = sourceHeading(sources);
   const { heading: headingRef, panel: panelRef } = useSourceDialogFocus(sources, c.sourcesOpen);
@@ -60,4 +60,4 @@ export function ProfileSourcesPanel(c: ProfileViewModel) {
       </DialogContent>
     </Dialog>
   );
-}
+};

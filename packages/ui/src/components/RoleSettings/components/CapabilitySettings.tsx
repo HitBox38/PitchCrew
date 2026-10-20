@@ -2,11 +2,11 @@ import { capabilityLabels } from '@/agent-capabilities.ts';
 import type { CapabilitySettingsProps } from '@/components/RoleSettings/types.ts';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
-export function CapabilitySettings({
+export const CapabilitySettings = ({
   role,
   capabilities,
   setCapabilities,
-}: CapabilitySettingsProps) {
+}: CapabilitySettingsProps) => {
   return (
     <section className="role-settings-section" aria-labelledby={`${role.id}-capabilities-heading`}>
       <h3 id={`${role.id}-capabilities-heading`}>Agent capabilities</h3>
@@ -69,4 +69,4 @@ export function CapabilitySettings({
       </p>
     </section>
   );
-}
+};

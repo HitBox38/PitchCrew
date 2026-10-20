@@ -5,7 +5,7 @@ import { ReviewFindings } from './ReviewFindings.tsx';
 import { deepReviewStages, reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-export function SubagentResults({
+export const SubagentResults = ({
   detail,
   offset,
   changePage,
@@ -13,7 +13,7 @@ export function SubagentResults({
   detail: ReviewDetail;
   offset: number;
   changePage: (offset: number) => void;
-}) {
+}) => {
   if (!detail.subagents.length && !offset) return null;
   return (
     <section className="grid gap-3" aria-label="Targeted second opinions">
@@ -66,4 +66,4 @@ export function SubagentResults({
       </nav>
     </section>
   );
-}
+};

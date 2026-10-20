@@ -4,11 +4,11 @@ import { CollapsibleTrigger } from '@/components/ui/collapsible/components/Colla
 import { ChevronRightIcon } from 'lucide-react';
 import { TraceIcon } from './TraceIcon.tsx';
 
-export function TraceCollapsibleTrigger({
+export const TraceCollapsibleTrigger = ({
   className,
   children,
   ...props
-}: React.ComponentProps<typeof CollapsibleTrigger>) {
+}: React.ComponentProps<typeof CollapsibleTrigger>) => {
   return (
     <CollapsibleTrigger
       data-slot="trace-collapsible-trigger"
@@ -24,4 +24,4 @@ export function TraceCollapsibleTrigger({
       </TraceIcon>
     </CollapsibleTrigger>
   );
-}
+};

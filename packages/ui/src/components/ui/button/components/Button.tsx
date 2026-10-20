@@ -3,12 +3,12 @@ import type { ButtonProps } from '@/components/ui/button/types.ts';
 import { cn } from '@/lib/utils';
 import { Button as ButtonPrimitive } from '@base-ui/react/button';
 
-export function Button({
+export const Button = ({
   className,
   variant = 'default',
   size = 'default',
   ...props
-}: ButtonProps) {
+}: ButtonProps) => {
   return (
     <ButtonPrimitive
       data-slot="button"
@@ -18,4 +18,4 @@ export function Button({
       {...props}
     />
   );
-}
+};

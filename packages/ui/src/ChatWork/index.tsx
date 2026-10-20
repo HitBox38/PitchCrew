@@ -6,7 +6,7 @@ import { SkillProposals } from '@/ChatWork/components/SkillProposals.tsx';
 import { getChatWorkModel } from '@/ChatWork/helpers.ts';
 import type { ChatWorkProps } from '@/ChatWork/types.ts';
 
-export function ChatWork(props: ChatWorkProps) {
+export const ChatWork = (props: ChatWorkProps) => {
   const controller = getChatWorkModel(props);
   const { thread } = controller;
   return (
@@ -18,4 +18,4 @@ export function ChatWork(props: ChatWorkProps) {
       {thread !== 'crew' ? <RoleCapabilities {...controller} /> : null}
     </div>
   );
-}
+};

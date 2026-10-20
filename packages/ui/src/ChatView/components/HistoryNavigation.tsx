@@ -2,7 +2,7 @@ import { HISTORY_PAGE_SIZE } from '../history.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { useHistoryWindow } from '../hooks/useHistoryWindow.ts';
 
-export function HistoryNavigation({
+export const HistoryNavigation = ({
   page,
   total,
 }: {
@@ -11,7 +11,7 @@ export function HistoryNavigation({
     navigate: (anchor: string | null) => void;
   };
   total: number;
-}) {
+}) => {
   return (
     <nav
       aria-label="Conversation history"
@@ -56,4 +56,4 @@ export function HistoryNavigation({
       </Button>
     </nav>
   );
-}
+};

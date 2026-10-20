@@ -4,7 +4,7 @@ import { FormSelect } from '@/FormSelect/index.tsx';
 import { gapKinds, planProgress } from '@/lib/application-quality.ts';
 import { GapSources } from './GapSources.tsx';
 
-export function GapItem({
+export const GapItem = ({
   plan,
   gap,
   change,
@@ -14,7 +14,7 @@ export function GapItem({
   gap: CareerGap;
   change: (data: Record<string, unknown>) => Promise<unknown>;
   working: boolean;
-}) {
+}) => {
   const active = plan.gaps.filter((g) => g.active).map((g) => g.id);
   const update = (data: Record<string, unknown>) =>
     void change({ id: plan.id, revision: plan.revision, ...data }).catch(() => {});
@@ -71,4 +71,4 @@ export function GapItem({
       <GapSources sources={gap.sources} />
     </section>
   );
-}
+};

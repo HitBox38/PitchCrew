@@ -3,15 +3,7 @@ import { parse, type DefaultTreeAdapterMap } from 'parse5';
 import { htmlToText } from './html.ts';
 import { microdataJobPostings } from './microdata.ts';
 
-type Node = DefaultTreeAdapterMap['node'];
-const object = (value: unknown): Record<string, unknown> =>
-  value && typeof value === 'object' && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : {};
-const text = (value: unknown, limit: number) =>
-  typeof value === 'string' ? htmlToText(value).slice(0, limit) : '';
-
-function salaryText(value: unknown): string {
+const salaryText = (value: unknown): string => {
   if (typeof value === 'string') return text(value, 100);
   const salary = object(value);
   const range = object(salary.value);
@@ -27,10 +19,10 @@ function salaryText(value: unknown): string {
     .filter(Boolean)
     .join(' ')
     .slice(0, 100);
-}
+};
 
 /** Only an unambiguous schema.org JobPosting supplies automatic card fields. */
-export function structuredJobDetails(html: string) {
+export const structuredJobDetails = (html: string) => {
   const root = parse(html);
   const nodes: Node[] = [root];
   const postings: Record<string, unknown>[] = [];
@@ -109,4 +101,12 @@ export function structuredJobDetails(html: string) {
       .slice(0, 20_000),
   });
   return parsed.success ? parsed.data : null;
-}
+};
+
+type Node = DefaultTreeAdapterMap['node'];
+const object = (value: unknown): Record<string, unknown> =>
+  value && typeof value === 'object' && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+const text = (value: unknown, limit: number) =>
+  typeof value === 'string' ? htmlToText(value).slice(0, limit) : '';

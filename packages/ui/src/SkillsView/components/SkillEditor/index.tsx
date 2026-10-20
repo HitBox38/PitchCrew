@@ -11,7 +11,7 @@ import { SkillInstructions } from '@/SkillsView/components/SkillEditor/component
 import { useSkillEditor } from '@/SkillsView/components/SkillEditor/hooks/useSkillEditor.ts';
 import type { SkillEditorProps } from '@/SkillsView/components/SkillEditor/types.ts';
 
-export function SkillEditor(props: SkillEditorProps) {
+export const SkillEditor = (props: SkillEditorProps) => {
   const form = useMarkdownSaveShortcut();
   const controller = useSkillEditor(props);
   const { importing, working, onClose, save, guard } = controller;
@@ -41,4 +41,4 @@ export function SkillEditor(props: SkillEditorProps) {
       <DiscardChanges guard={guard} />
     </Sheet>
   );
-}
+};

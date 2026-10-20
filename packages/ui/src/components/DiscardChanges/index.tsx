@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export function DiscardChanges({ guard }: { guard: ReturnType<typeof useUnsavedChanges> }) {
+export const DiscardChanges = ({ guard }: { guard: ReturnType<typeof useUnsavedChanges> }) => {
   const keepFocus = useRef<HTMLButtonElement>(null);
   return (
     <Dialog
@@ -33,4 +33,4 @@ export function DiscardChanges({ guard }: { guard: ReturnType<typeof useUnsavedC
       </DialogContent>
     </Dialog>
   );
-}
+};

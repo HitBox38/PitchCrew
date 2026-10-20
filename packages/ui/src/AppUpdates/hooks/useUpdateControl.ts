@@ -2,7 +2,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useManualUpdateCheck } from './useManualUpdateCheck.ts';
 import { updateControl } from '../helpers.ts';
 
-export function useUpdateControl() {
+export const useUpdateControl = () => {
   const info = useWorkspaceStore((store) => store.appUpdate);
   const desktop = useWorkspaceStore((store) => store.desktopUpdate);
   const dismissed = useWorkspaceStore((store) => store.dismissedAppUpdate);
@@ -19,4 +19,4 @@ export function useUpdateControl() {
     else if (control.release) window.open(control.release.url, '_blank', 'noopener,noreferrer');
   };
   return { ...control, dismiss, activate };
-}
+};

@@ -11,7 +11,7 @@ interface ClaimListProps {
   onPreview: (id: string | null) => void;
 }
 
-export function ClaimList({ selected, onSelect, onPreview }: ClaimListProps) {
+export const ClaimList = ({ selected, onSelect, onPreview }: ClaimListProps) => {
   return (
     <fieldset className="claim-list" onPointerLeave={() => onPreview(null)}>
       <legend className="claim-legend">
@@ -56,4 +56,4 @@ export function ClaimList({ selected, onSelect, onPreview }: ClaimListProps) {
       })}
     </fieldset>
   );
-}
+};

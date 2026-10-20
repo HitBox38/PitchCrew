@@ -6,7 +6,7 @@ import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import type { RoleProposalsProps } from '@/ChatWork/types.ts';
 import { CircleCheck } from 'lucide-react';
 
-export function RoleProposals({ proposals, data, working, act }: RoleProposalsProps) {
+export const RoleProposals = ({ proposals, data, working, act }: RoleProposalsProps) => {
   const reduced = useAppReducedMotion();
   return (
     <WorkSection className="chat-work-section">
@@ -61,4 +61,4 @@ export function RoleProposals({ proposals, data, working, act }: RoleProposalsPr
       </AnimatePresence>
     </WorkSection>
   );
-}
+};

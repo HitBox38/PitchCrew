@@ -3,7 +3,7 @@ import { ChevronDown, ChevronRight, FileText, Folder, FolderOpen, FolderInput } 
 import type { ProfileTreeNode } from '../types.ts';
 import type { KeyboardEvent } from 'react';
 
-export function ProfileTreeRow({
+export const ProfileTreeRow = ({
   node,
   depth,
   position,
@@ -29,7 +29,7 @@ export function ProfileTreeRow({
   move: () => void;
   focus: () => void;
   keyDown: (event: KeyboardEvent) => void;
-}) {
+}) => {
   return (
     <div className="profile-tree-row" style={{ paddingLeft: Math.min(depth - 1, 8) * 12 }}>
       <Button
@@ -74,4 +74,4 @@ export function ProfileTreeRow({
       ) : null}
     </div>
   );
-}
+};

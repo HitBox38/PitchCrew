@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 import { mergeProps } from '@base-ui/react/merge-props';
 import { useRender } from '@base-ui/react/use-render';
 
-export function SidebarMenuAction({
+export const SidebarMenuAction = ({
   className,
   render,
   showOnHover = false,
   ...props
-}: SidebarMenuActionProps) {
+}: SidebarMenuActionProps) => {
   return useRender({
     defaultTagName: 'button',
     props: mergeProps<'button'>(
@@ -34,4 +34,4 @@ export function SidebarMenuAction({
       sidebar: 'menu-action',
     },
   });
-}
+};

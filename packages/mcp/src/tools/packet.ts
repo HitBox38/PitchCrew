@@ -4,7 +4,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerPacketTools(server: McpServer, call: AgentCall, isolated = false) {
+export const registerPacketTools = (server: McpServer, call: AgentCall, isolated = false) => {
   server.registerTool(
     'pitchcrew_get_card',
     {
@@ -80,4 +80,4 @@ export function registerPacketTools(server: McpServer, call: AgentCall, isolated
       },
       ({ approvalId }) => call('export', { approvalId }),
     );
-}
+};

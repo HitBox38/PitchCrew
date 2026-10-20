@@ -2,21 +2,21 @@ import type { ChildProcess } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 
 type Shutdown = { requestedAt: number; events: Record<string, number> };
-async function readShutdown(evidence: string): Promise<Shutdown | null> {
+const readShutdown = async (evidence: string): Promise<Shutdown | null> => {
   try {
     return JSON.parse(await readFile(`${evidence}.shutdown.json`, 'utf8'));
   } catch {
     return null;
   }
-}
+};
 
 type Options = { timeoutMs?: number; shutdownTimeoutMs?: number; terminationGraceMs?: number };
 /** A failed native check must finish even when Electron ignores graceful termination. */
-export async function waitForSmokeExit(
+export const waitForSmokeExit = async (
   child: ChildProcess,
   evidence: string,
   { timeoutMs = 120_000, shutdownTimeoutMs = 10_000, terminationGraceMs = 2_000 }: Options = {},
-) {
+) => {
   let timedOut: string | undefined;
   let settled = false;
   let termination: ReturnType<typeof setTimeout> | undefined;
@@ -75,4 +75,4 @@ export async function waitForSmokeExit(
     shutdown,
     shutdownToExitMs: exitedAt - shutdown.requestedAt,
   };
-}
+};

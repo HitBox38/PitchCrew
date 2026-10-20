@@ -2,7 +2,7 @@ import type { BoardEvent } from '@pitchcrew/core';
 import { actorLabels, eventKindLabels } from '@/ActivityPage/constants.ts';
 import { timeAgo } from '@/lib/time.ts';
 
-export function ActivityHistory({ events }: { events: BoardEvent[] }) {
+export const ActivityHistory = ({ events }: { events: BoardEvent[] }) => {
   return (
     <section
       className="activity-history min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 max-mobile:px-3"
@@ -32,4 +32,4 @@ export function ActivityHistory({ events }: { events: BoardEvent[] }) {
       </ol>
     </section>
   );
-}
+};

@@ -1,7 +1,7 @@
 import { Switch } from '@/components/ui/switch/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
-export function RuntimeUpdateSettings() {
+export const RuntimeUpdateSettings = () => {
   const maintenance = useWorkspaceStore((state) => state.data?.runtimeMaintenance);
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
@@ -28,4 +28,4 @@ export function RuntimeUpdateSettings() {
       />
     </label>
   );
-}
+};

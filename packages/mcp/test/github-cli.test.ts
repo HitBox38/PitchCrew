@@ -9,6 +9,12 @@ import {
   GithubCliMissingError,
   type GithubCliRunner,
 } from '../src/connectors/auth/github-cli-process.ts';
+const connect = async () => {
+  runner
+    .mockResolvedValueOnce({ stdout: 'gh version fixture', exitCode: 0 })
+    .mockResolvedValueOnce(user());
+  return manager.connectGithub({ mode: 'cli' });
+};
 
 let directory: string;
 let manager: ConnectorManager;
@@ -32,12 +38,6 @@ afterEach(async () => {
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-github-cli-'))).toBe(true);
   await rm(directory, { recursive: true, force: true });
 });
-async function connect() {
-  runner
-    .mockResolvedValueOnce({ stdout: 'gh version fixture', exitCode: 0 })
-    .mockResolvedValueOnce(user());
-  return manager.connectGithub({ mode: 'cli' });
-}
 
 it('connects an existing CLI login and persists only account metadata', async () => {
   expect(manager.status()[0].connected).toBe(false);

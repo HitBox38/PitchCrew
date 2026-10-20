@@ -2,10 +2,8 @@ import type { JobScanSummary, JobSource, JobSourceInput } from '@pitchcrew/core'
 import { comeetTokenPattern, comeetUidPattern, tokenProviders } from './constants.ts';
 import type { BoardLink, SourceDraft } from './types.ts';
 
-const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
-
 /** Split comma or line separated keywords, dropping blanks and repeats. */
-export function keywordList(value: string): string[] {
+export const keywordList = (value: string): string[] => {
   return [
     ...new Set(
       value
@@ -14,9 +12,9 @@ export function keywordList(value: string): string[] {
         .filter(Boolean),
     ),
   ].slice(0, 20);
-}
+};
 /** Read the provider and identifiers from a public board, careers or API link. */
-function linkParts(url: URL): BoardLink | null {
+const linkParts = (url: URL): BoardLink | null => {
   const host = url.hostname.toLowerCase();
   const parts = url.pathname.split('/').filter(Boolean);
   if (/^(?:job-)?boards\.greenhouse\.io$/.test(host))
@@ -44,14 +42,13 @@ function linkParts(url: URL): BoardLink | null {
     return { provider: 'comeet', ...found };
   }
   return null;
-}
-/** Decode only `%20`; any other escape stays as typed so validation rejects it. */
-const decodeSpaces = (segment: string) => segment.replace(/%20/gi, ' ');
+};
+
 /**
  * Accept a board name or a pasted public board link and return what it reveals. A Comeet careers
  * page link gives the company UID; embed and careers API links also carry the token.
  */
-export function boardFromLink(value: string): BoardLink {
+export const boardFromLink = (value: string): BoardLink => {
   const trimmed = value.trim();
   if (!/[/]/.test(trimmed) && !/\.(?:io|co|com)\b/i.test(trimmed)) return { slug: trimmed };
   try {
@@ -62,17 +59,17 @@ export function boardFromLink(value: string): BoardLink {
   } catch {
     return { slug: trimmed };
   }
-}
+};
 /** Accept a pasted Comeet token, or an embed or API link that holds both the UID and token. */
-export function tokenFromInput(value: string): BoardLink {
+export const tokenFromInput = (value: string): BoardLink => {
   const link = boardFromLink(value);
   return link.token ? link : { token: value.trim() };
-}
+};
 /** Test needs every identifier the provider uses. */
-export function canTest(draft: SourceDraft): boolean {
+export const canTest = (draft: SourceDraft): boolean => {
   return !!draft.slug.trim() && (!tokenProviders.has(draft.provider) || !!draft.token.trim());
-}
-export function draftInput(draft: SourceDraft): JobSourceInput {
+};
+export const draftInput = (draft: SourceDraft): JobSourceInput => {
   return {
     provider: draft.provider,
     slug: draft.slug.trim(),
@@ -86,8 +83,8 @@ export function draftInput(draft: SourceDraft): JobSourceInput {
       remoteOnly: draft.remoteOnly,
     },
   };
-}
-export function sourceDraft(source: JobSource): SourceDraft {
+};
+export const sourceDraft = (source: JobSource): SourceDraft => {
   return {
     provider: source.provider,
     slug: source.slug,
@@ -99,8 +96,8 @@ export function sourceDraft(source: JobSource): SourceDraft {
     locationInclude: source.filters.locationInclude.join(', '),
     remoteOnly: source.filters.remoteOnly,
   };
-}
-export function filterSummary(source: JobSource): string {
+};
+export const filterSummary = (source: JobSource): string => {
   const { titleInclude, titleExclude, locationInclude, remoteOnly } = source.filters;
   const parts = [
     titleInclude.length ? `titles with ${titleInclude.join(', ')}` : '',
@@ -109,15 +106,15 @@ export function filterSummary(source: JobSource): string {
     remoteOnly ? 'remote only' : '',
   ].filter(Boolean);
   return parts.length ? parts.join(' · ') : 'All postings';
-}
-export function lastScanText(source: JobSource): string {
+};
+export const lastScanText = (source: JobSource): string => {
   const scan = source.lastScan;
   if (!scan) return 'Not scanned yet';
   const when = new Date(scan.at).toLocaleString();
   if (scan.status === 'failed') return `Last scan failed ${when}: ${scan.error ?? 'unknown error'}`;
   return `Scanned ${when}: ${plural(scan.new, 'new lead')}, ${scan.duplicate} already on the board`;
-}
-export function scanSummaryText(summary: JobScanSummary): string {
+};
+export const scanSummaryText = (summary: JobScanSummary): string => {
   const parts = [
     `${plural(summary.new, 'new lead')}`,
     `${summary.duplicate} already on the board`,
@@ -126,4 +123,8 @@ export function scanSummaryText(summary: JobScanSummary): string {
   if (summary.deferred) parts.push(`${summary.deferred} left for the next scan`);
   const failed = summary.failedSources ? ` ${plural(summary.failedSources, 'source')} failed.` : '';
   return `${parts.join(', ')}.${failed}`;
-}
+};
+
+const plural = (count: number, word: string) => `${count} ${word}${count === 1 ? '' : 's'}`;
+/** Decode only `%20`; any other escape stays as typed so validation rejects it. */
+const decodeSpaces = (segment: string) => segment.replace(/%20/gi, ' ');

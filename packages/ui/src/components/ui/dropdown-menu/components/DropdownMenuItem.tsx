@@ -2,12 +2,12 @@ import type { DropdownMenuItemProps } from '@/components/ui/dropdown-menu/types.
 import { cn } from '@/lib/utils';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 
-export function DropdownMenuItem({
+export const DropdownMenuItem = ({
   className,
   inset,
   variant = 'default',
   ...props
-}: DropdownMenuItemProps) {
+}: DropdownMenuItemProps) => {
   return (
     <MenuPrimitive.Item
       data-slot="dropdown-menu-item"
@@ -20,4 +20,4 @@ export function DropdownMenuItem({
       {...props}
     />
   );
-}
+};

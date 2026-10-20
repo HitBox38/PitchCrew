@@ -12,10 +12,32 @@ import {
 } from '../helpers.ts';
 import type { SourceDraft } from '../types.ts';
 
-const message = (error: unknown, fallback: string) =>
-  error instanceof Error ? error.message : fallback;
+export const useJobSources = () => {
+  const run = async (task: () => Promise<void>, fallback: string) => {
+    setPending(true);
+    setError('');
+    try {
+      await task();
+    } catch (e) {
+      setError(message(e, fallback));
+    } finally {
+      setPending(false);
+    }
+  };
 
-export function useJobSources() {
+  const edit = (next: SourceDraft | null, id: string | null = null) => {
+    previewController.current?.abort();
+    setDraft(next);
+    setEditingId(id);
+    setPreview(null);
+    setError('');
+  };
+  const update = (patch: Partial<SourceDraft>) => {
+    previewController.current?.abort();
+    setPreview(null);
+    setDraft((current) => (current ? { ...current, ...patch } : current));
+  };
+
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [sources, setSources] = useState<JobSource[]>([]);
@@ -38,30 +60,7 @@ export function useJobSources() {
       previewController.current?.abort();
     };
   }, []);
-  async function run(task: () => Promise<void>, fallback: string) {
-    setPending(true);
-    setError('');
-    try {
-      await task();
-    } catch (e) {
-      setError(message(e, fallback));
-    } finally {
-      setPending(false);
-    }
-  }
   const refresh = async () => setSources(await loadJobSources());
-  function edit(next: SourceDraft | null, id: string | null = null) {
-    previewController.current?.abort();
-    setDraft(next);
-    setEditingId(id);
-    setPreview(null);
-    setError('');
-  }
-  function update(patch: Partial<SourceDraft>) {
-    previewController.current?.abort();
-    setPreview(null);
-    setDraft((current) => (current ? { ...current, ...patch } : current));
-  }
   const save = (event: FormEvent) => {
     event.preventDefault();
     if (!draft) return;
@@ -129,4 +128,7 @@ export function useJobSources() {
     setEnabled,
     scan,
   };
-}
+};
+
+const message = (error: unknown, fallback: string) =>
+  error instanceof Error ? error.message : fallback;

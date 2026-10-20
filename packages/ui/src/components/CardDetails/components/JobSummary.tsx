@@ -5,7 +5,7 @@ import type { CardDetailsModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ExternalLink, X } from 'lucide-react';
 
-export function JobSummary(model: CardDetailsModel) {
+export const JobSummary = (model: CardDetailsModel) => {
   const { card, onClose } = model;
   return (
     <header className="job-summary shrink-0 px-5 pt-5 pb-3 max-mobile:px-4">
@@ -45,4 +45,4 @@ export function JobSummary(model: CardDetailsModel) {
       </div>
     </header>
   );
-}
+};

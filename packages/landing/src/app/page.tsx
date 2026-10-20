@@ -11,9 +11,7 @@ import { ReviewThread } from '../ReviewThread';
 import { SEO } from '../SEO';
 import { WatchItWork } from '../WatchItWork';
 
-export const revalidate = 3600;
-
-export default async function LandingPage() {
+const LandingPage = async () => {
   const release = await latestRelease();
   return (
     <>
@@ -32,4 +30,7 @@ export default async function LandingPage() {
       <Footer />
     </>
   );
-}
+};
+export default LandingPage;
+
+export const revalidate = 3600;

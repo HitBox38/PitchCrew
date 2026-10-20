@@ -3,7 +3,7 @@ import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-me
 import { Play, Square } from 'lucide-react';
 import { useId } from 'react';
 
-export function CrewAction({
+export const CrewAction = ({
   shortcut,
   disabled,
   perform,
@@ -11,7 +11,7 @@ export function CrewAction({
   shortcut: CrewShortcut;
   disabled: boolean;
   perform: () => void;
-}) {
+}) => {
   const hintId = useId();
   return (
     <DropdownMenuGroup>
@@ -30,4 +30,4 @@ export function CrewAction({
       ) : null}
     </DropdownMenuGroup>
   );
-}
+};

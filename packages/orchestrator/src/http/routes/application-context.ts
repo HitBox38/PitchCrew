@@ -6,7 +6,7 @@ import type { CrewService } from '../../service.ts';
 import type { IdRoute } from '../types.ts';
 import { applicationSource } from '../../crew/application-context/source.ts';
 
-export function registerApplicationContextRoutes(app: FastifyInstance, service: CrewService) {
+export const registerApplicationContextRoutes = (app: FastifyInstance, service: CrewService) => {
   app.get<IdRoute>('/api/cards/:id/application-context', (req) => {
     const card = service.board.get<Card>('card', req.params.id);
     return {
@@ -69,4 +69,4 @@ export function registerApplicationContextRoutes(app: FastifyInstance, service: 
       z.object({ roleId: roleIdSchema }).strict().parse(req.body).roleId,
     ),
   );
-}
+};

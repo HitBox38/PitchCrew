@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils';
 import { useUpdateControl } from './hooks/useUpdateControl.ts';
 import { UpdateTooltip } from './components/UpdateTooltip.tsx';
 
-export function AppUpdates() {
+export const AppUpdates = () => {
   const control = useUpdateControl();
   const trigger = useRef<HTMLButtonElement>(null);
   const tooltipId = useId();
@@ -88,4 +88,4 @@ export function AppUpdates() {
       </output>
     </SidebarMenuItem>
   );
-}
+};

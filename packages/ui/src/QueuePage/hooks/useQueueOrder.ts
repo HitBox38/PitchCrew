@@ -1,9 +1,9 @@
 import { useState } from 'react';
 
-export function useQueueOrder<T extends { id: string }>(
+export const useQueueOrder = <T extends { id: string }>(
   items: T[],
   commit: (id: string, beforeId: string | null) => Promise<unknown>,
-) {
+) => {
   const [order, setOrder] = useState<string[] | null>(null);
   const [busy, setBusy] = useState(false);
   const visible = order
@@ -32,4 +32,4 @@ export function useQueueOrder<T extends { id: string }>(
     }
   };
   return { visible, busy, move };
-}
+};

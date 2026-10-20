@@ -3,10 +3,10 @@ import { z } from 'zod';
 import { boundedText, scopes, tokenResponse } from './helpers.ts';
 import type { ConnectorManagerContext, GoogleSignIn } from './types.ts';
 
-export function createGoogleCallback(
-  this: ConnectorManagerContext,
+export const createGoogleCallback = (
+  context: ConnectorManagerContext,
   { clientId, clientSecret, state, verifier, lifetime, redirectUri }: GoogleSignIn,
-) {
+) => {
   return (req: IncomingMessage, res: ServerResponse) => {
     res.setHeader('Cache-Control', 'no-store');
     res.setHeader('Referrer-Policy', 'no-referrer');
@@ -17,19 +17,19 @@ export function createGoogleCallback(
       req.headers.host !== new URL(redirectUri()).host ||
       callback.pathname !== '/oauth/google' ||
       callback.searchParams.get('state') !== state ||
-      this.pending?.state !== state ||
-      this.pending.busy
+      context.pending?.state !== state ||
+      context.pending.busy
     ) {
       res.writeHead(400).end('Invalid or expired sign-in callback.');
       return;
     }
-    this.pending.busy = true;
+    context.pending.busy = true;
     void (async () => {
       try {
         const code = callback.searchParams.get('code');
         if (!code || callback.searchParams.has('error'))
           throw new Error('Google sign-in was declined. Try connecting again.');
-        const response = await this.fetch(
+        const response = await context.fetch(
           'https://oauth2.googleapis.com/token',
           {
             method: 'POST',
@@ -54,7 +54,7 @@ export function createGoogleCallback(
           throw new Error(
             'No supported Google read permissions were granted. Reconnect and grant the services you need.',
           );
-        const profile = await this.fetch(
+        const profile = await context.fetch(
           'https://www.googleapis.com/oauth2/v2/userinfo',
           { headers: { authorization: `Bearer ${result.access_token}` } },
           lifetime,
@@ -63,8 +63,8 @@ export function createGoogleCallback(
           .object({ email: z.string() })
           .parse(JSON.parse(await boundedText(profile))).email;
         lifetime.throwIfAborted();
-        if (this.pending?.state !== state) throw new Error('Sign-in was cancelled.');
-        this.store.google = {
+        if (context.pending?.state !== state) throw new Error('Sign-in was cancelled.');
+        context.store.google = {
           account,
           accessToken: result.access_token,
           refreshToken: result.refresh_token,
@@ -73,7 +73,7 @@ export function createGoogleCallback(
           clientId,
           clientSecret,
         };
-        await this.save();
+        await context.save();
         res
           .writeHead(200, { 'content-type': 'text/plain; charset=utf-8' })
           .end(
@@ -81,11 +81,11 @@ export function createGoogleCallback(
           );
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Google connection failed.';
-        this.errors.google = message;
+        context.errors.google = message;
         res.writeHead(400, { 'content-type': 'text/plain; charset=utf-8' }).end(message);
       } finally {
-        if (this.pending?.state === state) this.cancelPending();
+        if (context.pending?.state === state) context.cancelPending();
       }
     })();
   };
-}
+};

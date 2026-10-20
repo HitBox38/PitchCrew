@@ -1,6 +1,6 @@
 import { MapPin } from 'lucide-react';
 
-export function Opportunity() {
+export const Opportunity = () => {
   return (
     <div className="journey-opportunity">
       <p className="fictional-label">Fictional example</p>
@@ -18,4 +18,4 @@ export function Opportunity() {
       </p>
     </div>
   );
-}
+};

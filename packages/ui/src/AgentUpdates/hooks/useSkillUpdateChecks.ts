@@ -3,7 +3,7 @@ import { nextSkillCheckDelay } from '../helpers.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 /** The mounted shell owns checking; a background daemon alone never starts a sweep. */
-export function useSkillUpdateChecks() {
+export const useSkillUpdateChecks = () => {
   const automatic = useWorkspaceStore((state) => state.data?.skillUpdates?.automatic ?? true);
   const sources = useWorkspaceStore((state) =>
     JSON.stringify(
@@ -29,4 +29,4 @@ export function useSkillUpdateChecks() {
       clearTimeout(timer);
     };
   }, [automatic, sources, check]);
-}
+};

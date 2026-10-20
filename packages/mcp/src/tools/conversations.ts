@@ -4,7 +4,7 @@ import { roleIdSchema } from '@pitchcrew/core';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerConversationTools(server: McpServer, call: AgentCall) {
+export const registerConversationTools = (server: McpServer, call: AgentCall) => {
   const mutation = { ...readOnly, readOnlyHint: false, idempotentHint: false };
   server.registerTool(
     'pitchcrew_list_conversations',
@@ -85,4 +85,4 @@ export function registerConversationTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('save_memory', input),
   );
-}
+};

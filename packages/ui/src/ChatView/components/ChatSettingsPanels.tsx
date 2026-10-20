@@ -6,7 +6,7 @@ import type { ChatViewModel } from '../types.ts';
 import { useNavigate } from '@tanstack/react-router';
 import { Suspense } from 'react';
 
-export function ChatSettingsPanels(props: ChatViewModel) {
+export const ChatSettingsPanels = (props: ChatViewModel) => {
   const navigate = useNavigate();
   const role = props.data.roles.find((agent) => agent.id === props.settingsRoleId);
   return (
@@ -37,4 +37,4 @@ export function ChatSettingsPanels(props: ChatViewModel) {
       ) : null}
     </>
   );
-}
+};

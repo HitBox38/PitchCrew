@@ -11,13 +11,13 @@ import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
 import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { ActivityStep } from './ActivityStep.tsx';
 
-export function ActivityGroup({
+export const ActivityGroup = ({
   entries,
   defaultOpen = false,
 }: {
   entries: RunActivity[];
   defaultOpen?: boolean;
-}) {
+}) => {
   const active = entries.findLast((entry) => entry.status === 'running');
   const tools = entries.filter((entry) => entry.kind === 'tool');
   const failures = tools.filter((entry) => entry.status === 'failed').length;
@@ -48,4 +48,4 @@ export function ActivityGroup({
       </ChainOfThought>
     </Trace>
   );
-}
+};

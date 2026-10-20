@@ -4,7 +4,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { RuntimeMaintenanceState } from '@pitchcrew/core';
 
 /** The shell schedules; the daemon deduplicates and enforces the shared daily interval. */
-export function useRuntimeUpdateChecks() {
+export const useRuntimeUpdateChecks = () => {
   const automatic = useWorkspaceStore(
     (state) => state.data?.runtimeMaintenance?.automatic ?? false,
   );
@@ -35,4 +35,4 @@ export function useRuntimeUpdateChecks() {
       clearTimeout(timer);
     };
   }, [automatic, enabled]);
-}
+};

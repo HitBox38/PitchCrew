@@ -1,13 +1,13 @@
 import type { ProfileImportFile, ProfileSource, ProfileSourceInput } from '@pitchcrew/core';
 import type { ProfileSourcesModel } from './types.ts';
 
-export function sourceLocation(source: ProfileSource) {
+export const sourceLocation = (source: ProfileSource) => {
   const input = source.input;
   if (input.provider === 'drive') return `Google Drive folder ${input.folderId}`;
   return `${input.repository}${input.path ? ` / ${input.path}` : ' / Entire repository'}${input.ref ? ` (${input.ref})` : ''}`;
-}
+};
 
-export function sourceHeading(c: ProfileSourcesModel) {
+export const sourceHeading = (c: ProfileSourcesModel) => {
   if (c.proposalId)
     return {
       title: 'Review profile updates',
@@ -32,9 +32,9 @@ export function sourceHeading(c: ProfileSourcesModel) {
     title: c.provider === 'github' ? 'Import GitHub notes' : 'Import Google Drive notes',
     description: 'Choose a folder of factual notes about your background and work.',
   };
-}
+};
 
-export function githubInput(repository: string, path: string, ref: string): ProfileSourceInput {
+export const githubInput = (repository: string, path: string, ref: string): ProfileSourceInput => {
   let name = repository.trim();
   if (name.startsWith('https://')) {
     const url = new URL(name);
@@ -51,8 +51,8 @@ export function githubInput(repository: string, path: string, ref: string): Prof
     path: path.trim().replace(/\/$/, ''),
     ...(ref.trim() ? { ref: ref.trim() } : {}),
   };
-}
-export function driveInput(value: string): ProfileSourceInput {
+};
+export const driveInput = (value: string): ProfileSourceInput => {
   let folderId = value.trim();
   if (folderId.startsWith('https://')) {
     const url = new URL(folderId);
@@ -63,18 +63,19 @@ export function driveInput(value: string): ProfileSourceInput {
   if (!/^[\w-]{1,200}$/.test(folderId))
     throw new Error('Paste a Google Drive folder link or folder ID.');
   return { provider: 'drive', folderId };
-}
+};
+
+/** Unchanged documents are never selectable in the changes-only review. */
+export const importChanges = (files: ProfileImportFile[]) => {
+  const order = { conflict: 0, changed: 1, new: 2, unchanged: 3 };
+  return files
+    .filter((file) => file.status !== 'unchanged')
+    .sort((a, b) => order[a.status] - order[b.status] || a.path.localeCompare(b.path));
+};
+
 export const importStatus = {
   new: 'Added',
   changed: 'Changed',
   unchanged: 'Up to date',
   conflict: 'Local edits',
 };
-
-/** Unchanged documents are never selectable in the changes-only review. */
-export function importChanges(files: ProfileImportFile[]) {
-  const order = { conflict: 0, changed: 1, new: 2, unchanged: 3 };
-  return files
-    .filter((file) => file.status !== 'unchanged')
-    .sort((a, b) => order[a.status] - order[b.status] || a.path.localeCompare(b.path));
-}

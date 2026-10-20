@@ -6,7 +6,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useChatPreferenceStore } from '@/ChatView/preferences.ts';
 import { conversationRows } from '../helpers.ts';
 import type { Snapshot } from '@pitchcrew/core';
-export function useConversationNavigation(data: Snapshot) {
+export const useConversationNavigation = (data: Snapshot) => {
   const [query, setQuery] = useState('');
   const [archived, setArchived] = useState(false);
   const { thread } = useParams({ strict: false });
@@ -59,4 +59,4 @@ export function useConversationNavigation(data: Snapshot) {
     dmsOpen,
     setDmsOpen,
   };
-}
+};

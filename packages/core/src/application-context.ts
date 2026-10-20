@@ -1,5 +1,51 @@
 import { z } from 'zod';
 import type { Card } from './cards.ts';
+export const missingPersonalAnswers = (context: ApplicationContext) => {
+  return context.requirements.filter((r) => r.required && r.personal && !r.answer.trim());
+};
+/** User-approved reference data only. Never return flagged excerpts or source descriptions. */
+export const draftingCard = (card: Card, purpose = 'application-review'): Card => {
+  const context = card.applicationContext;
+  return {
+    id: card.id,
+    company: card.company,
+    title: card.title,
+    location: card.location,
+    salary: card.salary,
+    url: card.url,
+    tags: [...card.tags],
+    description: '',
+    state: card.state,
+    fit: null,
+    owner: card.owner,
+    packet:
+      purpose === 'application-review' ||
+      (purpose === 'application-draft' && card.packetContextRevision === context?.revision)
+        ? card.packet
+        : null,
+    feedback: [],
+    createdAt: card.createdAt,
+    updatedAt: card.updatedAt,
+    sample: card.sample,
+    packetContextRevision: card.packetContextRevision,
+    ...(context
+      ? {
+          applicationContext: {
+            brief: context.brief,
+            requirements: context.requirements,
+            flagged: [],
+            sourceRevision: context.sourceRevision,
+            revision: context.revision,
+            visibility: context.visibility,
+            createdAt: context.createdAt,
+            confirmedAt: context.confirmedAt,
+            confirmedRevision: context.confirmedRevision,
+            provenance: context.provenance,
+          },
+        }
+      : {}),
+  };
+};
 
 const lines = z.array(z.string().trim().min(1).max(1500)).max(30);
 export const jobBriefSchema = z
@@ -54,50 +100,4 @@ export interface PacketReviewEvidence {
   packetDigest: string;
   runId: string;
   reviewedAt: string;
-}
-export function missingPersonalAnswers(context: ApplicationContext) {
-  return context.requirements.filter((r) => r.required && r.personal && !r.answer.trim());
-}
-/** User-approved reference data only. Never return flagged excerpts or source descriptions. */
-export function draftingCard(card: Card, purpose = 'application-review'): Card {
-  const context = card.applicationContext;
-  return {
-    id: card.id,
-    company: card.company,
-    title: card.title,
-    location: card.location,
-    salary: card.salary,
-    url: card.url,
-    tags: [...card.tags],
-    description: '',
-    state: card.state,
-    fit: null,
-    owner: card.owner,
-    packet:
-      purpose === 'application-review' ||
-      (purpose === 'application-draft' && card.packetContextRevision === context?.revision)
-        ? card.packet
-        : null,
-    feedback: [],
-    createdAt: card.createdAt,
-    updatedAt: card.updatedAt,
-    sample: card.sample,
-    packetContextRevision: card.packetContextRevision,
-    ...(context
-      ? {
-          applicationContext: {
-            brief: context.brief,
-            requirements: context.requirements,
-            flagged: [],
-            sourceRevision: context.sourceRevision,
-            revision: context.revision,
-            visibility: context.visibility,
-            createdAt: context.createdAt,
-            confirmedAt: context.confirmedAt,
-            confirmedRevision: context.confirmedRevision,
-            provenance: context.provenance,
-          },
-        }
-      : {}),
-  };
 }

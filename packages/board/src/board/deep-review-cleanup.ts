@@ -1,7 +1,12 @@
 import type { ChatRequest, DeepReview, Run, UserInputRequest } from '@pitchcrew/core';
 import type { Board } from '../index.ts';
 /** Called inside job deletion's transaction; running workflows are rejected before this point. */
-export function cancelDeletedJobReviews(board: Board, cardId: string, actor: string, now: string) {
+export const cancelDeletedJobReviews = (
+  board: Board,
+  cardId: string,
+  actor: string,
+  now: string,
+) => {
   const reason = 'The attached job was deleted.';
   const ids = new Set(
     board
@@ -57,4 +62,4 @@ export function cancelDeletedJobReviews(board: Board, cardId: string, actor: str
         actor,
         'Cancelled queued deep review for deleted job',
       );
-}
+};

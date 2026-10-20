@@ -1,15 +1,15 @@
 import type { AgentTask, ChatRequest, DeepReview, Run, UserInputRequest } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 
-export function questionForRun(context: CrewContext, runId: string) {
+export const questionForRun = (context: CrewContext, runId: string) => {
   return context.board.list<UserInputRequest>('user_input').find((q) => q.runId === runId);
-}
-export function waitingOnUser(context: CrewContext, threadId: string, roleId: string) {
+};
+export const waitingOnUser = (context: CrewContext, threadId: string, roleId: string) => {
   return context.board
     .list<UserInputRequest>('user_input')
     .some((q) => q.sourceThreadId === threadId && q.roleId === roleId && q.status === 'pending');
-}
-export function endQuestionTurn(context: CrewContext, run: Run): boolean {
+};
+export const endQuestionTurn = (context: CrewContext, run: Run): boolean => {
   const question = questionForRun(context, run.id);
   if (!question) return false;
   context.streamingMessages.delete(run.id);
@@ -27,8 +27,8 @@ export function endQuestionTurn(context: CrewContext, run: Run): boolean {
   );
   context.publishChat(true);
   return true;
-}
-export function finishUserContinuation(context: CrewContext, run: Run): void {
+};
+export const finishUserContinuation = (context: CrewContext, run: Run): void => {
   const finished = context.board.get<Run>('run', run.id);
   if (finished.status !== 'completed' || !run.requestId) return;
   const question = context.board
@@ -48,8 +48,8 @@ export function finishUserContinuation(context: CrewContext, run: Run): void {
   // Multiple questions can form a chain; release dependent work only after the last continuation.
   finishUserContinuation(context, completed);
   context.publishChat(true);
-}
-function settleOrigin(context: CrewContext, run: Run, status: 'completed' | 'cancelled') {
+};
+const settleOrigin = (context: CrewContext, run: Run, status: 'completed' | 'cancelled') => {
   if (run.requestId) {
     const request = context.board.get<ChatRequest>('chat_request', run.requestId);
     const delivery = request.deliveries.find((d) => d.roleId === run.roleId);
@@ -67,12 +67,12 @@ function settleOrigin(context: CrewContext, run: Run, status: 'completed' | 'can
       'Settled waiting crew task',
     );
   }
-}
-export function cancelUserQuestions(
+};
+export const cancelUserQuestions = (
   context: CrewContext,
   matches: (q: UserInputRequest) => boolean,
   reason: string,
-): void {
+): void => {
   const questions = context.board.list<UserInputRequest>('user_input');
   const selected = new Set(questions.filter(matches).map((q) => q.id));
   let changed = true;
@@ -155,4 +155,4 @@ export function cancelUserQuestions(
     }
   }
   context.publishChat(true);
-}
+};

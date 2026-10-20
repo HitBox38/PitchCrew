@@ -2,10 +2,8 @@ import { pathToFileURL } from 'node:url';
 import { buildSqlPlan, listSqlQueries } from './sql-library.ts';
 
 type SqlCommandResult = ReturnType<typeof listSqlQueries> | ReturnType<typeof buildSqlPlan>;
-export function sqlCommand(args: ['list']): ReturnType<typeof listSqlQueries>;
-export function sqlCommand(args: ['plan', string, ...string[]]): ReturnType<typeof buildSqlPlan>;
-export function sqlCommand(args: string[]): SqlCommandResult;
-export function sqlCommand(args: string[]): SqlCommandResult {
+
+export const sqlCommand = ((args: string[]): SqlCommandResult => {
   if (args.length === 1 && args[0] === 'list') return listSqlQueries();
   if (args[0] !== 'plan' || !args[1])
     throw new Error(
@@ -27,7 +25,11 @@ export function sqlCommand(args: string[]): SqlCommandResult {
         : args[index + 1];
   }
   return buildSqlPlan(args[1], options);
-}
+}) as {
+  (args: ['list']): ReturnType<typeof listSqlQueries>;
+  (args: ['plan', string, ...string[]]): ReturnType<typeof buildSqlPlan>;
+  (args: string[]): SqlCommandResult;
+};
 
 // Offline only: no token, HTTP client, arbitrary SQL/file input or execution mode.
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

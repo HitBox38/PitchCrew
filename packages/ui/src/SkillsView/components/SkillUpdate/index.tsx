@@ -5,7 +5,7 @@ import { RefreshCw } from 'lucide-react';
 import { useSkillUpdate } from './hooks/useSkillUpdate.ts';
 import { SkillUpdateReview } from './components/SkillUpdateReview.tsx';
 
-export function SkillUpdate({
+export const SkillUpdate = ({
   skill,
   action,
   working,
@@ -17,7 +17,7 @@ export function SkillUpdate({
   working: boolean;
   requested?: boolean;
   onReviewClose: () => void;
-}) {
+}) => {
   const c = useSkillUpdate(skill, action, working, requested, onReviewClose);
   return (
     <>
@@ -33,4 +33,4 @@ export function SkillUpdate({
       {c.open ? <SkillUpdateReview {...c} /> : null}
     </>
   );
-}
+};

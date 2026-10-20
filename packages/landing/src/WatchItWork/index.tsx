@@ -1,6 +1,6 @@
 import { ChatDemo } from './components/ChatDemo';
 
-export function WatchItWork() {
+export const WatchItWork = () => {
   return (
     <section className="page-width section-space" aria-labelledby="watch-title">
       <div className="section-head">
@@ -22,4 +22,4 @@ export function WatchItWork() {
       </figure>
     </section>
   );
-}
+};

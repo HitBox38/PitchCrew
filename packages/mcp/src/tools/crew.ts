@@ -11,7 +11,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerCrewTools(server: McpServer, call: AgentCall) {
+export const registerCrewTools = (server: McpServer, call: AgentCall) => {
   registerConversationTools(server, call);
   registerJobTools(server, call);
   server.registerTool(
@@ -146,4 +146,4 @@ export function registerCrewTools(server: McpServer, call: AgentCall) {
     },
     () => call('connector_access'),
   );
-}
+};

@@ -7,7 +7,7 @@ import type { ReasoningLevel } from '@pitchcrew/core';
 import { reasoningLabels } from '@/lib/reasoning.ts';
 import { agentModelDefaultValue } from './constants.ts';
 
-export function ModelField(props: ModelFieldProps) {
+export const ModelField = (props: ModelFieldProps) => {
   const controller = useModelField(props);
   const { id, runtime, available, value, onValueChange, catalog, loading, refreshModels, error } =
     controller;
@@ -77,4 +77,4 @@ export function ModelField(props: ModelFieldProps) {
       />
     </>
   );
-}
+};

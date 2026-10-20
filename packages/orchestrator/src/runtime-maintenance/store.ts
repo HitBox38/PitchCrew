@@ -52,9 +52,9 @@ export class RuntimeMaintenanceStore {
       /* Rebuild invalid metadata on the next check. */
     }
   }
-  save() {
+  save = () => {
     const state = schema.parse(this.state);
     writeFileSync(`${this.path}.tmp`, JSON.stringify(state) + '\n', { mode: 0o600 });
     renameSync(`${this.path}.tmp`, this.path);
-  }
+  };
 }

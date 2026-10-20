@@ -2,7 +2,7 @@ import { AccountActions } from '@/ConnectorSettings/components/AccountActions.ts
 import type { ConnectedAccountsProps } from '@/ConnectorSettings/types.ts';
 import { Link } from 'lucide-react';
 
-export function ConnectedAccounts({ data, working, action, open }: ConnectedAccountsProps) {
+export const ConnectedAccounts = ({ data, working, action, open }: ConnectedAccountsProps) => {
   return (
     <div className="runtime-list">
       {data.connectors.map((connector) => (
@@ -51,4 +51,4 @@ export function ConnectedAccounts({ data, working, action, open }: ConnectedAcco
       ))}
     </div>
   );
-}
+};

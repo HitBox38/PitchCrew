@@ -17,16 +17,14 @@ import { useMounted } from '../hooks/useMounted';
 import type { DemoSnapshot, DemoTab } from '../types';
 import { JobBrief } from './JobBrief';
 
-const icons = { overview: FileText, packet: FileCheck, history: History };
-
 // The app's job details drawer, rebuilt from its own components with a fictional job.
-export function JobPanel({
+export const JobPanel = ({
   stage,
   onAdvance,
 }: {
   stage: JourneyStage['id'];
   onAdvance: () => void;
-}) {
+}) => {
   const view = views[stage];
   const [tab, setTab] = useState<DemoTab>(view.tab);
   const [document, setDocument] = useState(view.document);
@@ -84,4 +82,6 @@ export function JobPanel({
       <JobPanelFooter stage={stage} advance={act} />
     </div>
   );
-}
+};
+
+const icons = { overview: FileText, packet: FileCheck, history: History };

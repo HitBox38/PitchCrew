@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function AttachmentContent({ className, ...props }: React.ComponentProps<'div'>) {
+export const AttachmentContent = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="attachment-content"
@@ -12,4 +12,4 @@ export function AttachmentContent({ className, ...props }: React.ComponentProps<
       {...props}
     />
   );
-}
+};

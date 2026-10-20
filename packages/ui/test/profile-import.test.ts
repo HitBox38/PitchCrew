@@ -23,7 +23,7 @@ beforeAll(async () => {
     plugins: [
       {
         name: 'profile-import-fixture',
-        configureServer(vite) {
+        configureServer: (vite) => {
           vite.middlewares.use('/__profile-import', async (_request, response) => {
             response.setHeader('Content-Type', 'text/html');
             response.end(

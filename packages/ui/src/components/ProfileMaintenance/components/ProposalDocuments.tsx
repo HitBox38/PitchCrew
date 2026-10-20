@@ -3,7 +3,7 @@ import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
-export function ProposalDocuments({
+export const ProposalDocuments = ({
   proposal,
   selected,
   toggle,
@@ -13,7 +13,7 @@ export function ProposalDocuments({
   selected: string[];
   toggle: (name: string) => void;
   disabled: boolean;
-}) {
+}) => {
   return (
     <div className="grid gap-3">
       {proposal.documents.map((file) => (
@@ -70,4 +70,4 @@ export function ProposalDocuments({
       ))}
     </div>
   );
-}
+};

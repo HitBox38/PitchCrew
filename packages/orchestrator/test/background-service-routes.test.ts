@@ -8,12 +8,7 @@ import { registerBackgroundServiceRoutes } from '../src/http/routes/background-s
 import { registerSessionSecurity } from '../src/http/security.ts';
 import { fakeServiceHost, fixtureSpecs } from './helpers/service-host.ts';
 
-const apps: ReturnType<typeof Fastify>[] = [];
-afterEach(async () => {
-  await Promise.all(apps.splice(0).map((app) => app.close()));
-});
-
-async function setup(install: () => Promise<typeof unsupportedStatus>) {
+const setup = async (install: () => Promise<typeof unsupportedStatus>) => {
   const app = Fastify();
   apps.push(app);
   await app.register(cookie);
@@ -33,7 +28,12 @@ async function setup(install: () => Promise<typeof unsupportedStatus>) {
     'x-pitchcrew-client': 'ui',
   };
   return { app, headers };
-}
+};
+
+const apps: ReturnType<typeof Fastify>[] = [];
+afterEach(async () => {
+  await Promise.all(apps.splice(0).map((app) => app.close()));
+});
 
 it('only installs on a POST from a local UI session and returns refreshed workspace state', async () => {
   const spec = fixtureSpecs.linux;

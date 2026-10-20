@@ -1,7 +1,7 @@
 import type { ChatMessage, Run, UserInputRequest } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 /** Only user-authored answers to questions from this isolated review, never chat history. */
-export function reviewClarifications(context: CrewContext, reviewId: string) {
+export const reviewClarifications = (context: CrewContext, reviewId: string) => {
   return context.board
     .list<UserInputRequest>('user_input')
     .filter(
@@ -26,4 +26,4 @@ export function reviewClarifications(context: CrewContext, reviewId: string) {
         throw new Error('Deep-review answer provenance is invalid.');
       return { question: q.question, answer };
     });
-}
+};

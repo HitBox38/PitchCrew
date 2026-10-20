@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ChatViewModel } from '../types.ts';
 import type { Conversation } from '@pitchcrew/core';
-export function useConversationEditor({
+export const useConversationEditor = ({
   conversation,
   roleId,
   dialog,
@@ -11,14 +11,8 @@ export function useConversationEditor({
 }: Pick<
   ChatViewModel,
   'conversation' | 'roleId' | 'dialog' | 'setDialog' | 'action' | 'onThread'
->) {
-  const current = dialog === 'manage' ? conversation : undefined;
-  const [title, setTitle] = useState(current?.title ?? '');
-  const [participants, setParticipants] = useState(current?.participants ?? [roleId]);
-  const [leadId, setLeadId] = useState(current?.leadId ?? roleId);
-  const [cardId, setCardId] = useState(current?.cardId ?? '');
-  const [error, setError] = useState('');
-  async function save() {
+>) => {
+  const save = async () => {
     try {
       const result = (await action(
         current ? `/conversations/${current.id}` : '/conversations',
@@ -35,7 +29,14 @@ export function useConversationEditor({
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not save the conversation.');
     }
-  }
+  };
+
+  const current = dialog === 'manage' ? conversation : undefined;
+  const [title, setTitle] = useState(current?.title ?? '');
+  const [participants, setParticipants] = useState(current?.participants ?? [roleId]);
+  const [leadId, setLeadId] = useState(current?.leadId ?? roleId);
+  const [cardId, setCardId] = useState(current?.cardId ?? '');
+  const [error, setError] = useState('');
   return {
     current,
     title,
@@ -49,4 +50,4 @@ export function useConversationEditor({
     error,
     save,
   };
-}
+};

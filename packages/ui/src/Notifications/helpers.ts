@@ -6,7 +6,7 @@ import { pendingSkillUpdates } from '../lib/skill-updates.ts';
 import { skillSourceRevision } from '@pitchcrew/core/skill-updates';
 import type { CrewNotification } from './types.ts';
 
-export function collectNotifications(data: Snapshot): CrewNotification[] {
+export const collectNotifications = (data: Snapshot): CrewNotification[] => {
   const roleName = (id: string) => data.roles.find((r) => r.id === id)?.name ?? id;
   const proposalNotices = new Map(
     data.proposals.filter((p) => p.noticeMessageId).map((p) => [p.noticeMessageId, p]),
@@ -127,55 +127,44 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
   return notifications
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
     .filter((item, index) => index < 100 || !notificationShouldAlert(item));
-}
+};
 /** Maintenance notices remain visible without interrupting current work. */
-export function notificationShouldAlert(item: CrewNotification) {
+export const notificationShouldAlert = (item: CrewNotification) => {
   return (
     item.context !== 'instruction_update' &&
     item.context !== 'skill_update' &&
     item.context !== 'runtime_update'
   );
-}
-export function readStored<T>(
+};
+export const readStored = <T>(
   key: string,
   fallback: T,
   validate: (value: unknown) => value is T,
-): T {
+): T => {
   try {
     const value: unknown = JSON.parse(localStorage.getItem(key) ?? 'null');
     return validate(value) ? value : fallback;
   } catch {
     return fallback;
   }
-}
-export function saveStored(key: string, value: unknown) {
+};
+export const saveStored = (key: string, value: unknown) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch {
     /* Notifications still work without storage. */
   }
-}
+};
 
-/** Baseline history is silent; only IDs absent from the previous history can alert. */
-export class NotificationTracker {
-  private seen: Set<string> | null = null;
-  update(items: CrewNotification[]): CrewNotification[] {
-    const fresh = this.seen ? items.filter((item) => !this.seen!.has(item.id)) : [];
-    this.seen ??= new Set();
-    items.forEach((item) => this.seen!.add(item.id));
-    return fresh;
-  }
-}
-
-export function notificationPreview(body: string) {
+export const notificationPreview = (body: string) => {
   const text = body.replace(/\s+/g, ' ').trim();
   if (text.length <= 96) return text;
   const excerpt = text.slice(0, 95);
   const lastSpace = excerpt.lastIndexOf(' ');
   return `${lastSpace > 60 ? excerpt.slice(0, lastSpace) : excerpt}…`;
-}
+};
 
-export function notificationToastOptions(item: CrewNotification) {
+export const notificationToastOptions = (item: CrewNotification) => {
   return {
     id: item.id,
     title: item.title,
@@ -184,5 +173,16 @@ export function notificationToastOptions(item: CrewNotification) {
     timeout: item.kind === 'attention' ? 12000 : 6000,
     priority: 'low' as const,
     data: item,
+  };
+};
+
+/** Baseline history is silent; only IDs absent from the previous history can alert. */
+export class NotificationTracker {
+  private seen: Set<string> | null = null;
+  update = (items: CrewNotification[]): CrewNotification[] => {
+    const fresh = this.seen ? items.filter((item) => !this.seen!.has(item.id)) : [];
+    this.seen ??= new Set();
+    items.forEach((item) => this.seen!.add(item.id));
+    return fresh;
   };
 }

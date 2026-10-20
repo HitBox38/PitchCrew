@@ -3,12 +3,12 @@ import type { ReviewPerspective } from '@pitchcrew/core/deep-review-labels';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { loadReviewSupport } from '../api.ts';
 import type { ReviewAlternativeRow, ReviewLaunchProps, ReviewSupport } from '../types.ts';
-export function useReviewSetup({
+export const useReviewSetup = ({
   card,
   data,
   act,
   close,
-}: ReviewLaunchProps & { close: () => void }) {
+}: ReviewLaunchProps & { close: () => void }) => {
   const reviewer = data.roles.find(
     (role) => role.enabled && !role.retiredAt && workflowSeat(role) === 'reviewer',
   );
@@ -73,4 +73,4 @@ export function useReviewSetup({
     available,
     start,
   };
-}
+};

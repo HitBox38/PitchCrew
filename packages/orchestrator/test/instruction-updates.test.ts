@@ -9,6 +9,27 @@ import { InstructionUpdatePreferences } from '../src/instruction-updates.ts';
 import { createDaemon } from '../src/server.ts';
 import { cleanup, finish, resources, setup } from './helpers/daemon.ts';
 
+/** Closes running daemons for this directory and starts a new one, as a restart does. */
+const restart = async (directory: string, port: number) => {
+  for (const entry of resources.splice(0)) await entry.daemon.close();
+  const daemon = await createDaemon({ directory, port, seedSkills: false, dev: true });
+  resources.push({ daemon, directory });
+  await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
+  return daemon;
+};
+
+const fixture = async (port: number) => {
+  const context = await setup(port);
+  const { daemon, request } = context;
+  const seedOld = (id: string, instructions: string) => {
+    const role = daemon.service.board.get<Role>('role', id);
+    daemon.service.board.record('role', { ...role, instructions }, 'system', 'Fixture old seed');
+  };
+  const updates = async () =>
+    (await request<Snapshot>('/snapshot')).result.instructionUpdates ?? [];
+  return { ...context, seedOld, updates };
+};
+
 afterEach(async () => {
   for (const { daemon } of resources) daemon.service.capabilities.delete('update-token');
   await cleanup();
@@ -22,27 +43,6 @@ const current = Object.fromEntries(
   defaultRoles('claude-code', false).map((role) => [role.id, role.instructions]),
 );
 const latest = (id: string) => defaultInstructionHistory[id].at(-1)!.revision;
-
-/** Closes running daemons for this directory and starts a new one, as a restart does. */
-async function restart(directory: string, port: number) {
-  for (const entry of resources.splice(0)) await entry.daemon.close();
-  const daemon = await createDaemon({ directory, port, seedSkills: false, dev: true });
-  resources.push({ daemon, directory });
-  await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
-  return daemon;
-}
-
-async function fixture(port: number) {
-  const context = await setup(port);
-  const { daemon, request } = context;
-  const seedOld = (id: string, instructions: string) => {
-    const role = daemon.service.board.get<Role>('role', id);
-    daemon.service.board.record('role', { ...role, instructions }, 'system', 'Fixture old seed');
-  };
-  const updates = async () =>
-    (await request<Snapshot>('/snapshot')).result.instructionUpdates ?? [];
-  return { ...context, seedOld, updates };
-}
 
 describe('default instruction updates', () => {
   it('lists updates for seeded defaults without changing any role', async () => {

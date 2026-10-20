@@ -7,6 +7,12 @@ import {
   GoogleCliMissingError,
   type GoogleCliRunner,
 } from '../src/connectors/auth/google-cli-process.ts';
+const connect = async () => {
+  runner
+    .mockResolvedValueOnce({ stdout: 'gws fixture', exitCode: 0 })
+    .mockResolvedValueOnce(account());
+  return manager.connectGoogleCli();
+};
 
 let directory: string;
 let manager: ConnectorManager;
@@ -35,12 +41,6 @@ afterEach(async () => {
   expect(resolve(directory).startsWith(resolve(tmpdir(), 'pitchcrew-google-cli-test-'))).toBe(true);
   await rm(directory, { recursive: true, force: true });
 });
-async function connect() {
-  runner
-    .mockResolvedValueOnce({ stdout: 'gws fixture', exitCode: 0 })
-    .mockResolvedValueOnce(account());
-  return manager.connectGoogleCli();
-}
 it('persists only the existing account and scopes without probing on snapshots or restart', async () => {
   manager.status();
   expect(runner).not.toHaveBeenCalled();

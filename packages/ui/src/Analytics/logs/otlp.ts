@@ -1,23 +1,12 @@
 import { operationalLogCodes, type OperationalLog } from '@pitchcrew/core/operational-logs';
 
-export interface LogContext {
-  app_version: string;
-  renderer: 'browser' | 'electron';
-  analytics_schema: number;
-}
-
-const attribute = (key: string, value: string | number) => ({
-  key,
-  value: typeof value === 'number' ? { intValue: String(value) } : { stringValue: value },
-});
-
 /** OTLP ExportLogsServiceRequest JSON. Only static bodies and reviewed attributes. */
-export function operationalLogPayload(
+export const operationalLogPayload = (
   log: OperationalLog,
   context: LogContext,
   distinctId: string,
   now: number,
-) {
+) => {
   const definition = operationalLogCodes[log.code];
   const timeUnixNano = String(BigInt(Math.floor(now)) * 1_000_000n);
   return {
@@ -53,4 +42,15 @@ export function operationalLogPayload(
       },
     ],
   };
+};
+
+export interface LogContext {
+  app_version: string;
+  renderer: 'browser' | 'electron';
+  analytics_schema: number;
 }
+
+const attribute = (key: string, value: string | number) => ({
+  key,
+  value: typeof value === 'number' ? { intValue: String(value) } : { stringValue: value },
+});

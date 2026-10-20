@@ -2,14 +2,14 @@ import type { DropdownMenuContentProps } from '@/components/ui/dropdown-menu/typ
 import { cn } from '@/lib/utils';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 
-export function DropdownMenuContent({
+export const DropdownMenuContent = ({
   align = 'start',
   alignOffset = 0,
   side = 'bottom',
   sideOffset = 4,
   className,
   ...props
-}: DropdownMenuContentProps) {
+}: DropdownMenuContentProps) => {
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
@@ -30,4 +30,4 @@ export function DropdownMenuContent({
       </MenuPrimitive.Positioner>
     </MenuPrimitive.Portal>
   );
-}
+};

@@ -4,11 +4,11 @@ import { Link } from '@tanstack/react-router';
 import type { SkillsViewModel } from '../types.ts';
 import { SkillCheckButton } from '@/AgentUpdates/components/SkillCheckButton.tsx';
 
-export function SkillUpdates({
+export const SkillUpdates = ({
   data,
   updatesOnly,
   onUpdatesOnly,
-}: Pick<SkillsViewModel, 'data' | 'updatesOnly' | 'onUpdatesOnly'>) {
+}: Pick<SkillsViewModel, 'data' | 'updatesOnly' | 'onUpdatesOnly'>) => {
   const available = availableSkillUpdates(data);
   const pending = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
   const checks = data.skillUpdates?.checks ?? [];
@@ -69,4 +69,4 @@ export function SkillUpdates({
       </p>
     </section>
   );
-}
+};

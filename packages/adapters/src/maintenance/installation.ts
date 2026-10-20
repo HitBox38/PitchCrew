@@ -6,19 +6,7 @@ import { homedir } from 'node:os';
 import { cliEnvironment } from '../process/environment.ts';
 import { maintenanceDefinitions } from './catalog.ts';
 import { runMaintenanceCommand, type MaintenanceCommand } from './process.ts';
-
-export interface RuntimeInstallation {
-  executable: string;
-  realPath: string;
-  identity: string;
-  lockKey?: string;
-  installer: 'npm' | 'homebrew' | 'native' | 'manual';
-  command?: MaintenanceCommand;
-  manualCommand: string;
-  detail: string;
-  latest?: string;
-}
-export async function findRuntimeExecutable(command: string): Promise<string | null> {
+export const findRuntimeExecutable = async (command: string): Promise<string | null> => {
   const env = cliEnvironment();
   const path = Object.entries(env).find(([key]) => key.toUpperCase() === 'PATH')?.[1] ?? '';
   const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
@@ -33,18 +21,12 @@ export async function findRuntimeExecutable(command: string): Promise<string | n
       }
     }
   return null;
-}
-const normalized = (path: string) => path.replaceAll('\\', '/');
-const shellQuote = (value: string) =>
-  process.platform === 'win32'
-    ? `'${value.replaceAll("'", "''")}'`
-    : `'${value.replaceAll("'", "'\\''")}'`;
-const within = (path: string, directory: string) => path.startsWith(directory + sep);
+};
 
-export async function resolveRuntimeInstallation(
+export const resolveRuntimeInstallation = async (
   id: Exclude<RuntimeId, 'demo'>,
   signal?: AbortSignal,
-): Promise<RuntimeInstallation | null> {
+): Promise<RuntimeInstallation | null> => {
   const definition = maintenanceDefinitions[id];
   const executable = await findRuntimeExecutable(definition.command);
   if (!executable) return null;
@@ -195,4 +177,22 @@ export async function resolveRuntimeInstallation(
     };
   }
   return base;
+};
+
+export interface RuntimeInstallation {
+  executable: string;
+  realPath: string;
+  identity: string;
+  lockKey?: string;
+  installer: 'npm' | 'homebrew' | 'native' | 'manual';
+  command?: MaintenanceCommand;
+  manualCommand: string;
+  detail: string;
+  latest?: string;
 }
+const normalized = (path: string) => path.replaceAll('\\', '/');
+const shellQuote = (value: string) =>
+  process.platform === 'win32'
+    ? `'${value.replaceAll("'", "''")}'`
+    : `'${value.replaceAll("'", "'\\''")}'`;
+const within = (path: string, directory: string) => path.startsWith(directory + sep);

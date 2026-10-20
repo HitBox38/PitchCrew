@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export function registerProfileTools(server: McpServer, call: AgentCall) {
+export const registerProfileTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_list_watched_profile_sources',
     {
@@ -53,4 +53,4 @@ export function registerProfileTools(server: McpServer, call: AgentCall) {
     },
     (input) => call('propose_profile_note', { input }),
   );
-}
+};

@@ -7,14 +7,12 @@ import { WorkspaceHeading } from './WorkspaceHeading.tsx';
 import type { WorkspaceModel } from '../types.ts';
 import { StartupReady } from '@/Analytics/components/StartupReady.tsx';
 
-const HeaderActions = createContext<HTMLDivElement | null>(null);
-
-export function WorkspaceHeaderActions({ children }: { children: ReactNode }) {
+export const WorkspaceHeaderActions = ({ children }: { children: ReactNode }) => {
   const target = useContext(HeaderActions);
   return target ? createPortal(children, target) : null;
-}
+};
 
-export function WorkspacePage(controller: WorkspaceModel) {
+export const WorkspacePage = (controller: WorkspaceModel) => {
   const { view, error } = controller;
   const [actions, setActions] = useState<HTMLDivElement | null>(null);
   const dedicated = view === 'chat' || view === 'profile';
@@ -54,4 +52,6 @@ export function WorkspacePage(controller: WorkspaceModel) {
       </div>
     </HeaderActions.Provider>
   );
-}
+};
+
+const HeaderActions = createContext<HTMLDivElement | null>(null);

@@ -12,14 +12,14 @@ import {
 } from '@pitchcrew/core';
 import type { Board } from '../index.ts';
 
-function availableCard(board: Board, cardId: string): Card {
+const availableCard = (board: Board, cardId: string): Card => {
   const card = board.get<Card>('card', cardId);
   if (board.hasActiveRun(cardId))
     throw new Error('Wait for the application’s active run to finish.');
   return card;
-}
+};
 
-function invalidateApprovals(board: Board, cardId: string, actor: string, now: string): void {
+const invalidateApprovals = (board: Board, cardId: string, actor: string, now: string): void => {
   for (const approval of board.list<Approval>('approval'))
     if (approval.cardId === cardId && ['pending', 'approved'].includes(approval.status))
       board.record(
@@ -36,16 +36,16 @@ function invalidateApprovals(board: Board, cardId: string, actor: string, now: s
         actor,
         'Invalidated browser approval after board change',
       );
-}
+};
 
 /** Explicit board correction; normal workflow execution still uses Board.move. */
-export function changeJobState(
+export const changeJobState = (
   board: Board,
   cardId: string,
   state: CardState,
   actor: string,
   reason: string,
-): Card {
+): Card => {
   if (!states.includes(state)) throw new Error('Unknown job state.');
   return board.db.transaction(() => {
     const card = availableCard(board, cardId);
@@ -56,10 +56,10 @@ export function changeJobState(
     invalidateApprovals(board, cardId, actor, now);
     return next;
   })();
-}
+};
 
 /** Remove the current card while preserving its complete append-only history. */
-export function deleteJob(board: Board, cardId: string, actor: string, reason: string): void {
+export const deleteJob = (board: Board, cardId: string, actor: string, reason: string): void => {
   board.db.transaction(() => {
     const card = availableCard(board, cardId);
     const now = new Date().toISOString();
@@ -115,4 +115,4 @@ export function deleteJob(board: Board, cardId: string, actor: string, reason: s
           'Paused routine for deleted job',
         );
   })();
-}
+};

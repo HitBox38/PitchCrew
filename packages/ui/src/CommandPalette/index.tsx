@@ -11,7 +11,7 @@ import { CommandInput } from '@/components/ui/command/components/CommandInput.ts
 import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
 import { CommandSeparator } from '@/components/ui/command/components/CommandSeparator.tsx';
 
-export function CommandPalette(props: CommandPaletteProps) {
+export const CommandPalette = (props: CommandPaletteProps) => {
   const controller = useCommandPalette(props);
   const { open, onOpenChange, cards } = controller;
   return (
@@ -35,4 +35,4 @@ export function CommandPalette(props: CommandPaletteProps) {
       </CommandList>
     </CommandDialog>
   );
-}
+};

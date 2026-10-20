@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useApplicationBrief } from '@/ApplicationBriefReview/hooks/useApplicationBrief.ts';
 
-export function useCardDetails(props: CardDetailsProps) {
+export const useCardDetails = (props: CardDetailsProps) => {
   const { card, data, action, working } = props;
   const navigate = useNavigate();
   const [tab, setTab] = useState<JobSection>(props.initialSection ?? 'job');
@@ -91,7 +91,7 @@ export function useCardDetails(props: CardDetailsProps) {
     openChat: (thread: string, runId: string) =>
       guard.requestLeave(() => props.onChat(thread, runId)),
   };
-}
-function documentElement(section: ApplicationSection) {
+};
+const documentElement = (section: ApplicationSection) => {
   return document.getElementById(`job-section-${section}`);
-}
+};

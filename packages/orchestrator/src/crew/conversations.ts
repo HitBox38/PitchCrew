@@ -14,13 +14,13 @@ import { requireRole } from './roles.ts';
 import type { CrewContext } from './types.ts';
 import { stopConversationWork } from './conversation-queue.ts';
 
-export function conversations(context: CrewContext): Conversation[] {
+export const conversations = (context: CrewContext): Conversation[] => {
   return context.board.list<Conversation>('conversation');
-}
-export function conversation(context: CrewContext, id: string): Conversation {
+};
+export const conversation = (context: CrewContext, id: string): Conversation => {
   return context.board.get<Conversation>('conversation', id);
-}
-export function canReadConversation(context: CrewContext, roleId: string, id: string): boolean {
+};
+export const canReadConversation = (context: CrewContext, roleId: string, id: string): boolean => {
   const item = conversations(context).find((entry) => entry.id === id);
   if (item) return item.participants.includes(roleId);
   if (id !== roleId && id !== 'crew') return false;
@@ -30,8 +30,8 @@ export function canReadConversation(context: CrewContext, roleId: string, id: st
       "SELECT 1 FROM entities WHERE kind='conversation' AND id=? AND json_extract(json,'$.deletedAt') IS NOT NULL",
     )
     .get(id);
-}
-export function migrateConversations(context: Pick<CrewContext, 'board'>): void {
+};
+export const migrateConversations = (context: Pick<CrewContext, 'board'>): void => {
   const existing = new Set(
     (
       context.board.db.prepare("SELECT id FROM entities WHERE kind='conversation'").all() as {
@@ -83,14 +83,14 @@ export function migrateConversations(context: Pick<CrewContext, 'board'>): void 
       'system',
       'Preserved legacy crew history',
     );
-}
-export function createConversation(
+};
+export const createConversation = (
   context: CrewContext,
   data: unknown,
   actor = 'user',
   kind?: Conversation['kind'],
   extra: Partial<Conversation> = {},
-): Conversation {
+): Conversation => {
   const input = conversationInput.parse(data);
   for (const id of input.participants) requireRole(context, id);
   if (input.cardId) context.board.get<Card>('card', input.cardId);
@@ -114,13 +114,13 @@ export function createConversation(
   context.board.record('conversation', item, actor, `Created ${item.title}`);
   context.publishChat(true);
   return item;
-}
-export async function updateConversation(
+};
+export const updateConversation = async (
   context: CrewContext,
   id: string,
   data: unknown,
   actor = 'user',
-): Promise<Conversation> {
+): Promise<Conversation> => {
   const current = conversation(context, id);
   const patch = conversationPatch.parse(data);
   if (
@@ -231,15 +231,15 @@ export async function updateConversation(
     );
   context.publishChat(true);
   return conversation(context, id);
-}
-export function relatedConversation(
+};
+export const relatedConversation = (
   context: CrewContext,
   kind: 'routine' | 'application',
   key: string,
   roleId: string,
   cardId: string | null,
   title: string,
-): Conversation {
+): Conversation => {
   const existing = conversations(context).find(
     (item) =>
       item.kind === kind &&
@@ -268,14 +268,14 @@ export function relatedConversation(
     kind,
     kind === 'routine' ? { routineId: key } : {},
   );
-}
-export function agentDm(
+};
+export const agentDm = (
   context: CrewContext,
   source: string,
   target: string,
   cardId: string | null,
   parentId?: string,
-): Conversation {
+): Conversation => {
   if (source === target && parentId) return conversation(context, parentId);
   const participants = [...new Set([source, target])];
   const existing = conversations(context).find(
@@ -301,7 +301,7 @@ export function agentDm(
       { parentId },
     )
   );
-}
-export function runConversation(context: CrewContext, run: Run): Conversation | undefined {
+};
+export const runConversation = (context: CrewContext, run: Run): Conversation | undefined => {
   return conversations(context).find((item) => item.id === run.threadId);
-}
+};

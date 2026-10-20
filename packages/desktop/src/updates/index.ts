@@ -9,9 +9,7 @@ import { canUpdatePackagedDaemon, requestDaemonUpdate } from '../packaged.ts';
 import { createDesktopUpdater, type UpdateDriver } from './controller.ts';
 import { trustedUpdateSender, updateChannels } from './ipc.ts';
 
-const feed = 'https://github.com/HitBox38/PitchCrew/releases';
-
-async function disabledReason() {
+const disabledReason = async () => {
   if (!app.isPackaged) return 'Source launches use the release page to update.';
   if (process.env.PITCHCREW_SMOKE_FILE || process.env.PITCHCREW_UPDATE_CHECKS === '0')
     return 'Installation update checks are disabled.';
@@ -27,10 +25,10 @@ async function disabledReason() {
   if (!canUpdatePackagedDaemon())
     return 'Close the separately running daemon and reopen Pitchcrew to update in the app.';
   return null;
-}
+};
 
 /** Resolves a validated SHA release before each check so a later release cannot change the download. */
-function updateDriver(): UpdateDriver {
+const updateDriver = (): UpdateDriver => {
   const require = createRequire(join(process.resourcesPath, 'runtime', 'package.json'));
   const { autoUpdater } = require('electron-updater') as { autoUpdater: AppUpdater };
   const check = autoUpdater.checkForUpdates.bind(autoUpdater);
@@ -45,12 +43,12 @@ function updateDriver(): UpdateDriver {
     return check();
   };
   return autoUpdater;
-}
+};
 
-export async function registerDesktopUpdates(
+export const registerDesktopUpdates = async (
   getWindow: () => BrowserWindow | null,
   origin: () => string,
-) {
+) => {
   let installing = false;
   let reason = await disabledReason();
   let driver: UpdateDriver | null = null;
@@ -66,7 +64,7 @@ export async function registerDesktopUpdates(
     disabledReason: reason,
     driver,
     emit: (state) => getWindow()?.webContents.send(updateChannels.changed, state),
-    async confirm(version) {
+    confirm: async (version) => {
       const window = getWindow();
       if (!window) return false;
       const result = await dialog.showMessageBox(window, {
@@ -82,12 +80,12 @@ export async function registerDesktopUpdates(
       });
       return result.response === 1;
     },
-    async prepare(version) {
+    prepare: async (version) => {
       if (!(await waitForRuntimeUpdates(origin(), getWindow())))
         throw new Error('Restart cancelled while finishing runtime maintenance.');
       await requestDaemonUpdate('prepare-update', version);
     },
-    async recover() {
+    recover: async () => {
       installing = false;
       await requestDaemonUpdate('recover-update');
     },
@@ -110,4 +108,6 @@ export async function registerDesktopUpdates(
     });
   }
   return { isInstalling: () => installing };
-}
+};
+
+const feed = 'https://github.com/HitBox38/PitchCrew/releases';

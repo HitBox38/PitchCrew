@@ -8,16 +8,16 @@ interface Node {
   children?: Node[];
 }
 /** Decorate only exact persisted occurrences; never reinterpret history using today's catalog. */
-export function referenceMarkdown({
+export const referenceMarkdown = ({
   content,
   references,
 }: {
   content: string;
   references: ChatReference[];
-}) {
+}) => {
   const valid = validChatReferences(content, references);
   return (tree: Node) => {
-    function visit(parent: Node) {
+    const visit = (parent: Node) => {
       if (
         !parent.children ||
         ['code', 'inlineCode', 'link', 'linkReference', 'html'].includes(parent.type)
@@ -56,7 +56,7 @@ export function referenceMarkdown({
         result.push({ type: 'text', value: value.slice(cursor) });
         return result;
       });
-    }
+    };
     visit(tree);
   };
-}
+};

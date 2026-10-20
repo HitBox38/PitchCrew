@@ -42,25 +42,25 @@ import { assertApplicationRuntime } from './application-context/extraction.ts';
 import { applicationUserAnswers } from './application-context/answers.ts';
 import { changeSummary } from './change-summary.ts';
 
-async function startRunPrepared(
-  this: CrewContext,
+const startRunPrepared = async (
+  crewContext: CrewContext,
   cardId: string,
   roleId: RoleId,
   task?: AgentTask,
   delivery?: { requestId: string; rootRunId: string; content: string },
   applicationDraft = false,
-): Promise<Run> {
-  if (this.closing) throw new Error('The daemon is stopping.');
-  assertProfileReady(this);
-  if (this.profileWriting) throw new Error('Wait for the profile update to finish.');
-  const profileRevision = this.profileRevision;
-  if (this.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
-  const storedRole = requireRole(this, roleId);
+): Promise<Run> => {
+  if (crewContext.closing) throw new Error('The daemon is stopping.');
+  assertProfileReady(crewContext);
+  if (crewContext.profileWriting) throw new Error('Wait for the profile update to finish.');
+  const profileRevision = crewContext.profileRevision;
+  if (crewContext.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
+  const storedRole = requireRole(crewContext, roleId);
   let role = applicationDraft ? { ...storedRole, workflow: 'writer' as const } : storedRole;
-  const skills = this.skills(roleId);
-  const card = this.board.get<Card>('card', cardId);
+  const skills = crewContext.skills(roleId);
+  const card = crewContext.board.get<Card>('card', cardId);
   const correction = task?.writingCorrectionId
-    ? this.board.get<import('@pitchcrew/core').WritingCorrection>(
+    ? crewContext.board.get<import('@pitchcrew/core').WritingCorrection>(
         'writing_correction',
         task.writingCorrectionId,
       )
@@ -74,9 +74,9 @@ async function startRunPrepared(
   )
     throw new Error('The correction draft changed. Request a fresh correction.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
-  if (!this.runtimes.find((r) => r.id === role.runtime)?.available)
+  if (!crewContext.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('This runtime is not installed. Check Crew settings.');
-  if (this.board.hasActiveRun(cardId))
+  if (crewContext.board.hasActiveRun(cardId))
     throw new Error('This application already has an active run.');
   const seat = workflowSeat(role);
   if (seat === 'chat') throw new Error('This role has no application workflow seat. Use chat.');
@@ -84,7 +84,7 @@ async function startRunPrepared(
   const applicationContext =
     seat === 'scout' ? assertExtractedContext(card) : assertConfirmedContext(card);
   const userAnswers = applicationUserAnswers(
-    this,
+    crewContext,
     cardId,
     roleId,
     seat === 'scout' ? 'fit' : seat === 'writer' ? 'application-draft' : 'application-review',
@@ -99,11 +99,11 @@ async function startRunPrepared(
   const sourceThread =
     task?.threadId ??
     (delivery
-      ? this.board
+      ? crewContext.board
           .list<ChatRequest>('chat_request')
           .find((request) => request.id === delivery.requestId)?.threadId
       : undefined);
-  const browserConversation = this.board
+  const browserConversation = crewContext.board
     .list<Conversation>('conversation')
     .find((conversation) =>
       sourceThread
@@ -112,10 +112,10 @@ async function startRunPrepared(
     );
   const browserMode = browserConversation?.configurations[roleId]?.browserMode;
   if (browserMode !== undefined) role = { ...role, browserMode };
-  const profile = await readProfile(this.directory);
+  const profile = await readProfile(crewContext.directory);
   if (!profile.length) throw new Error('Add your profile notes before starting the crew.');
   const run: Run = {
-    writingGuide: seat === 'scout' ? undefined : guideForRun(this),
+    writingGuide: seat === 'scout' ? undefined : guideForRun(crewContext),
     writingCorrectionId: correction?.id,
     id: randomUUID(),
     profileDigest: createHash('sha256').update(JSON.stringify(profile)).digest('hex'),
@@ -135,7 +135,7 @@ async function startRunPrepared(
     threadId:
       task?.threadId ??
       relatedConversation(
-        this,
+        crewContext,
         'application',
         cardId,
         roleId,
@@ -144,74 +144,74 @@ async function startRunPrepared(
       ).id,
     ...(task ? { rootRunId: task.rootRunId, taskId: task.id } : {}),
   };
-  if (waitingOnUser(this, run.threadId!, roleId))
+  if (waitingOnUser(crewContext, run.threadId!, roleId))
     throw new Error('Answer or cancel this agent’s pending question first.');
   if (delivery) {
     run.requestId = delivery.requestId;
     run.rootRunId = delivery.rootRunId;
   }
-  const dir = join(this.directory, 'roles', roleId, 'runs', run.id);
-  await this.writeRunInstructions(dir, role, skills);
-  if (ensureQueue(this, run.threadId!, run.rootRunId).paused)
+  const dir = join(crewContext.directory, 'roles', roleId, 'runs', run.id);
+  await crewContext.writeRunInstructions(dir, role, skills);
+  if (ensureQueue(crewContext, run.threadId!, run.rootRunId).paused)
     throw new QueueBusyError('This queue was paused while the action was starting.');
   if (
-    this.closing ||
-    this.profileWriting ||
-    this.profileRevision !== profileRevision ||
+    crewContext.closing ||
+    crewContext.profileWriting ||
+    crewContext.profileRevision !== profileRevision ||
     (task &&
-      (this.board.get<AgentTask>('task', task.id).status !== 'queued' ||
-        !this.taskPermissionsAllow(task))) ||
-    this.board.hasActiveRun(cardId) ||
-    this.board.get<Card>('card', cardId).state !== card.state ||
-    this.board.get<Card>('card', cardId).applicationContext?.revision !==
+      (crewContext.board.get<AgentTask>('task', task.id).status !== 'queued' ||
+        !crewContext.taskPermissionsAllow(task))) ||
+    crewContext.board.hasActiveRun(cardId) ||
+    crewContext.board.get<Card>('card', cardId).state !== card.state ||
+    crewContext.board.get<Card>('card', cardId).applicationContext?.revision !==
       applicationContext.revision ||
-    this.configuring.has(roleId) ||
-    JSON.stringify(requireRole(this, roleId)) !== JSON.stringify(storedRole)
+    crewContext.configuring.has(roleId) ||
+    JSON.stringify(requireRole(crewContext, roleId)) !== JSON.stringify(storedRole)
   )
     throw new Error('This application changed or was claimed by another run. Refresh and retry.');
   const controller = new AbortController();
-  this.controllers.set(run.id, controller);
+  crewContext.controllers.set(run.id, controller);
   const token = randomUUID();
-  this.capabilities.set(token, { runId: run.id, cardId, roleId });
-  if (seat === 'writer') this.board.move(cardId, 'drafting', 'orchestrator');
+  crewContext.capabilities.set(token, { runId: run.id, cardId, roleId });
+  if (seat === 'writer') crewContext.board.move(cardId, 'drafting', 'orchestrator');
   if (seat === 'reviewer' && card.state !== 'in_review')
-    this.board.record(
+    crewContext.board.record(
       'card',
       { ...card, state: 'in_review', packetReview: undefined, updatedAt: new Date().toISOString() },
       'orchestrator',
       'Started fresh review of the existing packet',
     );
-  this.board.updateCard(
+  crewContext.board.updateCard(
     cardId,
     { owner: roleId },
     'orchestrator',
     `${role.name} claimed this application`,
   );
-  this.board.record('run', run, 'orchestrator', `Started ${role.name} on ${role.runtime}`);
+  crewContext.board.record('run', run, 'orchestrator', `Started ${role.name} on ${role.runtime}`);
   const context = {
     writingGuide: run.writingGuide,
     request: correction?.instruction,
     deadline: { expiresAt: Date.now() + 30 * 60_000 },
-    card: draftingCard(this.board.get<Card>('card', cardId), run.purpose),
+    card: draftingCard(crewContext.board.get<Card>('card', cardId), run.purpose),
     purpose: run.purpose,
     userAnswers,
     role,
     skills,
     profile,
-    packetRules: this.packetRules.current().rules,
+    packetRules: crewContext.packetRules.current().rules,
     directory: dir,
     mcp: {
       command: process.execPath,
-      args: ['--import', import.meta.resolve('tsx'), this.mcpEntry],
-      env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: this.daemonUrl },
+      args: ['--import', import.meta.resolve('tsx'), crewContext.mcpEntry],
+      env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: crewContext.daemonUrl },
     },
     signal: controller.signal,
-    onActivity: (activity: RuntimeActivity) => recordChatActivity(this, run.id, activity),
+    onActivity: (activity: RuntimeActivity) => recordChatActivity(crewContext, run.id, activity),
     onMessage: (message: string) => {
-      const current = this.board.get<Run>('run', run.id);
+      const current = crewContext.board.get<Run>('run', run.id);
       if (current.status === 'running') {
-        this.board.record('run', { ...current, message }, roleId, message);
-        recordChatActivity(this, run.id, {
+        crewContext.board.record('run', { ...current, message }, roleId, message);
+        recordChatActivity(crewContext, run.id, {
           id: 'workflow-progress',
           kind: 'commentary',
           label: 'Progress update',
@@ -221,25 +221,29 @@ async function startRunPrepared(
       }
     },
   };
-  const ai = beginAiRun(this.diagnostics, 'workflow');
+  const ai = beginAiRun(crewContext.diagnostics, 'workflow');
   void ai
     .observe(() => adapters[role.runtime].run(context), controller.signal)
     .then(async (result) => {
-      if (endQuestionTurn(this, run)) return;
+      if (endQuestionTurn(crewContext, run)) return;
       if (controller.signal.aborted) throw new Error('Run cancelled.');
-      await this.applyResult(cardId, role, result, profile, controller.signal, {
+      await crewContext.applyResult(cardId, role, result, profile, controller.signal, {
         contextRevision: applicationContext.revision,
         runId: run.id,
       });
       if (correction && result.role === 'writer')
-        finishWritingCorrection(this, correction.id, this.board.get<Card>('card', cardId).packet!);
-      if (seat !== 'scout') await documentReviewCycle(this, run, profile, controller.signal);
-      this.board.record(
+        finishWritingCorrection(
+          crewContext,
+          correction.id,
+          crewContext.board.get<Card>('card', cardId).packet!,
+        );
+      if (seat !== 'scout') await documentReviewCycle(crewContext, run, profile, controller.signal);
+      crewContext.board.record(
         'run',
         {
           ...run,
           status: 'completed',
-          outputPacketDigest: packetDigest(this.board.get<Card>('card', cardId)),
+          outputPacketDigest: packetDigest(crewContext.board.get<Card>('card', cardId)),
           message: `${role.name} finished`,
           finishedAt: new Date().toISOString(),
         },
@@ -248,13 +252,13 @@ async function startRunPrepared(
       );
     })
     .catch((error) => {
-      if (endQuestionTurn(this, run)) return;
-      recordOperationalLog(this.diagnostics, {
+      if (endQuestionTurn(crewContext, run)) return;
+      recordOperationalLog(crewContext.diagnostics, {
         code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
         area: 'workflow',
       });
       const message = error instanceof Error ? error.message : 'Run failed.';
-      this.board.record(
+      crewContext.board.record(
         'run',
         {
           ...run,
@@ -265,52 +269,62 @@ async function startRunPrepared(
         roleId,
         message,
       );
-      const current = this.board.get<Card>('card', cardId);
+      const current = crewContext.board.get<Card>('card', cardId);
       if (current.state === 'drafting')
-        this.board.move(cardId, 'changes_requested', roleId, 'Draft failed; retry the writer');
+        crewContext.board.move(
+          cardId,
+          'changes_requested',
+          roleId,
+          'Draft failed; retry the writer',
+        );
     })
     .finally(async () => {
-      const outcome = this.board.get<Run>('run', run.id).status;
+      const outcome = crewContext.board.get<Run>('run', run.id).status;
       ai.finish(outcome === 'running' ? 'failed' : outcome);
-      await this.computer.stop(run.id);
-      this.board.updateCard(cardId, { owner: null }, 'orchestrator', 'Released application');
+      await crewContext.computer.stop(run.id);
+      crewContext.board.updateCard(cardId, { owner: null }, 'orchestrator', 'Released application');
       if (
-        this.board.get<Run>('run', run.id).status === 'waiting' &&
-        this.board.get<Card>('card', cardId).state === 'drafting'
+        crewContext.board.get<Run>('run', run.id).status === 'waiting' &&
+        crewContext.board.get<Card>('card', cardId).state === 'drafting'
       )
-        this.board.move(cardId, 'changes_requested', roleId, 'Writer is waiting for your answer');
-      finishChatActivity(this, run.id);
-      this.controllers.delete(run.id);
-      this.capabilities.delete(token);
-      finishUserContinuation(this, run);
-      this.finishTask(run);
-      finishDelivery(this, run);
-      void drainConversationQueue(this);
-      void this.drainTasks();
+        crewContext.board.move(
+          cardId,
+          'changes_requested',
+          roleId,
+          'Writer is waiting for your answer',
+        );
+      finishChatActivity(crewContext, run.id);
+      crewContext.controllers.delete(run.id);
+      crewContext.capabilities.delete(token);
+      finishUserContinuation(crewContext, run);
+      crewContext.finishTask(run);
+      finishDelivery(crewContext, run);
+      void drainConversationQueue(crewContext);
+      void crewContext.drainTasks();
     });
   return run;
-}
-export async function applyResult(
-  this: CrewContext,
+};
+export const applyResult = async (
+  crewContext: CrewContext,
   cardId: string,
   role: Role,
   data: unknown,
   profile: ProfileFile[] = [],
   signal?: AbortSignal,
   evidence?: { contextRevision: string; runId: string },
-): Promise<void> {
+): Promise<void> => {
   const result: RunResult = runResultSchema.parse(data);
   if (result.role !== workflowSeat(role)) throw new Error('Result role does not match the run.');
   const context =
     result.role === 'scout'
-      ? assertExtractedContext(this.board.get<Card>('card', cardId))
-      : assertConfirmedContext(this.board.get<Card>('card', cardId));
+      ? assertExtractedContext(crewContext.board.get<Card>('card', cardId))
+      : assertConfirmedContext(crewContext.board.get<Card>('card', cardId));
   const assertCurrent = () => {
     if (signal?.aborted) throw new Error('Run cancelled.');
     const current =
       result.role === 'scout'
-        ? assertExtractedContext(this.board.get<Card>('card', cardId))
-        : assertConfirmedContext(this.board.get<Card>('card', cardId));
+        ? assertExtractedContext(crewContext.board.get<Card>('card', cardId))
+        : assertConfirmedContext(crewContext.board.get<Card>('card', cardId));
     if (
       current.revision !== context.revision ||
       (evidence && evidence.contextRevision !== current.revision)
@@ -318,9 +332,9 @@ export async function applyResult(
       throw new Error('Application context changed during this run. Confirm and run again.');
   };
   assertCurrent();
-  const summary = changeSummary(result, this.board.get<Card>('card', cardId).packet);
+  const summary = changeSummary(result, crewContext.board.get<Card>('card', cardId).packet);
   if (result.role === 'scout') {
-    this.board.updateCard(
+    crewContext.board.updateCard(
       cardId,
       { fit: result.fit, feedback: result.reasons },
       role.id,
@@ -328,12 +342,12 @@ export async function applyResult(
     );
   }
   if (result.role === 'writer') {
-    const check = await this.packetRules.check(result.packet, profile);
+    const check = await crewContext.packetRules.check(result.packet, profile);
     assertCurrent();
     if (check.errors.length) throw new Error(check.errors.join('\n'));
-    await writePacket(this.directory, cardId, result.packet);
+    await writePacket(crewContext.directory, cardId, result.packet);
     assertCurrent();
-    this.board.updateCard(
+    crewContext.board.updateCard(
       cardId,
       {
         packet: result.packet,
@@ -344,16 +358,16 @@ export async function applyResult(
       role.id,
       `Drafted application packet: ${summary}`,
     );
-    this.board.move(cardId, 'in_review', role.id);
+    crewContext.board.move(cardId, 'in_review', role.id);
   }
   if (result.role === 'reviewer') {
-    const card = this.board.get<Card>('card', cardId);
+    const card = crewContext.board.get<Card>('card', cardId);
     if (!card.packet) throw new Error('No packet to review.');
-    const check = await this.packetRules.check(card.packet, profile);
+    const check = await crewContext.packetRules.check(card.packet, profile);
     assertCurrent();
     if (
-      !this.board.get<Card>('card', cardId).packet ||
-      digestPacket(cardId, this.board.get<Card>('card', cardId).packet!) !==
+      !crewContext.board.get<Card>('card', cardId).packet ||
+      digestPacket(cardId, crewContext.board.get<Card>('card', cardId).packet!) !==
         digestPacket(cardId, card.packet)
     )
       throw new Error('Packet changed during review.');
@@ -384,7 +398,7 @@ export async function applyResult(
       },
       card.packet,
     );
-    this.board.updateCard(
+    crewContext.board.updateCard(
       cardId,
       {
         feedback,
@@ -401,81 +415,81 @@ export async function applyResult(
       role.id,
       `${passed ? 'Reviewer approved the packet' : 'Reviewer requested changes'}: ${reviewSummary}`,
     );
-    this.board.move(cardId, passed ? 'agreed' : 'changes_requested', role.id);
+    crewContext.board.move(cardId, passed ? 'agreed' : 'changes_requested', role.id);
   }
-}
-export function cancelRun(this: CrewContext, id: string): void {
-  const reviewRun = this.board.get<Run>('run', id);
+};
+export const cancelRun = (context: CrewContext, id: string): void => {
+  const reviewRun = context.board.get<Run>('run', id);
   const parentId = reviewRun.deepReviewId
-    ? (this.deepReviewExecutions.get(reviewRun.deepReviewId)?.runId ?? id)
+    ? (context.deepReviewExecutions.get(reviewRun.deepReviewId)?.runId ?? id)
     : id;
-  const queue = this.board
+  const queue = context.board
     .list<import('@pitchcrew/core').WorkQueue>('work_queue')
-    .find((q) => q.id === runLane(this, reviewRun));
+    .find((q) => q.id === runLane(context, reviewRun));
   if (queue && !queue.id.startsWith('routine:'))
-    patchQueue(this, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
-  const controller = this.controllers.get(parentId);
+    patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
+  const controller = context.controllers.get(parentId);
   if (!controller) throw new Error('This run is no longer active.');
   controller.abort();
-  const run = this.board.get<Run>('run', id);
+  const run = context.board.get<Run>('run', id);
   const rootRunId = run.rootRunId ?? run.id;
   cancelUserQuestions(
-    this,
+    context,
     (q) => {
-      const origin = this.board.get<Run>('run', q.runId);
+      const origin = context.board.get<Run>('run', q.runId);
       return (origin.rootRunId ?? origin.id) === rootRunId;
     },
     'The run chain was stopped by the user.',
   );
-  for (const sibling of this.board
+  for (const sibling of context.board
     .list<Run>('run')
     .filter((r) => (r.rootRunId ?? r.id) === rootRunId)) {
-    this.controllers.get(sibling.id)?.abort();
-    this.streamingMessages.delete(sibling.id);
+    context.controllers.get(sibling.id)?.abort();
+    context.streamingMessages.delete(sibling.id);
   }
-  this.publishChat();
-  for (const task of this.board
+  context.publishChat();
+  for (const task of context.board
     .list<AgentTask>('task')
     .filter((t) => t.rootRunId === rootRunId && t.status === 'queued'))
-    this.board.record(
+    context.board.record(
       'task',
       { ...task, status: 'cancelled', error: 'The run chain was stopped by the user.' },
       'user',
       'Cancelled queued crew task',
     );
-}
+};
 
-export async function startRun(
-  this: CrewContext,
+export const startRun = async (
+  context: CrewContext,
   ...args: Parameters<CrewContext['startRun']>
-): Promise<Run> {
+): Promise<Run> => {
   if (!args[2] && !args[3])
-    await this.runtimeMaintenance.refreshOnRetry(requireRole(this, args[1]));
+    await context.runtimeMaintenance.refreshOnRetry(requireRole(context, args[1]));
   const [cardId, roleId, task, delivery] = args;
   const threadId =
     task?.threadId ??
     (delivery
-      ? this.board.get<ChatRequest>('chat_request', delivery.requestId).threadId
+      ? context.board.get<ChatRequest>('chat_request', delivery.requestId).threadId
       : relatedConversation(
-          this,
+          context,
           'application',
           cardId,
           roleId,
           cardId,
-          `${this.board.get<Card>('card', cardId).company}: Application work`,
+          `${context.board.get<Card>('card', cardId).company}: Application work`,
         ).id);
-  const queue = ensureQueue(this, threadId);
+  const queue = ensureQueue(context, threadId);
   if (!task && !delivery)
-    patchQueue(this, queue.id, { paused: false, pauseKind: undefined, reason: '' });
+    patchQueue(context, queue.id, { paused: false, pauseKind: undefined, reason: '' });
   return reserveLaunch(
-    this,
+    context,
     { cardId, roleId, threadId, isolated: true, rootRunId: task?.rootRunId ?? delivery?.rootRunId },
     () =>
-      this.runtimeMaintenance.guard(
-        requireRole(this, args[1]),
-        () => startRunPrepared.call(this, ...args),
+      context.runtimeMaintenance.guard(
+        requireRole(context, args[1]),
+        () => startRunPrepared(context, ...args),
         false,
-        () => requireRole(this, args[1]),
+        () => requireRole(context, args[1]),
       ),
   );
-}
+};

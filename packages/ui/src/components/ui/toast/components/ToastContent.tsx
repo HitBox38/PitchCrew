@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Toast as ToastPrimitive } from '@base-ui/react/toast';
 
-export function ToastContent({ className, ...props }: ToastPrimitive.Content.Props) {
+export const ToastContent = ({ className, ...props }: ToastPrimitive.Content.Props) => {
   return (
     <ToastPrimitive.Content
       data-slot="toast-content"
@@ -9,8 +9,8 @@ export function ToastContent({ className, ...props }: ToastPrimitive.Content.Pro
       {...props}
     />
   );
-}
-export function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) {
+};
+export const ToastTitle = ({ className, ...props }: ToastPrimitive.Title.Props) => {
   return (
     <ToastPrimitive.Title
       data-slot="toast-title"
@@ -18,8 +18,8 @@ export function ToastTitle({ className, ...props }: ToastPrimitive.Title.Props) 
       {...props}
     />
   );
-}
-export function ToastDescription({ className, ...props }: ToastPrimitive.Description.Props) {
+};
+export const ToastDescription = ({ className, ...props }: ToastPrimitive.Description.Props) => {
   return (
     <ToastPrimitive.Description
       data-slot="toast-description"
@@ -27,4 +27,4 @@ export function ToastDescription({ className, ...props }: ToastPrimitive.Descrip
       {...props}
     />
   );
-}
+};

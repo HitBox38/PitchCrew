@@ -4,7 +4,7 @@ import type { SidebarTriggerProps } from '@/components/ui/sidebar/types.ts';
 import { cn } from '@/lib/utils';
 import { PanelLeftIcon } from 'lucide-react';
 
-export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerProps) {
+export const SidebarTrigger = ({ className, onClick, ...props }: SidebarTriggerProps) => {
   const { toggleSidebar } = useSidebar();
 
   return (
@@ -24,4 +24,4 @@ export function SidebarTrigger({ className, onClick, ...props }: SidebarTriggerP
       <span className="primitive:sr-only">Toggle Sidebar</span>
     </Button>
   );
-}
+};

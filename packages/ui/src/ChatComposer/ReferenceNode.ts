@@ -7,6 +7,10 @@ import {
   type SerializedTextNode,
 } from 'lexical';
 import type { ReferenceValue } from '@/ChatReferences/types.ts';
+export const $createReferenceNode = (reference: ReferenceValue): ReferenceNode => {
+  return $applyNodeReplacement(new ReferenceNode(reference));
+};
+
 export type SerializedReferenceNode = SerializedTextNode & { reference: ReferenceValue };
 
 /** Token mode makes each chip atomic while its real text remains portable Markdown. */
@@ -56,7 +60,4 @@ export class ReferenceNode extends TextNode {
   canInsertTextAfter(): boolean {
     return false;
   }
-}
-export function $createReferenceNode(reference: ReferenceValue): ReferenceNode {
-  return $applyNodeReplacement(new ReferenceNode(reference));
 }

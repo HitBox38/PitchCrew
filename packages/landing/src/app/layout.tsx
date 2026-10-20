@@ -5,6 +5,23 @@ import { siteMetadata } from '../SEO/metadata';
 import { themeScript } from '../Theme/constants';
 import './globals.css';
 
+const RootLayout = ({ children }: { children: ReactNode }) => {
+  return (
+    <html lang="en" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
+      <body>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        {children}
+      </body>
+    </html>
+  );
+};
+export default RootLayout;
+
 const serif = localFont({
   src: '../../node_modules/@fontsource-variable/fraunces/files/fraunces-latin-full-normal.woff2',
   variable: '--font-fraunces',
@@ -37,19 +54,3 @@ export const viewport: Viewport = {
     { media: '(prefers-color-scheme: dark)', color: '#1a1b1e' },
   ],
 };
-
-export default function RootLayout({ children }: { children: ReactNode }) {
-  return (
-    <html lang="en" className={`${serif.variable} ${sans.variable}`} suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
-      <body>
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        {children}
-      </body>
-    </html>
-  );
-}

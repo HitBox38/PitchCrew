@@ -5,7 +5,7 @@ import { ImportFooter } from './ImportFooter.tsx';
 import { ImportPreviewTable } from './ImportPreviewTable.tsx';
 import { ImportSummary } from './ImportSummary.tsx';
 
-export function ImportDialog({ onClose }: { onClose: () => void }) {
+export const ImportDialog = ({ onClose }: { onClose: () => void }) => {
   const controller = useImportApplications();
   const { report, result, busy, error } = controller;
   const close = () => {
@@ -39,4 +39,4 @@ export function ImportDialog({ onClose }: { onClose: () => void }) {
       />
     </Modal>
   );
-}
+};

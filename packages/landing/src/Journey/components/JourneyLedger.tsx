@@ -3,7 +3,7 @@ import { TabsList, TabsTrigger } from '../../components/ui/tabs';
 import { stages } from '../constants';
 import { Opportunity } from './Opportunity';
 
-export function JourneyLedger({ stage }: { stage: string }) {
+export const JourneyLedger = ({ stage }: { stage: string }) => {
   const current = stages.findIndex((item) => item.id === stage);
   return (
     <div className="journey-ledger">
@@ -32,4 +32,4 @@ export function JourneyLedger({ stage }: { stage: string }) {
       <p className="journey-approval">Exports and submissions wait for your approval.</p>
     </div>
   );
-}
+};

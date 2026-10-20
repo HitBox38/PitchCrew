@@ -6,7 +6,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { api } from '@/api.ts';
 
-export function CorrectionEvidence({ id }: { id: string }) {
+export const CorrectionEvidence = ({ id }: { id: string }) => {
   const [open, setOpen] = useState(false);
   const [evidence, setEvidence] = useState<WritingCorrection>();
   const [error, setError] = useState('');
@@ -59,4 +59,4 @@ export function CorrectionEvidence({ id }: { id: string }) {
       )}
     </AccordionSection>
   );
-}
+};

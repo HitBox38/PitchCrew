@@ -7,7 +7,7 @@ type Props = Pick<ConnectedAccountsProps, 'working' | 'action' | 'open'> & {
   connector: ConnectorStatus;
 };
 
-export function AccountActions({ connector, working, action, open }: Props) {
+export const AccountActions = ({ connector, working, action, open }: Props) => {
   if (connector.connected || connector.pending)
     return (
       <Button
@@ -43,4 +43,4 @@ export function AccountActions({ connector, working, action, open }: Props) {
       ) : null}
     </div>
   );
-}
+};

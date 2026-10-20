@@ -3,7 +3,7 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { updatesKey, useDevicePreferences } from '@/lib/device-preferences.ts';
 import { desktopUpdateBridge } from '../desktop.ts';
 
-export function useAutomaticUpdates() {
+export const useAutomaticUpdates = () => {
   const enabled = useDevicePreferences((state) => state.automaticUpdates);
   const load = useWorkspaceStore((state) => state.loadAppUpdate);
   const check = useWorkspaceStore((state) => state.checkAppUpdate);
@@ -41,4 +41,4 @@ export function useAutomaticUpdates() {
       }),
     [],
   );
-}
+};

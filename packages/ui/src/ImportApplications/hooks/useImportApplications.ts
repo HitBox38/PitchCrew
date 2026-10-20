@@ -5,14 +5,8 @@ import { convertDatabaseImport, previewImport } from '../api.ts';
 import { readImportFile } from '../helpers.ts';
 import type { ImportUpload } from '../types.ts';
 
-export function useImportApplications() {
-  const action = useWorkspaceStore((state) => state.action);
-  const [upload, setUpload] = useState<ImportUpload | null>(null);
-  const [preview, setPreview] = useState<ApplicationImportReport | null>(null);
-  const [result, setResult] = useState<ApplicationImportReport | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  async function chooseFile(file: File | undefined) {
+export const useImportApplications = () => {
+  const chooseFile = async (file: File | undefined) => {
     setError('');
     setPreview(null);
     setResult(null);
@@ -28,8 +22,8 @@ export function useImportApplications() {
     } finally {
       setBusy(false);
     }
-  }
-  async function confirmImport() {
+  };
+  const confirmImport = async () => {
     if (!upload || !preview || busy) return;
     setBusy(true);
     setError('');
@@ -46,8 +40,15 @@ export function useImportApplications() {
     } finally {
       setBusy(false);
     }
-  }
+  };
+
+  const action = useWorkspaceStore((state) => state.action);
+  const [upload, setUpload] = useState<ImportUpload | null>(null);
+  const [preview, setPreview] = useState<ApplicationImportReport | null>(null);
+  const [result, setResult] = useState<ApplicationImportReport | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
   const report = result ?? preview;
   const ready = preview?.counts.new ?? 0;
   return { upload, report, result, busy, error, ready, chooseFile, confirmImport };
-}
+};

@@ -1,7 +1,7 @@
 import type { Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 
-export function setupProgress(data: Snapshot) {
+export const setupProgress = (data: Snapshot) => {
   const readySeats = new Set(
     data.roles
       .filter(
@@ -19,4 +19,4 @@ export function setupProgress(data: Snapshot) {
     ),
     job: data.cards.some((card) => !card.sample),
   };
-}
+};

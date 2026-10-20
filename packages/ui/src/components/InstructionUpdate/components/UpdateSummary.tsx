@@ -2,7 +2,7 @@ import type { InstructionUpdateModel } from '../types.ts';
 import { instructionUpdateExplanation, instructionUpdateTitle } from '@/lib/instruction-updates.ts';
 import { Sparkles } from 'lucide-react';
 
-export function UpdateSummary({ role, update, tools }: InstructionUpdateModel) {
+export const UpdateSummary = ({ role, update, tools }: InstructionUpdateModel) => {
   return (
     <>
       <h3 id={`${role.id}-instruction-update-heading`} className="flex items-center gap-2">
@@ -26,4 +26,4 @@ export function UpdateSummary({ role, update, tools }: InstructionUpdateModel) {
       ) : null}
     </>
   );
-}
+};

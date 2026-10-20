@@ -9,7 +9,7 @@ import { RoutineRow } from './RoutineRow.tsx';
 import { RoutineDialogs } from './RoutineDialogs.tsx';
 import { RoutinesToolbar } from './RoutinesToolbar.tsx';
 
-export function RoutinesWorkspace({
+export const RoutinesWorkspace = ({
   data,
   action,
   working,
@@ -17,7 +17,7 @@ export function RoutinesWorkspace({
   data: Snapshot;
   action: Action;
   working: boolean;
-}) {
+}) => {
   const controller = useRoutinesPage(data, action);
   return (
     <section aria-label="Routines and scheduled actions" className="routines-workspace">
@@ -67,4 +67,4 @@ export function RoutinesWorkspace({
       <RoutineDialogs controller={controller} data={data} action={action} working={working} />
     </section>
   );
-}
+};

@@ -4,7 +4,7 @@ import type { RoleId } from '@pitchcrew/core';
 type Panel = 'new' | 'manage' | 'runtime' | 'memory' | 'defaults' | null;
 type LeaveGuard = (action: () => void) => void;
 
-export function useChatPanels(thread: string) {
+export const useChatPanels = (thread: string) => {
   const [state, setState] = useState<{ thread: string; dialog: Panel; agentId?: RoleId }>({
     thread,
     dialog: null,
@@ -27,4 +27,4 @@ export function useChatPanels(thread: string) {
     closePanel: () => setState({ thread, dialog: null }),
     registerLeaveGuard,
   };
-}
+};

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import type { BrowserSessionInfo } from '@pitchcrew/core';
 import { browserSessions } from '../api.ts';
 
-export function useBrowserSessions(threadId: string, enabled: boolean) {
+export const useBrowserSessions = (threadId: string, enabled: boolean) => {
   const [state, setState] = useState<{
     thread: string;
     sessions: BrowserSessionInfo[];
@@ -41,4 +41,4 @@ export function useBrowserSessions(threadId: string, enabled: boolean) {
     ...(state.thread === threadId ? state : { thread: threadId, sessions: [], error: '' }),
     refresh,
   };
-}
+};

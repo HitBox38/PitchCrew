@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { writingScopes } from '@/lib/application-quality.ts';
 import { CorrectionEvidence } from './CorrectionEvidence.tsx';
 
-export function GuidePreferences({
+export const GuidePreferences = ({
   guide,
   change,
   working,
@@ -13,7 +13,7 @@ export function GuidePreferences({
   change: (data: Record<string, unknown>) => Promise<unknown>;
   working: boolean;
   edit: (item: WritingPreference) => void;
-}) {
+}) => {
   return (
     <div className="space-y-4">
       {!guide.preferences.length ? (
@@ -66,4 +66,4 @@ export function GuidePreferences({
       ))}
     </div>
   );
-}
+};

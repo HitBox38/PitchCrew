@@ -2,7 +2,10 @@ import type { RunContext } from '@pitchcrew/core';
 import { runtimeTimeLimit } from './environment.ts';
 
 /** Recheck a shared deadline at expiry so parent extensions reach already-running children. */
-export function watchRuntimeDeadline(context: Pick<RunContext, 'deadline'>, expired: () => void) {
+export const watchRuntimeDeadline = (
+  context: Pick<RunContext, 'deadline'>,
+  expired: () => void,
+) => {
   if (!context.deadline) {
     const timer = setTimeout(expired, runtimeTimeLimit);
     return () => clearTimeout(timer);
@@ -16,4 +19,4 @@ export function watchRuntimeDeadline(context: Pick<RunContext, 'deadline'>, expi
   };
   check();
   return () => clearTimeout(timer);
-}
+};

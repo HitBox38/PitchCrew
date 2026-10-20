@@ -4,7 +4,7 @@ import type { ProfileImportFile } from '@pitchcrew/core';
 import { Accordion } from '@/components/ui/accordion/index.tsx';
 import { ImportDocument } from './ImportDocument.tsx';
 
-export function ImportReviewList({
+export const ImportReviewList = ({
   changes,
   missing,
   selected,
@@ -18,7 +18,7 @@ export function ImportReviewList({
   toggle: (name: string) => void;
   busy: boolean;
   query: string;
-}) {
+}) => {
   const [expanded, setExpanded] = useState<string[]>([]);
   const term = query.trim().toLocaleLowerCase();
   const files = changes.filter((file) =>
@@ -69,4 +69,4 @@ export function ImportReviewList({
       ))}
     </div>
   );
-}
+};

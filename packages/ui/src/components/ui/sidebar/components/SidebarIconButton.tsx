@@ -3,12 +3,12 @@ import { useSidebar } from '../hooks/useSidebar.ts';
 import type { SidebarMenuButtonProps } from '../types.ts';
 import { cn } from '@/lib/utils';
 
-export function SidebarIconButton({
+export const SidebarIconButton = ({
   label,
   className,
   children,
   ...props
-}: SidebarMenuButtonProps & { label: string }) {
+}: SidebarMenuButtonProps & { label: string }) => {
   const { state, isMobile } = useSidebar();
   return (
     <SidebarMenuButton
@@ -25,4 +25,4 @@ export function SidebarIconButton({
       <span className="sr-only">{label}</span>
     </SidebarMenuButton>
   );
-}
+};

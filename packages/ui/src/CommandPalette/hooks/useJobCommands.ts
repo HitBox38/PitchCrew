@@ -4,7 +4,7 @@ import type { Card } from '@pitchcrew/core';
 import { matchingJobCommands } from '../helpers.ts';
 import { pageRange } from '../../lib/pagination.ts';
 
-export function useJobCommands(cards: Card[]) {
+export const useJobCommands = (cards: Card[]) => {
   const search = useCommandState((state) => state.search);
   const matches = useMemo(() => matchingJobCommands(cards, search), [cards, search]);
   const [position, setPosition] = useState({ search, page: 0 });
@@ -16,4 +16,4 @@ export function useJobCommands(cards: Card[]) {
     entries: matches.slice(range.start, range.end),
     setPage: (page: number) => setPosition({ search, page }),
   };
-}
+};

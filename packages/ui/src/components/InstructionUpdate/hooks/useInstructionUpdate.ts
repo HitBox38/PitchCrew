@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { diffCounts, diffInstructions } from '../helpers.ts';
 import type { ComparisonMode, InstructionUpdateProps } from '../types.ts';
 
-export function useInstructionUpdate({
+export const useInstructionUpdate = ({
   role,
   initiallyExpanded = false,
   update,
@@ -12,24 +12,8 @@ export function useInstructionUpdate({
   instructions,
   setInstructions,
   setDefaultInstructionRevision,
-}: InstructionUpdateProps) {
-  const [mode, setMode] = useState<ComparisonMode>('yours');
-  const [expanded, setExpanded] = useState(initiallyExpanded || !update.dismissed);
-  const [previous, setPrevious] = useState<string | null>(null);
-  const [error, setError] = useState('');
-  // Replacing text the user wrote takes a second, explicit click.
-  const [confirming, setConfirming] = useState(false);
-  const ownText = update.state !== 'unedited';
-  const before = mode === 'default' && update.base ? update.base.instructions : role.instructions;
-  const lines = useMemo(
-    () => diffInstructions(before, update.instructions),
-    [before, update.instructions],
-  );
-  const tools = update.toolDifferences.map((key) => capabilityLabels[key]);
-  // Use new default saves at once, so it waits until unsaved instruction edits are resolved.
-  const unsaved = instructions !== role.instructions;
-  const path = `/roles/${role.id}/instructions-update`;
-  async function adopt() {
+}: InstructionUpdateProps) => {
+  const adopt = async () => {
     setError('');
     if (ownText && !confirming) {
       setConfirming(true);
@@ -46,8 +30,8 @@ export function useInstructionUpdate({
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not use the new default.');
     }
-  }
-  async function dismiss() {
+  };
+  const dismiss = async () => {
     setError('');
     try {
       await action(
@@ -60,12 +44,29 @@ export function useInstructionUpdate({
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not keep your instructions.');
     }
-  }
-  function startFromDefault() {
+  };
+  const startFromDefault = () => {
     setPrevious(instructions);
     setInstructions(update.instructions);
     setDefaultInstructionRevision(update.revision, instructions);
-  }
+  };
+
+  const [mode, setMode] = useState<ComparisonMode>('yours');
+  const [expanded, setExpanded] = useState(initiallyExpanded || !update.dismissed);
+  const [previous, setPrevious] = useState<string | null>(null);
+  const [error, setError] = useState('');
+  // Replacing text the user wrote takes a second, explicit click.
+  const [confirming, setConfirming] = useState(false);
+  const ownText = update.state !== 'unedited';
+  const before = mode === 'default' && update.base ? update.base.instructions : role.instructions;
+  const lines = useMemo(
+    () => diffInstructions(before, update.instructions),
+    [before, update.instructions],
+  );
+  const tools = update.toolDifferences.map((key) => capabilityLabels[key]);
+  // Use new default saves at once, so it waits until unsaved instruction edits are resolved.
+  const unsaved = instructions !== role.instructions;
+  const path = `/roles/${role.id}/instructions-update`;
   return {
     role,
     update,
@@ -86,4 +87,4 @@ export function useInstructionUpdate({
     dismiss,
     startFromDefault,
   };
-}
+};

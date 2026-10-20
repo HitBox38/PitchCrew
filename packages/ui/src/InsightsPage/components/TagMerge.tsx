@@ -5,7 +5,7 @@ import type { Card } from '@pitchcrew/core';
 import { useTagMerge } from '../hooks/useTagMerge.ts';
 import { TagMergeConfirm } from './TagMergeConfirm.tsx';
 
-export function TagMerge({ cards, tags }: { cards: Card[]; tags: string[] }) {
+export const TagMerge = ({ cards, tags }: { cards: Card[]; tags: string[] }) => {
   const merge = useTagMerge(cards);
   return (
     <div>
@@ -48,4 +48,4 @@ export function TagMerge({ cards, tags }: { cards: Card[]; tags: string[] }) {
       {merge.confirming ? <TagMergeConfirm merge={merge} /> : null}
     </div>
   );
-}
+};

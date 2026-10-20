@@ -3,7 +3,7 @@ import { setupWarnings } from '../helpers.ts';
 import { reviewSections } from '../review.ts';
 import type { StepProps, CreationController } from '../types.ts';
 
-export function ReviewStep({ draft, data, goTo }: StepProps & Pick<CreationController, 'goTo'>) {
+export const ReviewStep = ({ draft, data, goTo }: StepProps & Pick<CreationController, 'goTo'>) => {
   const sections = reviewSections(draft, data);
   const warnings = setupWarnings(draft, data);
   return (
@@ -45,4 +45,4 @@ export function ReviewStep({ draft, data, goTo }: StepProps & Pick<CreationContr
       </p>
     </div>
   );
-}
+};

@@ -8,7 +8,7 @@ import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { PlanJobPicker } from './PlanJobPicker.tsx';
 
-export function PlanCreate({
+export const PlanCreate = ({
   change,
   close,
   working,
@@ -16,7 +16,7 @@ export function PlanCreate({
   change: (data: Record<string, unknown>) => Promise<unknown>;
   close: () => void;
   working: boolean;
-}) {
+}) => {
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [tag, setTag] = useState('');
@@ -89,4 +89,4 @@ export function PlanCreate({
       <DiscardChanges guard={guard} />
     </>
   );
-}
+};

@@ -7,7 +7,7 @@ import {
   SelectValue,
 } from '@/components/ui/select/index.tsx';
 
-export function FormSelect<T extends string>({
+export const FormSelect = <T extends string>({
   label,
   value,
   onValueChange,
@@ -23,7 +23,7 @@ export function FormSelect<T extends string>({
   id?: string;
   disabled?: boolean;
   className?: string;
-}) {
+}) => {
   const generatedId = useId();
   const id = suppliedId ?? generatedId;
   return (
@@ -50,4 +50,4 @@ export function FormSelect<T extends string>({
       </Select>
     </div>
   );
-}
+};

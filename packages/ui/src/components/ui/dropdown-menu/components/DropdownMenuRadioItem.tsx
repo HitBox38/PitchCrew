@@ -3,11 +3,11 @@ import { cn } from '@/lib/utils';
 import { Menu as MenuPrimitive } from '@base-ui/react/menu';
 import { CircleIcon } from 'lucide-react';
 
-export function DropdownMenuRadioItem({
+export const DropdownMenuRadioItem = ({
   className,
   children,
   ...props
-}: DropdownMenuRadioItemProps) {
+}: DropdownMenuRadioItemProps) => {
   return (
     <MenuPrimitive.RadioItem
       data-slot="dropdown-menu-radio-item"
@@ -25,4 +25,4 @@ export function DropdownMenuRadioItem({
       {children}
     </MenuPrimitive.RadioItem>
   );
-}
+};

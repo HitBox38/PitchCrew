@@ -1,6 +1,22 @@
 import { z } from 'zod';
 import { cardInput } from './cards.ts';
 import type { CardState, RoleId } from './states.ts';
+export const normalizeApplicationText = (value: string): string => {
+  return value.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
+};
+export const canonicalJobUrl = (value: string): string => {
+  if (!value) return '';
+  try {
+    const url = new URL(value);
+    url.hash = '';
+    for (const key of [...url.searchParams.keys()])
+      if (/^(utm_|ref$|source$|trk$|tracking)/i.test(key)) url.searchParams.delete(key);
+    url.searchParams.sort();
+    return url.toString().replace(/\/$/, '');
+  } catch {
+    return '';
+  }
+};
 
 export const trackedStates = [
   'submitted',
@@ -87,20 +103,4 @@ export interface TrackingScan {
   pendingIds: string[];
   complete: boolean;
   updatedAt: string;
-}
-export function normalizeApplicationText(value: string): string {
-  return value.normalize('NFKC').toLowerCase().replace(/\s+/g, ' ').trim();
-}
-export function canonicalJobUrl(value: string): string {
-  if (!value) return '';
-  try {
-    const url = new URL(value);
-    url.hash = '';
-    for (const key of [...url.searchParams.keys()])
-      if (/^(utm_|ref$|source$|trk$|tracking)/i.test(key)) url.searchParams.delete(key);
-    url.searchParams.sort();
-    return url.toString().replace(/\/$/, '');
-  } catch {
-    return '';
-  }
 }

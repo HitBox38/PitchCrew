@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils.ts';
 
-export function AttachmentGroup({ className, ...props }: React.ComponentProps<'div'>) {
+export const AttachmentGroup = ({ className, ...props }: React.ComponentProps<'div'>) => {
   return (
     <div
       data-slot="attachment-group"
@@ -12,4 +12,4 @@ export function AttachmentGroup({ className, ...props }: React.ComponentProps<'d
       {...props}
     />
   );
-}
+};

@@ -25,7 +25,7 @@ import {
   savePlan,
 } from './plans.ts';
 
-function userMessage(context: CrewContext, run: Run, id: string) {
+const userMessage = (context: CrewContext, run: Run, id: string) => {
   const message = context.board.get<ChatMessage>('message', id);
   if (message.from !== 'user' || message.threadId !== run.threadId)
     throw new Error('Use a user message in the current conversation.');
@@ -37,12 +37,12 @@ function userMessage(context: CrewContext, run: Run, id: string) {
       'Use the current user request; older conversations are not mined automatically.',
     );
   return message;
-}
-export async function qualityAgentAction(
+};
+export const qualityAgentAction = async (
   context: CrewContext,
   capability: RunCapability,
   data: unknown,
-): Promise<Record<string, unknown>> {
+): Promise<Record<string, unknown>> => {
   const input = qualityAgentInput.parse(data);
   const role = context.board.get<Role>('role', capability.roleId);
   const run = context.board.get<Run>('run', capability.runId);
@@ -289,4 +289,4 @@ export async function qualityAgentAction(
     gap.progressSource = { messageId: message.id, quote: input.quote };
     return { plan: savePlan(context, plan, role.id) };
   })();
-}
+};

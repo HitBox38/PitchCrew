@@ -12,7 +12,7 @@ export const geminiCli = withChat({
     { value: 'flash-lite', label: 'Flash Lite' },
   ],
   detect: () => detectCli('gemini-cli', 'gemini'),
-  async launch(context, prompt) {
+  launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const settingsPath = join(context.directory, 'gemini-settings.json');
     // System settings take precedence over user/project settings without moving CLI credentials.
