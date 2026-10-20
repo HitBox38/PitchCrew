@@ -26,7 +26,7 @@ import { join } from 'node:path';
 import { z } from 'zod';
 import { fetchBoard, ProviderRateLimiter, type FetchLike } from './fetch.ts';
 import { matchesFilters } from './filters.ts';
-import { lookupJobLink } from './lookup.ts';
+import { lookupPublicJobLink } from './lookup-public.ts';
 import { importJobLink } from './import-link.ts';
 import { readPublicJobPage, type ReadJobPage } from './public-page.ts';
 import {
@@ -209,11 +209,12 @@ export class JobSourceManager {
   }
   /** Read one posting from a pasted link for the user-only Add job form. Creates nothing. */
   lookup(value: unknown, signal?: AbortSignal): Promise<JobLookupResult> {
-    return lookupJobLink(value, {
+    return lookupPublicJobLink(value, {
       fetch: (url, init) => this.fetch(url, init),
       limiter: this.limiter,
       board: this.board,
       sources: () => this.list(),
+      readPage: (url, signal) => this.readPage(url, signal),
       signal: AbortSignal.any([this.lifetime.signal, ...(signal ? [signal] : [])]),
     });
   }

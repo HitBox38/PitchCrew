@@ -24,6 +24,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
     tagQuery,
     setTagQuery,
     lookup,
+    scout,
   } = controller;
   return (
     <Modal
@@ -38,7 +39,7 @@ export function AddOpportunity(props: AddOpportunityProps) {
               ? 'Save an application you already submitted so future updates can be tracked.'
               : 'Scout works from the description, so paste it in if you have it.'}
           </p>
-          <JobLinkField lookup={lookup} working={working} />
+          <JobLinkField lookup={lookup} scout={scout} working={working} external={external} />
           <JobIdentityFields />
           <ExternalApplicationFields
             external={external}
