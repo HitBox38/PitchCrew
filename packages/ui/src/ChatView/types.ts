@@ -7,6 +7,7 @@ export type ChatThread = RoleId | 'crew';
 export interface ChatViewProps {
   data: Snapshot;
   thread: ChatThread;
+  focusRunId?: string;
   onThread: (thread: ChatThread) => void;
   onConfigure: (id: RoleId) => void;
   onOpenCard: (id: string) => void;
@@ -82,6 +83,7 @@ export type ConversationHeadingProps = Pick<
 
 export type ConversationPanelProps = Pick<
   ChatViewModel,
+  | 'focusRunId'
   | 'answerQuestion'
   | 'thread'
   | 'role'
@@ -128,6 +130,7 @@ export type CrewWorkPanelProps = Pick<
 
 export type MessageTranscriptProps = Pick<
   ChatViewModel,
+  | 'focusRunId'
   | 'messages'
   | 'data'
   | 'streamingIds'

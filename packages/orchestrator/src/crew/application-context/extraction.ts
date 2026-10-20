@@ -13,6 +13,7 @@ import {
 } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { recordChatActivity, finishChatActivity } from '../chat-activity.ts';
 import { requireRole } from '../roles.ts';
 import type { CrewContext } from '../types.ts';
 import { applicationSource } from './source.ts';
@@ -41,19 +42,19 @@ async function extractApplicationContextPrepared(
   const source = applicationSource(card);
   const run: Run = {
     id: randomUUID(),
+    cardId,
+    roleId,
+    runtime: role.runtime,
+    purpose: 'source-extraction',
+    mode: 'workflow',
     threadId: relatedConversation(
       context,
       'application',
       cardId,
       roleId,
       cardId,
-      'Application work',
+      `${card.company}: Application work`,
     ).id,
-    cardId,
-    roleId,
-    runtime: role.runtime,
-    purpose: 'source-extraction',
-    mode: 'workflow',
     status: 'running',
     message: 'Extracting job brief for your review…',
     startedAt: new Date().toISOString(),
@@ -89,7 +90,15 @@ async function extractApplicationContextPrepared(
       role: isolatedRole,
       directory,
       signal: controller.signal,
-      onMessage: () => {},
+      onMessage: (message) =>
+        recordChatActivity(context, run.id, {
+          id: 'extraction-progress',
+          kind: 'commentary',
+          label: 'Progress update',
+          text: message,
+          status: 'completed',
+        }),
+      onActivity: (activity) => recordChatActivity(context, run.id, activity),
       mcp: {
         command: process.execPath,
         args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
@@ -156,6 +165,7 @@ async function extractApplicationContextPrepared(
       );
     })
     .finally(() => {
+      finishChatActivity(context, run.id);
       context.controllers.delete(run.id);
       context.capabilities.delete(token);
       void drainConversationQueue(context);
@@ -175,7 +185,7 @@ export async function extractApplicationContext(
     cardId,
     roleId,
     cardId,
-    'Application work',
+    `${context.board.get<Card>('card', cardId).company}: Application work`,
   ).id;
   ensureQueue(context, threadId);
   return reserveLaunch(context, { cardId, threadId, roleId, isolated: true }, () =>

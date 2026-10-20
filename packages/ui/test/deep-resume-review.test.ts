@@ -38,6 +38,8 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
   const defer = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await defer.isVisible()) await defer.click();
   await page.locator(`#board-job-${host.card.id} .job-card`).click();
+  await page.getByRole('tab', { name: 'Application', exact: true }).click();
+  await page.getByRole('button', { name: 'Reviews Review needed', exact: true }).click();
   await page.getByRole('button', { name: 'Deep review resume', exact: true }).click();
   await page.getByText('Optional subagent runtime alternatives', { exact: true }).click();
   await page.getByRole('button', { name: 'Add runtime alternative', exact: true }).click();
@@ -47,7 +49,7 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
     .click();
   await page.getByRole('checkbox', { name: 'Demonstrated impact specialist', exact: true }).click();
   await page.getByRole('button', { name: 'Start deep review', exact: true }).click();
-  await page.getByRole('tab', { name: 'Reviews', exact: true }).click();
+  await page.getByRole('tab', { name: 'Application', exact: true }).click();
   await page
     .getByRole('heading', { name: 'Resume review and packet recheck completed.', exact: true })
     .waitFor();
@@ -86,15 +88,16 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
   );
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  expect(await page.getByRole('tab', { name: 'Reviews', exact: true }).isVisible()).toBe(true);
+  expect(await page.getByRole('tab', { name: 'Application', exact: true }).isVisible()).toBe(true);
   expect(
     await page
-      .getByRole('tab', { name: 'History', exact: true })
+      .getByRole('tab', { name: 'Activity', exact: true })
       .evaluate((tab) => tab.getBoundingClientRect().right <= innerWidth),
   ).toBe(true);
   await page.reload();
   await page.locator(`#board-job-${host.card.id} .job-card`).click();
-  await page.getByRole('tab', { name: 'Reviews', exact: true }).click();
+  await page.getByRole('tab', { name: 'Application', exact: true }).click();
+  await page.locator('#job-section-reviews').click();
   await page
     .getByRole('heading', { name: 'Resume review and packet recheck completed.', exact: true })
     .waitFor();

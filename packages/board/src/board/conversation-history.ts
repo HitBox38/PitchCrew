@@ -35,8 +35,9 @@ export function conversationHistory(
   const runs = board.db
     .prepare(`SELECT id, json_extract(json,'$.startedAt') AS startedAt
     FROM entities WHERE kind='run' AND json_extract(json,'$.threadId')=?
-    AND json_extract(json,'$.mode')='chat'
-    AND (json_array_length(json,'$.activity')>0 OR json_extract(json,'$.status')='running') ORDER BY rowid DESC`)
+    AND json_extract(json,'$.mode') IN ('chat','workflow')
+    AND COALESCE(json_extract(json,'$.reviewSeatReservation'),0)=0
+    AND (json_array_length(json,'$.activity')>0 OR json_extract(json,'$.status') IN ('running','waiting')) ORDER BY rowid DESC`)
     .all(thread) as { id: string; startedAt: string }[];
   for (const run of runs)
     entries.push({

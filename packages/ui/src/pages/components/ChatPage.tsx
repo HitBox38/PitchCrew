@@ -18,6 +18,7 @@ export function ChatPage() {
   );
   const { openChat } = useWorkspaceNavigation();
   const { thread } = chatRoute.useParams();
+  const { run } = chatRoute.useSearch();
   if (!data || !isChatThread(thread)) return null;
   if (
     data.conversations
@@ -42,6 +43,7 @@ export function ChatPage() {
     <ChatView
       data={data}
       thread={thread}
+      focusRunId={run}
       onThread={openChat}
       onConfigure={setRoleId}
       onOpenCard={openCard}

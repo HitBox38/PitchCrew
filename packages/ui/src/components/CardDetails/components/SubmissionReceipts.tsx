@@ -1,3 +1,4 @@
+import { useReceiptDrafts } from '../hooks/useReceiptDrafts.ts';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalConfirmation } from './ExternalConfirmation.tsx';
@@ -8,7 +9,11 @@ export function SubmissionReceipts({
   card,
   act,
   working,
-}: Pick<JobOverviewProps, 'card' | 'act' | 'working'>) {
+  onDirtyChange,
+}: Pick<JobOverviewProps, 'card' | 'act' | 'working'> & {
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
+  const changeDirty = useReceiptDrafts(onDirtyChange);
   return card.submissionAttempts?.length ? (
     <section className="my-4 space-y-3">
       <h3>Browser submissions</h3>
@@ -61,7 +66,12 @@ export function SubmissionReceipts({
               >
                 I verified submission
               </Button>
-              <ExternalConfirmation id={attempt.id} act={act} working={working} />
+              <ExternalConfirmation
+                id={attempt.id}
+                act={act}
+                working={working}
+                onDirtyChange={changeDirty}
+              />
               <Button
                 className="h-auto min-h-9.5 py-2 whitespace-normal"
                 variant="outline"

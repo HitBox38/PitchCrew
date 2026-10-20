@@ -5,6 +5,7 @@ import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
 
 export function ConversationPanel({
   answerQuestion,
+  focusRunId,
   thread,
   role,
   name,
@@ -22,7 +23,8 @@ export function ConversationPanel({
   return (
     <TabsContent value="conversation" className="chat-conversation-panel flex min-h-0 flex-col">
       <ConversationHistory
-        key={thread}
+        key={`${thread}:${focusRunId ?? 'latest'}`}
+        focusRunId={focusRunId}
         label={`${conversation?.title ?? role.name} messages`}
         answerQuestion={answerQuestion}
         messages={messages}

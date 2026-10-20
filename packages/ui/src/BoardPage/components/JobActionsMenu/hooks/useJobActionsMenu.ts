@@ -31,7 +31,8 @@ export function useJobActionsMenu(props: JobActionsMenuProps) {
       return;
     }
     if (shortcut.needsBrief) {
-      openDetails();
+      managesFocus.current = true;
+      useWorkspaceStore.getState().openCard(card.id, 'application');
       useWorkspaceStore
         .getState()
         .setToast('Prepare and review the application brief in job details.');

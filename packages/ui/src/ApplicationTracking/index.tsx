@@ -1,30 +1,24 @@
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { Card } from '@pitchcrew/core';
-import { useState } from 'react';
+import { useApplicationTracking } from './hooks/useApplicationTracking.ts';
 import { TrackingSource } from '@/TrackingSource/index.tsx';
 import { TrackingIdentifier } from './components/TrackingIdentifier.tsx';
 
-export function ApplicationTracking({ card }: { card: Card }) {
-  const data = useWorkspaceStore((state) => state.data);
-  const act = useWorkspaceStore((state) => state.act);
-  const working = useWorkspaceStore((state) => state.working);
-  const [threadId, setThreadId] = useState('');
-  const signals =
-    data?.trackingSignals
-      ?.filter((signal) => signal.cardId === card.id || signal.candidateIds.includes(card.id))
-      .slice(-10) ?? [];
-  const connected = data?.connectors.some(
-    (connector) =>
-      connector.id === 'google' && connector.connected && connector.services.includes('gmail'),
-  );
-  const path = `/tracking/applications/${card.id}/thread`;
+export function ApplicationTracking({
+  card,
+  onDirtyChange,
+}: {
+  card: Card;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
+  const { working, threadId, setThreadId, setIdentifierDirty, signals, connected, unlink, link } =
+    useApplicationTracking(card, onDirtyChange);
   return (
     <section className="form mt-4" aria-label="Application tracking evidence">
       <h3>Tracking evidence</h3>
-      <TrackingIdentifier card={card} />
+      <TrackingIdentifier card={card} onDirtyChange={setIdentifierDirty} />
       {card.tracking?.origin === 'external' ? (
         <p className="prewrap">
           Applied outside Pitchcrew on {new Date(card.tracking.submittedAt!).toLocaleString()}.{' '}
@@ -60,7 +54,7 @@ export function ApplicationTracking({ card }: { card: Card }) {
             className="text-button danger min-h-8"
             variant="ghost"
             disabled={working}
-            onClick={() => act(path, 'DELETE', link, 'Email thread unlinked')}
+            onClick={() => unlink(link)}
           >
             Unlink
           </Button>
@@ -77,10 +71,7 @@ export function ApplicationTracking({ card }: { card: Card }) {
               placeholder="Thread ID from Gmail tools"
             />
           </label>
-          <Button
-            disabled={working || !/^[a-zA-Z0-9_-]{1,200}$/.test(threadId)}
-            onClick={() => act(path, 'POST', { threadId }, 'Email thread linked')}
-          >
+          <Button disabled={working || !/^[a-zA-Z0-9_-]{1,200}$/.test(threadId)} onClick={link}>
             Link thread
           </Button>
         </div>

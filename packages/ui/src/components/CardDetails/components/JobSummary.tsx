@@ -1,37 +1,48 @@
-import { ReviewLaunch } from '@/DeepResumeReview/components/ReviewLaunch.tsx';
-import { JobActions } from './JobActions.tsx';
 import { JobHeading } from './JobHeading.tsx';
-import { JobMetadata } from './JobMetadata.tsx';
 import { JobState } from './JobState.tsx';
+import { JobAgents } from './JobAgents.tsx';
 import type { CardDetailsModel } from '../types.ts';
-import { runtimeLabels } from '@/lib/labels.ts';
+import { Button } from '@/components/ui/button/components/Button.tsx';
+import { ExternalLink, X } from 'lucide-react';
 
-export function JobSummary(controller: CardDetailsModel) {
-  const { data, runRole, failed, run } = controller;
-  const role = data.roles.find((entry) => entry.id === runRole);
+export function JobSummary(model: CardDetailsModel) {
+  const { card, onClose } = model;
   return (
-    <div className="job-summary shrink-0 overflow-y-auto px-5 pt-4 pb-3 max-mobile:px-4">
-      <JobHeading {...controller} />
-      <JobMetadata {...controller} />
-      <JobState {...controller} />
-      <JobActions
-        {...controller}
-        extraActions={
-          <ReviewLaunch
-            card={controller.card}
-            data={data}
-            working={controller.working}
-            act={controller.act}
-          />
-        }
-      />
-      {role ? (
-        <p className="action-hint">
-          Uses {runtimeLabels[role.runtime]}.{' '}
-          {role.runtime === 'demo' ? 'No AI calls.' : 'Starting a run uses your CLI account.'}
-        </p>
-      ) : null}
-      {failed && !run ? <p className="form-error">Last run: {failed.message}</p> : null}
-    </div>
+    <header className="job-summary shrink-0 px-5 pt-5 pb-3 max-mobile:px-4">
+      <div className="flex items-start justify-between gap-3">
+        <JobHeading card={card} />
+        <div className="flex shrink-0 items-center gap-1">
+          {card.url ? (
+            <Button
+              variant="ghost"
+              nativeButton={false}
+              className="icon-button"
+              render={
+                <a aria-label="Open job posting" href={card.url} target="_blank" rel="noreferrer" />
+              }
+              aria-label="Open job posting"
+            >
+              <ExternalLink size={16} />
+            </Button>
+          ) : null}
+          <Button
+            variant="ghost"
+            className="icon-button"
+            onClick={onClose}
+            aria-label="Close dialog"
+          >
+            <X size={20} />
+          </Button>
+        </div>
+      </div>
+      <div className="detail-meta">
+        <span>{card.location || 'Location not given'}</span>
+        {card.salary ? <span>{card.salary}</span> : null}
+      </div>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <JobState card={card} />
+        <JobAgents agents={model.agents} openChat={model.openChat} />
+      </div>
+    </header>
   );
 }

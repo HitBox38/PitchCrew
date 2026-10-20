@@ -13,7 +13,12 @@ import { validateSettingsSearch } from './SettingsPage/helpers.ts';
 import { NotFoundPage } from './components/NotFoundPage/index.tsx';
 import type { Role } from '@pitchcrew/core';
 import type { View } from './navigation.ts';
-import { isChatThread, validateSkillSearch, validateUpdateSearch } from './navigation.ts';
+import {
+  isChatThread,
+  validateChatSearch,
+  validateSkillSearch,
+  validateUpdateSearch,
+} from './navigation.ts';
 
 declare module '@tanstack/react-router' {
   interface StaticDataRouteOption {
@@ -66,6 +71,7 @@ const chatIndexRoute = createRoute({
 const chatRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/chat/$thread',
+  validateSearch: validateChatSearch,
   staticData: { view: 'chat' },
   beforeLoad: ({ params, context }) => {
     if (!isChatThread(params.thread)) throw notFound();

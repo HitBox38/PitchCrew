@@ -10,6 +10,7 @@ export function useApplicationBrief({ card, roles, busy, onDirtyChange }: Applic
   const [loaded, setLoaded] = useState<ContextResponse | null>(null);
   const [draft, setDraft] = useState<ExtractedJob>(emptyBrief);
   const [error, setError] = useState('');
+  const [attempt, retry] = useState(0);
   const [editing, setEditing] = useState(false);
   const editingRef = useRef(editing);
   const savingRef = useRef(false);
@@ -70,7 +71,13 @@ export function useApplicationBrief({ card, roles, busy, onDirtyChange }: Applic
     return () => {
       cancelled = true;
     };
-  }, [card.id, card.applicationContext?.revision, card.applicationContext?.confirmedAt, sourceKey]);
+  }, [
+    card.id,
+    card.applicationContext?.revision,
+    card.applicationContext?.confirmedAt,
+    sourceKey,
+    attempt,
+  ]);
   const perform = async (path: string, body: unknown, message: string) => {
     setError('');
     savingRef.current = true;
@@ -133,8 +140,24 @@ export function useApplicationBrief({ card, roles, busy, onDirtyChange }: Applic
     setDraft,
     loaded,
     error,
+    retry: () => {
+      setError('');
+      retry((value) => value + 1);
+    },
     editing,
     setEditing,
+    cancelEditing: () => {
+      setDraft(
+        loaded?.context
+          ? {
+              brief: loaded.context.brief,
+              requirements: loaded.context.requirements,
+              flagged: loaded.context.flagged,
+            }
+          : emptyBrief(),
+      );
+      setEditing(false);
+    },
     available,
     roleId,
     setRoleId,
