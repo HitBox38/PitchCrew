@@ -1,4 +1,5 @@
 import type { DeepReview, ReviewSubagent } from './deep-reviews.ts';
+import type { WorkQueue, QueueSettings } from './work-queue.ts';
 import type { UserInputRequest } from './user-input.ts';
 import type {
   Conversation,
@@ -44,8 +45,11 @@ export interface BoardEvent {
     | 20
     | 21
     | 22
-    | 23;
+    | 23
+    | 24;
   kind:
+    | 'work_queue'
+    | 'queue_settings'
     | 'deep_review'
     | 'review_subagent'
     | 'user_input'
@@ -75,6 +79,8 @@ export interface BoardEvent {
   actor: string;
   message: string;
   data:
+    | WorkQueue
+    | QueueSettings
     | DeepReview
     | ReviewSubagent
     | UserInputRequest
@@ -102,8 +108,8 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 23 adds history-preserving conversation deletion tombstones. */
-export const currentEventVersion = 23 as const;
+/** Version 24 adds durable job/conversation scheduling and queued board actions. */
+export const currentEventVersion = 24 as const;
 export function decodeEvent(raw: string): BoardEvent {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -129,7 +135,8 @@ export function decodeEvent(raw: string): BoardEvent {
     event.version !== 20 &&
     event.version !== 21 &&
     event.version !== 22 &&
-    event.version !== 23
+    event.version !== 23 &&
+    event.version !== 24
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;

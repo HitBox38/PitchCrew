@@ -1,6 +1,7 @@
 import type { ApplicationSection, CardDetailsProps, JobSection } from '../types.ts';
 import { jobAgents, jobRole, latestJobFailure } from '../helpers.ts';
 import type { Packet } from '@pitchcrew/core';
+import { workflowSeat } from '@pitchcrew/core/states';
 import { useState } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useApplicationBrief } from '@/ApplicationBriefReview/hooks/useApplicationBrief.ts';
@@ -25,7 +26,20 @@ export function useCardDetails(props: CardDetailsProps) {
     onDirtyChange: setBriefDirty,
   });
   const act = (path: string, body?: unknown, success?: string) => {
-    void action(path, 'POST', body, success).catch(() => {});
+    if (path === `/cards/${card.id}/run`) {
+      const roleId = (body as { roleId: string }).roleId;
+      const seat = workflowSeat(data.roles.find((r) => r.id === roleId)!);
+      void action(
+        '/queue/actions',
+        'POST',
+        {
+          cardId: card.id,
+          roleId,
+          action: seat === 'scout' ? 'fit' : seat === 'writer' ? 'draft' : 'review',
+        },
+        'Crew action queued',
+      ).catch(() => {});
+    } else void action(path, 'POST', body, success).catch(() => {});
   };
   const openApplication = (section: ApplicationSection) => {
     setTab('application');

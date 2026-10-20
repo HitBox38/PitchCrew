@@ -19,14 +19,22 @@ import { readAppBuild } from '../packages/orchestrator/src/app-updates/build.ts'
 let daemon: ChildProcess | null | undefined;
 let handoff: ReturnType<typeof createUpdateHandoff> | undefined;
 let settings: ReturnType<typeof resolveDaemonSettings>;
-const stop = () => {
-  daemon?.kill();
+let stopping = false;
+const stop = async (graceful = false) => {
+  if (stopping) return;
+  stopping = true;
+  const owned = daemon;
+  if (graceful && owned?.connected && owned.exitCode === null) {
+    const exited = new Promise((resolve) => owned.once('exit', resolve));
+    owned.send('pitchcrew:stop');
+    await exited;
+  } else owned?.kill();
   process.exit(0);
 };
-process.on('disconnect', stop);
+process.on('disconnect', () => void stop());
 process.on('message', async (message: unknown) => {
   if (message === 'stop') {
-    stop();
+    void stop(true);
     return;
   }
   if (
@@ -58,8 +66,8 @@ process.on('message', async (message: unknown) => {
     });
   }
 });
-process.on('SIGTERM', stop);
-process.on('SIGINT', stop);
+process.on('SIGTERM', () => void stop());
+process.on('SIGINT', () => void stop());
 try {
   settings = resolveDaemonSettings(process.env);
   const spec = currentServiceSpec(settings);
@@ -128,7 +136,7 @@ try {
   });
   const url = `http://127.0.0.1:${settings.port}`;
   await verifyUpdateRestart(settings.directory, await readAppBuild(), url);
-  process.send?.({ url, canUpdate: await handoff.available() });
+  process.send?.({ url, ownsDaemon: !!daemon, canUpdate: await handoff.available() });
 } catch (error) {
   console.error(error);
   daemon?.kill();

@@ -71,7 +71,13 @@ it('saves an inline question, ends execution and routes its answer only to the a
   expect((await request(`/conversations/${group.id}/continue`, 'POST', {})).response.status).toBe(
     400,
   );
-  await request(`/conversations/${group.id}/messages`, 'POST', {
+  const independent = (
+    await request<Conversation>('/conversations', 'POST', {
+      title: 'Independent research',
+      participants: ['scout'],
+    })
+  ).result;
+  await request(`/conversations/${independent.id}/messages`, 'POST', {
     content: '@scout Independent research.',
   });
   await vi.waitFor(() => expect(turns).toHaveLength(2));

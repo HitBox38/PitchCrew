@@ -82,10 +82,14 @@ it('lists bounded summaries and changes or deletes explicit jobs from an unattac
       action: 'workflow',
       cardId: card.id,
       state,
-      reason: 'User requested board correction',
+      reason: 'User requested\nboard correction',
     });
     expect(moved.response.status).toBe(200);
     expect(moved.result).toMatchObject({ card: { id: card.id, state } });
+    if (state !== 'lead')
+      expect(board.history(card.id)[0].message).toBe(
+        `Moved to ${state.replaceAll('_', ' ')}: User requested board correction`,
+      );
   }
   const before = board.events();
   expect(

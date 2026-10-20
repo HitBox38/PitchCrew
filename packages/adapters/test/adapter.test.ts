@@ -53,6 +53,28 @@ it('rejects a role-mismatched structured response', () => {
     'wrong role',
   );
 });
+it('requests specific activity descriptions and preserves bounded one-line runtime summaries', () => {
+  for (const purpose of [undefined, 'fit', 'application-draft', 'application-review'] as const) {
+    const prompt = promptFor({ ...context, purpose });
+    expect(prompt).toContain('Include changeSummary in every workflow result');
+    expect(prompt).toContain('"changeSummary":');
+  }
+  expect(
+    parseResult(
+      JSON.stringify({
+        role: 'scout',
+        fit: 87,
+        reasons: [],
+        changeSummary: 'Compared the role.\n Updated fit.',
+      }),
+      context,
+    ),
+  ).toMatchObject({ changeSummary: 'Compared the role. Updated fit.' });
+  for (const changeSummary of ['', '  \n ', 'x'.repeat(301)])
+    expect(() =>
+      parseResult(JSON.stringify({ role: 'scout', fit: 87, reasons: [], changeSummary }), context),
+    ).toThrow();
+});
 it('requires a recognizable runtime version with the scoped-tool capabilities', () => {
   const health = { id: 'pi' as const, available: true, version: 'pi v1.0.0', detail: 'Installed.' };
   expect(requireCliVersion(health, [1, 0, 0], 'pi')).toBe(health);

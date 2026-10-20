@@ -40,6 +40,12 @@ const boardRoute = createRoute({
   staticData: { view: 'board' },
   component: lazyRouteComponent(() => import('@/BoardPage/index.tsx'), 'BoardPage'),
 });
+const queueRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/queue',
+  staticData: { view: 'queue' },
+  component: lazyRouteComponent(() => import('@/QueuePage/index.tsx'), 'QueuePage'),
+});
 const crewRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/crew',
@@ -131,6 +137,7 @@ const settingsRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   boardRoute,
+  queueRoute,
   crewRoute,
   chatIndexRoute,
   chatRoute,

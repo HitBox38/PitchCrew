@@ -23,7 +23,8 @@ export async function launchBrowser(profile?: string): Promise<BrowserDriver> {
         serviceWorkers: 'block',
       });
       try {
-        return await contextDriver(context, () => context.close());
+        for (const page of context.pages()) await page.close();
+        return await sharedContextDriver(context, () => context.close());
       } catch (error) {
         await context.close();
         throw error;
@@ -48,7 +49,46 @@ export async function createBrowserDriver(browser: Browser): Promise<BrowserDriv
     acceptDownloads: false,
     serviceWorkers: 'block',
   });
-  return contextDriver(context, () => browser.close());
+  return sharedContextDriver(context, () => browser.close());
+}
+const browserUsers = new WeakMap<BrowserContext, number>();
+const creatingPages = new WeakMap<BrowserContext, number>();
+async function sessionPage(context: BrowserContext) {
+  creatingPages.set(context, (creatingPages.get(context) ?? 0) + 1);
+  try {
+    return await context.newPage();
+  } finally {
+    creatingPages.set(context, (creatingPages.get(context) ?? 1) - 1);
+  }
+}
+const browserPolicies = new WeakMap<
+  BrowserContext,
+  Map<Page, ReturnType<typeof preparationGuard>>
+>();
+async function sharedContextDriver(
+  context: BrowserContext,
+  closeContext: () => Promise<void>,
+): Promise<BrowserDriver> {
+  let users = 0;
+  const open = async (): Promise<BrowserDriver> => {
+    users++;
+    browserUsers.set(context, users);
+    let closed = false;
+    try {
+      const driver = await contextDriver(context, async () => {
+        if (closed) return;
+        closed = true;
+        browserUsers.set(context, --users);
+        if (users === 0) await closeContext();
+      });
+      return { ...driver, newTab: open };
+    } catch (error) {
+      browserUsers.set(context, --users);
+      if (users === 0) await closeContext();
+      throw error;
+    }
+  };
+  return open();
 }
 async function contextDriver(
   context: BrowserContext,
@@ -71,43 +111,61 @@ async function contextDriver(
     if (size?.width !== viewport.width || size?.height !== viewport.height)
       await current.setViewportSize(viewport);
   };
-  await context.route('**/*', async (route) => {
-    try {
-      if (guard.rejects(route.request())) {
+  let policies = browserPolicies.get(context);
+  if (!policies) {
+    policies = new Map();
+    browserPolicies.set(context, policies);
+    const registry = policies;
+    await context.route('**/*', async (route) => {
+      try {
+        const requested = route.request().frame().page();
+        const policy = registry.get(requested) ?? registry.get((await requested.opener())!);
+        if (!policy || policy.rejects(route.request())) {
+          await route.abort('blockedbyclient');
+          return;
+        }
+        await assertPublicUrl(route.request().url());
+        await route.fallback();
+      } catch {
         await route.abort('blockedbyclient');
-        return;
       }
-      await assertPublicUrl(route.request().url());
-      await route.fallback();
-    } catch {
-      await route.abort('blockedbyclient');
-    }
-  });
-  await context.routeWebSocket('**/*', (socket) => socket.close());
-  for (const restored of context.pages()) await restored.close();
-  let page: Page = await context.newPage();
-  await guard.attach(page);
-  context.on('page', (popup) => {
-    page = popup;
-    previous = undefined;
-    popup.setDefaultTimeout(10000);
-    popup.on('close', () => {
-      if (page !== popup) return;
-      page =
-        context
-          .pages()
-          .filter((tab) => !tab.isClosed())
-          .at(-1) ?? popup;
-      previous = undefined;
-      pendingDialog = undefined;
     });
-    void guard.attach(popup).catch(() => {});
-  });
+    await context.routeWebSocket('**/*', (socket) => socket.close());
+  }
+  const owned = new Set<Page>();
+  let page: Page = await sessionPage(context);
+  const attach = async (current: Page) => {
+    owned.add(current);
+    policies.set(current, guard);
+    await guard.attach(current);
+    current.setDefaultTimeout(10000);
+    current.on('dialog', (dialog) => {
+      pendingDialog = dialog;
+    });
+    current.on('close', () => {
+      owned.delete(current);
+      policies.delete(current);
+      if (page === current) {
+        page = [...owned].filter((tab) => !tab.isClosed()).at(-1) ?? current;
+        previous = undefined;
+        pendingDialog = undefined;
+      }
+    });
+  };
+  const onPage = (popup: Page) => {
+    if ((creatingPages.get(context) ?? 0) > 0) return;
+    void (async () => {
+      const opener = await popup.opener();
+      if (opener ? !owned.has(opener) : browserUsers.get(context) !== 1) return;
+      page = popup;
+      previous = undefined;
+      await attach(popup);
+    })().catch(() => {});
+  };
+  context.on('page', onPage);
+  await attach(page);
   let pendingDialog: Dialog | undefined;
   let previous: BrowserSnapshot | undefined;
-  context.on('dialog', (dialog) => {
-    pendingDialog = dialog;
-  });
   page.setDefaultTimeout(10000);
   return {
     validateApplicationValues: (values, action) =>
@@ -121,7 +179,7 @@ async function contextDriver(
         const next = browserViewportSchema.parse(requested);
         if (pendingDialog) return false;
         if (next.width === viewport.width && next.height === viewport.height) return true;
-        await Promise.all(context.pages().map((tab) => tab.setViewportSize(next)));
+        await Promise.all([...owned].map((tab) => tab.setViewportSize(next)));
         viewport = next;
         previous = undefined;
         return true;
@@ -150,10 +208,10 @@ async function contextDriver(
       }),
     freshPage: () =>
       render(async () => {
-        const old = context.pages();
+        const old = [...owned];
         manualFields.clear();
-        page = await context.newPage();
-        await guard.attach(page);
+        page = await sessionPage(context);
+        await attach(page);
         await sizePage(page);
         pendingDialog = undefined;
         previous = undefined;
@@ -345,6 +403,10 @@ async function contextDriver(
           { timeout: 10000 },
         );
     },
-    close,
+    close: async () => {
+      context.off('page', onPage);
+      for (const tab of [...owned]) await tab.close();
+      await close();
+    },
   };
 }

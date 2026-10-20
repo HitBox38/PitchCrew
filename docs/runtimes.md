@@ -1,6 +1,6 @@
 # Runtime setup
 
-Pitchcrew starts an installed agent CLI for each chat or workflow run. Install the runtime on `PATH`, configure its native authentication, then select it in Crew settings. **Settings > Runtimes** shows whether Pitchcrew can detect it.
+Pitchcrew starts an installed agent CLI for each chat or workflow run. Install the runtime on `PATH`, configure its native authentication, then select it in Crew settings. **Settings > Runtimes** shows installation/compatibility, authentication, and update status separately.
 
 After installing a runtime while Pitchcrew is open, select **Check runtimes**. Checks, model discovery and agent runs also search `~/.local/bin`, `~/.grok/bin` and `~/.opencode/bin` after the inherited `PATH`, so native installations in those folders work without restarting the app. Installations in other newly added `PATH` folders require restarting the daemon or background service with the updated environment.
 
@@ -27,7 +27,30 @@ These integrations have subprocess contract coverage. Live provider executions a
 
 Crew settings provide a searchable model picker. Native catalogs are loaded where supported and cached for five minutes; **Refresh models** forces a new check. Curated suggestions are labeled separately. Changing runtimes resets the model to the CLI default. Saved model names remain visible even when absent from the current catalog.
 
-Health checks only check the CLI version. Model discovery does not start an inference turn, and a listed model does not guarantee that your account can use it. See [model discovery](model-discovery.md) for commands, fallbacks and limits.
+Installation checks read the CLI version. Authentication probes use native status/account metadata where available, without a model request. A reliably missing sign-in or required environment variable holds new work; an inconclusive check is labelled unverified and permits an attempt. Checks use Pitchcrew’s actual isolated authentication settings. A present API key is configured, not verified account access. Model discovery does not start an inference turn, and a listed model does not guarantee that your account can use it. See [model discovery](model-discovery.md) for commands, fallbacks and limits.
+
+## Authentication checks and runtime updates
+
+Authentication results are shared by runtime/model and effective authentication environment for five minutes. Startup, **Recheck**, post-update verification and stale preflight checks refresh them. Retrying after fixing sign-in forces a fresh check. Native setup instructions and copyable commands stay in Settings; sign-in flows remain owned by the CLI. Claude and Cursor have native status probes; Codex uses account metadata without creating a thread. Kiro and Grok require their documented daemon-environment keys. Pi, OMP and Hermes check missing keys for explicitly selected supported providers. Other inconclusive or unsupported probes report unknown. Provider credential files and secret values never enter maintenance state.
+
+Installed runtimes check stable-release availability when the app opens and daily while open. **Check runtime updates automatically** is a separate default-on workspace preference; **Check runtimes** refreshes immediately. **Update** is always a user action. The daemon shares checks and update progress across browser tabs and Electron. Notifications quietly link to the exact runtime, including while an update runs and after its outcome.
+
+Updates preserve the installation method and use the latest stable version from that distribution. Verified npm installations use their original prefix; verified Homebrew formulae/casks use Homebrew and its own stable release metadata. Deliberate pins and ambiguous installations stay manual. Known native Claude, Codex, OpenCode, Grok and Cursor layouts can use their native updaters. Other installer layouts show manual instructions. No elevation or interactive password collection is offered. A failed or unsupported check never claims a runtime is current.
+
+The current release-source/installer coverage is:
+
+- Claude, Codex, Gemini, OpenCode, Copilot, Grok, Pi and OMP: their exact official npm package, or the verified owning Homebrew distribution where configured. Proven native layouts use the same version train.
+- Cursor Agent: its official installer’s published CLI version, with a native updater only for its recognized per-user layout. The installer script is read as bounded metadata and never executed by Pitchcrew.
+- Goose and Hermes: their public stable GitHub release; Goose can update through a verified Homebrew install. Hermes source/native installs remain manual because its native updater follows a branch and can prompt for configuration.
+- Kiro: verified Homebrew metadata/installations; other layouts retain setup/manual guidance when a stable update source cannot be verified.
+
+Update is disabled while a runtime is in use. Active deep reviews reserve Writer, Reviewer and alternative runtimes between stages; waiting for user input releases them after all CLI work stops. Queued work alone is idle. New work waits while updating/verifying; other runtimes continue. Progress shows preparing, updating and verifying, with expandable bounded, redacted installer output. Navigate away and return through the notification without cancelling the operation.
+
+An installer finishing successfully is insufficient: Pitchcrew verifies the active CLI’s compatible installed version reached the advertised target. Authentication remains a separate result. Failures recheck the installed runtime and resume eligible work if the old version remains usable. Otherwise work waits with repair instructions. There is no automatic downgrade, reinstall or replay of an interrupted updater. An installer worker holds a shared per-user SQLite OS lock until its subprocess stops; daemon disconnect cancels that owned subprocess. Restart recovery waits for a surviving worker and rechecks the installation before releasing work.
+
+Quitting a desktop that owns its daemon waits for an in-progress update and offers **Cancel quitting**. Service-owned daemons continue after the desktop closes. Pitchcrew’s own install-and-restart also waits before stopping its daemon/service. Forced shutdowns are recovered as interrupted maintenance. Source and packaged launchers retain their existing ownership rules.
+
+`runtime-maintenance.json` stores preferences, release/check metadata and bounded operation outcomes outside board events. Account tokens and credential files are excluded. Local authentication probes have a 15-second deadline, public metadata reads have a 10-second deadline and 256 KB bound, and installers have a ten-minute deadline. Daily release failures retain known notices and successful-check times. `PITCHCREW_RUNTIME_UPDATE_CHECKS=0` disables public runtime release checks and in-app updates; the general `PITCHCREW_UPDATE_CHECKS=0` switch also disables them. Direct `createDaemon()` construction keeps account/release probes off unless explicitly enabled, so fixtures stay isolated.
 
 ## Runtime-specific notes
 

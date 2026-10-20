@@ -1,7 +1,7 @@
 export const capabilityLabels = {
   messageAgents: 'Message crew members',
   invokeAgents: 'Invoke itself and other roles',
-  manageWorkflow: 'Move and delete board jobs',
+  manageWorkflow: 'Correct details, move and delete board jobs',
   reviewPipeline: 'Review applications, outcomes and every crew role',
   proposeCrewChanges: 'Propose reviewed changes to other roles',
   manageRoutines: 'Create, edit and delete scheduled actions',

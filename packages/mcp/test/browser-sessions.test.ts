@@ -85,7 +85,8 @@ it('keeps profiles and sign-in ownership per agent and starts fresh pages for ot
   await manager.stop('run-two');
   manager.browsers.bind({ ...scope, runId: 'run-three', threadId: 'different-chat' });
   await manager.inspect('run-three');
-  expect(drivers[0].freshPage).toHaveBeenCalledOnce();
+  expect(launch).toHaveBeenCalledTimes(3);
+  expect(drivers[0].freshPage).not.toHaveBeenCalled();
   await expect(manager.inspect(scope.runId)).rejects.toThrow('ended');
 });
 it('pauses observation during takeover, invalidates approvals and requires the exact controller lease', async () => {
@@ -221,4 +222,34 @@ it('does not hand off an agent browser while an ended run is still finishing an 
   await expect(pending).rejects.toThrow('ended');
   const lease = manager.takeControl('writer');
   await manager.returnControl('writer', lease);
+});
+
+it('isolates parallel job tabs and manual leases while sharing the agent profile', async () => {
+  const { manager, scope, drivers } = await fixture();
+  await manager.inspect(scope.runId);
+  const tab = {
+    ...drivers[0],
+    snapshot: vi.fn(async () => ({
+      url: 'https://example.com/b',
+      title: 'Job B',
+      text: 'Job B',
+      digest: 'b',
+      screenshot: '',
+    })),
+    close: vi.fn(async () => {}),
+  };
+  const newTab = vi.fn(async () => tab);
+  Object.assign(drivers[0], { newTab });
+  manager.bindBrowser({ runId: 'job-b', roleId: 'writer', cardId: 'job-b', threadId: 'chat-b' });
+  await manager.inspect('job-b');
+  expect(newTab).toHaveBeenCalledOnce();
+  const firstKey = manager.browsers.key('writer', 'first-chat', null);
+  const secondKey = manager.browsers.key('writer', 'chat-b', 'job-b');
+  const lease = manager.takeControl(firstKey);
+  await expect(manager.inspect(scope.runId)).rejects.toThrow('Manual control');
+  expect((await manager.inspect('job-b')).title).toBe('Job B');
+  expect(() => manager.browsers.lease(secondKey, lease)).toThrow('expired');
+  await manager.returnControl(firstKey, lease);
+  await manager.browsers.closeRole(firstKey);
+  expect(tab.close).not.toHaveBeenCalled();
 });

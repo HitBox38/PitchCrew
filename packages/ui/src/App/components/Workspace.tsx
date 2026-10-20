@@ -1,3 +1,4 @@
+import { RuntimeMaintenance } from '@/RuntimeMaintenance/index.tsx';
 import { WorkspacePage } from '@/App/components/WorkspacePage.tsx';
 import { WorkspaceNotification } from '@/App/components/WorkspaceNotification.tsx';
 import { WorkspacePalette } from '@/App/components/WorkspacePalette.tsx';
@@ -18,6 +19,7 @@ export function Workspace(props: ReadyWorkspaceProps) {
   return (
     <SidebarProvider defaultOpen={sidebarOpen}>
       <AgentUpdates />
+      <RuntimeMaintenance />
       <a className="skip-link" href="#main">
         Skip to content
       </a>

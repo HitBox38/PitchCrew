@@ -62,23 +62,24 @@ export class ComputerManager {
     return page;
   }
   bindBrowser(input: Parameters<BrowserSessions['bind']>[0]) {
-    if (
-      this.busyRoles.has(input.roleId) &&
-      this.browsers.forRole(input.roleId).info.runId !== input.runId
-    )
-      throw new Error(
-        'A browser action is still finishing. Wait before starting another browser task.',
-      );
+    if (!input.threadId && !input.cardId) {
+      const existing = this.browsers.forRun(input.roleId);
+      if (existing) input = { ...input, threadId: existing.info.threadId ?? undefined };
+    }
+    const key = this.browsers.key(input.roleId, input.threadId, input.cardId);
+    if (this.busyRoles.has(key) && this.browsers.forRole(key).info.runId !== input.runId)
+      throw new Error('A browser action is still finishing.');
     this.browsers.bind(input);
   }
   async openBrowser(roleId: RoleId, threadId: string, cardId: string | null) {
-    if (this.busyRoles.has(roleId))
+    if (this.busyRoles.has(this.browsers.key(roleId, threadId, cardId)))
       throw new Error('A browser action is in progress. Try again shortly.');
     await this.browsers.openRole(roleId, threadId, cardId);
   }
   async resizeBrowser(roleId: RoleId, viewport: BrowserViewport, leaseId?: string) {
     const size = browserViewportSchema.parse(viewport);
     const session = this.browsers.forRole(roleId);
+    roleId = this.browsers.key(session.info.roleId, session.info.threadId, session.info.cardId);
     const allowed = () => {
       if (session.info.status !== 'open') return false;
       if (session.info.manual) {
@@ -89,7 +90,9 @@ export class ComputerManager {
         .list<ComputerApproval>('computer_approval')
         .some(
           (approval) =>
-            approval.roleId === roleId && ['pending', 'approved'].includes(approval.status),
+            approval.roleId === session.info.roleId &&
+            approval.runId === session.info.runId &&
+            ['pending', 'approved'].includes(approval.status),
         );
     };
     if (this.busyRoles.has(roleId) || !allowed()) return false;
@@ -105,6 +108,7 @@ export class ComputerManager {
   }
   takeControl(roleId: string) {
     const session = this.browsers.forRole(roleId);
+    roleId = this.browsers.key(session.info.roleId, session.info.threadId, session.info.cardId);
     if (this.busyRoles.has(roleId))
       throw new Error('An agent action is in progress. Try taking control again shortly.');
     const leaseId = this.browsers.take(roleId);
@@ -137,6 +141,7 @@ export class ComputerManager {
   }
   allowSite(roleId: string, taskId: string, origin: string, allowed: boolean, approvalId?: string) {
     const session = this.browsers.forRole(roleId);
+    roleId = this.browsers.key(session.info.roleId, session.info.threadId, session.info.cardId);
     const approval = approvalId
       ? this.board.get<ComputerApproval>('computer_approval', approvalId)
       : undefined;
@@ -144,7 +149,7 @@ export class ComputerManager {
       approval &&
       (approval.status !== 'pending' ||
         approval.runId !== session.info.runId ||
-        approval.roleId !== roleId ||
+        approval.roleId !== session.info.roleId ||
         approval.action.kind !== 'navigate' ||
         new URL(approval.action.url).origin !== origin)
     )
@@ -154,7 +159,7 @@ export class ComputerManager {
       'browser_site_permission',
       {
         id: randomUUID(),
-        roleId,
+        roleId: session.info.roleId,
         taskId,
         runId: session.info.runId!,
         origin,
@@ -183,7 +188,8 @@ export class ComputerManager {
     reason: string,
   ) {
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
-    if (this.busyRoles.has(scope.roleId)) throw new Error('A browser action is in progress.');
+    if (this.busyRoles.has(this.browsers.keyForRun(scope.runId)))
+      throw new Error('A browser action is in progress.');
     const action = browserActionSchema.parse(raw);
     assertNoUncertainSubmission(this.board, scope.cardId, action, scope.runId);
     if (!this.browsers.forRun(scope.runId)) this.browsers.bind(scope);
@@ -201,7 +207,7 @@ export class ComputerManager {
       throw new Error('Resolve the previous browser action first.');
     if (this.busy.has(scope.runId)) throw new Error('A browser action is in progress.');
     this.busy.add(scope.runId);
-    this.busyRoles.add(scope.roleId);
+    this.busyRoles.add(this.browsers.keyForRun(scope.runId));
     try {
       const page = await this.inspect(scope.runId);
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
@@ -267,7 +273,7 @@ export class ComputerManager {
       return approval;
     } finally {
       this.busy.delete(scope.runId);
-      this.busyRoles.delete(scope.roleId);
+      this.busyRoles.delete(this.browsers.keyForRun(scope.runId));
     }
   }
   decide(id: string, approved: boolean) {
@@ -312,10 +318,10 @@ export class ComputerManager {
           'Awaiting user approval. Call execute again to wait; do not finish the run while waiting.',
       };
     if (approval.status !== 'approved') throw new Error(`Browser action is ${approval.status}.`);
-    if (this.busy.has(runId) || this.busyRoles.has(approval.roleId))
+    if (this.busy.has(runId) || this.busyRoles.has(this.browsers.keyForRun(runId)))
       throw new Error('A browser action is in progress.');
     this.busy.add(runId);
-    this.busyRoles.add(approval.roleId);
+    this.busyRoles.add(this.browsers.keyForRun(runId));
     try {
       this.browsers.assertAgent(runId);
       const driver = await this.session(runId);
@@ -407,7 +413,7 @@ export class ComputerManager {
       throw error;
     } finally {
       this.busy.delete(runId);
-      this.busyRoles.delete(approval.roleId);
+      this.busyRoles.delete(this.browsers.keyForRun(runId));
     }
   }
   private async checkApplicationValues(

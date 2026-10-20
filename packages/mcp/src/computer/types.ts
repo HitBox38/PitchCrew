@@ -7,6 +7,7 @@ import {
 } from '@pitchcrew/core';
 
 export interface BrowserDriver {
+  newTab?(): Promise<BrowserDriver>;
   validateApplicationValues?(values: readonly string[], action: BrowserAction): Promise<void>;
   validate?(action: BrowserAction): Promise<void>;
   snapshot(): Promise<BrowserSnapshot>;

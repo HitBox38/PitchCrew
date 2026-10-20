@@ -5,6 +5,7 @@ import { Outlet } from '@tanstack/react-router';
 import { Onboarding } from '@/Onboarding/index.tsx';
 import { WorkspaceHeading } from './WorkspaceHeading.tsx';
 import type { WorkspaceModel } from '../types.ts';
+import { StartupReady } from '@/Analytics/components/StartupReady.tsx';
 
 const HeaderActions = createContext<HTMLDivElement | null>(null);
 
@@ -30,6 +31,7 @@ export function WorkspacePage(controller: WorkspaceModel) {
   const content = (
     <Suspense fallback={<p className="quiet workspace-loading">Opening view…</p>}>
       <Outlet />
+      <StartupReady />
     </Suspense>
   );
   return (

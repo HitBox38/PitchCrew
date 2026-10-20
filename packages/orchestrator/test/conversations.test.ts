@@ -75,6 +75,7 @@ it('migrates history without rewriting messages and supports unlimited group mem
 });
 it('queues across conversations, edits and promotes waiting input, and withholds undelivered input from the runtime', async () => {
   const { request } = await fixture();
+  await request('/queue/settings', 'PUT', { concurrency: 1 });
   const turns = heldTurns();
   const first = (
     await request<Conversation>('/conversations', 'POST', {
@@ -108,16 +109,16 @@ it('queues across conversations, edits and promotes waiting input, and withholds
   expect(turns).toHaveLength(1);
   turns[0].complete();
   await vi.waitFor(() => expect(turns).toHaveLength(2));
-  expect(turns[1].context.request).toBe('Urgent request.');
-  expect(
-    turns[1].context.messages.some((message) => message.content.includes('waiting request')),
-  ).toBe(false);
-  turns[1].complete();
-  await vi.waitFor(() => expect(turns).toHaveLength(3));
-  expect(turns[2].context.request).toBe('Edited waiting request.');
-  expect(turns[2].context.messages.some((message) => message.content === 'First request.')).toBe(
+  expect(turns[1].context.request).toBe('Edited waiting request.');
+  expect(turns[1].context.messages.some((message) => message.content === 'First request.')).toBe(
     false,
   );
+  turns[1].complete();
+  await vi.waitFor(() => expect(turns).toHaveLength(3));
+  expect(turns[2].context.request).toBe('Urgent request.');
+  expect(
+    turns[2].context.messages.some((message) => message.content.includes('waiting request')),
+  ).toBe(false);
   turns[2].complete();
   await waitForSnapshot(request, (snapshot) =>
     snapshot.runs.every((run) => run.status === 'completed'),
@@ -292,7 +293,7 @@ it('archives without stopping work and restores the conversation when a reply ar
     pinned: true,
   });
 });
-it('recovers queued user input as paused and preserves event replay', async () => {
+it('recovers unstarted queued user input without pausing and preserves event replay', async () => {
   const { request, daemon } = await fixture();
   daemon.service.board.record(
     'chat_request',
@@ -312,7 +313,7 @@ it('recovers queued user input as paused and preserves event replay', async () =
   await daemon.service.initialize(false);
   daemon.service.board.rebuild();
   const snapshot = (await request<Snapshot>('/snapshot')).result;
-  expect(snapshot.chatRequests?.[0].deliveries[0].status).toBe('paused');
+  expect(snapshot.chatRequests?.[0].deliveries[0].status).toBe('queued');
   expect(snapshot.conversations?.find((item) => item.id === 'scout')).toBeDefined();
 });
 it('stops a delegated DM branch from its group without cancelling independent participants', async () => {
@@ -338,7 +339,7 @@ it('stops a delegated DM branch from its group without cancelling independent pa
     snapshot.runs.every((run) => run.status !== 'running'),
   );
 });
-it('interrupts only the requested branch and prioritizes its new turn over older queued input', async () => {
+it('interrupts the active conversation action and prioritizes the replacement input', async () => {
   const { request } = await fixture();
   const turns = heldTurns();
   const group = (await request<Conversation>('/conversations', 'POST', body)).result;
@@ -354,7 +355,7 @@ it('interrupts only the requested branch and prioritizes its new turn over older
   const scout = turns.find((turn) => turn.context.role.id === 'scout')!;
   const writer = turns.find((turn) => turn.context.role.id === 'writer')!;
   expect(scout.context.signal.aborted).toBe(true);
-  expect(writer.context.signal.aborted).toBe(false);
+  expect(writer.context.signal.aborted).toBe(true);
   await vi.waitFor(() => expect(turns).toHaveLength(3));
   expect(turns[2].context.request).toBe('@scout Urgent correction.');
   turns[2].complete();
@@ -492,7 +493,7 @@ it('does not absorb input queued during summarization into the summary sources',
     snapshot.runs.every((run) => run.status === 'completed'),
   );
 });
-it('dispatches an older ready routine before newer user input when its agent becomes free', async () => {
+it('prioritizes queued user input over an older background routine', async () => {
   const { request } = await fixture();
   const turns = heldTurns();
   await request('/conversations/scout/messages', 'POST', { content: 'Current work.' });
@@ -510,10 +511,10 @@ it('dispatches an older ready routine before newer user input when its agent bec
   await request('/conversations/scout/messages', 'POST', { content: 'Later queued request.' });
   turns[0].complete();
   await vi.waitFor(() => expect(turns).toHaveLength(2), { timeout: 3000 });
-  expect(turns[1].context.request).toBe('Scheduled request.');
+  expect(turns[1].context.request).toBe('Later queued request.');
   turns[1].complete();
   await vi.waitFor(() => expect(turns).toHaveLength(3));
-  expect(turns[2].context.request).toBe('Later queued request.');
+  expect(turns[2].context.request).toBe('Scheduled request.');
   turns[2].complete();
   await waitForSnapshot(request, (snapshot) =>
     snapshot.runs.every((run) => run.status === 'completed'),

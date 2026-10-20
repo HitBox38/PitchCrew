@@ -1,3 +1,4 @@
+import { waitForRuntimeUpdates } from '../runtime-maintenance.ts';
 import { app, dialog, ipcMain, type BrowserWindow } from 'electron';
 import type { AppUpdater } from 'electron-updater';
 import { createRequire } from 'node:module';
@@ -81,7 +82,11 @@ export async function registerDesktopUpdates(
       });
       return result.response === 1;
     },
-    prepare: (version) => requestDaemonUpdate('prepare-update', version),
+    async prepare(version) {
+      if (!(await waitForRuntimeUpdates(origin(), getWindow())))
+        throw new Error('Restart cancelled while finishing runtime maintenance.');
+      await requestDaemonUpdate('prepare-update', version);
+    },
     async recover() {
       installing = false;
       await requestDaemonUpdate('recover-update');

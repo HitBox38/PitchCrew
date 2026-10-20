@@ -7,7 +7,9 @@ export async function detect(this: CrewContext): Promise<RuntimeInfo[]> {
     Object.values(adapters)
       .filter((adapter) => this.dev || adapter.id !== 'demo')
       .map(async (adapter) => {
-        const health = await adapter.detect();
+        if (this.runtimeMaintenance.isUpdating(adapter.id))
+          return this.runtimes.find((entry) => entry.id === adapter.id)!;
+        const health = await this.runtimeMaintenance.metadata(adapter.id, () => adapter.detect());
         const cached = this.modelCatalogs.get(adapter.id);
         return {
           ...health,
@@ -19,7 +21,7 @@ export async function detect(this: CrewContext): Promise<RuntimeInfo[]> {
   );
   return this.runtimes;
 }
-export async function runtimeModels(
+async function runtimeModelsPrepared(
   this: CrewContext,
   id: RuntimeId,
   refresh: boolean = false,
@@ -54,4 +56,11 @@ export async function runtimeModels(
     .finally(() => this.modelRequests.delete(id));
   this.modelRequests.set(id, request);
   return request;
+}
+
+export function runtimeModels(
+  this: CrewContext,
+  ...args: Parameters<CrewContext['runtimeModels']>
+): Promise<RuntimeModelCatalog> {
+  return this.runtimeMaintenance.metadata(args[0], () => runtimeModelsPrepared.call(this, ...args));
 }

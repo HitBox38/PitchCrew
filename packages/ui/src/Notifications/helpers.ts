@@ -1,3 +1,4 @@
+import { runtimeLabels } from '../lib/labels.ts';
 import { isNotificationMessage } from '@pitchcrew/core/message-notifications';
 import type { Snapshot } from '@pitchcrew/core';
 import { pendingInstructionUpdates } from '../lib/instruction-updates.ts';
@@ -103,13 +104,37 @@ export function collectNotifications(data: Snapshot): CrewNotification[] {
       createdAt: check.detectedAt ?? check.checkedAt,
     });
   }
+  for (const update of data.runtimeMaintenance?.updates ?? []) {
+    const operation = update.operation;
+    if (update.status !== 'available' && !operation) continue;
+    notifications.push({
+      id: `runtime-update:${update.id}:${operation?.id ?? update.latestVersion}:${operation?.stage ?? 'available'}`,
+      kind: 'attention',
+      context: 'runtime_update',
+      title: `${runtimeLabels[update.id]} ${operation ? `update: ${operation.stage}` : 'has an update'}`,
+      body:
+        operation?.detail ??
+        `Version ${update.latestVersion} is available. Update from Settings when the runtime is idle.`,
+      target: '/settings',
+      reviewId: update.id,
+      createdAt:
+        operation?.finishedAt ??
+        operation?.startedAt ??
+        update.checkedAt ??
+        '1970-01-01T00:00:00.000Z',
+    });
+  }
   return notifications
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
     .filter((item, index) => index < 100 || !notificationShouldAlert(item));
 }
 /** Maintenance notices remain visible without interrupting current work. */
 export function notificationShouldAlert(item: CrewNotification) {
-  return item.context !== 'instruction_update' && item.context !== 'skill_update';
+  return (
+    item.context !== 'instruction_update' &&
+    item.context !== 'skill_update' &&
+    item.context !== 'runtime_update'
+  );
 }
 export function readStored<T>(
   key: string,

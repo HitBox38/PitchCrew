@@ -39,6 +39,7 @@ export interface ProfileFile {
   content: string;
 }
 export interface Snapshot extends WorkspaceMessages {
+  queue?: import('./work-queue.ts').WorkspaceQueue;
   /** UI projection: job source text is fetched when its details are opened. */
   workspace?: true;
   userInputs?: UserInputRequest[];
@@ -69,6 +70,7 @@ export interface Snapshot extends WorkspaceMessages {
   profile: ProfileFile[];
   profileOrganization?: ProfileOrganization;
   runtimes: RuntimeInfo[];
+  runtimeMaintenance?: import('./runtime-maintenance.ts').RuntimeMaintenanceState;
   dataDirectory: string;
   demoAvailable: boolean;
   messages: ChatMessage[];

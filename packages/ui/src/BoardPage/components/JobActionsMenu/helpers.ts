@@ -58,8 +58,6 @@ export function crewShortcut(card: Card, data: Snapshot): CrewShortcut | null {
     return { ...base, reason: 'Choose a runtime that supports isolated application work in Crew.' };
   if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
     return { ...base, reason: 'Install this agent’s runtime in Settings.' };
-  if (data.runs.some((run) => run.roleId === role.id && run.status === 'running'))
-    return { ...base, reason: 'Wait for this agent’s current run to finish.' };
   if (!data.profile.some((note) => note.content.trim()))
     return { ...base, reason: 'Add your profile notes before starting the crew.' };
   if (seat === 'reviewer' && !card.packet)

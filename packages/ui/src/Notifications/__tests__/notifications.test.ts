@@ -6,6 +6,7 @@ import {
   NotificationTracker,
   notificationToastOptions,
   notificationPreview,
+  notificationShouldAlert,
 } from '../helpers.ts';
 
 const message: ChatMessage = {
@@ -287,4 +288,53 @@ it('clears question attention after an answer or cancellation while preserving t
     [],
   );
   expect(data.messages).toHaveLength(1);
+});
+
+it('keeps runtime maintenance notifications quiet and links to the exact runtime outcome', () => {
+  const data: Snapshot = {
+    ...snapshot,
+    messages: [],
+    runtimeMaintenance: {
+      enabled: true,
+      automatic: true,
+      checking: false,
+      nextCheckAt: null,
+      authentication: [],
+      updates: [
+        {
+          id: 'codex',
+          status: 'available',
+          installedVersion: '1.0.0',
+          latestVersion: '1.1.0',
+          checkedAt: message.createdAt,
+          lastSuccessAt: message.createdAt,
+          detail: 'Fixture release',
+          installer: 'npm',
+          canUpdate: true,
+          manualCommand: '',
+        },
+      ],
+    },
+  };
+  const notices = collectNotifications(data);
+  expect(notices).toHaveLength(1);
+  expect(notices[0]).toMatchObject({
+    target: '/settings',
+    reviewId: 'codex',
+    context: 'runtime_update',
+  });
+  expect(notificationShouldAlert(notices[0])).toBe(false);
+  data.runtimeMaintenance!.updates[0].operation = {
+    id: 'fixture-operation',
+    stage: 'failed',
+    startedAt: message.createdAt,
+    finishedAt: message.createdAt,
+    detail: 'Fixture update failure',
+    output: '',
+  };
+  expect(collectNotifications(data)[0]).toMatchObject({
+    target: '/settings',
+    body: 'Fixture update failure',
+    reviewId: 'codex',
+  });
 });
