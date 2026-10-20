@@ -3,13 +3,13 @@
   height: 30px;
   gap: 8px;
   padding-inline: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
   border-radius: 8px;
-  background: var(--surface);
+  background: var(--clay-fill);
   color: var(--ink-soft);
   font-size: 12px;
   font-weight: 400;
-  box-shadow: none;
+  box-shadow: var(--clay);
 }
 .queue-widget-trigger > .queue-slots {
   width: 42px;

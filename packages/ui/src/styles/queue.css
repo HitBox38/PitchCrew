@@ -93,20 +93,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   letter-spacing: -0.2px;
 }
 .queue-section-heading h2 span {
-  display: inline-grid;
-  place-items: center;
-  min-width: 22px;
-  height: 22px;
-  padding-inline: 5px;
-  border-radius: 7px;
-  background: var(--paper-deep);
   color: var(--muted);
-  font-size: 12px;
+  font: 400 13px var(--font-sans);
   font-variant-numeric: tabular-nums;
 }
 .queue-section-heading > p {
@@ -130,9 +123,10 @@
 }
 .queue-section-empty,
 .queue-running-empty {
-  border: 1px dashed var(--border-strong);
-  border-radius: 12px;
+  border-radius: 12px 13px 11px 12px;
   padding: 22px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
   color: var(--muted);
   font-size: 13px;
 }
@@ -156,16 +150,11 @@
   min-width: 0;
 }
 .queue-card {
-  background: var(--surface-bright);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
-}
-.queue-card[data-state='running'] {
   background: var(--clay-fill);
-  border-color: color-mix(in srgb, var(--ink) 7%, transparent);
+  border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
   border-radius: 16px 17px 15px 16px;
   box-shadow: var(--clay);
+  overflow: hidden;
 }
 .queue-running-card-heading {
   display: flex;
@@ -204,10 +193,6 @@
   font-size: 12px;
 }
 
-.queue-card[data-state='blocked'],
-.queue-card[data-state='waiting'] {
-  border-top: 3px solid var(--ochre);
-}
 .queue-card-heading,
 .queue-request {
   display: flex;
@@ -223,9 +208,7 @@
 }
 .queue-card-heading h3 {
   margin-block: 3px;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.4;
+  font: 600 15px/1.4 var(--font-sans);
   overflow-wrap: anywhere;
 }
 .queue-kind {
@@ -256,6 +239,11 @@
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px 9px 8px 7px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
 }
 .queue-grip button {
   width: 24px;
@@ -264,11 +252,17 @@
 .queue-grip button[draggable='true'] {
   cursor: grab;
 }
+.queue-grip button[draggable] {
+  border-radius: 6px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
 .queue-reason {
   margin: 0 16px 12px;
   padding: 9px 12px;
-  border-radius: 7px;
-  background: var(--paper);
+  border-radius: 10px 11px 10px 9px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
   font-size: 12px;
   line-height: 1.5;
   color: var(--muted);
@@ -314,6 +308,22 @@
 .queue-card [data-slot='accordion-trigger'] {
   font-size: 12px;
   color: var(--muted);
+}
+.queue-card [data-slot='accordion-content'] > .queue-list {
+  padding: 4px;
+  border-radius: 10px 11px 10px 9px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.queue-card [data-slot='accordion-content'] > .queue-list:empty {
+  display: none;
+}
+.queue-card
+  [data-slot='accordion-content']
+  > .queue-list
+  > .queue-list-item:first-child
+  .queue-request {
+  border-top: 0;
 }
 .queue-request {
   border-top: 1px solid var(--border);

@@ -48,6 +48,8 @@ Independent job and conversation queues appear side by side on softly raised cla
 
 **Up next** contains eligible queues in their saved priority order. **On hold** separates paused queues, unanswered questions and prerequisite problems; these queues release their slots. Both groups retain keyboard and drag ordering within their group, and expandable request lists retain editing, removal, recovery and per-job ordering. Running request lists start collapsed; pending lists start expanded. Answer opens the waiting request's conversation.
 
+All queue cards share the same raised clay fill, softly rounded rims and depth in both themes. Pending request lists, pause/block explanations, ordering controls and empty states use recessed surfaces. Section headings use plain counts, and held states use their text label without a colored top strip. The persistent widget trigger uses the same raised clay material.
+
 The toolbar's queue widget remains available throughout the workspace, including when idle. Its compact capacity strip shows the same slot occupancy, alongside the ready count and on-hold count. Its keyboard-accessible popover shows all concurrent visible queues and their individual executing agents, a separate background routine count, held work and a link to the Queue page. The list scrolls within a bounded popover on small screens. It replaces the previous comma-separated running-agent ticker.
 
 Routines without a job remain outside this view as specified below.
