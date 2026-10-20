@@ -368,3 +368,11 @@
     min-height: 36px;
   }
 }
+.submission-receipt {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-bright);
+}
+.submission-receipt[data-status='confirmed'] > strong {
+  color: var(--moss);
+}

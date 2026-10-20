@@ -17,7 +17,7 @@ export default function PacketDocxPreview({ bytes, name }: { bytes: string; name
         srcDoc={document}
         sandbox=""
         referrerPolicy="no-referrer"
-        className="h-160 w-full rounded border bg-white"
+        className="h-160 w-full rounded-xl border-0 bg-white shadow-sheet"
       />
     </div>
   );

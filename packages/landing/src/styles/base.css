@@ -1,3 +1,11 @@
+/* The website has its own Tailwind entry and needs the same paper edge default. */
+*,
+::before,
+::after,
+::backdrop,
+::file-selector-button {
+  border-color: var(--border);
+}
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 32px;

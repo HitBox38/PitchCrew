@@ -20,7 +20,7 @@ export function RequirementFields({
         application.
       </p>
       {value.map((entry, index) => (
-        <fieldset key={entry.id} className="grid gap-2 rounded-md border p-3">
+        <fieldset key={entry.id} className="grid gap-2 rounded-xl border border-border bg-card p-4">
           <legend>Requirement {index + 1}</legend>
           <label className="grid gap-1">
             Question or instruction

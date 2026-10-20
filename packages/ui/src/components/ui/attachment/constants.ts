@@ -1,7 +1,7 @@
 import { cva } from 'class-variance-authority';
 
 export const attachmentVariants = cva(
-  'group/attachment primitive:relative primitive:flex primitive:w-fit primitive:max-w-full primitive:min-w-0 primitive:shrink-0 primitive:flex-wrap primitive:rounded-xl primitive:border primitive:bg-card primitive:text-card-foreground primitive:transition-colors primitive:focus-within:ring-1 primitive:focus-within:ring-ring/50 primitive:has-[>a,>button]:hover:bg-muted/50 primitive:data-[state=error]:border-destructive/30 primitive:data-[state=idle]:border-dashed',
+  'group/attachment primitive:relative primitive:flex primitive:w-fit primitive:max-w-full primitive:min-w-0 primitive:shrink-0 primitive:flex-wrap primitive:rounded-[10px_11px_10px_9px] primitive:border-0 primitive:text-card-foreground primitive:shadow-clay primitive:transition-[background,box-shadow] primitive:[background:var(--clay-fill)] primitive:focus-within:ring-1 primitive:focus-within:ring-ring/50 primitive:has-[>a,>button]:hover:shadow-clay-hover primitive:has-[>a,>button]:hover:[background:var(--clay-fill-hover)] primitive:data-[state=error]:border primitive:data-[state=error]:border-destructive/30 primitive:data-[state=idle]:border primitive:data-[state=idle]:border-dashed primitive:data-[state=idle]:border-[var(--border-strong)]',
   {
     variants: {
       size: {

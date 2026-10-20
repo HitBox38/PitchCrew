@@ -25,7 +25,7 @@ export function RuntimeUpdate({ update }: { update: RuntimeUpdateInfo }) {
   const running = !!operation && !operation.finishedAt;
   const busy = !!update.busyReasons?.length;
   return (
-    <div className="min-w-0 space-y-2 border-t pt-3 text-sm">
+    <div className="min-w-0 space-y-2 border-t border-border pt-3 text-sm">
       <p>
         <strong>
           {update.status === 'available'

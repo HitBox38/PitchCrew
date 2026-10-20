@@ -11,7 +11,7 @@ export function RuntimeReadinessNotice({ data, role, conversation }: ChatViewMod
   const updating = !!update?.operation && !update.operation.finishedAt;
   if (!updating && (!auth || auth.status === 'authenticated')) return null;
   return (
-    <output className="mx-4 my-2 rounded-lg border px-3 py-2 text-sm">
+    <output className="runtime-readiness-notice mx-4 my-2 rounded-lg px-3.5 py-3 text-sm">
       <p>
         {updating
           ? 'This runtime is updating. Queued work will wait for verification.'

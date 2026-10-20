@@ -18,7 +18,7 @@ export function SubmissionReceipts({
     <section className="my-4 space-y-3">
       <h3>Browser submissions</h3>
       {card.submissionAttempts.map((attempt) => (
-        <div className="rounded border p-3" key={attempt.id}>
+        <div className="submission-receipt p-4" data-status={attempt.status} key={attempt.id}>
           <strong>
             {attempt.status === 'uncertain'
               ? 'Outcome needs verification'

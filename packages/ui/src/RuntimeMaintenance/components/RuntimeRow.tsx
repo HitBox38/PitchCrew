@@ -19,7 +19,7 @@ export function RuntimeRow({ runtime }: { runtime: RuntimeInfo }) {
     <article
       id={`runtime-${runtime.id}`}
       tabIndex={-1}
-      className={`space-y-3 rounded-xl border p-4 ${selected === runtime.id ? 'ring-2 ring-ring' : ''}`}
+      className={`runtime-card space-y-3 rounded-xl p-4 ${selected === runtime.id ? 'ring-2 ring-ring' : ''}`}
     >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold">{runtimeLabels[runtime.id]}</h3>
