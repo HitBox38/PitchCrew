@@ -1,6 +1,7 @@
 import type { ProfileViewProps } from '@/components/ProfileView/types.ts';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useState, type FormEvent } from 'react';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useProfileSources } from '@/components/ProfileSources/hooks/useProfileSources.ts';
 import { useProfileDocuments } from './useProfileDocuments.ts';
 import { useProfileOrganization } from './useProfileOrganization.ts';
@@ -32,7 +33,9 @@ export const useProfileView = ({ data, action, working }: ProfileViewProps) => {
   const documents = useProfileDocuments(data);
   const organization = useProfileOrganization({ action });
   const [closing, setClosing] = useState<string | null>(null);
-  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const sourcesOpen = useWorkspaceStore((state) => state.profileSources.open);
+  const updateSources = useWorkspaceStore((state) => state.updateProfileSources);
+  const setSourcesOpen = (open: boolean) => updateSources({ open });
   const guard = useUnsavedChanges(documents.dirty, documents.discard);
   const sourceController = useProfileSources(
     {

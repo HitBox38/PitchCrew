@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ProfileSource } from '@pitchcrew/core';
 import { readSources } from '../api.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const useSourceList = (open: boolean) => {
+  const sourceRevision = useWorkspaceStore((state) => state.profileSources.revision);
   const [sources, setSources] = useState<ProfileSource[]>([]);
   const [loading, setLoading] = useState(true);
   const [loaded, setLoaded] = useState(false);
@@ -32,6 +34,6 @@ export const useSourceList = (open: boolean) => {
       if (!controller.signal.aborted) return refresh(controller.signal);
     });
     return () => controller.abort();
-  }, [open, refresh]);
+  }, [open, refresh, sourceRevision]);
   return { sources, loading, loaded, listError, refresh };
 };

@@ -19,7 +19,7 @@ Implemented product design and engineering reference. Current behavior and the s
 - A running deep review reserves its participating runtimes across stages, including gaps between Writer, Reviewer and subagent execution. A review paused for user input releases those reservations once no CLI process is running; recheck the runtime before continuing after an update. Queued work alone does not make a runtime busy.
 - Once updating begins, hold new work for that runtime until the update and verification finish. Work using other runtimes continues normally.
 - After a failed update, recheck the installed runtime's version, compatibility and authentication. Resume eligible waiting work automatically if the installed runtime still passes the agreed checks, including when the previous version remains. Keep the update marked failed and offer Retry. If the runtime no longer passes, hold its waiting work and show repair instructions. Do not automatically downgrade or reinstall it.
-- Check installed runtimes for updates when the app opens, then once every 24 hours while open. A separate **Check runtime updates automatically** preference defaults on. **Check runtimes** refreshes immediately. Checks never install updates; installation requires the user's Update action.
+- Check installed runtimes for updates when the app opens, then once every 24 hours while open. A separate **Check runtime updates automatically** preference defaults on. **Check for updates** refreshes immediately; when release checks are disabled, **Recheck installations** still refreshes installation and sign-in status. Checks never install updates; installation requires the user's Update action.
 
 ## Implementation plan
 

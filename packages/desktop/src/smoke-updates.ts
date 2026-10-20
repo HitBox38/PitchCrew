@@ -14,6 +14,8 @@ export const smokeUpdates = `(async () => {
   const spacedFooter = utilityOnly[1].left >= utilityOnly[0].right;
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
   document.querySelector('a[href="/settings?section=general"]')?.click();
+  if (!await waitFor(() => !!document.querySelector('.settings-tabs'))) throw new Error('Settings navigation missing.');
+  [...document.querySelectorAll('.settings-tabs [role="tab"]')].find(tab => tab.textContent.startsWith('Updates'))?.click();
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
   const retained = document.querySelector(updateSelector) === indicator;
   const toggle = document.querySelector('[data-slot="sidebar-trigger"]');

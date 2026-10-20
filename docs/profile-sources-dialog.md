@@ -82,6 +82,16 @@ Distinguish fetching documents from saving an import or applying an update.
 Prevent duplicate submissions and associate progress with the affected action.
 Expose status changes accessibly and respect reduced motion.
 
+Source reads and imports belong to the shared workspace store. Closing the
+dialog or navigating away from Profile leaves them running. An app-wide activity
+row shows progress and links back to Profile sources; completed reads remain
+available for explicit document review rather than opening over another page.
+Setup values, review selections, errors and completion notices survive route
+changes for the current app session. Closing a running import's review drawer
+closes the sources dialog without cancelling the import. Duplicate source tasks
+remain blocked across dialog instances. Completion and failure use app-wide
+toasts. Proposal decisions retain their existing pending-review close guard.
+
 Errors stay with the affected view, preserve entered values and allow retry.
 An unsuccessful refresh must not clear an already loaded source list.
 
@@ -105,6 +115,9 @@ Keep Profile's unsaved-note protection when an action would affect those notes.
 - Verify source switches, update reviews and source removal retain their semantics.
 - Exercise proposal review, rejection and interrupted-update recovery.
 - Confirm imports and applied updates return to the list; **Open note** is explicit.
+- Close during a source read or import, navigate away and return through the
+  app-wide activity row. Verify pending state, reviewed bytes, completion notices
+  and failure/retry state survive without opening a review over another page.
 - Verify keyboard navigation, focus restoration, announced status changes, reduced
   motion and narrow-window scrolling.
 - Keep the existing source API contracts and run the relevant UI/workflow checks.

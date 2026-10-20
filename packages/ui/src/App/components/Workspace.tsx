@@ -10,6 +10,7 @@ import { SidebarInset } from '@/components/ui/sidebar/components/SidebarInset.ts
 import { SidebarProvider } from '@/components/ui/sidebar/components/SidebarProvider.tsx';
 import { useAutomaticUpdates } from '@/AppUpdates/hooks/useAutomaticUpdates.ts';
 import { AgentUpdates } from '@/AgentUpdates/index.tsx';
+import { SourceActivity } from '@/components/ProfileSources/components/SourceActivity.tsx';
 import type { ReadyWorkspaceProps } from '../types.ts';
 
 export const Workspace = (props: ReadyWorkspaceProps) => {
@@ -26,6 +27,7 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
       <WorkspaceSidebar {...controller} />
       <SidebarInset id="main" tabIndex={-1}>
         <WorkspaceToolbar {...controller} />
+        <SourceActivity />
         <WorkspacePage {...controller} />
       </SidebarInset>
       {paletteMounted ? <WorkspacePalette {...controller} /> : null}

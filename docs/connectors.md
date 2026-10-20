@@ -105,3 +105,7 @@ Connected account status is read from local state and performs no network reques
 External emails, repository files and documents are untrusted data. They cannot grant permission or change role instructions. Packet claims still require exact quotations from local profile Markdown: users must verify and save external facts in **Your profile** before those facts can support application claims.
 
 These connectors cannot send mail, create drafts, edit files, create calendar events, comment, submit applications or post to GitHub. Adding outward actions requires exact-payload, single-use user approvals checked in gated MCP tools; the existing packet export gate remains unchanged. Event version 3 adds optional connector capabilities, retaining versions 1 and 2 and their replay behavior.
+
+## Account settings handoff
+
+Settings > Accounts shows the connection, granted Google services and which non-retired agents can use a granted service. Choose agents lists every agent and opens its existing configuration panel. Access changes still require editing capabilities and saving; connecting an account or opening an editor never grants access automatically.

@@ -38,6 +38,7 @@ const Fixture = () => {
       <ImportReview
         preview={preview}
         setPreview={setPreview}
+        closeReview={() => setPreview(null)}
         selected={selected}
         setSelected={setSelected}
         toggle={(name) =>

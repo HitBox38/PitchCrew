@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type ComponentProps } from 'react';
 import type { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import {
   Dialog,
@@ -8,7 +8,13 @@ import {
 } from '@/components/ui/dialog/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 
-export const DiscardChanges = ({ guard }: { guard: ReturnType<typeof useUnsavedChanges> }) => {
+export const DiscardChanges = ({
+  guard,
+  finalFocus,
+}: {
+  guard: ReturnType<typeof useUnsavedChanges>;
+  finalFocus?: ComponentProps<typeof DialogContent>['finalFocus'];
+}) => {
   const keepFocus = useRef<HTMLButtonElement>(null);
   return (
     <Dialog
@@ -17,7 +23,12 @@ export const DiscardChanges = ({ guard }: { guard: ReturnType<typeof useUnsavedC
         if (!open) guard.keepEditing();
       }}
     >
-      <DialogContent initialFocus={keepFocus} className="modal" showCloseButton={false}>
+      <DialogContent
+        initialFocus={keepFocus}
+        finalFocus={finalFocus}
+        className="modal"
+        showCloseButton={false}
+      >
         <DialogTitle>Discard unsaved changes?</DialogTitle>
         <DialogDescription className="discard-description">
           Your edits haven’t been saved. Keep editing to save them, or discard them to continue.
