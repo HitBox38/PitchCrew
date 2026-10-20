@@ -149,6 +149,16 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await page.getByRole('menuitem', { name: 'Mark withdrawn', exact: true }).click();
   await expect.poll(() => menu().count()).toBe(0);
   await page.getByRole('button', { name: /^Closed/ }).click();
+  await page.route(
+    `**/api/cards/${card.id}/status`,
+    async (route) => {
+      const response = await route.fetch();
+      // Reopening removes the card optimistically, before the action can restore focus.
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.fulfill({ response });
+    },
+    { times: 1 },
+  );
   await menu().focus();
   await page.keyboard.press('Enter');
   await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
@@ -158,6 +168,8 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   const closed = page.getByRole('button', { name: /^Closed/ });
   expect(await closed.getAttribute('aria-pressed')).toBe('true');
   await page.locator('[data-slot="dropdown-menu-content"]').waitFor({ state: 'detached' });
+  // Optimistic removal and popup exit can both finish before the response/reload.
+  await page.getByText('Moved to New lead', { exact: true }).waitFor();
   await expect
     .poll(() => closed.evaluate((element) => element === document.activeElement))
     .toBe(true);
