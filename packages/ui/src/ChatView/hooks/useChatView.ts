@@ -72,12 +72,13 @@ export function useChatView(props: ChatViewProps) {
     (run) => run.status === 'running' && roots.has(run.rootRunId ?? run.id),
   );
   const busy = data.runs.some(
-    (run) => participants.includes(run.roleId) && run.status === 'running',
-  );
-  const busyElsewhere = data.runs.some(
     (run) =>
-      participants.includes(run.roleId) && run.status === 'running' && run.threadId !== thread,
+      run.status === 'running' &&
+      (conversation?.cardId
+        ? run.cardId === conversation.cardId
+        : roots.has(run.rootRunId ?? run.id)),
   );
+  const busyElsewhere = busy && running.length === 0;
   const available = participants.some((id) => {
     const agent = data.roles.find((entry) => entry.id === id);
     const config = { ...agent, ...conversation?.configurations[id] };

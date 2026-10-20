@@ -67,7 +67,7 @@ describe('board job actions', () => {
     expect(crewShortcut({ ...card, state: 'submitted' }, data)).toBeNull();
   });
 
-  it('blocks unavailable or busy agents with a reason instead of starting invalid work', () => {
+  it('blocks unavailable agents while allowing an agent busy on another job', () => {
     for (const roles of [[], [{ ...role, enabled: false }], [{ ...role, retiredAt: 'today' }]])
       expect(crewShortcut(card, { ...data, roles })?.reason).toContain('Enable an agent');
     expect(
@@ -80,7 +80,7 @@ describe('board job actions', () => {
         ...data,
         runs: [{ roleId: role.id, cardId: 'other', status: 'running' } as Run],
       })?.reason,
-    ).toContain('current run');
+    ).toBeUndefined();
     expect(crewShortcut({ ...card, owner: role.id }, data)?.reason).toContain('active work');
   });
 

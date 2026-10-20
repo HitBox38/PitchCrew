@@ -2,6 +2,8 @@ import { cancelDeletedJobReviews } from './deep-review-cleanup.ts';
 import {
   states,
   type AgentTask,
+  type ChatRequest,
+  type Conversation,
   type Approval,
   type Card,
   type CardState,
@@ -64,6 +66,31 @@ export function deleteJob(board: Board, cardId: string, actor: string, reason: s
     board.record('card', { ...card, owner: null, deletedAt: now, updatedAt: now }, actor, reason);
     cancelDeletedJobReviews(board, cardId, actor, now);
     invalidateApprovals(board, cardId, actor, now);
+    const threads = new Set(
+      board
+        .list<Conversation>('conversation')
+        .filter((c) => c.cardId === cardId)
+        .map((c) => c.id),
+    );
+    for (const request of board.list<ChatRequest>('chat_request'))
+      if (
+        threads.has(request.threadId) &&
+        request.deliveries.some((d) => ['queued', 'paused', 'failed', 'waiting'].includes(d.status))
+      )
+        board.record(
+          'chat_request',
+          {
+            ...request,
+            deliveries: request.deliveries.map((d) =>
+              ['completed', 'cancelled'].includes(d.status)
+                ? d
+                : { ...d, status: 'cancelled' as const, error: 'The attached job was deleted.' },
+            ),
+          },
+          actor,
+          'Cancelled queued request for deleted job',
+        );
+
     for (const task of board.list<AgentTask>('task'))
       if (task.cardId === cardId && task.status === 'queued')
         board.record(

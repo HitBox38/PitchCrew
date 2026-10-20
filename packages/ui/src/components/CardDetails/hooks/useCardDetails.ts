@@ -17,7 +17,20 @@ export function useCardDetails({
   const guard = useUnsavedChanges(briefDirty);
   const [document, setDocument] = useState<keyof Omit<Packet, 'claims'>>('resume');
   const act = (path: string, body?: unknown, success?: string) => {
-    void action(path, 'POST', body, success).catch(() => {});
+    if (path === `/cards/${card.id}/run`) {
+      const roleId = (body as { roleId: string }).roleId;
+      const seat = workflowSeat(data.roles.find((r) => r.id === roleId)!);
+      void action(
+        '/queue/actions',
+        'POST',
+        {
+          cardId: card.id,
+          roleId,
+          action: seat === 'scout' ? 'fit' : seat === 'writer' ? 'draft' : 'review',
+        },
+        'Crew action queued',
+      ).catch(() => {});
+    } else void action(path, 'POST', body, success).catch(() => {});
   };
   const run = data.runs.find((r) => r.cardId === card.id && r.status === 'running');
   const failed = data.runs.find((r) => r.cardId === card.id && r.status === 'failed');

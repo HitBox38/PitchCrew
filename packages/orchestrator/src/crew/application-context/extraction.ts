@@ -1,3 +1,7 @@
+import { drainConversationQueue } from '../conversation-queue.ts';
+import { reserveLaunch } from '../queue/admission.ts';
+import { relatedConversation } from '../conversations.ts';
+import { ensureQueue } from '../queue/state.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { jobSourceRevision, saveApplicationContext } from '@pitchcrew/board';
 import {
@@ -30,18 +34,21 @@ async function extractApplicationContextPrepared(
   if (!role.enabled || !context.runtimes.find((r) => r.id === role.runtime)?.available)
     throw new Error('Enable an available extraction runtime in Crew first.');
   const card = context.board.get<Card>('card', cardId);
-  if (
-    card.deletedAt ||
-    context.board.hasActiveRun(cardId) ||
-    context.configuring.has(roleId) ||
-    context.board.list<Run>('run').some((r) => r.roleId === roleId && r.status === 'running')
-  )
+  if (card.deletedAt || context.board.hasActiveRun(cardId) || context.configuring.has(roleId))
     throw new Error('Wait for active work to finish before extracting this job.');
   const sourceRevision = jobSourceRevision(card);
   const previousRevision = card.applicationContext?.revision ?? null;
   const source = applicationSource(card);
   const run: Run = {
     id: randomUUID(),
+    threadId: relatedConversation(
+      context,
+      'application',
+      cardId,
+      roleId,
+      cardId,
+      'Application work',
+    ).id,
     cardId,
     roleId,
     runtime: role.runtime,
@@ -151,6 +158,7 @@ async function extractApplicationContextPrepared(
     .finally(() => {
       context.controllers.delete(run.id);
       context.capabilities.delete(token);
+      void drainConversationQueue(context);
     });
   return run;
 }
@@ -161,10 +169,21 @@ export async function extractApplicationContext(
   roleId: string,
 ): Promise<Run> {
   await context.runtimeMaintenance.refreshOnRetry(requireRole(context, roleId));
-  return context.runtimeMaintenance.guard(
-    requireRole(context, roleId),
-    () => extractApplicationContextPrepared(context, cardId, roleId),
-    false,
-    () => requireRole(context, roleId),
+  const threadId = relatedConversation(
+    context,
+    'application',
+    cardId,
+    roleId,
+    cardId,
+    'Application work',
+  ).id;
+  ensureQueue(context, threadId);
+  return reserveLaunch(context, { cardId, threadId, roleId, isolated: true }, () =>
+    context.runtimeMaintenance.guard(
+      requireRole(context, roleId),
+      () => extractApplicationContextPrepared(context, cardId, roleId),
+      false,
+      () => requireRole(context, roleId),
+    ),
   );
 }

@@ -3,6 +3,7 @@ import type { RoleId } from '@pitchcrew/core';
 
 export const viewPaths = {
   board: '/',
+  queue: '/queue',
   crew: '/crew',
   chat: '/chat',
   inbox: '/inbox',

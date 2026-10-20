@@ -1,0 +1,126 @@
+.queue-workspace {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+  gap: 1rem;
+}
+.queue-capacity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+.queue-work-area {
+  overflow-y: auto;
+  min-height: 0;
+  flex: 1;
+  padding: 0.25rem 0.25rem 1.5rem;
+}
+.queue-work-area > section + section {
+  margin-top: 1.5rem;
+}
+.queue-work-area h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+.queue-work-area h2 span {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.queue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+.queue-list-item {
+  min-width: 0;
+}
+.queue-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--ink) 5%, transparent);
+  overflow: hidden;
+}
+.queue-card-heading,
+.queue-request {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.8rem 1rem;
+}
+.queue-card-heading h3 {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.queue-state {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+.queue-state-running {
+  color: var(--primary);
+}
+.queue-state-blocked,
+.queue-state-paused {
+  color: var(--error-ink);
+}
+.queue-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+.queue-grip {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.queue-grip button {
+  width: 1.5rem;
+  height: 1.75rem;
+}
+.queue-grip button[draggable='true'] {
+  cursor: grab;
+}
+.queue-reason {
+  margin: 0 1rem 0.75rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+.queue-request {
+  border-top: 1px solid var(--border);
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.queue-request > .min-w-0 {
+  min-width: 8rem;
+}
+.queue-follow-ups {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  display: grid;
+  gap: 0.4rem;
+  list-style: none;
+}
+@variant max-mobile {
+  .queue-card-heading {
+    flex-wrap: wrap;
+  }
+  .queue-card-heading > .queue-row-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .queue-capacity label {
+    font-size: 0.8rem;
+  }
+}

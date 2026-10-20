@@ -17,6 +17,7 @@ export interface RunActivity {
 }
 export type RuntimeActivity = Pick<RunActivity, 'id' | 'kind' | 'label' | 'status' | 'text'>;
 export interface Run {
+  profileDigest?: string;
   purpose?:
     | 'source-extraction'
     | 'application-draft'
