@@ -34,6 +34,7 @@ import { assertConfirmedContext, assertExtractedContext, digestPacket } from '@p
 import { draftingCard, missingPersonalAnswers } from '@pitchcrew/core';
 import { assertApplicationRuntime } from './application-context/extraction.ts';
 import { applicationUserAnswers } from './application-context/answers.ts';
+import { changeSummary } from './change-summary.ts';
 
 async function startRunPrepared(
   this: CrewContext,
@@ -279,12 +280,13 @@ export async function applyResult(
       throw new Error('Application context changed during this run. Confirm and run again.');
   };
   assertCurrent();
+  const summary = changeSummary(result, this.board.get<Card>('card', cardId).packet);
   if (result.role === 'scout') {
     this.board.updateCard(
       cardId,
       { fit: result.fit, feedback: result.reasons },
       role.id,
-      'Evaluated job fit',
+      `Evaluated job fit: ${summary}`,
     );
   }
   if (result.role === 'writer') {
@@ -302,7 +304,7 @@ export async function applyResult(
         feedback: warningFeedback(check.warnings),
       },
       role.id,
-      'Drafted application packet',
+      `Drafted application packet: ${summary}`,
     );
     this.board.move(cardId, 'in_review', role.id);
   }
@@ -335,6 +337,15 @@ export async function applyResult(
         ...warningFeedback(check.warnings),
       ]),
     ];
+    const reviewSummary = changeSummary(
+      {
+        ...result,
+        feedback,
+        // Describe server-enforced blockers when they override the agent's verdict.
+        changeSummary: passed === result.passed ? result.changeSummary : undefined,
+      },
+      card.packet,
+    );
     this.board.updateCard(
       cardId,
       {
@@ -350,7 +361,7 @@ export async function applyResult(
           : undefined,
       },
       role.id,
-      passed ? 'Reviewer approved the packet' : 'Reviewer requested changes',
+      `${passed ? 'Reviewer approved the packet' : 'Reviewer requested changes'}: ${reviewSummary}`,
     );
     this.board.move(cardId, passed ? 'agreed' : 'changes_requested', role.id);
   }

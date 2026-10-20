@@ -13,7 +13,13 @@ it('creates an initial draft, applies seven perspectives and rechecks without ex
     stages.push(context.deepReview!.stage);
     expect(JSON.stringify(context.card)).not.toContain('RAW-SOURCE-DIRECTIVE');
     if (context.role.workflow === 'reviewer')
-      return { role: 'reviewer', passed: true, feedback: [], assessment: assessment() };
+      return {
+        role: 'reviewer',
+        passed: true,
+        feedback: [],
+        assessment: assessment(),
+        changeSummary: 'Rechecked the complete packet against the profile and seven perspectives.',
+      };
     return originalRun(context);
   });
   const started = await request<Run>(`/cards/${card.id}/deep-reviews`, 'POST', {});
@@ -22,6 +28,14 @@ it('creates an initial draft, applies seven perspectives and rechecks without ex
   expect(stages).toEqual(['draft', 'review', 'recheck']);
   expect(snapshot.cards.find((c) => c.id === card.id)?.state).toBe('agreed');
   expect(snapshot.approvals).toHaveLength(0);
+  expect(snapshot.events).toContainEqual(
+    expect.objectContaining({
+      entityId: card.id,
+      actor: 'reviewer',
+      message:
+        'Reviewer approved the packet: Rechecked the complete packet against the profile and seven perspectives.',
+    }),
+  );
   const reports = (await request<{ reviews: DeepReview[] }>(`/cards/${card.id}/deep-reviews`))
     .result.reviews;
   const report = (
