@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import { isAllowedExternalUrl } from '../src/external-url.ts';
+import { externalUrlBlockReason, isAllowedExternalUrl } from '../src/external-url.ts';
 
 const externalLinks = [
   ['job posting', 'https://boards.greenhouse.io/example/jobs/123'],
@@ -29,6 +29,15 @@ const externalLinks = [
 
 it.each(externalLinks)('permits the %s link in the system browser', (_label, url) => {
   expect(isAllowedExternalUrl(url)).toBe(true);
+});
+
+it('resolves relative renderer links without allowing relative native shell targets', () => {
+  expect(externalUrlBlockReason('/chat/scout', 'http://127.0.0.1:4417/')).toBeNull();
+  expect(externalUrlBlockReason('#main', 'http://127.0.0.1:4417/')).toBeNull();
+  expect(externalUrlBlockReason('/chat/scout')).toBe('invalid-url');
+  expect(externalUrlBlockReason('file:///etc/passwd', 'http://127.0.0.1:4417/')).toBe(
+    'unsupported-protocol',
+  );
 });
 
 it.each([

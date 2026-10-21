@@ -16,6 +16,8 @@ import { PromptInput } from '@/components/ai-elements/prompt-input/components/Pr
 import { PromptInputTextarea } from '@/components/ai-elements/prompt-input/components/PromptInputTextarea.tsx';
 import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/components/PromptInputSubmit.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Notifications } from '@/Notifications/index.tsx';
+import { LinkConfirmation } from '@/components/MarkdownContent/components/LinkConfirmation.tsx';
 import '@/styles.css';
 
 const Fixture = () => {
@@ -27,8 +29,19 @@ const Fixture = () => {
   const [attempts, setAttempts] = useState(0);
   const [queueAction, setQueueAction] = useState('');
   const [streaming, setStreaming] = useState(false);
+  const [unsafeLinkOpen, setUnsafeLinkOpen] = useState(false);
+  const [unsafeLinkOpened, setUnsafeLinkOpened] = useState(false);
   return (
     <AppMotion>
+      <Notifications />
+      <Button onClick={() => setUnsafeLinkOpen(true)}>Preview blocked link</Button>
+      <output aria-label="Unsafe link opened">{String(unsafeLinkOpened)}</output>
+      <LinkConfirmation
+        url="file:///pitchcrew-fictional-blocked-link"
+        isOpen={unsafeLinkOpen}
+        onClose={() => setUnsafeLinkOpen(false)}
+        onConfirm={() => setUnsafeLinkOpened(true)}
+      />
       <div className="chat-workspace" style={{ maxWidth: 820, margin: 'auto' }}>
         <Button
           onClick={() =>

@@ -12,8 +12,10 @@ import {
   notificationShouldAlert,
 } from '../helpers.ts';
 import type { CrewNotification } from '../types.ts';
+import { useLinkFeedback } from './useLinkFeedback.ts';
 
 export const useNotifications = () => {
+  useLinkFeedback();
   const data = useWorkspaceStore((s) => s.data);
   const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());

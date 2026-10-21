@@ -7,6 +7,7 @@ const origin = 'http://127.0.0.1:4417';
 const fixture = () => {
   const webContents = Object.assign(new EventEmitter(), {
     mainFrame: { url: `${origin}/chat/scout` },
+    send: vi.fn(),
     setWindowOpenHandler: vi.fn<WebContents['setWindowOpenHandler']>(),
   });
   const window = { webContents, isDestroyed: vi.fn(() => false) };
@@ -64,8 +65,39 @@ it.each(['https://example.com/', 'about:blank', 'invalid'])(
     f.webContents.mainFrame.url = url;
     expect(f.open('https://example.com/source')).toEqual({ action: 'deny' });
     expect(shell.openExternal).not.toHaveBeenCalled();
+    expect(f.webContents.send).not.toHaveBeenCalled();
   },
 );
+
+it.each([
+  ['javascript:alert(1)', 'unsupported-protocol'],
+  ['file:///etc/passwd', 'unsupported-protocol'],
+  ['ms-settings:privacy', 'unsupported-protocol'],
+  ['https://user:password@example.com/private', 'embedded-credentials'],
+  ['not a URL', 'invalid-url'],
+])('explains why an unsafe popup was blocked: %s', (url, reason) => {
+  const f = fixture();
+  expect(f.open(url)).toEqual({ action: 'deny' });
+  expect(f.webContents.send).toHaveBeenCalledExactlyOnceWith('pitchcrew:link-blocked', reason);
+  expect(shell.openExternal).not.toHaveBeenCalled();
+});
+
+it('does not report ordinary internal links as unsafe', () => {
+  const f = fixture();
+  f.open(`${origin}/settings`);
+  expect(f.webContents.send).not.toHaveBeenCalled();
+});
+
+it('explains blocked unsafe navigation in the current window', () => {
+  const f = fixture();
+  const event = { preventDefault: vi.fn() };
+  f.webContents.emit('will-navigate', event, 'file:///etc/passwd');
+  expect(event.preventDefault).toHaveBeenCalledOnce();
+  expect(f.webContents.send).toHaveBeenCalledExactlyOnceWith(
+    'pitchcrew:link-blocked',
+    'unsupported-protocol',
+  );
+});
 
 it.each([`${origin}/settings?section=accounts`, `${origin}/chat/scout`, `${origin}/#main`])(
   'keeps internal navigation in the app: %s',

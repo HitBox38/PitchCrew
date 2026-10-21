@@ -1,13 +1,13 @@
 import { dialog, shell, type BrowserWindow } from 'electron';
-import { isAllowedExternalUrl } from './external-url.ts';
+import { externalUrlBlockReason } from './external-url.ts';
+import { linkFeedbackChannel } from './link-feedback.ts';
 
 export const installExternalNavigation = (window: BrowserWindow, origin: string) => {
   window.webContents.setWindowOpenHandler(({ url }) => {
-    if (
-      isAppUrl(window.webContents.mainFrame.url, origin) &&
-      !isAppUrl(url, origin) &&
-      isAllowedExternalUrl(url)
-    )
+    if (!isAppUrl(window.webContents.mainFrame.url, origin)) return { action: 'deny' };
+    const reason = externalUrlBlockReason(url);
+    if (reason) window.webContents.send(linkFeedbackChannel, reason);
+    else if (!isAppUrl(url, origin))
       void shell.openExternal(new URL(url).href).catch(() => {
         if (window.isDestroyed()) return;
         void dialog
@@ -22,7 +22,11 @@ export const installExternalNavigation = (window: BrowserWindow, origin: string)
     return { action: 'deny' };
   });
   window.webContents.on('will-navigate', (event, target) => {
-    if (!isAppUrl(target, origin)) event.preventDefault();
+    if (isAppUrl(target, origin)) return;
+    event.preventDefault();
+    const reason = externalUrlBlockReason(target);
+    if (reason && isAppUrl(window.webContents.mainFrame.url, origin))
+      window.webContents.send(linkFeedbackChannel, reason);
   });
 };
 
