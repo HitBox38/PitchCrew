@@ -1,3 +1,4 @@
+import { ConversationContextMenu } from './ConversationContextMenu.tsx';
 import { ConversationStatus } from './ConversationStatus.tsx';
 import { conversationPreview } from '../presentation.ts';
 import { Link } from '@tanstack/react-router';
@@ -22,29 +23,31 @@ export const ConversationLink = ({
 }) => {
   const { conversation: item } = row;
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton
-        className="chat-thread conversation-link"
-        isActive={selected}
-        aria-current={selected ? 'page' : undefined}
-        aria-label={item.title}
-        size="lg"
-        render={<Link to="/chat/$thread" params={{ thread: item.id }} onClick={closeMobile} />}
-      >
-        {item.participants.length === 1 && item.kind !== 'history' ? (
-          <RoleAvatar agentRole={item.participants[0]} size="small" />
-        ) : item.kind === 'history' ? (
-          <History size={17} />
-        ) : (
-          <Users size={17} />
-        )}
-        <span className="conversation-link-copy">
-          <strong title={item.title}>{item.title}</strong>
-          <small>{conversationPreview(row)}</small>
-        </span>
-        <ConversationStatus row={row} selected={selected} />
-      </SidebarMenuButton>
-      <ConversationMenu row={row} actions={actions} working={actionWorking} />
-    </SidebarMenuItem>
+    <ConversationContextMenu row={row} actions={actions} working={actionWorking}>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          className="chat-thread conversation-link"
+          isActive={selected}
+          aria-current={selected ? 'page' : undefined}
+          aria-label={item.title}
+          size="lg"
+          render={<Link to="/chat/$thread" params={{ thread: item.id }} onClick={closeMobile} />}
+        >
+          {item.participants.length === 1 && item.kind !== 'history' ? (
+            <RoleAvatar agentRole={item.participants[0]} size="small" />
+          ) : item.kind === 'history' ? (
+            <History size={17} />
+          ) : (
+            <Users size={17} />
+          )}
+          <span className="conversation-link-copy">
+            <strong title={item.title}>{item.title}</strong>
+            <small>{conversationPreview(row)}</small>
+          </span>
+          <ConversationStatus row={row} selected={selected} />
+        </SidebarMenuButton>
+        <ConversationMenu row={row} actions={actions} working={actionWorking} />
+      </SidebarMenuItem>
+    </ConversationContextMenu>
   );
 };

@@ -1,3 +1,4 @@
+import { AppContextMenu } from '@/AppContextMenu/index.tsx';
 import { RuntimeMaintenance } from '@/RuntimeMaintenance/index.tsx';
 import { WorkspacePage } from '@/App/components/WorkspacePage.tsx';
 import { WorkspaceNotification } from '@/App/components/WorkspaceNotification.tsx';
@@ -17,20 +18,22 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
   const controller = getWorkspaceModel(props);
   const { sidebarOpen, paletteMounted } = controller;
   return (
-    <SidebarProvider defaultOpen={sidebarOpen}>
-      <AgentUpdates />
-      <RuntimeMaintenance />
-      <a className="skip-link" href="#main">
-        Skip to content
-      </a>
-      <WorkspaceSidebar {...controller} />
-      <SidebarInset id="main" tabIndex={-1}>
-        <WorkspaceToolbar {...controller} />
-        <WorkspacePage {...controller} />
-      </SidebarInset>
-      {paletteMounted ? <WorkspacePalette {...controller} /> : null}
-      <WorkspaceNotification {...controller} />
-      <WorkspacePanels {...controller} />
-    </SidebarProvider>
+    <AppContextMenu {...controller}>
+      <SidebarProvider defaultOpen={sidebarOpen}>
+        <AgentUpdates />
+        <RuntimeMaintenance />
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
+        <WorkspaceSidebar {...controller} />
+        <SidebarInset id="main" tabIndex={-1}>
+          <WorkspaceToolbar {...controller} />
+          <WorkspacePage {...controller} />
+        </SidebarInset>
+        {paletteMounted ? <WorkspacePalette {...controller} /> : null}
+        <WorkspaceNotification {...controller} />
+        <WorkspacePanels {...controller} />
+      </SidebarProvider>
+    </AppContextMenu>
   );
 };
