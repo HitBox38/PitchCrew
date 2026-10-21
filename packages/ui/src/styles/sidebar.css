@@ -209,7 +209,8 @@
   background: var(--moss);
   box-shadow: 0 0 0 3px var(--moss-soft);
 }
-[data-slot='dropdown-menu-content'] {
+[data-slot='dropdown-menu-content'],
+[data-slot='context-menu-content'] {
   border: 0;
   border-radius: 12px 13px 12px 11px;
   background: var(--surface-bright);
@@ -218,7 +219,9 @@
     var(--pop);
 }
 [data-slot='dropdown-menu-item'],
-[data-slot='dropdown-menu-radio-item'] {
+[data-slot='context-menu-item'],
+[data-slot='dropdown-menu-radio-item'],
+[data-slot='context-menu-radio-item'] {
   border-radius: 8px;
   cursor: pointer;
 }

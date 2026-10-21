@@ -1,9 +1,8 @@
-import { Archive, ArchiveRestore, Ellipsis, Trash2 } from 'lucide-react';
+import { ConversationMenuItems } from './ConversationMenuItems.tsx';
+import { Ellipsis } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu/index.tsx';
 import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
@@ -39,20 +38,7 @@ export const ConversationMenu = ({
         <Ellipsis />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuItem disabled={working} onClick={() => void actions.archive(item)}>
-            {item.archived ? <ArchiveRestore /> : <Archive />}
-            {item.archived ? 'Restore conversation' : 'Archive conversation'}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            variant="destructive"
-            disabled={working || row.working || row.waitingForUser}
-            onClick={() => actions.requestDelete(item)}
-          >
-            <Trash2 />
-            Delete conversation
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+        <ConversationMenuItems row={row} actions={actions} working={working} />
       </DropdownMenuContent>
     </DropdownMenu>
   );

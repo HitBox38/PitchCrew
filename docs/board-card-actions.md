@@ -1,8 +1,10 @@
 # Board card actions
 
-Board card actions are available from the three-dot button on each job in Pipeline and Closed.
+Board card actions are available by right-clicking or long-pressing a job card, or from its three-dot button, in Pipeline and Closed. Both menus share the same actions, restrictions and confirmations.
 
 ## Access and movement
+
+The shadcn/Base UI Context Menu opens at the pointer, supports keyboard navigation and Escape, and shares the app’s clay surfaces and reduced-motion transitions. Dismissing it returns focus to the card; status changes and deletion retain the board-owned focus handoff. Right-click never starts dragging or opens job details.
 
 The three-dot actions menu replaces the six-dot drag handle in the same position. Whole-card mouse dragging remains available. Touch and keyboard users change status through **Move to…**, which lists individual statuses. The menu trigger and card body share one animated surface, so the trigger follows the card’s hover lift and tilt. Drag transforms remain on the outer wrapper. Touch gestures scroll the board rather than starting a card drag.
 
@@ -49,4 +51,4 @@ After a move, the destination page is revealed within the current view. If the c
 
 ## Verification
 
-Headless browser regressions cover shared hover movement, menu isolation from card opening and dragging, posting-link copying, withdrawal and reopening without switching views, keyboard access to individual grouped statuses, deletion confirmation and focus, failed status rollback, cancellation during attached chat work, whole-card mouse dragging, required brief review before crew execution, bounded phone-sized touch menus, and stationary reduced-motion hover. HTTP tests cover UI-session enforcement, deletion in every status, history replay, active-work rejection, and queued-work/routine cleanup. Existing board transaction tests cover approval invalidation and rollback.
+Headless browser regressions cover right-click opening and dismissal, context-menu copying, nested status moves and reopening, shared busy-run restrictions and deletion confirmations, shared hover movement, menu isolation from card opening and dragging, posting-link copying, withdrawal and reopening without switching views, keyboard access to individual grouped statuses, deletion confirmation and focus, failed status rollback, cancellation during attached chat work, whole-card mouse dragging, required brief review before crew execution, bounded phone-sized touch menus, and stationary reduced-motion hover. HTTP tests cover UI-session enforcement, deletion in every status, history replay, active-work rejection, and queued-work/routine cleanup. Existing board transaction tests cover approval invalidation and rollback.

@@ -48,6 +48,37 @@ afterAll(async () => {
   if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 
+test('right-click conversation actions preserve the page and retain deletion confirmation', async () => {
+  const link = () => page.getByRole('link', { name: conversation.title, exact: true });
+  await link().click({ button: 'right' });
+  await page.getByRole('menu', { name: 'Conversation actions', exact: true }).waitFor();
+  expect(await page.getByRole('menu', { name: 'Workspace actions', exact: true }).count()).toBe(0);
+  await page.getByRole('menuitem', { name: 'Archive conversation', exact: true }).click();
+  await expect.poll(() => menu().count()).toBe(0);
+  expect(new URL(page.url()).pathname).toBe('/');
+  await page.getByRole('button', { name: 'Show archived', exact: true }).click();
+  await link().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Restore conversation', exact: true }).click();
+  await expect
+    .poll(
+      () => host.daemon.service.board.get<Conversation>('conversation', conversation.id).archived,
+    )
+    .toBe(false);
+  await page.getByRole('button', { name: 'Hide archived', exact: true }).click();
+  await link().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Delete conversation', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Delete this conversation?' });
+  const keep = dialog.getByRole('button', { name: 'Keep conversation' });
+  await expect
+    .poll(() => keep.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  await keep.click();
+  await dialog.waitFor({ state: 'detached' });
+  await expect
+    .poll(() => menu().evaluate((element) => element === document.activeElement))
+    .toBe(true);
+});
+
 test('archives and restores from the sidebar without navigating, then confirms deletion of the selected chat', async () => {
   await menu().focus();
   await page.keyboard.press('Enter');
