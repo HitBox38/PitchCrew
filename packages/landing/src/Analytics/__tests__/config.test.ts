@@ -20,6 +20,7 @@ it('enables valid production configuration and keeps normal development offline'
 
 it.each([
   ['', 'https://eu.i.posthog.com'],
+  ['', '/relay'],
   ['phx_private_key', 'https://eu.i.posthog.com'],
   ['phc_fictional123', 'http://example.invalid'],
   ['phc_fictional123', 'https://example.invalid/private'],
@@ -36,6 +37,7 @@ it.each([
 
 it('uses the fixed first-party proxy by default', async () => {
   vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('NEXT_PUBLIC_POSTHOG_TOKEN', 'phc_fictional123');
   vi.stubEnv('NEXT_PUBLIC_POSTHOG_HOST', undefined);
   const { analyticsConfigured, analyticsConfig } = await import('../config');
   expect(analyticsConfig.host).toBe('/relay');
