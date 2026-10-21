@@ -7,6 +7,7 @@ export const useAutomaticUpdates = () => {
   const enabled = useDevicePreferences((state) => state.automaticUpdates);
   const load = useWorkspaceStore((state) => state.loadAppUpdate);
   const check = useWorkspaceStore((state) => state.checkAppUpdate);
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup -- Cleanup clears the timer and prevents rescheduling after disposal.
   useEffect(() => {
     let active = true;
     let timer: ReturnType<typeof setTimeout> | undefined;

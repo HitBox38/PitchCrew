@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import type { Approval } from '@pitchcrew/core';
 
 export const DocumentFindings = ({ approval }: { approval: Approval }) => {
@@ -11,12 +12,17 @@ export const DocumentFindings = ({ approval }: { approval: Approval }) => {
             {report.name}:{' '}
             {report.status === 'blocked' ? 'Unavailable for export' : 'Content checked'}
           </p>
-          {report.findings.map((finding, i) => (
-            <p className={finding.severity === 'error' ? 'text-destructive' : 'text-ochre'} key={i}>
-              {finding.page ? `Page ${finding.page}: ` : ''}
-              {finding.message}
-            </p>
-          ))}
+          {keyedItems(report.findings, (finding) => JSON.stringify(finding)).map(
+            ({ item: finding, key }) => (
+              <p
+                className={finding.severity === 'error' ? 'text-destructive' : 'text-ochre'}
+                key={key}
+              >
+                {finding.page ? `Page ${finding.page}: ` : ''}
+                {finding.message}
+              </p>
+            ),
+          )}
         </div>
       ))}
       <p className="quiet">

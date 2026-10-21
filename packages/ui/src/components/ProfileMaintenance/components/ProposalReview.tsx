@@ -8,6 +8,8 @@ import { ProposalDocuments } from './ProposalDocuments.tsx';
 export const ProposalReview = (props: ProposalReviewProps) => {
   const c = useProposalReview(props);
   const { proposal } = props;
+  const deciding = props.working || c.pending;
+  const locked = deciding || proposal.status === 'applying';
   return (
     <article className="grid gap-4 text-sm" aria-busy={c.pending}>
       <h3 className="font-serif text-lg font-semibold wrap-anywhere">{proposal.source.label}</h3>
@@ -28,18 +30,14 @@ export const ProposalReview = (props: ProposalReviewProps) => {
         proposal={proposal}
         selected={c.selected}
         toggle={c.toggle}
-        disabled={props.working || c.pending || proposal.status === 'applying'}
+        disabled={locked}
       />
       {proposal.missing.length ? (
         <p>Removed upstream; local notes will be kept: {proposal.missing.join(', ')}</p>
       ) : null}
       {proposal.restored?.length ? <p>Returned upstream: {proposal.restored.join(', ')}</p> : null}
       <label className="flex items-start gap-3 leading-relaxed">
-        <Checkbox
-          checked={c.verified}
-          disabled={props.working || c.pending || proposal.status === 'applying'}
-          onCheckedChange={c.setVerified}
-        />
+        <Checkbox checked={c.verified} disabled={locked} onCheckedChange={c.setVerified} />
         {proposal.documents.length
           ? 'I reviewed the selected documents and verified their personal facts. They may be used as resume evidence.'
           : 'I reviewed this observation. Keep profile notes unchanged and acknowledge these source changes.'}
@@ -54,7 +52,7 @@ export const ProposalReview = (props: ProposalReviewProps) => {
       <div className="flex flex-wrap gap-2">
         <Button
           className="button primary"
-          disabled={props.working || c.pending || c.active || !c.verified}
+          disabled={deciding || c.active || !c.verified}
           onClick={() => c.decide(true)}
         >
           {proposal.status === 'applying'
@@ -63,11 +61,7 @@ export const ProposalReview = (props: ProposalReviewProps) => {
               ? 'Apply selected updates'
               : 'Acknowledge source changes'}
         </Button>
-        <Button
-          className="button"
-          disabled={props.working || c.pending || proposal.status === 'applying'}
-          onClick={() => c.decide(false)}
-        >
+        <Button className="button" disabled={locked} onClick={() => c.decide(false)}>
           Reject
         </Button>
       </div>

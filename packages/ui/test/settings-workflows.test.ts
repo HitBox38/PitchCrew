@@ -95,6 +95,35 @@ test('changes word limits without JSON, validates incomplete fields and saves th
   await page.getByText('At most 700 words.', { exact: true }).waitFor();
 }, 30000);
 
+test('keeps rule editors mounted when names change and an earlier rule is removed', async () => {
+  await open('rules');
+  await page.getByRole('button', { name: /^Word limit for Cover letter/ }).click();
+  const name = page.getByRole('textbox', { name: 'Rule name', exact: true });
+  await name.fill('cover-draft');
+  await name.press('End');
+  await page.keyboard.type('-edited');
+  expect(await name.inputValue()).toBe('cover-draft-edited');
+  expect(await name.evaluate((element) => element === document.activeElement)).toBe(true);
+  const retained = await name.elementHandle();
+  if (!retained) throw new Error('Expected the rule editor to be mounted.');
+
+  await page.getByRole('button', { name: /^Word limit for Resume/ }).click();
+  await page
+    .getByRole('group', { name: 'Edit rule resume-length', exact: true })
+    .getByRole('button', { name: 'Remove rule', exact: true })
+    .click();
+  expect(await retained.evaluate((element) => element.isConnected)).toBe(true);
+  expect(await retained.getAttribute('id')).toBe('packet-rule-0-id');
+  expect(await page.getByRole('textbox', { name: 'Rule name', exact: true }).inputValue()).toBe(
+    'cover-draft-edited',
+  );
+  await saveRules();
+  expect(host.daemon.service.packetRules.current().rules.rules).toMatchObject([
+    { id: 'cover-draft-edited', documents: ['coverLetter'] },
+  ]);
+  await retained.dispose();
+}, 30000);
+
 test('creates bullet, allowed-line and captured-value rules with equivalent advanced JSON', async () => {
   await open('rules');
   await choose('Rule type', 'Bullets per section');

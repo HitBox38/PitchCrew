@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
+import { useState } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { Card } from '@pitchcrew/core';
 
@@ -9,10 +10,7 @@ export const useApplicationTracking = (card: Card, onDirtyChange?: (dirty: boole
   const working = useWorkspaceStore((state) => state.working);
   const [threadId, setThreadId] = useState('');
   const [identifierDirty, setIdentifierDirty] = useState(false);
-  useEffect(() => {
-    onDirtyChange?.(identifierDirty || Boolean(threadId.trim()));
-    return () => onDirtyChange?.(false);
-  }, [identifierDirty, threadId, onDirtyChange]);
+  useDirtyNotification(identifierDirty || Boolean(threadId.trim()), onDirtyChange);
   const path = `/tracking/applications/${card.id}/thread`;
   return {
     working,

@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import type { DiffLine } from '../types.ts';
 
 /** Unified diff: removed lines are struck through, added lines are highlighted. */
@@ -9,8 +10,8 @@ export const InstructionDiff = ({ lines }: { lines: DiffLine[] }) => {
       // oxlint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- Keyboard users scroll the bounded diff.
       tabIndex={0}
     >
-      {lines.map((line, index) => (
-        <li key={index} data-kind={line.kind}>
+      {keyedItems(lines, (line) => JSON.stringify(line)).map(({ item: line, key }) => (
+        <li key={key} data-kind={line.kind}>
           <span className="instruction-diff-sign" aria-hidden="true">
             {signs[line.kind]}
           </span>

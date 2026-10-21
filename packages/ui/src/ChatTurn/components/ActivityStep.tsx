@@ -1,5 +1,5 @@
 import type { RunActivity } from '@pitchcrew/core';
-import { Check, CircleDashed, LoaderCircle, X } from 'lucide-react';
+import { activityPresentation, outcomes } from '../constants.ts';
 import { Tool, ToolTrigger, ToolContent } from '@/components/ai-elements/tool/index.tsx';
 import {
   Reasoning,
@@ -12,32 +12,14 @@ import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { TraceDescription } from '@/components/ui/trace/components/TraceDescription.tsx';
 import { TurnDuration } from './TurnDuration.tsx';
 export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
-  const Icon =
-    entry.status === 'running'
-      ? LoaderCircle
-      : entry.status === 'failed'
-        ? X
-        : entry.status === 'interrupted'
-          ? CircleDashed
-          : Check;
+  const { Icon, status } = activityPresentation[entry.status];
   const Root = entry.kind === 'reasoning' ? Reasoning : Tool;
   const Trigger = entry.kind === 'reasoning' ? ReasoningTrigger : ToolTrigger;
   const Content = entry.kind === 'reasoning' ? ReasoningContent : ToolContent;
   return (
     <Root className="chat-activity-step" data-status={entry.status}>
       <Trigger className="chat-activity-step-trigger">
-        <TraceLine
-          className="flex-1"
-          status={
-            entry.status === 'running'
-              ? 'running'
-              : entry.status === 'failed'
-                ? 'error'
-                : entry.status === 'interrupted'
-                  ? 'pending'
-                  : undefined
-          }
-        >
+        <TraceLine className="flex-1" status={status}>
           <TraceIcon>
             <Icon className={entry.status === 'running' ? 'spin' : undefined} />
           </TraceIcon>
@@ -68,11 +50,4 @@ export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
       </Content>
     </Root>
   );
-};
-
-const outcomes = {
-  running: 'In progress',
-  completed: 'Finished',
-  failed: 'Tool failed',
-  interrupted: 'Outcome unavailable',
 };

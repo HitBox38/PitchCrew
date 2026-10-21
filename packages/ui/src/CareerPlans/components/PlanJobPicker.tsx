@@ -13,6 +13,7 @@ export const PlanJobPicker = ({
 }) => {
   const cards = useWorkspaceStore((s) => s.data?.cards ?? []);
   const [query, setQuery] = useState('');
+  const selectedIds = new Set(selected);
   const matching = cards.filter((c) =>
     `${c.company} ${c.title}`.toLowerCase().includes(query.toLowerCase()),
   );
@@ -27,8 +28,8 @@ export const PlanJobPicker = ({
         {matching.slice(0, 20).map((c) => (
           <label key={c.id} className="flex items-start gap-2">
             <Checkbox
-              checked={selected.includes(c.id)}
-              disabled={!selected.includes(c.id) && selected.length >= 100}
+              checked={selectedIds.has(c.id)}
+              disabled={!selectedIds.has(c.id) && selected.length >= 100}
               onCheckedChange={(checked) =>
                 change(checked ? [...selected, c.id] : selected.filter((id) => id !== c.id))
               }

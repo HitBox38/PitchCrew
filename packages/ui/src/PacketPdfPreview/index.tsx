@@ -12,6 +12,7 @@ const PacketPdfPreview = ({ bytes, name }: { bytes: string; name: string }) => {
   return (
     <div className="packet-pdf-preview max-h-160 space-y-3 overflow-y-auto rounded-xl p-3">
       {pages.map((page, index) => (
+        // react-doctor-disable-next-line react-doctor/no-array-index-as-key -- Pages are a fixed ordered snapshot; their page number is their identity.
         <figure key={index}>
           <img
             src={page}

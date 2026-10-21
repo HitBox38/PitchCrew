@@ -14,6 +14,7 @@ export const NotificationList = ({
   read: string[];
   onOpen: (item: CrewNotification) => void;
 }) => {
+  const readIds = new Set(read);
   if (!items.length)
     return (
       <p className="quiet notification-empty">
@@ -27,14 +28,14 @@ export const NotificationList = ({
           key={item.id}
           className="notification-context"
           data-context={item.context}
-          data-unread={!read.includes(item.id)}
+          data-unread={!readIds.has(item.id)}
         >
           <NotificationLink item={item} onOpen={onOpen} className="notification-link">
             <NotificationIcon context={item.context} />
             <span className="notification-item-content">
               <span className="notification-item-heading">
                 <strong>{item.title}</strong>
-                {!read.includes(item.id) ? (
+                {!readIds.has(item.id) ? (
                   <span className="notification-unread">
                     <span className="sr-only">Unread</span>
                   </span>

@@ -13,6 +13,7 @@ export const QuestionOptions = ({
   disabled: boolean;
   toggleOption: (id: string) => void;
 }) => {
+  const selectedIds = new Set(selected);
   return (
     <div className="user-question-options" aria-label="Suggested answers">
       {question.options.map((option) =>
@@ -20,10 +21,10 @@ export const QuestionOptions = ({
           <label
             key={option.id}
             className="user-question-option"
-            data-selected={selected.includes(option.id)}
+            data-selected={selectedIds.has(option.id)}
           >
             <Checkbox
-              checked={selected.includes(option.id)}
+              checked={selectedIds.has(option.id)}
               disabled={disabled}
               onCheckedChange={() => toggleOption(option.id)}
             />
@@ -37,7 +38,7 @@ export const QuestionOptions = ({
             key={option.id}
             variant="outline"
             className="user-question-option"
-            aria-pressed={selected.includes(option.id)}
+            aria-pressed={selectedIds.has(option.id)}
             disabled={disabled}
             onClick={() => toggleOption(option.id)}
           >
@@ -45,7 +46,7 @@ export const QuestionOptions = ({
               <strong>{option.label}</strong>
               {option.description ? <small>{option.description}</small> : null}
             </span>
-            {selected.includes(option.id) ? <Check size={15} /> : null}
+            {selectedIds.has(option.id) ? <Check size={15} /> : null}
           </Button>
         ),
       )}

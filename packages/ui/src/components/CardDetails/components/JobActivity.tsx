@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import type { CardDetailsModel } from '../types.ts';
 import { JobHistory } from './JobHistory.tsx';
 import { OutcomeActions } from './OutcomeActions.tsx';
@@ -14,9 +15,10 @@ export const JobActivity = (model: CardDetailsModel) => {
   const [submissionDirty, setSubmissionDirty] = useState(false);
   const [receiptDirty, setReceiptDirty] = useState(false);
   const { setActivityDirty } = model;
-  useEffect(() => {
-    setActivityDirty(lessonDirty || trackingDirty || submissionDirty || receiptDirty);
-  }, [lessonDirty, trackingDirty, submissionDirty, receiptDirty, setActivityDirty]);
+  useDirtyNotification(
+    lessonDirty || trackingDirty || submissionDirty || receiptDirty,
+    setActivityDirty,
+  );
   const uncertain = model.card.submissionAttempts?.some(
     (attempt) => attempt.status === 'uncertain',
   );

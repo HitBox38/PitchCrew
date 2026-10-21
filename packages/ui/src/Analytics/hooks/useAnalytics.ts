@@ -20,7 +20,7 @@ export const useAnalytics = () => {
   const [ready, setReady] = useState<{ config: typeof config } | null>(null);
   const page = useRouterState({ select: (state) => analyticsPage(state.location.pathname) });
   const data = useWorkspaceStore((state) => state.data);
-  const latestSetup = useRef(productSetupProperties(data));
+  const latestSetup = useRef<ReturnType<typeof productSetupProperties>>(undefined);
   const latestPage = useRef(page);
   useEffect(() => {
     latestSetup.current = productSetupProperties(data);

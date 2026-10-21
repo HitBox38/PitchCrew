@@ -43,10 +43,15 @@ it('queues a current user correction into an isolated draft, preserving before/a
     scope: 'resume',
   });
   let complete!: () => void;
+  let signalStarted!: () => void;
+  const started = new Promise<void>((resolve) => {
+    signalStarted = resolve;
+  });
   vi.spyOn(adapters.demo, 'chat').mockImplementation(
     () =>
       new Promise((resolve) => {
         complete = () => resolve({ reply: 'Queued the requested correction.' });
+        signalStarted();
       }),
   );
   const launches: RunContext[] = [];
@@ -60,7 +65,7 @@ it('queues a current user correction into an isolated draft, preserving before/a
       content: 'Please remove the generic opening. RAW-CHAT-DATA-SHOULD-NOT-BE-DRAFT-CONTEXT',
     })
   ).result;
-  await vi.waitFor(() => expect(complete).toBeDefined());
+  await started;
   const message = daemon.service.board
     .list<import('@pitchcrew/core').ChatMessage>('message')
     .find((m) => m.from === 'user' && m.cardId === card.id)!;

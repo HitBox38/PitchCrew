@@ -1,5 +1,5 @@
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
-import { closedStates } from '@/board-stages.ts';
+import { closedStateSet } from '@/board-stages.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useEffect } from 'react';
@@ -48,13 +48,13 @@ export const useBoardPage = () => {
     return () => clearTimeout(timer);
   }, [flashStage, setFlashStage, reduced]);
   if (!data) return null;
-  const active = data.cards.filter((c) => !closedStates.includes(c.state));
+  const active = data.cards.filter((c) => !closedStateSet.has(c.state));
   const filtered = data.cards.filter((c) =>
     `${c.company} ${c.title} ${c.location} ${c.tags.join(' ')}`
       .toLowerCase()
       .includes(query.toLowerCase()),
   );
-  const closed = filtered.filter((c) => closedStates.includes(c.state));
+  const closed = filtered.filter((c) => closedStateSet.has(c.state));
   const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
   return {
     jobMutations,

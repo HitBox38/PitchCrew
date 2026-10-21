@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import type { ReviewFinding } from '@pitchcrew/core';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 export const ReviewFindings = ({ findings }: { findings: ReviewFinding[] }) => {
@@ -6,8 +7,8 @@ export const ReviewFindings = ({ findings }: { findings: ReviewFinding[] }) => {
       <h3>Prioritized findings</h3>
       {findings.length ? (
         <ol className="grid list-decimal gap-5 pl-5">
-          {findings.map((item, index) => (
-            <li key={index} className="space-y-2 pl-1">
+          {keyedItems(findings, (item) => JSON.stringify(item)).map(({ item, key }) => (
+            <li key={key} className="space-y-2 pl-1">
               <p>
                 <strong>{item.severity === 'blocking' ? 'Blocker' : 'Suggestion'}</strong> ·{' '}
                 {item.perspectives.map((id) => reviewPerspectives[id]).join(', ')}

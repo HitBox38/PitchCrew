@@ -37,8 +37,9 @@ export const useBrowserPanel = (
   readOnly: boolean,
   preferredRoleId?: string,
 ) => {
+  const participantIds = new Set(participants);
   const roles = data.roles.filter(
-    (role) => participants.includes(role.id) && role.capabilities?.computerUse && !role.retiredAt,
+    (role) => participantIds.has(role.id) && role.capabilities?.computerUse && !role.retiredAt,
   );
   const enabled = !readOnly && roles.length > 0;
   const status = useBrowserSessions(thread, enabled);

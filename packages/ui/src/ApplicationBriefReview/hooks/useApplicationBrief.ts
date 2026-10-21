@@ -1,3 +1,4 @@
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { api } from '@/api.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { ExtractedJob } from '@pitchcrew/core';
@@ -31,10 +32,7 @@ export const useApplicationBrief = ({
   useEffect(() => {
     editingRef.current = editing;
   }, [editing]);
-  useEffect(() => {
-    onDirtyChange?.(editing);
-    return () => onDirtyChange?.(false);
-  }, [editing, onDirtyChange]);
+  useDirtyNotification(editing, onDirtyChange);
   const available = roles.filter(
     (role) =>
       role.enabled &&
@@ -42,7 +40,8 @@ export const useApplicationBrief = ({
       ['demo', 'codex', 'claude-code', 'opencode'].includes(role.runtime),
   );
   const [roleId, setRoleId] = useState(
-    available.find((role) => role.workflow === 'writer' || role.id === 'writer')?.id ??
+    () =>
+      available.find((role) => role.workflow === 'writer' || role.id === 'writer')?.id ??
       available[0]?.id ??
       '',
   );

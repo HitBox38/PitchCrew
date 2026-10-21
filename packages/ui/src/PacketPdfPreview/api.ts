@@ -26,11 +26,13 @@ export const renderPdf = async (bytes: string, signal: AbortSignal) => {
     const pages: string[] = [];
     for (let number = 1; number <= document.numPages; number++) {
       signal.throwIfAborted();
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- Sequential page rendering bounds canvas memory and preserves page order.
       const page = await document.getPage(number);
       const viewport = page.getViewport({ scale: 1.35 });
       const canvas = window.document.createElement('canvas');
       canvas.width = Math.ceil(viewport.width);
       canvas.height = Math.ceil(viewport.height);
+      // react-doctor-disable-next-line react-doctor/async-await-in-loop -- Release this page before allocating the next canvas.
       await page.render({ canvas, viewport }).promise;
       pages.push(canvas.toDataURL('image/png'));
       page.cleanup();

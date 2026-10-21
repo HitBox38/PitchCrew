@@ -1,16 +1,14 @@
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { Card } from '@pitchcrew/core';
 import { lessonLimits } from '@pitchcrew/core/insights';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export const useLessonDraft = (card: Card, onDirtyChange?: (dirty: boolean) => void) => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
   const [text, setText] = useState('');
-  useEffect(() => {
-    onDirtyChange?.(Boolean(text.trim()));
-    return () => onDirtyChange?.(false);
-  }, [text, onDirtyChange]);
+  useDirtyNotification(Boolean(text.trim()), onDirtyChange);
   const lessons = card.lessons ?? [];
   const full = lessons.length >= lessonLimits.count;
   const add = async () => {

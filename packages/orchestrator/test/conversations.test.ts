@@ -495,6 +495,7 @@ it('does not absorb input queued during summarization into the summary sources',
 });
 it('prioritizes queued user input over an older background routine', async () => {
   const { request } = await fixture();
+  await request('/queue/settings', 'PUT', { concurrency: 1 });
   const turns = heldTurns();
   await request('/conversations/scout/messages', 'POST', { content: 'Current work.' });
   await vi.waitFor(() => expect(turns).toHaveLength(1));

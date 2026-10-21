@@ -1,6 +1,7 @@
 import type { Routine } from '@pitchcrew/core';
 import { CalendarClock } from 'lucide-react';
 import { scheduleLabel } from '../helpers.ts';
+import { useMemo } from 'react';
 
 export const RoutineSchedule = ({
   routine,
@@ -9,12 +10,16 @@ export const RoutineSchedule = ({
   routine: Routine;
   lastStatus?: string;
 }) => {
-  const format = (instant: string) =>
-    new Intl.DateTimeFormat(undefined, {
-      timeZone: routine.timezone,
-      dateStyle: 'medium',
-      timeStyle: 'short',
-    }).format(new Date(instant));
+  const formatter = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        timeZone: routine.timezone,
+        dateStyle: 'medium',
+        timeStyle: 'short',
+      }),
+    [routine.timezone],
+  );
+  const format = (instant: string) => formatter.format(new Date(instant));
   return (
     <div className="routine-schedule flex min-w-0 flex-col gap-1.5">
       <p className="flex items-start gap-2 font-semibold">

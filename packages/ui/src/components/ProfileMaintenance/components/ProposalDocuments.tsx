@@ -14,6 +14,7 @@ export const ProposalDocuments = ({
   toggle: (name: string) => void;
   disabled: boolean;
 }) => {
+  const selectedNames = new Set(selected);
   return (
     <div className="grid gap-3">
       {proposal.documents.map((file) => (
@@ -30,7 +31,7 @@ export const ProposalDocuments = ({
           <label className="my-3 flex items-center gap-3">
             <Checkbox
               disabled={disabled}
-              checked={selected.includes(file.name)}
+              checked={selectedNames.has(file.name)}
               onCheckedChange={() => toggle(file.name)}
             />
             Apply this document

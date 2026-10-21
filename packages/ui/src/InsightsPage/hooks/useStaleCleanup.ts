@@ -41,8 +41,9 @@ export const useStaleCleanup = () => {
     );
   const apply = async () => {
     if (!preview) return;
+    const selectedIds = new Set(selected);
     const cards = preview.cards
-      .filter((card) => selected.includes(card.id))
+      .filter((card) => selectedIds.has(card.id))
       .map(({ id, updatedAt }) => ({ id, updatedAt }));
     try {
       await action(

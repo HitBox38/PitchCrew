@@ -4,23 +4,37 @@ import { formatRules } from '../helpers.ts';
 import type { PacketRulesController } from './usePacketRules.ts';
 
 export const useRuleForm = (document: RulesDocument, controller: PacketRulesController) => {
+  const [identity, setIdentity] = useState(() => ({
+    text: controller.text,
+    ids: document.rules.map((_, position) => position),
+    nextId: document.rules.length,
+  }));
+  if (identity.text !== controller.text) {
+    setIdentity({
+      text: controller.text,
+      ids: document.rules.map((_, position) => identity.nextId + position),
+      nextId: identity.nextId + document.rules.length,
+    });
+  }
+  const writeRules = (
+    rules: RulesDocument['rules'],
+    ids = identity.ids,
+    nextId = identity.nextId,
+  ) => {
+    const text = formatRules({ ...document, rules });
+    setIdentity({ text, ids, nextId });
+    controller.setText(text);
+  };
   const [kind, setKind] = useState<RuleKind>('word_limit');
   const [expanded, setExpanded] = useState<number[]>([]);
   const changeRule = (index: number, patch: Record<string, unknown>) =>
-    controller.setText(
-      formatRules({
-        ...document,
-        rules: document.rules.map((rule, position) =>
-          position === index ? { ...rule, ...patch } : rule,
-        ),
-      }),
+    writeRules(
+      document.rules.map((rule, position) => (position === index ? { ...rule, ...patch } : rule)),
     );
   const removeRule = (index: number) => {
-    controller.setText(
-      formatRules({
-        ...document,
-        rules: document.rules.filter((_, position) => position !== index),
-      }),
+    writeRules(
+      document.rules.filter((_, position) => position !== index),
+      identity.ids.filter((_, position) => position !== index),
     );
     setExpanded((current) =>
       current
@@ -38,8 +52,10 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
     );
   };
   const addRule = () => {
-    controller.setText(
-      formatRules({ ...document, rules: [...document.rules, newRule(kind, document.rules)] }),
+    writeRules(
+      [...document.rules, newRule(kind, document.rules)],
+      [...identity.ids, identity.nextId],
+      identity.nextId + 1,
     );
     setExpanded((current) => [...current, document.rules.length]);
     const field =
@@ -52,5 +68,14 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
       window.document.getElementById(ruleFormKey(document.rules.length, field))?.focus(),
     );
   };
-  return { kind, setKind, expanded, setExpanded, changeRule, removeRule, addRule };
+  return {
+    rows: document.rules.map((rule, index) => ({ rule, index, id: identity.ids[index] })),
+    kind,
+    setKind,
+    expanded,
+    setExpanded,
+    changeRule,
+    removeRule,
+    addRule,
+  };
 };

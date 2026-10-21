@@ -1,3 +1,4 @@
+import { queueActivityDescription } from './helpers.ts';
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { Snapshot } from '@pitchcrew/core';
@@ -39,9 +40,7 @@ export const QueueWidget = ({ data }: { data: Snapshot }) => {
           </span>
         </div>
         <PopoverDescription className="quiet text-xs">
-          {agents.length
-            ? `${agents.length} agent ${agents.length === 1 ? 'run' : 'runs'} across ${running.length} active ${running.length === 1 ? 'queue' : 'queues'}.`
-            : 'Independent jobs and conversations work in parallel.'}
+          {queueActivityDescription(agents.length, running.length)}
         </PopoverDescription>
         <QueueSlots queue={queue} />
         {queue.background ? (

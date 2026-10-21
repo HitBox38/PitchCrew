@@ -16,6 +16,6 @@ export const useMemoryEntry = (note: AgentMemory, action: Action) => {
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [content, setContent] = useState(note.content);
-  const [tags, setTags] = useState(note.tags.join(', '));
+  const [tags, setTags] = useState(() => note.tags.join(', '));
   return { editing, setEditing, deleting, setDeleting, content, setContent, tags, setTags, save };
 };

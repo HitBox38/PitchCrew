@@ -6,10 +6,15 @@ export const useQueueOrder = <T extends { id: string }>(
 ) => {
   const [order, setOrder] = useState<string[] | null>(null);
   const [busy, setBusy] = useState(false);
+  const orderedIds = new Set(order);
+  const itemsById = new Map(items.map((item) => [item.id, item]));
   const visible = order
     ? [
-        ...order.flatMap((id) => items.filter((i) => i.id === id)),
-        ...items.filter((i) => !order.includes(i.id)),
+        ...order.flatMap((id) => {
+          const item = itemsById.get(id);
+          return item ? [item] : [];
+        }),
+        ...items.filter((i) => !orderedIds.has(i.id)),
       ]
     : items;
   const move = async (id: string, beforeId: string | null) => {

@@ -1,6 +1,8 @@
 import type { DiagnosticSink, Run } from '@pitchcrew/core';
 import { durationLimitMs, runOutcomes, sanitizeRunMetric } from './sanitize.ts';
 
+const completedOutcomes: ReadonlySet<string> = new Set(runOutcomes);
+
 type ObservedRun = Pick<Run, 'id' | 'status' | 'mode' | 'startedAt' | 'finishedAt'>;
 
 /** Observe only active runs first seen after this observer was installed. IDs stay local.
@@ -41,7 +43,7 @@ export const createRunMetrics = (
           entry = { start, finished: false };
           observed.set(run.id, entry);
         }
-        if (entry.finished || !runOutcomes.includes(run.status as never)) continue;
+        if (entry.finished || !completedOutcomes.has(run.status)) continue;
         entry.finished = true;
         const finish = run.finishedAt ? Date.parse(run.finishedAt) : NaN;
         const elapsed = finish - entry.start;

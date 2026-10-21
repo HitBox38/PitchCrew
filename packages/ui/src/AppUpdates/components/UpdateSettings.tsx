@@ -1,3 +1,4 @@
+import { currentVersionLabel, updateStatusMessage } from '../helpers.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -26,14 +27,7 @@ export const UpdateSettings = () => {
           <RefreshCw size={15} aria-hidden="true" /> {loading ? 'Checking…' : 'Check for updates'}
         </Button>
       </div>
-      <p className="quiet">
-        {native?.enabled
-          ? `Version ${native.currentVersion}`
-          : info
-            ? `Version ${info.current.version}${info.current.commit ? ` · Build ${info.current.commit.slice(0, 12)}` : ' · Build unknown'}`
-            : 'Loading version…'}
-        {!native?.enabled && info && !info.current.packaged ? ' · Source checkout' : ''}
-      </p>
+      <p className="quiet">{currentVersionLabel(info, native)}</p>
       <label className="settings-row" htmlFor="automatic-updates" aria-label="Check automatically">
         <span>
           <strong>Check automatically</strong>
@@ -56,8 +50,7 @@ export const UpdateSettings = () => {
         </p>
       ) : null}
       <output className="info-note block" aria-live="polite">
-        {error ||
-          (loading ? 'Checking for updates…' : native?.enabled ? native.message : info?.message)}
+        {updateStatusMessage(info, native, loading, error)}
       </output>
       {info?.checkedAt ? (
         <p className="quiet">Last checked {new Date(info.checkedAt).toLocaleString()}.</p>

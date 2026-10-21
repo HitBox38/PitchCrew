@@ -26,6 +26,7 @@ const data = {
   skills: [{ id: check.skillId, name: 'Example', source, deletedAt: null }],
   skillUpdates: { automatic: true, checking: false, checks: [check] },
   roles: [],
+  cards: [],
   messages: [],
   approvals: [],
   computerApprovals: [],

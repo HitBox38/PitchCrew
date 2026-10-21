@@ -17,7 +17,7 @@ export const AgentMemory = ({ roleId }: { roleId: string }) => {
         Open memory
       </Button>
       {open && data ? (
-        <AgentMemoryPanel data={data} roleId={roleId} close={() => setOpen(false)} />
+        <AgentMemoryPanel key={roleId} data={data} roleId={roleId} close={() => setOpen(false)} />
       ) : null}
     </section>
   );
@@ -33,6 +33,7 @@ const AgentMemoryPanel = ({
 }) => {
   const action = useWorkspaceStore((state) => state.action);
   const working = useWorkspaceStore((state) => state.working);
+  // react-doctor-disable-next-line react-doctor/no-derived-useState -- The notebook starts at this agent and then owns its selection.
   const [selectedRole, setSelectedRole] = useState(roleId);
   const { openChat } = useWorkspaceNavigation();
   return (

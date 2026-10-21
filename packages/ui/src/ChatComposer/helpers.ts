@@ -13,11 +13,11 @@ export const composerSuggestions = (
   const mentions = chatTokens(text)
     .filter((token) => token.symbol === '@')
     .map((token) => token.query);
-  const targets = mentions.length
-    ? participants.filter((id) => mentions.includes(id))
-    : participants;
+  const mentionIds = new Set(mentions);
+  const participantIds = new Set(participants);
+  const targets = mentions.length ? participants.filter((id) => mentionIds.has(id)) : participants;
   const agents = roles
-    .filter((role) => participants.includes(role.id))
+    .filter((role) => participantIds.has(role.id))
     .map((role) => ({
       key: `agent:${role.id}`,
       label: role.name,
@@ -25,8 +25,9 @@ export const composerSuggestions = (
       disabled: unavailable(role),
       reference: { kind: 'agent' as const, id: role.id, token: `@${role.id}`, label: role.name },
     }));
+  const targetIds = new Set(targets);
   const eligibleTargets = roles
-    .filter((role) => targets.includes(role.id) && !unavailable(role))
+    .filter((role) => targetIds.has(role.id) && !unavailable(role))
     .map((role) => role.id);
   const available = skills.filter(
     (skill) =>

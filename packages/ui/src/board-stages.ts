@@ -8,6 +8,7 @@ export type BoardStage = {
   empty: string;
 };
 export const closedStates: CardState[] = ['rejected', 'withdrawn', 'ghosted'];
+export const closedStateSet: ReadonlySet<CardState> = new Set(closedStates);
 export const stages: BoardStage[] = [
   {
     id: 'lead',
