@@ -26,7 +26,7 @@ export const registerSessionSecurity = (
     res.raw.setHeader('X-Content-Type-Options', 'nosniff');
     res.raw.setHeader('Referrer-Policy', 'no-referrer');
     const path = req.url.split('?')[0];
-    if (path === '/api/health' || path === '/api/agent') return;
+    if (path === '/api/health' || path === '/api/agent' || path === '/api/external-mcp') return;
     const cookie = req.cookies.pitchcrew_session;
     if (path.startsWith('/api/')) {
       if (!cookie || !sessions.has(cookie) || req.headers['x-pitchcrew-client'] !== 'ui') {

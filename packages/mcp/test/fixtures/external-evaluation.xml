@@ -1,0 +1,42 @@
+<evaluation>
+  <qa_pair>
+    <question>In the unchanged six-job example workspace, which employer is still a lead and describes a shared scheduling product supported by the candidate's Profile experience?</question>
+    <answer>Orbit Labs</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>In the unchanged example workspace, what exact salary range belongs to the shortlisted hybrid role in Germany whose responsibilities match the Profile's reusable component and interaction documentation experience?</question>
+    <answer>€80k–€100k</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Which employer in the unchanged example workspace has a packet under review and a posting focused on frontend architecture and responsiveness, backed by the Profile's profiling experience?</question>
+    <answer>Northstar</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What is the job title for the unchanged example workspace's agreed application at the hybrid London employer, whose posting matches the Profile's cross-functional product collaboration?</question>
+    <answer>Product Engineer</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Which employer in the unchanged example workspace is awaiting approval and offers worldwide remote work on scheduling interfaces and reusable components supported by the candidate's Profile?</question>
+    <answer>Waypoint</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>What exact salary range does the unchanged example workspace's interviewing employer offer for the Netherlands hybrid role, whose posting matches the Profile's TypeScript and rendering optimization experience?</question>
+    <answer>€70k–€90k</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Among jobs with saved packets in the unchanged example workspace, how many have a fit score of at least 80 and have not reached submitted or interviewing?</question>
+    <answer>1</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Among unchanged example jobs with saved packets and dollar-denominated salaries, what is the exact salary range with the highest upper bound?</question>
+    <answer>$120k–$150k</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>How many jobs in the unchanged example workspace both list React in their tags and offer fully remote work, matching the candidate's Profile language and interface experience?</question>
+    <answer>2</answer>
+  </qa_pair>
+  <qa_pair>
+    <question>Find the highest-fit example job that already has a saved packet. What candidate name appears in the Profile that supports that packet's claims?</question>
+    <answer>Alex Morgan</answer>
+  </qa_pair>
+</evaluation>

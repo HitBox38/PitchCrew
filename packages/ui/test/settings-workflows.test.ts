@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vi
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { ConnectorStatus, PacketRules, Role } from '@pitchcrew/core';
+import type { ConnectorStatus, ExternalMcpInfo, PacketRules, Role } from '@pitchcrew/core';
 import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
 
 const cache = vi.hoisted(() => ({ directory: '' }));
@@ -243,4 +243,35 @@ test('mobile source editing protects drafts and removal explains that leads stay
   );
   await remove.getByRole('button', { name: 'Keep source', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+}, 30000);
+
+test('external agent access is opt-in, exposes a copyable configuration and revokes from Settings', async () => {
+  await host.request('/external-mcp/access', 'PUT', { enabled: false, write: false });
+  await open('accounts');
+  const enabled = page.getByRole('switch', { name: 'Allow external agents', exact: true });
+  const write = page.getByRole('switch', { name: 'Allow changes and crew messages', exact: true });
+  await enabled.waitFor();
+  await expect.poll(() => enabled.isEnabled(), { timeout: 10000 }).toBe(true);
+  expect(await enabled.isChecked()).toBe(false);
+  expect(await write.isDisabled()).toBe(true);
+  await enabled.click();
+  const configuration = page.getByLabel('Pitchcrew MCP configuration', { exact: true });
+  await configuration.waitFor();
+  const initial = await host.request<ExternalMcpInfo>('/external-mcp/access');
+  expect(initial.result).toMatchObject({ enabled: true, write: false });
+  expect(JSON.parse((await configuration.textContent())!)).toEqual(initial.result.configuration);
+  await page
+    .getByRole('button', { name: 'Copy Pitchcrew MCP configuration', exact: true })
+    .waitFor();
+  await write.click();
+  await expect
+    .poll(async () => (await host.request<ExternalMcpInfo>('/external-mcp/access')).result.write)
+    .toBe(true);
+  await enabled.click();
+  await configuration.waitFor({ state: 'detached' });
+  expect((await host.request<ExternalMcpInfo>('/external-mcp/access')).result).toMatchObject({
+    enabled: false,
+    write: false,
+  });
+  expect(await write.isDisabled()).toBe(true);
 }, 30000);

@@ -1,5 +1,6 @@
 import { registerRuntimeMaintenanceRoutes } from './http/routes/runtime-maintenance.ts';
 import { registerSnapshot } from './http/snapshot.ts';
+import { registerExternalMcpRoutes } from './http/routes/external-mcp.ts';
 import { recordOperationalLog } from './telemetry/logs.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
@@ -120,6 +121,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
       sessions,
     );
     registerJsonBody(app);
+    app.register(async (routes) => registerExternalMcpRoutes(routes, service));
     app.get('/api/health', () => ({
       app: 'pitchcrew',
       version: '0.1.0',

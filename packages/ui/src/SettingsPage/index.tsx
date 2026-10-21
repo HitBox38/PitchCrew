@@ -2,6 +2,7 @@ import { WritingSettings } from '@/WritingSettings/index.tsx';
 import { BackgroundServiceSettings } from '@/BackgroundServiceSettings/index.tsx';
 import { AnalyticsSettings } from '@/Analytics/components/AnalyticsSettings.tsx';
 import { ConnectorSettings } from '@/ConnectorSettings/index.tsx';
+import { ExternalMcpSettings } from '@/ExternalMcpSettings/index.tsx';
 import { JobSourcesSettings } from '@/JobSourcesSettings/index.tsx';
 import { PacketRulesSettings } from '@/PacketRules/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
@@ -66,6 +67,7 @@ export const SettingsPage = () => {
       </TabsContent>
       <TabsContent className="settings-content" value="accounts">
         <ConnectorSettings data={data} action={action} working={working} />
+        <ExternalMcpSettings />
       </TabsContent>
       <TabsContent className="settings-content" value="sources">
         <JobSourcesSettings />

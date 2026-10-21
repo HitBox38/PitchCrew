@@ -12,6 +12,7 @@ export const createCard = (
   context: BoardContext,
   input: CardInput,
   sample: boolean = false,
+  actor = 'user',
 ): Card => {
   const now = new Date().toISOString();
   const card: Card = {
@@ -26,7 +27,7 @@ export const createCard = (
     updatedAt: now,
     sample,
   };
-  context.record('card', card, 'user', `Added ${card.company} to the board`);
+  context.record('card', card, actor, `Added ${card.company} to the board`);
   return card;
 };
 export const updateCard = (
