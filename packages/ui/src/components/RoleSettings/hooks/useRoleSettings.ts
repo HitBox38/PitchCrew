@@ -1,3 +1,4 @@
+import { roleSettingsDirty } from '../helpers.ts';
 import { workflowSeat } from '@pitchcrew/core/states';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { capabilityDefaults } from '@/agent-capabilities.ts';
@@ -64,7 +65,7 @@ export const useRoleSettings = ({
   const [id, setId] = useState(role.id);
   const [name, setName] = useState(role.name);
   const [description, setDescription] = useState(role.description);
-  const [workflow, setWorkflow] = useState(workflowSeat(role));
+  const [workflow, setWorkflow] = useState(() => workflowSeat(role));
   const [retiring, setRetiring] = useState(false);
   const [runtime, setRuntime] = useState(role.runtime);
   const [model, setModel] = useState(role.model);
@@ -80,21 +81,22 @@ export const useRoleSettings = ({
     setDefaultInstructionDraft({ revision, previous });
   const [capabilities, setCapabilities] = useState({ ...capabilityDefaults, ...role.capabilities });
   const [error, setError] = useState('');
-  const dirty =
-    id !== role.id ||
-    name !== role.name ||
-    description !== role.description ||
-    workflow !== workflowSeat(role) ||
-    runtime !== role.runtime ||
-    model !== role.model ||
-    reasoning !== (role.reasoning ?? null) ||
-    enabled !== role.enabled ||
-    browserMode !== (role.browserMode ?? 'supervised') ||
-    instructions !== role.instructions ||
-    JSON.stringify(capabilities) !==
-      JSON.stringify({ ...capabilityDefaults, ...role.capabilities });
+  const dirty = roleSettingsDirty(role, {
+    id,
+    name,
+    description,
+    workflow,
+    runtime,
+    model,
+    reasoning,
+    enabled,
+    browserMode,
+    instructions,
+    capabilities,
+  });
   const guard = useUnsavedChanges(dirty, onClose);
   useEffect(() => {
+    // react-doctor-disable-next-line react-doctor/no-pass-live-state-to-parent -- This registers a navigation guard; no editable value is forwarded.
     registerLeaveGuard?.(guard.requestLeave);
     return () => registerLeaveGuard?.(null);
   }, [registerLeaveGuard, guard.requestLeave]);

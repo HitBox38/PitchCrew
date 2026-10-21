@@ -24,6 +24,7 @@ export const useSourceList = (open: boolean) => {
       if (!signal?.aborted && request === revision.current)
         setListError(error instanceof Error ? error.message : 'Could not load profile sources.');
     } finally {
+      // react-doctor-disable-next-line react-doctor/no-loading-flag-reset-outside-finally -- This finally must not clear a newer request’s loading state.
       if (!signal?.aborted && request === revision.current) setLoading(false);
     }
   }, []);

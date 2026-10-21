@@ -1,6 +1,5 @@
 import type { Run } from '@pitchcrew/core';
-import { Check, CircleDashed, LoaderCircle, Square, X } from 'lucide-react';
-import { activityGroups } from './helpers.ts';
+import { activityGroups, turnStatus } from './helpers.ts';
 import { ActivityGroup } from './components/ActivityGroup.tsx';
 import { TurnDuration } from './components/TurnDuration.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
@@ -17,29 +16,7 @@ export const ChatTurn = ({
   replying: boolean;
 }) => {
   const active = run.status === 'running';
-  const phase = run.activity?.findLast(
-    (entry) => entry.status === 'running' && entry.kind !== 'commentary',
-  );
-  const status = active
-    ? replying
-      ? 'Replying…'
-      : (phase?.label ?? (run.message || 'Working…'))
-    : run.status === 'waiting'
-      ? 'Waiting for you'
-      : run.status === 'cancelled'
-        ? 'Stopped'
-        : run.status === 'failed'
-          ? 'Failed'
-          : 'Completed';
-  const Icon = active
-    ? LoaderCircle
-    : run.status === 'failed'
-      ? X
-      : run.status === 'cancelled'
-        ? Square
-        : run.status === 'waiting'
-          ? CircleDashed
-          : Check;
+  const { Icon, status } = turnStatus(run, replying);
   const groups = activityGroups(run.activity ?? []);
   return (
     <section

@@ -38,6 +38,7 @@ export const CodeBlockContent = ({
           ? children
               .replace(/\n$/, '')
               .split('\n')
+              // react-doctor-disable-next-line react-doctor/no-array-index-as-key -- Each row represents a numbered line of the current code snapshot.
               .map((line, index) => <CodeBlockLine key={index}>{line}</CodeBlockLine>)
           : children}
       </code>

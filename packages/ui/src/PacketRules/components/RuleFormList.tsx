@@ -47,9 +47,9 @@ export const RuleFormList = ({
         onValueChange={model.setExpanded}
         className="packet-rule-forms"
       >
-        {document.rules.map((rule, index) => (
+        {model.rows.map(({ rule, index, id }) => (
           <RuleFormItem
-            key={index}
+            key={id}
             rule={rule}
             index={index}
             change={(patch) => model.changeRule(index, patch)}

@@ -44,6 +44,7 @@ execFileSync(
 );
 const env: NodeJS.ProcessEnv = {
   ...process.env,
+  PITCHCREW_POSTHOG_DISABLED: '1',
   PITCHCREW_HOME: join(directory, 'workspace'),
   PITCHCREW_PORT: String(port),
   PITCHCREW_SEED_SKILLS: '0',

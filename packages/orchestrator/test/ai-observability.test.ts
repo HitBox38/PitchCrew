@@ -123,6 +123,8 @@ describe('AI runtime boundaries', () => {
       outcome: 'failed',
       $ai_is_error: true,
       $ai_latency: 4,
+      failure_category: 'other',
+      $ai_error: 'other',
     });
     expect(JSON.stringify(f.record.mock.calls)).not.toMatch(/private|resume|phx/);
   });

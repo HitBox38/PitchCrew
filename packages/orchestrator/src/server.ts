@@ -1,5 +1,7 @@
 import { registerRuntimeMaintenanceRoutes } from './http/routes/runtime-maintenance.ts';
 import { registerSnapshot } from './http/snapshot.ts';
+import { registerExternalMcpRoutes } from './http/routes/external-mcp.ts';
+import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { recordOperationalLog } from './telemetry/logs.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
@@ -93,7 +95,13 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
   const http = app.server;
   const sessions = new Set<string>();
   const chatStreams = new Set<ServerResponse>();
-  http.once('listening', () => service.startScheduler());
+  http.once('listening', () => {
+    // Account probes can take seconds and are not required to render the workspace.
+    // Every launch still joins the same authentication request through guard(); close()
+    // aborts and drains these probes with the other maintenance work.
+    void service.runtimeMaintenance.initializeAuthentication().catch(() => {});
+    service.startScheduler();
+  });
   app.addHook('preClose', async () => {
     // Node listen() does not set Fastify's listening flag, so its forced cleanup is skipped.
     // Stop accepting first, then close HTTP connections; Vite closes upgraded HMR sockets.
@@ -105,9 +113,23 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
   });
   app.setErrorHandler((error, _req, res) => {
     if (res.raw.headersSent) return;
-    recordOperationalLog(diagnostics, { code: 'http_request_failed', area: 'http' });
+    const statusCode =
+      error && typeof error === 'object' && 'statusCode' in error ? error.statusCode : undefined;
+    const status =
+      typeof statusCode === 'number' &&
+      Number.isInteger(statusCode) &&
+      statusCode >= 400 &&
+      statusCode <= 599
+        ? statusCode
+        : 400;
+    recordOperationalLog(diagnostics, {
+      code: 'http_request_failed',
+      area: 'http',
+      http_status: status,
+      failure_category: failureCategory(error),
+    });
     return res
-      .status(400)
+      .status(status)
       .send({ error: error instanceof Error ? error.message : 'Request failed.' });
   });
   try {
@@ -120,6 +142,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
       sessions,
     );
     registerJsonBody(app);
+    app.register(async (routes) => registerExternalMcpRoutes(routes, service));
     app.get('/api/health', () => ({
       app: 'pitchcrew',
       version: '0.1.0',

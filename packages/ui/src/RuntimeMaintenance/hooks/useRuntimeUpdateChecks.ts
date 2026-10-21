@@ -9,6 +9,7 @@ export const useRuntimeUpdateChecks = () => {
     (state) => state.data?.runtimeMaintenance?.automatic ?? false,
   );
   const enabled = useWorkspaceStore((state) => state.data?.runtimeMaintenance?.enabled ?? false);
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup -- Cleanup clears the timer and prevents rescheduling after disposal.
   useEffect(() => {
     if (!automatic || !enabled) return;
     let active = true;

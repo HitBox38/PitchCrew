@@ -100,8 +100,8 @@ export class Board {
   rebuild = (): void => {
     return this.context.rebuild();
   };
-  createCard = (input: CardInput, sample?: boolean): Card => {
-    return this.context.createCard(input, sample);
+  createCard = (input: CardInput, sample?: boolean, actor?: string): Card => {
+    return this.context.createCard(input, sample, actor);
   };
   updateCard = (
     id: string,

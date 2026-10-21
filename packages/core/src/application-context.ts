@@ -3,9 +3,14 @@ import type { Card } from './cards.ts';
 export const missingPersonalAnswers = (context: ApplicationContext) => {
   return context.requirements.filter((r) => r.required && r.personal && !r.answer.trim());
 };
-/** User-approved reference data only. Never return flagged excerpts or source descriptions. */
+/** Allowlisted application reference data; never include flagged excerpts or source descriptions. */
 export const draftingCard = (card: Card, purpose = 'application-review'): Card => {
   const context = card.applicationContext;
+  const packet =
+    purpose === 'application-review' ||
+    (purpose === 'application-draft' && card.packetContextRevision === context?.revision)
+      ? card.packet
+      : null;
   return {
     id: card.id,
     company: card.company,
@@ -18,12 +23,10 @@ export const draftingCard = (card: Card, purpose = 'application-review'): Card =
     state: card.state,
     fit: null,
     owner: card.owner,
-    packet:
-      purpose === 'application-review' ||
-      (purpose === 'application-draft' && card.packetContextRevision === context?.revision)
-        ? card.packet
-        : null,
-    feedback: [],
+    packet,
+    // Revision findings travel with the current draft, never fit feedback or a stale packet.
+    // Reviewer still starts independently without inheriting the previous verdict.
+    feedback: purpose === 'application-draft' && context && packet ? [...card.feedback] : [],
     createdAt: card.createdAt,
     updatedAt: card.updatedAt,
     sample: card.sample,

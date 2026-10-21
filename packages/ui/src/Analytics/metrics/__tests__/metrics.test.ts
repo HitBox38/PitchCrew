@@ -17,12 +17,13 @@ describe('deliberate request metrics', () => {
       () => clock,
     );
     clock = 99;
-    finish('http_error');
+    finish('http_error', 409);
     finish('success');
     expect(record).toHaveBeenCalledExactlyOnceWith('api_request_finished', {
       operation: 'chat_sent',
       result: 'http_error',
       duration_ms: 87,
+      http_status: 409,
     });
   });
   it('never measures automatic reads, previews, browser input or lease renewal', () => {

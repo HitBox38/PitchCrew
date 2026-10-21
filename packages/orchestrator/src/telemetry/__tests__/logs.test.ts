@@ -1,8 +1,43 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createTelemetryBuffer } from '../buffer.ts';
 import { recordOperationalLog, sanitizeLogObservation } from '../logs.ts';
+import { failureCategory } from '@pitchcrew/core/operational-logs';
 
 describe('content-free operational logs', () => {
+  it('keeps bounded failure details and drops private diagnostic input', () => {
+    expect(failureCategory(new Error('Runtime exited with code 1.'))).toBe('process_exit');
+    expect(failureCategory(new Error('private provider stderr'))).toBe('other');
+    expect(
+      failureCategory(
+        Object.assign(new Error('private provider stderr'), { code: 'PITCHCREW_RUNTIME_EXIT' }),
+      ),
+    ).toBe('process_exit');
+    expect(failureCategory(Object.assign(new Error('/private/cli'), { code: 'ENOENT' }))).toBe(
+      'executable_missing',
+    );
+    expect(
+      sanitizeLogObservation('operational_log', {
+        code: 'http_request_failed',
+        area: 'http',
+        http_status: 503,
+        failure_category: 'timeout',
+        message: 'private',
+      }),
+    ).toEqual({
+      code: 'http_request_failed',
+      area: 'http',
+      http_status: 503,
+      failure_category: 'timeout',
+    });
+    expect(
+      sanitizeLogObservation('operational_log', {
+        code: 'http_request_failed',
+        area: 'http',
+        http_status: 999,
+        failure_category: '/private/error',
+      }),
+    ).toEqual({ code: 'http_request_failed', area: 'http' });
+  });
   it('rebuilds fixed codes, rejecting unknown codes and mismatched areas', () => {
     expect(
       sanitizeLogObservation('operational_log', {

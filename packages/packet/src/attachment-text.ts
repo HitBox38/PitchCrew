@@ -1,5 +1,5 @@
 import { chatAttachmentLimits } from '@pitchcrew/core/chat-attachments';
-import { fileURLToPath } from 'node:url';
+import { pdfOptions } from './pdf-options.ts';
 
 /** Plain text only: never render HTML, follow document links or enable external file access. */
 export const attachmentText = async (bytes: Uint8Array, mimeType: string) => {
@@ -11,19 +11,7 @@ export const attachmentText = async (bytes: Uint8Array, mimeType: string) => {
   }
   if (mimeType === 'application/pdf') {
     const pdf = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    const options = {
-      data: new Uint8Array(bytes),
-      isEvalSupported: false,
-      useSystemFonts: false,
-      useWorkerFetch: false,
-      disableFontFace: true,
-      useWasm: false,
-      enableXfa: false,
-      standardFontDataUrl: fileURLToPath(
-        new URL('../../standard_fonts/', import.meta.resolve('pdfjs-dist/legacy/build/pdf.mjs')),
-      ),
-    };
-    const task = pdf.getDocument(options);
+    const task = pdf.getDocument(pdfOptions(bytes));
     try {
       const document = await task.promise;
       let text = '';

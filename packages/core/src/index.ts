@@ -6,6 +6,7 @@ export * from './application-context.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';
+export type { DesktopLinkBridge, DesktopLinkBlockedReason } from './desktop-links.ts';
 export * from './reasoning.ts';
 export type { OnboardingState } from './onboarding.ts';
 export { defaultInstructionRevisionId, instructionUpdateDecision } from './default-instructions.ts';
@@ -150,3 +151,4 @@ export * from './runtime-maintenance.ts';
 export { checkLinkedInDraft, linkedInDraftInput, linkedInFieldLimits } from './linkedin-draft.ts';
 
 export type { ChatReference, ChatReferenceInput } from './chat-references.ts';
+export type { ExternalMcpInfo } from './external-mcp.ts';

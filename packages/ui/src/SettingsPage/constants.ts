@@ -16,7 +16,7 @@ export const settingsSections = [
     description: 'Appearance and notifications',
     icon: SlidersHorizontal,
   },
-  { id: 'accounts', label: 'Accounts', description: 'Connected source material', icon: Link },
+  { id: 'accounts', label: 'Accounts', description: 'Services and external agents', icon: Link },
   { id: 'sources', label: 'Job sources', description: 'Boards your crew watches', icon: Radar },
   { id: 'runtimes', label: 'Runtimes', description: 'CLI setup and updates', icon: Terminal },
   { id: 'writing', label: 'Writing', description: 'Your shared writing guide', icon: ListChecks },

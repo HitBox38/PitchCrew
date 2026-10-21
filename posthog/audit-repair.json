@@ -1,0 +1,252 @@
+{
+  "project_id": 295060,
+  "date": "2026-10-21",
+  "branch": "fix/posthog-audit",
+  "state": "code pending release; live reporting repairs applied",
+  "code_changes": [
+    "CI and native smoke launches force app telemetry offline; CI landing builds use an empty public token, with a production configuration guard for app CI/smoke mode.",
+    "Authentication warmup starts after HTTP readiness; run guards and shutdown draining remain.",
+    "Optional bounded HTTP status and failure category; native AI error labels contain fixed values only.",
+    "Public landing /relay rewrites target only fixed EU hosts; existing HTTPS host override remains.",
+    "Opt-in daily engineering collection at 05:23 UTC with two-day overlap after default-branch release."
+  ],
+  "live_changes": {
+    "authorized_app_urls": ["https://pitch-crew.tomer-norman.dev"],
+    "primary_dashboard": 999476,
+    "coverage_notes_updated": [999476, 999570, 999571, 999572, 999694, 1018295, 1018299, 1018318],
+    "startup_insight": {
+      "id": 6694725,
+      "short_id": "4imW7uui",
+      "dashboard_id": 999694,
+      "sample_count_insight_id": 6732989
+    },
+    "mcp_quality": {
+      "id": 6518722,
+      "short_id": "cUsgdtf4",
+      "having": "calls >= 20 OR rejected_calls > 0",
+      "verified_rejected_tools": 5,
+      "verified_rejections": 11
+    },
+    "quality_checks": [
+      {
+        "name": "pitchcrew_startup_timing_bounds",
+        "id": "01a15dd1-4119-76e2-9281-88a90e089999",
+        "query": "SELECT event, count() AS invalid_observations FROM events WHERE timestamp >= now() - INTERVAL 7 DAY AND event = 'app_startup_finished' AND (properties.duration_ms IS NULL OR toFloat(properties.duration_ms) < 0 OR toFloat(properties.duration_ms) > 86400000 OR (properties.daemon_ready_ms IS NOT NULL AND (toFloat(properties.daemon_ready_ms) < 0 OR toFloat(properties.daemon_ready_ms) > toFloat(properties.duration_ms)))) GROUP BY event HAVING invalid_observations > 0",
+        "last_status": "passed",
+        "severity": "warn"
+      },
+      {
+        "name": "pitchcrew_request_metric_contract",
+        "id": "01a15dd1-4465-7626-b0f2-479f1fb3ba3a",
+        "query": "SELECT event, count() AS invalid_observations FROM events WHERE timestamp >= now() - INTERVAL 7 DAY AND event = 'api_request_finished' AND (properties.result NOT IN ('success', 'http_error', 'network_error', 'invalid_response', 'aborted') OR properties.result IS NULL OR properties.duration_ms IS NULL OR toFloat(properties.duration_ms) < 0 OR toFloat(properties.duration_ms) > 86400000) GROUP BY event HAVING invalid_observations > 0",
+        "last_status": "passed",
+        "severity": "warn"
+      },
+      {
+        "name": "pitchcrew_engineering_import_freshness",
+        "id": "01a15dd1-47de-7498-be67-e4e4cf9b5fb2",
+        "query": "SELECT 'engineering_ci_import' AS source, dateDiff('hour', max(timestamp), now()) AS age_hours FROM events WHERE event = 'pitchcrew_ci_run_completed' AND timestamp >= now() - INTERVAL 14 DAY HAVING count() = 0 OR age_hours > 72",
+        "last_status": "passed",
+        "severity": "warn"
+      }
+    ],
+    "alerts": [
+      {
+        "id": "01a15dd3-fa18-0000-98bb-583dc4e49102",
+        "name": "Pitchcrew \u00b7 observed run failures (daily)",
+        "insight_id": 6732758,
+        "enabled": true,
+        "calculation_interval": "daily",
+        "next_check_at": "2026-10-22T06:00:00Z",
+        "config": {
+          "check_ongoing_interval": false,
+          "series_index": 0,
+          "type": "TrendsAlertConfig"
+        },
+        "threshold": {
+          "bounds": {
+            "upper": 0
+          },
+          "type": "absolute"
+        }
+      },
+      {
+        "id": "01a15dd3-fdb2-0000-cfa5-9c8491378955",
+        "name": "Pitchcrew \u00b7 observed startup over 10s (daily)",
+        "insight_id": 6732760,
+        "enabled": true,
+        "calculation_interval": "daily",
+        "next_check_at": "2026-10-22T06:00:00Z",
+        "config": {
+          "check_ongoing_interval": false,
+          "series_index": 0,
+          "type": "TrendsAlertConfig"
+        },
+        "threshold": {
+          "bounds": {
+            "upper": 0
+          },
+          "type": "absolute"
+        }
+      }
+    ],
+    "engineering": {
+      "repository_variables_enabled": true,
+      "lookback_days": 10,
+      "sent_counts": {
+        "pitchcrew_ci_run_completed": 109,
+        "pitchcrew_ci_job_completed": 1087,
+        "pitchcrew_ci_step_completed": 2709,
+        "pitchcrew_pr_merged": 63
+      },
+      "note": "Real public GitHub metadata; stable UUIDs overlap prior imports. Not counts of newly-added unique events.",
+      "forced_dashboard_readback": {
+        "insights": 8,
+        "nonempty_insights": 8
+      }
+    },
+    "notebooks": [
+      {
+        "notebook": "Pa2PNxGA",
+        "node_id": "f180f0ac-a2a2-4cd4-812b-03a2407d43c5",
+        "status": "done",
+        "row_count": 8,
+        "run_id": "01a15dd4-80c8-7931-8309-d01c089ea0bf"
+      },
+      {
+        "notebook": "Pa2PNxGA",
+        "node_id": "4feb9868-888f-4461-a5f6-a05782adb0de",
+        "status": "done",
+        "row_count": 5,
+        "run_id": "01a15dd4-8e49-73d3-a1f1-5c62c7020cff"
+      },
+      {
+        "notebook": "Pa2PNxGA",
+        "node_id": "5e9d691a-9313-47be-8d75-4363bfd47e72",
+        "status": "done",
+        "row_count": 10,
+        "run_id": "01a15dd4-9c65-7e2a-a8bb-3ef385a3a03a"
+      },
+      {
+        "notebook": "Pa2PNxGA",
+        "node_id": "0953d4b4-41e7-4be0-9adb-42b8922ba375",
+        "status": "done",
+        "row_count": 0,
+        "run_id": "01a15dd4-a96b-7093-a3b5-bbdaff8a04f6"
+      },
+      {
+        "notebook": "Pa2PNxGA",
+        "node_id": "4976554e-9ace-4f00-9a84-1e53ce4eccf3",
+        "status": "done",
+        "row_count": 8,
+        "run_id": "01a15dd4-b6d4-738a-ab64-2701a536fcbd"
+      },
+      {
+        "notebook": "Pa2PNxGA",
+        "node_id": "78900eee-2078-48ac-9c05-ada32448404d",
+        "status": "done",
+        "row_count": 14,
+        "run_id": "01a15dd4-c357-7633-bd64-a313fa328be5"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "907e6e8d-655a-405c-a9c6-801788322cb6",
+        "status": "done",
+        "row_count": 5,
+        "run_id": "01a15dd4-d877-76bf-b603-97d89e928dc2"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "e80407d8-dbe2-4fd7-9074-c2aeae54ff6f",
+        "status": "done",
+        "row_count": 8,
+        "run_id": "01a15dd4-e5ae-73d6-ac49-0a5d4735b242"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "31230f8e-4ef1-47cd-ba61-0eb9fd026be8",
+        "status": "done",
+        "row_count": 5,
+        "run_id": "01a15dd4-f87e-7ea3-814b-e997da8191a9"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "0575490d-2b72-40d7-86e9-894d36489174",
+        "status": "done",
+        "row_count": 10,
+        "run_id": "01a15dd5-05d9-7ac6-af33-a17b991aaa4a"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "2d5140f3-efa3-430e-9655-158a009fc3f4",
+        "status": "done",
+        "row_count": 0,
+        "run_id": "01a15dd5-1333-7137-9e71-d63c3ff6976e"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "dca857f1-391b-4204-9f47-20db1230b2b9",
+        "status": "done",
+        "row_count": 8,
+        "run_id": "01a15dd5-20d0-7af3-9bf5-22ea50d16a58"
+      },
+      {
+        "notebook": "0eCbhBBR",
+        "node_id": "77950d43-a990-4730-88e9-c7784e12fd11",
+        "status": "done",
+        "row_count": 14,
+        "run_id": "01a15dd5-2e12-7027-ae6f-511759467d60"
+      }
+    ],
+    "retired": {
+      "feature_flag": {
+        "id": 301232,
+        "key": "pitchcrew-card-tilt",
+        "archived": true,
+        "active": false
+      },
+      "survey": {
+        "id": "01a10da8-d7cf-0000-ec5e-cbb5e18bd576",
+        "stopped": true
+      }
+    },
+    "insight_descriptions_updated": [
+      6354580, 6518716, 6518717, 6518718, 6518719, 6518720, 6355551, 6355554, 6355555, 6355556,
+      6518666, 6518667, 6518686, 6518687, 6518298, 6518304, 6518299, 6518300, 6518302, 6518326,
+      6518327, 6518328, 6518329, 6518330, 6518331, 6518332, 6518333, 6518334, 6518510, 6518688,
+      6518689, 6518690, 6518691
+    ]
+  },
+  "limits": [
+    "App/landing fixes need shipped builds; proxy warning requires real traffic after website deployment.",
+    "The scheduled collector only runs after its workflow reaches main, the default branch.",
+    "Historical smoke identities cannot be attributed safely. No historical data was deleted.",
+    "Existing provider/request failures are not proven remediated. Fresh bounded telemetry is needed to distinguish their causes.",
+    "Replay missing-CSS/blank-content claims are unconfirmed because app replay deliberately wireframes and blocks private surfaces. Do not loosen masking.",
+    "Connection lacks data_catalog read/write/approval and replay_scanner read/write; governed definitions and scanner changes remain blocked.",
+    "Quality checks were manually run successfully; no custom metric schedule was created for the events table. Native subject scheduling applies; quiet app traffic is not an outage."
+  ],
+  "verification": {
+    "lint": "passed",
+    "types": "passed",
+    "format": "passed",
+    "app_and_electron_build": "passed",
+    "landing_build": "passed; expected unconfigured canonical-origin warning",
+    "desktop_smoke": {
+      "passed": true,
+      "window_stayed_hidden": true,
+      "shutdown_to_exit_ms": 1489
+    },
+    "posthog_planner_tests": 44,
+    "full_suite": "Unrestricted and two-worker runs stopped after integration deadlines/waits failed under shared-machine load. A queue wait also failed with origin/dev startup/server code restored, while the current code completed both queue scenarios with an 8-second diagnostic wait. This is not a clean full-suite pass.",
+    "targeted_regressions": {
+      "files_passed": 38,
+      "tests_passed": 182
+    },
+    "diagnostics_dashboard_layout": {
+      "tiles": 18,
+      "overlaps": 0
+    },
+    "primary_dashboard_queries": 8
+  }
+}

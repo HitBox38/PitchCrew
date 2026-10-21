@@ -1,6 +1,6 @@
 import { QueuedMessageActions } from './QueuedMessageActions.tsx';
 import { RequestDeliveryStatus } from './RequestDeliveryStatus.tsx';
-import { useState } from 'react';
+import { useQueuedMessage } from '../hooks/useQueuedMessage.ts';
 import type { ChatRequest, Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
 import { Input } from '@/components/ui/input/index.tsx';
@@ -16,19 +16,10 @@ export const QueuedMessage = ({
   action: Action;
   working: boolean;
 }) => {
-  const [editing, setEditing] = useState(false);
-  const [content, setContent] = useState(request.content);
-  const [error, setError] = useState('');
-  const update = async (command: string, extra = {}) => {
-    setError('');
-    try {
-      await action(`/chat-requests/${request.id}`, 'PUT', { action: command, ...extra });
-      return true;
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not update the queued message.');
-      return false;
-    }
-  };
+  const { editing, setEditing, content, setContent, error, update, save } = useQueuedMessage(
+    request,
+    action,
+  );
   const editable =
     !request.userInputId &&
     request.deliveries.every(
@@ -42,9 +33,7 @@ export const QueuedMessage = ({
             className="flex flex-wrap items-center gap-2"
             onSubmit={(event) => {
               event.preventDefault();
-              void update('edit', { content }).then((saved) => {
-                if (saved) setEditing(false);
-              });
+              void save();
             }}
           >
             <Input
@@ -88,7 +77,10 @@ export const QueuedMessage = ({
           editable={editable}
           working={working}
           update={update}
-          edit={() => setEditing(true)}
+          edit={() => {
+            setContent(null);
+            setEditing(true);
+          }}
         />
       ) : null}
     </div>

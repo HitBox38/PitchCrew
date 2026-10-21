@@ -11,6 +11,7 @@ export interface RuleFormProps {
 }
 export const RuleFormBasics = ({ rule, index, change }: RuleFormProps) => {
   const documents = fieldDocuments(rule);
+  const selectedDocuments = new Set(documents);
   return (
     <>
       <div className="grid grid-cols-2 gap-4 max-compact:grid-cols-1">
@@ -46,7 +47,7 @@ export const RuleFormBasics = ({ rule, index, change }: RuleFormProps) => {
           {Object.entries(documentLabels).map(([value, label]) => (
             <label className="checkbox-label" key={value}>
               <Checkbox
-                checked={documents.includes(value)}
+                checked={selectedDocuments.has(value)}
                 onCheckedChange={(checked) =>
                   change({
                     documents: checked

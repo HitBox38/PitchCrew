@@ -16,6 +16,8 @@ concurrency:
 
 env:
   PITCHCREW_SEED_SKILLS: '0'
+  PITCHCREW_POSTHOG_DISABLED: '1'
+  NEXT_PUBLIC_POSTHOG_TOKEN: ''
 
 jobs:
   quality:

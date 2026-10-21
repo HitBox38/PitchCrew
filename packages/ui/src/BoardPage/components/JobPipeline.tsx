@@ -3,7 +3,7 @@ import { ClosedJobs } from './ClosedJobs.tsx';
 import { StatusDestinations } from './StatusDestinations.tsx';
 import { pipelinePlugins, pipelineSensors } from '@/BoardPage/constants.ts';
 import { usePipelineDrag } from '@/BoardPage/hooks/usePipelineDrag.ts';
-import { closedStates, dropStages, stages } from '@/board-stages.ts';
+import { closedStateSet, dropStages, stages } from '@/board-stages.ts';
 import type { JobPipelineProps } from '@/BoardPage/types.ts';
 import { JobCard } from '@/components/JobCard/index.tsx';
 import { DragDropProvider, DragOverlay } from '@dnd-kit/react';
@@ -29,7 +29,7 @@ export const JobPipeline = ({ filtered, showClosed, jobMutations, ...props }: Jo
       ) : null}
       {showClosed ? (
         <ClosedJobs
-          closed={cards.filter((card) => closedStates.includes(card.state))}
+          closed={cards.filter((card) => closedStateSet.has(card.state))}
           openCard={props.openCard}
           data={data}
           working={working}

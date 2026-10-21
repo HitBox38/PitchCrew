@@ -18,6 +18,7 @@ export const PipelineFinding = ({
   action: Action;
 }) => {
   const followup = review.followups.find((item) => item.findingId === finding.id);
+  const evidenceIds = new Set(finding.evidenceEventIds);
   return (
     <section className="space-y-3 border-t border-border py-3">
       <h5>
@@ -35,7 +36,7 @@ export const PipelineFinding = ({
       </p>
       <AccordionSection heading={<>Source evidence ({finding.evidenceEventIds.length})</>}>
         {review.evidence
-          .filter((event) => finding.evidenceEventIds.includes(event.eventId))
+          .filter((event) => evidenceIds.has(event.eventId))
           .map((event) => (
             <ReviewEvidence key={event.eventId} event={event} />
           ))}

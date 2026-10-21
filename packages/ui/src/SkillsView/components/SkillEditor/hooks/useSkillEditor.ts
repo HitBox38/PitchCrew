@@ -1,7 +1,7 @@
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import type { SkillEditorProps } from '@/SkillsView/components/SkillEditor/types.ts';
 import type { RoleId } from '@pitchcrew/core';
-import { baseSkillUrl } from '@pitchcrew/core/base-skills';
+import { initialSkillDraft } from '../helpers.ts';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { previewSkill } from '../api.ts';
 
@@ -16,6 +16,7 @@ export const useSkillEditor = ({
   working,
   onClose,
 }: SkillEditorProps) => {
+  const initial = initialSkillDraft({ skill, starter, initialRole });
   const loadSkill = async () => {
     importRequest.current?.abort();
     const controller = new AbortController();
@@ -33,6 +34,7 @@ export const useSkillEditor = ({
       if (!controller.signal.aborted)
         setError(e instanceof Error ? e.message : 'Could not load skill.');
     } finally {
+      // react-doctor-disable-next-line react-doctor/no-loading-flag-reset-outside-finally -- This reset is inside finally and belongs only to the active request.
       if (!controller.signal.aborted) setLoading(false);
     }
   };
@@ -59,9 +61,7 @@ export const useSkillEditor = ({
           scope,
           roleIds: scope === 'all' ? [] : roleIds,
           ...(source ? { source } : {}),
-          ...((skill?.bundledId ?? (starter?.sourceType === 'bundled' ? starter.name : undefined))
-            ? { bundledId: skill?.bundledId ?? starter?.name }
-            : {}),
+          ...(initial.bundledId ? { bundledId: initial.bundledId } : {}),
         },
         skill ? 'Updated skill' : 'Added skill',
       );
@@ -71,41 +71,30 @@ export const useSkillEditor = ({
     }
   };
 
-  const [name, setName] = useState(skill?.name ?? starter?.name ?? '');
-  const [description, setDescription] = useState(skill?.description ?? starter?.description ?? '');
-  const initialContent =
-    skill?.content ?? (starter?.sourceType === 'bundled' ? starter.content : '');
-  const initialScope =
-    skill?.scope ?? starter?.defaultScope ?? (initialRole || starter ? 'roles' : 'all');
-  const initialRoles =
-    skill?.roleIds ??
-    (starter?.defaultScope === 'all'
-      ? []
-      : initialRole
-        ? [initialRole]
-        : (starter?.defaultRoles ?? []));
-  const [content, setContent] = useState(initialContent);
-  const [scope, setScope] = useState<'all' | 'roles'>(initialScope);
-  const [roleIds, setRoleIds] = useState<RoleId[]>(initialRoles);
+  const [name, setName] = useState(initial.name);
+  const [description, setDescription] = useState(initial.description);
+  const [content, setContent] = useState(initial.content);
+  const [scope, setScope] = useState<'all' | 'roles'>(initial.scope);
+  const [roleIds, setRoleIds] = useState<RoleId[]>(initial.roleIds);
   const [error, setError] = useState('');
-  const [source, setSource] = useState(skill?.source);
-  const [url, setUrl] = useState(skill?.source?.url ?? (starter ? baseSkillUrl(starter) : ''));
+  const [source, setSource] = useState(initial.source);
+  const [url, setUrl] = useState(initial.url);
   const [loading, setLoading] = useState(false);
   const dirty =
-    name !== (skill?.name ?? starter?.name ?? '') ||
-    description !== (skill?.description ?? starter?.description ?? '') ||
-    content !== initialContent ||
-    scope !== initialScope ||
-    JSON.stringify(roleIds) !== JSON.stringify(initialRoles);
+    name !== initial.name ||
+    description !== initial.description ||
+    content !== initial.content ||
+    scope !== initial.scope ||
+    JSON.stringify(roleIds) !== JSON.stringify(initial.roleIds);
   const guard = useUnsavedChanges(dirty, onClose);
   const close = () => guard.requestLeave(onClose);
   const importRequest = useRef<AbortController | null>(null);
   useEffect(() => () => importRequest.current?.abort(), []);
   return {
     skill,
-    creator: starter?.sourceType === 'bundled' ? 'Pitchcrew' : creator,
+    creator: initial.bundled ? 'Pitchcrew' : creator,
     roles,
-    importing: importing && starter?.sourceType !== 'bundled',
+    importing: importing && !initial.bundled,
     starter,
     working,
     onClose: close,

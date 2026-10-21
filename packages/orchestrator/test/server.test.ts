@@ -104,7 +104,8 @@ describe('HTTP framework contracts', () => {
       },
       payload: JSON.stringify({ content: 'x'.repeat(1024 * 1024) }),
     });
-    expect(oversized.statusCode).toBe(400);
+    // Preserve the payload-limit status while retaining the JSON API error envelope.
+    expect(oversized.statusCode).toBe(413);
     expect(oversized.json()).toHaveProperty('error');
     expect(create).not.toHaveBeenCalled();
     create.mockRestore();

@@ -18,6 +18,7 @@ import { smokeUpdates } from './smoke-updates.ts';
 import { smokeAttachments } from './smoke-attachments.ts';
 import { smokeRetainedRuntime } from './smoke-retained-runtime.ts';
 import { smokeSheetBounds, smokeOpenCreation, smokeCloseCreation } from './smoke-sheets.ts';
+import { smokeLinks } from './smoke-links.ts';
 
 /** Runs only for the isolated desktop smoke harness, after the window's first load. */
 export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) => {
@@ -89,6 +90,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
             if (updateState.enabled || updateState.status !== 'disabled') throw new Error('Smoke updater must stay offline.');
             await desktopUpdater.check(); await desktopUpdater.download(); await desktopUpdater.install();
             await waitFor(() => !!document.querySelector('[data-slot="button"].button'));
+            const blockedLinkToastReady = await (${smokeLinks})();
             const styleChecks = ${smokeStyles};
             let userQuestionsReady = null;
             let chatReady = null, chatResponded = null, chatTabsReady = null, chatStreamingUpdates = null, routerHistoryReady = null, featurePanelsReady = null, notificationPanelReady = null, notificationToastReady = null, notificationToastChecks = null;
@@ -218,7 +220,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               userQuestionsReady = await ${smokeUserQuestions};
               runtimeUpdatesReady = await ${smokeRuntimeUpdates};
             }
-            return { runtimeUpdatesReady, userQuestionsReady, conversationNavigationReady, interactionChecks, title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, retainedRuntimeReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatAttachmentsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
+            return { blockedLinkToastReady, runtimeUpdatesReady, userQuestionsReady, conversationNavigationReady, interactionChecks, title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, retainedRuntimeReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatAttachmentsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
         if (result.appUpdatesReady) {

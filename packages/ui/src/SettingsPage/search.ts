@@ -31,6 +31,12 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['github', 'google', 'gmail', 'drive', 'permissions', 'login'],
   },
   {
+    label: 'External agent MCP access',
+    section: 'accounts',
+    target: 'external-mcp-enabled',
+    keywords: ['stdio', 'desktop', 'connect', 'server', 'permissions', 'claude', 'codex'],
+  },
+  {
     label: 'Job sources',
     section: 'sources',
     target: 'job-sources-heading',

@@ -40,6 +40,13 @@ describe('PostHog installation configuration', () => {
     ).toThrow('public PostHog project token');
   });
 
+  it('keeps CI and native smoke launches offline even with an explicit production token', () => {
+    for (const isolated of [{ CI: 'true' }, { PITCHCREW_SMOKE_FILE: '/fixture/result.json' }])
+      expect(
+        analyticsConfig({ ...env, ...isolated, PITCHCREW_POSTHOG_DEV: '1' }, false),
+      ).toBeNull();
+  });
+
   it('protects configuration with the UI session and permits only the configured ingestion origin', async () => {
     const config = analyticsConfig(env, false)!;
     const app = Fastify();

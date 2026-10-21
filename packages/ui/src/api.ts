@@ -21,6 +21,7 @@ export const api = (async <T>(
   let result: 'success' | 'http_error' | 'network_error' | 'invalid_response' | 'aborted' =
     'network_error';
   let category: ErrorCategory | undefined = 'request_network';
+  let httpStatus: number | undefined;
   try {
     const response = await fetch(`/api${path}`, {
       method,
@@ -33,6 +34,7 @@ export const api = (async <T>(
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
     });
+    httpStatus = response.status;
     if (response.status === 304 && conditional) {
       conditional.updateEtag(response.headers.get('etag'));
       result = 'success';
@@ -55,7 +57,7 @@ export const api = (async <T>(
       reportErrorDiagnostic('api_action', error, category, action);
     throw error;
   } finally {
-    finishMetric(result);
+    finishMetric(result, httpStatus);
   }
 }) as {
   <T>(path: string, method?: string, body?: unknown, signal?: AbortSignal): Promise<T>;

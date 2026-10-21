@@ -64,13 +64,14 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
     if (!preview || busy || !selected.length) return;
     await task.perform('Importing documents…', async () => {
       const files = await importSourceDocuments(props.action, preview.token, selected);
+      const selectedNames = new Set(selected);
       complete({
         message: 'Profile notes imported.',
-        file: files.find((f) => selected.includes(f.name)),
+        file: files.find((f) => selectedNames.has(f.name)),
       });
     });
   };
-  const watch = async (id: string, watching: boolean) => {
+  const setWatching = async (id: string, watching: boolean) => {
     if (busy) return;
     await task.perform(
       watching ? 'Enabling watching…' : 'Pausing watching…',
@@ -164,7 +165,7 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
     reviewProposal,
     previewSource,
     load,
-    watch,
+    setWatching,
     unlink,
     maintenance: props,
     reviewed,

@@ -16,6 +16,10 @@ possible stranded headings, unusual extraction order and page-target overruns
 are warnings. An unavailable advisory check warns that layout was not checked.
 DOCX text is verified, but final Word layout is not; its page count is an estimate.
 
+PDF verification and attachment text extraction share a local-only PDF.js
+configuration. Standard-font paths use forward slashes, including the trailing
+slash required by PDF.js on Windows; fonts still load from the installed package.
+
 Content retention compares normalized character counts against the expected
 visible text, tolerating wrapping, Unicode compatibility glyphs and bidi ordering.
 It detects omissions but cannot prove sentence order or compatibility with every

@@ -34,3 +34,9 @@ export const importCounts = (report: ApplicationImportReport): string => {
 export const importPath = (path: CardState[]): string => {
   return path.map((state) => stateLabels[state]).join(' → ');
 };
+
+export const importButtonLabel = (busy: boolean, ready: number) => {
+  if (busy) return ready ? 'Importing…' : 'Preparing preview…';
+  if (!ready) return 'Import applications';
+  return `Import ${ready} ${ready === 1 ? 'application' : 'applications'}`;
+};

@@ -12,8 +12,11 @@ export const localTime = (instant: string, timezone: string): string => {
     second: '2-digit',
     hourCycle: 'h23',
   }).formatToParts(new Date(instant));
-  const get = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)!.value;
+  const get = (type: Intl.DateTimeFormatPartTypes) => {
+    const part = parts.find((part) => part.type === type);
+    if (!part) throw new Error(`Date formatter did not provide ${type}.`);
+    return part.value;
+  };
   return `${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:${get('second')}`;
 };
 export const instantTime = (local: string, timezone: string): string => {

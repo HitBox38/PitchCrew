@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
 import { fileIssues, issueText } from '../helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
@@ -34,9 +35,11 @@ export const RulesEditor = ({ controller }: { controller: PacketRulesController 
       />
       {general.length ? (
         <ul id="packet-rules-problems" className="form-error mt-2" role="alert">
-          {general.map((issue, index) => (
-            <li key={index}>{issueText(issue)}</li>
-          ))}
+          {keyedItems(general, (issue) => JSON.stringify([issue.path, issue.message])).map(
+            ({ item: issue, key }) => (
+              <li key={key}>{issueText(issue)}</li>
+            ),
+          )}
         </ul>
       ) : null}
     </>

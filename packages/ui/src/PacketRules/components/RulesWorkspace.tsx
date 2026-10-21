@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import { useState } from 'react';
 import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
 import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
@@ -36,9 +37,11 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
         {document ? <RuleFormList document={document} controller={controller} /> : null}
         {issues.length ? (
           <ul role="alert" className="form-error mt-4">
-            {issues.map((issue, index) => (
-              <li key={index}>{issueText(issue)}</li>
-            ))}
+            {keyedItems(issues, (issue) => JSON.stringify([issue.path, issue.message])).map(
+              ({ item: issue, key }) => (
+                <li key={key}>{issueText(issue)}</li>
+              ),
+            )}
           </ul>
         ) : null}
       </TabsContent>

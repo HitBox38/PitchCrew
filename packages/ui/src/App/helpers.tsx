@@ -1,11 +1,11 @@
 import type { ReadyWorkspaceProps } from '@/App/types.ts';
-import { closedStates, stages } from '@/board-stages.ts';
+import { closedStateSet, stages } from '@/board-stages.ts';
 import { getRoleStatus } from '@/lib/role-status.ts';
 import type { Role } from '@pitchcrew/core';
 
 export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
   const { data, recentIds, act, view, pending } = props;
-  const active = data.cards.filter((c) => !closedStates.includes(c.state));
+  const active = data.cards.filter((c) => !closedStateSet.has(c.state));
   const strong = data.cards.filter((c) => c.fit !== null && c.fit >= 80).length;
   const running = data.runs.filter((r) => r.status === 'running');
   const roleStatus = (role: Role) => getRoleStatus(role, data);

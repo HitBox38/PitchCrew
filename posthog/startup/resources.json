@@ -4,7 +4,7 @@
   "short_id": "4imW7uui",
   "url": "https://eu.posthog.com/project/295060/insights/4imW7uui",
   "event": "app_startup_finished",
-  "status": "saved; instrumentation awaits release and consented desktop launches",
+  "status": "live release samples; attached to Diagnostics dashboard",
   "canonical": false,
   "verification": {
     "query_validated": true,
@@ -41,5 +41,6 @@
         "showLegend": true
       }
     }
-  }
+  },
+  "dashboard_id": 999694
 }

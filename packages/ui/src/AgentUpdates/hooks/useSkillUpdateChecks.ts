@@ -11,6 +11,7 @@ export const useSkillUpdateChecks = () => {
     ),
   );
   const check = useWorkspaceStore((state) => state.checkSkills);
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup -- Cleanup clears the timer and prevents rescheduling after disposal.
   useEffect(() => {
     if (!automatic) return;
     let active = true;

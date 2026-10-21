@@ -16,6 +16,7 @@ export const EditQueueMessage = ({
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
+  // react-doctor-disable-next-line react-doctor/no-derived-useState -- Capture the initial message once; snapshot polling must not overwrite the draft.
   const [content, setContent] = useState(request.content);
   const [error, setError] = useState('');
   const action = useWorkspaceStore((s) => s.action);

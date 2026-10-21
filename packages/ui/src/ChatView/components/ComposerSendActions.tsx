@@ -1,13 +1,11 @@
 import type { ChatComposerProps } from '../types.ts';
 import { ComposerStop } from './ComposerStop.tsx';
 import { ConversationSelect } from './ConversationSelect.tsx';
-import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/components/PromptInputSubmit.tsx';
-import { Send } from 'lucide-react';
+import { ComposerSubmit } from './ComposerSubmit.tsx';
 
 export const ComposerSendActions = (props: ChatComposerProps) => {
   const hasInput = !!props.draft.trim() || !!props.files.length;
   const canStop = !!props.running.length;
-  const interruptLabel = props.busyElsewhere ? 'Stop current and send' : 'Interrupt and send';
   return (
     <div className="chat-send-actions">
       {props.busy && hasInput ? (
@@ -23,18 +21,7 @@ export const ComposerSendActions = (props: ChatComposerProps) => {
         />
       ) : null}
       {canStop ? <ComposerStop {...props} /> : null}
-      {!canStop || hasInput ? (
-        <PromptInputSubmit
-          className="button primary chat-send"
-          aria-label={props.busy && props.sendMode === 'queue' ? 'Queue follow-up' : 'Send message'}
-          title={props.busy && props.sendMode === 'interrupt' ? interruptLabel : undefined}
-          status={props.working ? 'submitted' : 'ready'}
-          disabled={!hasInput || props.working || !props.available}
-        >
-          <Send size={15} />
-          <span>Send</span>
-        </PromptInputSubmit>
-      ) : null}
+      {!canStop || hasInput ? <ComposerSubmit {...props} hasInput={hasInput} /> : null}
     </div>
   );
 };

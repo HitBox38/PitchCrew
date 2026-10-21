@@ -17,8 +17,9 @@ export const useProposalReview = (props: ProposalReviewProps) => {
     try {
       setError('');
       await saveReviewDecision(props.action, proposal, selected, verified, approved);
+      const selectedNames = new Set(selected);
       const file = approved
-        ? proposal.documents.find((item) => selected.includes(item.name))
+        ? proposal.documents.find((item) => selectedNames.has(item.name))
         : undefined;
       props.onReviewed(file ? { name: file.name, content: file.content } : undefined, approved);
     } catch (cause) {

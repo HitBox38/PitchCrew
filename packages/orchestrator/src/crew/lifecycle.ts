@@ -165,7 +165,6 @@ export const initialize = async (
       await context.detect();
       await context.runtimeMaintenance.recover();
       await seedRecommendedRoles(context);
-      await context.runtimeMaintenance.initializeAuthentication();
     })();
     // Public starter sources and CLI metadata can load together. Both must finish before the
     // daemon becomes ready; skill commits wait for role setup and recheck current assignments.

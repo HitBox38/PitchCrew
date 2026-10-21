@@ -12,8 +12,10 @@ import {
   notificationShouldAlert,
 } from '../helpers.ts';
 import type { CrewNotification } from '../types.ts';
+import { useLinkFeedback } from './useLinkFeedback.ts';
 
 export const useNotifications = () => {
+  useLinkFeedback();
   const data = useWorkspaceStore((s) => s.data);
   const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());
@@ -26,8 +28,9 @@ export const useNotifications = () => {
     if (value) activeToasts.current.forEach((id) => toastManager.close(id));
     setPanelOpen(value);
   };
-  const seen = useRef(new NotificationTracker());
-  const unread = items.filter((item) => !read.includes(item.id));
+  const [tracker] = useState(() => new NotificationTracker());
+  const readIds = new Set(read);
+  const unread = items.filter((item) => !readIds.has(item.id));
   const markRead = (ids: string[]) =>
     setRead((previous) => [...new Set([...previous, ...ids])].slice(-500));
   const openNotification = (item: Pick<CrewNotification, 'id' | 'target'>) => {
@@ -69,7 +72,7 @@ export const useNotifications = () => {
         activeToasts.current.delete(id);
       }
     }
-    const fresh = seen.current.update(items).filter(notificationShouldAlert);
+    const fresh = tracker.update(items).filter(notificationShouldAlert);
     if (!fresh.length) return;
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;
     if (!open)
@@ -82,7 +85,7 @@ export const useNotifications = () => {
         });
       });
     if (sound) playNotificationSound(priority.kind);
-  }, [data, items, sound, open, toastManager]);
+  }, [data, items, sound, open, toastManager, tracker]);
   return {
     items,
     unread,

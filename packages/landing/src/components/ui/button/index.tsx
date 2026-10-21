@@ -21,7 +21,7 @@ export const Button = ({
   );
 };
 
-export const buttonVariants = cva('button', {
+const buttonVariants = cva('button', {
   variants: {
     variant: { primary: 'button-primary', secondary: 'button-secondary', ghost: 'button-ghost' },
   },

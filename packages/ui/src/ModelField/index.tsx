@@ -1,15 +1,14 @@
+import { ModelReasoning } from './components/ModelReasoning.tsx';
+import { modelStatus } from './helpers.ts';
 import { ModelPicker } from '@/ModelField/components/ModelPicker.tsx';
 import { RefreshModels } from '@/ModelField/components/RefreshModels.tsx';
 import { useModelField } from '@/ModelField/hooks/useModelField.ts';
 import type { ModelFieldProps } from '@/ModelField/types.ts';
-import { ReasoningField } from '@/ReasoningField/index.tsx';
-import type { ReasoningLevel } from '@pitchcrew/core';
-import { reasoningLabels } from '@/lib/reasoning.ts';
 import { agentModelDefaultValue } from './constants.ts';
 
 export const ModelField = (props: ModelFieldProps) => {
   const controller = useModelField(props);
-  const { id, runtime, available, value, onValueChange, catalog, loading, refreshModels, error } =
+  const { id, runtime, available, value, onValueChange, catalog, loading, refreshModels } =
     controller;
   return (
     <>
@@ -41,13 +40,7 @@ export const ModelField = (props: ModelFieldProps) => {
           disabled={!available || runtime === 'demo'}
         />
         <output className="optional" aria-live="polite">
-          {!available
-            ? catalog.modelSource === 'none'
-              ? catalog.modelDetail
-              : 'This runtime is unavailable. Install it before starting agent work.'
-            : loading
-              ? 'Loading models from the runtime…'
-              : error || catalog.modelDetail}
+          {modelStatus(controller)}
         </output>
         {runtime !== 'demo' && !loading && (
           <span className="optional">
@@ -59,22 +52,7 @@ export const ModelField = (props: ModelFieldProps) => {
           <span className="optional">Choose a model to configure its reasoning.</span>
         ) : null}
       </div>
-      <ReasoningField
-        id={`${id}-reasoning`}
-        conversation={props.conversation}
-        reasoning={catalog.models.find((model) => model.value === value)?.reasoning}
-        value={props.inheritReasoning ? 'agent' : (props.reasoning ?? '')}
-        agentDefault={
-          props.agentDefaults
-            ? `Use agent default (${props.agentDefaults.reasoning ? reasoningLabels[props.agentDefaults.reasoning] : 'CLI default'})`
-            : undefined
-        }
-        onValueChange={(next) => {
-          if (next === 'agent') props.onInheritReasoning?.();
-          else props.onReasoningChange(next ? (next as ReasoningLevel) : null);
-        }}
-        disabled={!available || loading}
-      />
+      <ModelReasoning props={props} controller={controller} />
     </>
   );
 };

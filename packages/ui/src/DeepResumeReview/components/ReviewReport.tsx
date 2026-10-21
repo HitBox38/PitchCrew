@@ -1,3 +1,4 @@
+import { ReviewExtensions } from './ReviewExtensions.tsx';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import type { ReviewDetail } from '../types.ts';
 import { PerspectiveAssessment } from './PerspectiveAssessment.tsx';
@@ -75,20 +76,7 @@ export const ReviewReport = ({
         )}
       </AccordionSection>
       <SubagentResults detail={detail} offset={childPage} changePage={changeChildPage} />
-      {report.extensions.length ? (
-        <AccordionSection
-          triggerClassName="cursor-pointer"
-          heading={<>Deadline extensions ({report.extensions.length})</>}
-        >
-          <ul className="mt-3 list-disc space-y-2 pl-5">
-            {report.extensions.map((extension, index) => (
-              <li key={index}>
-                {extension.minutes} minutes: {extension.reason}
-              </li>
-            ))}
-          </ul>
-        </AccordionSection>
-      ) : null}
+      <ReviewExtensions extensions={report.extensions} />
       <p className="optional">
         This report applies to the saved resume and job context it assessed. Current packet export
         and submission require their existing approvals.

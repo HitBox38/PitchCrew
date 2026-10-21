@@ -15,8 +15,9 @@ const ImportReviewContent = (c: ImportReviewProps) => {
   const [query, setQuery] = useState('');
   const preview = c.preview!;
   const changes = importChanges(preview.files);
+  const selectedNames = new Set(c.selected);
   const conflicts = changes.filter(
-    (file) => file.status === 'conflict' && c.selected.includes(file.name),
+    (file) => file.status === 'conflict' && selectedNames.has(file.name),
   ).length;
   const close = c.closeReview;
   return (
