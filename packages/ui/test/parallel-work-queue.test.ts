@@ -109,8 +109,10 @@ test('scopes Pause, Resume and Stop in the running-card menu to the selected que
     ['Stop current work', 'stop'],
     ['Resume queue', 'resume'],
   ] as const) {
-    await trigger.focus();
-    await page.keyboard.press('Enter');
+    if (command === 'resume') {
+      await trigger.focus();
+      await page.keyboard.press('Enter');
+    } else await card.locator('.queue-running-card-heading').click({ button: 'right' });
     const response = page.waitForResponse(
       (result) =>
         result.url().endsWith(`/queue/${encodeURIComponent(fixture.first.id)}`) &&
@@ -121,6 +123,9 @@ test('scopes Pause, Resume and Stop in the running-card menu to the selected que
     expect(result.status()).toBe(200);
     expect(result.request().postDataJSON()).toEqual({ action: command });
     expect(selected().paused).toBe(command !== 'resume');
+    await page
+      .locator('[data-slot="context-menu-content"], [data-slot="dropdown-menu-content"]')
+      .waitFor({ state: 'detached' });
     expect(
       host.daemon.service
         .queue()
@@ -216,7 +221,7 @@ test('edits and removes a queued request from its menu while preserving keyboard
   const card = page.getByRole('article', { name: 'Offer comparison', exact: true });
   const request = card.locator('.queue-request');
   const trigger = request.getByRole('button', { name: 'Queued request actions', exact: true });
-  await trigger.click();
+  await request.locator('.queue-request-title').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Edit message', exact: true }).click();
   const editor = request.getByRole('textbox', { name: 'Edit queued message', exact: true });
   await expect
@@ -239,7 +244,7 @@ test('edits and removes a queued request from its menu while preserving keyboard
     'Writer',
   );
   await page.keyboard.press('Enter');
-  await page.getByRole('menuitem', { name: 'Remove request', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Remove request', exact: true }).press('Enter');
   await expect
     .poll(() => host.daemon.service.queue().queues.some((queue) => queue.id === fixture.paused.id))
     .toBe(false);

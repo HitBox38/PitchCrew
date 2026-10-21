@@ -1,3 +1,4 @@
+import { JobContextMenu } from './JobActionsMenu/components/JobContextMenu.tsx';
 import { canDragJob } from '@/BoardPage/helpers.ts';
 import { JobCard } from '@/components/JobCard/index.tsx';
 import { useDraggable } from '@dnd-kit/react';
@@ -28,32 +29,33 @@ export const DraggableJob = ({
     id: card.id,
     data: { label: `${card.title} at ${card.company}`, state: card.state, movable },
   });
+  const menuProps = {
+    card,
+    data,
+    disabled: disabled || dragging || !present,
+    openCard,
+    ...menuActions,
+  };
   return (
-    <div
-      ref={ref}
-      id={present ? `board-job-${card.id}` : undefined}
-      inert={!present}
-      aria-hidden={!present || undefined}
-      className="draggable-job relative"
-      data-card-state={card.state}
-      data-movable={movable || undefined}
-      data-dragging={isDragSource || undefined}
-    >
-      <JobCard
-        card={card}
-        buttonRef={handleRef}
-        stationary={dragging}
-        onOpen={() => openCard(card.id)}
-        actions={
-          <JobActionsMenu
-            card={card}
-            data={data}
-            disabled={disabled || dragging || !present}
-            openCard={openCard}
-            {...menuActions}
-          />
-        }
-      />
-    </div>
+    <JobContextMenu {...menuProps}>
+      <div
+        ref={ref}
+        id={present ? `board-job-${card.id}` : undefined}
+        inert={!present}
+        aria-hidden={!present || undefined}
+        className="draggable-job relative"
+        data-card-state={card.state}
+        data-movable={movable || undefined}
+        data-dragging={isDragSource || undefined}
+      >
+        <JobCard
+          card={card}
+          buttonRef={handleRef}
+          stationary={dragging}
+          onOpen={() => openCard(card.id)}
+          actions={<JobActionsMenu {...menuProps} />}
+        />
+      </div>
+    </JobContextMenu>
   );
 };
