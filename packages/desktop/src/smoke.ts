@@ -2,7 +2,7 @@ import { smokeRuntimeUpdates } from './smoke-runtime-updates.ts';
 import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
 import { smokeUserQuestions, smokeDraftRequest, smokeDraftText } from './smoke-user-questions.ts';
 import { app, clipboard, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
-import { smokeExternalMcp, smokeMcpCopyRequest } from './smoke-external-mcp.ts';
+import { clickSmokeMcpCopy, smokeExternalMcp, smokeMcpCopyRequest } from './smoke-external-mcp.ts';
 import { writeFile } from 'node:fs/promises';
 import {
   smokeStreamAckFile,
@@ -29,17 +29,10 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
   if (smokeFile) {
     window.webContents.on('console-message', (details) => {
       if (details.message === smokeMcpCopyRequest) {
-        // Focus the document for Chromium's clipboard gate without showing or focusing the window.
-        window.webContents.focus();
-        void window.webContents
-          .executeJavaScript(
-            `document.querySelector('button[aria-label="Copy Pitchcrew MCP configuration"]').click()`,
-            true,
-          )
-          .catch((error) => {
-            console.error('Could not click the MCP copy button:', error);
-            app.exit(1);
-          });
+        void clickSmokeMcpCopy(window).catch((error) => {
+          console.error('Could not click the MCP copy button:', error);
+          app.exit(1);
+        });
         return;
       }
       if (details.message === smokeDraftRequest || details.message === smokeStreamInputRequest) {

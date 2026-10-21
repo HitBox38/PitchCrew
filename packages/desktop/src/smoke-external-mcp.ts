@@ -1,4 +1,31 @@
+import type { BrowserWindow } from 'electron';
+
 export const smokeMcpCopyRequest = 'pitchcrew-smoke-copy-mcp';
+
+/** Chromium needs document focus for clipboard access, including in hidden Windows windows. */
+export const clickSmokeMcpCopy = async (window: BrowserWindow) => {
+  const debuggerSession = window.webContents.debugger;
+  const attached = debuggerSession.isAttached();
+  if (!attached) debuggerSession.attach('1.3');
+  try {
+    await debuggerSession.sendCommand('Emulation.setFocusEmulationEnabled', { enabled: true });
+    await window.webContents.executeJavaScript(
+      `(async () => {
+      const copy = document.querySelector('button[aria-label="Copy Pitchcrew MCP configuration"]');
+      copy.click();
+      for (let i = 0; i < 80; i++) {
+        if (copy.dataset.copied === 'true') return;
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      throw new Error('Desktop MCP copy failed; document focused: ' + document.hasFocus());
+    })()`,
+      true,
+    );
+  } finally {
+    await debuggerSession.sendCommand('Emulation.setFocusEmulationEnabled', { enabled: false });
+    if (!attached) debuggerSession.detach();
+  }
+};
 
 /** Clicks the real Settings copy button; the main process checks the native clipboard. */
 export const smokeExternalMcp = `(async () => {
