@@ -212,6 +212,21 @@ pnpm dev
 
 `PITCHCREW_HOME` must be outside this repository. **Settings > Local data** shows its path. Manage agent instructions in Crew; generated instruction files are refreshed from stored settings. Profile changes require all runs to be idle.
 
+## Connect agents from other apps
+
+Pitchcrew offers a local stdio MCP server for other desktop agent apps. Open **Settings → Accounts → External agents**, enable access and copy the displayed MCP configuration into your agent app. Enable **Allow changes and crew messages** for job management and crew work. Keep Pitchcrew running while connected.
+
+From a repository checkout, you can also enable access and generate the client configuration:
+
+```sh
+pnpm mcp enable --write
+pnpm mcp config
+```
+
+Paste the printed `mcpServers.pitchcrew` entry into your client's MCP configuration. It uses absolute paths and works from another working directory. Omit `--write` for read-only access. External agents can read the board, Profile, conversations and public run activity; write access adds job management, conversation creation and messages to your crew. Sending crew messages can start paid runtime work. Approval and application confirmation stay in Pitchcrew.
+
+`pnpm mcp disable` revokes every external connection. See [external MCP setup](docs/external-mcp.md) for custom workspaces, tools and the access boundary.
+
 ## Current limits
 
 - Job discovery covers public Greenhouse, Ashby, Lever, Comeet and Workable boards you add yourself. Other job sites stay manual. There is no automatic outreach or email sender.

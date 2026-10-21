@@ -52,6 +52,7 @@ import { deleteRoutine, routines, saveRoutine } from './crew/routines/index.ts';
 import { startScheduler, tickRoutines } from './crew/routines/scheduler.ts';
 import { runtimeRecommendation } from './crew/runtime-recommendations.ts';
 import { SkillUpdates } from './crew/skill-updates.ts';
+import { externalCall } from './external/gateway.ts';
 export const ensureDirectory = async (directory: string) => {
   await mkdir(directory, { recursive: true });
   await access(directory);
@@ -59,6 +60,7 @@ export const ensureDirectory = async (directory: string) => {
 
 /** Public workspace API. Feature modules own the implementation and shared run context. */
 export class CrewService {
+  externalCall = (action: string, data: unknown) => externalCall(this.context, action, data);
   qualityAction = (data: unknown) => {
     return qualityUserAction(this.context, data);
   };

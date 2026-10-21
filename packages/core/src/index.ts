@@ -151,3 +151,4 @@ export * from './runtime-maintenance.ts';
 export { checkLinkedInDraft, linkedInDraftInput, linkedInFieldLimits } from './linkedin-draft.ts';
 
 export type { ChatReference, ChatReferenceInput } from './chat-references.ts';
+export type { ExternalMcpInfo } from './external-mcp.ts';

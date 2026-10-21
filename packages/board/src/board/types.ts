@@ -27,7 +27,7 @@ export interface BoardContext {
   events(limit?: number): BoardEvent[];
   history(entityId: string, before?: number, limit?: number): BoardEvent[];
   rebuild(): void;
-  createCard(input: CardInput, sample?: boolean): Card;
+  createCard(input: CardInput, sample?: boolean, actor?: string): Card;
   updateCard(
     id: string,
     patch: Partial<
