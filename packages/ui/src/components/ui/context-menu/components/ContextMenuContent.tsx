@@ -8,12 +8,14 @@ export const ContextMenuContent = ({
   side = 'right',
   sideOffset = 0,
   className,
+  anchor,
   ...props
 }: ContextMenuContentProps) => {
   return (
     <MenuPrimitive.Portal>
       <MenuPrimitive.Positioner
         className="primitive:isolate primitive:z-50 primitive:outline-none"
+        anchor={anchor}
         align={align}
         alignOffset={alignOffset}
         side={side}

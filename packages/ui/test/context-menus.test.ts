@@ -116,3 +116,93 @@ test('editing controls retain their context behavior and refresh preserves the l
   expect(await input.inputValue()).toBe('local draft');
   await input.fill('');
 });
+
+test('highlighted input text opens the copy menu and restores the field without changing its value', async () => {
+  const input = page.getByRole('textbox', { name: 'Search jobs', exact: true });
+  await input.fill('Fictional Menu');
+  await input.evaluate((element: HTMLInputElement) => element.setSelectionRange(0, 9));
+  await input.click({ button: 'right', position: { x: 20, y: 15 } });
+  const menu = page.getByRole('menu', { name: 'Text actions', exact: true });
+  await menu.waitFor();
+  expect(await menu.getByRole('menuitem').count()).toBe(1);
+  await menu.getByRole('menuitem', { name: 'Copy selected text', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Fictional');
+  await expect
+    .poll(() => input.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  expect(await input.inputValue()).toBe('Fictional Menu');
+});
+
+test('highlighted text takes priority over job actions and ordinary right-click still opens the job menu', async () => {
+  const title = page.locator('.job-card h3').first();
+  await title.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+  });
+  await title.click({ button: 'right' });
+  const menu = page.getByRole('menu', { name: 'Text actions', exact: true });
+  await menu.getByRole('menuitem', { name: 'Copy selected text', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Engineer');
+  await menu.waitFor({ state: 'detached' });
+  await page.evaluate(() => window.getSelection()?.removeAllRanges());
+  await title.click({ button: 'right' });
+  await page.getByRole('menu', { name: 'Job actions', exact: true }).waitFor();
+  await page.keyboard.press('Escape');
+});
+
+test('highlighted textarea and document text can be copied inside a dialog while preserving its draft', async () => {
+  await page.getByRole('button', { name: 'Add job', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Add a job post', exact: true });
+  const input = dialog.getByRole('textbox', { name: 'Job description', exact: true });
+  await input.fill('Selected description\nKeep this draft');
+  await input.evaluate((element: HTMLTextAreaElement) => element.setSelectionRange(0, 20));
+  await input.click({ button: 'right', position: { x: 20, y: 15 } });
+  const menu = page.getByRole('menu', { name: 'Text actions', exact: true });
+  await menu.getByRole('menuitem', { name: 'Copy selected text', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Selected description');
+  await expect
+    .poll(() => input.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  expect(await input.inputValue()).toBe('Selected description\nKeep this draft');
+  const intro = dialog.locator('.modal-intro');
+  const text = await intro.innerText();
+  await intro.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+  });
+  await intro.click({ button: 'right' });
+  await menu.getByRole('menuitem', { name: 'Copy selected text', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(text);
+  expect(await dialog.isVisible()).toBe(true);
+  await input.fill('');
+  await dialog.getByRole('button', { name: 'Cancel', exact: true }).click();
+  await dialog.waitFor({ state: 'detached' });
+});
+
+test('highlighted chat drafts can be copied without sending or clearing the message', async () => {
+  await page.getByRole('link', { name: 'Chat', exact: true }).click();
+  const editor = page.locator('.chat-rich-input');
+  await editor.fill('Selected chat draft');
+  await editor.evaluate((element) => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    window.getSelection()?.removeAllRanges();
+    window.getSelection()?.addRange(range);
+  });
+  await editor.click({ button: 'right', position: { x: 20, y: 15 } });
+  await page
+    .getByRole('menu', { name: 'Text actions', exact: true })
+    .getByRole('menuitem', { name: 'Copy selected text', exact: true })
+    .click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Selected chat draft');
+  expect(await editor.innerText()).toBe('Selected chat draft');
+  await expect
+    .poll(() => editor.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  await editor.fill('');
+  expect(errors).toEqual([]);
+});
