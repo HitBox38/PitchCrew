@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'node:url';
+import { pdfOptions } from '../pdf-options.ts';
 import type { DocumentFinding } from '@pitchcrew/core';
 
 export const extractDocument = async (
@@ -22,19 +22,7 @@ export const extractDocument = async (
     };
   }
   const { getDocument } = await import('pdfjs-dist/legacy/build/pdf.mjs');
-  const options = {
-    data: new Uint8Array(bytes),
-    isEvalSupported: false,
-    useSystemFonts: false,
-    useWorkerFetch: false,
-    disableFontFace: true,
-    useWasm: false,
-    enableXfa: false,
-    standardFontDataUrl: fileURLToPath(
-      new URL('../../standard_fonts/', import.meta.resolve('pdfjs-dist/legacy/build/pdf.mjs')),
-    ),
-  };
-  const task = getDocument(options);
+  const task = getDocument(pdfOptions(bytes));
   try {
     const document = await task.promise;
     if (document.numPages > 100)

@@ -21,6 +21,17 @@ The original HTML converter discarded styles and tags without evaluating visibil
 7. When existing unsent packets are next used, require context confirmation and fresh review before another export or browser submission. Preserve old text, files and history.
 8. Stop on extraction failure, invalid output or unsupported isolation. Offer retry, a user-selected supported runtime or a manually prepared brief with the same confirmation step. Never recover by exposing the original description to drafting.
 
+When Writer revises an existing packet for the same adopted context revision,
+the isolated card also includes its saved review feedback. Both the runtime
+prompt and scoped card tool receive those findings. First drafts, packets from
+another context revision, fit assessments and independent Reviewer rechecks
+exclude prior feedback. Raw source text, flagged excerpts and conversation
+history remain excluded. Writer addresses the findings against Profile and
+reruns lint; feedback does not grant permissions or change accepted requirements.
+Exact quotation checks do not resolve conflicts within Profile: drafting and
+review instructions require preserving exceptions, scope and historical title
+qualifications rather than copying a contradictory suggested bullet or header.
+
 ## Implementation sequence
 
 ### 1. Define and persist the boundary
