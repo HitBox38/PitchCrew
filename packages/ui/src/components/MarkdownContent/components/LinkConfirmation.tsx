@@ -4,6 +4,7 @@ import { Check, Copy, ExternalLink } from 'lucide-react';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { DialogDescription } from '@/components/ui/dialog/index.tsx';
+import { blockUnsafeLink } from '@/Notifications/link-feedback.ts';
 
 export const LinkConfirmation = (props: LinkSafetyModalProps) => {
   if (!props.isOpen) return null;
@@ -33,7 +34,7 @@ const LinkConfirmationDialog = ({ url, onClose, onConfirm }: LinkSafetyModalProp
         </Button>
         <Button
           onClick={() => {
-            onConfirm();
+            if (!blockUnsafeLink(url)) onConfirm();
             onClose();
           }}
         >

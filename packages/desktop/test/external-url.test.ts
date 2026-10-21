@@ -1,64 +1,60 @@
 import { expect, it } from 'vitest';
-import {
-  isAllowedExternalUrl,
-  isConnectorExternalUrl,
-  isGoogleAuthorizationUrl,
-} from '../src/external-url.ts';
+import { externalUrlBlockReason, isAllowedExternalUrl } from '../src/external-url.ts';
 
-it('opens only exact Pitchcrew build release pages', () => {
-  const release = `https://github.com/HitBox38/PitchCrew/releases/tag/build-${'a'.repeat(40)}`;
-  expect(isAllowedExternalUrl(release)).toBe(true);
-  expect(isAllowedExternalUrl('https://cli.github.com/')).toBe(true);
-  for (const value of [
-    release + '?redirect=evil',
-    release + '/other',
-    release + '#fragment',
-    release.replace('github.com', 'github.com.evil.example'),
-    release.replace('github.com', 'user@github.com'),
-    release.replace('https:', 'http:'),
-    release.replace('HitBox38', 'someone'),
-    release.replace('build-', 'v'),
-    'https://github.com/HitBox38/PitchCrew/releases',
-  ])
-    expect(isAllowedExternalUrl(value)).toBe(false);
+const externalLinks = [
+  ['job posting', 'https://boards.greenhouse.io/example/jobs/123'],
+  ['job source preview', 'https://jobs.ashbyhq.com/example/123'],
+  ['chat, Profile and Skill Markdown', 'https://example.com/source?q=role#requirements'],
+  ['GitHub source', 'https://github.com/example/repo/blob/main/README.md'],
+  ['Google document', 'https://docs.google.com/document/d/fixture/edit'],
+  ['HTTP website', 'http://example.com/careers'],
+  ['GitHub CLI setup', 'https://cli.github.com/'],
+  ['Google CLI setup', 'https://github.com/googleworkspace/cli'],
+  [
+    'Pitchcrew release',
+    `https://github.com/HitBox38/PitchCrew/releases/tag/build-${'a'.repeat(40)}`,
+  ],
+  [
+    'Google sign-in',
+    'https://accounts.google.com/o/oauth2/v2/auth?' +
+      new URLSearchParams({
+        redirect_uri: 'http://127.0.0.1:14490/oauth/google',
+        response_type: 'code',
+        state: 'fixture-state',
+        code_challenge: 'fixture-challenge',
+        code_challenge_method: 'S256',
+      }),
+  ],
+] as const;
+
+it.each(externalLinks)('permits the %s link in the system browser', (_label, url) => {
+  expect(isAllowedExternalUrl(url)).toBe(true);
 });
 
-it('opens only Google PKCE authorization URLs with a loopback Pitchcrew callback', () => {
-  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  url.search = new URLSearchParams({
-    redirect_uri: 'http://127.0.0.1:14490/oauth/google',
-    response_type: 'code',
-    state: 'fixture-state',
-    code_challenge: 'fixture-challenge',
-    code_challenge_method: 'S256',
-  }).toString();
-  expect(isGoogleAuthorizationUrl(url.toString())).toBe(true);
-  for (const value of [
-    'javascript:alert(1)',
-    'file:///etc/passwd',
-    'https://accounts.google.com.evil.example/o/oauth2/v2/auth',
-    url.toString().replace('https:', 'http:'),
-    url.toString().replace('127.0.0.1', 'evil.example'),
-    url.toString().replace('S256', 'plain'),
-    url.toString().replace('/o/oauth2/v2/auth', '/other'),
-    url.toString().replace('accounts.google.com', 'user@accounts.google.com'),
-  ])
-    expect(isGoogleAuthorizationUrl(value)).toBe(false);
+it('resolves relative renderer links without allowing relative native shell targets', () => {
+  expect(externalUrlBlockReason('/chat/scout', 'http://127.0.0.1:4417/')).toBeNull();
+  expect(externalUrlBlockReason('#main', 'http://127.0.0.1:4417/')).toBeNull();
+  expect(externalUrlBlockReason('/chat/scout')).toBe('invalid-url');
+  expect(externalUrlBlockReason('file:///etc/passwd', 'http://127.0.0.1:4417/')).toBe(
+    'unsupported-protocol',
+  );
 });
 
-it('opens only the exact GitHub CLI installation page', () => {
-  expect(isConnectorExternalUrl('https://cli.github.com/')).toBe(true);
-  expect(isConnectorExternalUrl('https://github.com/googleworkspace/cli')).toBe(true);
-  for (const url of [
-    'http://cli.github.com/',
-    'https://cli.github.com.evil.example/',
-    'https://user@cli.github.com/',
-    'https://cli.github.com/?redirect=evil',
-    'https://cli.github.com/manual',
-    'https://github.com/googleworkspace/cli?redirect=evil',
-    'https://github.com/googleworkspace/cli/issues',
-    'https://github.com.evil.example/googleworkspace/cli',
-    'https://github.com/login/device',
-  ])
-    expect(isConnectorExternalUrl(url)).toBe(false);
+it.each([
+  '',
+  'not a URL',
+  '/chat/scout',
+  '//example.com',
+  'https://',
+  'https://user:password@example.com/',
+  'http://user@example.com/',
+  'javascript:alert(1)',
+  'data:text/html,<script>alert(1)</script>',
+  'file:///etc/passwd',
+  'blob:https://example.com/fixture',
+  'mailto:fixture@example.com',
+  'ftp://example.com/file',
+  'ms-settings:privacy',
+])('rejects unsafe or invalid external URLs: %s', (url) => {
+  expect(isAllowedExternalUrl(url)).toBe(false);
 });

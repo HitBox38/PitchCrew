@@ -99,8 +99,27 @@ test('code fences preserve blank lines, copy exact text, and retain image and li
     'const answer = 42;\n\nconsole.log(answer);\n',
   );
   await page.getByRole('button', { name: 'External source' }).click();
-  await page.getByRole('dialog').waitFor();
+  const dialog = page.getByRole('dialog');
+  await dialog.waitFor();
+  await dialog.getByRole('button', { name: 'Copy link', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    'https://example.com/source',
+  );
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'External source' }).click();
+  const popupReady = page.waitForEvent('popup');
+  await page
+    .context()
+    .route('https://example.com/source', (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<p>Fictional external source</p>' }),
+    );
+  await dialog.getByRole('button', { name: 'Open link', exact: true }).click();
+  const popup = await popupReady;
+  await popup.waitForLoadState();
+  expect(popup.url()).toBe('https://example.com/source');
+  expect(await popup.locator('body').textContent()).toBe('Fictional external source');
+  await popup.close();
+  await dialog.waitFor({ state: 'detached' });
   await page.getByRole('button', { name: 'Stream code', exact: true }).click();
   await expect.poll(() => code.locator('code').textContent()).toBe('const streaming = "<safe>";\n');
   expect(await code.locator('safe').count()).toBe(0);
@@ -229,4 +248,68 @@ test('document source previews wrap in narrow panels and remain keyboard-scrolla
   await page.keyboard.press('ArrowDown');
   await expect.poll(() => source.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
   expect(errors).toEqual([]);
+});
+
+test('blocked link confirmation shows a reason without opening the target', async () => {
+  await page.getByRole('button', { name: 'Preview blocked link', exact: true }).click();
+  const dialog = page.getByRole('dialog', { name: 'Open external link?', exact: true });
+  await dialog.getByRole('button', { name: 'Open link', exact: true }).click();
+  await dialog.waitFor({ state: 'detached' });
+  const toast = page.locator('[data-slot="toast"]').filter({ hasText: 'Link blocked:' });
+  await toast.waitFor();
+  expect(await toast.textContent()).toContain('Pitchcrew opens only HTTP and HTTPS websites');
+  expect(await page.getByRole('status', { name: 'Unsafe link opened' }).textContent()).toBe(
+    'false',
+  );
+  await toast.locator('[data-slot="toast-close"]').click();
+  await toast.waitFor({ state: 'detached' });
+});
+
+test('unsafe anchor clicks explain invalid URLs, credentials and protocols', async () => {
+  const current = page.url();
+  for (const [url, message] of [
+    ['https://', 'this is not a valid website address'],
+    [
+      'https://fixture-user:fixture-password@example.com/private',
+      'it contains a username or password',
+    ],
+    ['file:///pitchcrew-fictional-blocked-link', 'Pitchcrew opens only HTTP and HTTPS websites'],
+  ]) {
+    const prevented = await page.evaluate((href) => {
+      const link = document.createElement('a');
+      link.href = href;
+      link.target = '_blank';
+      document.body.append(link);
+      const allowed = link.dispatchEvent(
+        new MouseEvent('click', { bubbles: true, cancelable: true, composed: true }),
+      );
+      link.remove();
+      return !allowed;
+    }, url);
+    expect(prevented).toBe(true);
+    const toast = page.locator('[data-slot="toast"]').filter({ hasText: message });
+    await toast.waitFor();
+    expect(await toast.textContent()).not.toContain('fixture-password');
+    expect(await toast.textContent()).not.toContain('fixture-user');
+    expect(page.url()).toBe(current);
+    await toast.locator('[data-slot="toast-close"]').click();
+    await toast.waitFor({ state: 'detached' });
+  }
+});
+
+test('local blob document downloads still work with the link guard mounted', async () => {
+  const downloadReady = page.waitForEvent('download');
+  await page.evaluate(() => {
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(new Blob(['Fictional exported document']));
+    link.download = 'fixture.txt';
+    document.body.append(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  });
+  const download = await downloadReady;
+  expect(download.suggestedFilename()).toBe('fixture.txt');
+  expect(await download.failure()).toBeNull();
+  expect(await page.locator('[data-slot="toast"]').count()).toBe(0);
 });
