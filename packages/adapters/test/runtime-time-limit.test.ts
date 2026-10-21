@@ -9,6 +9,19 @@ afterEach(async () => {
   await cleanup();
 });
 
+it('tags a CLI exit without replacing its private local stderr', async () => {
+  const context = await contextFor('kiro-cli');
+  await expect(
+    runCliText(
+      process.execPath,
+      ['--eval', "process.stderr.write('private provider failure'); process.exit(1)"],
+      context,
+      'Fixture',
+      () => null,
+    ),
+  ).rejects.toMatchObject({ message: 'private provider failure', code: 'PITCHCREW_RUNTIME_EXIT' });
+});
+
 it.each(['cli', 'acp'] as const)(
   '%s gives Writer workflows and chats more than three minutes while bounding stuck runs',
   async (transport) => {
@@ -42,11 +55,13 @@ it.each(['cli', 'acp'] as const)(
       const rejected = expect(result).rejects.toThrow(
         'Pitchcrew stopped the runtime after its 30-minute limit.',
       );
+      const classified = expect(result).rejects.toMatchObject({ code: 'ETIMEDOUT' });
       await vi.waitFor(async () => expect((await requestFor(context)).runtime).toBeDefined());
       await vi.advanceTimersByTimeAsync(3 * 60 * 1000);
       expect(settled).toBe(false);
       await vi.advanceTimersByTimeAsync(27 * 60 * 1000);
       await rejected;
+      await classified;
       vi.useRealTimers();
     }
   },

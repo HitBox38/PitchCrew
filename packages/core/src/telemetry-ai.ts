@@ -1,3 +1,5 @@
+import { sanitizeOperationalLog } from './operational-logs.ts';
+
 export const sanitizeAiObservation = (
   event: string,
   input: Record<string, unknown>,
@@ -21,6 +23,16 @@ export const sanitizeAiObservation = (
     observation_level: 'runtime_boundary',
     $ai_is_error: input.outcome === 'failed',
   };
+  if (input.outcome === 'failed') {
+    const log = sanitizeOperationalLog({
+      code: 'runtime_run_failed',
+      area: input.mode,
+      failure_category: input.failure_category,
+    });
+    properties.failure_category = log?.failure_category ?? 'other';
+    // Native AI views need a safe error label; never pass the original Error.
+    properties.$ai_error = properties.failure_category;
+  }
   if (event === '$ai_span') {
     if (typeof input.$ai_span_id !== 'string' || !uuid.test(input.$ai_span_id)) return null;
     if (input.$ai_parent_id !== input.$ai_trace_id) return null;

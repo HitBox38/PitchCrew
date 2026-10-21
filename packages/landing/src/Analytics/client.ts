@@ -77,6 +77,7 @@ export const createAnalytics = (
           sdk.init(analyticsConfig.token, {
             ...sdkConfig,
             api_host: analyticsConfig.host,
+            ui_host: 'https://eu.posthog.com',
             before_send: (event) => {
               if (!enabled || !allowed()) return null;
               if (event?.event === '$snapshot') {

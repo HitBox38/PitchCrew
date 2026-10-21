@@ -24,10 +24,20 @@ it.each([
   ['phc_fictional123', 'http://example.invalid'],
   ['phc_fictional123', 'https://example.invalid/private'],
   ['phc_fictional123', 'https://user:password@example.invalid'],
+  ['phc_fictional123', '//example.invalid'],
+  ['phc_fictional123', '/private-proxy'],
 ])('disables capture for invalid configuration', async (token, host) => {
   vi.stubEnv('NODE_ENV', 'production');
   vi.stubEnv('NEXT_PUBLIC_POSTHOG_TOKEN', token);
   vi.stubEnv('NEXT_PUBLIC_POSTHOG_HOST', host);
   const { analyticsConfigured } = await import('../config');
   expect(analyticsConfigured()).toBe(false);
+});
+
+it('uses the fixed first-party proxy by default', async () => {
+  vi.stubEnv('NODE_ENV', 'production');
+  vi.stubEnv('NEXT_PUBLIC_POSTHOG_HOST', undefined);
+  const { analyticsConfigured, analyticsConfig } = await import('../config');
+  expect(analyticsConfig.host).toBe('/relay');
+  expect(analyticsConfigured()).toBe(true);
 });

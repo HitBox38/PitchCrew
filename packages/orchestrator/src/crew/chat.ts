@@ -1,3 +1,4 @@
+import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { reserveLaunch } from './queue/admission.ts';
 import { ensureQueue } from './queue/state.ts';
 import { selectedChatSkills } from './chat-references.ts';
@@ -431,9 +432,11 @@ const startChatRunPrepared = async (
       if (nativeSession) finishSession(context, nativeSession.session, null, true);
       context.streamingMessages.delete(run.id);
       if (endQuestionTurn(context, run)) return;
+      ai.fail(error);
       recordOperationalLog(context.diagnostics, {
         code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
         area: 'chat',
+        failure_category: controller.signal.aborted ? 'aborted' : failureCategory(error),
       });
       const message = error instanceof Error ? error.message : 'Chat failed.';
       context.board.record(

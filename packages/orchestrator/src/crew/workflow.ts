@@ -1,3 +1,4 @@
+import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { QueueBusyError, reserveLaunch } from './queue/admission.ts';
 import { ensureQueue, patchQueue, runLane } from './queue/state.ts';
@@ -253,9 +254,11 @@ const startRunPrepared = async (
     })
     .catch((error) => {
       if (endQuestionTurn(crewContext, run)) return;
+      ai.fail(error);
       recordOperationalLog(crewContext.diagnostics, {
         code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
         area: 'workflow',
+        failure_category: controller.signal.aborted ? 'aborted' : failureCategory(error),
       });
       const message = error instanceof Error ? error.message : 'Run failed.';
       crewContext.board.record(

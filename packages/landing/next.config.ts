@@ -8,6 +8,16 @@ const nextConfig: NextConfig = {
   images: { qualities: [85] },
   turbopack: { root },
   outputFileTracingRoot: root,
+  skipTrailingSlashRedirect: true,
+  async rewrites() {
+    return [
+      {
+        source: '/relay/static/:path*',
+        destination: 'https://eu-assets.i.posthog.com/static/:path*',
+      },
+      { source: '/relay/:path*', destination: 'https://eu.i.posthog.com/:path*' },
+    ];
+  },
 };
 
 export default nextConfig;

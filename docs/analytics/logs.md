@@ -38,3 +38,5 @@ The [native LogQL API](https://posthog.com/docs/logs/logql-api) uses `logs:read`
 ## Verification
 
 Unit checks assert closed vocabularies, no raw content, no-op disabled buffers, recorder failure isolation, exact OTLP encoding/authentication, missing SDK identity rejection, concurrent-request bounds, request timeout, no retry and opt-out abort. Installer tests cover same-device and synchronized cross-tab preference changes plus disposal. Integration checks cover actual existing chat/workflow catches and HTTP errors without changing error behavior.
+
+Audit repair adds optional closed `failure_category` values (`aborted`, `timeout`, `validation`, `process_exit`, `executable_missing`, `other`) and a 400–599 `http_status` for HTTP failures. Known CLI exits and deadline errors are tagged at their source so private stderr is never needed for classification. Explicit valid framework HTTP statuses are preserved; existing untyped application errors retain their 400 contract. An `other` category is uncertainty, not a root-cause diagnosis.
