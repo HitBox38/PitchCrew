@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import { Paperclip, X } from 'lucide-react';
 import { Attachment } from '@/components/ui/attachment/components/Attachment.tsx';
 import { AttachmentMedia } from '@/components/ui/attachment/components/AttachmentMedia.tsx';
@@ -21,8 +22,10 @@ export const ComposerAttachments = ({
   if (!files.length) return null;
   return (
     <ul aria-label="Files to attach" className="flex w-full flex-wrap gap-2">
-      {files.map((file, index) => (
-        <li key={`${file.name}-${index}`} className="max-w-full min-w-0">
+      {keyedItems(files, (file) =>
+        JSON.stringify([file.name, file.size, file.type, file.lastModified]),
+      ).map(({ item: file, key }, index) => (
+        <li key={key} className="max-w-full min-w-0">
           <Attachment size="sm" className="chat-context-chip">
             <AttachmentMedia>
               <Paperclip size={12} />

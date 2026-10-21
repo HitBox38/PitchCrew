@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import type { AppUpdateInfo } from '@pitchcrew/core';
 
 export const UpdateTooltip = ({
@@ -21,8 +22,8 @@ export const UpdateTooltip = ({
         <>
           <p>What changed</p>
           <ul className="list-disc space-y-1 pl-4">
-            {changes.map((change, index) => (
-              <li key={index}>{change}</li>
+            {keyedItems(changes, (value) => value).map(({ item: change, key }) => (
+              <li key={key}>{change}</li>
             ))}
           </ul>
         </>

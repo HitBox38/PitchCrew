@@ -12,6 +12,7 @@ export const useBackendObservations = () => {
   const enabled = useDevicePreferences((state) => state.analytics && state.diagnostics);
   const configured = useAnalyticsConfig((state) => !!state.config);
   const leader = useDiagnosticLeader();
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup -- Cleanup clears the timer and prevents rescheduling after disposal.
   useEffect(() => {
     if (!enabled || !configured || !leader) return;
     let active = true;

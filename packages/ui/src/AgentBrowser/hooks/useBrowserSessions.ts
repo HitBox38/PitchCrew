@@ -13,6 +13,7 @@ export const useBrowserSessions = (threadId: string, enabled: boolean) => {
     const sessions = await browserSessions(threadId);
     setState({ thread: threadId, sessions, error: '' });
   }, [threadId, enabled]);
+  // react-doctor-disable-next-line react-doctor/effect-needs-cleanup, react-doctor/no-set-state-after-await-in-effect -- Cleanup clears the timer and prevents rescheduling after disposal.
   useEffect(() => {
     if (!enabled) return;
     const controller = new AbortController();

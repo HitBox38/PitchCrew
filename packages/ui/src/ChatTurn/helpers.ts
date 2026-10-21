@@ -1,3 +1,4 @@
+import { turnPresentation } from './constants.ts';
 import type { ChatMessage, Run, RunActivity, TranscriptItem } from '@pitchcrew/core';
 export type { TranscriptItem } from '@pitchcrew/core';
 
@@ -61,4 +62,16 @@ export const durationLabel = (startedAt: string, finishedAt: string | null, now:
   );
   if (!Number.isFinite(elapsed)) return '0s';
   return elapsed < 60 ? `${elapsed}s` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
+};
+
+export const turnStatus = (run: Run, replying: boolean) => {
+  const presentation = turnPresentation[run.status];
+  if (run.status !== 'running') return { ...presentation, status: presentation.label };
+  const phase = run.activity?.findLast(
+    (entry) => entry.status === 'running' && entry.kind !== 'commentary',
+  );
+  return {
+    ...presentation,
+    status: replying ? 'Replying…' : (phase?.label ?? (run.message || 'Working…')),
+  };
 };

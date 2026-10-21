@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -15,10 +15,7 @@ export const ExternalSubmissionRegistration = ({
   const { registerSubmission, working, error, dirty, setDirty, revision } = useExternalSubmission(
     card.id,
   );
-  useEffect(() => {
-    onDirtyChange?.(dirty);
-    return () => onDirtyChange?.(false);
-  }, [dirty, onDirtyChange]);
+  useDirtyNotification(dirty, onDirtyChange);
   if (
     ![
       'lead',

@@ -25,6 +25,7 @@ export const PreferenceEditor = ({
 }) => {
   const [text, setText] = useState(preference?.text ?? '');
   const [scope, setScope] = useState<WritingPreference['scope']>(preference?.scope ?? 'all');
+  // react-doctor-disable-next-line react-doctor/no-derived-useState -- Keep the opening revision for conflict detection when saving this draft.
   const [baseRevision] = useState(revision);
   const guard = useUnsavedChanges(
     text !== (preference?.text ?? '') || scope !== (preference?.scope ?? 'all'),

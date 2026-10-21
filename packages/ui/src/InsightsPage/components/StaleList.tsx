@@ -12,6 +12,7 @@ export const StaleList = ({ stale }: { stale: StaleCleanupModel }) => {
         No submitted job has gone {preview.days} days without a status change.
       </p>
     );
+  const selectedIds = new Set(stale.selected);
   return (
     <div className="form mt-3 flex flex-col gap-3">
       {preview.cards.length > staleBatchLimit ? (
@@ -28,9 +29,9 @@ export const StaleList = ({ stale }: { stale: StaleCleanupModel }) => {
                 aria-label={`${card.company} · ${card.title}`}
                 disabled={
                   Boolean(card.blocked) ||
-                  (!stale.selected.includes(card.id) && stale.selected.length >= staleBatchLimit)
+                  (!selectedIds.has(card.id) && stale.selected.length >= staleBatchLimit)
                 }
-                checked={stale.selected.includes(card.id)}
+                checked={selectedIds.has(card.id)}
                 onCheckedChange={(checked) => stale.toggle(card.id, checked)}
               />
               <span>

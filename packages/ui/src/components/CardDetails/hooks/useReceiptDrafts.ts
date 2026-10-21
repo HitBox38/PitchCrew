@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
+import { useCallback, useState } from 'react';
 
 export const useReceiptDrafts = (onDirtyChange?: (dirty: boolean) => void) => {
   const [dirty, setDirty] = useState<Record<string, boolean>>({});
@@ -8,9 +9,6 @@ export const useReceiptDrafts = (onDirtyChange?: (dirty: boolean) => void) => {
     [],
   );
   const hasDraft = Object.values(dirty).some(Boolean);
-  useEffect(() => {
-    onDirtyChange?.(hasDraft);
-    return () => onDirtyChange?.(false);
-  }, [hasDraft, onDirtyChange]);
+  useDirtyNotification(hasDraft, onDirtyChange);
   return changeDirty;
 };

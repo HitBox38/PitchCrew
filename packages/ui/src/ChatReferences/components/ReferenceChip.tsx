@@ -1,3 +1,4 @@
+import { referenceDetails } from '../helpers.ts';
 import type { ChatReference } from '@pitchcrew/core';
 import type { ReferenceCatalog } from '../types.ts';
 import { ReferenceIcon } from './ReferenceIcon.tsx';
@@ -17,13 +18,7 @@ export const ReferenceChip = ({
   reference: ChatReference;
   catalog: ReferenceCatalog;
 }) => {
-  const role = catalog.roles.find((role) => role.id === reference.id);
-  const skill = catalog.skills.find((skill) => skill.id === reference.id && !skill.deletedAt);
-  const unavailable =
-    reference.kind === 'agent' ? !role || !!role.retiredAt : reference.kind === 'skill' && !skill;
-  const changed = reference.kind === 'skill' && skill && reference.revision !== skill.updatedAt;
-  const type =
-    reference.kind === 'agent' ? 'Agent' : reference.kind === 'skill' ? 'Skill' : 'Action';
+  const { type, unavailable, description } = referenceDetails(reference, catalog);
   return (
     <Popover>
       <PopoverTrigger
@@ -41,17 +36,7 @@ export const ReferenceChip = ({
         <PopoverTitle>
           {type}: {reference.label}
         </PopoverTitle>
-        <PopoverDescription>
-          {unavailable
-            ? 'This saved reference is no longer available. The original message is preserved.'
-            : changed
-              ? 'This message selected an earlier version of this skill.'
-              : reference.kind === 'agent'
-                ? 'A participant addressed by this message. Opening this reference does not send a message.'
-                : reference.kind === 'skill'
-                  ? 'Instructions selected for this message. Actual agent activity is shown separately.'
-                  : 'A request for deep resume review. This reference does not indicate completion or approval.'}
-        </PopoverDescription>
+        <PopoverDescription>{description}</PopoverDescription>
       </PopoverContent>
     </Popover>
   );

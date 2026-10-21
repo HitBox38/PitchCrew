@@ -1,3 +1,4 @@
+import { queueRequestHeading } from '../request-helpers.ts';
 import type { Snapshot, WorkQueueView } from '@pitchcrew/core';
 import {
   Accordion,
@@ -18,10 +19,7 @@ export const QueueCardRequests = ({ queue, data }: { queue: WorkQueueView; data:
   const { open } = useQueueActions(queue);
   const running = queue.state === 'running';
   const hasContent = queue.requests.length || queue.tasks.length || queue.cardId;
-  const heading =
-    queue.requests.length || queue.tasks.length
-      ? `${queue.requests.length} ${queue.requests.length === 1 ? 'request' : 'requests'}${queue.tasks.length ? ` · ${queue.tasks.length} crew ${queue.tasks.length === 1 ? 'follow-up' : 'follow-ups'}` : ''}`
-      : 'Add the next action';
+  const heading = queueRequestHeading(queue);
   if (!hasContent && !running) return null;
   return (
     <Accordion defaultValue={running ? [] : ['requests']}>

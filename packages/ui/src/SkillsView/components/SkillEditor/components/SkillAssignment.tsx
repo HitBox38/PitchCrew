@@ -10,6 +10,7 @@ export const SkillAssignment = ({
   roleIds,
   setRoleIds,
 }: SkillAssignmentProps) => {
+  const selectedRoleIds = new Set(roleIds);
   return (
     <section className="role-settings-section" aria-labelledby="skill-assignment-heading">
       <h3 id="skill-assignment-heading">Who uses this skill?</h3>
@@ -37,7 +38,7 @@ export const SkillAssignment = ({
             .map((role) => (
               <label className="checkbox-label" key={role.id}>
                 <Checkbox
-                  checked={roleIds.includes(role.id)}
+                  checked={selectedRoleIds.has(role.id)}
                   onCheckedChange={(checked) =>
                     setRoleIds((current) =>
                       checked ? [...current, role.id] : current.filter((id) => id !== role.id),

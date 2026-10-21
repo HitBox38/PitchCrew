@@ -7,8 +7,9 @@ import { TrackingSource } from '@/TrackingSource/index.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
 export const TrackingProposal = ({ signal, cards }: { signal: TrackingSignal; cards: Card[] }) => {
+  const candidateIds = new Set(signal.candidateIds);
   const candidates = cards.filter(
-    (card) => !signal.candidateIds.length || signal.candidateIds.includes(card.id),
+    (card) => !signal.candidateIds.length || candidateIds.has(card.id),
   );
   const [cardId, setCardId] = useState(
     signal.candidateIds.length === 1 ? signal.candidateIds[0]! : '',

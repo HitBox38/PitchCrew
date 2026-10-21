@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 
 export const StaleConfirm = ({ stale }: { stale: StaleCleanupModel }) => {
-  const cards = stale.preview!.cards.filter((card) => stale.selected.includes(card.id));
+  const selectedIds = new Set(stale.selected);
+  const cards = stale.preview!.cards.filter((card) => selectedIds.has(card.id));
   const close = () => {
     if (!stale.working) stale.setConfirming(false);
   };

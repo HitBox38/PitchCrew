@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import { JobMetadata } from './JobMetadata.tsx';
 import type { JobOverviewProps } from '../types.ts';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
@@ -22,8 +23,8 @@ export const JobOverview = ({ card }: JobOverviewProps) => {
         <section>
           <h3>Crew assessment</h3>
           <ul className="feedback">
-            {card.feedback.map((note, i) => (
-              <li key={i}>{note}</li>
+            {keyedItems(card.feedback, (value) => value).map(({ item: note, key }) => (
+              <li key={key}>{note}</li>
             ))}
           </ul>
         </section>

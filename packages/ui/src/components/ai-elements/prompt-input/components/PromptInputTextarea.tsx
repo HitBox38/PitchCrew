@@ -2,7 +2,7 @@ import type { PromptInputTextareaProps } from '@/components/ai-elements/prompt-i
 import { InputGroupTextarea } from '@/components/ui/input-group/components/InputGroupTextarea.tsx';
 import { cn } from '@/lib/utils.ts';
 import type { KeyboardEventHandler } from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef } from 'react';
 
 export const PromptInputTextarea = ({
   onChange,
@@ -11,7 +11,7 @@ export const PromptInputTextarea = ({
   placeholder = 'What would you like to know?',
   ...props
 }: PromptInputTextareaProps) => {
-  const [isComposing, setIsComposing] = useState(false);
+  const isComposing = useRef(false);
 
   const handleKeyDown: KeyboardEventHandler<HTMLTextAreaElement> = useCallback(
     (e) => {
@@ -24,7 +24,7 @@ export const PromptInputTextarea = ({
       }
 
       if (e.key === 'Enter') {
-        if (isComposing || e.nativeEvent.isComposing) {
+        if (isComposing.current || e.nativeEvent.isComposing) {
           return;
         }
         if (e.shiftKey) {
@@ -44,11 +44,15 @@ export const PromptInputTextarea = ({
         form?.requestSubmit();
       }
     },
-    [onKeyDown, isComposing],
+    [onKeyDown],
   );
 
-  const handleCompositionEnd = useCallback(() => setIsComposing(false), []);
-  const handleCompositionStart = useCallback(() => setIsComposing(true), []);
+  const handleCompositionEnd = useCallback(() => {
+    isComposing.current = false;
+  }, []);
+  const handleCompositionStart = useCallback(() => {
+    isComposing.current = true;
+  }, []);
 
   return (
     <InputGroupTextarea

@@ -52,7 +52,7 @@ export const SourceRow = ({
             checked={source.watching === true}
             disabled={c.busy}
             aria-label={`Watching ${source.label}`}
-            onCheckedChange={(value) => void c.watch(source.id, value)}
+            onCheckedChange={(value) => void c.setWatching(source.id, value)}
           />
           Watching{' '}
           <span className="min-w-5 font-semibold text-foreground">

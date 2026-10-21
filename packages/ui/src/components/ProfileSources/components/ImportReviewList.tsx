@@ -26,6 +26,8 @@ export const ImportReviewList = ({
   );
   const removed = missing.filter((path) => path.toLocaleLowerCase().includes(term));
   const empty = !files.length && !removed.length;
+  const selectedNames = new Set(selected);
+  const expandedNames = new Set(expanded);
   return (
     <div className="profile-import-review" aria-label="Document changes">
       {empty ? (
@@ -45,10 +47,10 @@ export const ImportReviewList = ({
           <ImportDocument
             key={file.name}
             file={file}
-            selected={selected.includes(file.name)}
+            selected={selectedNames.has(file.name)}
             toggle={toggle}
             busy={busy}
-            expanded={expanded.includes(file.name)}
+            expanded={expandedNames.has(file.name)}
           />
         ))}
       </Accordion>

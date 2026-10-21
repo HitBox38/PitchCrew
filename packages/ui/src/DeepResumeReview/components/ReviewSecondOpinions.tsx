@@ -12,6 +12,7 @@ export const ReviewSecondOpinions = ({
   selected: ReviewPerspective[];
   changeSelected: (selected: ReviewPerspective[]) => void;
 }) => {
+  const selectedIds = new Set(selected);
   return (
     <section className="grid gap-3">
       <label className="flex cursor-pointer items-start gap-3">
@@ -24,7 +25,7 @@ export const ReviewSecondOpinions = ({
           {(Object.keys(reviewPerspectives) as ReviewPerspective[]).map((id) => (
             <label className="flex cursor-pointer items-start gap-3" key={id}>
               <Checkbox
-                checked={selected.includes(id)}
+                checked={selectedIds.has(id)}
                 onCheckedChange={(checked) =>
                   changeSelected(
                     checked ? [...selected, id] : selected.filter((value) => value !== id),

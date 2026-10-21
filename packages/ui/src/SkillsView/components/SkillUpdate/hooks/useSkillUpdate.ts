@@ -43,6 +43,7 @@ export const useSkillUpdate = (
       if (!controller.signal.aborted)
         setError(error instanceof Error ? error.message : 'Could not check for updates.');
     } finally {
+      // react-doctor-disable-next-line react-doctor/no-loading-flag-reset-outside-finally -- This reset is inside finally and belongs only to the active request.
       if (!controller.signal.aborted) setLoading(false);
     }
   };
@@ -91,7 +92,16 @@ export const useSkillUpdate = (
   const [review, setReview] = useState<SkillUpdatePreview | null>(null);
   const [error, setError] = useState('');
   const request = useRef<AbortController | null>(null);
-  const previousRequested = useRef(requested);
+  const [previousRequested, setPreviousRequested] = useState(requested);
+  if (previousRequested !== requested) {
+    setPreviousRequested(requested);
+    if (!requested) {
+      setOpen(false);
+      setLoading(false);
+      setReview(null);
+      setError('');
+    }
+  }
   const upstreamChanged = Boolean(
     review?.current.source &&
     review.latest.source &&
@@ -99,18 +109,10 @@ export const useSkillUpdate = (
   );
   const openRequestedReview = useEffectEvent(() => {
     if (requested) void check();
-    else if (previousRequested.current) {
-      request.current?.abort();
-      setOpen(false);
-      setLoading(false);
-      setReview(null);
-      setError('');
-    }
-    previousRequested.current = requested;
   });
   useEffect(() => {
     openRequestedReview();
+    return () => request.current?.abort();
   }, [requested]);
-  useEffect(() => () => request.current?.abort(), []);
   return { open, loading, review, error, working, upstreamChanged, close, check, approve, dismiss };
 };

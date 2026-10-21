@@ -42,3 +42,25 @@ export const updateControl = (
     progress: native?.status === 'downloading' ? (native.downloadPercent ?? 0) : null,
   };
 };
+
+export const currentVersionLabel = (
+  info: AppUpdateInfo | null,
+  native: DesktopUpdateState | null,
+) => {
+  if (native?.enabled) return `Version ${native.currentVersion}`;
+  if (!info) return 'Loading version…';
+  const build = info.current.commit
+    ? ` · Build ${info.current.commit.slice(0, 12)}`
+    : ' · Build unknown';
+  return `Version ${info.current.version}${build}${info.current.packaged ? '' : ' · Source checkout'}`;
+};
+export const updateStatusMessage = (
+  info: AppUpdateInfo | null,
+  native: DesktopUpdateState | null,
+  loading: boolean,
+  error: string | null,
+) => {
+  if (error) return error;
+  if (loading) return 'Checking for updates…';
+  return native?.enabled ? native.message : info?.message;
+};

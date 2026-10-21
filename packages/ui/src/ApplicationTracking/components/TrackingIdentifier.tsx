@@ -1,8 +1,9 @@
+import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { Card } from '@pitchcrew/core';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 export const TrackingIdentifier = ({
   card,
@@ -13,10 +14,7 @@ export const TrackingIdentifier = ({
 }) => {
   const [jobIdentifier, setJobIdentifier] = useState(card.tracking?.jobIdentifier ?? '');
   const dirty = jobIdentifier !== (card.tracking?.jobIdentifier ?? '');
-  useEffect(() => {
-    onDirtyChange?.(dirty);
-    return () => onDirtyChange?.(false);
-  }, [dirty, onDirtyChange]);
+  useDirtyNotification(dirty, onDirtyChange);
   const act = useWorkspaceStore((state) => state.act);
   const working = useWorkspaceStore((state) => state.working);
   return (

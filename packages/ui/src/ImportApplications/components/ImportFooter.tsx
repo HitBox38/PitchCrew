@@ -1,3 +1,4 @@
+import { importButtonLabel } from '../helpers.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { LoaderCircle } from 'lucide-react';
 
@@ -26,13 +27,7 @@ export const ImportFooter = ({
           onClick={() => void confirmImport()}
         >
           {busy ? <LoaderCircle className="spin" size={15} /> : null}
-          {busy
-            ? ready
-              ? 'Importing…'
-              : 'Preparing preview…'
-            : ready
-              ? `Import ${ready} ${ready === 1 ? 'application' : 'applications'}`
-              : 'Import applications'}
+          {importButtonLabel(busy, ready)}
         </Button>
       ) : null}
     </div>

@@ -7,7 +7,10 @@ import { skillSourceRevision } from '@pitchcrew/core/skill-updates';
 import type { CrewNotification } from './types.ts';
 
 export const collectNotifications = (data: Snapshot): CrewNotification[] => {
-  const roleName = (id: string) => data.roles.find((r) => r.id === id)?.name ?? id;
+  const rolesById = new Map(data.roles.map((role) => [role.id, role]));
+  const cardsById = new Map(data.cards.map((card) => [card.id, card]));
+  const skillsById = new Map(data.skills.map((skill) => [skill.id, skill]));
+  const roleName = (id: string) => rolesById.get(id)?.name ?? id;
   const proposalNotices = new Map(
     data.proposals.filter((p) => p.noticeMessageId).map((p) => [p.noticeMessageId, p]),
   );
@@ -36,7 +39,7 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
       createdAt: m.createdAt,
     }));
   for (const a of data.approvals.filter((a) => a.status === 'pending')) {
-    const card = data.cards.find((c) => c.id === a.cardId);
+    const card = cardsById.get(a.cardId);
     notifications.push({
       id: `approval:${a.id}`,
       kind: 'attention',
@@ -92,7 +95,8 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
     });
   }
   for (const check of pendingSkillUpdates(data)) {
-    const skill = data.skills.find((item) => item.id === check.skillId)!;
+    const skill = skillsById.get(check.skillId);
+    if (!skill) continue;
     notifications.push({
       id: `skill-update:${skill.id}:${skillSourceRevision(check.latest!)}`,
       kind: 'attention',

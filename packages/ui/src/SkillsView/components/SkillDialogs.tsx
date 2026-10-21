@@ -1,9 +1,7 @@
-import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { skillEditorKey } from '../helpers.ts';
+import { DeleteSkill } from './DeleteSkill.tsx';
 import { SkillEditor } from '@/SkillsView/components/SkillEditor/index.tsx';
-import { assignment } from '@/SkillsView/helpers.ts';
 import type { SkillDialogsProps } from '@/SkillsView/types.ts';
-import { Trash2 } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 
 export const SkillDialogs = ({
@@ -24,13 +22,7 @@ export const SkillDialogs = ({
     <AnimatePresence>
       {editing ? (
         <SkillEditor
-          key={
-            typeof editing === 'string'
-              ? editing === 'import'
-                ? (starter?.name ?? editing)
-                : editing
-              : editing.id
-          }
+          key={skillEditorKey(editing, starter)}
           skill={typeof editing === 'string' ? null : editing}
           creator={typeof editing === 'string' ? 'You' : creator(editing)}
           importing={editing === 'import'}
@@ -43,31 +35,15 @@ export const SkillDialogs = ({
         />
       ) : null}
       {deleting ? (
-        <Modal
+        <DeleteSkill
           key="delete-skill"
-          title="Delete skill"
-          onClose={() => {
-            if (!working) setDeleting(null);
-          }}
-        >
-          <p>
-            Delete <strong>{deleting.name}</strong> for {assignment(deleting, data.roles)}? Future
-            runs will stop using it. Active runs keep their current skills.
-          </p>
-          {error ? (
-            <p className="form-error" role="alert">
-              {error}
-            </p>
-          ) : null}
-          <div className="form-footer mt-0.5 flex justify-end gap-2.5 border-t border-border pt-4">
-            <Button className="button" disabled={working} onClick={() => setDeleting(null)}>
-              Cancel
-            </Button>
-            <Button className="button danger" disabled={working} onClick={() => void remove()}>
-              <Trash2 size={15} /> Delete skill
-            </Button>
-          </div>
-        </Modal>
+          deleting={deleting}
+          data={data}
+          working={working}
+          setDeleting={setDeleting}
+          error={error}
+          remove={remove}
+        />
       ) : null}
     </AnimatePresence>
   );

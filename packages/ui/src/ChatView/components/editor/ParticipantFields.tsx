@@ -15,16 +15,17 @@ export const ParticipantFields = ({
   leadId: string;
   setLeadId: (id: string) => void;
 }) => {
+  const participantIds = new Set(participants);
   return (
     <section className="grid gap-3">
       <h3 className="text-sm font-semibold">Participants</h3>
       <div className="chat-participant-picker">
         {roles
-          .filter((role) => !role.retiredAt || participants.includes(role.id))
+          .filter((role) => !role.retiredAt || participantIds.has(role.id))
           .map((role) => (
             <label key={role.id} className="chat-participant-choice checkbox-label">
               <Checkbox
-                checked={participants.includes(role.id)}
+                checked={participantIds.has(role.id)}
                 disabled={!!role.retiredAt}
                 aria-label={`Include ${role.name}`}
                 onCheckedChange={(checked) => {

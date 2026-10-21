@@ -1,3 +1,4 @@
+import { chatRole, chatRoleState } from '../model.ts';
 import { queuedChatRequests } from '../helpers.ts';
 import { useBrowserPanel } from '@/AgentBrowser/hooks/useBrowserPanel.ts';
 import { useChatPanels } from './useChatPanels.ts';
@@ -47,13 +48,7 @@ export const useChatView = (props: ChatViewProps) => {
   };
   const sendingRef = useRef(false);
   const preferences = useChatPreferences(thread, data);
-  const conversation = data.conversations?.find((item) => item.id === thread);
-  const participants = conversation?.participants ?? [thread];
-  const roleId = participants.includes(recipient)
-    ? recipient
-    : (conversation?.leadId ?? participants[0] ?? data.roles[0].id);
-  const savedRole = data.roles.find((item) => item.id === roleId) ?? data.roles[0];
-  const role = { ...savedRole, ...conversation?.configurations[roleId] };
+  const { conversation, participants, roleId, role } = chatRole(data, thread, recipient);
   const attachments = useChatAttachments(thread, setError);
   const readOnly = conversation?.kind === 'history' || conversation?.kind === 'agent_dm';
   const browserPanel = useBrowserPanel(data, thread, participants, !!readOnly, roleId);
@@ -91,10 +86,10 @@ export const useChatView = (props: ChatViewProps) => {
   const cardId = conversation?.cardId ?? '';
   const attached = data.cards.find((card) => card.id === cardId);
   const queued = queuedChatRequests(data.chatRequests ?? [], thread);
+  const participantIds = new Set(participants);
   const proposals = data.proposals.filter(
     (proposal) =>
-      (participants.includes(proposal.roleId) ||
-        participants.includes(proposal.sourceRoleId ?? '')) &&
+      (participantIds.has(proposal.roleId) || participantIds.has(proposal.sourceRoleId ?? '')) &&
       proposal.status === 'pending',
   );
   const skillProposals = data.skillProposals.filter(
@@ -108,17 +103,7 @@ export const useChatView = (props: ChatViewProps) => {
     proposals.length +
     skillProposals.length +
     tasks.filter((task) => ['queued', 'running'].includes(task.status)).length;
-  const roleState = role.retiredAt
-    ? 'Retired'
-    : !role.enabled
-      ? 'Paused'
-      : !data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available)
-        ? 'Unavailable'
-        : questions.some((question) => question.roleId === roleId)
-          ? 'Waiting for you'
-          : busy
-            ? 'Working'
-            : 'Ready';
+  const roleState = chatRoleState(data, role, questions, busy);
   const name = (id: ChatMessage['from'] | ChatMessage['to']) =>
     id === 'user'
       ? 'You'

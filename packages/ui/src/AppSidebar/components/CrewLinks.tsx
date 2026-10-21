@@ -31,6 +31,7 @@ export const CrewLinks = ({
   working,
   onToggleRole,
 }: CrewLinksProps) => {
+  const runningIds = new Set(runningRoles);
   return (
     <SidebarCategory id="crew" label="Crew">
       <SidebarGroupContent>
@@ -38,7 +39,7 @@ export const CrewLinks = ({
           {roles
             .filter((role) => !role.retiredAt)
             .map((role) => {
-              const running = runningRoles.includes(role.id);
+              const running = runningIds.has(role.id);
               return (
                 <SidebarMenuItem key={role.id}>
                   <SidebarMenuButton

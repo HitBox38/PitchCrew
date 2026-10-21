@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import type { ExtractedJob } from '@pitchcrew/core';
 
 export const BriefSummary = ({ value }: { value: ExtractedJob }) => {
@@ -9,8 +10,8 @@ export const BriefSummary = ({ value }: { value: ExtractedJob }) => {
           <section key={field}>
             <h4>{field[0].toUpperCase() + field.slice(1)}</h4>
             <ul className="feedback">
-              {value.brief[field].map((line, index) => (
-                <li key={index}>{line}</li>
+              {keyedItems(value.brief[field], (value) => value).map(({ item: line, key }) => (
+                <li key={key}>{line}</li>
               ))}
             </ul>
           </section>

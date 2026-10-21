@@ -1,8 +1,10 @@
+import { ConversationStatus } from './ConversationStatus.tsx';
+import { conversationPreview } from '../presentation.ts';
 import { Link } from '@tanstack/react-router';
 import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
 import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Users, History, Circle, Pin, Archive, LoaderCircle, Clock } from 'lucide-react';
+import { Users, History } from 'lucide-react';
 import type { ConversationNavigationRow } from '../types.ts';
 import { ConversationMenu, type ConversationMenuActions } from './ConversationMenu.tsx';
 export const ConversationLink = ({
@@ -18,7 +20,7 @@ export const ConversationLink = ({
   actions: ConversationMenuActions;
   working: boolean;
 }) => {
-  const { conversation: item, preview, unread, working, waiting, waitingForUser } = row;
+  const { conversation: item } = row;
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
@@ -38,26 +40,9 @@ export const ConversationLink = ({
         )}
         <span className="conversation-link-copy">
           <strong title={item.title}>{item.title}</strong>
-          <small>
-            {waitingForUser
-              ? 'Waiting for you'
-              : working
-                ? 'Working…'
-                : waiting
-                  ? 'Waiting for an agent'
-                  : preview}
-          </small>
+          <small>{conversationPreview(row)}</small>
         </span>
-        <span className="conversation-link-status">
-          {item.pinned ? <Pin size={10} aria-label="Pinned" /> : null}
-          {item.archived ? <Archive size={10} aria-label="Archived" /> : null}
-          {unread && !selected ? <Circle size={6} fill="currentColor" aria-label="Unread" /> : null}
-          {working ? (
-            <LoaderCircle size={12} className="spin" aria-label="Working" />
-          ) : waiting || waitingForUser ? (
-            <Clock size={12} aria-label="Waiting" />
-          ) : null}
-        </span>
+        <ConversationStatus row={row} selected={selected} />
       </SidebarMenuButton>
       <ConversationMenu row={row} actions={actions} working={actionWorking} />
     </SidebarMenuItem>

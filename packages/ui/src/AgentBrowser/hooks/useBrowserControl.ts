@@ -14,7 +14,7 @@ export const useBrowserControl = (
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   const [inputPending, setInputPending] = useState(0);
-  const queue = useRef(Promise.resolve());
+  const queue = useRef<Promise<void> | null>(null);
   const leaseId = leases[key]?.id;
   const forget = (target = key) =>
     setLeases((current) => {
@@ -73,7 +73,7 @@ export const useBrowserControl = (
     (value: BrowserInput) => {
       if (!leaseId) return;
       setInputPending((count) => count + 1);
-      queue.current = queue.current
+      queue.current = (queue.current ?? Promise.resolve())
         .then(() => browserInput(roleId, threadId, leaseId, value))
         .then(() => {})
         .catch((error) => setError(error.message))
@@ -83,7 +83,7 @@ export const useBrowserControl = (
   );
   const resize = useCallback(
     (viewport: BrowserViewport, signal: AbortSignal) => {
-      const result = queue.current.then(() =>
+      const result = (queue.current ?? Promise.resolve()).then(() =>
         browserCommand<{ applied: boolean }>(
           roleId,
           threadId,

@@ -1,3 +1,4 @@
+import { keyedItems } from '@/lib/list-keys.ts';
 import type { ReviewAssessment } from '@pitchcrew/core';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import {
@@ -19,8 +20,8 @@ export const PerspectiveAssessment = ({
       <p>{assessment.summary}</p>
       {assessment.packetFeedback?.length ? (
         <ul className="list-disc pl-5">
-          {assessment.packetFeedback.map((note, index) => (
-            <li key={index}>
+          {keyedItems(assessment.packetFeedback, (value) => value).map(({ item: note, key }) => (
+            <li key={key}>
               <strong>Packet blocker: </strong>
               {note}
             </li>
@@ -29,8 +30,8 @@ export const PerspectiveAssessment = ({
       ) : null}
       {assessment.suggestions?.length ? (
         <ul className="list-disc pl-5">
-          {assessment.suggestions.map((note, index) => (
-            <li key={index}>
+          {keyedItems(assessment.suggestions, (value) => value).map(({ item: note, key }) => (
+            <li key={key}>
               <strong>Suggestion: </strong>
               {note}
             </li>
@@ -55,9 +56,11 @@ export const PerspectiveAssessment = ({
                 ) : null}
                 {item.interviewQuestions.length ? (
                   <ul className="list-disc pl-5">
-                    {item.interviewQuestions.map((question, index) => (
-                      <li key={index}>{question}</li>
-                    ))}
+                    {keyedItems(item.interviewQuestions, (value) => value).map(
+                      ({ item: question, key }) => (
+                        <li key={key}>{question}</li>
+                      ),
+                    )}
                   </ul>
                 ) : null}
               </div>

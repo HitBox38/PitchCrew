@@ -31,9 +31,9 @@ export const useFollowupForm = (review: PipelineReview, findingId: string, actio
     previous?.status ?? 'open',
   );
   const [result, setResult] = useState(previous?.result ?? '');
-  const [evidence, setEvidence] = useState(previous?.evidenceEventIds.join(', ') ?? '');
+  const [evidence, setEvidence] = useState(() => previous?.evidenceEventIds.join(', ') ?? '');
   const [metric, setMetric] = useState(previous?.metrics[0]?.name ?? '');
-  const [value, setValue] = useState(previous?.metrics[0]?.value.toString() ?? '');
+  const [value, setValue] = useState(() => previous?.metrics[0]?.value.toString() ?? '');
   const [unit, setUnit] = useState(previous?.metrics[0]?.unit ?? '');
   const [error, setError] = useState('');
   return {
