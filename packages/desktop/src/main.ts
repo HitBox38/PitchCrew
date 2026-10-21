@@ -3,6 +3,7 @@ import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, session 
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { installExternalNavigation } from './external-navigation.ts';
+import { installDesktopPermissions } from './permissions.ts';
 import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon, ownsPackagedDaemon } from './packaged.ts';
 import { registerDesktopUpdates } from './updates/index.ts';
@@ -105,8 +106,10 @@ if (primaryInstance)
       );
       daemonReady = true;
       if (process.platform === 'darwin') app.dock?.setIcon(appIcon);
-      session.defaultSession.setPermissionRequestHandler((_contents, _permission, callback) =>
-        callback(false),
+      installDesktopPermissions(
+        session.defaultSession,
+        () => window,
+        () => new URL(url).origin,
       );
       createWindow();
     })

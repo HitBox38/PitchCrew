@@ -2,6 +2,7 @@ import { EventEmitter } from 'node:events';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { BrowserWindow, NativeImage } from 'electron';
+import { clipboard } from 'electron';
 import { afterEach, expect, test, vi } from 'vitest';
 import { installSmokeCheck } from '../src/smoke.ts';
 import { smokeStreamPartials, smokeStreamPrefix } from '../src/smoke-stream.ts';
@@ -9,6 +10,7 @@ import { smokeStreamPartials, smokeStreamPrefix } from '../src/smoke-stream.ts';
 vi.mock('electron', () => ({
   app: Object.assign(new EventEmitter(), { quit: vi.fn(), exit: vi.fn() }),
   nativeTheme: { themeSource: 'system' },
+  clipboard: { readText: vi.fn() },
 }));
 vi.mock('node:fs', () => ({ writeFileSync: vi.fn() }));
 vi.mock('node:fs/promises', () => ({ writeFile: vi.fn() }));
@@ -43,6 +45,8 @@ test.each(['none', 'show', 'focus'])(
   async (event) => {
     vi.useFakeTimers();
     vi.stubEnv('PITCHCREW_SMOKE_FILE', '/tmp/pitchcrew-fixture/result.json');
+    const configuration = '{"mcpServers":{"pitchcrew":{}}}';
+    vi.mocked(clipboard.readText).mockResolvedValue(configuration);
     const capturePage = vi.fn(async () => ({ toPNG: () => Buffer.from('fixture') }));
     let loaded: (() => Promise<void>) | undefined;
     const window = Object.assign(new EventEmitter(), {
@@ -52,7 +56,11 @@ test.each(['none', 'show', 'focus'])(
         once: (_event: string, listener: () => Promise<void>) => {
           loaded = listener;
         },
-        executeJavaScript: vi.fn(async () => ({ appUpdatesReady: true, sheetChecks: {} })),
+        executeJavaScript: vi.fn(async () => ({
+          appUpdatesReady: true,
+          sheetChecks: {},
+          interactionChecks: { externalMcpConfiguration: configuration },
+        })),
         capturePage,
       }),
     });
@@ -68,5 +76,9 @@ test.each(['none', 'show', 'focus'])(
       .mocked(writeFile)
       .mock.calls.find(([path]) => path === process.env.PITCHCREW_SMOKE_FILE);
     expect(JSON.parse(evidence![1] as string).windowStayedHidden).toBe(event === 'none');
+    expect(JSON.parse(evidence![1] as string).interactionChecks).toEqual({
+      externalMcpCopied: true,
+    });
+    expect(clipboard.readText).toHaveBeenCalledOnce();
   },
 );

@@ -1,7 +1,8 @@
 import { smokeRuntimeUpdates } from './smoke-runtime-updates.ts';
 import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
 import { smokeUserQuestions, smokeDraftRequest, smokeDraftText } from './smoke-user-questions.ts';
-import { app, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
+import { app, clipboard, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
+import { smokeExternalMcp, smokeMcpCopyRequest } from './smoke-external-mcp.ts';
 import { writeFile } from 'node:fs/promises';
 import {
   smokeStreamAckFile,
@@ -27,6 +28,20 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
   let windowFocused = window.isFocused();
   if (smokeFile) {
     window.webContents.on('console-message', (details) => {
+      if (details.message === smokeMcpCopyRequest) {
+        // Focus the document for Chromium's clipboard gate without showing or focusing the window.
+        window.webContents.focus();
+        void window.webContents
+          .executeJavaScript(
+            `document.querySelector('button[aria-label="Copy Pitchcrew MCP configuration"]').click()`,
+            true,
+          )
+          .catch((error) => {
+            console.error('Could not click the MCP copy button:', error);
+            app.exit(1);
+          });
+        return;
+      }
       if (details.message === smokeDraftRequest || details.message === smokeStreamInputRequest) {
         void (async () => {
           // Let Lexical handle Select All so its model selection changes with the DOM.
@@ -219,10 +234,21 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               appUpdatesReady = await ${smokeUpdates};
               userQuestionsReady = await ${smokeUserQuestions};
               runtimeUpdatesReady = await ${smokeRuntimeUpdates};
+              interactionChecks.externalMcpConfiguration = await ${smokeExternalMcp};
             }
             return { blockedLinkToastReady, runtimeUpdatesReady, userQuestionsReady, conversationNavigationReady, interactionChecks, title: document.title, requireType: typeof require, apiStatus: response.status, cards: snapshot.cards.length, roles: snapshot.roles.length, uiReady, styleChecks, sheetChecks, onboardingReady, retainedRuntimeReady, insightsReady, appUpdatesReady, chatReady, chatResponded, chatTabsReady, chatAttachmentsReady, chatStreamingUpdates, routerHistoryReady, featurePanelsReady, notificationsInAppOnly, notificationPanelReady, notificationToastReady, notificationToastChecks };
           })()`,
         );
+        if (result.interactionChecks?.externalMcpConfiguration) {
+          const actual = await clipboard.readText();
+          const expected = result.interactionChecks.externalMcpConfiguration;
+          if (actual !== expected)
+            throw new Error(
+              'Desktop MCP copy did not write the exact configuration to the native clipboard.',
+            );
+          result.interactionChecks.externalMcpCopied = true;
+          delete result.interactionChecks.externalMcpConfiguration;
+        }
         if (result.appUpdatesReady) {
           await writeFile(
             `${smokeFile}.updates.png`,

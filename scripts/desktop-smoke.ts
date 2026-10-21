@@ -80,6 +80,7 @@ try {
         !result.retainedRuntimeReady ||
         !result.appUpdatesReady ||
         !result.runtimeUpdatesReady ||
+        !result.interactionChecks.externalMcpCopied ||
         !result.insightsReady ||
         !result.chatReady ||
         !result.conversationNavigationReady ||

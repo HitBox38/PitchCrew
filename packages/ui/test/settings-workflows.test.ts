@@ -275,6 +275,7 @@ test('mobile source editing protects drafts and removal explains that leads stay
 }, 30000);
 
 test('external agent access is opt-in, exposes a copyable configuration and revokes from Settings', async () => {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
   await host.request('/external-mcp/access', 'PUT', { enabled: false, write: false });
   await open('accounts');
   const enabled = page.getByRole('switch', { name: 'Allow external agents', exact: true });
@@ -289,9 +290,10 @@ test('external agent access is opt-in, exposes a copyable configuration and revo
   const initial = await host.request<ExternalMcpInfo>('/external-mcp/access');
   expect(initial.result).toMatchObject({ enabled: true, write: false });
   expect(JSON.parse((await configuration.textContent())!)).toEqual(initial.result.configuration);
-  await page
-    .getByRole('button', { name: 'Copy Pitchcrew MCP configuration', exact: true })
-    .waitFor();
+  await page.getByRole('button', { name: 'Copy Pitchcrew MCP configuration', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    JSON.stringify(initial.result.configuration, null, 2),
+  );
   await write.click();
   await expect
     .poll(async () => (await host.request<ExternalMcpInfo>('/external-mcp/access')).result.write)
@@ -304,3 +306,46 @@ test('external agent access is opt-in, exposes a copyable configuration and revo
   });
   expect(await write.isDisabled()).toBe(true);
 }, 30000);
+
+test.each(['denied', 'unavailable'] as const)(
+  'MCP configuration copy explains a %s clipboard and supports retry',
+  async (availability) => {
+    await host.request('/external-mcp/access', 'PUT', { enabled: true, write: false });
+    await page.addInitScript((availability) => {
+      Object.defineProperty(navigator, 'clipboard', {
+        configurable: true,
+        value:
+          availability === 'unavailable'
+            ? undefined
+            : {
+                writeText: async () => {
+                  throw new DOMException('Write denied', 'NotAllowedError');
+                },
+              },
+      });
+    }, availability);
+    await open('accounts');
+    const copy = page.getByRole('button', {
+      name: 'Copy Pitchcrew MCP configuration',
+      exact: true,
+    });
+    await copy.click();
+    const guidance = page.getByText('Could not copy. Select the text and copy it manually.', {
+      exact: true,
+    });
+    await guidance.waitFor();
+    expect(await copy.getAttribute('data-copied')).toBeNull();
+    const expected = await page
+      .getByLabel('Pitchcrew MCP configuration', { exact: true })
+      .textContent();
+    expect(expected).toContain('mcpServers');
+    await page.evaluate(() => Reflect.deleteProperty(navigator, 'clipboard'));
+    await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+    await copy.click();
+    await expect.poll(() => copy.getAttribute('data-copied')).toBe('true');
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
+    expect(await guidance.count()).toBe(0);
+    await host.request('/external-mcp/access', 'PUT', { enabled: false, write: false });
+  },
+  30000,
+);

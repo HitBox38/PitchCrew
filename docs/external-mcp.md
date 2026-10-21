@@ -72,6 +72,8 @@ Job writes use the existing append-only board operations. Creation, corrections,
 
 ## Verification
 
+Settings browser tests click Copy and verify the exact JSON in the clipboard, including visible feedback when copying is blocked. The hidden desktop smoke test also enables isolated fixture access, clicks the real Copy button, verifies the native clipboard contents and revokes access again.
+
 `packages/mcp/test/external-stdio.test.ts` exercises a real SDK stdio client from a different working directory, CLI-generated configuration, read-only discovery, write denial, credential rotation/revocation, Host/Origin rejection before body parsing, separation from UI/run authorization, job management, busy checks and visible queued crew work. Fixtures use temporary data and Demo execution, with no live provider calls.
 
 `packages/mcp/test/fixtures/external-evaluation.xml` contains ten independent read-only agent evaluation questions. Use an untouched example workspace: start the daemon in development mode with a fresh data directory, load the six-job example board, and enable read-only external access. The questions require combining the board summaries, full jobs, saved packets and Profile. The integration suite verifies every answer against those fixtures through the real stdio tools. This checks the evidence and expected answers; it does not claim a live model evaluation was run.

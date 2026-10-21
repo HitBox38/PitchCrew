@@ -51,7 +51,9 @@ vi.mock('electron', () => ({
   ipcMain: Object.assign(new EventEmitter(), { handle: vi.fn() }),
   nativeImage: { createFromPath: vi.fn() },
   nativeTheme: { shouldUseDarkColors: false },
-  session: { defaultSession: { setPermissionRequestHandler: vi.fn() } },
+  session: {
+    defaultSession: { setPermissionRequestHandler: vi.fn(), setPermissionCheckHandler: vi.fn() },
+  },
   shell: {},
 }));
 vi.mock('../src/smoke.ts', () => ({ installSmokeCheck: vi.fn() }));
