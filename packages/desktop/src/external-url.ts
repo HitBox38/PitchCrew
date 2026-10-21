@@ -1,37 +1,9 @@
-// Only explicit setup and Pitchcrew release links can leave the sandboxed renderer.
+/** Only web URLs may be handed to the system browser, never files or native protocols. */
 export const isAllowedExternalUrl = (value: string) => {
-  return (
-    isConnectorExternalUrl(value) ||
-    /^https:\/\/github\.com\/HitBox38\/PitchCrew\/releases\/tag\/build-[a-f0-9]{40}$/.test(value)
-  );
-};
-
-export const isConnectorExternalUrl = (value: string) => {
-  return (
-    isGoogleAuthorizationUrl(value) ||
-    value === 'https://cli.github.com/' ||
-    value === 'https://github.com/googleworkspace/cli'
-  );
-};
-
-export const isGoogleAuthorizationUrl = (value: string) => {
   try {
     const url = new URL(value);
-    const redirect = new URL(url.searchParams.get('redirect_uri') ?? '');
     return (
-      url.origin === 'https://accounts.google.com' &&
-      url.pathname === '/o/oauth2/v2/auth' &&
-      !url.username &&
-      !url.password &&
-      redirect.protocol === 'http:' &&
-      redirect.hostname === '127.0.0.1' &&
-      !redirect.username &&
-      !redirect.password &&
-      redirect.pathname === '/oauth/google' &&
-      url.searchParams.get('response_type') === 'code' &&
-      url.searchParams.get('code_challenge_method') === 'S256' &&
-      !!url.searchParams.get('state') &&
-      !!url.searchParams.get('code_challenge')
+      (url.protocol === 'https:' || url.protocol === 'http:') && !url.username && !url.password
     );
   } catch {
     return false;

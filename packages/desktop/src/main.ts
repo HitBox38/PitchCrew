@@ -1,17 +1,8 @@
 import { waitForRuntimeUpdates } from './runtime-maintenance.ts';
-import {
-  app,
-  BrowserWindow,
-  dialog,
-  ipcMain,
-  nativeImage,
-  nativeTheme,
-  session,
-  shell,
-} from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, session } from 'electron';
 import { dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { isAllowedExternalUrl } from './external-url.ts';
+import { installExternalNavigation } from './external-navigation.ts';
 import { installSmokeCheck } from './smoke.ts';
 import { startPackagedDaemon, stopPackagedDaemon, ownsPackagedDaemon } from './packaged.ts';
 import { registerDesktopUpdates } from './updates/index.ts';
@@ -51,18 +42,7 @@ const createWindow = () => {
   if (!hiddenSmoke) window.once('ready-to-show', () => window?.show());
   window.on('enter-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', true));
   window.on('leave-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', false));
-  window.webContents.setWindowOpenHandler(({ url: target }) => {
-    if (
-      window &&
-      new URL(window.webContents.mainFrame.url).origin === new URL(url).origin &&
-      isAllowedExternalUrl(target)
-    )
-      void shell.openExternal(target).catch(() => {});
-    return { action: 'deny' };
-  });
-  window.webContents.on('will-navigate', (event, target) => {
-    if (new URL(target).origin !== new URL(url).origin) event.preventDefault();
-  });
+  installExternalNavigation(window, new URL(url).origin);
   window.on('closed', () => {
     window = null;
   });

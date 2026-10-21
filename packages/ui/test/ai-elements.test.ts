@@ -99,8 +99,27 @@ test('code fences preserve blank lines, copy exact text, and retain image and li
     'const answer = 42;\n\nconsole.log(answer);\n',
   );
   await page.getByRole('button', { name: 'External source' }).click();
-  await page.getByRole('dialog').waitFor();
+  const dialog = page.getByRole('dialog');
+  await dialog.waitFor();
+  await dialog.getByRole('button', { name: 'Copy link', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+    'https://example.com/source',
+  );
   await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'External source' }).click();
+  const popupReady = page.waitForEvent('popup');
+  await page
+    .context()
+    .route('https://example.com/source', (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<p>Fictional external source</p>' }),
+    );
+  await dialog.getByRole('button', { name: 'Open link', exact: true }).click();
+  const popup = await popupReady;
+  await popup.waitForLoadState();
+  expect(popup.url()).toBe('https://example.com/source');
+  expect(await popup.locator('body').textContent()).toBe('Fictional external source');
+  await popup.close();
+  await dialog.waitFor({ state: 'detached' });
   await page.getByRole('button', { name: 'Stream code', exact: true }).click();
   await expect.poll(() => code.locator('code').textContent()).toBe('const streaming = "<safe>";\n');
   expect(await code.locator('safe').count()).toBe(0);
