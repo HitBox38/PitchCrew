@@ -69,6 +69,7 @@ try {
     result.roles !== defaultRoleIds.length ||
     !result.iconLoaded ||
     !result.uiReady ||
+    !result.blockedLinkToastReady ||
     !result.styleChecks ||
     !Object.values(result.styleChecks).every(Boolean) ||
     !result.sheetChecks ||

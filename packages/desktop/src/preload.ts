@@ -2,6 +2,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 import type { DesktopUpdateBridge, DesktopUpdateState } from '../../core/src/desktop-updates.ts';
 import { updateChannels } from './updates/ipc.ts';
 import type { DesktopStartupBridge } from '../../core/src/desktop-startup.ts';
+import { createLinkFeedbackBridge } from './link-feedback.ts';
 
 const updates: DesktopUpdateBridge = {
   getState: () => ipcRenderer.invoke(updateChannels.state),
@@ -21,8 +22,9 @@ const startup: DesktopStartupBridge = {
   getTiming: () => ipcRenderer.invoke('pitchcrew:startup:timing'),
 };
 contextBridge.exposeInMainWorld('pitchcrewStartup', startup);
+contextBridge.exposeInMainWorld('pitchcrewLinks', createLinkFeedbackBridge(ipcRenderer));
 
-// Keep Electron APIs isolated; only narrow update/timing bridges and layout attributes reach the page.
+// Keep Electron APIs isolated; only narrow bridges and layout attributes reach the page.
 window.addEventListener('DOMContentLoaded', () => {
   const root = document.documentElement;
   root.dataset.desktop = process.platform;

@@ -8,6 +8,7 @@
     "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
     "./states": "./src/states.ts",
+    "./desktop-links": "./src/desktop-links.ts",
     "./job-link-recognition": "./src/job-link-recognition.ts",
     "./public-job-links": "./src/public-job-links.ts",
     "./chat-references": "./src/chat-references.ts",
