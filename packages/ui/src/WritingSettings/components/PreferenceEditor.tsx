@@ -73,12 +73,12 @@ export const PreferenceEditor = ({
               onValueChange={(value) => setScope(value as WritingPreference['scope'])}
               options={Object.entries(writingScopes).map(([value, label]) => ({ value, label }))}
             />
-            <div className="mt-auto flex gap-2">
-              <Button type="submit" disabled={working || !text.trim()}>
-                Save preference
-              </Button>
-              <Button disabled={working} onClick={requestClose}>
+            <div className="mt-auto flex justify-end gap-2">
+              <Button className="button" disabled={working} onClick={requestClose}>
                 Cancel
+              </Button>
+              <Button className="button primary" type="submit" disabled={working || !text.trim()}>
+                Save preference
               </Button>
             </div>
           </form>

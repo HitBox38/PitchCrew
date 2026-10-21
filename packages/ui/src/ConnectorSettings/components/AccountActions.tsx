@@ -27,7 +27,7 @@ export const AccountActions = ({ connector, working, action, open }: Props) => {
       </Button>
     );
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-end gap-1 max-mobile:basis-full max-mobile:items-start max-mobile:pl-7.75">
       <Button disabled={working} onClick={() => void open(connector.id)}>
         {connector.id === 'google' ? 'Connect Google' : 'Connect'}
       </Button>

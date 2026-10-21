@@ -34,7 +34,7 @@ export const ConversationWelcome = ({
             : `${role.description} Start with a question, or attach a job to work on an application.`}
       </p>
       {!readOnly ? (
-        <Suggestions className="chat-starters mt-6.25 grid w-full max-w-110 grid-cols-2 gap-2.5 max-chat:mt-5 max-chat:gap-2">
+        <Suggestions className="chat-starters mt-6.25 grid w-full max-w-110 grid-cols-2 gap-2.5 max-chat:mt-5 max-chat:gap-2 [&>:last-child:nth-child(odd)]:col-span-2">
           {group ? (
             <Suggestion
               className="chat-starter"

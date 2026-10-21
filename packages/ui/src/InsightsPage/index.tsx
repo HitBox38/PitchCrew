@@ -31,7 +31,9 @@ export const InsightsPage = () => {
           description={
             filtered
               ? 'Try another tag or a wider date range.'
-              : 'Add jobs, record outcomes and note lessons in each job. Insights appear here.'
+              : cards.some((card) => card.sample)
+                ? 'Example jobs aren’t counted. Add your own jobs, record outcomes and note lessons to see insights here.'
+                : 'Add jobs, record outcomes and note lessons in each job. Insights appear here.'
           }
         />
       )}

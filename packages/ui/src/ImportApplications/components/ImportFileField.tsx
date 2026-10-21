@@ -1,4 +1,6 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@/components/ui/button/components/Button.tsx';
+import { FileUp } from 'lucide-react';
+import { useRef } from 'react';
 import { maxImportRows } from '../constants.ts';
 import type { ImportUpload } from '../types.ts';
 
@@ -13,12 +15,28 @@ export const ImportFileField = ({
   upload: ImportUpload | null;
   chooseFile: (file: File | undefined) => Promise<void>;
 }) => {
+  const input = useRef<HTMLInputElement>(null);
   return (
     <div className="form flex flex-col gap-2">
-      <label>
+      <span id="import-file-label" className="text-label font-semibold text-ink-soft">
         Choose your tracker or export
-        <Input
+      </span>
+      <div className="import-file-picker">
+        <Button
+          className="button"
+          aria-describedby="import-file-label"
+          disabled={busy || locked}
+          onClick={() => input.current?.click()}
+        >
+          <FileUp size={15} aria-hidden="true" /> {upload ? 'Choose another file' : 'Choose file'}
+        </Button>
+        <span className="min-w-0 truncate">{upload ? upload.name : 'No file chosen'}</span>
+        <input
+          ref={input}
+          className="sr-only"
           type="file"
+          tabIndex={-1}
+          aria-label="Choose your tracker or export"
           accept=".db,.sqlite,.sqlite3,.json,.csv,application/json,text/csv,application/vnd.sqlite3"
           disabled={busy || locked}
           onChange={(event) => {
@@ -27,10 +45,10 @@ export const ImportFileField = ({
             void chooseFile(file);
           }}
         />
-      </label>
+      </div>
       <p className="quiet">
         {upload
-          ? `${upload.name} · ${upload.sourceFormat === 'sqlite' ? 'SQLite tracker' : upload.format.toUpperCase()}`
+          ? `${upload.sourceFormat === 'sqlite' ? 'SQLite tracker' : upload.format.toUpperCase()} file`
           : `SQLite tracker (.db, .sqlite, .sqlite3), JSON or CSV. Up to ${maxImportRows.toLocaleString('en-US')} applications and 2 MB.`}
       </p>
       {!upload ? (

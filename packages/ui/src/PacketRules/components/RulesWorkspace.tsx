@@ -31,9 +31,7 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
         </TabsTrigger>
       </TabsList>
       <TabsContent value="form">
-        <p className="quiet mb-5">
-          Set limits and checks for your packets. Changes apply only after you save.
-        </p>
+        <p className="quiet mb-5">Changes apply only after you save.</p>
         {document ? <RuleFormList document={document} controller={controller} /> : null}
         {issues.length ? (
           <ul role="alert" className="form-error mt-4">

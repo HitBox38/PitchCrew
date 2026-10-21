@@ -10,7 +10,7 @@ export const ExternalMcpSettings = () => {
     <section className="settings-section" aria-labelledby="external-mcp-heading" aria-busy={busy}>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 id="external-mcp-heading">External agents</h2>
-        <Button disabled={busy} onClick={refresh}>
+        <Button className="button" disabled={busy} onClick={refresh}>
           <RefreshCw size={15} /> Check again
         </Button>
       </div>

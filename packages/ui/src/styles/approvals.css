@@ -121,6 +121,7 @@
   padding: 0;
 }
 .inbox-workspace {
+  container: inbox / inline-size;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -316,7 +317,8 @@
   overflow-y: auto;
   padding: 20px;
 }
-@variant max-mobile {
+/* Narrow inboxes, including tablets beside the sidebar, show the list or one review at a time. */
+@container inbox (width < 40rem) {
   .inbox-review-layout {
     grid-template-columns: minmax(0, 1fr);
   }

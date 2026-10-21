@@ -2,7 +2,7 @@
 
 Crew and Skills show persistent sidebar counts for new default agent instructions and upstream versions of imported skills. The collapsed desktop sidebar retains a small indicator, and the mobile drawer uses the same counts. Opening a review or marking notifications read does not clear them: only applying or dismissing that version does. Update notices stay in the notification bell without automatic toasts, sounds or desktop notifications, including when first discovered while the app is open. Notification links open the exact review. Maintenance notices remain available beyond the ordinary 100-item notification history window.
 
-Both pages show pending updates first and offer a URL-backed **Updates only** filter. Their **Updates** sections retain dismissed versions for later review. A dismissed version never returns because of a manual check; a different available source revision creates a new reminder. Deleted skills and retired agents leave the pending counts. Paused agents and skills assigned to paused agents remain included.
+Both pages show pending updates first and offer a URL-backed **Updates only** filter while updates are listed or the filter is active. Their **Updates** sections retain dismissed versions for later review. A dismissed version never returns because of a manual check; a different available source revision creates a new reminder. Deleted skills and retired agents leave the pending counts. Paused agents and skills assigned to paused agents remain included.
 
 ## Default agent instructions
 

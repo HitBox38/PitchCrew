@@ -6,6 +6,7 @@ import { DialogDescription } from '@/components/ui/dialog/components/DialogDescr
 import { CrewIntroduction } from './CrewIntroduction.tsx';
 import { ApprovalIntroduction } from './ApprovalIntroduction.tsx';
 import type { OnboardingActions } from '../types.ts';
+import { useRef } from 'react';
 
 export const WelcomeDialog = ({
   step,
@@ -13,6 +14,7 @@ export const WelcomeDialog = ({
   error,
   save,
 }: OnboardingActions & { step: 0 | 1 }) => {
+  const next = useRef<HTMLButtonElement>(null);
   return (
     <Dialog
       open
@@ -20,7 +22,11 @@ export const WelcomeDialog = ({
         if (!open) void save('dismissed');
       }}
     >
-      <DialogContent className="modal onboarding-dialog" showCloseButton={false}>
+      <DialogContent
+        className="modal onboarding-dialog"
+        showCloseButton={false}
+        initialFocus={next}
+      >
         <header className="mb-7">
           <div className="mb-5 flex items-center justify-between gap-3">
             <span className="onboarding-brand font-serif text-xl">Pitchcrew</span>
@@ -57,6 +63,7 @@ export const WelcomeDialog = ({
               </Button>
             ) : null}
             <Button
+              ref={next}
               className="button primary"
               disabled={working}
               onClick={() => void save(step === 0 ? 'welcome' : 'setup', step === 0 ? 1 : 0)}

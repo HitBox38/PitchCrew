@@ -13,10 +13,10 @@ export const ConversationEditorActions = ({
 }) => {
   return (
     <div className="flex justify-end gap-3">
-      <Button className="text-button" variant="ghost" disabled={working} onClick={close}>
+      <Button className="button" disabled={working} onClick={close}>
         Cancel
       </Button>
-      <Button type="submit" disabled={disabled}>
+      <Button className="button primary" type="submit" disabled={disabled}>
         {editing ? 'Save conversation' : 'Create conversation'}
       </Button>
     </div>

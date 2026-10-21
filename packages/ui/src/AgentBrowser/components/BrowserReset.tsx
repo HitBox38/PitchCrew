@@ -40,7 +40,7 @@ export const BrowserReset = ({
           storage. Packets and application history are kept.
         </DialogDescription>
         <div className="flex justify-end gap-3">
-          <Button className="text-button" variant="ghost" onClick={() => setOpen(false)}>
+          <Button className="button" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button

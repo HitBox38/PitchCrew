@@ -70,17 +70,18 @@ export const PlanCreate = ({
               individual job.
             </p>
             <PlanJobPicker selected={cardIds} change={setCardIds} />
-            <div className="mt-auto flex gap-2">
+            <div className="mt-auto flex justify-end gap-2">
+              <Button className="button" disabled={working} onClick={requestClose}>
+                Cancel
+              </Button>
               <Button
+                className="button primary"
                 type="submit"
                 disabled={
                   working || !name.trim() || !(title.trim() || tag.trim() || cardIds.length)
                 }
               >
                 Save plan
-              </Button>
-              <Button disabled={working} onClick={requestClose}>
-                Cancel
               </Button>
             </div>
           </form>

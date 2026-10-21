@@ -42,6 +42,9 @@
   letter-spacing: -0.2px;
 }
 .chat-heading p {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   margin-top: 3px;
   color: var(--muted);
   font-size: 12px;
@@ -112,6 +115,7 @@
   }
   .chat-heading-actions .chat-role-state,
   .chat-settings > span,
+  .chat-browser > span:not(.chat-role-dot),
   .chat-runtime > span {
     display: none;
   }
