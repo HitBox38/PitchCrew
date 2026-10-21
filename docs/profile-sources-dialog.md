@@ -84,8 +84,9 @@ Expose status changes accessibly and respect reduced motion.
 
 Source reads and imports belong to the shared workspace store. Closing the
 dialog or navigating away from Profile leaves them running. An app-wide activity
-row shows progress and links back to Profile sources; completed reads remain
-available for explicit document review rather than opening over another page.
+link beside the queue widget shows progress and links back to Profile sources;
+completed reads remain available for explicit document review rather than opening
+over another page.
 Setup values, review selections, errors and completion notices survive route
 changes for the current app session. Closing a running import's review drawer
 closes the sources dialog without cancelling the import. Duplicate source tasks
@@ -116,7 +117,7 @@ Keep Profile's unsaved-note protection when an action would affect those notes.
 - Exercise proposal review, rejection and interrupted-update recovery.
 - Confirm imports and applied updates return to the list; **Open note** is explicit.
 - Close during a source read or import, navigate away and return through the
-  app-wide activity row. Verify pending state, reviewed bytes, completion notices
+  app-wide toolbar link. Verify pending state, reviewed bytes, completion notices
   and failure/retry state survive without opening a review over another page.
 - Verify keyboard navigation, focus restoration, announced status changes, reduced
   motion and narrow-window scrolling.
