@@ -95,3 +95,9 @@ The [Website](https://eu.posthog.com/project/295060/dashboard/1018299), [Heatmap
 | Engineering analytics       | Eight charts with genuine public repository metadata; manual opt-in collector. Native engineering source integration remains unavailable. [Details](analytics/engineering-analytics.md).                                                               |
 
 Resource manifests under `posthog/` describe deployment inputs; `activation.json` files record actual native writes and readbacks. See the [consolidated activation record](../posthog/activation.json). Saved descriptions distinguish **Not collected**, **No captured data**, and measured results. Automated tests stay offline and never invent production traffic. Dashboard and subscription activation does not deploy the application or landing code.
+
+## October 21 audit repair
+
+See [the repair record](analytics/audit-repair.md) and [live resource evidence](../posthog/audit-repair.json). CI and both native smoke launchers now force telemetry off; production configuration also rejects CI/smoke mode. Historical empty-workspace identities were not deleted or classified as tests without attribution.
+
+Account-status probes run after HTTP readiness and remain abortable/drained on shutdown. Each run still waits for its authentication guard; a missing account blocks execution. Deliberate request metrics optionally include a numeric HTTP status (100–599). Fixed operational logs add bounded failure categories and HTTP status; native AI error labels contain only those categories. Raw messages, stderr and paths remain local.

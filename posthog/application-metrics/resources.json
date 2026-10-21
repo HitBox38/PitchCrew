@@ -1,10 +1,10 @@
 {
   "project_id": 295060,
   "dashboard_id": 999694,
-  "activation_state": "native dashboard charts created or updated; instrumentation awaits release",
+  "activation_state": "real consented release observations verified; audit detail fields pending release",
   "native_metrics": {
     "product": "Metrics",
-    "status": "open alpha; inspect project activation before enabling",
+    "status": "real ingestion verified; native saved-view and catalog scopes remain unavailable",
     "ingestion": "/i/v1/metrics",
     "retention_days_as_documented": 30,
     "service_name": "pitchcrew-renderer",
@@ -12,13 +12,13 @@
       {
         "name": "pitchcrew.api.request.count",
         "type": "delta_monotonic_sum",
-        "dimensions": ["operation", "result", "renderer"]
+        "dimensions": ["operation", "result", "renderer", "http_status"]
       },
       {
         "name": "pitchcrew.api.request.duration",
         "type": "delta_histogram",
         "unit": "ms",
-        "dimensions": ["operation", "result", "renderer"]
+        "dimensions": ["operation", "result", "renderer", "http_status"]
       },
       {
         "name": "pitchcrew.run.count",

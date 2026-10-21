@@ -19,6 +19,7 @@ try {
     daemon = spawn(process.execPath, ['--import', 'tsx', 'scripts/desktop-smoke-daemon.ts'], {
       env: {
         ...process.env,
+        PITCHCREW_POSTHOG_DISABLED: '1',
         PITCHCREW_HOME: join(directory, 'workspace'),
         PITCHCREW_PORT: port,
         PITCHCREW_SEED_SKILLS: '0',
@@ -45,6 +46,7 @@ try {
   }
   const env: NodeJS.ProcessEnv = {
     ...process.env,
+    PITCHCREW_POSTHOG_DISABLED: '1',
     PITCHCREW_URL: url,
     PITCHCREW_SMOKE_FILE: evidence,
     PITCHCREW_SMOKE_CHAT: process.env.PITCHCREW_URL ? '0' : '1',

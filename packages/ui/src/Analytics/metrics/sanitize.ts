@@ -17,7 +17,18 @@ export const sanitizeRequestMetric = (
     duration_ms === undefined
   )
     return null;
-  return { operation: input.operation as string, result: input.result as string, duration_ms };
+  const properties: Record<string, string | number> = {
+    operation: input.operation as string,
+    result: input.result as string,
+    duration_ms,
+  };
+  if (
+    Number.isInteger(input.http_status) &&
+    (input.http_status as number) >= 100 &&
+    (input.http_status as number) <= 599
+  )
+    properties.http_status = input.http_status as number;
+  return properties;
 };
 
 export const sanitizeRunMetric = (

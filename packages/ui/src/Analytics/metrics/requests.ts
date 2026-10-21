@@ -15,11 +15,16 @@ export const startRequestMetric = (
   if (!operation || !allowed()) return () => {};
   const started = now();
   let finished = false;
-  return (result: (typeof requestResults)[number]) => {
+  return (result: (typeof requestResults)[number], httpStatus?: number) => {
     if (finished) return;
     finished = true;
     if (!allowed()) return;
-    const properties = sanitizeRequestMetric({ operation, result, duration_ms: now() - started });
+    const properties = sanitizeRequestMetric({
+      operation,
+      result,
+      duration_ms: now() - started,
+      http_status: httpStatus,
+    });
     if (properties) {
       try {
         sink.record('api_request_finished', properties);

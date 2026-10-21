@@ -1,31 +1,36 @@
 import { Link } from '@tanstack/react-router';
+import { FileCheck2, LoaderCircle } from 'lucide-react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { buttonVariants } from '@/components/ui/button/constants.ts';
-import { SourceProgress } from './SourceProgress.tsx';
 
 export const SourceActivity = () => {
   const progress = useWorkspaceStore((state) => state.profileSources.progress);
   const ready = useWorkspaceStore((state) => !!state.profileSources.preview);
   const update = useWorkspaceStore((state) => state.updateProfileSources);
   if (!progress && !ready) return null;
+  const label = progress?.label ?? 'Profile documents ready to review.';
   return (
-    <section
-      aria-label="Profile source activity"
-      className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2"
-    >
-      {progress ? (
-        <SourceProgress label={progress.label} />
-      ) : (
-        <output className="text-sm text-muted-foreground">
-          Profile documents ready to review.
-        </output>
-      )}
+    <section aria-label="Profile source activity" className="min-w-0">
       <Link
-        className={buttonVariants({ variant: 'ghost', size: 'sm' })}
+        data-slot="button"
+        className={buttonVariants({
+          variant: 'ghost',
+          size: 'sm',
+          className: 'h-[30px] max-w-full min-w-0 rounded-lg px-2 font-normal',
+        })}
         to="/profile"
         onClick={() => update({ open: true })}
+        aria-label="Open profile sources"
+        title={label}
       >
-        Open profile sources
+        <output className="flex min-w-0 items-center gap-2">
+          {progress ? (
+            <LoaderCircle className="animate-spin motion-reduce:animate-none" aria-hidden="true" />
+          ) : (
+            <FileCheck2 aria-hidden="true" />
+          )}
+          <span className="truncate max-phone:sr-only">{label}</span>
+        </output>
       </Link>
     </section>
   );

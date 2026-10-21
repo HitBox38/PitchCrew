@@ -59,7 +59,7 @@ it.each(['chat', 'workflow'] as const)(
       await vi.waitFor(() => expect(context.controllers.size).toBe(0));
       expect(context.board.get<Run>('run', run.id).message).toBe(secret);
       expect(record.mock.calls.filter(([event]) => event === 'operational_log')).toEqual([
-        ['operational_log', { code: 'runtime_run_failed', area: mode }],
+        ['operational_log', { code: 'runtime_run_failed', area: mode, failure_category: 'other' }],
       ]);
       expect(JSON.stringify(record.mock.calls)).not.toContain('private');
     } finally {
@@ -84,8 +84,24 @@ describe('operational HTTP hook', () => {
       expect(record).toHaveBeenCalledWith('operational_log', {
         code: 'http_request_failed',
         area: 'http',
+        http_status: 400,
+        failure_category: 'validation',
       });
       expect(JSON.stringify(record.mock.calls)).not.toContain('Fictional');
+      vi.spyOn(daemon.service, 'snapshot').mockRejectedValueOnce(
+        Object.assign(new Error('private upstream failure'), {
+          statusCode: 503,
+          code: 'ETIMEDOUT',
+        }),
+      );
+      expect((await request('/snapshot')).response.status).toBe(503);
+      expect(record).toHaveBeenCalledWith('operational_log', {
+        code: 'http_request_failed',
+        area: 'http',
+        http_status: 503,
+        failure_category: 'timeout',
+      });
+      expect(JSON.stringify(record.mock.calls)).not.toContain('private upstream');
     } finally {
       await cleanup();
     }

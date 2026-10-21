@@ -9,6 +9,20 @@ const properties = {
   $ai_latency: 2.5,
 };
 describe('AI renderer consent and content boundary', () => {
+  it('replaces untrusted native error labels with the closed failure vocabulary', () => {
+    const event = sanitizeEvent({
+      event: '$ai_trace',
+      properties: {
+        ...properties,
+        outcome: 'failed',
+        failure_category: '/private/error',
+        $ai_error: 'private stderr',
+      },
+    });
+    expect(event?.properties.failure_category).toBe('other');
+    expect(event?.properties.$ai_error).toBe('other');
+    expect(JSON.stringify(event)).not.toContain('private');
+  });
   it('accepts reviewed native traces while removing SDK and content injection', () => {
     const event = sanitizeEvent({
       event: '$ai_trace',

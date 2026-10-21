@@ -119,14 +119,21 @@ export const runCliText = async (
       }
       if (timedOut) {
         reject(
-          new Error(
-            `Pitchcrew stopped the runtime after its ${runtimeTimeLimit / 60000}-minute limit.`,
+          Object.assign(
+            new Error(
+              `Pitchcrew stopped the runtime after its ${runtimeTimeLimit / 60000}-minute limit.`,
+            ),
+            { code: 'ETIMEDOUT' },
           ),
         );
         return;
       }
       if (code !== 0) {
-        reject(new Error(error.trim() || `Runtime exited with code ${code}.`));
+        reject(
+          Object.assign(new Error(error.trim() || `Runtime exited with code ${code}.`), {
+            code: 'PITCHCREW_RUNTIME_EXIT',
+          }),
+        );
         return;
       }
       if (buffer.trim()) {
