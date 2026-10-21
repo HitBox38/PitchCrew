@@ -45,8 +45,8 @@ test.each(['none', 'show', 'focus'])(
   async (event) => {
     vi.useFakeTimers();
     vi.stubEnv('PITCHCREW_SMOKE_FILE', '/tmp/pitchcrew-fixture/result.json');
-    const configuration = '{"mcpServers":{"pitchcrew":{}}}';
-    vi.mocked(clipboard.readText).mockResolvedValue(configuration);
+    const configuration = '{\n  "mcpServers": {\n    "pitchcrew": {}\n  }\n}';
+    vi.mocked(clipboard.readText).mockResolvedValue(configuration.replaceAll('\n', '\r\n'));
     const capturePage = vi.fn(async () => ({ toPNG: () => Buffer.from('fixture') }));
     let loaded: (() => Promise<void>) | undefined;
     const window = Object.assign(new EventEmitter(), {

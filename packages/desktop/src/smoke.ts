@@ -233,7 +233,8 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
           })()`,
         );
         if (result.interactionChecks?.externalMcpConfiguration) {
-          const actual = await clipboard.readText();
+          // Windows stores native clipboard text with CRLF line endings.
+          const actual = (await clipboard.readText()).replaceAll('\r\n', '\n');
           const expected = result.interactionChecks.externalMcpConfiguration;
           if (actual !== expected)
             throw new Error(
