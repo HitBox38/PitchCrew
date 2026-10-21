@@ -2,6 +2,12 @@
 
 When you request export approval, Pitchcrew can render the resume and cover letter as PDF and DOCX files. Approval requires user-confirmed application context and a packet review bound to that context and exact packet bytes. Existing packets need these checks before another export or managed browser submission. Approval freezes the exact bytes and their SHA-256 manifest. Export, upload and preview all use those frozen bytes. The daemon loads PDF, DOCX and font-rendering engines only when rendering, checking layout or counting a frozen PDF’s pages; ordinary startup and snapshots without documents do not initialize them.
 
+## Inbox review and submission
+
+Inbox presents each frozen file as an attachment with a read-only viewer. Packet approval covers the whole packet. It does not export or start application work. Choose **Submit myself** to export and open the manual follow-up, or **Let an agent submit** to choose an agent (Submitter by default) and explicitly start preparation. Both paths export the same approved files before continuing; individual downloads then become available. See [Inbox redesign](inbox-redesign.md) for the complete flow.
+
+A failed export stays on the request for retry. Recovery of an already-consumed approval is limited to its unfinished export, rechecks the current reviewed packet and normal export gates, and writes to one stable directory for that approval. An already-completed matching directory can be recovered after a persistence interruption. Reusing an existing export checks the complete filenames and exact bytes. Changed files require a fresh approval; recovery never grants another application submission.
+
 ## Verification before approval
 
 Each requested PDF/DOCX is checked from its actual bytes before it reaches

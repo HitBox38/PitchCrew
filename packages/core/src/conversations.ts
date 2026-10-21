@@ -26,6 +26,7 @@ export interface Conversation {
   summary?: { content: string; through: string; sources: string[] };
 }
 export interface ChatRequest {
+  submissionApprovalId?: string;
   boardAction?: import('./work-queue.ts').BoardAction;
   deepReviewOptions?: import('./deep-reviews.ts').DeepReviewOptions;
   routine?: { routineId: string; scheduledFor: string };

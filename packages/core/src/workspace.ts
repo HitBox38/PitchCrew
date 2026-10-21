@@ -21,6 +21,12 @@ import type { Skill, SkillProposal } from './skills.ts';
 import type { TrackingSignal, TrackingScan } from './tracking.ts';
 
 export interface Approval {
+  submission?: {
+    method: 'manual' | 'agent';
+    roleId?: string;
+    threadId?: string;
+    requestId?: string;
+  };
   contextRevision?: string;
   id: string;
   cardId: string;

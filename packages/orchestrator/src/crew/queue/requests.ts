@@ -1,3 +1,5 @@
+import { assertReviewedContext, digestPacket } from '@pitchcrew/board';
+import type { Approval } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { assertConfirmedContext, assertExtractedContext } from '@pitchcrew/board';
@@ -103,6 +105,32 @@ export const requestProblem = async (
     if (context.configuring.has(role.id)) return 'Agent settings are being updated.';
     if (context.runtimeMaintenance.held(config))
       return 'Waiting for runtime authentication or maintenance.';
+  }
+  if (request.submissionApprovalId) {
+    try {
+      const approval = context.board.get<Approval>('approval', request.submissionApprovalId);
+      const card = context.board.get<Card>('card', approval.cardId);
+      if (
+        approval.status !== 'consumed' ||
+        !approval.exportDirectory ||
+        !card.packet ||
+        card.state !== 'awaiting_approval' ||
+        digestPacket(card.id, card.packet) !== approval.digest ||
+        assertReviewedContext(card).revision !== approval.contextRevision
+      )
+        return 'The packet changed. Review and approve the current application.';
+      if (card.submissionAttempts?.some((attempt) => attempt.status === 'uncertain'))
+        return 'Verify the previous submission outcome first.';
+      const role = context.board.get<Role>('role', request.deliveries[0]!.roleId);
+      if (
+        !role.capabilities?.computerUse ||
+        !role.capabilities?.assessForms ||
+        !role.capabilities?.recordSubmissions
+      )
+        return 'Restore this agent’s browser, form assessment and receipt tools in Crew.';
+    } catch (error) {
+      return error instanceof Error ? error.message : 'The submission context is unavailable.';
+    }
   }
   if (!request.boardAction) return '';
   const card = context.board.list<Card>('card').find((c) => c.id === thread.cardId);

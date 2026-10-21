@@ -1,3 +1,4 @@
+import { inboxPendingCount } from '@/lib/inbox.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { copyDataDirectory } from '@/lib/data-directory.ts';
 import { useShortcuts } from '@/shortcuts.ts';
@@ -77,9 +78,7 @@ export const useApp = () => {
       }),
     [router, closePanels],
   );
-  const pending =
-    (data?.approvals.filter((a) => a.status === 'pending').length ?? 0) +
-    (data?.computerApprovals.filter((a) => a.status === 'pending').length ?? 0);
+  const pending = data ? inboxPendingCount(data) : 0;
   const selected = data?.cards.find((c) => c.id === selectedId);
   const selectedRole = data?.roles.find((r) => r.id === roleId);
   const jumpToStage = (id: string) => {

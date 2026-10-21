@@ -1,3 +1,4 @@
+import { SubmissionVerification } from './components/SubmissionVerification.tsx';
 import { RuntimeReadinessNotice } from '@/RuntimeMaintenance/components/RuntimeReadinessNotice.tsx';
 import '@/styles/chat.css';
 import { AgentBrowser } from '@/AgentBrowser/index.tsx';
@@ -33,6 +34,7 @@ export const ChatView = (props: ChatViewProps) => {
       >
         <ConversationHeading {...controller} />
         <RelatedConversations {...controller} />
+        <SubmissionVerification {...controller} />
         {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
         {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
         <RuntimeReadinessNotice {...controller} />
