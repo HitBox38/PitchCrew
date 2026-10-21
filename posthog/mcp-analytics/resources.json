@@ -246,10 +246,10 @@
     {
       "key": "tool-quality",
       "name": "Observed MCP tool quality \u00b7 noncanonical",
-      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health. Only tools with at least 20 observed calls appear.",
+      "description": "Prepared \u00b7 Awaiting deployed native MCP events. Covers reviewed scoped gateway calls while a consented renderer is active; includes permission/validation rejections. Noncanonical operational measure; no traffic does not imply health. Every tool with a rejection appears, plus tools with at least 20 calls.",
       "query": {
         "kind": "HogQLQuery",
-        "query": "SELECT\n    coalesce(nullIf(toString(properties.$mcp_exec_tool_call_name), ''), toString(properties.$mcp_tool_name)) AS tool,\n    count() AS calls,\n    countIf(toBool(properties.$mcp_is_error)) AS rejected_calls,\n    round(countIf(toBool(properties.$mcp_is_error)) * 100.0 / count(), 1) AS rejected_pct,\n    quantile(0.50)(toFloat(properties.$mcp_duration_ms)) AS p50_ms,\n    quantile(0.95)(toFloat(properties.$mcp_duration_ms)) AS p95_ms\nFROM events\nWHERE event = '$mcp_tool_call'\n    AND properties.$mcp_server_name = 'pitchcrew'\n    AND properties.mcp_observation_level = 'scoped_gateway'\n    AND timestamp >= now() - INTERVAL 7 DAY\nGROUP BY tool\nHAVING calls >= 20\nORDER BY rejected_pct DESC, calls DESC\nLIMIT 50"
+        "query": "SELECT\n    coalesce(nullIf(toString(properties.$mcp_exec_tool_call_name), ''), toString(properties.$mcp_tool_name)) AS tool,\n    count() AS calls,\n    countIf(toBool(properties.$mcp_is_error)) AS rejected_calls,\n    round(countIf(toBool(properties.$mcp_is_error)) * 100.0 / count(), 1) AS rejected_pct,\n    quantile(0.50)(toFloat(properties.$mcp_duration_ms)) AS p50_ms,\n    quantile(0.95)(toFloat(properties.$mcp_duration_ms)) AS p95_ms\nFROM events\nWHERE event = '$mcp_tool_call'\n    AND properties.$mcp_server_name = 'pitchcrew'\n    AND properties.mcp_observation_level = 'scoped_gateway'\n    AND timestamp >= now() - INTERVAL 7 DAY\nGROUP BY tool\nHAVING calls >= 20 OR rejected_calls > 0\nORDER BY rejected_pct DESC, calls DESC\nLIMIT 50"
       }
     }
   ],

@@ -62,8 +62,11 @@ export const runAcpText = async (
     const timer = setTimeout(
       () =>
         stop(
-          new Error(
-            `Pitchcrew stopped the runtime after its ${runtimeTimeLimit / 60000}-minute limit.`,
+          Object.assign(
+            new Error(
+              `Pitchcrew stopped the runtime after its ${runtimeTimeLimit / 60000}-minute limit.`,
+            ),
+            { code: 'ETIMEDOUT' },
           ),
         ),
       runtimeTimeLimit,
@@ -204,7 +207,13 @@ export const runAcpText = async (
       if (context.signal.aborted) reject(new Error('Run cancelled.'));
       else if (failure) reject(failure);
       else if (completed) resolve(completed);
-      else reject(new Error(stderr.trim() || 'The runtime exited before completing its ACP turn.'));
+      else
+        reject(
+          Object.assign(
+            new Error(stderr.trim() || 'The runtime exited before completing its ACP turn.'),
+            { code: 'PITCHCREW_RUNTIME_EXIT' },
+          ),
+        );
     });
     send({
       id: 1,

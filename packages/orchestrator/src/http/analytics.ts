@@ -8,7 +8,13 @@ export interface AnalyticsConfig {
 
 /** The public ingestion token is configuration, never a personal PostHog API key. */
 export const analyticsConfig = (env: NodeJS.ProcessEnv, dev: boolean): AnalyticsConfig | null => {
-  if (env.PITCHCREW_POSTHOG_DISABLED === '1') return null;
+  if (
+    env.PITCHCREW_POSTHOG_DISABLED === '1' ||
+    env.CI === 'true' ||
+    env.CI === '1' ||
+    !!env.PITCHCREW_SMOKE_FILE
+  )
+    return null;
   const token = (env.PITCHCREW_POSTHOG_TOKEN ?? analyticsProject.token).trim();
   if (!token || (dev && env.PITCHCREW_POSTHOG_DEV !== '1')) return null;
   if (!/^phc_[a-zA-Z0-9_-]{8,200}$/.test(token))

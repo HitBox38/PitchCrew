@@ -1,4 +1,5 @@
 import { installerDefinitions } from '../Downloads/constants';
+import { analyticsConfig } from './config';
 import { analyticsContext } from './context';
 import { heatmapMeasurements, publicLandingUrl, sanitizeHeatmap } from './heatmaps';
 export const replayAllowed = (
@@ -42,6 +43,9 @@ export const sanitizeEvent = <T extends { event: string; properties: Record<stri
   }
   properties.$host = 'pitch-crew.tomer-norman.dev';
   properties.$pathname = '/';
+  // Only the fixed public proxy origin is disclosed, never the visitor's URL or an override.
+  if (analyticsConfig.host === '/relay')
+    properties.$lib_custom_api_host = `${publicLandingUrl}relay`;
   if (['$$heatmap', '$pageview', '$pageleave'].includes(event.event)) {
     // Ingestion needs the page URL for native heatmap and scrollmap rows.
     // This is a constant public page, never window.location or a link href.

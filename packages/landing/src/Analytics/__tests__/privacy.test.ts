@@ -36,6 +36,7 @@ describe('landing analytics privacy', () => {
       $geoip_disable: true,
       ...analyticsContext,
       $host: 'pitch-crew.tomer-norman.dev',
+      $lib_custom_api_host: 'https://pitch-crew.tomer-norman.dev/relay',
       $pathname: '/',
     });
     expect(
@@ -128,6 +129,7 @@ describe('landing analytics privacy', () => {
           $process_person_profile: false,
           $geoip_disable: true,
           $host: 'pitch-crew.tomer-norman.dev',
+          $lib_custom_api_host: 'https://pitch-crew.tomer-norman.dev/relay',
           $pathname: '/',
           $current_url: publicLandingUrl,
         },
@@ -139,6 +141,7 @@ describe('landing analytics privacy', () => {
           $process_person_profile: false,
           $geoip_disable: true,
           $host: 'pitch-crew.tomer-norman.dev',
+          $lib_custom_api_host: 'https://pitch-crew.tomer-norman.dev/relay',
           $pathname: '/',
         },
       },
@@ -152,6 +155,7 @@ describe('landing analytics privacy', () => {
           platform: installer.platform,
           destination: 'releases',
           $host: 'pitch-crew.tomer-norman.dev',
+          $lib_custom_api_host: 'https://pitch-crew.tomer-norman.dev/relay',
           $pathname: '/',
         },
       },

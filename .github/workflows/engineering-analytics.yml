@@ -1,6 +1,8 @@
 name: Engineering analytics
 
 on:
+  schedule:
+    - cron: '23 5 * * *'
   workflow_dispatch:
     inputs:
       send:
@@ -23,7 +25,7 @@ concurrency:
 
 jobs:
   collect:
-    if: github.repository == 'HitBox38/PitchCrew'
+    if: github.repository == 'HitBox38/PitchCrew' && (github.event_name != 'schedule' || vars.PITCHCREW_ENGINEERING_ANALYTICS == '1')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
@@ -38,8 +40,8 @@ jobs:
       - name: Collect public CI and merged PR metadata
         env:
           GH_TOKEN: ${{ github.token }}
-          SEND_EVENTS: ${{ inputs.send }}
-          PITCHCREW_ENGINEERING_LOOKBACK_DAYS: ${{ inputs.lookback_days }}
+          SEND_EVENTS: ${{ github.event_name == 'schedule' || inputs.send }}
+          PITCHCREW_ENGINEERING_LOOKBACK_DAYS: ${{ inputs.lookback_days || 2 }}
           PITCHCREW_ENGINEERING_ANALYTICS: ${{ vars.PITCHCREW_ENGINEERING_ANALYTICS }}
           PITCHCREW_ENGINEERING_POSTHOG_TOKEN: ${{ vars.PITCHCREW_ENGINEERING_POSTHOG_TOKEN }}
         run: |
