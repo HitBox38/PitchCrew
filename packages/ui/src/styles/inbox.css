@@ -39,7 +39,9 @@
   gap: 2px;
   margin-left: auto;
 }
+/* Unread is a filter too, so it shares the filters' resting and pressed looks. */
 .mailbox-filters [aria-pressed='true'],
+.mailbox-unread[aria-pressed='true'],
 .file-mode-toggle [aria-pressed='true'] {
   background: var(--primary-soft);
   color: var(--primary-deep);
@@ -317,7 +319,7 @@
     margin-left: 0;
   }
   .mail-row .mail-row-open {
-    grid-template-columns: 28px minmax(0, 1fr) 65px;
+    grid-template-columns: 28px minmax(0, 1fr) auto;
     padding: 16px;
     gap: 8px 12px;
   }
@@ -339,9 +341,14 @@
   .mail-status {
     grid-column: 3;
     grid-row: 2;
+    white-space: nowrap;
   }
   .mail-read-toggle {
     display: none;
+  }
+  .mail-reading-toolbar {
+    flex-wrap: nowrap;
+    padding-inline: 12px;
   }
   .mail-reading-header,
   .mail-reading-body {

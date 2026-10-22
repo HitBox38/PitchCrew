@@ -85,3 +85,11 @@ const browserTitles = {
   upload: 'Attach application file',
   dialog: 'Resolve browser dialog',
 };
+
+/** Reading-pane intro that matches where the packet is in its approval flow. */
+export const packetIntro = (approval: Approval, current: boolean) =>
+  approval.status === 'pending'
+    ? 'Your reviewed application packet is ready. Open the attachments to check the exact files, then approve the packet and choose how you’d like to apply.'
+    : current && approval.status !== 'rejected'
+      ? 'You approved this packet. Choose how you’d like to apply, or open the attachments to check the exact files.'
+      : 'Your reviewed application packet. Open the attachments to check the exact files.';

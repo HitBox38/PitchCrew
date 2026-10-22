@@ -19,14 +19,18 @@ export const PacketApprovalActions = (props: PacketApprovalActionsProps) => {
           {model.error}
         </p>
       ) : null}
-      {model.chooser ? <SubmissionChooser model={model} data={data} /> : null}
-      <PacketDecisionActions
-        {...props}
-        model={model}
-        current={current}
-        uncertain={!!uncertain}
-        disabled={disabled}
-      />
+      {/* The chooser carries its own start, manual and cancel actions. */}
+      {model.chooser ? (
+        <SubmissionChooser model={model} data={data} />
+      ) : (
+        <PacketDecisionActions
+          {...props}
+          model={model}
+          current={current}
+          uncertain={!!uncertain}
+          disabled={disabled}
+        />
+      )}
       {active ? (
         <p className="quiet">
           Application work is active. Open the conversation to stop preparation or take control.

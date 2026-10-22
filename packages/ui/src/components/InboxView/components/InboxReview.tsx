@@ -24,7 +24,7 @@ export const InboxReview = (props: InboxReviewProps) => {
         </Button>
         <Button size="sm" variant="ghost" onClick={() => props.markRead(request.key, false)}>
           <Mail size={15} />
-          Mark unread
+          <span className="max-mobile:sr-only">Mark unread</span>
         </Button>
         <Button
           size="sm"

@@ -41,8 +41,9 @@ export const InboxRequestList = (model: InboxViewModel) => {
           ))}
         </fieldset>
         <Button
+          className="mailbox-unread"
           size="sm"
-          variant="outline"
+          variant="ghost"
           aria-pressed={model.unreadOnly}
           onClick={() => model.setUnreadOnly(!model.unreadOnly)}
         >
