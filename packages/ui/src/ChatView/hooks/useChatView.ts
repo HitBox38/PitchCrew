@@ -23,7 +23,15 @@ export const useChatView = (props: ChatViewProps) => {
   const data = useMemo(() => ({ ...props.data, runs }), [props.data, runs]);
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLDivElement>(null);
-  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [drafts, setDrafts] = useState<Record<string, string>>(() => {
+    try {
+      const draft = sessionStorage.getItem(`pitchcrew.handoff-draft.${thread}`);
+      sessionStorage.removeItem(`pitchcrew.handoff-draft.${thread}`);
+      return draft ? { [thread]: draft } : {};
+    } catch {
+      return {};
+    }
+  });
   const [referenceDrafts, setReferenceDrafts] = useState<Record<string, ChatReference[]>>({});
   const setDraftReferences = (references: ChatReference[]) =>
     setReferenceDrafts((current) => ({ ...current, [thread]: references }));

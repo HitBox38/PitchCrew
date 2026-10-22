@@ -164,6 +164,7 @@ test('copying a posting link and recording withdrawal preserve the current view 
   ).toEqual([]);
 });
 
+// CPU throttling and two delayed saves need their own bounded CI budget.
 test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async ({
   onTestFinished,
 }) => {
@@ -222,7 +223,7 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await expect
     .poll(() => closed.evaluate((element) => element === document.activeElement))
     .toBe(true);
-});
+}, 30000);
 
 test.each(['dropdown', 'context'])(
   'deletion requires confirmation, keeps cancellation harmless and restores focus after removal (%s)',

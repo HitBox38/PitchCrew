@@ -1,13 +1,18 @@
+import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { Approval } from '@pitchcrew/core';
-
 export const DocumentFindings = ({ approval }: { approval: Approval }) => {
-  if (!approval.documentVerification?.length) return null;
+  const reports = approval.documentVerification ?? [];
+  if (!reports.length) return null;
+  const blocked = reports.filter((report) => report.status === 'blocked').length;
+  const findings = reports.flatMap((report) => report.findings);
   return (
-    <section className="space-y-2" aria-label="Document verification">
-      <h3>Document verification</h3>
-      {approval.documentVerification.map((report) => (
-        <div key={report.name} className="space-y-1">
+    <AccordionSection
+      className="mail-document-findings"
+      heading={`${reports.filter((report) => report.status === 'verified').length} documents checked${blocked ? ` · ${blocked} unavailable` : ''}${findings.length ? ` · ${findings.length} layout notes` : ''}`}
+    >
+      {reports.map((report) => (
+        <div key={report.name} className="mb-3">
           <p className="font-semibold">
             {report.name}:{' '}
             {report.status === 'blocked' ? 'Unavailable for export' : 'Content checked'}
@@ -26,9 +31,9 @@ export const DocumentFindings = ({ approval }: { approval: Approval }) => {
         </div>
       ))}
       <p className="quiet">
-        These checks assess document content and layout. They do not establish ATS compatibility or
-        factual accuracy.
+        Checks assess content and layout. They do not establish ATS compatibility or factual
+        accuracy.
       </p>
-    </section>
+    </AccordionSection>
   );
 };

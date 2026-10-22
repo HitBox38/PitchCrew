@@ -1,3 +1,4 @@
+import { startSubmission, completeSubmission } from './crew/submission-handoff.ts';
 import { queueBoardAction } from './crew/queue/requests.ts';
 import { workspaceQueue } from './crew/queue/projection.ts';
 import { configureQueue, updateQueue, moveQueueRequest } from './crew/queue/commands.ts';
@@ -63,6 +64,20 @@ export class CrewService {
   externalCall = (action: string, data: unknown) => externalCall(this.context, action, data);
   qualityAction = (data: unknown) => {
     return qualityUserAction(this.context, data);
+  };
+  private readonly submissionStarts = new Map<
+    string,
+    Promise<import('@pitchcrew/core').Approval>
+  >();
+  completeSubmission = (id: string, data: unknown) => completeSubmission(this.context, id, data);
+  startSubmission = (id: string, data: unknown) => {
+    const running = this.submissionStarts.get(id);
+    if (running) return running;
+    const task = startSubmission(this.context, id, data).finally(() =>
+      this.submissionStarts.delete(id),
+    );
+    this.submissionStarts.set(id, task);
+    return task;
   };
   private readonly context: CrewContext;
   private readonly skillUpdates = new SkillUpdates();
