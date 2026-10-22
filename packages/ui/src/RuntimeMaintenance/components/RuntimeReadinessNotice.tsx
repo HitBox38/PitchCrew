@@ -1,15 +1,21 @@
 import type { ChatViewModel } from '@/ChatView/types.ts';
 import { Link } from '@tanstack/react-router';
+import { authenticationNotice } from '../helpers.ts';
 
 export const RuntimeReadinessNotice = ({ data, role, conversation }: ChatViewModel) => {
   const config = { ...role, ...conversation?.configurations[role.id] };
   const maintenance = data.runtimeMaintenance;
   const update = maintenance?.updates.find((entry) => entry.id === config.runtime);
-  const auth = maintenance?.authentication.find(
-    (entry) => entry.runtime === config.runtime && entry.model === config.model,
-  )?.result;
+  const auth = authenticationNotice(
+    maintenance?.authentication.find(
+      (entry) => entry.runtime === config.runtime && entry.model === config.model,
+    )?.result,
+    data.runs,
+    config.runtime,
+    config.model,
+  );
   const updating = !!update?.operation && !update.operation.finishedAt;
-  if (!updating && (!auth || auth.status === 'authenticated')) return null;
+  if (!updating && !auth) return null;
   return (
     <output className="runtime-readiness-notice mx-4 my-2 rounded-lg px-3.5 py-3 text-sm">
       <p>

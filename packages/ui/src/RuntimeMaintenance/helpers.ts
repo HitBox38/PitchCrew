@@ -1,4 +1,4 @@
-import type { RuntimeInfo, RuntimeUpdateInfo } from '@pitchcrew/core';
+import type { RuntimeAuthentication, RuntimeInfo, RuntimeUpdateInfo, Run } from '@pitchcrew/core';
 
 export const runtimeUpdateCount = (runtimes: RuntimeInfo[], updates: RuntimeUpdateInfo[] = []) => {
   const installed = new Set(
@@ -24,4 +24,30 @@ export const runtimeStatus = (runtime: RuntimeInfo, update?: RuntimeUpdateInfo) 
   if (update?.status === 'unknown')
     return { label: 'Update check unavailable', tone: 'runtime-warning' };
   return { label: 'Installed', tone: '' };
+};
+
+/**
+ * An unverifiable sign-in stops mattering once this runtime and model finish a run after the
+ * check: that run proves the CLI is authenticated, so the warning would only mislead.
+ */
+export const authenticationNotice = (
+  auth: RuntimeAuthentication | undefined,
+  runs: Run[],
+  runtime: string,
+  model: string,
+) => {
+  if (!auth || auth.status === 'authenticated') return null;
+  if (
+    auth.status === 'unknown' &&
+    runs.some(
+      (run) =>
+        run.status === 'completed' &&
+        run.runtime === runtime &&
+        (run.configuration?.role.model ?? model) === model &&
+        !!run.finishedAt &&
+        run.finishedAt >= auth.checkedAt,
+    )
+  )
+    return null;
+  return auth;
 };

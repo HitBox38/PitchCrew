@@ -8,6 +8,9 @@ export const ConversationIdentity = (props: ConversationHeadingProps) => {
   const { conversation, roleId, participants, role, data, setDialog } = props;
   const lead = data.roles.find((agent) => agent.id === conversation?.leadId);
   const leadUnavailable = leadIsUnavailable(data, conversation, lead);
+  // A lone agent with an uninstalled runtime needs a runtime, not a different lead.
+  const pickRuntime =
+    participants.length === 1 && !!lead && lead.enabled && !lead.retiredAt && !!leadUnavailable;
   return (
     <div className="chat-heading-identity">
       {participants.length === 1 ? (
@@ -25,8 +28,12 @@ export const ConversationIdentity = (props: ConversationHeadingProps) => {
             <span> · Waiting for you</span>
           ) : null}
           {leadUnavailable ? (
-            <Button variant="ghost" size="xs" onClick={() => setDialog('manage')}>
-              Choose new lead
+            <Button
+              variant="ghost"
+              size="xs"
+              onClick={() => setDialog(pickRuntime ? 'runtime' : 'manage')}
+            >
+              {pickRuntime ? 'Choose runtime' : 'Choose new lead'}
             </Button>
           ) : null}
         </p>
