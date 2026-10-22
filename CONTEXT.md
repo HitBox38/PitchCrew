@@ -4,6 +4,34 @@ Pitchcrew helps a user manage a job search with a crew of agents and a shared ap
 
 ## Language
 
+**Inbox request**:
+A request for the user's decision or submission follow-up concerning an application packet or browser action, retained with its outcome when resolved.
+_Avoid_: Email (when implying a message sent through an email service), notification (when referring to the decision request itself)
+
+**Request attachment**:
+A document or frozen browser evidence item included with an Inbox request for the user to inspect as part of that decision. Viewing an attachment does not approve the request or export the document.
+_Avoid_: Chat attachment (when referring to a document included with an Inbox request)
+
+**Unread Inbox request**:
+An Inbox request the user has not opened or has marked unread. Read status is separate from whether the request still needs action.
+_Avoid_: Pending approval (when referring only to whether a request has been read)
+
+**Submission follow-up**:
+An outstanding user step after packet approval, such as completing a manual application or verifying a submission outcome. Exporting files does not complete the follow-up.
+_Avoid_: Pending approval (when the packet is already approved), submitted application (when applying has not been recorded)
+
+**Agent-assisted submission**:
+An application process in which a crew agent prepares the employer's form and submits it after the user approves the exact final submission action. Choosing this method does not itself approve the final submission.
+_Avoid_: Unattended submission, automatic application (when implying no final user decision)
+
+**Submission verification**:
+The user's determination of whether an application was submitted, based on the employer's confirmation or other evidence. Approval to submit and an agent's report of success do not themselves establish a verified submission.
+_Avoid_: Submission approval (when referring to checking the outcome), automatic success
+
+**Submitter**:
+A crew agent specializing in inspecting employer application forms, preparing applications with reviewed documents and carrying out user-approved submissions.
+_Avoid_: Writer (when referring to the agent responsible for employer-form preparation and submission)
+
 **Crew runtime**:
 An installed agent CLI that Pitchcrew uses to carry out a crew agent's conversations and job workflows.
 _Avoid_: Model provider (when referring to the local CLI), Pitchcrew app

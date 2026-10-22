@@ -107,6 +107,12 @@ export const registerApprovalsRoutes = (app: FastifyInstance, service: CrewServi
       ),
     ),
   );
+  app.post<IdRoute>('/api/approvals/:id/complete', (req) =>
+    service.completeSubmission(req.params.id, req.body),
+  );
+  app.post<IdRoute>('/api/approvals/:id/submit', async (req) =>
+    service.startSubmission(req.params.id, req.body),
+  );
   app.post<IdRoute>('/api/approvals/:id/export', async (req, res) =>
     res.send({ directory: await service.exportPacket(req.params.id) }),
   );

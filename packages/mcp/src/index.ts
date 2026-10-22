@@ -1,5 +1,5 @@
-import { digestArtifacts, type Board } from '@pitchcrew/board';
-import type { Approval } from '@pitchcrew/core';
+import { assertReviewedContext, digestPacket, digestArtifacts, type Board } from '@pitchcrew/board';
+import type { Approval, Card } from '@pitchcrew/core';
 import {
   verifiedArtifact,
   writePacket,
@@ -37,8 +37,28 @@ export const exportApprovedPacket = async (
       );
   }
   assertReady?.();
-  const packet = board.consumeApproval(approvalId, approval.cardId, approval.digest);
-  const output = await writePacket(directory, approval.cardId, packet, approval.artifacts);
+  // Recover only an unfinished export of the same already-consumed approval, to one stable directory.
+  const recovering = approval.status === 'consumed' && !approval.exportDirectory;
+  if (recovering) {
+    const card = board.get<Card>('card', approval.cardId);
+    if (
+      card.state !== 'awaiting_approval' ||
+      !card.packet ||
+      digestPacket(card.id, card.packet) !== approval.digest ||
+      assertReviewedContext(card).revision !== approval.contextRevision
+    )
+      throw new Error('The application changed after export failed. Request a fresh approval.');
+  }
+  const packet = recovering
+    ? approval.packet
+    : board.consumeApproval(approvalId, approval.cardId, approval.digest);
+  const output = await writePacket(
+    directory,
+    approval.cardId,
+    packet,
+    approval.artifacts,
+    approval.id,
+  );
   board.record(
     'approval',
     { ...approval, status: 'consumed', exportDirectory: output },

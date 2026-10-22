@@ -234,6 +234,7 @@ describe('local daemon workflow', () => {
       expect(daemon.service.board.get<Role>('role', id)).toMatchObject(settings);
     }
   });
+  // Two complete review/export cycles include cold document workers on CI.
   it('runs a source-backed application through review, approval, export and manual tracking', async () => {
     const { request, directory } = await setup(14417);
     await request('/profile', 'PUT', {
@@ -305,7 +306,7 @@ describe('local daemon workflow', () => {
     await request(`/cards/${card.id}/move`, 'POST', { state: 'interviewing' });
     const { result: final } = await request<Snapshot>('/snapshot');
     expect(final.cards[0].state).toBe('interviewing');
-  });
+  }, 30000);
   it('rejects cross-origin/user-session bypasses and expired agent capabilities', async () => {
     const { daemon, request } = await setup(14418);
     expect((await fetch(`${daemon.url}/api/snapshot`)).status).toBe(403);

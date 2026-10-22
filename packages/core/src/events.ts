@@ -47,7 +47,8 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 22 &&
     event.version !== 23 &&
     event.version !== 24 &&
-    event.version !== 25
+    event.version !== 25 &&
+    event.version !== 26
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -80,7 +81,8 @@ export interface BoardEvent {
     | 22
     | 23
     | 24
-    | 25;
+    | 25
+    | 26;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -148,5 +150,5 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 25 adds quality state alongside version 24 durable work queues. */
-export const currentEventVersion = 25 as const;
+/** Version 26 binds submission handoffs to exact approvals and queued requests. */
+export const currentEventVersion = 26 as const;
