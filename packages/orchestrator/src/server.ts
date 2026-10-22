@@ -44,6 +44,8 @@ export interface DaemonOptions {
   directory: string;
   port: number;
   dev?: boolean;
+  /** Override UI serving independently of development-only runtimes; false serves APIs only. */
+  ui?: 'dev' | 'built' | false;
   seedSkills?: boolean;
   /** Started by the installed background service. */
   service?: boolean;
@@ -173,7 +175,10 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
     ])
       app.register(async (routes) => registerRoutes(routes, service));
     app.register(async (routes) => registerBackgroundServiceRoutes(routes, options));
-    await registerUi(app, options.dev ?? false);
+    const ui = options.ui ?? (options.dev ? 'dev' : 'built');
+    if (ui === false)
+      app.setNotFoundHandler((_req, res) => res.status(404).send({ error: 'Route not found.' }));
+    else await registerUi(app, ui === 'dev');
     // Callers retain the Node server contract; every plugin is ready before listen().
     await app.ready();
     recordOperationalLog(diagnostics, { code: 'daemon_ready', area: 'daemon' });

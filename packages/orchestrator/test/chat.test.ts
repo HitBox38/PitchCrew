@@ -7,6 +7,34 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readChatStream } from '../../ui/src/chat-stream.ts';
 import { cleanup, finish, setup, waitForSnapshot } from './helpers/daemon.ts';
 
+const holdDemoChats = (contents: string[]) => {
+  const gates = new Map<string, { pending: Promise<void>; release: () => void }>();
+  for (const content of contents) {
+    let release!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    gates.set(content, { pending, release });
+  }
+  const originalChat = adapters.demo.chat;
+  vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
+    const gate = gates.get(context.request ?? '');
+    if (gate) {
+      context.signal.throwIfAborted();
+      await new Promise<void>((resolve, reject) => {
+        const abort = () => reject(context.signal.reason);
+        context.signal.addEventListener('abort', abort, { once: true });
+        void gate.pending.then(() => {
+          context.signal.removeEventListener('abort', abort);
+          resolve();
+        });
+      });
+    }
+    return originalChat(context);
+  });
+  return (content: string) => gates.get(content)!.release();
+};
+
 afterEach(cleanup);
 describe('agent conversations and crew actions', () => {
   it('streams user and agent follow-up replies, restores previews on reconnect and saves only final text', async () => {
@@ -172,10 +200,13 @@ describe('agent conversations and crew actions', () => {
   });
 
   it('persists role chats without a job/profile, isolates conversations, and rejects overlapping sends', async () => {
+    const content = 'Help me understand your role.';
+    const competingContent = 'A competing message.';
+    const release = holdDemoChats([content, competingContent]);
     const { daemon, request } = await setup(14422);
     const results = await Promise.all([
-      request<Run>('/roles/scout/chat', 'POST', { content: 'Help me understand your role.' }),
-      request<Run>('/roles/scout/chat', 'POST', { content: 'A competing message.' }),
+      request<Run>('/roles/scout/chat', 'POST', { content }),
+      request<Run>('/roles/scout/chat', 'POST', { content: competingContent }),
     ]);
     expect(results.map((r) => r.response.status).sort()).toEqual([202, 400]);
     const run = results.find((r) => r.response.status === 202)!.result;
@@ -198,6 +229,8 @@ describe('agent conversations and crew actions', () => {
     expect(context.messages).not.toEqual(
       expect.arrayContaining([expect.objectContaining({ content: 'Private writer context.' })]),
     );
+    release(content);
+    release(competingContent);
     const snapshot = await finish(request, run.id);
     expect(snapshot.messages.filter((m) => m.threadId === 'scout')).toHaveLength(2);
     expect(snapshot.messages.find((m) => m.from === 'scout')?.content).toContain('demo reply');
@@ -212,6 +245,10 @@ describe('agent conversations and crew actions', () => {
   });
 
   it('uses scoped tools for visible messages, self-invocation, workflow handoffs and approved role changes', async () => {
+    const rootMessage = 'Shortlist this job and coordinate a draft and review.';
+    const disabledMessage = 'Try a disabled capability.';
+    const revisionMessage = 'Request revision.';
+    const release = holdDemoChats([rootMessage, disabledMessage, revisionMessage]);
     const { daemon, request, directory } = await setup(14423);
     await request('/profile', 'PUT', {
       name: 'profile.md',
@@ -227,7 +264,7 @@ describe('agent conversations and crew actions', () => {
       title: 'Engineer',
     });
     const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
-      content: 'Shortlist this job and coordinate a draft and review.',
+      content: rootMessage,
       cardId: card.id,
     });
     const token = [...daemon.service.capabilities.keys()][0];
@@ -305,6 +342,7 @@ describe('agent conversations and crew actions', () => {
         })
       ).response.status,
     ).toBe(200);
+    release(rootMessage);
     const snapshot = await waitForSnapshot(
       request,
       (s) => s.tasks.length === 4 && s.tasks.every((t) => t.status === 'completed'),
@@ -332,7 +370,7 @@ describe('agent conversations and crew actions', () => {
       'Evaluate accessibility roles first.',
     );
     const { result: next } = await request<Run>('/roles/scout/chat', 'POST', {
-      content: 'Try a disabled capability.',
+      content: disabledMessage,
       cardId: card.id,
     });
     const nextToken = [...daemon.service.capabilities.entries()].find(
@@ -353,9 +391,10 @@ describe('agent conversations and crew actions', () => {
         reason: 'Revise it.',
       }),
     ).rejects.toThrow('disabled');
+    release(disabledMessage);
     await finish(request, next.id);
     const { result: reviewerChat } = await request<Run>('/roles/reviewer/chat', 'POST', {
-      content: 'Request revision.',
+      content: revisionMessage,
       cardId: card.id,
     });
     const reviewerToken = [...daemon.service.capabilities.entries()].find(
@@ -367,12 +406,16 @@ describe('agent conversations and crew actions', () => {
     });
     expect(daemon.service.board.get<Approval>('approval', approval.id).status).toBe('rejected');
     await expect(daemon.service.exportPacket(approval.id)).rejects.toThrow('unused approval');
+    release(revisionMessage);
+    await finish(request, reviewerChat.id);
   });
 
   it('bounds recursive follow-ups and cancels the chain without launching queued work', async () => {
+    const content = 'Plan a discussion.';
+    holdDemoChats([content]);
     const { daemon, request } = await setup(14424);
     const { result: run } = await request<Run>('/roles/scout/chat', 'POST', {
-      content: 'Plan a discussion.',
+      content,
     });
     const token = [...daemon.service.capabilities.keys()][0];
     for (let i = 0; i < 6; i++)

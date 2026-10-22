@@ -6,7 +6,7 @@ import type {
   ProfileSourcePreview,
   Snapshot,
 } from '@pitchcrew/core';
-import type { setup } from '../../../orchestrator/test/helpers/daemon.ts';
+import type { setup } from './daemon.ts';
 import { digest } from '../../../orchestrator/src/profile-sources/helpers.ts';
 import { proposalDigest } from '../../../orchestrator/src/crew/gateway/profile-project.ts';
 export const sourceFixture = (host: Host) => {

@@ -1,20 +1,8 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import type { Card } from '@pitchcrew/core';
-import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, setup } from './helpers/daemon.ts';
 
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
@@ -30,7 +18,6 @@ const starters = [
 ];
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-career-ui-cache-'));
   host = await setup(19749);
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
@@ -41,7 +28,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('offers all coaching activities with or without an attached job, fills the existing composer and fits mobile', async () => {

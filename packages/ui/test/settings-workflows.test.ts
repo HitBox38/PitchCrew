@@ -1,20 +1,8 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import type { ConnectorStatus, ExternalMcpInfo, PacketRules, Role } from '@pitchcrew/core';
-import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, setup } from './helpers/daemon.ts';
 
-const cache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (original) => {
-  const vite = await original<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: cache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
@@ -28,6 +16,17 @@ const open = async (section: string) => {
 const choose = async (label: string, value: string) => {
   await page.getByRole('combobox', { name: label, exact: true }).click();
   await page.getByRole('option', { name: value, exact: true }).click();
+};
+const addRule = async (firstField: string) => {
+  await page.getByRole('button', { name: 'Add rule', exact: true }).click();
+  // Adding a rule focuses its first field in the next animation frame.
+  await expect
+    .poll(() =>
+      page
+        .getByLabel(firstField, { exact: true })
+        .evaluate((field) => field === document.activeElement),
+    )
+    .toBe(true);
 };
 const saveRules = async () => {
   const button = page.getByRole('button', { name: 'Save rules', exact: true });
@@ -43,7 +42,6 @@ const saveRules = async () => {
   await expect.poll(() => button.isDisabled()).toBe(true);
 };
 beforeAll(async () => {
-  cache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-settings-workflows-cache-'));
   host = await setup(15752);
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
@@ -65,7 +63,6 @@ afterEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  await rm(cache.directory, { recursive: true, force: true });
 });
 
 test('changes word limits without JSON, validates incomplete fields and saves the same source', async () => {
@@ -127,7 +124,7 @@ test('keeps rule editors mounted when names change and an earlier rule is remove
 test('creates bullet, allowed-line and captured-value rules with equivalent advanced JSON', async () => {
   await open('rules');
   await choose('Rule type', 'Bullets per section');
-  await page.getByRole('button', { name: 'Add rule', exact: true }).click();
+  await addRule('Maximum bullets per section');
   await page
     .getByRole('spinbutton', { name: 'Maximum bullets per section', exact: true })
     .fill('4');
@@ -135,7 +132,7 @@ test('creates bullet, allowed-line and captured-value rules with equivalent adva
     .getByRole('textbox', { name: 'Section heading pattern (optional)', exact: true })
     .fill('Experience');
   await choose('Rule type', 'Allowed lines');
-  await page.getByRole('button', { name: 'Add rule', exact: true }).click();
+  await addRule('Lines to check (regular expression)');
   await page
     .getByRole('textbox', { name: 'Lines to check (regular expression)', exact: true })
     .fill('^Degree:');
@@ -143,7 +140,7 @@ test('creates bullet, allowed-line and captured-value rules with equivalent adva
     .getByRole('textbox', { name: 'Allowed lines', exact: true })
     .fill('Degree: Fictional BSc\nDegree: Fictional MSc');
   await choose('Rule type', 'Text pattern');
-  await page.getByRole('button', { name: 'Add rule', exact: true }).click();
+  await addRule('Text to match (regular expression)');
   await page
     .getByRole('textbox', { name: 'Text to match (regular expression)', exact: true })
     .fill('Team of (\\d+)');

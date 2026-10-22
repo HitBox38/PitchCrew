@@ -11,9 +11,10 @@ import {
   type Run,
 } from '@pitchcrew/core';
 import { recordDiscoveredLeads } from '@pitchcrew/board';
+import { adapters } from '@pitchcrew/adapters';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
 import {
   comeetFixtureToken,
@@ -385,6 +386,19 @@ describe('agent scans', () => {
   });
 
   it('lets a scheduled Scout routine scan saved sources', async () => {
+    let signalStarted!: (signal: AbortSignal) => void;
+    const started = new Promise<AbortSignal>((resolve) => {
+      signalStarted = resolve;
+    });
+    vi.spyOn(adapters.demo, 'chat').mockImplementation((context) => {
+      context.signal.throwIfAborted();
+      return new Promise<never>((_resolve, reject) => {
+        context.signal.addEventListener('abort', () => reject(context.signal.reason), {
+          once: true,
+        });
+        signalStarted(context.signal);
+      });
+    });
     const { daemon, request } = await withSources(15468);
     enableDiscovery(daemon, true);
     const routine = await request<{ id: string }>('/routines', 'POST', {
@@ -397,6 +411,8 @@ describe('agent scans', () => {
     });
     expect(routine.response.status).toBe(201);
     await daemon.service.tickRoutines(new Date('2030-01-01T09:00:01Z'));
+    const signal = await started;
+    expect(signal.aborted).toBe(false);
     const run = daemon.service.board
       .list<Run>('run')
       .find((item) => item.routineId === routine.result.id && item.status === 'running');
@@ -413,6 +429,7 @@ describe('agent scans', () => {
     expect(response.response.status).toBe(200);
     expect(response.result.summary.new).toBe(8);
     daemon.service.cancelRun(run!.id);
+    expect(signal.aborted).toBe(true);
   });
 });
 
