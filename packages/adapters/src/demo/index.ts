@@ -4,7 +4,13 @@ import type { Packet, RuntimeAdapter } from '@pitchcrew/core';
 import { lintPacket } from '@pitchcrew/packet';
 import { setTimeout } from 'node:timers/promises';
 
-export const demo: RuntimeAdapter = {
+type DemoDelay = (milliseconds: number, signal: AbortSignal) => Promise<void>;
+const defaultDelay: DemoDelay = (milliseconds, signal) =>
+  setTimeout(milliseconds, undefined, { signal });
+
+export const createDemo = ({
+  delay = defaultDelay,
+}: { delay?: DemoDelay } = {}): RuntimeAdapter => ({
   applicationIsolation: true,
   reviewSubagents: { maxConcurrent: 4 },
   id: 'demo',
@@ -44,7 +50,7 @@ export const demo: RuntimeAdapter = {
       label: 'Checking conversation context',
       status: 'running',
     });
-    await setTimeout(350, undefined, { signal: context.signal });
+    await delay(350, context.signal);
     context.onActivity?.({
       id: 'demo-context',
       kind: 'tool',
@@ -55,14 +61,14 @@ export const demo: RuntimeAdapter = {
     const reply = `I’m ${context.role.name}. ${context.role.description}\n\n${context.card ? `We’re discussing ${context.card.title} at ${context.card.company}. The application is ${context.card.state.replaceAll('_', ' ')}.` : 'Attach a job to discuss its workflow, or ask about my role and capabilities.'}\n\nYou said: “${latest}”\n\nThis is a demo reply. Use Claude Code or Codex for conversational reasoning and tool actions.`;
     for (let end = 32; end < reply.length; end += 32) {
       context.onReply?.(reply.slice(0, end));
-      await setTimeout(30, undefined, { signal: context.signal });
+      await delay(30, context.signal);
     }
     context.onReply?.(reply);
     return { reply };
   },
   run: async (context) => {
     context.onMessage('Running the deterministic demo workflow.');
-    await setTimeout(850, undefined, { signal: context.signal });
+    await delay(850, context.signal);
     if (workflowSeat(context.role) === 'scout') {
       const words = context.card.description
         .toLowerCase()
@@ -146,4 +152,6 @@ export const demo: RuntimeAdapter = {
     };
     return { role: 'writer', packet };
   },
-};
+});
+
+export const demo = createDemo();

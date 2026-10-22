@@ -1,27 +1,14 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import type { Card } from '@pitchcrew/core';
-import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
+import { setup, cleanup } from './helpers/daemon.ts';
 
-const cache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: cache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
 let a: Card, b: Card;
 const errors: string[] = [];
 beforeAll(async () => {
-  cache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-queue-ui-cache-'));
   host = await setup(23941);
   a = host.daemon.service.createCard({ company: 'Fictional A', title: 'Engineer' });
   b = host.daemon.service.createCard({ company: 'Fictional B', title: 'Designer' });
@@ -40,7 +27,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (cache.directory) await rm(cache.directory, { recursive: true, force: true });
 });
 test('opens the dedicated queue, saves capacity and reorders jobs with keyboard controls', async () => {
   await page.getByRole('heading', { name: 'Queue', exact: true }).waitFor();

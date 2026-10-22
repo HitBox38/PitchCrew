@@ -1,27 +1,10 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
 import { deleteJob } from '../../board/src/index.ts';
 import type { Card, Run } from '@pitchcrew/core';
-import {
-  cleanup,
-  setup,
-  confirmFixtureApplication,
-} from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, setup, confirmFixtureApplication } from './helpers/daemon.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-// Other browser fixtures use different Vite plugins; do not invalidate their dependency cache.
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let browser: Browser;
 let page: Page;
 let card: Card;
@@ -32,7 +15,6 @@ const menu = () => page.getByRole('button', { name: menuName(), exact: true });
 const focusedLabel = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-board-ui-cache-'));
   host = await setup(14609);
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -71,7 +53,6 @@ beforeEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('the menu button follows card hover and opening it does not open details or drag', async () => {

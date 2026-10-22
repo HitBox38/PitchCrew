@@ -1,10 +1,7 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterAll, afterEach, beforeAll, beforeEach, expect, test } from 'vitest';
 import type { AppUpdateInfo, DesktopUpdateBridge, DesktopUpdateState } from '@pitchcrew/core';
-import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, setup } from './helpers/daemon.ts';
 const open = async () => {
   await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
   await action().waitFor({ timeout: 30000 });
@@ -17,15 +14,6 @@ const update = async (patch: Partial<DesktopUpdateState>) => {
   await page.evaluate((value) => (window as unknown as FixtureWindow).updateFixture(value), patch);
 };
 
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 const available: AppUpdateInfo = {
   current: { version: '0.1.0', commit: 'a'.repeat(40), packaged: true },
   automatic: true,
@@ -67,7 +55,6 @@ const action = () =>
   });
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-app-updates-ui-cache-'));
   host = await setup(15749);
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
@@ -87,7 +74,6 @@ afterEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('manual download, changelog tooltip, collapse and session dismissal need no popover', async () => {

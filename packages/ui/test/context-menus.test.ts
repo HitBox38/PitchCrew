@@ -1,21 +1,9 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
+import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
+import { setup, cleanup } from './helpers/daemon.ts';
 import { viewTitles } from '../src/AppSidebar/constants.ts';
 import { viewPaths } from '../src/navigation.ts';
 
-const cache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: cache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
@@ -25,7 +13,6 @@ const openMenu = () =>
   page.locator('#main > .page').click({ button: 'right', position: { x: 10, y: 10 } });
 
 beforeAll(async () => {
-  cache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-context-ui-cache-'));
   host = await setup(14649);
   host.daemon.service.createCard({ company: 'Fictional Menu Studio', title: 'Engineer' });
   browser = await chromium.launch({ headless: true });
@@ -43,7 +30,6 @@ beforeEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (cache.directory) await rm(cache.directory, { recursive: true, force: true });
 });
 
 test('workspace context actions navigate between every main page', async () => {

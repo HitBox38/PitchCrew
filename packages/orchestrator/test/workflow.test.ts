@@ -326,6 +326,19 @@ describe('local daemon workflow', () => {
     ).toBe(403);
   });
   it('keeps role permissions and cancellation scoped to an active run', async () => {
+    let started!: (signal: AbortSignal) => void;
+    const active = new Promise<AbortSignal>((resolve) => {
+      started = resolve;
+    });
+    vi.spyOn(adapters.demo, 'run').mockImplementation((context) => {
+      context.signal.throwIfAborted();
+      return new Promise<never>((_resolve, reject) => {
+        context.signal.addEventListener('abort', () => reject(context.signal.reason), {
+          once: true,
+        });
+        started(context.signal);
+      });
+    });
     const { daemon, request } = await setup(14419);
     await request('/profile', 'PUT', {
       name: 'profile.md',
@@ -339,6 +352,9 @@ describe('local daemon workflow', () => {
     const { result: run } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });
+    const signal = await active;
+    expect(signal.aborted).toBe(false);
+    expect(daemon.service.board.get<Run>('run', run.id).status).toBe('running');
     const token = [...daemon.service.capabilities.keys()][0];
     expect((await daemon.service.agentCall(token, 'card', {})).card).toEqual(
       daemon.service.board.get('card', card.id),
@@ -347,6 +363,7 @@ describe('local daemon workflow', () => {
       'isolated application',
     );
     await request(`/runs/${run.id}/cancel`, 'POST');
+    expect(signal.aborted).toBe(true);
     for (let i = 0; i < 50 && daemon.service.controllers.size; i++)
       await new Promise((resolve) => setTimeout(resolve, 20));
     await expect(daemon.service.agentCall(token, 'profile', {})).rejects.toThrow('expired');

@@ -1,32 +1,14 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { adapters } from '../../adapters/src/index.ts';
 import type { Card, RunContext, Run } from '@pitchcrew/core';
-import {
-  cleanup,
-  confirmFixtureApplication,
-  finish,
-  setup,
-} from '../../orchestrator/test/helpers/daemon.ts';
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
+import { cleanup, confirmFixtureApplication, finish, setup } from './helpers/daemon.ts';
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
 let card: Card;
 const errors: string[] = [];
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-job-details-cache-'));
   host = await setup(14631);
   await host.daemon.service.saveProfile(
     'experience.md',
@@ -58,7 +40,6 @@ beforeEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 test('puts the role first, defers reviews and preserves the compact layout on mobile', async () => {
   const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });

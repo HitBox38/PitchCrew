@@ -18,6 +18,16 @@ afterEach(async () => {
 });
 
 describe('HTTP framework contracts', () => {
+  it('keeps API-only fixtures authenticated without serving the UI', async () => {
+    const { daemon, request } = await setup(15014);
+    expect((await fetch(daemon.url)).status).toBe(404);
+    expect((await fetch(`${daemon.url}/@vite/client`)).status).toBe(404);
+    expect((await fetch(`${daemon.url}/api/snapshot`)).status).toBe(403);
+    const snapshot = await request<Snapshot>('/snapshot');
+    expect(snapshot.response.status).toBe(200);
+    expect(snapshot.result.runtimes.some((runtime) => runtime.id === 'demo')).toBe(true);
+  });
+
   it('rejects untrusted requests before parsing and preserves session/security headers', async () => {
     const { daemon, cookie } = await setup(15001, false, { dev: false });
     const page = await fetch(`${daemon.url}/chat/scout`);
@@ -224,7 +234,7 @@ describe('HTTP framework contracts', () => {
   });
 
   it('serves Vite deep links and assets without bypassing API or session checks', async () => {
-    const { daemon, request } = await setup(15005, false, { dev: true });
+    const { daemon, request } = await setup(15005, false, { dev: true, ui: 'dev' });
     const page = await fetch(`${daemon.url}/chat/scout`);
     expect(page.status).toBe(200);
     expect(await page.text()).toContain('/@vite/client');

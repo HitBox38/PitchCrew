@@ -1,9 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import type {
   Approval,
   Card,
@@ -12,21 +9,7 @@ import type {
   ComputerApproval,
   SubmissionAttempt,
 } from '@pitchcrew/core';
-import {
-  setup,
-  cleanup,
-  confirmFixtureApplication,
-  finish,
-} from '../../orchestrator/test/helpers/daemon.ts';
-const cache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: cache.directory }),
-  };
-});
+import { setup, cleanup, confirmFixtureApplication, finish } from './helpers/daemon.ts';
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
@@ -34,7 +17,6 @@ let approval: Approval;
 let card: Card;
 const errors: string[] = [];
 beforeAll(async () => {
-  cache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-inbox-ui-cache-'));
   host = await setup(14679);
   await host.request('/profile', 'PUT', {
     name: 'profile.md',
@@ -68,7 +50,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (cache.directory) await rm(cache.directory, { recursive: true, force: true });
 });
 test('uses email rows and searches filenames before opening an exact reading view', async () => {
   await page.getByRole('textbox', { name: 'Search inbox' }).fill('resume.pdf');

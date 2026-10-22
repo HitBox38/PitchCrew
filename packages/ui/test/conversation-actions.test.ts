@@ -1,20 +1,8 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterAll, beforeAll, expect, test } from 'vitest';
 import type { Conversation } from '@pitchcrew/core';
-import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
+import { setup, cleanup } from './helpers/daemon.ts';
 
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
@@ -24,7 +12,6 @@ const menu = () =>
   page.getByRole('button', { name: `Actions for ${conversation.title}`, exact: true });
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-conversation-ui-cache-'));
   host = await setup(14639);
   conversation = host.daemon.service.createConversation({
     title: 'Fictional sidebar topic',
@@ -45,7 +32,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('right-click conversation actions preserve the page and retain deletion confirmation', async () => {
@@ -100,11 +86,13 @@ test('archives and restores from the sidebar without navigating, then confirms d
   await page.getByRole('menuitem', { name: 'Delete conversation', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Delete this conversation?' });
   await dialog.waitFor();
-  expect(
-    await dialog
-      .getByRole('button', { name: 'Keep conversation' })
-      .evaluate((element) => element === document.activeElement),
-  ).toBe(true);
+  await expect
+    .poll(() =>
+      dialog
+        .getByRole('button', { name: 'Keep conversation' })
+        .evaluate((element) => element === document.activeElement),
+    )
+    .toBe(true);
   await dialog.getByRole('button', { name: 'Keep conversation' }).click();
   await expect.poll(() => dialog.count()).toBe(0);
   await expect

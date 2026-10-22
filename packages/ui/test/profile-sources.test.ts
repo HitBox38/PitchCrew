@@ -1,10 +1,7 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import type { ProfileMaintenanceProposal, ProfileSource, Snapshot } from '@pitchcrew/core';
-import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, setup } from './helpers/daemon.ts';
 import { createProposal, importSource, sourceFixture } from './helpers/profile-sources.ts';
 const openSources = async () => {
   await page.goto(`${host.daemon.url}/profile`, { waitUntil: 'domcontentloaded' });
@@ -39,15 +36,6 @@ const focused = async () => {
   return page.evaluate(() => document.activeElement?.textContent);
 };
 
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let browser: Browser;
 let context: BrowserContext;
 let page: Page;
@@ -59,7 +47,6 @@ const dialog = () => page.getByRole('dialog', { name: 'Profile sources', exact: 
 const sources = () => page.locator('.profile-sources-dialog');
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-profile-ui-cache-'));
   browser = await chromium.launch({ headless: true });
 }, 60000);
 beforeEach(async () => {
@@ -81,7 +68,6 @@ afterEach(async () => {
 });
 afterAll(async () => {
   await browser?.close();
-  await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('initial loading has a spinner, failed loading has retry, and setup stays in the dialog', async () => {

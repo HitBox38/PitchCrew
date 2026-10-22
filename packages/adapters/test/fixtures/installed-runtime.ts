@@ -5,9 +5,7 @@ const runFixture = async (name: string, prefix: string[] = []) => {
   process.argv = [process.execPath, process.argv[1], ...prefix, ...args];
   await import(`./${name}.ts`);
 };
-if (args.includes('--version')) {
-  console.log(command === 'cursor-agent' ? '2026.09.26-fixture' : `${command} 99.0.0 (fixture)`);
-} else if (command === 'codex' && args.includes('app-server')) {
+if (command === 'codex' && args.includes('app-server')) {
   await runFixture('models-cli', ['codex']);
 } else if (command === 'claude' && args.includes('--input-format')) {
   await runFixture('claude-models-cli', ['default']);

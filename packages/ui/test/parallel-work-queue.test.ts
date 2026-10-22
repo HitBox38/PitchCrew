@@ -1,27 +1,14 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
+import { afterAll, beforeAll, expect, test } from 'vitest';
+import { setup, cleanup } from './helpers/daemon.ts';
 import { seedParallelQueue } from './fixtures/parallel-queue.ts';
 
-const cache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: cache.directory }),
-  };
-});
 let browser: Browser;
 let page: Page;
 let host: Awaited<ReturnType<typeof setup>>;
 let fixture: ReturnType<typeof seedParallelQueue>;
 const errors: string[] = [];
 beforeAll(async () => {
-  cache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-parallel-ui-cache-'));
   host = await setup(23942);
   fixture = seedParallelQueue(host.daemon.service);
   // Fill capacity so deterministic ready fixtures cannot dispatch.
@@ -46,7 +33,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (cache.directory) await rm(cache.directory, { recursive: true, force: true });
 });
 test('distinguishes slots from parallel agent runs, background routines and queues on hold', async () => {
   const working = page.getByRole('region', { name: 'Running work', exact: true });

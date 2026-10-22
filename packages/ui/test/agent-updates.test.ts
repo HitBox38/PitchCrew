@@ -1,21 +1,9 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import type { Role, Skill } from '@pitchcrew/core';
 import { skillDirectory } from '../../orchestrator/src/skills-directory.ts';
-import { cleanup, directorySkill, setup } from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, directorySkill, setup } from './helpers/daemon.ts';
 
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
 let page: Page;
@@ -26,7 +14,6 @@ const errors: string[] = [];
 const input = { ...directorySkill, scope: 'roles', roleIds: ['reviewer'] };
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-updates-ui-cache-'));
   host = await setup(15739);
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   const scout = host.daemon.service.board.get<Role>('role', 'scout');
@@ -73,7 +60,6 @@ beforeEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('notification review, dismissal, rediscovery and explicit replacement update durable badges', async () => {
@@ -116,7 +102,7 @@ test('notification review, dismissal, rediscovery and explicit replacement updat
   // Keep Skills mounted while Crew loads so shared button labels cannot hide a navigation race.
   let crewLoadDelayed = false;
   await page.route(
-    '**/src/CrewPage/index.tsx*',
+    '**/assets/CrewPage-*.js',
     async (route) => {
       crewLoadDelayed = true;
       await new Promise((resolve) => setTimeout(resolve, 750));
