@@ -11,6 +11,10 @@
   --reference-ink: var(--primary);
   --reference-fill: var(--primary-soft);
 }
+.chat-reference-file {
+  --reference-ink: var(--teal);
+  --reference-fill: var(--teal-soft);
+}
 .chat-reference-skill {
   --reference-ink: var(--plum);
   --reference-fill: var(--plum-soft);

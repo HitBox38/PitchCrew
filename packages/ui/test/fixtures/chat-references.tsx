@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import type { ChatMessage, ChatReference, Skill } from '@pitchcrew/core';
+import type { Approval, ChatMessage, ChatReference, Role, Skill } from '@pitchcrew/core';
 import { ChatComposerEditor } from '@/ChatComposer/index.tsx';
 import { ReferenceMessage } from '@/ChatReferences/index.tsx';
 import { PromptInput } from '@/components/ai-elements/prompt-input/components/PromptInput.tsx';
@@ -14,6 +14,7 @@ const Fixture = () => {
   const [sent, setSent] = useState<ChatMessage | null>(null);
   const [action, setAction] = useState('');
   const [fail, setFail] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const inputRef = useRef<HTMLDivElement>(null);
   const send = () => {
     if (fail) {
@@ -69,13 +70,45 @@ const Fixture = () => {
       >
         Sample Markdown
       </button>
+      <button type="button" onClick={() => setStreaming(!streaming)}>
+        Toggle streaming
+      </button>
+      <button
+        type="button"
+        onClick={() =>
+          setSent({
+            id: 'agent',
+            threadId: 'reviewer',
+            from: 'reviewer',
+            to: 'user',
+            cardId: null,
+            runId: null,
+            createdAt: '',
+            content:
+              '@writer Check [Profile](pitchcrew-file:profile/profile.md), [saved resume](pitchcrew-file:packet/saved/resume.md) and [attached CV](pitchcrew-file:attachment/source/cv). Missing [old file](pitchcrew-file:profile/deleted.md). Keep `@writer` and `[literal](pitchcrew-file:profile/profile.md)` literal. Unknown @nobody and person@writer.com. [Website](https://example.com)',
+          })
+        }
+      >
+        Sample agent reply
+      </button>
       <output id="action">{action}</output>
       {sent ? (
         <div id="sent" className="chat-message-content">
           <ReferenceMessage
             message={sent}
-            catalog={{ roles: [], skills: [{ id: 'check', updatedAt: 'first' } as Skill] }}
-            streaming={false}
+            catalog={{
+              roles: [{ id: 'writer', name: 'Writer' } as Role],
+              skills: [{ id: 'check', updatedAt: 'first' } as Skill],
+              profile: [{ name: 'profile.md', content: '# Current Profile\nVerified experience.' }],
+              approvals: [
+                {
+                  id: 'saved',
+                  status: 'pending',
+                  packet: { resume: '# Saved resume\nFrozen experience.' },
+                } as Approval,
+              ],
+            }}
+            streaming={streaming}
           />
         </div>
       ) : null}

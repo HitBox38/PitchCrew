@@ -152,3 +152,11 @@ export { checkLinkedInDraft, linkedInDraftInput, linkedInFieldLimits } from './l
 
 export type { ChatReference, ChatReferenceInput } from './chat-references.ts';
 export type { ExternalMcpInfo } from './external-mcp.ts';
+
+export {
+  chatFileCitations,
+  fileCitationUrl,
+  parseFileCitation,
+  packetSourceNames,
+} from './chat-citations.ts';
+export type { ChatFileCitation } from './chat-citations.ts';
