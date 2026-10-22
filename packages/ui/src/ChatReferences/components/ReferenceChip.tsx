@@ -14,9 +14,11 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 export const ReferenceChip = ({
   reference,
   catalog,
+  mention = false,
 }: {
   reference: ChatReference;
   catalog: ReferenceCatalog;
+  mention?: boolean;
 }) => {
   const { type, unavailable, description } = referenceDetails(reference, catalog);
   return (
@@ -36,7 +38,11 @@ export const ReferenceChip = ({
         <PopoverTitle>
           {type}: {reference.label}
         </PopoverTitle>
-        <PopoverDescription>{description}</PopoverDescription>
+        <PopoverDescription>
+          {mention && !unavailable
+            ? 'An agent mentioned in this message. Open Crew to see their configuration; actual activity appears in the conversation trace.'
+            : description}
+        </PopoverDescription>
       </PopoverContent>
     </Popover>
   );

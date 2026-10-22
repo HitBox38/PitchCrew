@@ -164,3 +164,74 @@ test('persisted occurrences preserve Markdown and avoid decorating literal examp
   );
   expect(errors).toEqual([]);
 });
+
+test('agent replies render mentions and file citations during streaming and open read-only frozen previews', async () => {
+  await page.getByRole('button', { name: 'Sample agent reply' }).click();
+  const sent = page.locator('#sent');
+  await expect.poll(() => sent.locator('.chat-reference').count()).toBe(5);
+  expect(await sent.getByRole('button', { name: 'Agent: Writer', exact: true }).count()).toBe(1);
+  expect(await sent.locator('code').allTextContents()).toEqual([
+    '@writer',
+    '[literal](pitchcrew-file:profile/profile.md)',
+  ]);
+  await sent.getByRole('button', { name: 'Website', exact: true }).click();
+  await page.getByRole('dialog', { name: 'Open external link?' }).waitFor();
+  expect(await page.getByRole('dialog', { name: 'Open external link?' }).textContent()).toContain(
+    'https://example.com',
+  );
+  await page.keyboard.press('Escape');
+  await sent.getByRole('button', { name: 'Agent: Writer', exact: true }).click();
+  await page.getByText('An agent mentioned in this message.', { exact: false }).waitFor();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Toggle streaming' }).click();
+  await expect.poll(() => sent.locator('.chat-reference').count()).toBe(5);
+  await page.getByRole('button', { name: 'Toggle streaming' }).click();
+  await sent.getByRole('button', { name: 'File: Profile', exact: true }).click();
+  await page.getByRole('dialog').waitFor();
+  await page.getByRole('heading', { name: 'Current Profile' }).waitFor();
+  await page.keyboard.press('Escape');
+  await sent.getByRole('button', { name: 'File: saved resume', exact: true }).click();
+  await page.getByRole('heading', { name: 'Saved resume' }).waitFor();
+  expect(await page.getByText('Frozen experience.', { exact: true }).count()).toBe(1);
+  expect(
+    await page
+      .getByText('Download becomes available after approving the packet', { exact: false })
+      .count(),
+  ).toBe(1);
+  await page.keyboard.press('Escape');
+  await sent.getByRole('button', { name: 'File: old file, unavailable' }).click();
+  await page.getByText('This referenced file is no longer available.', { exact: true }).waitFor();
+  await page.keyboard.press('Escape');
+  let attachmentReads = 0;
+  await page.route('**/api/chat/messages/source/attachments/cv', (route) =>
+    ++attachmentReads === 1
+      ? route.fulfill({ status: 404 })
+      : route.fulfill({
+          status: 200,
+          headers: { 'Content-Disposition': "attachment; filename*=UTF-8''cv.txt" },
+          body: 'Attachment evidence for preview.',
+        }),
+  );
+  await sent.getByRole('button', { name: 'File: attached CV', exact: true }).click();
+  await page.getByText('This attachment is no longer available.', { exact: true }).waitFor();
+  await page.keyboard.press('Escape');
+  await sent.getByRole('button', { name: 'File: attached CV', exact: true }).click();
+  await page.getByText('Attachment evidence for preview.', { exact: true }).waitFor();
+  await page.keyboard.press('Escape');
+  await page.unroute('**/api/chat/messages/source/attachments/cv');
+  await sent.evaluate((element) => {
+    (element as HTMLElement).tabIndex = -1;
+    (element as HTMLElement).focus();
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    const selection = window.getSelection()!;
+    selection.removeAllRanges();
+    selection.addRange(range);
+  });
+  await page.keyboard.press('ControlOrMeta+c');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(
+    '@writer Check [Profile](pitchcrew-file:profile/profile.md)',
+  );
+  await page.evaluate(() => window.getSelection()?.removeAllRanges());
+  expect(errors).toEqual([]);
+});

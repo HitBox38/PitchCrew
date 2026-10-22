@@ -1,6 +1,7 @@
 import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { reserveLaunch } from './queue/admission.ts';
 import { ensureQueue } from './queue/state.ts';
+import { agentChatReferences } from '@pitchcrew/core/chat-references';
 import { selectedChatSkills } from './chat-references.ts';
 import { activityRuns, recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
@@ -18,6 +19,7 @@ import { runConfiguration, packetDigest } from './pipeline/snapshots.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { beginAiRun } from '../telemetry/ai.ts';
 import {
+  chatFileCitations,
   defaultCapabilities,
   chatInput,
   chatResultSchema,
@@ -77,6 +79,10 @@ export const addMessage = (
   attachments?: ChatAttachment[],
   references?: ChatMessage['references'],
 ): ChatMessage => {
+  references ??=
+    from !== 'user' && from !== 'system'
+      ? agentChatReferences(content, context.board.list<Role>('role'))
+      : undefined;
   const message: ChatMessage = {
     id,
     threadId,
@@ -302,6 +308,16 @@ const startChatRunPrepared = async (
             : undefined,
           onSession: nativeSession?.onSession,
           attachments,
+          fileCitations: chatFileCitations(
+            permittedMessages,
+            profile,
+            context.board
+              .list<import('@pitchcrew/core').Approval>('approval')
+              .filter(
+                (approval) => approval.cardId === cardId && approval.digest === packetDigest(card),
+              )
+              .slice(-1),
+          ),
           request: content,
           conversation: conversation
             ? {
