@@ -52,7 +52,7 @@
   font-size: 13px;
 }
 .chat-reference-token {
-  display: inline;
+  display: inline-block;
   font-size: 0;
   padding: 3px 6px;
   white-space: nowrap;
