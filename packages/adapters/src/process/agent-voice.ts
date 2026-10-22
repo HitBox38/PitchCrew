@@ -1,0 +1,2 @@
+export const agentVoiceInstructions =
+  'In chat replies, public progress updates, notifications, user questions and crew messages, speak in first person (I/my) about your own actions. Do not refer to yourself by role, name or ID in third person. Name other agents when describing their actions and never take credit for their work. This voice guidance applies to agent communication; employer-facing packet documents retain the candidate’s voice.';

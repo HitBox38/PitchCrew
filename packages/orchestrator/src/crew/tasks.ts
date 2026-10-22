@@ -265,8 +265,8 @@ const workflowResultMessage = (context: CrewContext, run: Run): string => {
   const role = requireRole(context, run.roleId);
   const seat = run.purpose === 'application-draft' ? 'writer' : (role.workflow ?? role.id);
   if (seat === 'scout')
-    return `${role.name} assessed job fit${card.fit === null ? '' : `: ${card.fit}/100`}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved assessment.`;
+    return `I assessed job fit${card.fit === null ? '' : `: ${card.fit}/100`}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved assessment.`;
   if (seat === 'writer')
-    return `${role.name} saved an application packet. It is ready for review; open the job to read the draft.`;
-  return `${role.name} ${card.state === 'agreed' ? 'approved the packet' : 'requested changes'}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved review.`;
+    return 'I saved an application packet. It is ready for review; open the job to read the draft.';
+  return `I ${card.state === 'agreed' ? 'approved the packet' : 'requested changes'}. ${card.feedback.slice(0, 3).join(' ')} Open the job for the saved review.`;
 };
