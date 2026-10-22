@@ -1,27 +1,14 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import { setup, cleanup } from '../../orchestrator/test/helpers/daemon.ts';
+import { afterAll, beforeAll, expect, test } from 'vitest';
+import { setup, cleanup } from './helpers/daemon.ts';
 import { seedParallelQueue } from './fixtures/parallel-queue.ts';
 
-const cache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: cache.directory }),
-  };
-});
 let browser: Browser;
 let page: Page;
 let host: Awaited<ReturnType<typeof setup>>;
 let fixture: ReturnType<typeof seedParallelQueue>;
 const errors: string[] = [];
 beforeAll(async () => {
-  cache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-parallel-ui-cache-'));
   host = await setup(23942);
   fixture = seedParallelQueue(host.daemon.service);
   // Fill capacity so deterministic ready fixtures cannot dispatch.
@@ -46,7 +33,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (cache.directory) await rm(cache.directory, { recursive: true, force: true });
 });
 test('distinguishes slots from parallel agent runs, background routines and queues on hold', async () => {
   const working = page.getByRole('region', { name: 'Running work', exact: true });
@@ -109,8 +95,10 @@ test('scopes Pause, Resume and Stop in the running-card menu to the selected que
     ['Stop current work', 'stop'],
     ['Resume queue', 'resume'],
   ] as const) {
-    await trigger.focus();
-    await page.keyboard.press('Enter');
+    if (command === 'resume') {
+      await trigger.focus();
+      await page.keyboard.press('Enter');
+    } else await card.locator('.queue-running-card-heading').click({ button: 'right' });
     const response = page.waitForResponse(
       (result) =>
         result.url().endsWith(`/queue/${encodeURIComponent(fixture.first.id)}`) &&
@@ -121,6 +109,9 @@ test('scopes Pause, Resume and Stop in the running-card menu to the selected que
     expect(result.status()).toBe(200);
     expect(result.request().postDataJSON()).toEqual({ action: command });
     expect(selected().paused).toBe(command !== 'resume');
+    await page
+      .locator('[data-slot="context-menu-content"], [data-slot="dropdown-menu-content"]')
+      .waitFor({ state: 'detached' });
     expect(
       host.daemon.service
         .queue()
@@ -216,7 +207,7 @@ test('edits and removes a queued request from its menu while preserving keyboard
   const card = page.getByRole('article', { name: 'Offer comparison', exact: true });
   const request = card.locator('.queue-request');
   const trigger = request.getByRole('button', { name: 'Queued request actions', exact: true });
-  await trigger.click();
+  await request.locator('.queue-request-title').click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Edit message', exact: true }).click();
   const editor = request.getByRole('textbox', { name: 'Edit queued message', exact: true });
   await expect
@@ -239,7 +230,7 @@ test('edits and removes a queued request from its menu while preserving keyboard
     'Writer',
   );
   await page.keyboard.press('Enter');
-  await page.getByRole('menuitem', { name: 'Remove request', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Remove request', exact: true }).press('Enter');
   await expect
     .poll(() => host.daemon.service.queue().queues.some((queue) => queue.id === fixture.paused.id))
     .toBe(false);

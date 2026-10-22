@@ -4,4 +4,5 @@ import type { ReferenceCatalog } from './types.ts';
 export const ReferenceContext = createContext<{
   references: ChatReference[];
   catalog: ReferenceCatalog;
+  mention?: boolean;
 }>({ references: [], catalog: { roles: [], skills: [] } });

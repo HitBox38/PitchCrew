@@ -83,6 +83,7 @@ export interface ChatContext extends Omit<RunContext, 'card'> {
   session?: { id?: string; directory: string };
   onSession?: (id: string) => void;
   messages: ChatMessage[];
+  fileCitations?: import('./chat-citations.ts').ChatFileCitation[];
   attachments?: (ChatAttachment & { messageId: string; path: string })[];
   /** Current reply text, replacing the previous preview. Empty text clears it. */
   onReply?: (text: string) => void;

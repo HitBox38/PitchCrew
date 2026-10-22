@@ -24,8 +24,9 @@ export const WorkspaceHeading = ({
       <div className="workspace-heading-actions" ref={actionsRef}>
         {view === 'board' ? (
           <>
-            <Button render={<Link to="/queue" />}>
-              Queue{data.queue?.queues.length ? ` (${data.queue.queues.length})` : ''}
+            <Button className="button" render={<Link to="/queue" />}>
+              <viewIcons.queue size={16} aria-hidden="true" /> Queue
+              {data.queue?.queues.length ? ` (${data.queue.queues.length})` : ''}
             </Button>
             <ImportApplications />
             {data.cards.length ? (

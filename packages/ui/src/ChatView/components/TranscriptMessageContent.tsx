@@ -27,7 +27,12 @@ export const TranscriptMessageContent = ({
       ) : (
         <ReferenceMessage
           message={message}
-          catalog={{ roles: data.roles, skills: data.skills ?? [] }}
+          catalog={{
+            roles: data.roles,
+            skills: data.skills ?? [],
+            profile: data.profile,
+            approvals: data.approvals,
+          }}
           streaming={streaming}
         />
       )}

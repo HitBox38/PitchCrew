@@ -15,20 +15,22 @@ export const CrewUpdates = ({
     data.roles.some((role) => role.id === update.roleId && !role.retiredAt),
   );
   return (
-    <section className="mb-4 flex flex-col gap-3" aria-label="Instruction updates">
+    <section className="mb-4 flex flex-col gap-2" aria-label="Instruction updates">
       <div className="flex flex-wrap items-center gap-3">
         <h2>Updates</h2>
-        <Button
-          className="button small"
-          aria-pressed={Boolean(updates)}
-          onClick={() =>
-            void navigate({
-              search: (previous) => ({ ...previous, updates: updates ? undefined : true }),
-            })
-          }
-        >
-          Updates only
-        </Button>
+        {available.length || updates ? (
+          <Button
+            className="button small"
+            aria-pressed={Boolean(updates)}
+            onClick={() =>
+              void navigate({
+                search: (previous) => ({ ...previous, updates: updates ? undefined : true }),
+              })
+            }
+          >
+            Updates only
+          </Button>
+        ) : null}
       </div>
       {available.length ? (
         <ul className="flex flex-col gap-2">
@@ -45,7 +47,7 @@ export const CrewUpdates = ({
           ))}
         </ul>
       ) : (
-        <p className="quiet">No instruction updates available.</p>
+        <p className="quiet text-sm">No instruction updates available.</p>
       )}
     </section>
   );

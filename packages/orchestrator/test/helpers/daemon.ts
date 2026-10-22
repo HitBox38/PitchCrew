@@ -8,7 +8,7 @@ import { type DaemonOptions, createDaemon } from '../../src/server.ts';
 export const setup = async (
   port: number,
   seedSkills = false,
-  options: Pick<DaemonOptions, 'dev' | 'browserLaunch'> = {},
+  options: Pick<DaemonOptions, 'dev' | 'browserLaunch' | 'ui'> = {},
 ) => {
   const request = async <T>(
     path: string,
@@ -30,7 +30,14 @@ export const setup = async (
   if (!Number.isInteger(port) || port < 1024 || port > 65535)
     throw new Error('Invalid test port remapping.');
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-test-'));
-  const daemon = await createDaemon({ directory, port, seedSkills, dev: true, ...options });
+  const daemon = await createDaemon({
+    directory,
+    port,
+    seedSkills,
+    dev: true,
+    ui: false,
+    ...options,
+  });
   resources.push({ daemon, directory });
   await new Promise<void>((resolve) => daemon.http.listen(port, '127.0.0.1', resolve));
   const response = await fetch(daemon.url);

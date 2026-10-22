@@ -16,7 +16,7 @@ export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
           <strong>{active.length}</strong> active, <strong>{strong}</strong> with a strong fit
           {pending ? (
             <>
-              , <strong>{pending}</strong> waiting on your approval
+              , <strong>{pending}</strong> waiting in Inbox
             </>
           ) : null}
           .
@@ -31,8 +31,8 @@ export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
     ) : view === 'inbox' ? (
       pending ? (
         <>
-          <strong>{pending}</strong> {pending === 1 ? 'approval is' : 'approvals are'} waiting on
-          you.
+          <strong>{pending}</strong> {pending === 1 ? 'request needs' : 'requests need'} your
+          attention.
         </>
       ) : (
         'Nothing is waiting on you.'

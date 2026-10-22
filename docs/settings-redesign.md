@@ -21,7 +21,7 @@ Settings
   Local data
 ```
 
-The initial alternative of individual runtime cards repeated setup text, timestamps and commands at equal visual weight. The final list prioritizes decisions and comparison. General no longer requires scrolling through update settings to reach telemetry consent. On mobile the existing keyboard-accessible tab strip scrolls the selected section into view, including direct links.
+The initial alternative of individual runtime cards repeated setup text, timestamps and commands at equal visual weight. The final list prioritizes decisions and comparison. General no longer requires scrolling through update settings to reach telemetry consent. When the Settings area is narrower than 46rem (phones, and tablets beside the app sidebar), the keyboard-accessible tab strip moves to the top and scrolls the selected section into view, including direct links. `useCompactSettings` measures the Settings area so the tab orientation matches the `settings` container query.
 
 ## Resolved pains
 
@@ -35,6 +35,8 @@ The initial alternative of individual runtime cards repeated setup text, timesta
 ## Further improvements implemented
 
 Packet rules now opens in a form editor for word limits, bullets per section, allowed lines and text patterns. Collapsed rows describe the check in plain language and show whether it blocks the packet or warns. Each form controls the affected documents, limits, patterns and message; the existing daemon validation remains authoritative. Incomplete fields remain editable. Advanced JSON shares the same draft and retains malformed or unsupported imported source for correction. Import, export and reset live under Advanced JSON. Save, Discard and validation status remain in the persistent footer.
+
+Advanced JSON uses a lazily loaded CodeMirror editor with clay controls, a recessed surface, syntax colors, line numbers, indentation, bracket pairing/matching, packet-rule property/value suggestions, and inline errors from JSON parsing and daemon validation. The toolbar’s settings button opens a clay JSON editor settings dialog with Format on save, Format on paste and Format while typing; all default off and are remembered independently on this device. Settings/global search focuses the dialog trigger. Automatic editing formats only valid complete JSON, preserves the caret and joins paste formatting to the original Undo step. With Format on save off, saved source formatting survives reloads and exports. Editor tab switches preserve undo history and position; Cmd/Ctrl+S saves.
 
 Accounts uses the same heading and list hierarchy as Runtimes. Connected accounts list granted services and agents with effective service access. Choose agents opens the existing agent configuration flow; it never grants a capability automatically. The shared connection and authentication flows remain intact.
 

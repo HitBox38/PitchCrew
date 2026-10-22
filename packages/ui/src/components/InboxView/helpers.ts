@@ -1,3 +1,5 @@
+import { packetNeedsAction } from '../../lib/inbox.ts';
+export { packetNeedsAction } from '../../lib/inbox.ts';
 import type { ApprovalRequest, InboxTab } from './types.ts';
 import type { Approval, PacketArtifact, Snapshot } from '@pitchcrew/core';
 
@@ -20,7 +22,7 @@ export const resumePageWarning = (artifacts: PacketArtifact[], pages: ArtifactPa
 };
 
 export const approvalRequests = (
-  data: Pick<Snapshot, 'approvals' | 'computerApprovals'>,
+  data: Pick<Snapshot, 'approvals' | 'computerApprovals'> & Partial<Pick<Snapshot, 'cards'>>,
   tab: InboxTab,
 ): ApprovalRequest[] => {
   const waiting = tab === 'pending';
@@ -29,9 +31,9 @@ export const approvalRequests = (
       .filter((approval) => waitingStatuses.has(approval.status) === waiting)
       .map((approval) => ({ kind: 'browser' as const, key: `browser:${approval.id}`, approval })),
     ...data.approvals
-      .filter((approval) => waitingStatuses.has(approval.status) === waiting)
+      .filter((approval) => packetNeedsAction(approval, data.cards) === waiting)
       .map((approval) => ({ kind: 'packet' as const, key: `packet:${approval.id}`, approval })),
-  ];
+  ].sort((a, b) => b.approval.createdAt.localeCompare(a.approval.createdAt));
 };
 
 export const selectedApprovalRequest = (requests: ApprovalRequest[], key: string | null) => {
@@ -50,3 +52,44 @@ export const packetStatusLabel = (status: Approval['status']) => {
 export type ArtifactPages = Record<string, number> | undefined;
 
 const waitingStatuses = new Set(['pending', 'approved']);
+
+export const requestIdentity = (
+  request: ApprovalRequest,
+  data: Pick<Snapshot, 'cards' | 'roles'>,
+) => {
+  const card = data.cards.find((item) => item.id === request.approval.cardId);
+  const role =
+    request.kind === 'browser'
+      ? data.roles.find((item) => item.id === request.approval.roleId)
+      : undefined;
+  return {
+    card,
+    sender: role?.name ?? (request.kind === 'browser' ? request.approval.roleId : 'Pitchcrew'),
+    subject:
+      request.kind === 'packet'
+        ? 'Your application packet'
+        : browserTitles[request.approval.action.kind],
+    context: card
+      ? `${card.title} at ${card.company}`
+      : request.kind === 'browser'
+        ? request.approval.page.title
+        : 'Job no longer on the board',
+  };
+};
+const browserTitles = {
+  navigate: 'Open application page',
+  click: 'Click a page element',
+  fill: 'Fill an application field',
+  select: 'Choose a form option',
+  press: 'Press a key',
+  upload: 'Attach application file',
+  dialog: 'Resolve browser dialog',
+};
+
+/** Reading-pane intro that matches where the packet is in its approval flow. */
+export const packetIntro = (approval: Approval, current: boolean) =>
+  approval.status === 'pending'
+    ? 'Your reviewed application packet is ready. Open the attachments to check the exact files, then approve the packet and choose how you’d like to apply.'
+    : current && approval.status !== 'rejected'
+      ? 'You approved this packet. Choose how you’d like to apply, or open the attachments to check the exact files.'
+      : 'Your reviewed application packet. Open the attachments to check the exact files.';

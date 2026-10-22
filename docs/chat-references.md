@@ -12,7 +12,15 @@ A small Lexical plain-text editor supports atomic reference nodes. It continues 
 
 Saved messages render the same chip family through the shared Streamdown path. A reference records selection, not proof of execution. Its details explain that distinction; actual work remains in the existing activity trace. Sent chips cannot remove or rerun anything. Native transcript text copying substitutes readable tokens for complete selected chips. Other Markdown, link confirmation and remote-image placeholders remain unchanged.
 
-Code, links, URLs, paths, email addresses, escaped symbols and currency amounts do not produce references. Unknown tokens in older messages remain ordinary text. The renderer decorates only persisted occurrences, using their original labels instead of reinterpreting history against the current catalog. A missing target stays readable with a dashed chip; a changed skill explains that an earlier version was selected.
+Code, links, URLs, paths, email addresses, escaped symbols and currency amounts do not produce references. Unknown tokens in older messages remain ordinary text. User message chips decorate only persisted occurrences, using their original labels instead of reinterpreting history against the current catalog. Agent replies save canonical crew mentions with server-owned labels; live replies and older agent messages without saved references resolve known canonical role IDs for presentation. Mention chips describe a referenced agent rather than claiming instructions were selected or work completed. A missing target stays readable with a dashed chip; a changed skill explains that an earlier version was selected.
+
+## Agent file citations
+
+Chat runtimes receive a file citation manifest containing names and opaque `pitchcrew-file:` URLs. Agents use normal Markdown links, such as `[resume.pdf](pitchcrew-file:attachment/<message-id>/<attachment-id>)`. The renderer turns these into teal file chips in live and saved replies. It leaves code examples, external links, unknown agent tokens and ordinary Markdown intact. Copying a file chip preserves the Markdown citation.
+
+Attachment citations load the original bytes from the existing protected attachment endpoint only on activation, using the server-provided filename to choose the viewer. Profile citations (`pitchcrew-file:profile/<encoded-name>`) show the current named Profile file. Packet citations (`pitchcrew-file:packet/<approval-id>/<filename>`) resolve frozen approval source files or PDF/DOCX artifacts. The manifest includes only attachments from the agent's permitted conversation history, Profile filenames and the latest saved version matching the attached job’s current packet. File bodies and local paths are excluded from the manifest.
+
+File chips open the shared read-only viewer. Packet downloads preserve the consumed-approval/export requirement. Missing or deleted targets retain readable labels and explain their unavailability; failed attachment loads show a retryable error. Opening a citation grants no approval or submission permission. The viewer loads on demand and attachment reads abort when their message unmounts.
 
 ## Contracts and dispatch
 

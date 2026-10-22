@@ -1,21 +1,8 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { adapters, type RuntimeInstallation } from '../../adapters/src/index.ts';
 import type { RuntimeInfo } from '@pitchcrew/core';
-import { cleanup, setup } from '../../orchestrator/test/helpers/daemon.ts';
-
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
+import { cleanup, setup } from './helpers/daemon.ts';
 
 const codex: RuntimeInfo = {
   id: 'codex',
@@ -48,7 +35,6 @@ const open = async (query = 'section=runtimes') => {
 };
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-runtime-settings-cache-'));
   host = await setup(15751);
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
@@ -99,7 +85,6 @@ afterEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('checks releases and updates from the collapsed row; progress survives navigation', async () => {

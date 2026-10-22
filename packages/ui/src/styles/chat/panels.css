@@ -81,8 +81,14 @@
 .chat-side-panel .role-settings-footer {
   padding: 16px 20px;
 }
+/* The panel body already scrolls, so the picker shows every agent without a nested scroller. */
 .chat-side-panel .chat-participant-picker {
   grid-template-columns: minmax(0, 1fr);
+  max-height: none;
+  overflow: visible;
+}
+.chat-side-panel .chat-participant-choice small {
+  max-width: none;
 }
 @variant max-wide {
   .chat-side-panel {

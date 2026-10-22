@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/core",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "exports": {
@@ -18,7 +18,8 @@
     "./operational-logs": "./src/operational-logs.ts",
     "./telemetry-ai": "./src/telemetry-ai.ts",
     "./telemetry-mcp": "./src/telemetry-mcp.ts",
-    "./message-notifications": "./src/message-notifications.ts"
+    "./message-notifications": "./src/message-notifications.ts",
+    "./chat-citations": "./src/chat-citations.ts"
   },
   "dependencies": {
     "zod": "^4.3.6"

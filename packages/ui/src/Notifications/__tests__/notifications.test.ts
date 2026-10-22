@@ -7,6 +7,7 @@ import {
   notificationToastOptions,
   notificationPreview,
   notificationShouldAlert,
+  notificationInView,
 } from '../helpers.ts';
 
 const message: ChatMessage = {
@@ -337,4 +338,14 @@ it('keeps runtime maintenance notifications quiet and links to the exact runtime
     body: 'Fixture update failure',
     reviewId: 'codex',
   });
+});
+
+it('skips message toasts only for the visible conversation the user is reading', () => {
+  const item = { context: 'message', target: '/chat/scout' } as const;
+  expect(notificationInView(item, '/chat/scout', true)).toBe(true);
+  expect(notificationInView(item, '/chat/scout', false)).toBe(false);
+  expect(notificationInView(item, '/chat/writer', true)).toBe(false);
+  expect(notificationInView({ context: 'input', target: '/chat/scout' }, '/chat/scout', true)).toBe(
+    false,
+  );
 });

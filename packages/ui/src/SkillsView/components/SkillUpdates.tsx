@@ -22,9 +22,11 @@ export const SkillUpdates = ({
     <section className="flex flex-col gap-2" aria-label="Skill updates">
       <div className="flex flex-wrap items-center gap-3">
         <h2>Updates</h2>
-        <Button className="button small" aria-pressed={updatesOnly} onClick={onUpdatesOnly}>
-          Updates only
-        </Button>
+        {available.length || updatesOnly ? (
+          <Button className="button small" aria-pressed={updatesOnly} onClick={onUpdatesOnly}>
+            Updates only
+          </Button>
+        ) : null}
         <span className="quiet text-sm">
           {pending.size} pending · {available.length - pending.size} dismissed
         </span>

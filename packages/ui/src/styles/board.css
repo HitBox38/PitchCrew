@@ -125,6 +125,7 @@
   color: var(--muted);
 }
 .job-card {
+  container: job-card / inline-size;
   width: 100%;
   height: auto;
   display: block;
@@ -181,6 +182,7 @@
   --tone-soft: var(--ochre-soft);
 }
 .sample-tag {
+  flex-shrink: 0;
   margin-left: auto;
   font-size: 11px;
   color: var(--muted);
@@ -188,6 +190,12 @@
   border-radius: 6px;
   padding: 0 5px;
   line-height: 16px;
+}
+/* Narrow cards keep the company name readable; the job details still label examples. */
+@container job-card (width < 10rem) {
+  .sample-tag {
+    display: none;
+  }
 }
 .job-card h3 {
   font-size: 15px;

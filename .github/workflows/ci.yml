@@ -24,6 +24,12 @@ jobs:
     name: Lint, format, types and build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    outputs:
+      installers_required: >-
+        ${{ github.event_name == 'workflow_dispatch' ||
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' && github.base_ref == 'main') ||
+            (github.event_name == 'merge_group' && github.event.merge_group.base_ref == 'refs/heads/main') }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -48,13 +54,14 @@ jobs:
         run: pnpm landing:build
 
   tests:
-    name: Tests (Node ${{ matrix.node }})
+    name: Tests (Node ${{ matrix.node }}, shard ${{ matrix.shard }}/2)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
         node: ['22', '24']
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
@@ -70,12 +77,12 @@ jobs:
       - name: Install Chromium and system dependencies
         run: pnpm --filter @pitchcrew/mcp exec playwright install --with-deps chromium
       - name: Run unit, HTTP, adapter, MCP and browser tests
-        run: pnpm test --maxWorkers=2 --reporter=default --reporter=junit --outputFile.junit=test-results/vitest.xml
+        run: pnpm test --shard=${{ matrix.shard }}/2 --maxWorkers=2 --reporter=default --reporter=junit --outputFile.junit=test-results/vitest.xml
       - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
         with:
-          name: test-results-node-${{ matrix.node }}
+          name: test-results-node-${{ matrix.node }}-shard-${{ matrix.shard }}
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
@@ -120,6 +127,7 @@ jobs:
   installers:
     name: Packaged app (${{ matrix.os }})
     needs: quality
+    if: ${{ needs.quality.outputs.installers_required == 'true' }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
     strategy:
@@ -169,6 +177,7 @@ jobs:
             dist/releases/*.blockmap
           if-no-files-found: error
           retention-days: 7
+          compression-level: 0
       - name: Wait before retrying installer upload
         if: ${{ !cancelled() && steps.upload-installers.outcome == 'failure' }}
         shell: bash
@@ -188,6 +197,7 @@ jobs:
             dist/releases/*.blockmap
           if-no-files-found: error
           retention-days: 7
+          compression-level: 0
           overwrite: true
 
   ci:
@@ -202,9 +212,13 @@ jobs:
           QUALITY_RESULT: ${{ needs.quality.result }}
           TESTS_RESULT: ${{ needs.tests.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
+          INSTALLERS_REQUIRED: ${{ needs.quality.outputs.installers_required }}
           INSTALLERS_RESULT: ${{ needs.installers.result }}
         run: |
           test "$QUALITY_RESULT" = success
           test "$TESTS_RESULT" = success
           test "$DESKTOP_RESULT" = success
-          test "$INSTALLERS_RESULT" = success
+          case "$INSTALLERS_REQUIRED:$INSTALLERS_RESULT" in
+            true:success|false:skipped) ;;
+            *) echo "Installer verification did not match the required CI policy." >&2; exit 1 ;;
+          esac

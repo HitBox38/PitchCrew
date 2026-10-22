@@ -20,6 +20,14 @@ describe('bounded job command results', () => {
     );
     expect(commandFilter('Engineering', 'Eng')).toBe(defaultFilter('Engineering', 'Eng'));
   });
+  it('drops scattered-letter settings matches while keeping abbreviations', () => {
+    const keywords = ['light', 'dark', 'system', 'color'];
+    expect(commandFilter('Settings Writing preferences', 'engineer', ['guide'])).toBe(0);
+    expect(commandFilter('Settings Appearance and theme', 'apprnc', keywords)).toBeGreaterThan(0);
+    expect(commandFilter('Settings Appearance and theme', 'dark', keywords)).toBe(
+      defaultFilter('Settings Appearance and theme', 'dark', keywords),
+    );
+  });
   it('finds jobs beyond the first rendered page across every existing search field', () => {
     const last = {
       ...cards[2499],

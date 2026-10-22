@@ -78,10 +78,10 @@ export const ConversationRuntime = (props: ChatViewModel) => {
           </p>
         ) : null}
         <div className="flex justify-end gap-2 border-t border-[var(--border)] pt-4">
-          <Button className="text-button" variant="ghost" onClick={() => setDialog(null)}>
-            Close
+          <Button className="button" onClick={() => setDialog(null)}>
+            Cancel
           </Button>
-          <Button type="submit" disabled={working || !state.canSave}>
+          <Button className="button primary" type="submit" disabled={working || !state.canSave}>
             Save runtime
           </Button>
         </div>

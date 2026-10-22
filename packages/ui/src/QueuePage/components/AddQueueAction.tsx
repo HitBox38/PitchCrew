@@ -30,6 +30,7 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
   return (
     <>
       <Button
+        className={cardId ? undefined : 'button primary'}
         variant={cardId ? 'outline' : 'default'}
         size={cardId ? 'sm' : 'default'}
         onClick={() => setOpen(true)}
@@ -65,13 +66,18 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
                 {error}
               </p>
             ) : null}
-            <Button
-              className="button primary"
-              disabled={working || !selected}
-              onClick={() => void add()}
-            >
-              Add to queue
-            </Button>
+            <div className="form-footer flex justify-end gap-2.5 border-t border-border pt-4">
+              <Button className="button" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                className="button primary"
+                disabled={working || !selected}
+                onClick={() => void add()}
+              >
+                Add to queue
+              </Button>
+            </div>
           </div>
         </Modal>
       ) : null}

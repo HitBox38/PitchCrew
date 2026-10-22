@@ -23,3 +23,10 @@ export const skillEditorKey = (editing: Skill | string, starter: { name: string 
   if (typeof editing !== 'string') return editing.id;
   return editing === 'import' ? (starter?.name ?? editing) : editing;
 };
+
+/** Starter failures often share one cause, such as a rate limit; show each reason once. */
+export const groupedStarterErrors = (errors: { name: string; error: string }[]) => {
+  const groups = new Map<string, string[]>();
+  for (const { name, error } of errors) groups.set(error, [...(groups.get(error) ?? []), name]);
+  return [...groups].map(([error, names]) => ({ error, names }));
+};

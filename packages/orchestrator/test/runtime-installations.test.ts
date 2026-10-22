@@ -1,19 +1,27 @@
 import { adapters } from '@pitchcrew/adapters';
 import type { RuntimeId, RuntimeInfo, RuntimeModelCatalog, Snapshot } from '@pitchcrew/core';
+import { execFile } from 'node:child_process';
 import { mkdir, writeFile } from 'node:fs/promises';
 import * as os from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, setup } from './helpers/daemon.ts';
 import { cleanup as cleanupContexts, contextFor } from '../../adapters/test/helpers/runtime.ts';
-const install = async (bin: string, command: string) => {
+const install = async (bin: string, command: string, signal: AbortSignal) => {
   await mkdir(bin, { recursive: true });
+  // Version probes stay cheap; model discovery and chat still execute the TypeScript fixture.
+  const version = command === 'cursor-agent' ? '2026.09.26-fixture' : `${command} 99.0.0 (fixture)`;
+  const executable = join(bin, command);
   await writeFile(
-    join(bin, command),
-    `#!/bin/sh\nexec ${quote(process.execPath)} --import ${quote(loader)} ${quote(fixture)} ${quote(command)} "$@"\n`,
+    executable,
+    `#!/bin/sh\nif [ "$1" = "--version" ]; then\n  printf '%s\\n' ${quote(version)}\n  exit 0\nfi\nexec ${quote(process.execPath)} --import ${quote(loader)} ${quote(fixture)} ${quote(command)} "$@"\n`,
     { mode: 0o700 },
   );
+  // Validate shims serially before concurrent detection: macOS can stall cold shell loading.
+  const { stdout } = await promisify(execFile)(executable, ['--version'], { signal });
+  expect(stdout.trim()).toBe(version);
 };
 
 vi.mock('node:os', async (importOriginal) => {
@@ -46,7 +54,7 @@ afterEach(async () => {
 
 it.skipIf(process.platform === 'win32')(
   'rechecks, loads models and launches all production CLIs installed after daemon startup',
-  async () => {
+  async ({ signal }) => {
     const home = (await contextFor('grok')).directory;
     vi.mocked(os.homedir).mockReturnValue(home);
     vi.stubEnv('PATH', join(home, 'empty-bin'));
@@ -54,11 +62,12 @@ it.skipIf(process.platform === 'win32')(
     const { request } = await setup(14968, false, { dev: false });
     const before = (await request<Snapshot>('/snapshot')).result;
     expect(before.runtimes.every((runtime) => !runtime.available)).toBe(true);
-    for (const command of Object.values(commands)) await install(join(home, '.local/bin'), command);
+    for (const command of Object.values(commands))
+      await install(join(home, '.local/bin'), command, signal);
     const checked = await request<RuntimeInfo[]>('/runtimes/detect', 'POST');
     expect(checked.response.status).toBe(200);
     expect(checked.result).toHaveLength(Object.keys(commands).length);
-    expect(checked.result.every((runtime) => runtime.available)).toBe(true);
+    expect(checked.result.filter((runtime) => !runtime.available)).toEqual([]);
     const updated = (await request<Snapshot>('/snapshot')).result;
     expect(updated.runtimes.every((runtime) => runtime.available)).toBe(true);
     expect(updated.roles).toEqual(before.roles);
@@ -81,12 +90,12 @@ it.skipIf(process.platform === 'win32')(
 
 it.skipIf(process.platform === 'win32')(
   'finds a new OpenCode native installation outside the inherited PATH',
-  async () => {
+  async ({ signal }) => {
     const home = (await contextFor('grok')).directory;
     vi.mocked(os.homedir).mockReturnValue(home);
     vi.stubEnv('PATH', join(home, 'empty-bin'));
     expect((await adapters.opencode.detect()).available).toBe(false);
-    await install(join(home, '.opencode/bin'), 'opencode');
+    await install(join(home, '.opencode/bin'), 'opencode', signal);
     expect((await adapters.opencode.detect()).available).toBe(true);
     expect(await adapters.opencode.listModels!(new AbortController().signal)).toEqual([
       { value: 'example/fixture-model', label: 'example · fixture-model' },

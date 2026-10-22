@@ -3,7 +3,7 @@ import type { WritingPreference } from '@pitchcrew/core';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { SheetHeading } from '@/components/SheetHeading/index.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
@@ -55,9 +55,10 @@ export const PreferenceEditor = ({
                 .catch(() => {});
             }}
           >
-            <SheetTitle>
-              {preference ? 'Edit writing preference' : 'Add writing preference'}
-            </SheetTitle>
+            <SheetHeading
+              title={preference ? 'Edit writing preference' : 'Add writing preference'}
+              onClose={requestClose}
+            />
             <label htmlFor="writing-preference-text">Preference</label>
             <Textarea
               id="writing-preference-text"
@@ -73,12 +74,12 @@ export const PreferenceEditor = ({
               onValueChange={(value) => setScope(value as WritingPreference['scope'])}
               options={Object.entries(writingScopes).map(([value, label]) => ({ value, label }))}
             />
-            <div className="mt-auto flex gap-2">
-              <Button type="submit" disabled={working || !text.trim()}>
-                Save preference
-              </Button>
-              <Button disabled={working} onClick={requestClose}>
+            <div className="mt-auto flex justify-end gap-2">
+              <Button className="button" disabled={working} onClick={requestClose}>
                 Cancel
+              </Button>
+              <Button className="button primary" type="submit" disabled={working || !text.trim()}>
+                Save preference
               </Button>
             </div>
           </form>

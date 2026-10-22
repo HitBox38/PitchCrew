@@ -42,9 +42,12 @@ export const StarterSkills = ({
                   <div>
                     <h3>{item.name}</h3>
                     <p>{item.description}</p>
-                    <span className="quiet skill-source">Made by {item.source.split('/')[0]}</span>
-                    <br />
-                    <span className="quiet skill-source">{item.source}</span>
+                    <span className="quiet skill-source block">
+                      Made by {item.source.split('/')[0]}
+                    </span>
+                    {item.source.includes('/') ? (
+                      <span className="quiet skill-source block">{item.source}</span>
+                    ) : null}
                     {item.note ? <p className="quiet">{item.note}</p> : null}
                   </div>
                   <Button

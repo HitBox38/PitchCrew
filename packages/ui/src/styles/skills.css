@@ -12,6 +12,7 @@
   margin: 12px 16px 0;
 }
 .skills-view {
+  container: skills / inline-size;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -336,14 +337,21 @@
   overflow-wrap: anywhere;
 }
 .starter-skill-errors h3 {
-  font-size: 15px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
+  font: 600 14px/1.4 var(--font-sans);
 }
 .starter-skill-errors ul {
-  padding-left: 20px;
+  display: grid;
+  gap: 8px;
   font-size: var(--text-label);
-  line-height: 1.6;
+  line-height: 1.5;
   margin-bottom: 16px;
+}
+.starter-skill-error-names {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--text-detail);
 }
 .starter-skills [data-slot='accordion-trigger'] {
   cursor: pointer;
@@ -449,7 +457,8 @@
     flex-basis: 100%;
   }
 }
-@variant max-mobile {
+/* Narrow libraries, including tablets beside the sidebar, show the list or one skill at a time. */
+@container skills (width < 40rem) {
   .skills-controls {
     padding: 10px;
     gap: 8px;

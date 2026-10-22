@@ -1,7 +1,7 @@
 import type { Packet, PacketArtifact, ProfileFile } from '@pitchcrew/core';
-import { randomUUID } from 'node:crypto';
+import { randomUUID, createHash } from 'node:crypto';
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
-import { verifiedArtifact } from './artifacts.ts';
+import { packetExportFiles, matchingPacketExport } from './export-files.ts';
 
 export const readProfile = async (directory: string): Promise<ProfileFile[]> => {
   const path = join(directory, 'profile');
@@ -18,29 +18,21 @@ export const writePacket = async (
   cardId: string,
   packet: Packet,
   artifacts: PacketArtifact[] = [],
+  exportId?: string,
 ) => {
   const parent = join(directory, 'packets', cardId);
   await mkdir(parent, { recursive: true });
-  const version = `try-${Date.now()}-${randomUUID().slice(0, 8)}`;
-  const staging = join(parent, `.${version}`);
-  await mkdir(staging);
-  await Promise.all(
-    Object.entries({
-      'resume.md': packet.resume,
-      'cover_letter.md': packet.coverLetter,
-      'form_answers.md': packet.formAnswers,
-      'note.md': packet.note,
-      'claims.json': JSON.stringify(packet.claims, null, 2),
-    }).map(([name, text]) => writeFile(join(staging, name), text, 'utf8')),
-  );
-  await Promise.all(
-    artifacts.map((artifact) => {
-      if (!/^(resume|cover_letter)\.(pdf|docx)$/.test(artifact.name))
-        throw new Error('Invalid artifact filename.');
-      return writeFile(join(staging, artifact.name), verifiedArtifact(artifact));
-    }),
-  );
+  const version = exportId
+    ? `try-export-${createHash('sha256').update(exportId).digest('hex')}`
+    : `try-${Date.now()}-${randomUUID().slice(0, 8)}`;
+  const files = packetExportFiles(packet, artifacts);
   const output = join(parent, version);
+  if (exportId && (await matchingPacketExport(output, files))) return output;
+  const staging = join(parent, `.${version}`);
+  await mkdir(staging, { recursive: true });
+  await Promise.all(
+    Object.entries(files).map(([name, bytes]) => writeFile(join(staging, name), bytes)),
+  );
   await rename(staging, output);
   return output;
 };
@@ -48,4 +40,5 @@ export const writePacket = async (
 export * from './artifacts.ts';
 export * from './rules.ts';
 export * from './verification/index.ts';
+export { matchingPacketExport, packetExportFiles } from './export-files.ts';
 import { join } from 'node:path';

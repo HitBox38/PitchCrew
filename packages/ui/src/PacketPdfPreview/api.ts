@@ -2,21 +2,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import fontUrl from 'pdfjs-dist/standard_fonts/LiberationSans-Regular.ttf?url';
 
 export const renderPdf = async (bytes: string, signal: AbortSignal) => {
-  const pdf = await import('pdfjs-dist');
-  signal.throwIfAborted();
-  pdf.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-  const options = {
-    data: Uint8Array.from(atob(bytes), (character) => character.charCodeAt(0)),
-    useWorkerFetch: false,
-    useSystemFonts: false,
-    useWasm: false,
-    disableFontFace: true,
-    isEvalSupported: false,
-    stopAtErrors: true,
-    enableXfa: false,
-    BinaryDataFactory: LocalBinaryData,
-  };
-  const task = pdf.getDocument(options);
+  const task = await localPdfTask(bytes);
   const abort = () => {
     void task.destroy().catch(() => {});
   };
@@ -54,3 +40,20 @@ class LocalBinaryData {
     return new Uint8Array(await response.arrayBuffer());
   };
 }
+
+export const localPdfTask = async (bytes: string) => {
+  const pdf = await import('pdfjs-dist');
+  pdf.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+  const options = {
+    data: Uint8Array.from(atob(bytes), (character) => character.charCodeAt(0)),
+    useWorkerFetch: false,
+    useSystemFonts: false,
+    useWasm: false,
+    disableFontFace: true,
+    isEvalSupported: false,
+    stopAtErrors: true,
+    enableXfa: false,
+    BinaryDataFactory: LocalBinaryData,
+  };
+  return pdf.getDocument(options);
+};

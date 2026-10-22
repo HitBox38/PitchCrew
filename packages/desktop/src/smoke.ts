@@ -137,6 +137,11 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               document.querySelector('.chat-prompt')?.requestSubmit();
               chatResponded = await waitFor(() => [...document.querySelectorAll('.chat-message-content[aria-busy="false"]')].some((message) => message.textContent.includes('Second streaming checkpoint. This is a demo reply.')));
               observer.disconnect();
+              // Replies in the conversation on screen stay quiet; a reply elsewhere still raises a toast.
+              await fetch('/api/roles/reviewer/chat', {
+                method: 'POST', headers: { 'content-type': 'application/json', 'x-pitchcrew-client': 'ui' },
+                body: JSON.stringify({ content: 'Fictional notification toast check.' }),
+              });
               const toastVisible = await waitFor(() => !!document.querySelector('[data-slot="toast"][data-kind="message"]:not([data-starting-style]):not([data-ending-style])'));
               const viewport = document.querySelector('[data-slot="toast-viewport"]');
               const messageToast = viewport?.querySelector('[data-slot="toast"][data-kind="message"]');
@@ -149,7 +154,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               await new Promise((resolve) => setTimeout(resolve, 6500));
               const focusPaused = !!document.querySelector('[data-slot="toast"]:not([data-ending-style])') && viewport?.contains(document.activeElement);
               const bell = document.querySelector('.notification-bell');
-              const unreadReady = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 1 unread');
+              const unreadReady = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 2 unread');
               const bellBounds = bell.getBoundingClientRect();
               const notificationTriggerContained = [...bell.children].every((child) => {
                 const bounds = child.getBoundingClientRect();
@@ -206,8 +211,9 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               insightsReady = await ${smokeInsights};
               document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
               await waitFor(() => !document.querySelector('[data-slot="toast"]'));
-              document.querySelector('a[href="/chat"]')?.click();
-              await waitFor(() => !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'));
+              // Watch from Board so none of the three conversations is on screen.
+              document.querySelector('a[href="/"]')?.click();
+              await waitFor(() => location.pathname === '/' && !!document.querySelector('.workspace-heading'));
 
               await Promise.all(['scout', 'writer', 'reviewer'].map((role) => fetch('/api/roles/' + role + '/chat', {
                 method: 'POST', headers: { 'content-type': 'application/json', 'x-pitchcrew-client': 'ui' },

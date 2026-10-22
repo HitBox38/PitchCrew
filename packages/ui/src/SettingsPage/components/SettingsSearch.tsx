@@ -18,7 +18,7 @@ export const SettingsSearch = () => {
         onClick={() => setOpen(true)}
       >
         <Search size={15} aria-hidden="true" />
-        <span className="max-mobile:sr-only">Find a setting…</span>
+        <span className="@max-[46rem]/settings:sr-only">Find a setting…</span>
       </Button>
       <CommandDialog
         open={open}

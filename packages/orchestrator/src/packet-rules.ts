@@ -85,8 +85,10 @@ export class PacketRulesStore {
     }
     if (this.cache?.key === key) return this.cache.state;
     let input: unknown;
+    let source: string;
     try {
-      input = JSON.parse(readFileSync(this.path, 'utf8'));
+      source = readFileSync(this.path, 'utf8');
+      input = JSON.parse(source);
     } catch {
       return this.remember(key, 'packet-rules.json is not valid JSON.');
     }
@@ -99,15 +101,38 @@ export class PacketRulesStore {
           .map((issue) => `${issue.path.join('.') || 'file'}: ${issue.message}`)
           .join('; ')}`,
       );
-    this.cache = { key, state: { rules: result.rules, custom: true, error: null } };
+    this.cache = { key, state: { rules: result.rules, custom: true, error: null, source } };
     return this.cache.state;
   };
 
   save = (input: unknown): PacketRulesState => {
     const result = validatePacketRules(input);
     if (!result.valid) throw new PacketRulesError(result.issues);
+    return this.writeSource(`${JSON.stringify(result.rules, null, 2)}\n`);
+  };
+
+  saveSource = (source: unknown): PacketRulesState => {
+    if (typeof source !== 'string' || Buffer.byteLength(source) > packetRuleLimits.fileBytes)
+      throw new PacketRulesError([
+        {
+          path: [],
+          message: `Rules must be JSON text of at most ${packetRuleLimits.fileBytes / 1024} KB.`,
+        },
+      ]);
+    let input: unknown;
+    try {
+      input = JSON.parse(source);
+    } catch {
+      throw new PacketRulesError([{ path: [], message: 'This is not valid JSON.' }]);
+    }
+    const result = validatePacketRules(input);
+    if (!result.valid) throw new PacketRulesError(result.issues);
+    return this.writeSource(source);
+  };
+
+  private writeSource = (source: string): PacketRulesState => {
     const temporary = `${this.path}.tmp`;
-    writeFileSync(temporary, `${JSON.stringify(result.rules, null, 2)}\n`, { mode: 0o600 });
+    writeFileSync(temporary, source, { mode: 0o600 });
     renameSync(temporary, this.path);
     this.cache = undefined;
     return this.current();

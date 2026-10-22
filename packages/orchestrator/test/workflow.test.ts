@@ -234,6 +234,7 @@ describe('local daemon workflow', () => {
       expect(daemon.service.board.get<Role>('role', id)).toMatchObject(settings);
     }
   });
+  // Two complete review/export cycles include cold document workers on CI.
   it('runs a source-backed application through review, approval, export and manual tracking', async () => {
     const { request, directory } = await setup(14417);
     await request('/profile', 'PUT', {
@@ -249,7 +250,14 @@ describe('local daemon workflow', () => {
     const { result: scout } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });
-    await finish(request, scout.id);
+    const assessed = await finish(request, scout.id);
+    expect(assessed.messages).toContainEqual(
+      expect.objectContaining({
+        from: 'scout',
+        runId: scout.id,
+        content: expect.stringMatching(/^I assessed job fit: \d+\/100\./),
+      }),
+    );
     await request(`/cards/${card.id}/move`, 'POST', { state: 'shortlisted' });
     const candidates = await Promise.all([
       request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' }),
@@ -257,12 +265,27 @@ describe('local daemon workflow', () => {
     ]);
     expect(candidates.map((x) => x.response.status).sort()).toEqual([202, 400]);
     const writer = candidates.find((x) => x.response.status === 202)!.result;
-    await finish(request, writer.id);
+    const drafted = await finish(request, writer.id);
+    expect(drafted.messages).toContainEqual(
+      expect.objectContaining({
+        from: 'writer',
+        runId: writer.id,
+        content:
+          'I saved an application packet. It is ready for review; open the job to read the draft.',
+      }),
+    );
     const { result: reviewer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'reviewer',
     });
     const reviewed = await finish(request, reviewer.id);
     expect(reviewed.cards.find((c) => c.id === card.id)?.state).toBe('agreed');
+    expect(reviewed.messages).toContainEqual(
+      expect.objectContaining({
+        from: 'reviewer',
+        runId: reviewer.id,
+        content: expect.stringMatching(/^I approved the packet\./),
+      }),
+    );
     const { result: approval } = await request<Approval>(`/cards/${card.id}/approval`, 'POST');
     expect((await request(`/approvals/${approval.id}/export`, 'POST')).response.status).toBe(400);
     expect(
@@ -305,7 +328,7 @@ describe('local daemon workflow', () => {
     await request(`/cards/${card.id}/move`, 'POST', { state: 'interviewing' });
     const { result: final } = await request<Snapshot>('/snapshot');
     expect(final.cards[0].state).toBe('interviewing');
-  });
+  }, 30000);
   it('rejects cross-origin/user-session bypasses and expired agent capabilities', async () => {
     const { daemon, request } = await setup(14418);
     expect((await fetch(`${daemon.url}/api/snapshot`)).status).toBe(403);
@@ -325,6 +348,19 @@ describe('local daemon workflow', () => {
     ).toBe(403);
   });
   it('keeps role permissions and cancellation scoped to an active run', async () => {
+    let started!: (signal: AbortSignal) => void;
+    const active = new Promise<AbortSignal>((resolve) => {
+      started = resolve;
+    });
+    vi.spyOn(adapters.demo, 'run').mockImplementation((context) => {
+      context.signal.throwIfAborted();
+      return new Promise<never>((_resolve, reject) => {
+        context.signal.addEventListener('abort', () => reject(context.signal.reason), {
+          once: true,
+        });
+        started(context.signal);
+      });
+    });
     const { daemon, request } = await setup(14419);
     await request('/profile', 'PUT', {
       name: 'profile.md',
@@ -338,6 +374,9 @@ describe('local daemon workflow', () => {
     const { result: run } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });
+    const signal = await active;
+    expect(signal.aborted).toBe(false);
+    expect(daemon.service.board.get<Run>('run', run.id).status).toBe('running');
     const token = [...daemon.service.capabilities.keys()][0];
     expect((await daemon.service.agentCall(token, 'card', {})).card).toEqual(
       daemon.service.board.get('card', card.id),
@@ -346,6 +385,7 @@ describe('local daemon workflow', () => {
       'isolated application',
     );
     await request(`/runs/${run.id}/cancel`, 'POST');
+    expect(signal.aborted).toBe(true);
     for (let i = 0; i < 50 && daemon.service.controllers.size; i++)
       await new Promise((resolve) => setTimeout(resolve, 20));
     await expect(daemon.service.agentCall(token, 'profile', {})).rejects.toThrow('expired');

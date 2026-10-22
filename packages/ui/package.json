@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/ui",
-  "version": "0.12.1",
+  "version": "0.13.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,6 +8,13 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@codemirror/autocomplete": "^6.20.4",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/lang-json": "^6.0.2",
+    "@codemirror/language": "^6.13.1",
+    "@codemirror/lint": "^6.9.7",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.15",
     "@dnd-kit/collision": "^0.5.0",
     "@dnd-kit/dom": "^0.5.0",
     "@dnd-kit/react": "^0.5.0",
@@ -16,6 +23,8 @@
     "@internationalized/date": "^3.12.4",
     "@lexical/clipboard": "0.52.0",
     "@lexical/react": "0.52.0",
+    "@lezer/common": "^1.5.3",
+    "@lezer/highlight": "^1.2.5",
     "@pitchcrew/core": "workspace:*",
     "@shadcn/react": "^0.3.1",
     "@tanstack/react-router": "^1.170.41",

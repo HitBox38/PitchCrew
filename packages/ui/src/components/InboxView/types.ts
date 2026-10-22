@@ -21,7 +21,7 @@ export type BrowserApprovalListProps = Pick<InboxViewModel, 'action' | 'working'
 export type InboxTabsProps = Pick<InboxViewModel, 'tab' | 'setTab' | 'data'>;
 export type PacketApprovalActionsProps = Pick<
   InboxViewModel,
-  'onOpen' | 'working' | 'act' | 'action'
+  'data' | 'onOpen' | 'working' | 'act' | 'action'
 > & {
   approval: Approval;
   card: Card;
@@ -31,8 +31,6 @@ export type PacketApprovalListProps = Pick<
   InboxViewModel,
   'data' | 'onOpen' | 'working' | 'act' | 'action'
 > & { approvals: Approval[] };
-
-export type PacketPreviewProps = { approval: Approval };
 
 export type InboxRequestListProps = Pick<
   InboxViewModel,

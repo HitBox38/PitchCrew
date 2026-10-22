@@ -1,27 +1,14 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { beforeAll, afterAll, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { beforeAll, afterAll, expect, test } from 'vitest';
 import type { DeepReview } from '@pitchcrew/core';
-import { cleanup } from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup } from './helpers/daemon.ts';
 import { deepReviewFixture } from '../../orchestrator/test/helpers/deep-reviews.ts';
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let host: Awaited<ReturnType<typeof deepReviewFixture>>;
 let browser: Browser;
 let page: Page;
 const errors: string[] = [];
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-review-ui-cache-'));
-  host = await deepReviewFixture(24541);
+  host = await deepReviewFixture(24541, { ui: 'built' });
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   page.setDefaultTimeout(15000);
@@ -30,7 +17,6 @@ beforeAll(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 test('job action runs the managed flow, saves explicit runtime alternatives and presents persisted reports on desktop and mobile', async () => {
   await page.goto(host.daemon.url);

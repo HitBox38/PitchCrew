@@ -150,3 +150,38 @@ it('fails a queued selection after its instructions change, and resolves fresh r
   await vi.waitFor(() => expect(turns).toHaveLength(2));
   expect(turns[1].selectedSkills?.[0].content).toBe('Changed version.');
 });
+
+it('persists agent mention labels and supplies scoped file citation identities to the runtime', async () => {
+  const { request, daemon } = await setup(19635);
+  const contexts: ChatContext[] = [];
+  vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
+    contexts.push(context);
+    return { reply: '@writer Check the attachment. Literal `@scout` stays code.' };
+  });
+  const group = (
+    await request<Conversation>('/conversations', 'POST', {
+      title: 'Agent citations',
+      participants: ['scout'],
+    })
+  ).result;
+  await request(`/conversations/${group.id}/messages`, 'POST', {
+    content: 'Read this',
+    attachments: [{ name: 'cv.txt', data: Buffer.from('Experience').toString('base64') }],
+  });
+  const snapshot = await waitForSnapshot(request, (s) =>
+    s.messages.some((m) => m.from === 'scout' && m.threadId === group.id),
+  );
+  const reply = snapshot.messages.find((m) => m.from === 'scout' && m.threadId === group.id)!;
+  expect(reply.references).toMatchObject([
+    { kind: 'agent', id: 'writer', label: 'Writer', token: '@writer' },
+  ]);
+  const source = snapshot.messages.find((m) => m.threadId === group.id && m.attachments?.length)!;
+  expect(contexts[0].fileCitations).toContainEqual({
+    name: 'cv.txt',
+    url: `pitchcrew-file:attachment/${source.id}/${source.attachments![0].id}`,
+  });
+  daemon.service.board.rebuild();
+  expect(daemon.service.board.get<ChatMessage>('message', reply.id).references).toEqual(
+    reply.references,
+  );
+});

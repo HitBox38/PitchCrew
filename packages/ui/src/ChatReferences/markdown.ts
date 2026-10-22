@@ -1,13 +1,15 @@
+import { parseFileCitation } from '@pitchcrew/core/chat-citations';
 import type { ChatReference } from '@pitchcrew/core';
 import { validChatReferences } from '@pitchcrew/core/chat-references';
 interface Node {
   type: string;
   value?: string;
+  url?: string;
   position?: { start: { offset?: number } };
   data?: Record<string, unknown>;
   children?: Node[];
 }
-/** Decorate only exact persisted occurrences; never reinterpret history using today's catalog. */
+/** Decorate validated mention occurrences and explicit app file links before HTML sanitization. */
 export const referenceMarkdown = ({
   content,
   references,
@@ -24,6 +26,16 @@ export const referenceMarkdown = ({
       )
         return;
       parent.children = parent.children.flatMap((node) => {
+        if (node.type === 'link' && node.url && parseFileCitation(node.url)) {
+          const label = node.children?.map((child) => child.value ?? '').join('') || 'File';
+          return [
+            {
+              type: 'fileCitation',
+              data: { hName: 'file-citation', hProperties: { url: node.url, label } },
+              children: [{ type: 'text', value: label }],
+            },
+          ];
+        }
         if (
           node.type !== 'text' ||
           node.value === undefined ||

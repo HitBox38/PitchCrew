@@ -1,0 +1,39 @@
+/* A raised clay frame holds a recessed, quiet editing surface. */
+.json-editor {
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px 15px 14px 13px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.json-editor-toolbar {
+  padding: 6px 8px 12px;
+}
+.json-editor-surface {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 8px 9px 8px 7px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.json-editor-surface:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.json-editor-help {
+  padding: 12px 8px 6px;
+  line-height: 1.6;
+}
+.json-editor-settings {
+  background: var(--clay-fill);
+  box-shadow: var(--pop), var(--volume);
+}
+@variant max-phone {
+  .json-editor-toolbar {
+    gap: 10px;
+  }
+  .json-editor-toolbar > span {
+    flex-basis: 100%;
+  }
+}

@@ -1,75 +1,81 @@
-import { useEffect, useRef } from 'react';
+import { useLayoutEffect, useRef } from 'react';
+import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { browserActionTitles, browserStatusLabels } from '@/ComputerApprovals/helpers.ts';
-import { timeAgo } from '@/lib/time.ts';
-import { FileText, Globe } from 'lucide-react';
-import { packetStatusLabel } from '../helpers.ts';
-import type { InboxRequestListProps } from '../types.ts';
-
-export const InboxRequestList = ({
-  requests,
-  selectedRequest,
-  selectRequest,
-  data,
-  tab,
-  reviewOpen,
-}: InboxRequestListProps) => {
-  const list = useRef<HTMLElement>(null);
-  const previous = useRef({ reviewOpen, tab });
-  useEffect(() => {
-    if (previous.current.reviewOpen && !reviewOpen && previous.current.tab === tab) {
-      list.current?.querySelector<HTMLButtonElement>('[aria-current="true"]')?.focus();
-    }
-    previous.current = { reviewOpen, tab };
-  }, [reviewOpen, tab]);
+import { Input } from '@/components/ui/input/components/Input.tsx';
+import { EmptyState } from '@/components/EmptyState/index.tsx';
+import { InboxRow } from './InboxRow.tsx';
+import { readInboxPreference, saveInboxPreference } from '../hooks/preferences.ts';
+import type { InboxViewModel } from '../types.ts';
+export const InboxRequestList = (model: InboxViewModel) => {
+  const scroll = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    if (scroll.current) scroll.current.scrollTop = readInboxPreference('scroll', 0);
+    const last = readInboxPreference<string>('last-row', '');
+    scroll.current
+      ?.querySelector<HTMLButtonElement>(`[data-request-key="${CSS.escape(last)}"]`)
+      ?.focus({ preventScroll: true });
+  }, []);
   return (
-    <aside
-      ref={list}
-      className="inbox-request-list"
-      aria-label={tab === 'pending' ? 'Waiting requests' : 'Decided requests'}
-    >
-      <div className="inbox-list-heading">
-        <h2>{tab === 'pending' ? 'Waiting for you' : 'Past decisions'}</h2>
-        <span>{requests.length}</span>
-      </div>
-      <div className="inbox-request-scroll">
-        {requests.map((request) => {
-          const { approval } = request;
-          const browser = request.kind === 'browser';
-          const card = data.cards.find((item) => item.id === approval.cardId);
-          const title = browser
-            ? browserActionTitles[request.approval.action.kind]
-            : 'Export application packet';
-          const subtitle = browser
-            ? request.approval.page.title || 'New browser'
-            : card
-              ? `${card.title} at ${card.company}`
-              : 'Application packet';
-          const status = browser
-            ? browserStatusLabels[request.approval.status]
-            : packetStatusLabel(request.approval.status);
-          return (
+    <div className="mailbox">
+      <div className="mailbox-toolbar">
+        <label className="inbox-search">
+          <Search size={16} />
+          <span className="sr-only">Search inbox</span>
+          <Input
+            placeholder="Search agent, job or filename…"
+            value={model.search}
+            onChange={(event) => model.setSearch(event.target.value)}
+          />
+        </label>
+        <fieldset className="mailbox-filters" aria-label="Request type">
+          {(['all', 'packet', 'browser'] as const).map((filter) => (
             <Button
-              key={request.key}
-              className="inbox-request"
-              aria-current={selectedRequest?.key === request.key ? 'true' : undefined}
-              onClick={() => selectRequest(request.key)}
+              key={filter}
+              size="sm"
+              variant="ghost"
+              aria-pressed={filter === model.filter}
+              onClick={() => model.setFilter(filter)}
             >
-              <span className="inbox-request-icon">
-                {browser ? <Globe size={17} /> : <FileText size={17} />}
-              </span>
-              <span className="inbox-request-content">
-                <strong>{title}</strong>
-                <span>{subtitle}</span>
-                <span className="inbox-request-meta">
-                  <span>{status}</span>
-                  <time dateTime={approval.createdAt}>{timeAgo(approval.createdAt)}</time>
-                </span>
-              </span>
+              {filter === 'all' ? 'All' : filter === 'packet' ? 'Packets' : 'Browser'}
             </Button>
-          );
-        })}
+          ))}
+        </fieldset>
+        <Button
+          className="mailbox-unread"
+          size="sm"
+          variant="ghost"
+          aria-pressed={model.unreadOnly}
+          onClick={() => model.setUnreadOnly(!model.unreadOnly)}
+        >
+          Unread
+        </Button>
       </div>
-    </aside>
+      <div className="mailbox-caption">
+        <span>{model.tab === 'pending' ? 'Decisions and next steps' : 'Your saved decisions'}</span>
+        <span>{model.requests.length} requests</span>
+      </div>
+      <div
+        className="mailbox-rows"
+        ref={scroll}
+        onScroll={() => saveInboxPreference('scroll', scroll.current?.scrollTop ?? 0)}
+      >
+        {model.requests.length ? (
+          model.requests.map((request) => (
+            <InboxRow key={request.key} request={request} model={model} />
+          ))
+        ) : (
+          <EmptyState
+            title={
+              model.search || model.unreadOnly
+                ? 'No matching requests'
+                : model.tab === 'pending'
+                  ? 'You’re all caught up'
+                  : 'No history yet'
+            }
+            description="Packet reviews, browser decisions and application follow-ups appear here."
+          />
+        )}
+      </div>
+    </div>
   );
 };

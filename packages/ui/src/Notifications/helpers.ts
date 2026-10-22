@@ -140,6 +140,12 @@ export const notificationShouldAlert = (item: CrewNotification) => {
     item.context !== 'runtime_update'
   );
 };
+/** Plain messages in the conversation the user is already reading need no toast. */
+export const notificationInView = (
+  item: Pick<CrewNotification, 'context' | 'target'>,
+  pathname: string,
+  visible: boolean,
+) => visible && item.context === 'message' && pathname === item.target;
 export const readStored = <T>(
   key: string,
   fallback: T,

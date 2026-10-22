@@ -5,10 +5,10 @@ export const ReferenceMarkdownChip = ({
   index,
   children,
 }: ComponentProps<'span'> & { index?: string | number }) => {
-  const { references, catalog } = useContext(ReferenceContext);
+  const { references, catalog, mention } = useContext(ReferenceContext);
   const reference = references[Number(index)];
   return reference ? (
-    <ReferenceChip reference={reference} catalog={catalog} />
+    <ReferenceChip reference={reference} catalog={catalog} mention={mention} />
   ) : (
     <span>{children}</span>
   );

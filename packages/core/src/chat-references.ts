@@ -87,3 +87,24 @@ export const validChatReferences = (
       tokens.some((token) => token.start === ref.start && token.end === ref.end),
   );
 };
+
+/** Agent-authored mentions identify crew members without selecting skills or actions. */
+export const agentChatReferences = (
+  content: string,
+  roles: readonly { id: string; name: string }[],
+): ChatReference[] =>
+  chatTokens(content).flatMap((token) => {
+    const role = token.symbol === '@' ? roles.find((role) => role.id === token.query) : undefined;
+    return role
+      ? [
+          {
+            kind: 'agent' as const,
+            id: role.id,
+            label: role.name,
+            token: content.slice(token.start, token.end),
+            start: token.start,
+            end: token.end,
+          },
+        ]
+      : [];
+  });

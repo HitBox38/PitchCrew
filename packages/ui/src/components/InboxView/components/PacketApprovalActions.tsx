@@ -1,67 +1,64 @@
-import type { PacketApprovalActionsProps } from '@/components/InboxView/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { timeAgo } from '@/lib/time.ts';
-import { ArrowRight, Check, Download, X } from 'lucide-react';
-
-export const PacketApprovalActions = ({
-  approval,
-  card,
-  onOpen,
-  working,
-  act,
-  action,
-}: PacketApprovalActionsProps) => {
+import { PacketDecisionActions } from './PacketDecisionActions.tsx';
+import { useSubmissionActions } from '../hooks/useSubmissionActions.ts';
+import { SubmissionChooser } from './SubmissionChooser.tsx';
+import { WithdrawConfirmation } from './WithdrawConfirmation.tsx';
+import { packetNeedsAction } from '../helpers.ts';
+import type { PacketApprovalActionsProps } from '../types.ts';
+export const PacketApprovalActions = (props: PacketApprovalActionsProps) => {
+  const { approval, card, data, action } = props;
+  const model = useSubmissionActions(props);
+  const active =
+    data.runs.some((run) => run.cardId === card.id && run.status === 'running') || !!card.owner;
+  const uncertain = card.submissionAttempts?.some((attempt) => attempt.status === 'uncertain');
+  const current = packetNeedsAction(approval, data.cards);
+  const disabled = props.working || model.busy || active;
   return (
-    <div className="approval-footer">
-      <Button className="text-button" onClick={() => onOpen(card.id)}>
-        Open job <ArrowRight size={14} />
-      </Button>
-      <span className="subtle">{timeAgo(approval.createdAt)}</span>
-      {approval.status === 'pending' ? (
-        <>
-          <Button
-            disabled={working}
-            className="button"
-            onClick={() =>
-              act(
-                `/approvals/${approval.id}/decide`,
-                { approved: false },
-                'Export rejected; packet returned for review',
-              )
-            }
-          >
-            <X size={15} /> Reject
-          </Button>
-          <Button
-            disabled={working}
-            className="button primary"
-            onClick={() =>
-              act(
-                `/approvals/${approval.id}/decide`,
-                { approved: true },
-                'Approved this exact packet for one local export',
-              )
-            }
-          >
-            <Check size={15} /> Approve export
-          </Button>
-        </>
-      ) : approval.status === 'approved' ? (
-        <Button
-          disabled={working}
-          className="button primary"
-          onClick={() => {
-            void action(
-              `/approvals/${approval.id}/export`,
-              'POST',
-              undefined,
-              (result) => `Packet exported to ${(result as { directory: string }).directory}`,
-            ).catch(() => {});
-          }}
-        >
-          <Download size={15} /> Export packet
-        </Button>
+    <div className="mail-decision-footer">
+      {model.error ? (
+        <p className="form-error" role="alert">
+          {model.error}
+        </p>
       ) : null}
+      {/* The chooser carries its own start, manual and cancel actions. */}
+      {model.chooser ? (
+        <SubmissionChooser model={model} data={data} />
+      ) : (
+        <PacketDecisionActions
+          {...props}
+          model={model}
+          current={current}
+          uncertain={!!uncertain}
+          disabled={disabled}
+        />
+      )}
+      {active ? (
+        <p className="quiet">
+          Application work is active. Open the conversation to stop preparation or take control.
+        </p>
+      ) : null}
+      {uncertain ? (
+        <p className="text-ochre">
+          Verify the submission outcome in the conversation or job details before doing anything
+          else.
+        </p>
+      ) : null}
+      {model.busy ? <output>Saving your choice and preparing the reviewed files…</output> : null}
+      <WithdrawConfirmation
+        open={model.confirmWithdraw}
+        busy={disabled}
+        close={() => model.setConfirmWithdraw(false)}
+        confirm={() =>
+          void model.perform(async () => {
+            await action(
+              `/approvals/${approval.id}/complete`,
+              'POST',
+              { state: 'withdrawn' },
+              'Marked withdrawn',
+            );
+            model.setConfirmWithdraw(false);
+          })
+        }
+      />
     </div>
   );
 };

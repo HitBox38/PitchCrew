@@ -1,27 +1,10 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { afterAll, beforeAll, beforeEach, expect, test, vi } from 'vitest';
-import { mkdtemp, rm } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { afterAll, beforeAll, beforeEach, expect, test } from 'vitest';
 import { deleteJob } from '../../board/src/index.ts';
 import type { Card, Run } from '@pitchcrew/core';
-import {
-  cleanup,
-  setup,
-  confirmFixtureApplication,
-} from '../../orchestrator/test/helpers/daemon.ts';
+import { cleanup, setup, confirmFixtureApplication } from './helpers/daemon.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
-const viteCache = vi.hoisted(() => ({ directory: '' }));
-// Other browser fixtures use different Vite plugins; do not invalidate their dependency cache.
-vi.mock('vite', async (importOriginal) => {
-  const vite = await importOriginal<typeof import('vite')>();
-  return {
-    ...vite,
-    createServer: (config: import('vite').InlineConfig) =>
-      vite.createServer({ ...config, cacheDir: viteCache.directory }),
-  };
-});
 let browser: Browser;
 let page: Page;
 let card: Card;
@@ -32,7 +15,6 @@ const menu = () => page.getByRole('button', { name: menuName(), exact: true });
 const focusedLabel = () => page.evaluate(() => document.activeElement?.getAttribute('aria-label'));
 
 beforeAll(async () => {
-  viteCache.directory = await mkdtemp(join(tmpdir(), 'pitchcrew-board-ui-cache-'));
   host = await setup(14609);
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
@@ -71,7 +53,6 @@ beforeEach(async () => {
 afterAll(async () => {
   await browser?.close();
   await cleanup();
-  if (viteCache.directory) await rm(viteCache.directory, { recursive: true, force: true });
 });
 
 test('the menu button follows card hover and opening it does not open details or drag', async () => {
@@ -96,6 +77,55 @@ test('the menu button follows card hover and opening it does not open details or
   await expect.poll(focusedLabel).toBe(menuName());
 });
 
+test('right-click opens actions at the pointer, supports copying and dismisses back to the card', async () => {
+  const body = page.locator(`#board-job-${card.id} .job-card`);
+  await body.click({ button: 'right', position: { x: 50, y: 40 } });
+  const popup = page.locator('[data-slot="context-menu-content"]');
+  await popup.waitFor();
+  expect(await page.getByRole('dialog').count()).toBe(0);
+  expect(await page.locator('[data-dragging]').count()).toBe(0);
+  const box = (await popup.boundingBox())!;
+  expect(box.width).toBeGreaterThan(200);
+  expect(box.x).toBeGreaterThanOrEqual(0);
+  expect(box.x + box.width).toBeLessThanOrEqual(1440);
+  await page.keyboard.press('Escape');
+  await expect.poll(focusedLabel).toBe(`Open ${card.title} at ${card.company}`);
+  await body.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Copy job posting link', exact: true }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(card.url);
+  await body.click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Open details', exact: true }).click();
+  const details = page.getByRole('dialog', { name: 'Job details', exact: true });
+  await details.locator('.job-summary').waitFor();
+  await page.keyboard.press('Escape');
+  await details.waitFor({ state: 'detached' });
+});
+
+test('right-click status submenu moves jobs and reopens closed jobs with board focus restoration', async () => {
+  const body = () => page.locator(`#board-job-${card.id} .job-card`);
+  await body().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'Changes requested', exact: true }).press('Enter');
+  await expect
+    .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
+    .toBe('changes_requested');
+  await expect.poll(focusedLabel).toBe(menuName());
+  await body().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Mark withdrawn', exact: true }).click();
+  await expect.poll(() => menu().count()).toBe(0);
+  await page.getByRole('button', { name: /^Closed/ }).click();
+  await body().click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'New lead', exact: true }).press('Enter');
+  await expect.poll(() => host.daemon.service.board.get<Card>('card', card.id).state).toBe('lead');
+  const closed = page.getByRole('button', { name: /^Closed/ });
+  await expect
+    .poll(() => closed.evaluate((element) => element === document.activeElement))
+    .toBe(true);
+  expect(await closed.getAttribute('aria-pressed')).toBe('true');
+  await page.locator('[data-slot="context-menu-content"]').waitFor({ state: 'detached' });
+});
+
 test('copying a posting link and recording withdrawal preserve the current view and restore focus', async () => {
   await menu().click();
   await page.getByRole('menuitem', { name: 'Copy job posting link', exact: true }).click();
@@ -115,6 +145,7 @@ test('copying a posting link and recording withdrawal preserve the current view 
   ).toEqual([]);
 });
 
+// CPU throttling and two delayed saves need their own bounded CI budget.
 test('keyboard moves reach individual grouped statuses and reopen jobs without changing views', async ({
   onTestFinished,
 }) => {
@@ -173,32 +204,39 @@ test('keyboard moves reach individual grouped statuses and reopen jobs without c
   await expect
     .poll(() => closed.evaluate((element) => element === document.activeElement))
     .toBe(true);
-});
+}, 30000);
 
-test('deletion requires confirmation, keeps cancellation harmless and restores focus after removal', async () => {
-  await menu().click();
-  await page.getByRole('menuitem', { name: 'Delete job…', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Delete this job?' });
-  await dialog.waitFor();
-  const keep = dialog.getByRole('button', { name: 'Keep job', exact: true });
-  await expect
-    .poll(() => keep.evaluate((element) => element === document.activeElement))
-    .toBe(true);
-  await keep.click();
-  expect(host.daemon.service.board.get<Card>('card', card.id)).toMatchObject({ id: card.id });
-  await expect.poll(focusedLabel).toBe(menuName());
-  await menu().click();
-  await page.getByRole('menuitem', { name: 'Delete job…', exact: true }).click();
-  await dialog.getByRole('button', { name: 'Delete job', exact: true }).click();
-  await expect
-    .poll(() => host.daemon.service.board.list<Card>('card').some((job) => job.id === card.id))
-    .toBe(false);
-  await expect.poll(() => menu().count()).toBe(0);
-  await expect.poll(focusedLabel).toBe(`Actions for ${next.title} at ${next.company}`);
-  expect(host.daemon.service.board.history(card.id)[0].data).toMatchObject({
-    deletedAt: expect.any(String),
-  });
-});
+test.each(['dropdown', 'context'])(
+  'deletion requires confirmation, keeps cancellation harmless and restores focus after removal (%s)',
+  async (kind) => {
+    if (kind === 'context')
+      await page.locator(`#board-job-${card.id} .job-card`).click({ button: 'right' });
+    else await menu().click();
+    await page.getByRole('menuitem', { name: 'Delete job…', exact: true }).click();
+    const dialog = page.getByRole('dialog', { name: 'Delete this job?' });
+    await dialog.waitFor();
+    const keep = dialog.getByRole('button', { name: 'Keep job', exact: true });
+    await expect
+      .poll(() => keep.evaluate((element) => element === document.activeElement))
+      .toBe(true);
+    await keep.click();
+    expect(host.daemon.service.board.get<Card>('card', card.id)).toMatchObject({ id: card.id });
+    await expect.poll(focusedLabel).toBe(menuName());
+    if (kind === 'context')
+      await page.locator(`#board-job-${card.id} .job-card`).click({ button: 'right' });
+    else await menu().click();
+    await page.getByRole('menuitem', { name: 'Delete job…', exact: true }).click();
+    await dialog.getByRole('button', { name: 'Delete job', exact: true }).click();
+    await expect
+      .poll(() => host.daemon.service.board.list<Card>('card').some((job) => job.id === card.id))
+      .toBe(false);
+    await expect.poll(() => menu().count()).toBe(0);
+    await expect.poll(focusedLabel).toBe(`Actions for ${next.title} at ${next.company}`);
+    expect(host.daemon.service.board.history(card.id)[0].data).toMatchObject({
+      deletedAt: expect.any(String),
+    });
+  },
+);
 
 test('a failed status save restores the original card and keyboard focus', async () => {
   await page.route(`**/api/cards/${card.id}/status`, (route) =>
@@ -226,34 +264,39 @@ test('deleting the last job closes confirmation and focuses the empty board’s 
     .toBe(0);
 });
 
-test('attached chat work disables mutations but leaves the menu and cancellation available', async () => {
-  const controller = new AbortController();
-  host.daemon.service.controllers.set('fixture-busy', controller);
-  host.daemon.service.board.record(
-    'run',
-    {
-      id: 'fixture-busy',
-      cardId: card.id,
-      roleId: 'scout',
-      status: 'running',
-      mode: 'chat',
-      runtime: 'demo',
-      message: 'Fictional active work',
-      startedAt: new Date().toISOString(),
-      finishedAt: null,
-    } satisfies Run,
-    'scout',
-    'Fixture active chat',
-  );
-  await page.reload();
-  await menu().click();
-  for (const name of ['Shortlist', 'Mark withdrawn', 'Delete job…', 'Move to…'])
-    expect(
-      await page.getByRole('menuitem', { name, exact: true }).getAttribute('aria-disabled'),
-    ).toBe('true');
-  await page.getByRole('menuitem', { name: 'Cancel run', exact: true }).click();
-  await expect.poll(() => controller.signal.aborted).toBe(true);
-});
+test.each(['dropdown', 'context'])(
+  'attached chat work disables mutations but leaves the menu and cancellation available (%s)',
+  async (kind) => {
+    const controller = new AbortController();
+    host.daemon.service.controllers.set('fixture-busy', controller);
+    host.daemon.service.board.record(
+      'run',
+      {
+        id: 'fixture-busy',
+        cardId: card.id,
+        roleId: 'scout',
+        status: 'running',
+        mode: 'chat',
+        runtime: 'demo',
+        message: 'Fictional active work',
+        startedAt: new Date().toISOString(),
+        finishedAt: null,
+      } satisfies Run,
+      'scout',
+      'Fixture active chat',
+    );
+    await page.reload();
+    if (kind === 'context')
+      await page.locator(`#board-job-${card.id} .job-card`).click({ button: 'right' });
+    else await menu().click();
+    for (const name of ['Shortlist', 'Mark withdrawn', 'Delete job…', 'Move to…'])
+      expect(
+        await page.getByRole('menuitem', { name, exact: true }).getAttribute('aria-disabled'),
+      ).toBe('true');
+    await page.getByRole('menuitem', { name: 'Cancel run', exact: true }).click();
+    await expect.poll(() => controller.signal.aborted).toBe(true);
+  },
+);
 
 test('whole-card mouse dragging still records a status without opening details', async () => {
   const body = page.locator(`#board-job-${card.id} .job-card`);
