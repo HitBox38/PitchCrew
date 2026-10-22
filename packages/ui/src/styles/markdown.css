@@ -56,6 +56,9 @@
 .markdown-content :where(th, td) {
   vertical-align: top;
   line-height: 1.55;
+  /* Keep words whole so narrow lanes scroll the table instead of splitting words per letter. */
+  overflow-wrap: break-word;
+  min-width: 6rem;
 }
 .markdown-content :where(th) {
   color: var(--ink-soft);
