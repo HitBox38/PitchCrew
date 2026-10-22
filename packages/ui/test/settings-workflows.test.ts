@@ -85,7 +85,7 @@ test('changes word limits without JSON, validates incomplete fields and saves th
   });
   await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
   const source = JSON.parse(
-    await page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true }).inputValue(),
+    await page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true }).innerText(),
   ) as PacketRules;
   expect(source.rules[0]).toMatchObject({ max: 700, severity: 'warn' });
   await page.reload({ waitUntil: 'domcontentloaded' });
@@ -167,19 +167,191 @@ test('preserves malformed and unsupported source and guards unsaved rule navigat
   const source = '{"version":1,"rules":[{"kind":"future-kind","preserved":"keep me"}]}';
   await editor.fill(source);
   expect(await page.getByRole('tab', { name: 'Rule editor', exact: true }).isDisabled()).toBe(true);
-  expect(await editor.inputValue()).toBe(source);
+  expect(await editor.innerText()).toBe(source);
   await editor.fill('{broken');
-  expect(await editor.inputValue()).toBe('{broken');
+  expect(await editor.innerText()).toBe('{broken');
   await page.getByRole('tab', { name: 'General', exact: true }).click();
   const discard = page.getByRole('dialog', { name: 'Discard unsaved changes?', exact: true });
   await discard.getByRole('button', { name: 'Keep editing', exact: true }).click();
-  expect(await editor.inputValue()).toBe('{broken');
+  expect(await editor.innerText()).toBe('{broken');
   await page
     .locator('.packet-rules-actions')
     .getByRole('button', { name: 'Discard changes', exact: true })
     .click();
   await page.getByRole('tab', { name: 'Rule editor', exact: true }).click();
   await page.getByRole('button', { name: /^Word limit for Resume/ }).waitFor();
+}, 30000);
+
+test('JSON editor settings default formatting off and remember explicit choices across reloads', async () => {
+  await open('rules');
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  const editor = page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true });
+  const preference = page.getByRole('switch', { name: 'Format on save', exact: true });
+  await page.getByRole('button', { name: 'JSON editor settings', exact: true }).click();
+  expect(await preference.isChecked()).toBe(false);
+  expect(await page.getByRole('switch', { name: 'Format on paste', exact: true }).isChecked()).toBe(
+    false,
+  );
+  expect(
+    await page.getByRole('switch', { name: 'Format while typing', exact: true }).isChecked(),
+  ).toBe(false);
+  await preference.click();
+  await page
+    .getByRole('dialog', { name: 'JSON editor settings', exact: true })
+    .getByRole('button', { name: 'Close', exact: true })
+    .click();
+  const source = '{ "version":1, "rules":[] }';
+  await editor.fill(source);
+  await saveRules();
+  expect(host.daemon.service.packetRules.current().source).toBe(
+    '{\n  "version": 1,\n  "rules": []\n}\n',
+  );
+  await page.getByRole('button', { name: 'JSON editor settings', exact: true }).click();
+  await preference.click();
+  await page
+    .getByRole('dialog', { name: 'JSON editor settings', exact: true })
+    .getByRole('button', { name: 'Close', exact: true })
+    .click();
+  await editor.fill(source);
+  await saveRules();
+  expect(host.daemon.service.packetRules.current().source).toBe(source);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  await page.getByRole('button', { name: 'JSON editor settings', exact: true }).click();
+  expect(await preference.isChecked()).toBe(false);
+  await page
+    .getByRole('dialog', { name: 'JSON editor settings', exact: true })
+    .getByRole('button', { name: 'Close', exact: true })
+    .click();
+  expect(await editor.innerText()).toBe(source);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export saved rules', exact: true }).click();
+  const stream = await (await download).createReadStream();
+  const chunks: Buffer[] = [];
+  for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
+  expect(Buffer.concat(chunks).toString()).toBe(source);
+  const windowsSource = '{\r\n\t"version":1, "rules":[]\r\n}';
+  await host.request('/packet-rules', 'PUT', { source: windowsSource });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  await expect
+    .poll(() => page.getByRole('button', { name: 'Save rules', exact: true }).isDisabled())
+    .toBe(true);
+  await editor.press('ControlOrMeta+End');
+  await editor.press('Space');
+  await saveRules();
+  expect(host.daemon.service.packetRules.current().source).toBe(`${windowsSource} `);
+}, 30000);
+
+test('JSON editor settings enable paste and typing formatting independently and retain Undo', async () => {
+  await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
+  await open('rules');
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  const editor = page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true });
+  const settings = page.getByRole('button', { name: 'JSON editor settings', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'JSON editor settings', exact: true });
+  const source = '{"version":1,"rules":[]}';
+  await page.evaluate((text) => navigator.clipboard.writeText(text), source);
+  await editor.fill('');
+  await editor.press('ControlOrMeta+v');
+  expect(await editor.innerText()).toBe(source);
+  await settings.click();
+  await dialog.getByRole('switch', { name: 'Format on paste', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect
+    .poll(() => settings.evaluate((element) => document.activeElement === element))
+    .toBe(true);
+  await editor.fill('{}');
+  await editor.press('ControlOrMeta+a');
+  await editor.press('ControlOrMeta+v');
+  expect(await editor.innerText()).toContain('\n  "version": 1');
+  await editor.press('ControlOrMeta+z');
+  expect(await editor.innerText()).toBe('{}');
+  await editor.fill(source);
+  await editor.press('ControlOrMeta+Home');
+  await editor.press('Space');
+  expect(await editor.innerText()).toBe(` ${source}`);
+  await settings.click();
+  await dialog.getByRole('switch', { name: 'Format while typing', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await editor.press('ControlOrMeta+Home');
+  await editor.press('Space');
+  expect(await editor.innerText()).toContain('\n  "version": 1');
+  await saveRules();
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  await settings.click();
+  expect(
+    await dialog.getByRole('switch', { name: 'Format on save', exact: true }).isChecked(),
+  ).toBe(false);
+  expect(
+    await dialog.getByRole('switch', { name: 'Format on paste', exact: true }).isChecked(),
+  ).toBe(true);
+  expect(
+    await dialog.getByRole('switch', { name: 'Format while typing', exact: true }).isChecked(),
+  ).toBe(true);
+  await dialog.getByRole('button', { name: 'Close', exact: true }).click();
+  await editor.fill('{broken');
+  expect(await editor.innerText()).toBe('{broken');
+}, 30000);
+
+test('JSON editor supports formatting, undo across tabs, indentation, focus escape and keyboard save', async () => {
+  await open('rules');
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  const editor = page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true });
+  const source = '{"version":1,"rules":[]}';
+  await editor.fill(source);
+  await page.getByRole('button', { name: 'Format', exact: true }).click();
+  expect(await editor.innerText()).toContain('\n  "version": 1');
+  await page.getByRole('tab', { name: 'Rule editor', exact: true }).click();
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  await editor.press('ControlOrMeta+z');
+  expect(await editor.innerText()).toBe(source);
+  await editor.press('ControlOrMeta+Home');
+  await editor.press('Tab');
+  expect(await editor.innerText()).toBe(`  ${source}`);
+  await editor.press('Shift+Tab');
+  expect(await editor.innerText()).toBe(source);
+  await editor.press('Escape');
+  await editor.press('Tab');
+  expect(await editor.evaluate((element) => element === document.activeElement)).toBe(false);
+  await expect
+    .poll(() => page.getByRole('button', { name: 'Save rules', exact: true }).isEnabled())
+    .toBe(true);
+  await editor.press('ControlOrMeta+s');
+  await page.getByText('0 saved rules', { exact: true }).waitFor();
+  expect(host.daemon.service.packetRules.current().rules.rules).toEqual([]);
+}, 30000);
+
+test('JSON editor completes properties and values and locates daemon validation errors inline', async () => {
+  await open('rules');
+  await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
+  const editor = page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true });
+  await editor.fill('{"version":1, }');
+  await editor.press('ControlOrMeta+End');
+  await editor.press('ArrowLeft');
+  await editor.press('Control+Space');
+  await page.getByRole('option', { name: /"rules"/ }).waitFor();
+  await editor.press('Tab');
+  expect(JSON.parse(await editor.innerText())).toEqual({ version: 1, rules: [] });
+  await editor.fill('{"version":1,"rules":[{"kind":""}]}');
+  await editor.press('ControlOrMeta+Home');
+  for (let index = 0; index < '{"version":1,"rules":[{"kind":"'.length; index++)
+    await editor.press('ArrowRight');
+  await page.keyboard.type('pa');
+  await page.getByRole('option', { name: /"pattern"/ }).waitFor();
+  await editor.press('Enter');
+  expect(JSON.parse(await editor.innerText()).rules[0].kind).toBe('pattern');
+  await editor.fill(
+    '{"version":1,"rules":[{"id":"test","kind":"word_limit","severity":"warn","documents":["resume"],"max":-5}]}',
+  );
+  await expect.poll(() => editor.getAttribute('aria-invalid')).toBe('true');
+  await expect.poll(() => page.locator('.cm-lintRange-error').count()).toBeGreaterThan(0);
+  expect(await page.locator('.cm-lintRange-error').first().innerText()).toBe('-5');
+  await editor.fill('{broken');
+  await expect
+    .poll(() => page.getByRole('button', { name: 'Format', exact: true }).isDisabled())
+    .toBe(true);
 }, 30000);
 
 test('Settings search and global search navigate to and focus a preference', async () => {
@@ -208,6 +380,17 @@ test('Settings search and global search navigate to and focus a preference', asy
     )
     .toBe(true);
   expect(page.url()).toContain('section=privacy#usage-analytics');
+  await page.keyboard.press('ControlOrMeta+k');
+  await global.getByRole('combobox').fill('format JSON');
+  await global.getByRole('option', { name: /JSON editor settings/ }).click();
+  await expect
+    .poll(() =>
+      page
+        .getByRole('button', { name: 'JSON editor settings', exact: true })
+        .evaluate((element) => document.activeElement === element),
+    )
+    .toBe(true);
+  expect(page.url()).toContain('section=rules#json-editor-settings');
 }, 30000);
 
 test('connected accounts show agent access and open the existing explicit configuration flow', async () => {

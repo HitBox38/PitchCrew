@@ -73,6 +73,20 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['resume', 'word limit', 'bullets', 'warnings', 'validation', 'JSON'],
   },
   {
+    label: 'JSON editor settings',
+    section: 'rules',
+    target: 'json-editor-settings',
+    keywords: [
+      'format JSON',
+      'format on save',
+      'format on paste',
+      'format while typing',
+      'formatting',
+      'indentation',
+      'packet rules',
+    ],
+  },
+  {
     label: 'Pitchcrew update checks',
     section: 'updates',
     target: 'automatic-updates',

@@ -69,6 +69,20 @@ it('returns a full initial/default snapshot and skips all projection reads and s
   expect(snapshot).toHaveBeenCalledTimes(1);
 });
 
+it('invalidates source-only rule formatting changes without changing the rules', async () => {
+  const first = '{"version":1,"rules":[]}';
+  context.packetRules.saveSource(first);
+  const initial = await get();
+  expect(initial.json().packetRules.source).toBe(first);
+  const reformatted = '{\n  "version": 1,\n  "rules": []\n}\n';
+  context.packetRules.saveSource(reformatted);
+  const changed = await get(String(initial.headers.etag));
+  expect(changed.statusCode).toBe(200);
+  expect(changed.json().packetRules.source).toBe(reformatted);
+  expect(changed.json().packetRules.rules).toEqual(initial.json().packetRules.rules);
+  expect((await get(String(changed.headers.etag))).statusCode).toBe(304);
+});
+
 it('invalidates board changes from this connection and other SQLite connections', async () => {
   let result = await get();
   context.board.record('message', message, 'scout', 'Fictional answer');
