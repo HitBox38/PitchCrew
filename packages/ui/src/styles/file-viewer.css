@@ -60,17 +60,12 @@
   align-items: center;
   gap: 2px;
 }
-.file-zoom-controls input {
-  width: 59px;
-  padding: 4px;
-  height: 30px;
-  text-align: center;
-}
-.file-zoom-controls > span {
-  font-size: 12px;
-}
 .file-view-controls .field {
   width: 135px;
+}
+/* The preset menu is the single percentage readout, so it stays compact between − and +. */
+.file-view-controls .file-zoom-controls .field {
+  width: 96px;
 }
 .file-view-controls .field > label {
   position: absolute;

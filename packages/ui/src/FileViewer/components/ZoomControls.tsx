@@ -1,8 +1,8 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Minus, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
+/** The preset menu shows the current percentage, so it is the only percentage on screen. */
 export const ZoomControls = ({
   settings,
   change,
@@ -17,19 +17,6 @@ export const ZoomControls = ({
     >
       <Minus size={16} />
     </Button>
-    <Input
-      type="number"
-      aria-label="Zoom percentage"
-      min={25}
-      max={400}
-      step={25}
-      value={settings.zoom}
-      onChange={(event) => {
-        const value = Number(event.target.value);
-        if (value >= 25 && value <= 400) change({ zoom: value });
-      }}
-    />
-    <span>%</span>
     <FormSelect
       label="Zoom preset"
       value={String(settings.zoom)}
@@ -47,8 +34,13 @@ export const ZoomControls = ({
     >
       <Plus size={16} />
     </Button>
-    <Button size="sm" variant="ghost" onClick={() => change({ zoom: 100, fit: 'actual' })}>
-      100%
+    <Button
+      size="sm"
+      variant="ghost"
+      disabled={settings.zoom === 100 && settings.fit === 'actual'}
+      onClick={() => change({ zoom: 100, fit: 'actual' })}
+    >
+      Reset zoom
     </Button>
   </fieldset>
 );
