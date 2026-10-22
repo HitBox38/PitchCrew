@@ -8,7 +8,7 @@ export const ActivityHistory = ({ events }: { events: BoardEvent[] }) => {
       className="activity-history min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 max-mobile:px-3"
       aria-label="Activity history"
     >
-      <ol className="activity-list mx-auto max-w-245">
+      <ol className="activity-list">
         {events.map((event) => (
           <li
             className={`activity-row flex min-w-0 items-start gap-3 border-b border-border py-4 last:border-0 ${event.kind}`}

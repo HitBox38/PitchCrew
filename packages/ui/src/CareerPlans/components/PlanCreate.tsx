@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { SheetHeading } from '@/components/SheetHeading/index.tsx';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { PlanJobPicker } from './PlanJobPicker.tsx';
@@ -41,7 +41,7 @@ export const PlanCreate = ({
                 .catch(() => {});
             }}
           >
-            <SheetTitle>Create a career plan</SheetTitle>
+            <SheetHeading title="Create a career plan" onClose={requestClose} />
             <label htmlFor="career-plan-name">Plan name</label>
             <Input
               id="career-plan-name"
@@ -70,17 +70,18 @@ export const PlanCreate = ({
               individual job.
             </p>
             <PlanJobPicker selected={cardIds} change={setCardIds} />
-            <div className="mt-auto flex gap-2">
+            <div className="mt-auto flex justify-end gap-2">
+              <Button className="button" disabled={working} onClick={requestClose}>
+                Cancel
+              </Button>
               <Button
+                className="button primary"
                 type="submit"
                 disabled={
                   working || !name.trim() || !(title.trim() || tag.trim() || cardIds.length)
                 }
               >
                 Save plan
-              </Button>
-              <Button disabled={working} onClick={requestClose}>
-                Cancel
               </Button>
             </div>
           </form>

@@ -3,7 +3,7 @@ import { attachmentFiles } from '@/FileViewer/attachments.ts';
 import { PacketApprovalActions } from './PacketApprovalActions.tsx';
 import { DocumentFindings } from './DocumentFindings.tsx';
 import type { PacketApprovalListProps } from '../types.ts';
-import { resumePageWarning } from '../helpers.ts';
+import { packetIntro, packetNeedsAction, resumePageWarning } from '../helpers.ts';
 export const PacketApprovalList = ({ approvals, data, ...actions }: PacketApprovalListProps) => (
   <>
     {approvals.map((approval) => {
@@ -12,10 +12,7 @@ export const PacketApprovalList = ({ approvals, data, ...actions }: PacketApprov
       return (
         <div className="mail-packet" key={approval.id}>
           <div className="mail-reading-body">
-            <p>
-              Your reviewed application packet is ready. Open the attachments to check the exact
-              files, then approve the packet and choose how you’d like to apply.
-            </p>
+            <p>{packetIntro(approval, packetNeedsAction(approval, data.cards))}</p>
             {warning ? <p className="text-ochre">{warning}</p> : null}
             <DocumentFindings approval={approval} />
             <AttachmentList

@@ -15,9 +15,14 @@ export const ConversationHeading = (props: ConversationHeadingProps) => {
       <div className="chat-heading-actions">
         <BrowserButton browserPanel={props.browserPanel} />
         {!props.readOnly ? (
-          <Button variant="outline" className="chat-runtime" onClick={() => setDialog('runtime')}>
+          <Button
+            variant="outline"
+            className="chat-runtime"
+            aria-label={`Conversation runtime: ${runtimeLabels[role.runtime]}`}
+            onClick={() => setDialog('runtime')}
+          >
             <Cpu size={13} />
-            {runtimeLabels[role.runtime]}
+            <span>{runtimeLabels[role.runtime]}</span>
           </Button>
         ) : null}
         {props.readOnly && running.length ? (

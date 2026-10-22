@@ -14,6 +14,20 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
   app.get<IdRoute>('/api/cards/:id', (req) =>
     service.board.get<Card>('card', z.uuid().parse(req.params.id)),
   );
+  // Job details reads its own history, since workspace snapshots carry only recent events.
+  app.get<IdRoute>('/api/cards/:id/history', (req) => {
+    const id = z.uuid().parse(req.params.id);
+    service.board.get<Card>('card', id);
+    return service.board
+      .history(id, undefined, 200)
+      .map(({ id: eventId, kind, actor, message, createdAt }) => ({
+        id: eventId,
+        kind,
+        actor,
+        message,
+        createdAt,
+      }));
+  });
   app.post('/api/cards', (req, res) => res.status(201).send(service.createCard(req.body)));
   app.delete<IdRoute>('/api/cards/:id', (req) => {
     const card = service.board.get<Card>('card', req.params.id);

@@ -2,6 +2,20 @@
 .import-applications.drawer {
   width: min(760px, 100vw);
 }
+.import-file-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 10px;
+  color: var(--muted);
+  font-size: var(--text-body);
+}
+.import-file-picker .button {
+  flex-shrink: 0;
+}
 .import-table th,
 .import-table td {
   padding: 8px 10px;

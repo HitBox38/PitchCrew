@@ -61,7 +61,7 @@ Use browser PDF viewers as the reference for inspection controls, adapted to eac
 ### Shared viewer behavior
 
 - Keep a persistent toolbar with filename, Previous / Next attachment, Find where supported, zoom controls where applicable, Download, Expand / Restore and Close. Group secondary controls in an accessible overflow menu on narrow screens.
-- Zoom controls include minus, plus, a visible percentage, selectable presets and reset to 100%. Paginated documents offer Fit width and Fit page; images offer Fit image. Zoom changes only the attachment view, not the application shell.
+- Zoom controls include minus, plus, a preset menu that also shows the current percentage, and Reset zoom (100%, actual size). Paginated documents offer Fit width and Fit page; images offer Fit image. Zoom changes only the attachment view, not the application shell.
 - Find searches the entire current file, including offscreen pages, with a match count, active-match position, Previous / Next match, case-sensitive and whole-word options, and an explicit no-results state. Scroll the active match into view and highlight it in the displayed document. Search highlights are temporary viewing aids and do not change file bytes.
 - Cmd/Ctrl+F focuses file search while the viewer is active. Enter / Shift+Enter advances through matches while the search field is focused. Escape closes Find first, then closes the viewer on a subsequent press. Zoom shortcuts should be scoped to the viewer without intercepting text-entry shortcuts.
 - Retain each attachment's position, zoom and view mode while moving between attachments within the open request. Search results belong to the current file and must never display stale matches from another attachment.

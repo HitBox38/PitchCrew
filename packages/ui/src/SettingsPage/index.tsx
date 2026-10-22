@@ -15,7 +15,7 @@ import { NotificationSettings } from './components/NotificationSettings.tsx';
 import { RuntimeSettings } from './components/RuntimeSettings.tsx';
 import { SettingsTabs } from './components/SettingsTabs.tsx';
 import { validateSettingsSearch } from './helpers.ts';
-import { useIsMobile } from '@/hooks/use-mobile.ts';
+import { useCompactSettings } from './hooks/useCompactSettings.ts';
 import { UpdateSettings } from '@/AppUpdates/components/UpdateSettings.tsx';
 import { SkillUpdateSettings } from '@/AgentUpdates/components/SkillUpdateSettings.tsx';
 import { SettingsIntro } from './components/SettingsIntro.tsx';
@@ -24,7 +24,7 @@ import { useSettingFocus } from './hooks/useSettingFocus.ts';
 
 export const SettingsPage = () => {
   useSettingFocus();
-  const mobile = useIsMobile();
+  const [compact, layout] = useCompactSettings();
   const { section } = useSearch({ from: '/settings' });
   const navigate = useNavigate({ from: '/settings' });
   const data = useWorkspaceStore((state) => state.data);
@@ -33,14 +33,15 @@ export const SettingsPage = () => {
   if (!data) return null;
   return (
     <Tabs
+      ref={layout}
       className="settings-layout min-h-0 min-w-0 flex-1 gap-0"
-      orientation={mobile ? 'horizontal' : 'vertical'}
+      orientation={compact ? 'horizontal' : 'vertical'}
       value={section}
       onValueChange={(value) =>
         void navigate({ search: validateSettingsSearch({ section: value }) })
       }
     >
-      <SettingsTabs />
+      <SettingsTabs compact={compact} />
       <TabsContent className="settings-content" value="general">
         <SettingsIntro
           title="General"

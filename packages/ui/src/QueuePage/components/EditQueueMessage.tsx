@@ -54,11 +54,17 @@ export const EditQueueMessage = ({
         maxLength={8000}
       />
       {error ? <p role="alert">{error}</p> : null}
-      <div className="flex gap-2">
-        <Button disabled={working || !content.trim()} onClick={() => void save()}>
+      <div className="flex justify-end gap-2">
+        <Button className="button" onClick={close}>
+          Cancel
+        </Button>
+        <Button
+          className="button primary"
+          disabled={working || !content.trim()}
+          onClick={() => void save()}
+        >
           Save message
         </Button>
-        <Button onClick={close}>Cancel</Button>
       </div>
     </div>
   );

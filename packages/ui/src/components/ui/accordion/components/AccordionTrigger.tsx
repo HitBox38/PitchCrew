@@ -9,7 +9,7 @@ export const AccordionTrigger = ({ className, children, ...props }: AccordionTri
       <AccordionPrimitive.Trigger
         data-slot="accordion-trigger"
         className={cn(
-          'primitive:flex primitive:w-full primitive:items-center primitive:justify-between primitive:gap-3 primitive:rounded-md primitive:py-3 primitive:text-left primitive:text-sm primitive:font-medium primitive:outline-none primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50 primitive:disabled:pointer-events-none primitive:disabled:opacity-50 primitive:[&[data-panel-open]>.accordion-chevron]:rotate-180',
+          'primitive:flex primitive:w-full primitive:items-center primitive:justify-between primitive:gap-3 primitive:rounded-md primitive:py-3 primitive:text-left primitive:font-sans primitive:text-sm primitive:font-medium primitive:outline-none primitive:focus-visible:ring-[3px] primitive:focus-visible:ring-ring/50 primitive:disabled:pointer-events-none primitive:disabled:opacity-50 primitive:[&[data-panel-open]>.accordion-chevron]:rotate-180',
           className,
         )}
         {...props}

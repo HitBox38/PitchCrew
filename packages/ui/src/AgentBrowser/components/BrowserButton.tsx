@@ -7,6 +7,8 @@ export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPane
     <Button
       variant="outline"
       size="sm"
+      className="chat-browser"
+      aria-label={browserPanel.activity ? 'Browser, active' : 'Browser'}
       aria-expanded={browserPanel.open}
       aria-controls="agent-browser-panel"
       onClick={browserPanel.open ? browserPanel.hide : browserPanel.show}

@@ -10,6 +10,7 @@ import {
   NotificationTracker,
   notificationToastOptions,
   notificationShouldAlert,
+  notificationInView,
 } from '../helpers.ts';
 import type { CrewNotification } from '../types.ts';
 import { useLinkFeedback } from './useLinkFeedback.ts';
@@ -72,7 +73,12 @@ export const useNotifications = () => {
         activeToasts.current.delete(id);
       }
     }
-    const fresh = tracker.update(items).filter(notificationShouldAlert);
+    const pathname = decodeURIComponent(window.location.pathname);
+    const visible = document.visibilityState === 'visible';
+    const fresh = tracker
+      .update(items)
+      .filter(notificationShouldAlert)
+      .filter((item) => !notificationInView(item, pathname, visible));
     if (!fresh.length) return;
     const priority = fresh.find((item) => item.kind === 'attention') ?? fresh[0]!;
     if (!open)

@@ -1,6 +1,6 @@
 import { commandFilter } from './helpers.ts';
 import { CrewCommands } from '@/CommandPalette/components/CrewCommands.tsx';
-import { JobCommands } from '@/CommandPalette/components/JobCommands.tsx';
+import { RankedResults } from '@/CommandPalette/components/RankedResults.tsx';
 import { NavigationCommands } from '@/CommandPalette/components/NavigationCommands.tsx';
 import { WorkspaceCommands } from '@/CommandPalette/components/WorkspaceCommands.tsx';
 import { useCommandPalette } from '@/CommandPalette/hooks/useCommandPalette.ts';
@@ -10,11 +10,10 @@ import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.ts
 import { CommandInput } from '@/components/ui/command/components/CommandInput.tsx';
 import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
 import { CommandSeparator } from '@/components/ui/command/components/CommandSeparator.tsx';
-import { SettingCommands } from '@/SettingsPage/components/SettingCommands.tsx';
 
 export const CommandPalette = (props: CommandPaletteProps) => {
   const controller = useCommandPalette(props);
-  const { open, onOpenChange, cards } = controller;
+  const { open, onOpenChange } = controller;
   return (
     <CommandDialog
       commandProps={{ filter: commandFilter }}
@@ -29,8 +28,7 @@ export const CommandPalette = (props: CommandPaletteProps) => {
       <CommandList>
         <CommandEmpty>No matches.</CommandEmpty>
         <NavigationCommands {...controller} />
-        <SettingCommands run={controller.run} />
-        {cards.length ? <JobCommands {...controller} /> : null}
+        <RankedResults {...controller} />
         <CrewCommands {...controller} />
         <CommandSeparator />
         <WorkspaceCommands {...controller} />

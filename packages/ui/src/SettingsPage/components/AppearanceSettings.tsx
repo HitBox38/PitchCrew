@@ -31,8 +31,10 @@ export const AppearanceSettings = () => {
             </span>
             <span className="flex items-center gap-2">
               <Icon size={16} aria-hidden="true" />
-              {label}
-              {theme === id ? <Check className="ml-auto" size={16} aria-hidden="true" /> : null}
+              <span className="min-w-0">{label}</span>
+              {theme === id ? (
+                <Check className="settings-theme-check ml-auto" size={16} aria-hidden="true" />
+              ) : null}
             </span>
           </label>
         ))}

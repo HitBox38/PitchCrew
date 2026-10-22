@@ -21,7 +21,7 @@ Settings
   Local data
 ```
 
-The initial alternative of individual runtime cards repeated setup text, timestamps and commands at equal visual weight. The final list prioritizes decisions and comparison. General no longer requires scrolling through update settings to reach telemetry consent. On mobile the existing keyboard-accessible tab strip scrolls the selected section into view, including direct links.
+The initial alternative of individual runtime cards repeated setup text, timestamps and commands at equal visual weight. The final list prioritizes decisions and comparison. General no longer requires scrolling through update settings to reach telemetry consent. When the Settings area is narrower than 46rem (phones, and tablets beside the app sidebar), the keyboard-accessible tab strip moves to the top and scrolls the selected section into view, including direct links. `useCompactSettings` measures the Settings area so the tab orientation matches the `settings` container query.
 
 ## Resolved pains
 
