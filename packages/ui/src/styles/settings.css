@@ -463,11 +463,6 @@
   color: var(--ochre);
   background: var(--ochre-soft);
 }
-.packet-rules-json {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 13px;
-  line-height: 1.5;
-}
 .packet-rules .form-error li + li {
   margin-top: 4px;
 }
@@ -549,15 +544,6 @@
   width: 100%;
   max-width: 880px;
 }
-.packet-rules-editor .packet-rules-json {
-  flex: 1;
-  min-height: 220px;
-  resize: none;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: rgb(var(--tint) / 0.018);
-  box-shadow: none;
-}
 .packet-rules-actions {
   flex-shrink: 0;
   padding: 14px 32px;
@@ -587,9 +573,6 @@
   }
   .packet-rules-editor {
     overflow-y: visible;
-  }
-  .packet-rules-editor .packet-rules-json {
-    min-height: 360px;
   }
   .packet-rules-actions {
     position: sticky;

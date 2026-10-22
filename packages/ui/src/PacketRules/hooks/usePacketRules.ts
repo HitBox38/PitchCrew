@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { rulesFileBytes, rulesFileName } from '../constants.ts';
 import { formatRules, parseDraft, ruleViews } from '../helpers.ts';
 import type { PacketRulesProps } from '../types.ts';
@@ -10,7 +11,11 @@ export const usePacketRules = ({ state }: PacketRulesProps) => {
   const action = useWorkspaceStore((store) => store.action);
   const working = useWorkspaceStore((store) => store.working);
   const setToast = useWorkspaceStore((store) => store.setToast);
-  const saved = useMemo(() => formatRules(state.rules), [state.rules]);
+  const formatOnSave = useDevicePreferences((store) => store.jsonFormatOnSave);
+  const saved = useMemo(
+    () => state.source ?? formatRules(state.rules),
+    [state.source, state.rules],
+  );
   const [draft, setDraft] = useState<string | null>(null);
   const text = draft ?? saved;
   const dirty = draft !== null && draft !== saved;
@@ -28,8 +33,9 @@ export const usePacketRules = ({ state }: PacketRulesProps) => {
     event.preventDefault();
     if (!canSave || !('value' in parsed)) return;
     try {
-      await action('/packet-rules', 'PUT', parsed.value, 'Packet rules saved');
-      setDraft(null);
+      const source = formatOnSave ? formatRules(parsed.value) : text;
+      await action('/packet-rules', 'PUT', { source }, 'Packet rules saved');
+      setDraft((current) => (current === text ? null : current));
     } catch {
       // The action toast reports the failure; the draft stays for correction.
     }

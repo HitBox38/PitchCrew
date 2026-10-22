@@ -295,6 +295,8 @@ export interface PacketRulesState {
   rules: PacketRules;
   custom: boolean;
   error: string | null;
+  /** Exact saved JSON, including user formatting, when a valid custom file exists. */
+  source?: string;
 }
 
 const quote = (value: string, limit = 60) =>

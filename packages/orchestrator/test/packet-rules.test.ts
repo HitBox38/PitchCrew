@@ -181,10 +181,16 @@ describe('packet rules', () => {
 
     const saved = await request<PacketRulesState>('/packet-rules', 'PUT', houseRules);
     expect(saved.response.status).toBe(200);
-    expect(saved.result).toEqual({ rules: houseRules, custom: true, error: null });
+    expect(saved.result).toEqual({
+      rules: houseRules,
+      custom: true,
+      error: null,
+      source: expect.any(String),
+    });
     expect(JSON.parse(await readFile(join(directory, 'packet-rules.json'), 'utf8'))).toEqual(
       houseRules,
     );
+    expect(saved.result.source).toBe(await readFile(join(directory, 'packet-rules.json'), 'utf8'));
     expect((await request<Snapshot>('/snapshot')).result.packetRules?.rules).toEqual(houseRules);
 
     for (const headers of <Record<string, string>[]>[
@@ -216,6 +222,35 @@ describe('packet rules', () => {
     expect(reset.result).toEqual({ rules: defaultPacketRules, custom: false, error: null });
   });
 
+  it('preserves exact source through saves, rereads and snapshots while enforcing every rule check', async () => {
+    const { daemon, request, directory } = await setup(15389);
+    const source = ` { "version": 1, "rules": ${JSON.stringify(houseRules.rules)} } `;
+    const saved = await request<PacketRulesState>('/packet-rules', 'PUT', { source });
+    expect(saved.response.status).toBe(200);
+    expect(saved.result.source).toBe(source);
+    expect(saved.result.rules).toEqual(houseRules);
+    expect(await readFile(join(directory, 'packet-rules.json'), 'utf8')).toBe(source);
+    expect((await request<Snapshot>('/snapshot')).result.packetRules?.source).toBe(source);
+    const changedSource = `${source}\n\n`;
+    await writeFile(join(directory, 'packet-rules.json'), changedSource);
+    expect(daemon.service.packetRules.current().source).toBe(changedSource);
+
+    for (const invalid of [
+      '{broken',
+      JSON.stringify({ version: 1, rules: [{ ...houseRules.rules[1], pattern: '(a+)+' }] }),
+      `${' '.repeat(256 * 1024)}${source}`,
+      123,
+    ]) {
+      expect((await request('/packet-rules', 'PUT', { source: invalid })).response.status).toBe(
+        400,
+      );
+      expect(await readFile(join(directory, 'packet-rules.json'), 'utf8')).toBe(changedSource);
+    }
+    expect(
+      (await request('/packet-rules', 'PUT', { source }, { cookie: '' })).response.status,
+    ).toBe(403);
+  });
+
   it('fails closed when the rules file is edited into an invalid state', async () => {
     const { daemon, directory } = await setup(15372);
     const path = join(directory, 'packet-rules.json');
@@ -240,6 +275,7 @@ describe('packet rules', () => {
       rules: houseRules,
       custom: true,
       error: null,
+      source: JSON.stringify(houseRules),
     });
   });
 

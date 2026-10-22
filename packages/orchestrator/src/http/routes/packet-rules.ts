@@ -11,6 +11,8 @@ export const registerPacketRulesRoutes = (app: FastifyInstance, service: CrewSer
   });
   app.put('/api/packet-rules', (req, res) => {
     try {
+      if (req.body && typeof req.body === 'object' && 'source' in req.body)
+        return service.packetRules.saveSource(req.body.source);
       return service.packetRules.save(req.body);
     } catch (error) {
       if (!(error instanceof PacketRulesError)) throw error;

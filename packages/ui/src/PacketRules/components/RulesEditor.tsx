@@ -1,5 +1,6 @@
 import { keyedItems } from '@/lib/list-keys.ts';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { JsonEditor } from '@/JsonEditor/index.tsx';
+import { completePacketRules } from '../completions.ts';
 import { fileIssues, issueText } from '../helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 
@@ -16,22 +17,19 @@ export const RulesEditor = ({ controller }: { controller: PacketRulesController 
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <label className="font-semibold" htmlFor="packet-rules-json">
-          Rules file (JSON)
-        </label>
+        <span className="font-semibold">Rules file (JSON)</span>
         <output className="badge" aria-live="polite">
           {status}
         </output>
       </div>
-      <Textarea
+      <JsonEditor
         id="packet-rules-json"
-        className="packet-rules-json"
+        label="Rules file (JSON)"
+        filename="packet-rules.json"
         value={text}
-        onChange={(event) => setText(event.target.value)}
-        spellCheck={false}
-        rows={18}
-        aria-invalid={issues.length > 0}
-        aria-describedby={general.length ? 'packet-rules-problems' : undefined}
+        onChange={setText}
+        issues={issues}
+        complete={completePacketRules}
       />
       {general.length ? (
         <ul id="packet-rules-problems" className="form-error mt-2" role="alert">
