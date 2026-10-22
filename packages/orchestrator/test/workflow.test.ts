@@ -250,7 +250,14 @@ describe('local daemon workflow', () => {
     const { result: scout } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'scout',
     });
-    await finish(request, scout.id);
+    const assessed = await finish(request, scout.id);
+    expect(assessed.messages).toContainEqual(
+      expect.objectContaining({
+        from: 'scout',
+        runId: scout.id,
+        content: expect.stringMatching(/^I assessed job fit: \d+\/100\./),
+      }),
+    );
     await request(`/cards/${card.id}/move`, 'POST', { state: 'shortlisted' });
     const candidates = await Promise.all([
       request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' }),
@@ -258,12 +265,27 @@ describe('local daemon workflow', () => {
     ]);
     expect(candidates.map((x) => x.response.status).sort()).toEqual([202, 400]);
     const writer = candidates.find((x) => x.response.status === 202)!.result;
-    await finish(request, writer.id);
+    const drafted = await finish(request, writer.id);
+    expect(drafted.messages).toContainEqual(
+      expect.objectContaining({
+        from: 'writer',
+        runId: writer.id,
+        content:
+          'I saved an application packet. It is ready for review; open the job to read the draft.',
+      }),
+    );
     const { result: reviewer } = await request<Run>(`/cards/${card.id}/run`, 'POST', {
       roleId: 'reviewer',
     });
     const reviewed = await finish(request, reviewer.id);
     expect(reviewed.cards.find((c) => c.id === card.id)?.state).toBe('agreed');
+    expect(reviewed.messages).toContainEqual(
+      expect.objectContaining({
+        from: 'reviewer',
+        runId: reviewer.id,
+        content: expect.stringMatching(/^I approved the packet\./),
+      }),
+    );
     const { result: approval } = await request<Approval>(`/cards/${card.id}/approval`, 'POST');
     expect((await request(`/approvals/${approval.id}/export`, 'POST')).response.status).toBe(400);
     expect(
