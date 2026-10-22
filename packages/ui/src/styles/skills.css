@@ -12,6 +12,7 @@
   margin: 12px 16px 0;
 }
 .skills-view {
+  container: skills / inline-size;
   display: flex;
   flex: 1;
   flex-direction: column;
@@ -449,7 +450,8 @@
     flex-basis: 100%;
   }
 }
-@variant max-mobile {
+/* Narrow libraries, including tablets beside the sidebar, show the list or one skill at a time. */
+@container skills (width < 40rem) {
   .skills-controls {
     padding: 10px;
     gap: 8px;
