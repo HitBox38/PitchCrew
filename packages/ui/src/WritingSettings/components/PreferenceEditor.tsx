@@ -3,7 +3,7 @@ import type { WritingPreference } from '@pitchcrew/core';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { SheetHeading } from '@/components/SheetHeading/index.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Textarea } from '@/components/ui/textarea/index.tsx';
@@ -55,9 +55,10 @@ export const PreferenceEditor = ({
                 .catch(() => {});
             }}
           >
-            <SheetTitle>
-              {preference ? 'Edit writing preference' : 'Add writing preference'}
-            </SheetTitle>
+            <SheetHeading
+              title={preference ? 'Edit writing preference' : 'Add writing preference'}
+              onClose={requestClose}
+            />
             <label htmlFor="writing-preference-text">Preference</label>
             <Textarea
               id="writing-preference-text"

@@ -10,7 +10,7 @@ The next action prioritizes current work, pending user questions and uncertain s
 
 An agent working on another job or standalone conversation does not disable this job's launch actions. The same agent can run across independent queues within the workspace concurrency limit; active work and pending questions on this job retain their existing protections.
 
-Activity contains status bookkeeping, external application registration, lessons, tracking evidence, submission receipts and saved history. Uncertain submission outcomes open their evidence rather than suggesting another submission. Recording a status never contacts an employer or grants export/submission permission.
+Activity contains status bookkeeping, external application registration, lessons, tracking evidence, submission receipts and saved history. Saved history loads from the session-protected `/api/cards/:id/history` route (the latest 200 job events, without event payloads) and merges recent run events from the workspace snapshot, so older jobs keep their history after it leaves the snapshot's latest 100 events. Uncertain submission outcomes open their evidence rather than suggesting another submission. Recording a status never contacts an employer or grants export/submission permission.
 
 ## Live agents and job chat
 

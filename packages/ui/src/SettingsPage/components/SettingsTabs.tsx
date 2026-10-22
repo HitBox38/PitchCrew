@@ -3,15 +3,13 @@ import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
 import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
 import { useEffect, useRef } from 'react';
 import { useSearch } from '@tanstack/react-router';
-import { useIsMobile } from '@/hooks/use-mobile.ts';
 import { SettingsSearch } from './SettingsSearch.tsx';
 
-export const SettingsTabs = () => {
+export const SettingsTabs = ({ compact }: { compact: boolean }) => {
   const { section } = useSearch({ from: '/settings' });
-  const mobile = useIsMobile();
   const active = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    if (!mobile) return;
+    if (!compact) return;
     const frame = requestAnimationFrame(() => {
       const target = active.current;
       const list = target?.closest<HTMLElement>('[role="tablist"]');
@@ -24,7 +22,7 @@ export const SettingsTabs = () => {
       });
     });
     return () => cancelAnimationFrame(frame);
-  }, [mobile, section]);
+  }, [compact, section]);
   return (
     <div className="settings-navigation">
       <SettingsSearch />

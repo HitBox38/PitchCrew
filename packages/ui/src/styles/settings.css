@@ -1,5 +1,6 @@
 /* Settings share Profile's quiet navigation and a contained paper work surface. */
 .workspace-body.settings-workspace-body {
+  container: settings / inline-size;
   display: flex;
   flex-direction: column;
   padding: 0;
@@ -595,7 +596,8 @@
     bottom: 0;
   }
 }
-@variant max-mobile {
+/* Keep in sync with useCompactSettings, which switches the tab orientation. */
+@container settings (width < 46rem) {
   .settings-layout {
     flex-direction: column;
   }

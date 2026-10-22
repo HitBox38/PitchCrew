@@ -33,20 +33,15 @@ export const SourceEditor = (model: JobSourcesModel & { draft: SourceDraft }) =>
       </div>
       <BoardFields draft={draft} setBoard={model.setBoard} setToken={model.setToken} />
       <SourceFilters draft={draft} update={update} />
-      <div className="flex flex-wrap items-center gap-2">
-        <Button className="button primary" type="submit" disabled={model.busy}>
-          Save source
-        </Button>
+      <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
         <Button className="button" disabled={model.busy || !canTest(draft)} onClick={model.test}>
           Test source
         </Button>
-        <Button
-          variant="ghost"
-          className="text-button min-h-9"
-          disabled={model.busy}
-          onClick={model.cancel}
-        >
+        <Button className="button ml-auto" disabled={model.busy} onClick={model.cancel}>
           Cancel
+        </Button>
+        <Button className="button primary" type="submit" disabled={model.busy}>
+          Save source
         </Button>
       </div>
       {model.preview ? <SourcePreview preview={model.preview} /> : null}

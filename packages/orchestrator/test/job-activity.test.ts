@@ -113,3 +113,24 @@ it('gives source extraction a job conversation and retains its public progress',
     expect.objectContaining({ text: 'Extracting employer requirements.' }),
   );
 });
+
+it('serves a job’s saved history after it leaves the recent workspace events', async () => {
+  const { daemon, request } = await setup(14771);
+  const card = daemon.service.createCard({ company: 'Fictional Studio', title: 'Engineer' });
+  daemon.service.board.move(card.id, 'shortlisted', 'user', 'Shortlisted the job');
+  for (let index = 0; index < 101; index++)
+    daemon.service.createCard({ company: `Filler ${index}`, title: 'Engineer' });
+  const { result: snapshot } = await request<{ events: { entityId: string }[] }>(
+    '/snapshot?view=workspace',
+  );
+  expect(snapshot.events.some((event) => event.entityId === card.id)).toBe(false);
+  const { result } = await request<Record<string, unknown>[]>(`/cards/${card.id}/history`);
+  expect(result.map((event) => event.message)).toEqual(['Shortlisted the job', expect.any(String)]);
+  expect(Object.keys(result[0]!).toSorted()).toEqual([
+    'actor',
+    'createdAt',
+    'id',
+    'kind',
+    'message',
+  ]);
+});

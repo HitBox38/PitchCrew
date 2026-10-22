@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { SheetHeading } from '@/components/SheetHeading/index.tsx';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { PlanJobPicker } from './PlanJobPicker.tsx';
@@ -41,7 +41,7 @@ export const PlanCreate = ({
                 .catch(() => {});
             }}
           >
-            <SheetTitle>Create a career plan</SheetTitle>
+            <SheetHeading title="Create a career plan" onClose={requestClose} />
             <label htmlFor="career-plan-name">Plan name</label>
             <Input
               id="career-plan-name"
