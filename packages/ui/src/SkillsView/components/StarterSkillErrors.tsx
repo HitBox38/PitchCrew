@@ -1,14 +1,16 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { StarterSkillErrorsProps } from '@/SkillsView/types.ts';
+import { groupedStarterErrors } from '../helpers.ts';
 
 export const StarterSkillErrors = ({ data, working, action }: StarterSkillErrorsProps) => {
   return (
     <div className="starter-skill-errors" aria-live="polite">
       <h3>Some starter skills could not be loaded</h3>
       <ul>
-        {data.starterSkillErrors.map((item) => (
-          <li key={item.name}>
-            <strong>{item.name}</strong>: {item.error}
+        {groupedStarterErrors(data.starterSkillErrors).map(({ error, names }) => (
+          <li key={error}>
+            {error}
+            <span className="starter-skill-error-names">{names.join(', ')}</span>
           </li>
         ))}
       </ul>
