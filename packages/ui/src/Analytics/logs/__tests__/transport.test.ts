@@ -37,6 +37,23 @@ const setup = (
 afterEach(() => vi.useRealTimers());
 
 describe('native PostHog OTLP logs', () => {
+  it('sends bounded runtime exit metadata through the log sanitizer and OTLP encoder', async () => {
+    const { transport, send } = setup();
+    await transport.capture('operational_log', {
+      ...log,
+      failure_category: 'process_exit',
+      runtime_exit_code: 0,
+      runtime_exit_signal: 'SIGTERM',
+    });
+    const payload = JSON.parse(send.mock.calls[0]![1]!.body as string);
+    expect(payload.resourceLogs[0].scopeLogs[0].logRecords[0].attributes).toEqual(
+      expect.arrayContaining([
+        { key: 'runtime_exit_code', value: { intValue: '0' } },
+        { key: 'runtime_exit_signal', value: { stringValue: 'SIGTERM' } },
+      ]),
+    );
+    expect(JSON.stringify(payload)).not.toContain('private');
+  });
   it('sends only reviewed records as OTLP JSON with public project auth, no content or referrer', async () => {
     const { transport, send } = setup();
     expect(await transport.capture('operational_log', log)).toBe(true);

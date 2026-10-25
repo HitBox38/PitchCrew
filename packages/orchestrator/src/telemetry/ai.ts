@@ -5,7 +5,7 @@ import {
   type AiRunOutcome,
 } from '@pitchcrew/core/telemetry-ai';
 import { randomUUID } from 'node:crypto';
-import { failureCategory, type FailureCategory } from '@pitchcrew/core/operational-logs';
+import { failureDetails } from '@pitchcrew/core/operational-logs';
 
 /** Records only local, content-free observations. Transport/consent belongs to the renderer. */
 export const beginAiRun = (
@@ -25,7 +25,7 @@ export const beginAiRun = (
   const start = clock();
   const startedAt = wallClock();
   let finished = false;
-  let failure: FailureCategory | undefined;
+  let failure: ReturnType<typeof failureDetails> | undefined;
   const record = (event: string, properties: Record<string, unknown>) => {
     if (!diagnostics || !traceId) return;
     try {
@@ -41,7 +41,7 @@ export const beginAiRun = (
   };
   return {
     fail: (error: unknown) => {
-      failure ??= failureCategory(error);
+      failure ??= failureDetails(error);
     },
     observe: async <T>(operation: () => Promise<T>, signal: AbortSignal): Promise<T> => {
       const spanId = diagnostics ? id() : undefined;
@@ -52,7 +52,7 @@ export const beginAiRun = (
         return await operation();
       } catch (error) {
         outcome = signal.aborted ? 'cancelled' : 'failed';
-        failure = failureCategory(error);
+        failure = failureDetails(error);
         throw error;
       } finally {
         if (signal.aborted) outcome = 'cancelled';
@@ -62,7 +62,7 @@ export const beginAiRun = (
           $ai_latency: (clock() - spanStart) / 1000,
           observed_start_ms: spanStartedAt,
           outcome,
-          failure_category: failure,
+          ...failure,
         });
       }
     },
@@ -73,7 +73,7 @@ export const beginAiRun = (
         $ai_latency: (clock() - start) / 1000,
         observed_start_ms: startedAt,
         outcome,
-        failure_category: failure,
+        ...failure,
       });
     },
   };

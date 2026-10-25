@@ -5,8 +5,11 @@ export const parseWorkflowResult = (text: string, context: RunContext): RunResul
   try {
     return parseResult(text, context);
   } catch {
-    throw new Error(
-      'The runtime did not return a valid structured result. Check its model/sign-in and retry.',
+    throw Object.assign(
+      new Error(
+        'The runtime did not return a valid structured result. Check its model/sign-in and retry.',
+      ),
+      { code: 'PITCHCREW_RUNTIME_RESULT_INVALID' },
     );
   }
 };

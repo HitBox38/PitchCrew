@@ -12,6 +12,16 @@ export const sanitizeOperationalLog = (input: Record<string, unknown>): Operatio
     const log: OperationalLog = { code, area };
     if (failureCategories.includes(input.failure_category as never))
       log.failure_category = input.failure_category as FailureCategory;
+    if ((area === 'chat' || area === 'workflow') && log.failure_category === 'process_exit') {
+      if (
+        Number.isInteger(input.runtime_exit_code) &&
+        (input.runtime_exit_code as number) >= 0 &&
+        (input.runtime_exit_code as number) <= 0xffff_ffff
+      )
+        log.runtime_exit_code = input.runtime_exit_code as number;
+      if (exitSignals.includes(input.runtime_exit_signal as never))
+        log.runtime_exit_signal = input.runtime_exit_signal as RuntimeExitSignal;
+    }
     if (
       area === 'http' &&
       Number.isInteger(input.http_status) &&
@@ -40,7 +50,29 @@ export interface OperationalLog {
   area: OperationalLogArea;
   failure_category?: FailureCategory;
   http_status?: number;
+  runtime_exit_code?: number;
+  runtime_exit_signal?: RuntimeExitSignal;
 }
+
+// Fixed OS names only; never forward arbitrary error properties or CLI output.
+const exitSignals = [
+  'SIGABRT',
+  'SIGBUS',
+  'SIGFPE',
+  'SIGHUP',
+  'SIGILL',
+  'SIGINT',
+  'SIGKILL',
+  'SIGPIPE',
+  'SIGQUIT',
+  'SIGSEGV',
+  'SIGTERM',
+  'SIGTRAP',
+  'SIGSYS',
+  'SIGXCPU',
+  'SIGXFSZ',
+] as const;
+type RuntimeExitSignal = (typeof exitSignals)[number];
 
 const failureCategories = [
   'aborted',
@@ -59,8 +91,30 @@ export const failureCategory = (error: unknown): FailureCategory => {
   if (error.name === 'AbortError') return 'aborted';
   if (error.name === 'TimeoutError' || code === 'ETIMEDOUT') return 'timeout';
   if (error.name === 'ZodError' || error.name === 'SyntaxError') return 'validation';
+  if (code === 'PITCHCREW_RUNTIME_RESULT_INVALID') return 'validation';
   if (code === 'ENOENT') return 'executable_missing';
   if (code === 'PITCHCREW_RUNTIME_EXIT') return 'process_exit';
   if (/^Runtime exited with code \d+\.$/.test(error.message)) return 'process_exit';
   return 'other';
+};
+
+/** Keep the original error local; rebuild only bounded, reviewed diagnostic fields. */
+export const failureDetails = (error: unknown) => {
+  const failure_category = failureCategory(error);
+  const exit =
+    error instanceof Error
+      ? (error as Error & { exitCode?: unknown; signal?: unknown })
+      : undefined;
+  const log = sanitizeOperationalLog({
+    code: 'runtime_run_failed',
+    area: 'workflow',
+    failure_category,
+    runtime_exit_code: exit?.exitCode,
+    runtime_exit_signal: exit?.signal,
+  })!;
+  return {
+    failure_category,
+    ...(log.runtime_exit_code !== undefined ? { runtime_exit_code: log.runtime_exit_code } : {}),
+    ...(log.runtime_exit_signal ? { runtime_exit_signal: log.runtime_exit_signal } : {}),
+  };
 };

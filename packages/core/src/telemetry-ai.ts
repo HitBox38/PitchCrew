@@ -28,10 +28,14 @@ export const sanitizeAiObservation = (
       code: 'runtime_run_failed',
       area: input.mode,
       failure_category: input.failure_category,
+      runtime_exit_code: input.runtime_exit_code,
+      runtime_exit_signal: input.runtime_exit_signal,
     });
     properties.failure_category = log?.failure_category ?? 'other';
     // Native AI views need a safe error label; never pass the original Error.
     properties.$ai_error = properties.failure_category;
+    if (log?.runtime_exit_code !== undefined) properties.runtime_exit_code = log.runtime_exit_code;
+    if (log?.runtime_exit_signal) properties.runtime_exit_signal = log.runtime_exit_signal;
   }
   if (event === '$ai_span') {
     if (typeof input.$ai_span_id !== 'string' || !uuid.test(input.$ai_span_id)) return null;

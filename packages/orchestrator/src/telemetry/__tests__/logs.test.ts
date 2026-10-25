@@ -1,9 +1,40 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createTelemetryBuffer } from '../buffer.ts';
 import { recordOperationalLog, sanitizeLogObservation } from '../logs.ts';
-import { failureCategory } from '@pitchcrew/core/operational-logs';
+import { failureCategory, failureDetails } from '@pitchcrew/core/operational-logs';
 
 describe('content-free operational logs', () => {
+  it('keeps exit details only on runtime exits and never retains unknown error properties', () => {
+    const error = Object.assign(new Error('private stderr'), {
+      code: 'PITCHCREW_RUNTIME_EXIT',
+      exitCode: 0xffff_ffff,
+      signal: 'SIGKILL',
+      private: 'secret',
+    });
+    expect(failureDetails(error)).toEqual({
+      failure_category: 'process_exit',
+      runtime_exit_code: 0xffff_ffff,
+      runtime_exit_signal: 'SIGKILL',
+    });
+    expect(failureDetails({ ...error })).toEqual({ failure_category: 'other' });
+    expect(failureDetails(Object.assign(error, { code: 'unknown' }))).toEqual({
+      failure_category: 'other',
+    });
+    for (const area of ['http', 'daemon'])
+      expect(
+        sanitizeLogObservation('operational_log', {
+          code: area === 'http' ? 'http_request_failed' : 'daemon_start_failed',
+          area,
+          failure_category: 'process_exit',
+          runtime_exit_code: 7,
+          runtime_exit_signal: 'SIGTERM',
+        }),
+      ).toEqual({
+        code: area === 'http' ? 'http_request_failed' : 'daemon_start_failed',
+        area,
+        failure_category: 'process_exit',
+      });
+  });
   it('keeps bounded failure details and drops private diagnostic input', () => {
     expect(failureCategory(new Error('Runtime exited with code 1.'))).toBe('process_exit');
     expect(failureCategory(new Error('private provider stderr'))).toBe('other');
