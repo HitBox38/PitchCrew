@@ -29,6 +29,8 @@ export const sanitizeOperationalLog = (input: Record<string, unknown>): Operatio
       (input.http_status as number) <= 599
     )
       log.http_status = input.http_status as number;
+    if (area === 'http' && httpOperations.includes(input.operation as never))
+      log.operation = input.operation as HttpOperation;
     return log;
   }
   return null;
@@ -52,6 +54,7 @@ export interface OperationalLog {
   http_status?: number;
   runtime_exit_code?: number;
   runtime_exit_signal?: RuntimeExitSignal;
+  operation?: HttpOperation;
 }
 
 // Fixed OS names only; never forward arbitrary error properties or CLI output.
@@ -74,6 +77,9 @@ const exitSignals = [
 ] as const;
 type RuntimeExitSignal = (typeof exitSignals)[number];
 
+const httpOperations = ['packet_export_requested', 'packet_exported', 'workflow_started'] as const;
+export type HttpOperation = (typeof httpOperations)[number];
+
 const failureCategories = [
   'aborted',
   'timeout',
@@ -90,8 +96,12 @@ export const failureCategory = (error: unknown): FailureCategory => {
   const code = (error as NodeJS.ErrnoException).code;
   if (error.name === 'AbortError') return 'aborted';
   if (error.name === 'TimeoutError' || code === 'ETIMEDOUT') return 'timeout';
-  if (error.name === 'ZodError' || error.name === 'SyntaxError') return 'validation';
-  if (code === 'PITCHCREW_RUNTIME_RESULT_INVALID') return 'validation';
+  if (
+    error.name === 'ZodError' ||
+    error.name === 'SyntaxError' ||
+    code === 'PITCHCREW_RUNTIME_RESULT_INVALID'
+  )
+    return 'validation';
   if (code === 'ENOENT') return 'executable_missing';
   if (code === 'PITCHCREW_RUNTIME_EXIT') return 'process_exit';
   if (/^Runtime exited with code \d+\.$/.test(error.message)) return 'process_exit';

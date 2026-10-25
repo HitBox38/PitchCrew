@@ -90,6 +90,33 @@ describe('native PostHog OTLP logs', () => {
     expect(request!.body).not.toContain('/Users');
     transport.dispose();
   });
+  it('retains fixed HTTP operation context through transport sanitization and OTLP encoding', async () => {
+    const { transport, send } = setup();
+    for (const operation of ['packet_export_requested', 'packet_exported', 'workflow_started']) {
+      expect(
+        await transport.capture('operational_log', {
+          code: 'http_request_failed',
+          area: 'http',
+          http_status: 400,
+          failure_category: 'validation',
+          operation,
+          url: '/cards/private-id/run?token=private-token',
+          message: 'private error',
+        }),
+      ).toBe(true);
+      const body = send.mock.lastCall![1]!.body as string;
+      const record = JSON.parse(body).resourceLogs[0].scopeLogs[0].logRecords[0];
+      expect(record.attributes).toEqual(
+        expect.arrayContaining([
+          { key: 'http_status', value: { intValue: '400' } },
+          { key: 'failure_category', value: { stringValue: 'validation' } },
+          { key: 'operation', value: { stringValue: operation } },
+        ]),
+      );
+      expect(body).not.toContain('private');
+    }
+    transport.dispose();
+  });
   it('drops missing consent, config, SDK identity, unknown codes and unsafe config without queuing', async () => {
     const { transport, send, disable } = setup();
     expect(await transport.capture('chat_sent', log)).toBe(false);
