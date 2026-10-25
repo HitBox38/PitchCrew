@@ -9,6 +9,32 @@ const properties = {
   $ai_latency: 2.5,
 };
 describe('AI renderer consent and content boundary', () => {
+  it('retains only bounded process exit details on failed runtime observations', () => {
+    const failed = { ...properties, outcome: 'failed', failure_category: 'process_exit' };
+    const sanitize = (input: Record<string, unknown>) =>
+      sanitizeEvent({
+        event: '$ai_trace',
+        properties: { ...failed, ...input },
+      })?.properties;
+    expect(
+      sanitize({ runtime_exit_code: 0, runtime_exit_signal: 'SIGTERM', stderr: 'private' }),
+    ).toMatchObject({ runtime_exit_code: 0, runtime_exit_signal: 'SIGTERM' });
+    for (const value of [-1, 0x1_0000_0000, 1.5, Infinity, '7', null, 'private']) {
+      const result = sanitize({
+        runtime_exit_code: value,
+        runtime_exit_signal: 'private',
+        stderr: 'private',
+      });
+      expect(result).not.toHaveProperty('runtime_exit_code');
+      expect(result).not.toHaveProperty('runtime_exit_signal');
+      expect(JSON.stringify(result)).not.toContain('private');
+    }
+    for (const input of [{ outcome: 'completed' }, { failure_category: 'other' }]) {
+      const result = sanitize({ ...input, runtime_exit_code: 7, runtime_exit_signal: 'SIGTERM' });
+      expect(result).not.toHaveProperty('runtime_exit_code');
+      expect(result).not.toHaveProperty('runtime_exit_signal');
+    }
+  });
   it('replaces untrusted native error labels with the closed failure vocabulary', () => {
     const event = sanitizeEvent({
       event: '$ai_trace',

@@ -191,7 +191,7 @@ export const runAcpText = async (
       context.signal.removeEventListener('abort', abort);
       reject(error);
     });
-    child.on('close', () => {
+    child.on('close', (code, signal) => {
       activity.boundary();
       if (settled) return;
       if (!failure && !completed && buffer.trim()) {
@@ -211,7 +211,7 @@ export const runAcpText = async (
         reject(
           Object.assign(
             new Error(stderr.trim() || 'The runtime exited before completing its ACP turn.'),
-            { code: 'PITCHCREW_RUNTIME_EXIT' },
+            { code: 'PITCHCREW_RUNTIME_EXIT', exitCode: code, signal },
           ),
         );
     });
