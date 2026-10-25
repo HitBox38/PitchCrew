@@ -58,7 +58,12 @@ export const failureCategory = (error: unknown): FailureCategory => {
   const code = (error as NodeJS.ErrnoException).code;
   if (error.name === 'AbortError') return 'aborted';
   if (error.name === 'TimeoutError' || code === 'ETIMEDOUT') return 'timeout';
-  if (error.name === 'ZodError' || error.name === 'SyntaxError') return 'validation';
+  if (
+    error.name === 'ZodError' ||
+    error.name === 'SyntaxError' ||
+    code === 'PITCHCREW_RUNTIME_RESULT_INVALID'
+  )
+    return 'validation';
   if (code === 'ENOENT') return 'executable_missing';
   if (code === 'PITCHCREW_RUNTIME_EXIT') return 'process_exit';
   if (/^Runtime exited with code \d+\.$/.test(error.message)) return 'process_exit';
