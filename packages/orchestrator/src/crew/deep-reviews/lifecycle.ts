@@ -7,6 +7,7 @@ import { reviewFlow } from './flow.ts';
 import { ReviewWaiting, type LiveDeepReview } from './types.ts';
 import { review, updateReview } from './state.ts';
 import { reviewSummaryMessage } from './summary.ts';
+import { beginAiRun } from '../../telemetry/ai.ts';
 
 export const executeDeepReview = async (context: CrewContext, live: LiveDeepReview, run: Run) => {
   const { id, controller, deadline, reviewer } = live;
@@ -20,9 +21,11 @@ export const executeDeepReview = async (context: CrewContext, live: LiveDeepRevi
   };
   checkDeadline();
   context.publishChat(true);
+  const ai = beginAiRun(context.diagnostics, 'workflow');
   await reviewFlow(context, live)
     .catch((error) => {
       const waiting = error instanceof ReviewWaiting;
+      if (!waiting) ai.fail(error);
       const cancelled =
         controller.signal.aborted &&
         !(
@@ -71,6 +74,7 @@ export const executeDeepReview = async (context: CrewContext, live: LiveDeepRevi
         finishedAt: new Date().toISOString(),
       };
       context.board.record('run', finished, reviewer.id, current.summary);
+      ai.finish(status);
       const currentCard = context.board.get<Card>('card', cardId);
       if (
         ['drafting', 'in_review', 'agreed', 'awaiting_approval'].includes(currentCard.state) &&

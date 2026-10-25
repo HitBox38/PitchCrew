@@ -73,6 +73,7 @@ const stagePrepared = async (
   context.capabilities.set(token, { runId: run.id, roleId: role.id, cardId: card.id });
   context.controllers.set(run.id, context.controllers.get(parent.id)!);
   const directory = join(context.directory, 'roles', role.id, 'runs', run.id);
+  const ai = beginAiRun(context.diagnostics, 'workflow');
   try {
     await context.writeRunInstructions(directory, role, run.configuration!.skills);
     const launch: RunContext = {
@@ -95,10 +96,7 @@ const stagePrepared = async (
       },
       onMessage: () => {},
     };
-    const result = await beginAiRun(context.diagnostics, 'workflow').observe(
-      () => adapters[role.runtime].run(launch),
-      signal,
-    );
+    const result = await ai.observe(() => adapters[role.runtime].run(launch), signal);
     if (endQuestionTurn(context, run)) {
       if (purpose === 'application-draft')
         context.board.record(
@@ -138,6 +136,7 @@ const stagePrepared = async (
     );
     return true;
   } catch (error) {
+    ai.fail(error);
     context.board.record(
       'run',
       {
@@ -151,6 +150,8 @@ const stagePrepared = async (
     );
     throw error;
   } finally {
+    const outcome = context.board.get<Run>('run', run.id).status;
+    ai.finish(outcome === 'running' ? 'failed' : outcome);
     context.capabilities.delete(token);
     context.controllers.delete(run.id);
   }
