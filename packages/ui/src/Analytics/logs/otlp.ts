@@ -35,6 +35,12 @@ export const operationalLogPayload = (
                     ? [attribute('failure_category', log.failure_category)]
                     : []),
                   ...(log.http_status ? [attribute('http_status', log.http_status)] : []),
+                  ...(log.runtime_exit_code !== undefined
+                    ? [attribute('runtime_exit_code', log.runtime_exit_code)]
+                    : []),
+                  ...(log.runtime_exit_signal
+                    ? [attribute('runtime_exit_signal', log.runtime_exit_signal)]
+                    : []),
                   ...(log.operation ? [attribute('operation', log.operation)] : []),
                   attribute('renderer', context.renderer),
                   attribute('analytics_schema', context.analytics_schema),
