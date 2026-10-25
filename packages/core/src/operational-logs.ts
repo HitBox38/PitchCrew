@@ -19,6 +19,8 @@ export const sanitizeOperationalLog = (input: Record<string, unknown>): Operatio
       (input.http_status as number) <= 599
     )
       log.http_status = input.http_status as number;
+    if (area === 'http' && httpOperations.includes(input.operation as never))
+      log.operation = input.operation as HttpOperation;
     return log;
   }
   return null;
@@ -40,7 +42,11 @@ export interface OperationalLog {
   area: OperationalLogArea;
   failure_category?: FailureCategory;
   http_status?: number;
+  operation?: HttpOperation;
 }
+
+const httpOperations = ['packet_export_requested', 'packet_exported', 'workflow_started'] as const;
+export type HttpOperation = (typeof httpOperations)[number];
 
 const failureCategories = [
   'aborted',

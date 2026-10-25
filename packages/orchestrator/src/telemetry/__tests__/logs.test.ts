@@ -21,6 +21,7 @@ describe('content-free operational logs', () => {
         area: 'http',
         http_status: 503,
         failure_category: 'timeout',
+        operation: 'packet_export_requested',
         message: 'private',
       }),
     ).toEqual({
@@ -28,6 +29,7 @@ describe('content-free operational logs', () => {
       area: 'http',
       http_status: 503,
       failure_category: 'timeout',
+      operation: 'packet_export_requested',
     });
     expect(
       sanitizeLogObservation('operational_log', {
@@ -35,6 +37,7 @@ describe('content-free operational logs', () => {
         area: 'http',
         http_status: 999,
         failure_category: '/private/error',
+        operation: '/cards/private/run?token=secret',
       }),
     ).toEqual({ code: 'http_request_failed', area: 'http' });
   });
@@ -48,6 +51,7 @@ describe('content-free operational logs', () => {
         roleId: 'writer',
         token: 'secret',
         runtime: 'custom-provider',
+        operation: 'workflow_started',
       }),
     ).toEqual({ code: 'runtime_run_failed', area: 'chat' });
     expect(
