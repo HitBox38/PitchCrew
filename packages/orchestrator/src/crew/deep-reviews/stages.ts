@@ -85,10 +85,11 @@ const executeReviewStagePrepared = async (
   context.controllers.set(run.id, controller);
   context.capabilities.set(token, { runId: run.id, cardId: card.id, roleId: role.id });
   context.board.record('run', run, role.id, run.message);
+  const ai = beginAiRun(context.diagnostics, 'workflow');
   try {
     await context.writeRunInstructions(directory, role, run.configuration!.skills);
     const currentCard = assertReviewCurrent(context, live);
-    const result = await beginAiRun(context.diagnostics, 'workflow').observe(
+    const result = await ai.observe(
       () =>
         adapters[role.runtime].run({
           card: child
@@ -179,6 +180,7 @@ const executeReviewStagePrepared = async (
       }
       throw new ReviewWaiting('Waiting for your answer');
     }
+    ai.fail(error);
     context.board.record(
       'run',
       {
@@ -192,6 +194,8 @@ const executeReviewStagePrepared = async (
     );
     throw error;
   } finally {
+    const outcome = context.board.get<Run>('run', run.id).status;
+    ai.finish(outcome === 'running' ? 'failed' : outcome);
     finishChatActivity(context, run.id);
     live.controller.signal.removeEventListener('abort', abort);
     childSignal?.removeEventListener('abort', abort);

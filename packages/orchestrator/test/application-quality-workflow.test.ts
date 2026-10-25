@@ -101,6 +101,7 @@ it('queues a current user correction into an isolated draft, preserving before/a
 
 it('runs at most one document correction plus Reviewer recheck, with scoped tools usable in both stages', async () => {
   const { daemon, request, card } = await prepared(24632);
+  const record = vi.spyOn(daemon.service.diagnostics!, 'record');
   vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue({
     ...clearDocuments,
     repairable: ['resume.pdf page 2: possible stranded heading'],
@@ -130,6 +131,39 @@ it('runs at most one document correction plus Reviewer recheck, with scoped tool
   expect(current.state).toBe('agreed');
   expect(current.feedback).toContain('Warning: Check the preview.');
   expect(current.packetReview).toBeDefined();
+  await vi.waitFor(() => expect(daemon.service.controllers.size).toBe(0));
+  expect(record.mock.calls.filter(([event]) => event === '$ai_trace')).toHaveLength(3);
+  expect(record.mock.calls.filter(([event]) => event === '$ai_span')).toHaveLength(3);
+});
+
+it('records both failed document-correction and parent traces with content-free linked errors', async () => {
+  const { daemon, request, card } = await prepared(24636);
+  const record = vi.spyOn(daemon.service.diagnostics!, 'record');
+  vi.spyOn(documents, 'inspectPacketDocuments').mockResolvedValue({
+    ...clearDocuments,
+    repairable: ['Possible stranded heading'],
+  });
+  const error = new SyntaxError('Private correction /Users/fictional/resume.md');
+  vi.spyOn(adapters.demo, 'run')
+    .mockResolvedValueOnce({ role: 'writer', packet })
+    .mockRejectedValueOnce(error);
+  const run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' })).result;
+  await vi.waitFor(() => expect(daemon.service.controllers.size).toBe(0));
+  expect(daemon.service.board.get<Run>('run', run.id)).toMatchObject({
+    status: 'failed',
+    message: error.message,
+  });
+  const traces = record.mock.calls.filter(([event]) => event === '$ai_trace');
+  expect(traces).toHaveLength(2);
+  for (const [, properties] of traces)
+    expect(properties).toMatchObject({ outcome: 'failed', failure_category: 'validation' });
+  const failedSpan = record.mock.calls.find(
+    ([event, properties]) => event === '$ai_span' && properties.outcome === 'failed',
+  )!;
+  expect(
+    traces.some(([, properties]) => properties.$ai_trace_id === failedSpan[1].$ai_trace_id),
+  ).toBe(true);
+  expect(JSON.stringify(record.mock.calls)).not.toContain('Private');
 });
 
 it('keeps quality mutations behind the local session and rejects stale guide writes', async () => {
