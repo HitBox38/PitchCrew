@@ -35,6 +35,7 @@ export const operationalLogPayload = (
                     ? [attribute('failure_category', log.failure_category)]
                     : []),
                   ...(log.http_status ? [attribute('http_status', log.http_status)] : []),
+                  ...(log.operation ? [attribute('operation', log.operation)] : []),
                   attribute('renderer', context.renderer),
                   attribute('analytics_schema', context.analytics_schema),
                   attribute('posthogDistinctId', distinctId),
