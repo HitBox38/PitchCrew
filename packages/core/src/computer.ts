@@ -12,6 +12,7 @@ export interface BrowserSitePermission {
   taskId: string;
   origin: string;
   allowed: boolean;
+  exploration?: boolean;
   createdAt: string;
 }
 export interface BrowserSessionInfo {
@@ -25,6 +26,7 @@ export interface BrowserSessionInfo {
   mode: BrowserMode;
   manual: boolean;
   allowedSites: string[];
+  explorationSites?: string[];
   url: string;
   title: string;
 }

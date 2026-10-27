@@ -38,6 +38,7 @@ export interface BrowserDriver {
   subscribeFrames?(receive: BrowserFrameListener): () => void;
   input?(input: BrowserInput): Promise<void>;
   freshPage?(): Promise<void>;
+  exploration?(action: BrowserAction): Promise<boolean>;
   automatic?(action: BrowserAction): Promise<boolean>;
   prepare?(enabled: boolean, sites?: readonly string[]): void;
   invalidate?(): void;

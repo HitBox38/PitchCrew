@@ -41,8 +41,8 @@ it('retains exact scroll, hover and drag approvals in version 29 while replaying
       await manager.execute(scope.runId, approval.id, new AbortController().signal, () => {}, 0);
       expect(perform).toHaveBeenLastCalledWith(action, undefined);
     }
-    expect(currentEventVersion).toBe(29);
-    expect(board.events().every((event) => event.version === 29)).toBe(true);
+    expect(currentEventVersion).toBe(30);
+    expect(board.events().every((event) => event.version === currentEventVersion)).toBe(true);
     for (const version of [26, 27, 28])
       expect(decodeEvent(JSON.stringify({ version })).version).toBe(version);
     board.rebuild();

@@ -148,18 +148,26 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
   app.post<Route>('/api/browser/:id/sites', async (req) => {
     const thread = authorize(req.query.threadId, req.params.id);
     const sessionKey = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
-    const { taskId, url, allowed, approvalId } = z
+    const { taskId, url, allowed, approvalId, exploration } = z
       .object({
         taskId: z.string().min(1).max(100),
         url: z.url().max(2000),
         allowed: z.boolean().default(true),
         approvalId: z.uuid().optional(),
+        exploration: z.boolean().default(false),
       })
       .strict()
       .parse(req.body);
     await assertPublicUrl(url);
     authorize(req.query.threadId, req.params.id);
-    service.computer.allowSite(sessionKey, taskId, new URL(url).origin, allowed, approvalId);
+    service.computer.allowSite(
+      sessionKey,
+      taskId,
+      new URL(url).origin,
+      allowed,
+      approvalId,
+      exploration,
+    );
     return { ok: true };
   });
   app.post<Route>('/api/browser/:id/close', async (req) => {

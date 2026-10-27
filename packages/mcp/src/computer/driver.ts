@@ -297,6 +297,19 @@ const contextDriver = async (
         for (const tab of old) await tab.close();
         page.setDefaultTimeout(10000);
       }),
+    exploration: async (action) => {
+      if (guard.blocked || (action.kind !== 'scroll' && action.kind !== 'hover') || action.frame)
+        return false;
+      const target = page.locator(action.selector);
+      return (
+        (await target.count()) === 1 &&
+        (await target.isVisible()) &&
+        !(await target.evaluate(
+          (element, credentials) => element.matches(credentials),
+          credentialSelector,
+        ))
+      );
+    },
     automatic: async (action) => !guard.blocked && (await automaticFormAction(page, action)),
     input: async (input) => {
       const before = new Set<string>();

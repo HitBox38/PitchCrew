@@ -89,7 +89,10 @@ export class BrowserSessions {
       session.info.title = '';
     }
     const taskId = input.taskId ?? input.runId;
-    if (session.info.taskId !== taskId) session.info.allowedSites = [];
+    if (session.info.taskId !== taskId) {
+      session.info.allowedSites = [];
+      session.info.explorationSites = [];
+    }
     Object.assign(session.info, {
       runId: input.runId,
       threadId: input.threadId ?? null,
@@ -117,6 +120,7 @@ export class BrowserSessions {
     return [...this.agents.values()].map((session) => ({
       ...session.info,
       allowedSites: [...session.info.allowedSites],
+      explorationSites: [...(session.info.explorationSites ?? [])],
     }));
   };
   assertAgent = (id: string) => {
@@ -176,10 +180,10 @@ export class BrowserSessions {
     }
     if (session.configure) {
       session.configure = false;
-      driver.prepare?.(
-        session.info.mode === 'autonomous' && !session.info.manual,
-        session.info.allowedSites,
-      );
+      driver.prepare?.(session.info.mode === 'autonomous' && !session.info.manual, [
+        ...session.info.allowedSites,
+        ...(session.info.explorationSites ?? []),
+      ]);
     }
     this.touch(session);
     return driver;
@@ -264,15 +268,25 @@ export class BrowserSessions {
     session.configure = true;
     this.touch(session);
   };
-  allowSite = (roleId: string, taskId: string, origin: string, allowed = true) => {
+  allowSite = (
+    roleId: string,
+    taskId: string,
+    origin: string,
+    allowed = true,
+    exploration = false,
+  ) => {
     const session = this.forRole(roleId);
     if (new URL(origin).protocol !== 'https:' || new URL(origin).origin !== origin)
       throw new Error('Autonomous preparation requires an exact HTTPS origin.');
     if (!session.info.runId || session.info.taskId !== taskId || session.info.mode !== 'autonomous')
       throw new Error('This autonomous browser task has ended or changed.');
-    if (!allowed)
+    const sites = exploration ? (session.info.explorationSites ??= []) : session.info.allowedSites;
+    if (!allowed) {
       session.info.allowedSites = session.info.allowedSites.filter((site) => site !== origin);
-    else if (!session.info.allowedSites.includes(origin)) session.info.allowedSites.push(origin);
+      session.info.explorationSites = (session.info.explorationSites ?? []).filter(
+        (site) => site !== origin,
+      );
+    } else if (!sites.includes(origin)) sites.push(origin);
     session.configure = true;
   };
   stop = (runId: string) => {

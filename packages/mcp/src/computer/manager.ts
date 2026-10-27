@@ -27,7 +27,7 @@ import { applicationValues, normalizedValue } from './application-values.ts';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { automaticNavigation } from './form-policy.ts';
+import { automaticNavigation, explorationNavigation } from './form-policy.ts';
 import { BrowserSessions } from './sessions.ts';
 import { hash } from './helpers.ts';
 import type { BrowserDriver } from './types.ts';
@@ -206,6 +206,7 @@ export class ComputerManager {
     origin: string,
     allowed: boolean,
     approvalId?: string,
+    exploration = false,
   ) => {
     const session = this.browsers.forRole(roleId);
     roleId = this.browsers.key(session.info.roleId, session.info.threadId, session.info.cardId);
@@ -221,7 +222,7 @@ export class ComputerManager {
         new URL(approval.action.url).origin !== origin)
     )
       throw new Error('The navigation request changed. Review the current task.');
-    this.browsers.allowSite(roleId, taskId, origin, allowed);
+    this.browsers.allowSite(roleId, taskId, origin, allowed, exploration);
     this.board.record(
       'browser_site_permission',
       {
@@ -231,6 +232,7 @@ export class ComputerManager {
         runId: session.info.runId!,
         origin,
         allowed,
+        exploration,
         createdAt: new Date().toISOString(),
       },
       'user',
@@ -301,12 +303,16 @@ export class ComputerManager {
         action.kind === 'navigate' ? new URL(action.url).origin : new URL(page.url).origin;
       const automatic =
         browser?.info.mode === 'autonomous' &&
-        browser.info.allowedSites.includes(origin) &&
         !isSubmission(action) &&
-        (action.kind === 'navigate'
-          ? automaticNavigation(action.url)
-          : ['fill', 'select', 'upload'].includes(action.kind) &&
-            (await (await this.sessions.get(scope.runId))?.automatic?.(action)) === true);
+        ((browser.info.allowedSites.includes(origin) &&
+          (action.kind === 'navigate'
+            ? automaticNavigation(action.url)
+            : ['fill', 'select', 'upload'].includes(action.kind) &&
+              (await driver?.automatic?.(action)) === true)) ||
+          ((browser.info.explorationSites ?? []).includes(origin) &&
+            (action.kind === 'navigate'
+              ? explorationNavigation(action.url)
+              : (await driver?.exploration?.(action)) === true)));
       this.browsers.assertAgent(scope.runId);
       const approval: ComputerApproval = {
         id: randomUUID(),
@@ -420,14 +426,18 @@ export class ComputerManager {
           approval.action.kind === 'navigate'
             ? new URL(approval.action.url).origin
             : new URL(page.url).origin;
-        if (
-          session?.info.mode !== 'autonomous' ||
-          !session.info.allowedSites.includes(origin) ||
-          (approval.action.kind === 'navigate'
-            ? !automaticNavigation(approval.action.url)
-            : !['fill', 'select', 'upload'].includes(approval.action.kind) ||
-              (await driver.automatic?.(approval.action)) !== true)
-        )
+        const permitted =
+          session?.info.mode === 'autonomous' &&
+          ((session.info.allowedSites.includes(origin) &&
+            (approval.action.kind === 'navigate'
+              ? automaticNavigation(approval.action.url)
+              : ['fill', 'select', 'upload'].includes(approval.action.kind) &&
+                (await driver.automatic?.(approval.action)) === true)) ||
+            ((session.info.explorationSites ?? []).includes(origin) &&
+              (approval.action.kind === 'navigate'
+                ? explorationNavigation(approval.action.url)
+                : (await driver.exploration?.(approval.action)) === true)));
+        if (!permitted)
           throw new Error('Browser preparation permission changed. Request a new approval.');
       }
       await driver.validate?.(approval.action);
