@@ -14,7 +14,7 @@
     "landing:start": "bun run --filter @pitchcrew/landing start",
     "desktop": "bun run --filter @pitchcrew/desktop build && bun --no-env-file --no-install scripts/desktop.ts",
     "desktop:prod": "bun run build && bun --no-env-file --no-install scripts/desktop.ts --production",
-    "desktop:package": "bun run build && bun --no-env-file --no-install scripts/prepare-desktop-release.ts && bun --no-env-file --no-install scripts/build-desktop-installer.ts",
+    "desktop:package": "bun run build && bun --no-env-file --no-install scripts/prepare-desktop-release.ts && node --import tsx scripts/build-desktop-installer.ts",
     "test:packaged": "bun --no-env-file --no-install scripts/packaged-smoke.ts",
     "test:installer": "bun --no-env-file --no-install scripts/windows-installer-smoke.ts",
     "build": "bun run --filter @pitchcrew/ui build && bun run --filter @pitchcrew/desktop build",

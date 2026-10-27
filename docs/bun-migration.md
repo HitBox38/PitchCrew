@@ -1,6 +1,6 @@
 # Bun migration
 
-Pitchcrew uses pinned Bun 1.4.4 for package management, application scripts, the daemon and its MCP processes. Electron keeps its embedded runtime. Node remains available for the existing Vitest/build tools and for V8 workers that enforce document/database heap limits; this is an intentional compatibility boundary, not a claim that Node was removed.
+Pitchcrew uses pinned Bun 1.4.4 for package management, application scripts, the daemon and its MCP processes. Electron keeps its embedded runtime. Node remains available for the existing Vitest/build tools (including Electron Builder) and for V8 workers that enforce document/database heap limits; this is an intentional compatibility boundary, not a claim that Node was removed.
 
 `bun.lock` replaces the pnpm lockfile. Workspace dependencies keep their locked versions. Explicit trusted dependencies preserve the previous build-script choices. Runtime launches disable automatic `.env` loading and package installation. Packaged apps include Bun and a Node 24 helper, retain scoped process cleanup for old Node installations, and preserve background-service reuse and update handoff.
 
@@ -19,7 +19,7 @@ Runtime measurements use seven alternating fresh processes and empty temporary w
 
 Install measurements use three alternating fresh manifest-only workspace installs per manager after one warmup. They use frozen locks and normal trusted lifecycle scripts, reuse global package/Electron caches, and never reuse `node_modules`. Baseline manifests come from `e3f7ed03d0f374e739f12a56180c952faa2462c8`. The package-version audit found no added or omitted versions; core explicitly declares its existing `tsx` dependency for the Node helper.
 
-These results establish local daemon and install improvements. They do not establish faster GitHub Actions, browser rendering, document parsing or provider inference. Existing tests still run under Node, and CI retains both Node-version shards. Keeping the Node helper also adds a Bun binary to the installed runtime; smaller desktop downloads are not an established benefit.
+These results establish local daemon and install improvements. They do not establish faster GitHub Actions, browser rendering, document parsing or provider inference. Existing tests still run under Node, and CI retains both Node-version shards. Keeping the Node helper also adds a Bun binary to the installed runtime; smaller desktop downloads are not an established benefit. Electron Builder stays on Node because its threaded-WASM icon converter hung when it inherited Bun during verification.
 
 ## Verification
 
