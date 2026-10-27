@@ -44,6 +44,7 @@ export interface RunContext {
     | 'application-draft'
     | 'application-review'
     | 'fit'
+    | 'packet-evaluation'
     | 'deep-review';
   sourceText?: string;
   deepReview?: DeepReviewRunContext;

@@ -23,7 +23,13 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
     cardInput.parse({ company: 'Fixture', title: 'Engineer', description: 'RAW-HIDDEN-DIRECTIVE' }),
   );
   confirmFixtureJob(daemon.service.board, card.id);
-  for (const purpose of ['source-extraction', 'application-draft', 'application-review'] as const) {
+  for (const purpose of [
+    'source-extraction',
+    'application-draft',
+    'application-review',
+    'fit',
+    'packet-evaluation',
+  ] as const) {
     const id = `stdio-${purpose}`;
     const run: Run = {
       id,

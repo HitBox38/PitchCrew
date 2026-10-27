@@ -1,9 +1,11 @@
 import { keyedItems } from '@/lib/list-keys.ts';
+import { PacketFit } from './PacketFit.tsx';
 import { JobMetadata } from './JobMetadata.tsx';
 import type { JobOverviewProps } from '../types.ts';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 
-export const JobOverview = ({ card }: JobOverviewProps) => {
+export const JobOverview = (model: JobOverviewProps) => {
+  const { card } = model;
   return (
     <div className="detail-job space-y-6">
       {card.tags.length ? (
@@ -29,6 +31,7 @@ export const JobOverview = ({ card }: JobOverviewProps) => {
           </ul>
         </section>
       ) : null}
+      <PacketFit model={model} />
       <AccordionSection className="detail-source" heading="Posting and source details">
         <JobMetadata card={card} />
         <p className="quiet">Added {new Date(card.createdAt).toLocaleString()}</p>

@@ -262,6 +262,8 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
 const workflowResultMessage = (context: CrewContext, run: Run): string => {
   if (run.status !== 'completed' || !run.cardId) return run.message;
   const card = context.board.get<import('@pitchcrew/core').Card>('card', run.cardId);
+  if (run.purpose === 'packet-evaluation' && card.packetFit)
+    return `I reevaluated the complete packet: ${card.packetFit.score}/100 packet match and ${card.fit}/100 candidate fit. ${card.packetFit.reasons.slice(0, 3).join(' ')} Open the job for the saved assessment.`;
   const role = requireRole(context, run.roleId);
   const seat = run.purpose === 'application-draft' ? 'writer' : (role.workflow ?? role.id);
   if (seat === 'scout')

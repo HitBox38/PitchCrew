@@ -109,6 +109,7 @@ export interface CrewContext {
     task?: AgentTask,
     delivery?: { requestId: string; rootRunId: string; content: string },
     applicationDraft?: boolean,
+    packetEvaluation?: boolean,
   ): Promise<Run>;
   applyResult(
     cardId: string,

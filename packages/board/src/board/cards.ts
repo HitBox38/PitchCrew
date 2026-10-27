@@ -39,6 +39,7 @@ export const updateCard = (
       | 'packet'
       | 'feedback'
       | 'fit'
+      | 'packetFit'
       | 'owner'
       | 'formAssessments'
       | 'submissionAttempts'
@@ -50,7 +51,13 @@ export const updateCard = (
   actor: string,
   message: string,
 ): Card => {
-  const card = { ...context.get<Card>('card', id), ...patch, updatedAt: new Date().toISOString() };
+  const previous = context.get<Card>('card', id);
+  const card = { ...previous, ...patch, updatedAt: new Date().toISOString() };
+  if (
+    JSON.stringify(previous.packet) !== JSON.stringify(card.packet) ||
+    previous.applicationContext?.revision !== card.applicationContext?.revision
+  )
+    card.packetFit = undefined;
   context.record('card', card, actor, message);
   return card;
 };
