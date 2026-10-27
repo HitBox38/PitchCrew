@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { defaultCapabilities, type Role, type Snapshot } from '@pitchcrew/core';
+import type { Role, Snapshot } from '@pitchcrew/core';
+import { capabilityDefaults } from '../../../agent-capabilities.ts';
 import { jobLinkAction, scoutJobTarget } from '../link-actions.ts';
 
 const scout = {
@@ -92,7 +93,7 @@ describe('Add job link actions', () => {
     const browserScout = {
       ...scout,
       id: 'browser-scout',
-      capabilities: { ...defaultCapabilities, ...scout.capabilities, computerUse: true },
+      capabilities: { ...capabilityDefaults, ...scout.capabilities, computerUse: true },
     };
     expect(scoutJobTarget({ ...data, roles: [scout, browserScout] }).role).toBe(browserScout);
   });
