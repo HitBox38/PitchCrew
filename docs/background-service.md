@@ -17,6 +17,8 @@ If the service is installed for another workspace, **Use for this workspace** mo
 - If you use your own data folder or port, set `PITCHCREW_HOME` and `PITCHCREW_PORT` in the shell before you install. Install saves the resolved folder and port in the service definition.
 - Run the commands in the Pitchcrew checkout. The definition uses absolute paths to the current Bun executable and this checkout. Run `bun run service install` again after you move the checkout or change Bun versions.
 
+For a service installed before the Bun migration, run `bun run service install` from the updated checkout to bind its next start to Bun. Existing Node-based definitions remain compatible with the retained Node helper and loader; updating the definition preserves the data folder and applies the existing service restart rules.
+
 ## Commands
 
 | Command                     | What it does                                                                     |

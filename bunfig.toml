@@ -1,0 +1,2 @@
+# App-owned subprocess launches must not execute a caller's bunfig.toml preloads.
+preload = []

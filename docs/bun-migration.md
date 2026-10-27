@@ -2,7 +2,7 @@
 
 Pitchcrew uses pinned Bun 1.4.4 for package management, application scripts, the daemon and its MCP processes. Electron keeps its embedded runtime. Node remains available for the existing Vitest/build tools (including Electron Builder) and for V8 workers that enforce document/database heap limits; this is an intentional compatibility boundary, not a claim that Node was removed.
 
-`bun.lock` replaces the pnpm lockfile. Workspace dependencies keep their locked versions. Explicit trusted dependencies preserve the previous build-script choices. Runtime launches disable automatic `.env` loading and package installation. Packaged apps include Bun and a Node 24 helper, retain scoped process cleanup for old Node installations, and preserve background-service reuse and update handoff.
+`bun.lock` replaces the pnpm lockfile. Workspace dependencies keep their locked versions. Explicit trusted dependencies preserve the previous build-script choices. Runtime launches disable automatic `.env` loading and package installation, and generated subprocess commands pin the app-owned Bun config so a client working directory cannot inject preloads. Packaged apps include Bun and a Node 24 helper, retain scoped process cleanup for old Node installations, and preserve background-service reuse and update handoff.
 
 ## Local measurements
 
@@ -28,6 +28,8 @@ The migration retains existing lint, formatting, types, unit/HTTP/MCP/browser te
 The bounded-worker integration tests exercise actual Node and Bun processes, binary IPC, worker errors, heap exhaustion, cancellation, owner crashes, missing/invalid helpers, source PATH lookup, packaged sibling lookup and materialized workspace packages. Unsupported or missing genuine Node helpers fail closed.
 
 Cross-platform CI and installer verification must pass before this migration is considered ready. Live provider runs remain outside automated verification, as before. No test suite can establish a literal zero-percent defect rate.
+
+The local landing build also reported existing Next.js 16.4.0 dependency advisories. A retry passed its agent upgrade reminder; this does not remediate those advisories. Dependency security upgrades remain separate from the runtime migration and its unchanged-version benchmark.
 
 ## Reproduce
 
