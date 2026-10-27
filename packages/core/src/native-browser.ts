@@ -2,7 +2,12 @@ import { z } from 'zod';
 import type { BrowserFrame } from './computer.ts';
 
 export const nativeBrowserCommandSchema = z.discriminatedUnion('kind', [
-  z.object({ kind: z.enum(['back', 'forward', 'reload', 'new-tab']) }).strict(),
+  z
+    .object({
+      kind: z.enum(['back', 'forward', 'reload', 'hard-reload', 'stop', 'clear-cache', 'new-tab']),
+    })
+    .strict(),
+  z.object({ kind: z.literal('zoom'), factor: z.number().min(0.25).max(5) }).strict(),
   z
     .object({ kind: z.enum(['select-tab', 'close-tab']), tabId: z.string().min(1).max(100) })
     .strict(),
@@ -21,6 +26,8 @@ export interface NativeBrowserState extends NativeBrowserIdentity {
     title: string;
     url: string;
     loading: boolean;
+    zoomFactor?: number;
+    error?: string;
     canGoBack: boolean;
     canGoForward: boolean;
   }[];

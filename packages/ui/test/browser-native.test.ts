@@ -168,6 +168,31 @@ test('shows website dialogs in native mode and sends the manual decision', async
   );
   await page.getByRole('region', { name: 'Website dialog' }).waitFor({ state: 'hidden' });
 });
+test('provides native zoom, cache, loading and failure recovery controls', async () => {
+  await page.getByRole('button', { name: 'Browser page settings' }).click();
+  await page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+  await vi.waitFor(() =>
+    expect(nativeCommand).toHaveBeenCalledWith({ kind: 'zoom', factor: 1.25 }),
+  );
+  await page.getByRole('button', { name: 'Hard reload', exact: true }).click();
+  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'hard-reload' }));
+  await page.getByRole('button', { name: 'Clear cached website files', exact: true }).click();
+  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'clear-cache' }));
+  await page.keyboard.press('Escape');
+  state = { ...state, tabs: state.tabs.map((tab) => ({ ...tab, loading: true })) };
+  await page.getByRole('button', { name: 'Stop loading', exact: true }).click();
+  await vi.waitFor(() => expect(nativeCommand).toHaveBeenCalledWith({ kind: 'stop' }));
+  state = {
+    ...state,
+    tabs: state.tabs.map((tab) => ({
+      ...tab,
+      loading: false,
+      error: 'Fictional page failed to load.',
+    })),
+  };
+  await page.getByRole('button', { name: 'Retry page', exact: true }).click();
+  state = { ...state, tabs: state.tabs.map((tab) => ({ ...tab, error: undefined })) };
+});
 test('hides the guest for app menus and when the browser panel closes without releasing control', async () => {
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();
   await vi.waitFor(async () => expect(await lastMount()).toBeNull());

@@ -113,6 +113,11 @@ try {
     paused = true;
   }
   if (!paused) throw new Error('Agent inspection was not paused during private control.');
+  const zoomed = await driver.nativeCommand!({ kind: 'zoom', factor: 1.25 });
+  if (zoomed.tabs.find((tab) => tab.id === zoomed.activeTab)?.zoomFactor !== 1.25)
+    throw new Error('Native page zoom was not applied.');
+  await driver.nativeCommand!({ kind: 'zoom', factor: 1 });
+  await driver.nativeCommand!({ kind: 'clear-cache' });
   await writeFile(commands, JSON.stringify({ kind: 'dialog', id: native.id, nonce: 'dialog' }));
   await wait(async () => {
     const next = await driver.nativeState!();

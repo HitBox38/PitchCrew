@@ -1,4 +1,5 @@
-import { ArrowLeft, ArrowRight, RotateCw, Search } from 'lucide-react';
+import { NativeBrowserSettings } from './NativeBrowserSettings.tsx';
+import { ArrowLeft, ArrowRight, RotateCw, Search, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { BrowserAddress } from './BrowserAddress.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
@@ -35,11 +36,11 @@ export const NativeBrowserToolbar = ({
       <Button
         size="icon-sm"
         variant="ghost"
-        aria-label="Reload page"
+        aria-label={tab?.loading ? 'Stop loading' : 'Reload page'}
         disabled={!manual}
-        onClick={() => void model.command({ kind: 'reload' })}
+        onClick={() => void model.command({ kind: tab?.loading ? 'stop' : 'reload' })}
       >
-        <RotateCw size={15} />
+        {tab?.loading ? <Square size={15} /> : <RotateCw size={15} />}
       </Button>
       <BrowserAddress
         frame={null}
@@ -59,6 +60,7 @@ export const NativeBrowserToolbar = ({
       >
         <Search size={15} />
       </Button>
+      <NativeBrowserSettings model={model} manual={manual} />
     </div>
   );
 };

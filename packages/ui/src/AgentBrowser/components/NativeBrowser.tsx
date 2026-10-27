@@ -1,3 +1,4 @@
+import { NativeBrowserStatus } from './NativeBrowserStatus.tsx';
 import { useCallback } from 'react';
 import { BrowserDialog } from './BrowserDialog.tsx';
 import { NativeBrowserToolbar } from './NativeBrowserToolbar.tsx';
@@ -31,6 +32,7 @@ export const NativeBrowser = ({
     <>
       <NativeBrowserTabs model={model} manual={manual && !control.working} />
       <NativeBrowserToolbar model={model} control={control} />
+      <NativeBrowserStatus model={model} manual={manual && !control.working} />
       {model.findOpen ? (
         <NativeBrowserFind key={id} id={id} close={() => model.setFindOpen(false)} />
       ) : null}

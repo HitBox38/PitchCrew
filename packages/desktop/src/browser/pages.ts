@@ -42,6 +42,7 @@ export const createNativeGroup = (
   groups: () => Iterable<NativeGroup>,
 ) => {
   const partition = session.fromPartition(`persist:pitchcrew-browser-${profile}`);
+  const errors = new Map<string, string>();
   const group: NativeGroup = {
     id: randomUUID(),
     profile,
@@ -103,7 +104,7 @@ export const createNativeGroup = (
         }
         if (!canUse() || !(input.control || input.meta) || input.type !== 'keyDown') return;
         const key = input.key.toLowerCase();
-        if (['t', 'w', 'l', 'f', 'r', 'tab'].includes(key)) {
+        if (['t', 'w', 'l', 'f', 'r', 'tab', '+', '=', '-', '0'].includes(key)) {
           event.preventDefault();
           getWindow()?.webContents.send('pitchcrew:browser:shortcut', {
             id: group.id,
@@ -197,11 +198,22 @@ export const createNativeGroup = (
           },
         };
       });
+      contents.on('did-start-navigation', (_event, _url, _inPlace, mainFrame) => {
+        if (mainFrame) errors.delete(id);
+      });
+      contents.on('did-fail-load', (_event, code, _description, _url, mainFrame) => {
+        if (mainFrame && code !== -3)
+          errors.set(id, `The page could not load (error ${code}). Check the address or reload.`);
+      });
+      contents.on('render-process-gone', () =>
+        errors.set(id, 'This browser tab stopped responding. Reload to recover it.'),
+      );
       contents.on('will-attach-webview', (event) => event.preventDefault());
       contents.on('will-navigate', (event, url) => {
         if (url !== 'about:blank' && !/^https?:\/\//i.test(url)) event.preventDefault();
       });
       contents.once('destroyed', () => {
+        errors.delete(id);
         group.pages.delete(id);
         group.views.delete(id);
         for (const relay of group.relays) relay.closed(id);
@@ -255,6 +267,8 @@ export const createNativeGroup = (
         title: contents.getTitle(),
         url: contents.getURL(),
         loading: contents.isLoading(),
+        zoomFactor: contents.getZoomFactor(),
+        ...(errors.has(id) ? { error: errors.get(id)! } : {}),
         canGoBack: contents.navigationHistory.canGoBack(),
         canGoForward: contents.navigationHistory.canGoForward(),
       })),

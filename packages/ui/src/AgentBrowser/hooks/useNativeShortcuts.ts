@@ -30,7 +30,15 @@ export const useNativeShortcuts = (
       if (key === 'f') setFindOpen(true);
       if (working) return;
       if (key === 't') void command({ kind: 'new-tab' }).then(focusAddress);
-      if (key === 'r') void command({ kind: 'reload' });
+      if (key === 'r') void command({ kind: shift ? 'hard-reload' : 'reload' });
+      if (['+', '=', '-', '0'].includes(key)) {
+        const zoom = state?.tabs.find((tab) => tab.id === state.activeTab)?.zoomFactor ?? 1;
+        void command({
+          kind: 'zoom',
+          factor:
+            key === '0' ? 1 : Math.max(0.25, Math.min(5, zoom + (key === '-' ? -0.25 : 0.25))),
+        });
+      }
       if (key === 'w' && state) void command({ kind: 'close-tab', tabId: state.activeTab });
       if (key === 'tab' && state?.tabs.length) {
         const index = state.tabs.findIndex((tab) => tab.id === state.activeTab);
@@ -44,7 +52,10 @@ export const useNativeShortcuts = (
         !inPanel() ||
         event.altKey ||
         (!event.ctrlKey && !event.metaKey) ||
-        !(['l', 'f', 't', 'w', 'r'].includes(key) || (event.ctrlKey && key === 'tab'))
+        !(
+          ['l', 'f', 't', 'w', 'r', '+', '=', '-', '0'].includes(key) ||
+          (event.ctrlKey && key === 'tab')
+        )
       )
         return;
       event.preventDefault();

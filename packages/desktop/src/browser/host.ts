@@ -138,6 +138,10 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           if (command.kind === 'forward' && page?.navigationHistory.canGoForward())
             page.navigationHistory.goForward();
           if (command.kind === 'reload') page?.reload();
+          if (command.kind === 'hard-reload') page?.reloadIgnoringCache();
+          if (command.kind === 'stop') page?.stop();
+          if (command.kind === 'zoom') page?.setZoomFactor(command.factor);
+          if (command.kind === 'clear-cache') await page?.session.clearCache();
           result = group.state();
         }
       }
