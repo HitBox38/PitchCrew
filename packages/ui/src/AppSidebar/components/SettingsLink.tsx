@@ -12,7 +12,7 @@ export const SettingsLink = ({ active }: { active: boolean }) => {
   return (
     <TooltipProvider delay={300}>
       <SidebarFooter>
-        <SidebarMenu className="flex-row flex-wrap items-center group-data-[collapsible=icon]:flex-col">
+        <SidebarMenu className="flex-row items-center group-data-[collapsible=icon]:flex-col">
           <SidebarMenuItem className="shrink-0">
             <SidebarIconButton
               label="Settings"

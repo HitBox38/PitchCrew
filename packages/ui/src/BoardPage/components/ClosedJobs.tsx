@@ -5,6 +5,9 @@ import { AnimatePresence } from 'motion/react';
 import * as m from 'motion/react-m';
 import { useJobPage } from '../hooks/useJobPage.ts';
 import { JobPages } from './JobPages.tsx';
+import { useColumnSort } from '../hooks/useColumnSort.ts';
+import { sortBoardCards } from '../sorting.ts';
+import { ColumnSortMenu } from './ColumnSortMenu.tsx';
 
 export const ClosedJobs = ({
   closed,
@@ -16,9 +19,13 @@ export const ClosedJobs = ({
   reveal,
   menuActions,
 }: ClosedJobsProps) => {
-  const page = useJobPage(closed, 40, query, reveal);
+  const sorting = useColumnSort('closed');
+  const page = useJobPage(sortBoardCards(closed, sorting.sort), 40, query, reveal, sorting.sort);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      <div className="mb-2 flex shrink-0 justify-end">
+        <ColumnSortMenu label="Closed jobs" disabled={dragging} {...sorting} />
+      </div>
       <JobPages {...page} label="Closed jobs" disabled={dragging || working} />
       <m.div
         layout

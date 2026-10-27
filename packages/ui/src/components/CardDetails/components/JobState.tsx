@@ -6,6 +6,7 @@ export const JobState = ({ card }: JobStateProps) => {
     <div className="detail-state">
       <JobWorkStatus card={card} />
       {card.fit !== null ? <strong>{card.fit}% fit</strong> : null}
+      {card.packetFit ? <strong>{card.packetFit.score}/100 packet match</strong> : null}
     </div>
   );
 };

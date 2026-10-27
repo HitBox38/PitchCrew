@@ -113,7 +113,7 @@ export const saveApplicationContext = (
       ...card,
       applicationContext,
       updatedAt: now,
-      ...(!same ? { packetReview: undefined } : {}),
+      ...(!same ? { packetReview: undefined, packetFit: undefined } : {}),
     };
     board.record(
       'card',

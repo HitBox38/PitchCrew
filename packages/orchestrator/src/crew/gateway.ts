@@ -104,7 +104,8 @@ const dispatchAgentCall = async (
   const isolated =
     activeRun?.purpose === 'application-draft' ||
     activeRun?.purpose === 'application-review' ||
-    activeRun?.purpose === 'fit';
+    activeRun?.purpose === 'fit' ||
+    activeRun?.purpose === 'packet-evaluation';
   if (
     activeRun?.reviewBudgetRequest &&
     !['card', 'profile', 'packet_rules', 'lint', 'notify_user', 'extend_review_deadline'].includes(

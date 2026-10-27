@@ -5,6 +5,7 @@ import {
   ConversationCreation,
 } from '@/App/constants.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { JobLoading } from '@/components/CardDetails/components/JobLoading.tsx';
 import type { WorkspacePanelsProps } from '@/App/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { Suspense } from 'react';
@@ -47,20 +48,24 @@ export const WorkspacePanels = ({
           />
         ) : null}
         {selected ? (
-          <CardDetails
+          <Suspense
             key={selected.id}
-            card={selected}
-            data={data}
-            action={action}
-            working={working}
-            onClose={() => setSelectedId(null)}
-            initialSection={selectedJobSection}
-            onInbox={() => go('inbox')}
-            onChat={(thread, run) => {
-              setSelectedId(null);
-              void navigate({ to: '/chat/$thread', params: { thread }, search: { run } });
-            }}
-          />
+            fallback={<JobLoading card={selected} onClose={() => setSelectedId(null)} />}
+          >
+            <CardDetails
+              card={selected}
+              data={data}
+              action={action}
+              working={working}
+              onClose={() => setSelectedId(null)}
+              initialSection={selectedJobSection}
+              onInbox={() => go('inbox')}
+              onChat={(thread, run) => {
+                setSelectedId(null);
+                void navigate({ to: '/chat/$thread', params: { thread }, search: { run } });
+              }}
+            />
+          </Suspense>
         ) : null}
         {selectedRole ? (
           <RoleSettings
