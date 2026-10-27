@@ -61,7 +61,11 @@ it('creates an unattached Scout conversation, queues the prompt, then opens it',
   expect(onClose).toHaveBeenCalledOnce();
   expect(navigate).toHaveBeenCalledWith({ to: '/chat/$thread', params: { thread: 'import-chat' } });
   expect(scoutJobPrompt(input.value)).toContain('already on the board');
-  expect(scoutJobPrompt(input.value)).toContain('ask me for the posting text');
+  expect(scoutJobPrompt(input.value)).toContain('Open this link in your in-app browser');
+  expect(scoutJobPrompt(input.value)).toContain('browserDigest');
+  expect(scoutJobPrompt(input.value)).toContain(
+    'Try the browser before asking me for the posting text',
+  );
 });
 
 it('ignores repeated clicks while the conversation request is pending', async () => {
