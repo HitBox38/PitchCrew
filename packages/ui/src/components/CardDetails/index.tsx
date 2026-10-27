@@ -6,6 +6,7 @@ import { JobTabs } from './components/JobTabs.tsx';
 import { JobActions } from './components/JobActions.tsx';
 import type { CardDetailsProps } from './types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { JobSheetLoading } from './components/JobSheetLoading.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 
 export const CardDetails = (props: CardDetailsProps) => {
@@ -13,11 +14,12 @@ export const CardDetails = (props: CardDetailsProps) => {
   if (!source.ready)
     return (
       <JobSheet onClose={props.onClose}>
-        <div className="p-5">
-          <p>{source.error || 'Opening job…'}</p>
-          {source.error ? <Button onClick={source.retry}>Retry</Button> : null}
-          <Button onClick={props.onClose}>Close</Button>
-        </div>
+        <JobSheetLoading
+          card={props.card}
+          error={source.error}
+          retry={source.retry}
+          close={props.onClose}
+        />
       </JobSheet>
     );
   return (

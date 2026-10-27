@@ -1,3 +1,4 @@
+import { pendingJobAction } from './job-actions.ts';
 import { api } from '@/api.ts';
 import type { Snapshot } from '@pitchcrew/core';
 import type { WorkspaceGet, WorkspaceSet, WorkspaceState } from './types.ts';
@@ -21,7 +22,16 @@ export const createWorkspaceActions = (
     },
     action: async (path, method = 'POST', body, success) => {
       pendingActions += 1;
-      set({ working: true });
+      const jobAction = pendingJobAction(path, method, body, get().data);
+      set((state) => ({
+        working: true,
+        pendingJobActions: jobAction
+          ? {
+              ...state.pendingJobActions,
+              [jobAction.cardId]: [...(state.pendingJobActions[jobAction.cardId] ?? []), jobAction],
+            }
+          : state.pendingJobActions,
+      }));
       try {
         const result = await api<unknown>(path, method, body);
         await get().reload();
@@ -39,7 +49,16 @@ export const createWorkspaceActions = (
         throw error;
       } finally {
         pendingActions -= 1;
-        set({ working: pendingActions > 0 });
+        set((state) => {
+          const pendingJobActions = { ...state.pendingJobActions };
+          if (jobAction) {
+            const remaining =
+              pendingJobActions[jobAction.cardId]?.filter((item) => item !== jobAction) ?? [];
+            if (remaining.length) pendingJobActions[jobAction.cardId] = remaining;
+            else delete pendingJobActions[jobAction.cardId];
+          }
+          return { working: pendingActions > 0, pendingJobActions };
+        });
       }
     },
     act: (path, method = 'POST', body, success) => {

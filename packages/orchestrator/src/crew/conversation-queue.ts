@@ -187,6 +187,17 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
         }
         const queue = ensureQueue(context, current.threadId, current.rootRunId);
         if (!requestIsHead(context, current)) continue;
+        // Avoid reading Profile files for every queued action while its lane or all slots are busy.
+        // Recheck admission after asynchronous validation below before reserving the delivery.
+        if (
+          launchProblem(context, {
+            cardId: item.cardId,
+            threadId: item.id,
+            roleId: delivery.roleId,
+            rootRunId: current.rootRunId ?? current.id,
+          })
+        )
+          continue;
         const problem = await requestProblem(context, current);
         if (problem) {
           patchQueue(context, queue.id, { reason: problem });

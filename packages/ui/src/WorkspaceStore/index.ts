@@ -19,6 +19,7 @@ export const createWorkspaceStore = () => {
       toast: '',
       toastType: 'info',
       working: false,
+      pendingJobActions: {},
       add: false,
       creatingConversation: false,
       selectedId: null,

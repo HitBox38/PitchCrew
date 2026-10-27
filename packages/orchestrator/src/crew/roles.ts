@@ -26,21 +26,26 @@ export const writeRunInstructions = async (
   skills: Skill[],
 ): Promise<void> => {
   await mkdir(dir, { recursive: true });
-  for (const skill of skills) {
-    const skillDir = join(dir, 'skills', skill.id);
-    await mkdir(skillDir, { recursive: true });
-    await writeFile(
-      join(skillDir, 'SKILL.md'),
-      `---\nname: ${JSON.stringify(skill.name)}\ndescription: ${JSON.stringify(skill.description)}\n---\n\n${skill.content}\n`,
+  // These files are independent; finish every write before a runtime can read them.
+  const writes = await Promise.allSettled([
+    ...skills.map(async (skill) => {
+      const skillDir = join(dir, 'skills', skill.id);
+      await mkdir(skillDir, { recursive: true });
+      await writeFile(
+        join(skillDir, 'SKILL.md'),
+        `---\nname: ${JSON.stringify(skill.name)}\ndescription: ${JSON.stringify(skill.description)}\n---\n\n${skill.content}\n`,
+        'utf8',
+      );
+    }),
+    writeFile(
+      join(dir, 'AGENTS.md'),
+      `${role.instructions}\n\n## Assigned skills\n\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n\n${skill.content}`).join('\n\n')}\n`,
       'utf8',
-    );
-  }
-  await writeFile(
-    join(dir, 'AGENTS.md'),
-    `${role.instructions}\n\n## Assigned skills\n\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n\n${skill.content}`).join('\n\n')}\n`,
-    'utf8',
-  );
-  await writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8');
+    ),
+    writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8'),
+  ]);
+  const failure = writes.find((write) => write.status === 'rejected');
+  if (failure) throw failure.reason;
 };
 export const writeRole = async (context: CrewContext, role: Role): Promise<void> => {
   roleIdSchema.parse(role.id);

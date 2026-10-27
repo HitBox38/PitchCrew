@@ -2,6 +2,8 @@
 
 The job sheet has three sections: Job, Application and Activity. Its compact header keeps the company, title, location, compensation, board status and fit score visible. The original posting and close controls share that header. A persistent footer presents one next action based on the current work and prerequisites, plus Shortlist for idle leads. Each section has its own reading position inside the sheet's main work area; the header and footer never scroll independently.
 
+Opening a compact job snapshot immediately shows its company and title with a loading skeleton while the full source loads. Source errors replace the skeleton with Retry and retain Close. Stage changes and agent launches register per-job pending state synchronously, shared with the board card; the pressed action and header show progress through HTTP completion and snapshot refresh. Reserved launches keep their spinner until a run appears. Queued, paused, failed and waiting work use resting indicators; View queued action opens Queue, and required questions retain Answer in job chat. Failures clear pending state and restore the available actions.
+
 ## Information and decisions
 
 Job opens with the original description, tags and crew assessment. Posting provenance lives in a secondary disclosure. Application groups the complete brief and requirements, documents, reviews and export. Confirmed briefs use a compact summary until the user chooses to review or edit them. Deep-review reports load only when Reviews first opens. Export format/layout controls live beside their approval request rather than in the persistent header.

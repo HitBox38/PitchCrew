@@ -1,10 +1,8 @@
 import { CompanyMark } from '@/components/CompanyMark/index.tsx';
 import { JobCardSurface } from './components/JobCardSurface.tsx';
 import type { JobCardProps } from '@/components/JobCard/types.ts';
-import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
+import { JobWorkStatus } from '@/components/JobWorkStatus/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { stateLabels } from '@/lib/labels.ts';
-import { LoaderCircle } from 'lucide-react';
 
 export const JobCard = (props: JobCardProps) => {
   const { card, onOpen, actions, buttonRef } = props;
@@ -44,14 +42,7 @@ export const JobCard = (props: JobCardProps) => {
           ) : (
             <span className="subtle">Not scored</span>
           )}
-          {card.owner ? (
-            <span className="owner flex items-center gap-1.5 text-primary">
-              <LoaderCircle size={13} className="spin" />
-              <RoleAvatar agentRole={card.owner} size="small" />
-            </span>
-          ) : (
-            <span className={`state-pill ${card.state}`}>{stateLabels[card.state]}</span>
-          )}
+          <JobWorkStatus card={card} />
         </div>
       </Button>
       {actions}

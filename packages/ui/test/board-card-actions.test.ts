@@ -238,13 +238,27 @@ test.each(['dropdown', 'context'])(
   },
 );
 
-test('a failed status save restores the original card and keyboard focus', async () => {
-  await page.route(`**/api/cards/${card.id}/status`, (route) =>
-    route.fulfill({ status: 400, json: { error: 'Fictional save failed.' } }),
-  );
+test('a pending status save shows a loader, then restores the original card and focus on failure', async ({
+  onTestFinished,
+}) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  onTestFinished(() => release());
+  await page.route(`**/api/cards/${card.id}/status`, async (route) => {
+    await gate;
+    await route.fulfill({ status: 400, json: { error: 'Fictional save failed.' } });
+  });
   await menu().click();
   await page.getByRole('menuitem', { name: 'Shortlist', exact: true }).click();
+  const job = page.locator(`#board-job-${card.id}`);
+  await job.getByRole('status').getByText('Moving to Shortlisted…', { exact: true }).waitFor();
+  expect(await job.getByRole('status').locator('svg.spin').count()).toBe(1);
+  expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('lead');
+  release();
   await page.getByText('Fictional save failed.', { exact: true }).waitFor();
+  await expect.poll(() => job.getByRole('status').count()).toBe(0);
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('lead');
   await expect.poll(focusedLabel).toBe(menuName());
   expect(await page.locator(`#board-job-${card.id}`).getAttribute('data-card-state')).toBe('lead');
