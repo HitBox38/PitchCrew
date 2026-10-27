@@ -183,6 +183,8 @@ Standalone desktop packaging uses electron-builder with an isolated app director
 
 - **Approval.** Exact packet snapshot and SHA-256 digest bound to a card, confirmed application context revision, independent packet review and export action. It is single-use; export calls enter the shared MCP gate. Agents have no approval tool. Successfully exported current packets allow workflow submission recording. Manual board status changes record user bookkeeping independently and do not authorize export or browser submission.
 
+Browser live viewing uses one public Playwright screencast per session shared across authenticated viewers, with shared low-rate screenshot fallback (`PITCHCREW_BROWSER_SCREENCAST=0` selects it explicitly). Per-viewer pending frames, HTTP backpressure and client decoding remain bounded; hidden/background viewers unsubscribe without changing manual pause. Heartbeats recheck access on static pages, metadata updates independently, and page/viewport generations reject late frames and stale manual clicks. Viewer images never replace credential-redacted agent inspection or exact-action evidence. Inspections spanning manual takeover and return are discarded. See [browser responsiveness](docs/browser-interaction-performance.md).
+
 ## Invariants
 
 These must stay true. A change that breaks one is a bug even if tests pass.

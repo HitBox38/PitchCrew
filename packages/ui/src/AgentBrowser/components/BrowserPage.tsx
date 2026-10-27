@@ -21,8 +21,11 @@ export const BrowserPage = ({
   return (
     <div className="browser-panel-body">
       {frame?.warning ? <p className="browser-dialog">{frame.warning}</p> : null}
+      {frame?.status === 'fallback' ? (
+        <output className="quiet block px-4">Browser view is updating at a reduced rate.</output>
+      ) : null}
       <div className="browser-live-view" ref={attach}>
-        {frame ? (
+        {frame?.screenshot ? (
           <BrowserView
             size={size}
             frame={frame}

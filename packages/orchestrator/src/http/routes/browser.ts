@@ -7,9 +7,9 @@ import {
 } from '@pitchcrew/core';
 import { assertPublicUrl } from '@pitchcrew/mcp/computer';
 import type { FastifyInstance } from 'fastify';
-import { setTimeout as delay } from 'node:timers/promises';
 import { z } from 'zod';
 import type { CrewService } from '../../service.ts';
+import { streamBrowserFrames } from '../browser-stream.ts';
 
 type Route = { Params: { id: string }; Querystring: { threadId: string } };
 export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService) => {
@@ -52,44 +52,15 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
     const { id } = req.params;
     const thread = authorize(req.query.threadId, id);
     const sessionKey = service.computer.browsers.key(id, thread.id, thread.cardId);
-    const first = await service.computer.browsers.frame(sessionKey);
-    res.raw.writeHead(200, {
-      'Content-Type': 'application/x-ndjson',
-      'Cache-Control': 'no-store',
-      'X-Content-Type-Options': 'nosniff',
-    });
-    res.hijack();
-    const controller = new AbortController();
-    const stop = () => controller.abort();
-    res.raw.on('close', stop);
-    try {
-      let frame = first;
-      while (!controller.signal.aborted && frame) {
-        authorize(req.query.threadId, id);
-        if (!res.raw.write(`${JSON.stringify(frame)}\n`)) {
-          await new Promise<void>((resolve) => {
-            const done = () => {
-              res.raw.off('drain', done);
-              controller.signal.removeEventListener('abort', done);
-              resolve();
-            };
-            res.raw.once('drain', done);
-            controller.signal.addEventListener('abort', done, { once: true });
-            if (controller.signal.aborted) done();
-          });
-        }
-        await delay(350, undefined, { signal: controller.signal });
-        frame = await service.computer.browsers.frame(sessionKey);
-      }
-    } catch (error) {
-      if (!controller.signal.aborted)
-        res.raw.write(
-          `${JSON.stringify({ error: error instanceof Error ? error.message : 'Browser connection ended.' })}\n`,
-        );
-    } finally {
-      res.raw.off('close', stop);
-      res.raw.end();
-    }
+    await streamBrowserFrames(
+      res,
+      (signal) => service.computer.browsers.watchFrames(sessionKey, signal),
+      () => {
+        const current = authorize(req.query.threadId, id);
+        if (service.computer.browsers.key(id, current.id, current.cardId) !== sessionKey)
+          throw new Error('The browser conversation changed.');
+      },
+    );
   });
   app.post<Route>('/api/browser/:id/open', async (req) => {
     const thread = authorize(req.query.threadId, req.params.id);
