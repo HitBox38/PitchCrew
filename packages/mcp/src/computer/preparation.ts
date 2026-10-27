@@ -19,6 +19,12 @@ export const preparationGuard = () => {
   };
   return {
     rejects,
+    block: () => {
+      blocked = true;
+    },
+    get automatic() {
+      return enabled;
+    },
     get blocked() {
       return blocked;
     },

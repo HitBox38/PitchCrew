@@ -491,6 +491,19 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
       'user',
       'Scoped fixture run',
     );
+    vi.spyOn(daemon.service.computer.browsers, 'driver').mockResolvedValue({
+      snapshot: async () => ({
+        url: 'https://example.com',
+        title: 'Fixture browser',
+        text: 'Name Apply',
+        screenshot: '',
+        digest: 'fixture-page',
+      }),
+      perform: async () => {},
+      close: async () => {},
+    });
+    vi.spyOn(daemon.service.computer, 'tabs').mockResolvedValue({ tabs: [] });
+    vi.spyOn(daemon.service.computer, 'wait').mockResolvedValue({ matched: true });
     vi.spyOn(daemon.service.computer, 'inspect').mockResolvedValue({
       url: 'https://example.com',
       title: 'Fixture browser',
@@ -522,12 +535,33 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
       'pitchcrew_computer_execute',
       'pitchcrew_computer_inspect',
       'pitchcrew_computer_request',
+      'pitchcrew_computer_tabs',
+      'pitchcrew_computer_wait',
     ]);
-    const inspected = await client.callTool({ name: 'pitchcrew_computer_inspect', arguments: {} });
+    const inspected = await client.callTool({
+      name: 'pitchcrew_computer_inspect',
+      arguments: { includeImage: true },
+    });
     expect(inspected.content).toEqual(
       expect.arrayContaining([expect.objectContaining({ type: 'image', mimeType: 'image/jpeg' })]),
     );
     expect(inspected.structuredContent).toMatchObject({ page: { title: 'Fixture browser' } });
+    expect(
+      (
+        await client.callTool({
+          name: 'pitchcrew_computer_tabs',
+          arguments: { input: { kind: 'list' } },
+        })
+      ).structuredContent,
+    ).toMatchObject({ tabs: [] });
+    expect(
+      (
+        await client.callTool({
+          name: 'pitchcrew_computer_wait',
+          arguments: { input: { text: 'Apply' } },
+        })
+      ).structuredContent,
+    ).toMatchObject({ matched: true });
     const requested = await client.callTool({
       name: 'pitchcrew_computer_request',
       arguments: { input: { kind: 'click', selector: '#submit' }, reason: 'Submit fictional form' },
@@ -584,6 +618,11 @@ it('discovers permitted connector tools over stdio and rechecks role permissions
     expect(
       (await client.callTool({ name: 'pitchcrew_computer_inspect', arguments: {} })).isError,
     ).toBe(true);
+    for (const [name, input] of [
+      ['pitchcrew_computer_tabs', { kind: 'list' }],
+      ['pitchcrew_computer_wait', { text: 'Apply' }],
+    ] as const)
+      expect((await client.callTool({ name, arguments: { input } })).isError).toBe(true);
     controller.abort();
     expect(
       (await client.callTool({ name: 'pitchcrew_list_connectors', arguments: {} })).isError,

@@ -4,7 +4,19 @@ import { cleanup, setup } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 it('enforces computer capability and user-only decisions and expires approvals on restart', async () => {
-  const { daemon, request } = await setup(14467);
+  const { daemon, request } = await setup(14467, false, {
+    browserLaunch: async () => ({
+      snapshot: async () => ({
+        url: 'https://example.com',
+        title: 'Fixture',
+        text: 'Application form',
+        screenshot: '',
+        digest: 'page-digest',
+      }),
+      perform: async () => {},
+      close: async () => {},
+    }),
+  });
   const service = daemon.service;
   const role = service.board.get<Role>('role', 'writer');
   const run: Run = {

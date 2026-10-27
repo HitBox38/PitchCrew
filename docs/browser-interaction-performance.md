@@ -2,6 +2,8 @@
 
 Status: implemented on 2026-10-27 after a self-review against the code and existing decisions. Shared Playwright screencast capture now feeds the authenticated HTTP stream, with bounded viewer queues, independent agent inspection and screenshot fallback. The questions below record the design reasoning; fixture results and remaining limits are recorded under Validation.
 
+Desktop rendering is superseded by [ADR 0003](adr/0003-native-desktop-browser.md): native interaction became an explicit requirement after this streaming work. This document remains the history and transport design for the web viewer; its earlier desktop recommendation is historical.
+
 ## Problem and scope
 
 The conversation started by comparing Pitchcrew's application browser with T3 Code's in-app browser. It did not identify a reproducible browser failure. The working interpretation is to improve visible responsiveness and manual takeover in both the Electron and browser renderers while preserving the documented application workflow. Sign-in compatibility, CAPTCHA success, native text selection and unrestricted browser automation are separate outcomes; faster frame delivery does not establish them.

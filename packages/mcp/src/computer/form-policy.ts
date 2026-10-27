@@ -98,3 +98,20 @@ export const applicationHosts = {
   comeet: ['www.comeet.com', 'comeet.com'],
   workable: ['apply.workable.com'],
 } as const;
+
+/** Task browsing only permits HTTPS reads; application/submission endpoints remain supervised. */
+export const explorationNavigation = (value: string) => {
+  const url = new URL(value);
+  return (
+    url.protocol === 'https:' &&
+    !url.username &&
+    !url.password &&
+    !url.port &&
+    !/(?:^|[/_.-])(submit|send|delete|logout|signout|unsubscribe|checkout|purchase|confirm|apply)(?:$|[/_.-])/i.test(
+      url.pathname,
+    ) &&
+    ![...url.searchParams.keys()].some((key) =>
+      /^(action|method|submit|delete|token|code|confirm)$/i.test(key),
+    )
+  );
+};

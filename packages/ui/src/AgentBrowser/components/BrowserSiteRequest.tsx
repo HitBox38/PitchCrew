@@ -16,7 +16,8 @@ export const BrowserSiteRequest = ({
   if (
     browserPanel.session?.mode !== 'autonomous' ||
     !origin ||
-    browserPanel.session.allowedSites.includes(origin)
+    (browserPanel.session.allowedSites.includes(origin) &&
+      (browserPanel.session.explorationSites ?? []).includes(origin))
   )
     return null;
   return (
@@ -27,7 +28,38 @@ export const BrowserSiteRequest = ({
       </p>
       <Button
         size="sm"
-        disabled={control.working || !!browserPanel.session.manual || !!control.leaseId}
+        variant="outline"
+        disabled={
+          control.working ||
+          !!browserPanel.session.manual ||
+          !!control.leaseId ||
+          (browserPanel.session.explorationSites ?? []).includes(origin)
+        }
+        onClick={() =>
+          void control.command(() =>
+            browserCommand(approval.roleId, thread, 'sites', {
+              taskId: browserPanel.session!.taskId,
+              url: site,
+              exploration: true,
+              ...(approval.action.kind === 'navigate' ? { approvalId: approval.id } : {}),
+            }),
+          )
+        }
+      >
+        Allow browsing for this task
+      </Button>
+      <p className="quiet">
+        Browsing allows navigation, scrolling and hover on this site. Clicks, form changes, files
+        and submission still ask.
+      </p>
+      <Button
+        size="sm"
+        disabled={
+          control.working ||
+          !!browserPanel.session.manual ||
+          !!control.leaseId ||
+          browserPanel.session.allowedSites.includes(origin)
+        }
         onClick={() =>
           void control.command(() =>
             browserCommand(approval.roleId, thread, 'sites', {

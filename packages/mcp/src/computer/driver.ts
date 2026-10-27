@@ -1,5 +1,8 @@
+import { randomUUID } from 'node:crypto';
 import { browserViewportSchema, type BrowserSnapshot } from '@pitchcrew/core';
 import type { Browser, BrowserContext, Page, Dialog } from 'playwright';
+import { browserDiagnostics } from './diagnostics.ts';
+import { browserReferences } from './references.ts';
 import { inspectControls } from './inspection.ts';
 import { hash } from './helpers.ts';
 import { assertPublicUrl } from './network.ts';
@@ -53,6 +56,16 @@ export const createBrowserDriver = async (browser: Browser): Promise<BrowserDriv
   return sharedContextDriver(context, () => browser.close());
 };
 
+export const createAttachedBrowserDriver = async (
+  context: BrowserContext,
+  page: Page,
+  close: () => Promise<void>,
+  policy: (automatic: boolean) => Promise<boolean | void>,
+) => {
+  browserUsers.set(context, 1);
+  return contextDriver(context, close, { page, policy });
+};
+
 const sessionPage = async (context: BrowserContext) => {
   creatingPages.set(context, (creatingPages.get(context) ?? 0) + 1);
   try {
@@ -90,9 +103,12 @@ const sharedContextDriver = async (
 const contextDriver = async (
   context: BrowserContext,
   close: () => Promise<void>,
+  native?: { page: Page; policy: (automatic: boolean) => Promise<boolean | void> },
 ): Promise<BrowserDriver> => {
   const guard = preparationGuard();
   const manualFields = new Set<string>();
+  const references = browserReferences();
+  const diagnostics = browserDiagnostics();
   let viewport = { width: 1280, height: 800 };
   let rendering = Promise.resolve();
   const render = <T>(operation: () => Promise<T>) => {
@@ -127,10 +143,22 @@ const contextDriver = async (
         await route.abort('blockedbyclient');
       }
     });
-    await context.routeWebSocket('**/*', (socket) => socket.close());
+    await context.routeWebSocket('**/*', async (socket) => {
+      if (!native || guard.automatic) {
+        socket.close();
+        return;
+      }
+      try {
+        await assertPublicUrl(socket.url().replace(/^wss:/, 'https:').replace(/^ws:/, 'http:'));
+        socket.connectToServer();
+      } catch {
+        socket.close();
+      }
+    });
   }
   const owned = new Set<Page>();
-  let page: Page = await sessionPage(context);
+  const tabIds = new Map<Page, string>();
+  let page: Page = native?.page ?? (await sessionPage(context));
   let pendingDialog: Dialog | undefined;
   let previous: BrowserSnapshot | undefined;
   const captureFrame = () =>
@@ -166,6 +194,8 @@ const contextDriver = async (
   });
   const attach = async (current: Page) => {
     owned.add(current);
+    diagnostics.attach(current);
+    tabIds.set(current, randomUUID());
     policies.set(current, guard);
     await guard.attach(current);
     current.setDefaultTimeout(10000);
@@ -174,13 +204,18 @@ const contextDriver = async (
       frames.refresh();
     });
     current.on('framenavigated', (frame) => {
-      if (current === page && frame === current.mainFrame()) frames.reset();
+      if (current === page && frame === current.mainFrame()) {
+        references.clear();
+        frames.reset();
+      }
     });
     current.on('crash', () => {
       if (current === page) frames.reset();
     });
     current.on('close', () => {
       owned.delete(current);
+      diagnostics.detach(current);
+      tabIds.delete(current);
       policies.delete(current);
       if (page === current) {
         page = [...owned].filter((tab) => !tab.isClosed()).at(-1) ?? current;
@@ -206,14 +241,85 @@ const contextDriver = async (
   context.on('page', onPage);
   await attach(page);
   page.setDefaultTimeout(10000);
+  const selectPage = (selected: Page) => {
+    if (!owned.has(selected)) throw new Error('This tab is outside the browser session.');
+    if (page === selected) return;
+    references.clear();
+    page = selected;
+    previous = undefined;
+    pendingDialog = undefined;
+    frames.reset();
+  };
+  const targetTab = async (id: string) => {
+    const selected = [...owned].find(
+      (candidate) => tabIds.get(candidate) === id && !candidate.isClosed(),
+    );
+    if (!selected) throw new Error('This tab is outside the browser session or closed.');
+    selectPage(selected);
+  };
   return {
+    privateControl: diagnostics.privateControl,
+    rememberManualFields: (fingerprints: readonly string[]) => {
+      for (const value of fingerprints) manualFields.add(value);
+    },
+    targetTab,
+    tabs: async (command) => {
+      if (pendingDialog && command.kind !== 'list')
+        throw new Error('Resolve the website dialog first.');
+      if (command.kind === 'open') {
+        const created = await sessionPage(context);
+        await attach(created);
+        await sizePage(created);
+        selectPage(created);
+      }
+      if (command.kind === 'select') await targetTab(command.tabId);
+      if (command.kind === 'close') {
+        const selected = [...owned].find((candidate) => tabIds.get(candidate) === command.tabId);
+        if (!selected) throw new Error('This tab is outside the browser session or closed.');
+        await selected.close({ runBeforeUnload: false });
+        if (!owned.size) {
+          const created = await sessionPage(context);
+          await attach(created);
+          selectPage(created);
+        }
+      }
+      return Promise.all(
+        [...owned].map(async (candidate) => ({
+          id: tabIds.get(candidate)!,
+          url: candidate.url(),
+          title: await candidate.title(),
+          active: candidate === page,
+        })),
+      );
+    },
+    resolveAction: async (action) => {
+      if (action.tabId) await targetTab(action.tabId);
+      return { ...(await references.resolve(page, action)), tabId: tabIds.get(page)! };
+    },
+    matches: async (condition) => {
+      if (condition.urlIncludes && !page.url().includes(condition.urlIncludes)) return false;
+      if (condition.text && !(await inspectControls(page)).text.includes(condition.text))
+        return false;
+      if (condition.selector) {
+        const target = await references.target(page, condition.selector, condition.frame);
+        const locator = target.frame
+          ? page.frameLocator(target.frame).locator(target.selector)
+          : page.locator(target.selector);
+        if ((await locator.count()) !== 1 || !(await locator.isVisible())) return false;
+      }
+      return true;
+    },
+    selectPage,
     validateApplicationValues: (values, action) =>
       validateApplicationFields(page, action, values, manualFields),
     prepare: guard.prepare,
     invalidate: () => {
+      references.clear();
       previous = undefined;
       frames.reset();
     },
+    getViewport: () => ({ ...viewport }),
+    viewMetadata: frameMetadata,
     resize: (requested) =>
       render(async () => {
         const next = browserViewportSchema.parse(requested);
@@ -242,6 +348,19 @@ const contextDriver = async (
         for (const tab of old) await tab.close();
         page.setDefaultTimeout(10000);
       }),
+    exploration: async (action) => {
+      if (guard.blocked || (action.kind !== 'scroll' && action.kind !== 'hover') || action.frame)
+        return false;
+      const target = page.locator(action.selector);
+      return (
+        (await target.count()) === 1 &&
+        (await target.isVisible()) &&
+        !(await target.evaluate(
+          (element, credentials) => element.matches(credentials),
+          credentialSelector,
+        ))
+      );
+    },
     automatic: async (action) => !guard.blocked && (await automaticFormAction(page, action)),
     input: async (input) => {
       const before = new Set<string>();
@@ -286,8 +405,9 @@ const contextDriver = async (
         for (const value of after) if (!before.has(value)) manualFields.add(value);
       }
     },
-    snapshot: () =>
+    snapshot: (options = {}) =>
       render(async () => {
+        if (await native?.policy(guard.automatic)) guard.block();
         if (pendingDialog) {
           const dialog = { type: pendingDialog.type(), message: pendingDialog.message() };
           const base =
@@ -310,6 +430,16 @@ const contextDriver = async (
         const current = page;
         await sizePage(current);
         const snapshotViewport = current.viewportSize()!;
+        const screenshot =
+          options.includeImage === false
+            ? ''
+            : (
+                await current.screenshot({
+                  type: 'jpeg',
+                  quality: 40,
+                  mask: current.frames().map((frame) => frame.locator(credentialSelector)),
+                })
+              ).toString('base64');
         const state = await current.evaluate(
           (credentials) => ({
             html: document.documentElement.outerHTML,
@@ -336,14 +466,8 @@ const contextDriver = async (
             0,
             30000,
           );
-        const screenshot = (
-          await current.screenshot({
-            type: 'jpeg',
-            quality: 40,
-            mask: current.frames().map((frame) => frame.locator(credentialSelector)),
-          })
-        ).toString('base64');
         previous = {
+          diagnostics: diagnostics.read(current),
           viewport: snapshotViewport,
           url,
           title: await current.title(),
@@ -351,6 +475,7 @@ const contextDriver = async (
             ? `${text}\nPreparation blocked a website request. Do not claim the upload or autosave succeeded. Request the exact action again; it will require user approval.`
             : text,
           screenshot,
+          ...(options.references ? { elements: await references.capture(current) } : {}),
           controls: evidence.controls,
           uninspected: evidence.uninspected,
           digest: hash({ url, state, frames: evidence.frames, viewport: snapshotViewport }),
@@ -370,8 +495,19 @@ const contextDriver = async (
         : page.locator(action.selector);
       if ((await target.count()) !== 1)
         throw new Error('Choose a selector matching exactly one element.');
+      if (action.kind === 'drag') {
+        const destination = action.frame
+          ? page.frameLocator(action.frame).locator(action.targetSelector)
+          : page.locator(action.targetSelector);
+        if ((await destination.count()) !== 1)
+          throw new Error('Choose a drop target matching exactly one element.');
+      }
     },
     perform: async (action, file, automatic = false) => {
+      if (await native?.policy(automatic)) {
+        guard.block();
+        if (automatic) throw new Error('This page needs an exact supervised approval.');
+      }
       guard.prepare(automatic);
       if (action.kind === 'dialog') {
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
@@ -410,6 +546,27 @@ const contextDriver = async (
             .evaluateAll((forms) => forms.map((form) => (form as HTMLFormElement).action)),
         );
       if (action.kind === 'click') await target.click({ timeout: 10000 });
+      if (action.kind === 'hover') await target.hover({ timeout: 10000 });
+      if (action.kind === 'scroll')
+        await target.evaluate(
+          (element, delta) => {
+            const root =
+              element === element.ownerDocument.body
+                ? (element.ownerDocument.scrollingElement ?? element)
+                : element;
+            root.scrollBy({ left: delta.x, top: delta.y, behavior: 'instant' });
+          },
+          { x: action.deltaX, y: action.deltaY },
+        );
+      if (action.kind === 'drag') {
+        const destination = action.frame
+          ? page.frameLocator(action.frame).locator(action.targetSelector)
+          : page.locator(action.targetSelector);
+        if ((await destination.count()) !== 1)
+          throw new Error('Choose a drop target matching exactly one element.');
+        await target.dragTo(destination, { timeout: 10000 });
+      }
+
       if (action.kind === 'fill') {
         if (
           await target.evaluate(
@@ -431,6 +588,8 @@ const contextDriver = async (
         );
     },
     close: async () => {
+      references.clear();
+      diagnostics.close();
       context.off('page', onPage);
       await frames.close();
       for (const tab of [...owned]) await tab.close();

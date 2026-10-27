@@ -8,9 +8,12 @@
     "build": "tsdown"
   },
   "dependencies": {
-    "electron-updater": "6.8.9"
+    "electron-updater": "6.8.9",
+    "ws": "8.22.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@types/ws": "8.18.1",
     "electron": "44.5.1",
     "tsdown": "0.23.0"
   }

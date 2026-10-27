@@ -1,6 +1,9 @@
+import { DesktopBrowserHosts } from './native-host.ts';
 import type { Board } from '@pitchcrew/board';
 import {
   browserActionSchema,
+  browserWaitSchema,
+  browserTabsSchema,
   type Approval,
   type BrowserAction,
   browserViewportSchema,
@@ -25,8 +28,7 @@ import { applicationValues, normalizedValue } from './application-values.ts';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { launchBrowser } from './driver.ts';
-import { automaticNavigation } from './form-policy.ts';
+import { automaticNavigation, explorationNavigation } from './form-policy.ts';
 import { BrowserSessions } from './sessions.ts';
 import { hash } from './helpers.ts';
 import type { BrowserDriver } from './types.ts';
@@ -34,15 +36,23 @@ import type { BrowserDriver } from './types.ts';
 export class ComputerManager {
   private readonly sessions = new Map<string, Promise<BrowserDriver>>();
   readonly browsers: BrowserSessions;
+  readonly desktopHosts = new DesktopBrowserHosts();
   private readonly busy = new Set<string>();
   private readonly busyRoles = new Set<RoleId>();
   private readonly stopped = new Set<string>();
   constructor(
     private readonly board: Board,
     private readonly directory: string,
-    launch: (profile?: string) => Promise<BrowserDriver> = launchBrowser,
+    launch?: (profile?: string) => Promise<BrowserDriver>,
   ) {
-    this.browsers = new BrowserSessions(directory, launch);
+    this.browsers = new BrowserSessions(
+      directory,
+      launch ?? this.desktopHosts.launch,
+      undefined,
+      (runId) => {
+        void this.stop(runId);
+      },
+    );
   }
   private session = (runId: string) => {
     if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
@@ -54,17 +64,80 @@ export class ComputerManager {
     return session;
   };
 
-  inspect = async (runId: string) => {
+  inspect = async (
+    runId: string,
+    options: { includeImage?: boolean; references?: boolean; tabId?: string } = {
+      includeImage: true,
+      references: true,
+    },
+  ) => {
     this.browsers.assertAgent(runId);
     const driver = await this.session(runId);
     this.browsers.assertAgent(runId);
     const generation = this.browsers.forRole(runId).observationGeneration;
-    const page = await driver.snapshot();
+    if (options.tabId) {
+      if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      await driver.targetTab(options.tabId);
+    }
+    const page = await driver.snapshot(options);
     this.browsers.assertAgent(runId);
     if (this.browsers.forRole(runId).observationGeneration !== generation)
       throw new Error('Manual control changed. Inspect the browser again.');
     if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
     return page;
+  };
+  wait = async (runId: string, raw: unknown, signal: AbortSignal, authorize: () => void) => {
+    const condition = browserWaitSchema.parse(raw);
+    const generation = this.browsers.forRole(runId).observationGeneration;
+    const deadline = Date.now() + condition.timeoutMs;
+    const driver = await this.session(runId);
+    if (condition.tabId) {
+      this.browsers.assertAgent(runId);
+      if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      await driver.targetTab(condition.tabId);
+    }
+    if (!driver.matches) throw new Error('Browser waits are unavailable.');
+    do {
+      authorize();
+      signal.throwIfAborted();
+      this.browsers.assertAgent(runId);
+      const matched = await driver.matches(condition);
+      authorize();
+      this.browsers.assertAgent(runId);
+      if (
+        this.stopped.has(runId) ||
+        generation !== this.browsers.forRole(runId).observationGeneration
+      )
+        throw new Error('Browser control changed. Inspect again.');
+      if (matched) return { matched: true };
+      if (Date.now() >= deadline) return { matched: false, timedOut: true };
+      await delay(Math.min(200, deadline - Date.now()), undefined, { signal });
+    } while (Date.now() < deadline);
+    return { matched: false, timedOut: true };
+  };
+  tabs = async (runId: string, raw: unknown) => {
+    const command = browserTabsSchema.parse(raw);
+    this.browsers.assertAgent(runId);
+    const session = this.browsers.forRole(runId);
+    const key = this.browsers.keyForRun(runId);
+    const generation = session.observationGeneration;
+    if (this.busyRoles.has(key)) throw new Error('A browser action is in progress.');
+    if (command.kind !== 'list') assertNoUncertainSubmission(this.board, session.info.cardId);
+    this.busyRoles.add(key);
+    try {
+      const driver = await this.session(runId);
+      this.browsers.assertAgent(runId);
+      if (!driver.tabs) throw new Error('Browser tab management is unavailable.');
+      if (command.kind !== 'list')
+        this.expire(runId, 'Browser tabs changed. Inspect and request a new approval.');
+      const tabs = await driver.tabs(command);
+      this.browsers.assertAgent(runId);
+      if (generation !== session.observationGeneration || this.stopped.has(runId))
+        throw new Error('Browser control changed. Inspect again.');
+      return { tabs };
+    } finally {
+      this.busyRoles.delete(key);
+    }
   };
   bindBrowser = (input: Parameters<BrowserSessions['bind']>[0]) => {
     if (!input.threadId && !input.cardId) {
@@ -91,14 +164,17 @@ export class ComputerManager {
         if (!leaseId) return false;
         this.browsers.lease(roleId, leaseId);
       } else if (leaseId) return false;
-      return !this.board
-        .list<ComputerApproval>('computer_approval')
-        .some(
-          (approval) =>
-            approval.roleId === session.info.roleId &&
-            approval.runId === session.info.runId &&
-            ['pending', 'approved'].includes(approval.status),
-        );
+      return (
+        !!session.info.native ||
+        !this.board
+          .list<ComputerApproval>('computer_approval')
+          .some(
+            (approval) =>
+              approval.roleId === session.info.roleId &&
+              approval.runId === session.info.runId &&
+              ['pending', 'approved'].includes(approval.status),
+          )
+      );
     };
     if (this.busyRoles.has(roleId) || !allowed()) return false;
     this.busyRoles.add(roleId);
@@ -106,6 +182,16 @@ export class ComputerManager {
       const driver = await this.browsers.driver(roleId);
       if (!allowed()) return false;
       assertNoUncertainSubmission(this.board, session.info.cardId);
+      const previous = driver.getViewport?.();
+      if (
+        driver.native &&
+        session.info.runId &&
+        (!previous || previous.width !== size.width || previous.height !== size.height)
+      )
+        this.expire(
+          session.info.runId,
+          'The native browser resized. Inspect it and request a new approval.',
+        );
       return (await driver.resize?.(size)) ?? false;
     } finally {
       this.busyRoles.delete(roleId);
@@ -137,10 +223,22 @@ export class ComputerManager {
     await driver.input(input);
     this.browsers.renew(roleId, leaseId);
   };
+  syncNativeControl = async (id: string, leaseId: string) => {
+    const session = this.browsers.lease(id, leaseId);
+    assertNoUncertainSubmission(this.board, session.info.cardId);
+    const driver = await this.browsers.driver(id);
+    this.browsers.lease(id, leaseId);
+    assertNoUncertainSubmission(this.board, session.info.cardId);
+    driver.privateControl?.(true);
+    await driver.setManual?.(true);
+  };
+
   returnControl = async (roleId: string, leaseId: string) => {
     this.browsers.lease(roleId, leaseId);
     const driver = await this.browsers.driver(roleId);
     this.browsers.lease(roleId, leaseId);
+    await driver.setManual?.(false);
+    driver.privateControl?.(false);
     driver.invalidate?.();
     this.browsers.release(roleId, leaseId);
   };
@@ -150,6 +248,7 @@ export class ComputerManager {
     origin: string,
     allowed: boolean,
     approvalId?: string,
+    exploration = false,
   ) => {
     const session = this.browsers.forRole(roleId);
     roleId = this.browsers.key(session.info.roleId, session.info.threadId, session.info.cardId);
@@ -165,7 +264,7 @@ export class ComputerManager {
         new URL(approval.action.url).origin !== origin)
     )
       throw new Error('The navigation request changed. Review the current task.');
-    this.browsers.allowSite(roleId, taskId, origin, allowed);
+    this.browsers.allowSite(roleId, taskId, origin, allowed, exploration);
     this.board.record(
       'browser_site_permission',
       {
@@ -175,6 +274,7 @@ export class ComputerManager {
         runId: session.info.runId!,
         origin,
         allowed,
+        exploration,
         createdAt: new Date().toISOString(),
       },
       'user',
@@ -201,7 +301,7 @@ export class ComputerManager {
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
     if (this.busyRoles.has(this.browsers.keyForRun(scope.runId)))
       throw new Error('A browser action is in progress.');
-    const action = browserActionSchema.parse(raw);
+    let action = browserActionSchema.parse(raw);
     assertNoUncertainSubmission(this.board, scope.cardId, action, scope.runId);
     if (!this.browsers.forRun(scope.runId)) this.browsers.bind(scope);
     if (isSubmission(action))
@@ -220,11 +320,16 @@ export class ComputerManager {
     this.busy.add(scope.runId);
     this.busyRoles.add(this.browsers.keyForRun(scope.runId));
     try {
-      const page = await this.inspect(scope.runId);
+      this.browsers.assertAgent(scope.runId);
+      const driver = await this.session(scope.runId);
+      action = (await driver.resolveAction?.(action)) ?? action;
+      const { diagnostics: _diagnostics, ...page } = await this.inspect(scope.runId, {
+        includeImage: true,
+        references: false,
+      });
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
-      const driver = await this.sessions.get(scope.runId);
       await driver?.validate?.(action);
       await this.checkApplicationValues(scope.cardId, action, driver);
       const file = await this.uploadFile(action, scope.cardId);
@@ -243,12 +348,16 @@ export class ComputerManager {
         action.kind === 'navigate' ? new URL(action.url).origin : new URL(page.url).origin;
       const automatic =
         browser?.info.mode === 'autonomous' &&
-        browser.info.allowedSites.includes(origin) &&
         !isSubmission(action) &&
-        (action.kind === 'navigate'
-          ? automaticNavigation(action.url)
-          : ['fill', 'select', 'upload'].includes(action.kind) &&
-            (await (await this.sessions.get(scope.runId))?.automatic?.(action)) === true);
+        ((browser.info.allowedSites.includes(origin) &&
+          (action.kind === 'navigate'
+            ? automaticNavigation(action.url)
+            : ['fill', 'select', 'upload'].includes(action.kind) &&
+              (await driver?.automatic?.(action)) === true)) ||
+          ((browser.info.explorationSites ?? []).includes(origin) &&
+            (action.kind === 'navigate'
+              ? explorationNavigation(action.url)
+              : (await driver?.exploration?.(action)) === true)));
       this.browsers.assertAgent(scope.runId);
       const approval: ComputerApproval = {
         id: randomUUID(),
@@ -336,7 +445,11 @@ export class ComputerManager {
     try {
       this.browsers.assertAgent(runId);
       const driver = await this.session(runId);
-      const page = await driver.snapshot();
+      if (approval.action.tabId) {
+        if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+        await driver.targetTab(approval.action.tabId);
+      }
+      const page = await driver.snapshot({ includeImage: false });
       authorize();
       signal.throwIfAborted();
       if (
@@ -362,14 +475,18 @@ export class ComputerManager {
           approval.action.kind === 'navigate'
             ? new URL(approval.action.url).origin
             : new URL(page.url).origin;
-        if (
-          session?.info.mode !== 'autonomous' ||
-          !session.info.allowedSites.includes(origin) ||
-          (approval.action.kind === 'navigate'
-            ? !automaticNavigation(approval.action.url)
-            : !['fill', 'select', 'upload'].includes(approval.action.kind) ||
-              (await driver.automatic?.(approval.action)) !== true)
-        )
+        const permitted =
+          session?.info.mode === 'autonomous' &&
+          ((session.info.allowedSites.includes(origin) &&
+            (approval.action.kind === 'navigate'
+              ? automaticNavigation(approval.action.url)
+              : ['fill', 'select', 'upload'].includes(approval.action.kind) &&
+                (await driver.automatic?.(approval.action)) === true)) ||
+            ((session.info.explorationSites ?? []).includes(origin) &&
+              (approval.action.kind === 'navigate'
+                ? explorationNavigation(approval.action.url)
+                : (await driver.exploration?.(approval.action)) === true)));
+        if (!permitted)
           throw new Error('Browser preparation permission changed. Request a new approval.');
       }
       await driver.validate?.(approval.action);

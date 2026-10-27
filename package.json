@@ -20,7 +20,7 @@
     "service": "node --import tsx packages/orchestrator/src/cli.ts service",
     "mcp": "node --import tsx packages/orchestrator/src/cli.ts mcp",
     "test": "node --import tsx --test scripts/posthog/*.test.ts && vitest run",
-    "test:desktop": "pnpm build && node --import tsx scripts/desktop-smoke.ts",
+    "test:desktop": "pnpm build && node --import tsx scripts/desktop-smoke.ts && node --import tsx packages/desktop/test/native-browser.smoke.ts",
     "typecheck": "tsc --noEmit && pnpm --filter @pitchcrew/landing typecheck",
     "lint": "oxlint --deny-warnings packages scripts vitest.config.ts && node --import tsx scripts/check-components.ts",
     "format": "oxfmt --write .",

@@ -1,3 +1,4 @@
+import type { DesktopBrowserBridge } from '../../core/src/native-browser.ts';
 import { contextBridge, ipcRenderer } from 'electron';
 import type { DesktopUpdateBridge, DesktopUpdateState } from '../../core/src/desktop-updates.ts';
 import { updateChannels } from './updates/ipc.ts';
@@ -22,6 +23,23 @@ const startup: DesktopStartupBridge = {
   getTiming: () => ipcRenderer.invoke('pitchcrew:startup:timing'),
 };
 contextBridge.exposeInMainWorld('pitchcrewStartup', startup);
+const browser: DesktopBrowserBridge = {
+  profiles: (id, command) => ipcRenderer.invoke('pitchcrew:browser:profiles', id, command),
+  identify: () => ipcRenderer.invoke('pitchcrew:browser:identity'),
+  focusPage: (id) => ipcRenderer.invoke('pitchcrew:browser:focus-page', id),
+  focusControls: (id, focused) =>
+    ipcRenderer.invoke('pitchcrew:browser:focus-controls', id, focused),
+  mount: (id, bounds) => ipcRenderer.invoke('pitchcrew:browser:mount', id, bounds),
+  find: (id, text, forward) => ipcRenderer.invoke('pitchcrew:browser:find', id, text, forward),
+  subscribeShortcuts: (receive) => {
+    const listener = (_event: unknown, shortcut: { id: string; key: string; shift: boolean }) =>
+      receive(shortcut);
+    ipcRenderer.on('pitchcrew:browser:shortcut', listener);
+    return () => ipcRenderer.removeListener('pitchcrew:browser:shortcut', listener);
+  },
+};
+contextBridge.exposeInMainWorld('pitchcrewBrowser', browser);
+
 contextBridge.exposeInMainWorld('pitchcrewLinks', createLinkFeedbackBridge(ipcRenderer));
 
 // Keep Electron APIs isolated; only narrow bridges and layout attributes reach the page.

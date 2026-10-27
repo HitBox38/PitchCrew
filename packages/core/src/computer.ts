@@ -1,3 +1,4 @@
+import type { NativeBrowserIdentity } from './native-browser.ts';
 import type { FormControl } from './submissions.ts';
 import { z } from 'zod';
 import type { RoleId } from './states.ts';
@@ -11,9 +12,11 @@ export interface BrowserSitePermission {
   taskId: string;
   origin: string;
   allowed: boolean;
+  exploration?: boolean;
   createdAt: string;
 }
 export interface BrowserSessionInfo {
+  native?: NativeBrowserIdentity;
   roleId: RoleId;
   runId: string | null;
   taskId: string;
@@ -23,6 +26,7 @@ export interface BrowserSessionInfo {
   mode: BrowserMode;
   manual: boolean;
   allowedSites: string[];
+  explorationSites?: string[];
   url: string;
   title: string;
 }
@@ -104,6 +108,7 @@ const selector = z.string().trim().min(1).max(500);
 export const browserActionSchema = z.discriminatedUnion('kind', [
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('dialog'),
       decision: z.enum(['accept', 'dismiss']),
       submissionAttemptId: z.uuid().optional(),
@@ -111,6 +116,7 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     .strict(),
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('navigate'),
       url: z
         .url()
@@ -121,20 +127,89 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
         }, 'Use an HTTP(S) URL without credentials.'),
     })
     .strict(),
-  z.object({ kind: z.literal('click'), selector, frame, ...submission }).strict(),
-  z.object({ kind: z.literal('fill'), selector, frame, value: z.string().max(12000) }).strict(),
-  z.object({ kind: z.literal('select'), selector, frame, value: z.string().max(500) }).strict(),
   z
     .object({
-      kind: z.literal('press'),
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('click'),
+      selector,
       frame,
       ...submission,
-      selector,
-      key: z.enum(['Tab', 'Enter', 'Escape', 'Space', 'ArrowDown', 'ArrowUp']),
     })
     .strict(),
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('hover'),
+      selector,
+      frame,
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('scroll'),
+      selector,
+      frame,
+      deltaX: z.number().min(-4000).max(4000).default(0),
+      deltaY: z.number().min(-4000).max(4000),
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('drag'),
+      selector,
+      targetSelector: selector,
+      frame,
+      ...submission,
+    })
+    .strict(),
+
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('fill'),
+      selector,
+      frame,
+      value: z.string().max(12000),
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('select'),
+      selector,
+      frame,
+      value: z.string().max(500),
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('press'),
+      frame,
+      ...submission,
+      selector,
+      key: z.enum([
+        'Tab',
+        'Shift+Tab',
+        'Enter',
+        'Escape',
+        'Space',
+        'ArrowDown',
+        'ArrowUp',
+        'ArrowLeft',
+        'ArrowRight',
+        'Home',
+        'End',
+        'PageDown',
+        'PageUp',
+      ]),
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('upload'),
       frame,
       selector,
@@ -153,7 +228,34 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     .strict(),
 ]);
 export type BrowserAction = z.infer<typeof browserActionSchema>;
+export const browserWaitSchema = z
+  .object({
+    tabId: z.string().min(1).max(100).optional(),
+    text: z.string().min(1).max(2000).optional(),
+    urlIncludes: z.string().min(1).max(2000).optional(),
+    selector: z.string().min(1).max(500).optional(),
+    frame: z.string().min(1).max(500).optional(),
+    timeoutMs: z.number().int().min(100).max(30000).default(15000),
+  })
+  .strict()
+  .refine(
+    (value) => !!(value.text || value.urlIncludes || value.selector),
+    'Provide text, urlIncludes or selector.',
+  );
+export type BrowserWait = z.infer<typeof browserWaitSchema>;
+export interface BrowserElement {
+  ref: string;
+  tag: string;
+  name: string;
+  frame?: string;
+}
+export interface BrowserDiagnostics {
+  console: { level: string; message: string }[];
+  requests: { url: string; method: string; status: number | null; resourceType: string }[];
+}
 export interface BrowserSnapshot {
+  diagnostics?: BrowserDiagnostics;
+  elements?: BrowserElement[];
   viewport?: BrowserViewport;
   url: string;
   title: string;
