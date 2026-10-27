@@ -78,6 +78,16 @@ export const createDemo = ({
       const matches = new Set(words.filter((w) => profile.includes(w))).size;
       return {
         role: 'scout',
+        ...(context.purpose === 'packet-evaluation'
+          ? {
+              packetFit: {
+                score: 76,
+                reasons: [
+                  'Demo whole-packet rating: the resume, cover letter, form answers, note and claims need a job-specific evidence check.',
+                ],
+              },
+            }
+          : {}),
         fit: Math.min(96, 60 + matches * 4),
         reasons: [
           'Demo fit score based on keywords in your profile and this job.',

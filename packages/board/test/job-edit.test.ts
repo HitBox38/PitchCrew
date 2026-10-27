@@ -7,7 +7,7 @@ import {
   type SubmissionAttempt,
 } from '@pitchcrew/core';
 import { afterEach, expect, it } from 'vitest';
-import { Board, editJob } from '../src/index.ts';
+import { Board, digestPacket, editJob } from '../src/index.ts';
 import { reviewFixturePacket } from './fixtures/application-context.ts';
 import { packet } from './fixtures/packet.ts';
 
@@ -40,7 +40,23 @@ const context = () => {
     'user',
     'Fixture',
   );
-  reviewFixturePacket(board, initial.id);
+  const reviewed = reviewFixturePacket(board, initial.id);
+  board.updateCard(
+    initial.id,
+    {
+      packetFit: {
+        score: 85,
+        reasons: ['The packet addresses the fictional role.'],
+        fitReasons: ['Relevant fictional experience.'],
+        packetDigest: digestPacket(initial.id, packet),
+        contextRevision: reviewed.applicationContext!.revision,
+        runId: 'fixture-evaluation',
+        evaluatedAt: reviewed.updatedAt,
+      },
+    },
+    'scout',
+    'Recorded fictional packet match',
+  );
   const approval = board.requestApproval(initial.id);
   board.decideApproval(approval.id, true);
   board.record(
@@ -85,6 +101,7 @@ it('saves all user fields, clears stale source evidence and retains bookkeeping,
     tags: ['updated'],
     sourceHtml: undefined,
     fit: null,
+    packetFit: undefined,
     applicationContext: undefined,
     packetContextRevision: undefined,
     packetReview: undefined,
@@ -102,6 +119,7 @@ it('saves all user fields, clears stale source evidence and retains bookkeeping,
 });
 it('keeps identical edits as a no-op and tag-only edits preserve reviewed evidence and approvals', () => {
   const { board, card, input, approval } = context();
+  expect(card.packetFit?.score).toBe(85);
   const events = board.events();
   expect(editJob(board, card.id, { ...input, company: ` ${input.company} ` })).toEqual(card);
   expect(board.events()).toEqual(events);

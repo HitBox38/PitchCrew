@@ -8,6 +8,7 @@ export const draftingCard = (card: Card, purpose = 'application-review'): Card =
   const context = card.applicationContext;
   const packet =
     purpose === 'application-review' ||
+    purpose === 'packet-evaluation' ||
     (purpose === 'application-draft' && card.packetContextRevision === context?.revision)
       ? card.packet
       : null;

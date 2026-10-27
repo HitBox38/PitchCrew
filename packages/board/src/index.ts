@@ -112,6 +112,7 @@ export class Board {
         | 'packet'
         | 'feedback'
         | 'fit'
+        | 'packetFit'
         | 'owner'
         | 'formAssessments'
         | 'submissionAttempts'

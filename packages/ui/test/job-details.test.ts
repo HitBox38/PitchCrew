@@ -189,3 +189,47 @@ test('opens Writing settings from the redesigned application documents and close
     .toBe(0);
   expect(errors).toEqual([]);
 });
+
+test('reevaluates a submitted job with the whole packet and shows a separate packet rating', async () => {
+  const { packet } = await import('../../board/test/fixtures/packet.ts');
+  const board = host.daemon.service.board;
+  const current = board.get<Card>('card', card.id);
+  board.record(
+    'card',
+    { ...current, state: 'submitted', packet },
+    'user',
+    'Fictional submitted packet',
+  );
+  const evaluate = vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
+    expect(context.purpose).toBe('packet-evaluation');
+    expect(context.card.packet).toEqual(packet);
+    return {
+      role: 'scout',
+      fit: 89,
+      reasons: ['Strong Profile evidence.'],
+      packetFit: {
+        score: 78,
+        reasons: ['The cover letter needs a clearer link to accessible interfaces.'],
+      },
+    };
+  });
+  await page.reload();
+  await page.locator(`#board-job-${card.id} .job-card`).waitFor({ timeout: 30000 });
+  await page.locator(`#board-job-${card.id} .job-card`).click();
+  const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
+  const region = sheet.getByRole('region', { name: 'Packet match to job', exact: true });
+  await region.getByRole('button', { name: 'Reevaluate with packet', exact: true }).click();
+  await expect.poll(() => board.get<Card>('card', card.id).packetFit?.score).toBe(78);
+  await region.getByText('78/100', { exact: true }).waitFor();
+  expect(await sheet.getByText('89% fit', { exact: true }).isVisible()).toBe(true);
+  expect(await sheet.getByText('78/100 packet match', { exact: true }).isVisible()).toBe(true);
+  expect(await region.innerText()).toContain(
+    'The cover letter needs a clearer link to accessible interfaces.',
+  );
+  expect(board.get<Card>('card', card.id).state).toBe('submitted');
+  expect(evaluate).toHaveBeenCalledOnce();
+  evaluate.mockRestore();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 800 });
+});

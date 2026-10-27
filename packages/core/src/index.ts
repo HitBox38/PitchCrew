@@ -26,7 +26,7 @@ export {
   editJobInput,
 } from './job-management.ts';
 export * from './tracking.ts';
-export type { Card, CardInput, CardLesson } from './cards.ts';
+export type { Card, CardInput, CardLesson, PacketFit } from './cards.ts';
 export * from './insights.ts';
 export * from './learning.ts';
 export { chatInput, chatResultSchema, chatReferenceInput } from './chat.ts';

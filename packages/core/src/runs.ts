@@ -26,6 +26,7 @@ export interface Run {
     | 'application-draft'
     | 'application-review'
     | 'fit'
+    | 'packet-evaluation'
     | 'deep-review';
   contextRevision?: string;
   deepReviewId?: string;
@@ -84,6 +85,13 @@ export const runResultSchema = z.discriminatedUnion('role', [
     role: z.literal('scout'),
     changeSummary,
     fit: z.number().int().min(0).max(100),
+    packetFit: z
+      .object({
+        score: z.number().int().min(0).max(100),
+        reasons: z.array(z.string().trim().min(1).max(1000)).min(1).max(10),
+      })
+      .strict()
+      .optional(),
     reasons: z.array(z.string().max(1000)).max(10),
   }),
   z.object({ role: z.literal('writer'), packet: packetSchema, changeSummary }),
