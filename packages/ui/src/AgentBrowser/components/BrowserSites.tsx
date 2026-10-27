@@ -8,15 +8,20 @@ export const BrowserSites = ({
   control,
 }: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) => {
   const session = browserPanel.session;
-  if (!session?.runId || !session.allowedSites.length) return null;
+  const sites = [
+    ...new Set([...(session?.allowedSites ?? []), ...(session?.explorationSites ?? [])]),
+  ];
+  if (!session?.runId || !sites.length) return null;
   return (
     <AccordionSection
       className="browser-sites"
-      heading={<>Allowed sites for this task ({session.allowedSites.length})</>}
+      heading={<>Allowed sites for this task ({sites.length})</>}
     >
-      {session.allowedSites.map((origin) => (
+      {sites.map((origin) => (
         <div className="flex items-center justify-between gap-2" key={origin}>
-          <span className="min-w-0 break-all">{origin}</span>
+          <span className="min-w-0 break-all">
+            {origin} · {session.allowedSites.includes(origin) ? 'Preparation' : 'Browsing'}
+          </span>
           <Button
             size="xs"
             variant="ghost"

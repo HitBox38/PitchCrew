@@ -6,7 +6,7 @@ export default defineConfig([
     format: 'esm',
     outDir: 'dist',
     dts: false,
-    deps: { neverBundle: ['electron'] },
+    deps: { neverBundle: ['electron'], alwaysBundle: ['ws', /^zod(?:\/|$)/] },
   },
   {
     // Sandboxed Electron preloads must be CommonJS, even though the host uses ESM.

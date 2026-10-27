@@ -29,8 +29,8 @@ export const BrowserModeHelp = ({ name }: { name: string }) => {
         </p>
         <p className="mt-2">
           <strong>Autonomous preparation:</strong> allow a site for the task, then the agent can
-          open recognized job pages and prepare supported forms. Other actions, including
-          submission, still ask.
+          browse agreed sites, scroll and hover, or separately prepare supported forms. Other
+          actions, including submission, still ask.
         </p>
         <p className="mt-2 text-muted-foreground">
           Changes apply to future turns. The browser panel shows the active task’s permissions.

@@ -79,6 +79,9 @@ export const requestIdentity = (
 const browserTitles = {
   navigate: 'Open application page',
   click: 'Click a page element',
+  hover: 'Hover over a page element',
+  scroll: 'Scroll a page or container',
+  drag: 'Drag a page element',
   fill: 'Fill an application field',
   select: 'Choose a form option',
   press: 'Press a key',

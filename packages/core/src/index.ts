@@ -162,3 +162,5 @@ export {
   packetSourceNames,
 } from './chat-citations.ts';
 export type { ChatFileCitation } from './chat-citations.ts';
+
+export * from './browser-tabs.ts';

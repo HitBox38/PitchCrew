@@ -87,8 +87,26 @@ export const computerAction = async (
     authorize();
     return { attempt };
   }
+  if (action === 'computer_tabs') {
+    const result = await context.computer.tabs(capability.runId, data.input);
+    authorize();
+    return result;
+  }
+  if (action === 'computer_wait')
+    return context.computer.wait(
+      capability.runId,
+      data.input,
+      context.controllers.get(capability.runId)?.signal ?? new AbortController().signal,
+      authorize,
+    );
   if (action === 'computer_inspect') {
-    const page = await context.computer.inspect(capability.runId);
+    const options = z
+      .object({
+        includeImage: z.boolean().default(false),
+        tabId: z.string().min(1).max(100).optional(),
+      })
+      .parse(data);
+    const page = await context.computer.inspect(capability.runId, { ...options, references: true });
     authorize();
     return { page };
   }

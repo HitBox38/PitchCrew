@@ -103,3 +103,5 @@ The team-owned workspace onboarding readiness scout has a reviewed skill body an
 See [the repair record](analytics/audit-repair.md) and [live resource evidence](../posthog/audit-repair.json). CI and both native smoke launchers now force telemetry off; production configuration also rejects CI/smoke mode. Historical empty-workspace identities were not deleted or classified as tests without attribution.
 
 Account-status probes run after HTTP readiness and remain abortable/drained on shutdown. Each run still waits for its authentication guard; a missing account blocks execution. Deliberate request metrics optionally include a numeric HTTP status (100–599). Fixed operational logs add bounded failure categories and HTTP status; native AI error labels contain only those categories. Raw messages, stderr and paths remain local.
+
+Browser condition waits and tab management use the fixed reviewed tool names `pitchcrew_computer_wait` and `pitchcrew_computer_tabs`. Only existing bounded tool-call outcome/timing fields are eligible; tab IDs, selectors, URLs, conditions, page diagnostics, profile labels and cookie import contents are excluded.

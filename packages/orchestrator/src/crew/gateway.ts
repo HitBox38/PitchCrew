@@ -243,6 +243,8 @@ const dispatchAgentCall = async (
   if (
     [
       'computer_inspect',
+      'computer_wait',
+      'computer_tabs',
       'computer_request',
       'computer_execute',
       'assess_form',

@@ -100,7 +100,16 @@ export const useBrowserControl = (
     },
     [leaseId, roleId, threadId],
   );
-  const open = () => command(() => browserCommand(roleId, threadId, 'open'));
+  const open = () =>
+    command(async () => {
+      const result = await browserCommand<{ native?: boolean }>(roleId, threadId, 'open');
+      if (result.native) {
+        const control = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
+          operation: 'take',
+        });
+        setLeases((current) => ({ ...current, [key]: { roleId, threadId, id: control.leaseId } }));
+      }
+    });
   return {
     leaseId,
     error,
