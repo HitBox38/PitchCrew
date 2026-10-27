@@ -5,8 +5,10 @@ import type { CardDetailsModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ExternalLink, X } from 'lucide-react';
 
-export const JobSummary = (model: CardDetailsModel) => {
-  const { card, onClose } = model;
+type JobSummaryProps = Pick<CardDetailsModel, 'card' | 'onClose'> &
+  Partial<Pick<CardDetailsModel, 'agents' | 'openChat'>>;
+
+export const JobSummary = ({ card, onClose, agents, openChat }: JobSummaryProps) => {
   return (
     <header className="job-summary shrink-0 px-5 pt-5 pb-3 max-mobile:px-4">
       <div className="flex items-start justify-between gap-3">
@@ -41,7 +43,7 @@ export const JobSummary = (model: CardDetailsModel) => {
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <JobState card={card} />
-        <JobAgents agents={model.agents} openChat={model.openChat} />
+        {agents && openChat ? <JobAgents agents={agents} openChat={openChat} /> : null}
       </div>
     </header>
   );

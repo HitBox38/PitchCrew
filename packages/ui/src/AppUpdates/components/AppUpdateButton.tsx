@@ -27,10 +27,8 @@ export const AppUpdateButton = ({
       aria-busy={control.busy || control.checking}
       onClick={control.activate}
       className={cn(
-        'pointer-events-auto aria-disabled:opacity-100',
-        control.visible
-          ? 'sidebar-update-button h-9 flex-1 justify-center group-data-[collapsible=icon]:flex-none'
-          : 'size-8 justify-center p-2',
+        'pointer-events-auto size-8 shrink-0 justify-center p-2 aria-disabled:opacity-100',
+        control.visible && 'sidebar-update-button',
       )}
       tooltip={{
         id: tooltipId,
@@ -55,9 +53,7 @@ export const AppUpdateButton = ({
         aria-hidden="true"
         className={control.checking ? 'animate-spin motion-reduce:animate-none' : undefined}
       />
-      <span className={control.visible ? 'group-data-[collapsible=icon]:sr-only' : 'sr-only'}>
-        {control.label}
-      </span>
+      <span className="sr-only">{control.label}</span>
     </SidebarMenuButton>
   );
 };

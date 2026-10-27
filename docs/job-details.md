@@ -2,6 +2,8 @@
 
 The job sheet has three sections: Job, Application and Activity. Its compact header keeps the company, title, location, compensation, board status, candidate fit score and the latest packet match rating visible. The original posting and close controls share that header. A persistent footer presents one next action based on the current work and prerequisites, plus Shortlist for idle leads. Each section has its own reading position inside the sheet's main work area; the header and footer never scroll independently.
 
+Opening a job immediately shows its identity header and a skeleton while the sheet code or full job source loads. The loading status is announced to assistive technology, skeletons respect reduced motion, and the sheet can be closed while loading. Source failures keep the header visible and offer Retry before enabling the full details and workflow actions.
+
 ## Information and decisions
 
 Job opens with the original description, tags and crew assessment. Its Packet match to job section offers **Reevaluate with packet** in every board stage, including submitted and closed jobs, once a packet and current extracted brief exist. It queues an isolated Scout assessment using the complete resume, cover letter, form answers, note, claims, structured job brief and Profile evidence. Active work, pending questions, workspace capacity and runtime/account gates retain their usual protections; brief edits must be saved first.

@@ -53,6 +53,19 @@ const action = () =>
   page.locator('[data-slot="sidebar-footer"] [data-slot="sidebar-menu-button"]').filter({
     hasText: /Download update|Restart to update|Downloading|Restarting|Check for updates/,
   });
+const expectInlineAction = async () => {
+  const bounds = (await action().boundingBox())!;
+  expect(bounds.width).toBe(32);
+  expect(bounds.height).toBe(32);
+  for (const control of [
+    page.getByRole('link', { name: 'Settings', exact: true }),
+    page.getByRole('button', { name: 'Getting started', exact: true }),
+    page.getByRole('button', { name: 'Dismiss update notice', exact: true }),
+  ]) {
+    const other = (await control.boundingBox())!;
+    expect(other.y + other.height / 2).toBeCloseTo(bounds.y + bounds.height / 2, 0);
+  }
+};
 
 beforeAll(async () => {
   host = await setup(15749);
@@ -84,10 +97,7 @@ test('manual download, changelog tooltip, collapse and session dismissal need no
     };
   });
   await open();
-  const bounds = (await action().boundingBox())!;
-  const settings = page.getByRole('link', { name: 'Settings', exact: true });
-  expect(bounds.width).toBeGreaterThan(160);
-  expect((await settings.boundingBox())!.y).toBeGreaterThanOrEqual(bounds.y + bounds.height);
+  await expectInlineAction();
   await focusAction();
   const tooltip = page.getByRole('tooltip');
   await tooltip.waitFor();
@@ -142,9 +152,11 @@ test('native download stays visible through navigation and enables restart only 
     };
   }, native);
   await open();
+  await expectInlineAction();
   await action().click();
   await update({ downloadPercent: 42 });
   await page.getByRole('button', { name: 'Downloading… 42%' }).waitFor();
+  await expectInlineAction();
   expect(await page.getByRole('button', { name: 'Dismiss update notice' }).isDisabled()).toBe(true);
   expect(await action().getAttribute('aria-disabled')).toBe('true');
   await focusAction();
@@ -165,6 +177,7 @@ test('native download stays visible through navigation and enables restart only 
   await action().click();
   await update({ status: 'downloaded', downloadedVersion: '0.2.0', downloadPercent: 100 });
   await page.getByRole('button', { name: 'Restart to update', exact: true }).waitFor();
+  await expectInlineAction();
   await focusAction();
   expect(await page.getByRole('tooltip').textContent()).toContain(
     'Restarting interrupts running agents',
@@ -178,13 +191,13 @@ test('native download stays visible through navigation and enables restart only 
   ]);
 }, 45000);
 
-test('mobile keeps the full action and older releases have an explicit notes fallback', async () => {
+test('mobile keeps the inline action and older releases have an explicit notes fallback', async () => {
   info = { ...available, latest: { commit: available.latest!.commit, url: available.latest!.url } };
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
   await page.locator('[data-slot="sidebar-trigger"]').click();
   await action().waitFor();
-  expect((await action().boundingBox())!.width).toBeGreaterThan(160);
+  await expectInlineAction();
   await focusAction();
   await page.getByRole('tooltip').waitFor();
   expect(await page.getByRole('tooltip').textContent()).toContain('Release notes unavailable.');
