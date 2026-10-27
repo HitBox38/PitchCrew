@@ -25,7 +25,7 @@ These results establish local daemon and install improvements. They do not estab
 
 ## Verification
 
-The migration retains existing lint, formatting, types, unit/HTTP/MCP/browser tests, Node 22/24 CI shards, native desktop checks and the four-platform installer matrix. A required Bun integration job additionally checks real HTTP session/Host/Origin gates, conditional snapshots, SSE flush/disconnect, persisted SQLite data, Node-bounded attachment/database/document work, MCP stdio and unapproved export rejection.
+Vitest defaults to the same two-worker budget used by CI after an unrestricted local run timed out while heavy checks overlapped; tests and deadlines remain intact. The migration retains existing lint, formatting, types, unit/HTTP/MCP/browser tests, Node 22/24 CI shards, native desktop checks and the four-platform installer matrix. A required Bun integration job additionally checks real HTTP session/Host/Origin gates, conditional snapshots, SSE flush/disconnect, persisted SQLite data, Node-bounded attachment/database/document work, MCP stdio and unapproved export rejection.
 
 The bounded-worker integration tests exercise actual Node and Bun processes, binary IPC, worker errors, heap exhaustion, cancellation, owner crashes, missing/invalid helpers, source PATH lookup, packaged sibling lookup and materialized workspace packages. Unsupported or missing genuine Node helpers fail closed.
 
