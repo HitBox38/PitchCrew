@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Role, Snapshot } from '@pitchcrew/core';
+import { defaultCapabilities, type Role, type Snapshot } from '@pitchcrew/core';
 import { jobLinkAction, scoutJobTarget } from '../link-actions.ts';
 
 const scout = {
@@ -86,5 +86,14 @@ describe('Add job link actions', () => {
       scoutJobTarget({ ...data, roles: [{ ...scout, capabilities: undefined }] }).blocker,
     ).toContain('Scan saved job sources');
     expect(scoutJobTarget({ ...data, runtimes: [] }).blocker).toContain('Install Scout');
+  });
+
+  it('prefers a Scout with browser permission when handing off a posting link', () => {
+    const browserScout = {
+      ...scout,
+      id: 'browser-scout',
+      capabilities: { ...defaultCapabilities, ...scout.capabilities, computerUse: true },
+    };
+    expect(scoutJobTarget({ ...data, roles: [scout, browserScout] }).role).toBe(browserScout);
   });
 });

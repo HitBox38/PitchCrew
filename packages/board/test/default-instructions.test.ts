@@ -129,6 +129,7 @@ describe('default instruction detection', () => {
       '99ee31027dc9d202',
       '4e92b80827a6000b',
       '636c1211e847fe94',
+      '435633186ea43219',
     ]);
     expect(scout.changes[0]).toEqual({
       revision: '5351034367241fe7',
@@ -256,9 +257,9 @@ describe('default instruction detection', () => {
         discoverJobs: true,
       },
     });
-    expect(status(board, 'scout')?.toolDifferences).toEqual(['discoverJobs']);
+    expect(status(board, 'scout')?.toolDifferences).toEqual(['discoverJobs', 'computerUse']);
     expect(board.get<Role>('role', 'scout').capabilities).toMatchObject({ discoverJobs: true });
-    expect(scout.capabilities).toBeUndefined();
+    expect(scout.capabilities).toMatchObject({ discoverJobs: false, computerUse: true });
   });
 
   it('recomputes after each new board event', () => {

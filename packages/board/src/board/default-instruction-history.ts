@@ -60,6 +60,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary:
         'Reads public posting pages and can attach a link and refresh an explicitly selected existing job.',
     },
+    {
+      revision: '435633186ea43219',
+      date: '2026-10-27',
+      summary:
+        'Opens supplied posting links in the in-app browser and saves inspected job details before asking for pasted text.',
+    },
   ],
   writer: [
     {

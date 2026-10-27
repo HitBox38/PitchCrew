@@ -13,6 +13,7 @@ import {
   maxJobSources,
   maxNewLeadsPerScan,
   type JobLinkImportResult,
+  type BrowserSnapshot,
   type JobLookupResult,
   type JobPosting,
   type JobScanSummary,
@@ -228,6 +229,7 @@ export class JobSourceManager {
     signal: AbortSignal;
     authorize: () => void;
     runId: string;
+    readBrowser?: () => Promise<BrowserSnapshot>;
   }): Promise<JobLinkImportResult> => {
     return importJobLink(options.input, {
       fetch: (url, init) => this.fetch(url, init),
@@ -236,6 +238,7 @@ export class JobSourceManager {
       sources: () => this.list(),
       actor: options.actor,
       runId: options.runId,
+      readBrowser: options.readBrowser,
       readPage: (url, signal) => this.readPage(url, signal),
       authorize: options.authorize,
       signal: AbortSignal.any([this.lifetime.signal, options.signal]),

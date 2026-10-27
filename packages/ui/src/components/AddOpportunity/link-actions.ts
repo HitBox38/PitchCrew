@@ -21,9 +21,10 @@ export const scoutJobTarget = (data: Pick<Snapshot, 'roles' | 'runtimes'>) => {
   const scouts = data.roles.filter((role) => !role.retiredAt && workflowSeat(role) === 'scout');
   const enabled = scouts.filter((role) => role.enabled);
   const permitted = enabled.filter((role) => role.capabilities?.discoverJobs);
-  const role = permitted.find((role) =>
+  const available = permitted.filter((role) =>
     data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available),
   );
+  const role = available.find((role) => role.capabilities?.computerUse) ?? available[0];
   const blocker = !enabled.length
     ? 'Enable a Scout agent in Crew to add jobs from other links.'
     : !permitted.length
@@ -35,4 +36,4 @@ export const scoutJobTarget = (data: Pick<Snapshot, 'roles' | 'runtimes'>) => {
 };
 
 export const scoutJobPrompt = (url: string) =>
-  `Add this job to my board from its posting link:\n${url.trim()}\n\nUse the job-link import tool to read the posting and add it as a lead. If it is already on the board, show me the existing job instead. If you cannot read it, ask me for the posting text. Do not shortlist, apply or submit.`;
+  `Add this job to my board from its posting link:\n${url.trim()}\n\nOpen this link in your in-app browser and inspect the loaded posting using your computer tools, following the existing navigation approval flow. Then use the job-link import tool with the current inspected URL, browserDigest and extracted details to add it as a lead. If it is already on the board, show me the existing job instead. Try the browser before asking me for the posting text. If browser tools are disabled, explain how to enable them in Crew. Ask me to handle sign-in or CAPTCHA only if the page actually requires it; ask for text only if browser access is unavailable or the posting is still unreadable. Do not shortlist, apply or submit.`;
