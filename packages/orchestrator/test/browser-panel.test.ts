@@ -2,6 +2,7 @@ import { confirmFixtureJob } from '../../board/test/fixtures/application-context
 import {
   defaultCapabilities,
   type AgentTask,
+  type BrowserSessionInfo,
   type Conversation,
   type Role,
   type Run,
@@ -70,9 +71,79 @@ const fixture = async (port: number) => {
 };
 
 afterEach(async () => {
-  for (const { daemon } of resources) daemon.service.controllers.delete('browser-panel-run');
+  vi.useRealTimers();
+  for (const { daemon } of resources) {
+    daemon.service.controllers.delete('browser-panel-run');
+    daemon.service.controllers.delete('independent-browser-run');
+  }
   await cleanup();
 });
+it.each(['job', 'conversation'] as const)(
+  'returns control of a %s browser independently of another manually controlled session for the same agent',
+  async (kind) => {
+    const { service, request, run, driver } = await fixture(14521);
+    const card =
+      kind === 'job'
+        ? service.createCard({ company: 'Fictional Company', title: 'Engineer' })
+        : undefined;
+    const conversation = service.createConversation({
+      title: 'Independent browser fixture',
+      participants: ['writer'],
+      leadId: 'writer',
+      ...(card ? { cardId: card.id } : {}),
+    });
+    const nextRun: Run = {
+      ...run,
+      id: 'independent-browser-run',
+      cardId: card?.id ?? null,
+      threadId: conversation.id,
+    };
+    service.board.record('run', nextRun, 'user', 'Independent browser run');
+    service.controllers.set(nextRun.id, new AbortController());
+    service.capabilities.set('independent-browser-token', {
+      runId: nextRun.id,
+      roleId: nextRun.roleId,
+      cardId: nextRun.cardId,
+    });
+    const path = `/browser/writer/control?threadId=${conversation.id}`;
+    expect(
+      (await request(`/browser/writer/open?threadId=${conversation.id}`, 'POST')).response.status,
+    ).toBe(200);
+    const own = await request<{ leaseId: string }>(path, 'POST', { operation: 'take' });
+    const other = await request<{ leaseId: string }>(
+      '/browser/writer/control?threadId=writer',
+      'POST',
+      { operation: 'take' },
+    );
+    expect(own.response.status).toBe(200);
+    expect(other.response.status).toBe(200);
+
+    const inspect = async () => {
+      vi.useFakeTimers();
+      try {
+        const pending = service.agentCall('independent-browser-token', 'computer_inspect', {
+          includeImage: false,
+        });
+        await vi.advanceTimersByTimeAsync(30_001);
+        return await pending;
+      } finally {
+        vi.useRealTimers();
+      }
+    };
+    const snapshots = driver.snapshot.mock.calls.length;
+    expect(await inspect()).toMatchObject({ status: 'manual' });
+    expect(driver.snapshot).toHaveBeenCalledTimes(snapshots);
+    const returned = await request(path, 'POST', {
+      operation: 'release',
+      leaseId: own.result.leaseId,
+    });
+    expect(returned.response.status).toBe(200);
+    const panel = await request<BrowserSessionInfo[]>(`/browser?threadId=${conversation.id}`);
+    expect(panel.result).toMatchObject([{ roleId: 'writer', manual: false }]);
+    expect(await inspect()).toMatchObject({ page: { title: 'Fictional application' } });
+    expect(service.computer.browsers.forRole(run.id).info.manual).toBe(true);
+  },
+);
 it('protects browser frames, manual input and task permissions with the user session and conversation membership', async () => {
   const { daemon, request, cookie, service, driver, run } = await fixture(14516);
   const path = '/browser/writer/control?threadId=writer';

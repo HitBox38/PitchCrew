@@ -32,26 +32,6 @@ export const computerAction = async (
   const conversation = active.threadId
     ? context.board.list<Conversation>('conversation').find((item) => item.id === active.threadId)
     : undefined;
-  const deadline = Date.now() + 30_000;
-  while (
-    context.computer.browsers
-      .list()
-      .some((item) => item.roleId === capability.roleId && item.manual) &&
-    Date.now() < deadline
-  ) {
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    authorize();
-  }
-  if (
-    context.computer.browsers
-      .list()
-      .some((item) => item.roleId === capability.roleId && item.manual)
-  )
-    return {
-      status: 'manual',
-      message:
-        'The user has browser control. Call computer_inspect again to wait. Keep the run alive; do not inspect or act while the user controls it.',
-    };
   context.computer.bindBrowser({
     ...capability,
     threadId: active.threadId,
@@ -65,6 +45,17 @@ export const computerAction = async (
             role.browserMode ??
             'supervised'),
   });
+  const deadline = Date.now() + 30_000;
+  while (context.computer.browsers.forRun(capability.runId)?.info.manual && Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    authorize();
+  }
+  if (context.computer.browsers.forRun(capability.runId)?.info.manual)
+    return {
+      status: 'manual',
+      message:
+        'The user has browser control. Call computer_inspect again to wait. Keep the run alive; do not inspect or act while the user controls it.',
+    };
   if (action === 'assess_form' || action === 'capture_submission') {
     const current = context.board.get<Role>('role', capability.roleId);
     if (action === 'assess_form') {
