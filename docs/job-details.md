@@ -41,3 +41,9 @@ Sections mount on first visit and remain mounted afterward. Collapsed editors us
 The sheet uses Base UI dialog semantics, focus management, tabs and accordions, with the same shared materials and reduced-motion treatment as the rest of the app. Recessed segmented tabs, raised clay reading and application sections, a serif job title and tactile agent controls preserve the app's material identity within the compact layout. Its footer accounts for mobile safe areas, and Electron's existing title-bar bounds apply to the sheet and backdrop.
 
 Regression coverage includes initial reading layout, mobile bounds, draft preservation/save/close behavior, live workflow previews, turn-targeted chat navigation, saved turn replay, source-extraction progress and existing deep-review/board flows. Provider calls remain outside automated verification.
+
+## Form requirements before drafting
+
+For a linked job, the prerequisite-aware footer leads to **Inspect application form** before Draft application. The brief section lets the user select an enabled agent with browser and form assessment tools, opens its attached inspection conversation, and shows the captured required/optional fields, file types, choices, length limits and uninspected sections on return. The user confirms these findings with the complete brief. If inspection is unavailable, an explicit manual-check checkbox allows an uninspected packet while keeping that limitation visible. Jobs without application links explain the missing inspection.
+
+Writer and Reviewer receive the confirmed summary in their isolated context and card tool. A changed inspection requires new confirmation and packet review; old approvals cannot authorize the changed requirements. Exact browser action approval, export and final submission remain separate decisions.

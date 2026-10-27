@@ -25,3 +25,5 @@ Existing unsent packets, including Ready packets and previously exported packets
 Extraction failure, invalid extraction output or a runtime unable to enforce the required context and tool restrictions stops drafting. Recovery can retry, use a supported runtime selected by the user, or accept a manually prepared brief through the same confirmation step. Recovery must not fall back to passing the original description into a drafting run.
 
 See [the implementation plan](../application-source-safety.md) for rollout, enforcement paths, verification and residual limitations.
+
+As of 2026-10-27, application form inspection precedes drafting for linked jobs unless the user explicitly chooses manual checking. A bounded field/file requirement summary joins the complete brief confirmation and context revision; it contains no browser prose, HTML, selectors or entered values. Saved assessments do not enter isolated drafting until the user adopts their summary. Changed form requirements require confirmation and packet review again. This applies the same source boundary to browser-discovered requirements while retaining explicit incomplete-inspection limitations.

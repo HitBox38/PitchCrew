@@ -103,6 +103,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary:
         'Adds application insights: apply your lessons on framing, emphasis and tone when allowed.',
     },
+    {
+      revision: '1aac02440890f5af',
+      date: '2026-10-27',
+      summary:
+        'Uses confirmed form fields, upload formats and length limits before drafting, and records uninspected limitations.',
+    },
   ],
   reviewer: [
     {
@@ -122,6 +128,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       summary:
         'Enforces your packet rules instead of fixed word limits. Rule warnings are advice, not blockers.',
     },
+    {
+      revision: '0b63799645984b9e',
+      date: '2026-10-27',
+      summary:
+        'Reviews the whole packet against the confirmed application form requirement summary.',
+    },
   ],
   submitter: [
     {
@@ -134,6 +146,12 @@ export const defaultInstructionHistory: Record<string, RecordedRevision[]> = {
       date: '2026-10-12',
       summary:
         'Uses chat browser supervision, user-granted autonomous preparation and private manual takeover; submission still requires exact approval.',
+    },
+    {
+      revision: '02a53bb26e867e30',
+      date: '2026-10-27',
+      summary:
+        'Inspects forms before drafting without requiring exported files, then rechecks requirements during submission preparation.',
     },
   ],
   tracker: [

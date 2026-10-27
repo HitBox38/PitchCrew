@@ -123,6 +123,7 @@ it('requires explicit cross-application review permissions, scopes before pagina
 
 it('persists criteria, evidence snapshots, distinct hypotheses and measurable follow-ups with notifications before adoption', async () => {
   const { daemon, input, evidence, call, request } = await fixture(14801);
+  const writerInstructions = daemon.service.board.get<Role>('role', 'writer').instructions;
   await expect(
     call('save_pipeline_review', {
       ...input,
@@ -140,9 +141,7 @@ it('persists criteria, evidence snapshots, distinct hypotheses and measurable fo
     from: 'scout',
     to: 'user',
   });
-  expect(daemon.service.board.get<Role>('role', 'writer').instructions).not.toContain(
-    'before drafting',
-  );
+  expect(daemon.service.board.get<Role>('role', 'writer').instructions).toBe(writerInstructions);
   await expect(
     call('update_pipeline_review', {
       reviewId: review.id,

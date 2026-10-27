@@ -24,6 +24,7 @@ export const confirmFixtureJob = (board: Board, id: string) => {
       },
       requirements: [],
       flagged: [],
+      ...(card.url ? { form: { status: 'manual' } } : {}),
     },
     true,
   );

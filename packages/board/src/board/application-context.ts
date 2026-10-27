@@ -1,6 +1,8 @@
 import {
   extractedJobSchema,
   missingPersonalAnswers,
+  applicationFormIsCurrent,
+  inspectedApplicationForm,
   type Card,
   type ApplicationContext,
   type ExtractedJob,
@@ -25,7 +27,9 @@ export const jobSourceRevision = (card: Card) => {
 };
 export const applicationRevision = (sourceRevision: string, data: ExtractedJob) => {
   const parsed = extractedJobSchema.parse(data);
-  return digest([sourceRevision, parsed.brief, parsed.requirements, parsed.flagged]);
+  const parts: unknown[] = [sourceRevision, parsed.brief, parsed.requirements, parsed.flagged];
+  if (parsed.form) parts.push(parsed.form);
+  return digest(parts);
 };
 export const assertExtractedContext = (card: Card): ApplicationContext => {
   const context = card.applicationContext;
@@ -36,6 +40,7 @@ export const assertExtractedContext = (card: Card): ApplicationContext => {
       brief: context.brief,
       requirements: context.requirements,
       flagged: context.flagged,
+      form: context.form,
     }) !== context.revision
   )
     throw new Error('Extract or prepare this job’s application brief first.');
@@ -43,6 +48,10 @@ export const assertExtractedContext = (card: Card): ApplicationContext => {
 };
 export const assertConfirmedContext = (card: Card): ApplicationContext => {
   const context = assertExtractedContext(card);
+  if (!applicationFormIsCurrent(card))
+    throw new Error(
+      'Inspect the application form and confirm its requirements, or explicitly choose to check the form yourself.',
+    );
   if (!context.confirmedAt || context.confirmedRevision !== context.revision)
     throw new Error('Review and confirm this job’s application brief before drafting.');
   return context;
@@ -91,6 +100,19 @@ export const saveApplicationContext = (
     )
       throw new Error('The job or brief changed. Review its current version.');
     const revision = applicationRevision(expectedSource, extracted);
+    if (
+      extracted.form?.status === 'inspected' &&
+      JSON.stringify(extracted.form) !== JSON.stringify(inspectedApplicationForm(card))
+    )
+      throw new Error(
+        'The inspected form changed. Reload and review its current fields and files.',
+      );
+    if (confirm && (card.url || card.formAssessments?.length) && !extracted.form)
+      throw new Error(
+        'Inspect the application form first, or explicitly choose to check the form yourself.',
+      );
+    if (confirm && extracted.form?.status === 'manual' && card.formAssessments?.length)
+      throw new Error('Review and confirm the inspected form requirements before drafting.');
     const same = card.applicationContext?.revision === revision;
     const now = new Date().toISOString();
     const applicationContext: ApplicationContext = {

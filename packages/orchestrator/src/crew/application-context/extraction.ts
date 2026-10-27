@@ -7,6 +7,7 @@ import { jobSourceRevision, saveApplicationContext } from '@pitchcrew/board';
 import {
   customCapabilities,
   extractedJobSchema,
+  inspectedApplicationForm,
   type Card,
   type Role,
   type Run,
@@ -41,6 +42,7 @@ const extractApplicationContextPrepared = async (
   const sourceRevision = jobSourceRevision(card);
   const previousRevision = card.applicationContext?.revision ?? null;
   const source = applicationSource(card);
+  const form = inspectedApplicationForm(card) ?? card.applicationContext?.form;
   const run: Run = {
     id: randomUUID(),
     cardId,
@@ -86,6 +88,7 @@ const extractApplicationContextPrepared = async (
             location: card.location,
             salary: card.salary,
             description: source.text,
+            form,
           }),
           card: null,
           profile: [],
@@ -114,6 +117,8 @@ const extractApplicationContextPrepared = async (
     if (controller.signal.aborted || context.closing) throw new Error('Extraction cancelled.');
     // Model-supplied answers never become user evidence.
     const extracted = extractedJobSchema.parse(JSON.parse(result.reply));
+    // Form metadata is server-inspected evidence, never invented by the extractor.
+    extracted.form = form;
     extracted.flagged = [...source.flagged, ...extracted.flagged];
     if (extracted.flagged.length > 60)
       throw new Error('Too many flagged directives. Prepare and review the brief manually.');

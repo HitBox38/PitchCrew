@@ -56,6 +56,22 @@ it('requires a current confirmed brief and personal answers before the single dr
   expect(base.brief.startDraft).toHaveBeenCalledOnce();
   expect(base.act).not.toHaveBeenCalled();
 });
+
+it('directs linked applications to form inspection before the draft action', () => {
+  const base = model();
+  const next = jobNextAction({ ...base, card: { ...base.card, url: 'https://example.com/apply' } });
+  expect(next.label).toBe('Inspect application form');
+  next.perform();
+  expect(base.openApplication).toHaveBeenCalledWith('brief');
+  expect(base.brief.startDraft).not.toHaveBeenCalled();
+  expect(
+    jobNextAction({
+      ...base,
+      card: { ...base.card, url: 'https://example.com/apply' },
+      brief: { ...base.brief, draft: { ...base.brief.draft, form: { status: 'manual' } } },
+    }).label,
+  ).toBe('Draft application');
+});
 it.each(['other-job', null])(
   'allows application actions while the same agent runs in a separate queue (%s)',
   (cardId) => {
