@@ -1,4 +1,4 @@
-import { failureCategory } from '@pitchcrew/core/operational-logs';
+import { failureDetails } from '@pitchcrew/core/operational-logs';
 import { reserveLaunch } from './queue/admission.ts';
 import { ensureQueue } from './queue/state.ts';
 import { agentChatReferences } from '@pitchcrew/core/chat-references';
@@ -452,7 +452,9 @@ const startChatRunPrepared = async (
       recordOperationalLog(context.diagnostics, {
         code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
         area: 'chat',
-        failure_category: controller.signal.aborted ? 'aborted' : failureCategory(error),
+        ...(controller.signal.aborted
+          ? { failure_category: 'aborted' as const }
+          : failureDetails(error)),
       });
       const message = error instanceof Error ? error.message : 'Chat failed.';
       context.board.record(

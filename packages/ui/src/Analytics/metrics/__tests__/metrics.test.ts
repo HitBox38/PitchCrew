@@ -66,6 +66,23 @@ describe('session-observed run metrics', () => {
     startedAt = '2026-10-12T00:00:02Z',
     finishedAt: string | null = null,
   ) => ({ id, status, startedAt, finishedAt, mode: 'chat' as const });
+  it('excludes managed review seat reservations from terminal outcomes', () => {
+    const record = vi.fn();
+    let clock = Date.parse('2026-10-12T00:00:01Z');
+    const observer = createRunMetrics(
+      { record },
+      () => true,
+      () => clock,
+    );
+    clock += 2000;
+    const reservation = { ...run('reservation', 'running'), reviewSeatReservation: true };
+    observer.observe([reservation, run('stage', 'running')]);
+    observer.observe([{ ...reservation, status: 'failed' }, run('stage', 'failed')]);
+    expect(record).toHaveBeenCalledExactlyOnceWith('run_finished', {
+      mode: 'chat',
+      outcome: 'failed',
+    });
+  });
   it('excludes history and unobserved completions, waits for a real terminal outcome and deduplicates snapshots', () => {
     const record = vi.fn();
     let clock = Date.parse('2026-10-12T00:00:01Z');

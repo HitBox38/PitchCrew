@@ -30,6 +30,54 @@ const wall = 1_797_000_000_000;
 afterEach(cleanup);
 
 describe('AI runtime boundaries', () => {
+  it.each(['workflow', 'chat'] as const)(
+    'keeps safe exit details through the actual %s failure catch',
+    async (mode) => {
+      const { daemon, request } = await setup(14589);
+      const record = vi.spyOn(daemon.service.diagnostics!, 'record');
+      const error = Object.assign(new Error('private provider stderr'), {
+        code: 'PITCHCREW_RUNTIME_EXIT',
+        exitCode: 7,
+        signal: null,
+      });
+      let run: Run;
+      if (mode === 'workflow') {
+        await request('/profile', 'PUT', {
+          name: 'profile.md',
+          content: '# Fictional Candidate\nBuilt interfaces.',
+        });
+        const { result: card } = await request<Card>('/cards', 'POST', {
+          company: 'Fixture',
+          title: 'Engineer',
+        });
+        await confirmFixtureApplication(request, card.id);
+        vi.spyOn(adapters.demo, 'run').mockRejectedValueOnce(error);
+        run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'scout' })).result;
+      } else {
+        vi.spyOn(adapters.demo, 'chat').mockRejectedValueOnce(error);
+        run = (await request<Run>('/roles/scout/chat', 'POST', { content: 'Fixture' })).result;
+      }
+      await vi.waitFor(() =>
+        expect(
+          record.mock.calls.filter(([event]) =>
+            ['$ai_trace', '$ai_span', 'operational_log'].includes(event),
+          ),
+        ).toHaveLength(3),
+      );
+      for (const [, properties] of record.mock.calls) {
+        expect(properties).toMatchObject({
+          failure_category: 'process_exit',
+          runtime_exit_code: 7,
+        });
+        expect(properties).not.toHaveProperty('runtime_exit_signal');
+      }
+      expect(JSON.stringify(record.mock.calls)).not.toContain('private');
+      expect(daemon.service.board.get<Run>('run', run.id)).toMatchObject({
+        status: 'failed',
+        message: error.message,
+      });
+    },
+  );
   it('instruments actual workflow and chat launches without board IDs or private context', async () => {
     const { daemon, request } = await setup(14589);
     const record = vi.spyOn(daemon.service.diagnostics!, 'record');

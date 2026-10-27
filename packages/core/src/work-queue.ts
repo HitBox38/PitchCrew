@@ -15,6 +15,10 @@ export const queueSequenceProblems = (card: Card, requests: ChatRequest[]): Map<
   for (const request of requests) {
     const action = request.boardAction;
     if (!action) continue;
+    if (action === 'reevaluate') {
+      if (!packet) problems.set(request.id, 'Reevaluation needs a packet first.');
+      continue;
+    }
     if (action === 'review' && !packet) problems.set(request.id, 'Review needs a draft first.');
     const allowed =
       action === 'fit'
@@ -35,9 +39,10 @@ export const queueSequenceProblems = (card: Card, requests: ChatRequest[]): Map<
   return problems;
 };
 
-export type BoardAction = 'fit' | 'draft' | 'review' | 'deep-review';
+export type BoardAction = 'fit' | 'draft' | 'review' | 'deep-review' | 'reevaluate';
 export const boardActionLabels: Record<BoardAction, string> = {
   fit: 'Evaluate fit',
+  reevaluate: 'Reevaluate with packet',
   draft: 'Draft application',
   review: 'Review packet',
   'deep-review': 'Deep review resume',

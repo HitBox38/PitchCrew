@@ -4,21 +4,22 @@ import { JobSheet } from './components/JobSheet.tsx';
 import { JobSummary } from './components/JobSummary.tsx';
 import { JobTabs } from './components/JobTabs.tsx';
 import { JobActions } from './components/JobActions.tsx';
+import { JobLoading } from './components/JobLoading.tsx';
 import type { CardDetailsProps } from './types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
+import { AddOpportunity } from '@/components/AddOpportunity/index.tsx';
 
 export const CardDetails = (props: CardDetailsProps) => {
   const source = useCardSource(props.card, props.data.workspace === true);
   if (!source.ready)
     return (
-      <JobSheet onClose={props.onClose}>
-        <div className="p-5">
-          <p>{source.error || 'Opening job…'}</p>
-          {source.error ? <Button onClick={source.retry}>Retry</Button> : null}
-          <Button onClick={props.onClose}>Close</Button>
-        </div>
-      </JobSheet>
+      <JobLoading
+        card={props.card}
+        onClose={props.onClose}
+        error={source.error}
+        onRetry={source.retry}
+      />
     );
   return (
     <CardDetailsContent
@@ -45,6 +46,16 @@ const CardDetailsContent = (
       <JobTabs {...model} />
       <JobActions {...model} />
       <DiscardChanges guard={model.guard} />
+      {model.editing ? (
+        <AddOpportunity
+          card={props.card}
+          data={props.data}
+          action={props.action}
+          working={props.working}
+          saveBlocker={model.editBlocker}
+          onClose={() => model.setEditing(false)}
+        />
+      ) : null}
     </JobSheet>
   );
 };

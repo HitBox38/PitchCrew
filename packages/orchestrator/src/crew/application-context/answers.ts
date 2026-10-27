@@ -1,4 +1,10 @@
-import type { Card, ChatMessage, Run, UserInputRequest } from '@pitchcrew/core';
+import {
+  formHasQuestion,
+  type Card,
+  type ChatMessage,
+  type Run,
+  type UserInputRequest,
+} from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 
 /** Recover user-authored answers directly; never copy agent continuation notes or requests. */
@@ -8,15 +14,21 @@ export const applicationUserAnswers = (
   roleId: string,
   purpose: Run['purpose'],
 ) => {
-  const requirements =
-    context.board.get<Card>('card', cardId).applicationContext?.requirements ?? [];
+  const application = context.board.get<Card>('card', cardId).applicationContext;
+  const requirements = application?.requirements ?? [];
+  const isFormQuestion = (question: UserInputRequest) =>
+    Boolean(
+      application &&
+      question.applicationContextRevision === application.revision &&
+      formHasQuestion(application.form, question.question),
+    );
   return context.board
     .list<UserInputRequest>('user_input')
     .filter(
       (question) =>
         question.status === 'answered' &&
         question.cardId === cardId &&
-        question.roleId === roleId &&
+        (question.roleId === roleId || isFormQuestion(question)) &&
         question.answer &&
         question.answerMessageId,
     )
@@ -24,7 +36,11 @@ export const applicationUserAnswers = (
       const origin = context.board.get<Run>('run', question.runId);
       return question.applicationRequirementId
         ? ['application-draft', 'application-review'].includes(origin.purpose ?? '')
-        : purpose === 'fit' && origin.purpose === 'fit';
+        : (['application-draft', 'application-review'].includes(purpose ?? '') &&
+            ['application-draft', 'application-review'].includes(origin.purpose ?? '') &&
+            isFormQuestion(question)) ||
+            (['fit', 'packet-evaluation'].includes(purpose ?? '') &&
+              ['fit', 'packet-evaluation'].includes(origin.purpose ?? ''));
     })
     .flatMap((question) => {
       const message = context.board.get<ChatMessage>('message', question.answerMessageId!);
@@ -47,7 +63,14 @@ export const applicationUserAnswers = (
         !requirements.some((r) => r.id === question.applicationRequirementId && r.answer === answer)
       )
         return [];
-      return [{ questionId: question.id, messageId: message.id, answer }];
+      return [
+        {
+          questionId: question.id,
+          messageId: message.id,
+          answer,
+          ...(isFormQuestion(question) ? { question: question.question } : {}),
+        },
+      ];
     })
     .slice(-40);
 };

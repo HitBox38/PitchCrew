@@ -1,3 +1,4 @@
+import { diagnosticRequestHeaders } from '../Analytics/request-context.ts';
 import { api } from '@/api.ts';
 import type { BrowserFrame, BrowserInput, BrowserSessionInfo } from '@pitchcrew/core';
 export const streamBrowser = async (
@@ -8,7 +9,7 @@ export const streamBrowser = async (
 ) => {
   const response = await fetch(`/api${browserPath(roleId, threadId, 'stream')}`, {
     signal,
-    headers: { 'x-pitchcrew-client': 'ui' },
+    headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
     cache: 'no-store',
   });
   if (!response.ok) {
@@ -24,17 +25,20 @@ export const streamBrowser = async (
       const { value, done } = await reader.read();
       if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      if (buffer.length > 2_000_000) throw new Error('Browser frame exceeded the size limit.');
       let newline: number;
       while ((newline = buffer.indexOf('\n')) !== -1) {
+        if (newline > 2_000_000) throw new Error('Browser frame exceeded the size limit.');
         const line = buffer.slice(0, newline);
         buffer = buffer.slice(newline + 1);
         if (!line) continue;
-        const frame = JSON.parse(line) as BrowserFrame & { error?: string };
+        const frame = JSON.parse(line) as BrowserFrame & { error?: string; heartbeat?: boolean };
+        if (frame.heartbeat) continue;
         if (frame.error) throw new Error(frame.error);
         receive(frame);
       }
+      if (buffer.length > 2_000_000) throw new Error('Browser frame exceeded the size limit.');
     }
+    if (!signal.aborted) throw new Error('Browser view disconnected. Reconnecting…');
   } finally {
     await reader.cancel().catch(() => {});
     reader.releaseLock();

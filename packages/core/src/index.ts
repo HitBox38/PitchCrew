@@ -3,6 +3,7 @@ export * from './application-quality.ts';
 export * from './work-queue.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';
+export * from './application-form.ts';
 export * from './pipeline-reviews.ts';
 export type { AppBuild, AppUpdateInfo } from './app-updates.ts';
 export type { DesktopUpdateBridge, DesktopUpdateState } from './desktop-updates.ts';
@@ -23,9 +24,10 @@ export {
   maxJobBatchSize,
   jobDetailsChanges,
   updateJobInput,
+  editJobInput,
 } from './job-management.ts';
 export * from './tracking.ts';
-export type { Card, CardInput, CardLesson } from './cards.ts';
+export type { Card, CardInput, CardLesson, PacketFit } from './cards.ts';
 export * from './insights.ts';
 export * from './learning.ts';
 export { chatInput, chatResultSchema, chatReferenceInput } from './chat.ts';

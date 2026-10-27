@@ -3,7 +3,10 @@ import { durationLimitMs, runOutcomes, sanitizeRunMetric } from './sanitize.ts';
 
 const completedOutcomes: ReadonlySet<string> = new Set(runOutcomes);
 
-type ObservedRun = Pick<Run, 'id' | 'status' | 'mode' | 'startedAt' | 'finishedAt'>;
+type ObservedRun = Pick<
+  Run,
+  'id' | 'status' | 'mode' | 'startedAt' | 'finishedAt' | 'reviewSeatReservation'
+>;
 
 /** Observe only active runs first seen after this observer was installed. IDs stay local.
  * Stop admitting runs at capacity rather than evicting dedup state and replaying history.
@@ -28,6 +31,7 @@ export const createRunMetrics = (
         return;
       }
       for (const run of runs) {
+        if (run.reviewSeatReservation) continue;
         if (typeof run.id !== 'string' || !run.id.length || run.id.length > 128) continue;
         let entry = observed.get(run.id);
         if (!entry) {

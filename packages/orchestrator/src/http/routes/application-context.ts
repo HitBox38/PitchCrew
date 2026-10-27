@@ -1,5 +1,11 @@
 import { jobSourceRevision, saveApplicationContext } from '@pitchcrew/board';
-import { extractedJobSchema, roleIdSchema, type Card } from '@pitchcrew/core';
+import {
+  extractedJobSchema,
+  roleIdSchema,
+  inspectedApplicationForm,
+  applicationFormIsCurrent,
+  type Card,
+} from '@pitchcrew/core';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { CrewService } from '../../service.ts';
@@ -13,8 +19,16 @@ export const registerApplicationContextRoutes = (app: FastifyInstance, service: 
       sourceRevision: jobSourceRevision(card),
       context: card.applicationContext ?? null,
       flagged: applicationSource(card).flagged,
+      form: inspectedApplicationForm(card) ?? null,
+      formCurrent: applicationFormIsCurrent(card),
     };
   });
+  app.post<IdRoute>('/api/cards/:id/application-form/inspect', (req) =>
+    service.inspectApplicationForm(
+      req.params.id,
+      z.object({ roleId: roleIdSchema }).strict().parse(req.body).roleId,
+    ),
+  );
   app.post<IdRoute>('/api/cards/:id/application-context/extract', (req) =>
     service.extractApplicationContext(
       req.params.id,

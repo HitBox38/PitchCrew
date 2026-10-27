@@ -37,6 +37,23 @@ const setup = (
 afterEach(() => vi.useRealTimers());
 
 describe('native PostHog OTLP logs', () => {
+  it('sends bounded runtime exit metadata through the log sanitizer and OTLP encoder', async () => {
+    const { transport, send } = setup();
+    await transport.capture('operational_log', {
+      ...log,
+      failure_category: 'process_exit',
+      runtime_exit_code: 0,
+      runtime_exit_signal: 'SIGTERM',
+    });
+    const payload = JSON.parse(send.mock.calls[0]![1]!.body as string);
+    expect(payload.resourceLogs[0].scopeLogs[0].logRecords[0].attributes).toEqual(
+      expect.arrayContaining([
+        { key: 'runtime_exit_code', value: { intValue: '0' } },
+        { key: 'runtime_exit_signal', value: { stringValue: 'SIGTERM' } },
+      ]),
+    );
+    expect(JSON.stringify(payload)).not.toContain('private');
+  });
   it('sends only reviewed records as OTLP JSON with public project auth, no content or referrer', async () => {
     const { transport, send } = setup();
     expect(await transport.capture('operational_log', log)).toBe(true);
@@ -71,6 +88,74 @@ describe('native PostHog OTLP logs', () => {
     ]);
     expect(request!.body).not.toContain('private');
     expect(request!.body).not.toContain('/Users');
+    transport.dispose();
+  });
+  it('retains fixed HTTP operation context through transport sanitization and OTLP encoding', async () => {
+    const { transport, send } = setup();
+    for (const operation of ['packet_export_requested', 'packet_exported', 'workflow_started']) {
+      expect(
+        await transport.capture('operational_log', {
+          code: 'http_request_failed',
+          area: 'http',
+          http_status: 400,
+          failure_category: 'validation',
+          operation,
+          url: '/cards/private-id/run?token=private-token',
+          message: 'private error',
+        }),
+      ).toBe(true);
+      const body = send.mock.lastCall![1]!.body as string;
+      const record = JSON.parse(body).resourceLogs[0].scopeLogs[0].logRecords[0];
+      expect(record.attributes).toEqual(
+        expect.arrayContaining([
+          { key: 'http_status', value: { intValue: '400' } },
+          { key: 'failure_category', value: { stringValue: 'validation' } },
+          { key: 'operation', value: { stringValue: operation } },
+        ]),
+      );
+      expect(body).not.toContain('private');
+    }
+    transport.dispose();
+  });
+  it('preserves the originating request IDs through the relay instead of using the uploading tab', async () => {
+    const { transport, send } = setup();
+    const ids = {
+      traceId: '1234567890abcdef1234567890abcdef',
+      spanId: '1234567890abcdef',
+      traceFlags: 1,
+      sessionId: '019a1234-5678-7000-8000-000000000001',
+      posthogDistinctId: '019a1234-5678-7000-8000-000000000002',
+    };
+    expect(
+      await transport.capture('operational_log', {
+        code: 'http_request_failed',
+        area: 'http',
+        ...ids,
+      }),
+    ).toBe(true);
+    const record = JSON.parse(send.mock.lastCall![1]!.body as string).resourceLogs[0].scopeLogs[0]
+      .logRecords[0];
+    expect(record).toMatchObject({ traceId: ids.traceId, spanId: ids.spanId, flags: 1 });
+    expect(record.attributes).toEqual(
+      expect.arrayContaining([
+        { key: 'sessionId', value: { stringValue: ids.sessionId } },
+        { key: 'posthogDistinctId', value: { stringValue: ids.posthogDistinctId } },
+      ]),
+    );
+    expect(JSON.stringify(record)).not.toContain('sdk-anonymous-id');
+    transport.dispose();
+  });
+  it('leaves uncorrelated HTTP logs unlinked rather than assigning the uploader session or identity', async () => {
+    const { transport, send } = setup();
+    await transport.capture('operational_log', { code: 'http_request_failed', area: 'http' });
+    const record = JSON.parse(send.mock.lastCall![1]!.body as string).resourceLogs[0].scopeLogs[0]
+      .logRecords[0];
+    expect(record).not.toHaveProperty('traceId');
+    expect(
+      record.attributes.filter((attr: { key: string }) =>
+        ['posthogDistinctId', 'sessionId'].includes(attr.key),
+      ),
+    ).toEqual([]);
     transport.dispose();
   });
   it('drops missing consent, config, SDK identity, unknown codes and unsafe config without queuing', async () => {

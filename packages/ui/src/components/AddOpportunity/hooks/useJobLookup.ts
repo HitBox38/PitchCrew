@@ -4,7 +4,7 @@ import { lookupJob } from '../api.ts';
 import { fillJobForm, snapshotJobForm } from '../helpers.ts';
 
 /** Fetch a pasted posting link and fill the Add job form for the user to review. */
-export const useJobLookup = () => {
+export const useJobLookup = (editing?: { id: string; url: string }, onFill?: () => void) => {
   const changeLink = (event?: ChangeEvent<HTMLInputElement>) => {
     controller.current?.abort();
     setUrl(event?.currentTarget.value ?? '');
@@ -32,13 +32,14 @@ export const useJobLookup = () => {
           scoutUrl: result.status === 'unrecognized' ? requestedUrl.trim() : null,
         });
       fillJobForm(form, result.prefill, previous, initial);
+      onFill?.();
       setUrl(result.prefill.url);
       lastPrefill.current = result.prefill;
       setState({
         pending: false,
-        message: 'Filled from the posting. Review the details before you add the job.',
+        message: `Filled from the posting. Review the details before you ${editing ? 'save changes' : 'add the job'}.`,
         prefill: result.prefill,
-        duplicates: result.duplicates,
+        duplicates: result.duplicates.filter((card) => card.id !== editing?.id),
         scoutUrl: null,
       });
     } catch (error) {
@@ -50,7 +51,7 @@ export const useJobLookup = () => {
     }
   };
 
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState(editing?.url ?? '');
   const [state, setState] = useState<JobLookupState>(idle);
   const controller = useRef<AbortController | null>(null);
   const lastPrefill = useRef<JobLookupPrefill | null>(null);

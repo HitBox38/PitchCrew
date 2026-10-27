@@ -253,3 +253,21 @@ it('isolates parallel job tabs and manual leases while sharing the agent profile
   await manager.browsers.closeRole(firstKey);
   expect(tab.close).not.toHaveBeenCalled();
 });
+
+it('discards in-flight agent evidence even when manual control has already been returned', async () => {
+  const { manager, scope, drivers, page } = await fixture();
+  await manager.inspect(scope.runId);
+  let finish!: (value: BrowserSnapshot) => void;
+  drivers[0].snapshot.mockImplementationOnce(
+    () =>
+      new Promise<BrowserSnapshot>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const pending = manager.inspect(scope.runId);
+  await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+  const lease = manager.takeControl('writer');
+  await manager.returnControl('writer', lease);
+  finish({ ...page, text: 'private takeover evidence' });
+  await expect(pending).rejects.toThrow('Manual control changed');
+});

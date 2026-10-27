@@ -1,7 +1,14 @@
 import { reviewFixturePacket } from '../../board/test/fixtures/application-context.ts';
-import { Board, digestArtifacts } from '@pitchcrew/board';
+import {
+  Board,
+  digestArtifacts,
+  jobSourceRevision,
+  saveApplicationContext,
+  assertConfirmedContext,
+} from '@pitchcrew/board';
 import {
   cardInput,
+  inspectedApplicationForm,
   type BrowserSnapshot,
   type Card,
   type SubmissionAttempt,
@@ -78,6 +85,49 @@ const fixture = async (formats: ('pdf' | 'docx')[] = []) => {
 const cleanup: (() => Promise<void>)[] = [];
 afterEach(async () => {
   for (const dispose of cleanup.splice(0)) await dispose();
+});
+
+it('preserves approval for unchanged requirements and expires it when inspected upload formats change', async () => {
+  const { board, card, manager, scope, page } = await fixture();
+  await manager.assess(scope, {
+    fields: [{ selector: '#resume', missingAnswer: 'Reviewed resume file' }],
+  });
+  const current = board.get<Card>('card', card.id);
+  const context = current.applicationContext!;
+  saveApplicationContext(
+    board,
+    card.id,
+    jobSourceRevision(current),
+    context.revision,
+    {
+      brief: context.brief,
+      requirements: context.requirements,
+      flagged: context.flagged,
+      form: inspectedApplicationForm(current),
+    },
+    true,
+  );
+  board.record(
+    'card',
+    { ...board.get<Card>('card', card.id), state: 'agreed' },
+    'user',
+    'Fixture review',
+  );
+  reviewFixturePacket(board, card.id);
+  const approval = board.requestApproval(card.id);
+  board.decideApproval(approval.id, true);
+  await manager.assess(scope, { fields: [{ selector: '#resume', missingAnswer: '' }] });
+  expect(board.get<{ status: string }>('approval', approval.id).status).toBe('approved');
+  expect(board.get<Card>('card', card.id).packetReview).toBeDefined();
+  page.controls![0]!.accept = '.docx';
+  await manager.assess(scope, { fields: [{ selector: '#resume' }] });
+  expect(board.get<{ status: string }>('approval', approval.id).status).toBe('rejected');
+  expect(board.get<Card>('card', card.id).packetReview).toBeUndefined();
+  expect(() => assertConfirmedContext(board.get<Card>('card', card.id))).toThrow(
+    'Inspect the application form',
+  );
+  board.rebuild();
+  expect(board.get<{ status: string }>('approval', approval.id).status).toBe('rejected');
 });
 
 it('persists only server-inspected fields and clearly separates conditional annotations and unknown sections', async () => {

@@ -1,12 +1,13 @@
 {
   "name": "@pitchcrew/orchestrator",
-  "version": "0.13.0",
+  "version": "0.14.0",
   "private": true,
   "type": "module",
   "exports": "./src/server.ts",
   "dependencies": {
     "@fastify/cookie": "11.1.2",
     "@fastify/static": "10.1.5",
+    "@opentelemetry/api": "1.9.0",
     "@pitchcrew/adapters": "workspace:*",
     "@pitchcrew/board": "workspace:*",
     "@pitchcrew/core": "workspace:*",

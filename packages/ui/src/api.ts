@@ -3,6 +3,7 @@ import { actionEvent } from './Analytics/helpers.ts';
 import { apiErrorAction, reportErrorDiagnostic } from './Analytics/error-tracking.ts';
 import type { ErrorCategory } from './Analytics/error-sanitizer.ts';
 import { beginApiMetric } from './Analytics/metrics/runtime.ts';
+import { diagnosticRequestHeaders } from './Analytics/request-context.ts';
 
 export interface ConditionalRequest {
   etag: string | null;
@@ -29,6 +30,7 @@ export const api = (async <T>(
       ...(conditional ? ({ cache: 'no-store' } as const) : {}),
       headers: {
         'x-pitchcrew-client': 'ui',
+        ...diagnosticRequestHeaders(),
         ...(conditional?.etag ? { 'if-none-match': conditional.etag } : {}),
         ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
       },

@@ -56,6 +56,22 @@ it('requires a current confirmed brief and personal answers before the single dr
   expect(base.brief.startDraft).toHaveBeenCalledOnce();
   expect(base.act).not.toHaveBeenCalled();
 });
+
+it('directs linked applications to form inspection before the draft action', () => {
+  const base = model();
+  const next = jobNextAction({ ...base, card: { ...base.card, url: 'https://example.com/apply' } });
+  expect(next.label).toBe('Inspect application form');
+  next.perform();
+  expect(base.openApplication).toHaveBeenCalledWith('brief');
+  expect(base.brief.startDraft).not.toHaveBeenCalled();
+  expect(
+    jobNextAction({
+      ...base,
+      card: { ...base.card, url: 'https://example.com/apply' },
+      brief: { ...base.brief, draft: { ...base.brief.draft, form: { status: 'manual' } } },
+    }).label,
+  ).toBe('Draft application');
+});
 it.each(['other-job', null])(
   'allows application actions while the same agent runs in a separate queue (%s)',
   (cardId) => {
@@ -138,5 +154,32 @@ it('keeps packet review, export approval and manual submission as distinct decis
   );
   expect(jobNextAction({ ...base, card: { ...awaiting, state: 'submitted' } }).label).toBe(
     'Update outcome',
+  );
+});
+
+it('acknowledges startup and lets held work open Queue without hiding user questions', () => {
+  const base = model();
+  const openQueue = vi.fn();
+  const work = {
+    pending: undefined,
+    starting: true,
+    spinning: false,
+    label: 'Agent on hold',
+    reason: 'Confirm the job brief.',
+    roleId: null,
+  };
+  const held = { ...base, work, openQueue };
+  const next = jobNextAction(held);
+  expect(next.label).toBe('View queued action');
+  expect(next.disabled).toBe(false);
+  next.perform();
+  expect(openQueue).toHaveBeenCalledOnce();
+  expect(jobNextAction({ ...held, work: { ...work, spinning: true } })).toMatchObject({
+    label: 'Starting agent…',
+    disabled: true,
+  });
+  const waiting = { id: 'waiting', status: 'waiting', threadId: 'application' } as Run;
+  expect(jobNextAction({ ...held, agents: [{ run: waiting, name: 'Writer' }] }).label).toBe(
+    'Answer in job chat',
   );
 });

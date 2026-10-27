@@ -9,6 +9,8 @@ export const operationalLogPayload = (
 ) => {
   const definition = operationalLogCodes[log.code];
   const timeUnixNano = String(BigInt(Math.floor(now)) * 1_000_000n);
+  // HTTP identity belongs to the originating request, never to the relay leader's tab.
+  const identity = log.area === 'http' ? log.posthogDistinctId : distinctId;
   return {
     resourceLogs: [
       {
@@ -25,6 +27,13 @@ export const operationalLogPayload = (
               {
                 timeUnixNano,
                 observedTimeUnixNano: timeUnixNano,
+                ...(log.traceId
+                  ? {
+                      traceId: log.traceId,
+                      ...(log.spanId ? { spanId: log.spanId } : {}),
+                      flags: log.traceFlags ?? 0,
+                    }
+                  : {}),
                 severityNumber: definition.number,
                 severityText: definition.severity,
                 body: { stringValue: log.code },
@@ -35,9 +44,17 @@ export const operationalLogPayload = (
                     ? [attribute('failure_category', log.failure_category)]
                     : []),
                   ...(log.http_status ? [attribute('http_status', log.http_status)] : []),
+                  ...(log.runtime_exit_code !== undefined
+                    ? [attribute('runtime_exit_code', log.runtime_exit_code)]
+                    : []),
+                  ...(log.runtime_exit_signal
+                    ? [attribute('runtime_exit_signal', log.runtime_exit_signal)]
+                    : []),
+                  ...(log.operation ? [attribute('operation', log.operation)] : []),
                   attribute('renderer', context.renderer),
                   attribute('analytics_schema', context.analytics_schema),
-                  attribute('posthogDistinctId', distinctId),
+                  ...(identity ? [attribute('posthogDistinctId', identity)] : []),
+                  ...(log.sessionId ? [attribute('sessionId', log.sessionId)] : []),
                 ],
               },
             ],

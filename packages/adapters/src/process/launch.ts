@@ -109,7 +109,7 @@ export const runCliText = async (
       context.signal.removeEventListener('abort', kill);
       reject(err);
     });
-    child.on('close', (code) => {
+    child.on('close', (code, signal) => {
       stream.finish();
       clearDeadline();
       context.signal.removeEventListener('abort', kill);
@@ -132,6 +132,8 @@ export const runCliText = async (
         reject(
           Object.assign(new Error(error.trim() || `Runtime exited with code ${code}.`), {
             code: 'PITCHCREW_RUNTIME_EXIT',
+            exitCode: code,
+            signal,
           }),
         );
         return;

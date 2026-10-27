@@ -3,21 +3,13 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { X } from 'lucide-react';
 import { useRef } from 'react';
 import { AppUpdateButton } from './components/AppUpdateButton.tsx';
-import { cn } from '@/lib/utils';
 import { useUpdateControl } from './hooks/useUpdateControl.ts';
 
 export const AppUpdates = () => {
   const control = useUpdateControl();
   const trigger = useRef<HTMLButtonElement>(null);
   return (
-    <SidebarMenuItem
-      className={cn(
-        'shrink-0',
-        control.visible
-          ? 'order-first w-full group-data-[collapsible=icon]:w-auto'
-          : 'ml-auto group-data-[collapsible=icon]:ml-0',
-      )}
-    >
+    <SidebarMenuItem className="ml-auto shrink-0 group-data-[collapsible=icon]:ml-0">
       <div className="relative flex items-center gap-1 group-data-[collapsible=icon]:flex-col">
         <AppUpdateButton control={control} trigger={trigger} />
         {control.visible ? (

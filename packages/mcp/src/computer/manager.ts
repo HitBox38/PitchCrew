@@ -56,8 +56,13 @@ export class ComputerManager {
 
   inspect = async (runId: string) => {
     this.browsers.assertAgent(runId);
-    const page = await (await this.session(runId)).snapshot();
+    const driver = await this.session(runId);
     this.browsers.assertAgent(runId);
+    const generation = this.browsers.forRole(runId).observationGeneration;
+    const page = await driver.snapshot();
+    this.browsers.assertAgent(runId);
+    if (this.browsers.forRole(runId).observationGeneration !== generation)
+      throw new Error('Manual control changed. Inspect the browser again.');
     if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
     return page;
   };

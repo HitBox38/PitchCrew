@@ -3,6 +3,7 @@ import { registerSnapshot } from './http/snapshot.ts';
 import { registerExternalMcpRoutes } from './http/routes/external-mcp.ts';
 import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { recordOperationalLog } from './telemetry/logs.ts';
+import { httpFailureOperation, httpLogCorrelation } from './telemetry/http.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
@@ -113,7 +114,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
     diagnostics.clear();
     await service.close();
   });
-  app.setErrorHandler((error, _req, res) => {
+  app.setErrorHandler((error, req, res) => {
     if (res.raw.headersSent) return;
     const statusCode =
       error && typeof error === 'object' && 'statusCode' in error ? error.statusCode : undefined;
@@ -129,6 +130,8 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
       area: 'http',
       http_status: status,
       failure_category: failureCategory(error),
+      operation: httpFailureOperation(req.method, req.routeOptions.url),
+      ...httpLogCorrelation(req),
     });
     return res
       .status(status)

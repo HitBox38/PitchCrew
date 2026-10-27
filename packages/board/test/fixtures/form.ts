@@ -1,0 +1,46 @@
+import type { FormAssessment } from '@pitchcrew/core';
+
+export const formAssessment = (cardId: string): FormAssessment => ({
+  id: 'fixture-assessment',
+  cardId,
+  roleId: 'submitter',
+  runId: 'fixture-inspection',
+  page: {
+    url: 'https://example.com/apply',
+    title: 'Fictional application',
+    text: 'RAW-BROWSER-TEXT entered-value@example.com',
+    digest: 'fixture-page',
+  },
+  fields: [
+    {
+      selector: '#resume',
+      label: 'Resume',
+      type: 'file',
+      required: true,
+      visible: true,
+      disabled: false,
+      accept: '.pdf,.docx',
+      options: [],
+      assessed: true,
+      condition: '',
+      missingAnswer: '',
+    },
+    {
+      selector: '#motivation',
+      label: 'Why this team?',
+      type: 'textarea',
+      required: true,
+      visible: true,
+      disabled: false,
+      accept: '',
+      options: [],
+      maxLength: 500,
+      assessed: true,
+      condition: '',
+      missingAnswer: 'Your motivation',
+    },
+  ],
+  blockers: [],
+  uninspected: ['Questions after the first page'],
+  createdAt: '2026-10-27T10:00:00.000Z',
+});

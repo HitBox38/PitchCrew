@@ -30,7 +30,7 @@ it('drives a real Chromium form through the approval gate without making externa
     } else
       await route.fulfill({
         contentType: 'text/html',
-        body: `<!doctype html><title>Fixture application</title><form onsubmit="event.preventDefault();fetch('/submit',{method:'POST',body:document.querySelector('#name').value}).then(()=>document.querySelector('#result').textContent='Application received')"><label>Name<input id="name"></label><label>Location<select id="location"><option value="remote">Remote</option><option value="onsite">Onsite</option></select></label><input id="attachment" type="file"><button id="submit">Apply</button></form><output id="result"></output>`,
+        body: `<!doctype html><title>Fixture application</title><form onsubmit="event.preventDefault();fetch('/submit',{method:'POST',body:document.querySelector('#name').value}).then(()=>document.querySelector('#result').textContent='Application received')"><label>Name<input id="name" required maxlength="80"></label><label>Location<select id="location"><option value="remote">Remote</option><option value="onsite">Onsite</option></select></label><input id="attachment" type="file" accept=".pdf,.docx"><button id="submit">Apply</button></form><output id="result"></output>`,
       });
   });
   const scope = { runId: 'fixture-browser', roleId: 'writer' as const, cardId: null };
@@ -42,6 +42,13 @@ it('drives a real Chromium form through the approval gate without making externa
       page: { title: 'Fixture application', text: expect.stringContaining('Name') },
     });
     expect((navigated.page as { screenshot: string }).screenshot.length).toBeGreaterThan(100);
+    const inspected = await manager.inspect(scope.runId);
+    expect(inspected.controls).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Name', required: true, maxLength: 80 }),
+        expect.objectContaining({ type: 'file', required: false, accept: '.pdf,.docx' }),
+      ]),
+    );
     await act({ kind: 'fill', selector: '#name', value: 'Fictional Person' });
     await act({ kind: 'select', selector: '#location', value: 'onsite' });
     expect(submitted).toEqual([]);

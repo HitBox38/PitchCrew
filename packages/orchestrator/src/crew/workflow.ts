@@ -1,4 +1,4 @@
-import { failureCategory } from '@pitchcrew/core/operational-logs';
+import { failureDetails } from '@pitchcrew/core/operational-logs';
 import { recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { QueueBusyError, reserveLaunch } from './queue/admission.ts';
 import { ensureQueue, patchQueue, runLane } from './queue/state.ts';
@@ -42,6 +42,7 @@ import { draftingCard, missingPersonalAnswers } from '@pitchcrew/core';
 import { assertApplicationRuntime } from './application-context/extraction.ts';
 import { applicationUserAnswers } from './application-context/answers.ts';
 import { changeSummary } from './change-summary.ts';
+import { applyPacketEvaluation } from './packet-evaluation.ts';
 
 const startRunPrepared = async (
   crewContext: CrewContext,
@@ -50,6 +51,7 @@ const startRunPrepared = async (
   task?: AgentTask,
   delivery?: { requestId: string; rootRunId: string; content: string },
   applicationDraft = false,
+  packetEvaluation = false,
 ): Promise<Run> => {
   if (crewContext.closing) throw new Error('The daemon is stopping.');
   assertProfileReady(crewContext);
@@ -80,6 +82,9 @@ const startRunPrepared = async (
   if (crewContext.board.hasActiveRun(cardId))
     throw new Error('This application already has an active run.');
   const seat = workflowSeat(role);
+  if (packetEvaluation && (seat !== 'scout' || !card.packet))
+    throw new Error('Choose a Scout and draft a packet before reevaluating.');
+  if (card.owner) throw new Error('This application is owned by another run.');
   if (seat === 'chat') throw new Error('This role has no application workflow seat. Use chat.');
   assertApplicationRuntime(role);
   const applicationContext =
@@ -88,14 +93,20 @@ const startRunPrepared = async (
     crewContext,
     cardId,
     roleId,
-    seat === 'scout' ? 'fit' : seat === 'writer' ? 'application-draft' : 'application-review',
+    packetEvaluation
+      ? 'packet-evaluation'
+      : seat === 'scout'
+        ? 'fit'
+        : seat === 'writer'
+          ? 'application-draft'
+          : 'application-review',
   );
   const allowed = {
     scout: ['lead'],
     writer: ['shortlisted', 'changes_requested'],
     reviewer: ['in_review', 'agreed', 'awaiting_approval'],
   };
-  if (!allowed[seat].includes(card.state))
+  if (!packetEvaluation && !allowed[seat].includes(card.state))
     throw new Error(`The ${roleId} cannot run on a card in ${card.state}.`);
   const sourceThread =
     task?.threadId ??
@@ -130,8 +141,13 @@ const startRunPrepared = async (
     startedAt: new Date().toISOString(),
     finishedAt: null,
     mode: 'workflow',
-    purpose:
-      seat === 'writer' ? 'application-draft' : seat === 'reviewer' ? 'application-review' : 'fit',
+    purpose: packetEvaluation
+      ? 'packet-evaluation'
+      : seat === 'writer'
+        ? 'application-draft'
+        : seat === 'reviewer'
+          ? 'application-review'
+          : 'fit',
     contextRevision: applicationContext.revision,
     threadId:
       task?.threadId ??
@@ -164,6 +180,9 @@ const startRunPrepared = async (
         !crewContext.taskPermissionsAllow(task))) ||
     crewContext.board.hasActiveRun(cardId) ||
     crewContext.board.get<Card>('card', cardId).state !== card.state ||
+    Boolean(crewContext.board.get<Card>('card', cardId).owner) ||
+    (packetEvaluation &&
+      packetDigest(crewContext.board.get<Card>('card', cardId)) !== run.inputPacketDigest) ||
     crewContext.board.get<Card>('card', cardId).applicationContext?.revision !==
       applicationContext.revision ||
     crewContext.configuring.has(roleId) ||
@@ -228,10 +247,12 @@ const startRunPrepared = async (
     .then(async (result) => {
       if (endQuestionTurn(crewContext, run)) return;
       if (controller.signal.aborted) throw new Error('Run cancelled.');
-      await crewContext.applyResult(cardId, role, result, profile, controller.signal, {
-        contextRevision: applicationContext.revision,
-        runId: run.id,
-      });
+      if (packetEvaluation) applyPacketEvaluation(crewContext, run, result);
+      else
+        await crewContext.applyResult(cardId, role, result, profile, controller.signal, {
+          contextRevision: applicationContext.revision,
+          runId: run.id,
+        });
       if (correction && result.role === 'writer')
         finishWritingCorrection(
           crewContext,
@@ -258,7 +279,9 @@ const startRunPrepared = async (
       recordOperationalLog(crewContext.diagnostics, {
         code: controller.signal.aborted ? 'runtime_run_cancelled' : 'runtime_run_failed',
         area: 'workflow',
-        failure_category: controller.signal.aborted ? 'aborted' : failureCategory(error),
+        ...(controller.signal.aborted
+          ? { failure_category: 'aborted' as const }
+          : failureDetails(error)),
       });
       const message = error instanceof Error ? error.message : 'Run failed.';
       crewContext.board.record(
@@ -273,7 +296,7 @@ const startRunPrepared = async (
         message,
       );
       const current = crewContext.board.get<Card>('card', cardId);
-      if (current.state === 'drafting')
+      if (!packetEvaluation && current.state === 'drafting')
         crewContext.board.move(
           cardId,
           'changes_requested',
@@ -287,6 +310,7 @@ const startRunPrepared = async (
       await crewContext.computer.stop(run.id);
       crewContext.board.updateCard(cardId, { owner: null }, 'orchestrator', 'Released application');
       if (
+        !packetEvaluation &&
         crewContext.board.get<Run>('run', run.id).status === 'waiting' &&
         crewContext.board.get<Card>('card', cardId).state === 'drafting'
       )
