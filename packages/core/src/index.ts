@@ -23,6 +23,7 @@ export {
   maxJobBatchSize,
   jobDetailsChanges,
   updateJobInput,
+  editJobInput,
 } from './job-management.ts';
 export * from './tracking.ts';
 export type { Card, CardInput, CardLesson, PacketFit } from './cards.ts';

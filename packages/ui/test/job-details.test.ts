@@ -239,6 +239,9 @@ test('acknowledges agent startup before the request completes, shares it with th
   const starting = sheet.getByRole('button', { name: 'Starting agent…', exact: true });
   await starting.waitFor();
   expect(await starting.isDisabled()).toBe(true);
+  expect(await sheet.getByRole('button', { name: 'Edit job', exact: true }).isDisabled()).toBe(
+    true,
+  );
   expect(await starting.locator('svg').count()).toBe(1);
   await sheet.getByRole('button', { name: 'Close dialog', exact: true }).click();
   const job = page.locator(`#board-job-${card.id}`);
@@ -248,6 +251,9 @@ test('acknowledges agent startup before the request completes, shares it with th
   await expect.poll(() => job.getByRole('status').count()).toBe(0);
   await job.locator('.job-card').click();
   await page.getByRole('button', { name: 'Draft application', exact: true }).waitFor();
+  await expect
+    .poll(() => page.getByRole('button', { name: 'Edit job', exact: true }).isDisabled())
+    .toBe(false);
   expect(errors).toEqual([]);
 });
 
@@ -273,6 +279,9 @@ test('shows immediate feedback on a stage button and in the sheet header until t
   const moving = sheet.getByRole('button', { name: 'Moving…', exact: true });
   await moving.waitFor();
   expect(await moving.isDisabled()).toBe(true);
+  expect(await sheet.getByRole('button', { name: 'Edit job', exact: true }).isDisabled()).toBe(
+    true,
+  );
   expect(await moving.locator('svg.spin').count()).toBe(1);
   await sheet.getByRole('status').getByText('Moving to Withdrawn…', { exact: true }).waitFor();
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('shortlisted');

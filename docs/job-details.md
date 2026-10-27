@@ -1,6 +1,6 @@
 # Job details
 
-The job sheet has three sections: Job, Application and Activity. Its compact header keeps the company, title, location, compensation, board status, candidate fit score and the latest packet match rating visible. The original posting and close controls share that header. A persistent footer presents one next action based on the current work and prerequisites, plus Shortlist for idle leads. Each section has its own reading position inside the sheet's main work area; the header and footer never scroll independently.
+The job sheet has three sections: Job, Application and Activity. Its compact header keeps the company, title, location, compensation, board status, candidate fit score and the latest packet match rating visible. Edit job, original posting and close controls share that header. A persistent footer presents one next action based on the current work and prerequisites, plus Shortlist for idle leads. Each section has its own reading position inside the sheet's main work area; the header and footer never scroll independently.
 
 Opening a job immediately shows its identity header and a skeleton while the sheet code or full job source loads. The loading status is announced to assistive technology, skeletons respect reduced motion, and the sheet can be closed while loading. Source failures keep the header visible and offer Retry before enabling the full details and workflow actions.
 
@@ -19,6 +19,14 @@ The next action prioritizes current work, pending user questions and uncertain s
 An agent working on another job or standalone conversation does not disable this job's launch actions. The same agent can run across independent queues within the workspace concurrency limit; active work and pending questions on this job retain their existing protections.
 
 Activity contains status bookkeeping, external application registration, lessons, tracking evidence, submission receipts and saved history. Saved history loads from the session-protected `/api/cards/:id/history` route (the latest 200 job events, without event payloads) and merges recent run events from the workspace snapshot, so older jobs keep their history after it leaves the snapshot's latest 100 events. Uncertain submission outcomes open their evidence rather than suggesting another submission. Recording a status never contacts an employer or grants export/submission permission.
+
+## Editing a job
+
+Edit job opens the same form used by Add job, prefilled with company, title, posting URL, location, salary, full description and tags. Fetch from link can fill supported public postings for review; editing never offers the Scout action that creates another job. Application registration remains a separate action in Activity. Cancel, Escape, outside dismissal and navigation protect unsaved edits, and failed saves keep the form open with its draft. Saving updates the existing job and refreshes its details and board card.
+
+The user-session-only `PUT /api/cards/:id` endpoint accepts the form fields and the opened job's `expectedUpdatedAt`. Stale versions, owned jobs, active attached runs and uncertain submissions block writes. Posting changes invalidate the application brief, candidate fit, packet match rating, packet review, form assessments and unused export/browser approvals in one transaction. URL or description edits clear old captured markup so extraction uses the edited posting. Tags alone preserve reviewed evidence and approvals; identical saves append no events. Status, application tracking, user lessons, packet files, discovery provenance and history remain attached to the same job. Agent job-correction permissions remain limited to company, title, location and salary.
+
+Save or discard other job-detail drafts before opening the posting editor. Its fields remain stable while workspace polling continues; conflicting changes require reopening the editor.
 
 ## Live agents and job chat
 
