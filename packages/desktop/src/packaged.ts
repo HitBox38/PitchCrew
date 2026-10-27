@@ -4,11 +4,19 @@ import { join } from 'node:path';
 export const startPackagedDaemon = async (resources: string) => {
   const runtime = join(resources, 'runtime');
   launcher = fork(join(runtime, 'scripts/packaged-launcher.ts'), [], {
-    execPath: join(runtime, 'node', process.platform === 'win32' ? 'node.exe' : 'node'),
-    execArgv: ['--import', 'tsx'],
+    execPath: join(runtime, 'bun', process.platform === 'win32' ? 'bun.exe' : 'bun'),
+    execArgv: ['--no-env-file', '--no-install'],
     cwd: runtime,
     windowsHide: true,
-    env: { ...process.env, PLAYWRIGHT_BROWSERS_PATH: join(runtime, 'browsers') },
+    env: {
+      ...process.env,
+      PITCHCREW_NODE_EXECUTABLE: join(
+        runtime,
+        'node',
+        process.platform === 'win32' ? 'node.exe' : 'node',
+      ),
+      PLAYWRIGHT_BROWSERS_PATH: join(runtime, 'browsers'),
+    },
     stdio: ['ignore', 'inherit', 'inherit', 'ipc'],
   });
   return new Promise<string>((resolve, reject) => {

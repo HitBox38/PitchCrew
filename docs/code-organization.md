@@ -20,7 +20,7 @@ ComponentName/
 
 Files that contain JSX use `.tsx`, including helpers or constants when needed. A child with substantial state or several sections can have its own feature folder, as `SkillsView/components/SkillEditor` does. Avoid empty files and directories.
 
-Production TSX files have a maximum of 100 lines after formatting. `scripts/check-components.ts` enforces this through `pnpm lint`. Extract sections with meaningful names and responsibilities; keep normal formatting and readable expressions. The limit applies to components, rather than forcing hooks, schemas or transactions into arbitrary fragments.
+Production TSX files have a maximum of 100 lines after formatting. `scripts/check-components.ts` enforces this through `bun run lint`. Extract sections with meaningful names and responsibilities; keep normal formatting and readable expressions. The limit applies to components, rather than forcing hooks, schemas or transactions into arbitrary fragments.
 
 `App` owns the mounted workspace shell. Pages select workspace state and render their feature. `WorkspaceStore` owns snapshot polling, transient chat overlays and shared actions; route state remains in TanStack Router. Local form state belongs in the feature's hook. Pure helpers never call hooks, and action names do not start with `use`.
 
@@ -28,7 +28,7 @@ Production TSX files have a maximum of 100 lines after formatting. `scripts/chec
 
 Shared domain labels, time formatting and role status live in `src/lib`. Primitive families keep their original public exports in `components/ui` and `components/ai-elements`. Internal sections can import the specific primitive they need.
 
-App disclosures use the shared shadcn/Base UI controls: `Accordion`/`AccordionItem`/`AccordionTrigger`/`AccordionContent` for grouped rows, `AccordionSection` for a standalone expandable section, and `Collapsible` for custom trigger layouts. Never use native `<details>`/`<summary>` in `packages/ui/src` or recreate their behavior with ad hoc buttons; `pnpm lint` enforces the native-element restriction. `AccordionSection` composes the shared accordion, accepts `heading`, `defaultOpen`, `onOpenChange` and trigger/content classes, and keeps its content mounted so closing a form preserves drafts. Use `multiple` for independently expandable grouped rows. Preserve initially open sections and defer document preview resources until expansion. Disclosure styles target the shared `data-slot` and Base UI state attributes, not native `summary` or `[open]` selectors. The standalone public landing page is outside this app-only lint rule.
+App disclosures use the shared shadcn/Base UI controls: `Accordion`/`AccordionItem`/`AccordionTrigger`/`AccordionContent` for grouped rows, `AccordionSection` for a standalone expandable section, and `Collapsible` for custom trigger layouts. Never use native `<details>`/`<summary>` in `packages/ui/src` or recreate their behavior with ad hoc buttons; `bun run lint` enforces the native-element restriction. `AccordionSection` composes the shared accordion, accepts `heading`, `defaultOpen`, `onOpenChange` and trigger/content classes, and keeps its content mounted so closing a form preserves drafts. Use `multiple` for independently expandable grouped rows. Preserve initially open sections and defer document preview resources until expansion. Disclosure styles target the shared `data-slot` and Base UI state attributes, not native `summary` or `[open]` selectors. The standalone public landing page is outside this app-only lint rule.
 
 ## Styling
 
@@ -68,4 +68,4 @@ Stateful backend facades hold a private context. Feature arrow functions take th
 
 Integration tests remain under each package's `test/` directory and are grouped by behavior. Shared fictional fixtures and setup/cleanup live in `test/helpers/`. Colocated feature tests use `__tests__`; Vitest discovers both layouts. Adapter tests mock native process launches so refactoring never requires live provider calls.
 
-Run `pnpm check`, `pnpm format:check` and `pnpm test:desktop` after a broad refactor. The desktop check launches an isolated daemon and verifies the shared production renderer, demo chat streaming, router history, skill creation, role settings panels, sandbox and window chrome.
+Run `bun run check`, `bun run format:check` and `bun run test:desktop` after a broad refactor. The desktop check launches an isolated daemon and verifies the shared production renderer, demo chat streaming, router history, skill creation, role settings panels, sandbox and window chrome.

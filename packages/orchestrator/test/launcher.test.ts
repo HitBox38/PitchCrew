@@ -81,7 +81,7 @@ describe('desktop launcher ownership', () => {
 
   it('reports a service that does not start instead of spawning a competing daemon', async () => {
     const broken = deps({}, [null]);
-    await expect(prepareDaemon(broken)).rejects.toThrow('pnpm service logs');
+    await expect(prepareDaemon(broken)).rejects.toThrow('bun run service logs');
     expect(broken.spawnDaemon).not.toHaveBeenCalled();
   });
 

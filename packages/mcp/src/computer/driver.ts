@@ -43,7 +43,7 @@ export const launchBrowser = async (profile?: string): Promise<BrowserDriver> =>
     }
   } catch {
     throw new Error(
-      'Could not open the local browser. Install Chromium with pnpm browser:install.',
+      'Could not open the local browser. Install Chromium with bun run browser:install.',
     );
   }
 };

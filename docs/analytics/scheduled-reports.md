@@ -14,10 +14,10 @@ The user approved weekly chart-only email to their authenticated PostHog account
 
 Each is enabled, charts-only, weekly on Sunday, with its first saved delivery at **2026-10-18 06:00 UTC**. No immediate/test email was queued. This verifies configuration, not eventual receipt. New app/landing instrumentation must still ship before those observations can arrive; empty charts do not establish healthy behavior. Engineering charts already describe genuine, manually imported public GitHub metadata.
 
-The administrator-only planner is executable with Node 24 and has no network capability:
+The administrator-only planner is executable with the pinned Bun version and has no network capability:
 
 ```sh
-node scripts/posthog/scheduled-reports.ts /tmp/private-report-bindings.json /tmp/private-report-plan.json
+bun --no-env-file scripts/posthog/scheduled-reports.ts /tmp/private-report-bindings.json /tmp/private-report-plan.json
 node --test scripts/posthog/scheduled-reports.test.ts
 ```
 

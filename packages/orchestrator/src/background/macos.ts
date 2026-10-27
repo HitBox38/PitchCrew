@@ -10,7 +10,7 @@ export const renderLaunchAgent = (spec: ServiceSpec) => {
   const log = serviceFiles('macos', spec.directory).launchdLog;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<!-- Created by pnpm service install. Remove it with pnpm service uninstall. -->
+<!-- Created by bun run service install. Remove it with bun run service uninstall. -->
 <plist version="1.0">
 <dict>
   <key>Label</key>

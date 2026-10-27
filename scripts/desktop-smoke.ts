@@ -16,19 +16,23 @@ let desktop: ChildProcess | undefined;
 
 try {
   if (!process.env.PITCHCREW_URL) {
-    daemon = spawn(process.execPath, ['--import', 'tsx', 'scripts/desktop-smoke-daemon.ts'], {
-      env: {
-        ...process.env,
-        PITCHCREW_POSTHOG_DISABLED: '1',
-        PITCHCREW_HOME: join(directory, 'workspace'),
-        PITCHCREW_PORT: port,
-        PITCHCREW_SEED_SKILLS: '0',
-        PITCHCREW_UPDATE_CHECKS: '0',
-        PITCHCREW_SMOKE_STREAM_ACK: smokeStreamAckFile(evidence),
+    daemon = spawn(
+      process.execPath,
+      ['--no-env-file', '--no-install', 'scripts/desktop-smoke-daemon.ts'],
+      {
+        env: {
+          ...process.env,
+          PITCHCREW_POSTHOG_DISABLED: '1',
+          PITCHCREW_HOME: join(directory, 'workspace'),
+          PITCHCREW_PORT: port,
+          PITCHCREW_SEED_SKILLS: '0',
+          PITCHCREW_UPDATE_CHECKS: '0',
+          PITCHCREW_SMOKE_STREAM_ACK: smokeStreamAckFile(evidence),
+        },
+        stdio: 'inherit',
+        windowsHide: true,
       },
-      stdio: 'inherit',
-      windowsHide: true,
-    });
+    );
     let ready = false;
     for (let i = 0; i < 60; i++) {
       try {

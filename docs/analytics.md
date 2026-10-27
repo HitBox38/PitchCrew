@@ -11,13 +11,13 @@ No configuration is needed for ordinary installations. The bundled public token 
 ```powershell
 $env:PITCHCREW_POSTHOG_TOKEN = 'phc_your_public_project_token'
 $env:PITCHCREW_POSTHOG_HOST = 'https://eu.i.posthog.com'
-pnpm build
-pnpm start
+bun run build
+bun run start
 ```
 
 EU Cloud is the default. US Cloud uses `https://us.i.posthog.com`. Self-hosted instances must use an HTTPS origin without a path, query, fragment or credentials. Set `PITCHCREW_POSTHOG_DISABLED=1` (or an explicitly empty token) to disable telemetry for an entire installation. Configuration changes require a daemon restart, without rebuilding the UI. The session-protected `/api/analytics/config` endpoint exposes only this public configuration. Production CSP permits connections to exactly that origin and keeps scripts restricted to bundled assets.
 
-For intentional development testing, set `$env:PITCHCREW_POSTHOG_DEV = '1'` before `pnpm dev`. Omit it during ordinary development. The daemon does not load `.env` files automatically.
+For intentional development testing, set `$env:PITCHCREW_POSTHOG_DEV = '1'` before `bun run dev`. Omit it during ordinary development. The daemon does not load `.env` files automatically.
 
 Background service definitions do not copy these variables. Configure them in the service process's inherited environment, or launch the daemon with them directly. Terminal variables do not reconfigure a running service.
 

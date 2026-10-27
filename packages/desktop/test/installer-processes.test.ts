@@ -42,6 +42,9 @@ windowsTest(
       `${root}\\Pitchcrew.exe`,
       null,
       'C:\\Previous\\Pitchcrew.exe',
+      `${root}\\resources\\runtime\\bun\\bun.exe`,
+      `${root}-downloads\\resources\\runtime\\bun\\bun.exe`,
+      `${root}\\resources\\runtime\\bun-backup\\bun.exe`,
     ];
     const { stdout } = await execute(
       powershell,
@@ -62,7 +65,7 @@ windowsTest(
         },
       },
     );
-    expect(JSON.parse(stdout)).toEqual([1, 2, 3, 12]);
+    expect(JSON.parse(stdout)).toEqual([1, 2, 3, 12, 13]);
   },
 );
 
@@ -117,11 +120,13 @@ windowsTest(
       expect(await command('check')).toBe(0);
       const app = await launch(join(root, 'Pitchcrew.exe'));
       const runtime = await launch(join(root, 'resources/runtime/node/node.exe'));
+      const bun = await launch(join(root, 'resources/runtime/bun/bun.exe'));
       expect(await command('check')).toBe(10);
       expect(await command('close')).toBe(0);
       expect(await command('check')).toBe(0);
       expect(app.exitCode !== null || app.signalCode !== null).toBe(true);
       expect(runtime.exitCode !== null || runtime.signalCode !== null).toBe(true);
+      expect(bun.exitCode !== null || bun.signalCode !== null).toBe(true);
       for (const child of [installer, sibling]) {
         expect(child.exitCode).toBe(null);
         expect(child.signalCode).toBe(null);

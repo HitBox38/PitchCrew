@@ -15,18 +15,22 @@ it('the actual launcher stops and recovers its daemon over IPC while preserving 
   await new Promise<void>((resolve) => probe.close(() => resolve()));
   const saved = join(directory, 'saved-work.txt');
   await writeFile(saved, 'Fictional candidate: saved application notes.');
-  const child = spawn(process.execPath, ['--import', 'tsx', 'scripts/packaged-launcher.ts'], {
-    stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
-    env: {
-      ...process.env,
-      PITCHCREW_HOME: directory,
-      PITCHCREW_PORT: String(port),
-      PITCHCREW_SEED_SKILLS: '0',
-      PITCHCREW_UPDATE_CHECKS: '0',
-      PITCHCREW_POSTHOG_DISABLED: '1',
+  const child = spawn(
+    process.env.PITCHCREW_BUN_EXECUTABLE ?? 'bun',
+    ['--no-env-file', '--no-install', 'scripts/packaged-launcher.ts'],
+    {
+      stdio: ['ignore', 'pipe', 'pipe', 'ipc'],
+      env: {
+        ...process.env,
+        PITCHCREW_HOME: directory,
+        PITCHCREW_PORT: String(port),
+        PITCHCREW_SEED_SKILLS: '0',
+        PITCHCREW_UPDATE_CHECKS: '0',
+        PITCHCREW_POSTHOG_DISABLED: '1',
+      },
+      windowsHide: true,
     },
-    windowsHide: true,
-  });
+  );
   let output = '';
   child.stdout?.on('data', (data) => {
     output += String(data);

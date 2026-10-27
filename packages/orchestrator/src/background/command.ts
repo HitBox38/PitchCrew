@@ -24,12 +24,12 @@ export const formatServiceStatus = (
   const { spec } = service;
   if (status.port !== spec.port || !samePath(spec.platform, status.directory, spec.directory))
     lines.push(
-      `This shell uses ${spec.directory} on port ${spec.port}. Run pnpm service install to switch the service to it.`,
+      `This shell uses ${spec.directory} on port ${spec.port}. Run bun run service install to switch the service to it.`,
     );
   return lines;
 };
 
-/** Runs `pnpm service <command>` and returns the process exit code. */
+/** Runs `bun run service <command>` and returns the process exit code. */
 export const runServiceCommand = async (
   args: readonly string[],
   service: BackgroundService | null,
@@ -78,7 +78,7 @@ export const runServiceCommand = async (
     case 'stop':
       await service.stop();
       print(
-        'Stopped the background service. It starts again at your next login, or with pnpm service start.',
+        'Stopped the background service. It starts again at your next login, or with bun run service start.',
       );
       return 0;
     case 'logs': {
@@ -102,7 +102,7 @@ export const runServiceCommand = async (
   }
 };
 
-export const serviceUsage = `Usage: pnpm service <command>
+export const serviceUsage = `Usage: bun run service <command>
 
   install     Run the production daemon in the background at login
   uninstall   Stop the background service and remove its files

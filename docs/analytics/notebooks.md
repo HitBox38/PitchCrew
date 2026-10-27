@@ -11,9 +11,9 @@ Every linked component, insight, narrative block and SQL source was matched agai
 The complete governed catalog was verified empty by the coordinator and catalog/endpoints workstreams, so these native SQL cells remain noncanonical. Weekly report context reflects the user's accepted fixed Sunday 06:00 UTC delivery, charts only; Jerusalem local delivery changes with daylight saving. Notebook activation created no subscriptions. Exact notebook UUIDs, cell/run identities, SQL hashes, bindings, cutoff and verification results are recorded in [activation.json](../../posthog/notebooks/activation.json). No recipient addresses or private application content are included.
 
 ```sh
-node scripts/posthog/notebooks.ts list
-node scripts/posthog/notebooks.ts plan weekly_review /tmp/pitchcrew-notebook-bindings.json
-node scripts/posthog/notebooks.ts plan release_check /tmp/pitchcrew-notebook-bindings.json
+bun --no-env-file scripts/posthog/notebooks.ts list
+bun --no-env-file scripts/posthog/notebooks.ts plan weekly_review /tmp/pitchcrew-notebook-bindings.json
+bun --no-env-file scripts/posthog/notebooks.ts plan release_check /tmp/pitchcrew-notebook-bindings.json
 node --test scripts/posthog/notebooks.test.ts
 ```
 

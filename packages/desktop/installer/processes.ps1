@@ -21,16 +21,17 @@ function Select-PitchcrewProcesses($Processes, [string[]] $Directories, [string]
   foreach ($entry in $Processes) {
     if (!$entry.ExecutablePath -or $entry.ProcessId -eq $InstallerId) { continue }
     $name = [IO.Path]::GetFileName($entry.ExecutablePath)
-    if ($name -ne $Executable -and $name -ne 'node.exe' -and $name -notin $browserExecutables) { continue }
+    if ($name -ne $Executable -and $name -ne 'node.exe' -and $name -ne 'bun.exe' -and $name -notin $browserExecutables) { continue }
     $existing = Get-Item -LiteralPath $entry.ExecutablePath -Force -ErrorAction SilentlyContinue
     $path = if ($existing) { $existing.FullName } else { $entry.ExecutablePath }
     foreach ($root in $roots) {
       # Match only shipped executables. A download, uninstaller or sibling directory is not the app.
       $app = $path.Equals($root + $Executable, [StringComparison]::OrdinalIgnoreCase)
       $node = $path.Equals($root + 'resources\runtime\node\node.exe', [StringComparison]::OrdinalIgnoreCase)
+      $bun = $path.Equals($root + 'resources\runtime\bun\bun.exe', [StringComparison]::OrdinalIgnoreCase)
       $browser = $path.StartsWith($root + 'resources\runtime\browsers\', [StringComparison]::OrdinalIgnoreCase) -and
         $name -in $browserExecutables
-      if ($app -or $node -or $browser) { $entry; break }
+      if ($app -or $node -or $bun -or $browser) { $entry; break }
     }
   }
 }

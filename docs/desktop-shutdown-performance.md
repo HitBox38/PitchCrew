@@ -21,7 +21,7 @@ These controls contain no Pitchcrew UI, preload, HTTP connection, provider, upda
 
 [Electron issue 52582](https://github.com/electron/electron/issues/52582) reports the same blank-window/native-`usleep` symptom. Its author reports resolution after updating their physical Mac to macOS 26.6. Our 26.6.2 machine still reproduces, so that report is corroborating evidence, not a verified remedy for this environment. No speculative Electron downgrade/upgrade or force-exit workaround is applied.
 
-Run the repository’s minimal, hidden reproduction:
+Run the repository’s minimal, hidden reproduction under Node to match the historical supervisor environment:
 
 ```sh
 node --import tsx scripts/performance/desktop-shutdown.ts

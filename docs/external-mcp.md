@@ -4,34 +4,34 @@ The external MCP server lets desktop agents use the local Pitchcrew workspace th
 
 ## Connect
 
-In the desktop app or local browser UI, open **Settings → Accounts → External agents**. Turn on **Allow external agents** for reads, optionally enable **Allow changes and crew messages**, then copy the displayed MCP configuration into your desktop agent app. The generated configuration uses the running daemon's Node executable, loader, CLI entry and workspace settings, including in standalone installations. Reconnect clients after changing permissions. The command paths must remain available; regenerate the configuration if you move or reinstall the app. Disabling access revokes every connected client. Search Settings or the command palette for “MCP” to find these controls.
+In the desktop app or local browser UI, open **Settings → Accounts → External agents**. Turn on **Allow external agents** for reads, optionally enable **Allow changes and crew messages**, then copy the displayed MCP configuration into your desktop agent app. The generated configuration uses the running daemon's Bun executable, CLI entry and workspace settings, including in standalone installations. Reconnect clients after changing permissions. The command paths must remain available; regenerate the configuration if you move or reinstall the app. Disabling access revokes every connected client. Search Settings or the command palette for “MCP” to find these controls.
 
 ### Repository CLI
 
-Use the repository checkout with its dependencies installed and a supported Node.js version. From that checkout:
+Use the repository checkout with its dependencies installed and the pinned Bun version. From that checkout:
 
 ```sh
-pnpm mcp enable --write
-pnpm mcp config
+bun run mcp enable --write
+bun run mcp config
 ```
 
-Copy the printed JSON into your agent app's MCP configuration and reconnect its Pitchcrew server. The generated command uses absolute paths for Node, the TypeScript loader and the CLI, so the client can launch it from any directory. Keep that checkout and Node installation available; regenerate the configuration after moving them. Access is disabled until you run `enable`. For read-only access, use `pnpm mcp enable` without `--write`.
+Copy the printed JSON into your agent app's MCP configuration and reconnect its Pitchcrew server. The generated command uses absolute paths for Bun and the CLI, so the client can launch it from any directory. Keep that checkout and Bun installation available; regenerate the configuration after moving them. Access is disabled until you run `enable`. For read-only access, use `bun run mcp enable` without `--write`.
 
 For a different workspace or daemon port, use matching values for enabling and configuration:
 
 ```sh
-pnpm mcp enable --write --home /absolute/path/to/workspace --port 4418
-pnpm mcp config --home /absolute/path/to/workspace --port 4418
+bun run mcp enable --write --home /absolute/path/to/workspace --port 4418
+bun run mcp config --home /absolute/path/to/workspace --port 4418
 ```
 
 `PITCHCREW_HOME` and `PITCHCREW_PORT` also supply defaults, following the daemon's existing rules. Use the same data directory as **Settings → Local data**. The configuration embeds those resolved settings; changing the shell environment later does not retarget an already configured client.
 
 ```sh
-pnpm mcp status
-pnpm mcp disable
+bun run mcp status
+bun run mcp disable
 ```
 
-`status` prints only enabled/write flags. `disable` revokes all connections to that workspace. Every `enable` creates a new credential, including when switching between read-only and write access; reconnect clients afterward. Commands that manage access do not require the daemon to be running. The default command (`pnpm mcp`) and `pnpm mcp serve` speak MCP on stdout; diagnostics go to stderr. Configure clients with the generated Node command, which avoids package-manager output on the protocol stream.
+`status` prints only enabled/write flags. `disable` revokes all connections to that workspace. Every `enable` creates a new credential, including when switching between read-only and write access; reconnect clients afterward. Commands that manage access do not require the daemon to be running. The default command (`bun run mcp`) and `bun run mcp serve` speak MCP on stdout; diagnostics go to stderr. Configure clients with the generated Bun command, which avoids package-manager output on the protocol stream.
 
 ## Tools
 

@@ -105,12 +105,12 @@ Higher cadence costs more image bandwidth; those totals span different run durat
 
 A separate full-app headless test sends keyboard events through the actual shared renderer, protected HTTP input route, Chromium, authenticated frame stream and image presentation. It reads changed pixels from the panel image. Its 12-sample run measured a 34 ms median and 57 ms p95, meeting the provisional local typing target. It also checks private input is absent from board events and that panel hide/reopen releases capture without changing manual pause. Static title/dialog updates, five independent page sessions, two viewers sharing capture, stale geometry, page replacement, fallback and disconnect behavior have regression coverage. A backpressure fixture floods a paused HTTP writer and verifies it forwards only the newest pending frame after draining.
 
-Reproduce the capture comparison from the repository root with a supported Node LTS and installed dependencies/Chromium:
+Reproduce the historical Node capture comparison from the repository root with a supported Node LTS and installed dependencies/Chromium. The measured results above remain Node measurements; the current package script still runs the UI tests through Node Vitest:
 
 ```sh
 node --import tsx packages/mcp/test/browser-view.bench.ts poll
 node --import tsx packages/mcp/test/browser-view.bench.ts stream
-pnpm exec vitest run packages/ui/test/browser-live-view.test.ts
+bun run test packages/ui/test/browser-live-view.test.ts
 ```
 
 The UI test writes its numeric fixture result to `/tmp/pitchcrew-browser-ui-benchmark.json`. It does not record page images or private inputs as diagnostic data. Broader operating-system performance, prolonged load, rich pointer interactions and real login/CAPTCHA variants still require separate verification. The local tests justify retaining the existing HTTP input and frame transport for this change; neither wheel coalescing nor WebSockets were needed to meet the measured typing target.

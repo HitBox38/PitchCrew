@@ -213,7 +213,7 @@ test('queue disclosure preserves explicit delivery commands', async () => {
 test('non-chat command and action previews copy exact source without executing or rendering it', async () => {
   const source = page.getByRole('region', { name: 'Source preview examples' });
   await source.getByRole('button', { name: 'Copy Background service command' }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('pnpm service status');
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('bun run service status');
   await source.getByText('Exact action details', { exact: true }).click();
   const expected = JSON.stringify(
     {

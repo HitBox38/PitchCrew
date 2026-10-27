@@ -34,7 +34,7 @@ export const registerUi = async (app: FastifyInstance, dev: boolean, uiRoot = de
       return res
         .status(503)
         .type('text/plain')
-        .send('Build the UI with pnpm build, then pnpm start.');
+        .send('Build the UI with bun run build, then bun run start.');
     }
   });
 };
