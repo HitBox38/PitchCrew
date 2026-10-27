@@ -9,6 +9,7 @@ import { preparationGuard } from './preparation.ts';
 import { mkdir } from 'node:fs/promises';
 import { credentialSelector } from './credentials.ts';
 import { captureManualField, validateApplicationFields } from './application-fields.ts';
+import { browserFrameStream } from './frame-stream.ts';
 
 export const launchBrowser = async (profile?: string): Promise<BrowserDriver> => {
   try {
@@ -130,6 +131,39 @@ const contextDriver = async (
   }
   const owned = new Set<Page>();
   let page: Page = await sessionPage(context);
+  let pendingDialog: Dialog | undefined;
+  let previous: BrowserSnapshot | undefined;
+  const captureFrame = () =>
+    render(async () => {
+      const current = page;
+      await sizePage(current);
+      return {
+        screenshot: (
+          await current.screenshot({ type: 'jpeg', quality: 60, timeout: 5000 })
+        ).toString('base64'),
+        ...current.viewportSize()!,
+        url: current.url(),
+        title: pendingDialog ? (previous?.title ?? '') : await current.title(),
+        ...frameMetadata(),
+      };
+    });
+  const frameMetadata = () => ({
+    ...(guard.blocked
+      ? {
+          warning:
+            'This site needs supervised requests. Further preparation actions will ask for approval.',
+        }
+      : {}),
+    ...(pendingDialog
+      ? { dialog: { type: pendingDialog.type(), message: pendingDialog.message() } }
+      : {}),
+  });
+  const frames = browserFrameStream({
+    page: () => page,
+    metadata: () => ({ ...viewport, url: page.url(), title: '', ...frameMetadata() }),
+    capture: captureFrame,
+    screencast: process.env.PITCHCREW_BROWSER_SCREENCAST !== '0',
+  });
   const attach = async (current: Page) => {
     owned.add(current);
     policies.set(current, guard);
@@ -137,6 +171,13 @@ const contextDriver = async (
     current.setDefaultTimeout(10000);
     current.on('dialog', (dialog) => {
       pendingDialog = dialog;
+      frames.refresh();
+    });
+    current.on('framenavigated', (frame) => {
+      if (current === page && frame === current.mainFrame()) frames.reset();
+    });
+    current.on('crash', () => {
+      if (current === page) frames.reset();
     });
     current.on('close', () => {
       owned.delete(current);
@@ -145,6 +186,7 @@ const contextDriver = async (
         page = [...owned].filter((tab) => !tab.isClosed()).at(-1) ?? current;
         previous = undefined;
         pendingDialog = undefined;
+        frames.reset();
       }
     });
   };
@@ -155,13 +197,14 @@ const contextDriver = async (
       if (opener ? !owned.has(opener) : browserUsers.get(context) !== 1) return;
       page = popup;
       previous = undefined;
+      frames.reset();
       await attach(popup);
+      await sizePage(popup);
+      frames.reset();
     })().catch(() => {});
   };
   context.on('page', onPage);
   await attach(page);
-  let pendingDialog: Dialog | undefined;
-  let previous: BrowserSnapshot | undefined;
   page.setDefaultTimeout(10000);
   return {
     validateApplicationValues: (values, action) =>
@@ -169,6 +212,7 @@ const contextDriver = async (
     prepare: guard.prepare,
     invalidate: () => {
       previous = undefined;
+      frames.reset();
     },
     resize: (requested) =>
       render(async () => {
@@ -178,40 +222,23 @@ const contextDriver = async (
         await Promise.all([...owned].map((tab) => tab.setViewportSize(next)));
         viewport = next;
         previous = undefined;
+        frames.reset();
         return true;
       }),
-    frame: () =>
-      render(async () => {
-        const current = page;
-        await sizePage(current);
-        return {
-          screenshot: (
-            await current.screenshot({ type: 'jpeg', quality: 60, timeout: 5000 })
-          ).toString('base64'),
-          ...current.viewportSize()!,
-          url: current.url(),
-          title: pendingDialog ? (previous?.title ?? '') : await current.title(),
-          ...(guard.blocked
-            ? {
-                warning:
-                  'This site needs supervised requests. Further preparation actions will ask for approval.',
-              }
-            : {}),
-          ...(pendingDialog
-            ? { dialog: { type: pendingDialog.type(), message: pendingDialog.message() } }
-            : {}),
-        };
-      }),
+    frame: captureFrame,
+    subscribeFrames: frames.subscribe,
     freshPage: () =>
       render(async () => {
         const old = [...owned];
         manualFields.clear();
         page = await sessionPage(context);
+        frames.reset();
         await attach(page);
         await sizePage(page);
         pendingDialog = undefined;
         previous = undefined;
         guard.reset();
+        frames.reset();
         for (const tab of old) await tab.close();
         page.setDefaultTimeout(10000);
       }),
@@ -223,6 +250,7 @@ const contextDriver = async (
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
         const dialog = pendingDialog;
         pendingDialog = undefined;
+        frames.refresh();
         if (input.decision === 'accept') await dialog.accept(input.text);
         else await dialog.dismiss();
         return;
@@ -233,6 +261,8 @@ const contextDriver = async (
         await page.goto(input.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
       }
       if (input.kind === 'click') {
+        if (input.generation !== undefined && input.generation !== frames.generation)
+          throw new Error('The browser page changed. Wait for the updated page and click again.');
         const size = page.viewportSize()!;
         if (
           input.viewport &&
@@ -349,6 +379,7 @@ const contextDriver = async (
           throw new Error('Handle browser prompts manually; agents cannot enter credentials.');
         const dialog = pendingDialog;
         pendingDialog = undefined;
+        frames.refresh();
         if (action.decision === 'accept') await dialog.accept();
         else await dialog.dismiss();
         return;
@@ -401,6 +432,7 @@ const contextDriver = async (
     },
     close: async () => {
       context.off('page', onPage);
+      await frames.close();
       for (const tab of [...owned]) await tab.close();
       await close();
     },

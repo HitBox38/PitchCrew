@@ -34,6 +34,9 @@ export interface BrowserFrame {
   title: string;
   warning?: string;
   dialog?: { type: string; message: string };
+  /** Live-view page/viewport identity; never an action approval fingerprint. */
+  generation?: number;
+  status?: 'live' | 'fallback' | 'loading';
 }
 export const browserViewportSchema = z
   .object({
@@ -47,6 +50,7 @@ export const browserInputSchema = z.discriminatedUnion('kind', [
     .object({
       kind: z.literal('click'),
       viewport: browserViewportSchema.optional(),
+      generation: z.number().int().nonnegative().optional(),
       x: z.number().min(0).max(2560),
       y: z.number().min(0).max(2160),
     })

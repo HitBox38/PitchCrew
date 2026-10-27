@@ -231,3 +231,27 @@ _Avoid_: Verified Profile evidence, application packet
 **Offer evaluation**:
 Comparing an employment offer's stated compensation and contract terms with the user's priorities and reported promises, identifying uncertainties and preparing questions for the employer or a lawyer.
 _Avoid_: Offer acceptance (when referring only to analysis)
+
+**Agent browser session**:
+An agent's browsing workspace for one job or one standalone conversation. Sessions for different jobs have independent control even when the same agent uses them.
+_Avoid_: Agent profile, global agent browser
+
+**Saved sign-ins**:
+An agent's retained website sign-ins and site storage, shared across that agent's browser sessions.
+_Avoid_: Browser session, provider credentials
+
+**Manual takeover**:
+The user controls a selected agent browser session while that session's agent actions and inspection are paused. Returning control allows the agent to inspect the page again.
+_Avoid_: Supervised mode, agent observation mode
+
+**Supervised mode**:
+Browser permission mode in which each agent interaction requires the user's exact-action approval.
+_Avoid_: Manual takeover, read-only browsing
+
+**Autonomous preparation**:
+Browser permission mode allowing bounded application preparation on sites the user grants for the current task. Final submission still requires an exact user decision.
+_Avoid_: Autonomous submission, unrestricted browsing
+
+**Browser action approval**:
+Authorization for one exact agent interaction in its reviewed application and page context. It is distinct from permission to prepare on a task site.
+_Avoid_: Site grant, blanket browser permission

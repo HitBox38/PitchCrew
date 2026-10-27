@@ -6,6 +6,9 @@ import {
   type BrowserViewport,
 } from '@pitchcrew/core';
 
+export type BrowserFrameEvent = BrowserFrame | { error: string };
+export type BrowserFrameListener = (event: BrowserFrameEvent) => void;
+
 export interface BrowserDriver {
   newTab?(): Promise<BrowserDriver>;
   validateApplicationValues?(values: readonly string[], action: BrowserAction): Promise<void>;
@@ -13,6 +16,7 @@ export interface BrowserDriver {
   snapshot(): Promise<BrowserSnapshot>;
   resize?(viewport: BrowserViewport): Promise<boolean>;
   frame?(): Promise<BrowserFrame>;
+  subscribeFrames?(receive: BrowserFrameListener): () => void;
   input?(input: BrowserInput): Promise<void>;
   freshPage?(): Promise<void>;
   automatic?(action: BrowserAction): Promise<boolean>;

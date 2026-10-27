@@ -9,6 +9,8 @@ import { randomUUID } from 'node:crypto';
 import { lstat, mkdir, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { BrowserDriver } from './types.ts';
+import { latestFrames } from './frame-queue.ts';
+import { pollingFrames } from './frame-polling.ts';
 
 type Binding = {
   runId: string;
@@ -26,6 +28,9 @@ type Session = {
   timer?: ReturnType<typeof setTimeout>;
   lease?: { id: string; until: number };
   closing: boolean;
+  viewers: number;
+  observationGeneration: number;
+  polling?: ReturnType<typeof pollingFrames>;
 };
 export class BrowserSessions {
   private readonly agents = new Map<string, Session>();
@@ -66,6 +71,8 @@ export class BrowserSessions {
         },
         fresh: false,
         closing: false,
+        viewers: 0,
+        observationGeneration: 0,
       };
       this.agents.set(key, session);
     }
@@ -173,6 +180,39 @@ export class BrowserSessions {
     Object.assign(session.info, { url: frame.url, title: frame.title });
     return frame;
   };
+  watchFrames = async function* (
+    this: BrowserSessions,
+    id: string,
+    signal: AbortSignal,
+  ): AsyncGenerator<BrowserFrame> {
+    const session = this.forRole(id);
+    if (!session.driver || session.info.status !== 'open') throw new Error('Browser is closed.');
+    const driver = await this.driver(id);
+    if (signal.aborted) return;
+    if (session.closing || session.info.status !== 'open') throw new Error('Browser is closed.');
+    const queue = latestFrames(signal);
+    session.viewers++;
+    this.touch(session);
+    session.polling ??= pollingFrames(() => this.frame(id));
+    let unsubscribe = () => {};
+    try {
+      unsubscribe = driver.subscribeFrames
+        ? driver.subscribeFrames(queue.push)
+        : session.polling.subscribe(queue.push);
+      while (!signal.aborted) {
+        const event = await queue.next();
+        if (!event) return;
+        if ('error' in event) throw new Error(event.error);
+        Object.assign(session.info, { url: event.url, title: event.title });
+        yield event;
+      }
+    } finally {
+      unsubscribe();
+      queue.close();
+      session.viewers--;
+      this.touch(session);
+    }
+  };
   openRole = async (roleId: RoleId, threadId: string, cardId: string | null) => {
     const key = this.key(roleId, threadId, cardId);
     if (!this.agents.has(key)) {
@@ -188,6 +228,7 @@ export class BrowserSessions {
     if (session.lease && session.lease.until > Date.now())
       throw new Error('Browser is controlled in another view. Return control there first.');
     session.info.manual = true;
+    session.observationGeneration++;
     session.lease = { id: randomUUID(), until: Date.now() + 45_000 };
     this.touch(session);
     return session.lease.id;
@@ -204,6 +245,7 @@ export class BrowserSessions {
   release = (roleId: string, id: string) => {
     const session = this.lease(roleId, id);
     session.info.manual = false;
+    session.observationGeneration++;
     session.lease = undefined;
     session.configure = true;
     this.touch(session);
@@ -254,6 +296,7 @@ export class BrowserSessions {
       session.closing = true;
       clearTimeout(session.timer);
       try {
+        session.polling?.close();
         if (session.driver) await (await session.driver).close();
       } finally {
         session.driver = undefined;
@@ -261,6 +304,7 @@ export class BrowserSessions {
         session.info.manual = false;
         session.lease = undefined;
         session.closing = false;
+        session.polling = undefined;
         if (![...this.agents.values()].some((s) => s.info.roleId === actualRole && s.driver))
           this.profiles.delete(actualRole);
       }
@@ -280,7 +324,12 @@ export class BrowserSessions {
   };
   private touch = (session: Session) => {
     clearTimeout(session.timer);
-    if (!session.info.runId) {
+    if (
+      !session.info.runId &&
+      !session.viewers &&
+      !session.closing &&
+      session.info.status === 'open'
+    ) {
       session.timer = setTimeout(() => {
         void this.closeRole(
           this.key(session.info.roleId, session.info.threadId, session.info.cardId),

@@ -62,6 +62,7 @@ export const useBrowserInput = (
     control.input({
       kind: 'click',
       viewport: { width: frame.width, height: frame.height },
+      generation: frame.generation,
       ...remotePoint(event.clientX, event.clientY, bounds, frame),
     });
   };
