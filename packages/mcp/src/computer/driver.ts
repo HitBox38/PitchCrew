@@ -1,5 +1,6 @@
 import { browserViewportSchema, type BrowserSnapshot } from '@pitchcrew/core';
 import type { Browser, BrowserContext, Page, Dialog } from 'playwright';
+import { browserReferences } from './references.ts';
 import { inspectControls } from './inspection.ts';
 import { hash } from './helpers.ts';
 import { assertPublicUrl } from './network.ts';
@@ -104,6 +105,7 @@ const contextDriver = async (
 ): Promise<BrowserDriver> => {
   const guard = preparationGuard();
   const manualFields = new Set<string>();
+  const references = browserReferences();
   let viewport = { width: 1280, height: 800 };
   let rendering = Promise.resolve();
   const render = <T>(operation: () => Promise<T>) => {
@@ -196,7 +198,10 @@ const contextDriver = async (
       frames.refresh();
     });
     current.on('framenavigated', (frame) => {
-      if (current === page && frame === current.mainFrame()) frames.reset();
+      if (current === page && frame === current.mainFrame()) {
+        references.clear();
+        frames.reset();
+      }
     });
     current.on('crash', () => {
       if (current === page) frames.reset();
@@ -232,7 +237,22 @@ const contextDriver = async (
     rememberManualFields: (fingerprints: readonly string[]) => {
       for (const value of fingerprints) manualFields.add(value);
     },
+    resolveAction: (action) => references.resolve(page, action),
+    matches: async (condition) => {
+      if (condition.urlIncludes && !page.url().includes(condition.urlIncludes)) return false;
+      if (condition.text && !(await inspectControls(page)).text.includes(condition.text))
+        return false;
+      if (condition.selector) {
+        const target = await references.target(page, condition.selector, condition.frame);
+        const locator = target.frame
+          ? page.frameLocator(target.frame).locator(target.selector)
+          : page.locator(target.selector);
+        if ((await locator.count()) !== 1 || !(await locator.isVisible())) return false;
+      }
+      return true;
+    },
     selectPage: (selected: Page) => {
+      references.clear();
       if (!owned.has(selected)) throw new Error('This tab is outside the browser session.');
       page = selected;
       previous = undefined;
@@ -243,6 +263,7 @@ const contextDriver = async (
       validateApplicationFields(page, action, values, manualFields),
     prepare: guard.prepare,
     invalidate: () => {
+      references.clear();
       previous = undefined;
       frames.reset();
     },
@@ -320,7 +341,7 @@ const contextDriver = async (
         for (const value of after) if (!before.has(value)) manualFields.add(value);
       }
     },
-    snapshot: () =>
+    snapshot: (options = {}) =>
       render(async () => {
         if (await native?.policy(guard.automatic)) guard.block();
         if (pendingDialog) {
@@ -345,6 +366,16 @@ const contextDriver = async (
         const current = page;
         await sizePage(current);
         const snapshotViewport = current.viewportSize()!;
+        const screenshot =
+          options.includeImage === false
+            ? ''
+            : (
+                await current.screenshot({
+                  type: 'jpeg',
+                  quality: 40,
+                  mask: current.frames().map((frame) => frame.locator(credentialSelector)),
+                })
+              ).toString('base64');
         const state = await current.evaluate(
           (credentials) => ({
             html: document.documentElement.outerHTML,
@@ -371,13 +402,6 @@ const contextDriver = async (
             0,
             30000,
           );
-        const screenshot = (
-          await current.screenshot({
-            type: 'jpeg',
-            quality: 40,
-            mask: current.frames().map((frame) => frame.locator(credentialSelector)),
-          })
-        ).toString('base64');
         previous = {
           viewport: snapshotViewport,
           url,
@@ -386,6 +410,7 @@ const contextDriver = async (
             ? `${text}\nPreparation blocked a website request. Do not claim the upload or autosave succeeded. Request the exact action again; it will require user approval.`
             : text,
           screenshot,
+          ...(options.references ? { elements: await references.capture(current) } : {}),
           controls: evidence.controls,
           uninspected: evidence.uninspected,
           digest: hash({ url, state, frames: evidence.frames, viewport: snapshotViewport }),
@@ -498,6 +523,7 @@ const contextDriver = async (
         );
     },
     close: async () => {
+      references.clear();
       context.off('page', onPage);
       await frames.close();
       for (const tab of [...owned]) await tab.close();

@@ -206,3 +206,21 @@ it('uploads only the exact reviewed exported bytes for the attached card', async
   );
   expect(driver.perform).toHaveBeenCalledTimes(1);
 });
+
+it('bounds condition waits and discards observations spanning private takeover', async () => {
+  const { manager, driver, scope, signal, authorize } = await setup();
+  manager.bindBrowser(scope);
+  await manager.inspect(scope.runId);
+  const matches = vi.fn(async () => false);
+  Object.assign(driver, { matches });
+  expect(
+    await manager.wait(scope.runId, { text: 'Missing', timeoutMs: 100 }, signal, authorize),
+  ).toEqual({ matched: false, timedOut: true });
+  matches.mockImplementation(async () => {
+    manager.takeControl(manager.browsers.keyForRun(scope.runId));
+    return true;
+  });
+  await expect(manager.wait(scope.runId, { text: 'Private' }, signal, authorize)).rejects.toThrow(
+    'Manual control',
+  );
+});

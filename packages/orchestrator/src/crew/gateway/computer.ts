@@ -87,8 +87,16 @@ export const computerAction = async (
     authorize();
     return { attempt };
   }
+  if (action === 'computer_wait')
+    return context.computer.wait(
+      capability.runId,
+      data.input,
+      context.controllers.get(capability.runId)?.signal ?? new AbortController().signal,
+      authorize,
+    );
   if (action === 'computer_inspect') {
-    const page = await context.computer.inspect(capability.runId);
+    const options = z.object({ includeImage: z.boolean().default(false) }).parse(data);
+    const page = await context.computer.inspect(capability.runId, { ...options, references: true });
     authorize();
     return { page };
   }

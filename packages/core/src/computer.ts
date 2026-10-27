@@ -183,7 +183,28 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     .strict(),
 ]);
 export type BrowserAction = z.infer<typeof browserActionSchema>;
+export const browserWaitSchema = z
+  .object({
+    text: z.string().min(1).max(2000).optional(),
+    urlIncludes: z.string().min(1).max(2000).optional(),
+    selector: z.string().min(1).max(500).optional(),
+    frame: z.string().min(1).max(500).optional(),
+    timeoutMs: z.number().int().min(100).max(30000).default(15000),
+  })
+  .strict()
+  .refine(
+    (value) => !!(value.text || value.urlIncludes || value.selector),
+    'Provide text, urlIncludes or selector.',
+  );
+export type BrowserWait = z.infer<typeof browserWaitSchema>;
+export interface BrowserElement {
+  ref: string;
+  tag: string;
+  name: string;
+  frame?: string;
+}
 export interface BrowserSnapshot {
+  elements?: BrowserElement[];
   viewport?: BrowserViewport;
   url: string;
   title: string;

@@ -42,7 +42,8 @@ During automatic preparation, browser requests that write, navigate through page
 
 The shared stdio MCP server exposes three browser tools only to permitted roles:
 
-- `pitchcrew_computer_inspect` opens the agent's browser if needed and returns inspected page text, controls, URL, title and a credential-redacted JPEG screenshot.
+- `pitchcrew_computer_inspect` opens the agent's browser if needed and returns inspected page text, controls, URL, title and snapshot-scoped `ref:` element IDs. `includeImage: true` adds a credential-redacted JPEG screenshot; text-only inspection is the tool default. References resolve to the same inspected DOM element and expire on a new inspection, navigation, tab change or manual handoff. CSS selectors remain supported.
+- `pitchcrew_computer_wait` waits up to 30 seconds for all requested text, URL and visible selector/reference conditions, returning a bounded timeout result. Cancellation, capability loss and manual takeover interrupt waits without returning private page evidence.
 - `pitchcrew_computer_request` proposes one exact action with a reason. It returns a pending user decision or a server-approved preparation record; it never performs the interaction.
 - `pitchcrew_computer_execute` waits up to 30 seconds for a decision, then executes that exact action once. While pending, agents call it again to keep the run alive. During manual control, tools return a bounded waiting status without page evidence; agents call inspect again to wait.
 

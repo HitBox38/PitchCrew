@@ -6,6 +6,7 @@ import type {
 } from '../../../core/src/native-browser.ts';
 import {
   type BrowserAction,
+  type BrowserWait,
   type BrowserSnapshot,
   type BrowserFrame,
   type BrowserInput,
@@ -27,7 +28,9 @@ export interface BrowserDriver {
   newTab?(): Promise<BrowserDriver>;
   validateApplicationValues?(values: readonly string[], action: BrowserAction): Promise<void>;
   validate?(action: BrowserAction): Promise<void>;
-  snapshot(): Promise<BrowserSnapshot>;
+  resolveAction?(action: BrowserAction): Promise<BrowserAction>;
+  matches?(condition: BrowserWait): Promise<boolean>;
+  snapshot(options?: { includeImage?: boolean; references?: boolean }): Promise<BrowserSnapshot>;
   getViewport?(): BrowserViewport;
   viewMetadata?(): Pick<BrowserFrame, 'dialog' | 'warning'>;
   resize?(viewport: BrowserViewport): Promise<boolean>;

@@ -2,6 +2,7 @@ import { DesktopBrowserHosts } from './native-host.ts';
 import type { Board } from '@pitchcrew/board';
 import {
   browserActionSchema,
+  browserWaitSchema,
   type Approval,
   type BrowserAction,
   browserViewportSchema,
@@ -62,17 +63,41 @@ export class ComputerManager {
     return session;
   };
 
-  inspect = async (runId: string) => {
+  inspect = async (runId: string, options = { includeImage: true, references: true }) => {
     this.browsers.assertAgent(runId);
     const driver = await this.session(runId);
     this.browsers.assertAgent(runId);
     const generation = this.browsers.forRole(runId).observationGeneration;
-    const page = await driver.snapshot();
+    const page = await driver.snapshot(options);
     this.browsers.assertAgent(runId);
     if (this.browsers.forRole(runId).observationGeneration !== generation)
       throw new Error('Manual control changed. Inspect the browser again.');
     if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
     return page;
+  };
+  wait = async (runId: string, raw: unknown, signal: AbortSignal, authorize: () => void) => {
+    const condition = browserWaitSchema.parse(raw);
+    const generation = this.browsers.forRole(runId).observationGeneration;
+    const deadline = Date.now() + condition.timeoutMs;
+    const driver = await this.session(runId);
+    if (!driver.matches) throw new Error('Browser waits are unavailable.');
+    do {
+      authorize();
+      signal.throwIfAborted();
+      this.browsers.assertAgent(runId);
+      const matched = await driver.matches(condition);
+      authorize();
+      this.browsers.assertAgent(runId);
+      if (
+        this.stopped.has(runId) ||
+        generation !== this.browsers.forRole(runId).observationGeneration
+      )
+        throw new Error('Browser control changed. Inspect again.');
+      if (matched) return { matched: true };
+      if (Date.now() >= deadline) return { matched: false, timedOut: true };
+      await delay(Math.min(200, deadline - Date.now()), undefined, { signal });
+    } while (Date.now() < deadline);
+    return { matched: false, timedOut: true };
   };
   bindBrowser = (input: Parameters<BrowserSessions['bind']>[0]) => {
     if (!input.threadId && !input.cardId) {
@@ -232,7 +257,7 @@ export class ComputerManager {
     if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
     if (this.busyRoles.has(this.browsers.keyForRun(scope.runId)))
       throw new Error('A browser action is in progress.');
-    const action = browserActionSchema.parse(raw);
+    let action = browserActionSchema.parse(raw);
     assertNoUncertainSubmission(this.board, scope.cardId, action, scope.runId);
     if (!this.browsers.forRun(scope.runId)) this.browsers.bind(scope);
     if (isSubmission(action))
@@ -251,11 +276,13 @@ export class ComputerManager {
     this.busy.add(scope.runId);
     this.busyRoles.add(this.browsers.keyForRun(scope.runId));
     try {
-      const page = await this.inspect(scope.runId);
+      this.browsers.assertAgent(scope.runId);
+      const driver = await this.session(scope.runId);
+      action = (await driver.resolveAction?.(action)) ?? action;
+      const page = await this.inspect(scope.runId, { includeImage: true, references: false });
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
-      const driver = await this.sessions.get(scope.runId);
       await driver?.validate?.(action);
       await this.checkApplicationValues(scope.cardId, action, driver);
       const file = await this.uploadFile(action, scope.cardId);
