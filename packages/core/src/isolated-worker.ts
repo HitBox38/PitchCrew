@@ -82,7 +82,7 @@ export class IsolatedWorker extends EventEmitter {
     );
   }
 
-  terminate(): Promise<number> {
+  terminate = (): Promise<number> => {
     if (this.native) return this.native.terminate();
     if (this.stopped || this.finished) return this.exited;
     this.stopped = true;
@@ -92,5 +92,5 @@ export class IsolatedWorker extends EventEmitter {
     this.stopTimer = setTimeout(() => this.child?.kill('SIGKILL'), 1000);
     this.stopTimer.unref();
     return this.exited;
-  }
+  };
 }
