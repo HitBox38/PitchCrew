@@ -2,6 +2,8 @@
 
 The job sheet has three sections: Job, Application and Activity. Its compact header keeps the company, title, location, compensation, board status and fit score visible. The original posting and close controls share that header. A persistent footer presents one next action based on the current work and prerequisites, plus Shortlist for idle leads. Each section has its own reading position inside the sheet's main work area; the header and footer never scroll independently.
 
+Opening a job immediately shows its identity header and a skeleton while the sheet code or full job source loads. The loading status is announced to assistive technology, skeletons respect reduced motion, and the sheet can be closed while loading. Source failures keep the header visible and offer Retry before enabling the full details and workflow actions.
+
 ## Information and decisions
 
 Job opens with the original description, tags and crew assessment. Posting provenance lives in a secondary disclosure. Application groups the complete brief and requirements, documents, reviews and export. Confirmed briefs use a compact summary until the user chooses to review or edit them. Deep-review reports load only when Reviews first opens. Export format/layout controls live beside their approval request rather than in the persistent header.
