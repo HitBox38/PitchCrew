@@ -96,6 +96,8 @@ The [Website](https://eu.posthog.com/project/295060/dashboard/1018299), [Heatmap
 
 Resource manifests under `posthog/` describe deployment inputs; `activation.json` files record actual native writes and readbacks. See the [consolidated activation record](../posthog/activation.json). Saved descriptions distinguish **Not collected**, **No captured data**, and measured results. Automated tests stay offline and never invent production traffic. Dashboard and subscription activation does not deploy the application or landing code.
 
+The team-owned workspace onboarding readiness scout has a reviewed skill body and a tested comparison gate, with schema discovery, partial-history labels and capture/activity checks. See [onboarding scout](analytics/onboarding-scout.md) for the source bundle and MCP publication procedure.
+
 ## October 21 audit repair
 
 See [the repair record](analytics/audit-repair.md) and [live resource evidence](../posthog/audit-repair.json). CI and both native smoke launchers now force telemetry off; production configuration also rejects CI/smoke mode. Historical empty-workspace identities were not deleted or classified as tests without attribution.
