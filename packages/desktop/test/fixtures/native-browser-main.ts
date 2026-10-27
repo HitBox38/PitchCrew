@@ -1,8 +1,9 @@
 import { parseCookieExport } from '../../src/browser/cookie-import.ts';
 import { randomUUID } from 'node:crypto';
 import { installBrowserComposition } from '../../src/browser/composition.ts';
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow, session, nativeImage } from 'electron';
 import { writeFile, readFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
 import { createNativeBrowserHost } from '../../src/browser/host.ts';
 
 if (process.platform === 'darwin') app.setActivationPolicy('accessory');
@@ -93,6 +94,29 @@ void app
               opener,
               windows: BrowserWindow.getAllWindows().length,
             }),
+          );
+        }
+        if (command.kind === 'mask-check' && group) {
+          const point = await group.pages
+            .get(group.active)!
+            .contents.executeJavaScript(
+              `(() => { const rect = document.querySelector('#password').getBoundingClientRect(); return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2, width: innerWidth }; })()`,
+            );
+          const image = nativeImage.createFromBuffer(
+            await readFile(
+              join(dirname(process.env.PITCHCREW_NATIVE_SMOKE_RESULT!), 'masked.jpeg'),
+            ),
+          );
+          const size = image.getSize();
+          const scale = size.width / point.width;
+          const bitmap = image.toBitmap({ scaleFactor: 1 });
+          const offset =
+            (Math.floor(point.y * scale) * size.width + Math.floor(point.x * scale)) * 4;
+          const masked =
+            bitmap[offset] > 200 && bitmap[offset + 1] < 80 && bitmap[offset + 2] > 200;
+          await writeFile(
+            process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
+            JSON.stringify({ nonce: command.nonce, masked }),
           );
         }
         if (command.kind === 'profiles' && group) {

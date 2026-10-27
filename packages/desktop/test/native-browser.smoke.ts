@@ -146,10 +146,28 @@ try {
   const tabs = await driver.nativeCommand!({ kind: 'new-tab' });
   if (tabs.tabs.length !== 3) throw new Error('New browser tab was not created.');
   await driver.nativeCommand!({ kind: 'select-tab', tabId: native.activeTab });
+  await manager.resizeBrowser(key, { width: 700, height: 500 }, lease);
   await manager.returnControl(key, lease);
   const resumed = await manager.inspect(scope.runId);
   if (!resumed.text.includes('Human') || resumed.text.includes('fictional-password'))
     throw new Error('Native inspection or credential redaction failed.');
+  await writeFile(join(directory, 'masked.jpeg'), Buffer.from(resumed.screenshot, 'base64'));
+  await writeFile(
+    commands,
+    JSON.stringify({ kind: 'mask-check', id: native.id, nonce: 'mask-check' }),
+  );
+  const mask = await wait(async () => {
+    try {
+      const value = JSON.parse(await readFile(resultFile, 'utf8')) as {
+        nonce: string;
+        masked: boolean;
+      };
+      return value.nonce === 'mask-check' ? value : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+  if (!mask.masked) throw new Error('Native screenshot did not preserve the credential mask.');
   await driver.validateApplicationValues?.([], { kind: 'click', selector: '#go' });
   const agentTabs = await manager.tabs(scope.runId, { kind: 'open' });
   if (agentTabs.tabs.length !== 4) throw new Error('Agent tab opening failed.');

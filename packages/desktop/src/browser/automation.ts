@@ -1,3 +1,4 @@
+import { captureNativePage } from './capture.ts';
 import type { WebContents } from 'electron';
 
 /** Keep hidden guest rendering behind the app while automation needs frames; never show/focus a window. */
@@ -49,6 +50,10 @@ export const guestAutomation = (contents: WebContents, paint: (active: boolean) 
       paint(true);
       try {
         await focus(true);
+        if (method === 'Page.captureScreenshot') {
+          if (child) throw new Error('Native capture is limited to the owned page.');
+          return await captureNativePage(contents, params);
+        }
         return await contents.debugger.sendCommand(method, params, child);
       } finally {
         active--;

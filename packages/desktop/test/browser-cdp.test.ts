@@ -1,3 +1,4 @@
+import { captureNativePage } from '../src/browser/capture.ts';
 import { EventEmitter } from 'node:events';
 import type { WebContents } from 'electron';
 import type { WebSocket } from 'ws';
@@ -96,4 +97,79 @@ it('resolves JavaScript dialogs without waiting on focus emulation blocked by th
   await expect(automation.send('Page.handleJavaScriptDialog', { accept: false })).resolves.toEqual({
     resolved: true,
   });
+});
+
+it('captures a hidden native guest without the CDP screenshot command that stalls on Windows', async () => {
+  const bytes = Buffer.from('fictional-masked-image');
+  const nativeImage = {
+    isEmpty: () => false,
+    getSize: () => ({ width: 1280, height: 800 }),
+    toJPEG: vi.fn(() => bytes),
+    resize: vi.fn(),
+  };
+  const capturePage = vi.fn(async () => nativeImage);
+  const sendCommand = vi.fn(async (method: string) =>
+    method === 'Page.captureScreenshot' ? new Promise(() => {}) : {},
+  );
+  const events = new EventEmitter();
+  const contents = Object.assign(events, {
+    isDestroyed: () => false,
+    capturePage,
+    debugger: { sendCommand },
+  }) as unknown as WebContents;
+  const automation = guestAutomation(contents, vi.fn());
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const result = await Promise.race([
+      automation.send('Page.captureScreenshot', {
+        format: 'jpeg',
+        quality: 40,
+        clip: { x: 0, y: 0, width: 1280, height: 800, scale: 1 },
+      }),
+      new Promise((resolve) => {
+        timer = setTimeout(() => resolve('capture timed out'), 150);
+      }),
+    ]);
+    expect(result).toEqual({ data: bytes.toString('base64') });
+    expect(capturePage).toHaveBeenCalledWith(
+      { x: 0, y: 0, width: 1280, height: 800 },
+      { stayHidden: true, stayAwake: true },
+    );
+    expect(nativeImage.toJPEG).toHaveBeenCalledWith(40);
+    expect(sendCommand.mock.calls.some(([method]) => method === 'Page.captureScreenshot')).toBe(
+      false,
+    );
+  } finally {
+    clearTimeout(timer);
+    events.emit('destroyed');
+  }
+});
+
+it('rejects empty, mismatched and excessive native captures instead of distorting evidence', async () => {
+  const image = { isEmpty: () => false, getSize: () => ({ width: 700, height: 500 }) };
+  const capturePage = vi.fn(async () => image);
+  const contents = { capturePage } as unknown as WebContents;
+  await expect(
+    captureNativePage(contents, { clip: { x: 0, y: 0, width: 1280, height: 800, scale: 1 } }),
+  ).rejects.toThrow('viewport changed');
+  image.isEmpty = () => true;
+  await expect(captureNativePage(contents, {})).rejects.toThrow('empty image');
+  capturePage.mockClear();
+  await expect(
+    captureNativePage(contents, { clip: { x: 0, y: 0, width: 10000, height: 10000, scale: 1 } }),
+  ).rejects.toThrow('viewport limit');
+  expect(capturePage).not.toHaveBeenCalled();
+});
+it('bounds a stalled native capture and releases its timeout', async () => {
+  vi.useFakeTimers();
+  try {
+    const contents = { capturePage: vi.fn(() => new Promise(() => {})) } as unknown as WebContents;
+    const captured = captureNativePage(contents, {});
+    const rejected = expect(captured).rejects.toThrow('Native browser capture timed out.');
+    await vi.advanceTimersByTimeAsync(5000);
+    await rejected;
+    expect(vi.getTimerCount()).toBe(0);
+  } finally {
+    vi.useRealTimers();
+  }
 });
