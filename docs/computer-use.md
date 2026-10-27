@@ -78,3 +78,7 @@ In Autonomous preparation mode, **Allow browsing for this task** is separate fro
 ## Agent tabs
 
 `pitchcrew_computer_tabs` lists the current job/conversation's tabs, opens blank tabs, selects a tab or closes one. It cannot reach another session or profile. Tab changes expire unused approvals and are paused during manual takeover; unresolved submissions block changes. Actions, inspection and waits accept `tabId`. Proposed actions always bind the resolved tab, even when omitted by the caller, and execution returns to that exact tab before checking evidence. Version 31 persists that binding. Closing a tab skips before-unload scripts; ordinary website dialogs must be resolved first.
+
+## Browser diagnostics
+
+Inspection includes at most 30 console/script failures and 30 failed HTTP requests for the selected owned tab. Arbitrary console output is reduced to a generic error; recognized engine failures have quoted values, tokens and URLs sanitized. Request summaries contain method, resource type, status and a bounded URL with no credentials, query or fragment; headers, bodies, responses, console objects and stack traces are excluded. These buffers are memory-only, clear on page navigation and are cleared/disabled throughout private takeover. They are never sent to application analytics.

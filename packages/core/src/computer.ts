@@ -249,7 +249,12 @@ export interface BrowserElement {
   name: string;
   frame?: string;
 }
+export interface BrowserDiagnostics {
+  console: { level: string; message: string }[];
+  requests: { url: string; method: string; status: number | null; resourceType: string }[];
+}
 export interface BrowserSnapshot {
+  diagnostics?: BrowserDiagnostics;
   elements?: BrowserElement[];
   viewport?: BrowserViewport;
   url: string;

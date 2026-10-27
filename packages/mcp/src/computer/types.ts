@@ -24,6 +24,7 @@ export interface BrowserDriver {
   nativeState?(): Promise<NativeBrowserState>;
   nativeCommand?(command: NativeBrowserCommand): Promise<NativeBrowserState>;
   rememberManualFields?(fingerprints: readonly string[]): void;
+  privateControl?(enabled: boolean): void;
   setManual?(allowed: boolean): Promise<void>;
   resetSignIns?(): Promise<void>;
   selectPage?(page: Page): void;

@@ -229,6 +229,7 @@ export class ComputerManager {
     const driver = await this.browsers.driver(id);
     this.browsers.lease(id, leaseId);
     assertNoUncertainSubmission(this.board, session.info.cardId);
+    driver.privateControl?.(true);
     await driver.setManual?.(true);
   };
 
@@ -237,6 +238,7 @@ export class ComputerManager {
     const driver = await this.browsers.driver(roleId);
     this.browsers.lease(roleId, leaseId);
     await driver.setManual?.(false);
+    driver.privateControl?.(false);
     driver.invalidate?.();
     this.browsers.release(roleId, leaseId);
   };
@@ -321,7 +323,10 @@ export class ComputerManager {
       this.browsers.assertAgent(scope.runId);
       const driver = await this.session(scope.runId);
       action = (await driver.resolveAction?.(action)) ?? action;
-      const page = await this.inspect(scope.runId, { includeImage: true, references: false });
+      const { diagnostics: _diagnostics, ...page } = await this.inspect(scope.runId, {
+        includeImage: true,
+        references: false,
+      });
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');

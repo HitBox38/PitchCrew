@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { browserViewportSchema, type BrowserSnapshot } from '@pitchcrew/core';
 import type { Browser, BrowserContext, Page, Dialog } from 'playwright';
+import { browserDiagnostics } from './diagnostics.ts';
 import { browserReferences } from './references.ts';
 import { inspectControls } from './inspection.ts';
 import { hash } from './helpers.ts';
@@ -107,6 +108,7 @@ const contextDriver = async (
   const guard = preparationGuard();
   const manualFields = new Set<string>();
   const references = browserReferences();
+  const diagnostics = browserDiagnostics();
   let viewport = { width: 1280, height: 800 };
   let rendering = Promise.resolve();
   const render = <T>(operation: () => Promise<T>) => {
@@ -192,6 +194,7 @@ const contextDriver = async (
   });
   const attach = async (current: Page) => {
     owned.add(current);
+    diagnostics.attach(current);
     tabIds.set(current, randomUUID());
     policies.set(current, guard);
     await guard.attach(current);
@@ -211,6 +214,7 @@ const contextDriver = async (
     });
     current.on('close', () => {
       owned.delete(current);
+      diagnostics.detach(current);
       tabIds.delete(current);
       policies.delete(current);
       if (page === current) {
@@ -254,6 +258,7 @@ const contextDriver = async (
     selectPage(selected);
   };
   return {
+    privateControl: diagnostics.privateControl,
     rememberManualFields: (fingerprints: readonly string[]) => {
       for (const value of fingerprints) manualFields.add(value);
     },
@@ -462,6 +467,7 @@ const contextDriver = async (
             30000,
           );
         previous = {
+          diagnostics: diagnostics.read(current),
           viewport: snapshotViewport,
           url,
           title: await current.title(),
@@ -583,6 +589,7 @@ const contextDriver = async (
     },
     close: async () => {
       references.clear();
+      diagnostics.close();
       context.off('page', onPage);
       await frames.close();
       for (const tab of [...owned]) await tab.close();
