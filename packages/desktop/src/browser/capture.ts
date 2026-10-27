@@ -28,10 +28,20 @@ export const captureNativePage = async (contents: WebContents, params: Record<st
     : undefined;
   if (rect && rect.width * rect.height * (clip?.scale ?? 1) ** 2 > 16_000_000)
     throw new Error('Browser capture exceeds the viewport limit.');
+  const read = async () => {
+    // capturePage can copy the previous surface before Playwright's mask styles paint.
+    // A separate world keeps the page from replacing these scheduling primitives.
+    await contents.executeJavaScriptInIsolatedWorld(1001, [
+      {
+        code: 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))))',
+      },
+    ]);
+    return contents.capturePage(rect, { stayHidden: true, stayAwake: true });
+  };
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
     const captured = await Promise.race([
-      contents.capturePage(rect, { stayHidden: true, stayAwake: true }),
+      read(),
       new Promise<never>((_resolve, reject) => {
         timer = setTimeout(() => reject(new Error('Native browser capture timed out.')), 5000);
       }),

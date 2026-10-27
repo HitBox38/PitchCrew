@@ -114,6 +114,7 @@ it('captures a hidden native guest without the CDP screenshot command that stall
   const events = new EventEmitter();
   const contents = Object.assign(events, {
     isDestroyed: () => false,
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
     capturePage,
     debugger: { sendCommand },
   }) as unknown as WebContents;
@@ -148,7 +149,10 @@ it('captures a hidden native guest without the CDP screenshot command that stall
 it('rejects empty, mismatched and excessive native captures instead of distorting evidence', async () => {
   const image = { isEmpty: () => false, getSize: () => ({ width: 700, height: 500 }) };
   const capturePage = vi.fn(async () => image);
-  const contents = { capturePage } as unknown as WebContents;
+  const contents = {
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
+    capturePage,
+  } as unknown as WebContents;
   await expect(
     captureNativePage(contents, { clip: { x: 0, y: 0, width: 1280, height: 800, scale: 1 } }),
   ).rejects.toThrow('viewport changed');
@@ -160,16 +164,54 @@ it('rejects empty, mismatched and excessive native captures instead of distortin
   ).rejects.toThrow('viewport limit');
   expect(capturePage).not.toHaveBeenCalled();
 });
-it('bounds a stalled native capture and releases its timeout', async () => {
-  vi.useFakeTimers();
+it.each(['paint', 'capture'])(
+  'bounds a stalled native %s and releases its timeout',
+  async (phase) => {
+    vi.useFakeTimers();
+    try {
+      const contents = {
+        executeJavaScriptInIsolatedWorld: vi.fn(() =>
+          phase === 'paint' ? new Promise(() => {}) : Promise.resolve(),
+        ),
+        capturePage: vi.fn(() => new Promise(() => {})),
+      } as unknown as WebContents;
+      const captured = captureNativePage(contents, {});
+      const rejected = expect(captured).rejects.toThrow('Native browser capture timed out.');
+      await vi.advanceTimersByTimeAsync(5000);
+      await rejected;
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+    }
+  },
+);
+
+it('waits for the credential-mask paint before reading the native surface', async () => {
+  let painted: (() => void) | undefined;
+  const frame = new Promise<void>((resolve) => {
+    painted = resolve;
+  });
+  const executeJavaScriptInIsolatedWorld = vi.fn(() => frame);
+  const bytes = Buffer.from('masked-frame');
+  const capturePage = vi.fn(async () => ({
+    isEmpty: () => false,
+    getSize: () => ({ width: 700, height: 500 }),
+    toJPEG: () => bytes,
+  }));
+  const contents = { executeJavaScriptInIsolatedWorld, capturePage } as unknown as WebContents;
+  const result = captureNativePage(contents, {
+    format: 'jpeg',
+    clip: { x: 0, y: 0, width: 700, height: 500 },
+  });
+  const settled = expect(result).resolves.toEqual({ data: bytes.toString('base64') });
   try {
-    const contents = { capturePage: vi.fn(() => new Promise(() => {})) } as unknown as WebContents;
-    const captured = captureNativePage(contents, {});
-    const rejected = expect(captured).rejects.toThrow('Native browser capture timed out.');
-    await vi.advanceTimersByTimeAsync(5000);
-    await rejected;
-    expect(vi.getTimerCount()).toBe(0);
+    await Promise.resolve();
+    expect(capturePage).not.toHaveBeenCalled();
   } finally {
-    vi.useRealTimers();
+    painted!();
+    await settled;
   }
+  expect(executeJavaScriptInIsolatedWorld).toHaveBeenCalledWith(1001, [
+    expect.objectContaining({ code: expect.stringContaining('requestAnimationFrame') }),
+  ]);
 });

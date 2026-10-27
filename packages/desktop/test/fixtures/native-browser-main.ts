@@ -116,7 +116,14 @@ void app
             bitmap[offset] > 200 && bitmap[offset + 1] < 80 && bitmap[offset + 2] > 200;
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
-            JSON.stringify({ nonce: command.nonce, masked }),
+            JSON.stringify({
+              nonce: command.nonce,
+              masked,
+              size,
+              point,
+              bitmapBytes: bitmap.length,
+              pixel: Array.from(bitmap.subarray(offset, offset + 4)),
+            }),
           );
         }
         if (command.kind === 'profiles' && group) {

@@ -167,7 +167,10 @@ try {
       return undefined;
     }
   });
-  if (!mask.masked) throw new Error('Native screenshot did not preserve the credential mask.');
+  if (!mask.masked)
+    throw new Error(
+      `Native screenshot did not preserve the credential mask: ${JSON.stringify(mask)}`,
+    );
   await driver.validateApplicationValues?.([], { kind: 'click', selector: '#go' });
   const agentTabs = await manager.tabs(scope.runId, { kind: 'open' });
   if (agentTabs.tabs.length !== 4) throw new Error('Agent tab opening failed.');
