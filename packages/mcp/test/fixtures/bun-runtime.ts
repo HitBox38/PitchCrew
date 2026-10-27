@@ -208,6 +208,34 @@ try {
   } finally {
     await reopened.close();
   }
+  if (process.argv.includes('--development')) {
+    const development = await createDaemon({
+      directory,
+      port,
+      seedSkills: false,
+      dev: true,
+      ui: 'dev',
+    });
+    try {
+      await new Promise<void>((resolve) => development.http.listen(port, '127.0.0.1', resolve));
+      const assets = [
+        { path: '/', type: /text\/html/, content: /src="\/src\/main\.tsx"/ },
+        { path: '/@vite/client', type: /javascript/, content: /WebSocket/ },
+        { path: '/theme.js', type: /javascript/, content: /pitchcrew-theme/ },
+        { path: '/src/main.tsx', type: /javascript/, content: /createRoot/ },
+      ];
+      for (const { path, type, content } of assets) {
+        const response = await fetch(`${development.url}${path}`, {
+          signal: AbortSignal.timeout(15000),
+        });
+        assert.equal(response.status, 200, `Bun development UI could not serve ${path}`);
+        assert.match(response.headers.get('content-type') ?? '', type);
+        assert.match(await response.text(), content);
+      }
+    } finally {
+      await development.close();
+    }
+  }
   console.log(
     JSON.stringify({
       runtime: `Bun ${process.versions.bun}`,
@@ -219,6 +247,9 @@ try {
         'Node-bounded attachment/database/document helpers',
         'MCP stdio',
         'unapproved export rejection',
+        ...(process.argv.includes('--development')
+          ? ['Vite development UI and transformed assets']
+          : []),
       ],
     }),
   );

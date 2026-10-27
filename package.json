@@ -30,7 +30,7 @@
     "format:check": "oxfmt --check .",
     "check": "bun run lint && bun run typecheck && bun run test && bun run build && bun run landing:build",
     "browser:install": "bun x --no-install --cwd packages/mcp playwright install chromium",
-    "test:bun": "bun --no-env-file --no-install packages/mcp/test/fixtures/bun-runtime.ts"
+    "test:bun": "bun --no-env-file --no-install packages/mcp/test/fixtures/bun-runtime.ts --development"
   },
   "devDependencies": {
     "@types/node": "^22.20.4",

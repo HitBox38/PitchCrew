@@ -8,12 +8,12 @@ Pitchcrew uses pinned Bun 1.4.4 for package management, application scripts, the
 
 Measured on macOS ARM64 / Apple M4 Pro with Node 24.22.0, pnpm 11.22.0 and Bun 1.4.4. Values are medians; the complete samples and methodology are in [the raw results](benchmarks/bun-migration.json).
 
-| Measurement                                  | Node / pnpm |       Bun | Reduction |
-| -------------------------------------------- | ----------: | --------: | --------: |
-| Daemon HTTP ready                            |   303.87 ms | 156.42 ms |    48.52% |
-| First authenticated compact snapshot         |   318.21 ms | 164.51 ms |    48.30% |
-| Daemon RSS after that snapshot               |  144.95 MiB | 76.99 MiB |    46.89% |
-| Fresh dependency install, warm package cache |     5.118 s |   1.899 s |    62.89% |
+| Measurement                                  | Node / pnpm |        Bun | Reduction |
+| -------------------------------------------- | ----------: | ---------: | --------: |
+| Daemon HTTP ready                            |   359.44 ms |  179.30 ms |    50.12% |
+| First authenticated compact snapshot         |   375.36 ms |  188.35 ms |    49.82% |
+| Daemon RSS after that snapshot               |  152.30 MiB | 102.13 MiB |    32.94% |
+| Fresh dependency install, warm package cache |     9.747 s |    2.390 s |    75.48% |
 
 An [initial batch](benchmarks/bun-migration-initial.json) and [second batch](benchmarks/bun-migration-repeat.json) also measured roughly half the startup time. Fresh-install speedups ranged from 2.7× to 4.1× across the three batches. Those earlier reports used runtime-reported RSS; the current table samples both processes with the same OS `ps` command. This revises the memory improvement to about 33%. Install timings vary with host/cache conditions and do not establish CI savings.
 
@@ -23,13 +23,28 @@ Install measurements use three alternating fresh manifest-only workspace install
 
 These results establish local daemon and install improvements. They do not establish faster GitHub Actions, browser rendering, document parsing or provider inference. Existing tests still run under Node, and CI retains both Node-version shards. Keeping the Node helper also adds a Bun binary to the installed runtime; smaller desktop downloads are not an established benefit. Electron Builder stays on Node because its threaded-WASM icon converter hung when it inherited Bun during verification.
 
+## Observed CI measurements
+
+A single comparison of a [prior full-installer pnpm run](https://github.com/HitBox38/PitchCrew/actions/runs/40571998154) with the [Bun manual run](https://github.com/HitBox38/PitchCrew/actions/runs/40598096132) **did not show an end-to-end pipeline improvement**. Complete job/step durations, commit identities and definitions are in [the CI observations](benchmarks/bun-ci-observed.json).
+
+| Measurement                                           |       Prior pnpm run |              Bun run |
+| ----------------------------------------------------- | -------------------: | -------------------: |
+| Whole workflow, including initial queue time          |               10m12s |               12m06s |
+| Package-install steps, common jobs                    |   436 runner-seconds |    42 runner-seconds |
+| Runtime/package setup, cache and install, common jobs |   717 runner-seconds |   471 runner-seconds |
+| Aggregate job time, including the added Bun job       | 2,707 runner-seconds | 2,692 runner-seconds |
+
+Common dependency preparation saved 246 aggregate runner-seconds in this pair, but those parallel savings did not shorten the workflow. The Bun integration job added 20 runner-seconds; Intel Mac packaging took longer, and cache transfer/save work remained material. Cache warmth is unknown, timestamps have one-second precision, source commits differ, and runner scheduling and packaging vary. These observations establish faster install steps in this pair, not a controlled Bun speedup or measured overall CI savings.
+
 ## Verification
 
-Vitest defaults to the same two-worker budget used by CI after an unrestricted local run timed out while heavy checks overlapped; tests and deadlines remain intact. The migration retains existing lint, formatting, types, unit/HTTP/MCP/browser tests, Node 22/24 CI shards, native desktop checks and the four-platform installer matrix. A required Bun integration job additionally checks real HTTP session/Host/Origin gates, conditional snapshots, SSE flush/disconnect, persisted SQLite data, Node-bounded attachment/database/document work, MCP stdio and unapproved export rejection.
+Vitest defaults to the same two-worker budget used by CI after an unrestricted local run timed out while heavy checks overlapped; tests and deadlines remain intact. The migration retains existing lint, formatting, types, unit/HTTP/MCP/browser tests, Node 22/24 CI shards, native desktop checks and the four-platform installer matrix. A required Bun integration job additionally checks real HTTP session/Host/Origin gates, conditional snapshots, SSE flush/disconnect, persisted SQLite data, Node-bounded attachment/database/document work, MCP stdio, unapproved export rejection and development HTML/JavaScript assets through Vite.
 
 The bounded-worker integration tests exercise actual Node and Bun processes, binary IPC, worker errors, heap exhaustion, cancellation, owner crashes, missing/invalid helpers, source PATH lookup, packaged sibling lookup and materialized workspace packages. Unsupported or missing genuine Node helpers fail closed.
 
-Cross-platform CI and installer verification must pass before this migration is considered ready. Live provider runs remain outside automated verification, as before. No test suite can establish a literal zero-percent defect rate.
+The full manual CI run at `9380af06` passed all 13 jobs, including every installer platform. Cross-platform CI and installer verification must also pass for the final head before this migration is considered ready. Live provider runs remain outside automated verification, as before. No test suite can establish a literal zero-percent defect rate.
+
+A late local UI rerun hit the existing 10-second cold Vite setup deadline. The unchanged pnpm baseline at `e3f7ed03` failed the same isolated Profile import test on the same host and Node version. A diagnostic run with extra setup time loaded the migrated page successfully; all diagnostic changes were removed, and the original test and deadline remain intact. The final local Bun smoke also hit the existing five-second database-helper deadline before reaching development checks. These local reruns are recorded as failures, not passing validation; final-head CI on clean runners remains required.
 
 The landing framework was separately patched from Next.js 16.4.0 to 16.4.3 after its build reported known advisories. The official [16.4.1 release](https://github.com/vercel/next.js/releases/tag/v16.4.1) identifies the security fixes included in the later patch. Other pre-existing dependency advisories are outside this change; this is not a repository-wide security assessment. The install benchmark uses the earlier Bun manifest commit to hold package versions constant across tools.
 
