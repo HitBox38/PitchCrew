@@ -108,6 +108,7 @@ const selector = z.string().trim().min(1).max(500);
 export const browserActionSchema = z.discriminatedUnion('kind', [
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('dialog'),
       decision: z.enum(['accept', 'dismiss']),
       submissionAttemptId: z.uuid().optional(),
@@ -115,6 +116,7 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     .strict(),
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('navigate'),
       url: z
         .url()
@@ -125,10 +127,26 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
         }, 'Use an HTTP(S) URL without credentials.'),
     })
     .strict(),
-  z.object({ kind: z.literal('click'), selector, frame, ...submission }).strict(),
-  z.object({ kind: z.literal('hover'), selector, frame }).strict(),
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('click'),
+      selector,
+      frame,
+      ...submission,
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('hover'),
+      selector,
+      frame,
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('scroll'),
       selector,
       frame,
@@ -137,13 +155,37 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     })
     .strict(),
   z
-    .object({ kind: z.literal('drag'), selector, targetSelector: selector, frame, ...submission })
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('drag'),
+      selector,
+      targetSelector: selector,
+      frame,
+      ...submission,
+    })
     .strict(),
 
-  z.object({ kind: z.literal('fill'), selector, frame, value: z.string().max(12000) }).strict(),
-  z.object({ kind: z.literal('select'), selector, frame, value: z.string().max(500) }).strict(),
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('fill'),
+      selector,
+      frame,
+      value: z.string().max(12000),
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
+      kind: z.literal('select'),
+      selector,
+      frame,
+      value: z.string().max(500),
+    })
+    .strict(),
+  z
+    .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('press'),
       frame,
       ...submission,
@@ -167,6 +209,7 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     .strict(),
   z
     .object({
+      tabId: z.string().min(1).max(100).optional(),
       kind: z.literal('upload'),
       frame,
       selector,
@@ -187,6 +230,7 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
 export type BrowserAction = z.infer<typeof browserActionSchema>;
 export const browserWaitSchema = z
   .object({
+    tabId: z.string().min(1).max(100).optional(),
     text: z.string().min(1).max(2000).optional(),
     urlIncludes: z.string().min(1).max(2000).optional(),
     selector: z.string().min(1).max(500).optional(),

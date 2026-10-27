@@ -58,6 +58,7 @@ const labels: Record<string, string> = {
   job_sources: 'Reading job sources',
   computer_inspect: 'Inspecting browser',
   computer_wait: 'Waiting for browser content',
+  computer_tabs: 'Managing browser tabs',
   computer_request: 'Requesting browser action',
   computer_execute: 'Performing browser action',
   assess_form: 'Assessing application form',

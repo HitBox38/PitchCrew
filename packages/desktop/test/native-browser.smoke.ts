@@ -146,6 +146,18 @@ try {
   if (!resumed.text.includes('Human') || resumed.text.includes('fictional-password'))
     throw new Error('Native inspection or credential redaction failed.');
   await driver.validateApplicationValues?.([], { kind: 'click', selector: '#go' });
+  const agentTabs = await manager.tabs(scope.runId, { kind: 'open' });
+  if (agentTabs.tabs.length !== 4) throw new Error('Agent tab opening failed.');
+  await manager.tabs(scope.runId, { kind: 'select', tabId: native.activeTab });
+  const pinned = await manager.request(
+    scope,
+    { kind: 'hover', selector: '#go', tabId: native.activeTab },
+    'Inspect exact native tab',
+  );
+  if (pinned.action.tabId !== native.activeTab)
+    throw new Error('Agent approval did not bind its native tab.');
+  manager.decide(pinned.id, true);
+  await manager.execute(scope.runId, pinned.id, new AbortController().signal, () => {}, 0);
   if (page.screenshot.length === 0 || resumed.screenshot.length === 0)
     throw new Error('Agent screenshots were unavailable.');
 } catch (error) {

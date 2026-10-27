@@ -86,7 +86,7 @@ it('replays v24 queues and prerelease quality records together, then appends v25
       'user',
       'Disable learning',
     );
-    expect(currentEventVersion).toBe(30);
+    expect(currentEventVersion).toBe(31);
     expect(board.events()[0].version).toBe(currentEventVersion);
     board.rebuild();
     expect(board.get<WritingGuide>('writing_guide', guide.id).automatic).toBe(false);

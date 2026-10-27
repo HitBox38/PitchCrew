@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { browserViewportSchema, type BrowserSnapshot } from '@pitchcrew/core';
 import type { Browser, BrowserContext, Page, Dialog } from 'playwright';
 import { browserReferences } from './references.ts';
@@ -154,6 +155,7 @@ const contextDriver = async (
     });
   }
   const owned = new Set<Page>();
+  const tabIds = new Map<Page, string>();
   let page: Page = native?.page ?? (await sessionPage(context));
   let pendingDialog: Dialog | undefined;
   let previous: BrowserSnapshot | undefined;
@@ -190,6 +192,7 @@ const contextDriver = async (
   });
   const attach = async (current: Page) => {
     owned.add(current);
+    tabIds.set(current, randomUUID());
     policies.set(current, guard);
     await guard.attach(current);
     current.setDefaultTimeout(10000);
@@ -208,6 +211,7 @@ const contextDriver = async (
     });
     current.on('close', () => {
       owned.delete(current);
+      tabIds.delete(current);
       policies.delete(current);
       if (page === current) {
         page = [...owned].filter((tab) => !tab.isClosed()).at(-1) ?? current;
@@ -233,11 +237,60 @@ const contextDriver = async (
   context.on('page', onPage);
   await attach(page);
   page.setDefaultTimeout(10000);
+  const selectPage = (selected: Page) => {
+    if (!owned.has(selected)) throw new Error('This tab is outside the browser session.');
+    if (page === selected) return;
+    references.clear();
+    page = selected;
+    previous = undefined;
+    pendingDialog = undefined;
+    frames.reset();
+  };
+  const targetTab = async (id: string) => {
+    const selected = [...owned].find(
+      (candidate) => tabIds.get(candidate) === id && !candidate.isClosed(),
+    );
+    if (!selected) throw new Error('This tab is outside the browser session or closed.');
+    selectPage(selected);
+  };
   return {
     rememberManualFields: (fingerprints: readonly string[]) => {
       for (const value of fingerprints) manualFields.add(value);
     },
-    resolveAction: (action) => references.resolve(page, action),
+    targetTab,
+    tabs: async (command) => {
+      if (pendingDialog && command.kind !== 'list')
+        throw new Error('Resolve the website dialog first.');
+      if (command.kind === 'open') {
+        const created = await sessionPage(context);
+        await attach(created);
+        await sizePage(created);
+        selectPage(created);
+      }
+      if (command.kind === 'select') await targetTab(command.tabId);
+      if (command.kind === 'close') {
+        const selected = [...owned].find((candidate) => tabIds.get(candidate) === command.tabId);
+        if (!selected) throw new Error('This tab is outside the browser session or closed.');
+        await selected.close({ runBeforeUnload: false });
+        if (!owned.size) {
+          const created = await sessionPage(context);
+          await attach(created);
+          selectPage(created);
+        }
+      }
+      return Promise.all(
+        [...owned].map(async (candidate) => ({
+          id: tabIds.get(candidate)!,
+          url: candidate.url(),
+          title: await candidate.title(),
+          active: candidate === page,
+        })),
+      );
+    },
+    resolveAction: async (action) => {
+      if (action.tabId) await targetTab(action.tabId);
+      return { ...(await references.resolve(page, action)), tabId: tabIds.get(page)! };
+    },
     matches: async (condition) => {
       if (condition.urlIncludes && !page.url().includes(condition.urlIncludes)) return false;
       if (condition.text && !(await inspectControls(page)).text.includes(condition.text))
@@ -251,14 +304,7 @@ const contextDriver = async (
       }
       return true;
     },
-    selectPage: (selected: Page) => {
-      references.clear();
-      if (!owned.has(selected)) throw new Error('This tab is outside the browser session.');
-      page = selected;
-      previous = undefined;
-      pendingDialog = undefined;
-      frames.reset();
-    },
+    selectPage,
     validateApplicationValues: (values, action) =>
       validateApplicationFields(page, action, values, manualFields),
     prepare: guard.prepare,

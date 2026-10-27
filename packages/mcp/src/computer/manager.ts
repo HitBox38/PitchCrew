@@ -3,6 +3,7 @@ import type { Board } from '@pitchcrew/board';
 import {
   browserActionSchema,
   browserWaitSchema,
+  browserTabsSchema,
   type Approval,
   type BrowserAction,
   browserViewportSchema,
@@ -63,11 +64,21 @@ export class ComputerManager {
     return session;
   };
 
-  inspect = async (runId: string, options = { includeImage: true, references: true }) => {
+  inspect = async (
+    runId: string,
+    options: { includeImage?: boolean; references?: boolean; tabId?: string } = {
+      includeImage: true,
+      references: true,
+    },
+  ) => {
     this.browsers.assertAgent(runId);
     const driver = await this.session(runId);
     this.browsers.assertAgent(runId);
     const generation = this.browsers.forRole(runId).observationGeneration;
+    if (options.tabId) {
+      if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      await driver.targetTab(options.tabId);
+    }
     const page = await driver.snapshot(options);
     this.browsers.assertAgent(runId);
     if (this.browsers.forRole(runId).observationGeneration !== generation)
@@ -80,6 +91,11 @@ export class ComputerManager {
     const generation = this.browsers.forRole(runId).observationGeneration;
     const deadline = Date.now() + condition.timeoutMs;
     const driver = await this.session(runId);
+    if (condition.tabId) {
+      this.browsers.assertAgent(runId);
+      if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+      await driver.targetTab(condition.tabId);
+    }
     if (!driver.matches) throw new Error('Browser waits are unavailable.');
     do {
       authorize();
@@ -98,6 +114,30 @@ export class ComputerManager {
       await delay(Math.min(200, deadline - Date.now()), undefined, { signal });
     } while (Date.now() < deadline);
     return { matched: false, timedOut: true };
+  };
+  tabs = async (runId: string, raw: unknown) => {
+    const command = browserTabsSchema.parse(raw);
+    this.browsers.assertAgent(runId);
+    const session = this.browsers.forRole(runId);
+    const key = this.browsers.keyForRun(runId);
+    const generation = session.observationGeneration;
+    if (this.busyRoles.has(key)) throw new Error('A browser action is in progress.');
+    if (command.kind !== 'list') assertNoUncertainSubmission(this.board, session.info.cardId);
+    this.busyRoles.add(key);
+    try {
+      const driver = await this.session(runId);
+      this.browsers.assertAgent(runId);
+      if (!driver.tabs) throw new Error('Browser tab management is unavailable.');
+      if (command.kind !== 'list')
+        this.expire(runId, 'Browser tabs changed. Inspect and request a new approval.');
+      const tabs = await driver.tabs(command);
+      this.browsers.assertAgent(runId);
+      if (generation !== session.observationGeneration || this.stopped.has(runId))
+        throw new Error('Browser control changed. Inspect again.');
+      return { tabs };
+    } finally {
+      this.busyRoles.delete(key);
+    }
   };
   bindBrowser = (input: Parameters<BrowserSessions['bind']>[0]) => {
     if (!input.threadId && !input.cardId) {
@@ -400,7 +440,11 @@ export class ComputerManager {
     try {
       this.browsers.assertAgent(runId);
       const driver = await this.session(runId);
-      const page = await driver.snapshot();
+      if (approval.action.tabId) {
+        if (!driver.targetTab) throw new Error('Browser tab targeting is unavailable.');
+        await driver.targetTab(approval.action.tabId);
+      }
+      const page = await driver.snapshot({ includeImage: false });
       authorize();
       signal.throwIfAborted();
       if (

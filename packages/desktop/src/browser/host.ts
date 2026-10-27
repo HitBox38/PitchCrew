@@ -120,9 +120,12 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           }
           result = { ...(result as object), blocked: group.preparationBlocked };
         } else {
-          if (group.manualUntil <= Date.now())
-            throw new Error('Take control of this browser first.');
+          const agent = parts[2] === 'agent-tabs';
+          if (agent ? group.manualUntil > Date.now() : group.manualUntil <= Date.now())
+            throw new Error('Browser control changed.');
           const command = nativeBrowserCommandSchema.parse(await body(request));
+          if (agent && !['new-tab', 'select-tab', 'close-tab'].includes(command.kind))
+            throw new Error('Unsupported agent tab command.');
           const page = group.pages.get(group.active)?.contents;
           if (command.kind === 'select-tab') group.select(command.tabId);
           if (command.kind === 'close-tab') {

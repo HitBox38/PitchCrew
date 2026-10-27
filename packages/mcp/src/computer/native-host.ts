@@ -78,22 +78,76 @@ export class DesktopBrowserHosts {
         policy,
       );
       const select = async (next: NativeBrowserState) => {
-        for (const current of context.pages()) {
-          const session = await context.newCDPSession(current);
-          try {
-            const info = await session.send('Target.getTargetInfo');
-            if (info.targetInfo.targetId === next.activeTab) {
-              driver.selectPage?.(current);
-              break;
+        for (let attempt = 0; attempt < 100; attempt++) {
+          for (const current of context.pages()) {
+            const session = await context.newCDPSession(current);
+            try {
+              const info = await session.send('Target.getTargetInfo');
+              if (info.targetInfo.targetId === next.activeTab) {
+                driver.selectPage?.(current);
+                return next;
+              }
+            } finally {
+              await session.detach();
             }
-          } finally {
-            await session.detach();
           }
+          await new Promise((resolve) => setTimeout(resolve, 50));
         }
-        return next;
+        throw new Error('The native browser tab did not connect. Inspect again.');
+      };
+      const targetTab = async (id: string) => {
+        const current = await request<NativeBrowserState>(`/sessions/${state.id}`);
+        if (!current.tabs.some((tab) => tab.id === id))
+          throw new Error('This tab is outside the browser session or closed.');
+        if (current.activeTab === id) {
+          await select(current);
+          return;
+        }
+        if (current.activeTab !== id)
+          await select(
+            await request<NativeBrowserState>(`/sessions/${state.id}/agent-tabs`, 'POST', {
+              kind: 'select-tab',
+              tabId: id,
+            }),
+          );
       };
       return {
         ...driver,
+        targetTab,
+        resolveAction: async (action) => {
+          if (action.tabId) await targetTab(action.tabId);
+          const { tabId: _tabId, ...input } = action;
+          const resolved = (await driver.resolveAction?.(input)) ?? input;
+          return {
+            ...resolved,
+            tabId: (await request<NativeBrowserState>(`/sessions/${state.id}`)).activeTab,
+          };
+        },
+        tabs: async (command) => {
+          if (driver.viewMetadata?.().dialog && command.kind !== 'list')
+            throw new Error('Resolve the website dialog first.');
+          const next =
+            command.kind === 'list'
+              ? await request<NativeBrowserState>(`/sessions/${state.id}`)
+              : await select(
+                  await request<NativeBrowserState>(
+                    `/sessions/${state.id}/agent-tabs`,
+                    'POST',
+                    command.kind === 'open'
+                      ? { kind: 'new-tab' }
+                      : {
+                          kind: command.kind === 'select' ? 'select-tab' : 'close-tab',
+                          tabId: 'tabId' in command ? command.tabId : '',
+                        },
+                  ),
+                );
+          return next.tabs.map((tab) => ({
+            id: tab.id,
+            url: tab.url,
+            title: tab.title,
+            active: tab.id === next.activeTab,
+          }));
+        },
         onClosed: (receive) => {
           const closed = () => {
             if (!closing) receive();

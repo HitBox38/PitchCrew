@@ -74,3 +74,7 @@ An uncertain submission can continue through a separately approved browser dialo
 ## Task browsing grants
 
 In Autonomous preparation mode, **Allow browsing for this task** is separate from **Allow preparation for this task**. Browsing grants permit HTTPS read navigation (including ordinary search queries), scrolling and hovering on the exact origin. Application/submission and destructive-looking routes remain supervised, as do clicks, keys, dialogs, fields and files. Preparation grants retain the existing recognized-form policy. Writes and script-driven navigation remain blocked during automatic actions; a blocked page returns to supervised requests. Grants are user-only, revocable, isolated to the task chain and lost on restart. Version 30 records the distinct grant type; older permission events remain readable.
+
+## Agent tabs
+
+`pitchcrew_computer_tabs` lists the current job/conversation's tabs, opens blank tabs, selects a tab or closes one. It cannot reach another session or profile. Tab changes expire unused approvals and are paused during manual takeover; unresolved submissions block changes. Actions, inspection and waits accept `tabId`. Proposed actions always bind the resolved tab, even when omitted by the caller, and execution returns to that exact tab before checking evidence. Version 31 persists that binding. Closing a tab skips before-unload scripts; ordinary website dialogs must be resolved first.
