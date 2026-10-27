@@ -13,15 +13,17 @@ export const JobLinkField = ({
   working,
   scout,
   external,
+  editing = false,
 }: {
   lookup: ReturnType<typeof useJobLookup>;
   working: boolean;
   scout: ReturnType<typeof useScoutJobImport>;
   external: boolean;
+  editing?: boolean;
 }) => {
   const id = useId();
   const mode = jobLinkAction(lookup.url);
-  const askScout = mode === 'scout' || lookup.scoutUrl === lookup.url.trim();
+  const askScout = !editing && (mode === 'scout' || lookup.scoutUrl === lookup.url.trim());
   const blocker = askScout
     ? external
       ? 'Fill in this application manually, or uncheck “Already applied” to ask Scout to add a lead.'
@@ -37,6 +39,7 @@ export const JobLinkField = ({
           id={id}
           aria-describedby={`${id}-help`}
           name="url"
+          defaultValue={editing ? lookup.url : undefined}
           type="url"
           placeholder="https://…"
           maxLength={2000}
@@ -64,7 +67,9 @@ export const JobLinkField = ({
         {blocker ||
           (askScout
             ? 'Opens a Scout conversation to read this link and add the job to your board. You can also fill in the form yourself.'
-            : 'Fetch reads supported job boards and structured public job pages. Other links can be sent to Scout.')}
+            : editing
+              ? 'Fetch reads supported job boards and structured public job pages. You can also edit the details manually.'
+              : 'Fetch reads supported job boards and structured public job pages. Other links can be sent to Scout.')}
       </p>
       {scout.error ? (
         <p className="form-error" role="alert">

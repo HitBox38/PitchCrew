@@ -13,6 +13,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
   const [tab, setTab] = useState<JobSection>(props.initialSection ?? 'job');
   const [briefDirty, setBriefDirty] = useState(false);
   const [activityDirty, setActivityDirty] = useState(false);
+  const [editing, setEditing] = useState(false);
   const guard = useUnsavedChanges(briefDirty || activityDirty);
   const [document, setDocument] = useState<keyof Omit<Packet, 'claims'>>('resume');
   const [sections, setSections] = useState<ApplicationSection[]>(
@@ -77,6 +78,15 @@ export const useCardDetails = (props: CardDetailsProps) => {
     agents,
     run,
     busy,
+    editing,
+    setEditing,
+    editBlocker: busy
+      ? 'Finish active job work before editing.'
+      : card.submissionAttempts?.some((attempt) => attempt.status === 'uncertain')
+        ? 'Resolve the uncertain submission before editing.'
+        : briefDirty || activityDirty
+          ? 'Save or discard your other job edits first.'
+          : '',
     act,
     exported,
     runRole,

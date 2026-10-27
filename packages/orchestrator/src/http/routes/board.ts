@@ -1,6 +1,6 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
-import { deleteJob, setCardStatus } from '@pitchcrew/board';
+import { deleteJob, editJob, setCardStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { IdRoute } from '../types.ts';
@@ -29,6 +29,9 @@ export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) 
       }));
   });
   app.post('/api/cards', (req, res) => res.status(201).send(service.createCard(req.body)));
+  app.put<IdRoute>('/api/cards/:id', (req) =>
+    editJob(service.board, z.uuid().parse(req.params.id), req.body),
+  );
   app.delete<IdRoute>('/api/cards/:id', (req) => {
     const card = service.board.get<Card>('card', req.params.id);
     if (

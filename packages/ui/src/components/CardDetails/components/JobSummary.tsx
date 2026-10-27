@@ -3,17 +3,36 @@ import { JobState } from './JobState.tsx';
 import { JobAgents } from './JobAgents.tsx';
 import type { CardDetailsModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { ExternalLink, X } from 'lucide-react';
+import { ExternalLink, Pencil, X } from 'lucide-react';
 
 type JobSummaryProps = Pick<CardDetailsModel, 'card' | 'onClose'> &
-  Partial<Pick<CardDetailsModel, 'agents' | 'openChat'>>;
+  Partial<Pick<CardDetailsModel, 'agents' | 'openChat' | 'editBlocker' | 'setEditing'>>;
 
-export const JobSummary = ({ card, onClose, agents, openChat }: JobSummaryProps) => {
+export const JobSummary = ({
+  card,
+  onClose,
+  agents,
+  openChat,
+  editBlocker,
+  setEditing,
+}: JobSummaryProps) => {
   return (
     <header className="job-summary shrink-0 px-5 pt-5 pb-3 max-mobile:px-4">
       <div className="flex items-start justify-between gap-3">
         <JobHeading card={card} />
         <div className="flex shrink-0 items-center gap-1">
+          {setEditing ? (
+            <Button
+              variant="ghost"
+              className="icon-button"
+              aria-label="Edit job"
+              title={editBlocker || 'Edit job'}
+              disabled={!!editBlocker}
+              onClick={() => setEditing(true)}
+            >
+              <Pencil size={16} />
+            </Button>
+          ) : null}
           {card.url ? (
             <Button
               variant="ghost"
