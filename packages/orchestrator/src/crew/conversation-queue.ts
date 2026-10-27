@@ -260,6 +260,16 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
                           ).runId,
                         ).purpose === 'application-draft'
                       : false),
+                  current.boardAction === 'reevaluate' ||
+                    (current.userInputId
+                      ? context.board.get<Run>(
+                          'run',
+                          context.board.get<import('@pitchcrew/core').UserInputRequest>(
+                            'user_input',
+                            current.userInputId,
+                          ).runId,
+                        ).purpose === 'packet-evaluation'
+                      : false),
                 )
               : await context.startChatRun(
                   role.id,

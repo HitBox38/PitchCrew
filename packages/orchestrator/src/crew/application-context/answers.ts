@@ -24,7 +24,8 @@ export const applicationUserAnswers = (
       const origin = context.board.get<Run>('run', question.runId);
       return question.applicationRequirementId
         ? ['application-draft', 'application-review'].includes(origin.purpose ?? '')
-        : purpose === 'fit' && origin.purpose === 'fit';
+        : ['fit', 'packet-evaluation'].includes(purpose ?? '') &&
+            ['fit', 'packet-evaluation'].includes(origin.purpose ?? '');
     })
     .flatMap((question) => {
       const message = context.board.get<ChatMessage>('message', question.answerMessageId!);

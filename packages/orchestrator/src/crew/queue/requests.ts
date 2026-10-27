@@ -22,7 +22,11 @@ import { ensureQueue, laneId, queueRequests, queueWaiting } from './state.ts';
 export const queueBoardAction = (context: CrewContext, data: unknown): ChatRequest => {
   const input = queueBoardInput.parse(data);
   const card = context.board.get<Card>('card', input.cardId);
-  const seat = input.action === 'fit' ? 'scout' : input.action === 'draft' ? 'writer' : 'reviewer';
+  const seat = ['fit', 'reevaluate'].includes(input.action)
+    ? 'scout'
+    : input.action === 'draft'
+      ? 'writer'
+      : 'reviewer';
   const role = context.board
     .list<Role>('role')
     .find(
@@ -136,6 +140,7 @@ export const requestProblem = async (
   const card = context.board.list<Card>('card').find((c) => c.id === thread.cardId);
   if (!card) return 'This job was deleted.';
   const action = request.boardAction;
+  if (action === 'reevaluate' && !card.packet) return 'Draft a packet before reevaluating.';
   if (action === 'fit' && card.state !== 'lead') return 'Evaluate fit needs a job in New leads.';
   if (action === 'draft' && !['shortlisted', 'changes_requested'].includes(card.state))
     return 'Shortlist this job or request changes before drafting.';
@@ -150,7 +155,7 @@ export const requestProblem = async (
   )
     return 'Shortlist this job before deep review.';
   try {
-    if (action === 'fit') assertExtractedContext(card);
+    if (action === 'fit' || action === 'reevaluate') assertExtractedContext(card);
     else assertConfirmedContext(card);
   } catch (error) {
     return error instanceof Error ? error.message : 'Confirm the job brief.';
@@ -172,7 +177,7 @@ export const requestIsHead = (context: CrewContext, request: ChatRequest): boole
 
 export const queueBoardInput = z.object({
   cardId: z.uuid(),
-  action: z.enum(['fit', 'draft', 'review', 'deep-review']),
+  action: z.enum(['fit', 'draft', 'review', 'deep-review', 'reevaluate']),
   roleId: z.string().optional(),
   repeat: z.boolean().default(false),
   deepReviewOptions: deepReviewOptionsSchema.optional(),
