@@ -38,12 +38,17 @@ try {
   if (!snapshot.roles?.length) throw new Error('The fixture returned no seeded roles.');
   emit({
     phase: 'snapshot',
+    pid: process.pid,
     fixtureElapsedMs: performance.now(),
     rssBytes: process.memoryUsage().rss,
     roleCount: snapshot.roles.length,
     node: process.versions.node,
     bun: process.versions.bun ?? null,
   });
+  // Keep the completed snapshot resident long enough for the parent to sample OS RSS.
+  // This happens after both readiness timestamps and does not enter those measurements.
+  if (process.argv.includes('--sample-rss'))
+    await new Promise((resolve) => setTimeout(resolve, 500));
 } finally {
   await daemon.close();
 }

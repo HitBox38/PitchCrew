@@ -5,7 +5,7 @@
  * Installs use fresh manifest-only temp trees, frozen locks and normal trusted scripts.
  */
 import { createHash } from 'node:crypto';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:net';
 import { arch, cpus, platform, release, tmpdir } from 'node:os';
@@ -76,13 +76,19 @@ const command = (
     let stdout = '';
     let stderr = '';
     let pending = '';
+    let outputError: Error | undefined;
     const timer = setTimeout(() => child.kill(), 300_000);
     child.stdout.on('data', (chunk: Buffer) => {
       const text = chunk.toString();
       stdout += text;
       pending += text;
       for (let index; (index = pending.indexOf('\n')) >= 0;) {
-        line?.(pending.slice(0, index), performance.now() - started);
+        try {
+          if (!outputError) line?.(pending.slice(0, index), performance.now() - started);
+        } catch (error) {
+          outputError = error instanceof Error ? error : new Error(String(error));
+          child.kill();
+        }
         pending = pending.slice(index + 1);
       }
     });
@@ -95,7 +101,8 @@ const command = (
     });
     child.once('exit', (code, signal) => {
       clearTimeout(timer);
-      if (code !== 0)
+      if (outputError) reject(outputError);
+      else if (code !== 0)
         reject(
           new Error(
             `${executable} ${args.join(' ')} exited ${code ?? signal}:\n${stdout}\n${stderr}`,
@@ -124,6 +131,11 @@ const comparison = (before: number, after: number) => ({
   speedup: before / after,
 });
 const baseline = (await git('rev-parse', option('baseline', 'HEAD'))).trim();
+// Compare the recorded migration's dependency graph even after unrelated dependency patches.
+const candidateReference = option('candidate-manifests', '');
+const candidate = candidateReference ? (await git('rev-parse', candidateReference)).trim() : null;
+const candidateFile = (path: string) =>
+  candidate ? git('show', `${candidate}:${path}`) : readFile(join(repository, path), 'utf8');
 const manifestPaths = [
   'package.json',
   ...(await git('ls-tree', '-r', '--name-only', baseline, 'packages'))
@@ -134,11 +146,11 @@ const originalFiles = new Map<string, string>();
 const currentFiles = new Map<string, string>();
 for (const path of manifestPaths) {
   originalFiles.set(path, await git('show', `${baseline}:${path}`));
-  currentFiles.set(path, await readFile(join(repository, path), 'utf8'));
+  currentFiles.set(path, await candidateFile(path));
 }
 originalFiles.set('pnpm-workspace.yaml', await git('show', `${baseline}:pnpm-workspace.yaml`));
 originalFiles.set('pnpm-lock.yaml', await git('show', `${baseline}:pnpm-lock.yaml`));
-currentFiles.set('bun.lock', await readFile(join(repository, 'bun.lock'), 'utf8'));
+currentFiles.set('bun.lock', await candidateFile('bun.lock'));
 const dependencyChanges: string[] = [];
 const additionalDirectEdges: string[] = [];
 const originalRoot = JSON.parse(originalFiles.get('package.json')!) as Manifest;
@@ -234,6 +246,7 @@ const baselinePnpmVersion = async () => {
 const results = {
   generatedAt: new Date().toISOString(),
   baselineCommit: baseline,
+  candidateManifestsCommit: candidate,
   workingDiffSha256: hash(await git('diff', '--binary')),
   machine: { platform: platform(), arch: arch(), release: release(), cpu: cpus()[0]?.model },
   versions: {
@@ -244,7 +257,7 @@ const results = {
   },
   methodology: {
     runtime:
-      'Fresh process and fresh isolated workspace per sample; alternating Node/Bun order; API-only direct createDaemon; deterministic unavailable adapter detection; all module imports included; ready and first authenticated compact snapshot measured from parent spawn; filesystem caches not flushed; RSS sampled immediately after first snapshot.',
+      'Fresh process and fresh isolated workspace per sample; alternating Node/Bun order; API-only direct createDaemon; deterministic unavailable adapter detection; all module imports included; ready and first authenticated compact snapshot measured from parent spawn; filesystem caches not flushed; the parent samples OS RSS with ps immediately after the first snapshot on POSIX (runtime-reported RSS on Windows). The fixture stays open briefly after the timestamp for sampling.',
     installs:
       'Fresh manifest-only workspace per sample, original committed pnpm manifests/lock versus current Bun manifests/lock; one unmeasured warmup per manager; alternating order; normal trusted lifecycle scripts; frozen locks; existing global package/Electron caches; no node_modules reuse.',
     limitations:
@@ -288,14 +301,27 @@ const runtimeSample = async (tool: Tool, repetition: number) => {
     const port = await availablePort();
     const args =
       tool === 'node'
-        ? ['--import', 'tsx', fixture, directory, String(port)]
-        : ['--no-env-file', '--no-install', fixture, directory, String(port)];
+        ? ['--import', 'tsx', fixture, directory, String(port), '--sample-rss']
+        : ['--no-env-file', '--no-install', fixture, directory, String(port), '--sample-rss'];
     const result = await command(executables[tool], args, repository, (line, elapsedMs) => {
       if (!line.startsWith('PITCHCREW_BUN_BENCHMARK ')) return;
       const data = JSON.parse(line.slice('PITCHCREW_BUN_BENCHMARK '.length)) as Record<
         string,
         unknown
       >;
+      if (data.phase === 'snapshot' && process.platform !== 'win32') {
+        if (!Number.isInteger(data.pid)) throw new Error('Missing benchmark process identity.');
+        const memory = spawnSync('ps', ['-o', 'rss=', '-p', String(data.pid)], {
+          encoding: 'utf8',
+          timeout: 1000,
+        });
+        const bytes = Number(memory.stdout.trim()) * 1024;
+        if (memory.status !== 0 || !Number.isFinite(bytes) || bytes <= 0)
+          throw new Error('Could not sample OS resident memory.');
+        data.runtimeReportedRssBytes = data.rssBytes;
+        data.rssBytes = bytes;
+        data.rssSource = 'ps -o rss (KiB)';
+      }
       phases.set(String(data.phase), { elapsedMs, data });
     });
     const ready = phases.get('ready');
