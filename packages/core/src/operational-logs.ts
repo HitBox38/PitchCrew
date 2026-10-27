@@ -9,7 +9,11 @@ export const sanitizeOperationalLog = (input: Record<string, unknown>): Operatio
     (code.startsWith('http_') && area === 'http') ||
     (code.startsWith('runtime_') && (area === 'chat' || area === 'workflow'))
   ) {
-    const log: OperationalLog = { code, area };
+    const log: OperationalLog = {
+      code,
+      area,
+      ...(area === 'http' ? sanitizeLogCorrelation(input) : {}),
+    };
     if (failureCategories.includes(input.failure_category as never))
       log.failure_category = input.failure_category as FailureCategory;
     if ((area === 'chat' || area === 'workflow') && log.failure_category === 'process_exit') {
@@ -47,7 +51,7 @@ export const operationalLogCodes = {
 
 export type OperationalLogCode = keyof typeof operationalLogCodes;
 export type OperationalLogArea = 'daemon' | 'http' | 'chat' | 'workflow';
-export interface OperationalLog {
+export interface OperationalLog extends LogCorrelation {
   code: OperationalLogCode;
   area: OperationalLogArea;
   failure_category?: FailureCategory;
@@ -56,6 +60,46 @@ export interface OperationalLog {
   runtime_exit_signal?: RuntimeExitSignal;
   operation?: HttpOperation;
 }
+
+export interface LogCorrelation {
+  traceId?: string;
+  spanId?: string;
+  traceFlags?: number;
+  sessionId?: string;
+  posthogDistinctId?: string;
+}
+
+/** Only native anonymous SDK UUIDs and valid OTel context; never arbitrary identity/baggage. */
+export const sanitizeLogCorrelation = (input: Record<string, unknown>): LogCorrelation => {
+  const result: LogCorrelation = {};
+  for (const key of ['sessionId', 'posthogDistinctId'] as const) {
+    if (
+      typeof input[key] === 'string' &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(input[key])
+    )
+      result[key] = input[key];
+  }
+  if (
+    typeof input.traceId === 'string' &&
+    /^[0-9a-f]{32}$/.test(input.traceId) &&
+    !/^0+$/.test(input.traceId)
+  ) {
+    result.traceId = input.traceId;
+    if (
+      typeof input.spanId === 'string' &&
+      /^[0-9a-f]{16}$/.test(input.spanId) &&
+      !/^0+$/.test(input.spanId)
+    )
+      result.spanId = input.spanId;
+    if (
+      Number.isInteger(input.traceFlags) &&
+      (input.traceFlags as number) >= 0 &&
+      (input.traceFlags as number) <= 255
+    )
+      result.traceFlags = input.traceFlags as number;
+  }
+  return result;
+};
 
 // Fixed OS names only; never forward arbitrary error properties or CLI output.
 const exitSignals = [
