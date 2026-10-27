@@ -65,6 +65,18 @@ export const createAnalytics = (
         return;
       }
     },
+    getRequestContext: () => {
+      if (!enabled || !sdk || !consent() || !diagnosticsConsent()) return;
+      try {
+        return {
+          posthogDistinctId: sdk.get_distinct_id?.(),
+          // Use the same native session as replay and exception events. No custom session ID.
+          sessionId: sdk.get_session_id?.(),
+        };
+      } catch {
+        return;
+      }
+    },
     setEnabled: async (next: boolean, config: AnalyticsConfig | null): Promise<boolean> => {
       const current = ++generation;
       enabled = false;
@@ -165,7 +177,7 @@ export const createAnalytics = (
 };
 
 type Sdk = Pick<PostHog, 'init' | 'capture' | 'opt_in_capturing' | 'opt_out_capturing'> &
-  Partial<Pick<PostHog, 'get_distinct_id' | 'sessionManager' | 'set_config'>>;
+  Partial<Pick<PostHog, 'get_distinct_id' | 'get_session_id' | 'sessionManager' | 'set_config'>>;
 
 export const sdkConfig: Partial<PostHogConfig> = {
   autocapture: false,

@@ -3,7 +3,7 @@ import { registerSnapshot } from './http/snapshot.ts';
 import { registerExternalMcpRoutes } from './http/routes/external-mcp.ts';
 import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { recordOperationalLog } from './telemetry/logs.ts';
-import { httpFailureOperation } from './telemetry/http.ts';
+import { httpFailureOperation, httpLogCorrelation } from './telemetry/http.ts';
 import type { BrowserDriver } from '@pitchcrew/mcp/computer';
 import cookie from '@fastify/cookie';
 import Fastify from 'fastify';
@@ -131,6 +131,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
       http_status: status,
       failure_category: failureCategory(error),
       operation: httpFailureOperation(req.method, req.routeOptions.url),
+      ...httpLogCorrelation(req),
     });
     return res
       .status(status)

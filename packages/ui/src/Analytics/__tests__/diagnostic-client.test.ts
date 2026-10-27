@@ -9,6 +9,42 @@ vi.mock('../diagnostics.ts', () => ({
 import { createAnalytics } from '../client.ts';
 
 describe('registered diagnostic lifecycle', () => {
+  it('reads existing native IDs only after SDK initialization and with both consents', async () => {
+    let consent = true;
+    let diagnostics = true;
+    const sdk = {
+      init: vi.fn(),
+      capture: vi.fn(),
+      opt_in_capturing: vi.fn(),
+      opt_out_capturing: vi.fn(),
+      get_distinct_id: vi.fn(() => '019a1234-5678-7000-8000-000000000002'),
+      get_session_id: vi.fn(() => '019a1234-5678-7000-8000-000000000001'),
+    };
+    const client = createAnalytics(
+      async () => sdk,
+      () => consent,
+      () => diagnostics,
+    );
+    expect(client.getRequestContext()).toBeUndefined();
+    expect(sdk.get_session_id).not.toHaveBeenCalled();
+    await client.setEnabled(true, { token: 'fixture', host: 'https://eu.i.posthog.com' });
+    expect(client.getRequestContext()).toEqual({
+      sessionId: sdk.get_session_id(),
+      posthogDistinctId: sdk.get_distinct_id(),
+    });
+    sdk.get_session_id.mockClear();
+    diagnostics = false;
+    expect(client.getRequestContext()).toBeUndefined();
+    diagnostics = true;
+    consent = false;
+    expect(client.getRequestContext()).toBeUndefined();
+    expect(sdk.get_session_id).not.toHaveBeenCalled();
+    consent = true;
+    sdk.get_session_id.mockImplementation(() => {
+      throw new Error('unavailable');
+    });
+    expect(client.getRequestContext()).toBeUndefined();
+  });
   it('sanitizes before capture and rejects diagnostics immediately when either consent changes', async () => {
     const sdk = {
       init: vi.fn(),

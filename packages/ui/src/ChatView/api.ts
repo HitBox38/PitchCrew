@@ -1,3 +1,4 @@
+import { diagnosticRequestHeaders } from '../Analytics/request-context.ts';
 import type { ChatAttachment, ChatAttachmentUpload } from '@pitchcrew/core';
 
 export const encodeAttachment = (file: File): Promise<ChatAttachmentUpload> => {
@@ -14,7 +15,7 @@ export const encodeAttachment = (file: File): Promise<ChatAttachmentUpload> => {
 
 export const downloadAttachment = async (messageId: string, file: ChatAttachment) => {
   const response = await fetch(`/api/chat/messages/${messageId}/attachments/${file.id}`, {
-    headers: { 'x-pitchcrew-client': 'ui' },
+    headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
   });
   if (!response.ok) throw new Error('Could not download this attachment.');
   const url = URL.createObjectURL(await response.blob());
