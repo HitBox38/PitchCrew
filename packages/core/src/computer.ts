@@ -1,3 +1,4 @@
+import type { NativeBrowserIdentity } from './native-browser.ts';
 import type { FormControl } from './submissions.ts';
 import { z } from 'zod';
 import type { RoleId } from './states.ts';
@@ -14,6 +15,7 @@ export interface BrowserSitePermission {
   createdAt: string;
 }
 export interface BrowserSessionInfo {
+  native?: NativeBrowserIdentity;
   roleId: RoleId;
   runId: string | null;
   taskId: string;
@@ -122,6 +124,20 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
     })
     .strict(),
   z.object({ kind: z.literal('click'), selector, frame, ...submission }).strict(),
+  z.object({ kind: z.literal('hover'), selector, frame }).strict(),
+  z
+    .object({
+      kind: z.literal('scroll'),
+      selector,
+      frame,
+      deltaX: z.number().min(-4000).max(4000).default(0),
+      deltaY: z.number().min(-4000).max(4000),
+    })
+    .strict(),
+  z
+    .object({ kind: z.literal('drag'), selector, targetSelector: selector, frame, ...submission })
+    .strict(),
+
   z.object({ kind: z.literal('fill'), selector, frame, value: z.string().max(12000) }).strict(),
   z.object({ kind: z.literal('select'), selector, frame, value: z.string().max(500) }).strict(),
   z
@@ -130,7 +146,21 @@ export const browserActionSchema = z.discriminatedUnion('kind', [
       frame,
       ...submission,
       selector,
-      key: z.enum(['Tab', 'Enter', 'Escape', 'Space', 'ArrowDown', 'ArrowUp']),
+      key: z.enum([
+        'Tab',
+        'Shift+Tab',
+        'Enter',
+        'Escape',
+        'Space',
+        'ArrowDown',
+        'ArrowUp',
+        'ArrowLeft',
+        'ArrowRight',
+        'Home',
+        'End',
+        'PageDown',
+        'PageUp',
+      ]),
     })
     .strict(),
   z

@@ -53,6 +53,16 @@ export const createBrowserDriver = async (browser: Browser): Promise<BrowserDriv
   return sharedContextDriver(context, () => browser.close());
 };
 
+export const createAttachedBrowserDriver = async (
+  context: BrowserContext,
+  page: Page,
+  close: () => Promise<void>,
+  policy: (automatic: boolean) => Promise<boolean | void>,
+) => {
+  browserUsers.set(context, 1);
+  return contextDriver(context, close, { page, policy });
+};
+
 const sessionPage = async (context: BrowserContext) => {
   creatingPages.set(context, (creatingPages.get(context) ?? 0) + 1);
   try {
@@ -90,6 +100,7 @@ const sharedContextDriver = async (
 const contextDriver = async (
   context: BrowserContext,
   close: () => Promise<void>,
+  native?: { page: Page; policy: (automatic: boolean) => Promise<boolean | void> },
 ): Promise<BrowserDriver> => {
   const guard = preparationGuard();
   const manualFields = new Set<string>();
@@ -127,10 +138,21 @@ const contextDriver = async (
         await route.abort('blockedbyclient');
       }
     });
-    await context.routeWebSocket('**/*', (socket) => socket.close());
+    await context.routeWebSocket('**/*', async (socket) => {
+      if (!native || guard.automatic) {
+        socket.close();
+        return;
+      }
+      try {
+        await assertPublicUrl(socket.url().replace(/^wss:/, 'https:').replace(/^ws:/, 'http:'));
+        socket.connectToServer();
+      } catch {
+        socket.close();
+      }
+    });
   }
   const owned = new Set<Page>();
-  let page: Page = await sessionPage(context);
+  let page: Page = native?.page ?? (await sessionPage(context));
   let pendingDialog: Dialog | undefined;
   let previous: BrowserSnapshot | undefined;
   const captureFrame = () =>
@@ -207,6 +229,16 @@ const contextDriver = async (
   await attach(page);
   page.setDefaultTimeout(10000);
   return {
+    rememberManualFields: (fingerprints: readonly string[]) => {
+      for (const value of fingerprints) manualFields.add(value);
+    },
+    selectPage: (selected: Page) => {
+      if (!owned.has(selected)) throw new Error('This tab is outside the browser session.');
+      page = selected;
+      previous = undefined;
+      pendingDialog = undefined;
+      frames.reset();
+    },
     validateApplicationValues: (values, action) =>
       validateApplicationFields(page, action, values, manualFields),
     prepare: guard.prepare,
@@ -214,6 +246,8 @@ const contextDriver = async (
       previous = undefined;
       frames.reset();
     },
+    getViewport: () => ({ ...viewport }),
+    viewMetadata: frameMetadata,
     resize: (requested) =>
       render(async () => {
         const next = browserViewportSchema.parse(requested);
@@ -288,6 +322,7 @@ const contextDriver = async (
     },
     snapshot: () =>
       render(async () => {
+        if (await native?.policy(guard.automatic)) guard.block();
         if (pendingDialog) {
           const dialog = { type: pendingDialog.type(), message: pendingDialog.message() };
           const base =
@@ -370,8 +405,19 @@ const contextDriver = async (
         : page.locator(action.selector);
       if ((await target.count()) !== 1)
         throw new Error('Choose a selector matching exactly one element.');
+      if (action.kind === 'drag') {
+        const destination = action.frame
+          ? page.frameLocator(action.frame).locator(action.targetSelector)
+          : page.locator(action.targetSelector);
+        if ((await destination.count()) !== 1)
+          throw new Error('Choose a drop target matching exactly one element.');
+      }
     },
     perform: async (action, file, automatic = false) => {
+      if (await native?.policy(automatic)) {
+        guard.block();
+        if (automatic) throw new Error('This page needs an exact supervised approval.');
+      }
       guard.prepare(automatic);
       if (action.kind === 'dialog') {
         if (!pendingDialog) throw new Error('No browser dialog is pending.');
@@ -410,6 +456,27 @@ const contextDriver = async (
             .evaluateAll((forms) => forms.map((form) => (form as HTMLFormElement).action)),
         );
       if (action.kind === 'click') await target.click({ timeout: 10000 });
+      if (action.kind === 'hover') await target.hover({ timeout: 10000 });
+      if (action.kind === 'scroll')
+        await target.evaluate(
+          (element, delta) => {
+            const root =
+              element === element.ownerDocument.body
+                ? (element.ownerDocument.scrollingElement ?? element)
+                : element;
+            root.scrollBy({ left: delta.x, top: delta.y, behavior: 'instant' });
+          },
+          { x: action.deltaX, y: action.deltaY },
+        );
+      if (action.kind === 'drag') {
+        const destination = action.frame
+          ? page.frameLocator(action.frame).locator(action.targetSelector)
+          : page.locator(action.targetSelector);
+        if ((await destination.count()) !== 1)
+          throw new Error('Choose a drop target matching exactly one element.');
+        await target.dragTo(destination, { timeout: 10000 });
+      }
+
       if (action.kind === 'fill') {
         if (
           await target.evaluate(

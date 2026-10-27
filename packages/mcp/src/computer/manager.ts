@@ -1,3 +1,4 @@
+import { DesktopBrowserHosts } from './native-host.ts';
 import type { Board } from '@pitchcrew/board';
 import {
   browserActionSchema,
@@ -25,7 +26,6 @@ import { applicationValues, normalizedValue } from './application-values.ts';
 import { readFile, realpath } from 'node:fs/promises';
 import { isAbsolute, join, relative } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { launchBrowser } from './driver.ts';
 import { automaticNavigation } from './form-policy.ts';
 import { BrowserSessions } from './sessions.ts';
 import { hash } from './helpers.ts';
@@ -34,15 +34,23 @@ import type { BrowserDriver } from './types.ts';
 export class ComputerManager {
   private readonly sessions = new Map<string, Promise<BrowserDriver>>();
   readonly browsers: BrowserSessions;
+  readonly desktopHosts = new DesktopBrowserHosts();
   private readonly busy = new Set<string>();
   private readonly busyRoles = new Set<RoleId>();
   private readonly stopped = new Set<string>();
   constructor(
     private readonly board: Board,
     private readonly directory: string,
-    launch: (profile?: string) => Promise<BrowserDriver> = launchBrowser,
+    launch?: (profile?: string) => Promise<BrowserDriver>,
   ) {
-    this.browsers = new BrowserSessions(directory, launch);
+    this.browsers = new BrowserSessions(
+      directory,
+      launch ?? this.desktopHosts.launch,
+      undefined,
+      (runId) => {
+        void this.stop(runId);
+      },
+    );
   }
   private session = (runId: string) => {
     if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
@@ -91,14 +99,17 @@ export class ComputerManager {
         if (!leaseId) return false;
         this.browsers.lease(roleId, leaseId);
       } else if (leaseId) return false;
-      return !this.board
-        .list<ComputerApproval>('computer_approval')
-        .some(
-          (approval) =>
-            approval.roleId === session.info.roleId &&
-            approval.runId === session.info.runId &&
-            ['pending', 'approved'].includes(approval.status),
-        );
+      return (
+        !!session.info.native ||
+        !this.board
+          .list<ComputerApproval>('computer_approval')
+          .some(
+            (approval) =>
+              approval.roleId === session.info.roleId &&
+              approval.runId === session.info.runId &&
+              ['pending', 'approved'].includes(approval.status),
+          )
+      );
     };
     if (this.busyRoles.has(roleId) || !allowed()) return false;
     this.busyRoles.add(roleId);
@@ -106,6 +117,16 @@ export class ComputerManager {
       const driver = await this.browsers.driver(roleId);
       if (!allowed()) return false;
       assertNoUncertainSubmission(this.board, session.info.cardId);
+      const previous = driver.getViewport?.();
+      if (
+        driver.native &&
+        session.info.runId &&
+        (!previous || previous.width !== size.width || previous.height !== size.height)
+      )
+        this.expire(
+          session.info.runId,
+          'The native browser resized. Inspect it and request a new approval.',
+        );
       return (await driver.resize?.(size)) ?? false;
     } finally {
       this.busyRoles.delete(roleId);
@@ -137,10 +158,20 @@ export class ComputerManager {
     await driver.input(input);
     this.browsers.renew(roleId, leaseId);
   };
+  syncNativeControl = async (id: string, leaseId: string) => {
+    const session = this.browsers.lease(id, leaseId);
+    assertNoUncertainSubmission(this.board, session.info.cardId);
+    const driver = await this.browsers.driver(id);
+    this.browsers.lease(id, leaseId);
+    assertNoUncertainSubmission(this.board, session.info.cardId);
+    await driver.setManual?.(true);
+  };
+
   returnControl = async (roleId: string, leaseId: string) => {
     this.browsers.lease(roleId, leaseId);
     const driver = await this.browsers.driver(roleId);
     this.browsers.lease(roleId, leaseId);
+    await driver.setManual?.(false);
     driver.invalidate?.();
     this.browsers.release(roleId, leaseId);
   };

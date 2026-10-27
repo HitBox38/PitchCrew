@@ -1,4 +1,8 @@
 import {
+  desktopBrowserHostSchema,
+  nativeBrowserCommandSchema,
+} from '../../../../core/src/native-browser.ts';
+import {
   browserInputSchema,
   browserViewportSchema,
   roleIdSchema,
@@ -32,6 +36,10 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
     }
     return thread;
   };
+  app.post('/api/browser-host', (req) => {
+    service.computer.desktopHosts.register(desktopBrowserHostSchema.parse(req.body));
+    return { ok: true };
+  });
   app.get<{ Querystring: { threadId: string } }>('/api/browser', (req, res) => {
     const thread = authorize(req.query.threadId);
     res
@@ -47,6 +55,27 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
               !service.board.get<Role>('role', item.roleId).retiredAt,
           ),
       );
+  });
+  app.get<Route>('/api/browser/:id/native', async (req) => {
+    const thread = authorize(req.query.threadId, req.params.id);
+    const key = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
+    if (!service.computer.browsers.forRole(key).info.native)
+      throw new Error('This session uses streamed viewing.');
+    const driver = await service.computer.browsers.driver(key);
+    if (!driver.nativeState) throw new Error('This session uses streamed viewing.');
+    return driver.nativeState();
+  });
+  app.post<Route>('/api/browser/:id/native', async (req) => {
+    const thread = authorize(req.query.threadId, req.params.id);
+    const key = service.computer.browsers.key(req.params.id, thread.id, thread.cardId);
+    const { leaseId, command } = z
+      .object({ leaseId: z.uuid(), command: nativeBrowserCommandSchema })
+      .strict()
+      .parse(req.body);
+    await service.computer.syncNativeControl(key, leaseId);
+    const driver = await service.computer.browsers.driver(key);
+    if (!driver.nativeCommand) throw new Error('This session uses streamed viewing.');
+    return driver.nativeCommand(command);
   });
   app.get<Route>('/api/browser/:id/stream', async (req, res) => {
     const { id } = req.params;
@@ -65,7 +94,10 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
   app.post<Route>('/api/browser/:id/open', async (req) => {
     const thread = authorize(req.query.threadId, req.params.id);
     await service.computer.openBrowser(req.params.id, thread.id, thread.cardId);
-    return { ok: true };
+    const driver = await service.computer.browsers.driver(
+      service.computer.browsers.key(req.params.id, thread.id, thread.cardId),
+    );
+    return { ok: true, native: !!driver.native };
   });
   app.post<Route>('/api/browser/:id/control', async (req) => {
     const thread = authorize(req.query.threadId, req.params.id);
@@ -74,10 +106,22 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
       .object({ operation: z.enum(['take', 'release', 'renew']), leaseId: z.uuid().optional() })
       .strict()
       .parse(req.body);
-    if (input.operation === 'take') return { leaseId: service.computer.takeControl(sessionKey) };
+    if (input.operation === 'take') {
+      const leaseId = service.computer.takeControl(sessionKey);
+      try {
+        await service.computer.syncNativeControl(sessionKey, leaseId);
+      } catch (error) {
+        await service.computer.returnControl(sessionKey, leaseId);
+        throw error;
+      }
+      return { leaseId };
+    }
     const leaseId = z.uuid().parse(input.leaseId);
     if (input.operation === 'release') await service.computer.returnControl(sessionKey, leaseId);
-    else service.computer.browsers.renew(sessionKey, leaseId);
+    else {
+      service.computer.browsers.renew(sessionKey, leaseId);
+      await service.computer.syncNativeControl(sessionKey, leaseId);
+    }
     return { ok: true };
   });
   app.post<Route>('/api/browser/:id/viewport', async (req) => {

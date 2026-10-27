@@ -50,6 +50,7 @@ export class BrowserSessions {
     private readonly directory: string,
     private readonly launch: (profile?: string) => Promise<BrowserDriver>,
     private readonly idleMs = 10 * 60_000,
+    private readonly unexpectedClose: (runId: string) => void = () => {},
   ) {}
   bind = (input: Binding) => {
     const key = this.key(input.roleId, input.threadId, input.cardId);
@@ -146,6 +147,19 @@ export class BrowserSessions {
       current.driver = current.driver
         .then((driver) => {
           current.info.status = 'open';
+          current.info.native = driver.native;
+          driver.onClosed?.(() => {
+            const runId = current.info.runId;
+            current.info.status = 'closed';
+            current.info.native = undefined;
+            current.driver = undefined;
+            current.polling?.close();
+            if (
+              ![...this.agents.values()].some((item) => item.info.roleId === roleId && item.driver)
+            )
+              this.profiles.delete(roleId);
+            if (runId) this.unexpectedClose(runId);
+          });
           return driver;
         })
         .catch((error) => {
@@ -297,9 +311,14 @@ export class BrowserSessions {
       clearTimeout(session.timer);
       try {
         session.polling?.close();
-        if (session.driver) await (await session.driver).close();
+        if (session.driver) {
+          const driver = await session.driver;
+          if (reset) await driver.resetSignIns?.();
+          await driver.close();
+        }
       } finally {
         session.driver = undefined;
+        session.info.native = undefined;
         session.info.status = 'closed';
         session.info.manual = false;
         session.lease = undefined;

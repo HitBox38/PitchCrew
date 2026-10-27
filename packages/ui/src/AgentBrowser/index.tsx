@@ -3,9 +3,9 @@ import { BrowserPanelHeading } from './components/BrowserPanelHeading.tsx';
 import { BrowserApprovals } from './components/BrowserApprovals.tsx';
 import { BrowserResizer } from './components/BrowserResizer.tsx';
 import { BrowserSurface } from './components/BrowserSurface.tsx';
-import { BrowserPage } from './components/BrowserPage.tsx';
-import { BrowserToolbar } from './components/BrowserToolbar.tsx';
-import { BrowserManualInput } from './components/BrowserManualInput.tsx';
+import { NativeBrowser } from './components/NativeBrowser.tsx';
+import { StreamedBrowser } from './components/StreamedBrowser.tsx';
+import { useNativeBrowser } from './hooks/useNativeBrowser.ts';
 import { useBrowserFrame } from './hooks/useBrowserFrame.ts';
 import { useBrowserControl } from './hooks/useBrowserControl.ts';
 import { useBrowserPresentation } from './hooks/useBrowserPresentation.ts';
@@ -18,7 +18,8 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
   const presentation = useBrowserPresentation();
   const enabled = !props.hidden && browserPanel.open && browserPanel.session?.status === 'open';
   const viewport = useBrowserSize(enabled, control.resize);
-  const stream = useBrowserFrame(roleId, thread, enabled);
+  const native = useNativeBrowser(roleId, thread, browserPanel.session?.native, enabled, control);
+  const stream = useBrowserFrame(roleId, thread, enabled && !native.active && !native.pending);
   if (props.hidden || !browserPanel.available || !browserPanel.role) return null;
   const role = browserPanel.role;
   const frame = stream.frame;
@@ -45,29 +46,22 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
         )}
         toggleExpanded={() => presentation.setExpanded(!presentation.expanded)}
       />
-      <BrowserToolbar
-        frame={frame}
-        control={control}
-        url={browserPanel.session?.url ?? ''}
-        zoom={presentation.zoom}
-        setZoom={presentation.setZoom}
-        panView={presentation.panView}
-        setPanView={presentation.setPanView}
-      />
       {error ? (
         <p className="form-error px-4" role="alert">
           {error}
         </p>
       ) : null}
-      <BrowserPage
-        viewport={viewport}
-        browserPanel={browserPanel}
-        control={control}
-        frame={frame}
-        zoom={presentation.zoom}
-        panView={presentation.panView}
-      />
-      {control.leaseId ? <BrowserManualInput key={control.leaseId} control={control} /> : null}
+      {native.active ? (
+        <NativeBrowser model={native} control={control} viewport={viewport} />
+      ) : (
+        <StreamedBrowser
+          browserPanel={browserPanel}
+          control={control}
+          viewport={viewport}
+          frame={frame}
+          presentation={presentation}
+        />
+      )}
       <BrowserApprovals {...props} control={control} />
     </BrowserSurface>
   );

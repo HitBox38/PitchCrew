@@ -1,3 +1,5 @@
+import { installBrowserComposition } from './browser/composition.ts';
+import { startNativeBrowsers } from './browser/lifecycle.ts';
 import { waitForRuntimeUpdates } from './runtime-maintenance.ts';
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, session } from 'electron';
 import { dirname } from 'node:path';
@@ -40,11 +42,14 @@ const createWindow = () => {
       backgroundThrottling: false,
     },
   });
+  installBrowserComposition(window);
   if (!hiddenSmoke) window.once('ready-to-show', () => window?.show());
   window.on('enter-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', true));
   window.on('leave-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', false));
   installExternalNavigation(window, new URL(url).origin);
+  window.webContents.on('did-finish-load', () => void nativeBrowsers?.register().catch(() => {}));
   window.on('closed', () => {
+    nativeBrowsers?.closeGuests();
     window = null;
   });
   installSmokeCheck(window, appIcon);
@@ -67,6 +72,7 @@ if (new URL(url).hostname !== '127.0.0.1')
 const primaryInstance = app.requestSingleInstanceLock();
 if (!primaryInstance) app.quit();
 let window: BrowserWindow | null = null;
+let nativeBrowsers: Awaited<ReturnType<typeof startNativeBrowsers>> | undefined;
 let daemonReady = !app.isPackaged;
 let startupWindowCreated = false;
 let daemonReadyMs = 0;
@@ -111,6 +117,10 @@ if (primaryInstance)
         () => window,
         () => new URL(url).origin,
       );
+      nativeBrowsers = await startNativeBrowsers(
+        () => window,
+        () => new URL(url).origin,
+      );
       createWindow();
     })
     .catch((error: unknown) => {
@@ -144,6 +154,7 @@ app.on('before-quit', (event) => {
     });
     return;
   }
+  nativeBrowsers?.closeGuests();
   if (!updates?.isInstalling()) stopPackagedDaemon();
 });
 app.on('second-instance', () => {
