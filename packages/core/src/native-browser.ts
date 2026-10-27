@@ -1,3 +1,4 @@
+import type { BrowserProfilesCommand, BrowserProfilesState } from './browser-profiles.ts';
 import { z } from 'zod';
 import type { BrowserFrame } from './computer.ts';
 
@@ -18,6 +19,7 @@ export interface NativeBrowserIdentity {
   ownerId: string;
 }
 export interface NativeBrowserState extends NativeBrowserIdentity {
+  profile?: { id: string; name: string };
   dialog?: BrowserFrame['dialog'];
   warning?: string;
   activeTab: string;
@@ -34,6 +36,7 @@ export interface NativeBrowserState extends NativeBrowserIdentity {
 }
 export interface DesktopBrowserBridge {
   identify(): Promise<string>;
+  profiles(id: string, command: BrowserProfilesCommand): Promise<BrowserProfilesState>;
   focusPage(id: string): Promise<void>;
   focusControls(id: string, focused: boolean): Promise<void>;
   mount(

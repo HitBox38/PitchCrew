@@ -1,5 +1,9 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { defaultCapabilities, type Role, type BrowserInput } from '@pitchcrew/core';
+import type {
+  BrowserProfilesState,
+  BrowserProfilesCommand,
+} from '../../core/src/browser-profiles.ts';
 import type { NativeBrowserState } from '../../core/src/native-browser.ts';
 import { afterAll, beforeAll, expect, test, vi } from 'vitest';
 import { setup, cleanup } from './helpers/daemon.ts';
@@ -83,10 +87,36 @@ beforeAll(async () => {
   page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
   await page.addInitScript(({ ownerId }) => {
     const records = { mounts: [] as unknown[], finds: [] as unknown[] };
+    let profiles: BrowserProfilesState = {
+      profiles: [{ id: 'default', name: 'Default' }],
+      selectedId: 'default',
+      currentId: 'default',
+    };
     Object.assign(window, {
       nativeFixture: records,
       pitchcrewBrowser: {
         identify: async () => ownerId,
+        profiles: async (_id: string, command: BrowserProfilesCommand) => {
+          if (command.kind === 'create')
+            profiles.profiles.push({
+              id: '8533d8c4-4846-4fe3-a1dd-3685cbd2f6f5',
+              name: command.name,
+            });
+          if (command.kind === 'select') profiles.selectedId = command.id;
+          if (command.kind === 'begin-import')
+            profiles.preview = {
+              token: '8f676ac0-43e0-42d8-b28c-144a059134de',
+              profileName: profiles.profiles.find((item) => item.id === command.id)!.name,
+              count: 2,
+              skipped: 1,
+              domains: ['example.com'],
+            };
+          if (command.kind === 'confirm-import') {
+            profiles = { ...profiles, preview: undefined, imported: 2 };
+          }
+          if (command.kind === 'cancel-import') profiles = { ...profiles, preview: undefined };
+          return structuredClone(profiles);
+        },
         focusPage: async () => {},
         focusControls: async () => {},
         mount: async (id: string, bounds: unknown) => {
@@ -192,6 +222,23 @@ test('provides native zoom, cache, loading and failure recovery controls', async
   };
   await page.getByRole('button', { name: 'Retry page', exact: true }).click();
   state = { ...state, tabs: state.tabs.map((tab) => ({ ...tab, error: undefined })) };
+});
+test('manages named profiles and reviews a session import before confirmation', async () => {
+  await page.getByRole('button', { name: 'Browser page settings' }).click();
+  await page.getByRole('button', { name: 'Manage browser profiles' }).click();
+  await page.getByRole('textbox', { name: 'New browser profile name' }).fill('Work');
+  await page.getByRole('button', { name: 'Create profile', exact: true }).click();
+  const work = page.getByRole('region', { name: 'Browser profile Work' });
+  await work.getByRole('button', { name: 'Use for new sessions' }).click();
+  await work.getByText('Default for new browser sessions.', { exact: true }).waitFor();
+  await work.getByRole('button', { name: 'Import sessions', exact: true }).click();
+  const confirm = page.getByRole('button', { name: 'Import reviewed sessions' });
+  expect(await confirm.isDisabled()).toBe(true);
+  await page.getByRole('checkbox').check();
+  await confirm.click();
+  await page.getByRole('status').filter({ hasText: 'Imported 2 website cookies.' }).waitFor();
+  await page.getByRole('button', { name: 'Close profiles' }).click();
+  await page.keyboard.press('Escape');
 });
 test('hides the guest for app menus and when the browser panel closes without releasing control', async () => {
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();

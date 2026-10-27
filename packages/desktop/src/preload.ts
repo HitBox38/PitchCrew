@@ -24,6 +24,7 @@ const startup: DesktopStartupBridge = {
 };
 contextBridge.exposeInMainWorld('pitchcrewStartup', startup);
 const browser: DesktopBrowserBridge = {
+  profiles: (id, command) => ipcRenderer.invoke('pitchcrew:browser:profiles', id, command),
   identify: () => ipcRenderer.invoke('pitchcrew:browser:identity'),
   focusPage: (id) => ipcRenderer.invoke('pitchcrew:browser:focus-page', id),
   focusControls: (id, focused) =>

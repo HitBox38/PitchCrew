@@ -61,6 +61,8 @@ export const mcpGatewayTools = Object.freeze({
   packet_rules: 'pitchcrew_get_packet_rules',
   export: 'pitchcrew_export_packet',
   computer_inspect: 'pitchcrew_computer_inspect',
+  computer_wait: 'pitchcrew_computer_wait',
+  computer_tabs: 'pitchcrew_computer_tabs',
   computer_request: 'pitchcrew_computer_request',
   computer_execute: 'pitchcrew_computer_execute',
   assess_form: 'pitchcrew_assess_form',

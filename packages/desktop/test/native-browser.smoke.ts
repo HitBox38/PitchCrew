@@ -163,6 +163,30 @@ try {
     throw new Error('Agent approval did not bind its native tab.');
   manager.decide(pinned.id, true);
   await manager.execute(scope.runId, pinned.id, new AbortController().signal, () => {}, 0);
+  await writeFile(commands, JSON.stringify({ kind: 'profiles', id: native.id, nonce: 'profiles' }));
+  const profile = await wait(async () => {
+    try {
+      const value = JSON.parse(await readFile(resultFile, 'utf8')) as {
+        nonce: string;
+        profileId: string;
+        cookieStored: boolean;
+      };
+      return value.nonce === 'profiles' ? value : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+  if (!profile.cookieStored)
+    throw new Error('Native cookie import did not retain the reviewed session.');
+  await manager.openBrowser('writer', 'profile-fixture', null);
+  const namedDriver = await manager.browsers.driver(
+    manager.browsers.key('writer', 'profile-fixture', null),
+  );
+  const namedState = await namedDriver.nativeState!();
+  if (namedState.profile?.id !== profile.profileId || namedState.profile.name !== 'Work fixture')
+    throw new Error('New browser session did not use the selected named profile.');
+  if ((await driver.nativeState!()).profile?.id !== 'default')
+    throw new Error('Existing browser session changed its sign-in profile.');
   if (page.screenshot.length === 0 || resumed.screenshot.length === 0)
     throw new Error('Agent screenshots were unavailable.');
 } catch (error) {

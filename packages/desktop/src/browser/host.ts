@@ -1,7 +1,9 @@
+import { installNativeProfileIpc } from './profile-ipc.ts';
+import { nativeProfiles } from './profiles.ts';
 import { createServer, type IncomingMessage } from 'node:http';
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import { WebSocketServer } from 'ws';
-import { ipcMain, session, type BrowserWindow } from 'electron';
+import { app, ipcMain, session, type BrowserWindow } from 'electron';
 import { z } from 'zod';
 import {
   nativeBrowserCommandSchema,
@@ -20,6 +22,7 @@ const boundsSchema = z
   .strict()
   .nullable();
 export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | null) => {
+  const profiles = await nativeProfiles(app.getPath('userData'));
   const token = randomBytes(32).toString('hex');
   const ownerId = randomUUID();
   const groups = new Map<string, NativeGroup>();
@@ -62,7 +65,16 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           .object({ profile: z.string().regex(/^[a-f0-9]{64}$/) })
           .strict()
           .parse(await body(request));
-        const group = createNativeGroup(ownerId, profile, getWindow, () => groups.values());
+        const record = profiles.get(profile);
+        const selected = record.profiles.find((item) => item.id === record.selectedId)!;
+        const group = createNativeGroup(
+          ownerId,
+          profiles.partition(profile, selected.id),
+          getWindow,
+          () => groups.values(),
+          profile,
+          selected,
+        );
         groups.set(group.id, group);
         try {
           await group.create();
@@ -80,12 +92,19 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           .string()
           .regex(/^[a-f0-9]{64}$/)
           .parse(parts[1]);
+        const partitionIds = profiles
+          .get(profile)
+          .profiles.map((item) => profiles.partition(profile, item.id));
         for (const group of groups.values())
-          if (group.profile === profile) {
+          if (group.baseProfile === profile) {
             group.destroy();
             groups.delete(group.id);
           }
-        await session.fromPartition(`persist:pitchcrew-browser-${profile}`).clearStorageData();
+        await Promise.all(
+          partitionIds.map((id) =>
+            session.fromPartition(`persist:pitchcrew-browser-${id}`).clearStorageData(),
+          ),
+        );
       } else {
         const group = groups.get(parts[1]);
         if (parts[0] !== 'sessions' || !group) throw new Error('Browser session is closed.');
@@ -198,6 +217,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
   return {
     descriptor,
     groups,
+    profiles,
     mount,
     closeGuests: () => {
       for (const group of groups.values()) group.destroy();
@@ -230,6 +250,7 @@ export const installNativeBrowserIpc = (
     )
       throw new Error('Desktop browser access is unavailable.');
   };
+  installNativeProfileIpc(host, authorize, getWindow);
   ipcMain.handle('pitchcrew:browser:identity', (event) => {
     authorize(event);
     return host.descriptor.ownerId;

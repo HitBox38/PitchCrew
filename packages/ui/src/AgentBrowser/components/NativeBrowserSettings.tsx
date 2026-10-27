@@ -1,3 +1,4 @@
+import { NativeBrowserProfiles } from './NativeBrowserProfiles.tsx';
 import { Settings2, Minus, Plus, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import {
@@ -71,6 +72,12 @@ export const NativeBrowserSettings = ({
           Clear cached website files
         </Button>
         <p className="quiet mt-2">Clearing the cache keeps saved sign-ins.</p>
+        <p className="quiet mt-2">Profile: {model.state?.profile?.name ?? 'Default'}</p>
+        <NativeBrowserProfiles
+          key={model.identity!.id}
+          id={model.identity!.id}
+          disabled={!manual}
+        />
       </PopoverContent>
     </Popover>
   );

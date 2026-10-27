@@ -1,5 +1,7 @@
+import { parseCookieExport } from '../../src/browser/cookie-import.ts';
+import { randomUUID } from 'node:crypto';
 import { installBrowserComposition } from '../../src/browser/composition.ts';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
 import { writeFile, readFile } from 'node:fs/promises';
 import { createNativeBrowserHost } from '../../src/browser/host.ts';
 
@@ -90,6 +92,42 @@ void app
               nonce: command.nonce,
               opener,
               windows: BrowserWindow.getAllWindows().length,
+            }),
+          );
+        }
+        if (command.kind === 'profiles' && group) {
+          const id = randomUUID();
+          await host.profiles.update(group.baseProfile, (record) => {
+            record.profiles.push({ id, name: 'Work fixture' });
+            record.selectedId = id;
+          });
+          const partition = session.fromPartition(
+            `persist:pitchcrew-browser-${host.profiles.partition(group.baseProfile, id)}`,
+          );
+          const parsed = parseCookieExport(
+            JSON.stringify([
+              {
+                domain: 'example.com',
+                path: '/',
+                name: 'fixture_session',
+                value: 'fictional-profile-cookie',
+                secure: true,
+                httpOnly: true,
+                sameSite: 'Lax',
+              },
+            ]),
+          );
+          for (const cookie of parsed.cookies) await partition.cookies.set(cookie);
+          await partition.cookies.flushStore();
+          const cookies = await partition.cookies.get({ domain: 'example.com' });
+          await writeFile(
+            process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
+            JSON.stringify({
+              nonce: command.nonce,
+              profileId: id,
+              cookieStored: cookies.some(
+                (cookie) => cookie.name === 'fixture_session' && cookie.httpOnly,
+              ),
             }),
           );
         }

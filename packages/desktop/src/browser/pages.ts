@@ -19,6 +19,8 @@ export interface NativeGroup extends RelayGroup {
   create(existingView?: WebContentsView): Promise<RelayPage>;
   id: string;
   profile: string;
+  baseProfile: string;
+  namedProfile: { id: string; name: string };
   active: string;
   manualUntil: number;
   manualFields: ReturnType<typeof nativeManualFields>;
@@ -40,12 +42,16 @@ export const createNativeGroup = (
   profile: string,
   getWindow: () => BrowserWindow | null,
   groups: () => Iterable<NativeGroup>,
+  baseProfile = profile,
+  namedProfile = { id: 'default', name: 'Default' },
 ) => {
   const partition = session.fromPartition(`persist:pitchcrew-browser-${profile}`);
   const errors = new Map<string, string>();
   const group: NativeGroup = {
     id: randomUUID(),
     profile,
+    baseProfile,
+    namedProfile,
     active: '',
     manualUntil: 0,
     manualFields: nativeManualFields(),
@@ -261,6 +267,7 @@ export const createNativeGroup = (
     state: () => ({
       id: group.id,
       ownerId,
+      profile: group.namedProfile,
       activeTab: group.active,
       tabs: [...group.pages.values()].map(({ id, contents }) => ({
         id,
