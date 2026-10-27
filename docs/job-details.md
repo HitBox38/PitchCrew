@@ -4,6 +4,8 @@ The job sheet has three sections: Job, Application and Activity. Its compact hea
 
 Opening a job immediately shows its identity header and a skeleton while the sheet code or full job source loads. The loading status is announced to assistive technology, skeletons respect reduced motion, and the sheet can be closed while loading. Source failures keep the header visible and offer Retry before enabling the full details and workflow actions.
 
+Stage changes and agent launches register per-job pending state synchronously, shared with the board card; the pressed action and header show progress through HTTP completion and snapshot refresh. Reserved launches keep their spinner until a run appears. Queued, paused, failed and waiting work use resting indicators; View queued action opens Queue, and required questions retain Answer in job chat. Failures clear pending state and restore the available actions.
+
 ## Information and decisions
 
 Job opens with the original description, tags and crew assessment. Its Packet match to job section offers **Reevaluate with packet** in every board stage, including submitted and closed jobs, once a packet and current extracted brief exist. It queues an isolated Scout assessment using the complete resume, cover letter, form answers, note, claims, structured job brief and Profile evidence. Active work, pending questions, workspace capacity and runtime/account gates retain their usual protections; brief edits must be saved first.

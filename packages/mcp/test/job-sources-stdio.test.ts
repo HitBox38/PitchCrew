@@ -100,6 +100,8 @@ it('exposes scan and link import tools over actual stdio only with discoverJobs 
     expect(importTool).toBeTruthy();
     expect(importTool!.inputSchema.required).toEqual(['url']);
     expect(importTool!.inputSchema.additionalProperties).toBe(false);
+    expect(importTool!.inputSchema.properties).toHaveProperty('browserDigest');
+    expect(importTool!.description).toContain('try the browser before asking for pasted text');
     expect(importTool!.annotations).toMatchObject({
       readOnlyHint: false,
       destructiveHint: false,
@@ -124,6 +126,11 @@ it('exposes scan and link import tools over actual stdio only with discoverJobs 
       arguments: { url: postingLinks.greenhouse.link, endpoint: 'https://evil.example' },
     });
     expect(invalidImport.isError).toBe(true);
+    const disabledBrowserImport = await client.callTool({
+      name: 'pitchcrew_import_job_link',
+      arguments: { url: postingLinks.greenhouse.link, browserDigest: 'unavailable' },
+    });
+    expect(disabledBrowserImport.isError).toBe(true);
     const imported = await client.callTool({
       name: 'pitchcrew_import_job_link',
       arguments: { url: postingLinks.greenhouse.link },

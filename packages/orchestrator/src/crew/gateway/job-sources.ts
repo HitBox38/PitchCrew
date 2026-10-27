@@ -1,5 +1,6 @@
-import { jobLinkImportInput, type Role, type Run } from '@pitchcrew/core';
+import { jobLinkImportInput, type BrowserSnapshot, type Role, type Run } from '@pitchcrew/core';
 import type { CrewContext, RunCapability } from '../types.ts';
+import { computerAction } from './computer.ts';
 
 /**
  * Agents may scan saved sources or read public job links. They cannot change saved sources.
@@ -45,13 +46,30 @@ export const jobSourceAction = async (
     const input = jobLinkImportInput.parse(data.input);
     if (capability.cardId && input.cardId && capability.cardId !== input.cardId)
       throw new Error('Job link updates are scoped to the attached job.');
+    const authorizeImport = () => {
+      authorize();
+      if (
+        input.browserDigest &&
+        context.board.get<Role>('role', capability.roleId).capabilities?.computerUse !== true
+      )
+        throw new Error(
+          'Computer use is disabled. Enable browser tools in Crew to read this posting.',
+        );
+    };
+    authorizeImport();
     return {
       result: await context.jobSources.importLink({
         actor: capability.roleId,
         input,
         runId: capability.runId,
         signal,
-        authorize,
+        authorize: authorizeImport,
+        readBrowser: async () => {
+          authorizeImport();
+          const result = await computerAction(context, capability, token, 'computer_inspect', {});
+          if (!result.page) throw new Error('Return browser control before reading the posting.');
+          return result.page as BrowserSnapshot;
+        },
       }),
     };
   }

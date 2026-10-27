@@ -57,6 +57,10 @@ describe('default crew', () => {
     board.seedRoles('claude-code', false);
     const roles = board.list<Role>('role');
     expect(roles.map((role) => role.id)).toEqual(ids);
+    expect(roles[0]).toMatchObject({
+      browserMode: 'supervised',
+      capabilities: { computerUse: true, discoverJobs: false },
+    });
     for (const role of roles) {
       expect(roleCreate.safeParse(role).success).toBe(true);
       expect(role).toMatchObject({ runtime: 'claude-code', enabled: false });

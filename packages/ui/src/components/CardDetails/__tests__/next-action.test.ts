@@ -140,3 +140,30 @@ it('keeps packet review, export approval and manual submission as distinct decis
     'Update outcome',
   );
 });
+
+it('acknowledges startup and lets held work open Queue without hiding user questions', () => {
+  const base = model();
+  const openQueue = vi.fn();
+  const work = {
+    pending: undefined,
+    starting: true,
+    spinning: false,
+    label: 'Agent on hold',
+    reason: 'Confirm the job brief.',
+    roleId: null,
+  };
+  const held = { ...base, work, openQueue };
+  const next = jobNextAction(held);
+  expect(next.label).toBe('View queued action');
+  expect(next.disabled).toBe(false);
+  next.perform();
+  expect(openQueue).toHaveBeenCalledOnce();
+  expect(jobNextAction({ ...held, work: { ...work, spinning: true } })).toMatchObject({
+    label: 'Starting agent…',
+    disabled: true,
+  });
+  const waiting = { id: 'waiting', status: 'waiting', threadId: 'application' } as Run;
+  expect(jobNextAction({ ...held, agents: [{ run: waiting, name: 'Writer' }] }).label).toBe(
+    'Answer in job chat',
+  );
+});
