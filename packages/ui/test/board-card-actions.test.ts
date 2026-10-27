@@ -403,3 +403,72 @@ test('reduced motion keeps both the card and its menu button stationary on hover
     await page.emulateMedia({ reducedMotion: 'no-preference' });
   }
 });
+
+test('column sorting ranks all pages, stays independent, persists and reveals moved jobs', async () => {
+  const board = host.daemon.service.board;
+  board.record('card', { ...card, fit: 10 }, 'system', 'Fixture score');
+  board.record('card', { ...next, state: 'shortlisted', fit: 100 }, 'system', 'Fixture score');
+  for (let i = 0; i < 22; i++) {
+    const job = host.daemon.service.createCard({ company: `Sort Studio ${i}`, title: 'Engineer' });
+    board.record('card', { ...job, fit: i }, 'system', 'Fixture score');
+  }
+  await page.reload();
+  const leads = page.getByRole('region', { name: 'Leads', exact: true });
+  const sort = () => leads.getByRole('button', { name: /^Sort Leads:/ });
+  const companies = () => leads.locator('.job-top strong').allTextContents();
+  await expect.poll(async () => (await companies())[0]).toBe('Sort Studio 21');
+  expect(await leads.locator('.draggable-job').count()).toBe(20);
+  for (const label of ['Leads', 'Shortlisted', 'Drafting', 'Ready', 'Applied'])
+    expect(
+      await page
+        .getByRole('button', { name: `Sort ${label}: Fit (high to low)`, exact: true })
+        .count(),
+    ).toBe(1);
+
+  await page.getByRole('button', { name: 'Next Leads page', exact: true }).click();
+  await expect.poll(async () => (await companies()).length).toBe(3);
+  await sort().focus();
+  await page.keyboard.press('Enter');
+  expect(
+    await page
+      .getByRole('menuitemradio', { name: 'Fit (high to low)', exact: true })
+      .getAttribute('aria-checked'),
+  ).toBe('true');
+  await page.getByRole('menuitemradio', { name: 'Fit (low to high)', exact: true }).click();
+  await expect.poll(async () => (await companies())[0]).toBe('Sort Studio 0');
+  expect(
+    await leads.getByRole('button', { name: 'Previous Leads page', exact: true }).isDisabled(),
+  ).toBe(true);
+  await expect.poll(focusedLabel).toBe('Sort Leads: Fit (low to high)');
+  expect(
+    await page
+      .getByRole('button', { name: 'Sort Shortlisted: Fit (high to low)', exact: true })
+      .count(),
+  ).toBe(1);
+
+  await page.getByRole('button', { name: /^Closed \d/ }).click();
+  await page
+    .getByRole('button', { name: 'Sort Closed jobs: Fit (high to low)', exact: true })
+    .click();
+  await page.getByRole('menuitemradio', { name: 'Recently updated', exact: true }).click();
+  await page.getByRole('button', { name: /^Pipeline \d/ }).click();
+  await page.reload();
+  await expect.poll(async () => (await companies())[0]).toBe('Sort Studio 0');
+  await page.getByRole('button', { name: /^Closed \d/ }).click();
+  await page
+    .getByRole('button', { name: 'Sort Closed jobs: Recently updated', exact: true })
+    .waitFor();
+  await page.getByRole('button', { name: /^Pipeline \d/ }).click();
+
+  const nextMenu = page.getByRole('button', {
+    name: `Actions for ${next.title} at ${next.company}`,
+    exact: true,
+  });
+  await nextMenu.click();
+  await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'New lead', exact: true }).press('Enter');
+  await expect.poll(focusedLabel).toBe(`Actions for ${next.title} at ${next.company}`);
+  expect(await leads.locator(`#board-job-${next.id}`).count()).toBe(1);
+  expect(await leads.locator('.draggable-job').count()).toBe(4);
+  expect(errors).toEqual([]);
+}, 30000);
