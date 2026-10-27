@@ -1,3 +1,4 @@
+import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
 import { useNavigate } from '@tanstack/react-router';
 import type { ApplicationSection, CardDetailsProps, JobSection } from '../types.ts';
 import { jobAgents, jobRole, latestJobFailure } from '../helpers.ts';
@@ -18,9 +19,11 @@ export const useCardDetails = (props: CardDetailsProps) => {
   const [sections, setSections] = useState<ApplicationSection[]>(
     props.initialSection === 'application' ? ['brief'] : [],
   );
+  const work = useJobWork(card);
   const agents = jobAgents(card.id, data);
   const run = agents.find(({ run }) => run.status === 'running')?.run;
-  const busy = working || Boolean(run) || Boolean(card.owner);
+  const busy =
+    working || Boolean(work.pending) || work.spinning || Boolean(run) || Boolean(card.owner);
   const brief = useApplicationBrief({
     card,
     roles: data.roles,
@@ -64,6 +67,7 @@ export const useCardDetails = (props: CardDetailsProps) => {
   const runRole = seat === 'writer' ? brief.roleId : jobRole(data, seat)?.id;
   return {
     ...props,
+    work,
     tab,
     setTab,
     document,
@@ -83,6 +87,11 @@ export const useCardDetails = (props: CardDetailsProps) => {
     failed: latestJobFailure(card.id, data.runs),
     onClose: () => guard.requestLeave(props.onClose),
     openInbox: () => guard.requestLeave(props.onInbox),
+    openQueue: () =>
+      guard.requestLeave(() => {
+        props.onClose();
+        void navigate({ to: '/queue' });
+      }),
     openWriting: () =>
       guard.requestLeave(() => {
         props.onClose();

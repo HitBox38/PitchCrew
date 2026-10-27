@@ -1,3 +1,5 @@
+import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
+import { LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
@@ -6,10 +8,13 @@ import type { Card } from '@pitchcrew/core';
 
 export const BriefActions = ({
   model,
+  card,
 }: {
   model: ReturnType<typeof useApplicationBrief>;
   card: Card;
 }) => {
+  const { pending } = useJobWork(card);
+  const extracting = pending?.path.endsWith('/application-context/extract');
   if (!model.available.length)
     return (
       <p className="quiet">
@@ -27,13 +32,21 @@ export const BriefActions = ({
           options={model.available.map((role) => ({ value: role.id, label: role.name }))}
         />
         <Button
+          aria-busy={!!extracting}
           variant="outline"
           disabled={model.disabled || !model.roleId || model.editing}
           onClick={() => {
             void model.extract();
           }}
         >
-          Extract from source
+          {extracting ? (
+            <LoaderCircle
+              size={14}
+              className="spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+          ) : null}
+          {extracting ? 'Starting extraction…' : 'Extract from source'}
         </Button>
       </div>
       <p className="quiet">

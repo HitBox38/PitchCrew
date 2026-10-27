@@ -1,3 +1,4 @@
+import type { PendingJobAction } from './job-actions.ts';
 import type { RoleId, Snapshot } from '@pitchcrew/core';
 import type { StoreApi } from 'zustand';
 import type { AppUpdateState } from './updates.ts';
@@ -16,6 +17,7 @@ export interface WorkspaceState extends AppUpdateState, SkillUpdateActions, Prof
   toast: string;
   toastType: 'success' | 'error' | 'info';
   working: boolean;
+  pendingJobActions: Record<string, PendingJobAction[]>;
   add: boolean;
   creatingConversation: boolean;
   selectedId: string | null;
