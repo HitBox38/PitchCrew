@@ -4,6 +4,37 @@ import { recordOperationalLog, sanitizeLogObservation } from '../logs.ts';
 import { failureCategory, failureDetails } from '@pitchcrew/core/operational-logs';
 
 describe('content-free operational logs', () => {
+  it('retains only reviewed HTTP correlation across the actual buffer sanitizer', () => {
+    const buffer = createTelemetryBuffer(sanitizeLogObservation, true);
+    const correlation = {
+      traceId: '1234567890abcdef1234567890abcdef',
+      spanId: '1234567890abcdef',
+      traceFlags: 1,
+      sessionId: '019a1234-5678-7000-8000-000000000001',
+      posthogDistinctId: '019a1234-5678-7000-8000-000000000002',
+    };
+    const log = { code: 'http_request_failed', area: 'http', ...correlation } as const;
+    recordOperationalLog(buffer, log);
+    expect(buffer.read(0).observations[0]?.properties).toEqual(log);
+    expect(
+      sanitizeLogObservation('operational_log', {
+        code: 'daemon_ready',
+        area: 'daemon',
+        ...correlation,
+      }),
+    ).toEqual({ code: 'daemon_ready', area: 'daemon' });
+    expect(
+      sanitizeLogObservation('operational_log', {
+        ...log,
+        traceId: '0'.repeat(32),
+        spanId: 'private',
+        traceFlags: 999,
+        sessionId: '/private/profile.md',
+        posthogDistinctId: 'person@example.test',
+        baggage: 'private',
+      }),
+    ).toEqual({ code: 'http_request_failed', area: 'http' });
+  });
   it('keeps exit details only on runtime exits and never retains unknown error properties', () => {
     const error = Object.assign(new Error('private stderr'), {
       code: 'PITCHCREW_RUNTIME_EXIT',

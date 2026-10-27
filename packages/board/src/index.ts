@@ -64,6 +64,7 @@ export { instructionStatus } from './board/default-instructions.ts';
 export { defaultRoles } from './board/default-roles.ts';
 export { changeJobState, deleteJob } from './board/job-management.ts';
 export { updateJobDetails } from './board/job-details.ts';
+export { editJob } from './board/job-edit.ts';
 export { assertJobLinkRefresh, saveReadJobLink } from './board/job-link-refresh.ts';
 export { instructionRevision, normalizeInstructions } from './board/instruction-revisions.ts';
 export class Board {
@@ -111,6 +112,7 @@ export class Board {
         | 'packet'
         | 'feedback'
         | 'fit'
+        | 'packetFit'
         | 'owner'
         | 'formAssessments'
         | 'submissionAttempts'

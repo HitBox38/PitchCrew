@@ -6,7 +6,7 @@ import { isJobLinkBoard, isJobLinkId, maxJobLinkLength } from './job-link-recogn
 export * from './job-link-recognition.ts';
 
 export const jobLookupInput = z.object({ url: z.string().max(maxJobLinkLength) }).strict();
-/** Agent-extracted details from the public page returned by a needs_details result. */
+/** Agent-extracted details from public HTML or an inspected browser posting. */
 export const jobLinkDetails = cardInput
   .pick({ company: true, title: true, location: true, salary: true, description: true })
   .extend({
@@ -17,6 +17,8 @@ export const jobLinkDetails = cardInput
 export const jobLinkImportInput = jobLookupInput.extend({
   cardId: z.uuid().optional(),
   details: jobLinkDetails.optional(),
+  /** Read the current scoped browser instead of fetching HTML; requires computerUse. */
+  browserDigest: z.string().trim().min(1).max(128).optional(),
 });
 /**
  * Provenance the UI sends back when the user saves a fetched job. It is saved as the card's

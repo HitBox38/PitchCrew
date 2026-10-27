@@ -1,6 +1,7 @@
 import { assertReviewedContext, digestPacket, type Board } from '@pitchcrew/board';
 import {
   formAssessmentInput,
+  applicationFormIsCurrent,
   type Approval,
   type BrowserAction,
   type BrowserSnapshot,
@@ -57,6 +58,9 @@ export const saveAssessment = (
   };
   board.db.transaction(() => {
     const card = board.get<Card>('card', scope.cardId!);
+    const formAssessments = [...(card.formAssessments ?? []), assessment].slice(-20);
+    const changed =
+      Boolean(card.applicationContext) && !applicationFormIsCurrent({ ...card, formAssessments });
     board.record(
       'form_assessment',
       assessment,
@@ -65,10 +69,21 @@ export const saveAssessment = (
     );
     board.updateCard(
       card.id,
-      { formAssessments: [...(card.formAssessments ?? []), assessment].slice(-20) },
+      { formAssessments, ...(changed ? { packetReview: undefined, packetFit: undefined } : {}) },
       scope.roleId,
       'Updated form requirements for Writer handoff',
     );
+    if (changed) {
+      for (const kind of ['approval', 'computer_approval'] as const)
+        for (const approval of board.list<Approval | ComputerApproval>(kind))
+          if (approval.cardId === card.id && ['pending', 'approved'].includes(approval.status))
+            board.record(
+              kind,
+              { ...approval, status: 'rejected', decidedAt: assessment.createdAt },
+              scope.roleId,
+              'Invalidated approval after inspected form requirements changed',
+            );
+    }
   })();
   return assessment;
 };

@@ -11,6 +11,7 @@ export const useApplicationBrief = ({
   roles,
   busy,
   onDirtyChange,
+  onInspection,
 }: ApplicationBriefProps) => {
   const action = useWorkspaceStore((state) => state.action);
   const [loaded, setLoaded] = useState<ContextResponse | null>(null);
@@ -28,6 +29,7 @@ export const useApplicationBrief = ({
     card.url,
     card.description,
     card.sourceHtml,
+    card.formAssessments?.at(-1)?.id,
   ]);
   useEffect(() => {
     editingRef.current = editing;
@@ -44,6 +46,16 @@ export const useApplicationBrief = ({
       available.find((role) => role.workflow === 'writer' || role.id === 'writer')?.id ??
       available[0]?.id ??
       '',
+  );
+  const formAgents = roles.filter(
+    (role) =>
+      role.enabled &&
+      !role.retiredAt &&
+      role.capabilities?.computerUse &&
+      role.capabilities.assessForms,
+  );
+  const [formRoleId, setFormRoleId] = useState(
+    () => formAgents.find((role) => role.id === 'submitter')?.id ?? formAgents[0]?.id ?? '',
   );
   useEffect(() => {
     let cancelled = false;
@@ -64,8 +76,9 @@ export const useApplicationBrief = ({
                 brief: result.context.brief,
                 requirements: result.context.requirements,
                 flagged: result.context.flagged,
+                form: result.form ?? result.context.form,
               }
-            : { ...emptyBrief(), flagged: result.flagged },
+            : { ...emptyBrief(), flagged: result.flagged, form: result.form ?? undefined },
         );
       })
       .catch((failure) => {
@@ -94,6 +107,7 @@ export const useApplicationBrief = ({
           brief: result.context.brief,
           requirements: result.context.requirements,
           flagged: result.context.flagged,
+          form: result.form ?? result.context.form,
         });
       editingRef.current = false;
       setEditing(false);
@@ -116,6 +130,20 @@ export const useApplicationBrief = ({
     );
   const extract = () =>
     perform('application-context/extract', { roleId }, 'Source extraction started');
+  const inspectForm = async () => {
+    setError('');
+    try {
+      const result = (await action(
+        `/cards/${card.id}/application-form/inspect`,
+        'POST',
+        { roleId: formRoleId },
+        'Form inspection queued',
+      )) as { threadId: string };
+      onInspection?.(result.threadId);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : 'Could not start form inspection.');
+    }
+  };
   const startDraft = () =>
     action(
       '/queue/actions',
@@ -134,11 +162,12 @@ export const useApplicationBrief = ({
       { cardId: card.id, roleId: reviewer.id, action: 'review' },
       'Packet review queued',
     );
-  const confirmed = Boolean(
-    loaded?.context?.confirmedAt &&
-    loaded.context.confirmedRevision === loaded.context.revision &&
-    loaded.context.sourceRevision === loaded.sourceRevision,
-  );
+  const confirmed =
+    Boolean(
+      loaded?.context?.confirmedAt &&
+      loaded.context.confirmedRevision === loaded.context.revision &&
+      loaded.context.sourceRevision === loaded.sourceRevision,
+    ) && Boolean(loaded?.formCurrent);
   return {
     draft,
     setDraft,
@@ -157,12 +186,17 @@ export const useApplicationBrief = ({
               brief: loaded.context.brief,
               requirements: loaded.context.requirements,
               flagged: loaded.context.flagged,
+              form: loaded.form ?? loaded.context.form,
             }
           : emptyBrief(),
       );
       setEditing(false);
     },
     available,
+    formAgents,
+    formRoleId,
+    setFormRoleId,
+    inspectForm,
     roleId,
     setRoleId,
     confirm,

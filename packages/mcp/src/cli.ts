@@ -27,7 +27,9 @@ const execution = await call('execution_access');
 if (execution.isError || !execution.structuredContent)
   throw new Error('Cannot verify the scoped execution purpose.');
 const purpose = execution.structuredContent?.purpose;
-const isolated = ['application-draft', 'application-review', 'fit'].includes(String(purpose));
+const isolated = ['application-draft', 'application-review', 'fit', 'packet-evaluation'].includes(
+  String(purpose),
+);
 if (purpose === 'source-extraction') {
   // Required MCP clients discover tools even for runs with no callable actions.
   // McpServer only installs discovery when a tool is registered.

@@ -5,6 +5,7 @@ import { originalQuestionTask, questionContinuationAllowed } from './context.ts'
 import { randomUUID } from 'node:crypto';
 import {
   userAnswerInput,
+  formHasQuestion,
   type ChatRequest,
   type Run,
   type UserInputRequest,
@@ -47,6 +48,14 @@ export const answerUserQuestion = (
   const content = [...answer.selected.map((id) => options.get(id)!), answer.text]
     .filter(Boolean)
     .join('\n');
+  if (question.applicationContextRevision && !question.applicationRequirementId) {
+    const current = assertConfirmedContext(context.board.get<Card>('card', question.cardId!));
+    if (
+      current.revision !== question.applicationContextRevision ||
+      !formHasQuestion(current.form, question.question)
+    )
+      throw new Error('The application form changed. Answer its current questions instead.');
+  }
   const application =
     question.applicationRequirementId && question.cardId
       ? assertConfirmedContext(context.board.get<Card>('card', question.cardId))
@@ -116,6 +125,7 @@ export const answerUserQuestion = (
             r.id === question.applicationRequirementId ? { ...r, answer: content } : r,
           ),
           flagged: application.flagged,
+          form: application.form,
         },
         true,
       );

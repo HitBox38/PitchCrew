@@ -1,3 +1,4 @@
+import { diagnosticRequestHeaders } from '../Analytics/request-context.ts';
 import { chatAttachmentMime } from '@pitchcrew/core/chat-attachments';
 import { parseFileCitation } from '@pitchcrew/core/chat-citations';
 import type { ViewerFile } from '@/FileViewer/types.ts';
@@ -10,7 +11,7 @@ export const loadCitationAttachment = async (
   if (target?.kind !== 'attachment') throw new Error('This file reference is unavailable.');
   const [messageId, fileId] = target.ids.map(encodeURIComponent);
   const response = await fetch(`/api/chat/messages/${messageId}/attachments/${fileId}`, {
-    headers: { 'x-pitchcrew-client': 'ui' },
+    headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
     signal,
   });
   if (!response.ok) throw new Error('This attachment is no longer available.');

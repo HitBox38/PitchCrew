@@ -163,6 +163,9 @@ it('includes managed skills in both workflow and chat prompts without granting c
   ];
   const workflow = promptFor({ ...context, skills });
   const chat = chatPromptFor({ ...context, skills, card: null, messages: [] });
+  expect(chat).toContain('open and read it in the in-app browser if computerUse is enabled');
+  expect(chat).toContain('browserDigest from that inspection');
+  expect(chat).toContain('try the browser before asking for pasted text');
   for (const prompt of [workflow, chat]) {
     expect(prompt).toContain(context.role.instructions);
     expect(prompt).toContain(skills[0].name);

@@ -1,3 +1,4 @@
+import { diagnosticRequestHeaders } from '../Analytics/request-context.ts';
 import { api } from '@/api.ts';
 import type { BrowserFrame, BrowserInput, BrowserSessionInfo } from '@pitchcrew/core';
 export const streamBrowser = async (
@@ -8,7 +9,7 @@ export const streamBrowser = async (
 ) => {
   const response = await fetch(`/api${browserPath(roleId, threadId, 'stream')}`, {
     signal,
-    headers: { 'x-pitchcrew-client': 'ui' },
+    headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
     cache: 'no-store',
   });
   if (!response.ok) {

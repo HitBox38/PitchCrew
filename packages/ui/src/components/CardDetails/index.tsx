@@ -8,6 +8,7 @@ import { JobLoading } from './components/JobLoading.tsx';
 import type { CardDetailsProps } from './types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
+import { AddOpportunity } from '@/components/AddOpportunity/index.tsx';
 
 export const CardDetails = (props: CardDetailsProps) => {
   const source = useCardSource(props.card, props.data.workspace === true);
@@ -45,6 +46,16 @@ const CardDetailsContent = (
       <JobTabs {...model} />
       <JobActions {...model} />
       <DiscardChanges guard={model.guard} />
+      {model.editing ? (
+        <AddOpportunity
+          card={props.card}
+          data={props.data}
+          action={props.action}
+          working={props.working}
+          saveBlocker={model.editBlocker}
+          onClose={() => model.setEditing(false)}
+        />
+      ) : null}
     </JobSheet>
   );
 };

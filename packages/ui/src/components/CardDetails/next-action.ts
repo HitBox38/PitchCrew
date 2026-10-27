@@ -11,6 +11,15 @@ export const jobNextAction = (model: CardDetailsModel) => {
     disabled: !!launchBlocker(data, roleId),
     roleId,
   });
+  if (model.work?.pending)
+    return {
+      label: model.work.pending.label,
+      hint: model.work.pending.targetState
+        ? 'Saving the job’s new stage.'
+        : 'Your request is being prepared.',
+      disabled: true,
+      perform: () => {},
+    };
   const uncertainty = card.submissionAttempts?.some((attempt) => attempt.status === 'uncertain');
   if (run)
     return {
@@ -31,6 +40,13 @@ export const jobNextAction = (model: CardDetailsModel) => {
       label: 'Verify submission',
       hint: 'The submission outcome needs your verification.',
       perform: () => setTab('activity'),
+    };
+  if (model.work?.starting)
+    return {
+      label: model.work.spinning ? 'Starting agent…' : 'View queued action',
+      hint: model.work.reason || 'This job already has queued work.',
+      disabled: model.work.spinning,
+      perform: model.work.spinning ? () => {} : model.openQueue,
     };
   if (card.owner)
     return {
@@ -68,6 +84,12 @@ export const jobNextAction = (model: CardDetailsModel) => {
       hint: 'Confirm the complete brief and requirements before drafting.',
       perform: goBrief,
     };
+  if (card.url && !brief.draft.form && card.state !== 'lead')
+    return {
+      label: 'Inspect application form',
+      hint: 'Check required fields and files before drafting, or choose to check the form yourself.',
+      perform: goBrief,
+    };
   if (!brief.loaded.context)
     return {
       label: 'Prepare brief',
@@ -98,7 +120,7 @@ export const jobNextAction = (model: CardDetailsModel) => {
     return launch(
       'Draft application',
       () => {
-        void brief.startDraft();
+        void Promise.resolve(brief.startDraft()).catch(() => {});
       },
       brief.roleId,
     );
@@ -107,7 +129,7 @@ export const jobNextAction = (model: CardDetailsModel) => {
       ? launch(
           'Review packet',
           () => {
-            void brief.reviewPacket();
+            void Promise.resolve(brief.reviewPacket()).catch(() => {});
           },
           brief.reviewer?.id,
         )

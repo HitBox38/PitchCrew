@@ -2,6 +2,7 @@ import type { JobActionsProps } from '../types.ts';
 import { JobActionFooter } from './JobActionFooter.tsx';
 import { jobNextAction } from '../next-action.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { LoaderCircle } from 'lucide-react';
 import { runtimeLabels } from '@/lib/labels.ts';
 
 export const JobActions = (model: JobActionsProps) => {
@@ -24,20 +25,33 @@ export const JobActions = (model: JobActionsProps) => {
     >
       {model.card.state === 'lead' && !model.run ? (
         <Button
+          aria-busy={model.work.pending?.targetState === 'shortlisted'}
           disabled={model.busy}
           variant="outline"
           onClick={() =>
             model.act(`/cards/${model.card.id}/move`, { state: 'shortlisted' }, 'Shortlisted')
           }
         >
-          Shortlist
+          {model.work.pending?.targetState === 'shortlisted' ? (
+            <LoaderCircle
+              size={14}
+              className="spin motion-reduce:animate-none"
+              aria-hidden="true"
+            />
+          ) : null}
+          {model.work.pending?.targetState === 'shortlisted' ? 'Shortlisting…' : 'Shortlist'}
         </Button>
       ) : null}
       <Button
         variant={'secondary' in next ? 'outline' : 'default'}
+        aria-busy={!!model.work.pending || (model.work.starting && model.work.spinning)}
         disabled={model.working || next.disabled}
         onClick={next.perform}
       >
+        {(model.work.pending && model.work.pending.targetState !== 'shortlisted') ||
+        (model.work.starting && model.work.spinning) ? (
+          <LoaderCircle size={14} className="spin motion-reduce:animate-none" aria-hidden="true" />
+        ) : null}
         {next.label}
       </Button>
     </JobActionFooter>

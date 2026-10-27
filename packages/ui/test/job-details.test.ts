@@ -189,3 +189,147 @@ test('opens Writing settings from the redesigned application documents and close
     .toBe(0);
   expect(errors).toEqual([]);
 });
+
+test('shows the job identity and a loading skeleton while its source is opening', async ({
+  onTestFinished,
+}) => {
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const sourceUrl = `${host.daemon.url}/api/cards/${card.id}`;
+  await page.route(sourceUrl, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  onTestFinished(async () => {
+    release();
+    await page.unroute(sourceUrl);
+  });
+  await page.locator(`#board-job-${card.id} .job-card`).click();
+  const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
+  await sheet.getByText('Loading job details…', { exact: true }).waitFor();
+  expect(await sheet.getByRole('heading', { name: card.title, exact: true }).isVisible()).toBe(
+    true,
+  );
+  expect(await sheet.locator('[aria-busy=true] [data-slot=skeleton]').count()).toBeGreaterThan(0);
+  release();
+  await sheet.getByRole('tab', { name: 'Job', exact: true }).waitFor();
+});
+
+test('acknowledges agent startup before the request completes, shares it with the board and recovers on failure', async ({
+  onTestFinished,
+}) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const launchUrl = `${host.daemon.url}/api/queue/actions`;
+  await page.route(launchUrl, async (route) => {
+    await gate;
+    await route.fulfill({ status: 409, json: { error: 'Fictional startup failed' } });
+  });
+  onTestFinished(async () => {
+    release();
+    await page.unroute(launchUrl);
+  });
+  const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
+  await sheet.getByRole('button', { name: 'Draft application', exact: true }).click();
+  const starting = sheet.getByRole('button', { name: 'Starting agent…', exact: true });
+  await starting.waitFor();
+  expect(await starting.isDisabled()).toBe(true);
+  expect(await sheet.getByRole('button', { name: 'Edit job', exact: true }).isDisabled()).toBe(
+    true,
+  );
+  expect(await starting.locator('svg').count()).toBe(1);
+  await sheet.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  const job = page.locator(`#board-job-${card.id}`);
+  await job.getByRole('status').getByText('Starting agent…', { exact: true }).waitFor();
+  release();
+  await page.getByText('Fictional startup failed', { exact: true }).waitFor();
+  await expect.poll(() => job.getByRole('status').count()).toBe(0);
+  await job.locator('.job-card').click();
+  await page.getByRole('button', { name: 'Draft application', exact: true }).waitFor();
+  await expect
+    .poll(() => page.getByRole('button', { name: 'Edit job', exact: true }).isDisabled())
+    .toBe(false);
+  expect(errors).toEqual([]);
+});
+
+test('shows immediate feedback on a stage button and in the sheet header until the move finishes', async ({
+  onTestFinished,
+}) => {
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const moveUrl = `${host.daemon.url}/api/cards/${card.id}/move`;
+  await page.route(moveUrl, async (route) => {
+    await gate;
+    await route.continue();
+  });
+  onTestFinished(async () => {
+    release();
+    await page.unroute(moveUrl);
+  });
+  const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
+  await sheet.getByRole('tab', { name: 'Activity', exact: true }).click();
+  await sheet.getByRole('button', { name: 'Withdrawn', exact: true }).click();
+  const moving = sheet.getByRole('button', { name: 'Moving…', exact: true });
+  await moving.waitFor();
+  expect(await moving.isDisabled()).toBe(true);
+  expect(await sheet.getByRole('button', { name: 'Edit job', exact: true }).isDisabled()).toBe(
+    true,
+  );
+  expect(await moving.locator('svg.spin').count()).toBe(1);
+  await sheet.getByRole('status').getByText('Moving to Withdrawn…', { exact: true }).waitFor();
+  expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('shortlisted');
+  release();
+  await sheet.locator('.detail-state .state-pill.withdrawn').waitFor();
+  expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('withdrawn');
+});
+
+test('reevaluates a submitted job with the whole packet and shows a separate packet rating', async () => {
+  const { packet } = await import('../../board/test/fixtures/packet.ts');
+  const board = host.daemon.service.board;
+  const current = board.get<Card>('card', card.id);
+  board.record(
+    'card',
+    { ...current, state: 'submitted', packet },
+    'user',
+    'Fictional submitted packet',
+  );
+  const evaluate = vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
+    expect(context.purpose).toBe('packet-evaluation');
+    expect(context.card.packet).toEqual(packet);
+    return {
+      role: 'scout',
+      fit: 89,
+      reasons: ['Strong Profile evidence.'],
+      packetFit: {
+        score: 78,
+        reasons: ['The cover letter needs a clearer link to accessible interfaces.'],
+      },
+    };
+  });
+  await page.reload();
+  await page.locator(`#board-job-${card.id} .job-card`).waitFor({ timeout: 30000 });
+  await page.locator(`#board-job-${card.id} .job-card`).click();
+  const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
+  const region = sheet.getByRole('region', { name: 'Packet match to job', exact: true });
+  await region.getByRole('button', { name: 'Reevaluate with packet', exact: true }).click();
+  await expect.poll(() => board.get<Card>('card', card.id).packetFit?.score).toBe(78);
+  await region.getByText('78/100', { exact: true }).waitFor();
+  expect(await sheet.getByText('89% fit', { exact: true }).isVisible()).toBe(true);
+  expect(await sheet.getByText('78/100 packet match', { exact: true }).isVisible()).toBe(true);
+  expect(await region.innerText()).toContain(
+    'The cover letter needs a clearer link to accessible interfaces.',
+  );
+  expect(board.get<Card>('card', card.id).state).toBe('submitted');
+  expect(evaluate).toHaveBeenCalledOnce();
+  evaluate.mockRestore();
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 800 });
+});

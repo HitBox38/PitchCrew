@@ -8,6 +8,8 @@ Pitchcrew never reads, copies or stores provider credentials. Authentication rem
 
 These integrations have subprocess contract coverage. Live provider executions are not part of automated verification.
 
+Before launch, independent assigned-skill and instruction-file writes run concurrently and all settle before setup finishes, including on failure. Queue dispatch checks lane and workspace capacity before reading Profile prerequisites, then rechecks admission after asynchronous validation. Authentication and final state/permission checks still gate every launch.
+
 ## Executables and models
 
 | Runtime            | Executable     | Model setting                                    |

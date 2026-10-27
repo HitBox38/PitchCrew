@@ -8,6 +8,8 @@ The shadcn/Base UI Context Menu opens at the pointer, supports keyboard navigati
 
 The three-dot actions menu replaces the six-dot drag handle in the same position. Whole-card mouse dragging remains available. Touch and keyboard users change status through **Move to…**, which lists individual statuses. The menu trigger and card body share one animated surface, so the trigger follows the card’s hover lift and tilt. Drag transforms remain on the outer wrapper. Touch gestures scroll the board rather than starting a card drag.
 
+Status changes and crew launches show a per-job progress label and spinner immediately on click, shared with job details and retained through the authoritative snapshot refresh. Reserved startup hands off to running activity; queued and held requests use resting indicators. Failed requests clear their indicator and restore the existing status/focus recovery.
+
 Manual status changes record local bookkeeping. They do not start agents, export packets or submit applications. Existing status restrictions and approval invalidation still apply.
 
 ## Common actions

@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import { expect, it, vi } from 'vitest';
 import { ComputerManager } from '../src/computer.ts';
 
-it('retains exact scroll, hover and drag approvals in version 27 while replaying older events', async () => {
+it('retains exact scroll, hover and drag approvals in version 29 while replaying older events', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-browser-actions-'));
   const board = new Board(join(directory, 'board.db'));
   const perform = vi.fn(async () => {});
@@ -41,9 +41,10 @@ it('retains exact scroll, hover and drag approvals in version 27 while replaying
       await manager.execute(scope.runId, approval.id, new AbortController().signal, () => {}, 0);
       expect(perform).toHaveBeenLastCalledWith(action, undefined);
     }
-    expect(currentEventVersion).toBe(27);
-    expect(board.events().every((event) => event.version === 27)).toBe(true);
-    expect(decodeEvent(JSON.stringify({ version: 26 })).version).toBe(26);
+    expect(currentEventVersion).toBe(29);
+    expect(board.events().every((event) => event.version === 29)).toBe(true);
+    for (const version of [26, 27, 28])
+      expect(decodeEvent(JSON.stringify({ version })).version).toBe(version);
     board.rebuild();
     expect(board.list('computer_approval')).toHaveLength(3);
     expect(() =>

@@ -47,6 +47,7 @@ export const recordJobSourceChange = (
     ...next,
     updatedAt: now,
     fit: null,
+    packetFit: undefined,
     applicationContext: undefined,
     packetContextRevision: undefined,
     packetReview: undefined,

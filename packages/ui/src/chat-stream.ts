@@ -1,3 +1,4 @@
+import { diagnosticRequestHeaders } from './Analytics/request-context.ts';
 import type { ChatStreamState, ChatStreamUpdate } from '@pitchcrew/core';
 
 export const readChatStream = async (
@@ -54,7 +55,7 @@ export const subscribeChatStream = (
     try {
       const response = await fetch('/api/chat/stream?view=workspace', {
         signal: controller.signal,
-        headers: { 'x-pitchcrew-client': 'ui' },
+        headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
       });
       if (!response.ok || !response.body) throw new Error('Chat stream unavailable.');
       await readChatStream(response.body, onState);

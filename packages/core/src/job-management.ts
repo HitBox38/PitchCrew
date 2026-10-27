@@ -2,6 +2,12 @@ import { z } from 'zod';
 import { states } from './states.ts';
 import { cardInput } from './cards.ts';
 
+/** Full user form; agent corrections retain their narrower field allowlist below. */
+export const editJobInput = cardInput
+  .omit({ sourceHtml: true })
+  .extend({ expectedUpdatedAt: z.iso.datetime() })
+  .strict();
+
 export const jobDetailsChanges = cardInput
   .pick({ company: true, title: true, location: true, salary: true })
   .extend({

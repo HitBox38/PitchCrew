@@ -4,6 +4,7 @@ import { FlaggedSource } from './components/FlaggedSource.tsx';
 import { BriefFields } from './components/BriefFields.tsx';
 import { BriefSummary } from './components/BriefSummary.tsx';
 import { RequirementFields } from './components/RequirementFields.tsx';
+import { FormPreparation } from './components/FormPreparation.tsx';
 import type { useApplicationBrief } from './hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
 
@@ -35,6 +36,7 @@ export const ApplicationBriefReview = ({
       )}
       {loaded?.context && !editing && !confirmed ? <BriefSummary value={draft} /> : null}
       <FlaggedSource items={draft.flagged} />
+      <FormPreparation model={model} card={card} />
       {editing ? (
         <>
           <BriefFields value={draft.brief} change={(brief) => setDraft({ ...draft, brief })} />
@@ -44,7 +46,7 @@ export const ApplicationBriefReview = ({
           />
           <div className="flex flex-wrap gap-2">
             <Button
-              disabled={disabled}
+              disabled={disabled || Boolean(card.url && !draft.form)}
               onClick={() => {
                 void model.confirm();
               }}

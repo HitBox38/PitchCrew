@@ -117,6 +117,47 @@ describe('native PostHog OTLP logs', () => {
     }
     transport.dispose();
   });
+  it('preserves the originating request IDs through the relay instead of using the uploading tab', async () => {
+    const { transport, send } = setup();
+    const ids = {
+      traceId: '1234567890abcdef1234567890abcdef',
+      spanId: '1234567890abcdef',
+      traceFlags: 1,
+      sessionId: '019a1234-5678-7000-8000-000000000001',
+      posthogDistinctId: '019a1234-5678-7000-8000-000000000002',
+    };
+    expect(
+      await transport.capture('operational_log', {
+        code: 'http_request_failed',
+        area: 'http',
+        ...ids,
+      }),
+    ).toBe(true);
+    const record = JSON.parse(send.mock.lastCall![1]!.body as string).resourceLogs[0].scopeLogs[0]
+      .logRecords[0];
+    expect(record).toMatchObject({ traceId: ids.traceId, spanId: ids.spanId, flags: 1 });
+    expect(record.attributes).toEqual(
+      expect.arrayContaining([
+        { key: 'sessionId', value: { stringValue: ids.sessionId } },
+        { key: 'posthogDistinctId', value: { stringValue: ids.posthogDistinctId } },
+      ]),
+    );
+    expect(JSON.stringify(record)).not.toContain('sdk-anonymous-id');
+    transport.dispose();
+  });
+  it('leaves uncorrelated HTTP logs unlinked rather than assigning the uploader session or identity', async () => {
+    const { transport, send } = setup();
+    await transport.capture('operational_log', { code: 'http_request_failed', area: 'http' });
+    const record = JSON.parse(send.mock.lastCall![1]!.body as string).resourceLogs[0].scopeLogs[0]
+      .logRecords[0];
+    expect(record).not.toHaveProperty('traceId');
+    expect(
+      record.attributes.filter((attr: { key: string }) =>
+        ['posthogDistinctId', 'sessionId'].includes(attr.key),
+      ),
+    ).toEqual([]);
+    transport.dispose();
+  });
   it('drops missing consent, config, SDK identity, unknown codes and unsafe config without queuing', async () => {
     const { transport, send, disable } = setup();
     expect(await transport.capture('chat_sent', log)).toBe(false);

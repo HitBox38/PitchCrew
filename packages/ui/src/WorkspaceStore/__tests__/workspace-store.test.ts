@@ -304,3 +304,45 @@ it('recovers newer persisted compact history without losing active streaming rep
   expect(store.getState().data?.messages).toEqual([message]);
   expect(store.getState().data?.streamingMessages).toEqual([message]);
 });
+
+it('marks only the affected jobs pending synchronously, through response and snapshot refresh', async () => {
+  const request = deferred<unknown>();
+  const refresh = deferred<Snapshot>();
+  vi.mocked(api).mockReturnValueOnce(request.promise).mockReturnValueOnce(refresh.promise);
+  const store = createWorkspaceStore();
+  const saving = store
+    .getState()
+    .action('/cards/fictional/status', 'POST', { state: 'shortlisted' });
+  expect(store.getState().pendingJobActions.fictional).toEqual([
+    expect.objectContaining({ label: 'Moving to Shortlisted…', targetState: 'shortlisted' }),
+  ]);
+  expect(store.getState().pendingJobActions.other).toBeUndefined();
+  request.resolve({});
+  await Promise.resolve();
+  expect(store.getState().pendingJobActions.fictional).toHaveLength(1);
+  refresh.resolve(snapshot);
+  await saving;
+  expect(store.getState().pendingJobActions).toEqual({});
+});
+
+it('tracks overlapping starts independently and clears failed job requests', async () => {
+  const first = deferred<unknown>();
+  const second = deferred<unknown>();
+  vi.mocked(api).mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+  const store = createWorkspaceStore();
+  const one = store.getState().action('/queue/actions', 'POST', { cardId: 'one', action: 'draft' });
+  const two = store
+    .getState()
+    .action('/cards/two/application-context/extract', 'POST', { roleId: 'writer' });
+  expect(store.getState().pendingJobActions.one?.[0]?.label).toBe('Starting agent…');
+  expect(store.getState().pendingJobActions.two?.[0]?.label).toBe('Starting source extraction…');
+  first.resolve({});
+  await one;
+  expect(store.getState().pendingJobActions.one).toBeUndefined();
+  expect(store.getState().pendingJobActions.two).toHaveLength(1);
+  second.resolve({});
+  vi.mocked(api).mockRejectedValueOnce(new Error('Refresh failed'));
+  await expect(two).rejects.toThrow('Refresh failed');
+  expect(store.getState().pendingJobActions).toEqual({});
+  expect(store.getState().working).toBe(false);
+});

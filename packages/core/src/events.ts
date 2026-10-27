@@ -49,7 +49,9 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 24 &&
     event.version !== 25 &&
     event.version !== 26 &&
-    event.version !== 27
+    event.version !== 27 &&
+    event.version !== 28 &&
+    event.version !== 29
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -84,7 +86,9 @@ export interface BoardEvent {
     | 24
     | 25
     | 26
-    | 27;
+    | 27
+    | 28
+    | 29;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -152,5 +156,5 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 27 adds exact browser hover, scroll and drag approvals; versions 1–26 remain readable. */
-export const currentEventVersion = 27 as const;
+/** Version 29 adds exact browser hover, scroll and drag approvals; versions 1–28 remain readable. */
+export const currentEventVersion = 29 as const;

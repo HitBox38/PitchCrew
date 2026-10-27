@@ -113,6 +113,7 @@ describe('application source boundary', () => {
       await request<{ sourceRevision: string }>(`/cards/${card.id}/application-context`)
     ).result;
     const context = brief();
+    context.form = { status: 'manual' };
     context.requirements = [
       {
         id: 'role-model',
@@ -192,6 +193,7 @@ describe('application source boundary', () => {
     vi.spyOn(adapters.demo, 'run').mockImplementation(async (runContext) => {
       turns += 1;
       expect(runContext.purpose).toBe('application-draft');
+      expect(runContext.card.applicationContext?.form).toEqual({ status: 'manual' });
       expect(runContext.request).toBeUndefined();
       expect(JSON.stringify(runContext.card)).not.toContain('RAW-SOURCE-CONVERSATION');
       if (turns === 1) {

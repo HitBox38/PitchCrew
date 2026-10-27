@@ -44,11 +44,12 @@ export interface RunContext {
     | 'application-draft'
     | 'application-review'
     | 'fit'
+    | 'packet-evaluation'
     | 'deep-review';
   sourceText?: string;
   deepReview?: DeepReviewRunContext;
   deadline?: RuntimeDeadline;
-  userAnswers?: { questionId: string; messageId: string; answer: string }[];
+  userAnswers?: { questionId: string; messageId: string; answer: string; question?: string }[];
   card: Card;
   role: Role;
   skills?: Skill[];
