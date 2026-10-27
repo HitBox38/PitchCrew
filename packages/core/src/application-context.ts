@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import type { Card } from './cards.ts';
+import { applicationFormSchema } from './application-form.ts';
 export const missingPersonalAnswers = (context: ApplicationContext) => {
   return context.requirements.filter((r) => r.required && r.personal && !r.answer.trim());
 };
@@ -37,6 +38,7 @@ export const draftingCard = (card: Card, purpose = 'application-review'): Card =
           applicationContext: {
             brief: context.brief,
             requirements: context.requirements,
+            ...(context.form ? { form: context.form } : {}),
             flagged: [],
             sourceRevision: context.sourceRevision,
             revision: context.revision,
@@ -71,6 +73,7 @@ export const applicationRequirementSchema = z
   .strict();
 export const extractedJobSchema = z
   .object({
+    form: applicationFormSchema.optional(),
     brief: jobBriefSchema,
     requirements: z.array(applicationRequirementSchema).max(40),
     flagged: z

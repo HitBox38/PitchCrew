@@ -44,6 +44,7 @@ export const inspectControls = async (page: Page) => {
                 getComputedStyle(field).visibility !== 'hidden',
               disabled: field.disabled,
               accept: field.getAttribute('accept') ?? '',
+              ...(field.maxLength >= 0 ? { maxLength: field.maxLength } : {}),
               options:
                 field.tagName === 'SELECT'
                   ? Array.from((element as HTMLSelectElement).options)

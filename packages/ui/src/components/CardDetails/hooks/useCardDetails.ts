@@ -30,6 +30,11 @@ export const useCardDetails = (props: CardDetailsProps) => {
     roles: data.roles,
     busy,
     onDirtyChange: setBriefDirty,
+    onInspection: (threadId) =>
+      guard.requestLeave(() => {
+        props.onClose();
+        void navigate({ to: '/chat/$thread', params: { thread: threadId } });
+      }),
   });
   const act = (path: string, body?: unknown, success?: string) => {
     if (path === `/cards/${card.id}/run`) {

@@ -1,4 +1,4 @@
-import type { SkillPreview, Snapshot } from '@pitchcrew/core';
+import type { SkillPreview, Snapshot, ExtractedJob } from '@pitchcrew/core';
 import { baseSkillUrl, type BaseSkill } from '@pitchcrew/core/base-skills';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -64,6 +64,7 @@ export const confirmFixtureApplication = async (
   const { result } = await request<{
     sourceRevision: string;
     context: { revision: string } | null;
+    form: ExtractedJob['form'] | null;
   }>(`/cards/${id}/application-context`);
   const response = await request(`/cards/${id}/application-context/confirm`, 'POST', {
     sourceRevision: result.sourceRevision,
@@ -77,6 +78,7 @@ export const confirmFixtureApplication = async (
       },
       requirements: [],
       flagged: [],
+      form: result.form ?? { status: 'manual' },
     },
   });
   expect(response.response.status).toBe(200);

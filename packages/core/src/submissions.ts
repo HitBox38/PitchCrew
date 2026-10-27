@@ -12,6 +12,7 @@ export interface FormControl {
   disabled: boolean;
   accept: string;
   options: string[];
+  maxLength?: number;
 }
 export const formAssessmentInput = z
   .object({

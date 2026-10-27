@@ -145,7 +145,7 @@ describe('default instruction detection', () => {
     expect(status(board, 'writer')?.state).toBe('up_to_date');
     edit(board, 'reviewer', { instructions: `  ${firstReviewer.replaceAll('. ', '.  ')}\n` });
     expect(status(board, 'reviewer')).toMatchObject({ state: 'unedited' });
-    expect(status(board, 'reviewer')?.changes).toHaveLength(2);
+    expect(status(board, 'reviewer')?.changes).toHaveLength(3);
   });
 
   it('finds the earlier default a customized role started from in its own history', () => {
@@ -164,6 +164,7 @@ describe('default instruction detection', () => {
       'dc9c3471fb3730ec',
       '0ad8f0d05216e068',
       '5a080167cb370761',
+      '1aac02440890f5af',
     ]);
   });
 
@@ -199,6 +200,7 @@ describe('default instruction detection', () => {
     expect(submitter.changes.map((change) => change.revision)).toEqual([
       '9dd6837b3291ebae',
       '0edf890781c8ba2d',
+      '02a53bb26e867e30',
     ]);
   });
 

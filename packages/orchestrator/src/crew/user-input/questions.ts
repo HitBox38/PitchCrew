@@ -1,5 +1,11 @@
 import { randomUUID } from 'node:crypto';
-import { userQuestionInput, type Card, type Run, type UserInputRequest } from '@pitchcrew/core';
+import {
+  userQuestionInput,
+  formHasQuestion,
+  type Card,
+  type Run,
+  type UserInputRequest,
+} from '@pitchcrew/core';
 import { assertConfirmedContext } from '@pitchcrew/board';
 import { canReadConversation, conversations, relatedConversation } from '../conversations.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
@@ -20,6 +26,16 @@ export const askUser = (context: CrewContext, capability: RunCapability, data: u
       throw new Error('The application requirement changed.');
     applicationContextRevision = job.revision;
     input.question = requirement.question;
+  }
+  if (
+    !input.applicationRequirementId &&
+    run.cardId &&
+    ['application-draft', 'application-review'].includes(run.purpose ?? '')
+  ) {
+    const job = assertConfirmedContext(context.board.get<Card>('card', run.cardId));
+    if (job.revision !== run.contextRevision)
+      throw new Error('The application requirement changed.');
+    if (formHasQuestion(job.form, input.question)) applicationContextRevision = job.revision;
   }
   if (context.board.list<UserInputRequest>('user_input').some((q) => q.runId === run.id))
     throw new Error('This turn already asked a question. Finish the turn and wait for its answer.');

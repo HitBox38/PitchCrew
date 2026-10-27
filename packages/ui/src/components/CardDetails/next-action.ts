@@ -84,6 +84,12 @@ export const jobNextAction = (model: CardDetailsModel) => {
       hint: 'Confirm the complete brief and requirements before drafting.',
       perform: goBrief,
     };
+  if (card.url && !brief.draft.form && card.state !== 'lead')
+    return {
+      label: 'Inspect application form',
+      hint: 'Check required fields and files before drafting, or choose to check the form yourself.',
+      perform: goBrief,
+    };
   if (!brief.loaded.context)
     return {
       label: 'Prepare brief',

@@ -49,7 +49,8 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 24 &&
     event.version !== 25 &&
     event.version !== 26 &&
-    event.version !== 27
+    event.version !== 27 &&
+    event.version !== 28
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -84,7 +85,8 @@ export interface BoardEvent {
     | 24
     | 25
     | 26
-    | 27;
+    | 27
+    | 28;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -152,5 +154,5 @@ export interface BoardEvent {
     | SubmissionAttempt;
   createdAt: string;
 }
-/** Version 27 adds advisory packet-to-job ratings and queued whole-packet reevaluations. */
-export const currentEventVersion = 27 as const;
+/** Version 28 binds confirmed application form requirements and manual-inspection choices to packets. */
+export const currentEventVersion = 28 as const;

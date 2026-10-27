@@ -31,8 +31,10 @@ export const pendingJobAction = (
       ? 'Stopping agent…'
       : operation === 'application-context/extract'
         ? 'Starting source extraction…'
-        : path === '/queue/actions' || operation === 'run'
-          ? 'Starting agent…'
-          : 'Saving job…';
+        : operation === 'application-form/inspect'
+          ? 'Starting form inspection…'
+          : path === '/queue/actions' || operation === 'run'
+            ? 'Starting agent…'
+            : 'Saving job…';
   return { cardId, path, label, targetState };
 };
