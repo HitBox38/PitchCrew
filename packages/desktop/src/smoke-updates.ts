@@ -8,10 +8,10 @@ export const smokeUpdates = `(async () => {
   const utilityControls = [...indicator?.closest('[data-slot="sidebar-menu"]')?.querySelectorAll('[data-slot="sidebar-menu-button"]') ?? []];
   const utilityBounds = utilityControls.map((control) => control.getBoundingClientRect());
   const updateBounds = indicator?.getBoundingClientRect();
-  const utilityOnly = utilityBounds.filter((bounds) => bounds.width <= 40);
-  const compactFooter = utilityOnly.length === 2 && utilityOnly.every((bounds) => bounds.width > 0 && bounds.height <= 40 && bounds.top >= updateBounds.bottom);
-  const inlineUpdate = updateBounds.width > 160 && !!document.querySelector('[aria-label="Dismiss update notice"]');
-  const spacedFooter = utilityOnly[1].left >= utilityOnly[0].right;
+  const dismissBounds = document.querySelector('[aria-label="Dismiss update notice"]')?.getBoundingClientRect();
+  const compactFooter = utilityBounds.length === 3 && utilityBounds.every((bounds) => bounds.width > 0 && bounds.width <= 40 && bounds.height > 0 && bounds.height <= 40);
+  const inlineUpdate = !!updateBounds && !!dismissBounds && [...utilityBounds, dismissBounds].every((bounds) => Math.abs(bounds.top + bounds.height / 2 - (updateBounds.top + updateBounds.height / 2)) < 1);
+  const spacedFooter = utilityBounds.every((bounds, index) => index === 0 || bounds.left >= utilityBounds[index - 1].right) && dismissBounds?.left >= updateBounds?.right;
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
   document.querySelector('a[href="/settings?section=general"]')?.click();
   if (!await waitFor(() => !!document.querySelector('.settings-tabs'))) throw new Error('Settings navigation missing.');
