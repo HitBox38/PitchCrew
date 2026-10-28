@@ -123,13 +123,15 @@ SectionEnd
   await check();
   const app = await launch(join(root, 'Pitchcrew.exe'));
   const runtime = await launch(join(root, 'resources/runtime/node/node.exe'));
+  const bun = await launch(join(root, 'resources/runtime/bun/bun.exe'));
   await check();
   assert.ok(app.exitCode !== null || app.signalCode !== null);
   assert.ok(runtime.exitCode !== null || runtime.signalCode !== null);
+  assert.ok(bun.exitCode !== null || bun.signalCode !== null);
   assert.equal(sibling.exitCode, null);
   assert.equal(sibling.signalCode, null);
   env.PITCHCREW_TEST_INSTALL_DIRECTORY = `${root}\\`;
-  // Remove the fixture's hard link before replacing it: other processes still map the Node binary.
+  // Remove the fixture's hard link before replacing it: other processes still map the runtime binary.
   await rm(join(root, 'Pitchcrew.exe'));
   await copyFile(installer, join(root, 'Pitchcrew.exe'));
   await check(join(root, 'Pitchcrew.exe'));

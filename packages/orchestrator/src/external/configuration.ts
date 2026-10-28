@@ -1,3 +1,4 @@
+import { sourceArguments } from '../process.ts';
 import type { ExternalMcpInfo } from '@pitchcrew/core';
 import { readExternalAccess } from '@pitchcrew/mcp/external/access';
 import { cliEntry, type DaemonSettings } from '../background/settings.ts';
@@ -8,9 +9,7 @@ export const externalMcpConfiguration = (
   mcpServers: {
     pitchcrew: {
       command: process.execPath,
-      args: [
-        '--import',
-        import.meta.resolve('tsx'),
+      args: sourceArguments(
         cliEntry,
         'mcp',
         'serve',
@@ -18,7 +17,7 @@ export const externalMcpConfiguration = (
         settings.directory,
         '--port',
         String(settings.port),
-      ],
+      ),
     },
   },
 });

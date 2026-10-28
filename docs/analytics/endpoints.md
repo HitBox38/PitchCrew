@@ -7,10 +7,10 @@ Endpoints are intended for a future trusted admin consumer; dashboards use nativ
 ## Prepare and verify
 
 ```sh
-node scripts/posthog/endpoints.ts list
-node scripts/posthog/endpoints.ts variable-plan
-node scripts/posthog/endpoints.ts run-plan request_health --days 7 --limit 100
-node scripts/posthog/endpoints.ts plan request_health /private/path/endpoint-snapshot.json
+bun --no-env-file scripts/posthog/endpoints.ts list
+bun --no-env-file scripts/posthog/endpoints.ts variable-plan
+bun --no-env-file scripts/posthog/endpoints.ts run-plan request_health --days 7 --limit 100
+bun --no-env-file scripts/posthog/endpoints.ts plan request_health /private/path/endpoint-snapshot.json
 node --test scripts/posthog/endpoints.test.ts
 ```
 

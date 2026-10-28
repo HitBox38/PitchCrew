@@ -1,0 +1,2855 @@
+{
+  "schemaVersion": 1,
+  "title": "Observed pnpm and Bun GitHub Actions run comparison",
+  "controlledBenchmark": false,
+  "requestedBaseline": {
+    "sha": "e3f7ed03d0f374e739f12a56180c952faa2462c8",
+    "successfulRunFound": false,
+    "replacementReason": "Use the recent successful prior full-installer pnpm run; its lockfile and CI workflow match the requested pre-migration baseline.",
+    "sourcePathsDifferingBetweenSelectedAndRequestedBaseline": [
+      "packages/orchestrator/src/crew/gateway/computer.ts",
+      "packages/orchestrator/test/browser-panel.test.ts"
+    ]
+  },
+  "units": "seconds",
+  "precision": "GitHub API job and step timestamps have one-second precision. A zero-second step is below this timestamp resolution, not proof of zero work. Aggregates inherit this precision.",
+  "definitions": {
+    "workflowWallSeconds": "Run created_at through updated_at; includes initial runner queue time and workflow finalization.",
+    "jobSpanSeconds": "Earliest job started_at through latest job completed_at; excludes initial workflow queue time and includes dependencies and scheduling gaps.",
+    "aggregateRunnerSeconds": "Sum of job started_at through completed_at intervals. This is aggregate runner elapsed time, not CPU time, billed minutes or cost; OS billing multipliers are not applied.",
+    "installSeconds": "Successful Install dependencies and Run pnpm/bun install --frozen-lockfile steps only; excludes cache restore/save and runtime/package-manager setup.",
+    "dependencyPreparationSeconds": "Successful install steps, pnpm/setup-bun/setup-node action steps and their post actions, and Bun package cache restore/save steps.",
+    "commonJobs": "Jobs matched by their exact displayed names. Excludes the new Bun runtime integration job from common-job aggregates."
+  },
+  "caveats": [
+    "This is one uncontrolled pair of successful runs, not a same-commit A/B benchmark or evidence of a causal Bun speedup.",
+    "The pnpm run was a main push and the Bun run was a manual dispatch. Both included the four-platform installer matrix.",
+    "The source commits differ, and the Bun workflow adds a separate integration job while retaining Node 22/24 test shards.",
+    "Cold/warm package and executable cache states are unknown: cache-hit outputs and logs were not sampled. Cache action durations are included where indicated.",
+    "Runner contention, dependency/browser downloads, cache transfer and packaging duration vary. Initial workflow queue time also differed.",
+    "Install-step timing improved in these observations, but total pipeline wall time did not."
+  ],
+  "before": {
+    "packageManager": "pnpm 11.22.0",
+    "runtime": "Node",
+    "url": "https://github.com/HitBox38/PitchCrew/actions/runs/40571998154",
+    "runId": 40571998154,
+    "sha": "0b729943954faec04b911784853023d51220bd38",
+    "event": "push",
+    "conclusion": "success",
+    "createdAt": "2026-10-27T19:45:42Z",
+    "runStartedAt": "2026-10-27T19:45:42Z",
+    "updatedAt": "2026-10-27T19:55:54Z",
+    "totals": {
+      "jobs": 12,
+      "workflowWallSeconds": 612,
+      "jobSpanSeconds": 610,
+      "aggregateRunnerSeconds": 2707,
+      "installSeconds": 436,
+      "dependencyPreparationSeconds": 717
+    },
+    "jobs": [
+      {
+        "id": 122428355360,
+        "name": "Lint, format, types and build",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:45Z",
+        "completedAt": "2026-10-27T19:46:53Z",
+        "durationSeconds": 68,
+        "installSeconds": 15,
+        "dependencyPreparationSeconds": 35,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:46Z",
+            "completedAt": "2026-10-27T19:45:47Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:47Z",
+            "completedAt": "2026-10-27T19:45:49Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:49Z",
+            "completedAt": "2026-10-27T19:45:58Z",
+            "durationSeconds": 9
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:58Z",
+            "completedAt": "2026-10-27T19:46:02Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:02Z",
+            "completedAt": "2026-10-27T19:46:17Z",
+            "durationSeconds": 15
+          },
+          {
+            "name": "Lint",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:17Z",
+            "completedAt": "2026-10-27T19:46:18Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Check formatting",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:18Z",
+            "completedAt": "2026-10-27T19:46:22Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Check types",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:22Z",
+            "completedAt": "2026-10-27T19:46:29Z",
+            "durationSeconds": 7
+          },
+          {
+            "name": "Build browser and Electron bundles",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:29Z",
+            "completedAt": "2026-10-27T19:46:32Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Build public landing page",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:32Z",
+            "completedAt": "2026-10-27T19:46:44Z",
+            "durationSeconds": 12
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:44Z",
+            "completedAt": "2026-10-27T19:46:50Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:50Z",
+            "completedAt": "2026-10-27T19:46:51Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:51Z",
+            "completedAt": "2026-10-27T19:46:51Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:51Z",
+            "completedAt": "2026-10-27T19:46:51Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428355636,
+        "name": "Tests (Node 22, shard 1/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:44Z",
+        "completedAt": "2026-10-27T19:48:57Z",
+        "durationSeconds": 193,
+        "installSeconds": 11,
+        "dependencyPreparationSeconds": 19,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:45Z",
+            "completedAt": "2026-10-27T19:45:46Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:46Z",
+            "completedAt": "2026-10-27T19:45:48Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:48Z",
+            "completedAt": "2026-10-27T19:45:52Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:52Z",
+            "completedAt": "2026-10-27T19:45:53Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:53Z",
+            "completedAt": "2026-10-27T19:46:04Z",
+            "durationSeconds": 11
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:04Z",
+            "completedAt": "2026-10-27T19:46:21Z",
+            "durationSeconds": 17
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:21Z",
+            "completedAt": "2026-10-27T19:48:51Z",
+            "durationSeconds": 150
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:51Z",
+            "completedAt": "2026-10-27T19:48:52Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:52Z",
+            "completedAt": "2026-10-27T19:48:55Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:55Z",
+            "completedAt": "2026-10-27T19:48:55Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:55Z",
+            "completedAt": "2026-10-27T19:48:55Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:55Z",
+            "completedAt": "2026-10-27T19:48:55Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428355779,
+        "name": "Electron smoke (macos-15)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:46Z",
+        "completedAt": "2026-10-27T19:48:15Z",
+        "durationSeconds": 149,
+        "installSeconds": 37,
+        "dependencyPreparationSeconds": 70,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:47Z",
+            "completedAt": "2026-10-27T19:45:48Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:48Z",
+            "completedAt": "2026-10-27T19:45:51Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:51Z",
+            "completedAt": "2026-10-27T19:45:57Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:57Z",
+            "completedAt": "2026-10-27T19:45:58Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:58Z",
+            "completedAt": "2026-10-27T19:46:35Z",
+            "durationSeconds": 37
+          },
+          {
+            "name": "Build and verify the actual Electron renderer",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:35Z",
+            "completedAt": "2026-10-27T19:47:42Z",
+            "durationSeconds": 67
+          },
+          {
+            "name": "Upload desktop evidence",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:42Z",
+            "completedAt": "2026-10-27T19:47:44Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:44Z",
+            "completedAt": "2026-10-27T19:48:10Z",
+            "durationSeconds": 26
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:10Z",
+            "completedAt": "2026-10-27T19:48:10Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:10Z",
+            "completedAt": "2026-10-27T19:48:11Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:11Z",
+            "completedAt": "2026-10-27T19:48:12Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122428355919,
+        "name": "Electron smoke (windows-2025)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:45Z",
+        "completedAt": "2026-10-27T19:48:58Z",
+        "durationSeconds": 193,
+        "installSeconds": 64,
+        "dependencyPreparationSeconds": 99,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:46Z",
+            "completedAt": "2026-10-27T19:45:48Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:48Z",
+            "completedAt": "2026-10-27T19:45:56Z",
+            "durationSeconds": 8
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:56Z",
+            "completedAt": "2026-10-27T19:46:15Z",
+            "durationSeconds": 19
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:15Z",
+            "completedAt": "2026-10-27T19:46:21Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:21Z",
+            "completedAt": "2026-10-27T19:47:25Z",
+            "durationSeconds": 64
+          },
+          {
+            "name": "Build and verify the actual Electron renderer",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:25Z",
+            "completedAt": "2026-10-27T19:48:43Z",
+            "durationSeconds": 78
+          },
+          {
+            "name": "Upload desktop evidence",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:43Z",
+            "completedAt": "2026-10-27T19:48:44Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:44Z",
+            "completedAt": "2026-10-27T19:48:54Z",
+            "durationSeconds": 10
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:54Z",
+            "completedAt": "2026-10-27T19:48:54Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:54Z",
+            "completedAt": "2026-10-27T19:48:56Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:56Z",
+            "completedAt": "2026-10-27T19:48:56Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428355929,
+        "name": "Tests (Node 24, shard 2/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:44Z",
+        "completedAt": "2026-10-27T19:50:41Z",
+        "durationSeconds": 297,
+        "installSeconds": 16,
+        "dependencyPreparationSeconds": 37,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:45Z",
+            "completedAt": "2026-10-27T19:45:46Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:46Z",
+            "completedAt": "2026-10-27T19:45:48Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:48Z",
+            "completedAt": "2026-10-27T19:46:00Z",
+            "durationSeconds": 12
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:00Z",
+            "completedAt": "2026-10-27T19:46:05Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:05Z",
+            "completedAt": "2026-10-27T19:46:21Z",
+            "durationSeconds": 16
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:21Z",
+            "completedAt": "2026-10-27T19:47:02Z",
+            "durationSeconds": 41
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:02Z",
+            "completedAt": "2026-10-27T19:50:35Z",
+            "durationSeconds": 213
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:35Z",
+            "completedAt": "2026-10-27T19:50:36Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:36Z",
+            "completedAt": "2026-10-27T19:50:40Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:40Z",
+            "completedAt": "2026-10-27T19:50:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:40Z",
+            "completedAt": "2026-10-27T19:50:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:40Z",
+            "completedAt": "2026-10-27T19:50:40Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428355987,
+        "name": "Tests (Node 24, shard 1/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:45Z",
+        "completedAt": "2026-10-27T19:48:55Z",
+        "durationSeconds": 190,
+        "installSeconds": 13,
+        "dependencyPreparationSeconds": 20,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:45Z",
+            "completedAt": "2026-10-27T19:45:46Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:46Z",
+            "completedAt": "2026-10-27T19:45:48Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:48Z",
+            "completedAt": "2026-10-27T19:45:52Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:52Z",
+            "completedAt": "2026-10-27T19:45:53Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:53Z",
+            "completedAt": "2026-10-27T19:46:06Z",
+            "durationSeconds": 13
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:06Z",
+            "completedAt": "2026-10-27T19:46:22Z",
+            "durationSeconds": 16
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:22Z",
+            "completedAt": "2026-10-27T19:48:49Z",
+            "durationSeconds": 147
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:49Z",
+            "completedAt": "2026-10-27T19:48:50Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:50Z",
+            "completedAt": "2026-10-27T19:48:52Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:52Z",
+            "completedAt": "2026-10-27T19:48:52Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:52Z",
+            "completedAt": "2026-10-27T19:48:52Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:48:52Z",
+            "completedAt": "2026-10-27T19:48:53Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122428356261,
+        "name": "Tests (Node 22, shard 2/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:45:45Z",
+        "completedAt": "2026-10-27T19:50:18Z",
+        "durationSeconds": 273,
+        "installSeconds": 15,
+        "dependencyPreparationSeconds": 30,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:46Z",
+            "completedAt": "2026-10-27T19:45:47Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:47Z",
+            "completedAt": "2026-10-27T19:45:50Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:50Z",
+            "completedAt": "2026-10-27T19:45:57Z",
+            "durationSeconds": 7
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:45:57Z",
+            "completedAt": "2026-10-27T19:46:01Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:01Z",
+            "completedAt": "2026-10-27T19:46:16Z",
+            "durationSeconds": 15
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:16Z",
+            "completedAt": "2026-10-27T19:46:37Z",
+            "durationSeconds": 21
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:37Z",
+            "completedAt": "2026-10-27T19:50:11Z",
+            "durationSeconds": 214
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:11Z",
+            "completedAt": "2026-10-27T19:50:12Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:12Z",
+            "completedAt": "2026-10-27T19:50:16Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:16Z",
+            "completedAt": "2026-10-27T19:50:16Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:16Z",
+            "completedAt": "2026-10-27T19:50:17Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:17Z",
+            "completedAt": "2026-10-27T19:50:17Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428973988,
+        "name": "Packaged app (macos-15)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:46:56Z",
+        "completedAt": "2026-10-27T19:50:52Z",
+        "durationSeconds": 236,
+        "installSeconds": 38,
+        "dependencyPreparationSeconds": 68,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:57Z",
+            "completedAt": "2026-10-27T19:46:58Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:58Z",
+            "completedAt": "2026-10-27T19:47:02Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:02Z",
+            "completedAt": "2026-10-27T19:47:07Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:07Z",
+            "completedAt": "2026-10-27T19:47:08Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run pnpm install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:08Z",
+            "completedAt": "2026-10-27T19:47:46Z",
+            "durationSeconds": 38
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:46Z",
+            "completedAt": "2026-10-27T19:49:56Z",
+            "durationSeconds": 130
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:49:56Z",
+            "completedAt": "2026-10-27T19:49:56Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:49:56Z",
+            "completedAt": "2026-10-27T19:49:56Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:49:56Z",
+            "completedAt": "2026-10-27T19:50:16Z",
+            "durationSeconds": 20
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:16Z",
+            "completedAt": "2026-10-27T19:50:24Z",
+            "durationSeconds": 8
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:50:24Z",
+            "completedAt": "2026-10-27T19:50:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:50:24Z",
+            "completedAt": "2026-10-27T19:50:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:24Z",
+            "completedAt": "2026-10-27T19:50:48Z",
+            "durationSeconds": 24
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:48Z",
+            "completedAt": "2026-10-27T19:50:48Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:48Z",
+            "completedAt": "2026-10-27T19:50:49Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:50:49Z",
+            "completedAt": "2026-10-27T19:50:50Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122428974026,
+        "name": "Packaged app (ubuntu-24.04)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:46:56Z",
+        "completedAt": "2026-10-27T19:51:28Z",
+        "durationSeconds": 272,
+        "installSeconds": 5,
+        "dependencyPreparationSeconds": 24,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:56Z",
+            "completedAt": "2026-10-27T19:46:57Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:57Z",
+            "completedAt": "2026-10-27T19:46:59Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:59Z",
+            "completedAt": "2026-10-27T19:47:08Z",
+            "durationSeconds": 9
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:08Z",
+            "completedAt": "2026-10-27T19:47:17Z",
+            "durationSeconds": 9
+          },
+          {
+            "name": "Run pnpm install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:17Z",
+            "completedAt": "2026-10-27T19:47:22Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:22Z",
+            "completedAt": "2026-10-27T19:51:06Z",
+            "durationSeconds": 224
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:06Z",
+            "completedAt": "2026-10-27T19:51:06Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:06Z",
+            "completedAt": "2026-10-27T19:51:19Z",
+            "durationSeconds": 13
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:19Z",
+            "completedAt": "2026-10-27T19:51:19Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:19Z",
+            "completedAt": "2026-10-27T19:51:25Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:25Z",
+            "completedAt": "2026-10-27T19:51:25Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:25Z",
+            "completedAt": "2026-10-27T19:51:25Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:25Z",
+            "completedAt": "2026-10-27T19:51:26Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:26Z",
+            "completedAt": "2026-10-27T19:51:26Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:26Z",
+            "completedAt": "2026-10-27T19:51:26Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:26Z",
+            "completedAt": "2026-10-27T19:51:26Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428974099,
+        "name": "Packaged app (windows-2025)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:46:56Z",
+        "completedAt": "2026-10-27T19:51:57Z",
+        "durationSeconds": 301,
+        "installSeconds": 86,
+        "dependencyPreparationSeconds": 131,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:57Z",
+            "completedAt": "2026-10-27T19:46:59Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:59Z",
+            "completedAt": "2026-10-27T19:47:07Z",
+            "durationSeconds": 8
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:07Z",
+            "completedAt": "2026-10-27T19:47:30Z",
+            "durationSeconds": 23
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:30Z",
+            "completedAt": "2026-10-27T19:47:37Z",
+            "durationSeconds": 7
+          },
+          {
+            "name": "Run pnpm install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:37Z",
+            "completedAt": "2026-10-27T19:49:03Z",
+            "durationSeconds": 86
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:49:03Z",
+            "completedAt": "2026-10-27T19:51:05Z",
+            "durationSeconds": 122
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:05Z",
+            "completedAt": "2026-10-27T19:51:17Z",
+            "durationSeconds": 12
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:17Z",
+            "completedAt": "2026-10-27T19:51:17Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:17Z",
+            "completedAt": "2026-10-27T19:51:32Z",
+            "durationSeconds": 15
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:32Z",
+            "completedAt": "2026-10-27T19:51:38Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:38Z",
+            "completedAt": "2026-10-27T19:51:38Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:51:38Z",
+            "completedAt": "2026-10-27T19:51:38Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:38Z",
+            "completedAt": "2026-10-27T19:51:53Z",
+            "durationSeconds": 15
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:53Z",
+            "completedAt": "2026-10-27T19:51:53Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:53Z",
+            "completedAt": "2026-10-27T19:51:55Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:51:55Z",
+            "completedAt": "2026-10-27T19:51:55Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122428974107,
+        "name": "Packaged app (macos-15-intel)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:46:57Z",
+        "completedAt": "2026-10-27T19:55:48Z",
+        "durationSeconds": 531,
+        "installSeconds": 136,
+        "dependencyPreparationSeconds": 184,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:46:57Z",
+            "completedAt": "2026-10-27T19:47:02Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:02Z",
+            "completedAt": "2026-10-27T19:47:10Z",
+            "durationSeconds": 8
+          },
+          {
+            "name": "Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:10Z",
+            "completedAt": "2026-10-27T19:47:27Z",
+            "durationSeconds": 17
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:27Z",
+            "completedAt": "2026-10-27T19:47:31Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Run pnpm install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:47:31Z",
+            "completedAt": "2026-10-27T19:49:47Z",
+            "durationSeconds": 136
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:49:47Z",
+            "completedAt": "2026-10-27T19:54:32Z",
+            "durationSeconds": 285
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:54:32Z",
+            "completedAt": "2026-10-27T19:54:32Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:54:32Z",
+            "completedAt": "2026-10-27T19:54:32Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:54:32Z",
+            "completedAt": "2026-10-27T19:54:56Z",
+            "durationSeconds": 24
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:54:56Z",
+            "completedAt": "2026-10-27T19:55:16Z",
+            "durationSeconds": 20
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:55:16Z",
+            "completedAt": "2026-10-27T19:55:16Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T19:55:16Z",
+            "completedAt": "2026-10-27T19:55:16Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:16Z",
+            "completedAt": "2026-10-27T19:55:43Z",
+            "durationSeconds": 27
+          },
+          {
+            "name": "Post Run pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:43Z",
+            "completedAt": "2026-10-27T19:55:43Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:43Z",
+            "completedAt": "2026-10-27T19:55:44Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:44Z",
+            "completedAt": "2026-10-27T19:55:45Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122433593276,
+        "name": "CI",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T19:55:50Z",
+        "completedAt": "2026-10-27T19:55:54Z",
+        "durationSeconds": 4,
+        "installSeconds": 0,
+        "dependencyPreparationSeconds": 0,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:51Z",
+            "completedAt": "2026-10-27T19:55:51Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Require every check to pass",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:51Z",
+            "completedAt": "2026-10-27T19:55:52Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T19:55:52Z",
+            "completedAt": "2026-10-27T19:55:52Z",
+            "durationSeconds": 0
+          }
+        ]
+      }
+    ]
+  },
+  "after": {
+    "packageManager": "Bun 1.4.4",
+    "runtime": "Bun daemon/scripts; Node test/build/helper compatibility retained",
+    "url": "https://github.com/HitBox38/PitchCrew/actions/runs/40598096132",
+    "runId": 40598096132,
+    "sha": "9380af067f3b691f9e49d106ebf9912f6c4a4b34",
+    "event": "workflow_dispatch",
+    "conclusion": "success",
+    "createdAt": "2026-10-27T22:52:42Z",
+    "runStartedAt": "2026-10-27T22:52:42Z",
+    "updatedAt": "2026-10-27T23:04:48Z",
+    "totals": {
+      "jobs": 13,
+      "workflowWallSeconds": 726,
+      "jobSpanSeconds": 684,
+      "aggregateRunnerSeconds": 2692,
+      "commonJobRunnerSeconds": 2672,
+      "installSeconds": 44,
+      "commonJobInstallSeconds": 42,
+      "dependencyPreparationSeconds": 482,
+      "commonJobDependencyPreparationSeconds": 471,
+      "bunPackageCacheSeconds": 381,
+      "commonJobBunPackageCacheSeconds": 375
+    },
+    "jobs": [
+      {
+        "id": 122519295373,
+        "name": "Tests (Node 24, shard 2/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:23Z",
+        "completedAt": "2026-10-27T22:57:43Z",
+        "durationSeconds": 260,
+        "installSeconds": 0,
+        "dependencyPreparationSeconds": 14,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:26Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:26Z",
+            "completedAt": "2026-10-27T22:53:31Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:31Z",
+            "completedAt": "2026-10-27T22:53:34Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:34Z",
+            "completedAt": "2026-10-27T22:53:37Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:37Z",
+            "completedAt": "2026-10-27T22:53:44Z",
+            "durationSeconds": 7
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:44Z",
+            "completedAt": "2026-10-27T22:53:44Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:44Z",
+            "completedAt": "2026-10-27T22:54:18Z",
+            "durationSeconds": 34
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:18Z",
+            "completedAt": "2026-10-27T22:57:38Z",
+            "durationSeconds": 200
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:38Z",
+            "completedAt": "2026-10-27T22:57:39Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:39Z",
+            "completedAt": "2026-10-27T22:57:39Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:39Z",
+            "completedAt": "2026-10-27T22:57:39Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:39Z",
+            "completedAt": "2026-10-27T22:57:40Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:40Z",
+            "completedAt": "2026-10-27T22:57:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:40Z",
+            "completedAt": "2026-10-27T22:57:40Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519295669,
+        "name": "Bun runtime integration",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:23Z",
+        "completedAt": "2026-10-27T22:53:43Z",
+        "durationSeconds": 20,
+        "installSeconds": 2,
+        "dependencyPreparationSeconds": 11,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:25Z",
+            "completedAt": "2026-10-27T22:53:27Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:27Z",
+            "completedAt": "2026-10-27T22:53:29Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:29Z",
+            "completedAt": "2026-10-27T22:53:30Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:30Z",
+            "completedAt": "2026-10-27T22:53:36Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:36Z",
+            "completedAt": "2026-10-27T22:53:38Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Verify the Bun daemon, MCP and bounded helpers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:38Z",
+            "completedAt": "2026-10-27T22:53:40Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:40Z",
+            "completedAt": "2026-10-27T22:53:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:40Z",
+            "completedAt": "2026-10-27T22:53:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:40Z",
+            "completedAt": "2026-10-27T22:53:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:40Z",
+            "completedAt": "2026-10-27T22:53:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:40Z",
+            "completedAt": "2026-10-27T22:53:40Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519295740,
+        "name": "Electron smoke (macos-15)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:24Z",
+        "completedAt": "2026-10-27T22:55:02Z",
+        "durationSeconds": 98,
+        "installSeconds": 1,
+        "dependencyPreparationSeconds": 22,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:25Z",
+            "completedAt": "2026-10-27T22:53:26Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:26Z",
+            "completedAt": "2026-10-27T22:53:28Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:28Z",
+            "completedAt": "2026-10-27T22:53:29Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:29Z",
+            "completedAt": "2026-10-27T22:53:31Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:31Z",
+            "completedAt": "2026-10-27T22:53:49Z",
+            "durationSeconds": 18
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:49Z",
+            "completedAt": "2026-10-27T22:53:50Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Build and verify the actual Electron renderer",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:50Z",
+            "completedAt": "2026-10-27T22:54:56Z",
+            "durationSeconds": 66
+          },
+          {
+            "name": "Upload desktop evidence",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:56Z",
+            "completedAt": "2026-10-27T22:54:58Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:58Z",
+            "completedAt": "2026-10-27T22:54:58Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:58Z",
+            "completedAt": "2026-10-27T22:54:58Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:58Z",
+            "completedAt": "2026-10-27T22:54:58Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:58Z",
+            "completedAt": "2026-10-27T22:54:59Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:59Z",
+            "completedAt": "2026-10-27T22:55:00Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122519295766,
+        "name": "Lint, format, types and build",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:23Z",
+        "completedAt": "2026-10-27T22:54:06Z",
+        "durationSeconds": 43,
+        "installSeconds": 1,
+        "dependencyPreparationSeconds": 10,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:26Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:26Z",
+            "completedAt": "2026-10-27T22:53:28Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:28Z",
+            "completedAt": "2026-10-27T22:53:28Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:28Z",
+            "completedAt": "2026-10-27T22:53:30Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:30Z",
+            "completedAt": "2026-10-27T22:53:37Z",
+            "durationSeconds": 7
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:37Z",
+            "completedAt": "2026-10-27T22:53:38Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Lint",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:38Z",
+            "completedAt": "2026-10-27T22:53:38Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Check formatting",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:38Z",
+            "completedAt": "2026-10-27T22:53:42Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Check types",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:42Z",
+            "completedAt": "2026-10-27T22:53:49Z",
+            "durationSeconds": 7
+          },
+          {
+            "name": "Build browser and Electron bundles",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:49Z",
+            "completedAt": "2026-10-27T22:53:51Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Build public landing page",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:51Z",
+            "completedAt": "2026-10-27T22:54:03Z",
+            "durationSeconds": 12
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:03Z",
+            "completedAt": "2026-10-27T22:54:03Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:03Z",
+            "completedAt": "2026-10-27T22:54:03Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:03Z",
+            "completedAt": "2026-10-27T22:54:03Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:03Z",
+            "completedAt": "2026-10-27T22:54:04Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:04Z",
+            "completedAt": "2026-10-27T22:54:04Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519295777,
+        "name": "Tests (Node 24, shard 1/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:23Z",
+        "completedAt": "2026-10-27T22:57:27Z",
+        "durationSeconds": 244,
+        "installSeconds": 1,
+        "dependencyPreparationSeconds": 12,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:25Z",
+            "completedAt": "2026-10-27T22:53:26Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:26Z",
+            "completedAt": "2026-10-27T22:53:29Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:29Z",
+            "completedAt": "2026-10-27T22:53:30Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:30Z",
+            "completedAt": "2026-10-27T22:53:36Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:36Z",
+            "completedAt": "2026-10-27T22:53:37Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:37Z",
+            "completedAt": "2026-10-27T22:54:05Z",
+            "durationSeconds": 28
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:05Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 199
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:25Z",
+            "completedAt": "2026-10-27T22:57:25Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:25Z",
+            "completedAt": "2026-10-27T22:57:25Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:25Z",
+            "completedAt": "2026-10-27T22:57:26Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:26Z",
+            "completedAt": "2026-10-27T22:57:26Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:26Z",
+            "completedAt": "2026-10-27T22:57:26Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519295879,
+        "name": "Tests (Node 22, shard 1/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:23Z",
+        "completedAt": "2026-10-27T22:56:43Z",
+        "durationSeconds": 200,
+        "installSeconds": 1,
+        "dependencyPreparationSeconds": 9,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:25Z",
+            "completedAt": "2026-10-27T22:53:27Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:27Z",
+            "completedAt": "2026-10-27T22:53:27Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:27Z",
+            "completedAt": "2026-10-27T22:53:29Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:29Z",
+            "completedAt": "2026-10-27T22:53:35Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:35Z",
+            "completedAt": "2026-10-27T22:53:36Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:36Z",
+            "completedAt": "2026-10-27T22:54:04Z",
+            "durationSeconds": 28
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:04Z",
+            "completedAt": "2026-10-27T22:56:39Z",
+            "durationSeconds": 155
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:39Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:40Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:40Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:40Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:40Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:40Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519295989,
+        "name": "Tests (Node 22, shard 2/2)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:24Z",
+        "completedAt": "2026-10-27T22:57:00Z",
+        "durationSeconds": 216,
+        "installSeconds": 1,
+        "dependencyPreparationSeconds": 16,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:26Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:26Z",
+            "completedAt": "2026-10-27T22:53:27Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:27Z",
+            "completedAt": "2026-10-27T22:53:28Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:28Z",
+            "completedAt": "2026-10-27T22:53:30Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:30Z",
+            "completedAt": "2026-10-27T22:53:42Z",
+            "durationSeconds": 12
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:42Z",
+            "completedAt": "2026-10-27T22:53:43Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Install Chromium and system dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:43Z",
+            "completedAt": "2026-10-27T22:54:01Z",
+            "durationSeconds": 18
+          },
+          {
+            "name": "Run unit, HTTP, adapter, MCP and browser tests",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:01Z",
+            "completedAt": "2026-10-27T22:56:55Z",
+            "durationSeconds": 174
+          },
+          {
+            "name": "Upload test results",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:55Z",
+            "completedAt": "2026-10-27T22:56:57Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:57Z",
+            "completedAt": "2026-10-27T22:56:57Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:57Z",
+            "completedAt": "2026-10-27T22:56:57Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:57Z",
+            "completedAt": "2026-10-27T22:56:57Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:57Z",
+            "completedAt": "2026-10-27T22:56:57Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:57Z",
+            "completedAt": "2026-10-27T22:56:57Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519296024,
+        "name": "Electron smoke (windows-2025)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:53:23Z",
+        "completedAt": "2026-10-27T22:56:44Z",
+        "durationSeconds": 201,
+        "installSeconds": 14,
+        "dependencyPreparationSeconds": 106,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:24Z",
+            "completedAt": "2026-10-27T22:53:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:25Z",
+            "completedAt": "2026-10-27T22:53:34Z",
+            "durationSeconds": 9
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:34Z",
+            "completedAt": "2026-10-27T22:53:39Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:39Z",
+            "completedAt": "2026-10-27T22:53:42Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:53:42Z",
+            "completedAt": "2026-10-27T22:55:05Z",
+            "durationSeconds": 83
+          },
+          {
+            "name": "Install dependencies",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:55:05Z",
+            "completedAt": "2026-10-27T22:55:19Z",
+            "durationSeconds": 14
+          },
+          {
+            "name": "Build and verify the actual Electron renderer",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:55:19Z",
+            "completedAt": "2026-10-27T22:56:39Z",
+            "durationSeconds": 80
+          },
+          {
+            "name": "Upload desktop evidence",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:39Z",
+            "completedAt": "2026-10-27T22:56:40Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:40Z",
+            "completedAt": "2026-10-27T22:56:41Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:41Z",
+            "completedAt": "2026-10-27T22:56:41Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:41Z",
+            "completedAt": "2026-10-27T22:56:41Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:41Z",
+            "completedAt": "2026-10-27T22:56:43Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:43Z",
+            "completedAt": "2026-10-27T22:56:43Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519596806,
+        "name": "Packaged app (ubuntu-24.04)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:54:08Z",
+        "completedAt": "2026-10-27T22:59:17Z",
+        "durationSeconds": 309,
+        "installSeconds": 1,
+        "dependencyPreparationSeconds": 13,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:09Z",
+            "completedAt": "2026-10-27T22:54:11Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:11Z",
+            "completedAt": "2026-10-27T22:54:12Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:12Z",
+            "completedAt": "2026-10-27T22:54:13Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:13Z",
+            "completedAt": "2026-10-27T22:54:15Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:15Z",
+            "completedAt": "2026-10-27T22:54:24Z",
+            "durationSeconds": 9
+          },
+          {
+            "name": "Run bun install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:24Z",
+            "completedAt": "2026-10-27T22:54:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:25Z",
+            "completedAt": "2026-10-27T22:58:52Z",
+            "durationSeconds": 267
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:58:52Z",
+            "completedAt": "2026-10-27T22:58:52Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:52Z",
+            "completedAt": "2026-10-27T22:59:03Z",
+            "durationSeconds": 11
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:59:03Z",
+            "completedAt": "2026-10-27T22:59:03Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:59:03Z",
+            "completedAt": "2026-10-27T22:59:13Z",
+            "durationSeconds": 10
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:59:13Z",
+            "completedAt": "2026-10-27T22:59:13Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:59:13Z",
+            "completedAt": "2026-10-27T22:59:13Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:59:13Z",
+            "completedAt": "2026-10-27T22:59:13Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:59:13Z",
+            "completedAt": "2026-10-27T22:59:13Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:59:13Z",
+            "completedAt": "2026-10-27T22:59:13Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:59:13Z",
+            "completedAt": "2026-10-27T22:59:14Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:59:14Z",
+            "completedAt": "2026-10-27T22:59:14Z",
+            "durationSeconds": 0
+          }
+        ]
+      },
+      {
+        "id": 122519596807,
+        "name": "Packaged app (macos-15)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:54:08Z",
+        "completedAt": "2026-10-27T22:57:28Z",
+        "durationSeconds": 200,
+        "installSeconds": 2,
+        "dependencyPreparationSeconds": 23,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:09Z",
+            "completedAt": "2026-10-27T22:54:10Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:10Z",
+            "completedAt": "2026-10-27T22:54:13Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:13Z",
+            "completedAt": "2026-10-27T22:54:14Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:14Z",
+            "completedAt": "2026-10-27T22:54:15Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:15Z",
+            "completedAt": "2026-10-27T22:54:34Z",
+            "durationSeconds": 19
+          },
+          {
+            "name": "Run bun install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:34Z",
+            "completedAt": "2026-10-27T22:54:36Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:36Z",
+            "completedAt": "2026-10-27T22:56:51Z",
+            "durationSeconds": 135
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:56:51Z",
+            "completedAt": "2026-10-27T22:56:51Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:56:51Z",
+            "completedAt": "2026-10-27T22:56:51Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:56:51Z",
+            "completedAt": "2026-10-27T22:57:14Z",
+            "durationSeconds": 23
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:14Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 10
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:24Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:24Z",
+            "completedAt": "2026-10-27T22:57:25Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:25Z",
+            "completedAt": "2026-10-27T22:57:26Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122519596838,
+        "name": "Packaged app (macos-15-intel)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:54:10Z",
+        "completedAt": "2026-10-27T23:04:42Z",
+        "durationSeconds": 632,
+        "installSeconds": 9,
+        "dependencyPreparationSeconds": 155,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:13Z",
+            "completedAt": "2026-10-27T22:54:17Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:17Z",
+            "completedAt": "2026-10-27T22:54:27Z",
+            "durationSeconds": 10
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:27Z",
+            "completedAt": "2026-10-27T22:54:32Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:32Z",
+            "completedAt": "2026-10-27T22:54:36Z",
+            "durationSeconds": 4
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:36Z",
+            "completedAt": "2026-10-27T22:55:44Z",
+            "durationSeconds": 68
+          },
+          {
+            "name": "Run bun install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:55:44Z",
+            "completedAt": "2026-10-27T22:55:53Z",
+            "durationSeconds": 9
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:55:53Z",
+            "completedAt": "2026-10-27T23:02:22Z",
+            "durationSeconds": 389
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T23:02:22Z",
+            "completedAt": "2026-10-27T23:02:22Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T23:02:22Z",
+            "completedAt": "2026-10-27T23:02:22Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:02:22Z",
+            "completedAt": "2026-10-27T23:02:54Z",
+            "durationSeconds": 32
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:02:54Z",
+            "completedAt": "2026-10-27T23:03:28Z",
+            "durationSeconds": 34
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T23:03:28Z",
+            "completedAt": "2026-10-27T23:03:28Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T23:03:28Z",
+            "completedAt": "2026-10-27T23:03:28Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:03:28Z",
+            "completedAt": "2026-10-27T23:04:36Z",
+            "durationSeconds": 68
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:36Z",
+            "completedAt": "2026-10-27T23:04:36Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:36Z",
+            "completedAt": "2026-10-27T23:04:37Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:37Z",
+            "completedAt": "2026-10-27T23:04:39Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:39Z",
+            "completedAt": "2026-10-27T23:04:40Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122519597046,
+        "name": "Packaged app (windows-2025)",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T22:54:08Z",
+        "completedAt": "2026-10-27T22:58:34Z",
+        "durationSeconds": 266,
+        "installSeconds": 11,
+        "dependencyPreparationSeconds": 91,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:09Z",
+            "completedAt": "2026-10-27T22:54:10Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:10Z",
+            "completedAt": "2026-10-27T22:54:18Z",
+            "durationSeconds": 8
+          },
+          {
+            "name": "Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:18Z",
+            "completedAt": "2026-10-27T22:54:24Z",
+            "durationSeconds": 6
+          },
+          {
+            "name": "Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:24Z",
+            "completedAt": "2026-10-27T22:54:27Z",
+            "durationSeconds": 3
+          },
+          {
+            "name": "Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:54:27Z",
+            "completedAt": "2026-10-27T22:55:37Z",
+            "durationSeconds": 70
+          },
+          {
+            "name": "Run bun install --frozen-lockfile",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:55:37Z",
+            "completedAt": "2026-10-27T22:55:48Z",
+            "durationSeconds": 11
+          },
+          {
+            "name": "Build installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:55:48Z",
+            "completedAt": "2026-10-27T22:57:57Z",
+            "durationSeconds": 129
+          },
+          {
+            "name": "Verify Windows installer process handling",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:57:57Z",
+            "completedAt": "2026-10-27T22:58:13Z",
+            "durationSeconds": 16
+          },
+          {
+            "name": "Verify packaged app (Linux)",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:58:13Z",
+            "completedAt": "2026-10-27T22:58:13Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Verify packaged app (Windows and macOS)",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:13Z",
+            "completedAt": "2026-10-27T22:58:24Z",
+            "durationSeconds": 11
+          },
+          {
+            "name": "Upload installers",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:24Z",
+            "completedAt": "2026-10-27T22:58:29Z",
+            "durationSeconds": 5
+          },
+          {
+            "name": "Wait before retrying installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:58:29Z",
+            "completedAt": "2026-10-27T22:58:29Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Retry installer upload",
+            "conclusion": "skipped",
+            "startedAt": "2026-10-27T22:58:29Z",
+            "completedAt": "2026-10-27T22:58:29Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Cache Bun packages",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:29Z",
+            "completedAt": "2026-10-27T22:58:30Z",
+            "durationSeconds": 1
+          },
+          {
+            "name": "Post Run oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:30Z",
+            "completedAt": "2026-10-27T22:58:30Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:30Z",
+            "completedAt": "2026-10-27T22:58:30Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Post Run actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:30Z",
+            "completedAt": "2026-10-27T22:58:32Z",
+            "durationSeconds": 2
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T22:58:32Z",
+            "completedAt": "2026-10-27T22:58:33Z",
+            "durationSeconds": 1
+          }
+        ]
+      },
+      {
+        "id": 122523940696,
+        "name": "CI",
+        "conclusion": "success",
+        "startedAt": "2026-10-27T23:04:44Z",
+        "completedAt": "2026-10-27T23:04:47Z",
+        "durationSeconds": 3,
+        "installSeconds": 0,
+        "dependencyPreparationSeconds": 0,
+        "steps": [
+          {
+            "name": "Set up job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:45Z",
+            "completedAt": "2026-10-27T23:04:45Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Require every check to pass",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:45Z",
+            "completedAt": "2026-10-27T23:04:45Z",
+            "durationSeconds": 0
+          },
+          {
+            "name": "Complete job",
+            "conclusion": "success",
+            "startedAt": "2026-10-27T23:04:45Z",
+            "completedAt": "2026-10-27T23:04:45Z",
+            "durationSeconds": 0
+          }
+        ]
+      }
+    ]
+  },
+  "observedDeltas": {
+    "workflowWallSeconds": 114,
+    "jobSpanSeconds": 74,
+    "aggregateRunnerSecondsIncludingAddedJob": -15,
+    "commonJobRunnerSeconds": -35,
+    "commonJobInstallSeconds": -394,
+    "commonJobDependencyPreparationSeconds": -246,
+    "addedBunIntegrationJobSeconds": 20,
+    "intelMacInstallerBuildSecondsBefore": 285,
+    "intelMacInstallerBuildSecondsAfter": 389,
+    "intelMacBunCachePostSaveSeconds": 68
+  },
+  "commonJobComparison": [
+    {
+      "name": "Lint, format, types and build",
+      "beforeRunnerSeconds": 68,
+      "afterRunnerSeconds": 43,
+      "beforeInstallSeconds": 15,
+      "afterInstallSeconds": 1,
+      "beforeDependencyPreparationSeconds": 35,
+      "afterDependencyPreparationSeconds": 10
+    },
+    {
+      "name": "Tests (Node 22, shard 1/2)",
+      "beforeRunnerSeconds": 193,
+      "afterRunnerSeconds": 200,
+      "beforeInstallSeconds": 11,
+      "afterInstallSeconds": 1,
+      "beforeDependencyPreparationSeconds": 19,
+      "afterDependencyPreparationSeconds": 9
+    },
+    {
+      "name": "Electron smoke (macos-15)",
+      "beforeRunnerSeconds": 149,
+      "afterRunnerSeconds": 98,
+      "beforeInstallSeconds": 37,
+      "afterInstallSeconds": 1,
+      "beforeDependencyPreparationSeconds": 70,
+      "afterDependencyPreparationSeconds": 22
+    },
+    {
+      "name": "Electron smoke (windows-2025)",
+      "beforeRunnerSeconds": 193,
+      "afterRunnerSeconds": 201,
+      "beforeInstallSeconds": 64,
+      "afterInstallSeconds": 14,
+      "beforeDependencyPreparationSeconds": 99,
+      "afterDependencyPreparationSeconds": 106
+    },
+    {
+      "name": "Tests (Node 24, shard 2/2)",
+      "beforeRunnerSeconds": 297,
+      "afterRunnerSeconds": 260,
+      "beforeInstallSeconds": 16,
+      "afterInstallSeconds": 0,
+      "beforeDependencyPreparationSeconds": 37,
+      "afterDependencyPreparationSeconds": 14
+    },
+    {
+      "name": "Tests (Node 24, shard 1/2)",
+      "beforeRunnerSeconds": 190,
+      "afterRunnerSeconds": 244,
+      "beforeInstallSeconds": 13,
+      "afterInstallSeconds": 1,
+      "beforeDependencyPreparationSeconds": 20,
+      "afterDependencyPreparationSeconds": 12
+    },
+    {
+      "name": "Tests (Node 22, shard 2/2)",
+      "beforeRunnerSeconds": 273,
+      "afterRunnerSeconds": 216,
+      "beforeInstallSeconds": 15,
+      "afterInstallSeconds": 1,
+      "beforeDependencyPreparationSeconds": 30,
+      "afterDependencyPreparationSeconds": 16
+    },
+    {
+      "name": "Packaged app (macos-15)",
+      "beforeRunnerSeconds": 236,
+      "afterRunnerSeconds": 200,
+      "beforeInstallSeconds": 38,
+      "afterInstallSeconds": 2,
+      "beforeDependencyPreparationSeconds": 68,
+      "afterDependencyPreparationSeconds": 23
+    },
+    {
+      "name": "Packaged app (ubuntu-24.04)",
+      "beforeRunnerSeconds": 272,
+      "afterRunnerSeconds": 309,
+      "beforeInstallSeconds": 5,
+      "afterInstallSeconds": 1,
+      "beforeDependencyPreparationSeconds": 24,
+      "afterDependencyPreparationSeconds": 13
+    },
+    {
+      "name": "Packaged app (windows-2025)",
+      "beforeRunnerSeconds": 301,
+      "afterRunnerSeconds": 266,
+      "beforeInstallSeconds": 86,
+      "afterInstallSeconds": 11,
+      "beforeDependencyPreparationSeconds": 131,
+      "afterDependencyPreparationSeconds": 91
+    },
+    {
+      "name": "Packaged app (macos-15-intel)",
+      "beforeRunnerSeconds": 531,
+      "afterRunnerSeconds": 632,
+      "beforeInstallSeconds": 136,
+      "afterInstallSeconds": 9,
+      "beforeDependencyPreparationSeconds": 184,
+      "afterDependencyPreparationSeconds": 155
+    },
+    {
+      "name": "CI",
+      "beforeRunnerSeconds": 4,
+      "afterRunnerSeconds": 3,
+      "beforeInstallSeconds": 0,
+      "afterInstallSeconds": 0,
+      "beforeDependencyPreparationSeconds": 0,
+      "afterDependencyPreparationSeconds": 0
+    }
+  ]
+}

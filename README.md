@@ -21,17 +21,17 @@ Production installations send anonymous page visits and feature usage to Pitchcr
 
 ## Quick start
 
-Download a production installer from [GitHub Releases](https://github.com/HitBox38/PitchCrew/releases): Windows x64 (`.exe`), macOS Apple Silicon or Intel (`.dmg`), or Linux x64 (`.AppImage`/`.deb`). Installers include Node.js, the daemon, its dependencies and Chromium; configure provider CLIs and authentication separately. Windows and macOS builds are unsigned and macOS builds are not notarized, so your operating system may require permission to open them. Each successful push to `main` publishes a commit-tagged release after CI and packaged-app checks pass. Existing data stays in `~/.pitchcrew`.
+Download a production installer from [GitHub Releases](https://github.com/HitBox38/PitchCrew/releases): Windows x64 (`.exe`), macOS Apple Silicon or Intel (`.dmg`), or Linux x64 (`.AppImage`/`.deb`). Installers include Bun for the daemon, a Node.js helper for bounded document/database processing, runtime dependencies and Chromium; configure provider CLIs and authentication separately. Windows and macOS builds are unsigned and macOS builds are not notarized, so your operating system may require permission to open them. Each successful push to `main` publishes a commit-tagged release after CI and packaged-app checks pass. Existing data stays in `~/.pitchcrew`.
 
 Pitchcrew checks for newer builds when you open a production workspace and once an hour while it stays open. Settings > General shows your version, **Check for updates**, and a switch for automatic checks. Supported Windows and Linux installations offer **Download update**, then **Install and restart** after confirmation; active agents are interrupted and your saved data stays in place. Unsigned Mac builds, browser sessions and source launches use the matching release page for manual installation. Set `PITCHCREW_UPDATE_CHECKS=0` to disable checks for an installation. See [update checks](docs/app-updates.md).
 
 For development from source:
 
-Requires **Node.js 22.18+ or 24.11+** (supported LTS lines) and **pnpm 11**. Windows is the verified development platform. Native SQLite and Electron dependencies may need build tools if prebuilt binaries are unavailable.
+Requires **Bun 1.4.4** (pinned in `.bun-version`) and **Node.js 22.18+ or 24.11+** (supported LTS lines). Use Node 24 for installer builds. Bun runs the daemon, MCP server and utility scripts; Node remains available for Vitest, build CLIs and isolated workers with enforced heap limits. Electron retains its embedded runtime. Windows is the verified development platform. Native SQLite and Electron dependencies may need build tools if prebuilt binaries are unavailable.
 
 ```sh
-pnpm install
-pnpm dev
+bun install
+bun run dev
 ```
 
 Open **http://127.0.0.1:4417**. Use the printed loopback address and port. The UI reloads as you edit it; restart the daemon after backend or adapter changes.
@@ -39,7 +39,7 @@ Open **http://127.0.0.1:4417**. Use the printed loopback address and port. The U
 For the desktop window:
 
 ```sh
-pnpm desktop
+bun run desktop
 ```
 
 The launcher reuses an existing daemon or starts one. A daemon started by the launcher stops when the window closes. If the background service is installed, the launcher starts it instead and leaves it running. Browser and desktop views connected to the same daemon share a workspace.
@@ -47,28 +47,28 @@ The launcher reuses an existing daemon or starts one. A daemon started by the la
 For the built UI:
 
 ```sh
-pnpm build
-pnpm start
+bun run build
+bun run start
 ```
 
-Or run `pnpm desktop:prod` to build and launch it in Electron.
+Or run `bun run desktop:prod` to build and launch it in Electron.
 
 ### Run in the background
 
 Routines run only while a daemon is open. To start the production daemon at login without a window, open **Settings > Local data** and press **Install background service**. Pitchcrew builds the production UI if needed and installs the service for the current workspace automatically. Or install from a terminal:
 
 ```sh
-pnpm build
-pnpm service install
+bun run build
+bun run service install
 ```
 
-It uses Task Scheduler on Windows, a LaunchAgent on macOS and a systemd user unit on Linux, without administrator rights. `pnpm service status`, `start`, `stop`, `logs` and `uninstall` manage it, and **Settings > Local data** shows its state. Only one daemon runs per data folder. See [background service](docs/background-service.md).
+It uses Task Scheduler on Windows, a LaunchAgent on macOS and a systemd user unit on Linux, without administrator rights. `bun run service status`, `start`, `stop`, `logs` and `uninstall` manage it, and **Settings > Local data** shows its state. Only one daemon runs per data folder. See [background service](docs/background-service.md).
 
 ### Explore without an AI account
 
 Development mode includes **Demo**, a deterministic runtime that makes no AI calls. On an empty board, load the example board to try six fictional opportunities and a fictional profile. Examples refuse to overwrite an existing profile; use a separate data folder if you already have one.
 
-Demo and example loading are available only when the daemon uses `--dev`, as with `pnpm dev` or a daemon started by `pnpm desktop`. Demo scores and drafts are scripted examples.
+Demo and example loading are available only when the daemon uses `--dev`, as with `bun run dev` or a daemon started by `bun run desktop`. Demo scores and drafts are scripted examples.
 
 ### Set up a real workspace
 
@@ -112,7 +112,7 @@ See [application process quality](docs/application-process-quality.md).
 
 You can also register an application you already submitted elsewhere, with its submission time and confirmation note, without generating a packet. See [application tracking](docs/tracking.md).
 
-Moving from another tracker? **Import applications** on Board accepts a legacy SQLite tracker (`.db`, `.sqlite`, `.sqlite3`) directly or a JSON/CSV export of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. SQLite trackers are converted locally in the import dialog, with no terminal commands needed. The optional `node scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` command uses the same converter. See [importing past applications](docs/tracking.md#importing-past-applications).
+Moving from another tracker? **Import applications** on Board accepts a legacy SQLite tracker (`.db`, `.sqlite`, `.sqlite3`) directly or a JSON/CSV export of up to 1,000 past applications with their statuses, dates, tags and notes. You review a preview of every row (new, duplicate or invalid) before anything is saved, and importing the same file again skips rows already imported. SQLite trackers are converted locally in the import dialog, with no terminal commands needed. The optional `bun --no-env-file scripts/convert-legacy-tracker.ts <tracker.db> <applications.json>` command uses the same converter. See [importing past applications](docs/tracking.md#importing-past-applications).
 
 ## Your crew
 
@@ -185,7 +185,7 @@ Optional watches let agents propose source refreshes or new notes backed by proj
 Install the local browser:
 
 ```sh
-pnpm browser:install
+bun run browser:install
 ```
 
 Enable **Computer use** for an agent and ask it to help with an application. **Chat → Browser** shows a live local browser per agent, with saved sign-ins, a compact agent menu and manual takeover for login or CAPTCHA. **Supervised** asks before every interaction beside the browser or in **Inbox**. **Autonomous preparation** prepares recognized hosted forms on task sites you allow; unfamiliar controls and final submission still require approval. Set an agent default or override it per conversation. Scheduled routines stay supervised.
@@ -207,7 +207,7 @@ To use a separate workspace and port in PowerShell:
 ```powershell
 $env:PITCHCREW_HOME = "$env:USERPROFILE\.pitchcrew-demo"
 $env:PITCHCREW_PORT = '4418'
-pnpm dev
+bun run dev
 ```
 
 `PITCHCREW_HOME` must be outside this repository. **Settings > Local data** shows its path. Manage agent instructions in Crew; generated instruction files are refreshed from stored settings. Profile changes require all runs to be idle.
@@ -219,13 +219,13 @@ Pitchcrew offers a local stdio MCP server for other desktop agent apps. Open **S
 From a repository checkout, you can also enable access and generate the client configuration:
 
 ```sh
-pnpm mcp enable --write
-pnpm mcp config
+bun run mcp enable --write
+bun run mcp config
 ```
 
 Paste the printed `mcpServers.pitchcrew` entry into your client's MCP configuration. It uses absolute paths and works from another working directory. Omit `--write` for read-only access. External agents can read the board, Profile, conversations and public run activity; write access adds job management, conversation creation and messages to your crew. Sending crew messages can start paid runtime work. Approval and application confirmation stay in Pitchcrew.
 
-`pnpm mcp disable` revokes every external connection. See [external MCP setup](docs/external-mcp.md) for custom workspaces, tools and the access boundary.
+`bun run mcp disable` revokes every external connection. See [external MCP setup](docs/external-mcp.md) for custom workspaces, tools and the access boundary.
 
 ## Current limits
 
@@ -240,9 +240,9 @@ Paste the printed `mcpServers.pitchcrew` entry into your client's MCP configurat
 
 Create feature, fix, refactor, documentation and maintenance branches from the latest `dev`, and open their pull requests against `dev`. Production releases use a `dev` → `main` pull request that includes a version bump in the root `package.json` and matching workspace package versions, a change summary and validation. Use semantic versions (`MAJOR.MINOR.PATCH`), choosing and explaining the bump in each release PR: patch for fixes, minor for backward-compatible features and major for breaking changes. After required CI passes and the release merges, merge `main` back into `dev` before starting subsequent work. See [branch and release rules](AGENTS.md#branch-and-release-workflow).
 
-The standalone public landing page uses Next.js in `packages/landing`. Run `pnpm landing:dev` at **http://127.0.0.1:3000**, `pnpm landing:build` for its production build, and `pnpm landing:start` to serve that build. It is independent of the local app and uses fictional demo screenshots. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
+The standalone public landing page uses Next.js in `packages/landing`. Run `bun run landing:dev` at **http://127.0.0.1:3000**, `bun run landing:build` for its production build, and `bun run landing:start` to serve that build. It is independent of the local app and uses fictional demo screenshots. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
 
-The workspace uses strict TypeScript, pnpm workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Oxlint and Oxfmt handle linting and formatting; Vitest runs the tests.
+The workspace uses strict TypeScript, Bun workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Oxlint and Oxfmt handle linting and formatting; Vitest runs the complete suite on Node, and a separate Bun integration check exercises the daemon, MCP and bounded helpers.
 
 Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted on the board, with an append-only event history; the runtime supplies the agent execution loop.
 
@@ -258,23 +258,24 @@ Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted 
 | `packages/desktop`      | Sandboxed Electron host                                            |
 
 ```sh
-pnpm lint
-pnpm format:check
-pnpm typecheck
-pnpm browser:install # once, for browser tools and tests
-pnpm test
-pnpm build
-pnpm check           # lint, typecheck, tests and build
-pnpm test:desktop    # isolated daemon and hidden actual Electron renderer
+bun run lint
+bun run format:check
+bun run typecheck
+bun run browser:install # once, for browser tools and tests
+bun run test
+bun run test:bun      # actual Bun daemon, MCP and bounded-helper integration
+bun run build
+bun run check           # lint, typecheck, tests and build
+bun run test:desktop    # isolated daemon and hidden actual Electron renderer
 ```
 
-Use `pnpm format` to apply formatting. Tests use fictional fixtures, temporary workspaces and mock provider processes. Coverage includes board replay, approvals, HTTP boundaries, adapter contracts, MCP stdio and isolated Chromium. They make no paid provider calls.
+Use `bun run format` to apply formatting. Tests use fictional fixtures, temporary workspaces and mock provider processes. Coverage includes board replay, approvals, HTTP boundaries, adapter contracts, MCP stdio and isolated Chromium. They make no paid provider calls.
 
-Desktop and packaged smoke checks keep their Electron window hidden, capture screenshots without revealing it, and fail if it is shown or focused. For visible desktop debugging, run `PITCHCREW_SMOKE_VISIBLE=1 pnpm test:desktop` (PowerShell: `$env:PITCHCREW_SMOKE_VISIBLE='1'; pnpm test:desktop`). The same opt-in applies to `pnpm test:packaged`. Ordinary `pnpm test` Chromium checks run headless.
+Desktop and packaged smoke checks keep their Electron window hidden, capture screenshots without revealing it, and fail if it is shown or focused. For visible desktop debugging, run `PITCHCREW_SMOKE_VISIBLE=1 bun run test:desktop` (PowerShell: `$env:PITCHCREW_SMOKE_VISIBLE='1'; bun run test:desktop`). The same opt-in applies to `bun run test:packaged`. Ordinary `bun run test` Chromium checks run headless.
 
-GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes to `main`, merge queues and manual dispatches. Every run checks lint, formatting, types and production builds, runs the complete test suite on Node 22 and 24 with Chromium, and verifies the actual Electron renderer on macOS and Windows. Full installer builds and packaged-app checks on Windows, macOS and Linux run for release pull requests targeting `main`, merge groups targeting `main`, pushes to `main` and manual dispatches on any branch. Feature pull requests and merge groups targeting `dev` skip full packaging; packaging-specific failures may first surface on the release pull request. To check a feature's installers earlier, manually run CI on its branch. Installs use the pinned pnpm version and frozen lockfile; newer commits cancel superseded runs except for pushes to `main`, which each retain their release build. Test reports, desktop evidence and installers are retained for seven days. The repository’s `main` branch ruleset requires the single **CI** status check from GitHub Actions and an up-to-date branch before merging. That check requires all applicable jobs to succeed and permits only the intentional installer skip for feature work; missing policy values and unexpected skips, failures or cancellations fail it. The ruleset has no bypass actors.
+GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes to `main`, merge queues and manual dispatches. Every run checks lint, formatting, types and production builds, runs the complete Vitest suite on Node 22 and 24 with Chromium, independently checks the Bun daemon/MCP/bounded-helper paths, and verifies the actual Electron renderer on macOS and Windows. Full installer builds and packaged-app checks on Windows, macOS and Linux run for release pull requests targeting `main`, merge groups targeting `main`, pushes to `main` and manual dispatches on any branch. Feature pull requests and merge groups targeting `dev` skip full packaging; packaging-specific failures may first surface on the release pull request. To check a feature's installers earlier, manually run CI on its branch. Installs use the pinned Bun version and frozen `bun.lock`; CI caches downloaded packages separately for each operating system and architecture without skipping install or Chromium/system-dependency setup; newer commits cancel superseded runs except for pushes to `main`, which each retain their release build. Test reports, desktop evidence and installers are retained for seven days. The repository’s `main` branch ruleset requires the single **CI** status check from GitHub Actions and an up-to-date branch before merging. That check requires all applicable jobs to succeed and permits only the intentional installer skip for feature work; missing policy values and unexpected skips, failures or cancellations fail it. The ruleset has no bypass actors.
 
-The [Release workflow](.github/workflows/release.yml) publishes the verified installers and SHA-256 checksums after successful push CI on `main`, using `build-<full commit SHA>` tags. It downloads artifacts from that exact CI run without checking out or executing repository code, and alone has release write permission. Reruns resume drafts or skip an already published release. `pnpm desktop:package` builds the current platform's installers locally; `pnpm test:packaged` verifies the unpacked app starts its bundled daemon, renders the UI and stops its owned daemon. On Windows, `pnpm test:installer` also verifies the compiled NSIS process check closes only Pitchcrew's app and bundled runtime, without mistaking downloads or sibling folders for a running app. It uses isolated fixtures without installing or uninstalling anything. Packaging uses the build machine's Node 24 executable, so build on each target platform and architecture. Signing and notarization credentials are not configured.
+The [Release workflow](.github/workflows/release.yml) publishes the verified installers and SHA-256 checksums after successful push CI on `main`, using `build-<full commit SHA>` tags. It downloads artifacts from that exact CI run without checking out or executing repository code, and alone has release write permission. Reruns resume drafts or skip an already published release. `bun run desktop:package` builds the current platform's installers locally; `bun run test:packaged` verifies the unpacked app starts its bundled daemon, renders the UI and stops its owned daemon. On Windows, `bun run test:installer` also verifies the compiled NSIS process check closes only Pitchcrew's app and bundled runtime, without mistaking downloads or sibling folders for a running app. It uses isolated fixtures without installing or uninstalling anything. Packaging bundles the pinned Bun executable and the build machine's Node 24 helper, so build on each target platform and architecture. Both must remain available during packaging; provider CLIs and authentication are separate. Signing and notarization credentials are not configured.
 
 Read [AGENTS.md](AGENTS.md) for repository rules, [code organization](docs/code-organization.md) for module conventions, and [MVP design](docs/mvp-design.md) for architectural decisions.
 

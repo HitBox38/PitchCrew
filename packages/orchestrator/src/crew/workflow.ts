@@ -1,3 +1,4 @@
+import { sourceArguments } from '../process.ts';
 import { failureDetails } from '@pitchcrew/core/operational-logs';
 import { recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { QueueBusyError, reserveLaunch } from './queue/admission.ts';
@@ -222,7 +223,7 @@ const startRunPrepared = async (
     directory: dir,
     mcp: {
       command: process.execPath,
-      args: ['--import', import.meta.resolve('tsx'), crewContext.mcpEntry],
+      args: sourceArguments(crewContext.mcpEntry),
       env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: crewContext.daemonUrl },
     },
     signal: controller.signal,

@@ -7,6 +7,7 @@ import type { CrewContext } from '../crew/types.ts';
 import { createConversation } from '../crew/conversations.ts';
 import { sendConversation } from '../crew/conversation-queue.ts';
 import { workspaceQueue } from '../crew/queue/projection.ts';
+import { createExternalJob } from './jobs.ts';
 
 const actor = 'external-mcp';
 const page = <T>(items: T[], offset: number, limit: number) => ({
@@ -152,9 +153,7 @@ export const externalCall = async (
       };
     }
     case 'create_job':
-      return {
-        card: context.board.createCard(externalTools.create_job.schema.parse(data), false, actor),
-      };
+      return createExternalJob(context, data);
     case 'update_job': {
       const input = externalTools.update_job.schema.parse(data);
       idleCard(context, input.cardId);

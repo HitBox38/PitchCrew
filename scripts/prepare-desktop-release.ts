@@ -1,13 +1,27 @@
 import { execFileSync } from 'node:child_process';
-import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { access, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, resolve } from 'node:path';
 import { materializeWorkspacePackages, pruneRuntimeDependencies } from './installer-runtime.ts';
 
 const root = resolve('.');
 const staging = resolve('dist/installer');
 if (dirname(staging) !== join(root, 'dist')) throw new Error('Invalid installer staging path.');
-if (Number(process.versions.node.split('.')[0]) !== 24)
-  throw new Error('Build standalone installers with Node.js 24.');
+if (process.versions.bun !== '1.4.4')
+  throw new Error('Build standalone installers with Bun 1.4.4.');
+const node = JSON.parse(
+  execFileSync(
+    process.env.PITCHCREW_NODE_EXECUTABLE || 'node',
+    [
+      '--print',
+      'JSON.stringify({ path: process.execPath, version: process.versions.node, bun: process.versions.bun })',
+    ],
+    { encoding: 'utf8', windowsHide: true },
+  ),
+) as { path: string; version: string; bun?: string };
+if (node.bun || !isAbsolute(node.path) || !/^24\./.test(node.version))
+  throw new Error(
+    'Standalone installers require a Node.js 24 helper on PATH or PITCHCREW_NODE_EXECUTABLE.',
+  );
 await rm(staging, { recursive: true, force: true });
 const runtime = join(staging, 'runtime');
 await mkdir(runtime, { recursive: true });
@@ -16,11 +30,18 @@ const files = execFileSync('git', ['ls-files', '-z', '--cached'], {
 })
   .split('\0')
   .filter(Boolean);
-for (const file of new Set([...files, 'scripts/packaged-launcher.ts'])) {
+if (
+  await access('bunfig.toml').then(
+    () => true,
+    () => false,
+  )
+)
+  files.push('bunfig.toml');
+for (const file of new Set([...files, 'bun.lock', 'scripts/packaged-launcher.ts'])) {
   if (
     !file.startsWith('packages/') &&
     file !== 'scripts/packaged-launcher.ts' &&
-    !['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml'].includes(file)
+    !['package.json', 'bun.lock', 'bunfig.toml'].includes(file)
   )
     continue;
   const target = join(runtime, file);
@@ -48,32 +69,19 @@ await writeFile(
   }),
 );
 await mkdir(join(runtime, 'node'), { recursive: true });
-await cp(
-  process.execPath,
-  join(runtime, 'node', process.platform === 'win32' ? 'node.exe' : 'node'),
-);
-const pnpmCli = process.env.npm_execpath;
-if (!pnpmCli) throw new Error('Run installer preparation through pnpm.');
-// Use the pinned pnpm CLI directly: no shell and no dependency on platform command shims.
+await cp(node.path, join(runtime, 'node', process.platform === 'win32' ? 'node.exe' : 'node'));
+await mkdir(join(runtime, 'bun'), { recursive: true });
+await cp(process.execPath, join(runtime, 'bun', process.platform === 'win32' ? 'bun.exe' : 'bun'));
+// Install with the pinned runtime directly, without shell shims or global package managers.
 execFileSync(
   process.execPath,
-  [
-    pnpmCli,
-    'install',
-    '--filter',
-    '@pitchcrew/orchestrator...',
-    '--filter',
-    '@pitchcrew/desktop',
-    '--prod',
-    '--frozen-lockfile',
-    '--config.nodeLinker=hoisted',
-  ],
+  ['--no-env-file', 'install', '--production', '--frozen-lockfile', '--linker', 'hoisted'],
   { cwd: runtime, stdio: 'inherit' },
 );
 await pruneRuntimeDependencies(runtime, ['desktop']);
 await materializeWorkspacePackages(runtime);
 execFileSync(
-  process.execPath,
+  node.path,
   [join(runtime, 'node_modules/playwright/cli.js'), 'install', 'chromium', '--no-shell'],
   {
     cwd: runtime,

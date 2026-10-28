@@ -15,7 +15,7 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
     void window.pitchcrewBrowser?.find(id, text, forward).catch(() => {});
   return (
     <form
-      className="flex items-center gap-1 border-b border-border px-3 py-2"
+      className="browser-find"
       onSubmit={(event) => {
         event.preventDefault();
         find(true);

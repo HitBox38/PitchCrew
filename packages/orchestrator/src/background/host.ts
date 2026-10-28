@@ -23,7 +23,7 @@ export const currentPlatform = (): BackgroundServicePlatform | null => {
   return null;
 };
 
-/** The definition values for this user, this Node executable and this checkout. */
+/** The definition values for this user, this runtime executable and this checkout. */
 export const currentServiceSpec = (
   settings: DaemonSettings,
   env: NodeJS.ProcessEnv = process.env,

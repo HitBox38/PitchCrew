@@ -12,7 +12,7 @@ import type { Inspection, PlatformDriver, ServiceHost, ServiceSpec } from './typ
 /** A systemd user unit; it starts with the user's session and restarts after a failure. */
 export const renderSystemdUnit = (spec: ServiceSpec) => {
   const command = [spec.node, ...daemonArguments(spec)].map(quoteSystemdArgument).join(' ');
-  return `# Created by pnpm service install. Remove it with pnpm service uninstall.
+  return `# Created by bun run service install. Remove it with bun run service uninstall.
 [Unit]
 Description=Pitchcrew background daemon
 StartLimitIntervalSec=0

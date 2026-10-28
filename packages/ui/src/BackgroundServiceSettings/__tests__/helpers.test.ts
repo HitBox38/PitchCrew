@@ -20,10 +20,10 @@ const info = (overrides: Partial<BackgroundServiceInfo> = {}): BackgroundService
   customLocation: false,
   repository: 'C:\\Projects\\Pitch Crew',
   commands: {
-    install: 'pnpm service install',
-    uninstall: 'pnpm service uninstall',
-    status: 'pnpm service status',
-    logs: 'pnpm service logs',
+    install: 'bun run service install',
+    uninstall: 'bun run service uninstall',
+    status: 'bun run service status',
+    logs: 'bun run service logs',
   },
   ...overrides,
 });
@@ -36,9 +36,9 @@ it('shows an installed service that started this daemon with removal commands', 
   ]);
   expect(serviceNotes(value)[0]).toContain('The background service started this daemon');
   expect(serviceCommands(value)).toEqual([
-    'pnpm service status',
-    'pnpm service logs',
-    'pnpm service uninstall',
+    'bun run service status',
+    'bun run service logs',
+    'bun run service uninstall',
   ]);
 });
 
@@ -58,7 +58,7 @@ it('offers install for a missing service and explains a service for another fold
     success: false,
   });
   expect(serviceNotes(elsewhere).join(' ')).toContain('on port 4417');
-  expect(serviceCommands(elsewhere)).toEqual(['pnpm service uninstall']);
+  expect(serviceCommands(elsewhere)).toEqual(['bun run service uninstall']);
 });
 
 it('explains unsupported platforms without commands', () => {

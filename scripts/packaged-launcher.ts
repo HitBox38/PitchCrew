@@ -73,12 +73,16 @@ try {
   const spec = currentServiceSpec(settings);
   const service = spec && createBackgroundService(spec, nodeServiceHost);
   const spawnDaemon = () => {
-    daemon = spawn(process.execPath, ['--import', 'tsx', 'packages/orchestrator/src/cli.ts'], {
-      cwd: process.cwd(),
-      env: process.env,
-      stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
-      windowsHide: true,
-    });
+    daemon = spawn(
+      process.execPath,
+      ['--no-env-file', '--no-install', 'packages/orchestrator/src/cli.ts'],
+      {
+        cwd: process.cwd(),
+        env: process.env,
+        stdio: ['inherit', 'inherit', 'inherit', 'ipc'],
+        windowsHide: true,
+      },
+    );
     daemon.on('error', (error) => {
       console.error(error);
       process.exit(1);

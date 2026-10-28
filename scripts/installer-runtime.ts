@@ -19,6 +19,12 @@ export const pruneRuntimeDependencies = async (
   const modules = join(runtime, 'node_modules');
   const visited = new Set<string>();
   const needed = new Set<string>();
+  const retainDependency = (folder: string) => {
+    const path = relative(modules, folder);
+    if (path.startsWith('..') || isAbsolute(path)) return;
+    const parts = path.split(sep);
+    needed.add(parts[0].startsWith('@') ? join(parts[0], parts[1]) : parts[0]);
+  };
   const queue = [
     join(runtime, 'packages/orchestrator'),
     ...additionalPackages.map((name) => {
@@ -35,6 +41,7 @@ export const pruneRuntimeDependencies = async (
         const path = relative(runtime, source);
         if (path.startsWith('..') || isAbsolute(path))
           throw new Error('Runtime dependency escapes installation.');
+        retainDependency(candidate);
         return source;
       }
       if (current === runtime) break;
@@ -45,11 +52,7 @@ export const pruneRuntimeDependencies = async (
     const folder = queue.pop()!;
     if (visited.has(folder)) continue;
     visited.add(folder);
-    const fromModules = relative(modules, folder);
-    if (!fromModules.startsWith('..') && !isAbsolute(fromModules)) {
-      const parts = fromModules.split(sep);
-      needed.add(parts[0].startsWith('@') ? join(parts[0], parts[1]) : parts[0]);
-    }
+    retainDependency(folder);
     const metadata = JSON.parse(await readFile(join(folder, 'package.json'), 'utf8'));
     const required = metadata.dependencies ?? {};
     for (const name of Object.keys({
@@ -79,12 +82,15 @@ export const pruneRuntimeDependencies = async (
   }
 };
 
-// Ship ordinary workspace package directories: Windows installers cannot retain pnpm links.
+// Ship ordinary workspace package directories: Windows installers cannot retain workspace links.
 export const materializeWorkspacePackages = async (runtime: string) => {
   runtime = await realpath(runtime);
   const packages = join(runtime, 'packages');
-  for (const name of await readdir(packages)) {
-    const scope = join(packages, name, 'node_modules/@pitchcrew');
+  const scopes = [
+    join(runtime, 'node_modules/@pitchcrew'),
+    ...(await readdir(packages)).map((name) => join(packages, name, 'node_modules/@pitchcrew')),
+  ];
+  for (const scope of scopes) {
     const aliases = await readdir(scope).catch(() => []);
     for (const alias of aliases) {
       const link = join(scope, alias);

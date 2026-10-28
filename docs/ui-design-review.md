@@ -41,6 +41,8 @@ Installed Emil Kowalski’s `emil-design-eng`, `animate`, `animation-vocabulary`
 
 ## Verification
 
+These commands and counts record the original verification before the Bun migration. Current package scripts use `bun run`; the original results below are retained as historical evidence.
+
 - `pnpm check`: lint, TypeScript, 310 tests across 28 files, and UI/Electron production builds.
 - `pnpm test:desktop`: actual Electron renderer, streaming demo chat, routing history, feature panels, notification history, toast interaction/stacking, and light/dark title-bar integration.
 - All seven pages inspected in a fictional isolated workspace at 1440×900 light and 390×844 dark; Crew additionally checked at 980px and Profile at 320px. No document-level horizontal overflow remained in those checks. Chat’s composer stayed inside both desktop and phone viewports.

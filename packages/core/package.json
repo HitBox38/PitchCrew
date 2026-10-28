@@ -1,10 +1,11 @@
 {
   "name": "@pitchcrew/core",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "private": true,
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
+    "./isolated-worker": "./src/isolated-worker.ts",
     "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
     "./states": "./src/states.ts",
@@ -22,6 +23,7 @@
     "./chat-citations": "./src/chat-citations.ts"
   },
   "dependencies": {
+    "tsx": "4.23.15",
     "zod": "^4.3.6"
   }
 }

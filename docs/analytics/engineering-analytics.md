@@ -6,10 +6,10 @@ The source is the public `HitBox38/PitchCrew` repository. Collection refuses a p
 
 ## Run and activate
 
-Use Node 24 and an authenticated `gh` CLI with read access to repository Actions and pull requests:
+Use the pinned Bun version and an authenticated `gh` CLI with read access to repository Actions and pull requests:
 
 ```sh
-node scripts/engineering-analytics/index.ts
+bun --no-env-file scripts/engineering-analytics/index.ts
 ```
 
 This is a read-only dry run. It prints event counts only, makes no PostHog requests, and stores no raw metadata. `PITCHCREW_ENGINEERING_LOOKBACK_DAYS` selects a 1–30 day window (default seven).

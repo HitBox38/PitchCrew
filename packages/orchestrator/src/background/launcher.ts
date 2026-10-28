@@ -40,7 +40,7 @@ export const prepareDaemon = async (deps: LauncherDeps) => {
     await deps.startService();
     if (!(await waitForDaemon()))
       throw new Error(
-        'The background service did not start its daemon. Check pnpm service logs, or remove the service with pnpm service uninstall.',
+        'The background service did not start its daemon. Check bun run service logs, or remove the service with bun run service uninstall.',
       );
     return { plan, child: null };
   }

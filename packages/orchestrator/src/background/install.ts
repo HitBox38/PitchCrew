@@ -1,3 +1,4 @@
+import { nodeExecutable } from '@pitchcrew/core/isolated-worker';
 import { execFile } from 'node:child_process';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
@@ -14,7 +15,7 @@ const buildServiceUi = async (repository: string) => {
   try {
     const require = createRequire(join(directory, 'package.json'));
     const cli = join(dirname(require.resolve('vite/package.json')), 'bin', 'vite.js');
-    await promisify(execFile)(process.execPath, [cli, 'build'], {
+    await promisify(execFile)(nodeExecutable(), [cli, 'build'], {
       cwd: directory,
       timeout: 300_000,
       maxBuffer: 2 * 1024 * 1024,

@@ -29,9 +29,9 @@ const resources =
     : join(dirname(executable), 'resources');
 const runtime = join(resources, 'runtime');
 execFileSync(
-  join(runtime, 'node', process.platform === 'win32' ? 'node.exe' : 'node'),
+  join(runtime, 'bun', process.platform === 'win32' ? 'bun.exe' : 'bun'),
   [
-    '--input-type=module',
+    '--no-env-file',
     '--eval',
     "import { chromium } from 'playwright'; const browser = await chromium.launch({ headless: true, channel: 'chromium' }); const page = await browser.newPage(); await page.setContent('<title>Packaged browser</title>'); if (await page.title() !== 'Packaged browser') throw new Error('Browser check failed'); await browser.close();",
   ],

@@ -16,7 +16,7 @@ export const renderTaskXml = (spec: ServiceSpec) => {
   return `<?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>Runs the Pitchcrew daemon in the background for this user. Created by pnpm service install; remove it with pnpm service uninstall.</Description>
+    <Description>Runs the Pitchcrew daemon in the background for this user. Created by bun run service install; remove it with bun run service uninstall.</Description>
   </RegistrationInfo>
   <Triggers>
     <LogonTrigger>

@@ -26,7 +26,7 @@ it('inherits current agent settings independently and restores inheritance after
       return { reply: 'Fictional runtime reply.' };
     });
   }
-  const { daemon, request } = await setup(19671);
+  const { daemon, request } = await setup(19578);
   const original = daemon.service.board.get<Role>('role', 'scout');
   const defaults: Role = {
     ...original,

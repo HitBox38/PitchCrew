@@ -10,11 +10,11 @@ The additional partial `entities_thread` index covers message/run lookups by kin
 
 ## Reproducing the comparison
 
-With the repository's supported Node version and dependencies installed:
+To reproduce the historical Node comparison, use the repository's supported Node version and installed dependencies. The regression-test package script still uses Node Vitest:
 
 ```sh
 node --import tsx scripts/performance/board-queries.ts > /tmp/pitchcrew-board-query-results.json
-pnpm exec vitest run packages/board/test/query-indexes.test.ts --maxWorkers=2
+bun run test packages/board/test/query-indexes.test.ts --maxWorkers=2
 ```
 
 The script creates temporary fictional databases with 5,000 and 25,000 messages, one job per ten messages, seven default roles, and one customized role. Message IDs use a deterministic permutation so ID order differs from insertion order. It reproduces the previous schema by dropping only the two new indexes from its own temporary database, measures it, then reopens through the normal board constructor to install and measure the indexes. One warmup precedes seven samples for each query. Default-instruction cache invalidation happens outside the read timer. The output retains raw samples and query plans; temporary databases are removed in `finally`.

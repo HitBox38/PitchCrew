@@ -40,7 +40,7 @@ Avoid generic dashboard illustrations, testimonials, made-up statistics, eyebrow
 
 ## Development
 
-Use the root packageManager pin and supported Node engine, then `pnpm install`. `pnpm landing:dev` serves the page at `http://127.0.0.1:3000`; `pnpm landing:build` creates the production build, and `pnpm landing:start` serves it. Root lint, formatting and type checks cover the site; CI builds it separately from desktop packaging.
+Use Bun 1.4.4 from the root `.bun-version`/`packageManager` pin and a supported Node engine for the Next.js build CLI, then `bun install --frozen-lockfile`. `bun run landing:dev` serves the page at `http://127.0.0.1:3000`; `bun run landing:build` creates the production build, and `bun run landing:start` serves it. Root lint, formatting and type checks cover the site; CI builds it separately from desktop packaging.
 
 ## Downloads
 
@@ -66,7 +66,7 @@ After deployment, verify the canonical URL and sitemap on the public domain, add
 
 ## Later deployment
 
-In Vercel, select `packages/landing` as the project root and the Next.js framework preset. Install with the repository's frozen pnpm lockfile; build using `pnpm build` from that package. Supply `NEXT_PUBLIC_SITE_URL` with the final HTTPS origin for canonical metadata, robots and sitemap. Rebuild after changing that build-time variable. Without it the page intentionally stays out of search results. No domain or deployment is provisioned by the initial build.
+In Vercel, select `packages/landing` as the project root and the Next.js framework preset. The package's committed `vercel.json` pins `npx --yes bun@1.4.4 install --frozen-lockfile` as the Install Command so the repository's root `bun.lock` is respected, and `npx --yes bun@1.4.4 run build` as the Build Command from that package. Vercel's [Bun version guidance](https://vercel.com/kb/guide/how-to-pin-a-specific-bun-version-for-vercel-builds) uses an explicit version in the command; this project bootstraps that binary with npm's `npx` before running Bun; do not assume `.bun-version` alone pins the hosted build. Keep the Node build runtime configured for the supported Next.js engine. Supply `NEXT_PUBLIC_SITE_URL` with the final HTTPS origin for canonical metadata, robots and sitemap. Rebuild after changing that build-time variable. Without it the page intentionally stays out of search results. No domain or deployment is provisioned by the initial build.
 
 ## Screenshots
 

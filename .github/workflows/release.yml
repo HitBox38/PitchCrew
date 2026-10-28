@@ -67,7 +67,7 @@ jobs:
           macOS: .dmg installers for Apple Silicon and Intel.
           Linux: .AppImage and .deb (x64).
 
-          Node.js, the local daemon, its dependencies and Chromium are included. Node.js and pnpm do not need to be installed separately. Provider CLIs and their authentication are configured separately.
+          Bun, the local daemon, its dependencies, a Node.js helper for bounded document/database processing and Chromium are included. Bun and Node.js do not need to be installed separately. Provider CLIs and their authentication are configured separately.
 
           Windows and macOS installers are unsigned; macOS builds are not notarized. The operating system may require explicit permission to open the app.
 

@@ -41,10 +41,10 @@ export const backgroundServiceInfo = (
       !samePath(platform, daemon.directory, pathFor(platform).join(home, '.pitchcrew')),
     repository: repositoryRoot.replace(/[\\/]+$/, ''),
     commands: {
-      install: 'pnpm service install',
-      uninstall: 'pnpm service uninstall',
-      status: 'pnpm service status',
-      logs: 'pnpm service logs',
+      install: 'bun run service install',
+      uninstall: 'bun run service uninstall',
+      status: 'bun run service status',
+      logs: 'bun run service logs',
     },
   };
 };

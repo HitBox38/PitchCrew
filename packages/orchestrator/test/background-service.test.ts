@@ -27,7 +27,8 @@ describe('service definitions', () => {
   it('writes a systemd user unit with quoted paths, escaped specifiers and PATH only', () => {
     const spec = fixtureSpecs.linux;
     const unit = renderSystemdUnit(spec);
-    expect(unit).toBe(`# Created by pnpm service install. Remove it with pnpm service uninstall.
+    expect(unit)
+      .toBe(`# Created by bun run service install. Remove it with bun run service uninstall.
 [Unit]
 Description=Pitchcrew background daemon
 StartLimitIntervalSec=0
@@ -314,7 +315,9 @@ describe('install, status and uninstall', () => {
     const spec = fixtureSpecs.linux;
     const fake = fakeServiceHost('linux', spec);
     fake.files.clear();
-    await expect(createBackgroundService(spec, fake.host).install()).rejects.toThrow('pnpm build');
+    await expect(createBackgroundService(spec, fake.host).install()).rejects.toThrow(
+      'bun run build',
+    );
     expect(fake.calls).toEqual([]);
     const windows = { ...fixtureSpecs.windows, directory: 'C:\\Users\\Fixture\\100%done' };
     const windowsFake = fakeServiceHost('windows', windows);

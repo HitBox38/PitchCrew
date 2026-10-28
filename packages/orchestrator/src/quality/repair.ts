@@ -1,3 +1,4 @@
+import { sourceArguments } from '../process.ts';
 import { adapters } from '@pitchcrew/adapters';
 import { digestPacket, assertConfirmedContext } from '@pitchcrew/board';
 import {
@@ -91,7 +92,7 @@ const stagePrepared = async (
       deadline: { expiresAt: new Date(parent.startedAt).getTime() + 30 * 60_000 },
       mcp: {
         command: process.execPath,
-        args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
+        args: sourceArguments(context.mcpEntry),
         env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: context.daemonUrl },
       },
       onMessage: () => {},
