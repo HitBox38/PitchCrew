@@ -91,6 +91,10 @@ it('expires unused approvals on native reflow and terminates browser access afte
   expect(service.board.get<ComputerApproval>('computer_approval', approval.id).status).toBe(
     'rejected',
   );
+  await expect(
+    service.computer.execute(scope.runId, approval.id, new AbortController().signal, () => {}),
+  ).rejects.toThrow('The native browser resized. Inspect it and request a new approval.');
+  expect(driver.perform).not.toHaveBeenCalled();
   const next = await service.computer.request(
     scope,
     { kind: 'click', selector: '#go' },
