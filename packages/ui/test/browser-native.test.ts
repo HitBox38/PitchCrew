@@ -31,6 +31,13 @@ let page: Page;
 let host: Awaited<ReturnType<typeof setup>>;
 const input = vi.fn(async (value: BrowserInput) => {
   if (value.kind === 'dialog') state = { ...state, dialog: undefined };
+  if (value.kind === 'navigate')
+    state = {
+      ...state,
+      tabs: state.tabs.map((tab) =>
+        tab.id === state.activeTab ? { ...tab, url: value.url, title: 'Fixture page' } : tab,
+      ),
+    };
 });
 const setManual = vi.fn(async () => {});
 const subscribeFrames = vi.fn(() => () => {});
@@ -239,6 +246,55 @@ test('manages named profiles and reviews a session import before confirmation', 
   await page.getByRole('status').filter({ hasText: 'Imported 2 website cookies.' }).waitFor();
   await page.getByRole('button', { name: 'Close profiles' }).click();
   await page.keyboard.press('Escape');
+});
+test('guides blank tabs without a guest overlay and keeps loading in the toolbar', async () => {
+  state = {
+    ...state,
+    tabs: state.tabs.map((tab) =>
+      tab.id === state.activeTab ? { ...tab, url: 'about:blank', title: '' } : tab,
+    ),
+  };
+  await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+  await vi.waitFor(async () => expect(await lastMount()).toBeNull());
+  await page.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  expect(
+    await page
+      .getByRole('textbox', { name: 'Browser address' })
+      .evaluate((element) => document.activeElement === element),
+  ).toBe(true);
+  const before = await page.getByLabel('Native browser page', { exact: true }).boundingBox();
+  await page.screenshot({ path: '/tmp/pitchcrew-browser-empty.png' });
+  await page.emulateMedia({ colorScheme: 'dark', reducedMotion: 'reduce' });
+  await page.screenshot({ path: '/tmp/pitchcrew-browser-empty-dark.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.screenshot({ path: '/tmp/pitchcrew-browser-empty-mobile.png' });
+  expect(
+    await page
+      .locator('#agent-browser-panel')
+      .evaluate((element) => element.scrollWidth <= element.clientWidth),
+  ).toBe(true);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' });
+  state = {
+    ...state,
+    tabs: state.tabs.map((tab) => ({ ...tab, loading: true })),
+  };
+  await page.getByLabel('Loading page', { exact: true }).waitFor();
+  await vi.waitFor(async () => expect(await lastMount()).not.toBeNull());
+  const during = await page.getByLabel('Native browser page', { exact: true }).boundingBox();
+  expect(during?.y).toBe(before?.y);
+  expect(during?.height).toBe(before?.height);
+  expect(
+    await page
+      .locator('.browser-loading-progress > span[aria-hidden]')
+      .evaluate((element) => getComputedStyle(element).animationName),
+  ).toBe('none');
+  await page.screenshot({ path: '/tmp/pitchcrew-browser-loading.png' });
+  state = {
+    ...state,
+    tabs: state.tabs.map((tab) => ({ ...tab, loading: false, url: 'https://example.com' })),
+  };
+  await page.getByLabel('Loading page', { exact: true }).waitFor({ state: 'hidden' });
 });
 test('hides the guest for app menus and when the browser panel closes without releasing control', async () => {
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();

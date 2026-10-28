@@ -2,6 +2,7 @@ import { NativeBrowserSettings } from './NativeBrowserSettings.tsx';
 import { ArrowLeft, ArrowRight, RotateCw, Search, Square } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { BrowserAddress } from './BrowserAddress.tsx';
+import { BrowserLoadingProgress } from './BrowserLoadingProgress.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '../types.ts';
 export const NativeBrowserToolbar = ({
@@ -14,7 +15,7 @@ export const NativeBrowserToolbar = ({
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
   const manual = !!control.leaseId && !control.working;
   return (
-    <div className="browser-toolbar">
+    <div className="browser-toolbar" data-loading={!!tab?.loading}>
       <Button
         size="icon-sm"
         variant="ghost"
@@ -61,6 +62,7 @@ export const NativeBrowserToolbar = ({
         <Search size={15} />
       </Button>
       <NativeBrowserSettings model={model} manual={manual} />
+      {tab?.loading ? <BrowserLoadingProgress /> : null}
     </div>
   );
 };
