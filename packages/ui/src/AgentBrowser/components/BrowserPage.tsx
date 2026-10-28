@@ -1,9 +1,10 @@
 import type { BrowserFrame } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
 import { BrowserView } from './BrowserView.tsx';
 import { BrowserDialog } from './BrowserDialog.tsx';
+import { BrowserPlaceholder } from './BrowserPlaceholder.tsx';
+import { isBlankBrowserPage } from '../page-state.ts';
 export const BrowserPage = ({
   browserPanel,
   viewport: { attach, size },
@@ -25,7 +26,7 @@ export const BrowserPage = ({
         <output className="quiet block px-4">Browser view is updating at a reduced rate.</output>
       ) : null}
       <div className="browser-live-view" ref={attach}>
-        {frame?.screenshot ? (
+        {frame?.screenshot && !isBlankBrowserPage(frame.url, frame.title) ? (
           <BrowserView
             size={size}
             frame={frame}
@@ -36,21 +37,16 @@ export const BrowserPage = ({
             panView={panView}
           />
         ) : (
-          <div className="browser-empty">
-            <p>
-              {browserPanel.session?.status === 'open'
-                ? 'Connecting to the browser…'
-                : `Ask ${browserPanel.role!.name} to browse, or open a browser to sign in first.`}
-            </p>
-            <p className="quiet">
-              This agent keeps separate sign-ins. New tasks start with a fresh tab.
-            </p>
-            {browserPanel.session?.status !== 'open' ? (
-              <Button size="sm" disabled={control.working} onClick={() => void control.open()}>
-                Open browser
-              </Button>
-            ) : null}
-          </div>
+          <BrowserPlaceholder
+            loading={
+              control.working ||
+              frame?.status === 'loading' ||
+              (browserPanel.session?.status === 'open' && !frame)
+            }
+            opened={browserPanel.session?.status === 'open'}
+            name={browserPanel.role!.name}
+            control={control}
+          />
         )}
       </div>
       {frame?.dialog ? (

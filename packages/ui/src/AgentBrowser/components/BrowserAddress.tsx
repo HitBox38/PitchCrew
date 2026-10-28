@@ -47,7 +47,7 @@ export const BrowserAddress = ({
         spellCheck={false}
         defaultValue={address}
         readOnly={!control.leaseId || control.working}
-        placeholder={control.leaseId ? 'https://example.com…' : 'No page open'}
+        placeholder={control.leaseId ? 'Enter a URL or search…' : 'No page open'}
       />
       {control.leaseId ? (
         <Button

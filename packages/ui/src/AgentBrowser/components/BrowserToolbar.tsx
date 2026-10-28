@@ -4,6 +4,7 @@ import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
 import { BrowserAddress } from './BrowserAddress.tsx';
 import { BrowserZoom } from './BrowserZoom.tsx';
+import { BrowserLoadingProgress } from './BrowserLoadingProgress.tsx';
 export const BrowserToolbar = ({
   frame,
   control,
@@ -36,6 +37,7 @@ export const BrowserToolbar = ({
       </Button>
       <BrowserAddress frame={frame} control={control} url={address} />
       <BrowserZoom zoom={zoom} setZoom={setZoom} panView={panView} setPanView={setPanView} />
+      {frame?.status === 'loading' ? <BrowserLoadingProgress /> : null}
     </div>
   );
 };

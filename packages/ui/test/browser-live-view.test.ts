@@ -143,3 +143,17 @@ test('suspends viewing while the app document is hidden without releasing privat
   await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
   expect(errors).toEqual([]);
 });
+
+test('shows blank-page guidance over an empty streamed tab', async () => {
+  await website.goto('about:blank');
+  await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+  expect(await page.locator('.browser-screen').count()).toBe(0);
+  await page.getByRole('button', { name: 'Take control to browse', exact: true }).click();
+  await page.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  expect(
+    await page
+      .getByRole('textbox', { name: 'Browser address' })
+      .evaluate((element) => document.activeElement === element),
+  ).toBe(true);
+  expect(errors).toEqual([]);
+});

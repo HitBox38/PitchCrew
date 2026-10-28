@@ -10,7 +10,7 @@ export const NativeBrowserStatus = ({
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
   if (tab?.error)
     return (
-      <div className="form-error flex items-center justify-between gap-2 px-3 py-2" role="alert">
+      <div className="browser-page-error" role="alert">
         <p>{tab.error}</p>
         <Button
           size="sm"
@@ -22,9 +22,5 @@ export const NativeBrowserStatus = ({
         </Button>
       </div>
     );
-  return tab?.loading ? (
-    <output className="quiet px-3 py-1" aria-live="polite">
-      Loading page…
-    </output>
-  ) : null;
+  return null;
 };
