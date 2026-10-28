@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
-export const useNativeMount = (id: string) => {
+export const useNativeMount = (id: string, enabled = true) => {
   const [element, attach] = useState<HTMLDivElement | null>(null);
   useEffect(() => {
     const bridge = window.pitchcrewBrowser;
-    if (!bridge || !element) return;
+    if (!bridge || !element || !enabled) return;
     let animation = 0;
     let disposed = false;
     let previous = '';
@@ -58,6 +58,6 @@ export const useNativeMount = (id: string) => {
       window.removeEventListener('scroll', schedule, true);
       void bridge.mount(id, null).catch(() => {});
     };
-  }, [id, element]);
+  }, [id, element, enabled]);
   return attach;
 };

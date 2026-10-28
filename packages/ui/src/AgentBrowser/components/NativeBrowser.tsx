@@ -8,6 +8,8 @@ import { useNativeMount } from '../hooks/useNativeMount.ts';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '../types.ts';
 import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
+import { BrowserPlaceholder } from './BrowserPlaceholder.tsx';
+import { isBlankBrowserPage } from '../page-state.ts';
 export const NativeBrowser = ({
   model,
   control,
@@ -18,7 +20,9 @@ export const NativeBrowser = ({
   viewport: ReturnType<typeof useBrowserSize>;
 }) => {
   const id = model.identity!.id;
-  const mount = useNativeMount(id);
+  const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
+  const empty = !tab?.loading && !tab?.error && isBlankBrowserPage(tab?.url, tab?.title);
+  const mount = useNativeMount(id, !!model.state && !empty);
   const attachViewport = viewport.attach;
   const attach = useCallback(
     (element: HTMLDivElement | null) => {
@@ -37,7 +41,7 @@ export const NativeBrowser = ({
         <NativeBrowserFind key={id} id={id} close={() => model.setFindOpen(false)} />
       ) : null}
       {!manual ? (
-        <p className="quiet px-3 py-1">
+        <p className="browser-control-hint">
           Take control to browse. Your agent pauses while you use the page.
         </p>
       ) : null}
@@ -50,7 +54,11 @@ export const NativeBrowser = ({
         />
       ) : null}
       <div className="browser-panel-body">
-        <div className="browser-live-view" ref={attach} aria-label="Native browser page" />
+        <div className="browser-live-view" ref={attach} aria-label="Native browser page">
+          {!model.state || empty ? (
+            <BrowserPlaceholder loading={!model.state} opened control={control} />
+          ) : null}
+        </div>
       </div>
     </>
   );

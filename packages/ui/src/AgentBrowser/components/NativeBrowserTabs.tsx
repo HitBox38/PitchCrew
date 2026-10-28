@@ -1,4 +1,4 @@
-import { Plus, X } from 'lucide-react';
+import { Globe, LoaderCircle, Plus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 export const NativeBrowserTabs = ({
@@ -8,24 +8,29 @@ export const NativeBrowserTabs = ({
   model: NativeBrowserModel;
   manual: boolean;
 }) => (
-  <div
-    className="flex shrink-0 gap-1 overflow-x-auto border-b border-border px-2 py-1"
-    aria-label="Browser tabs"
-  >
+  <div className="browser-tabs" aria-label="Browser tabs">
     {model.state?.tabs.map((item) => (
-      <div key={item.id} className="flex shrink-0 items-center gap-0.5">
+      <div key={item.id} className="browser-tab" data-active={item.id === model.state?.activeTab}>
         <Button
           size="sm"
           variant={item.id === model.state?.activeTab ? 'secondary' : 'ghost'}
+          className="browser-tab-select"
           disabled={!manual}
+          title={item.title || 'New tab'}
           aria-current={item.id === model.state?.activeTab ? 'page' : undefined}
           onClick={() => void model.command({ kind: 'select-tab', tabId: item.id })}
         >
-          <span className="max-w-40 truncate">{item.title || 'New tab'}</span>
+          {item.loading ? (
+            <LoaderCircle className="browser-spinner" size={14} aria-hidden="true" />
+          ) : (
+            <Globe size={14} aria-hidden="true" />
+          )}
+          <span className="truncate">{item.title || 'New tab'}</span>
         </Button>
         <Button
           size="icon-sm"
           variant="ghost"
+          className="browser-tab-close"
           aria-label={`Close ${item.title || 'tab'}`}
           disabled={!manual}
           onClick={() => void model.command({ kind: 'close-tab', tabId: item.id })}
@@ -37,6 +42,7 @@ export const NativeBrowserTabs = ({
     <Button
       size="icon-sm"
       variant="ghost"
+      className="browser-tab-new"
       aria-label="New browser tab"
       disabled={!manual}
       onClick={() =>
