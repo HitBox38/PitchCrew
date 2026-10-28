@@ -370,7 +370,9 @@ export class ComputerManager {
           : {}),
         page,
         digest: hash({
-          ...scope,
+          runId: scope.runId,
+          roleId: scope.roleId,
+          cardId: scope.cardId,
           action,
           page: page.digest,
           uploadContent,
@@ -437,7 +439,10 @@ export class ComputerManager {
         message:
           'Awaiting user approval. Call execute again to wait; do not finish the run while waiting.',
       };
-    if (approval.status !== 'approved') throw new Error(`Browser action is ${approval.status}.`);
+    if (approval.status !== 'approved')
+      throw new Error(
+        `Browser action is ${approval.status}.${approval.error ? ` ${approval.error}` : ''}`,
+      );
     if (this.busy.has(runId) || this.busyRoles.has(this.browsers.keyForRun(runId)))
       throw new Error('A browser action is in progress.');
     this.busy.add(runId);

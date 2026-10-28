@@ -51,7 +51,11 @@ export const AppUpdateButton = ({
       ) : null}
       <Icon
         aria-hidden="true"
-        className={control.checking ? 'animate-spin motion-reduce:animate-none' : undefined}
+        className={
+          control.checking && !control.visible
+            ? 'animate-spin motion-reduce:animate-none'
+            : undefined
+        }
       />
       <span className="sr-only">{control.label}</span>
     </SidebarMenuButton>

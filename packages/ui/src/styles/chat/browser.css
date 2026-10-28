@@ -411,6 +411,29 @@
   background: var(--surface);
   overscroll-behavior: contain;
 }
+/* Approval presentation must not reflow the native page whose evidence it reviews. */
+.browser-approvals[data-reserved] {
+  height: min(18rem, calc(var(--browser-viewport-height, 100dvh) * 0.4));
+}
+.browser-approvals[data-reserved] .browser-pending-action {
+  height: 100%;
+}
+.browser-approvals[data-reserved] .browser-approval-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+}
+.browser-approvals[data-reserved] .approval-footer {
+  flex-shrink: 0;
+}
+.browser-approval-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  margin: 0;
+  padding: 12px;
+  text-align: center;
+}
 .browser-pending-action {
   display: flex;
   flex-direction: column;

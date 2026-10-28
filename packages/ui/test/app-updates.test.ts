@@ -89,6 +89,61 @@ afterAll(async () => {
   await cleanup();
 });
 
+test('the download icon stops spinning when the native check finishes before the daemon', async () => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  let finishDaemonCheck!: () => void;
+  const daemonCheck = new Promise<void>((resolve) => {
+    finishDaemonCheck = resolve;
+  });
+  await page.route('**/api/app-updates', async (route) => {
+    await daemonCheck;
+    await route.fulfill({ json: { ...info, automatic: false } });
+  });
+  await page.addInitScript((initial) => {
+    const fixture = window as unknown as FixtureWindow;
+    let state: DesktopUpdateState = { ...initial, status: 'checking', availableVersion: null };
+    let listener: ((value: DesktopUpdateState) => void) | undefined;
+    fixture.updateFixture = (patch) => {
+      state = { ...state, ...patch };
+      listener?.(state);
+    };
+    fixture.pitchcrewUpdates = {
+      getState: async () => state,
+      check: async () => state,
+      download: async () => state,
+      install: async () => state,
+      subscribe: (next) => {
+        listener = next;
+        return () => {
+          listener = undefined;
+        };
+      },
+    };
+  }, native);
+  try {
+    await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+    const checking = page.getByRole('button', { name: 'Checking for updates…', exact: true });
+    await checking.waitFor();
+    expect(
+      await checking.locator('svg').evaluate((icon) => getComputedStyle(icon).animationName),
+    ).toBe('spin');
+    await update(native);
+    const download = page.getByRole('button', { name: 'Download update', exact: true });
+    await download.waitFor();
+    expect(await download.getAttribute('aria-busy')).toBe('true');
+    expect(
+      await download.locator('svg').evaluate((icon) => getComputedStyle(icon).animationName),
+    ).toBe('none');
+  } finally {
+    finishDaemonCheck();
+  }
+  await page.waitForFunction(
+    () =>
+      document.querySelector('button[aria-label="Download update"]')?.getAttribute('aria-busy') ===
+      'false',
+  );
+}, 45000);
+
 test('manual download, changelog tooltip, collapse and session dismissal need no popover', async () => {
   await page.addInitScript(() => {
     window.open = (url) => {

@@ -1,5 +1,10 @@
 import { chromium, type Browser, type Page } from 'playwright';
-import { defaultCapabilities, type Role, type BrowserInput } from '@pitchcrew/core';
+import {
+  defaultCapabilities,
+  type Role,
+  type BrowserInput,
+  type ComputerApproval,
+} from '@pitchcrew/core';
 import type {
   BrowserProfilesState,
   BrowserProfilesCommand,
@@ -41,6 +46,7 @@ const input = vi.fn(async (value: BrowserInput) => {
 });
 const setManual = vi.fn(async () => {});
 const subscribeFrames = vi.fn(() => () => {});
+let viewport = { width: 1280, height: 800 };
 const nativeCommand = vi.fn(async (command: { kind: string }) => {
   if (command.kind === 'new-tab')
     state = {
@@ -69,7 +75,11 @@ beforeAll(async () => {
       setManual,
       subscribeFrames,
       input,
-      resize: async () => true,
+      getViewport: () => viewport,
+      resize: async (size) => {
+        viewport = size;
+        return true;
+      },
       snapshot: async () => ({
         url: state.tabs[0].url,
         title: 'Fixture',
@@ -296,6 +306,62 @@ test('guides blank tabs without a guest overlay and keeps loading in the toolbar
   };
   await page.getByLabel('Loading page', { exact: true }).waitFor({ state: 'hidden' });
 });
+test('keeps native approval evidence stable while requests appear, expand and resolve', async () => {
+  const release = page.getByRole('button', { name: 'Return to agent', exact: true });
+  if (await release.isVisible()) await release.click();
+  const service = host.daemon.service;
+  const scope = { runId: 'native-approval-layout', roleId: 'writer', cardId: null };
+  service.computer.bindBrowser({ ...scope, threadId: 'writer' });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  const body = page.getByLabel('Native browser page', { exact: true });
+  await body.waitFor();
+  for (const size of [
+    { width: 1440, height: 1000 },
+    { width: 390, height: 844 },
+  ]) {
+    await page.setViewportSize(size);
+    await vi.waitFor(
+      async () => {
+        const bounds = await body.boundingBox();
+        expect(viewport.height).toBe(Math.round(bounds!.height - 2));
+      },
+      { timeout: 3000 },
+    );
+    const before = await body.boundingBox();
+    for (let index = 0; index < 2; index++) {
+      const approval = await service.computer.request(
+        scope,
+        { kind: 'navigate', url: 'https://example.com/apply' },
+        'Inspect the fictional application form',
+      );
+      const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
+      await review.waitFor();
+      expect((await body.boundingBox())?.height).toBe(before?.height);
+      await review.getByRole('button', { name: 'Review exact action and page evidence' }).click();
+      if (!index)
+        await page.screenshot({ path: `/tmp/pitchcrew-browser-approval-${size.width}.png` });
+      await expect.poll(async () => (await body.boundingBox())?.height).toBe(before?.height);
+      expect(service.board.get<ComputerApproval>('computer_approval', approval.id).status).toBe(
+        'pending',
+      );
+      expect((await service.snapshot({ workspace: true })).computerApprovals).toContainEqual(
+        approval,
+      );
+      await review.getByRole('button', { name: 'Approve interaction', exact: true }).click();
+      await review.waitFor({ state: 'hidden' });
+      await service.computer.execute(
+        scope.runId,
+        approval.id,
+        new AbortController().signal,
+        () => {},
+      );
+      expect((await body.boundingBox())?.height).toBe(before?.height);
+    }
+  }
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await service.computer.stop(scope.runId);
+  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+}, 30000);
 test('hides the guest for app menus and when the browser panel closes without releasing control', async () => {
   await page.getByRole('button', { name: 'Browser options', exact: true }).click();
   await vi.waitFor(async () => expect(await lastMount()).toBeNull());

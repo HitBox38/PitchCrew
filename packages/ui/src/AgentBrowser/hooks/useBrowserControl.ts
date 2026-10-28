@@ -6,11 +6,12 @@ export const useBrowserControl = (
   roleId: string,
   threadId: string,
   refresh: () => Promise<void>,
+  cardId?: string | null,
 ) => {
   const [leases, setLeases] = useState<
     Record<string, { roleId: string; threadId: string; id: string }>
   >({});
-  const key = roleId;
+  const key = cardId ? `${roleId}:job:${cardId}` : `${roleId}:conversation:${threadId}`;
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   const [inputPending, setInputPending] = useState(0);
