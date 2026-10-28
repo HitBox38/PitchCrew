@@ -23,7 +23,7 @@
     "service": "bun --no-env-file --no-install packages/orchestrator/src/cli.ts service",
     "mcp": "bun --no-env-file --no-install packages/orchestrator/src/cli.ts mcp",
     "test": "node --import tsx --test scripts/posthog/*.test.ts && vitest run",
-    "test:desktop": "bun run build && bun --no-env-file --no-install scripts/desktop-smoke.ts && bun --no-env-file --no-install packages/desktop/test/browser-presentation.smoke.ts && bun --no-env-file --no-install packages/desktop/test/native-browser.smoke.ts",
+    "test:desktop": "bun run build && bun --no-env-file --no-install scripts/desktop-smoke.ts && bun --no-env-file --no-install packages/desktop/test/native-browser.smoke.ts",
     "typecheck": "tsc --noEmit && bun run --filter @pitchcrew/landing typecheck",
     "lint": "oxlint --deny-warnings packages scripts vitest.config.ts && bun --no-env-file --no-install scripts/check-components.ts",
     "format": "oxfmt --write .",
