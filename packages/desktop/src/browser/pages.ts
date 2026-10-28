@@ -47,6 +47,7 @@ export const createNativeGroup = (
 ) => {
   const partition = session.fromPartition(`persist:pitchcrew-browser-${profile}`);
   const errors = new Map<string, string>();
+  const placements = new WeakMap<WebContentsView, 'foreground' | 'background'>();
   const group: NativeGroup = {
     id: randomUUID(),
     profile,
@@ -252,16 +253,42 @@ export const createNativeGroup = (
       group.bounds = bounds;
       const window = getWindow();
       for (const [id, view] of group.views) {
-        view.setVisible(false);
-        if (window?.contentView.children.includes(view)) window.contentView.removeChildView(view);
-        if (window && bounds && id === group.active) {
-          window.contentView.addChildView(view);
-          view.setBounds(bounds);
-          view.setVisible(true);
-        } else if (window && group.painting.has(id)) {
-          window.contentView.addChildView(view, 0);
-          view.setVisible(true);
+        const placement =
+          window && bounds && id === group.active
+            ? 'foreground'
+            : window && group.painting.has(id)
+              ? 'background'
+              : undefined;
+        const attached = window?.contentView.children.includes(view);
+        if (!placement || !window) {
+          if (view.getVisible()) view.setVisible(false);
+          if (attached) window?.contentView.removeChildView(view);
+          placements.delete(view);
+          continue;
         }
+        // Paint activity must not tear down the selected page's native surface. Reparent
+        // only when moving between the visible panel and painting behind the app.
+        const moving = !attached || placements.get(view) !== placement;
+        if (moving) {
+          view.setVisible(false);
+          if (attached) window.contentView.removeChildView(view);
+        }
+        if (placement === 'foreground' && bounds) {
+          const current = view.getBounds();
+          if (
+            current.x !== bounds.x ||
+            current.y !== bounds.y ||
+            current.width !== bounds.width ||
+            current.height !== bounds.height
+          )
+            view.setBounds(bounds);
+        }
+        if (moving) {
+          if (placement === 'foreground') window.contentView.addChildView(view);
+          else window.contentView.addChildView(view, 0);
+          placements.set(view, placement);
+        }
+        if (!view.getVisible()) view.setVisible(true);
       }
     },
     state: () => ({
