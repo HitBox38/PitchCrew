@@ -252,15 +252,17 @@ export const createNativeGroup = (
       group.bounds = bounds;
       const window = getWindow();
       for (const [id, view] of group.views) {
-        view.setVisible(false);
-        if (window?.contentView.children.includes(view)) window.contentView.removeChildView(view);
         if (window && bounds && id === group.active) {
-          window.contentView.addChildView(view);
+          // Position before attaching/raising: the old off-panel backing surface can flash.
           view.setBounds(bounds);
-          view.setVisible(true);
+          if (window.contentView.children.at(-1) !== view) window.contentView.addChildView(view);
+          if (!view.getVisible()) view.setVisible(true);
         } else if (window && group.painting.has(id)) {
-          window.contentView.addChildView(view, 0);
-          view.setVisible(true);
+          if (window.contentView.children[0] !== view) window.contentView.addChildView(view, 0);
+          if (!view.getVisible()) view.setVisible(true);
+        } else {
+          view.setVisible(false);
+          if (window?.contentView.children.includes(view)) window.contentView.removeChildView(view);
         }
       }
     },
