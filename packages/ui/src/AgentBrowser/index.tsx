@@ -67,7 +67,11 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
           presentation={presentation}
         />
       )}
-      <BrowserApprovals {...props} control={control} />
+      <BrowserApprovals
+        {...props}
+        control={control}
+        reserveSpace={!!browserPanel.session?.native && !!browserPanel.session.runId}
+      />
     </BrowserSurface>
   );
 };

@@ -2,6 +2,7 @@ import { adapters } from '@pitchcrew/adapters';
 import {
   cardInput,
   type Card,
+  type ComputerApproval,
   type ExtractedJob,
   type Role,
   type Run,
@@ -67,6 +68,51 @@ it('inspects before drafting and carries confirmed fields through isolated extra
     }
     expect(context.messages.at(-1)?.content).toContain('BEFORE packet drafting');
     await daemon.service.agentCall(token, 'computer_inspect', {});
+    const { approval } = (await daemon.service.agentCall(token, 'computer_request', {
+      input: { kind: 'navigate', url: card.url },
+      reason: 'Inspect the application before drafting',
+    })) as { approval: ComputerApproval };
+    const run = daemon.service.board.get<Run>('run', approval.runId);
+    expect(run).toMatchObject({ mode: 'chat', roleId: 'submitter', cardId: card.id });
+    expect(approval).toMatchObject({
+      roleId: 'submitter',
+      cardId: card.id,
+      status: 'pending',
+      error: '',
+      decidedAt: null,
+    });
+    daemon.service.board.rebuild();
+    const inbox = (await request<Snapshot>('/snapshot?view=workspace')).result;
+    expect(inbox.computerApprovals).toContainEqual(approval);
+    await expect(
+      daemon.service.computer.execute(
+        run.id,
+        approval.id,
+        new AbortController().signal,
+        () => {},
+        0,
+      ),
+    ).resolves.toMatchObject({ status: 'pending' });
+    await expect(
+      daemon.service.computer.execute(
+        'different-run',
+        approval.id,
+        new AbortController().signal,
+        () => {},
+        0,
+      ),
+    ).rejects.toThrow('another run');
+    expect(
+      (await request(`/computer-approvals/${approval.id}/decide`, 'POST', { approved: true }))
+        .response.status,
+    ).toBe(200);
+    await expect(
+      daemon.service.agentCall(token, 'computer_execute', { approvalId: approval.id }),
+    ).resolves.toMatchObject({ status: 'consumed' });
+    expect(driver.perform).toHaveBeenCalledExactlyOnceWith(
+      { kind: 'navigate', url: card.url },
+      undefined,
+    );
     await daemon.service.agentCall(token, 'assess_form', {
       input: {
         fields: fields.map((field) => ({ selector: field.selector })),
@@ -84,11 +130,13 @@ it('inspects before drafting and carries confirmed fields through isolated extra
     { roleId: 'submitter' },
   );
   expect(inspection.response.status).toBe(200);
-  await waitForSnapshot(request, (snapshot) =>
+  const inspected = await waitForSnapshot(request, (snapshot) =>
     snapshot.runs.some(
-      (run) => run.threadId === inspection.result.threadId && run.status === 'completed',
+      (run) => run.threadId === inspection.result.threadId && run.status !== 'running',
     ),
   );
+  const inspectionRun = inspected.runs.find((run) => run.threadId === inspection.result.threadId)!;
+  expect(inspectionRun.status, inspectionRun.message).toBe('completed');
   const extracted = (
     await request<Run>(`/cards/${card.id}/application-context/extract`, 'POST', {
       roleId: 'writer',
@@ -184,7 +232,10 @@ it('inspects before drafting and carries confirmed fields through isolated extra
   }
   expect(daemon.service.board.get<Card>('card', card.id).state).toBe('agreed');
   expect(chat).toHaveBeenCalledTimes(2);
-  expect(driver.perform).not.toHaveBeenCalled();
+  expect(driver.perform).toHaveBeenCalledExactlyOnceWith(
+    { kind: 'navigate', url: card.url },
+    undefined,
+  );
 });
 
 it('does not grant browser/form permissions or start inspection for missing links and uncertain outcomes', async () => {

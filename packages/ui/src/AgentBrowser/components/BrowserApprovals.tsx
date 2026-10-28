@@ -3,6 +3,7 @@ import { BrowserPendingAction } from './BrowserPendingAction.tsx';
 export const BrowserApprovals = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'> & {
     control: BrowserControl;
+    reserveSpace?: boolean;
   },
 ) => {
   const approvals = props.data.computerApprovals.filter(
@@ -11,9 +12,18 @@ export const BrowserApprovals = (
       approval.runId === props.browserPanel.session?.runId &&
       approval.status === 'pending',
   );
-  if (!approvals.length) return null;
+  if (!approvals.length && !props.reserveSpace) return null;
   return (
-    <footer className="browser-approvals" aria-label="Pending browser actions">
+    <footer
+      className="browser-approvals"
+      data-reserved={props.reserveSpace || undefined}
+      aria-label="Browser action review"
+    >
+      {!approvals.length ? (
+        <p className="browser-approval-empty quiet">
+          Browser actions will appear here for your approval.
+        </p>
+      ) : null}
       {approvals.map((approval) => (
         <BrowserPendingAction key={approval.id} approval={approval} {...props} />
       ))}
