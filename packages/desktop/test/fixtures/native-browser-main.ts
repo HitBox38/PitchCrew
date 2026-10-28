@@ -58,8 +58,47 @@ void app
         );
         if (!text || text === last) return;
         last = text;
-        const command = JSON.parse(text) as { kind: string; id: string; nonce: string };
+        const command = JSON.parse(text) as {
+          kind: string;
+          id: string;
+          otherId?: string;
+          nonce: string;
+        };
         const group = host.groups.get(command.id);
+        if (command.kind === 'presentation' && group && command.otherId) {
+          const other = host.groups.get(command.otherId)!;
+          const bounds = { x: 50, y: 100, width: 700, height: 500 };
+          host.mount(other.id, bounds);
+          host.mount(group.id, bounds);
+          const selected = group.views.get(group.active)!;
+          const background = other.views.get(other.active)!;
+          const setVisible = selected.setVisible.bind(selected);
+          let hides = 0;
+          let isolated = true;
+          selected.setVisible = (visible) => {
+            if (!visible) hides++;
+            setVisible(visible);
+          };
+          try {
+            for (let cycle = 0; cycle < 20; cycle++) {
+              other.paint(other.active, true);
+              group.paint(group.active, true);
+              group.paint(group.active, false);
+              isolated &&=
+                window.contentView.children.at(-1) === selected &&
+                window.contentView.children.indexOf(background) <
+                  window.contentView.children.indexOf(appView);
+              other.paint(other.active, false);
+              host.mount(group.id, bounds);
+            }
+          } finally {
+            selected.setVisible = setVisible;
+          }
+          await writeFile(
+            process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
+            JSON.stringify({ nonce: command.nonce, hides, isolated }),
+          );
+        }
         if (command.kind === 'human' && group) {
           host.mount(group.id, { x: 50, y: 100, width: 700, height: 500 });
           const contents = group.pages.get(group.active)!.contents;

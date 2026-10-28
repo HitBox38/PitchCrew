@@ -208,6 +208,29 @@ try {
     throw new Error('New browser session did not use the selected named profile.');
   if ((await driver.nativeState!()).profile?.id !== 'default')
     throw new Error('Existing browser session changed its sign-in profile.');
+  await writeFile(
+    commands,
+    JSON.stringify({
+      kind: 'presentation',
+      id: namedState.id,
+      otherId: native.id,
+      nonce: 'presentation',
+    }),
+  );
+  const presentation = await wait(async () => {
+    try {
+      const value = JSON.parse(await readFile(resultFile, 'utf8')) as {
+        nonce: string;
+        hides: number;
+        isolated: boolean;
+      };
+      return value.nonce === 'presentation' ? value : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+  if (presentation.hides || !presentation.isolated)
+    throw new Error(`Native session presentation flickered: ${JSON.stringify(presentation)}`);
   if (page.screenshot.length === 0 || resumed.screenshot.length === 0)
     throw new Error('Agent screenshots were unavailable.');
 } catch (error) {
