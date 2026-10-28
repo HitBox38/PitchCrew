@@ -5,6 +5,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { checkNativeBrowserTabs } from './fixtures/native-browser-tabs.ts';
 import { Board } from '../../board/src/index.ts';
 import { ComputerManager } from '../../mcp/src/computer.ts';
 import { electronExecutable } from '../../../scripts/electron-path.ts';
@@ -62,6 +63,12 @@ try {
   });
   manager.desktopHosts.register(descriptor);
   renewal = setInterval(() => manager.desktopHosts.register(descriptor), 5000);
+  const tabsDriver = await manager.desktopHosts.launch(join(directory, 'tabs-profile'));
+  try {
+    await checkNativeBrowserTabs(tabsDriver);
+  } finally {
+    await tabsDriver.close();
+  }
   const scope = { runId: 'native-fixture-run', roleId: 'writer', cardId: null };
   manager.bindBrowser({ ...scope, threadId: 'native-fixture' });
   const page = await wait(async () => {

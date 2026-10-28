@@ -148,7 +148,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           const page = group.pages.get(group.active)?.contents;
           if (command.kind === 'select-tab') group.select(command.tabId);
           if (command.kind === 'close-tab') {
-            group.close(command.tabId);
+            await group.close(command.tabId);
             if (!group.pages.size) await group.create();
           }
           if (command.kind === 'new-tab') await group.create();

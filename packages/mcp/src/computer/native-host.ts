@@ -80,15 +80,22 @@ export class DesktopBrowserHosts {
       const select = async (next: NativeBrowserState) => {
         for (let attempt = 0; attempt < 100; attempt++) {
           for (const current of context.pages()) {
-            const session = await context.newCDPSession(current);
+            if (current.isClosed()) continue;
             try {
-              const info = await session.send('Target.getTargetInfo');
-              if (info.targetInfo.targetId === next.activeTab) {
-                driver.selectPage?.(current);
-                return next;
+              const session = await context.newCDPSession(current);
+              try {
+                const info = await session.send('Target.getTargetInfo');
+                if (info.targetInfo.targetId === next.activeTab) {
+                  driver.selectPage?.(current);
+                  return next;
+                }
+              } finally {
+                await session.detach();
               }
-            } finally {
-              await session.detach();
+            } catch (error) {
+              // Tab state arrives over HTTP while close events arrive over CDP.
+              // A page from this iteration can disappear before its session attaches.
+              if (!current.isClosed()) throw error;
             }
           }
           await new Promise((resolve) => setTimeout(resolve, 50));
