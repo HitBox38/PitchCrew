@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { afterEach, expect, it } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from '../../orchestrator/test/helpers/daemon.ts';
+import { postingLinks, recordedPostings } from '../../orchestrator/test/helpers/job-links.ts';
 import {
   disableExternalAccess,
   enableExternalAccess,
@@ -340,4 +341,139 @@ it('provides the stable read-only evidence for all ten example-workspace evaluat
   expect(answers).toEqual(
     [...evaluation.matchAll(/<answer>(.*?)<\/answer>/g)].map((match) => match[1]),
   );
+});
+
+it('fetches external job links before supplied text and preserves provenance without adding duplicates', async () => {
+  const { daemon, directory } = await setup(15625);
+  const { fetcher, calls } = recordedPostings();
+  daemon.service.jobSources.fetch = fetcher;
+  await enableExternalAccess(directory, true);
+  const client = await connect(directory, Number(new URL(daemon.url).port));
+  expect(client.getInstructions()).toContain('verbatim');
+  const tool = (await client.listTools()).tools.find(
+    (tool) => tool.name === 'pitchcrew_create_job',
+  )!;
+  expect(tool.annotations?.openWorldHint).toBe(true);
+  expect(tool.inputSchema.required ?? []).not.toContain('company');
+  const result = await client.callTool({
+    name: 'pitchcrew_create_job',
+    arguments: { url: postingLinks.greenhouse.link, tags: ['React'] },
+  });
+  expect(result.isError).not.toBe(true);
+  const { card } = result.structuredContent as { card: Card };
+  expect(card).toMatchObject({
+    state: 'lead',
+    tags: ['React'],
+    discovery: { provider: 'greenhouse', sourceId: 'link', jobId: '4010001001' },
+    tracking: { jobIdentifier: '4010001001' },
+  });
+  expect(card.description).toContain('React');
+  expect(card).not.toHaveProperty('sourceHtml');
+  expect(calls.map((call) => call.url)).toEqual([postingLinks.greenhouse.endpoint]);
+  expect(daemon.service.board.history(card.id)[0].actor).toBe('external-mcp');
+  const duplicate = await client.callTool({
+    name: 'pitchcrew_create_job',
+    arguments: {
+      url: postingLinks.greenhouse.link,
+      company: 'Invented company',
+      title: 'Invented title',
+      description: 'A summary that must not replace fetched content.',
+    },
+  });
+  expect(duplicate.structuredContent).toEqual({
+    status: 'duplicate',
+    duplicates: [{ id: card.id, state: 'lead' }],
+  });
+  expect(daemon.service.board.list<Card>('card').map(({ id }) => id)).toEqual([card.id]);
+  expect(daemon.service.board.get<Card>('card', card.id)).toMatchObject(card);
+});
+
+it('uses the public structured-page Fetch from link feature for external jobs', async () => {
+  const { daemon, directory } = await setup(15626);
+  const url = 'https://careers.example.com/jobs/frontend-engineer';
+  daemon.service.jobSources.readPage = async () => ({
+    url,
+    html: await readFile(
+      new URL('../../orchestrator/test/fixtures/job-pages/structured.html', import.meta.url),
+      'utf8',
+    ),
+  });
+  await enableExternalAccess(directory, true);
+  const client = await connect(directory, Number(new URL(daemon.url).port));
+  const result = await client.callTool({
+    name: 'pitchcrew_create_job',
+    arguments: { url, company: 'Wrong', title: 'Wrong', description: 'Wrong' },
+  });
+  expect(result.isError).not.toBe(true);
+  const { card } = result.structuredContent as { card: Card };
+  expect(card).toMatchObject({ company: 'Northwind', title: 'Frontend Engineer', url });
+  expect(card.description).toContain('Build accessible interfaces.');
+  expect(card.description).not.toBe('Wrong');
+  expect(card.discovery).toBeUndefined();
+});
+
+it('requests original text after a failed external fetch and saves the supplied description verbatim', async () => {
+  const { daemon, directory } = await setup(15627);
+  let reads = 0;
+  daemon.service.jobSources.readPage = async () => {
+    reads++;
+    throw new Error('Fictional unreadable page');
+  };
+  await enableExternalAccess(directory, true);
+  const client = await connect(directory, Number(new URL(daemon.url).port));
+  const url = 'https://careers.example.com/jobs/backend-engineer';
+  const call = (input: Record<string, unknown>) =>
+    client.callTool({ name: 'pitchcrew_create_job', arguments: { url, ...input } });
+  for (const input of [{}, { company: 'Acme', title: 'Engineer', description: '   ' }]) {
+    const result = await call(input);
+    expect(result.isError).not.toBe(true);
+    expect(result.structuredContent).toMatchObject({
+      status: 'needs_details',
+      instruction: expect.stringContaining('verbatim'),
+    });
+    expect(daemon.service.board.list('card')).toHaveLength(0);
+  }
+  const description =
+    'About the role\n\nBuild reliable systems — one at a time.\n\n• TypeScript\n• SQL\n\nשוויון הזדמנויות';
+  const result = await call({ company: 'Acme', title: 'Engineer', description });
+  expect(result.isError).not.toBe(true);
+  const { card } = result.structuredContent as { card: Card };
+  expect(card.description).toBe(description);
+  expect(
+    (await client.callTool({ name: 'pitchcrew_read_job', arguments: { cardId: card.id } }))
+      .structuredContent,
+  ).toMatchObject({ card: { description, url } });
+  expect(reads).toBe(3);
+  expect(daemon.service.board.history(card.id)[0].actor).toBe('external-mcp');
+  expect(
+    (await call({ company: 'Acme', title: 'Engineer', description: 'x'.repeat(20001) })).isError,
+  ).toBe(true);
+  expect(daemon.service.board.list('card')).toHaveLength(1);
+});
+
+it('keeps one-use Comeet tokens out of failed-fetch results and fallback cards', async () => {
+  const { daemon, directory } = await setup(15628);
+  daemon.service.jobSources.fetch = async () =>
+    new Response('{}', { status: 404, headers: { 'content-type': 'application/json' } });
+  await enableExternalAccess(directory, true);
+  const client = await connect(directory, Number(new URL(daemon.url).port));
+  const token = new URL(postingLinks.comeetEmbed.link).searchParams.get('token')!;
+  const call = (input: Record<string, unknown>) =>
+    client.callTool({
+      name: 'pitchcrew_create_job',
+      arguments: { url: postingLinks.comeetEmbed.link, ...input },
+    });
+  const missing = await call({});
+  expect(missing.isError).not.toBe(true);
+  expect(missing.structuredContent).toMatchObject({ status: 'needs_details' });
+  expect(JSON.stringify(missing)).not.toContain(token);
+  const saved = await call({
+    company: 'Wingtip',
+    title: 'Engineer',
+    description: 'Build reliable systems.\n\nRequirements:\n• TypeScript',
+  });
+  expect(saved.isError).not.toBe(true);
+  expect(saved.structuredContent).toHaveProperty('card');
+  expect(JSON.stringify(saved)).not.toContain(token);
+  expect(JSON.stringify(daemon.service.board.events())).not.toContain(token);
 });
