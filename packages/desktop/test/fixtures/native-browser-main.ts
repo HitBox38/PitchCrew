@@ -5,6 +5,7 @@ import { app, BrowserWindow, session, nativeImage } from 'electron';
 import { writeFile, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { createNativeBrowserHost } from '../../src/browser/host.ts';
+import { checkNativeBrowserPresentation } from './native-browser-presentation.ts';
 
 if (process.platform === 'darwin') app.setActivationPolicy('accessory');
 app.setPath('userData', process.env.PITCHCREW_NATIVE_SMOKE_HOME!);
@@ -29,6 +30,7 @@ void app
       focused = true;
     });
     await window.loadURL('data:text/html,<h1>Native browser fixture</h1>');
+    await checkNativeBrowserPresentation(window, appView);
     const host = await createNativeBrowserHost(() => window);
     await writeFile(process.env.PITCHCREW_NATIVE_SMOKE_HOST!, JSON.stringify(host.descriptor));
     const initialized = new Set<number>();
