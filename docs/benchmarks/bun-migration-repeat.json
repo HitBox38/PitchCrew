@@ -1,0 +1,359 @@
+{
+  "generatedAt": "2026-10-27T22:30:04.696Z",
+  "baselineCommit": "e3f7ed03d0f374e739f12a56180c952faa2462c8",
+  "candidateManifestsCommit": "aa5401e323ddfd302322a66090ea2871dd643eb2",
+  "workingDiffSha256": "8e1d826ed9a12771888a227305f8b7d93c2f067a8469ccea332be2b5cae54087",
+  "machine": {
+    "platform": "darwin",
+    "arch": "arm64",
+    "release": "25.6.0",
+    "cpu": "Apple M4 Pro"
+  },
+  "versions": {
+    "node": "v24.22.0",
+    "bun": "1.4.4",
+    "pnpm": "11.22.0",
+    "pnpmLauncher": "10.28.1"
+  },
+  "methodology": {
+    "runtime": "Fresh process and fresh isolated workspace per sample; alternating Node/Bun order; API-only direct createDaemon; deterministic unavailable adapter detection; all module imports included; ready and first authenticated compact snapshot measured from parent spawn; filesystem caches not flushed; RSS sampled immediately after first snapshot.",
+    "installs": "Fresh manifest-only workspace per sample, original committed pnpm manifests/lock versus current Bun manifests/lock; one unmeasured warmup per manager; alternating order; normal trusted lifecycle scripts; frozen locks; existing global package/Electron caches; no node_modules reuse.",
+    "limitations": "One local machine; wall-clock samples include subprocess/pipe scheduling; RSS is a point sample, not peak or long-duration memory; excludes Electron, Chromium startup and live runtime probes; install results do not establish GitHub-hosted CI speed."
+  },
+  "dependencyVersionSpecifiersUnchanged": true,
+  "additionalDirectEdges": ["@pitchcrew/core -> tsx@4.23.15"],
+  "lockAudit": {
+    "pnpmPackages": 972,
+    "bunPackages": 981,
+    "added": [],
+    "omitted": []
+  },
+  "lockHashes": {
+    "pnpm": "a2ee086ef65e6441a85a330a6b10ff123db53ae533a706d8d470b01ef4e35fe7",
+    "bun": "0651885b8ae620b849301c168f1a89b0cf2ec5035f3e0e9eeb2b5673bf4fc952"
+  },
+  "runtimeSamples": [
+    {
+      "tool": "node",
+      "repetition": 1,
+      "readyMs": 748.6567910000001,
+      "snapshotMs": 779.5262500000001,
+      "rssBytes": 165724160,
+      "totalProcessMs": 804.4626660000001,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 770.07,
+        "rssBytes": 165724160,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 1,
+      "readyMs": 236.42829200000006,
+      "snapshotMs": 250.17120899999986,
+      "rssBytes": 78824216,
+      "totalProcessMs": 255.33312499999988,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 245.913458,
+        "rssBytes": 78824216,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 2,
+      "readyMs": 174.78583400000002,
+      "snapshotMs": 183.43616699999984,
+      "rssBytes": 80528176,
+      "totalProcessMs": 188.23620899999992,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 179.478708,
+        "rssBytes": 80528176,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    },
+    {
+      "tool": "node",
+      "repetition": 2,
+      "readyMs": 402.15945899999997,
+      "snapshotMs": 418.832625,
+      "rssBytes": 151420928,
+      "totalProcessMs": 442.25866700000006,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 408.364667,
+        "rssBytes": 151420928,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "node",
+      "repetition": 3,
+      "readyMs": 357.35629199999994,
+      "snapshotMs": 374.87358300000005,
+      "rssBytes": 156647424,
+      "totalProcessMs": 397.952667,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 364.801042,
+        "rssBytes": 156647424,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 3,
+      "readyMs": 164.17512499999975,
+      "snapshotMs": 172.6785420000001,
+      "rssBytes": 79807256,
+      "totalProcessMs": 176.82691699999987,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 168.951958,
+        "rssBytes": 79807256,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 4,
+      "readyMs": 161.63350000000037,
+      "snapshotMs": 170.29762500000015,
+      "rssBytes": 80773912,
+      "totalProcessMs": 174.64712500000041,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 166.819291,
+        "rssBytes": 80773912,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    },
+    {
+      "tool": "node",
+      "repetition": 4,
+      "readyMs": 320.0966669999998,
+      "snapshotMs": 335.35704199999964,
+      "rssBytes": 152403968,
+      "totalProcessMs": 356.887792,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 325.893667,
+        "rssBytes": 152403968,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "node",
+      "repetition": 5,
+      "readyMs": 317.0588340000004,
+      "snapshotMs": 332.73104200000034,
+      "rssBytes": 152141824,
+      "totalProcessMs": 354.8061670000002,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 323.710959,
+        "rssBytes": 152141824,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 5,
+      "readyMs": 168.11666699999978,
+      "snapshotMs": 176.53849999999966,
+      "rssBytes": 81003312,
+      "totalProcessMs": 180.58979199999976,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 172.883042,
+        "rssBytes": 81003312,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 6,
+      "readyMs": 164.90999999999985,
+      "snapshotMs": 173.70491700000002,
+      "rssBytes": 81298224,
+      "totalProcessMs": 178.02537500000017,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 170.440458,
+        "rssBytes": 81298224,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    },
+    {
+      "tool": "node",
+      "repetition": 6,
+      "readyMs": 318.9450830000005,
+      "snapshotMs": 334.0710420000005,
+      "rssBytes": 152420352,
+      "totalProcessMs": 355.26745800000026,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 324.553958,
+        "rssBytes": 152420352,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "node",
+      "repetition": 7,
+      "readyMs": 318.8349589999998,
+      "snapshotMs": 334.3517089999996,
+      "rssBytes": 152993792,
+      "totalProcessMs": 355.8767089999992,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 325.045083,
+        "rssBytes": 152993792,
+        "roleCount": 8,
+        "node": "24.22.0",
+        "bun": null
+      }
+    },
+    {
+      "tool": "bun",
+      "repetition": 7,
+      "readyMs": 161.77345800000057,
+      "snapshotMs": 169.8647920000003,
+      "rssBytes": 80184136,
+      "totalProcessMs": 173.8975420000006,
+      "fixture": {
+        "phase": "snapshot",
+        "fixtureElapsedMs": 166.322417,
+        "rssBytes": 80184136,
+        "roleCount": 8,
+        "node": "26.3.0",
+        "bun": "1.4.4"
+      }
+    }
+  ],
+  "installSamples": [
+    {
+      "tool": "pnpm",
+      "repetition": 0,
+      "warmup": true,
+      "elapsedMs": 5732.754083999999,
+      "stdout": "Scope: all 10 workspace projects\n✓ Lockfile passes supply-chain policies (verified 4h ago)\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +780\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nPackages are cloned from the content-addressable store to the virtual store.\n  Content-addressable store is at: /Users/tomernorman/Library/pnpm/store/v11\n  Virtual store is at:             node_modules/.pnpm\nProgress: resolved 780, reused 779, downloaded 0, added 62\nProgress: resolved 780, reused 779, downloaded 0, added 337\nProgress: resolved 780, reused 779, downloaded 0, added 759\nProgress: resolved 780, reused 779, downloaded 0, added 777\nProgress: resolved 780, reused 779, downloaded 0, added 780, done\n\ndevDependencies:\n+ @types/node 22.20.4\n+ electron 44.5.1\n+ electron-builder 26.15.3\n+ oxfmt 0.71.0\n+ oxlint 1.86.0\n+ tsx 4.23.15\n+ typescript 7.0.2\n+ vitest 5.0.3\n\nDone in 5.5s using pnpm v11.22.0\n",
+      "stderr": ""
+    },
+    {
+      "tool": "bun",
+      "repetition": 0,
+      "warmup": true,
+      "elapsedMs": 2571.83375,
+      "stdout": "bun install v1.4.4 (38afee6c8)\n\n+ @types/node@22.20.4\n+ electron@44.5.1\n+ electron-builder@26.15.3\n+ oxfmt@0.71.0\n+ oxlint@1.86.0\n+ tsx@4.23.15\n+ typescript@7.0.2\n+ vitest@5.0.3\n\n783 packages installed [2.57s]\n\nBlocked 2 postinstalls. Run `bun pm untrusted` for details.\n",
+      "stderr": ""
+    },
+    {
+      "tool": "pnpm",
+      "repetition": 1,
+      "warmup": false,
+      "elapsedMs": 5266.894167000002,
+      "stdout": "Scope: all 10 workspace projects\n✓ Lockfile passes supply-chain policies (verified 4h ago)\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +780\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nPackages are cloned from the content-addressable store to the virtual store.\n  Content-addressable store is at: /Users/tomernorman/Library/pnpm/store/v11\n  Virtual store is at:             node_modules/.pnpm\nProgress: resolved 780, reused 779, downloaded 0, added 34\nProgress: resolved 780, reused 779, downloaded 0, added 108\nProgress: resolved 780, reused 779, downloaded 0, added 293\nProgress: resolved 780, reused 779, downloaded 0, added 779\nProgress: resolved 780, reused 779, downloaded 0, added 780, done\n\ndevDependencies:\n+ @types/node 22.20.4\n+ electron 44.5.1\n+ electron-builder 26.15.3\n+ oxfmt 0.71.0\n+ oxlint 1.86.0\n+ tsx 4.23.15\n+ typescript 7.0.2\n+ vitest 5.0.3\n\nDone in 5.1s using pnpm v11.22.0\n",
+      "stderr": ""
+    },
+    {
+      "tool": "bun",
+      "repetition": 1,
+      "warmup": false,
+      "elapsedMs": 1334.3992499999986,
+      "stdout": "bun install v1.4.4 (38afee6c8)\n\n+ @types/node@22.20.4\n+ electron@44.5.1\n+ electron-builder@26.15.3\n+ oxfmt@0.71.0\n+ oxlint@1.86.0\n+ tsx@4.23.15\n+ typescript@7.0.2\n+ vitest@5.0.3\n\n783 packages installed [1329.00ms]\n\nBlocked 2 postinstalls. Run `bun pm untrusted` for details.\n",
+      "stderr": ""
+    },
+    {
+      "tool": "bun",
+      "repetition": 2,
+      "warmup": false,
+      "elapsedMs": 1320.7926670000015,
+      "stdout": "bun install v1.4.4 (38afee6c8)\n\n+ @types/node@22.20.4\n+ electron@44.5.1\n+ electron-builder@26.15.3\n+ oxfmt@0.71.0\n+ oxlint@1.86.0\n+ tsx@4.23.15\n+ typescript@7.0.2\n+ vitest@5.0.3\n\n783 packages installed [1317.00ms]\n\nBlocked 2 postinstalls. Run `bun pm untrusted` for details.\n",
+      "stderr": ""
+    },
+    {
+      "tool": "pnpm",
+      "repetition": 2,
+      "warmup": false,
+      "elapsedMs": 5277.305957999997,
+      "stdout": "Scope: all 10 workspace projects\n✓ Lockfile passes supply-chain policies (verified 4h ago)\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +780\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nPackages are cloned from the content-addressable store to the virtual store.\n  Content-addressable store is at: /Users/tomernorman/Library/pnpm/store/v11\n  Virtual store is at:             node_modules/.pnpm\nProgress: resolved 780, reused 779, downloaded 0, added 51\nProgress: resolved 780, reused 779, downloaded 0, added 169\nProgress: resolved 780, reused 779, downloaded 0, added 376\nProgress: resolved 780, reused 779, downloaded 0, added 779\nProgress: resolved 780, reused 779, downloaded 0, added 780, done\n\ndevDependencies:\n+ @types/node 22.20.4\n+ electron 44.5.1\n+ electron-builder 26.15.3\n+ oxfmt 0.71.0\n+ oxlint 1.86.0\n+ tsx 4.23.15\n+ typescript 7.0.2\n+ vitest 5.0.3\n\nDone in 5s using pnpm v11.22.0\n",
+      "stderr": ""
+    },
+    {
+      "tool": "pnpm",
+      "repetition": 3,
+      "warmup": false,
+      "elapsedMs": 5026.316417000002,
+      "stdout": "Scope: all 10 workspace projects\n✓ Lockfile passes supply-chain policies (verified 4h ago)\nLockfile is up to date, resolution step is skipped\nProgress: resolved 1, reused 0, downloaded 0, added 0\nPackages: +780\n++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++\nPackages are cloned from the content-addressable store to the virtual store.\n  Content-addressable store is at: /Users/tomernorman/Library/pnpm/store/v11\n  Virtual store is at:             node_modules/.pnpm\nProgress: resolved 780, reused 779, downloaded 0, added 56\nProgress: resolved 780, reused 779, downloaded 0, added 275\nProgress: resolved 780, reused 779, downloaded 0, added 530\nProgress: resolved 780, reused 779, downloaded 0, added 779\nProgress: resolved 780, reused 779, downloaded 0, added 780, done\n\ndevDependencies:\n+ @types/node 22.20.4\n+ electron 44.5.1\n+ electron-builder 26.15.3\n+ oxfmt 0.71.0\n+ oxlint 1.86.0\n+ tsx 4.23.15\n+ typescript 7.0.2\n+ vitest 5.0.3\n\nDone in 4.8s using pnpm v11.22.0\n",
+      "stderr": ""
+    },
+    {
+      "tool": "bun",
+      "repetition": 3,
+      "warmup": false,
+      "elapsedMs": 1322.421500000004,
+      "stdout": "bun install v1.4.4 (38afee6c8)\n\n+ @types/node@22.20.4\n+ electron@44.5.1\n+ electron-builder@26.15.3\n+ oxfmt@0.71.0\n+ oxlint@1.86.0\n+ tsx@4.23.15\n+ typescript@7.0.2\n+ vitest@5.0.3\n\n783 packages installed [1317.00ms]\n\nBlocked 2 postinstalls. Run `bun pm untrusted` for details.\n",
+      "stderr": ""
+    }
+  ],
+  "summary": {
+    "readyMs": {
+      "before": 320.0966669999998,
+      "after": 164.90999999999985,
+      "saved": 155.18666699999994,
+      "reductionPercent": 48.48118802811528,
+      "speedup": 1.9410385482990726
+    },
+    "firstSnapshotMs": {
+      "before": 335.35704199999964,
+      "after": 173.70491700000002,
+      "saved": 161.65212499999961,
+      "reductionPercent": 48.202991067651354,
+      "speedup": 1.930613409175974
+    },
+    "rssBytes": {
+      "before": 152420352,
+      "after": 80528176,
+      "saved": 71892176,
+      "reductionPercent": 47.167044988847685,
+      "speedup": 1.892758032915088
+    },
+    "freshWarmCacheInstallMs": {
+      "before": 5266.894167000002,
+      "after": 1322.421500000004,
+      "saved": 3944.472666999998,
+      "reductionPercent": 74.89181559246616,
+      "speedup": 3.9827650767928278
+    }
+  },
+  "complete": true,
+  "error": null
+}

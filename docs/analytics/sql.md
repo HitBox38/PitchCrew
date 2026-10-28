@@ -3,9 +3,9 @@
 `posthog/sql/resources.json` contains seven noncanonical HogQL definitions. `scripts/posthog/sql-library.ts` builds exact `execute-sql` inputs; `scripts/posthog/sql.ts` is an offline administrator planner. It makes no network requests, loads no credentials and does not execute arbitrary SQL. It is separate from the shipped app and cannot grant crew agents analytics access.
 
 ```sh
-node scripts/posthog/sql.ts list
-node scripts/posthog/sql.ts plan request_health --days 7 --timezone Asia/Jerusalem --limit 100
-node scripts/posthog/sql.ts plan ci_attempt_health --days 30 --timezone UTC --catalog no_match
+bun --no-env-file scripts/posthog/sql.ts list
+bun --no-env-file scripts/posthog/sql.ts plan request_health --days 7 --timezone Asia/Jerusalem --limit 100
+bun --no-env-file scripts/posthog/sql.ts plan ci_attempt_health --days 30 --timezone UTC --catalog no_match
 node --test scripts/posthog/sql.test.ts
 ```
 

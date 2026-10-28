@@ -1,4 +1,4 @@
-// Run with `node --import tsx` so the launcher shares the daemon's TypeScript service logic.
+// Bun runs the launcher and daemon's shared TypeScript service logic directly.
 import { spawn, type ChildProcess } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
@@ -29,7 +29,12 @@ const { plan, child } = await prepareDaemon({
   spawnDaemon: () =>
     spawn(
       process.execPath,
-      ['--import', 'tsx', 'packages/orchestrator/src/cli.ts', ...(!production ? ['--dev'] : [])],
+      [
+        '--no-env-file',
+        '--no-install',
+        'packages/orchestrator/src/cli.ts',
+        ...(!production ? ['--dev'] : []),
+      ],
       { cwd: root, stdio: ['inherit', 'inherit', 'inherit', 'ipc'], windowsHide: true },
     ),
   sleep: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),

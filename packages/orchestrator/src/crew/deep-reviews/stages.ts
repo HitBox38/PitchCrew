@@ -1,3 +1,4 @@
+import { sourceArguments } from '../../process.ts';
 import { guideForRun } from '../../quality/writing.ts';
 import { selectedChatSkills } from '../chat-references.ts';
 import { reviewChildren } from './subagents.ts';
@@ -134,7 +135,7 @@ const executeReviewStagePrepared = async (
           writingGuide: run.writingGuide,
           mcp: {
             command: process.execPath,
-            args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
+            args: sourceArguments(context.mcpEntry),
             env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: context.daemonUrl },
           },
           signal: controller.signal,

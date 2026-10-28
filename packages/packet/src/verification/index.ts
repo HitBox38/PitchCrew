@@ -1,5 +1,5 @@
 import type { ArtifactLayout, DocumentVerification, Packet, PacketArtifact } from '@pitchcrew/core';
-import { Worker } from 'node:worker_threads';
+import { IsolatedWorker as Worker } from '@pitchcrew/core/isolated-worker';
 import { createHash } from 'node:crypto';
 import { verifiedArtifact, renderArtifacts, type RenderOptions } from '../artifacts.ts';
 import { parseMarkdown } from '../documents/markdown.ts';

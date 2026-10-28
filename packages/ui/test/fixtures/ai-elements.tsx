@@ -135,7 +135,7 @@ const Fixture = () => {
               <p>Fictional supporting evidence</p>
             </AccordionSection>
           </AccordionSection>
-          <ServiceCommand command="pnpm service status" />
+          <ServiceCommand command="bun run service status" />
           <BrowserActionSummary
             action={{
               kind: 'fill',

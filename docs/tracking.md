@@ -126,7 +126,7 @@ The file picker accepts trackers with `applications`, `status_events`, `tags` an
 For command-line workflows, `scripts/convert-legacy-tracker.ts` remains available and uses the same converter to write a JSON import file:
 
 ```sh
-node scripts/convert-legacy-tracker.ts ~/old-tracker.db ~/applications.json
+bun --no-env-file scripts/convert-legacy-tracker.ts ~/old-tracker.db ~/applications.json
 ```
 
 The tracker is opened read-only and an existing output file is never overwritten. Without an output path, JSON goes to standard output.

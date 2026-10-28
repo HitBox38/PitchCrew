@@ -1,6 +1,6 @@
 import { importLimits } from '@pitchcrew/core';
 import type { DatabaseImportConversion } from '@pitchcrew/core';
-import { Worker } from 'node:worker_threads';
+import { IsolatedWorker as Worker } from '@pitchcrew/core/isolated-worker';
 import { z } from 'zod';
 
 /** Uploaded databases stay in memory; a bounded worker keeps SQLite off the HTTP thread. */

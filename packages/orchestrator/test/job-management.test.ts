@@ -42,7 +42,7 @@ afterEach(async () => {
 });
 
 it('lists bounded summaries and changes or deletes explicit jobs from an unattached chat over HTTP', async () => {
-  const { daemon, request } = await setup(15621);
+  const { daemon, request } = await setup(19575);
   const board = daemon.service.board;
   const card = board.createCard(
     cardInput.parse({
@@ -114,7 +114,7 @@ it('lists bounded summaries and changes or deletes explicit jobs from an unattac
 });
 
 it('uses attached jobs by default and checks current permissions, pause and cancellation on each call', async () => {
-  const { daemon } = await setup(15622);
+  const { daemon } = await setup(19576);
   const board = daemon.service.board;
   const card = board.createCard(cardInput.parse({ company: 'Fixture', title: 'Engineer' }));
   const token = scopedRun(daemon, card.id);
@@ -150,7 +150,7 @@ it('uses attached jobs by default and checks current permissions, pause and canc
 });
 
 it('finishes an actual chat successfully after its attached job is deleted', async () => {
-  const { daemon, request } = await setup(15623);
+  const { daemon, request } = await setup(19577);
   await daemon.service.saveProfile(
     'profile.md',
     '# Fixture Candidate\n\nBuilt fictional interfaces.',

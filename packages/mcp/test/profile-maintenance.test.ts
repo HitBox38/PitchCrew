@@ -131,7 +131,7 @@ type Fixture = Awaited<ReturnType<typeof setup>>;
 
 describe('profile maintenance', () => {
   it('stages exact source diffs, local conflicts and removals without writing, then applies the verified reviewed snapshot only when idle', async () => {
-    const f = await setup(14601);
+    const f = await setup(19568);
     const remote = fixture(f);
     const { preview, source } = await imported(f);
     const project = preview.files.find((file) => file.path.endsWith('project.md'))!;
@@ -215,7 +215,7 @@ describe('profile maintenance', () => {
   });
 
   it('rejects stale notes, changed source settings, disconnected accounts and unauthorized agent access', async () => {
-    const f = await setup(14602);
+    const f = await setup(19569);
     const remote = fixture(f);
     const { source, preview } = await imported(f);
     remote.documents.set('notes/background.md', 'New supported fact');
@@ -291,7 +291,7 @@ describe('profile maintenance', () => {
   });
 
   it('detects code-only GitHub project changes and keeps bounded pinned evidence and generated notes outside the factual profile until approval', async () => {
-    const f = await setup(14603);
+    const f = await setup(19570);
     const remote = fixture(f);
     remote.documents.clear();
     remote.documents.set('src/tool.ts', 'export const accessible = true;');

@@ -1,3 +1,4 @@
+import { sourceArguments } from '../../process.ts';
 import { drainConversationQueue } from '../conversation-queue.ts';
 import { reserveLaunch } from '../queue/admission.ts';
 import { relatedConversation } from '../conversations.ts';
@@ -108,7 +109,7 @@ const extractApplicationContextPrepared = async (
           onActivity: (activity) => recordChatActivity(context, run.id, activity),
           mcp: {
             command: process.execPath,
-            args: ['--import', import.meta.resolve('tsx'), context.mcpEntry],
+            args: sourceArguments(context.mcpEntry),
             env: { PITCHCREW_RUN_TOKEN: token, PITCHCREW_DAEMON_URL: context.daemonUrl },
           },
         }),

@@ -176,7 +176,7 @@ describe('single daemon per data folder', () => {
       startedByService: true,
       matches: true,
       customLocation: true,
-      commands: { install: 'pnpm service install', uninstall: 'pnpm service uninstall' },
+      commands: { install: 'bun run service install', uninstall: 'bun run service uninstall' },
     });
     expect(info.status.pid).toBe(4242);
   });

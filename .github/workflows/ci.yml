@@ -34,24 +34,30 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - name: Cache Bun packages
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock', '.bun-version') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-bun-
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Lint
-        run: pnpm lint
+        run: bun run lint
       - name: Check formatting
-        run: pnpm format:check
+        run: bun run format:check
       - name: Check types
-        run: pnpm typecheck
+        run: bun run typecheck
       - name: Build browser and Electron bundles
-        run: pnpm build
+        run: bun run build
       - name: Build public landing page
-        run: pnpm landing:build
+        run: bun run landing:build
 
   tests:
     name: Tests (Node ${{ matrix.node }}, shard ${{ matrix.shard }}/2)
@@ -66,18 +72,24 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: ${{ matrix.node }}
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - name: Cache Bun packages
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock', '.bun-version') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-bun-
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Install Chromium and system dependencies
-        run: pnpm --filter @pitchcrew/mcp exec playwright install --with-deps chromium
+        run: bun run browser:install --with-deps
       - name: Run unit, HTTP, adapter, MCP and browser tests
-        run: pnpm test --shard=${{ matrix.shard }}/2 --maxWorkers=2 --reporter=default --reporter=junit --outputFile.junit=test-results/vitest.xml
+        run: bun run test --shard=${{ matrix.shard }}/2 --maxWorkers=2 --reporter=default --reporter=junit --outputFile.junit=test-results/vitest.xml
       - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
@@ -86,6 +98,31 @@ jobs:
           path: test-results/
           if-no-files-found: ignore
           retention-days: 7
+
+  bun-runtime:
+    name: Bun runtime integration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24'
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - name: Cache Bun packages
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock', '.bun-version') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-bun-
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Verify the Bun daemon, MCP and bounded helpers
+        run: bun run test:bun
 
   desktop:
     name: Electron smoke (${{ matrix.os }})
@@ -99,20 +136,26 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - name: Cache Bun packages
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock', '.bun-version') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-bun-
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: bun install --frozen-lockfile
       - name: Build and verify the actual Electron renderer
         env:
           TMPDIR: ${{ runner.temp }}
           TMP: ${{ runner.temp }}
           TEMP: ${{ runner.temp }}
-        run: pnpm test:desktop
+        run: bun run test:desktop
       - name: Upload desktop evidence
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
@@ -140,27 +183,33 @@ jobs:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
         with:
           persist-credentials: false
-      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:
           node-version: '24'
-          cache: pnpm
-          cache-dependency-path: pnpm-lock.yaml
-      - run: pnpm install --frozen-lockfile
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version-file: .bun-version
+      - name: Cache Bun packages
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-${{ runner.arch }}-bun-${{ hashFiles('bun.lock', '.bun-version') }}
+          restore-keys: ${{ runner.os }}-${{ runner.arch }}-bun-
+      - run: bun install --frozen-lockfile
       - name: Build installers
-        run: pnpm desktop:package
+        run: bun run desktop:package
       - name: Verify Windows installer process handling
         if: runner.os == 'Windows'
-        run: pnpm test:installer
+        run: bun run test:installer
       - name: Verify packaged app (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo chown root:root dist/releases/linux-unpacked/chrome-sandbox
           sudo chmod 4755 dist/releases/linux-unpacked/chrome-sandbox
-          xvfb-run -a pnpm test:packaged
+          xvfb-run -a bun run test:packaged
       - name: Verify packaged app (Windows and macOS)
         if: runner.os != 'Linux'
-        run: pnpm test:packaged
+        run: bun run test:packaged
       - name: Upload installers
         id: upload-installers
         continue-on-error: true
@@ -203,7 +252,7 @@ jobs:
   ci:
     name: CI
     if: ${{ always() }}
-    needs: [quality, tests, desktop, installers]
+    needs: [quality, tests, bun-runtime, desktop, installers]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -211,12 +260,14 @@ jobs:
         env:
           QUALITY_RESULT: ${{ needs.quality.result }}
           TESTS_RESULT: ${{ needs.tests.result }}
+          BUN_RUNTIME_RESULT: ${{ needs.bun-runtime.result }}
           DESKTOP_RESULT: ${{ needs.desktop.result }}
           INSTALLERS_REQUIRED: ${{ needs.quality.outputs.installers_required }}
           INSTALLERS_RESULT: ${{ needs.installers.result }}
         run: |
           test "$QUALITY_RESULT" = success
           test "$TESTS_RESULT" = success
+          test "$BUN_RUNTIME_RESULT" = success
           test "$DESKTOP_RESULT" = success
           case "$INSTALLERS_REQUIRED:$INSTALLERS_RESULT" in
             true:success|false:skipped) ;;

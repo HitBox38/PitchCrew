@@ -46,7 +46,7 @@ export const createBackgroundService = (spec: ServiceSpec, host: ServiceHost) =>
     const path = pathFor(spec.platform);
     if (!(await host.readFile(path.join(spec.repository, 'packages', 'ui', 'dist', 'index.html'))))
       throw new Error(
-        'Build the UI first with pnpm build. The background service runs the production daemon.',
+        'Build the UI first with bun run build. The background service runs the production daemon.',
       );
     // Task Scheduler expands %NAME% in arguments and offers no escape for a literal percent sign.
     if (
@@ -59,7 +59,7 @@ export const createBackgroundService = (spec: ServiceSpec, host: ServiceHost) =>
   const installed = async () => {
     const current = await inspect();
     if (!current.before.installed)
-      throw new Error('The background service is not installed. Run pnpm service install.');
+      throw new Error('The background service is not installed. Run bun run service install.');
     return current;
   };
 

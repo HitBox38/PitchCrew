@@ -1,4 +1,4 @@
-import { Worker } from 'node:worker_threads';
+import { IsolatedWorker as Worker } from '@pitchcrew/core/isolated-worker';
 
 /** Keep document decompression/parsing off the daemon thread and bound its lifetime and heap. */
 export const readAttachmentText = async (

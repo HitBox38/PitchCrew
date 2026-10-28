@@ -1,3 +1,4 @@
+import { sourceExecArguments } from '../process.ts';
 import { fork } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import type { MaintenanceCommand } from '@pitchcrew/adapters';
@@ -17,7 +18,7 @@ export const runRuntimeInstaller = (
     return Promise.reject(new Error('Runtime maintenance was interrupted.'));
   return new Promise((resolve, reject) => {
     const worker = fork(fileURLToPath(new URL('./installer-worker.ts', import.meta.url)), [], {
-      execArgv: ['--import', import.meta.resolve('tsx')],
+      execArgv: sourceExecArguments(),
       windowsHide: true,
       stdio: ['ignore', 'ignore', 'ignore', 'ipc'],
     });

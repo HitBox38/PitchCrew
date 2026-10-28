@@ -1,3 +1,4 @@
+import { nodeExecutable } from '@pitchcrew/core/isolated-worker';
 import type { RuntimeId } from '@pitchcrew/core';
 import { access, readFile, realpath } from 'node:fs/promises';
 import { constants } from 'node:fs';
@@ -89,7 +90,7 @@ export const resolveRuntimeInstallation = async (
           ...(writable
             ? {
                 command: {
-                  file: process.execPath,
+                  file: nodeExecutable(),
                   args: [
                     cli,
                     'install',

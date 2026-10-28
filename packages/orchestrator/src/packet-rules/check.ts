@@ -1,6 +1,6 @@
 import type { Packet, PacketRules, ProfileFile } from '@pitchcrew/core';
 import { checkPacket, type PacketCheck } from '@pitchcrew/packet';
-import { Worker } from 'node:worker_threads';
+import { IsolatedWorker as Worker } from '@pitchcrew/core/isolated-worker';
 
 /** Regex heuristics cannot prove bounded execution. Keep pattern checks off the daemon thread. */
 export const boundedPacketCheck = (

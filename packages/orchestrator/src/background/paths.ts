@@ -1,3 +1,4 @@
+import { sourceExecArguments } from '../process.ts';
 import type { BackgroundServicePlatform } from '@pitchcrew/core';
 import { posix, win32 } from 'node:path';
 import { flagValue } from './settings.ts';
@@ -17,11 +18,10 @@ export const serviceFiles = (platform: BackgroundServicePlatform, directory: str
   };
 };
 
-/** Arguments after the Node executable for the production daemon run by the service. */
+/** Arguments after the application runtime executable for the production daemon run by the service. */
 export const daemonArguments = (spec: ServiceSpec) => {
   return [
-    '--import',
-    'tsx',
+    ...(process.versions.bun ? sourceExecArguments() : ['--import', 'tsx']),
     spec.cli,
     '--service',
     '--home',

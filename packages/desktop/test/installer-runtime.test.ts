@@ -101,3 +101,44 @@ test('follows workspace dependencies and replaces their links with portable sour
   await expect(lstat(join(scope, 'core/node_modules'))).rejects.toMatchObject({ code: 'ENOENT' });
   expect((await lstat(join(directory, 'node_modules/leaf'))).isDirectory()).toBe(true);
 });
+
+test('retains and materializes Bun hoisted workspace links with transitive dependencies', async () => {
+  const directory = await workspace();
+  const core = join(directory, 'packages/core');
+  const scope = join(directory, 'node_modules/@pitchcrew');
+  await packageAt(join(directory, 'packages/orchestrator'), '@pitchcrew/orchestrator', {
+    dependencies: { '@pitchcrew/core': 'workspace:*' },
+  });
+  await packageAt(core, '@pitchcrew/core', { dependencies: { leaf: '1.0.0' } });
+  await mkdir(join(core, 'src'), { recursive: true });
+  await writeFile(join(core, 'src/index.ts'), 'export const fixture = true;');
+  await mkdir(join(core, 'node_modules'), { recursive: true });
+  await packageAt(join(directory, 'node_modules/leaf'), 'leaf');
+  await packageAt(join(directory, 'node_modules/unused-ui'), 'unused-ui');
+  await mkdir(scope, { recursive: true });
+  await symlink(core, join(scope, 'core'), process.platform === 'win32' ? 'junction' : 'dir');
+  await pruneRuntimeDependencies(directory);
+  expect((await lstat(join(scope, 'core'))).isSymbolicLink()).toBe(true);
+  await materializeWorkspacePackages(directory);
+  expect((await lstat(join(scope, 'core'))).isSymbolicLink()).toBe(false);
+  expect(await readFile(join(scope, 'core/src/index.ts'), 'utf8')).toContain('fixture');
+  await expect(lstat(join(scope, 'core/node_modules'))).rejects.toMatchObject({ code: 'ENOENT' });
+  expect((await lstat(join(directory, 'node_modules/leaf'))).isDirectory()).toBe(true);
+  await expect(lstat(join(directory, 'node_modules/unused-ui'))).rejects.toMatchObject({
+    code: 'ENOENT',
+  });
+});
+
+test('rejects root workspace links outside the staged workspace packages', async () => {
+  const directory = await workspace();
+  const source = join(directory, 'untrusted');
+  const scope = join(directory, 'node_modules/@pitchcrew');
+  await mkdir(join(directory, 'packages'), { recursive: true });
+  await packageAt(source, '@pitchcrew/core');
+  await mkdir(scope, { recursive: true });
+  await symlink(source, join(scope, 'core'), process.platform === 'win32' ? 'junction' : 'dir');
+  await expect(materializeWorkspacePackages(directory)).rejects.toThrow(
+    'Workspace dependency escapes runtime.',
+  );
+  expect((await lstat(join(scope, 'core'))).isSymbolicLink()).toBe(true);
+});

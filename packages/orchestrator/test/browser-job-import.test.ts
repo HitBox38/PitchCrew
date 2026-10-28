@@ -42,7 +42,7 @@ const fixture = async () => {
     }),
     close: vi.fn(async () => {}),
   };
-  const { daemon, request } = await setup(15633, false, { browserLaunch: async () => driver });
+  const { daemon, request } = await setup(19567, false, { browserLaunch: async () => driver });
   const service = daemon.service;
   const role = service.board.get<Role>('role', 'scout');
   const setPermissions = (patch: Partial<Role['capabilities']>) =>

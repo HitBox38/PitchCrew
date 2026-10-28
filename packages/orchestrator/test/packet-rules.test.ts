@@ -149,7 +149,7 @@ describe('packet rules', () => {
   );
 
   it('uses the defaults without a file and lets only the UI session change rules', async () => {
-    const { daemon, request, directory } = await setup(15371);
+    const { daemon, request, directory } = await setup(19572);
     const before = await daemon.service.snapshot();
     expect(before.packetRules).toEqual({ rules: defaultPacketRules, custom: false, error: null });
     expect((await request<PacketRulesState>('/packet-rules')).result.custom).toBe(false);
@@ -252,7 +252,7 @@ describe('packet rules', () => {
   });
 
   it('fails closed when the rules file is edited into an invalid state', async () => {
-    const { daemon, directory } = await setup(15372);
+    const { daemon, directory } = await setup(19573);
     const path = join(directory, 'packet-rules.json');
     await writeFile(path, '{"version":1,"rules":[');
     expect(daemon.service.packetRules.current()).toMatchObject({
@@ -443,7 +443,7 @@ describe('packet rules', () => {
     expect((await request(`/approvals/${approval.id}/export`, 'POST')).response.status).toBe(200);
   });
   it('shows warnings without blocking review and blocks drafts and exports on errors', async () => {
-    const { daemon, request } = await setup(15373);
+    const { daemon, request } = await setup(19574);
     await request('/packet-rules', 'PUT', {
       version: 1,
       rules: [...houseRules.rules, warnOnGreeting],

@@ -5,7 +5,7 @@ For the desktop architecture, see [ADR 0003](adr/0003-native-desktop-browser.md)
 Enable **Crew → agent settings → Computer use**. The desktop app uses its bundled Chromium. For the web app and headless tests, install Chromium once:
 
 ```sh
-pnpm browser:install
+bun run browser:install
 ```
 
 The agent's browser appears inside **Chat → Browser**. Desktop hosts real Electron `WebContentsView` pages: human input goes directly to the page, and the daemon automates the same pages through a private authenticated CDP relay. The relay exposes only that job/conversation's guest targets, never the app renderer. Guests have no app preload or Node access. Native agent screenshots retain Playwright credential masking but use Electron viewport capture with `stayHidden`/`stayAwake`, avoiding CDP surface readback stalls in hidden Windows guests. Capture waits for credential-mask styles to paint in an isolated world before reading the surface. The paint wait and readback share a bounded deadline; empty images and mismatched viewport dimensions are rejected. With no connected desktop host, the daemon uses headless Playwright Chromium and the web panel streams its page view.
@@ -55,7 +55,7 @@ Pages are untrusted data. Public HTTP(S) requests, redirects and subresources ar
 
 Hover, bounded element scrolling and drag actions use the same exact-action gate as other interactions; persisted action variants use event version 29, retaining versions 1–28.
 
-`pnpm test` covers real headless Chromium against intercepted fictional forms for all five providers, blocked preparation writes, credential redaction, persistent isolated profiles, resets, manual leases and in-flight privacy, idle closure, task grants, HTTP streaming/session protection, cancellation, approval replay and MCP contracts. It performs no live provider runs or external submissions. `pnpm test:desktop` also runs hidden Electron checks with real native guests, trusted human typing, same-page agent actions, private takeover, tabs, popup openers and graceful cleanup. No test shows or focuses an OS window. Live provider/browser combinations and third-party application site variants still require manual verification. Run `pnpm browser:install` before testing on a new checkout.
+`bun run test` covers real headless Chromium against intercepted fictional forms for all five providers, blocked preparation writes, credential redaction, persistent isolated profiles, resets, manual leases and in-flight privacy, idle closure, task grants, HTTP streaming/session protection, cancellation, approval replay and MCP contracts. It performs no live provider runs or external submissions. `bun run test:desktop` also runs hidden Electron checks with real native guests, trusted human typing, same-page agent actions, private takeover, tabs, popup openers and graceful cleanup. No test shows or focuses an OS window. Live provider/browser combinations and third-party application site variants still require manual verification. Run `bun run browser:install` before testing on a new checkout.
 
 ## Form assessments and submission receipts
 
