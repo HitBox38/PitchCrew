@@ -14,7 +14,12 @@ import type { AgentBrowserProps } from './types.ts';
 export const AgentBrowser = (props: AgentBrowserProps) => {
   const { browserPanel, thread } = props;
   const roleId = browserPanel.role?.id ?? '';
-  const control = useBrowserControl(roleId, thread, browserPanel.refresh);
+  const control = useBrowserControl(
+    roleId,
+    thread,
+    browserPanel.refresh,
+    props.conversation?.cardId,
+  );
   const presentation = useBrowserPresentation();
   const enabled = !props.hidden && browserPanel.open && browserPanel.session?.status === 'open';
   const viewport = useBrowserSize(enabled, control.resize);
