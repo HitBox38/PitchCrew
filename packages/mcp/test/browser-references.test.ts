@@ -41,3 +41,24 @@ it('returns optional screenshots and snapshot references, rejects replaced eleme
     await driver.close();
   }
 });
+
+it('keeps repeated inspection stable but invalidates document evidence after an identical reload', async () => {
+  const browser = await chromium.launch({ headless: true });
+  const driver = await createBrowserDriver(browser);
+  const context = browser.contexts()[0];
+  const page = context.pages()[0];
+  try {
+    await context.route('https://8.8.8.8/document-generation', (route) =>
+      route.fulfill({ contentType: 'text/html', body: '<button>Continue</button>' }),
+    );
+    await page.goto('https://8.8.8.8/document-generation');
+    const first = await driver.snapshot({ includeImage: false });
+    expect((await driver.snapshot({ includeImage: false })).digest).toBe(first.digest);
+    await page.reload();
+    const reloaded = await driver.snapshot({ includeImage: false });
+    expect(reloaded.text).toBe(first.text);
+    expect(reloaded.digest).not.toBe(first.digest);
+  } finally {
+    await driver.close();
+  }
+});

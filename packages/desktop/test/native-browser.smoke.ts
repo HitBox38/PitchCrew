@@ -1,7 +1,11 @@
+import {
+  checkNativeBrowserFunctionality,
+  type NativeFixture,
+} from './fixtures/native-browser-functional.ts';
 /** Isolated, hidden actual Electron + daemon-driver integration. No live sites or provider calls. */
 import { build } from 'tsdown';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, rename, writeFile as writeContents } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -10,16 +14,43 @@ import { ComputerManager } from '../../mcp/src/computer.ts';
 import { electronExecutable } from '../../../scripts/electron-path.ts';
 import type { DesktopBrowserHost } from '../../core/src/native-browser.ts';
 
+const formsOnly = process.argv.includes('--forms-only');
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-native-browser-'));
 const hostFile = join(directory, 'host.json');
 const commands = join(directory, 'command.json');
 const resultFile = join(directory, 'result.json');
+const writeFile = async (path: string, data: string | Uint8Array) => {
+  if (path !== commands) return writeContents(path, data);
+  const pending = commands + '.pending';
+  await writeContents(pending, data);
+  await rename(pending, commands);
+};
+
 await build({
   entry: { main: resolve('packages/desktop/test/fixtures/native-browser-main.ts') },
   outDir: directory,
   format: 'esm',
   dts: false,
   deps: { neverBundle: ['electron'] },
+});
+await build({
+  entry: {
+    preload: resolve('packages/desktop/src/preload.ts'),
+    'browser-floating-preload': resolve('packages/desktop/src/browser-floating-preload.ts'),
+  },
+  outDir: directory,
+  format: 'cjs',
+  clean: false,
+  dts: false,
+  deps: { neverBundle: ['electron'] },
+});
+await build({
+  entry: { renderer: resolve('packages/desktop/test/fixtures/native-browser-renderer.ts') },
+  outDir: directory,
+  format: 'iife',
+  platform: 'browser',
+  clean: false,
+  dts: false,
 });
 const env: NodeJS.ProcessEnv = {
   ...process.env,
@@ -31,27 +62,48 @@ const env: NodeJS.ProcessEnv = {
 delete env.ELECTRON_RUN_AS_NODE;
 const child = spawn(electronExecutable, [join(directory, 'main.mjs')], {
   env,
-  stdio: ['ignore', 'ignore', 'pipe'],
+  stdio: ['ignore', 'ignore', 'inherit'],
   windowsHide: true,
-});
-let errorOutput = '';
-child.stderr?.on('data', (data) => {
-  if (errorOutput.length < 20000) errorOutput += String(data);
 });
 const wait = async <T>(read: () => Promise<T | undefined>): Promise<T> => {
   const until = performance.now() + 15000;
   while (performance.now() < until) {
     const result = await read();
     if (result !== undefined) return result;
-    if (child.exitCode !== null) throw new Error(`Native fixture exited: ${errorOutput}`);
+    if (child.exitCode !== null)
+      throw new Error(`Native fixture exited with code ${child.exitCode}.`);
     await delay(30);
   }
-  throw new Error(`Native browser fixture timed out: ${errorOutput}`);
+  throw new Error('Native browser fixture timed out.');
 };
+const fixture: NativeFixture = async (command) => {
+  const nonce = `${command.kind}-${Date.now()}-${Math.random()}`;
+  await writeFile(commands, JSON.stringify({ ...command, nonce }));
+  return wait(async () => {
+    try {
+      const result = JSON.parse(await readFile(resultFile, 'utf8')) as {
+        nonce: string;
+        value: unknown;
+        error?: string;
+      };
+      return result.nonce === nonce ? { value: result.value, error: result.error } : undefined;
+    } catch {
+      return undefined;
+    }
+  }).then((result) => {
+    if (result.error)
+      throw new Error(
+        `Native fixture ${command.kind} ${command.operation ?? command.expression?.slice(0, 300) ?? ''} failed: ${result.error}`,
+      );
+    return result.value as never;
+  });
+};
+
 const board = new Board(join(directory, 'board.db'));
 const manager = new ComputerManager(board, directory);
 let renewal: ReturnType<typeof setInterval> | undefined;
 let cleanupPassed = false;
+let cleanupState = { closed: false, forced: false, exitCode: null as number | null };
 try {
   const descriptor = await wait(async () => {
     try {
@@ -70,6 +122,28 @@ try {
   });
   if (!manager.browsers.list()[0].native)
     throw new Error('The browser did not use the desktop host.');
+  await writeFile(commands, JSON.stringify({ kind: 'narrow', nonce: 'narrow' }));
+  await wait(async () => {
+    try {
+      const value = JSON.parse(await readFile(resultFile, 'utf8')) as { nonce?: string };
+      return value.nonce === 'narrow' ? true : undefined;
+    } catch {
+      return undefined;
+    }
+  });
+  if (!(await manager.inspect(scope.runId)).screenshot.length)
+    throw new Error(
+      'Background guest capture failed when the app window was narrower than its viewport.',
+    );
+  await writeFile(commands, JSON.stringify({ kind: 'wide', nonce: 'wide' }));
+  await wait(async () => {
+    try {
+      const value = JSON.parse(await readFile(resultFile, 'utf8')) as { nonce?: string };
+      return value.nonce === 'wide' ? true : undefined;
+    } catch {
+      return undefined;
+    }
+  });
   const approval = await manager.request(
     scope,
     { kind: 'click', selector: '#go' },
@@ -79,6 +153,9 @@ try {
   await manager.execute(scope.runId, approval.id, new AbortController().signal, () => {}, 0);
   if (!(await manager.inspect(scope.runId)).text.includes('Clicked by agent'))
     throw new Error('Agent click did not reach the native page.');
+  const key = manager.browsers.key('writer', 'native-fixture', null);
+  const driver = await manager.browsers.driver(key);
+  const native = await driver.nativeState!();
   for (const action of [
     { kind: 'hover', selector: '#go' },
     { kind: 'scroll', selector: '#scroller', deltaX: 0, deltaY: 300 },
@@ -87,24 +164,39 @@ try {
     manager.decide(next.id, true);
     await manager.execute(scope.runId, next.id, new AbortController().signal, () => {}, 0);
   }
-  const key = manager.browsers.key('writer', 'native-fixture', null);
+  const explored = await fixture<{ hovered: boolean; scrollTop: number }>({
+    kind: 'fixture',
+    id: native.id,
+    expression: `({hovered:document.querySelector('#go').dataset.hovered==='true',scrollTop:document.querySelector('#scroller').scrollTop})`,
+  });
+  if (!explored.hovered || explored.scrollTop <= 0)
+    throw new Error(
+      `Native hover/scroll did not affect their inspected controls: ${JSON.stringify(explored)}`,
+    );
   const lease = manager.takeControl(key);
   await manager.syncNativeControl(key, lease);
-  const driver = await manager.browsers.driver(key);
-  const native = await driver.nativeState!();
   await writeFile(commands, JSON.stringify({ kind: 'human', id: native.id, nonce: 'human' }));
   const human = await wait(async () => {
     try {
-      return JSON.parse(await readFile(resultFile, 'utf8')) as {
+      const value = JSON.parse(await readFile(resultFile, 'utf8')) as {
+        nonce: string;
         value: string;
         hidden: boolean;
-        nativeViews: number;
+        guestCount: number;
+        contentsId: number;
+        displayedContentsId: number;
       };
+      return value.nonce === 'human' ? value : undefined;
     } catch {
       return undefined;
     }
   });
-  if (human.value !== 'Human' || !human.hidden || human.nativeViews !== 1)
+  if (
+    human.value !== 'Human' ||
+    !human.hidden ||
+    human.guestCount !== 1 ||
+    human.contentsId !== human.displayedContentsId
+  )
     throw new Error(`Native human interaction failed: ${JSON.stringify(human)}`);
   let paused = false;
   try {
@@ -118,12 +210,9 @@ try {
     throw new Error('Native page zoom was not applied.');
   await driver.nativeCommand!({ kind: 'zoom', factor: 1 });
   await driver.nativeCommand!({ kind: 'clear-cache' });
-  await writeFile(commands, JSON.stringify({ kind: 'dialog', id: native.id, nonce: 'dialog' }));
-  await wait(async () => {
-    const next = await driver.nativeState!();
-    return next.dialog?.message === 'Fictional native dialog' ? next : undefined;
-  });
-  await manager.manualInput(key, lease, { kind: 'dialog', decision: 'dismiss' });
+  // DOM guest JS dialogs activate the real embedder, even with inspector handling.
+  // Headless-driver, native CDP and UI suites cover dialog decisions; this fixture
+  // keeps its no-OS-window invariant while testing real DOM composition and input.
   await writeFile(commands, JSON.stringify({ kind: 'popup', id: native.id, nonce: 'popup' }));
   const popup = await wait(async () => {
     try {
@@ -131,14 +220,19 @@ try {
         nonce: string;
         opener: boolean;
         windows: number;
+        hidden: boolean;
+        owned: boolean;
+        isolated: boolean;
       };
       return value.nonce === 'popup' ? value : undefined;
     } catch {
       return undefined;
     }
   });
-  if (!popup.opener || popup.windows !== 1)
-    throw new Error('Native popup lost its opener or created an application window.');
+  if (!popup.opener || popup.windows !== 2 || !popup.hidden || !popup.owned || !popup.isolated)
+    throw new Error(
+      `Native popup lost its opener, ownership or hidden-window behavior: ${JSON.stringify(popup)}`,
+    );
   await wait(async () => {
     const state = await driver.nativeState!();
     return state.tabs.length >= 2 ? state : undefined;
@@ -221,21 +315,35 @@ try {
     try {
       const value = JSON.parse(await readFile(resultFile, 'utf8')) as {
         nonce: string;
-        hides: number;
-        isolated: boolean;
+        liveOverlays: boolean;
       };
       return value.nonce === 'presentation' ? value : undefined;
     } catch {
       return undefined;
     }
   });
-  if (presentation.hides || !presentation.isolated)
+  if (!presentation.liveOverlays)
     throw new Error(`Native session presentation flickered: ${JSON.stringify(presentation)}`);
+  let functionalTimeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    await Promise.race([
+      checkNativeBrowserFunctionality(manager, board, directory, fixture, formsOnly),
+      new Promise<never>((_resolve, reject) => {
+        functionalTimeout = setTimeout(
+          () =>
+            reject(new Error('Native functional workflows exceeded their three-minute deadline.')),
+          180000,
+        );
+      }),
+    ]);
+  } finally {
+    clearTimeout(functionalTimeout);
+  }
+
   if (page.screenshot.length === 0 || resumed.screenshot.length === 0)
     throw new Error('Agent screenshots were unavailable.');
 } catch (error) {
   console.error(error);
-  console.error(errorOutput);
   throw error;
 } finally {
   clearInterval(renewal);
@@ -266,9 +374,15 @@ try {
     });
   board.close();
   await rm(directory, { recursive: true, force: true });
-  cleanupPassed = closed && !forced;
+  cleanupPassed = closed && !forced && child.exitCode === 0;
+  cleanupState = { closed, forced, exitCode: child.exitCode };
 }
-if (!cleanupPassed) throw new Error('Native browser cleanup did not complete gracefully.');
+if (!cleanupPassed)
+  throw new Error(
+    `Native browser resource cleanup did not complete: ${JSON.stringify(cleanupState)}`,
+  );
 console.log(
-  'Native browser smoke passed: real native view, human typing, gated agent actions, tabs/popups, private takeover, redacted inspection and graceful shutdown; window stayed hidden.',
+  formsOnly
+    ? 'Native browser form workflows passed through the real approval gate and DOM guests; windows stayed hidden and resources closed.'
+    : 'Native browser smoke passed: same DOM guest for human and agent, live page under app overlays, isolated popup opener, tabs, private takeover, redacted inspection and owned resource cleanup; windows stayed hidden.',
 );

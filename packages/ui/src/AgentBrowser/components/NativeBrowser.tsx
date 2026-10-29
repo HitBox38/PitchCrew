@@ -1,3 +1,6 @@
+import { NativeBrowserTools } from '@/NativeBrowserTools/index.tsx';
+import { BrowserDeviceToolbar } from '@/BrowserDeviceToolbar/index.tsx';
+import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 import { NativeBrowserStatus } from './NativeBrowserStatus.tsx';
 import { useCallback } from 'react';
 import { BrowserDialog } from './BrowserDialog.tsx';
@@ -10,19 +13,24 @@ import type { BrowserControl } from '../types.ts';
 import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
 import { BrowserPlaceholder } from './BrowserPlaceholder.tsx';
 import { isBlankBrowserPage } from '../page-state.ts';
+import { BrowserPopup } from './BrowserPopup.tsx';
 export const NativeBrowser = ({
   model,
   control,
   viewport,
+  device,
+  onAttachBrowserFile,
 }: {
   model: NativeBrowserModel;
   control: BrowserControl;
   viewport: ReturnType<typeof useBrowserSize>;
+  device: ReturnType<typeof useBrowserDevice>;
+  onAttachBrowserFile?: (file: File) => void;
 }) => {
   const id = model.identity!.id;
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
   const empty = !tab?.loading && !tab?.error && isBlankBrowserPage(tab?.url, tab?.title);
-  const mount = useNativeMount(id, !!model.state && !empty);
+  const mount = useNativeMount(id, !!model.state && !tab?.error && (!!tab?.window || !empty));
   const attachViewport = viewport.attach;
   const attach = useCallback(
     (element: HTMLDivElement | null) => {
@@ -36,7 +44,20 @@ export const NativeBrowser = ({
     <>
       <NativeBrowserTabs model={model} manual={manual && !control.working} />
       <NativeBrowserToolbar model={model} control={control} />
-      <NativeBrowserStatus model={model} manual={manual && !control.working} />
+      <NativeBrowserTools
+        model={model}
+        control={control}
+        device={device}
+        onAttachBrowserFile={onAttachBrowserFile}
+      />
+      {device.open ? (
+        <BrowserDeviceToolbar
+          setting={device.setting}
+          change={device.setSetting}
+          close={() => device.setOpen(false)}
+          disabled={!manual || control.working}
+        />
+      ) : null}
       {model.findOpen ? (
         <NativeBrowserFind key={id} id={id} close={() => model.setFindOpen(false)} />
       ) : null}
@@ -55,7 +76,10 @@ export const NativeBrowser = ({
       ) : null}
       <div className="browser-panel-body">
         <div className="browser-live-view" ref={attach} aria-label="Native browser page">
-          {!model.state || empty ? (
+          <NativeBrowserStatus model={model} manual={manual && !control.working} />
+          {tab?.window ? (
+            <BrowserPopup model={model} tabId={tab.id} manual={manual && !control.working} />
+          ) : !model.state || empty ? (
             <BrowserPlaceholder loading={!model.state} opened control={control} />
           ) : null}
         </div>

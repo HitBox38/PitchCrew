@@ -14,7 +14,9 @@ export class DesktopBrowserHosts {
   };
   launch = async (profile?: string): Promise<BrowserDriver> => {
     const host = this.host;
-    if (!host || host.expires < Date.now()) return launchBrowser(profile);
+    if (!host) return launchBrowser(profile);
+    if (host.expires < Date.now())
+      throw new Error('The desktop browser disconnected. Reopen it in the desktop app.');
     const profileId = createHash('sha256')
       .update(profile ?? 'default')
       .digest('hex');
@@ -77,24 +79,55 @@ export class DesktopBrowserHosts {
         },
         policy,
       );
+      const targetIds = new WeakMap<import('playwright').Page, string>();
       const select = async (next: NativeBrowserState) => {
+        if (next.tabs.find((tab) => tab.id === next.activeTab)?.crashed)
+          throw new Error(
+            'This browser tab crashed. Use Retry page in the desktop app to recover it.',
+          );
         for (let attempt = 0; attempt < 100; attempt++) {
           for (const current of context.pages()) {
-            const session = await context.newCDPSession(current);
-            try {
-              const info = await session.send('Target.getTargetInfo');
-              if (info.targetInfo.targetId === next.activeTab) {
+            if (current.isClosed()) continue;
+            let targetId = targetIds.get(current);
+            if (!targetId) {
+              try {
+                const session = await context.newCDPSession(current);
+                try {
+                  targetId = (await session.send('Target.getTargetInfo')).targetInfo.targetId;
+                  targetIds.set(current, targetId);
+                } finally {
+                  await session.detach().catch(() => {});
+                }
+              } catch (error) {
+                if (
+                  current.isClosed() ||
+                  /(?:Target crashed|Target closed|Session closed)/i.test(String(error))
+                )
+                  continue;
+                throw error;
+              }
+            }
+            if (targetId === next.activeTab) {
+              try {
                 driver.selectPage?.(current);
                 return next;
+              } catch (error) {
+                if (
+                  !(error instanceof Error) ||
+                  error.message !== 'This tab is outside the browser session.'
+                )
+                  throw error;
+                // Its CDP Page can be announced just before the driver's async
+                // opener/ownership attachment finishes. Retry only this local race.
               }
-            } finally {
-              await session.detach();
             }
           }
           await new Promise((resolve) => setTimeout(resolve, 50));
         }
         throw new Error('The native browser tab did not connect. Inspect again.');
       };
+      const syncSelected = async () =>
+        select(await request<NativeBrowserState>(`/sessions/${state.id}`));
       const targetTab = async (id: string) => {
         const current = await request<NativeBrowserState>(`/sessions/${state.id}`);
         if (!current.tabs.some((tab) => tab.id === id))
@@ -113,9 +146,22 @@ export class DesktopBrowserHosts {
       };
       return {
         ...driver,
+        snapshot: async (options) => {
+          await syncSelected();
+          return driver.snapshot(options);
+        },
+        frame: async () => {
+          await syncSelected();
+          return driver.frame!();
+        },
+        matches: async (condition) => {
+          await syncSelected();
+          return driver.matches!(condition);
+        },
         targetTab,
         resolveAction: async (action) => {
           if (action.tabId) await targetTab(action.tabId);
+          else await syncSelected();
           const { tabId: _tabId, ...input } = action;
           const resolved = (await driver.resolveAction?.(input)) ?? input;
           return {
@@ -157,15 +203,19 @@ export class DesktopBrowserHosts {
         },
         close: async () => {
           closing = true;
-          await request(`/sessions/${state.id}`, 'DELETE').catch(() => {});
-          await driver.close().catch(() => {});
+          try {
+            await driver.close();
+          } finally {
+            await request(`/sessions/${state.id}`, 'DELETE').catch(() => {});
+          }
         },
         native: { id: state.id, ownerId: host.ownerId },
         newTab: () => this.launch(profile),
-        nativeState: async () => ({
-          ...(await request<NativeBrowserState>(`/sessions/${state.id}`)),
-          ...driver.viewMetadata?.(),
-        }),
+        nativeState: async () => {
+          const next = await request<NativeBrowserState>(`/sessions/${state.id}`);
+          if (!next.tabs.find((tab) => tab.id === next.activeTab)?.error) await select(next);
+          return { ...next, ...driver.viewMetadata?.() };
+        },
         nativeCommand: async (command: NativeBrowserCommand) => {
           if (driver.viewMetadata?.().dialog)
             throw new Error('Resolve the website dialog before changing tabs or navigating.');
@@ -174,6 +224,7 @@ export class DesktopBrowserHosts {
           );
         },
         setManual: async (manual) => {
+          if (manual) driver.prepare?.(false);
           const result = await request<{ fingerprints?: string[] }>(
             `/sessions/${state.id}/control`,
             'POST',

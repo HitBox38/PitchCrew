@@ -1,6 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import type { BrowserInput, BrowserViewport } from '@pitchcrew/core';
 import { browserCommand, browserInput } from '../api.ts';
+import { browserControlScopeKey } from '../control-leases.ts';
+import { useBrowserControlLease } from './useBrowserControlLease.ts';
 
 export const useBrowserControl = (
   roleId: string,
@@ -8,24 +10,18 @@ export const useBrowserControl = (
   refresh: () => Promise<void>,
   cardId?: string | null,
 ) => {
-  const [leases, setLeases] = useState<
-    Record<string, { roleId: string; threadId: string; id: string }>
-  >({});
-  const key = cardId ? `${roleId}:job:${cardId}` : `${roleId}:conversation:${threadId}`;
+  const key = browserControlScopeKey(roleId, threadId, cardId);
+  const leases = useBrowserControlLease(key);
   const [error, setError] = useState('');
   const [working, setWorking] = useState(false);
   const [inputPending, setInputPending] = useState(0);
   const queue = useRef<Promise<void> | null>(null);
-  const leaseId = leases[key]?.id;
-  const forget = (target = key) =>
-    setLeases((current) => {
-      const next = { ...current };
-      delete next[target];
-      return next;
-    });
+  const leaseId = leases.lease?.id;
+  const forget = () => leases.forget(key, leaseId);
   const command = async (operation: () => Promise<unknown>, afterRefresh?: () => void) => {
     setWorking(true);
     setError('');
+    leases.clearError(key);
     try {
       await operation();
       await refresh().catch(() => {});
@@ -41,7 +37,7 @@ export const useBrowserControl = (
       const result = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
         operation: 'take',
       });
-      setLeases((current) => ({ ...current, [key]: { roleId, threadId, id: result.leaseId } }));
+      leases.remember(key, { roleId, threadId, id: result.leaseId });
     });
   const release = () =>
     command(
@@ -51,25 +47,6 @@ export const useBrowserControl = (
       },
       () => forget(),
     );
-  useEffect(() => {
-    if (!Object.keys(leases).length) return;
-    const timer = setInterval(() => {
-      for (const [target, lease] of Object.entries(leases)) {
-        void browserCommand(lease.roleId, lease.threadId, 'control', {
-          operation: 'renew',
-          leaseId: lease.id,
-        }).catch((error) => {
-          setError(error.message);
-          setLeases((current) => {
-            const next = { ...current };
-            delete next[target];
-            return next;
-          });
-        });
-      }
-    }, 20_000);
-    return () => clearInterval(timer);
-  }, [leases]);
   const input = useCallback(
     (value: BrowserInput) => {
       if (!leaseId) return;
@@ -108,12 +85,12 @@ export const useBrowserControl = (
         const control = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
           operation: 'take',
         });
-        setLeases((current) => ({ ...current, [key]: { roleId, threadId, id: control.leaseId } }));
+        leases.remember(key, { roleId, threadId, id: control.leaseId });
       }
     });
   return {
     leaseId,
-    error,
+    error: error || leases.renewalError,
     working,
     inputPending,
     open,

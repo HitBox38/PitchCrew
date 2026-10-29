@@ -18,20 +18,16 @@ export const BrowserAddress = ({
   onNavigate?: () => void;
 }) => {
   const address = url === 'about:blank' ? '' : url;
-  const input = useBrowserAddress(address, control.leaseId, contextId);
+  const { input, ...model } = useBrowserAddress(address, control.leaseId, contextId);
   return (
     <form
       className="browser-address"
       onSubmit={(event) => {
         event.preventDefault();
         if (!control.leaseId) return;
-        if (!String(new FormData(event.currentTarget).get('browserAddress') ?? '').trim()) return;
-        control.input({
-          kind: 'navigate',
-          url: normalizeAddress(
-            String(new FormData(event.currentTarget).get('browserAddress') ?? ''),
-          ),
-        });
+        if (!model.draft.trim()) return;
+        control.input({ kind: 'navigate', url: normalizeAddress(model.draft) });
+        input.current?.blur();
         onNavigate?.();
       }}
     >
@@ -45,7 +41,18 @@ export const BrowserAddress = ({
         title={frame?.title ? `${frame.title} · ${url}` : url}
         autoComplete="off"
         spellCheck={false}
-        defaultValue={address}
+        value={model.value}
+        onChange={(event) => model.setDraft(event.target.value)}
+        onFocus={model.focus}
+        onBlur={model.blur}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault();
+          if (event.key !== 'Escape') return;
+          event.preventDefault();
+          event.stopPropagation();
+          model.reset();
+          onNavigate?.();
+        }}
         readOnly={!control.leaseId || control.working}
         placeholder={control.leaseId ? 'Enter a URL or search…' : 'No page open'}
       />

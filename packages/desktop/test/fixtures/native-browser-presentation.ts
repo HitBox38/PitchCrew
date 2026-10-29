@@ -1,106 +1,100 @@
 import assert from 'node:assert/strict';
-import { once } from 'node:events';
-import type { BrowserWindow, View } from 'electron';
-import { createNativeGroup, type NativeGroup } from '../../src/browser/pages.ts';
+import { setTimeout as delay } from 'node:timers/promises';
+import type { BrowserWindow } from 'electron';
+import type { createNativeBrowserHost } from '../../src/browser/host.ts';
+import type { NativeGroup } from '../../src/browser/pages.ts';
 
-/** Exercise composition inside the shared native fixture's existing window and lifecycle. */
-export const checkNativeBrowserPresentation = async (window: BrowserWindow, appView: View) => {
-  const root = window.contentView;
-  const groups: NativeGroup[] = [];
-  let shown = false;
-  const markShown = () => {
-    shown = true;
-  };
-  window.on('show', markShown);
-  window.on('focus', markShown);
-  const group = createNativeGroup(
-    'fixture',
-    'a'.repeat(64),
-    () => window,
-    () => groups,
-  );
-  groups.push(group);
-  try {
-    const first = await group.create();
-    const view = group.views.get(first.id)!;
-    group.paint(first.id, true);
-    assert.ok(root.children.indexOf(view) < root.children.indexOf(appView));
-    const bounds = { x: 600, y: 160, width: 300, height: 400 };
-    const additions: { view: View; bounds: Electron.Rectangle }[] = [];
-    const removals: View[] = [];
-    const visibility: boolean[] = [];
-    const add = root.addChildView;
-    const remove = root.removeChildView;
-    const visible = view.setVisible;
-    root.addChildView = (...args) => {
-      additions.push({ view: args[0], bounds: args[0].getBounds() });
-      add.apply(root, args);
-    };
-    root.removeChildView = (child) => {
-      removals.push(child);
-      remove.call(root, child);
-    };
-    view.setVisible = (value) => {
-      visibility.push(value);
-      visible.call(view, value);
-    };
-    try {
-      // Hidden automation guests start at (0, 0). Opening must position before raising.
-      group.mount(bounds);
-      assert.ok(additions.length > 0, 'Opening must raise the guest above the app');
-      assert.deepEqual(
-        additions.at(-1)?.bounds,
-        bounds,
-        'The guest was attached outside its panel',
-      );
-      assert.ok(root.children.indexOf(view) > root.children.indexOf(appView));
-      assert.ok(view.getVisible());
-      additions.length = 0;
-      removals.length = 0;
-      visibility.length = 0;
-
-      // Automation and layout notifications must not tear down the displayed native surface.
-      group.paint(first.id, false);
-      group.paint(first.id, true);
-      group.mount(bounds);
-      const resized = { ...bounds, x: 620, width: 280 };
-      group.mount(resized);
-      assert.equal(additions.length, 0, 'A mounted guest was unnecessarily reattached');
-      assert.equal(removals.length, 0, 'A mounted guest was unnecessarily detached');
-      assert.ok(!visibility.includes(false), 'A mounted guest was unnecessarily hidden');
-      assert.deepEqual(view.getBounds(), resized);
-
-      // Tab switches must position the new page before attaching it as well.
-      const second = await group.create();
-      assert.deepEqual(additions.at(-1)?.bounds, resized);
-      assert.equal(additions.at(-1)?.view, group.views.get(second.id));
-      assert.ok(root.children.indexOf(view) < root.children.indexOf(appView));
-      assert.ok(
-        root.children.indexOf(group.views.get(second.id)!) > root.children.indexOf(appView),
-      );
-      group.select(first.id);
-      assert.deepEqual(view.getBounds(), resized);
-
-      // Hiding a panel keeps automation painting below the app, then detaches on idle.
-      group.mount(null);
-      assert.ok(view.getVisible());
-      assert.ok(root.children.indexOf(view) < root.children.indexOf(appView));
-      group.paint(first.id, false);
-      assert.ok(!view.getVisible());
-      assert.ok(!root.children.includes(view));
-      assert.ok(!shown && !window.isVisible(), 'The fixture showed or focused a window');
-    } finally {
-      root.addChildView = add;
-      root.removeChildView = remove;
-      view.setVisible = visible;
-    }
-  } finally {
-    const closed = Promise.all(
-      [...group.pages.values()].map(({ contents }) => once(contents, 'destroyed')),
-    );
-    group.destroy();
-    await closed;
-    window.off('show', markShown);
-    window.off('focus', markShown);
+const waitFor = async (read: () => Promise<boolean>, message: string) => {
+  const until = performance.now() + 5000;
+  while (performance.now() < until) {
+    if (await read()) return;
+    await delay(20);
   }
+  throw new Error(message);
+};
+
+/** Actual Chromium composition: app overlays stay above a live, unchanged guest. */
+export const checkNativeBrowserPresentation = async (
+  window: BrowserWindow,
+  host: Awaited<ReturnType<typeof createNativeBrowserHost>>,
+  group: NativeGroup,
+  background: NativeGroup,
+) => {
+  const page = group.pages.get(group.active)!;
+  const bounds = { x: 50, y: 100, width: 700, height: 500 };
+  const read = <T>(source: string) => window.webContents.executeJavaScript(source) as Promise<T>;
+  const guest = `Array.from(document.querySelectorAll('webview')).find(node => { try { return node.getWebContentsId() === ${page.contents.id}; } catch { return false; } })`;
+  const visible = () =>
+    read<boolean>(
+      `(() => { const node = ${guest}; return !!node && node.style.visibility === 'visible' && node.getBoundingClientRect().x === 50 && node.getBoundingClientRect().width === 700; })()`,
+    );
+  host.mount(background.id, bounds);
+  host.mount(group.id, bounds);
+  await waitFor(visible, 'Selected DOM guest did not reach its browser slot');
+  await page.contents.executeJavaScript(
+    `document.documentElement.style.background = 'rgb(225, 40, 25)'; document.body.style.background = 'rgb(225, 40, 25)';`,
+  );
+  const before = await read<{ created: number; destroyed: number }>(
+    `({ created: window.nativeFixture.created, destroyed: window.nativeFixture.destroyed })`,
+  );
+  const pixel = async (x: number, y: number) => {
+    const { width, height } = window.getContentBounds();
+    const image = (
+      await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })
+    ).resize({ width, height });
+    const bitmap = image.toBitmap({ scaleFactor: 1 });
+    const offset = (y * width + x) * 4;
+    return [bitmap[offset + 2], bitmap[offset + 1], bitmap[offset]];
+  };
+  const isRed = (value: number[]) => value[0] > 190 && value[1] < 80 && value[2] < 80;
+  await waitFor(
+    async () => isRed(await pixel(600, 450)),
+    'The native guest was absent from app composition',
+  );
+  for (const kind of [
+    'context-menu-content',
+    'popover-content',
+    'dialog-content',
+    'sheet-content',
+  ]) {
+    await read(
+      `(() => { const overlay = document.createElement('div'); overlay.id = 'fixture-overlay'; overlay.dataset.slot = '${kind}'; Object.assign(overlay.style, { position: 'fixed', left: '80px', top: '130px', width: '200px', height: '100px', zIndex: '50', background: 'rgb(25, 200, 40)' }); document.body.append(overlay); })()`,
+    );
+    for (let cycle = 0; cycle < 5; cycle++) {
+      background.paint(background.active, true);
+      group.paint(group.active, true);
+      group.paint(group.active, false);
+      background.paint(background.active, false);
+      host.mount(group.id, bounds);
+    }
+    await waitFor(async () => {
+      const overlay = await pixel(150, 160);
+      return overlay[0] < 80 && overlay[1] > 170 && overlay[2] < 80;
+    }, `${kind} did not composite above the live page`);
+    assert.ok(isRed(await pixel(600, 450)), `${kind} hid the uncovered browser page`);
+    await page.contents.executeJavaScript(
+      `document.documentElement.style.background = 'rgb(25, 40, 225)'; document.body.style.background = 'rgb(25, 40, 225)';`,
+    );
+    await waitFor(async () => {
+      const live = await pixel(600, 450);
+      return live[0] < 80 && live[1] < 80 && live[2] > 190;
+    }, `${kind} froze the uncovered browser page`);
+    await page.contents.executeJavaScript(
+      `document.documentElement.style.background = 'rgb(225, 40, 25)'; document.body.style.background = 'rgb(225, 40, 25)';`,
+    );
+    assert.ok(await visible(), `${kind} changed native page presentation`);
+    assert.equal(group.pages.get(group.active)?.contents, page.contents);
+    await read(`document.querySelector('#fixture-overlay').remove()`);
+    await waitFor(
+      async () => isRed(await pixel(600, 450)),
+      'Closing an overlay did not retain the live page',
+    );
+  }
+  const after = await read<{ created: number; destroyed: number; errors: string[] }>(
+    `({ ...window.nativeFixture })`,
+  );
+  assert.equal(after.created, before.created, 'An overlay recreated a browser guest');
+  assert.equal(after.destroyed, before.destroyed, 'An overlay destroyed a browser guest');
+  assert.deepEqual(after.errors, []);
+  assert.ok(!window.isVisible() && !window.isFocused(), 'The fixture showed or focused its window');
 };

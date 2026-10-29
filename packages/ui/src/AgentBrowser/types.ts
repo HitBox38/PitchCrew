@@ -11,7 +11,7 @@ export type AgentBrowserProps = Pick<
   | 'working'
   | 'onOpenCard'
   | 'onThread'
-> & { hidden?: boolean };
+> & { onAttachBrowserFile?: (file: File) => void };
 export type BrowserControl = ReturnType<typeof useBrowserControl>;
 export type BrowserViewProps = {
   size: { width: number; height: number };

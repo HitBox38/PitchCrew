@@ -2,6 +2,7 @@ import { SubmissionVerification } from './components/SubmissionVerification.tsx'
 import { RuntimeReadinessNotice } from '@/RuntimeMaintenance/components/RuntimeReadinessNotice.tsx';
 import '@/styles/chat.css';
 import { AgentBrowser } from '@/AgentBrowser/index.tsx';
+import { validateAttachments } from './attachment-helpers.ts';
 import type { CSSProperties } from 'react';
 import { PendingQuestions } from '@/UserQuestions/index.tsx';
 import { ChatSettingsPanels } from './components/ChatSettingsPanels.tsx';
@@ -23,7 +24,7 @@ export const ChatView = (props: ChatViewProps) => {
     <section
       className={`chat-workspace ${controller.roleId}`}
       data-chat-width={controller.width}
-      data-browser-open={controller.browserPanel.open && !controller.dialog}
+      data-browser-open={controller.browserPanel.open}
       style={{ '--browser-width': `${controller.browserPanel.width}px` } as CSSProperties}
       aria-label="Agent conversations"
     >
@@ -52,7 +53,14 @@ export const ChatView = (props: ChatViewProps) => {
         )}
       </Tabs>
       <ChatSettingsPanels {...controller} />
-      <AgentBrowser {...controller} hidden={!!controller.dialog} />
+      <AgentBrowser
+        {...controller}
+        onAttachBrowserFile={(file) => {
+          const error = validateAttachments([...controller.files, file]);
+          if (error) throw new Error(error);
+          controller.addFiles([file]);
+        }}
+      />
     </section>
   );
 };

@@ -7,7 +7,7 @@ import { connectBrowserRelay, type RelayGroup, type RelayPage } from '../src/bro
 import { guestAutomation } from '../src/browser/automation.ts';
 
 const fixture = () => {
-  const events = new EventEmitter();
+  const events = Object.assign(new EventEmitter(), { sendCommand: vi.fn(async () => ({})) });
   const replies: Record<string, unknown>[] = [];
   const socket = Object.assign(new EventEmitter(), {
     readyState: 1,
@@ -16,13 +16,15 @@ const fixture = () => {
   });
   const page: RelayPage = {
     id: 'guest-only',
-    contents: {
+    contents: Object.assign(new EventEmitter(), {
       debugger: events,
       getTitle: () => 'Guest',
       getURL: () => 'https://example.com',
       getUserAgent: () => 'Fixture',
-    } as unknown as WebContents,
+      isDestroyed: () => false,
+    }) as unknown as WebContents,
     send: vi.fn(async () => ({ ok: true })),
+    releaseAutomation: vi.fn(),
   };
   const group: RelayGroup = {
     pages: new Map([[page.id, page]]),
@@ -61,11 +63,139 @@ it('routes the allowed page and detaches listeners when the connection closes', 
     sessionId: string;
   };
   await command('Runtime.evaluate', { expression: '1' }, attached.sessionId);
-  expect(page.send).toHaveBeenCalledWith('Runtime.evaluate', { expression: '1' });
+  expect(page.send).toHaveBeenCalledWith(
+    'Runtime.evaluate',
+    { expression: '1' },
+    undefined,
+    expect.any(String),
+  );
   expect(events.listenerCount('message')).toBe(1);
   relay.closed(page.id);
   expect(events.listenerCount('message')).toBe(0);
   socket.emit('close');
+});
+it('releases only the detached CDP session and drops all its holds when the relay closes', async () => {
+  const { command, page, socket } = fixture();
+  const first = (await command('Target.attachToTarget', { targetId: page.id })).result as {
+    sessionId: string;
+  };
+  const second = (await command('Target.attachToTarget', { targetId: page.id })).result as {
+    sessionId: string;
+  };
+  await command('Page.startScreencast', {}, first.sessionId);
+  await command('Runtime.evaluate', {}, second.sessionId);
+  const calls = vi.mocked(page.send).mock.calls;
+  const firstOwner = calls[0]![3];
+  const secondOwner = calls[1]![3];
+  expect(firstOwner).not.toBe(secondOwner);
+  await command('Target.detachFromTarget', { sessionId: first.sessionId });
+  expect(page.releaseAutomation).toHaveBeenCalledExactlyOnceWith(firstOwner);
+  socket.emit('close');
+  expect(page.releaseAutomation).toHaveBeenLastCalledWith(secondOwner);
+  expect(page.releaseAutomation).toHaveBeenCalledTimes(2);
+});
+it('releases child-frame ownership on native detach and cleans listeners before disconnect returns', async () => {
+  const { command, page, events, relay } = fixture();
+  await command('Target.setAutoAttach');
+  events.emit('message', {}, 'Target.attachedToTarget', {
+    sessionId: 'native-child',
+    targetInfo: { type: 'iframe' },
+  });
+  await command('Page.startScreencast', {}, 'native-child');
+  const owner = vi.mocked(page.send).mock.calls[0]![3];
+  expect(page.send).toHaveBeenCalledWith('Page.startScreencast', {}, 'native-child', owner);
+  events.emit('message', {}, 'Target.detachedFromTarget', { sessionId: 'native-child' });
+  expect(page.releaseAutomation).toHaveBeenCalledExactlyOnceWith(owner);
+  relay.disconnect();
+  expect(events.listenerCount('message')).toBe(0);
+});
+it('fans page events out to every attached viewer and stops sending to a detached viewer', async () => {
+  const { command, page, replies, events } = fixture();
+  const first = (await command('Target.attachToTarget', { targetId: page.id })).result as {
+    sessionId: string;
+  };
+  const second = (await command('Target.attachToTarget', { targetId: page.id })).result as {
+    sessionId: string;
+  };
+  events.emit('message', {}, 'Page.screencastFrame', { data: 'first-frame' });
+  expect(replies.filter((reply) => reply.method === 'Page.screencastFrame')).toEqual([
+    { method: 'Page.screencastFrame', params: { data: 'first-frame' }, sessionId: first.sessionId },
+    {
+      method: 'Page.screencastFrame',
+      params: { data: 'first-frame' },
+      sessionId: second.sessionId,
+    },
+  ]);
+  await command('Target.detachFromTarget', { sessionId: first.sessionId });
+  replies.length = 0;
+  events.emit('message', {}, 'Page.screencastFrame', { data: 'second-frame' });
+  expect(replies).toEqual([
+    {
+      method: 'Page.screencastFrame',
+      params: { data: 'second-frame' },
+      sessionId: second.sessionId,
+    },
+  ]);
+  await command('Target.detachFromTarget', { sessionId: second.sessionId });
+  expect(events.listenerCount('message')).toBe(0);
+});
+it('keeps a crashed guest terminal and announces a fresh replacement without old child sessions', async () => {
+  const { command, page, replies, events, relay, group } = fixture();
+  await command('Target.setAutoAttach');
+  const first = (
+    replies.find((reply) => reply.method === 'Target.attachedToTarget')!.params as {
+      sessionId: string;
+    }
+  ).sessionId;
+  events.emit('message', {}, 'Target.attachedToTarget', {
+    sessionId: 'old-iframe',
+    targetInfo: { type: 'iframe' },
+  });
+  await command('Runtime.evaluate', {}, 'old-iframe');
+  page.contents.emit('render-process-gone', {}, { reason: 'crashed' });
+  expect(replies).toContainEqual({
+    method: 'Target.detachedFromTarget',
+    params: { sessionId: first, targetId: page.id },
+  });
+  expect(page.releaseAutomation).toHaveBeenCalledTimes(1);
+  expect(await command('Runtime.evaluate', {}, first)).toHaveProperty('error');
+  expect(await command('Runtime.evaluate', {}, 'old-iframe')).toHaveProperty('error');
+  expect(await command('Target.attachToTarget', { targetId: page.id })).toHaveProperty('error');
+  page.contents.emit('dom-ready');
+  expect(
+    replies.filter(
+      (reply) =>
+        reply.method === 'Target.attachedToTarget' &&
+        (reply.params as { targetInfo?: { targetId?: string } }).targetInfo?.targetId === page.id,
+    ),
+  ).toHaveLength(1);
+  relay.closed(page.id);
+  group.pages.delete(page.id);
+  const replacement: RelayPage = {
+    ...page,
+    id: 'fresh-replacement',
+    contents: Object.assign(new EventEmitter(), {
+      debugger: new EventEmitter(),
+      getTitle: () => 'Recovered',
+      getURL: () => 'https://example.com',
+    }) as unknown as WebContents,
+  };
+  group.pages.set(replacement.id, replacement);
+  relay.announce(replacement);
+  const attached = replies.filter(
+    (reply) =>
+      reply.method === 'Target.attachedToTarget' &&
+      ['guest-only', 'fresh-replacement'].includes(
+        (reply.params as { targetInfo?: { targetId?: string } }).targetInfo?.targetId ?? '',
+      ),
+  );
+  expect(attached).toHaveLength(2);
+  const recovered = (attached[1]!.params as { sessionId: string }).sessionId;
+  expect(recovered).not.toBe(first);
+  await command('Runtime.evaluate', {}, recovered);
+  relay.closed(replacement.id);
+  expect(page.contents.listenerCount('render-process-gone')).toBe(0);
+  expect(page.contents.listenerCount('dom-ready')).toBe(0);
 });
 it('blocks browser-global and target-discovery commands through page sessions', async () => {
   const events = new EventEmitter();
@@ -149,10 +279,10 @@ it('captures a hidden native guest without the CDP screenshot command that stall
 it('rejects empty, mismatched and excessive native captures instead of distorting evidence', async () => {
   const image = { isEmpty: () => false, getSize: () => ({ width: 700, height: 500 }) };
   const capturePage = vi.fn(async () => image);
-  const contents = {
+  const contents = Object.assign(new EventEmitter(), {
     executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
     capturePage,
-  } as unknown as WebContents;
+  }) as unknown as WebContents;
   await expect(
     captureNativePage(contents, { clip: { x: 0, y: 0, width: 1280, height: 800, scale: 1 } }),
   ).rejects.toThrow('viewport changed');
@@ -164,17 +294,41 @@ it('rejects empty, mismatched and excessive native captures instead of distortin
   ).rejects.toThrow('viewport limit');
   expect(capturePage).not.toHaveBeenCalled();
 });
+it('normalizes exact display backing pixels without accepting a changed viewport', async () => {
+  const bytes = Buffer.from('retina-credential-masked-image');
+  const normalized = { toJPEG: vi.fn(() => bytes) };
+  const image = {
+    isEmpty: () => false,
+    getSize: () => ({ width: 2560, height: 1600 }),
+    resize: vi.fn(() => normalized),
+  };
+  const contents = Object.assign(new EventEmitter(), {
+    executeJavaScriptInIsolatedWorld: vi.fn(async () => {}),
+    capturePage: vi.fn(async () => image),
+  }) as unknown as WebContents;
+  const params = {
+    format: 'jpeg',
+    quality: 40,
+    clip: { x: 0, y: 0, width: 1280, height: 800, scale: 1 },
+  };
+  await expect(captureNativePage(contents, params, 2)).resolves.toEqual({
+    data: bytes.toString('base64'),
+  });
+  expect(image.resize).toHaveBeenCalledWith({ width: 1280, height: 800 });
+  expect(normalized.toJPEG).toHaveBeenCalledWith(40);
+  await expect(captureNativePage(contents, params, 1)).rejects.toThrow('viewport changed');
+});
 it.each(['paint', 'capture'])(
   'bounds a stalled native %s and releases its timeout',
   async (phase) => {
     vi.useFakeTimers();
     try {
-      const contents = {
+      const contents = Object.assign(new EventEmitter(), {
         executeJavaScriptInIsolatedWorld: vi.fn(() =>
           phase === 'paint' ? new Promise(() => {}) : Promise.resolve(),
         ),
         capturePage: vi.fn(() => new Promise(() => {})),
-      } as unknown as WebContents;
+      }) as unknown as WebContents;
       const captured = captureNativePage(contents, {});
       const rejected = expect(captured).rejects.toThrow('Native browser capture timed out.');
       await vi.advanceTimersByTimeAsync(5000);
@@ -198,7 +352,10 @@ it('waits for the credential-mask paint before reading the native surface', asyn
     getSize: () => ({ width: 700, height: 500 }),
     toJPEG: () => bytes,
   }));
-  const contents = { executeJavaScriptInIsolatedWorld, capturePage } as unknown as WebContents;
+  const contents = Object.assign(new EventEmitter(), {
+    executeJavaScriptInIsolatedWorld,
+    capturePage,
+  }) as unknown as WebContents;
   const result = captureNativePage(contents, {
     format: 'jpeg',
     clip: { x: 0, y: 0, width: 700, height: 500 },

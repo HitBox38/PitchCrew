@@ -1,6 +1,13 @@
 .chat-page .chat-workspace[data-browser-open='true']:has(> .agent-browser-panel) {
   grid-template-columns: minmax(340px, 1fr) minmax(360px, min(var(--browser-width), 62%));
 }
+.chat-workspace[data-browser-open='true']:has(> .agent-browser-panel) > .chat-side-panel-slot {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  z-index: 50;
+  width: min(420px, 100%);
+}
 .agent-browser-panel {
   position: relative;
   display: flex;
@@ -110,6 +117,19 @@
   background: var(--clay-fill);
   box-shadow: inset 0 1px 0 var(--rim);
 }
+.browser-tools {
+  flex-shrink: 0;
+  background: var(--clay-fill);
+}
+.browser-screenshot-editor {
+  max-height: 55dvh;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.browser-screenshot-editor canvas {
+  display: block;
+  cursor: crosshair;
+}
 .browser-toolbar > [data-slot='button']:not(:disabled):hover {
   background: var(--clay-fill-hover);
   box-shadow: var(--clay);
@@ -178,6 +198,7 @@
   box-shadow: var(--clay-sunken);
 }
 .browser-live-view {
+  position: relative;
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -304,6 +325,40 @@
 .browser-tab-new {
   flex-shrink: 0;
 }
+.browser-tab-favicon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+}
+.browser-tab .browser-tab-audio {
+  flex-shrink: 0;
+  width: 24px;
+  height: 26px;
+}
+.browser-history-list {
+  max-height: min(24rem, 50dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.browser-history-section + .browser-history-section {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+.browser-history-entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  height: auto;
+  padding: 8px;
+  text-align: left;
+}
+.browser-history-entry span {
+  width: 100%;
+}
 .browser-control-hint {
   flex-shrink: 0;
   margin: 0;
@@ -313,25 +368,30 @@
   line-height: 1.5;
 }
 .browser-page-error {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
   display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 8px 10px 0;
-  padding: 10px 12px;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
   border-radius: 10px;
-  background: var(--rose-soft);
+  background: var(--paper);
   color: var(--error-ink);
-  box-shadow: var(--clay-sunken);
   font-size: var(--text-label);
+  text-align: center;
 }
 .browser-page-error p {
-  flex: 1;
   min-width: 0;
   margin: 0;
   overflow-wrap: anywhere;
+}
+.browser-page-error h3 {
+  margin: 0;
+  color: var(--ink);
+  font-size: 18px;
 }
 .browser-find {
   display: flex;

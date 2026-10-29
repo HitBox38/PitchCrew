@@ -1,6 +1,7 @@
-import { Globe, LoaderCircle, Plus, X } from 'lucide-react';
+import { Plus, Volume2, VolumeX, X } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { BrowserTabIcon } from './BrowserTabIcon.tsx';
 export const NativeBrowserTabs = ({
   model,
   manual,
@@ -20,13 +21,21 @@ export const NativeBrowserTabs = ({
           aria-current={item.id === model.state?.activeTab ? 'page' : undefined}
           onClick={() => void model.command({ kind: 'select-tab', tabId: item.id })}
         >
-          {item.loading ? (
-            <LoaderCircle className="browser-spinner" size={14} aria-hidden="true" />
-          ) : (
-            <Globe size={14} aria-hidden="true" />
-          )}
+          <BrowserTabIcon loading={item.loading} favicon={item.favicon} />
           <span className="truncate">{item.title || 'New tab'}</span>
         </Button>
+        {item.audible || item.muted ? (
+          <Button
+            size="icon-sm"
+            variant="ghost"
+            className="browser-tab-audio"
+            aria-label={`${item.muted ? 'Unmute' : 'Mute'} ${item.title || 'tab'}`}
+            disabled={!manual}
+            onClick={() => void model.command({ kind: 'mute', muted: !item.muted, tabId: item.id })}
+          >
+            {item.muted ? <VolumeX size={12} /> : <Volume2 size={12} />}
+          </Button>
+        ) : null}
         <Button
           size="icon-sm"
           variant="ghost"

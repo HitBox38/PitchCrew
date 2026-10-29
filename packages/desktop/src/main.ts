@@ -1,4 +1,3 @@
-import { installBrowserComposition } from './browser/composition.ts';
 import { startNativeBrowsers } from './browser/lifecycle.ts';
 import { waitForRuntimeUpdates } from './runtime-maintenance.ts';
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, session } from 'electron';
@@ -40,9 +39,10 @@ const createWindow = () => {
       webSecurity: true,
       autoplayPolicy: 'no-user-gesture-required',
       backgroundThrottling: false,
+      webviewTag: true,
     },
   });
-  installBrowserComposition(window);
+  nativeBrowsers?.dom.install(window);
   if (!hiddenSmoke) window.once('ready-to-show', () => window?.show());
   window.on('enter-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', true));
   window.on('leave-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', false));
@@ -51,6 +51,25 @@ const createWindow = () => {
   window.on('closed', () => {
     nativeBrowsers?.closeGuests();
     window = null;
+  });
+  const browserWindow = window;
+  let browserCloseReady = false;
+  let browserClosePending = false;
+  browserWindow.on('close', (event) => {
+    if (browserCloseReady || !nativeBrowsers?.hasGuests?.()) return;
+    event.preventDefault();
+    if (browserClosePending) return;
+    browserClosePending = true;
+    void nativeBrowsers
+      .closeGuests()
+      .catch((error: unknown) => {
+        console.error('Native browser cleanup failed.', error);
+        if (hiddenSmoke) app.exit(1);
+      })
+      .then(() => {
+        browserCloseReady = true;
+        if (!browserWindow.isDestroyed()) browserWindow.close();
+      });
   });
   installSmokeCheck(window, appIcon);
   if (!startupWindowCreated) {
@@ -61,11 +80,10 @@ const createWindow = () => {
 };
 
 app.setName('Pitchcrew');
-const hiddenSmoke =
-  !!process.env.PITCHCREW_SMOKE_FILE && process.env.PITCHCREW_SMOKE_VISIBLE !== '1';
+const desktopCheckFile = process.env.PITCHCREW_SMOKE_FILE ?? process.env.PITCHCREW_E2E_FILE;
+const hiddenSmoke = !!desktopCheckFile && process.env.PITCHCREW_SMOKE_VISIBLE !== '1';
 if (hiddenSmoke && process.platform === 'darwin') app.setActivationPolicy('accessory');
-if (process.env.PITCHCREW_SMOKE_FILE)
-  app.setPath('userData', dirname(process.env.PITCHCREW_SMOKE_FILE));
+if (desktopCheckFile) app.setPath('userData', dirname(desktopCheckFile));
 let url = process.env.PITCHCREW_URL ?? 'http://127.0.0.1:4417';
 if (new URL(url).hostname !== '127.0.0.1')
   throw new Error('Pitchcrew only opens its loopback daemon.');
@@ -137,6 +155,8 @@ if (primaryInstance)
     });
 let maintenanceQuitApproved = false;
 let checkingMaintenanceQuit = false;
+let browserQuitReady = false;
+let browserQuitPending = false;
 app.on('before-quit', (event) => {
   const ownsDaemon = app.isPackaged
     ? ownsPackagedDaemon()
@@ -154,7 +174,23 @@ app.on('before-quit', (event) => {
     });
     return;
   }
-  nativeBrowsers?.closeGuests();
+  if (!browserQuitReady && nativeBrowsers?.hasGuests?.()) {
+    event.preventDefault();
+    if (browserQuitPending) return;
+    browserQuitPending = true;
+    void nativeBrowsers
+      .closeGuests()
+      .catch((error: unknown) => {
+        console.error('Native browser cleanup failed.', error);
+        if (hiddenSmoke) app.exit(1);
+      })
+      .then(() => {
+        browserQuitReady = true;
+        app.quit();
+      });
+    return;
+  }
+  void nativeBrowsers?.closeGuests();
   if (!updates?.isInstalling()) stopPackagedDaemon();
 });
 app.on('second-instance', () => {
