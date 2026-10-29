@@ -9,7 +9,6 @@
   },
   "ignorePatterns": [
     ".agents/**",
-    "brag-output*/**",
     "**/dist/**",
     "**/.next/**",
     "**/next-env.d.ts",

@@ -1,5 +1,0 @@
-I built Pitchcrew: a local-first job-search app with a crew that checks fit, drafts applications and reviews every claim against your notes. Nothing submitted without you.
-
-https://github.com/HitBox38/PitchCrew
-
-Music: Sascha Ende, ende.app (CC BY 4.0).
