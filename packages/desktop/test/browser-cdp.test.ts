@@ -67,6 +67,22 @@ it('routes the allowed page and detaches listeners when the connection closes', 
   expect(events.listenerCount('message')).toBe(0);
   socket.emit('close');
 });
+it('waits for native tab teardown before acknowledging its close', async () => {
+  const { command, group, replies, page } = fixture();
+  let finish!: () => void;
+  group.close = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const result = command('Target.closeTarget', { targetId: page.id });
+  expect(group.close).toHaveBeenCalledExactlyOnceWith(page.id);
+  await Promise.resolve();
+  expect(replies).toEqual([]);
+  finish();
+  expect(await result).toMatchObject({ result: { success: true } });
+});
 it('blocks browser-global and target-discovery commands through page sessions', async () => {
   const events = new EventEmitter();
   const sendCommand = vi.fn(async () => ({}));

@@ -235,8 +235,15 @@ export const createNativeGroup = (
       group.select(id);
       return page;
     },
-    close: (id) => {
-      group.pages.get(id)?.contents.close();
+    close: async (id) => {
+      const contents = group.pages.get(id)?.contents;
+      if (!contents) return;
+      // Electron closes asynchronously; callers need the destroyed handler's updated
+      // page list and active tab before selecting a page or replacing the last tab.
+      await new Promise<void>((resolve) => {
+        contents.once('destroyed', () => resolve());
+        contents.close();
+      });
     },
     select: (id) => {
       if (!group.pages.has(id)) throw new Error('Browser tab is closed.');

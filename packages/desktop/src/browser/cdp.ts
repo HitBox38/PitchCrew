@@ -10,7 +10,7 @@ export interface RelayPage {
 export interface RelayGroup {
   pages: Map<string, RelayPage>;
   create(): Promise<RelayPage>;
-  close(id: string): void;
+  close(id: string): Promise<void>;
 }
 
 /** A synthetic browser exposes only this job's guest targets, never the app window. */
@@ -128,7 +128,7 @@ export const connectBrowserRelay = (group: RelayGroup, socket: WebSocket) => {
         return { targetId: page.id };
       }
       case 'Target.closeTarget':
-        group.close(String(params.targetId));
+        await group.close(String(params.targetId));
         return { success: true };
       case 'Target.setDiscoverTargets':
       case 'Browser.setDownloadBehavior':
