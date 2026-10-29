@@ -1,7 +1,27 @@
+import { sanitizeAgentProblem } from '@pitchcrew/core/telemetry-errors';
+
 /** Rebuild even already-encoded SDK payloads; never trust exception text or nested objects. */
 export const sanitizeException = (
   input: Record<string, unknown>,
 ): Record<string, unknown> | null => {
+  if (input.error_source === 'agent_report') {
+    const problem = sanitizeAgentProblem(input);
+    if (!problem) return null;
+    const issue = `Pitchcrew agent technical problem: ${problem.error_area}`;
+    return {
+      ...problem,
+      $exception_list: [
+        {
+          type: 'technical_problem',
+          value: issue,
+          mechanism: { type: 'agent_report', handled: true, synthetic: true },
+        },
+      ],
+      $exception_fingerprint: `pitchcrew-v1:agent_report:technical_problem:${problem.error_area}`,
+      $exception_level: 'error',
+      $issue_name: issue,
+    };
+  }
   const source = input.error_source as ErrorSource;
   const category = input.error_category as ErrorCategory;
   if (!errorSources.includes(source) || !errorCategories.includes(category)) return null;
