@@ -17,8 +17,7 @@ vi.mock('electron', () => ({
 }));
 
 const fixture = () => {
-  const appView = {} as WebContentsView;
-  const children = [appView];
+  const children: WebContentsView[] = [];
   const root = {
     children,
     addChildView: vi.fn((view: WebContentsView, index = children.length) => {
@@ -52,7 +51,7 @@ const fixture = () => {
     group.active = `tab-${index}`;
     return group;
   });
-  return { appView, root, groups };
+  return { root, groups };
 };
 const bounds = { x: 50, y: 100, width: 700, height: 500 };
 
@@ -76,10 +75,9 @@ it('keeps the selected job guest attached while automation painting starts and s
   expect(selected.setVisible).not.toHaveBeenCalledWith(false);
 });
 
-it('keeps background session painting below the app and selected session', () => {
+it('keeps background session painting outside the app viewport', () => {
   const {
     root,
-    appView,
     groups: [first, second],
   } = fixture();
   first.mount(bounds);
@@ -89,16 +87,36 @@ it('keeps background session painting below the app and selected session', () =>
   const selected = second.views.get(second.active)!;
   for (let cycle = 0; cycle < 3; cycle++) {
     first.paint(first.active, true);
-    expect(root.children).toEqual([background, appView, selected]);
+    expect(root.children).toEqual([background, selected]);
+    // BrowserWindow's contentView is an overlay above its renderer, not the
+    // renderer itself. Reordering within it cannot hide an on-screen guest.
+    const parked = background.getBounds();
+    expect(parked.x + parked.width).toBeLessThanOrEqual(0);
+    expect(parked.y + parked.height).toBeLessThanOrEqual(0);
+    expect(parked.width).toBe(bounds.width);
+    expect(parked.height).toBe(bounds.height);
     first.paint(first.active, false);
-    expect(root.children).toEqual([appView, selected]);
+    expect(root.children).toEqual([selected]);
   }
 });
 
-it('resizes in place and moves a still-painting guest behind the app when its panel closes', () => {
+it('parks a closed panel before detaching its native surface even without automation', () => {
+  const {
+    groups: [first],
+  } = fixture();
+  first.mount(bounds);
+  first.mount(null);
+  const view = first.views.get(first.active)!;
+  const parked = view.getBounds();
+  expect(parked.x + parked.width).toBeLessThanOrEqual(0);
+  expect(view.getVisible()).toBe(false);
+  first.mount(bounds);
+  expect(view.getBounds()).toEqual(bounds);
+});
+
+it('resizes in place and parks a still-painting guest when its panel closes', () => {
   const {
     root,
-    appView,
     groups: [first],
   } = fixture();
   first.paint(first.active, true);
@@ -112,9 +130,9 @@ it('resizes in place and moves a still-painting guest behind the app when its pa
   expect(view.setVisible).not.toHaveBeenCalled();
   expect(root.removeChildView).not.toHaveBeenCalled();
   first.mount(null);
-  expect(root.children).toEqual([view, appView]);
+  expect(root.children).toEqual([view]);
   expect(view.getVisible()).toBe(true);
   first.paint(first.active, false);
-  expect(root.children).toEqual([appView]);
+  expect(root.children).toEqual([]);
   expect(view.getVisible()).toBe(false);
 });

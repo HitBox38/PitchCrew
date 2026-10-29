@@ -1,6 +1,5 @@
 import { parseCookieExport } from '../../src/browser/cookie-import.ts';
 import { randomUUID } from 'node:crypto';
-import { installBrowserComposition } from '../../src/browser/composition.ts';
 import { app, BrowserWindow, session, nativeImage } from 'electron';
 import { writeFile, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
@@ -20,7 +19,6 @@ void app
       height: 800,
       webPreferences: { sandbox: true, contextIsolation: true, nodeIntegration: false },
     });
-    const { appView } = installBrowserComposition(window);
     let shown = false;
     let focused = false;
     window.on('show', () => {
@@ -30,7 +28,7 @@ void app
       focused = true;
     });
     await window.loadURL('data:text/html,<h1>Native browser fixture</h1>');
-    await checkNativeBrowserPresentation(window, appView);
+    await checkNativeBrowserPresentation(window);
     const host = await createNativeBrowserHost(() => window);
     await writeFile(process.env.PITCHCREW_NATIVE_SMOKE_HOST!, JSON.stringify(host.descriptor));
     const initialized = new Set<number>();
@@ -84,10 +82,11 @@ void app
               other.paint(other.active, true);
               group.paint(group.active, true);
               group.paint(group.active, false);
+              const parked = background.getBounds();
               isolated &&=
                 window.contentView.children.at(-1) === selected &&
-                window.contentView.children.indexOf(background) <
-                  window.contentView.children.indexOf(appView);
+                parked.x + parked.width <= 0 &&
+                parked.y + parked.height <= 0;
               other.paint(other.active, false);
               host.mount(group.id, bounds);
             }
@@ -113,7 +112,7 @@ void app
               nonce: command.nonce,
               value,
               hidden: !shown && !focused && !window.isVisible(),
-              nativeViews: window.contentView.children.filter((view) => view !== appView).length,
+              nativeViews: window.contentView.children.length,
             }),
           );
         }

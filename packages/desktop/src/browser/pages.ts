@@ -79,7 +79,7 @@ export const createNativeGroup = (
           },
         });
       view.setVisible(false);
-      view.setBounds({ x: 0, y: 0, width: 1280, height: 800 });
+      view.setBounds({ x: -1280, y: -800, width: 1280, height: 800 });
       const contents = view.webContents;
       group.views.set(`pending-${contents.id}`, view);
       if (existingView && !contents.getURL())
@@ -196,7 +196,9 @@ export const createNativeGroup = (
                 nodeIntegration: false,
               },
             });
-            popup.setBounds(group.bounds ?? { x: 0, y: 0, width: 1280, height: 800 });
+            const { width, height } = group.bounds ?? { width: 1280, height: 800 };
+            popup.setVisible(false);
+            popup.setBounds({ x: -width, y: -height, width, height });
             getWindow()?.contentView.addChildView(popup, 0);
             void group.create(popup).catch(() => {
               if (!popup.webContents.isDestroyed()) popup.webContents.close();
@@ -260,6 +262,14 @@ export const createNativeGroup = (
       group.bounds = bounds;
       const window = getWindow();
       for (const [id, view] of group.views) {
+        if (!bounds || id !== group.active) {
+          // BrowserWindow.contentView is an overlay ABOVE the app renderer. An
+          // inactive guest must be outside the window, not merely reordered lower
+          // in that overlay. Preserve its viewport so automation can keep painting.
+          const current = view.getBounds();
+          if (current.x !== -current.width || current.y !== -current.height)
+            view.setBounds({ ...current, x: -current.width, y: -current.height });
+        }
         const placement =
           window && bounds && id === group.active
             ? 'foreground'
@@ -274,7 +284,7 @@ export const createNativeGroup = (
           continue;
         }
         // Paint activity must not tear down the selected page's native surface. Reparent
-        // only when moving between the visible panel and painting behind the app.
+        // only when moving between the visible panel and off-window painting.
         const moving = !attached || placements.get(view) !== placement;
         if (moving) {
           view.setVisible(false);

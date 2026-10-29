@@ -1,7 +1,7 @@
 import { captureNativePage } from './capture.ts';
 import type { WebContents } from 'electron';
 
-/** Keep hidden guest rendering behind the app while automation needs frames; never show/focus a window. */
+/** Keep inactive guests painting outside the app viewport; never show/focus a window. */
 export const guestAutomation = (contents: WebContents, paint: (active: boolean) => void) => {
   let active = 0;
   let streaming = false;
