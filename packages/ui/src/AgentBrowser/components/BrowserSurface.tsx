@@ -1,6 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet/index.tsx';
 import { useBrowserViewport } from '../hooks/useBrowserViewport.ts';
+import { useDesktopBrowserHost } from '@/DesktopBrowserHost/context.ts';
+import { BrowserSheet } from '@/DesktopBrowserHost/BrowserSheet.tsx';
 
 export const BrowserSurface = ({
   modal,
@@ -16,6 +18,7 @@ export const BrowserSurface = ({
   children: ReactNode;
 }) => {
   const height = useBrowserViewport();
+  const desktop = useDesktopBrowserHost();
   if (!modal) {
     if (!open) return null;
     return (
@@ -28,6 +31,12 @@ export const BrowserSurface = ({
       </aside>
     );
   }
+  if (desktop)
+    return (
+      <BrowserSheet open={open} name={name} hide={hide}>
+        {children}
+      </BrowserSheet>
+    );
   return (
     <Sheet
       open={open}

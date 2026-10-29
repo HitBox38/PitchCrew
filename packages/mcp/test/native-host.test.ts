@@ -8,7 +8,9 @@ vi.mock('../src/computer/driver.ts', () => ({ createAttachedBrowserDriver: vi.fn
 
 afterEach(() => vi.restoreAllMocks());
 
-const fixture = async (phase: 'before' | 'attach' | 'inspect' | 'detach' | 'live') => {
+const fixture = async (
+  phase: 'before' | 'attach' | 'inspect' | 'detach' | 'live' | 'live-detach',
+) => {
   const error = new Error(
     'browserContext.newCDPSession: Protocol error (Target.attachToTarget): Cannot attach another browser target.',
   );
@@ -24,8 +26,8 @@ const fixture = async (phase: 'before' | 'attach' | 'inspect' | 'detach' | 'live
       return { targetInfo: { targetId: 'closed-tab' } };
     }),
     detach: vi.fn(async () => {
-      if (phase === 'detach') {
-        closed = true;
+      if (phase === 'detach' || phase === 'live-detach') {
+        closed = phase === 'detach';
         throw error;
       }
     }),
@@ -92,6 +94,14 @@ it.each(['before', 'attach', 'inspect', 'detach'] as const)(
 
 it('preserves attachment failures for pages that are still open', async () => {
   const { driver, error, selectPage } = await fixture('live');
+  await expect(driver.nativeCommand!({ kind: 'close-tab', tabId: 'closed-tab' })).rejects.toBe(
+    error,
+  );
+  expect(selectPage).not.toHaveBeenCalled();
+});
+
+it('preserves detach failures for pages that are still open', async () => {
+  const { driver, error, selectPage } = await fixture('live-detach');
   await expect(driver.nativeCommand!({ kind: 'close-tab', tabId: 'closed-tab' })).rejects.toBe(
     error,
   );

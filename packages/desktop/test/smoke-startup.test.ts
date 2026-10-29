@@ -27,9 +27,17 @@ const electron = vi.hoisted(() => ({
       show: ReturnType<typeof vi.fn>;
       focus: ReturnType<typeof vi.fn>;
       restore: ReturnType<typeof vi.fn>;
+      close: ReturnType<typeof vi.fn>;
+      isDestroyed: ReturnType<typeof vi.fn>;
     }
   >,
   app: undefined as unknown as TestApp,
+  native: {
+    dom: { install: vi.fn() },
+    register: vi.fn(async () => {}),
+    closeGuests: vi.fn<() => Promise<void>>(async () => {}),
+    hasGuests: vi.fn(() => false),
+  },
 }));
 vi.mock('electron', () => ({
   app: electron.app,
@@ -40,6 +48,8 @@ vi.mock('electron', () => ({
     show = vi.fn();
     focus = vi.fn();
     restore = vi.fn();
+    close = vi.fn();
+    isDestroyed = vi.fn(() => false);
     loadURL = vi.fn();
     webContents = Object.assign(new EventEmitter(), { setWindowOpenHandler: vi.fn() });
     constructor() {
@@ -57,10 +67,7 @@ vi.mock('electron', () => ({
   shell: {},
 }));
 vi.mock('../src/browser/lifecycle.ts', () => ({
-  startNativeBrowsers: vi.fn(async () => ({
-    register: vi.fn(async () => {}),
-    closeGuests: vi.fn(),
-  })),
+  startNativeBrowsers: vi.fn(async () => electron.native),
 }));
 vi.mock('../src/smoke.ts', () => ({ installSmokeCheck: vi.fn() }));
 vi.mock('../src/updates/index.ts', () => ({
@@ -88,8 +95,12 @@ beforeEach(() => {
     dock: { setIcon: vi.fn() },
   });
   vi.stubEnv('PITCHCREW_SMOKE_FILE', '');
+  vi.stubEnv('PITCHCREW_E2E_FILE', '');
   vi.stubEnv('PITCHCREW_SMOKE_VISIBLE', '');
   vi.stubEnv('PITCHCREW_URL', 'http://127.0.0.1:14420');
+  vi.stubEnv('PITCHCREW_OWNS_DAEMON', '0');
+  electron.native.hasGuests.mockReturnValue(false);
+  electron.native.closeGuests.mockReset().mockResolvedValue(undefined);
 });
 afterEach(() => {
   vi.unstubAllEnvs();
@@ -105,6 +116,16 @@ test('smoke startup and second-instance events never show or focus the window', 
   expect(window.focus).not.toHaveBeenCalled();
   if (process.platform === 'darwin')
     expect(electron.app.setActivationPolicy).toHaveBeenCalledWith('accessory');
+});
+
+test('E2E startup stays hidden and isolates desktop data', async () => {
+  vi.stubEnv('PITCHCREW_SMOKE_FILE', undefined);
+  vi.stubEnv('PITCHCREW_E2E_FILE', '/tmp/pitchcrew-e2e-fixture/result.json');
+  const window = await start();
+  electron.app.emit('second-instance');
+  expect(window.show).not.toHaveBeenCalled();
+  expect(window.focus).not.toHaveBeenCalled();
+  expect(electron.app.setPath).toHaveBeenCalledWith('userData', '/tmp/pitchcrew-e2e-fixture');
 });
 
 test.each([false, true])(
@@ -133,4 +154,42 @@ test('hidden smoke startup failures exit without a native error dialog', async (
   expect(dialog.showErrorBox).not.toHaveBeenCalled();
   expect(logged).toHaveBeenCalledWith('Pitchcrew smoke startup failed:', error);
   expect(electron.app.exit).toHaveBeenCalledWith(1);
+});
+
+test('closing a hidden window waits for owned browser captures before native destruction', async () => {
+  vi.stubEnv('PITCHCREW_SMOKE_FILE', '/tmp/pitchcrew-fixture/result.json');
+  const window = await start();
+  let finish!: () => void;
+  electron.native.hasGuests.mockReturnValue(true);
+  electron.native.closeGuests.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const event = { preventDefault: vi.fn() };
+  window.emit('close', event);
+  expect(event.preventDefault).toHaveBeenCalledOnce();
+  expect(window.close).not.toHaveBeenCalled();
+  finish();
+  await vi.waitFor(() => expect(window.close).toHaveBeenCalledOnce());
+  expect(window.show).not.toHaveBeenCalled();
+  expect(window.focus).not.toHaveBeenCalled();
+});
+
+test('quitting waits for owned browser cleanup before allowing the normal app quit', async () => {
+  await start();
+  let finish!: () => void;
+  electron.native.hasGuests.mockReturnValue(true);
+  electron.native.closeGuests.mockReturnValue(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  const event = { preventDefault: vi.fn() };
+  electron.app.emit('before-quit', event);
+  expect(event.preventDefault).toHaveBeenCalledOnce();
+  expect(electron.app.quit).not.toHaveBeenCalled();
+  finish();
+  await vi.waitFor(() => expect(electron.app.quit).toHaveBeenCalledOnce());
+  expect(electron.app.exit).not.toHaveBeenCalled();
 });

@@ -11,6 +11,10 @@ import {
 } from '../../../core/src/native-browser.ts';
 import { createNativeGroup, type NativeGroup } from './pages.ts';
 import { connectBrowserRelay } from './cdp.ts';
+import { runNativeBrowserCommand } from './commands.ts';
+import { installBrowserArtifactIpc } from './artifacts.ts';
+import { installFloatingBrowserIpc } from './floating.ts';
+import { createDomBrowserHost } from './dom-host.ts';
 
 const boundsSchema = z
   .object({
@@ -21,11 +25,33 @@ const boundsSchema = z
   })
   .strict()
   .nullable();
-export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | null) => {
+export const createNativeBrowserHost = async (
+  getWindow: () => BrowserWindow | null,
+  getOrigin: () => string,
+) => {
+  const groups = new Map<string, NativeGroup>();
+  const draining = new Set<Promise<void>>();
+  let closing = Promise.resolve();
+  const destroyGroup = (group: NativeGroup) => {
+    const pending = group.destroy();
+    draining.add(pending);
+    void pending.then(
+      () => draining.delete(pending),
+      () => draining.delete(pending),
+    );
+    closing = Promise.all([closing, pending]).then(() => {});
+    void closing.catch(() => {});
+    return pending;
+  };
+  const closeGuests = () => {
+    for (const group of groups.values()) destroyGroup(group);
+    groups.clear();
+    return closing;
+  };
+  const dom = createDomBrowserHost(getWindow, getOrigin, closeGuests);
   const profiles = await nativeProfiles(app.getPath('userData'));
   const token = randomBytes(32).toString('hex');
   const ownerId = randomUUID();
-  const groups = new Map<string, NativeGroup>();
   const sockets = new WebSocketServer({ noServer: true, maxPayload: 4_000_000 });
   let origin = '';
   const authorize = (request: IncomingMessage) => {
@@ -72,14 +98,25 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           profiles.partition(profile, selected.id),
           getWindow,
           () => groups.values(),
+          dom,
           profile,
           selected,
+          (state) => {
+            const window = getWindow();
+            if (
+              window &&
+              !window.isDestroyed() &&
+              !window.webContents.isDestroyed() &&
+              new URL(window.webContents.mainFrame.url).origin === getOrigin()
+            )
+              window.webContents.mainFrame.send('pitchcrew:browser:state', state);
+          },
         );
         groups.set(group.id, group);
         try {
           await group.create();
         } catch (error) {
-          group.destroy();
+          await destroyGroup(group);
           groups.delete(group.id);
           throw error;
         }
@@ -97,7 +134,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           .profiles.map((item) => profiles.partition(profile, item.id));
         for (const group of groups.values())
           if (group.baseProfile === profile) {
-            group.destroy();
+            await destroyGroup(group);
             groups.delete(group.id);
           }
         await Promise.all(
@@ -109,7 +146,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
         const group = groups.get(parts[1]);
         if (parts[0] !== 'sessions' || !group) throw new Error('Browser session is closed.');
         if (request.method === 'DELETE') {
-          group.destroy();
+          await destroyGroup(group);
           groups.delete(group.id);
         } else if (request.method === 'GET') result = group.state();
         else if (parts[2] === 'control') {
@@ -119,6 +156,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
             .parse(await body(request));
           if (manual === false) {
             group.manualUntil = 0;
+            group.mount(group.bounds);
             result = { fingerprints: await group.manualFields.flush() };
             group.pages.get(group.active)?.contents.stopFindInPage('clearSelection');
           }
@@ -126,10 +164,16 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
             group.manualUntil = manual ? Date.now() + 45000 : 0;
             if (manual) {
               group.automatic = false;
+              const available = new Set(
+                group
+                  .state()
+                  .tabs.filter((tab) => !tab.crashed)
+                  .map((tab) => tab.id),
+              );
               await Promise.all(
-                [...group.pages.values()].map((page) =>
-                  group.manualFields.begin(page.contents, group.manualUntil),
-                ),
+                [...group.pages.values()]
+                  .filter((page) => available.has(page.id))
+                  .map((page) => group.manualFields.begin(page.contents, group.manualUntil)),
               );
             }
           }
@@ -137,6 +181,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
             group.automatic = automatic;
             if (!automatic) group.preparationBlocked = false;
           }
+          group.mount(group.bounds);
           result = { ...(result as object), blocked: group.preparationBlocked };
         } else {
           const agent = parts[2] === 'agent-tabs';
@@ -145,23 +190,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
           const command = nativeBrowserCommandSchema.parse(await body(request));
           if (agent && !['new-tab', 'select-tab', 'close-tab'].includes(command.kind))
             throw new Error('Unsupported agent tab command.');
-          const page = group.pages.get(group.active)?.contents;
-          if (command.kind === 'select-tab') group.select(command.tabId);
-          if (command.kind === 'close-tab') {
-            await group.close(command.tabId);
-            if (!group.pages.size) await group.create();
-          }
-          if (command.kind === 'new-tab') await group.create();
-          if (command.kind === 'back' && page?.navigationHistory.canGoBack())
-            page.navigationHistory.goBack();
-          if (command.kind === 'forward' && page?.navigationHistory.canGoForward())
-            page.navigationHistory.goForward();
-          if (command.kind === 'reload') page?.reload();
-          if (command.kind === 'hard-reload') page?.reloadIgnoringCache();
-          if (command.kind === 'stop') page?.stop();
-          if (command.kind === 'zoom') page?.setZoomFactor(command.factor);
-          if (command.kind === 'clear-cache') await page?.session.clearCache();
-          result = group.state();
+          result = await runNativeBrowserCommand(group, command, agent);
         }
       }
       response
@@ -189,7 +218,7 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
         group.relays.delete(relay);
         if (!group.relays.size && groups.get(group.id) === group) {
           group.manualUntil = 0;
-          group.destroy();
+          void destroyGroup(group).catch(() => {});
           groups.delete(group.id);
         }
       });
@@ -218,14 +247,13 @@ export const createNativeBrowserHost = async (getWindow: () => BrowserWindow | n
     descriptor,
     groups,
     profiles,
+    dom,
     mount,
-    closeGuests: () => {
-      for (const group of groups.values()) group.destroy();
-      groups.clear();
-    },
+    closeGuests,
+    hasGuests: () => groups.size > 0 || draining.size > 0,
     close: async () => {
-      for (const group of groups.values()) group.destroy();
-      groups.clear();
+      await closeGuests();
+      dom.close();
       for (const socket of sockets.clients) socket.terminate();
       sockets.close();
       server.closeAllConnections();
@@ -251,6 +279,8 @@ export const installNativeBrowserIpc = (
       throw new Error('Desktop browser access is unavailable.');
   };
   installNativeProfileIpc(host, authorize, getWindow);
+  installBrowserArtifactIpc(host.groups, authorize, getWindow);
+  installFloatingBrowserIpc(host.groups, authorize, getWindow);
   ipcMain.handle('pitchcrew:browser:identity', (event) => {
     authorize(event);
     return host.descriptor.ownerId;

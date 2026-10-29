@@ -5,7 +5,7 @@ export const startNativeBrowsers = async (
   getWindow: () => BrowserWindow | null,
   getOrigin: () => string,
 ) => {
-  const host = await createNativeBrowserHost(getWindow);
+  const host = await createNativeBrowserHost(getWindow, getOrigin);
   installNativeBrowserIpc(host, getWindow, getOrigin);
   const register = async () => {
     const window = getWindow();

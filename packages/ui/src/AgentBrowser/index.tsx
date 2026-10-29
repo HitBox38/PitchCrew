@@ -1,3 +1,4 @@
+import { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 import { useBrowserSize } from './hooks/useBrowserSize.ts';
 import { BrowserPanelHeading } from './components/BrowserPanelHeading.tsx';
 import { BrowserApprovals } from './components/BrowserApprovals.tsx';
@@ -10,8 +11,10 @@ import { useBrowserFrame } from './hooks/useBrowserFrame.ts';
 import { useBrowserControl } from './hooks/useBrowserControl.ts';
 import { useBrowserPresentation } from './hooks/useBrowserPresentation.ts';
 import type { AgentBrowserProps } from './types.ts';
+import { useBrowserApprovalVisibility } from './hooks/useBrowserApprovalVisibility.ts';
 
 export const AgentBrowser = (props: AgentBrowserProps) => {
+  useBrowserApprovalVisibility(props);
   const { browserPanel, thread } = props;
   const roleId = browserPanel.role?.id ?? '';
   const control = useBrowserControl(
@@ -21,11 +24,19 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
     props.conversation?.cardId,
   );
   const presentation = useBrowserPresentation();
-  const enabled = !props.hidden && browserPanel.open && browserPanel.session?.status === 'open';
-  const viewport = useBrowserSize(enabled, control.resize);
+  const enabled = browserPanel.open && browserPanel.session?.status === 'open';
   const native = useNativeBrowser(roleId, thread, browserPanel.session?.native, enabled, control);
+  const selectedTab = native.state?.tabs.find((tab) => tab.id === native.state?.activeTab);
+  const device = useBrowserDevice(
+    `${native.identity?.id}:${selectedTab?.logicalId ?? native.state?.activeTab}`,
+  );
+  const viewport = useBrowserSize(
+    enabled && !control.working && !native.pending && (!native.active || !!native.state),
+    control.resize,
+    device.setting,
+  );
   const stream = useBrowserFrame(roleId, thread, enabled && !native.active && !native.pending);
-  if (props.hidden || !browserPanel.available || !browserPanel.role) return null;
+  if (!browserPanel.available || !browserPanel.role) return null;
   const role = browserPanel.role;
   const frame = stream.frame;
   const error = control.error || viewport.error || stream.error || browserPanel.error;
@@ -57,7 +68,13 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
         </p>
       ) : null}
       {native.active ? (
-        <NativeBrowser model={native} control={control} viewport={viewport} />
+        <NativeBrowser
+          model={native}
+          control={control}
+          viewport={viewport}
+          device={device}
+          onAttachBrowserFile={props.onAttachBrowserFile}
+        />
       ) : (
         <StreamedBrowser
           browserPanel={browserPanel}

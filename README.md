@@ -266,12 +266,15 @@ bun run test
 bun run test:bun      # actual Bun daemon, MCP and bounded-helper integration
 bun run build
 bun run check           # lint, typecheck, tests and build
-bun run test:desktop    # isolated daemon and hidden actual Electron renderer
+bun run test:e2e        # built UI, real Bun daemon, Electron guests and scoped MCP browser journeys
+bun run test:desktop    # E2E journeys plus hidden Electron and native browser checks
 ```
 
 Use `bun run format` to apply formatting. Tests use fictional fixtures, temporary workspaces and mock provider processes. Coverage includes board replay, approvals, HTTP boundaries, adapter contracts, MCP stdio and isolated Chromium. They make no paid provider calls.
 
 Desktop and packaged smoke checks keep their Electron window hidden, capture screenshots without revealing it, and fail if it is shown or focused. For visible desktop debugging, run `PITCHCREW_SMOKE_VISIBLE=1 bun run test:desktop` (PowerShell: `$env:PITCHCREW_SMOKE_VISIBLE='1'; bun run test:desktop`). The same opt-in applies to `bun run test:packaged`. Ordinary `bun run test` Chromium checks run headless.
+
+The full browser E2E journeys always stay hidden. They drive the actual app UI and native guests through the real daemon, preload and scoped MCP server; only the provider and external website are fixtures. See [browser E2E coverage and evidence](docs/browser-e2e.md).
 
 GitHub Actions runs [CI](.github/workflows/ci.yml) on every pull request, pushes to `main`, merge queues and manual dispatches. Every run checks lint, formatting, types and production builds, runs the complete Vitest suite on Node 22 and 24 with Chromium, independently checks the Bun daemon/MCP/bounded-helper paths, and verifies the actual Electron renderer on macOS and Windows. Full installer builds and packaged-app checks on Windows, macOS and Linux run for release pull requests targeting `main`, merge groups targeting `main`, pushes to `main` and manual dispatches on any branch. Feature pull requests and merge groups targeting `dev` skip full packaging; packaging-specific failures may first surface on the release pull request. To check a feature's installers earlier, manually run CI on its branch. Installs use the pinned Bun version and frozen `bun.lock`; CI caches downloaded packages separately for each operating system and architecture without skipping install or Chromium/system-dependency setup; newer commits cancel superseded runs except for pushes to `main`, which each retain their release build. Test reports, desktop evidence and installers are retained for seven days. The repository’s `main` branch ruleset requires the single **CI** status check from GitHub Actions and an up-to-date branch before merging. That check requires all applicable jobs to succeed and permits only the intentional installer skip for feature work; missing policy values and unexpected skips, failures or cancellations fail it. The ruleset has no bypass actors.
 

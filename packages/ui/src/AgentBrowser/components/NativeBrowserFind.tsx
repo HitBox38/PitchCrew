@@ -13,6 +13,10 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
   }, [id]);
   const find = (forward: boolean) =>
     void window.pitchcrewBrowser?.find(id, text, forward).catch(() => {});
+  const finish = () => {
+    close();
+    void window.pitchcrewBrowser?.focusPage(id).catch(() => {});
+  };
   return (
     <form
       className="browser-find"
@@ -30,7 +34,15 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
           void window.pitchcrewBrowser?.find(id, event.target.value, true).catch(() => {});
         }}
         onKeyDown={(event) => {
-          if (event.key === 'Escape') close();
+          if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            finish();
+          }
+          if (event.key === 'Enter' && event.shiftKey) {
+            event.preventDefault();
+            find(false);
+          }
         }}
       />
       <Button size="icon-sm" aria-label="Previous match" onClick={() => find(false)}>
@@ -39,7 +51,7 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
       <Button size="icon-sm" aria-label="Next match" type="submit">
         <ArrowDown size={14} />
       </Button>
-      <Button size="icon-sm" aria-label="Close page search" onClick={close}>
+      <Button size="icon-sm" aria-label="Close page search" onClick={finish}>
         <X size={14} />
       </Button>
     </form>

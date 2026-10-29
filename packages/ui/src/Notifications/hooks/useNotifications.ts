@@ -1,7 +1,11 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { workspaceToasts } from '../toasts.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  getVisibleBrowserApprovals,
+  subscribeBrowserApprovalVisibility,
+} from '@/AgentBrowser/approval-visibility.ts';
 import { playNotificationSound, unlockNotificationAudio } from '../audio.ts';
 import {
   collectNotifications,
@@ -30,6 +34,10 @@ export const useNotifications = () => {
     setPanelOpen(value);
   };
   const [tracker] = useState(() => new NotificationTracker());
+  const visibleApprovals = useSyncExternalStore(
+    subscribeBrowserApprovalVisibility,
+    getVisibleBrowserApprovals,
+  );
   const readIds = new Set(read);
   const unread = items.filter((item) => !readIds.has(item.id));
   const markRead = (ids: string[]) =>
@@ -62,11 +70,12 @@ export const useNotifications = () => {
   useEffect(() => {
     if (!data) return;
     const currentIds = new Set(items.map((item) => item.id));
-    const visibleBrowserApprovals = new Set(
-      Array.from(document.querySelectorAll<HTMLElement>('[data-browser-approval-id]'))
+    const visibleBrowserApprovals = new Set([
+      ...[...getVisibleBrowserApprovals()].map((id) => `computer:${id}`),
+      ...Array.from(document.querySelectorAll<HTMLElement>('[data-browser-approval-id]'))
         .filter((element) => element.getClientRects().length > 0)
         .map((element) => `computer:${element.dataset.browserApprovalId}`),
-    );
+    ]);
     for (const id of activeToasts.current) {
       if (!currentIds.has(id) || visibleBrowserApprovals.has(id)) {
         toastManager.close(id);
@@ -91,7 +100,7 @@ export const useNotifications = () => {
         });
       });
     if (sound) playNotificationSound(priority.kind);
-  }, [data, items, sound, open, toastManager, tracker]);
+  }, [data, items, sound, open, toastManager, tracker, visibleApprovals]);
   return {
     items,
     unread,
