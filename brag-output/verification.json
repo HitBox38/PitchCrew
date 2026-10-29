@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "revision": 3,
+  "nativeAppUI": true,
+  "provenance": "app-capture/provenance.json",
+  "video": {
+    "programs": [],
+    "streams": [
+      {
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "30/1",
+        "duration": "22.000000",
+        "nb_frames": "660"
+      },
+      {
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "r_frame_rate": "0/0",
+        "duration": "22.016000",
+        "nb_frames": "1033"
+      }
+    ],
+    "format": {
+      "duration": "22.016000",
+      "size": "2491213"
+    }
+  },
+  "hyperframes_check": "check-v3.json",
+  "contrastCoverage": "18/18 editorial text checks; native UI text is in captured pixels and was visually inspected in decoded video frames",
+  "poster_source_seconds": 2.6,
+  "poster_baked_as_frame_zero": true,
+  "same_duration_and_frame_count": true,
+  "audio_packets_identical_after_poster_bake": true,
+  "reviewedFrames": [
+    "review-v3/decoded-crew.png",
+    "review-v3/decoded-sources.png",
+    "review-v3/decoded-inbox.png",
+    "review-v3/decoded-approval.png"
+  ],
+  "liveProviderRuns": false,
+  "applicationSubmitted": false,
+  "previousVersions": [
+    "revisions/v1",
+    "revisions/v2"
+  ]
+}

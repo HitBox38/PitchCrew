@@ -1,0 +1,19 @@
+<template>
+<style>
+#root{position:absolute;inset:0;background:var(--color-ground,#f2f1ec)}
+.journey-brand{position:absolute;left:192px;top:21px;display:flex;gap:13px;align-items:center;font-family:var(--font-display,'Fraunces Variable');font-size:34px;font-weight:600;letter-spacing:-1px}.journey-brand img{width:34px;height:34px}.journey-heading{position:absolute;inset:auto;right:192px;top:25px;font-size:30px;font-weight:600;line-height:40px;color:var(--color-accent,#3a5482);margin:0}.journey-footage{position:absolute;left:192px;top:72px;width:1536px;height:960px;object-fit:contain;border-radius:16px;box-shadow:0 2px 3px #1e222c12,0 12px 32px #1e222c1a;z-index:1}.journey-note{position:absolute;left:192px;top:1038px;font-size:28px;line-height:34px;color:#61646b;margin:0}.journey-duration{position:absolute;right:192px;top:1038px;font-size:28px;line-height:34px;color:#61646b;margin:0}
+</style>
+<div data-hf-id="hf-cyg0" id="root" data-composition-id="journey" data-width="1920" data-height="1080" data-hold="Native application video and deliberate reading holds">
+<div data-hf-id="hf-11t0" class="journey-brand"><img data-hf-id="hf-t3bd" src="assets/logo.svg" alt=""><span data-hf-id="hf-3fio">pitchcrew</span></div>
+<p data-hf-id="hf-w0h3" id="journey-hook" class="journey-heading clip" data-start="0" data-duration="3" data-track-index="2">One job. Your whole crew.</p>
+<p data-hf-id="hf-bnap" id="journey-scout" class="journey-heading clip" data-start="3" data-duration="4" data-track-index="2">01 / Scout checks the fit</p>
+<p data-hf-id="hf-xfxi" id="journey-writer" class="journey-heading clip" data-start="7" data-duration="4" data-track-index="2">02 / Writer drafts the packet</p>
+<p data-hf-id="hf-3zkh" id="journey-sources" class="journey-heading clip" data-start="11" data-duration="6" data-track-index="2">03 / Every claim has a source</p>
+<p data-hf-id="hf-3c7e" id="journey-reviewer" class="journey-heading clip" data-start="17" data-duration="3" data-track-index="2">04 / Reviewer checks the packet</p>
+<p data-hf-id="hf-tm5a" id="journey-approval" class="journey-heading clip" data-start="20" data-duration="8" data-track-index="2">05 / You approve the documents</p>
+<p data-hf-id="hf-vcf0" id="journey-finish" class="journey-heading clip" data-start="28" data-duration="4" data-track-index="2">Reviewed. Approved. Ready to apply.</p>
+<video data-hf-id="hf-t8rr" id="native-flow" class="clip journey-footage" muted playsinline src="assets/footage/journey.mp4" data-start="0" data-duration="32" data-track-index="1"></video>
+<p data-hf-id="hf-ywen" class="journey-note">Fictional demo workspace · Processing waits shortened</p><p data-hf-id="hf-h1ob" class="journey-duration">Local-first. Human-approved.</p>
+</div>
+<script>const tl=gsap.timeline({paused:true});for(const [id,t] of [['hook',0],['scout',3],['writer',7],['sources',11],['reviewer',17],['approval',20],['finish',28]]){tl.fromTo('#journey-'+id,{opacity:0},{opacity:1,duration:0.15,ease:'none'},t);}window.__timelines.journey=tl;</script>
+</template>

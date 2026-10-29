@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "hyperframes_check": "check-final.json",
+  "video": {
+    "programs": [],
+    "streams": [
+      {
+        "index": 0,
+        "codec_name": "h264",
+        "codec_type": "video",
+        "width": 1920,
+        "height": 1080,
+        "r_frame_rate": "30/1",
+        "duration": "22.000000",
+        "nb_frames": "660"
+      },
+      {
+        "index": 1,
+        "codec_name": "aac",
+        "codec_type": "audio",
+        "r_frame_rate": "0/0",
+        "duration": "22.016000",
+        "nb_frames": "1033"
+      }
+    ],
+    "format": {
+      "duration": "22.016000",
+      "size": "1667969"
+    }
+  },
+  "poster_source_seconds": 2.6,
+  "poster_baked_as_frame_zero": true,
+  "same_duration_and_frame_count": true,
+  "audio_packets_identical_after_poster_bake": true,
+  "music_credit": "Music: Sascha Ende, ende.app (CC BY 4.0)",
+  "notes": "Container duration is 22.016 seconds because AAC has an encoder-sized audio tail; picture is exactly 22.000 seconds / 660 frames."
+}

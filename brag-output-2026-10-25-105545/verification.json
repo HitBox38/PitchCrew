@@ -1,0 +1,19 @@
+{
+  "file": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output-2026-10-25-105545/brag.mp4",
+  "width": 1920,
+  "height": 1080,
+  "videoSeconds": 38,
+  "videoFrames": 1140,
+  "fps": 30,
+  "audio": "aac",
+  "audioUnchangedByPosterBake": true,
+  "audioStreamHash": "e267932a2a96711dc576d7cac0e258dd7b9966bdb6dbfe669fc6d174332dc409",
+  "posterTime": 2.5,
+  "posterBakedIntoFrameZero": true,
+  "hyperframesZeroErrors": true,
+  "editorialContrastChecks": 40,
+  "nativeUI": "Visually reviewed from actual app capture; text in footage is not part of DOM contrast audit.",
+  "review": "Camera extrema, opening perspective, role handoffs, evidence close-up, readable captions and approved packet inspected.",
+  "bytes": 7234418,
+  "sha256": "09feb66b09f1c0d3318f747059a37a08a05f09ba0d7b03b638915467b864d399"
+}

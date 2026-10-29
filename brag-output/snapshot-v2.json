@@ -1,0 +1,42 @@
+{
+  "ok": true,
+  "outputDir": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2",
+  "frames": [
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-00-at-2.6s.png",
+      "time": 2.6
+    },
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-01-at-4.39s.png",
+      "time": 4.39
+    },
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-02-at-7.5s.png",
+      "time": 7.5
+    },
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-03-at-10s.png",
+      "time": 10
+    },
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-04-at-16.38s.png",
+      "time": 16.38
+    },
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-05-at-16.65s.png",
+      "time": 16.65
+    },
+    {
+      "path": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/frame-06-at-21.34s.png",
+      "time": 21.34
+    }
+  ],
+  "contactSheets": [
+    "/Users/tomernorman/Documents/personal/PitchCrew/brag-output/review-v2/contact-sheet.jpg"
+  ],
+  "_meta": {
+    "version": "0.8.191",
+    "latestVersion": "0.8.191",
+    "updateAvailable": false
+  }
+}

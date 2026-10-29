@@ -1,0 +1,10 @@
+{
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "deviceScaleFactor": 2,
+  "title": "Pitchcrew — Your next chapter",
+  "boardSource": "packages/ui/src/BoardPage",
+  "jobSource": "packages/ui/src/JobDetails"
+}

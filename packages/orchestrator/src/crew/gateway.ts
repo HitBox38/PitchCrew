@@ -41,6 +41,7 @@ import { insightsAction } from './gateway/insights.ts';
 import { jobSourceAction } from './gateway/job-sources.ts';
 import type { CrewContext } from './types.ts';
 import { beginMcpToolCall } from '../telemetry/mcp.ts';
+import { reportTechnicalProblem } from './gateway/diagnostics.ts';
 
 export const agentCall = async (
   context: CrewContext,
@@ -101,6 +102,13 @@ const dispatchAgentCall = async (
     throw new Error(
       'Source extraction cannot call agent tools. Return only the structured source result.',
     );
+  if (action === 'report_technical_problem') {
+    if (!activeRun || activeRun.status !== 'running' || questionForRun(context, capability.runId))
+      throw new Error('Technical problem reports require an active run.');
+    if (activeRun.threadId && !canReadConversation(context, capability.roleId, activeRun.threadId))
+      throw new Error('Conversation access was removed.');
+    return reportTechnicalProblem(context, capability, data.input ?? data);
+  }
   const isolated =
     activeRun?.purpose === 'application-draft' ||
     activeRun?.purpose === 'application-review' ||

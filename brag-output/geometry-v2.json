@@ -1,0 +1,70 @@
+{
+  "atSeconds": 10,
+  "checks": {
+    "allCardsInsideWells": true,
+    "allCrewInsideWindow": true,
+    "cardTopsMatch": true,
+    "crewFollowsColumnInsets": true,
+    "jobAlignedWithReady": true,
+    "packetAlignedWithDrafting": true
+  },
+  "columns": [
+    {
+      "h": 374,
+      "w": 430,
+      "x": 400,
+      "y": 430
+    },
+    {
+      "h": 374,
+      "w": 430,
+      "x": 850,
+      "y": 430
+    },
+    {
+      "h": 374,
+      "w": 430,
+      "x": 1300,
+      "y": 430
+    }
+  ],
+  "crew": [
+    {
+      "h": 90,
+      "w": 390,
+      "x": 420,
+      "y": 812
+    },
+    {
+      "h": 90,
+      "w": 390,
+      "x": 870,
+      "y": 812
+    },
+    {
+      "h": 90,
+      "w": 390,
+      "x": 1320,
+      "y": 812
+    }
+  ],
+  "job": {
+    "h": 294,
+    "w": 390,
+    "x": 1320,
+    "y": 498
+  },
+  "packet": {
+    "h": 294,
+    "w": 390,
+    "x": 870,
+    "y": 498
+  },
+  "passed": true,
+  "window": {
+    "h": 650,
+    "w": 1600,
+    "x": 160,
+    "y": 270
+  }
+}

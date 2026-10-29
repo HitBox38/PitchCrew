@@ -1,0 +1,58 @@
+<template>
+  <style>
+    #root{position:absolute;inset:0}
+    #evidence-kicker{position:absolute;left:160px;top:104px}
+    #evidence-title{position:absolute;left:160px;top:147px;font-size:76px;line-height:1.15}
+    #evidence-stage{position:absolute;left:160px;top:280px;width:1600px;height:640px;padding:34px}
+    #evidence-identity{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:24px;font-size:29px;font-weight:600}
+    #evidence-panels{display:grid;grid-template-columns:1fr 1fr;gap:36px;margin-top:28px}
+    #evidence-resume,#evidence-source{height:330px;padding:27px 30px;border-radius:18px}
+    #evidence-resume{background:var(--clay-fill);border:1px solid #fdfcf9;box-shadow:0 3px 0 #d0d0c8,0 8px 18px #1e222c10,var(--volume)}
+    #evidence-source{background:linear-gradient(160deg,#d9e5de,#e6efea);border:1px solid #b8cbc0;box-shadow:var(--clay-sunken)}
+    .evidence-panel-label{font-size:30px;color:var(--muted);margin-bottom:22px;font-weight:600}
+    #evidence-resume h3{font-size:31px;font-weight:600;margin-bottom:18px}
+    .evidence-quote{font-size:34px;line-height:1.3;letter-spacing:-.01em}
+    #evidence-source .evidence-quote{color:#2b5549}
+    #evidence-source-result{margin-top:22px;font-size:30px;color:#2b5549;font-weight:600}
+    #evidence-approval-bar{display:flex;justify-content:space-between;align-items:center;margin-top:27px;padding-top:24px;border-top:1px solid var(--line)}
+    #evidence-files{font-size:30px;display:flex;gap:14px;align-items:center}
+    #evidence-files b{font-weight:600}
+    #evidence-approve{position:relative;width:294px;height:66px;border-radius:15px;background:var(--glaze-fill);color:#fdfcf9;font-size:30px;font-weight:600;box-shadow:var(--glaze-shadow)}
+    #evidence-approve span{position:absolute;inset:0;display:grid;place-items:center}
+    #evidence-approved{background:linear-gradient(170deg,#437f7d,#2f6a69 55%,#285b59);box-shadow:inset 0 2px 0 #ffffff47,inset -5px -6px 12px #163a3a40;border-radius:15px}
+    #evidence-caption{position:absolute;left:160px;top:955px;font-size:30px;color:var(--muted)}
+    #evidence-source-link{display:flex;align-items:center;gap:12px;font-size:30px;font-weight:600;color:var(--teal)}
+  </style>
+  <div data-hf-id="hf-m706" id="root" data-composition-id="evidence" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-2ava" class="paper"></div>
+    <p data-hf-id="hf-7n57" id="evidence-kicker" class="eyebrow">REVIEW THE EVIDENCE</p>
+    <h2 data-hf-id="hf-5ony" id="evidence-title" class="serif">Your notes. Your approval.</h2>
+    <div data-hf-id="hf-2zr3" id="evidence-stage" class="clay">
+      <div data-hf-id="hf-o7gh" id="evidence-identity"><span data-hf-id="hf-ki6o">Forma · Design Engineer</span><span data-hf-id="hf-kr0s" class="pill moss">Reviewer · Claims checked</span></div>
+      <div data-hf-id="hf-obk6" id="evidence-panels">
+        <div data-hf-id="hf-pleu" id="evidence-resume"><p data-hf-id="hf-vq18" class="evidence-panel-label">RESUME · APPLICATION PACKET</p><h3 data-hf-id="hf-tuhz">Relevant experience</h3><p data-hf-id="hf-q29b" class="evidence-quote" data-hold>Created reusable UI components and documented their interaction patterns.</p></div>
+        <div data-hf-id="hf-33l4" id="evidence-source"><p data-hf-id="hf-xe6w" class="evidence-panel-label">YOUR PROFILE · experience.md</p><p data-hf-id="hf-ybyn" class="evidence-quote" data-hold>Created reusable UI components and documented their interaction patterns.</p><p data-hf-id="hf-t5wa" id="evidence-source-result">✓ Matches your notes word for word.</p></div>
+      </div>
+      <div data-hf-id="hf-x4yi" id="evidence-approval-bar"><div data-hf-id="hf-xj7s" id="evidence-files"><b data-hf-id="hf-h4uv">Reviewed files</b><span data-hf-id="hf-jb5q" class="pill blue">PDF</span><span data-hf-id="hf-7c2a" class="pill blue">DOCX</span></div><div data-hf-id="hf-tx6o" id="evidence-source-link">✓ Source-backed claim</div><div data-hf-id="hf-79fa" id="evidence-approve"><span data-hf-id="hf-fjnb" id="evidence-unapproved">Approve export</span><span data-hf-id="hf-ljc1" id="evidence-approved">✓ Export approved</span></div></div>
+    </div>
+    <div data-hf-id="hf-d0fa" id="evidence-pointer" class="cursor" data-layout-ignore><img src="assets/cursor.svg" alt=""/></div>
+    <p data-hf-id="hf-4r40" id="evidence-caption">Fictional example · Final submission requires your approval.</p>
+  </div>
+  <script>
+    const tl=gsap.timeline({paused:true});
+    // beat-locked: the source-review stage enters at global 10.93s.
+    tl.fromTo('#evidence-stage',{scale:.96},{scale:1,duration:.45,ease:'power4.out'},0);
+    tl.fromTo('#evidence-title',{filter:'blur(7px)',opacity:0},{filter:'blur(0px)',opacity:1,duration:.23},.1);
+    tl.fromTo('#evidence-source',{opacity:0,x:25},{opacity:1,x:0,duration:.4,ease:'power4.out'},.53);
+    tl.fromTo('#evidence-source-result',{opacity:0},{opacity:1,duration:.25},1.05);
+    tl.fromTo('#evidence-source-link',{opacity:0},{opacity:1,duration:.2},1.3);
+    tl.fromTo('#evidence-pointer',{x:1740,y:930,opacity:0},{x:1694,y:831,opacity:1,duration:.6,ease:'power2.inOut'},4.5);
+    tl.to('#evidence-pointer',{scale:.91,duration:.08},5.45).to('#evidence-pointer',{scale:1,duration:.12},5.53);
+    tl.to('#evidence-approve',{scale:.97,y:3,duration:.08},5.45).to('#evidence-approve',{scale:1,y:0,duration:.16,ease:'power2.out'},5.53);
+    tl.to('#evidence-unapproved',{opacity:0,duration:.06},5.45);
+    tl.fromTo('#evidence-approved',{opacity:0},{opacity:1,duration:.18},5.57);
+    tl.to('#evidence-pointer',{x:1740,y:910,opacity:0,duration:.25,ease:'power3.out'},5.85);
+    tl.to('#evidence-stage',{scale:.985,opacity:0,duration:.23,ease:'power3.in'},6.3);
+    window.__timelines.evidence=tl;
+  </script>
+</template>

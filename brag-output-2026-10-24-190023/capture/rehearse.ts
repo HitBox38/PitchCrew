@@ -1,0 +1,26 @@
+import { chromium } from '../../packages/ui/node_modules/playwright/index.mjs';
+const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});
+const context=await browser.newContext({viewport:{width:1440,height:900},deviceScaleFactor:1,colorScheme:'light'});
+const page=await context.newPage();
+await page.goto('http://127.0.0.1:14419/');
+await page.getByRole('button',{name:'Open Senior Frontend Engineer at Orbit Labs',exact:true}).click();
+const log=async(name:string)=>{console.log(name,await page.getByRole('dialog',{name:'Job details',exact:true}).innerText());await page.screenshot({path:`brag-output-2026-10-24-190023/capture/${name}.png`});};
+if(await page.getByRole('button',{name:'Draft application',exact:true}).count()===0){await page.getByRole('button',{name:'Evaluate fit',exact:true}).click();}
+await page.waitForTimeout(3500);
+await log('evaluated');
+console.log('BUTTONS',await page.getByRole('dialog',{name:'Job details',exact:true}).getByRole('button').allTextContents());
+await page.getByRole('button',{name:'Shortlist',exact:true}).click();
+await page.getByRole('button',{name:'Draft application',exact:true}).click();
+await page.waitForTimeout(3500);
+await log('drafted');
+await page.getByRole('button',{name:'Review packet',exact:true}).click();
+await page.waitForTimeout(3500);
+await log('reviewed');
+await page.getByRole('button',{name:'Prepare export',exact:true}).click();
+await log('export');
+await page.getByRole('button',{name:'Request export approval',exact:true}).click();
+await page.waitForTimeout(1000);
+await page.getByRole('button',{name:'Open approval inbox',exact:true}).click();
+await page.waitForURL(/\/inbox/);
+console.log('INBOX',await page.locator('main').innerText());
+await browser.close();

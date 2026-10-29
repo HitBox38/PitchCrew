@@ -1,0 +1,108 @@
+<template>
+  <style>
+    #root{position:absolute;inset:0}
+    #board-kicker{position:absolute;left:160px;top:104px}
+    #board-title{position:absolute;left:160px;top:147px;font-size:76px;line-height:1.15}
+    #board-window{position:absolute;left:160px;top:270px;width:1600px;height:650px;overflow:hidden;border:2px solid #fdfcf9}
+    #board-chrome{height:66px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;border-bottom:1px solid var(--line);font-size:30px;background:var(--clay-fill)}
+    #board-wordmark{display:flex;align-items:center;gap:14px;font-size:29px}
+    #board-wordmark img{width:46px;height:46px}
+    #board-layout{display:flex;height:580px}
+    #board-sidebar{width:210px;flex-shrink:0;padding:35px 19px;border-right:1px solid var(--line);font-size:30px;color:var(--muted);background:var(--sunken-fill);box-shadow:inset -4px 0 8px #1e222c09}
+    #board-sidebar div{padding:13px 18px;margin-bottom:10px}
+    #board-sidebar .selected{color:var(--color-ink);background:var(--clay-fill);border-radius:14px;box-shadow:0 3px 0 #d0d0c8,0 6px 12px #1e222c12,var(--volume);font-weight:600}
+    #board-work{position:relative;flex:1;min-width:0;padding:27px 28px}
+    #board-toolbar{height:43px;margin-bottom:22px;font-size:30px;line-height:43px}
+    /* The columns and crew rows share this exact 1330px / 3-column grid. */
+    #board-columns,#board-results{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+    #board-columns{height:374px}
+    .board-col{padding:20px;font-size:30px;font-weight:600}
+    .board-col b{font-size:30px;font-weight:600}
+    .board-col .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:12px;background:var(--teal)}
+    .board-col:nth-child(2) .dot{background:var(--plum)} .board-col:nth-child(3) .dot{background:var(--moss)}
+    /* 28px grid inset + 20px column inset. Motion uses the same 450px pitch. */
+    #board-job-motion{position:absolute;left:48px;top:160px;width:390px;z-index:4;perspective:1400px}
+    #board-job{width:390px;height:294px;padding:20px;transform-origin:50% 50%}
+    #board-job-company{font-size:31px;line-height:1.15;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+    #board-job-company .sample{font-size:30px;line-height:1.15;font-weight:400;border:1px dashed #a6a6a0;padding:2px 9px;border-radius:7px;color:var(--muted)}
+    #board-job h3{font-size:32px;line-height:1.1;margin-top:12px;font-weight:600}
+    #board-job-location{font-size:30px;line-height:1.15;margin-top:6px;color:var(--muted)}
+    #board-tags{display:flex;gap:10px;margin-top:10px;font-size:30px;line-height:1.1}
+    #board-tags span{background:var(--sunken-fill);box-shadow:inset 1px 2px 3px #1e222c12,0 1px 0 #ffffffb3;padding:3px 9px;border-radius:8px}
+    #board-fit{display:flex;justify-content:space-between;align-items:center;margin-top:12px;border-top:1px solid var(--line);padding-top:10px;font-size:30px;line-height:1.2;color:var(--moss);font-weight:600}
+    #board-job-status{position:relative;width:175px;height:44px}
+    #board-job-status span{position:absolute;inset:0;text-align:center;border-radius:8px;font-size:30px;line-height:1.2;padding:4px 9px;box-shadow:inset 0 2px 1px #ffffff99,inset -2px -3px 5px #1e222c10}
+    #board-progress{position:absolute;left:330px;top:27px;height:43px;line-height:43px;font-size:29px;color:var(--muted)}
+    #board-results{position:absolute;left:28px;right:28px;top:474px;z-index:5}
+    .board-result{height:90px;min-width:0;margin:0 20px;display:flex;gap:16px;align-items:center;padding:12px 18px;border-radius:18px 20px 17px 19px;background:var(--clay-fill);border:1px solid #fdfcf9;box-shadow:0 3px 0 #d0d0c8,0 8px 16px #1e222c12,var(--volume)}
+    .board-result .avatar{width:48px;height:48px;font-size:30px}
+    .board-result strong{display:block;font-size:30px;line-height:1.1;font-weight:600}
+    .board-result p{font-size:28px;line-height:1.1;color:var(--muted)}
+    #board-action{position:absolute;right:28px;top:20px;width:230px;height:60px;display:grid;place-items:center;border-radius:13px;background:var(--glaze-fill);box-shadow:var(--glaze-shadow);color:#fdfcf9;font-size:30px;z-index:10}
+    #board-packet-peek{position:absolute;left:498px;top:160px;width:390px;height:294px;padding:27px;z-index:3}
+    #board-packet-peek h4{font-size:31px;line-height:1.2;font-weight:600;margin-bottom:24px}
+    #board-packet-peek .rule{height:8px;background:#cdd4cc;margin-bottom:17px;border-radius:4px;box-shadow:inset 0 2px 2px #1e222c0d}
+    #board-packet-peek .rule:nth-child(3){width:80%}
+    #board-packet-peek .rule:nth-child(4){width:90%}
+    #board-packet-peek .pill{margin-top:13px}
+  </style>
+  <div id="root" data-composition-id="board" data-width="1920" data-height="1080">
+    <div class="paper"></div>
+    <p id="board-kicker" class="eyebrow">THE APPLICATION, TOGETHER</p>
+    <h2 id="board-title" class="serif">One role. A whole crew.</h2>
+    <div id="board-window" class="clay">
+      <div id="board-chrome"><div id="board-wordmark" class="serif"><img src="assets/logo.svg" alt=""/>Pitchcrew</div><span class="muted">Local workspace</span></div>
+      <div id="board-layout">
+        <div id="board-sidebar"><div class="selected">Board</div><div>Chat</div><div>Crew</div><div>Inbox</div><div>Profile</div></div>
+        <div id="board-work">
+          <div id="board-toolbar"><strong>Pipeline</strong></div>
+          <div id="board-progress">Scout → Writer → Reviewer</div>
+          <div id="board-action">Evaluate fit</div>
+          <div id="board-columns"><div class="board-col recess"><span class="dot"></span><b>Shortlisted</b></div><div class="board-col recess"><span class="dot"></span><b>Drafting</b></div><div class="board-col recess"><span class="dot"></span><b>Ready</b></div></div>
+          <div id="board-job-motion"><div id="board-job" class="clay">
+            <div id="board-job-company">Forma <span class="sample">example</span></div>
+            <h3>Design Engineer</h3><p id="board-job-location">Berlin · Hybrid</p>
+            <div id="board-tags"><span>Design systems</span><span>React</span></div>
+            <div id="board-fit"><span>85% fit</span><div id="board-job-status"><span id="board-status-fit" class="teal">Shortlisted</span><span id="board-status-draft" class="plum">In review</span><span id="board-status-reviewed" class="moss">Reviewed</span></div></div>
+          </div></div>
+          <div id="board-packet-peek" class="clay"><h4>Application packet</h4><div class="rule"></div><div class="rule"></div><div class="rule"></div><span class="pill moss">Source checked</span></div>
+          <div id="board-results">
+            <div id="board-scout-result" class="board-result"><div class="avatar teal">S</div><div><strong>Scout</strong><p>Fit assessed</p></div></div>
+            <div id="board-writer-result" class="board-result"><div class="avatar plum">W</div><div><strong>Writer</strong><p>Packet drafted</p></div></div>
+            <div id="board-reviewer-result" class="board-result"><div class="avatar moss">R</div><div><strong>Reviewer</strong><p>Claims checked</p></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="board-pointer" class="cursor" data-layout-ignore><img src="assets/cursor.svg" alt=""/></div>
+    <p class="footer-note">Fictional example · Workflow steps condensed</p>
+  </div>
+  <script>
+    const tl=gsap.timeline({paused:true});
+    tl.fromTo('#board-window',{x:100,scale:.97,opacity:0},{x:0,scale:1,opacity:1,duration:.6,ease:'power4.out'},0);
+    tl.fromTo('#board-title',{opacity:0,filter:'blur(7px)'},{opacity:1,filter:'blur(0px)',duration:.25},.1);
+    // Conventional arrow: its tip is offset 4px from the actor's top-left.
+    tl.fromTo('#board-pointer',{x:1420,y:470,opacity:0},{x:1541,y:378,opacity:1,duration:.5,ease:'power2.inOut'},.42);
+    tl.fromTo('#board-action',{opacity:0},{opacity:1,duration:.18},.3);
+    tl.to('#board-pointer',{scale:.91,duration:.08},1.12).to('#board-pointer',{scale:1,duration:.12},1.2);
+    tl.to('#board-action',{scale:.97,y:3,duration:.08},1.12).to('#board-action',{scale:1,y:0,duration:.13},1.20).to('#board-action',{opacity:0,duration:.18},1.55);
+    tl.to('#board-pointer',{x:1580,y:460,opacity:0,duration:.25,ease:'power3.out'},1.45);
+    tl.to('#board-status-fit',{opacity:0,duration:.08},3.25);
+    tl.fromTo('#board-status-draft',{opacity:0},{opacity:1,duration:.15},3.29);
+    tl.to('#board-status-draft',{opacity:0,duration:.08},5.43);
+    tl.fromTo('#board-status-reviewed',{opacity:0},{opacity:1,duration:.15},5.47);
+    // beat-grid: global 4.39, 6.56, 8.74. Identical column coordinates.
+    ['#board-scout-result','#board-writer-result','#board-reviewer-result'].forEach((id,i)=>tl.fromTo(id,{y:12,opacity:0},{y:0,opacity:1,duration:.28,ease:'power4.out'},[1.12,3.29,5.47][i]));
+    // Translation and the card's physical tilt use separate surfaces.
+    tl.to('#board-job-motion',{x:450,duration:.65,ease:'power2.inOut'},2.65);
+    tl.to('#board-job',{rotationY:5,rotationZ:-1.2,z:24,scale:1.015,duration:.2,ease:'power3.out'},2.65);
+    tl.to('#board-job',{rotationY:0,rotationZ:0,z:0,scale:1,duration:.2,ease:'power3.out'},3.18);
+    // beat-locked: global 8.74s.
+    tl.to('#board-job-motion',{x:900,duration:.65,ease:'power2.inOut'},4.82);
+    tl.to('#board-job',{rotationY:5,rotationZ:-1.2,z:24,scale:1.015,duration:.2,ease:'power3.out'},4.82);
+    tl.to('#board-job',{rotationY:0,rotationZ:0,z:0,scale:1,duration:.2,ease:'power3.out'},5.35);
+    tl.fromTo('#board-packet-peek',{opacity:0,y:18},{opacity:1,y:0,duration:.35,ease:'power4.out'},5.62);
+    tl.to('#board-packet-peek',{scale:1.08,opacity:0,duration:.32,ease:'power3.in'},7.33);
+    window.__timelines.board=tl;
+  </script>
+</template>

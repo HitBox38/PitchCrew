@@ -1,0 +1,2 @@
+import {chromium} from '../../packages/ui/node_modules/playwright/index.mjs';
+const browser=await chromium.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:true});const page=await browser.newPage({viewport:{width:1280,height:800}});await page.goto('http://127.0.0.1:14419/inbox');await page.waitForTimeout(800);console.log(await page.locator('main').innerText());console.log('BUTTONS',await page.locator('main').getByRole('button').allTextContents());await browser.close();

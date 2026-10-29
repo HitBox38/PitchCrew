@@ -1,0 +1,28 @@
+{
+  "ok": false,
+  "errorCount": 1,
+  "warningCount": 1,
+  "infoCount": 0,
+  "findings": [
+    {
+      "code": "timeline_track_too_dense",
+      "severity": "warning",
+      "message": "Track 2 has 7 timed elements in this HTML file. Smaller sub-compositions keep timelines easier to read, iterate on, and diff.",
+      "fixHint": "Move coherent scene groups into smaller .html files and mount them from the parent with data-composition-src so the timeline stays easier to inspect, revise, and validate.",
+      "file": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output-2026-10-24-190023/composition/compositions/journey.html"
+    },
+    {
+      "code": "missing_local_asset",
+      "severity": "error",
+      "file": "/Users/tomernorman/Documents/personal/PitchCrew/brag-output-2026-10-24-190023/composition/compositions/journey.html",
+      "message": "<video> element references local file(s) not found in the project: assets/footage/journey.mp4. The renderer will silently skip these and produce a video with missing visuals.",
+      "fixHint": "Add \"assets/footage/journey.mp4\" to the project directory, or update the src attribute to point to an existing file. Common cause: captured asset filenames are unreliable (heygen-logo.svg often contains Google, nvidia-logo.svg may contain Autodesk, etc.). Open the contact sheets and verify the file actually exists at this path before referencing it."
+    }
+  ],
+  "filesScanned": 2,
+  "_meta": {
+    "version": "0.8.192",
+    "latestVersion": "0.8.191",
+    "updateAvailable": false
+  }
+}

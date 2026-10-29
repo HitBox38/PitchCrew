@@ -1,0 +1,5 @@
+# Composition brief
+LOOK: native Pitchcrew UI, paper #f2f1ec, ink #2b2d31, indigo #3a5482; Source Sans 3 600 at 30px; Fraunces Variable 600 at 34px. The application is a 1600×1000 recording on a 1920×1080 paper stage. Preserve native material shadows and exact element alignment.
+BANNED: landing-page assets, replica UI, stylized cursor illustrations, floating cards, collage scenes, large marketing headlines obscuring controls.
+Use one continuous application journey and clean edits only to shorten waits. Keep the exact same Orbit Labs opportunity visible. Editorial stage labels explain the role handoffs. Native app remains the visual subject. Final hold is approved packet with manual/agent handoff choices. Do not imply that approval has submitted an application.
+Silent native footage, licensed bundled music, sparse soft decision accents. Register deterministic paused timelines; local media only. Check layout, contrast and native screenshot readability before delivery render. Preserve original recording, event log, edit decision list and verification metadata.

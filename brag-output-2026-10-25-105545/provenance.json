@@ -1,0 +1,25 @@
+{
+  "sourceFootage": "brag-output-2026-10-24-190023/composition/assets/footage/journey.mp4",
+  "sourceSHA256": "73bd41df0b95e683470ac7789f8bd42ac91668f6dc0c8ea04b5dffc9aeddf44c",
+  "sourceCaptureProvenance": "../brag-output-2026-10-24-190023/provenance.json",
+  "newCut": "Same 38-second cinematic explainer with a lighter soundtrack and revised music credit.",
+  "nativeUI": "No controls recreated or individually moved. Native footage transformed as one camera plane.",
+  "cursor": "Original conventional pointer recorded from actual app interactions.",
+  "copySource": "README.md; core Scout/Writer/Reviewer application workflow, native exact-document approval, local workspace storage.",
+  "audio": {
+    "title": "Happy Beats / Business Moves Vol. 9",
+    "artist": "Sascha Ende",
+    "source": "https://ende.app/en",
+    "license": "CC BY 4.0",
+    "licenseURL": "https://ende.app/en/standard-license",
+    "excerpt": [
+      0,
+      38
+    ],
+    "changes": "Trim, gain 0.34, fades, new RMS/frequency-based stage illumination."
+  },
+  "SFX": "Kenney impactSoft_medium_001, CC0.",
+  "runtime": "Hyperframes 0.8.192; local GSAP; deterministic paused timelines.",
+  "notes": "Fictional demo workspace, waits shortened; final state is Approved, before submission. Previous cut preserved.",
+  "revisionOf": "../brag-output-2026-10-25-103646/brag.mp4"
+}

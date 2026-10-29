@@ -1,0 +1,30 @@
+<template>
+<style>
+#root{position:absolute;inset:0}
+#native-brand{position:absolute;left:160px;top:150px;display:flex;align-items:center;gap:20px;font-size:43px}
+#native-brand img{width:80px;height:80px}
+#native-intro-title{position:absolute;left:165px;top:340px;width:1000px;font-size:104px;line-height:1.12}
+#native-intro-title span{color:var(--teal)}
+#native-intro-sub{position:absolute;left:170px;top:660px;font-size:34px;color:var(--muted)}
+.native-crew{position:absolute;width:480px;height:auto;border-radius:22px}
+#native-scout{left:1190px;top:100px}#native-writer{left:1240px;top:300px}#native-reviewer{left:1190px;top:500px}
+#native-intro-footer{position:absolute;left:170px;top:865px;font-size:30px;color:var(--muted)}
+</style>
+<div id="root" data-composition-id="intro" data-width="1920" data-height="1080">
+<div class="paper"></div>
+<div id="native-brand" class="serif"><img src="assets/logo.svg" alt="Pitchcrew logo"/><span>Pitchcrew</span></div>
+<h1 id="native-intro-title" class="serif">Meet your<br/><span>job-search crew.</span></h1>
+<p id="native-intro-sub">Scout · Writer · Reviewer</p>
+<img id="native-scout" class="native-crew" src="assets/app/crew-scout-native.png" alt="Scout's actual crew card"/>
+<img id="native-writer" class="native-crew" src="assets/app/crew-writer-native.png" alt="Writer's actual crew card"/>
+<img id="native-reviewer" class="native-crew" src="assets/app/crew-reviewer-native.png" alt="Reviewer's actual crew card"/>
+<p id="native-intro-footer">Local-first. Free and open source.</p>
+</div>
+<script>
+const tl=gsap.timeline({paused:true});
+tl.fromTo('#native-intro-title',{opacity:.15,filter:'blur(7px)'},{opacity:1,filter:'blur(0px)',duration:.28,ease:'power3.out'},0);
+// Actual CrewCard captures; no recreated cards, avatars or controls.
+['#native-scout','#native-writer','#native-reviewer'].forEach((id,i)=>tl.fromTo(id,{x:60,opacity:0},{x:0,opacity:1,duration:.45,ease:'power4.out'},[.25,.8,1.35][i]));
+window.__timelines.intro=tl;
+</script>
+</template>

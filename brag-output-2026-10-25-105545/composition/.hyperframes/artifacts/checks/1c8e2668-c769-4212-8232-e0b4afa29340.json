@@ -1,0 +1,102 @@
+{
+  "ok": true,
+  "strict": false,
+  "browserSkipped": false,
+  "lint": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "filesScanned": 8
+  },
+  "runtime": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": []
+  },
+  "layout": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "duration": 38,
+    "samples": [
+      2.111,
+      6.333,
+      10.556,
+      14.778,
+      19,
+      23.222,
+      27.444,
+      31.667,
+      35.889
+    ],
+    "transitionSamples": [],
+    "transitionSamplesDropped": 0,
+    "tolerance": 2,
+    "totalIssueCount": 0,
+    "truncated": false
+  },
+  "motion": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": false,
+    "samples": 0
+  },
+  "contrast": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "samples": [
+      2.111,
+      10.556,
+      19,
+      27.444,
+      35.889
+    ],
+    "checked": 40,
+    "passed": 40
+  },
+  "craft": {
+    "ok": true,
+    "errorCount": 0,
+    "warningCount": 0,
+    "infoCount": 0,
+    "findings": [],
+    "enabled": true,
+    "step": 0.125,
+    "samples": 304
+  },
+  "hdr": {
+    "autoPromotion": null,
+    "inspection": "available"
+  },
+  "snapshots": {
+    "enabled": true,
+    "files": [
+      ".hyperframes/artifacts/snapshots/78a95796-b6b5-4ebc-972e-31336c4e2359/frame-00-at-2.1s.png",
+      ".hyperframes/artifacts/snapshots/78a95796-b6b5-4ebc-972e-31336c4e2359/frame-01-at-10.6s.png",
+      ".hyperframes/artifacts/snapshots/78a95796-b6b5-4ebc-972e-31336c4e2359/frame-02-at-19.0s.png",
+      ".hyperframes/artifacts/snapshots/78a95796-b6b5-4ebc-972e-31336c4e2359/frame-03-at-27.4s.png",
+      ".hyperframes/artifacts/snapshots/78a95796-b6b5-4ebc-972e-31336c4e2359/frame-04-at-35.9s.png"
+    ],
+    "times": [
+      2.111,
+      10.556,
+      19,
+      27.444,
+      35.889
+    ],
+    "findingFiles": []
+  }
+}

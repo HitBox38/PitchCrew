@@ -1,0 +1,24 @@
+{
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "deviceScaleFactor": 2,
+  "reading": {
+    "x": 270,
+    "y": 126.78125,
+    "width": 1316,
+    "height": 859.21875
+  },
+  "approveButton": {
+    "x": 1142.515625,
+    "y": 932,
+    "width": 139.78125,
+    "height": 38
+  },
+  "screens": [
+    "approval-pending.png",
+    "approval-approved.png"
+  ],
+  "fictional": true
+}

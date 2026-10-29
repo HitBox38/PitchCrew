@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en" data-resolution="landscape" data-composition-variables='[{"id":"color-ground","type":"color","label":"Paper","default":"#f2f1ec"},{"id":"color-ink","type":"color","label":"Ink","default":"#2b2d31"},{"id":"color-accent","type":"color","label":"Indigo","default":"#3a5482"},{"id":"font-display","type":"string","label":"Display font","default":"Fraunces Variable"}]'>
+<head><meta charset="utf-8"><title>Pitchcrew — One job. Your whole crew.</title>
+<script src="assets/vendor/gsap.min.js"></script>
+<style>
+@font-face{font-family:'Source Sans 3';font-weight:400;src:url('assets/fonts/sans-400.woff2')}
+@font-face{font-family:'Source Sans 3';font-weight:600;src:url('assets/fonts/sans-600.woff2')}
+@font-face{font-family:'Fraunces Variable';font-weight:100 900;src:url('assets/fonts/fraunces.woff2')}
+*{box-sizing:border-box}html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--color-ground,#f2f1ec);color:var(--color-ink,#2b2d31);font-family:'Source Sans 3'}#root{position:relative;width:1920px;height:1080px}.clip{position:absolute;inset:0}
+</style></head>
+<body><div data-hf-id="hf-e6gp" id="root" data-composition-id="main" data-start="0" data-duration="32" data-width="1920" data-height="1080" data-fps="30">
+<div data-hf-id="hf-8kpp" id="journey" class="clip" data-composition-id="journey" data-composition-src="compositions/journey.html" data-start="0" data-duration="32" data-track-index="1" data-track-kind="graphics" data-width="1920" data-height="1080"></div>
+<audio data-hf-id="hf-ap9q" id="music" class="clip" src="assets/audio/music.mp3" data-start="0" data-duration="32" data-track-index="10" data-volume="0.25" data-fade-in="0.4" data-fade-out="1.8"></audio>
+<audio id="assess-click" class="clip" src="assets/audio/click.ogg" data-start="3.71" data-duration="0.02" data-volume="0.5" data-track-index="11"></audio>
+<audio id="draft-click" class="clip" src="assets/audio/click.ogg" data-start="8.24" data-duration="0.02" data-volume="0.5" data-track-index="12"></audio>
+<audio id="approve-click" class="clip" src="assets/audio/click.ogg" data-start="27.87" data-duration="0.02" data-volume="0.6" data-track-index="13"></audio>
+</div><script>window.__timelines=window.__timelines||{};window.__timelines.main=gsap.timeline({paused:true});</script></body></html>

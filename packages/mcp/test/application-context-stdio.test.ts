@@ -87,12 +87,19 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
             'pitchcrew_get_packet_rules',
             'pitchcrew_lint_packet',
             'pitchcrew_notify_user',
+            'pitchcrew_report_technical_problem',
             'pitchcrew_read_profile',
           ].sort(),
         );
         const result = await client.callTool({ name: 'pitchcrew_get_card', arguments: {} });
         expect(result.isError).not.toBe(true);
         expect(JSON.stringify(result)).not.toContain('RAW-HIDDEN-DIRECTIVE');
+        const report = await client.callTool({
+          name: 'pitchcrew_report_technical_problem',
+          arguments: { area: 'documents' },
+        });
+        expect(report.isError).not.toBe(true);
+        expect(report.structuredContent).toEqual({ ok: true, duplicate: false });
       }
       if (purpose !== 'source-extraction') {
         const forbidden = await client.callTool({ name: 'pitchcrew_get_history', arguments: {} });
