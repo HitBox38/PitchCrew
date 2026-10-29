@@ -19,6 +19,7 @@
     "./operational-logs": "./src/operational-logs.ts",
     "./telemetry-ai": "./src/telemetry-ai.ts",
     "./telemetry-mcp": "./src/telemetry-mcp.ts",
+    "./telemetry-errors": "./src/telemetry-errors.ts",
     "./message-notifications": "./src/message-notifications.ts",
     "./chat-citations": "./src/chat-citations.ts"
   },

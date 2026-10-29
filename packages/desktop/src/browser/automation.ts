@@ -2,7 +2,7 @@ import { captureNativePage } from './capture.ts';
 import { sendGuestCommand } from './input.ts';
 import type { WebContents } from 'electron';
 
-/** Keep hidden guest rendering behind the app while automation needs frames; never show/focus a window. */
+/** Keep inactive DOM guests painting below the app; native overlay views are never used. Never show/focus a window. */
 export const guestAutomation = (
   contents: WebContents,
   paint: (active: boolean) => void,

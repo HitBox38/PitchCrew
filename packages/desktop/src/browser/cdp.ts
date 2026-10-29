@@ -19,7 +19,7 @@ export interface RelayPage {
 export interface RelayGroup {
   pages: Map<string, RelayPage>;
   create(): Promise<RelayPage>;
-  close(id: string): void | Promise<void>;
+  close(id: string): Promise<void>;
 }
 
 /** A synthetic browser exposes only this job's guest targets, never the app window. */

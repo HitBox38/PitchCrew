@@ -96,7 +96,7 @@ export class DesktopBrowserHosts {
                   targetId = (await session.send('Target.getTargetInfo')).targetInfo.targetId;
                   targetIds.set(current, targetId);
                 } finally {
-                  await session.detach().catch(() => {});
+                  await session.detach();
                 }
               } catch (error) {
                 if (

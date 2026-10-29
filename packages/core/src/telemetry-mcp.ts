@@ -36,6 +36,7 @@ export const mcpGatewayTools = Object.freeze({
   roles: 'pitchcrew_list_roles',
   notify_user: 'pitchcrew_notify_user',
   report_progress: 'pitchcrew_report_progress',
+  report_technical_problem: 'pitchcrew_report_technical_problem',
   messages: 'pitchcrew_read_messages',
   message: 'pitchcrew_message_agent',
   invoke: 'pitchcrew_invoke_agent',

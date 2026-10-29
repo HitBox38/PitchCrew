@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { BrowserWindow } from 'electron';
+import { nativeImage } from 'electron';
+import { captureNativePage } from '../../src/browser/capture.ts';
 import type { createNativeBrowserHost } from '../../src/browser/host.ts';
 import type { NativeGroup } from '../../src/browser/pages.ts';
 
@@ -51,6 +53,33 @@ export const checkNativeBrowserPresentation = async (
     async () => isRed(await pixel(600, 450)),
     'The native guest was absent from app composition',
   );
+  const backgroundPage = background.pages.get(background.active)!;
+  await backgroundPage.contents.executeJavaScript(
+    `document.documentElement.style.background = 'rgb(25, 200, 40)'; document.body.style.background = 'rgb(25, 200, 40)';`,
+  );
+  // Native contentView children used to cover the renderer even when reordered.
+  // DOM guests must keep background captures live without covering app pixels.
+  background.paint(background.active, true);
+  try {
+    await waitFor(async () => {
+      const capture = await captureNativePage(backgroundPage.contents, { format: 'png' });
+      const image = nativeImage.createFromBuffer(Buffer.from(capture.data, 'base64'));
+      const { width, height } = image.getSize();
+      const bytes = image.toBitmap({ scaleFactor: 1 });
+      const offset = (Math.floor(height / 2) * width + Math.floor(width / 2)) * 4;
+      return bytes[offset + 1] > 170 && bytes[offset] < 80 && bytes[offset + 2] < 80;
+    }, 'The inactive DOM guest stopped painting for native capture');
+    for (let cycle = 0; cycle < 3; cycle++) {
+      assert.deepEqual(
+        await pixel(900, 600),
+        [242, 241, 236],
+        'An inactive guest covered the app renderer',
+      );
+      assert.ok(isRed(await pixel(600, 450)), 'An inactive guest covered the selected page');
+    }
+  } finally {
+    background.paint(background.active, false);
+  }
   for (const kind of [
     'context-menu-content',
     'popover-content',

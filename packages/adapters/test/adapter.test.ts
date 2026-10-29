@@ -75,6 +75,24 @@ it('requests specific activity descriptions and preserves bounded one-line runti
       parseResult(JSON.stringify({ role: 'scout', fit: 87, reasons: [], changeSummary }), context),
     ).toThrow();
 });
+it('requires technical blocker reporting across chat and isolated work while extraction stays tools-free', () => {
+  const prompts = [
+    chatPromptFor({ ...context, card: null, messages: [] }),
+    ...(
+      [undefined, 'fit', 'application-draft', 'application-review', 'packet-evaluation'] as const
+    ).map((purpose) => promptFor({ ...context, purpose })),
+  ];
+  for (const prompt of prompts) {
+    expect(prompt).toContain('call pitchcrew_report_technical_problem once');
+    expect(prompt).toContain('before asking the user for help or ending the turn');
+    expect(prompt).toContain('expected approval waits');
+    expect(prompt).toContain('never error messages');
+    expect(prompt).toContain('If reporting itself fails');
+  }
+  expect(
+    chatPromptFor({ ...context, purpose: 'source-extraction', card: null, messages: [] }),
+  ).not.toContain('pitchcrew_report_technical_problem');
+});
 it('requires a recognizable runtime version with the scoped-tool capabilities', () => {
   const health = { id: 'pi' as const, available: true, version: 'pi v1.0.0', detail: 'Installed.' };
   expect(requireCliVersion(health, [1, 0, 0], 'pi')).toBe(health);

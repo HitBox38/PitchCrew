@@ -73,6 +73,7 @@ const labels: Record<string, string> = {
   invoke: 'Requesting crew work',
   ask_user: 'Asking you a question',
   notify_user: 'Posting an update',
+  report_technical_problem: 'Reporting a technical problem',
   propose: 'Proposing agent changes',
   propose_skill: 'Suggesting a skill',
   read_pipeline: 'Reviewing applications',

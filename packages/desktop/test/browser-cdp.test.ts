@@ -197,6 +197,22 @@ it('keeps a crashed guest terminal and announces a fresh replacement without old
   expect(page.contents.listenerCount('render-process-gone')).toBe(0);
   expect(page.contents.listenerCount('dom-ready')).toBe(0);
 });
+it('waits for native tab teardown before acknowledging its close', async () => {
+  const { command, group, replies, page } = fixture();
+  let finish!: () => void;
+  group.close = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  const result = command('Target.closeTarget', { targetId: page.id });
+  expect(group.close).toHaveBeenCalledExactlyOnceWith(page.id);
+  await Promise.resolve();
+  expect(replies).toEqual([]);
+  finish();
+  expect(await result).toMatchObject({ result: { success: true } });
+});
 it('blocks browser-global and target-discovery commands through page sessions', async () => {
   const events = new EventEmitter();
   const sendCommand = vi.fn(async () => ({}));
