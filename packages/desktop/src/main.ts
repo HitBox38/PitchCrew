@@ -1,4 +1,3 @@
-import { installBrowserComposition } from './browser/composition.ts';
 import { startNativeBrowsers } from './browser/lifecycle.ts';
 import { waitForRuntimeUpdates } from './runtime-maintenance.ts';
 import { app, BrowserWindow, dialog, ipcMain, nativeImage, nativeTheme, session } from 'electron';
@@ -42,7 +41,6 @@ const createWindow = () => {
       backgroundThrottling: false,
     },
   });
-  installBrowserComposition(window);
   if (!hiddenSmoke) window.once('ready-to-show', () => window?.show());
   window.on('enter-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', true));
   window.on('leave-full-screen', () => window?.webContents.send('pitchcrew:fullscreen', false));

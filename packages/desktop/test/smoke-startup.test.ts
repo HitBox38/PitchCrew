@@ -56,7 +56,6 @@ vi.mock('electron', () => ({
   },
   shell: {},
 }));
-vi.mock('../src/browser/composition.ts', () => ({ installBrowserComposition: vi.fn() }));
 vi.mock('../src/browser/lifecycle.ts', () => ({
   startNativeBrowsers: vi.fn(async () => ({
     register: vi.fn(async () => {}),
