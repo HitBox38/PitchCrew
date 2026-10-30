@@ -2,6 +2,8 @@ import { AttachmentList } from '@/FileViewer/components/AttachmentList.tsx';
 import { attachmentFiles } from '@/FileViewer/attachments.ts';
 import { PacketApprovalActions } from './PacketApprovalActions.tsx';
 import { DocumentFindings } from './DocumentFindings.tsx';
+import { NeededFiles } from './NeededFiles.tsx';
+import { PacketHandoff } from './PacketHandoff.tsx';
 import type { PacketApprovalListProps } from '../types.ts';
 import { packetIntro, packetNeedsAction, resumePageWarning } from '../helpers.ts';
 export const PacketApprovalList = ({ approvals, data, ...actions }: PacketApprovalListProps) => (
@@ -13,6 +15,7 @@ export const PacketApprovalList = ({ approvals, data, ...actions }: PacketApprov
         <div className="mail-packet" key={approval.id}>
           <div className="mail-reading-body">
             <p>{packetIntro(approval, packetNeedsAction(approval, data.cards))}</p>
+            <PacketHandoff approval={approval} data={data} />
             {warning ? <p className="text-ochre">{warning}</p> : null}
             <DocumentFindings approval={approval} />
             <AttachmentList
@@ -21,6 +24,7 @@ export const PacketApprovalList = ({ approvals, data, ...actions }: PacketApprov
                 data.artifactPages,
               )}
             />
+            {card ? <NeededFiles approval={approval} card={card} /> : null}
             {approval.exportDirectory ? (
               <p className="export-location">Saved locally: {approval.exportDirectory}</p>
             ) : null}

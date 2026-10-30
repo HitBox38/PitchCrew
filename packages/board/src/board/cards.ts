@@ -46,6 +46,7 @@ export const updateCard = (
       | 'applicationContext'
       | 'packetContextRevision'
       | 'packetReview'
+      | 'packetChanges'
     >
   >,
   actor: string,

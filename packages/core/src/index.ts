@@ -36,11 +36,13 @@ export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from 
 export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
-export { packetSchema } from './packets.ts';
+export { packetChangeNotesSchema, packetReviewSummarySchema, packetSchema } from './packets.ts';
 export type {
   ArtifactLayout,
   Packet,
   PacketArtifact,
+  PacketChanges,
+  PacketReviewSummary,
   DocumentFinding,
   DocumentVerification,
 } from './packets.ts';

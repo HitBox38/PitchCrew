@@ -202,6 +202,68 @@
 .mail-attachments {
   margin-block: 26px;
 }
+/* Agent handoff: read-only, so it sits recessed rather than raised. */
+.mail-handoff {
+  display: grid;
+  gap: 16px;
+  max-width: 75ch;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.mail-handoff-verdict {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.mail-handoff-verdict h3 {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+.mail-handoff-verdict p,
+.mail-handoff-list li,
+.mail-handoff-files li {
+  font-size: 14px;
+  line-height: 1.6;
+}
+.mail-handoff-list h4,
+.mail-handoff-files h4 {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.mail-handoff-list ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+  list-style: disc;
+}
+.mail-handoff-files {
+  max-width: 75ch;
+  margin-bottom: 22px;
+}
+.mail-handoff-files ul {
+  display: grid;
+  gap: 6px;
+}
+.mail-handoff-files li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+.mail-handoff-files li span {
+  color: var(--muted);
+}
+.mail-handoff-files li span.text-ochre {
+  color: var(--ochre);
+}
 .mail-attachments h3 {
   display: flex;
   align-items: center;

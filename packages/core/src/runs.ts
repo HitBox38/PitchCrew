@@ -1,6 +1,6 @@
 import { reviewAssessmentSchema } from './deep-reviews.ts';
 import { z } from 'zod';
-import { packetSchema } from './packets.ts';
+import { packetChangeNotesSchema, packetReviewSummarySchema, packetSchema } from './packets.ts';
 import type { Role } from './roles.ts';
 import type { Skill } from './skills.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
@@ -94,7 +94,12 @@ export const runResultSchema = z.discriminatedUnion('role', [
       .optional(),
     reasons: z.array(z.string().max(1000)).max(10),
   }),
-  z.object({ role: z.literal('writer'), packet: packetSchema, changeSummary }),
+  z.object({
+    role: z.literal('writer'),
+    packet: packetSchema,
+    changeSummary,
+    changes: packetChangeNotesSchema.optional(),
+  }),
   z.object({
     role: z.literal('reviewer'),
     changeSummary,
@@ -102,6 +107,7 @@ export const runResultSchema = z.discriminatedUnion('role', [
     feedback: z.array(z.string().max(2000)).max(30),
     suggestions: z.array(z.string().max(2000)).max(60).optional(),
     assessment: reviewAssessmentSchema.optional(),
+    summary: packetReviewSummarySchema.optional(),
   }),
 ]);
 export type RunResult = z.infer<typeof runResultSchema>;

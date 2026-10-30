@@ -18,6 +18,23 @@ export const packetSchema = z.object({
 });
 export type Packet = z.infer<typeof packetSchema>;
 
+const handoffLine = z.string().trim().min(1).max(600);
+/** Reviewer's account of a passed packet for the user deciding on approval. Event v32. */
+export const packetReviewSummarySchema = z.object({
+  assessment: z.string().trim().min(1).max(1500),
+  highlights: z.array(handoffLine).max(6).default([]),
+  limitations: z.array(handoffLine).max(6).default([]),
+  nextSteps: z.array(handoffLine).min(1).max(5),
+});
+export type PacketReviewSummary = z.infer<typeof packetReviewSummarySchema>;
+/** Writer's notes on what a revision changed from the previous draft. Event v32. */
+export const packetChangeNotesSchema = z.array(handoffLine).min(1).max(8);
+/** Change notes bound to the exact packet they describe. */
+export interface PacketChanges {
+  packetDigest: string;
+  notes: string[];
+}
+
 // Formatted exports lay out headings, lists and links; plain exports print the Markdown literally.
 export type ArtifactLayout = 'formatted' | 'plain';
 export interface DocumentFinding {

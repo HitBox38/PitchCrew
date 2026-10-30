@@ -107,17 +107,18 @@ export const loadExamples = async (context: CrewContext): Promise<void> => {
       },
       true,
     );
-  const packetFor = async (card: Card) => {
-    const role = context.board.get<Role>('role', 'writer');
-    const result = await adapters.demo.run({
+  const demoRun = async (card: Card, roleId: 'writer' | 'reviewer') =>
+    adapters.demo.run({
       card,
-      role,
+      role: context.board.get<Role>('role', roleId),
       profile: await readProfile(context.directory),
       directory: context.directory,
       mcp: { command: '', args: [], env: {} },
       signal: new AbortController().signal,
       onMessage: () => {},
     });
+  const packetFor = async (card: Card) => {
+    const result = await demoRun(card, 'writer');
     if (result.role !== 'writer') throw new Error('Expected writer result.');
     return result.packet;
   };
@@ -135,6 +136,7 @@ export const loadExamples = async (context: CrewContext): Promise<void> => {
     if (i >= 3) {
       const current = context.board.get<Card>('card', card.id);
       const revision = current.applicationContext!.revision;
+      const review = await demoRun(current, 'reviewer');
       context.board.updateCard(
         card.id,
         {
@@ -144,6 +146,7 @@ export const loadExamples = async (context: CrewContext): Promise<void> => {
             packetDigest: digestPacket(card.id, current.packet!),
             runId: 'fictional-demo-review',
             reviewedAt: new Date().toISOString(),
+            summary: review.role === 'reviewer' ? review.summary : undefined,
           },
         },
         'demo',

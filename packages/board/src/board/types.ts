@@ -42,6 +42,7 @@ export interface BoardContext {
         | 'applicationContext'
         | 'packetContextRevision'
         | 'packetReview'
+        | 'packetChanges'
       >
     >,
     actor: string,

@@ -2,6 +2,7 @@ import type { Card, Role, Snapshot } from '@pitchcrew/core';
 import { afterEach, expect, it } from 'vitest';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import { cleanup, confirmFixtureApplication, setup } from './helpers/daemon.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 
 afterEach(cleanup);
 
@@ -60,6 +61,7 @@ it('keeps each applied agent change description in job activity through replay',
       role: 'reviewer',
       passed: true,
       feedback: [],
+      summary: reviewSummary(),
       changeSummary: 'Verified the revised introduction against the profile.',
     },
     profile,
@@ -156,6 +158,7 @@ it('records factual summaries for older results and never logs rejected packet w
       role: 'reviewer',
       passed: true,
       feedback: [],
+      summary: reviewSummary(),
       changeSummary: 'Approved every packet check.',
     },
     profile,
