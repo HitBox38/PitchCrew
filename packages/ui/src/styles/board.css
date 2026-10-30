@@ -1,5 +1,4 @@
 .view-switch,
-.inbox-tabs,
 .detail-tabs,
 .document-select {
   display: inline-flex;
@@ -10,7 +9,6 @@
   box-shadow: var(--clay-sunken);
 }
 .view-switch button,
-.inbox-tabs button,
 .detail-tabs button,
 .document-select button {
   height: 30px;
@@ -28,14 +26,12 @@
   transition: var(--motion);
 }
 .view-switch button:hover,
-.inbox-tabs button:hover,
 .detail-tabs button:hover,
 .document-select button:hover {
   background: transparent;
   color: var(--ink);
 }
 .view-switch button.active,
-.inbox-tabs button.active,
 .detail-tabs button[aria-selected='true'],
 .document-select button.selected {
   color: var(--ink);
@@ -45,8 +41,7 @@
 .detail-tabs button::after {
   display: none;
 }
-.view-switch button span,
-.inbox-tabs button span {
+.view-switch button span {
   color: var(--muted);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
@@ -374,8 +369,7 @@
   margin-top: 6px;
   max-width: 460px;
 }
-.view-switch,
-.inbox-tabs {
+.view-switch {
   border: 0;
   margin-inline: 0;
   min-width: 0;

@@ -43,11 +43,11 @@ export const ApplicationSectionContent = ({
         {model.exported
           ? 'The current packet was exported. Record submission only after you have applied.'
           : card.state === 'awaiting_approval'
-            ? 'Your exact documents are waiting for review in Inbox.'
+            ? 'Your exact documents are waiting for review in Decisions.'
             : 'Complete packet review before requesting export approval.'}
       </p>
       {card.state === 'awaiting_approval' && !model.exported ? (
-        <Button onClick={model.openInbox}>Open approval inbox</Button>
+        <Button onClick={model.openInbox}>Open in Decisions</Button>
       ) : null}
     </>
   );

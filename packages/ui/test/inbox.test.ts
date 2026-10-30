@@ -44,26 +44,24 @@ beforeAll(async () => {
   await page.goto(`${host.daemon.url}/inbox`);
   await page.getByRole('button', { name: 'Set up later', exact: true }).click();
   await page
-    .getByRole('button', { name: /Pitchcrew Your application packet/ })
+    .getByRole('heading', { name: 'Approve the Juniper Fixture packet?' })
     .waitFor({ timeout: 30000 });
 }, 90000);
 afterAll(async () => {
   await browser?.close();
   await cleanup();
 });
-test('uses email rows and searches filenames before opening an exact reading view', async () => {
-  await page.getByRole('textbox', { name: 'Search inbox' }).fill('resume.pdf');
-  expect(await page.locator('.mail-row').count()).toBe(1);
-  await page.getByRole('button', { name: /Pitchcrew Your application packet/ }).click();
-  expect(await page.locator('.mailbox').count()).toBe(0);
+test('shows the waiting packet as a decision with the Reviewer summary before history', async () => {
+  const summary = page.getByRole('region', { name: 'Packet summary', exact: true });
+  expect(await summary.getByRole('heading', { name: 'Reviewer’s assessment' }).count()).toBe(1);
+  expect(await summary.getByRole('heading', { name: 'What to do next' }).count()).toBe(1);
   expect(await page.getByRole('button', { name: /^resume.pdf PDF/ }).count()).toBe(1);
   expect(await page.getByRole('button', { name: /^resume.md Markdown/ }).count()).toBe(1);
-  await page.getByRole('button', { name: 'Back to inbox' }).click();
-  expect(await page.locator('.mail-row').getAttribute('data-unread')).toBe('false');
-  await page.getByRole('button', { name: 'Unread', exact: true }).click();
-  expect(await page.locator('.mail-row').count()).toBe(0);
-  await page.getByRole('button', { name: 'Unread', exact: true }).click();
-  await page.getByRole('button', { name: /Pitchcrew Your application packet/ }).click();
+  await page.getByRole('button', { name: 'Inbox history', exact: true }).click();
+  await page.getByText('No past decisions yet.', { exact: true }).waitFor();
+  expect(await page.getByRole('heading', { name: 'Inbox history', level: 1 }).count()).toBe(1);
+  await page.getByRole('button', { name: /^Decisions/ }).click();
+  await page.getByRole('heading', { name: 'Approve the Juniper Fixture packet?' }).waitFor();
 });
 test('searches actual PDF text, zooms sharply and keeps approval out of attachment dialogs', async () => {
   await page.getByRole('button', { name: /^resume.pdf PDF/ }).click();
@@ -138,7 +136,9 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.getByRole('button', { name: 'Submit myself', exact: true }).click();
   await page.getByRole('button', { name: 'I’ve submitted', exact: true }).waitFor();
-  expect(await page.locator('.mail-subject').textContent()).toContain('Ready for you to submit');
+  expect(await page.locator('.clay-decide-heading').textContent()).toContain(
+    'Ready for you to submit',
+  );
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('awaiting_approval');
   await page.getByRole('button', { name: /^resume.md Markdown/ }).click();
   const downloading = page.waitForEvent('download');
@@ -164,9 +164,22 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page
     .getByRole('dialog', { name: 'Not applying to this job?' })
     .waitFor({ state: 'hidden' });
-  expect(
-    await page.getByRole('region', { name: 'Selected request', exact: true }).isVisible(),
-  ).toBe(true);
+  // A withdrawn packet leaves Decisions and is found again by filename in Inbox history.
+  await page.getByText('Nothing needs you.', { exact: false }).waitFor();
+  await page.getByRole('button', { name: 'Inbox history', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search history' }).fill('resume.pdf');
+  expect(await page.locator('.decision-history-row').count()).toBe(1);
+  await page.getByRole('textbox', { name: 'Search history' }).fill('missing.pdf');
+  await page.getByText('No past decisions match.', { exact: true }).waitFor();
+  await page.getByRole('textbox', { name: 'Search history' }).fill('');
+  await page
+    .getByRole('button', { name: /Juniper Fixture/ })
+    .first()
+    .click();
+  const sheet = page.getByRole('article', { name: 'Selected decision', exact: true });
+  await sheet.getByText('Not applying', { exact: true }).first().waitFor();
+  expect(new URL(page.url()).searchParams.get('entry')).toBe(`packet:${approval.id}`);
+  expect(await sheet.getByRole('button', { name: /^resume.pdf PDF/ }).count()).toBe(1);
   expect(await page.getByRole('button', { name: 'I’ve submitted', exact: true }).count()).toBe(0);
   expect(errors).toEqual([]);
 });

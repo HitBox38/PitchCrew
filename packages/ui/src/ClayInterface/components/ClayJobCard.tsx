@@ -1,4 +1,5 @@
 import type { Card, Role } from '@pitchcrew/core';
+import type { Ref } from 'react';
 import { runActivityLabel } from '@/lib/work-queue.ts';
 import { trackIndex } from '../helpers.ts';
 import type { JobSignal } from '../signals.ts';
@@ -10,9 +11,10 @@ type ClayJobCardProps = {
   signal: JobSignal;
   roles: Role[];
   onOpen: (id: string) => void;
+  buttonRef?: Ref<HTMLButtonElement>;
 };
 
-export const ClayJobCard = ({ card, signal, roles, onOpen }: ClayJobCardProps) => {
+export const ClayJobCard = ({ card, signal, roles, onOpen, buttonRef }: ClayJobCardProps) => {
   const index = trackIndex(card.state);
   const working = signal.run && !signal.decision;
   const footer = signal.decision
@@ -22,8 +24,10 @@ export const ClayJobCard = ({ card, signal, roles, onOpen }: ClayJobCardProps) =
       : card.location || '';
   return (
     <button
+      ref={buttonRef}
       type="button"
       className="clay-job-card"
+      aria-label={`Open ${card.title} at ${card.company}`}
       data-asks={signal.decision ? '' : undefined}
       data-working={working ? '' : undefined}
       onClick={() => onOpen(card.id)}

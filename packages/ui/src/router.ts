@@ -16,6 +16,7 @@ import type { View } from './navigation.ts';
 import {
   isChatThread,
   validateChatSearch,
+  validateInboxSearch,
   validateSkillSearch,
   validateUpdateSearch,
 } from './navigation.ts';
@@ -99,6 +100,7 @@ const inboxRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/inbox',
   staticData: { view: 'inbox' },
+  validateSearch: validateInboxSearch,
   component: lazyRouteComponent(() => import('@/pages/components/InboxPage.tsx'), 'InboxPage'),
 });
 const profileRoute = createRoute({

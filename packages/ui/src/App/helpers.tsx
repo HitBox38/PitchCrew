@@ -16,7 +16,7 @@ export const getWorkspaceModel = (props: ReadyWorkspaceProps) => {
           <strong>{active.length}</strong> active, <strong>{strong}</strong> with a strong fit
           {pending ? (
             <>
-              , <strong>{pending}</strong> waiting in Inbox
+              , <strong>{pending}</strong> waiting in Decisions
             </>
           ) : null}
           .

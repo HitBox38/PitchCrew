@@ -1,7 +1,7 @@
 import type { Card, Role, Snapshot } from '@pitchcrew/core';
 import { closedStateSet } from '../board-stages.ts';
 import { stateLabels } from '../lib/labels.ts';
-import { jobSignals, type Decision, type JobSignal } from './signals.ts';
+import { decisions, jobSignals, type Decision, type JobSignal } from './signals.ts';
 
 export type SidebarJob = { card: Card; signal: JobSignal; status: string };
 
@@ -43,4 +43,10 @@ export const decisionTitle = (decision: Decision, data: Snapshot) => {
   if (decision.kind === 'browser') return `${who} asks to use the browser`;
   if (decision.kind === 'brief') return `Confirm the ${card?.company ?? 'job'} brief`;
   return `${who} has a question`;
+};
+
+export const decisionSummary = (data: Snapshot) => {
+  const count = decisions(data).length;
+  if (!count) return 'Nothing is waiting on you.';
+  return `${count} ${count === 1 ? 'decision is' : 'decisions are'} waiting on you, oldest first.`;
 };

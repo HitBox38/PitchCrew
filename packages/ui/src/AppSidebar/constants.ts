@@ -32,7 +32,7 @@ export const viewTitles: Record<View, string> = {
   queue: 'Queue',
   crew: 'Crew',
   chat: 'Chat',
-  inbox: 'Inbox',
+  inbox: 'Decisions',
   profile: 'Profile',
   skills: 'Skills',
   routines: 'Routines',

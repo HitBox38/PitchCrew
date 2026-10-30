@@ -6,6 +6,7 @@ import { SidebarContent } from '@/components/ui/sidebar/components/SidebarConten
 import { SidebarRail } from '@/components/ui/sidebar/components/SidebarRail.tsx';
 import { ConversationNavigation } from '@/ConversationNavigation/index.tsx';
 import { ClayJobs } from './ClayJobs.tsx';
+import { decisions } from '../signals.ts';
 import { ClayMore, ClayNav } from './ClayNav.tsx';
 
 /** Sidebar for the clay preview: four places, live jobs, then conversations. */
@@ -13,7 +14,10 @@ export const ClaySidebar = (props: AppSidebarProps) => (
   <Sidebar collapsible="icon" aria-label="Sidebar" className="clay-sidebar">
     <SidebarHeading {...props} />
     <SidebarContent>
-      <ClayNav view={props.view} counts={props.counts} />
+      <ClayNav
+        view={props.view}
+        counts={{ ...props.counts, inbox: decisions(props.data).length }}
+      />
       <ClayJobs data={props.data} onOpenCard={props.onOpenCard} />
       <ConversationNavigation data={props.data} />
       <ClayMore view={props.view} counts={props.counts} />

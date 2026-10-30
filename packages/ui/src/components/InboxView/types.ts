@@ -7,33 +7,31 @@ export interface InboxViewProps {
   action: Action;
   working: boolean;
   onOpen: (id: string) => void;
+  /** URL-backed key of the past decision being read. */
+  selected: string | undefined;
+  select: (key: string | null) => void;
 }
 export type InboxTab = 'pending' | 'history';
+export type HistoryFilter = 'all' | 'packet' | 'browser';
 export type ApprovalRequest =
   | { kind: 'packet'; key: string; approval: Approval }
   | { kind: 'browser'; key: string; approval: ComputerApproval };
 export type InboxViewModel = NonNullable<ReturnType<typeof useInboxView>>;
 
-export type BrowserApprovalListProps = Pick<InboxViewModel, 'action' | 'working'> & {
+/** What every approval surface needs, whether it sits on Decisions or in history. */
+type ApprovalContext = Pick<InboxViewProps, 'data' | 'action' | 'working' | 'onOpen'> & {
+  act: (path: string, body?: unknown, success?: string) => void;
+};
+
+export type BrowserApprovalListProps = Pick<InboxViewProps, 'action' | 'working'> & {
   computerApprovals: ComputerApproval[];
 };
 
-export type InboxTabsProps = Pick<InboxViewModel, 'tab' | 'setTab' | 'data'>;
-export type PacketApprovalActionsProps = Pick<
-  InboxViewModel,
-  'data' | 'onOpen' | 'working' | 'act' | 'action'
-> & {
+export type PacketApprovalActionsProps = ApprovalContext & {
   approval: Approval;
   card: Card;
 };
 
-export type PacketApprovalListProps = Pick<
-  InboxViewModel,
-  'data' | 'onOpen' | 'working' | 'act' | 'action'
-> & { approvals: Approval[] };
+export type PacketApprovalListProps = ApprovalContext & { approvals: Approval[] };
 
-export type InboxRequestListProps = Pick<
-  InboxViewModel,
-  'requests' | 'selectedRequest' | 'selectRequest' | 'data' | 'tab' | 'reviewOpen'
->;
-export type InboxReviewProps = InboxViewModel & { request: ApprovalRequest };
+export type HistorySheetProps = InboxViewModel & { request: ApprovalRequest };

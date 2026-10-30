@@ -8,7 +8,7 @@ export type Decision = {
   kind: 'packet' | 'browser' | 'question' | 'brief';
   cardId: string | null;
   roleId: string | null;
-  /** Conversation that holds a question; packets and browser requests open in Inbox, briefs in job details. */
+  /** Conversation that holds a question; packets and browser requests decide on the Decisions page, briefs in job details. */
   threadId: string | null;
   detail: string;
   createdAt: string;

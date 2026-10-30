@@ -10,7 +10,11 @@ export const NavigationCommands = ({ run, onNavigate }: NavigationCommandsProps)
       {(Object.keys(viewTitles) as View[]).map((id) => {
         const Icon = viewIcons[id];
         return (
-          <CommandItem key={id} value={`go ${viewTitles[id]}`} onSelect={run(() => onNavigate(id))}>
+          <CommandItem
+            key={id}
+            value={`go ${viewTitles[id]}${id === 'inbox' ? ' inbox' : ''}`}
+            onSelect={run(() => onNavigate(id))}
+          >
             <Icon /> {viewTitles[id]}
           </CommandItem>
         );

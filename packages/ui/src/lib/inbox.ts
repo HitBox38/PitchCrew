@@ -7,8 +7,3 @@ export const packetNeedsAction = (approval: Approval, cards?: Snapshot['cards'])
   if (approval.contextRevision !== card.applicationContext?.revision) return false;
   return JSON.stringify(approval.packet) === JSON.stringify(card.packet);
 };
-
-export const inboxPendingCount = (data: Snapshot) =>
-  data.approvals.filter((approval) => packetNeedsAction(approval, data.cards)).length +
-  data.computerApprovals.filter((approval) => ['pending', 'approved'].includes(approval.status))
-    .length;

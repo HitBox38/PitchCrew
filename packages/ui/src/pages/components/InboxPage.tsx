@@ -1,6 +1,6 @@
-import { InboxView } from '@/components/InboxView/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
+import { DecisionsView } from '@/Decisions/index.tsx';
 
 export const InboxPage = () => {
   const { data, action, working, openCard } = useWorkspaceStore(
@@ -12,5 +12,5 @@ export const InboxPage = () => {
     })),
   );
   if (!data) return null;
-  return <InboxView data={data} action={action} working={working} onOpen={openCard} />;
+  return <DecisionsView data={data} action={action} working={working} openCard={openCard} />;
 };

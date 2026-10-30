@@ -49,7 +49,12 @@ export const BoardPage = () => {
             setQuery={setQuery}
           />
           {clay && !showClosed ? (
-            <ClayBoard data={data} filtered={filtered} openCard={openCard} />
+            <ClayBoard
+              data={data}
+              filtered={filtered}
+              openCard={openCard}
+              jobMutations={jobMutations}
+            />
           ) : null}
           <LayoutGroup id="board-jobs">
             {clay && !showClosed ? null : (

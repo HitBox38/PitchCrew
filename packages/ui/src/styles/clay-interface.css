@@ -286,6 +286,48 @@
 .clay-job-card .clay-stage-track {
   margin-top: 0.625rem;
 }
+
+/* Drag shares the classic board's targets; clay keeps its own trays and lift. */
+.clay-columns[data-dragging] {
+  grid-template-columns: repeat(6, minmax(8.5rem, 1fr));
+}
+.clay-column[data-drop-allowed] {
+  border-radius: 14px;
+  outline: 1px dashed var(--teal);
+  outline-offset: 4px;
+}
+.clay-column[data-drop-target] {
+  background: var(--teal-soft);
+  outline: 2px solid var(--teal);
+}
+.clay-draggable-job > .clay-job-card {
+  width: 100%;
+}
+.clay-draggable-job .clay-job-card-company {
+  padding-inline-end: 1.5rem;
+}
+.clay-draggable-job[data-movable] > .clay-job-card {
+  cursor: grab;
+}
+.clay-draggable-job .job-actions-trigger.icon-button {
+  top: 0.375rem;
+  right: 0.375rem;
+  opacity: 0;
+}
+.clay-draggable-job:hover .job-actions-trigger,
+.clay-draggable-job .job-actions-trigger:focus-visible,
+.clay-draggable-job .job-actions-trigger[data-popup-open] {
+  opacity: 1;
+}
+@media (hover: none) {
+  .clay-draggable-job .job-actions-trigger.icon-button {
+    opacity: 1;
+  }
+}
+.job-drag-overlay .clay-job-card {
+  box-shadow: var(--clay-hover);
+  cursor: grabbing;
+}
 @media (prefers-reduced-motion: reduce) {
   .clay-job-card,
   .clay-job-card:hover {

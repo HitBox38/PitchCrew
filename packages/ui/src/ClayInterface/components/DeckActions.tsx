@@ -18,7 +18,7 @@ export const DeckActions = ({ decision, count, later, openCard }: DeckActionsPro
         Answer
       </Button>
     ) : (
-      <Button render={<Link to="/inbox" />}>Review</Button>
+      <Button render={<Link to="/inbox" search={{ decision: decision.id }} />}>Review</Button>
     )}
     {count > 1 ? (
       <Button variant="secondary" onClick={later}>

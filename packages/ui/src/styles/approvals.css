@@ -133,12 +133,6 @@
   flex-shrink: 0;
   margin: 12px 20px;
 }
-.inbox-workspace-body .inbox-tabs {
-  margin-bottom: 0;
-}
-.workspace-heading-actions .inbox-tabs {
-  margin: 0;
-}
 .inbox-review-layout {
   display: grid;
   flex: 1;

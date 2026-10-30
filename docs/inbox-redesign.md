@@ -1,5 +1,17 @@
 # Inbox redesign
 
+## Decisions replaces the request list (October 2026)
+
+The email-style list described below has been replaced for every user, superseding its Needs action tab, unread state and mark-read controls. `/inbox` is now Decisions, which shows one waiting packet, browser request, question or unconfirmed brief at a time in a clay sheet. Each packet sheet opens with the Reviewer's summary and the Writer's change notes, followed by the confirmed form's file check. Inbox history (`/inbox?view=history`) replaces the History tab:
+
+- Decided packet and browser requests sit in recessed trays grouped Today, Yesterday, Earlier this week, then by month.
+- Search covers agent, job, subject and filename; All / Packets / Browser filters remain.
+- Each row shows the job, request type, Reviewer's assessment, an outcome-coloured status, file count and age.
+- The selected request opens beside the list in the same clay sheet Decisions uses, with its attachments, summary and remaining actions. Its key is kept in the URL (`entry=`).
+- Narrow screens show the list or one sheet, with an All history control.
+
+Attachment viewing, approval placement and the submission handoff below are unchanged.
+
 ## Agreed direction
 
 - Use an email-style, full-width request list. Each row shows the agent, subject, job, time and attachment indicator.

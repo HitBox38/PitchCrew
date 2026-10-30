@@ -1,22 +1,27 @@
-import { WorkspaceHeaderActions } from '@/App/components/WorkspacePage.tsx';
-import { InboxRequestList } from './components/InboxRequestList.tsx';
-import { InboxReview } from './components/InboxReview.tsx';
-import { InboxTabs } from './components/InboxTabs.tsx';
+import { HistoryList } from './components/HistoryList.tsx';
+import { HistorySheet } from './components/HistorySheet.tsx';
 import { useInboxView } from './hooks/useInboxView.ts';
 import type { InboxViewProps } from './types.ts';
 import '@/styles/inbox.css';
 
+/** Inbox history: past packet and browser decisions beside the one being read. */
 export const InboxView = (props: InboxViewProps) => {
-  const controller = useInboxView(props);
+  const model = useInboxView(props);
   return (
-    <section className="inbox-workspace email-inbox" aria-label="Inbox requests">
-      <WorkspaceHeaderActions>
-        <InboxTabs {...controller} />
-      </WorkspaceHeaderActions>
-      {controller.selectedRequest ? (
-        <InboxReview {...controller} request={controller.selectedRequest} />
+    <section
+      className="decision-history"
+      aria-label="Inbox history"
+      data-reading={model.selectedRequest ? '' : undefined}
+    >
+      <HistoryList {...model} />
+      {model.selectedRequest ? (
+        <HistorySheet {...model} request={model.selectedRequest} />
       ) : (
-        <InboxRequestList {...controller} />
+        <p className="decision-history-hint">
+          {model.total
+            ? 'Choose a past decision to see its files, the Reviewer’s summary and what happened next.'
+            : 'Packets and browser actions you decide on land here, with their files and outcome.'}
+        </p>
       )}
     </section>
   );
