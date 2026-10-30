@@ -2,6 +2,7 @@ import { themeOptions } from '@/lib/theme-options.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { Check } from 'lucide-react';
 import { ChatReadingWidth } from './ChatReadingWidth.tsx';
+import { ClayInterfaceSetting } from './ClayInterfaceSetting.tsx';
 
 export const AppearanceSettings = () => {
   const theme = useDevicePreferences((state) => state.theme);
@@ -40,6 +41,7 @@ export const AppearanceSettings = () => {
         ))}
       </fieldset>
       <ChatReadingWidth />
+      <ClayInterfaceSetting />
     </section>
   );
 };

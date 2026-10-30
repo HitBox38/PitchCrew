@@ -13,9 +13,11 @@ import { useAutomaticUpdates } from '@/AppUpdates/hooks/useAutomaticUpdates.ts';
 import { AgentUpdates } from '@/AgentUpdates/index.tsx';
 import { DesktopBrowserHost } from '@/DesktopBrowserHost/index.tsx';
 import type { ReadyWorkspaceProps } from '../types.ts';
+import { useClayInterface } from '@/ClayInterface/hooks/useClayInterface.ts';
 
 export const Workspace = (props: ReadyWorkspaceProps) => {
   useAutomaticUpdates();
+  useClayInterface();
   const controller = getWorkspaceModel(props);
   const { sidebarOpen, paletteMounted } = controller;
   return (

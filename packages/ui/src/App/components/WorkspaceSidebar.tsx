@@ -1,5 +1,7 @@
 import type { WorkspaceSidebarProps } from '@/App/types.ts';
 import { AppSidebar } from '@/AppSidebar/index.tsx';
+import { ClaySidebar } from '@/ClayInterface/components/ClaySidebar.tsx';
+import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
 import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
 
@@ -20,8 +22,10 @@ export const WorkspaceSidebar = ({
   setAdd,
   working,
 }: WorkspaceSidebarProps) => {
+  const clay = useDevicePreferences((state) => state.clayInterface);
+  const Sidebar = clay ? ClaySidebar : AppSidebar;
   return (
-    <AppSidebar
+    <Sidebar
       data={data}
       view={view}
       stages={stageLinks}

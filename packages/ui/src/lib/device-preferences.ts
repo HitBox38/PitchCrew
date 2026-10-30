@@ -85,8 +85,12 @@ export const updatesKey = 'pitchcrew-automatic-updates-v1';
 export const jsonFormatOnSaveKey = 'pitchcrew-json-format-on-save-v1';
 export const jsonFormatOnPasteKey = 'pitchcrew-json-format-on-paste-v1';
 export const jsonFormatOnTypeKey = 'pitchcrew-json-format-on-type-v1';
+export const clayInterfaceKey = 'pitchcrew-clay-interface-preview-v1';
 
 interface DevicePreferences {
+  /** Preview of the clay interface; the classic interface stays the default. */
+  clayInterface: boolean;
+  setClayInterface: (enabled: boolean) => void;
   jsonFormatOnPaste: boolean;
   setJsonFormatOnPaste: (enabled: boolean) => void;
   jsonFormatOnType: boolean;
@@ -109,6 +113,11 @@ interface DevicePreferences {
 
 // Keep the existing storage keys so upgrading preserves the user's choices.
 export const useDevicePreferences = create<DevicePreferences>((set) => ({
+  clayInterface: readTelemetryPreference(clayInterfaceKey, false),
+  setClayInterface: (clayInterface) => {
+    set({ clayInterface });
+    persistTelemetryPreference(clayInterfaceKey, clayInterface);
+  },
   jsonFormatOnPaste: readTelemetryPreference(jsonFormatOnPasteKey, false),
   setJsonFormatOnPaste: (jsonFormatOnPaste) => {
     set({ jsonFormatOnPaste });

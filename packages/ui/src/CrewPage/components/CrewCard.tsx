@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { CrewCardProps } from '@/CrewPage/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { instructionUpdateTitle } from '@/lib/instruction-updates.ts';
+import { RunTimeline } from '@/ClayInterface/components/RunTimeline.tsx';
 import { MessageSquare, RotateCcw, SlidersHorizontal, Sparkles } from 'lucide-react';
 
 export const CrewCard = ({
@@ -46,6 +47,7 @@ export const CrewCard = ({
           </dd>
         </div>
       </dl>
+      <RunTimeline roleId={role.id} />
       <div className="crew-card-actions">
         <Button className="button primary" onClick={onChat}>
           <MessageSquare size={14} aria-hidden="true" /> Chat

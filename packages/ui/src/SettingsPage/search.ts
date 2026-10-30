@@ -19,6 +19,12 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['messages', 'comfortable', 'wide', 'full'],
   },
   {
+    label: 'Clay interface preview',
+    section: 'general',
+    target: 'clay-interface',
+    keywords: ['layout', 'redesign', 'beads', 'classic', 'new interface'],
+  },
+  {
     label: 'Notification sounds',
     section: 'general',
     target: 'notification-sounds',

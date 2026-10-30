@@ -7,9 +7,12 @@ import { LayoutGroup } from 'motion/react';
 import { TrackingReview } from '@/TrackingReview/index.tsx';
 import { DeleteJobDialog } from './components/DeleteJobDialog.tsx';
 import { canDragJob } from './helpers.ts';
+import { ClayBoard } from '@/ClayInterface/components/ClayBoard.tsx';
+import { useDevicePreferences } from '@/lib/device-preferences.ts';
 
 export const BoardPage = () => {
   const controller = useBoardPage();
+  const clay = useDevicePreferences((state) => state.clayInterface);
   if (!controller) return null;
   const {
     data,
@@ -45,16 +48,21 @@ export const BoardPage = () => {
             query={query}
             setQuery={setQuery}
           />
+          {clay && !showClosed ? (
+            <ClayBoard data={data} filtered={filtered} openCard={openCard} />
+          ) : null}
           <LayoutGroup id="board-jobs">
-            <JobPipeline
-              showClosed={showClosed}
-              filtered={filtered}
-              flashStage={flashStage}
-              setAdd={setAdd}
-              openCard={openCard}
-              query={query}
-              jobMutations={jobMutations}
-            />
+            {clay && !showClosed ? null : (
+              <JobPipeline
+                showClosed={showClosed}
+                filtered={filtered}
+                flashStage={flashStage}
+                setAdd={setAdd}
+                openCard={openCard}
+                query={query}
+                jobMutations={jobMutations}
+              />
+            )}
           </LayoutGroup>
           {recent.length ? <RecentActivity go={go} recent={recent} /> : null}
         </>

@@ -1,0 +1,483 @@
+/* Clay interface preview: beads, grooves and pebbles carry state, so every
+ * shape here encodes something (a stage, a run or a slot), never decoration. */
+
+.clay-bead {
+  --bead-size: 0.875rem;
+  width: var(--bead-size);
+  height: var(--bead-size);
+  flex: none;
+  border-radius: 999px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.clay-bead[data-size='sm'] {
+  --bead-size: 0.5625rem;
+}
+.clay-bead[data-size='lg'] {
+  --bead-size: 1.125rem;
+}
+.clay-bead[data-tone] {
+  background:
+    radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--bead-color);
+  box-shadow:
+    0 1px 2px rgb(30 34 44 / 0.2),
+    inset -2px -3px 4px rgb(0 0 0 / 0.18);
+}
+.clay-bead[data-tone='done'],
+.clay-bead[data-tone='primary'] {
+  --bead-color: var(--primary);
+}
+.clay-bead[data-tone='plum'] {
+  --bead-color: var(--plum);
+}
+.clay-bead[data-tone='ochre'] {
+  --bead-color: var(--ochre);
+}
+.clay-bead[data-tone='moss'] {
+  --bead-color: var(--moss);
+}
+.clay-bead[data-tone='teal'] {
+  --bead-color: var(--teal);
+}
+.clay-bead[data-live] {
+  outline: 2px solid color-mix(in srgb, var(--bead-color, var(--plum)) 30%, transparent);
+  outline-offset: 2px;
+}
+.clay-bead[data-empty] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+
+.clay-track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.clay-track::before {
+  position: absolute;
+  inset-inline: 0.25rem;
+  top: 50%;
+  height: 0.25rem;
+  margin-top: -0.125rem;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.clay-track > .clay-bead {
+  position: relative;
+}
+
+.clay-groove {
+  position: relative;
+  height: 0.875rem;
+}
+.clay-groove::before {
+  position: absolute;
+  inset-inline: 0;
+  top: 0.25rem;
+  height: 0.3125rem;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.clay-groove-run {
+  position: absolute;
+  top: 0.0625rem;
+  height: 0.6875rem;
+  min-width: 0.6875rem;
+  border-radius: 999px;
+  background: var(--run-color, var(--primary));
+  box-shadow: inset -2px -3px 4px rgb(0 0 0 / 0.16);
+}
+.clay-groove-now {
+  position: absolute;
+  inset-block: -0.0625rem;
+  right: 0;
+  width: 1.5px;
+  background: var(--rose);
+  opacity: 0.5;
+}
+
+.clay-stage-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.3125rem;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.clay-stage-labels > span {
+  flex: 1;
+  text-align: center;
+  white-space: nowrap;
+}
+.clay-stage-labels > span:first-child {
+  text-align: start;
+}
+.clay-stage-labels > span:last-child {
+  text-align: end;
+}
+.clay-stage-labels > [data-current] {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.clay-job-row {
+  gap: 0.5rem;
+}
+.clay-job-company {
+  flex: none;
+  font-weight: 600;
+}
+.clay-job-status {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clay-job-row[data-asks] .clay-job-status {
+  color: var(--ochre);
+  font-weight: 600;
+}
+.clay-job-leads .clay-job-company {
+  color: var(--muted);
+  font-weight: 500;
+}
+.clay-job-spinner {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: none;
+  border: 1.75px solid var(--border);
+  border-top-color: var(--plum);
+  border-radius: 999px;
+  animation: clay-spin 0.9s linear infinite;
+}
+@keyframes clay-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clay-job-spinner {
+    animation: none;
+  }
+}
+[data-collapsible='icon'] .clay-job-company,
+[data-collapsible='icon'] .clay-job-status {
+  display: none;
+}
+
+.clay-board {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  gap: 0.875rem;
+}
+.clay-columns {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: repeat(5, minmax(9.5rem, 1fr));
+  gap: 0.875rem;
+  align-items: start;
+  overflow-x: auto;
+}
+.clay-column {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.clay-column-heading,
+.clay-deck-heading {
+  display: flex;
+  min-height: 1.625rem;
+  align-items: center;
+  gap: 0.4375rem;
+  padding-inline: 0.25rem;
+  font-weight: 600;
+}
+.clay-column-count {
+  color: var(--muted);
+  font-weight: 400;
+}
+.clay-column-beads {
+  display: flex;
+  gap: 0.1875rem;
+  margin-inline-start: auto;
+}
+.clay-column-empty,
+.clay-column-more {
+  padding: 0.75rem;
+  border-radius: var(--radius-md);
+  color: var(--faint);
+  font-size: var(--text-caption);
+  box-shadow: inset 0 0 0 1.5px var(--border);
+}
+.clay-column-more {
+  box-shadow: none;
+}
+
+.clay-job-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.6875rem 0.75rem 0.625rem;
+  border-radius: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  text-align: start;
+  transition:
+    box-shadow var(--duration-press) var(--ease-material),
+    transform var(--duration-press) var(--ease-material);
+}
+.clay-job-card:hover {
+  box-shadow: var(--clay-hover);
+  transform: translateY(-1px);
+}
+.clay-job-card:active {
+  box-shadow: var(--clay-sunken);
+  transform: none;
+}
+.clay-job-card:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.clay-job-card-company {
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.clay-job-card-title {
+  font-weight: 600;
+  line-height: 1.25;
+}
+.clay-job-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.clay-job-card-status {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clay-job-card[data-asks] .clay-job-card-status {
+  color: var(--ochre);
+  font-weight: 600;
+}
+.clay-job-card[data-working] .clay-job-card-status {
+  color: var(--plum);
+  font-weight: 600;
+}
+.clay-job-card-fit {
+  margin-inline-start: auto;
+  color: var(--ink);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+.clay-job-card .clay-stage-track {
+  margin-top: 0.625rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .clay-job-card,
+  .clay-job-card:hover {
+    transform: none;
+    transition: none;
+  }
+}
+
+.clay-deck {
+  display: flex;
+  width: 16.5rem;
+  flex: none;
+  flex-direction: column;
+  gap: 0.375rem;
+  align-self: stretch;
+  padding: 0.875rem;
+  border-radius: 18px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.clay-deck[data-clear] {
+  align-self: start;
+}
+.clay-deck-heading {
+  color: var(--ochre);
+}
+.clay-pips {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-inline-start: auto;
+}
+.clay-pips > i {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--border-strong);
+}
+.clay-pips > i[data-current] {
+  width: 1.25rem;
+  background: var(--ochre);
+}
+.clay-deck-stack {
+  position: relative;
+  margin-top: 0.375rem;
+}
+.clay-deck-stack[data-depth='1'] {
+  padding-bottom: 0.625rem;
+}
+.clay-deck-stack[data-depth='2'] {
+  padding-bottom: 1.25rem;
+}
+.clay-deck-stack::before,
+.clay-deck-stack::after {
+  position: absolute;
+  inset-inline: 0.625rem;
+  bottom: 0.625rem;
+  height: 2rem;
+  border-radius: 16px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  content: '';
+  opacity: 0.85;
+}
+.clay-deck-stack::after {
+  inset-inline: 1.25rem;
+  bottom: 0;
+  opacity: 0.55;
+}
+.clay-deck-stack[data-depth='0']::before,
+.clay-deck-stack[data-depth='0']::after,
+.clay-deck-stack[data-depth='1']::after {
+  display: none;
+}
+.clay-deck-stack[data-depth='1']::before {
+  bottom: 0;
+}
+.clay-deck-card {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem;
+  border-radius: 16px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.clay-deck-card h3 {
+  font-family: var(--font-sans);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.clay-deck-job {
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+}
+.clay-deck-detail {
+  display: -webkit-box;
+  margin-top: 0.375rem;
+  overflow: hidden;
+  padding: 0.5rem 0.625rem;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.clay-deck-actions {
+  display: flex;
+  gap: 0.375rem;
+  margin-top: 0.875rem;
+}
+.clay-deck-actions > :first-child {
+  flex: 1;
+}
+.clay-deck-then {
+  margin: 0.75rem 0.125rem 0.125rem;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.clay-deck-next {
+  display: flex;
+  flex-direction: column;
+  padding: 0.5625rem 0.625rem;
+  border-radius: 10px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  text-align: start;
+}
+.clay-deck-next > span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clay-deck-clear {
+  display: flex;
+  gap: 0.5rem;
+  color: var(--muted);
+  line-height: 1.45;
+}
+.clay-deck-clear svg {
+  flex: none;
+  margin-top: 0.125rem;
+  color: var(--moss);
+}
+
+.clay-run-timeline {
+  margin-block: 0.25rem 0.125rem;
+}
+.crew-card .clay-groove-run {
+  --run-color: var(--teal);
+}
+.crew-card.writer .clay-groove-run {
+  --run-color: var(--plum);
+}
+.crew-card.reviewer .clay-groove-run {
+  --run-color: var(--moss);
+}
+.clay-groove-run[data-live] {
+  outline: 2px solid color-mix(in srgb, var(--run-color) 30%, transparent);
+  outline-offset: 2px;
+}
+.clay-run-timeline-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.25rem;
+  color: var(--faint);
+  font-size: var(--text-caption);
+}
+
+.clay-chat-stage {
+  padding: 0.625rem 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.clay-chat-stage .clay-stage-track {
+  max-width: 34rem;
+}
+.clay-stage-track[data-labelled] .clay-track {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  justify-items: center;
+}
+.clay-stage-track[data-labelled] .clay-track::before {
+  inset-inline: calc(100% / 12);
+}
+.clay-stage-track[data-labelled] .clay-stage-labels > span {
+  text-align: center;
+}
