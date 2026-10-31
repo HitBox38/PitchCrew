@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { CardDetailsModel, ApplicationSection } from '../types.ts';
+import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { ApplicationSectionContent } from './ApplicationSectionContent.tsx';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { FormAssessments } from './FormAssessments.tsx';
@@ -7,38 +8,15 @@ import { Accordion } from '@/components/ui/accordion/components/Accordion.tsx';
 import { AccordionItem } from '@/components/ui/accordion/components/AccordionItem.tsx';
 import { AccordionTrigger } from '@/components/ui/accordion/components/AccordionTrigger.tsx';
 import { AccordionContent } from '@/components/ui/accordion/components/AccordionContent.tsx';
-import { packetNeedsReview } from '../helpers.ts';
+import { applicationBeads, applicationRows, packetNeedsReview } from '../helpers.ts';
 
 export const JobApplication = (model: CardDetailsModel) => {
   const { card, brief, sections, setSections } = model;
   const [reviewOpened, setReviewOpened] = useState(false);
   if (!reviewOpened && sections.includes('reviews')) setReviewOpened(true);
-  const rows: { id: ApplicationSection; title: string; status: string }[] = [
-    {
-      id: 'brief',
-      title: 'Brief and requirements',
-      status: brief.confirmed ? 'Confirmed' : 'Needs review',
-    },
-    {
-      id: 'documents',
-      title: 'Documents',
-      status: card.packet ? 'Draft available' : 'Not drafted',
-    },
-    {
-      id: 'reviews',
-      title: 'Reviews',
-      status: card.packetReview && !packetNeedsReview(card) ? 'Reviewed' : 'Review needed',
-    },
-    {
-      id: 'export',
-      title: 'Export',
-      status: model.exported
-        ? 'Exported'
-        : card.state === 'awaiting_approval'
-          ? 'Approval requested'
-          : 'Not exported',
-    },
-  ];
+  const clay = useDevicePreferences((state) => state.clayInterface);
+  const rows = applicationRows(card, brief.confirmed, model.exported);
+  const beads = applicationBeads(rows);
   return (
     <div className="detail-application space-y-4">
       {!brief.confirmed ? (
@@ -54,15 +32,24 @@ export const JobApplication = (model: CardDetailsModel) => {
       ) : null}
       <Accordion
         className="detail-application-sections"
+        data-steps={clay ? '' : undefined}
         value={sections}
         onValueChange={(value) => {
           setSections(value as ApplicationSection[]);
           if (value.includes('reviews')) setReviewOpened(true);
         }}
       >
-        {rows.map((row) => (
+        {rows.map((row, index) => (
           <AccordionItem value={row.id} key={row.id}>
             <AccordionTrigger id={`job-section-${row.id}`}>
+              {clay ? (
+                <span
+                  className="clay-bead"
+                  data-size={beads[index] && beads[index] !== 'done' ? undefined : 'sm'}
+                  data-tone={beads[index]}
+                  aria-hidden="true"
+                />
+              ) : null}
               <span>
                 {row.title}
                 <small className="detail-section-status">{row.status}</small>

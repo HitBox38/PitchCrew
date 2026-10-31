@@ -6,6 +6,8 @@ import { ApplicationDocuments } from './ApplicationDocuments.tsx';
 import { ExportRequest } from './ExportRequest.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { packetNeedsReview } from '../helpers.ts';
+import { HandoffSummary } from '@/components/InboxView/components/PacketHandoff.tsx';
+import { cardHandoff } from '@/components/InboxView/handoff.ts';
 
 export const ApplicationSectionContent = ({
   model,
@@ -22,6 +24,9 @@ export const ApplicationSectionContent = ({
   if (section === 'reviews')
     return (
       <div className="space-y-5">
+        {packetNeedsReview(card) ? null : (
+          <HandoffSummary handoff={cardHandoff(card, model.data)} />
+        )}
         <Button variant="link" onClick={model.openWriting}>
           Writing guide
         </Button>

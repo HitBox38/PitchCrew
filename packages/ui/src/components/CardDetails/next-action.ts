@@ -157,7 +157,7 @@ export const jobNextAction = (model: CardDetailsModel) => {
             ),
         }
       : {
-          label: 'Open approval inbox',
+          label: 'Open in Decisions',
           hint: 'Review the exact documents before export.',
           perform: model.openInbox,
         };

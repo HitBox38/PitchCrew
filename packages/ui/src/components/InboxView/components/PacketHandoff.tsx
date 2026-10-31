@@ -1,7 +1,8 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { Approval, Snapshot } from '@pitchcrew/core';
-import { packetHandoff } from '../handoff.ts';
+import { packetHandoff, type PacketHandoffData } from '../handoff.ts';
+import '@/styles/inbox.css';
 
 const HandoffList = ({ heading, items }: { heading: string; items: string[] }) =>
   items.length ? (
@@ -16,8 +17,12 @@ const HandoffList = ({ heading, items }: { heading: string; items: string[] }) =
   ) : null;
 
 /** What the reviewing and drafting agents tell the user about this exact packet. */
-export const PacketHandoff = ({ approval, data }: { approval: Approval; data: Snapshot }) => {
-  const { reviewed, summary, reviewer, changes } = packetHandoff(approval, data);
+export const PacketHandoff = ({ approval, data }: { approval: Approval; data: Snapshot }) => (
+  <HandoffSummary handoff={packetHandoff(approval, data)} />
+);
+
+export const HandoffSummary = ({ handoff }: { handoff: PacketHandoffData }) => {
+  const { reviewed, summary, reviewer, changes } = handoff;
   if (!reviewed && !changes.length) return null;
   return (
     <section className="mail-handoff" aria-label="Packet summary">

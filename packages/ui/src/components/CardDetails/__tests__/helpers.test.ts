@@ -6,6 +6,8 @@ import {
   launchBlocker,
   packetNeedsReview,
   latestJobFailure,
+  applicationRows,
+  applicationBeads,
 } from '../helpers.ts';
 const run = {
   id: 'run',
@@ -94,4 +96,30 @@ it('clears an old failure after newer work succeeds regardless of snapshot order
   expect(latestJobFailure('job', [failed])).toBe(failed);
   expect(latestJobFailure('job', [completed, failed])).toBeUndefined();
   expect(latestJobFailure('job', [failed, completed])).toBeUndefined();
+});
+
+it('marks application steps done in order and gives the first open step to whoever moves it', () => {
+  const drafted = {
+    state: 'in_review',
+    packet: { resume: 'r' },
+    applicationContext: { revision: 'ctx' },
+  } as unknown as Card;
+  const rows = applicationRows(drafted, true, false);
+  expect(rows.map((row) => [row.id, row.status, row.done])).toEqual([
+    ['brief', 'Confirmed', true],
+    ['documents', 'Draft available', true],
+    ['reviews', 'Review needed', false],
+    ['export', 'Not exported', false],
+  ]);
+  expect(applicationBeads(rows)).toEqual(['done', 'done', 'plum', undefined]);
+  const unconfirmed = applicationRows({ state: 'shortlisted' } as Card, false, false);
+  expect(applicationBeads(unconfirmed)).toEqual(['ochre', undefined, undefined, undefined]);
+  const awaiting = {
+    ...drafted,
+    state: 'awaiting_approval',
+    packetReview: { contextRevision: 'ctx' },
+  } as unknown as Card;
+  const waiting = applicationRows(awaiting, true, false);
+  expect(waiting.at(-1)?.status).toBe('Approval requested');
+  expect(applicationBeads(waiting)).toEqual(['done', 'done', 'done', 'ochre']);
 });

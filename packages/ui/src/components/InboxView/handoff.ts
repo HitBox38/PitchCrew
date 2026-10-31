@@ -1,18 +1,40 @@
 import type { Approval, Card, PacketArtifact, Snapshot } from '@pitchcrew/core';
 
+const reviewerOf = (runId: string | undefined, data: Pick<Snapshot, 'runs' | 'roles'>) => {
+  const run = runId ? data.runs.find((item) => item.id === runId) : undefined;
+  const reviewer = data.roles.find((role) => role.id === run?.roleId);
+  return { id: reviewer?.id ?? 'reviewer', name: reviewer?.name ?? 'Reviewer' };
+};
+
+export type PacketHandoffData = ReturnType<typeof packetHandoff>;
+
 /** Reviewer's summary and Writer's change notes, only when they describe this exact packet. */
 export const packetHandoff = (approval: Approval, data: Snapshot) => {
   const card = data.cards.find((item) => item.id === approval.cardId);
   const review =
     card?.packetReview?.packetDigest === approval.digest ? card.packetReview : undefined;
-  const run = review ? data.runs.find((item) => item.id === review.runId) : undefined;
-  const reviewer = data.roles.find((role) => role.id === run?.roleId);
   return {
     reviewed: Boolean(review),
     summary: review?.summary,
-    reviewer: { id: reviewer?.id ?? 'reviewer', name: reviewer?.name ?? 'Reviewer' },
+    reviewer: reviewerOf(review?.runId, data),
     changes: card?.packetChanges?.packetDigest === approval.digest ? card.packetChanges.notes : [],
   };
+};
+
+/**
+ * The same handoff for a job's current packet. A new Writer draft clears the review, so a
+ * saved review always describes the current packet; change notes must match it when present.
+ */
+export const cardHandoff = (card: Card, data: Pick<Snapshot, 'runs' | 'roles'>) => {
+  const review = card.packetReview;
+  const changes = card.packetChanges;
+  return {
+    reviewed: Boolean(review),
+    summary: review?.summary,
+    reviewer: reviewerOf(review?.runId, data),
+    changes:
+      changes && (!review || changes.packetDigest === review.packetDigest) ? changes.notes : [],
+  } satisfies PacketHandoffData;
 };
 
 export type NeededFile = {

@@ -523,3 +523,44 @@
 .clay-stage-track[data-labelled] .clay-stage-labels > span {
   text-align: center;
 }
+
+/* Job details: the stage track under the header, then step beads in Application and History.
+ * Beads share a 1.125rem slot so titles line up whatever the bead size. */
+.clay-job-progress {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem 1.25rem 0.875rem;
+}
+.clay-job-progress .clay-stage-track {
+  max-width: 34rem;
+}
+.clay-job-now {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  color: var(--muted);
+  font-size: var(--text-label);
+}
+.clay-job-now[data-asks] {
+  color: var(--ochre);
+  font-weight: 600;
+}
+.detail-application-sections[data-steps] [data-slot='accordion-trigger'] > .clay-bead,
+.detail-history[data-beads] > div > .clay-bead {
+  margin-inline: calc((1.125rem - var(--bead-size)) / 2);
+}
+.detail-application-sections[data-steps] [data-slot='accordion-trigger'] > span:not(.clay-bead) {
+  flex: 1;
+  min-width: 0;
+}
+.detail-history[data-beads] > div > .clay-bead {
+  margin-top: 0.375rem;
+}
+@variant max-mobile {
+  .clay-job-progress {
+    padding-inline: 1rem;
+  }
+}

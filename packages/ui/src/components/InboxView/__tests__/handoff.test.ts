@@ -1,6 +1,6 @@
 import type { Approval, Card, PacketArtifact, Snapshot } from '@pitchcrew/core';
 import { describe, expect, it } from 'vitest';
-import { acceptsFile, neededFiles, packetHandoff } from '../handoff.ts';
+import { acceptsFile, cardHandoff, neededFiles, packetHandoff } from '../handoff.ts';
 
 const artifact = (name: PacketArtifact['name'], source: PacketArtifact['source']) =>
   ({
@@ -78,5 +78,27 @@ describe('packet handoff', () => {
       changes: [],
     });
     expect(packetHandoff({ ...approval([]), digest: 'd2' }, data).reviewed).toBe(false);
+  });
+
+  it("reads the job's current review, keeping change notes only for the reviewed packet", () => {
+    const data = {
+      runs: [{ id: 'run-1', roleId: 'critic' }],
+      roles: [{ id: 'critic', name: 'Critic' }],
+    } as unknown as Snapshot;
+    const summary = { assessment: 'Ready', highlights: [], limitations: [], nextSteps: ['Apply'] };
+    const reviewed = {
+      packetReview: { packetDigest: 'd1', runId: 'run-1', summary },
+      packetChanges: { packetDigest: 'd1', notes: ['Shortened the resume'] },
+    } as unknown as Card;
+    expect(cardHandoff(reviewed, data)).toEqual({
+      reviewed: true,
+      summary,
+      reviewer: { id: 'critic', name: 'Critic' },
+      changes: ['Shortened the resume'],
+    });
+    const stale = { ...reviewed, packetChanges: { packetDigest: 'd0', notes: ['Old'] } } as Card;
+    expect(cardHandoff(stale, data).changes).toEqual([]);
+    const draft = { packetChanges: { packetDigest: 'd2', notes: ['New draft'] } } as Card;
+    expect(cardHandoff(draft, data)).toMatchObject({ reviewed: false, changes: ['New draft'] });
   });
 });
