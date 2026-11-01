@@ -1,4 +1,4 @@
-import type { Run, RuntimeActivity } from '@pitchcrew/core';
+import { compactRun, type Run, type RuntimeActivity } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 
 export const activityRuns = (context: CrewContext, includeSaved = false): Run[] => {
@@ -7,10 +7,9 @@ export const activityRuns = (context: CrewContext, includeSaved = false): Run[] 
     : [...context.runActivities.keys()].map((id) => context.board.get<Run>('run', id));
   return runs.map((run) => {
     const live = context.runActivities.get(run.id);
-    // Skill/instruction snapshots already belong to workspace history, not each live frame.
-    const { configuration: _configuration, ...visible } = run;
+    // Skill/instruction snapshots stay out of live frames; only the effective model remains.
     return {
-      ...visible,
+      ...compactRun(run),
       ...(live ? { activity: live.entries, activityTruncated: live.truncated } : {}),
     };
   });

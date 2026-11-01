@@ -1,64 +1,33 @@
-import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { closedStateSet } from '@/board-stages.ts';
-import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useBoardJobMutations } from './useBoardJobMutations.ts';
+import { useBoardStage } from './useBoardStage.ts';
+import { matchesJobQuery } from '../helpers.ts';
 
 export const useBoardPage = () => {
-  const reduced = useAppReducedMotion();
   const jobMutations = useBoardJobMutations();
-  const {
-    data,
-    working,
-    act,
-    openCard,
-    setAdd,
-    query,
-    setQuery,
-    showClosed,
-    setShowClosed,
-    flashStage,
-    setFlashStage,
-  } = useWorkspaceStore(
-    useShallow((state) => ({
-      data: state.data,
-      working: state.working,
-      act: state.act,
-      openCard: state.openCard,
-      setAdd: state.setAdd,
-      query: state.query,
-      setQuery: state.setQuery,
-      showClosed: state.showClosed,
-      setShowClosed: state.setShowClosed,
-      flashStage: state.flashStage,
-      setFlashStage: state.setFlashStage,
-    })),
-  );
-  const { go } = useWorkspaceNavigation();
-  useEffect(() => {
-    if (!flashStage) return;
-    document.getElementById(`stage-${flashStage}`)?.scrollIntoView({
-      behavior: reduced ? 'instant' : 'smooth',
-      block: 'nearest',
-      inline: 'center',
-    });
-    const timer = setTimeout(() => setFlashStage(null), 1400);
-    return () => clearTimeout(timer);
-  }, [flashStage, setFlashStage, reduced]);
+  const { data, working, act, openCard, setAdd, query, setQuery, showClosed, setShowClosed } =
+    useWorkspaceStore(
+      useShallow((state) => ({
+        data: state.data,
+        working: state.working,
+        act: state.act,
+        openCard: state.openCard,
+        setAdd: state.setAdd,
+        query: state.query,
+        setQuery: state.setQuery,
+        showClosed: state.showClosed,
+        setShowClosed: state.setShowClosed,
+      })),
+    );
+  const stage = useBoardStage(showClosed, setShowClosed, setQuery);
   if (!data) return null;
-  const active = data.cards.filter((c) => !closedStateSet.has(c.state));
-  const filtered = data.cards.filter((c) =>
-    `${c.company} ${c.title} ${c.location} ${c.tags.join(' ')}`
-      .toLowerCase()
-      .includes(query.toLowerCase()),
-  );
-  const closed = filtered.filter((c) => closedStateSet.has(c.state));
-  const recent = data.events.filter((e) => e.kind !== 'role').slice(0, 4);
+  const filtered = data.cards.filter((card) => matchesJobQuery(card, query));
+  const closedTotal = data.cards.filter((card) => closedStateSet.has(card.state)).length;
+  const closedMatches = filtered.filter((card) => closedStateSet.has(card.state)).length;
   return {
     jobMutations,
-    reduced,
     data,
     working,
     act,
@@ -68,11 +37,11 @@ export const useBoardPage = () => {
     setQuery,
     showClosed,
     setShowClosed,
-    flashStage,
-    go,
-    active,
     filtered,
-    closed,
-    recent,
+    stage,
+    counts: {
+      active: { matching: filtered.length - closedMatches, total: data.cards.length - closedTotal },
+      closed: { matching: closedMatches, total: closedTotal },
+    },
   };
 };

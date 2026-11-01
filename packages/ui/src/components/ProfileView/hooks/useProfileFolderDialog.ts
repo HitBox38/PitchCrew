@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
-import type { ProfileFolderOperation } from '../types.ts';
+import type { ProfileFolderChange } from '../types.ts';
 
 export const useProfileFolderDialog = (
-  operation: ProfileFolderOperation,
+  operation: ProfileFolderChange,
   folders: string[],
   submit: (folder: string) => Promise<void>,
 ) => {

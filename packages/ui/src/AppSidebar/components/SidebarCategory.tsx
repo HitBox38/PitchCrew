@@ -12,6 +12,8 @@ interface SidebarCategoryProps {
   className?: string;
   children: ReactNode;
   action?: ReactNode;
+  /** Whether the category starts open before the user chooses. */
+  defaultOpen?: boolean;
 }
 
 export const SidebarCategory = ({
@@ -20,8 +22,9 @@ export const SidebarCategory = ({
   className,
   children,
   action,
+  defaultOpen = true,
 }: SidebarCategoryProps) => {
-  const { open, changeOpen } = useCategoryOpen(id);
+  const { open, changeOpen } = useCategoryOpen(id, defaultOpen);
   const { state, isMobile } = useSidebar();
   const iconOnly = !isMobile && state === 'collapsed';
 

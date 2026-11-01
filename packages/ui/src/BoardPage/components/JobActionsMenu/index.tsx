@@ -15,7 +15,7 @@ export const JobActionsMenu = (props: JobActionsMenuProps) => {
   return (
     <DropdownMenu onOpenChange={model.menuOpenChange}>
       <DropdownMenuTrigger
-        render={<Button className="job-actions-trigger icon-button" />}
+        render={<Button variant="ghost" size="icon-sm" className="job-actions-trigger" />}
         aria-label={`Actions for ${card.title} at ${card.company}`}
         disabled={disabled}
         onPointerDown={(event) => event.stopPropagation()}

@@ -6,31 +6,32 @@ import type { ImportUpload } from '../types.ts';
 
 export const ImportFileField = ({
   busy,
-  locked,
   upload,
   chooseFile,
 }: {
   busy: boolean;
-  locked: boolean;
   upload: ImportUpload | null;
   chooseFile: (file: File | undefined) => Promise<void>;
 }) => {
   const input = useRef<HTMLInputElement>(null);
   return (
-    <div className="form flex flex-col gap-2">
-      <span id="import-file-label" className="text-label font-semibold text-ink-soft">
-        Choose your tracker or export
-      </span>
-      <div className="import-file-picker">
+    <div className="import-choose">
+      <div className="import-file-picker ui-tray">
         <Button
-          className="button"
-          aria-describedby="import-file-label"
-          disabled={busy || locked}
+          variant="outline"
+          size="sm"
+          aria-describedby="import-file-limits"
+          disabled={busy}
           onClick={() => input.current?.click()}
         >
           <FileUp size={15} aria-hidden="true" /> {upload ? 'Choose another file' : 'Choose file'}
         </Button>
-        <span className="min-w-0 truncate">{upload ? upload.name : 'No file chosen'}</span>
+        <span className="import-file-name">
+          {upload
+            ? `${upload.name} · ${upload.sourceFormat === 'sqlite' ? 'SQLite tracker' : upload.format.toUpperCase()}`
+            : 'No file chosen'}
+        </span>
+        {busy ? <output className="import-file-busy">Reading and checking…</output> : null}
         <input
           ref={input}
           className="sr-only"
@@ -38,7 +39,7 @@ export const ImportFileField = ({
           tabIndex={-1}
           aria-label="Choose your tracker or export"
           accept=".db,.sqlite,.sqlite3,.json,.csv,application/json,text/csv,application/vnd.sqlite3"
-          disabled={busy || locked}
+          disabled={busy}
           onChange={(event) => {
             const file = event.target.files?.[0];
             event.target.value = '';
@@ -46,22 +47,13 @@ export const ImportFileField = ({
           }}
         />
       </div>
-      <p className="quiet">
-        {upload
-          ? `${upload.sourceFormat === 'sqlite' ? 'SQLite tracker' : upload.format.toUpperCase()} file`
-          : `SQLite tracker (.db, .sqlite, .sqlite3), JSON or CSV. Up to ${maxImportRows.toLocaleString('en-US')} applications and 2 MB.`}
+      <p id="import-file-limits" className="import-hint">
+        A previous tracker’s .db, .sqlite or .sqlite3 file, or a JSON or CSV export. Up to{' '}
+        {maxImportRows.toLocaleString('en-US')} applications and 2 MB. Processed locally; your
+        source file stays unchanged.
       </p>
-      {!upload ? (
-        <p className="quiet">
-          Have an applications.db file from your previous tracker? Choose it directly, with no
-          conversion step. For other trackers, use a JSON or CSV export.
-        </p>
-      ) : null}
-      {busy ? (
-        <output className="quiet">Reading your file and checking applications…</output>
-      ) : null}
       {upload?.warnings?.length ? (
-        <ul className="quiet list-disc pl-5" aria-label="Database conversion warnings">
+        <ul className="import-hint list-disc pl-5" aria-label="Database conversion warnings">
           {upload.warnings.map((warning) => (
             <li key={warning}>{warning}</li>
           ))}

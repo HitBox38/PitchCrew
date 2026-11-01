@@ -3,13 +3,15 @@ import { DialogTitle } from '@/components/ui/dialog/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/components/Input.tsx';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
+import { fileFormat } from '../attachments.ts';
 export const ViewerToolbar = ({ model, close }: { model: FileViewerModel; close: () => void }) => (
   <>
     <div className="file-dialog-heading">
       <div>
         <DialogTitle>{model.file.name}</DialogTitle>
         <p>
-          {model.index + 1} of {model.files.length} attachments · Read-only
+          {model.files.length > 1 ? `${model.index + 1} of ${model.files.length} · ` : ''}
+          {fileFormat(model.file)} · Read-only
         </p>
       </div>
       <div className="file-heading-actions">

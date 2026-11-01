@@ -9,14 +9,22 @@ import {
   PopoverTitle,
 } from '@/components/ui/popover/index.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { BrowserToolsActions } from '@/NativeBrowserTools/components/BrowserToolsActions.tsx';
+import type { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';
+import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 export const NativeBrowserSettings = ({
   model,
   manual,
+  tools,
+  device,
 }: {
   model: NativeBrowserModel;
   manual: boolean;
+  tools: ReturnType<typeof useNativeBrowserTools>;
+  device: ReturnType<typeof useBrowserDevice>;
 }) => {
   const zoom = model.state?.tabs.find((tab) => tab.id === model.state?.activeTab)?.zoomFactor ?? 1;
+  // Pending commands disable the buttons; retain focus so Escape stays in this popover.
   const setZoom = (factor: number) => void model.command({ kind: 'zoom', factor });
   return (
     <Popover>
@@ -27,10 +35,14 @@ export const NativeBrowserSettings = ({
       </PopoverTrigger>
       <PopoverContent className="max-h-[min(80dvh,42rem)] w-64 overflow-y-auto p-3 font-sans text-sm">
         <PopoverTitle>Page settings</PopoverTitle>
+        <div className="browser-settings-tools">
+          <BrowserToolsActions model={tools} device={device} />
+        </div>
         <div className="my-3 flex items-center justify-between gap-2" aria-label="Page zoom">
           <Button
             size="icon-sm"
             aria-label="Zoom out"
+            focusableWhenDisabled
             disabled={!manual || zoom <= 0.25}
             onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
           >
@@ -40,6 +52,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Zoom in"
+            focusableWhenDisabled
             disabled={!manual || zoom >= 5}
             onClick={() => setZoom(Math.min(5, zoom + 0.25))}
           >
@@ -48,6 +61,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Reset page zoom"
+            focusableWhenDisabled
             disabled={!manual || zoom === 1}
             onClick={() => setZoom(1)}
           >

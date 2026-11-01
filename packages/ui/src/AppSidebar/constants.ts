@@ -4,9 +4,9 @@ import {
   ListOrdered,
   BookOpen,
   CalendarClock,
-  FileUser,
   Inbox,
-  LayoutDashboard,
+  IdCard,
+  SquareKanban,
   Lightbulb,
   MessageSquare,
   Settings,
@@ -14,12 +14,12 @@ import {
 } from 'lucide-react';
 
 export const viewIcons = {
-  board: LayoutDashboard,
+  board: SquareKanban,
   queue: ListOrdered,
   crew: Users,
   chat: MessageSquare,
   inbox: Inbox,
-  profile: FileUser,
+  profile: IdCard,
   skills: BookOpen,
   routines: CalendarClock,
   insights: Lightbulb,
@@ -32,7 +32,7 @@ export const viewTitles: Record<View, string> = {
   queue: 'Queue',
   crew: 'Crew',
   chat: 'Chat',
-  inbox: 'Inbox',
+  inbox: 'Decisions',
   profile: 'Profile',
   skills: 'Skills',
   routines: 'Routines',
@@ -51,5 +51,22 @@ export const workspaceViews = [
   'insights',
   'inbox',
   'profile',
+  'activity',
+] as const satisfies readonly View[];
+
+/** The four primary places, in sidebar order, with ⌘/Ctrl+1–4. */
+export const primaryShortcutViews = [
+  'board',
+  'inbox',
+  'crew',
+  'profile',
+] as const satisfies readonly View[];
+
+/** Pages reached from the sidebar's More menu; the row names whichever one is open. */
+export const moreViews = [
+  'queue',
+  'skills',
+  'routines',
+  'insights',
   'activity',
 ] as const satisfies readonly View[];

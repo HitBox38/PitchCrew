@@ -45,7 +45,7 @@ test.each([1440, 1000, 390])(
           const text = element.querySelector('span')!;
           const bounds = element.getBoundingClientRect();
           const labelBounds = text.getBoundingClientRect();
-          const move = element.parentElement!.querySelector('.profile-move-note');
+          const move = element.parentElement!.querySelector('.profile-row-menu');
           return {
             rowHeight: bounds.height,
             labelHeight: labelBounds.height,
@@ -53,20 +53,27 @@ test.each([1440, 1000, 390])(
             top: labelBounds.top - bounds.top,
             bottom: bounds.bottom - labelBounds.bottom,
             right: (move?.getBoundingClientRect().left ?? bounds.right) - labelBounds.right,
+            menuOverflow: (move?.getBoundingClientRect().bottom ?? bounds.bottom) - bounds.bottom,
             truncated: text.scrollWidth > text.clientWidth,
           };
         });
         expect(layout.labelHeight).toBeLessThanOrEqual(layout.lineHeight);
-        expect(layout.rowHeight).toBeLessThanOrEqual(38);
+        // Phones get the shared 44px touch floor; wider screens keep compact rows.
+        expect(layout.rowHeight).toBeLessThanOrEqual(width > 390 ? 38 : 44);
         expect(layout.top).toBeGreaterThanOrEqual(0);
         expect(layout.bottom).toBeGreaterThanOrEqual(0);
         expect(layout.right).toBeGreaterThanOrEqual(0);
+        expect(layout.menuOverflow).toBeLessThanOrEqual(0);
         if (width > 390 || label === name) expect(layout.truncated).toBe(true);
         expect(await item.getAttribute('title')).toBe(label);
       }
       await note.focus();
-      const move = page.getByRole('button', { name: `Move ${name} to folder`, exact: true });
-      expect(await move.evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
+      const actions = page.getByRole('button', { name: `Actions for ${name}`, exact: true });
+      expect(await actions.evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
+      await actions.click();
+      await page.getByRole('menuitem', { name: 'Move to folder…', exact: true }).waitFor();
+      await page.keyboard.press('Escape');
+      await note.focus();
       await page.keyboard.press('Enter');
       await page.getByRole('textbox', { name: 'Profile Markdown', exact: true }).waitFor();
       expect(await page.getByRole('textbox', { name: 'Profile Markdown' }).inputValue()).toContain(

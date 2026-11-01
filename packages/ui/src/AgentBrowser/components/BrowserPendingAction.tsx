@@ -1,10 +1,9 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
-import { BrowserApprovalContent } from '@/ComputerApprovals/components/BrowserApprovalContent.tsx';
 import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
 import { browserActionTitles, actionFields } from '@/ComputerApprovals/helpers.ts';
 import type { ComputerApproval } from '@pitchcrew/core';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserSiteRequest } from './BrowserSiteRequest.tsx';
+import { BrowserApprovalEvidence } from './BrowserApprovalEvidence.tsx';
 export const BrowserPendingAction = ({
   approval,
   browserPanel,
@@ -17,6 +16,7 @@ export const BrowserPendingAction = ({
   control: BrowserControl;
 }) => {
   const paused = !!browserPanel.session?.manual || !!control.leaseId;
+  const submission = 'purpose' in approval.action && approval.action.purpose === 'submission';
   return (
     <section
       className="browser-pending-action"
@@ -24,6 +24,10 @@ export const BrowserPendingAction = ({
       data-browser-approval-id={approval.id}
     >
       <div className="browser-approval-body">
+        <p className="browser-approval-kind" data-tone={submission ? 'rose' : 'ochre'}>
+          <span>{submission ? 'Approve submission' : 'Needs approval'}</span>
+          {browserPanel.role?.name} · this run only
+        </p>
         <h3>{browserActionTitles[approval.action.kind]}</h3>
         <p className="browser-approval-reason">{approval.reason}</p>
         <dl className="browser-action-brief">
@@ -42,17 +46,7 @@ export const BrowserPendingAction = ({
           thread={thread}
           control={control}
         />
-        <AccordionSection
-          className="browser-evidence"
-          heading="Review exact action and page evidence"
-        >
-          <BrowserApprovalContent
-            approval={approval}
-            action={action}
-            working={working || paused}
-            showActions={false}
-          />
-        </AccordionSection>
+        <BrowserApprovalEvidence approval={approval} action={action} working={working || paused} />
         {paused ? (
           <p className="quiet">
             Return control before deciding. The agent will refresh its request.

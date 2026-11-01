@@ -1,7 +1,6 @@
 .chat-compose {
-  padding: 15px 25px 13px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
+  padding: 12px 20px 10px;
+  background: transparent;
 }
 .chat-prompt,
 .chat-compose-hint,
@@ -123,16 +122,11 @@
 }
 .chat-compose-hint {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-top: 9px;
-  font-size: 11px;
+  justify-content: flex-end;
+  margin-top: 6px;
+  font-size: 0.75rem;
   line-height: 1.5;
   color: var(--muted);
-}
-.chat-compose-hint > span:last-child {
-  white-space: nowrap;
 }
 .chat-scroll {
   width: 32px;

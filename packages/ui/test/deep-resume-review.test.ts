@@ -1,6 +1,7 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { beforeAll, afterAll, expect, test } from 'vitest';
-import type { DeepReview } from '@pitchcrew/core';
+import type { Card, DeepReview } from '@pitchcrew/core';
+import { dropStages } from '../src/board-stages.ts';
 import { cleanup } from './helpers/daemon.ts';
 import { deepReviewFixture } from '../../orchestrator/test/helpers/deep-reviews.ts';
 let host: Awaited<ReturnType<typeof deepReviewFixture>>;
@@ -20,10 +21,10 @@ afterAll(async () => {
 });
 test('job action runs the managed flow, saves explicit runtime alternatives and presents persisted reports on desktop and mobile', async () => {
   await page.goto(host.daemon.url);
-  await page.locator(`#board-job-${host.card.id} .job-card`).waitFor({ timeout: 30000 });
+  await page.locator(`#board-job-${host.card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const defer = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await defer.isVisible()) await defer.click();
-  await page.locator(`#board-job-${host.card.id} .job-card`).click();
+  await page.locator(`#board-job-${host.card.id} .clay-job-card`).click();
   await page.getByRole('tab', { name: 'Application', exact: true }).click();
   await page.getByRole('button', { name: 'Reviews Review needed', exact: true }).click();
   await page.getByRole('button', { name: 'Deep review resume', exact: true }).click();
@@ -81,7 +82,12 @@ test('job action runs the managed flow, saves explicit runtime alternatives and 
       .evaluate((tab) => tab.getBoundingClientRect().right <= innerWidth),
   ).toBe(true);
   await page.reload();
-  await page.locator(`#board-job-${host.card.id} .job-card`).click();
+  // Phones show one board stage at a time; choose the job's stage first.
+  const { state } = host.daemon.service.board.get<Card>('card', host.card.id);
+  const stage = dropStages.find((item) => item.states.includes(state))!;
+  await page.getByRole('combobox', { name: 'Board stage', exact: true }).click();
+  await page.getByRole('option', { name: new RegExp(`^${stage.label}`) }).click();
+  await page.locator(`#board-job-${host.card.id} .clay-job-card`).click();
   await page.getByRole('tab', { name: 'Application', exact: true }).click();
   await page.locator('#job-section-reviews').click();
   await page

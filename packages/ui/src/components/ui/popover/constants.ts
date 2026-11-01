@@ -3,3 +3,4 @@ export const Popover = Primitive.Root;
 export const PopoverTrigger = Primitive.Trigger;
 export const PopoverTitle = Primitive.Title;
 export const PopoverDescription = Primitive.Description;
+export const PopoverClose = Primitive.Close;

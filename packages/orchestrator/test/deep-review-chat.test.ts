@@ -3,11 +3,18 @@ import type { ChatRequest, DeepReview } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, waitForSnapshot } from './helpers/daemon.ts';
 import { assessment, deepReviewFixture } from './helpers/deep-reviews.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 const mockReview = () => {
   const original = adapters.demo.run.bind(adapters.demo);
   vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) =>
     context.role.workflow === 'reviewer'
-      ? { role: 'reviewer', passed: true, feedback: [], assessment: assessment() }
+      ? {
+          role: 'reviewer',
+          passed: true,
+          feedback: [],
+          summary: reviewSummary(),
+          assessment: assessment(),
+        }
       : original(context),
   );
 };
@@ -68,7 +75,13 @@ it('preserves an explicit chat request for targeted subagents', async () => {
       return original(context);
     }
     return context.role.workflow === 'reviewer'
-      ? { role: 'reviewer', passed: true, feedback: [], assessment: assessment() }
+      ? {
+          role: 'reviewer',
+          passed: true,
+          feedback: [],
+          summary: reviewSummary(),
+          assessment: assessment(),
+        }
       : original(context);
   });
   const conversation = daemon.service.createConversation({

@@ -18,7 +18,11 @@ export const MemoryEntry = ({
   const editor = useMemoryEntry(note, action);
   const { editing, content, setContent, tags, setTags } = editor;
   return (
-    <article className="chat-memory-entry">
+    <article
+      className="chat-memory-entry"
+      data-editing={editing ? '' : undefined}
+      data-deleting={editor.deleting ? '' : undefined}
+    >
       {editing ? (
         <div className="form grid gap-3">
           <label className="field">
@@ -44,7 +48,13 @@ export const MemoryEntry = ({
       ) : (
         <>
           <p className="whitespace-pre-wrap">{note.content}</p>
-          {note.tags.length ? <small>{note.tags.join(' · ')}</small> : null}
+          {note.tags.length ? (
+            <ul className="chat-memory-tags" aria-label="Tags">
+              {note.tags.map((tag) => (
+                <li key={tag}>{tag}</li>
+              ))}
+            </ul>
+          ) : null}
         </>
       )}
       <small>Updated {new Date(note.updatedAt).toLocaleString()}</small>

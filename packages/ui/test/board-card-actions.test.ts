@@ -59,16 +59,18 @@ test('the menu button follows card hover and opening it does not open details or
   const job = page.locator(`#board-job-${card.id}`);
   const rects = () =>
     job.evaluate((element) => ({
-      card: element.querySelector('.job-card')!.getBoundingClientRect().y,
+      card: element.querySelector(':is(.job-card, .clay-job-card)')!.getBoundingClientRect().y,
       icon: element.querySelector('.job-actions-trigger')!.getBoundingClientRect().y,
     }));
+  const opacity = () => menu().evaluate((element) => getComputedStyle(element).opacity);
   await page.mouse.move(10, 10);
   const before = await rects();
-  await job.locator('.job-card').hover();
-  await expect.poll(async () => (await rects()).card - before.card).toBeCloseTo(-4, 1);
-  const after = await rects();
-  expect(after.icon - before.icon).toBeCloseTo(-4, 1);
-  expect(after.icon - after.card).toBeCloseTo(before.icon - before.card, 1);
+  await expect.poll(opacity).toBe('0');
+  await job.locator(':is(.job-card, .clay-job-card)').hover();
+  // The clay card lifts slightly while its menu button appears in place.
+  await expect.poll(async () => (await rects()).card - before.card).toBeCloseTo(-1, 1);
+  await expect.poll(opacity).toBe('1');
+  expect((await rects()).icon).toBeCloseTo(before.icon, 1);
   await menu().click();
   await page.locator('[data-slot="dropdown-menu-content"]').waitFor();
   expect(await page.getByRole('dialog').count()).toBe(0);
@@ -78,7 +80,7 @@ test('the menu button follows card hover and opening it does not open details or
 });
 
 test('right-click opens actions at the pointer, supports copying and dismisses back to the card', async () => {
-  const body = page.locator(`#board-job-${card.id} .job-card`);
+  const body = page.locator(`#board-job-${card.id} :is(.job-card, .clay-job-card)`);
   await body.click({ button: 'right', position: { x: 50, y: 40 } });
   const popup = page.locator('[data-slot="context-menu-content"]');
   await popup.waitFor();
@@ -102,7 +104,7 @@ test('right-click opens actions at the pointer, supports copying and dismisses b
 });
 
 test('right-click status submenu moves jobs and reopens closed jobs with board focus restoration', async () => {
-  const body = () => page.locator(`#board-job-${card.id} .job-card`);
+  const body = () => page.locator(`#board-job-${card.id} :is(.job-card, .clay-job-card)`);
   await body().click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
   await page.getByRole('menuitem', { name: 'Changes requested', exact: true }).press('Enter');
@@ -210,7 +212,9 @@ test.each(['dropdown', 'context'])(
   'deletion requires confirmation, keeps cancellation harmless and restores focus after removal (%s)',
   async (kind) => {
     if (kind === 'context')
-      await page.locator(`#board-job-${card.id} .job-card`).click({ button: 'right' });
+      await page
+        .locator(`#board-job-${card.id} :is(.job-card, .clay-job-card)`)
+        .click({ button: 'right' });
     else await menu().click();
     await page.getByRole('menuitem', { name: 'Delete job…', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Delete this job?' });
@@ -223,7 +227,9 @@ test.each(['dropdown', 'context'])(
     expect(host.daemon.service.board.get<Card>('card', card.id)).toMatchObject({ id: card.id });
     await expect.poll(focusedLabel).toBe(menuName());
     if (kind === 'context')
-      await page.locator(`#board-job-${card.id} .job-card`).click({ button: 'right' });
+      await page
+        .locator(`#board-job-${card.id} :is(.job-card, .clay-job-card)`)
+        .click({ button: 'right' });
     else await menu().click();
     await page.getByRole('menuitem', { name: 'Delete job…', exact: true }).click();
     await dialog.getByRole('button', { name: 'Delete job', exact: true }).click();
@@ -254,7 +260,7 @@ test('a pending status save shows a loader, then restores the original card and 
   await page.getByRole('menuitem', { name: 'Shortlist', exact: true }).click();
   const job = page.locator(`#board-job-${card.id}`);
   await job.getByRole('status').getByText('Moving to Shortlisted…', { exact: true }).waitFor();
-  expect(await job.getByRole('status').locator('svg.spin').count()).toBe(1);
+  expect(await job.locator('.clay-job-spinner').count()).toBe(1);
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('lead');
   release();
   await page.getByText('Fictional save failed.', { exact: true }).waitFor();
@@ -301,7 +307,9 @@ test.each(['dropdown', 'context'])(
     );
     await page.reload();
     if (kind === 'context')
-      await page.locator(`#board-job-${card.id} .job-card`).click({ button: 'right' });
+      await page
+        .locator(`#board-job-${card.id} :is(.job-card, .clay-job-card)`)
+        .click({ button: 'right' });
     else await menu().click();
     for (const name of ['Shortlist', 'Mark withdrawn', 'Delete job…', 'Move to…'])
       expect(
@@ -313,7 +321,7 @@ test.each(['dropdown', 'context'])(
 );
 
 test('whole-card mouse dragging still records a status without opening details', async () => {
-  const body = page.locator(`#board-job-${card.id} .job-card`);
+  const body = page.locator(`#board-job-${card.id} :is(.job-card, .clay-job-card)`);
   const rect = (await body.boundingBox())!;
   await page.mouse.move(rect.x + rect.width / 2, rect.y + rect.height / 2);
   await page.mouse.down();
@@ -403,12 +411,12 @@ test('reduced motion keeps both the card and its menu button stationary on hover
     await job.waitFor();
     const rects = () =>
       job.evaluate((element) => ({
-        card: element.querySelector('.job-card')!.getBoundingClientRect().y,
+        card: element.querySelector(':is(.job-card, .clay-job-card)')!.getBoundingClientRect().y,
         icon: element.querySelector('.job-actions-trigger')!.getBoundingClientRect().y,
       }));
     await page.mouse.move(10, 10);
     const before = await rects();
-    await job.locator('.job-card').hover();
+    await job.locator(':is(.job-card, .clay-job-card)').hover();
     expect(await rects()).toEqual(before);
     await menu().click();
     await page.locator('[data-slot="dropdown-menu-content"]').waitFor();
@@ -418,7 +426,7 @@ test('reduced motion keeps both the card and its menu button stationary on hover
   }
 });
 
-test('column sorting ranks all pages, stays independent, persists and reveals moved jobs', async () => {
+test('pipeline columns rank by fit, bound their cards, persist the Closed sort and reveal moved jobs', async () => {
   const board = host.daemon.service.board;
   board.record('card', { ...card, fit: 10 }, 'system', 'Fixture score');
   board.record('card', { ...next, state: 'shortlisted', fit: 100 }, 'system', 'Fixture score');
@@ -427,38 +435,20 @@ test('column sorting ranks all pages, stays independent, persists and reveals mo
     board.record('card', { ...job, fit: i }, 'system', 'Fixture score');
   }
   await page.reload();
-  const leads = page.getByRole('region', { name: 'Leads', exact: true });
-  const sort = () => leads.getByRole('button', { name: /^Sort Leads:/ });
-  const companies = () => leads.locator('.job-top strong').allTextContents();
+  const leads = page.getByRole('region', { name: /^Leads, (?:\d+ of )?\d+$/ });
+  const companies = () => leads.locator('.clay-job-card-company').allTextContents();
   await expect.poll(async () => (await companies())[0]).toBe('Sort Studio 21');
   expect(await leads.locator('.draggable-job').count()).toBe(20);
-  for (const label of ['Leads', 'Shortlisted', 'Drafting', 'Ready', 'Applied'])
-    expect(
-      await page
-        .getByRole('button', { name: `Sort ${label}: Fit (high to low)`, exact: true })
-        .count(),
-    ).toBe(1);
-
-  await page.getByRole('button', { name: 'Next Leads page', exact: true }).click();
-  await expect.poll(async () => (await companies()).length).toBe(3);
-  await sort().focus();
-  await page.keyboard.press('Enter');
-  expect(
-    await page
-      .getByRole('menuitemradio', { name: 'Fit (high to low)', exact: true })
-      .getAttribute('aria-checked'),
-  ).toBe('true');
-  await page.getByRole('menuitemradio', { name: 'Fit (low to high)', exact: true }).click();
-  await expect.poll(async () => (await companies())[0]).toBe('Sort Studio 0');
-  expect(
-    await leads.getByRole('button', { name: 'Previous Leads page', exact: true }).isDisabled(),
-  ).toBe(true);
-  await expect.poll(focusedLabel).toBe('Sort Leads: Fit (low to high)');
-  expect(
-    await page
-      .getByRole('button', { name: 'Sort Shortlisted: Fit (high to low)', exact: true })
-      .count(),
-  ).toBe(1);
+  expect(await leads.getAttribute('aria-label')).toBe('Leads, 23');
+  await leads.getByText('1–20 of 23', { exact: true }).waitFor();
+  await leads.getByRole('button', { name: 'Next Leads page', exact: true }).click();
+  await expect.poll(() => leads.locator('.draggable-job').count()).toBe(3);
+  await leads.getByText('21–23 of 23', { exact: true }).waitFor();
+  await leads.getByRole('button', { name: 'Previous Leads page', exact: true }).click();
+  await expect.poll(() => leads.locator('.draggable-job').count()).toBe(20);
+  await page.getByLabel('Search jobs', { exact: true }).fill('Fictional Studio');
+  await expect.poll(async () => await companies()).toEqual(['Fictional Studio']);
+  await page.getByLabel('Search jobs', { exact: true }).fill('');
 
   await page.getByRole('button', { name: /^Closed \d/ }).click();
   await page
@@ -467,7 +457,6 @@ test('column sorting ranks all pages, stays independent, persists and reveals mo
   await page.getByRole('menuitemradio', { name: 'Recently updated', exact: true }).click();
   await page.getByRole('button', { name: /^Pipeline \d/ }).click();
   await page.reload();
-  await expect.poll(async () => (await companies())[0]).toBe('Sort Studio 0');
   await page.getByRole('button', { name: /^Closed \d/ }).click();
   await page
     .getByRole('button', { name: 'Sort Closed jobs: Recently updated', exact: true })
@@ -482,7 +471,8 @@ test('column sorting ranks all pages, stays independent, persists and reveals mo
   await page.getByRole('menuitem', { name: 'Move to…', exact: true }).press('ArrowRight');
   await page.getByRole('menuitem', { name: 'New lead', exact: true }).press('Enter');
   await expect.poll(focusedLabel).toBe(`Actions for ${next.title} at ${next.company}`);
+  expect(await leads.getAttribute('aria-label')).toBe('Leads, 24');
   expect(await leads.locator(`#board-job-${next.id}`).count()).toBe(1);
-  expect(await leads.locator('.draggable-job').count()).toBe(4);
+  expect((await companies())[0]).toBe(next.company);
   expect(errors).toEqual([]);
 }, 30000);

@@ -85,6 +85,7 @@ export const captureNativePage = async (
   const queue = captureQueue(contents);
   const generation = queue.generation;
   let expired = false;
+  let phase = 'waiting for the previous capture';
   const assertCurrent = () => {
     if (expired) throw new Error('Native browser capture timed out.');
     if (queue.generation !== generation || !current())
@@ -93,18 +94,31 @@ export const captureNativePage = async (
   const previous = queue.tail;
   const read = async () => {
     await previous;
-    assertCurrent();
-    // capturePage can copy the previous surface before Playwright's mask styles paint.
-    // A separate world keeps the page from replacing these scheduling primitives.
-    await contents.executeJavaScriptInIsolatedWorld(1001, [
-      {
-        code: 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))))',
-      },
-    ]);
-    assertCurrent();
-    const image = await contents.capturePage(rect, { stayHidden: true, stayAwake: true });
-    assertCurrent();
-    return image;
+    const retryUntil = Date.now() + 2000;
+    for (;;) {
+      assertCurrent();
+      phase = 'waiting for credential masks to paint';
+      // capturePage can copy the previous surface before Playwright's mask styles paint.
+      // A separate world keeps the page from replacing these scheduling primitives.
+      await contents.executeJavaScriptInIsolatedWorld(1001, [
+        {
+          code: 'new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0))))',
+        },
+      ]);
+      assertCurrent();
+      try {
+        phase = 'copying the native page';
+        const image = await contents.capturePage(rect, { stayHidden: true, stayAwake: true });
+        assertCurrent();
+        return image;
+      } catch (error) {
+        // Chromium can reject the first copy before its compositor surface is ready.
+        // Keep retries in this same serialized copy, deadline and page generation.
+        if (Date.now() >= retryUntil || !String(error).includes('UnknownVizError')) throw error;
+        assertCurrent();
+        await new Promise((resolve) => setTimeout(resolve, 50));
+      }
+    }
   };
   const pending = read();
   const complete = pending.then(
@@ -122,7 +136,7 @@ export const captureNativePage = async (
       new Promise<never>((_resolve, reject) => {
         timer = setTimeout(() => {
           expired = true;
-          reject(new Error('Native browser capture timed out.'));
+          reject(new Error(`Native browser capture timed out while ${phase}.`));
         }, 5000);
       }),
     ]);

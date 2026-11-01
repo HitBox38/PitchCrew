@@ -1,56 +1,37 @@
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { workspaceToasts } from '../toasts.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   getVisibleBrowserApprovals,
   subscribeBrowserApprovalVisibility,
 } from '@/AgentBrowser/approval-visibility.ts';
 import { playNotificationSound, unlockNotificationAudio } from '../audio.ts';
 import {
-  collectNotifications,
-  readStored,
-  saveStored,
   NotificationTracker,
   notificationToastOptions,
   notificationShouldAlert,
   notificationInView,
 } from '../helpers.ts';
-import type { CrewNotification } from '../types.ts';
+import { useNotificationStore } from '../store.ts';
 import { useLinkFeedback } from './useLinkFeedback.ts';
+import { useNotificationItems } from './useNotificationItems.ts';
 
+/** Toasts and sounds for new notices; mounted once by the notification center. */
 export const useNotifications = () => {
   useLinkFeedback();
-  const data = useWorkspaceStore((s) => s.data);
+  const { data, items } = useNotificationItems();
   const toastManager = workspaceToasts;
   const activeToasts = useRef(new Set<string>());
-  const items = useMemo(() => (data ? collectNotifications(data) : []), [data]);
-  const [read, setRead] = useState(() => readStored(readKey, [] as string[], isIds));
   const sound = useDevicePreferences((state) => state.sound);
-  const setSound = useDevicePreferences((state) => state.setSound);
-  const [open, setPanelOpen] = useState(false);
-  const setOpen = (value: boolean) => {
-    if (value) activeToasts.current.forEach((id) => toastManager.close(id));
-    setPanelOpen(value);
-  };
+  const open = useNotificationStore((state) => state.panelOpen);
   const [tracker] = useState(() => new NotificationTracker());
   const visibleApprovals = useSyncExternalStore(
     subscribeBrowserApprovalVisibility,
     getVisibleBrowserApprovals,
   );
-  const readIds = new Set(read);
-  const unread = items.filter((item) => !readIds.has(item.id));
-  const markRead = (ids: string[]) =>
-    setRead((previous) => [...new Set([...previous, ...ids])].slice(-500));
-  const openNotification = (item: Pick<CrewNotification, 'id' | 'target'>) => {
-    markRead([item.id]);
-    setOpen(false);
-    toastManager.close(item.id);
-    useWorkspaceStore.getState().closePanels();
-  };
   useEffect(() => {
-    saveStored(readKey, read);
-  }, [read]);
+    if (open) activeToasts.current.forEach((id) => toastManager.close(id));
+  }, [open, toastManager]);
   useEffect(() => {
     if (!sound) return;
     const unlock = () => {
@@ -101,20 +82,5 @@ export const useNotifications = () => {
       });
     if (sound) playNotificationSound(priority.kind);
   }, [data, items, sound, open, toastManager, tracker, visibleApprovals]);
-  return {
-    items,
-    unread,
-    read,
-    markRead,
-    preferences: { sound },
-    setPreferences: (value: { sound: boolean }) => setSound(value.sound),
-    open,
-    setOpen,
-    toastManager,
-    openNotification,
-  };
+  return { toastManager };
 };
-
-const readKey = 'pitchcrew-notifications-read-v1';
-const isIds = (value: unknown): value is string[] =>
-  Array.isArray(value) && value.every((id) => typeof id === 'string');

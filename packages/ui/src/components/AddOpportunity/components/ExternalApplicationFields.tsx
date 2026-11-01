@@ -1,6 +1,7 @@
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 
+/** New jobs only: record a submission made elsewhere. It never sends an application. */
 export const ExternalApplicationFields = ({
   external,
   setExternal,
@@ -9,22 +10,16 @@ export const ExternalApplicationFields = ({
   external: boolean;
   setExternal: (value: boolean) => void;
   jobIdentifier: string;
-}) => {
-  return (
-    <fieldset className="flex flex-col gap-3">
-      <label className="checkbox-label">
-        <Checkbox checked={external} onCheckedChange={setExternal} />
-        <span>Already applied outside Pitchcrew</span>
-      </label>
-      {external ? (
-        <>
-          <p className="quiet">
-            Record a known submission. This saves tracking information without sending an
-            application.
-          </p>
-          <ExternalSubmissionFields jobIdentifier={jobIdentifier} />
-        </>
-      ) : null}
-    </fieldset>
-  );
-};
+}) => (
+  <fieldset className="add-job-applied" data-open={external || undefined}>
+    <label className="checkbox-label">
+      <Checkbox checked={external} onCheckedChange={setExternal} />
+      <span>Already applied outside Pitchcrew</span>
+    </label>
+    {external ? (
+      <div className="add-job-applied-fields">
+        <ExternalSubmissionFields jobIdentifier={jobIdentifier} />
+      </div>
+    ) : null}
+  </fieldset>
+);

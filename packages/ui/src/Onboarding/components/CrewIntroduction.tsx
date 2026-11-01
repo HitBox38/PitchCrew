@@ -1,41 +1,24 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 
-export const CrewIntroduction = () => {
-  return (
-    <ol className="onboarding-crew grid gap-4">
-      {seats.map((seat) => (
-        <li key={seat.id} className="flex items-start gap-4">
-          <RoleAvatar agentRole={seat.id} size="large" />
-          <div>
-            <p className="flex flex-wrap items-baseline gap-x-3">
-              <strong>{seat.name}</strong>
-              <span>{seat.task}</span>
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">{seat.detail}</p>
-          </div>
-        </li>
-      ))}
-    </ol>
-  );
-};
-
 const seats = [
-  {
-    id: 'scout',
-    name: 'Scout',
-    task: 'Find your fit',
-    detail: 'Compares a job post with your experience and goals.',
-  },
+  { id: 'scout', name: 'Scout', task: 'Scores the fit against your profile.' },
   {
     id: 'writer',
     name: 'Writer',
-    task: 'Tell your story',
-    detail: 'Drafts your resume, cover letter and form answers from your profile.',
+    task: 'Drafts a resume, cover letter and answers from your notes.',
   },
-  {
-    id: 'reviewer',
-    name: 'Reviewer',
-    task: 'Check the details',
-    detail: 'Checks the draft and its claims against your saved notes.',
-  },
+  { id: 'reviewer', name: 'Reviewer', task: 'Checks every claim against those notes.' },
 ] as const;
+
+/** Screen one: the three workflow agents, one line each. */
+export const CrewIntroduction = () => (
+  <ol className="onboarding-crew">
+    {seats.map((seat) => (
+      <li key={seat.id}>
+        <RoleAvatar agentRole={seat.id} />
+        <strong>{seat.name}</strong>
+        <span>{seat.task}</span>
+      </li>
+    ))}
+  </ol>
+);

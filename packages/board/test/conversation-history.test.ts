@@ -145,3 +145,28 @@ it('uses the thread index for a selected conversation and reads at most one page
   const plan = board.db.prepare(`EXPLAIN QUERY PLAN ${sql}`).all('scout') as { detail: string }[];
   expect(plan.some((item) => item.detail.includes('entities_thread'))).toBe(true);
 });
+
+it('replaces a turn’s configuration snapshot with the model and reasoning it ran with', () => {
+  const run = {
+    id: randomUUID(),
+    roleId: 'scout',
+    runtime: 'claude-code',
+    threadId: 'scout',
+    mode: 'chat',
+    cardId: null,
+    status: 'running',
+    startedAt: '2026-10-17T00:00:01.000Z',
+    finishedAt: null,
+    message: '',
+    configuration: {
+      role: { id: 'scout', model: 'sonnet', reasoning: 'high', instructions: 'PRIVATE' },
+      revision: 'r',
+      skills: [{ id: 'skill', instructions: 'PRIVATE SKILL' }],
+      skillsRevision: 's',
+    },
+  } as unknown as Run;
+  board.record('run', run, 'scout', 'Fixture');
+  const [item] = conversationHistory(board, 'scout').items;
+  expect(item).toMatchObject({ kind: 'turn', run: { model: 'sonnet', reasoning: 'high' } });
+  expect(JSON.stringify(item)).not.toContain('PRIVATE');
+});

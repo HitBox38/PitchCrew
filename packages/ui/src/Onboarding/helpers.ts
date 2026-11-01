@@ -1,8 +1,11 @@
 import type { Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
 
-export const setupProgress = (data: Snapshot) => {
-  const readySeats = new Set(
+const seats = ['scout', 'writer', 'reviewer'] as const;
+const seatNames = { scout: 'Scout', writer: 'Writer', reviewer: 'Reviewer' } as const;
+
+const readySeats = (data: Snapshot) =>
+  new Set(
     data.roles
       .filter(
         (role) =>
@@ -12,11 +15,18 @@ export const setupProgress = (data: Snapshot) => {
       )
       .map(workflowSeat),
   );
+
+export const setupProgress = (data: Snapshot) => {
+  const ready = readySeats(data);
   return {
     profile: data.profile.some((file) => file.content.trim().length > 0),
-    crew: ['scout', 'writer', 'reviewer'].every((seat) =>
-      readySeats.has(seat as 'scout' | 'writer' | 'reviewer'),
-    ),
+    crew: seats.every((seat) => ready.has(seat)),
     job: data.cards.some((card) => !card.sample),
   };
+};
+
+/** Workflow seats without an enabled agent on an installed runtime, by seat name. */
+export const missingSeats = (data: Snapshot) => {
+  const ready = readySeats(data);
+  return seats.filter((seat) => !ready.has(seat)).map((seat) => seatNames[seat]);
 };

@@ -4,6 +4,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import * as roles from '../src/crew/roles.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
 import { deepReviewFixture } from './helpers/deep-reviews.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 
 afterEach(cleanup);
 
@@ -96,7 +97,13 @@ it.each(['runtime', 'result'] as const)(
     const adapter = vi.spyOn(adapters.demo, 'run');
     if (boundary === 'runtime')
       adapter.mockRejectedValue(new SyntaxError('Private runtime content'));
-    else adapter.mockResolvedValue({ role: 'reviewer', passed: true, feedback: [] });
+    else
+      adapter.mockResolvedValue({
+        role: 'reviewer',
+        passed: true,
+        feedback: [],
+        summary: reviewSummary(),
+      });
     const { result: run } = await request<Run>(`/cards/${card.id}/deep-reviews`, 'POST', {});
     await vi.waitFor(() => expect(daemon.service.controllers.has(run.id)).toBe(false));
     expect(daemon.service.board.get<Run>('run', run.id).status).toBe('failed');

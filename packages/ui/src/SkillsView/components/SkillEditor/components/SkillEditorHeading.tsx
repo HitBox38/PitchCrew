@@ -1,32 +1,30 @@
+import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { SheetDescription } from '@/components/ui/sheet/components/SheetDescription.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
-import type { SkillEditorHeadingProps } from '@/SkillsView/components/SkillEditor/types.ts';
-import { BookOpen, X } from 'lucide-react';
+import type { SkillEditorModel } from '../types.ts';
+import { ArrowLeft } from 'lucide-react';
 
-export const SkillEditorHeading = ({
-  skill,
-  importing,
-  working,
-  onClose,
-}: SkillEditorHeadingProps) => {
+export const SkillEditorHeading = (c: SkillEditorModel & { onBack: () => void }) => {
   return (
-    <header className="role-settings-heading">
-      <BookOpen size={26} />
-      <div>
-        <SheetTitle>
-          {skill ? 'Edit skill' : importing ? 'Import from skills.sh' : 'Add skill'}
-        </SheetTitle>
-        <SheetDescription>Describe a reusable way of working for your agents.</SheetDescription>
-      </div>
+    <header className="skills-pane-head skills-editor-head">
       <Button
-        className="icon-button"
-        aria-label="Close skill editor"
-        disabled={working}
-        onClick={onClose}
+        className="icon-button skills-back"
+        aria-label="Back to skills"
+        disabled={c.working}
+        onClick={c.onBack}
       >
-        <X size={20} />
+        <ArrowLeft size={16} />
       </Button>
+      <div className="skills-pane-title">
+        <h2>
+          {c.skill ? `Edit ${c.skill.name}` : c.importing ? 'Import from skills.sh' : 'Add skill'}
+        </h2>
+        {c.source || !c.importing ? (
+          <p>Made by {c.source?.repository.split('/')[0] ?? c.creator}</p>
+        ) : null}
+      </div>
+      <div className="skills-pane-actions">
+        <MarkdownModeTabs label="Skill editor mode" />
+      </div>
     </header>
   );
 };

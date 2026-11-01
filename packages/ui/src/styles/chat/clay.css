@@ -1,0 +1,561 @@
+/* Clay interface preview for chat. One recessed thread runs from each agent turn's avatar
+ * through its steps to its reply; beads on it carry outcomes, never decoration. */
+[data-interface='clay'] .chat-workspace {
+  --chat-thread-x: 9px;
+}
+[data-interface='clay'] .chat-workspace .chat-transcript {
+  --chat-gap: 24px;
+  gap: var(--chat-gap);
+}
+
+/* Header: participants as overlapping pebbles with status beads. */
+.clay-participants {
+  display: flex;
+  flex: none;
+  align-items: center;
+}
+.clay-participant {
+  position: relative;
+  display: flex;
+  border-radius: 999px;
+}
+.clay-participant > .role-avatar {
+  box-shadow: var(--clay);
+}
+.clay-participants[data-group] > * + * {
+  margin-left: -9px;
+}
+.clay-participants[data-group] .clay-participant > .role-avatar {
+  outline: 2px solid var(--surface);
+}
+.clay-participant > .clay-bead,
+.clay-participant > .clay-job-spinner {
+  position: absolute;
+  z-index: 1;
+  right: -2px;
+  bottom: -2px;
+  outline: 2px solid var(--surface);
+}
+.clay-participant > .clay-job-spinner {
+  width: 0.8125rem;
+  height: 0.8125rem;
+  border-width: 2px;
+  background: var(--surface);
+}
+.clay-participant-more {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  outline: 2px solid var(--surface);
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 600;
+}
+
+/* Transcript: the turn thread, joined by a reply that follows its own turn. */
+[data-interface='clay'] .chat-workspace .chat-turn,
+[data-interface='clay'] .chat-workspace .chat-message[data-continued] {
+  position: relative;
+}
+[data-interface='clay'] .chat-workspace .chat-turn::before,
+[data-interface='clay'] .chat-workspace .chat-message[data-continued]::before {
+  position: absolute;
+  left: var(--chat-thread-x);
+  width: 4px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+[data-interface='clay'] .chat-workspace .chat-turn::before {
+  top: 30px;
+  bottom: 0;
+  border-end-start-radius: 0;
+  border-end-end-radius: 0;
+}
+/* Transcript items contain their own painting, so the reply's item closes the gap to its turn
+ * and the space moves inside the reply, where the thread can run through it. */
+[data-interface='clay'] .chat-workspace .chat-transcript > :has(> .chat-message[data-continued]) {
+  margin-top: calc(-1 * var(--chat-gap));
+}
+[data-interface='clay'] .chat-workspace .chat-message[data-continued] {
+  padding-top: calc(var(--chat-gap) - 6px);
+}
+[data-interface='clay'] .chat-workspace .chat-message[data-continued]::before {
+  top: 0;
+  bottom: 6px;
+  border-start-start-radius: 0;
+  border-start-end-radius: 0;
+}
+[data-interface='clay'] .chat-workspace .chat-message[data-continued] .chat-message-meta {
+  padding-left: 30px;
+}
+[data-interface='clay']
+  .chat-workspace
+  .chat-message[data-continued]
+  .chat-message-meta
+  > .role-avatar {
+  display: none;
+}
+[data-interface='clay'] .chat-workspace .chat-message[data-continued] .chat-message-meta > strong {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+[data-interface='clay'] .chat-workspace .chat-activity-group,
+[data-interface='clay'] .chat-workspace .chat-activity-group-content {
+  border-left: 0;
+}
+[data-interface='clay'] .chat-workspace .chat-activity-group {
+  padding-left: 0;
+}
+
+/* Day dividers sit in a groove. */
+[data-interface='clay'] .chat-workspace .chat-day::before,
+[data-interface='clay'] .chat-workspace .chat-day::after {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .chat-workspace .chat-day > span {
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  font-weight: 600;
+}
+
+/* Crew work: empty states are recessed trays and follow-ups sit on a groove with outcome beads. */
+[data-interface='clay'] .chat-workspace .chat-work-empty {
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .chat-workspace .chat-work-section + .chat-work-section {
+  border-top: 0;
+}
+[data-interface='clay'] .chat-workspace .chat-task-marker {
+  border: 0;
+  background: none;
+}
+[data-interface='clay'] .chat-workspace .chat-task:not(:last-child)::before {
+  left: 7.5px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+
+/* Narrow chats keep the track but name only the current stage. */
+@variant max-chat {
+  [data-interface='clay']
+    .chat-workspace
+    .clay-chat-stage
+    .clay-stage-labels
+    > span:not([data-current]) {
+    visibility: hidden;
+  }
+}
+
+/* A job chat names its job in the header and composer, so per-message job links only repeat it. */
+[data-interface='clay'] .chat-job-link[data-same-job] {
+  display: none;
+}
+
+/* The question card's header carries the ochre bead that marks anything waiting on the user. */
+[data-interface='clay'] .pending-question-trigger > .clay-bead {
+  margin-inline: 2px;
+}
+
+/* Read-only conversations end in a recessed tray instead of a ruled footer. */
+[data-interface='clay'] .chat-workspace .chat-readonly {
+  margin: 10px 20px 12px;
+  border-top: 0;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+
+/* Participant pickers: chosen agents are raised pebbles, the rest stay pressed into the page. */
+[data-interface='clay'] .chat-participant-choice {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  transition: var(--motion);
+}
+[data-interface='clay'] .chat-participant-choice:has([data-checked]) {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+
+/* Turn steps sit inline under the agent as a quiet checklist; the running step speaks up. */
+.chat-turn-model {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clay-steps {
+  display: grid;
+  gap: 1px;
+}
+.clay-steps .chat-activity-step {
+  background: none;
+}
+.clay-steps .chat-activity-step-trigger {
+  min-height: 28px;
+  padding: 3px 6px;
+}
+.clay-steps .chat-activity-step[data-status='running'] > button {
+  color: var(--plum);
+  font-weight: 600;
+}
+.clay-steps .chat-activity-step-details {
+  padding: 0 6px 8px 30px;
+}
+.clay-steps-more {
+  justify-self: start;
+  color: var(--muted);
+}
+
+/* Composer: one toolbar with context, the model, browser mode and a round send. The runtime
+ * moves here from the header. */
+[data-interface='clay'] .chat-heading .chat-runtime {
+  display: none;
+}
+[data-interface='clay'] .chat-add-context > span,
+[data-interface='clay'] .chat-send > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+[data-interface='clay'] .chat-add-context {
+  width: 32px;
+  padding: 0;
+}
+.chat-composer-runtime {
+  max-width: 14rem;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+.chat-composer-runtime > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-interface='clay'] .chat-send {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 999px;
+}
+
+/* Browser panel: a status pill in the header, the address as host and path, and approvals in a
+ * raised tray under the page. The tray keeps its reserved height so the page never reflows. */
+[data-interface='clay'] .browser-panel-heading output {
+  max-width: 170px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .browser-panel-heading .browser-owner-manual {
+  background: var(--teal-soft);
+}
+.browser-address-display {
+  display: none;
+}
+[data-interface='clay'] .browser-address[data-display] {
+  position: relative;
+}
+[data-interface='clay'] .browser-address[data-display]:not(:focus-within) .browser-address-display {
+  position: absolute;
+  inset: 0 8px 0 28px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  overflow: hidden;
+  font-size: var(--text-caption);
+  white-space: nowrap;
+  pointer-events: none;
+}
+.browser-address-display > strong {
+  flex: none;
+  color: var(--ink);
+  font-weight: 600;
+}
+.browser-address-display > span {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+}
+[data-interface='clay']
+  .browser-address[data-display]:has(> [data-slot='button']):not(:focus-within)
+  .browser-address-display {
+  right: 34px;
+}
+[data-interface='clay'] .browser-address[data-display]:not(:focus-within) input {
+  color: transparent;
+}
+.browser-approval-kind {
+  display: none;
+}
+[data-interface='clay'] .browser-approvals {
+  margin: 8px;
+  border-top: 0;
+  border-radius: 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-approval-kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.browser-approval-kind > span {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-weight: 600;
+}
+.browser-approval-kind[data-tone='rose'] > span {
+  background: var(--rose-soft);
+  color: var(--rose);
+}
+[data-interface='clay'] .browser-approval-empty {
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-placeholder-icon {
+  border-radius: 999px;
+  box-shadow: var(--clay);
+}
+
+/* Packet panel: the documents on a raised sheet, with length and review state underneath. */
+.chat-packet-tabs {
+  display: grid;
+  gap: 12px;
+}
+.chat-packet-document {
+  display: grid;
+  gap: 10px;
+}
+.chat-packet-sheet {
+  padding: 22px 24px;
+  border-radius: 6px;
+  background: var(--surface-bright);
+  box-shadow: var(--sheet);
+  font-size: var(--text-label);
+}
+.chat-packet-footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.chat-packet-sheet h1 {
+  margin-bottom: 4px;
+  font-size: 20px;
+  line-height: 1.25;
+}
+.chat-packet-sheet h2 {
+  margin-top: 16px;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.chat-packet-sheet h3 {
+  font-size: 14px;
+}
+
+/* Browser chrome stays in two rows (tabs, then address with tools) and approvals reserve only
+ * what a request needs, so the page keeps most of the panel's height. */
+[data-interface='clay'] .browser-tabs {
+  padding: 5px 8px;
+}
+[data-interface='clay'] .browser-chrome {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--clay-fill);
+  box-shadow: inset 0 1px 0 var(--rim);
+}
+[data-interface='clay'] .browser-chrome > .browser-toolbar {
+  flex: 1 1 20rem;
+  min-width: 0;
+  min-height: 44px;
+  padding: 5px 4px 5px 8px;
+  border-bottom: 0;
+  background: none;
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-chrome > .browser-tools {
+  padding: 0 8px 0 0;
+  border-bottom: 0;
+  background: none;
+}
+[data-interface='clay'] .browser-chrome .browser-tools-actions:not([data-recording]),
+[data-interface='clay']
+  .browser-chrome
+  .browser-tools-actions[data-recording]
+  > :not([aria-label='Stop browser recording']) {
+  display: none;
+}
+[data-interface='clay'] .browser-chrome .browser-tool-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-settings-tools {
+  display: block;
+  margin-block: 10px 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+[data-interface='clay'] .browser-settings-tools .browser-tools-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+[data-interface='clay'] .browser-settings-tools [data-slot='button'] {
+  justify-content: flex-start;
+}
+[data-interface='clay'] .browser-control-hint {
+  display: none;
+}
+
+/* Compact approval tray: title and status on one line, the reason under it, the action's target
+ * with a Details popover, and the decision buttons beside the text. Narrow panels stack the
+ * buttons underneath and reserve more. */
+[data-interface='clay'] .agent-browser-panel {
+  container: browser-panel / inline-size;
+}
+[data-interface='clay'] .browser-approvals[data-reserved] {
+  height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
+}
+[data-interface='clay'] .browser-pending-action {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+}
+/* Four short rows (title, status, reason, target with Site access and Details) fit the reserve. */
+[data-interface='clay'] .browser-approvals[data-reserved] .browser-pending-action {
+  padding-block: 6px;
+}
+[data-interface='clay'] .browser-approval-body {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 10px;
+  min-width: 0;
+  max-height: none;
+  padding: 0;
+}
+[data-interface='clay'] .browser-approval-body > * {
+  flex-basis: 100%;
+  margin: 0;
+}
+[data-interface='clay'] .browser-pending-action h3 {
+  flex: 0 1 auto;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-approval-body > .browser-approval-kind {
+  flex: 1 1 auto;
+  order: 1;
+}
+[data-interface='clay'] .browser-approval-body > .browser-approval-reason {
+  order: 2;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-approval-body > .browser-action-brief {
+  display: flex;
+  flex: 0 1 auto;
+  gap: 10px;
+  min-width: 0;
+  order: 3;
+  overflow: hidden;
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-action-brief dd {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-interface='clay'] .browser-approval-body > .browser-evidence-trigger {
+  flex: none;
+  order: 4;
+  height: 24px;
+  padding-inline: 6px;
+  color: var(--primary);
+}
+[data-interface='clay']
+  .browser-approval-body
+  > :not(
+    h3,
+    .browser-approval-kind,
+    .browser-approval-reason,
+    .browser-action-brief,
+    .browser-evidence-trigger,
+    .clay-site-trigger
+  ) {
+  order: 5;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer {
+  position: static;
+  flex: none;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+  background: none;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer > .primary {
+  order: -1;
+}
+[data-interface='clay'] .browser-approval-empty {
+  font-size: var(--text-caption);
+}
+@container browser-panel (max-width: 34rem) {
+  /* Tall enough for the stacked request with 44px touch-floor Details and decision buttons. */
+  [data-interface='clay'] .browser-approvals[data-reserved] {
+    height: min(10rem, calc(var(--browser-viewport-height, 100dvh) * 0.36));
+  }
+  [data-interface='clay'] .browser-pending-action {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+}

@@ -25,6 +25,12 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['audio', 'mute', 'alerts'],
   },
   {
+    label: 'Show introduction',
+    section: 'general',
+    target: 'show-introduction',
+    keywords: ['onboarding', 'getting started', 'welcome', 'tour'],
+  },
+  {
     label: 'Connected accounts',
     section: 'accounts',
     target: 'accounts-heading',

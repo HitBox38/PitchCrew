@@ -7,9 +7,9 @@ Visual language: claymorphism and wabi-sabi used as materials rather than decora
 ```
 sidebar (shadcn)            | toggle · running roles
   search ⌘K · new job N     | page heading + data summary / add job
-  board › stages · crew …   | pipeline / closed toggle, filter
-  crew status · actions     | pipeline trays / job cards
-  recently opened           | recent board events
+  board · decisions · crew  | pipeline / closed toggle, filter
+  jobs › conversations      | decision deck / clay pipeline columns
+  conversations · more      | recent board events
   theme · data folder       |
 ```
 
@@ -19,7 +19,7 @@ The desktop window adds a 40px draggable paper title bar above the shared render
 
 Packages: core (contracts and transitions), board (SQLite events and projections), adapters (demo, Claude Code, Codex), packet (evidence validation and files), mcp (role-scoped tools), orchestrator (HTTP daemon and run scheduling), ui (shared renderer), desktop (Electron host).
 
-The sidebar is the shadcn Sidebar: it collapses to an icon rail with tooltips (⌘B/Ctrl+B, the toggle or the edge rail), remembers that state in a sidebar_state cookie, and becomes a sheet below 768px. It holds search (a cmdk command palette over views, jobs, roles and actions, ⌘K/Ctrl+K), new job (N), workspace navigation with counts and a collapsible list of pipeline stages that scroll to and highlight their column, crew status opening role chats with a Chat / Configure / Pause menu, recently opened jobs (kept in localStorage), a theme menu, and the data folder with copy-path. UI interactions use shadcn/ui source components: buttons, text inputs, selects, checkboxes, tabs, dialogs, side sheets, sidebar, command, dropdown menus, tooltips and kbd. Base UI (@base-ui/react) provides focus trapping and keyboard behavior. Styling keeps the workbench identity through shared Tailwind theme tokens and scoped CSS. Fonts are bundled locally, with no third-party font requests.
+The sidebar is the shadcn Sidebar: it collapses to an icon rail with tooltips (⌘B/Ctrl+B, the toggle or the edge rail), remembers that state in a sidebar_state cookie, and becomes a sheet below 768px. It holds search (a cmdk command palette over views, jobs, roles and actions, ⌘K/Ctrl+K), new job (N), the four primary places (Board, Decisions, Crew, Profile) with counts, live jobs with their conversations nested beneath, the remaining conversations, a More category for the other views, and Settings in the footer. UI interactions use shadcn/ui source components: buttons, text inputs, selects, checkboxes, tabs, dialogs, side sheets, sidebar, command, dropdown menus, tooltips and kbd. Base UI (@base-ui/react) provides focus trapping and keyboard behavior. Styling keeps the workbench identity through shared Tailwind theme tokens and scoped CSS. Fonts are bundled locally, with no third-party font requests.
 
 Tooling uses Oxlint, Oxfmt, Vite's Oxc React transforms, and Rolldown. tsdown builds the Electron main process. TypeScript remains the type checker; ESLint and Prettier are absent.
 

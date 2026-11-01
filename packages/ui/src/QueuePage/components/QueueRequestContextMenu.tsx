@@ -31,6 +31,7 @@ export const QueueRequestContextMenu = ({
             <ContextMenuItem disabled={model.working} onClick={() => void model.skip()}>
               Skip and continue
             </ContextMenuItem>
+            <QueueRequestItems model={model} context />
           </>
         ) : (
           <QueueRequestItems model={model} context />

@@ -16,7 +16,7 @@ export const ComposerStop = ({
       <TooltipTrigger
         render={
           <Button
-            size="icon-sm"
+            size="sm"
             variant="secondary"
             className="chat-stop-response"
             aria-label={label}
@@ -29,7 +29,8 @@ export const ComposerStop = ({
           />
         }
       >
-        <Square size={13} fill="currentColor" aria-hidden="true" />
+        <Square size={12} fill="currentColor" aria-hidden="true" />
+        <span aria-hidden="true">Stop</span>
       </TooltipTrigger>
       <TooltipContent>{label}</TooltipContent>
     </Tooltip>

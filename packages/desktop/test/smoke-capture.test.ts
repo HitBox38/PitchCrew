@@ -2,7 +2,7 @@ import { EventEmitter } from 'node:events';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { BrowserWindow, NativeImage } from 'electron';
-import { clipboard } from 'electron';
+import { app, clipboard } from 'electron';
 import { afterEach, expect, test, vi } from 'vitest';
 import { installSmokeCheck } from '../src/smoke.ts';
 import { smokeStreamPartials, smokeStreamPrefix } from '../src/smoke-stream.ts';
@@ -52,6 +52,8 @@ test.each(['none', 'show', 'focus'])(
     const window = Object.assign(new EventEmitter(), {
       isVisible: () => false,
       isFocused: () => false,
+      getContentSize: vi.fn(() => [1440, 960]),
+      setContentSize: vi.fn(),
       webContents: Object.assign(new EventEmitter(), {
         once: (_event: string, listener: () => Promise<void>) => {
           loaded = listener;
@@ -69,6 +71,13 @@ test.each(['none', 'show', 'focus'])(
     const complete = loaded!();
     await vi.runAllTimersAsync();
     await complete;
+    expect(app.exit).not.toHaveBeenCalled();
+    expect(window.setContentSize.mock.calls).toEqual([
+      [1024, 768],
+      [1440, 960],
+      [1024, 768],
+      [1440, 960],
+    ]);
     expect(capturePage).toHaveBeenCalledTimes(6);
     for (const args of capturePage.mock.calls)
       expect(args).toEqual([undefined, { stayHidden: true }]);

@@ -5,15 +5,26 @@ import { MemoryNotebook } from '@/ChatView/components/MemoryNotebook.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { BookOpen } from 'lucide-react';
 import type { Snapshot } from '@pitchcrew/core';
+
+/** The agent's own saved notes: inspect, edit or delete them. Never profile evidence. */
 export const AgentMemory = ({ roleId }: { roleId: string }) => {
   const [open, setOpen] = useState(false);
   const data = useWorkspaceStore((state) => state.data);
+  const count = data?.memories?.filter(
+    (memory) => memory.roleId === roleId && !memory.deleted,
+  ).length;
   return (
-    <section className="role-settings-section">
-      <h3>Saved memory</h3>
-      <p className="optional">Inspect, edit or delete this agent’s local notes.</p>
-      <Button variant="outline" onClick={() => setOpen(true)}>
-        <BookOpen size={14} />
+    <section
+      className="agent-panel-section"
+      id="agent-memory"
+      aria-labelledby="agent-memory-heading"
+    >
+      <h3 id="agent-memory-heading">
+        Memory {count !== undefined ? <span className="ui-count">{count}</span> : null}
+      </h3>
+      <p className="optional">Local notes this agent saved. Not used as profile evidence.</p>
+      <Button className="button small self-start" onClick={() => setOpen(true)}>
+        <BookOpen size={14} aria-hidden="true" />
         Open memory
       </Button>
       {open && data ? (

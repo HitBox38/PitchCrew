@@ -4,10 +4,13 @@ import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { stateLabels } from '@/lib/labels.ts';
 import { useJobWork } from './hooks/useJobWork.ts';
 
-export const JobWorkStatus = ({ card }: { card: Card }) => {
+/** `quietState` drops the plain status pill when a stage track already shows it; work feedback stays. */
+export const JobWorkStatus = ({ card, quietState }: { card: Card; quietState?: boolean }) => {
   const work = useJobWork(card);
   if (!work.label)
-    return <span className={`state-pill ${card.state}`}>{stateLabels[card.state]}</span>;
+    return quietState ? null : (
+      <span className={`state-pill ${card.state}`}>{stateLabels[card.state]}</span>
+    );
   return (
     <output className="flex items-center gap-1.5 text-xs text-primary" title={work.reason}>
       {work.spinning ? (

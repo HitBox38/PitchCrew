@@ -40,6 +40,67 @@ const fixture = () => {
 };
 afterEach(() => vi.useRealTimers());
 
+it('rejects mirror captures after a renderer crash without blocking tab teardown', async () => {
+  vi.useFakeTimers();
+  const { automation, contents, events, capturePage, sendCommand } = fixture();
+  vi.mocked(contents.executeJavaScriptInIsolatedWorld).mockReturnValue(new Promise(() => {}));
+  events.emit('render-process-gone');
+  const capture = automation.send('Page.captureScreenshot', {}, undefined, 'floating:1').then(
+    () => undefined,
+    (error: unknown) => error,
+  );
+  await vi.advanceTimersByTimeAsync(5000);
+  expect(String(await capture)).toContain('stopped responding');
+  await drainNativeCapture(contents);
+  expect(contents.executeJavaScriptInIsolatedWorld).not.toHaveBeenCalled();
+  expect(capturePage).not.toHaveBeenCalled();
+  expect(sendCommand).not.toHaveBeenCalled();
+  expect(automation.active).toBe(false);
+  events.emit('destroyed');
+});
+
+it('retries a transient compositor readback after repaint without changing capture options', async () => {
+  const { contents, capturePage } = fixture();
+  for (let attempt = 0; attempt < 6; attempt++)
+    capturePage.mockRejectedValueOnce(new Error('UnknownVizError'));
+  await expect(captureNativePage(contents, {})).resolves.toEqual({
+    data: Buffer.from('masked-native-page').toString('base64'),
+  });
+  expect(capturePage).toHaveBeenCalledTimes(7);
+  for (const args of capturePage.mock.calls)
+    expect(args).toEqual([undefined, { stayHidden: true, stayAwake: true }]);
+  expect(contents.executeJavaScriptInIsolatedWorld).toHaveBeenCalledTimes(7);
+});
+
+it('stops retrying a compositor readback when its page generation changes', async () => {
+  vi.useFakeTimers();
+  const { contents, capturePage, events } = fixture();
+  capturePage.mockRejectedValueOnce(new Error('UnknownVizError'));
+  const capture = captureNativePage(contents, {});
+  const rejected = expect(capture).rejects.toThrow('page this capture was for has changed');
+  await vi.advanceTimersByTimeAsync(0);
+  events.emit('did-navigate');
+  await vi.advanceTimersByTimeAsync(50);
+  await rejected;
+  expect(capturePage).toHaveBeenCalledOnce();
+});
+
+it('bounds repeated compositor readback failures and preserves unrelated capture failures', async () => {
+  vi.useFakeTimers();
+  const { contents, capturePage } = fixture();
+  const compositor = new Error('UnknownVizError');
+  capturePage.mockRejectedValue(compositor);
+  const rejected = expect(captureNativePage(contents, {})).rejects.toBe(compositor);
+  await vi.advanceTimersByTimeAsync(2000);
+  await rejected;
+  expect(capturePage.mock.calls.length).toBeGreaterThan(3);
+  capturePage.mockClear();
+  const other = new Error('Capture unavailable');
+  capturePage.mockRejectedValue(other);
+  await expect(captureNativePage(contents, {})).rejects.toBe(other);
+  expect(capturePage).toHaveBeenCalledOnce();
+});
+
 it('keeps tab teardown behind an unfinished actual native copy after its caller times out', async () => {
   vi.useFakeTimers();
   const { contents, capturePage } = fixture();

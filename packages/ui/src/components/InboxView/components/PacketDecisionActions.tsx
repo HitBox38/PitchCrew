@@ -2,42 +2,63 @@ import { Button } from '@/components/ui/button/components/Button.tsx';
 import { ExternalLink } from 'lucide-react';
 import type { PacketApprovalActionsProps } from '../types.ts';
 import type { useSubmissionActions } from '../hooks/useSubmissionActions.ts';
-type Props = PacketApprovalActionsProps & {
+import { PendingPacketDecision } from './PendingPacketDecision.tsx';
+import { PacketMoreActions } from './PacketMoreActions.tsx';
+
+export type PacketActionProps = PacketApprovalActionsProps & {
   model: ReturnType<typeof useSubmissionActions>;
   current: boolean;
   uncertain: boolean;
   disabled: boolean;
 };
-import { PendingPacketDecision } from './PendingPacketDecision.tsx';
-export const PacketDecisionActions = (props: Props) => {
+
+/** One glazed next step for where the packet stands, a clay alternative and the rest in More. */
+export const PacketDecisionActions = (props: PacketActionProps) => {
   const { approval, card, action, onOpen, current, uncertain, disabled, model } = props;
+  const choosing =
+    current && approval.status !== 'pending' && !approval.submission?.requestId && !uncertain;
+  const manual = current && approval.submission?.method === 'manual' && !uncertain;
+  // After choosing Submit myself, handing over to an agent stays available as the clay option.
+  const agent = choosing ? (
+    <Button
+      variant={approval.submission ? 'outline' : undefined}
+      disabled={disabled}
+      onClick={() => model.setChooser(true)}
+    >
+      Let an agent prepare
+    </Button>
+  ) : null;
   return (
-    <div className="mail-decision-actions">
-      <Button variant="ghost" onClick={() => onOpen(card.id)}>
-        Open job
-      </Button>
+    <div className="decide-actions">
       <PendingPacketDecision {...props} />
-      {current && approval.status !== 'pending' && !approval.submission?.requestId && !uncertain ? (
+      {choosing && !approval.submission ? (
         <>
-          {!approval.submission ? (
-            <Button
-              variant="outline"
-              disabled={disabled}
-              onClick={() => void model.start('manual')}
-            >
-              Submit myself
-            </Button>
-          ) : null}
-          <Button disabled={disabled} onClick={() => model.setChooser(true)}>
-            Let an agent submit
+          {agent}
+          <Button variant="outline" disabled={disabled} onClick={() => void model.start('manual')}>
+            Submit myself
           </Button>
         </>
       ) : null}
       {approval.submission?.threadId ? (
         <Button onClick={model.continueApplication}>Continue application</Button>
       ) : null}
-      {current && approval.submission?.method === 'manual' && !uncertain ? (
+      {manual ? (
         <>
+          <Button
+            disabled={disabled}
+            onClick={() =>
+              void model.perform(() =>
+                action(
+                  `/approvals/${approval.id}/complete`,
+                  'POST',
+                  { state: 'submitted' },
+                  'Recorded your manual submission',
+                ),
+              )
+            }
+          >
+            I’ve submitted
+          </Button>
           {card.url ? (
             <Button
               variant="outline"
@@ -55,35 +76,18 @@ export const PacketDecisionActions = (props: Props) => {
               Open application page
             </Button>
           ) : (
-            <p className="quiet">Add the employer application link in job details.</p>
+            <p className="decide-footer-note">Add the employer application link in job details.</p>
           )}
-          <Button
-            disabled={disabled}
-            onClick={() =>
-              void model.perform(() =>
-                action(
-                  `/approvals/${approval.id}/complete`,
-                  'POST',
-                  { state: 'submitted' },
-                  'Recorded your manual submission',
-                ),
-              )
-            }
-          >
-            I’ve submitted
-          </Button>
         </>
       ) : null}
+      {approval.submission ? agent : null}
       {current && !uncertain ? (
-        <Button variant="ghost" disabled={disabled} onClick={() => model.setConfirmWithdraw(true)}>
-          Not applying
+        <PacketMoreActions {...props} />
+      ) : (
+        <Button variant="outline" onClick={() => onOpen(card.id)}>
+          Open job
         </Button>
-      ) : null}
-      {current && !uncertain ? (
-        <Button variant="ghost" disabled={disabled} onClick={() => void model.askWriter()}>
-          Ask Writer for changes
-        </Button>
-      ) : null}
+      )}
     </div>
   );
 };

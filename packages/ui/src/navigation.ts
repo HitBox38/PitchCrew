@@ -22,6 +22,18 @@ export const validateUpdateSearch = (
   };
 };
 
+const decisionKey = (value: unknown) =>
+  typeof value === 'string' && /^[\w:-]{1,120}$/.test(value) ? value : undefined;
+
+/** Decisions opens a specific waiting decision, or a past one in Inbox history. */
+export const validateInboxSearch = (
+  search: Record<string, unknown>,
+): { decision?: string; view?: 'history'; entry?: string } => ({
+  decision: decisionKey(search.decision),
+  view: search.view === 'history' ? 'history' : undefined,
+  entry: search.view === 'history' ? decisionKey(search.entry) : undefined,
+});
+
 export const validateSkillSearch = (
   search: Record<string, unknown>,
 ): {

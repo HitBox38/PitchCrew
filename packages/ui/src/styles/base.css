@@ -9,9 +9,12 @@
 ::file-selector-button {
   border-color: var(--border);
 }
+/* Chrome and body text are 14/20; meta is 12/18 in --muted; prose and titles set their own. */
 body {
   margin: 0;
   min-width: 320px;
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
 }
 ::selection {
   background: var(--primary-soft);
@@ -64,9 +67,13 @@ ul {
   padding: 0;
   list-style: none;
 }
+/* Operational headings use the app face; only the brand mark keeps Fraunces. */
 h1,
 h2,
-h3,
+h3 {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
 .brand {
   font-family: 'Fraunces Variable', Georgia, serif;
   font-optical-sizing: auto;

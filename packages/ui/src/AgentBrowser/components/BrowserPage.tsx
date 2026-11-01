@@ -5,6 +5,8 @@ import { BrowserView } from './BrowserView.tsx';
 import { BrowserDialog } from './BrowserDialog.tsx';
 import { BrowserPlaceholder } from './BrowserPlaceholder.tsx';
 import { isBlankBrowserPage } from '../page-state.ts';
+import { BrowserWarning } from './BrowserWarning.tsx';
+import { ClayControlBar } from './ClayControlBar.tsx';
 export const BrowserPage = ({
   browserPanel,
   viewport: { attach, size },
@@ -21,10 +23,11 @@ export const BrowserPage = ({
 }) => {
   return (
     <div className="browser-panel-body">
-      {frame?.warning ? <p className="browser-dialog">{frame.warning}</p> : null}
+      <BrowserWarning warning={frame?.warning} control={control} />
       {frame?.status === 'fallback' ? (
         <output className="quiet block px-4">Browser view is updating at a reduced rate.</output>
       ) : null}
+      {control.leaseId ? <ClayControlBar name={browserPanel.role?.name} /> : null}
       <div className="browser-live-view" ref={attach}>
         {frame?.screenshot && !isBlankBrowserPage(frame.url, frame.title) ? (
           <BrowserView

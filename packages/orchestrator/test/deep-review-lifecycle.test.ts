@@ -13,11 +13,13 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { cleanup, finish, waitForSnapshot } from './helpers/daemon.ts';
 import { assessment, deepReviewFixture } from './helpers/deep-reviews.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 afterEach(cleanup);
 const passing = () => ({
   role: 'reviewer' as const,
   passed: true,
   feedback: [],
+  summary: reviewSummary(),
   assessment: assessment(),
 });
 it('reports a failed optional child while completing the parent, and denies child delegation', async () => {
@@ -69,7 +71,7 @@ it('routes a Writer time request through a separate parent decision without givi
         'extend_review_deadline',
         context.deepReview.budgetRequest,
       );
-      return { role: 'reviewer', passed: true, feedback: [] };
+      return { role: 'reviewer', passed: true, feedback: [], summary: reviewSummary() };
     }
     if (context.role.workflow === 'writer') {
       await expect(

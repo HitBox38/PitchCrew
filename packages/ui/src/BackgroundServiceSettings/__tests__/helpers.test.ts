@@ -1,6 +1,6 @@
 import type { BackgroundServiceInfo } from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { serviceBadges, serviceCommands, serviceNotes } from '../helpers.ts';
+import { serviceBadges, serviceCommands, serviceNotes, serviceRunning } from '../helpers.ts';
 
 const info = (overrides: Partial<BackgroundServiceInfo> = {}): BackgroundServiceInfo => ({
   status: {
@@ -68,4 +68,10 @@ it('explains unsupported platforms without commands', () => {
   expect(serviceBadges(unsupported)).toEqual([{ label: 'Unavailable', success: false }]);
   expect(serviceNotes(unsupported)).toEqual(['Unsupported fixture.']);
   expect(serviceCommands(unsupported)).toEqual([]);
+});
+
+it('shows a running bead only for this workspace’s running service', () => {
+  expect(serviceRunning(info())).toBe(true);
+  expect(serviceRunning(info({ matches: false }))).toBe(false);
+  expect(serviceRunning(info({ status: { ...info().status, running: false } }))).toBe(false);
 });

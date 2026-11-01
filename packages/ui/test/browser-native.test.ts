@@ -281,6 +281,25 @@ const lastMount = async () => {
   const presentation = await lastPresentation();
   return presentation?.bounds;
 };
+/** Page tools (devices, screenshot, recording, floating) live in Browser page settings. */
+const pageSettings = () => page.locator('.browser-settings-tools');
+const pageTool = async (name: string) => {
+  const settings = page.getByRole('button', { name: 'Browser page settings', exact: true });
+  // A closing popover is still visible; the trigger already reports it as collapsed.
+  if ((await settings.getAttribute('aria-expanded')) !== 'true') await settings.click();
+  await pageSettings().getByRole('button', { name, exact: true }).click();
+};
+const closePageSettings = async () => {
+  const settings = page.getByRole('button', { name: 'Browser page settings', exact: true });
+  if ((await settings.getAttribute('aria-expanded')) === 'true')
+    await page.keyboard.press('Escape');
+  await pageSettings().waitFor({ state: 'hidden' });
+};
+/** The toolbar keeps only a running recording's stop control. */
+const stopRecording = () =>
+  page
+    .locator('.browser-chrome')
+    .getByRole('button', { name: 'Stop browser recording', exact: true });
 
 test('uses the native surface and browser controls without screenshot or private-text proxies', async () => {
   await vi.waitFor(async () =>
@@ -402,6 +421,49 @@ test('receives native navigation events without waiting for polling and rejects 
   await page.unroute('**/api/browser/writer/native?*');
   await page.getByText(stale.warning, { exact: true }).waitFor({ state: 'hidden' });
 });
+test('keeps newer native events when a delayed command response arrives', async () => {
+  const before = structuredClone(state);
+  const stale = { ...before, warning: 'Delayed command response.' };
+  let started = false;
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  nativeCommand.mockImplementationOnce(async () => {
+    started = true;
+    await gate;
+    return stale;
+  });
+  // Prevent the next poll from concealing a stale command response.
+  await page.route('**/api/browser/writer/native?*', (route) =>
+    route.request().method() === 'GET' ? route.abort() : route.continue(),
+  );
+  try {
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await vi.waitFor(() => expect(started).toBe(true));
+    state = {
+      ...state,
+      tabs: state.tabs.map((tab) =>
+        tab.id === state.activeTab ? { ...tab, title: 'Newer native page' } : tab,
+      ),
+    };
+    await page.evaluate((next) => {
+      (
+        window as unknown as { publishBrowserState: (next: NativeBrowserState) => void }
+      ).publishBrowserState(next);
+    }, state);
+    const title = page.getByRole('button', { name: 'Newer native page', exact: true });
+    await title.waitFor();
+    release();
+    await page.getByText(stale.warning, { exact: true }).waitFor();
+    expect(await title.isVisible()).toBe(true);
+  } finally {
+    release();
+    state = before;
+    await page.unroute('**/api/browser/writer/native?*');
+    await page.getByText(stale.warning, { exact: true }).waitFor({ state: 'hidden' });
+  }
+});
 test('reopens visited and closed pages through the same leased native browser', async () => {
   await page.getByRole('button', { name: 'Browser history', exact: true }).click();
   const history = page.getByRole('region', { name: 'Recently visited in this profile' });
@@ -472,7 +534,7 @@ test('uses native appearance, per-tab audio and external-browser developer contr
 test('captures, annotates and saves the page and adds the reviewed PNG to the current message draft', async () => {
   const before = await lastMount();
   const messages = host.daemon.service.board.list('message').length;
-  await page.getByRole('button', { name: 'Capture browser screenshot', exact: true }).click();
+  await pageTool('Capture browser screenshot');
   const dialog = page.getByRole('dialog', { name: 'Browser screenshot', exact: true });
   await dialog.waitFor();
   const canvas = dialog.getByLabel('Annotate browser screenshot', { exact: true });
@@ -544,6 +606,7 @@ test('captures, annotates and saves the page and adds the reviewed PNG to the cu
   await page.getByText(/^browser-screenshot-\d+\.png$/).waitFor();
   expect(await lastMount()).toEqual(before);
   expect(host.daemon.service.board.list('message')).toHaveLength(messages);
+  await closePageSettings();
   await page.getByRole('button', { name: /^Remove browser-screenshot-/ }).click();
 });
 test('records changing browser frames into playable WebM, saves it and opens the owned floating window', async () => {
@@ -551,15 +614,16 @@ test('records changing browser frames into playable WebM, saves it and opens the
   const initialCaptures = await page.evaluate(
     () => (window as unknown as { nativeFixture: { captures: number } }).nativeFixture.captures,
   );
-  await page.getByRole('button', { name: 'Record browser page', exact: true }).click();
-  await page.getByRole('button', { name: 'Stop browser recording', exact: true }).waitFor();
+  await pageTool('Record browser page');
+  await closePageSettings();
+  await stopRecording().waitFor();
   await vi.waitFor(async () => {
     const count = await page.evaluate(
       () => (window as unknown as { nativeFixture: { captures: number } }).nativeFixture.captures,
     );
     expect(count).toBeGreaterThanOrEqual(initialCaptures + 6);
   });
-  await page.getByRole('button', { name: 'Stop browser recording', exact: true }).click();
+  await stopRecording().click();
   const dialog = page.getByRole('dialog', { name: 'Browser recording', exact: true });
   await dialog.waitFor();
   const video = dialog.getByLabel('Review recorded browser page', { exact: true });
@@ -609,7 +673,8 @@ test('records changing browser frames into playable WebM, saves it and opens the
   await dialog.getByRole('button', { name: 'Discard recording' }).click();
   await dialog.waitFor({ state: 'hidden' });
   expect(await lastMount()).toEqual(before);
-  await page.getByRole('button', { name: 'Open separate browser window' }).click();
+  await pageTool('Open separate browser window');
+  await closePageSettings();
   await vi.waitFor(async () =>
     expect(
       await page.evaluate(() =>
@@ -621,7 +686,8 @@ test('records changing browser frames into playable WebM, saves it and opens the
   );
 });
 test('changes the actual browser viewport with device presets, rotation and fill mode', async () => {
-  await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
+  await pageTool('Toggle browser device toolbar');
+  await closePageSettings();
   await page.getByRole('combobox', { name: 'Browser viewport preset', exact: true }).click();
   await page.getByRole('option', { name: 'iPhone 12 Pro', exact: true }).click();
   await vi.waitFor(() => expect(viewport).toEqual({ width: 390, height: 844 }));
@@ -734,7 +800,8 @@ test('blocks human clicks on the painting readonly guest while app menus stay us
   }
 });
 test('preserves a fixed device viewport while visiting Settings and returning to the same browser', async () => {
-  await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
+  await pageTool('Toggle browser device toolbar');
+  await closePageSettings();
   await page.getByRole('combobox', { name: 'Browser viewport preset', exact: true }).click();
   await page.getByRole('option', { name: 'iPhone 12 Pro', exact: true }).click();
   await vi.waitFor(() => expect(viewport).toEqual({ width: 390, height: 844 }));
@@ -816,8 +883,9 @@ test('preserves a fixed device viewport while visiting Settings and returning to
   });
 }, 30000);
 test('stops capturing browser frames when private control is returned to the agent', async () => {
-  await page.getByRole('button', { name: 'Record browser page', exact: true }).click();
-  await page.getByRole('button', { name: 'Stop browser recording', exact: true }).waitFor();
+  await pageTool('Record browser page');
+  await closePageSettings();
+  await stopRecording().waitFor();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
   const review = page.getByRole('dialog', { name: 'Browser recording', exact: true });
   await review.waitFor();
@@ -865,7 +933,10 @@ test('provides native zoom, cache, loading and failure recovery controls', async
       error: 'Fictional page failed to load.',
     })),
   };
-  await page.getByRole('button', { name: 'Retry page', exact: true }).click();
+  await page
+    .locator('.browser-page-error')
+    .getByRole('button', { name: 'Retry page', exact: true })
+    .click();
   state = { ...state, tabs: state.tabs.map((tab) => ({ ...tab, error: undefined })) };
 });
 test('manages named profiles and reviews a session import before confirmation', async () => {
@@ -997,15 +1068,18 @@ test('keeps native approval evidence stable while requests appear, expand and re
         await page
           .locator('[data-slot="toast-title"]')
           .filter({
-            hasText: 'Writer needs browser approval',
+            hasText: 'Writer asks to use the browser',
           })
           .count(),
       ).toBe(0);
       expect((await body.boundingBox())?.height).toBe(before?.height);
-      await review.getByRole('button', { name: 'Review exact action and page evidence' }).click();
+      await review.getByRole('button', { name: 'Details', exact: true }).click();
+      await page.locator('.browser-evidence-popover').waitFor();
       if (!index)
         await page.screenshot({ path: `/tmp/pitchcrew-browser-approval-${size.width}.png` });
       await expect.poll(async () => (await body.boundingBox())?.height).toBe(before?.height);
+      await page.keyboard.press('Escape');
+      await page.locator('.browser-evidence-popover').waitFor({ state: 'hidden' });
       expect(service.board.get<ComputerApproval>('computer_approval', approval.id).status).toBe(
         'pending',
       );
@@ -1033,10 +1107,16 @@ test('keeps native approval evidence stable while requests appear, expand and re
   await page.getByRole('button', { name: 'Take control', exact: true }).click();
 }, 30000);
 test('keeps the live page mounted under app overlays across native state polls in split and sheet views', async () => {
-  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  await page
+    .locator('.browser-panel-heading')
+    .getByRole('button', { name: 'Return to agent', exact: true })
+    .waitFor();
   await vi.waitFor(async () =>
     expect(
-      await page.getByRole('button', { name: 'Return to agent', exact: true }).isEnabled(),
+      await page
+        .locator('.browser-panel-heading')
+        .getByRole('button', { name: 'Return to agent', exact: true })
+        .isEnabled(),
     ).toBe(true),
   );
   await page.evaluate(() =>
@@ -1108,8 +1188,7 @@ test('keeps the live page mounted under app overlays across native state polls i
     await assertMounted();
     await page.keyboard.press('Escape');
     await vi.waitFor(async () => expect(await lastMount()).not.toBeNull());
-    if (expanded)
-      await page.getByRole('button', { name: 'Restore split view', exact: true }).click();
+    if (expanded) await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
     if (expanded)
       await page.evaluate(() => {
         delete document.documentElement.dataset.desktop;

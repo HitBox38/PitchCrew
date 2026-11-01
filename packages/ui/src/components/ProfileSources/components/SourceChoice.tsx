@@ -20,17 +20,17 @@ export const SourceChoice = ({
   return (
     <Button
       variant="outline"
-      className="h-auto min-h-23 w-full justify-start gap-3 px-4 py-4 text-left whitespace-normal"
+      className="profile-source-choice"
       disabled={disabled}
       onClick={choose}
       data-source-focus={focusKey}
     >
-      <Icon size={21} className="shrink-0 text-primary" aria-hidden="true" />
-      <span className="grid flex-1 gap-1">
-        <span className="text-sm font-semibold">{title}</span>
-        <span className="text-xs leading-relaxed font-normal text-muted-foreground">
-          {description}
-        </span>
+      <span className="profile-source-icon" aria-hidden="true">
+        <Icon size={16} />
+      </span>
+      <span className="grid flex-1 gap-0.5">
+        <span className="text-label font-semibold text-foreground">{title}</span>
+        <span className="text-detail font-normal text-muted-foreground">{description}</span>
       </span>
       <ChevronRight size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
     </Button>

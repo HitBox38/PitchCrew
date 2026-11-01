@@ -8,7 +8,7 @@ import { conversationRows } from '../helpers.ts';
 import type { Snapshot } from '@pitchcrew/core';
 export const useConversationNavigation = (data: Snapshot) => {
   const [query, setQuery] = useState('');
-  const [archived, setArchived] = useState(false);
+  const [finding, setFinding] = useState(false);
   const { thread } = useParams({ strict: false });
   const { isMobile, state, setOpen, setOpenMobile } = useSidebar();
   const iconOnly = !isMobile && state === 'collapsed';
@@ -19,22 +19,34 @@ export const useConversationNavigation = (data: Snapshot) => {
       searchRef.current?.focus();
       focusSearch.current = false;
     }
-  }, [iconOnly]);
+  }, [iconOnly, finding]);
   const readAt = useChatPreferenceStore((state) => state.readAt);
   const dmsOpen = useChatPreferenceStore((state) => state.dmsOpen);
   const setDmsOpen = useChatPreferenceStore((state) => state.setDmsOpen);
   const setCreatingConversation = useWorkspaceStore((state) => state.setCreatingConversation);
   const history = useHistorySearch(query, data.messageHistory?.revision);
   const rows = useMemo(
-    () => conversationRows(data, query, archived, readAt, history.matches),
-    [data, query, archived, readAt, history.matches],
+    () => conversationRows(data, query, true, readAt, history.matches),
+    [data, query, readAt, history.matches],
   );
   const create = () => {
     setOpenMobile(false);
     setCreatingConversation(true);
   };
+  /** Show or hide Find chats; hiding clears the search. */
+  const toggleFind = () => {
+    if (finding) {
+      setQuery('');
+      if (document.activeElement === searchRef.current)
+        requestAnimationFrame(() =>
+          document
+            .querySelector<HTMLElement>('.sidebar-conversations [aria-label="Find chats"]')
+            ?.focus(),
+        );
+    } else focusSearch.current = true;
+    setFinding(!finding);
+  };
   const openConversations = () => {
-    focusSearch.current = true;
     setOpen(true);
     try {
       localStorage.setItem('pitchcrew-sidebar-category-conversations-v1', 'true');
@@ -47,8 +59,8 @@ export const useConversationNavigation = (data: Snapshot) => {
     query,
     searchError: history.error,
     setQuery,
-    archived,
-    setArchived,
+    finding: finding || !!query,
+    toggleFind,
     thread,
     rows,
     create,

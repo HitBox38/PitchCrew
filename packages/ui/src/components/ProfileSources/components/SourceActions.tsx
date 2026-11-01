@@ -4,11 +4,11 @@ import type { ProfileSourcesModel } from '../types.ts';
 
 export const SourceActions = (c: ProfileSourcesModel) => {
   return (
-    <div className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+    <div className="flex flex-wrap justify-end gap-2 pt-2">
       <Button variant="outline" disabled={c.busy} onClick={c.back}>
         Cancel
       </Button>
-      <Button variant="default" className="primary" type="submit" disabled={c.busy || !c.canRead}>
+      <Button type="submit" disabled={c.busy || !c.canRead}>
         {c.progress ? (
           <LoaderCircle
             size={15}

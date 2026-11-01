@@ -1,6 +1,6 @@
 import { originalReviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import { workflowSeat } from '@pitchcrew/core';
-import type { Packet, RuntimeAdapter } from '@pitchcrew/core';
+import type { Card, Packet, RuntimeAdapter } from '@pitchcrew/core';
 import { lintPacket } from '@pitchcrew/packet';
 import { setTimeout } from 'node:timers/promises';
 
@@ -8,6 +8,23 @@ type DemoDelay = (milliseconds: number, signal: AbortSignal) => Promise<void>;
 const defaultDelay: DemoDelay = (milliseconds, signal) =>
   setTimeout(milliseconds, undefined, { signal });
 
+const demoReviewSummary = (card: Card, packet: Packet) => ({
+  assessment: `Demo review: the ${card.company} packet passes your packet rules and every registered claim quotes your Profile. This is a fictional check, not a hiring judgment.`,
+  highlights: [
+    `The resume lists ${packet.claims.length} source-backed Profile line(s) for ${card.title}.`,
+    `The cover letter is addressed to the ${card.company} team.`,
+  ],
+  limitations: [
+    ...(card.applicationContext?.form?.status === 'inspected'
+      ? []
+      : ['The application form was not inspected, so its fields and uploads are unchecked.']),
+    'The form answers leave availability and compensation for you to confirm.',
+  ],
+  nextSteps: [
+    'Open the resume and cover letter and check them against the posting.',
+    'Confirm availability and compensation before you apply.',
+  ],
+});
 export const createDemo = ({
   delay = defaultDelay,
 }: { delay?: DemoDelay } = {}): RuntimeAdapter => ({
@@ -104,6 +121,9 @@ export const createDemo = ({
         role: 'reviewer',
         passed: feedback.length === 0,
         feedback,
+        ...(feedback.length || context.deepReview?.subagent
+          ? {}
+          : { summary: demoReviewSummary(context.card, context.card.packet) }),
         ...(context.deepReview
           ? {
               assessment: {
@@ -160,7 +180,23 @@ export const createDemo = ({
       note: `Application packet for ${context.card.company}. Review the source-backed experience and personalize this demo draft before using it.`,
       claims: facts,
     };
-    return { role: 'writer', packet };
+    const previous = context.card.packet;
+    return {
+      role: 'writer',
+      packet,
+      ...(previous
+        ? {
+            changes: [
+              `Redrafted the packet from your current Profile for ${context.card.company}.`,
+              ...(context.card.feedback.length
+                ? [
+                    `Addressed ${context.card.feedback.length} review note(s) on the previous draft.`,
+                  ]
+                : []),
+            ],
+          }
+        : {}),
+    };
   },
 });
 

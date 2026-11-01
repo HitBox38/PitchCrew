@@ -6,6 +6,8 @@ export type BoardStage = {
   states: CardState[];
   color: string;
   empty: string;
+  /** Former column ids whose saved sort choice this column adopts. */
+  legacy?: string[];
 };
 export const closedStates: CardState[] = ['rejected', 'withdrawn', 'ghosted'];
 export const closedStateSet: ReadonlySet<CardState> = new Set(closedStates);
@@ -25,29 +27,23 @@ export const stages: BoardStage[] = [
     empty: 'Shortlist a lead once Scout has read it.',
   },
   {
-    id: 'drafts',
-    label: 'Drafting',
-    states: ['drafting', 'in_review', 'changes_requested'],
+    id: 'progress',
+    label: 'In progress',
+    states: ['drafting', 'in_review', 'changes_requested', 'agreed', 'awaiting_approval'],
     color: 'violet',
-    empty: 'Writer’s drafts and Reviewer’s notes land here.',
-  },
-  {
-    id: 'ready',
-    label: 'Ready',
-    states: ['agreed', 'awaiting_approval'],
-    color: 'orange',
-    empty: 'Reviewed packets wait here for your approval.',
+    legacy: ['drafts', 'ready'],
+    empty: 'Drafts, reviews and packets waiting for approval land here.',
   },
   {
     id: 'applied',
     label: 'Applied',
     states: ['submitted', 'screening', 'interviewing', 'offer'],
     color: 'green',
-    empty: 'Record a submission after you apply.',
+    empty: 'Jobs you’ve applied to land here.',
   },
 ];
 
-export const closedStage = {
+export const closedStage: BoardStage = {
   id: 'closed',
   label: 'Closed',
   states: closedStates,

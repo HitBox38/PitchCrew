@@ -1,6 +1,9 @@
 import type { WritingGuide } from '@pitchcrew/core';
 import { Button } from '@/components/ui/button/components/Button.tsx';
+import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
+/** Critic suggestions waiting on the user; nothing is adopted until applied here. */
 export const GuideProposals = ({
   guide,
   change,
@@ -10,43 +13,47 @@ export const GuideProposals = ({
   change: (data: Record<string, unknown>) => Promise<unknown>;
   working: boolean;
 }) => {
+  const roles = useWorkspaceStore((state) => state.data?.roles);
   const proposals = guide.proposals.filter((p) => p.status === 'pending');
   if (!proposals.length) return null;
+  const decide = (id: string, approved: boolean) =>
+    void change({ action: 'proposal_decision', id, approved }).catch(() => {});
   return (
-    <section className="space-y-3" aria-label="Proposed writing guide changes">
-      <h3>Suggested improvements</h3>
-      {proposals.map((p) => (
-        <article key={p.id} className="space-y-2 border-b border-border pb-3">
-          <p className="font-semibold">{p.text}</p>
-          <p>{p.reason}</p>
-          <p className="quiet">
-            Proposed by {p.roleId}
-            {p.revision !== guide.revision ? ' · Guide changed; ask for a fresh proposal' : ''}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              disabled={working || p.revision !== guide.revision}
-              onClick={() =>
-                void change({ action: 'proposal_decision', id: p.id, approved: true }).catch(
-                  () => {},
-                )
-              }
-            >
-              Apply suggestion
-            </Button>
-            <Button
-              disabled={working}
-              onClick={() =>
-                void change({ action: 'proposal_decision', id: p.id, approved: false }).catch(
-                  () => {},
-                )
-              }
-            >
-              Dismiss
-            </Button>
-          </div>
-        </article>
-      ))}
-    </section>
+    <SettingsSection id="writing-suggestions-heading" title="Suggestions" count={proposals.length}>
+      <div className="settings-cards" aria-label="Proposed writing guide changes">
+        {proposals.map((p) => (
+          <article key={p.id} className="ui-card settings-proposal">
+            <span className="ui-chip" data-tone="plum">
+              Proposed by {roles?.find((role) => role.id === p.roleId)?.name ?? p.roleId}
+            </span>
+            <p className="settings-preference">{p.text}</p>
+            <p className="quiet">{p.reason}</p>
+            {p.revision !== guide.revision ? (
+              <p className="quiet">
+                The guide changed since this was proposed. Ask for a fresh one.
+              </p>
+            ) : null}
+            <div className="settings-row-actions">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={working || p.revision !== guide.revision}
+                onClick={() => decide(p.id, true)}
+              >
+                Apply suggestion
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={working}
+                onClick={() => decide(p.id, false)}
+              >
+                Dismiss
+              </Button>
+            </div>
+          </article>
+        ))}
+      </div>
+    </SettingsSection>
   );
 };

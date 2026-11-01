@@ -39,3 +39,6 @@ const stop = async () => {
 };
 process.on('SIGTERM', () => void stop());
 process.on('SIGINT', () => void stop());
+// The parent closes its private pipe to request graceful shutdown on every OS.
+process.stdin.on('end', () => void stop());
+process.stdin.resume();

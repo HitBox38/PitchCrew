@@ -21,7 +21,11 @@ export const BrowserControls = ({
         variant={control.leaseId ? 'secondary' : 'ghost'}
         className="browser-handoff"
         aria-label={label}
-        title={label}
+        title={
+          label === 'Take control'
+            ? 'Take control to browse. Your agent pauses while you use the page.'
+            : label
+        }
         disabled={control.working}
         onClick={() => {
           if (!opened) void control.open();

@@ -17,6 +17,8 @@ export const useBrowserSize = (
     if (!element) return;
     const measure = () =>
       setSize((previous) => {
+        // A hidden page (the clay Packet view) keeps its last viewport rather than resizing it.
+        if (!element.offsetWidth && !element.offsetHeight) return previous;
         const next = { width: element.offsetWidth - 2, height: element.offsetHeight - 2 };
         return next.width === previous.width && next.height === previous.height ? previous : next;
       });

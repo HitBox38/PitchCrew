@@ -1,7 +1,7 @@
 import { NativeBrowserTools } from '@/NativeBrowserTools/index.tsx';
+import { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';
 import { BrowserDeviceToolbar } from '@/BrowserDeviceToolbar/index.tsx';
 import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
-import { NativeBrowserStatus } from './NativeBrowserStatus.tsx';
 import { useCallback } from 'react';
 import { BrowserDialog } from './BrowserDialog.tsx';
 import { NativeBrowserToolbar } from './NativeBrowserToolbar.tsx';
@@ -11,21 +11,24 @@ import { useNativeMount } from '../hooks/useNativeMount.ts';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '../types.ts';
 import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
-import { BrowserPlaceholder } from './BrowserPlaceholder.tsx';
 import { isBlankBrowserPage } from '../page-state.ts';
-import { BrowserPopup } from './BrowserPopup.tsx';
+import { NativeBrowserBody } from './NativeBrowserBody.tsx';
+import { BrowserWarning } from './BrowserWarning.tsx';
 export const NativeBrowser = ({
   model,
   control,
   viewport,
   device,
   onAttachBrowserFile,
+  name,
 }: {
   model: NativeBrowserModel;
   control: BrowserControl;
   viewport: ReturnType<typeof useBrowserSize>;
   device: ReturnType<typeof useBrowserDevice>;
   onAttachBrowserFile?: (file: File) => void;
+  /** The agent's name for the control strip and empty page. */
+  name?: string;
 }) => {
   const id = model.identity!.id;
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
@@ -40,16 +43,19 @@ export const NativeBrowser = ({
     [mount, attachViewport],
   );
   const manual = !!control.leaseId;
+  const tools = useNativeBrowserTools(model, control);
   return (
     <>
       <NativeBrowserTabs model={model} manual={manual && !control.working} />
-      <NativeBrowserToolbar model={model} control={control} />
-      <NativeBrowserTools
-        model={model}
-        control={control}
-        device={device}
-        onAttachBrowserFile={onAttachBrowserFile}
-      />
+      {/* Toolbar and tools share one row; Page settings holds the page tools. */}
+      <div className="browser-chrome">
+        <NativeBrowserToolbar model={model} control={control} tools={tools} device={device} />
+        <NativeBrowserTools
+          tools={tools}
+          device={device}
+          onAttachBrowserFile={onAttachBrowserFile}
+        />
+      </div>
       {device.open ? (
         <BrowserDeviceToolbar
           setting={device.setting}
@@ -66,7 +72,7 @@ export const NativeBrowser = ({
           Take control to browse. Your agent pauses while you use the page.
         </p>
       ) : null}
-      {model.state?.warning ? <p className="browser-dialog">{model.state.warning}</p> : null}
+      <BrowserWarning warning={model.state?.warning} control={control} />
       {model.state?.dialog ? (
         <BrowserDialog
           key={`${model.state.dialog.type}:${model.state.dialog.message}`}
@@ -74,16 +80,13 @@ export const NativeBrowser = ({
           control={control}
         />
       ) : null}
-      <div className="browser-panel-body">
-        <div className="browser-live-view" ref={attach} aria-label="Native browser page">
-          <NativeBrowserStatus model={model} manual={manual && !control.working} />
-          {tab?.window ? (
-            <BrowserPopup model={model} tabId={tab.id} manual={manual && !control.working} />
-          ) : !model.state || empty ? (
-            <BrowserPlaceholder loading={!model.state} opened control={control} />
-          ) : null}
-        </div>
-      </div>
+      <NativeBrowserBody
+        model={model}
+        control={control}
+        attach={attach}
+        empty={empty}
+        name={name}
+      />
     </>
   );
 };

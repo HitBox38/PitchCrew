@@ -1,35 +1,42 @@
+import { useState } from 'react';
 import type { BoardEvent } from '@pitchcrew/core';
-import { actorLabels, eventKindLabels } from '@/ActivityPage/constants.ts';
-import { timeAgo } from '@/lib/time.ts';
+import { Button } from '@/components/ui/button/components/Button.tsx';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { groupByDay, pageSize } from '../history.ts';
+import { ActivityRow } from './ActivityRow.tsx';
 
+/** Day sections (label only; the one count is in the title) of event rows, revealed fifty at a time so long histories stay light. */
 export const ActivityHistory = ({ events }: { events: BoardEvent[] }) => {
+  const data = useWorkspaceStore((state) => state.data);
+  const [shown, setShown] = useState(pageSize);
+  if (!data) return null;
   return (
-    <section
-      className="activity-history min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 max-mobile:px-3"
-      aria-label="Activity history"
-    >
-      <ol className="activity-list">
-        {events.map((event) => (
-          <li
-            className={`activity-row flex min-w-0 items-start gap-3 border-b border-border py-4 last:border-0 ${event.kind}`}
-            key={event.id}
-          >
-            <span className="activity-marker mt-1.75 shrink-0" aria-hidden="true" />
-            <div className="min-w-0 flex-1">
-              <p className="activity-message text-body leading-relaxed wrap-anywhere">
-                {event.message}
-              </p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-detail text-muted-foreground">
-                <span className="wrap-anywhere">{actorLabels[event.actor] ?? event.actor}</span>
-                <span className="activity-kind">{eventKindLabels[event.kind]}</span>
-                <time className="ml-auto" dateTime={event.createdAt} title={event.createdAt}>
-                  {timeAgo(event.createdAt)}
-                </time>
-              </div>
-            </div>
-          </li>
-        ))}
-      </ol>
+    <section className="activity-history" aria-label="Activity history">
+      {groupByDay(events.slice(0, shown)).map((group) => (
+        <section key={group.key} className="ui-section" aria-label={group.label}>
+          <h2 className="ui-section-heading">{group.label}</h2>
+          <ol className="activity-list">
+            {group.events.map((event) => (
+              <ActivityRow
+                key={event.id}
+                event={event}
+                data={data}
+                today={group.label === 'Today'}
+              />
+            ))}
+          </ol>
+        </section>
+      ))}
+      {events.length > shown ? (
+        <div className="activity-more">
+          <span>
+            Showing {shown} of {events.length}
+          </span>
+          <Button variant="outline" size="sm" onClick={() => setShown((count) => count + pageSize)}>
+            Show more
+          </Button>
+        </div>
+      ) : null}
     </section>
   );
 };

@@ -381,6 +381,9 @@ export const applyResult = async (
         packet: result.packet,
         packetContextRevision: context.revision,
         packetReview: undefined,
+        packetChanges: result.changes
+          ? { packetDigest: digestPacket(cardId, result.packet), notes: result.changes }
+          : undefined,
         feedback: warningFeedback(check.warnings),
       },
       role.id,
@@ -408,6 +411,10 @@ export const applyResult = async (
       check.errors.length === 0 &&
       result.feedback.length === 0 &&
       missing.length === 0;
+    if (passed && !result.summary)
+      throw new Error(
+        'Reviewer passed the packet without a summary for you. Run the review again.',
+      );
     const feedback = [
       ...new Set([
         ...check.errors,
@@ -437,6 +444,7 @@ export const applyResult = async (
               packetDigest: digestPacket(cardId, card.packet),
               runId: evidence?.runId ?? 'local-review',
               reviewedAt: new Date().toISOString(),
+              summary: result.summary,
             }
           : undefined,
       },

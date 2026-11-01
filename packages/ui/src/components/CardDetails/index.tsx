@@ -9,6 +9,7 @@ import type { CardDetailsProps } from './types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { AddOpportunity } from '@/components/AddOpportunity/index.tsx';
+import { JobProgress } from '@/ClayInterface/components/JobProgress.tsx';
 
 export const CardDetails = (props: CardDetailsProps) => {
   const source = useCardSource(props.card, props.data.workspace === true);
@@ -37,6 +38,7 @@ const CardDetailsContent = (
   return (
     <JobSheet onClose={model.onClose}>
       <JobSummary {...model} />
+      <JobProgress card={model.card} data={model.data} />
       {props.sourceError ? (
         <div role="alert" className="px-5">
           <p>{props.sourceError}</p>

@@ -11,6 +11,7 @@ export const guestAutomation = (
   const pending = new Map<object, { owner?: string; paints: boolean }>();
   const streams = new Map<string | undefined, Set<string | undefined>>();
   const inputGrace = new Map<string | undefined, number>();
+  let crashed = false;
   let focused = false;
   let focusChange = Promise.resolve();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -66,7 +67,10 @@ export const guestAutomation = (
     syncPainting();
     scheduleRelease();
   });
-  contents.on('render-process-gone', () => release());
+  contents.on('render-process-gone', () => {
+    crashed = true;
+    release();
+  });
   contents.once('destroyed', () => {
     pending.clear();
     streams.clear();
@@ -85,6 +89,9 @@ export const guestAutomation = (
       child?: string,
       owner?: string,
     ) => {
+      // Recovery replaces this guest. A mirror's next frame must not start a new
+      // capture on its disposed renderer and leave tab teardown waiting on paint.
+      if (crashed) throw new Error('This browser tab stopped responding. Reload to recover it.');
       if (
         method.startsWith('Browser.') ||
         (method.startsWith('Target.') &&

@@ -20,7 +20,7 @@ export const JobContextMenu = (props: JobActionsMenuProps & { children: ReactEle
           model.finalFocus()
             ? (document
                 .getElementById(`board-job-${props.card.id}`)
-                ?.querySelector<HTMLButtonElement>('.job-card') ?? true)
+                ?.querySelector<HTMLButtonElement>('.clay-job-card') ?? true)
             : false
         }
       >

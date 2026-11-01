@@ -1,38 +1,35 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { assignment } from '@/SkillsView/helpers.ts';
-import type { SkillLibraryProps } from '@/SkillsView/types.ts';
-import { FileText } from 'lucide-react';
-import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
+import { availableSkillUpdates } from '@/lib/skill-updates.ts';
+import type { SkillsViewModel } from '@/SkillsView/types.ts';
+import { SkillRow } from './SkillRow.tsx';
+import { SkillUpdates } from './SkillUpdates.tsx';
+import { StarterSkills } from './StarterSkills.tsx';
 
-export const SkillLibrary = ({
-  skills,
-  creator,
-  data,
-  selected,
-  setSelectedId,
-}: SkillLibraryProps) => {
-  const pending = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
+/** Recessed library: waiting updates first, the saved skills, then the starter catalog. */
+export const SkillLibrary = (c: SkillsViewModel) => {
+  const failed = (c.data.skillUpdates?.checks ?? []).some((check) => check.error);
+  const updates = availableSkillUpdates(c.data).length > 0 || failed;
   return (
-    <ul className="skill-library" aria-label="Saved skills">
-      {skills.map((skill) => (
-        <li className="skill-row" key={skill.id}>
-          <Button
-            className="skill-library-item"
-            aria-pressed={selected?.id === skill.id}
-            onClick={() => setSelectedId(skill.id)}
-          >
-            <FileText size={16} className="skill-mark" aria-hidden="true" />
-            <span className="skill-summary">
-              <span className="skill-name">{skill.name}</span>
-              {pending.has(skill.id) ? (
-                <span className="text-sm text-plum">Update available</span>
-              ) : null}
-              <span className="skill-meta">Made by {creator(skill)}</span>
-              <span className="skill-assignment">{assignment(skill, data.roles)}</span>
-            </span>
-          </Button>
-        </li>
-      ))}
-    </ul>
+    <aside className="skills-library" aria-label="Skill library">
+      <div className="skills-library-scroll">
+        {updates ? <SkillUpdates {...c} /> : null}
+        {c.skills.length ? (
+          <ul className="skills-list" aria-label="Saved skills">
+            {c.skills.map((skill) => (
+              <SkillRow key={skill.id} skill={skill} c={c} />
+            ))}
+          </ul>
+        ) : c.data.skills.length ? (
+          <div className="skills-filtered-empty">
+            <span>No skills match these filters.</span>
+            <Button className="button small" onClick={c.clearFilters}>
+              Clear filters
+            </Button>
+          </div>
+        ) : null}
+        {updates ? null : <SkillUpdates {...c} compact />}
+        <StarterSkills {...c} />
+      </div>
+    </aside>
   );
 };

@@ -44,26 +44,30 @@ beforeAll(async () => {
   await page.goto(`${host.daemon.url}/inbox`);
   await page.getByRole('button', { name: 'Set up later', exact: true }).click();
   await page
-    .getByRole('button', { name: /Pitchcrew Your application packet/ })
+    .getByRole('heading', { name: 'Approve the Juniper Fixture packet', exact: true })
     .waitFor({ timeout: 30000 });
 }, 90000);
 afterAll(async () => {
   await browser?.close();
   await cleanup();
 });
-test('uses email rows and searches filenames before opening an exact reading view', async () => {
-  await page.getByRole('textbox', { name: 'Search inbox' }).fill('resume.pdf');
-  expect(await page.locator('.mail-row').count()).toBe(1);
-  await page.getByRole('button', { name: /Pitchcrew Your application packet/ }).click();
-  expect(await page.locator('.mailbox').count()).toBe(0);
+test('shows the waiting packet as a decision with the Reviewer summary before history', async () => {
+  const summary = page.getByRole('region', { name: 'Packet summary', exact: true });
+  expect(await summary.getByRole('heading', { name: 'Reviewer’s assessment' }).count()).toBe(1);
+  expect(await summary.getByRole('heading', { name: 'What to do next' }).count()).toBe(1);
   expect(await page.getByRole('button', { name: /^resume.pdf PDF/ }).count()).toBe(1);
   expect(await page.getByRole('button', { name: /^resume.md Markdown/ }).count()).toBe(1);
-  await page.getByRole('button', { name: 'Back to inbox' }).click();
-  expect(await page.locator('.mail-row').getAttribute('data-unread')).toBe('false');
-  await page.getByRole('button', { name: 'Unread', exact: true }).click();
-  expect(await page.locator('.mail-row').count()).toBe(0);
-  await page.getByRole('button', { name: 'Unread', exact: true }).click();
-  await page.getByRole('button', { name: /Pitchcrew Your application packet/ }).click();
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByText('No packet or browser decisions yet', { exact: true }).waitFor();
+  expect(new URL(page.url()).searchParams.get('view')).toBe('history');
+  expect(await page.getByRole('heading', { level: 1 }).allTextContents()).toEqual(['Decisions']);
+  expect(
+    await page.getByRole('button', { name: 'History', exact: true }).getAttribute('aria-pressed'),
+  ).toBe('true');
+  await page.getByRole('button', { name: /^To decide/ }).click();
+  await page
+    .getByRole('heading', { name: 'Approve the Juniper Fixture packet', exact: true })
+    .waitFor();
 });
 test('searches actual PDF text, zooms sharply and keeps approval out of attachment dialogs', async () => {
   await page.getByRole('button', { name: /^resume.pdf PDF/ }).click();
@@ -128,7 +132,8 @@ test('offers Markdown Rendered/Source and searchable script-free DOCX previews',
 });
 test('keeps manual follow-up after export, enables exact downloads and confirms withdrawal', async () => {
   await page.getByRole('button', { name: 'Approve packet', exact: true }).click();
-  await page.getByRole('button', { name: 'Let an agent submit', exact: true }).click();
+  await page.getByRole('heading', { name: 'Apply to Juniper Fixture', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Let an agent prepare', exact: true }).click();
   expect(await page.getByRole('combobox', { name: 'Submission agent' }).textContent()).toContain(
     'Submitter',
   );
@@ -138,7 +143,9 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page.getByRole('button', { name: 'Cancel', exact: true }).click();
   await page.getByRole('button', { name: 'Submit myself', exact: true }).click();
   await page.getByRole('button', { name: 'I’ve submitted', exact: true }).waitFor();
-  expect(await page.locator('.mail-subject').textContent()).toContain('Ready for you to submit');
+  expect(await page.locator('.decide-sheet .decide-heading').textContent()).toContain(
+    'Ready for you to submit',
+  );
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('awaiting_approval');
   await page.getByRole('button', { name: /^resume.md Markdown/ }).click();
   const downloading = page.waitForEvent('download');
@@ -156,7 +163,8 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(845);
   await page.getByRole('button', { name: 'Close attachment', exact: true }).click();
   await page.evaluate(() => document.documentElement.removeAttribute('data-desktop'));
-  await page.getByRole('button', { name: 'Not applying', exact: true }).click();
+  await page.getByRole('button', { name: 'More packet actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Not applying', exact: true }).click();
   await page.getByRole('button', { name: 'Mark withdrawn', exact: true }).click();
   await expect
     .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
@@ -164,9 +172,27 @@ test('keeps manual follow-up after export, enables exact downloads and confirms 
   await page
     .getByRole('dialog', { name: 'Not applying to this job?' })
     .waitFor({ state: 'hidden' });
-  expect(
-    await page.getByRole('region', { name: 'Selected request', exact: true }).isVisible(),
-  ).toBe(true);
+  // A withdrawn packet leaves Decisions and is found again by filename in History.
+  await page.getByText('No decisions waiting', { exact: true }).waitFor();
+  await page.getByRole('button', { name: 'History', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Search history' }).fill('resume.pdf');
+  expect(await page.locator('.decision-history-row').count()).toBe(1);
+  await page.getByRole('textbox', { name: 'Search history' }).fill('missing.pdf');
+  await page.getByText('No past decisions match.', { exact: true }).waitFor();
+  await page.getByRole('textbox', { name: 'Search history' }).fill('');
+  await page
+    .getByRole('button', { name: /Juniper Fixture/ })
+    .first()
+    .click();
+  const sheet = page.getByRole('article', { name: 'Selected decision', exact: true });
+  // The chip shows the decision's own result; the job's current stage stays beside it.
+  await sheet
+    .locator('.decision-status')
+    .filter({ hasText: /^Approved$/ })
+    .waitFor();
+  expect(await sheet.locator('.decision-stage').textContent()).toBe('Job stage: Withdrawn');
+  expect(new URL(page.url()).searchParams.get('entry')).toBe(`packet:${approval.id}`);
+  expect(await sheet.getByRole('button', { name: /^resume.pdf PDF/ }).count()).toBe(1);
   expect(await page.getByRole('button', { name: 'I’ve submitted', exact: true }).count()).toBe(0);
   expect(errors).toEqual([]);
 });
@@ -175,8 +201,8 @@ test('opens the Submitter conversation and verifies its captured outcome there',
   await host.request(`/cards/${card.id}/status`, 'POST', { state: 'awaiting_approval' });
   await page.setViewportSize({ width: 1280, height: 800 });
   await page.goto(`${host.daemon.url}/inbox`);
-  await page.getByRole('button', { name: 'Let an agent submit', exact: true }).waitFor();
-  await page.getByRole('button', { name: 'Let an agent submit', exact: true }).click();
+  await page.getByRole('button', { name: 'Let an agent prepare', exact: true }).waitFor();
+  await page.getByRole('button', { name: 'Let an agent prepare', exact: true }).click();
   await page.getByRole('button', { name: 'Start preparation', exact: true }).click();
   await expect.poll(() => new URL(page.url()).pathname.startsWith('/chat/')).toBe(true);
   const saved = host.daemon.service.board.get<Approval>('approval', approval.id);
@@ -253,7 +279,10 @@ test('opens the Submitter conversation and verifies its captured outcome there',
     'system',
     'Attach fictional receipt',
   );
-  await page.getByText('Outcome needs verification', { exact: true }).waitFor();
+  await page
+    .getByRole('region', { name: 'Submission outcome', exact: true })
+    .getByRole('heading', { name: `Did the ${card.company} application go through?` })
+    .waitFor();
   await page.getByRole('button', { name: 'Verify later', exact: true }).click();
   expect(host.daemon.service.board.get<Card>('card', card.id).state).toBe('awaiting_approval');
   expect(
@@ -261,7 +290,7 @@ test('opens the Submitter conversation and verifies its captured outcome there',
       .response.status,
   ).toBe(400);
   await page.getByRole('button', { name: 'Verify submission outcome', exact: true }).click();
-  await page.getByRole('button', { name: 'I verified submission', exact: true }).click();
+  await page.getByRole('button', { name: 'I see the confirmation', exact: true }).click();
   await expect
     .poll(() => host.daemon.service.board.get<Card>('card', card.id).state)
     .toBe('submitted');

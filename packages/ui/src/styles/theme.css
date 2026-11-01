@@ -16,7 +16,8 @@
 @custom-variant data-vertical (&:where([data-orientation='vertical']));
 /*
  * Materials, not decoration.
- * Paper: the page, sheets and documents are flat rice paper with grain and hairline edges.
+ * Paper: the window, sidebar and page ground are one flat paper fill; sheets and documents
+ * add hairline edges.
  * Clay: only things you press (buttons, job cards, the active tab) have volume. Pipeline
  * columns are trays pressed into the paper; cards sit in them.
  * Wabi-sabi: natural dye colours, radii a hair off symmetric, and nothing ornamental.
@@ -70,11 +71,23 @@
   --shadow-pop: var(--pop);
   --ease-material: var(--ease);
   --ease-drawer: var(--drawer-ease);
-  --text-body: 0.84375rem;
-  --text-label: 0.8125rem;
-  --text-caption: 0.78125rem;
-  --text-note: 0.71875rem;
+  /* One scale: 12 meta / 14 body and labels / 16 sections / 21 titles (20 narrow); prose 15–16. */
+  --text-body: 0.875rem;
+  --text-body--line-height: 1.25rem;
+  --text-label: 0.875rem;
+  --text-label--line-height: 1.25rem;
+  --text-caption: 0.75rem;
+  --text-caption--line-height: 1.125rem;
+  --text-note: 0.75rem;
+  --text-note--line-height: 1.125rem;
   --text-detail: 0.75rem;
+  --text-detail--line-height: 1.125rem;
+  --text-section: 1rem;
+  --text-section--line-height: 1.375rem;
+  --text-prose: 0.9375rem;
+  --text-prose--line-height: 1.5rem;
+  --text-title: 1.3125rem;
+  --text-title--line-height: 1.75rem;
   /* Existing feature thresholds, expressed in rem like Tailwind's defaults. */
   --breakpoint-compact: 47.5625rem;
   --breakpoint-mobile: 48rem;
@@ -164,8 +177,9 @@
   --motion:
     transform 0.18s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease),
     color 0.15s;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .31 0 0 0 0 .33 0 0 0 .065 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .41 0 0 0 0 .43 0 0 0 .04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
+  /* The ground is flat paper; older surfaces that still reference these get no texture. */
+  --grain: none;
+  --fibres: none;
   --font-mono:
     ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
   font-family: 'Source Sans 3', sans-serif;
@@ -173,7 +187,6 @@
   color-scheme: light;
   font-synthesis: none;
   background-color: var(--paper);
-  background-image: var(--grain), var(--fibres);
 }
 /*
  * Dark: sumi ink at night. Surfaces get lighter as they rise, clay keeps its top-left
@@ -237,7 +250,5 @@
   --on-inverse-muted: #5d5e64;
   --error-ink: #f2b3bd;
   --scrollbar: #3b3c41;
-  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  --fibres: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='420'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='2' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .9 0 0 0 0 .9 0 0 0 0 .88 0 0 0 .025 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E");
   color-scheme: dark;
 }

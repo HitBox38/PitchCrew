@@ -55,7 +55,12 @@ export const ConversationHistory = ({
           scrollClassName="min-h-0 flex-1"
         >
           {children}
-          <MessageTranscript key={page.anchor ?? 'latest'} {...props} items={page.items} />
+          <MessageTranscript
+            key={page.anchor ?? 'latest'}
+            {...props}
+            items={page.items}
+            edges={{ oldest: !page.older, newest: !page.newer }}
+          />
         </ConversationContent>
         {page.latest ? <ConversationScrollButton className="button chat-scroll" /> : null}
       </Conversation>

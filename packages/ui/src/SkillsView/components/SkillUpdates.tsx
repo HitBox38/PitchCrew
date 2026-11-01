@@ -1,74 +1,71 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { availableSkillUpdates, pendingSkillUpdates } from '@/lib/skill-updates.ts';
+import { availableSkillUpdates } from '@/lib/skill-updates.ts';
 import { Link } from '@tanstack/react-router';
 import type { SkillsViewModel } from '../types.ts';
 import { SkillCheckButton } from '@/AgentUpdates/components/SkillCheckButton.tsx';
+import { latestSuccessfulCheck } from '../helpers.ts';
 
+/** Updates group at the top of the library, or one quiet line when nothing is known. */
 export const SkillUpdates = ({
   data,
-  updatesOnly,
-  onUpdatesOnly,
-}: Pick<SkillsViewModel, 'data' | 'updatesOnly' | 'onUpdatesOnly'>) => {
-  const available = availableSkillUpdates(data);
-  const pending = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
+  pending,
+  compact,
+}: SkillsViewModel & { compact?: boolean }) => {
+  const available = availableSkillUpdates(data).toSorted(
+    (a, b) => Number(pending.has(b.skillId)) - Number(pending.has(a.skillId)),
+  );
   const checks = data.skillUpdates?.checks ?? [];
-  const successful = checks
-    .map((check) => check.successfulAt)
-    .filter((date): date is string => Boolean(date))
-    .sort()
-    .at(-1);
+  const successful = latestSuccessfulCheck(checks);
+  const checked = successful
+    ? `Last successful check ${new Date(successful).toLocaleString()}.`
+    : 'No successful update checks yet.';
+  if (compact)
+    return (
+      <section className="skills-updates-line" aria-label="Skill updates">
+        <p>
+          No known updates. <span>{checked}</span>
+        </p>
+        <SkillCheckButton />
+      </section>
+    );
   const failed = checks.filter((check) => check.error);
+  const name = (id: string) => data.skills.find((skill) => skill.id === id)?.name;
   return (
-    <section className="flex flex-col gap-2" aria-label="Skill updates">
-      <div className="flex flex-wrap items-center gap-3">
-        <h2>Updates</h2>
-        {available.length || updatesOnly ? (
-          <Button className="button small" aria-pressed={updatesOnly} onClick={onUpdatesOnly}>
-            Updates only
-          </Button>
-        ) : null}
-        <span className="quiet text-sm">
-          {pending.size} pending · {available.length - pending.size} dismissed
-        </span>
+    <section className="skills-updates" aria-labelledby="skills-updates-heading">
+      <div className="skills-updates-head">
+        <h2 id="skills-updates-heading">
+          Updates <span className="ui-count">{pending.size}</span>
+        </h2>
         <SkillCheckButton />
       </div>
       {available.length ? (
-        <div className="flex max-h-36 flex-col gap-2 overflow-y-auto">
-          {available
-            .toSorted((a, b) => Number(pending.has(b.skillId)) - Number(pending.has(a.skillId)))
-            .map((check) => (
-              <div key={check.skillId} className="flex flex-wrap items-center gap-3">
-                <span className="text-sm">
-                  {data.skills.find((skill) => skill.id === check.skillId)?.name} ·{' '}
+        <ul>
+          {available.map((check) => (
+            <li key={check.skillId} className="skills-update-row">
+              <span className="skills-update-copy">
+                <strong>{name(check.skillId)}</strong>
+                <span data-pending={pending.has(check.skillId) || undefined}>
                   {pending.has(check.skillId) ? 'Update available' : 'Dismissed version'}
                 </span>
-                <Button
-                  className="button small"
-                  nativeButton={false}
-                  render={<Link to="/skills" search={{ skill: check.skillId, review: true }} />}
-                >
-                  Review update
-                </Button>
-              </div>
-            ))}
-        </div>
-      ) : (
-        <p className="quiet text-sm">No known upstream updates.</p>
-      )}
+              </span>
+              <Button
+                className="button small"
+                aria-label={`Review ${name(check.skillId)} update`}
+                nativeButton={false}
+                render={<Link to="/skills" search={{ skill: check.skillId, review: true }} />}
+              >
+                Review
+              </Button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {failed.length ? (
-        <p className="quiet text-sm">
-          Couldn’t check:{' '}
-          {failed
-            .map((check) => data.skills.find((skill) => skill.id === check.skillId)?.name)
-            .join(', ')}
-          . Try Check now.
+        <p className="skills-updates-error">
+          Couldn’t check: {failed.map((check) => name(check.skillId)).join(', ')}. Try Check now.
         </p>
       ) : null}
-      <p className="quiet text-sm">
-        {successful
-          ? `Last successful check ${new Date(successful).toLocaleString()}.`
-          : 'No successful update checks yet.'}
-      </p>
+      <p className="skills-updates-meta">{checked}</p>
     </section>
   );
 };

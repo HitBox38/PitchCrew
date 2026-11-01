@@ -5,7 +5,7 @@ import type { useApp } from './hooks/useApp.ts';
 export type ReadyWorkspaceProps = Omit<ReturnType<typeof useApp>, 'data'> & { data: Snapshot };
 export type WorkspaceModel = NonNullable<ReturnType<typeof getWorkspaceModel>>;
 
-export type WorkspaceHeadingProps = Pick<WorkspaceModel, 'view' | 'summary' | 'data' | 'setAdd'>;
+export type WorkspaceHeadingProps = Pick<WorkspaceModel, 'title' | 'fact'>;
 
 export type WorkspaceNotificationProps = Pick<WorkspaceModel, 'toast' | 'toastType' | 'setToast'>;
 
@@ -42,20 +42,13 @@ export type WorkspacePanelsProps = Pick<
 export type WorkspaceSidebarProps = Pick<
   WorkspaceModel,
   | 'view'
-  | 'stageLinks'
-  | 'jumpToStage'
   | 'pending'
   | 'data'
-  | 'roleStatus'
-  | 'running'
-  | 'setRoleId'
-  | 'openChat'
-  | 'toggleRole'
-  | 'recentCards'
   | 'openCard'
   | 'setPaletteOpen'
   | 'setAdd'
+  | 'recentCards'
+  | 'toggleRole'
+  | 'setRoleId'
   | 'working'
 >;
-
-export type WorkspaceToolbarProps = Pick<WorkspaceModel, 'running' | 'data'>;

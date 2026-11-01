@@ -1,5 +1,7 @@
 import { turnPresentation } from './constants.ts';
-import type { ChatMessage, Run, RunActivity, TranscriptItem } from '@pitchcrew/core';
+import { runtimeLabels } from '../lib/labels.ts';
+import { reasoningLabels } from '../lib/reasoning.ts';
+import type { ChatMessage, Run, RunActivity, RuntimeModel, TranscriptItem } from '@pitchcrew/core';
 export type { TranscriptItem } from '@pitchcrew/core';
 
 export const transcriptItems = (
@@ -74,4 +76,19 @@ export const turnStatus = (run: Run, replying: boolean) => {
     ...presentation,
     status: replying ? 'Replying…' : (phase?.label ?? (run.message || 'Working…')),
   };
+};
+
+/**
+ * The model and reasoning a turn actually ran with. Compact snapshots carry the derived
+ * `model`/`reasoning`; full snapshots still have the configuration snapshot. A runtime catalog,
+ * when supplied, replaces the raw model id with its display label.
+ */
+export const runModel = (run: Run, models?: readonly RuntimeModel[]) => {
+  const role = run.configuration?.role;
+  const model = run.model || role?.model;
+  const reasoning = run.reasoning ?? role?.reasoning;
+  const label = model && (models?.find((item) => item.value === model)?.label || model);
+  return [label || runtimeLabels[run.runtime], reasoning && reasoningLabels[reasoning]]
+    .filter(Boolean)
+    .join(' · ');
 };

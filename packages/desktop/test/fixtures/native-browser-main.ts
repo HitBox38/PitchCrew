@@ -7,6 +7,7 @@ import { writeFile, readFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { once } from 'node:events';
+import assert from 'node:assert/strict';
 import { createNativeBrowserHost, installNativeBrowserIpc } from '../../src/browser/host.ts';
 import { checkNativeBrowserPresentation } from './native-browser-presentation.ts';
 
@@ -305,6 +306,12 @@ void app
           const crashed = once(contents, 'render-process-gone');
           contents.forcefullyCrashRenderer();
           await crashed;
+          // Exercise the mirror's next frame deterministically before Reload can
+          // close the crashed guest, rather than depending on its 150ms tick.
+          await assert.rejects(
+            group.pages.get(group.active)!.send('Page.captureScreenshot', { format: 'png' }),
+            /stopped responding/,
+          );
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
             JSON.stringify({ nonce: command.nonce, value: true }),

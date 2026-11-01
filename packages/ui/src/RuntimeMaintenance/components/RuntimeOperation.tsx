@@ -16,7 +16,8 @@ export const RuntimeOperation = ({ update }: { update: RuntimeUpdateInfo }) => {
   return (
     <div
       aria-live="polite"
-      className={`runtime-operation ${failed ? 'runtime-operation-failed' : ''}`}
+      className="settings-runtime-operation"
+      data-failed={failed || undefined}
     >
       <div className="flex items-start gap-2">
         <Icon
@@ -44,7 +45,9 @@ export const RuntimeOperation = ({ update }: { update: RuntimeUpdateInfo }) => {
       ) : null}
       {operation.output ? (
         <Collapsible className="mt-2">
-          <CollapsibleTrigger className="runtime-text-trigger">Installer output</CollapsibleTrigger>
+          <CollapsibleTrigger className="settings-text-trigger">
+            Installer output
+          </CollapsibleTrigger>
           <CollapsibleContent>
             <SourceBlock value={operation.output} label="Installer output" />
           </CollapsibleContent>

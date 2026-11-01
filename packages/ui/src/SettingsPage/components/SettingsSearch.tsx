@@ -6,19 +6,20 @@ import { CommandInput } from '@/components/ui/command/components/CommandInput.ts
 import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
 import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.tsx';
 import { SettingCommands } from './SettingCommands.tsx';
+
 export const SettingsSearch = () => {
   const [open, setOpen] = useState(false);
   return (
     <>
       <Button
-        variant="outline"
-        size="sm"
+        variant="ghost"
         className="settings-search-trigger"
         aria-label="Find a setting"
+        aria-haspopup="dialog"
         onClick={() => setOpen(true)}
       >
         <Search size={15} aria-hidden="true" />
-        <span className="@max-[46rem]/settings:sr-only">Find a setting…</span>
+        <span>Find a setting</span>
       </Button>
       <CommandDialog
         open={open}

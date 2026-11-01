@@ -1,4 +1,4 @@
-import { FolderInput, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { SourceList } from './SourceList.tsx';
 import { SourceProviderChoices } from './SourceProviderChoices.tsx';
@@ -11,11 +11,11 @@ export const SourceListView = (c: ProfileSourcesModel) => {
     (p) => !c.sources.some((source) => source.id === p.source.id),
   );
   return (
-    <div className="grid gap-5">
+    <div className="grid gap-4">
       {c.sources.length ? (
         <div className="flex items-center justify-between gap-3">
-          <p className="text-sm text-muted-foreground">
-            {c.sources.length} saved {c.sources.length === 1 ? 'source' : 'sources'}
+          <p className="ui-section-heading m-0">
+            Saved <span className="ui-count">{c.sources.length}</span>
           </p>
           <Button size="sm" disabled={c.busy} data-source-focus="add" onClick={() => c.startAdd()}>
             <Plus size={15} /> Add source
@@ -36,22 +36,15 @@ export const SourceListView = (c: ProfileSourcesModel) => {
       {c.sources.length ? (
         <SourceList {...c} />
       ) : c.loaded && !c.loading && !c.listError ? (
-        <div className="grid gap-5 py-2">
-          <div className="grid justify-items-center gap-2 py-3 text-center">
-            <FolderInput size={28} className="mb-1 text-primary" aria-hidden="true" />
-            <h3 className="font-serif text-xl font-semibold">Bring your background together</h3>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground">
-              Start with a folder of personal notes, or watch a project for changes your crew can
-              investigate.
-            </p>
-          </div>
+        <div className="grid gap-3">
+          <h3 className="ui-section-heading m-0">Bring your background together</h3>
           <SourceProviderChoices choose={c.startAdd} disabled={c.busy} />
         </div>
       ) : null}
       {unlinked.map((proposal) => (
-        <div key={proposal.id} className="grid gap-2 border-t border-border pt-4">
-          <p className="text-sm font-semibold wrap-anywhere">{proposal.source.label}</p>
-          <p className="text-xs text-muted-foreground">
+        <div key={proposal.id} className="ui-tray grid gap-2">
+          <p className="text-label font-semibold wrap-anywhere">{proposal.source.label}</p>
+          <p className="text-detail text-muted-foreground">
             {c.loaded
               ? 'This source is no longer connected. Its saved review is still available.'
               : 'A saved update is available for review.'}
@@ -65,9 +58,9 @@ export const SourceListView = (c: ProfileSourcesModel) => {
         </p>
       ) : null}
       {c.sources.length ? (
-        <p className="text-xs leading-relaxed text-muted-foreground">
-          Watching lets authorized agents check for changes. Use a routine for scheduled checks.
-          Updates always need your review.
+        <p className="text-detail text-muted-foreground">
+          Watching lets authorized agents check for changes; a routine can schedule checks. Updates
+          always need your review.
         </p>
       ) : null}
     </div>

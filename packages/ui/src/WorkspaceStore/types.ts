@@ -26,7 +26,6 @@ export interface WorkspaceState extends AppUpdateState, SkillUpdateActions, Prof
   recentIds: string[];
   query: string;
   showClosed: boolean;
-  flashStage: string | null;
   reload: () => Promise<void>;
   startSync: () => () => void;
   action: Action;
@@ -38,7 +37,6 @@ export interface WorkspaceState extends AppUpdateState, SkillUpdateActions, Prof
   setRoleId: (roleId: RoleId | null) => void;
   setQuery: (query: string) => void;
   setShowClosed: (showClosed: boolean) => void;
-  setFlashStage: (flashStage: string | null) => void;
   openCard: (id: string, section?: 'job' | 'application' | 'activity') => void;
   closePanels: () => void;
 }

@@ -11,7 +11,10 @@ const SkillUpdateChanges = ({ review }: { review: SkillUpdatePreview }) => {
   );
   const metadata = (['name', 'description'] as const).filter((key) => current[key] !== latest[key]);
   return (
-    <div className="skill-update-changes">
+    <div className="skills-update-changes">
+      <p className="skills-update-legend">
+        <del>Removed text</del> <ins>Added text</ins>
+      </p>
       {metadata.map((key) => (
         <section key={key} aria-label={`${key} changes`}>
           <h3>{key === 'name' ? 'Name' : 'Description'}</h3>
@@ -28,11 +31,11 @@ const SkillUpdateChanges = ({ review }: { review: SkillUpdatePreview }) => {
         {current.content !== latest.content ? (
           <InstructionDiff lines={lines} />
         ) : (
-          <p className="quiet">Instructions are unchanged.</p>
+          <p className="skills-update-meta">Instructions are unchanged.</p>
         )}
       </section>
       {current.source?.blobSha !== latest.source?.blobSha ? (
-        <p className="quiet">
+        <p className="skills-update-meta">
           Source revision: {current.source?.blobSha.slice(0, 7)} →{' '}
           {latest.source?.blobSha.slice(0, 7)}
         </p>

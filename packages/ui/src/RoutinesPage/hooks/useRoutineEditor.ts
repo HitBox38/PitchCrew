@@ -46,5 +46,5 @@ export const useRoutineEditor = (props: EditorProps) => {
       setError(error instanceof Error ? error.message : 'Could not save routine.');
     }
   };
-  return { draft, change, guard, close, save, error };
+  return { draft, initial, change, guard, close, save, error };
 };

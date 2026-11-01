@@ -1,80 +1,57 @@
-.crew-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+/* Crew: identity pebbles, the agent roster, decisions waiting on the user, the agent settings
+ * panel and default-instruction comparison. Identity colours are not state: a Reviewer's ochre
+ * face never means "waiting"; state is carried by beads and words beside it. */
+
+/* Identity tones, shared by every role avatar and the crew card's timeline dye. */
+:root {
+  --identity-grey: #5d6470;
+  --identity-taupe: #6b5d4f;
+  /* Crew's holding areas: the shared recess in light; one step lighter than the card in dark. */
+  --crew-recess: var(--sunken-fill);
+  --crew-recess-shadow: var(--clay-sunken);
 }
+:root[data-theme='dark'] {
+  --identity-grey: #a9aeb8;
+  --identity-taupe: #c2b19d;
+  --crew-recess: #34353a;
+  --crew-recess-shadow: inset 0 1px 2px rgb(0 0 0 / 0.28), inset 0 -1px 0 rgb(255 255 255 / 0.04);
+}
+.role-avatar,
 .crew-card {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  padding: 16px;
-  background: var(--surface-bright);
-  border: 1px solid var(--border);
-  border-radius: 12px 13px 11px 12px;
-}
-.crew-card[data-retired] {
-  background: var(--paper);
-}
-.crew-card-top {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.crew-card h2 {
-  font: 600 16px/1.3 var(--font-sans);
-  letter-spacing: -0.1px;
-  overflow-wrap: anywhere;
-}
-.crew-card-description {
-  font-size: var(--text-body);
-  color: var(--muted);
-  line-height: 1.55;
-  margin: 12px 0 16px;
-}
-.crew-runtime {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: 12px 0;
-  margin-top: auto;
-  margin-bottom: 12px;
-  border-block: 1px solid var(--border);
-}
-.crew-runtime > div {
-  display: grid;
-  grid-template-columns: 48px minmax(0, 1fr);
-  align-items: baseline;
-  gap: 8px;
-}
-.crew-runtime dt {
-  font-size: var(--text-note);
-  color: var(--muted);
-}
-.crew-runtime dd {
-  font-size: var(--text-label);
-  font-weight: 500;
-  color: var(--ink-soft);
-  overflow-wrap: anywhere;
-}
-.crew-card .button {
-  align-self: flex-start;
-  height: 32px;
-  padding-inline: 10px;
-  font-size: 12px;
-}
-.role-avatar {
   --tone: var(--teal);
   --tone-soft: var(--teal-soft);
-  width: 32px;
-  height: 32px;
 }
-.role-avatar.writer {
+:is(.role-avatar, .crew-card).writer {
   --tone: var(--plum);
   --tone-soft: var(--plum-soft);
 }
-.role-avatar.reviewer {
+:is(.role-avatar, .crew-card).reviewer {
+  --tone: var(--ochre);
+  --tone-soft: var(--ochre-soft);
+}
+:is(.role-avatar, .crew-card).submitter {
+  --tone: var(--primary);
+  --tone-soft: var(--primary-soft);
+}
+:is(.role-avatar, .crew-card).career-coach {
   --tone: var(--moss);
   --tone-soft: var(--moss-soft);
+}
+:is(.role-avatar, .crew-card).tracker {
+  --tone: var(--rose);
+  --tone-soft: var(--rose-soft);
+}
+:is(.role-avatar, .crew-card).pipeline-coach {
+  --tone: var(--identity-grey);
+  --tone-soft: color-mix(in srgb, var(--identity-grey) 16%, var(--surface));
+}
+:is(.role-avatar, .crew-card).documenter {
+  --tone: var(--identity-taupe);
+  --tone-soft: color-mix(in srgb, var(--identity-taupe) 16%, var(--surface));
+}
+.role-avatar {
+  width: 32px;
+  height: 32px;
 }
 .role-avatar.small {
   width: 22px;
@@ -84,70 +61,419 @@
   width: 42px;
   height: 42px;
 }
-.role-status {
-  font-size: 12px;
-  color: var(--moss);
+
+/* Roster: 4 / 3 / 2 / 1 columns by the work area's own width. */
+.crew-page {
+  container-type: inline-size;
+  padding-bottom: 32px;
+}
+.crew-grid,
+.crew-waiting-list {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+}
+@container (min-width: 560px) {
+  .crew-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .crew-waiting-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (min-width: 840px) {
+  .crew-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+@container (min-width: 1120px) {
+  .crew-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.crew-full {
+  margin-bottom: 12px;
+}
+
+.crew-card {
+  display: flex;
+  min-width: 0;
+  min-height: 284px;
+  flex-direction: column;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.crew-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.crew-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px 8px;
+  min-width: 0;
+}
+.crew-card-update.ui-chip {
+  height: 24px;
+  border: 0;
+  box-shadow: none;
+  cursor: pointer;
+}
+.crew-card-update.ui-chip:hover {
+  background: color-mix(in srgb, var(--plum) 18%, var(--surface));
+}
+.crew-card .crew-card-chat {
+  min-height: 32px;
+  padding-inline: 6px;
+  color: var(--muted);
+  font-size: var(--text-label);
   font-weight: 600;
 }
-.role-status.paused {
+.crew-card .crew-card-chat:hover {
+  color: var(--ink);
+}
+.crew-card .crew-card-menu {
+  width: 32px;
+  height: 32px;
+}
+
+.crew-pebble {
+  display: inline-flex;
+  flex: none;
+  border-radius: 999px;
+}
+.crew-pebble > .role-avatar {
+  width: 52px;
+  height: 52px;
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--tone) 72%, #fff) 0%,
+    var(--tone) 70%
+  );
+  color: #fff;
+  box-shadow:
+    0 2px 3px rgb(30 34 44 / 0.18),
+    0 8px 14px rgb(30 34 44 / 0.12),
+    inset 0 2px 0 rgb(255 255 255 / 0.3),
+    inset -4px -6px 10px rgb(0 0 0 / 0.22);
+}
+.crew-pebble[data-live] > .role-avatar {
+  outline: 3px solid color-mix(in srgb, var(--tone) 22%, transparent);
+  outline-offset: 3px;
+}
+:root[data-theme='dark'] .crew-pebble > .role-avatar {
+  background: radial-gradient(
+    circle at 35% 30%,
+    color-mix(in srgb, var(--tone) 85%, #fff) 0%,
+    var(--tone) 70%
+  );
+  color: var(--paper);
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.4),
+    inset 0 2px 0 rgb(255 255 255 / 0.3),
+    inset -4px -6px 10px rgb(0 0 0 / 0.25);
+}
+
+.crew-card-name {
+  margin: 12px 0 0;
+  font: 600 15px/1.35 var(--font-sans);
+}
+/* The name keeps its text position; transparent padding gives a 32px (44px touch) target. */
+.crew-card .crew-card-name-button {
+  display: inline-flex;
+  align-items: center;
+  height: auto;
+  min-height: 32px;
+  max-width: 100%;
+  margin-block: -6px;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+  font: inherit;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.crew-card .crew-card-name-button:hover {
+  background: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.crew-card-model {
+  margin-top: 1px;
   color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
 }
-.crew-card-retired-note {
-  margin-top: 12px;
-  font-size: var(--text-note);
-  line-height: 1.5;
-}
-.role-settings-panel .role-settings-section {
-  gap: 12px;
-}
-.role-settings-panel .role-settings-section + .role-settings-section {
-  margin-top: 24px;
-  padding-top: 20px;
-}
-.role-settings-panel .role-settings-section h3 {
-  font: 600 16px/1.4 var(--font-sans);
-}
-.subheading {
-  font-size: 18px;
-  margin: 36px 0 12px;
-}
-.runtime-list {
-  background: var(--surface);
-  border-radius: 16px 17px 15px 16px;
-  box-shadow: var(--sheet);
-  overflow: hidden;
-}
-.runtime-row {
+.crew-card-capability {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 14px 18px;
-  border-bottom: 1px solid var(--border);
-}
-.runtime-row:last-child {
-  border: 0;
-}
-.runtime-row strong {
-  font-size: 14px;
-  font-weight: 600;
-}
-.runtime-row p {
-  font-size: var(--text-label);
-  color: var(--muted);
-  margin-top: 2px;
-}
-.runtime-row small {
-  margin-left: auto;
+  gap: 5px;
+  margin-top: 8px;
   color: var(--muted);
   font-size: 12px;
-  font-family: var(--font-mono);
 }
-.runtime-row > .badge {
-  flex-shrink: 0;
+.crew-card-capability svg {
+  flex: none;
 }
-.runtime-row div + .badge {
-  margin-left: auto;
+
+.crew-timeline {
+  margin-top: 14px;
 }
+.crew-timeline .clay-run-timeline {
+  margin: 0;
+}
+.crew-timeline-trigger {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  margin-block: -7px;
+  padding: 0 2px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+}
+.crew-timeline-trigger:hover,
+.crew-timeline-trigger[data-panel-open] {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.crew-timeline-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.crew-timeline-runs {
+  display: grid;
+  margin-top: 4px;
+  font-size: 12px;
+}
+.crew-timeline-runs li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.crew-timeline-runs time,
+.crew-timeline-state {
+  flex: none;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.crew-timeline-runs :is(a, li > span:nth-child(2)) {
+  overflow: hidden;
+  flex: 1;
+  color: var(--ink);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-timeline-runs li > span:nth-child(2) {
+  line-height: 32px;
+}
+.crew-timeline-runs a {
+  display: block;
+  border-radius: 6px;
+  line-height: 32px;
+}
+.crew-timeline-runs a:hover {
+  text-decoration: underline;
+}
+.crew-timeline-runs a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+@media (width < 48rem), (pointer: coarse) {
+  .crew-card .crew-card-name-button {
+    margin-block: -12px;
+  }
+  .crew-timeline-trigger {
+    margin-block: -13px;
+  }
+  .crew-timeline-runs :is(a, li > span:nth-child(2)) {
+    line-height: 44px;
+  }
+}
+.crew-timeline-state[data-status='failed'] {
+  color: var(--rose);
+}
+
+/* Status tray: one recessed line saying what the agent is doing now. */
+.crew-status {
+  display: flex;
+  min-height: 48px;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  margin-top: auto;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--crew-recess);
+  box-shadow: var(--crew-recess-shadow);
+  color: var(--ink-soft);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.crew-card > .crew-timeline {
+  margin-bottom: 12px;
+}
+.crew-status[data-kind='idle'] {
+  color: var(--muted);
+}
+a.crew-status {
+  transition: box-shadow var(--duration-popup, 0.15s) var(--ease, ease);
+}
+a.crew-status:hover {
+  box-shadow:
+    var(--crew-recess-shadow),
+    0 0 0 1px var(--border-strong);
+}
+a.crew-status:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.crew-status-line {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+.crew-status-line strong,
+.crew-status > strong {
+  overflow: hidden;
+  color: var(--ink);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.crew-status-time,
+.crew-status-phase {
+  color: var(--muted);
+}
+.crew-status-time {
+  flex: none;
+}
+.crew-status-phase {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.crew-status-phase .text-button {
+  font-size: 12px;
+}
+
+/* Waiting on you: compact clay decisions, two across when there is room. */
+.crew-page .ui-section {
+  margin-top: 28px;
+}
+.crew-waiting:focus-visible {
+  border-radius: 12px;
+  outline: 2px solid var(--primary);
+  outline-offset: 6px;
+}
+.crew-decision {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.crew-decision-kind {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+.crew-decision-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+.crew-decision-copy strong {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+.crew-decision-copy span {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.crew-decision > .button {
+  flex: none;
+}
+
+/* More than two decisions: one recessed list of quiet rows with a fixed review-action lane. */
+.crew-waiting-list[data-layout='list'] {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  padding: 4px 12px;
+  border-radius: 12px;
+  background: var(--crew-recess);
+  box-shadow: var(--crew-recess-shadow);
+}
+.crew-waiting-list[data-layout='list'] .crew-decision {
+  min-height: 72px;
+  padding: 12px 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+.crew-waiting-list[data-layout='list'] .crew-decision + .crew-decision {
+  border-top: 1px solid var(--border);
+}
+.crew-waiting-list[data-layout='list'] .crew-decision > .button {
+  min-width: 72px;
+}
+.crew-waiting-list[data-layout='list'] .crew-decision-copy span {
+  -webkit-line-clamp: 1;
+}
+
+/* Retired agents and kept instructions: closed disclosures below the roster. */
+.crew-disclosure-trigger {
+  font: 600 1rem/1.35 var(--font-sans);
+}
+.crew-disclosure-trigger .ui-count {
+  margin-left: 6px;
+}
+.crew-retired-list {
+  display: grid;
+  gap: 2px;
+}
+.crew-row-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.crew-row-copy strong {
+  font-weight: 600;
+}
+
+/* Shared by Settings tabs that predate the redesign. */
 .badge {
   font-size: 12px;
   font-weight: 600;
@@ -168,17 +494,6 @@
   color: var(--muted);
   font-size: var(--text-label);
   line-height: 1.6;
-}
-
-.crew-card-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.crew-card-top > div,
-.crew-runtime > div {
-  min-width: 0;
 }
 .runtime-section {
   margin-top: 32px;
@@ -213,47 +528,348 @@
 .runtime-discovery-trigger[data-panel-open] svg {
   transform: rotate(180deg);
 }
-.runtime-row > div {
-  min-width: 0;
+
+/* Agent panel: 480px side panel (overlay sheet, or docked beside a chat). Pebble heading over a
+ * groove, a sticky section index, plain sections with one Save footer. */
+[data-sheet-content].agent-panel {
+  width: min(480px, 100vw);
+  max-width: none;
+  border-radius: 18px 0 0 18px;
 }
-.runtime-row p {
-  overflow-wrap: anywhere;
-}
-.runtime-row > small {
-  max-width: 28%;
-  overflow-wrap: anywhere;
-}
-@variant max-wide {
-  .crew-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-@variant max-compact {
-  .crew-grid {
-    grid-template-columns: minmax(0, 1fr);
-    max-width: none;
-  }
-}
-.crew-card-update {
+.agent-panel {
   display: flex;
+  height: 100dvh;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--pop);
+}
+.chat-side-panel.agent-panel {
+  height: 100%;
+  box-shadow: none;
+}
+.agent-panel-heading {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 14px 14px 14px 20px;
+}
+.agent-panel-heading::after {
+  position: absolute;
+  inset: auto 20px 0;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.agent-panel-pebble > .role-avatar {
+  width: 36px;
+  height: 36px;
+}
+.agent-panel-pebble > .role-avatar svg {
+  width: 18px;
+  height: 18px;
+}
+.agent-panel-titles {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+.agent-panel-titles h2 {
+  overflow: hidden;
+  margin: 0;
+  font: 600 17px/1.3 var(--font-sans);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-panel-titles p {
+  overflow: hidden;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* Enable/pause applies at once; Chat is quiet ink, never a second accent. */
+.agent-panel-heading-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+}
+.agent-panel-enabled {
+  display: inline-flex;
+  min-height: 32px;
   align-items: center;
   gap: 6px;
-  margin: -6px 0 14px;
-  font-size: var(--text-label);
-  font-weight: 600;
-  color: var(--plum);
 }
-.instruction-update {
-  padding: 16px;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--plum);
-  border-radius: 12px;
-  background: var(--surface);
-}
-.instruction-update-label {
-  font-size: var(--text-label);
-  font-weight: 600;
+.agent-panel-enabled > span:last-child {
+  min-width: 3.75rem;
   color: var(--muted);
+  font-size: var(--text-label);
+}
+.agent-panel-heading .agent-panel-chat {
+  min-height: 32px;
+  padding-inline: 6px;
+  color: var(--muted);
+}
+.agent-panel-heading .agent-panel-chat:hover {
+  color: var(--ink);
+}
+.agent-panel-close.icon-button {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink-soft);
+}
+.agent-panel-close.icon-button:hover {
+  background: var(--clay-fill-hover);
+  box-shadow: var(--clay-hover);
+}
+.agent-panel-close.icon-button:active {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.form.agent-panel-form {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
+}
+.agent-panel-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 20px 28px;
+}
+.agent-panel-jump {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  gap: 2px;
+  margin: 0 -20px 4px;
+  padding: 10px 16px 8px;
+  overflow-x: auto;
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--border);
+  scrollbar-width: none;
+}
+.agent-panel-jump a {
+  flex: none;
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 600;
+}
+.agent-panel-jump a:hover {
+  background: rgb(var(--tint) / 0.06);
+  color: var(--ink);
+}
+.agent-panel-jump a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.agent-panel-section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 20px;
+  scroll-margin-top: 44px;
+}
+.agent-panel-section + .agent-panel-section {
+  margin-top: 8px;
+  border-top: 1px solid var(--border);
+}
+.agent-wizard .agent-panel-section {
+  padding-top: 0;
+}
+.agent-panel-section > h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink);
+  font: 600 15px/1.35 var(--font-sans);
+}
+.agent-panel-section > h3 label {
+  font: inherit;
+  color: inherit;
+}
+.agent-panel-section .optional,
+.agent-panel-fact {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+}
+.agent-panel-section .field {
+  min-width: 0;
+}
+.agent-panel-section textarea {
+  min-height: 0;
+}
+.agent-panel-footer.ui-footer-bar {
+  flex: none;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+  border-top: 0;
+  box-shadow:
+    inset 0 1px 0 var(--border),
+    0 -8px 16px -12px var(--shadow-color, rgb(0 0 0 / 0.2));
+}
+.agent-panel-error {
+  flex-basis: 100%;
+  margin: 0;
+}
+.role-skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.agent-skill-scope {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+/* Tools: groups as disclosures with an enabled count, each tool a switch row. */
+.agent-tool-groups {
+  display: grid;
+}
+.agent-tool-group + .agent-tool-group {
+  border-top: 1px solid var(--border);
+}
+.agent-tool-group-trigger {
+  min-height: 44px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.agent-tool-group-trigger > span:first-child {
+  flex: 1;
+}
+.agent-tool-group-count {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.agent-tool-group-body {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 8px;
+}
+.agent-tool {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+}
+.agent-tool [data-slot='switch'] {
+  margin-top: 2px;
+}
+.agent-tool-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.45;
+}
+.agent-tool-copy > label {
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.agent-tool-blocker {
+  color: var(--ochre);
+}
+
+/* Default instruction update: a tinted decision area inside Instructions, never auto-applied. */
+.instruction-update {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--plum-soft) 70%, var(--surface));
+}
+.agent-panel-body > .instruction-update {
+  margin-top: 16px;
+}
+/* Leading the panel, the diff reads in the panel's own scroll rather than a nested one. */
+.agent-panel-body > .instruction-update .instruction-diff {
+  max-height: none;
+}
+.instruction-update-history-trigger {
+  min-height: 36px;
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.instruction-update-history-trigger .ui-count {
+  margin-left: 4px;
+  font-weight: 400;
+}
+.instruction-update-explanation {
+  margin: 0 0 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+.instruction-update-history .instruction-update-changes + .optional {
+  margin-top: 8px;
+}
+.instruction-decision-footer.ui-footer-bar {
+  min-height: 64px;
+  justify-content: flex-end;
+}
+.instruction-decision-footer .instruction-update-note {
+  flex-basis: 100%;
+  margin: 0;
+}
+/* Phones: the three decisions fill their rows instead of hanging off the right edge. */
+@variant max-mobile {
+  .instruction-decision-footer.ui-footer-bar > button {
+    flex: 1 1 auto;
+  }
+}
+.instruction-update-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.instruction-update-heading h3 {
+  margin: 0;
+  font: 600 15px/1.35 var(--font-sans);
+}
+.instruction-update-heading time {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+}
+.instruction-update-notice {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 1.5;
 }
 .instruction-update-changes {
   display: flex;
@@ -268,13 +884,46 @@
   color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
+.instruction-compare {
+  display: grid;
+  gap: 8px;
+}
+.instruction-compare .optional {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+}
+.instruction-compare-switch {
+  justify-self: start;
+}
+.instruction-update-previous {
+  display: grid;
+  gap: 6px;
+}
+.instruction-update-previous h4 {
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.instruction-update-confirm {
+  margin: 0;
+  font-size: var(--text-label);
+}
+.instruction-update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.instruction-update-dismissed {
+  justify-content: space-between;
+}
 .instruction-diff {
   max-height: 320px;
   overflow: auto;
-  padding: 10px 0;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--paper);
+  padding: 8px 0;
+  border-radius: 8px;
+  background: var(--surface-bright);
+  box-shadow: inset 0 0 0 1px var(--border);
   font-size: var(--text-label);
   line-height: 1.6;
 }
@@ -288,7 +937,7 @@
 .instruction-diff-sign {
   text-align: center;
   color: var(--muted);
-  font-family: ui-monospace, monospace;
+  font-family: var(--font-mono, ui-monospace, monospace);
 }
 .instruction-diff li[data-kind='added'] {
   background: var(--moss-soft);
@@ -311,4 +960,40 @@
 }
 .instruction-diff del {
   color: var(--rose);
+}
+
+@variant max-mobile {
+  [data-sheet-content].agent-panel {
+    width: 100vw;
+    border-radius: 0;
+  }
+  /* Two short header rows on phones: identity and Close, then enable/pause and Chat. */
+  .agent-panel-heading {
+    flex-wrap: wrap;
+    row-gap: 4px;
+    padding-block: 10px 12px;
+  }
+  .agent-panel-heading-actions {
+    order: 3;
+    flex-basis: 100%;
+    justify-content: space-between;
+    padding-left: 48px;
+  }
+  .agent-panel-enabled,
+  .agent-panel-heading .agent-panel-chat {
+    min-height: 44px;
+  }
+  .agent-panel-heading .agent-panel-chat {
+    min-width: 44px;
+    justify-content: center;
+  }
+  .agent-panel-close.icon-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+@container (max-width: 559px) {
+  .crew-card {
+    min-height: 0;
+  }
 }

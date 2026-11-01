@@ -1,26 +1,28 @@
+import { RadioGroup } from '@base-ui/react/radio-group';
+import { Radio } from '@base-ui/react/radio';
+import { Check } from 'lucide-react';
 import { themeOptions } from '@/lib/theme-options.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { Check } from 'lucide-react';
-import { ChatReadingWidth } from './ChatReadingWidth.tsx';
+import { SettingsSection } from './SettingsSection.tsx';
 
 export const AppearanceSettings = () => {
   const theme = useDevicePreferences((state) => state.theme);
   const setTheme = useDevicePreferences((state) => state.setTheme);
   return (
-    <section className="settings-section" aria-labelledby="appearance-heading">
-      <h2 id="appearance-heading">Appearance</h2>
-      <p className="quiet">Choose how Pitchcrew looks on this device.</p>
-      <fieldset className="settings-themes">
-        <legend className="sr-only">Theme</legend>
-        {themeOptions.map(({ id, label, icon: Icon }) => (
-          <label className="settings-theme" key={id}>
-            <input
-              type="radio"
-              name="theme"
-              value={id}
-              checked={theme === id}
-              onChange={() => setTheme(id)}
-            />
+    <SettingsSection
+      id="appearance-heading"
+      title="Appearance"
+      description="Preferences on this tab save on this device."
+      autosave
+    >
+      <RadioGroup
+        className="settings-themes"
+        aria-labelledby="appearance-heading"
+        value={theme}
+        onValueChange={(value) => setTheme(value as typeof theme)}
+      >
+        {themeOptions.map(({ id, label }) => (
+          <Radio.Root key={id} value={id} className="settings-theme">
             <span className={`settings-theme-preview settings-theme-${id}`} aria-hidden="true">
               <span className="settings-preview-sidebar" />
               <span className="settings-preview-board">
@@ -28,18 +30,14 @@ export const AppearanceSettings = () => {
                 <i />
                 <i />
               </span>
+              <Radio.Indicator className="settings-theme-check">
+                <Check size={12} strokeWidth={3} />
+              </Radio.Indicator>
             </span>
-            <span className="flex items-center gap-2">
-              <Icon size={16} aria-hidden="true" />
-              <span className="min-w-0">{label}</span>
-              {theme === id ? (
-                <Check className="settings-theme-check ml-auto" size={16} aria-hidden="true" />
-              ) : null}
-            </span>
-          </label>
+            <span className="settings-theme-label">{label}</span>
+          </Radio.Root>
         ))}
-      </fieldset>
-      <ChatReadingWidth />
-    </section>
+      </RadioGroup>
+    </SettingsSection>
   );
 };

@@ -6,10 +6,10 @@ export const RuntimeUpdate = ({ update }: { update: RuntimeUpdateInfo }) => {
   const running = !!operation && !operation.finishedAt;
   const busy = !!update.busyReasons?.length;
   return (
-    <div className="text-sm">
+    <div className="settings-runtime-update">
       <RuntimeOperation update={update} />
       {busy && !running && update.status === 'available' ? (
-        <p id={`runtime-busy-${update.id}`} className="quiet mt-3" aria-live="polite">
+        <p id={`runtime-busy-${update.id}`} className="quiet" aria-live="polite">
           Wait until this runtime is idle to update. {update.busyReasons!.join(' ')}
         </p>
       ) : null}

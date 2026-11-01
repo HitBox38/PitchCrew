@@ -64,6 +64,7 @@ export const visibleProfileTree = (
   root: ProfileTreeNode,
   collapsed: Set<string>,
   query: string,
+  includeRoot = true,
 ) => {
   const rows: {
     node: ProfileTreeNode;
@@ -91,6 +92,11 @@ export const visibleProfileTree = (
       visit(child, depth + 1, node.key, index + 1, children.length),
     );
   };
-  visit(root, 1, null, 1, 1);
+  if (includeRoot) visit(root, 1, null, 1, 1);
+  else {
+    // The profile folder itself is implicit: its contents are the top level of the tree.
+    const children = search ? root.children.filter(matches) : root.children;
+    children.forEach((child, index) => visit(child, 1, null, index + 1, children.length));
+  }
   return rows;
 };

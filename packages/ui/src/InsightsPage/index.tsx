@@ -1,6 +1,7 @@
-import { EmptyState } from '@/components/EmptyState/index.tsx';
 import { CareerPlans } from '@/CareerPlans/index.tsx';
+import { useCareerPlans } from '@/CareerPlans/hooks/useCareerPlans.ts';
 import { InsightsFilters } from './components/InsightsFilters.tsx';
+import { InsightsHeader } from './components/InsightsHeader.tsx';
 import { OutcomeSummary } from './components/OutcomeSummary.tsx';
 import { RecentLessons } from './components/RecentLessons.tsx';
 import { InsightsTidyUp } from './components/InsightsTidyUp.tsx';
@@ -8,36 +9,27 @@ import { TagScoreboard } from './components/TagScoreboard.tsx';
 import { WeightDistribution } from './components/WeightDistribution.tsx';
 import { useInsightsPage } from './hooks/useInsightsPage.ts';
 
+/** Filters, a recessed figures strip, plans beside tags, weights beside lessons, Tidy up.
+ * Every section always renders, with an honest empty state when there is no data. */
 export const InsightsPage = () => {
-  const { cards, search, insights, tags, change } = useInsightsPage();
+  const page = useInsightsPage();
+  const plans = useCareerPlans();
+  const { cards, insights } = page;
   if (!cards || !insights) return null;
-  const filtered = Boolean(search.tag || search.from || search.to);
   return (
-    <div className="insights flex min-w-0 flex-col gap-5">
-      <CareerPlans />
-      <InsightsFilters search={search} tags={tags} change={change} />
-      {insights.total ? (
-        <>
-          <OutcomeSummary insights={insights} />
-          <div className="insights-reports grid min-w-0 gap-5 wide:grid-cols-2">
-            <WeightDistribution insights={insights} />
-            <RecentLessons insights={insights} />
-          </div>
-          <TagScoreboard insights={insights} change={change} />
-        </>
-      ) : (
-        <EmptyState
-          title={filtered ? 'No matching applications' : 'No applications to learn from yet'}
-          description={
-            filtered
-              ? 'Try another tag or a wider date range.'
-              : cards.some((card) => card.sample)
-                ? 'Example jobs aren’t counted. Add your own jobs, record outcomes and note lessons to see insights here.'
-                : 'Add jobs, record outcomes and note lessons in each job. Insights appear here.'
-          }
-        />
-      )}
-      <InsightsTidyUp cards={cards} tags={tags} />
+    <div className="insights">
+      <InsightsHeader insights={insights} create={() => plans.setCreating(true)} />
+      <InsightsFilters {...page} />
+      <OutcomeSummary {...page} insights={insights} />
+      <div className="insights-band">
+        <CareerPlans model={plans} />
+        <TagScoreboard insights={insights} change={page.change} />
+      </div>
+      <div className="insights-pair">
+        <WeightDistribution insights={insights} />
+        <RecentLessons lessons={page.lessons} />
+      </div>
+      <InsightsTidyUp cards={cards} tags={page.tags} />
     </div>
   );
 };

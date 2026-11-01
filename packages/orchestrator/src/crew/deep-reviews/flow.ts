@@ -56,6 +56,7 @@ export const reviewFlow = async (context: CrewContext, live: LiveDeepReview) => 
     assessment: after,
     feedback: recheckFeedback,
     changeSummary,
+    summary,
   } = await assessStage(context, live, 'recheck');
   await assertReviewEvidence(context, live);
   const card = assertReviewCurrent(context, live);
@@ -71,6 +72,7 @@ export const reviewFlow = async (context: CrewContext, live: LiveDeepReview) => 
     {
       role: 'reviewer',
       changeSummary,
+      summary,
       passed: feedback.length === 0,
       feedback: feedback.slice(0, 30),
       suggestions: [
@@ -179,6 +181,7 @@ const assessStage = async (
   return {
     assessment,
     changeSummary: result.changeSummary,
+    summary: result.role === 'reviewer' ? result.summary : undefined,
     feedback:
       result.role === 'reviewer'
         ? result.feedback.length

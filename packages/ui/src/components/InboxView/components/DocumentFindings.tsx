@@ -8,7 +8,7 @@ export const DocumentFindings = ({ approval }: { approval: Approval }) => {
   const findings = reports.flatMap((report) => report.findings);
   return (
     <AccordionSection
-      className="mail-document-findings"
+      className="packet-findings"
       heading={`${reports.filter((report) => report.status === 'verified').length} documents checked${blocked ? ` · ${blocked} unavailable` : ''}${findings.length ? ` · ${findings.length} layout notes` : ''}`}
     >
       {reports.map((report) => (

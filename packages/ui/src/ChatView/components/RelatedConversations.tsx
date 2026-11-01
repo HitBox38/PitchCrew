@@ -9,7 +9,13 @@ export const RelatedConversations = ({ data, thread, onThread }: ChatViewModel) 
       <MessagesSquare size={13} />
       <span>Related work</span>
       {related.map((item) => (
-        <Button key={item.id} variant="ghost" size="xs" onClick={() => onThread(item.id)}>
+        <Button
+          key={item.id}
+          variant="ghost"
+          size="xs"
+          className="chat-related-link"
+          onClick={() => onThread(item.id)}
+        >
           {item.title}
         </Button>
       ))}

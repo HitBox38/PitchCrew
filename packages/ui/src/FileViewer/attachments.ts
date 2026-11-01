@@ -108,3 +108,17 @@ export const downloadFile = (file: ViewerFile) => {
   link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 };
+export const fileFormat = (file: Pick<ViewerFile, 'kind'>) =>
+  file.kind === 'markdown' ? 'Markdown' : file.kind === 'text' ? 'Text' : file.kind.toUpperCase();
+const words = (text: string) => (text.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) ?? []).length;
+/** Pages (estimated for Word), words in the source text and size, for an attachment tile. */
+export const fileFacts = (file: ViewerFile) =>
+  [
+    file.pages
+      ? `${file.kind === 'docx' ? 'about ' : ''}${file.pages} page${file.pages === 1 ? '' : 's'}`
+      : '',
+    file.text && file.kind !== 'image' ? `${words(file.text)} words` : '',
+    fileSize(file),
+  ]
+    .filter(Boolean)
+    .join(' · ');

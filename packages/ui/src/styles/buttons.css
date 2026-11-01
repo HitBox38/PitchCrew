@@ -60,7 +60,7 @@
 .button.small {
   height: 32px;
   padding: 0 12px;
-  font-size: 12px;
+  font-size: var(--text-label);
   border-radius: 9px 10px 9px 8px;
 }
 .icon-button {

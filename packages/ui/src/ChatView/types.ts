@@ -52,6 +52,8 @@ export type ChatComposerProps = Pick<
   | 'setSendMode'
   | 'running'
   | 'action'
+  | 'setDialog'
+  | 'questions'
 >;
 
 export type ComposerHintProps = Pick<ChatViewModel, 'role'>;
@@ -79,6 +81,9 @@ export type ConversationHeadingProps = Pick<
   | 'recipient'
   | 'recipientItems'
   | 'setRecipient'
+  | 'attached'
+  | 'onOpenCard'
+  | 'dialog'
 >;
 
 export type ConversationPanelProps = Pick<

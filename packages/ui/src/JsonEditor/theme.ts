@@ -7,7 +7,7 @@ export const jsonTheme = EditorView.theme({
   '&.cm-focused': { outline: 'none' },
   '.cm-scroller': {
     fontFamily: 'var(--font-mono)',
-    lineHeight: '1.65',
+    lineHeight: '20px',
     overflow: 'auto',
     maxHeight: 'min(60vh, 640px)',
     minHeight: '320px',
@@ -33,10 +33,10 @@ export const jsonTheme = EditorView.theme({
   },
   '.cm-tooltip': {
     color: 'var(--ink)',
-    background: 'var(--clay-fill)',
+    background: 'var(--surface)',
     border: '1px solid var(--border-strong)',
-    borderRadius: '8px',
-    boxShadow: 'var(--pop), var(--volume-sm)',
+    borderRadius: '10px',
+    boxShadow: 'var(--pop)',
     overflow: 'hidden',
   },
   '.cm-tooltip-autocomplete > ul': {

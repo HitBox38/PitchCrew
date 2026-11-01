@@ -10,13 +10,26 @@ export const workspaceCards = (board: Board): Card[] => {
       .all() as { json: string }[]
   ).map((row) => JSON.parse(row.json) as Card);
 };
+/** Runs keep only the effective model/reasoning from their configuration snapshot. */
+export const compactRunColumns = `json_extract(json,'$.configuration.role.model') AS model,
+    json_extract(json,'$.configuration.role.reasoning') AS reasoning`;
+export interface CompactRunRow {
+  json: string;
+  model: string | null;
+  reasoning: Run['reasoning'] | null;
+}
+export const compactRunRow = ({ json, model, reasoning }: CompactRunRow): Run => ({
+  ...(JSON.parse(json) as Run),
+  ...(model ? { model } : {}),
+  ...(reasoning ? { reasoning } : {}),
+});
 export const workspaceRuns = (board: Board): Run[] => {
   return (
     board.db
-      .prepare(`SELECT json_remove(json,'$.configuration','$.activity') AS json
+      .prepare(`SELECT json_remove(json,'$.configuration','$.activity') AS json, ${compactRunColumns}
     FROM entities WHERE kind='run' ORDER BY rowid DESC`)
-      .all() as { json: string }[]
-  ).map((row) => JSON.parse(row.json) as Run);
+      .all() as CompactRunRow[]
+  ).map(compactRunRow);
 };
 
 /** Full deep-review prose is fetched only when opening a report. */

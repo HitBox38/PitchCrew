@@ -1,5 +1,6 @@
 import { JobHeading } from './JobHeading.tsx';
 import { JobState } from './JobState.tsx';
+import { trackIndex } from '@/ClayInterface/helpers.ts';
 import { JobAgents } from './JobAgents.tsx';
 import type { CardDetailsModel } from '../types.ts';
 import { Button } from '@/components/ui/button/components/Button.tsx';
@@ -61,7 +62,8 @@ export const JobSummary = ({
         {card.salary ? <span>{card.salary}</span> : null}
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <JobState card={card} />
+        {/* The stage track below already names a tracked stage, so its pill would repeat it. */}
+        <JobState card={card} quietState={trackIndex(card.state) !== null} />
         {agents && openChat ? <JobAgents agents={agents} openChat={openChat} /> : null}
       </div>
     </header>

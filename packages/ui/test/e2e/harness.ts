@@ -54,7 +54,11 @@ const waitExit = async (child: ChildProcess, label: string, tree = false) => {
       throw error;
     }
   }
-  assert.equal(child.exitCode, 0, `${label} exited unsuccessfully`);
+  assert.equal(
+    child.exitCode,
+    0,
+    `${label} exited unsuccessfully (code=${child.exitCode}, signal=${child.signalCode})`,
+  );
 };
 
 export const startDesktop = async () => {
@@ -71,7 +75,7 @@ export const startDesktop = async () => {
         PITCHCREW_PORT: String(port),
         PITCHCREW_POSTHOG_DISABLED: '1',
       },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
     },
   );
@@ -80,6 +84,7 @@ export const startDesktop = async () => {
       log = (log + String(chunk)).slice(-64000);
     });
   let electron: ElectronApplication | undefined;
+  let electronLog = '';
   let page: Page | undefined;
   const errors: string[] = [];
   let closing: Promise<void> | undefined;
@@ -137,11 +142,16 @@ export const startDesktop = async () => {
         if (error) throw error;
       });
     }
-    daemon.kill('SIGTERM');
+    // EOF requests graceful fixture shutdown on Windows too; kill(SIGTERM) does not.
+    daemon.stdin?.end();
     await attempt(() => waitExit(daemon, 'Daemon'));
     await writeFile(join(directory, 'daemon.log'), log);
+    await writeFile(join(directory, 'electron.log'), electronLog);
     if (failures.length)
-      throw new AggregateError(failures, `Desktop E2E cleanup failed; evidence: ${directory}`);
+      throw new AggregateError(
+        failures,
+        `Desktop E2E cleanup failed: ${failures.map(String).join('; ')}; evidence: ${directory}`,
+      );
   };
   const close = () => (closing ??= cleanup());
 
@@ -171,7 +181,15 @@ export const startDesktop = async () => {
       env,
       timeout: 30000,
     });
+    electron.process().stderr?.on('data', (chunk) => {
+      electronLog = (electronLog + String(chunk)).slice(-64000);
+    });
     page = await electron.firstWindow();
+    // CI desktops can be narrower than the split-view breakpoint.
+    // Modal-layout journeys explicitly expand the browser.
+    await electron.evaluate(({ BrowserWindow }) => {
+      BrowserWindow.getAllWindows()[0].setContentSize(1440, 1000);
+    });
     await electron.context().tracing.start({ snapshots: true, sources: true });
     await electron.evaluate(({ app, BrowserWindow }) => {
       const violations: string[] = [];
@@ -191,9 +209,13 @@ export const startDesktop = async () => {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.waitForURL((url) => url.origin === ready.url);
     await page.waitForLoadState('load');
-    await page.locator('a[href="/chat/writer"]').first().waitFor({ timeout: 30000 });
+    // Role chats sit in the sidebar's Agent chats group, which starts folded on a fresh device.
+    const agentChats = page.locator('button[aria-label="Agent chats"]');
+    await agentChats.waitFor({ timeout: 30000 });
     const later = page.getByRole('button', { name: 'Set up later', exact: true });
     if (await later.isVisible()) await later.click();
+    if ((await agentChats.getAttribute('aria-expanded')) !== 'true') await agentChats.click();
+    await page.locator('a[href="/chat/writer"]').first().waitFor();
     await page.locator('a[href="/chat/writer"]').first().click();
     await page.locator('button[aria-controls="agent-browser-panel"]').waitFor({ timeout: 30000 });
     if (await later.isVisible()) await later.click();

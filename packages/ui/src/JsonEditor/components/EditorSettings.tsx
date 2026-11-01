@@ -46,7 +46,7 @@ export const EditorSettings = () => {
         render={
           <Button
             id="json-editor-settings"
-            variant="outline"
+            variant="ghost"
             size="icon-sm"
             aria-label="JSON editor settings"
             title="JSON editor settings"

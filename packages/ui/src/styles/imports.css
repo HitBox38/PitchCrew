@@ -1,24 +1,107 @@
-/* Application import preview: a dense review table inside the drawer. */
-.import-applications.drawer {
-  width: min(760px, 100vw);
+/* Import applications: a 960 dialog with Choose file / Review / Result beads, a recessed file
+ * picker, plain outcome counts and a bounded review table with a sticky heading. */
+.modal.import-applications {
+  display: flex;
+  flex-direction: column;
+  width: min(960px, calc(100vw - 32px));
+  max-height: min(760px, calc(100dvh - 32px));
+  padding: 0;
+  overflow: hidden;
+}
+.import-applications > .modal-heading {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 20px 24px 4px;
+}
+.import-applications > .modal-heading h2 {
+  font: 600 1.125rem/1.3 var(--font-sans);
+}
+.import-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  padding: 8px 24px 16px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.import-steps > li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.import-steps > li[aria-current='step'] {
+  color: var(--ink);
+  font-weight: 600;
+}
+.import-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 24px 16px;
+}
+.import-choose {
+  display: grid;
+  gap: 8px;
 }
 .import-file-picker {
   display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 10px;
-  color: var(--muted);
-  font-size: var(--text-body);
 }
-.import-file-picker .button {
-  flex-shrink: 0;
+.import-file-name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.import-file-busy {
+  margin-left: auto;
+  color: var(--plum);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+.import-hint,
+.import-counts-note,
+.import-muted {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+.import-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.import-counts-total {
+  font-weight: 600;
+}
+.import-counts-note {
+  flex-basis: 100%;
+}
+.import-table-wrap {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  overscroll-behavior: contain;
+}
+.import-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-label);
 }
 .import-table th,
 .import-table td {
-  padding: 8px 10px;
+  padding: 12px;
   text-align: left;
   vertical-align: top;
   border-bottom: 1px solid var(--border);
@@ -26,23 +109,126 @@
 }
 .import-table th {
   position: sticky;
+  z-index: 1;
   top: 0;
-  background: var(--surface);
+  height: 36px;
+  padding-block: 8px;
+  background: var(--sunken-fill);
   color: var(--muted);
+  font-size: var(--text-caption);
   font-weight: 600;
+}
+.import-table td:first-child,
+.import-table th:first-child {
+  width: 56px;
+  color: var(--muted);
 }
 .import-table tr:last-child td {
   border-bottom: 0;
 }
-.import-table [data-status='new'] td:last-child strong,
-.import-table [data-status='created'] td:last-child strong {
-  color: var(--moss);
+.import-table .ui-chip {
+  margin-bottom: 2px;
 }
-.import-table [data-status='invalid'] td:last-child strong,
-.import-table [data-status='failed'] td:last-child strong {
+.import-identity > strong[data-missing] {
   color: var(--rose);
 }
-.import-table [data-status='duplicate'] td:last-child strong,
-.import-table [data-status='imported'] td:last-child strong {
-  color: var(--ochre);
+.import-reason {
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  line-height: 1.5;
+}
+.import-detail-trigger {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.import-detail-trigger > svg {
+  transition: transform var(--duration-press) var(--ease-material);
+}
+.import-detail-trigger[data-panel-open] > svg {
+  transform: rotate(90deg);
+}
+.import-detail-trigger:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.import-footer {
+  flex-shrink: 0;
+  justify-content: flex-end;
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+@variant max-mobile {
+  .modal.import-applications {
+    width: 100vw;
+    height: 100dvh;
+    max-height: 100dvh;
+    border-radius: 0;
+  }
+  .import-body,
+  .import-steps,
+  .import-applications > .modal-heading {
+    padding-inline: 16px;
+  }
+}
+/* Narrow: each row is a two-line identity with its source row number, then a labelled detail
+ * block for the status change and result. */
+@variant max-narrow {
+  .import-table,
+  .import-table tbody,
+  .import-table tr,
+  .import-table td {
+    display: block;
+  }
+  .import-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .import-table tr {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 6px 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .import-table tr:last-child {
+    border-bottom: 0;
+  }
+  .import-table td,
+  .import-table td:first-child {
+    width: auto;
+    padding: 0;
+    border: 0;
+  }
+  .import-table .import-row-number {
+    font-size: var(--text-caption);
+    line-height: 1.25rem;
+  }
+  .import-table .import-identity {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  .import-table .import-status,
+  .import-table .import-result {
+    display: grid;
+    grid-column: 2;
+    gap: 2px;
+    font-size: var(--text-caption);
+    line-height: 1.125rem;
+  }
+  .import-status::before,
+  .import-result::before {
+    color: var(--muted);
+    font-weight: 600;
+    content: attr(data-label);
+  }
+  .import-result > .ui-chip {
+    justify-self: start;
+  }
 }

@@ -20,7 +20,7 @@ export const buttonVariants = cva(
       size: {
         default: 'primitive:h-[38px] primitive:px-[15px] primitive:py-0',
         xs: "primitive:h-6 primitive:gap-1 primitive:rounded-[7px_8px_7px_6px] primitive:px-2 primitive:py-0 primitive:text-xs primitive:has-[>svg]:px-1.5 primitive:[&_svg:not([class*='size-'])]:size-3",
-        sm: 'primitive:h-8 primitive:gap-1.5 primitive:rounded-[9px_10px_9px_8px] primitive:px-3 primitive:py-0 primitive:text-xs',
+        sm: 'primitive:h-8 primitive:gap-1.5 primitive:rounded-[9px_10px_9px_8px] primitive:px-3 primitive:py-0',
         lg: 'primitive:h-10 primitive:px-6 primitive:py-0',
         icon: 'primitive:size-[38px] primitive:p-0',
         'icon-xs':

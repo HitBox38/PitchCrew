@@ -1,69 +1,41 @@
-/* One paper desk around each route; the work inside owns its scroll position. */
+/* Shared pages: an open title row on the paper (title, one fact, an optional segment, then the
+ * page's search and actions) above one independently scrolling work area. No card, icon or
+ * explanatory subtitle. */
 .page.workspace-page {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 48px - var(--desktop-titlebar-height, 0px));
-  min-height: 0;
-  max-width: none;
-  padding: 10px 14px 14px;
-  overflow: hidden;
-}
-.workspace-frame {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-width: 0;
+  height: calc(100dvh - var(--shell-bar-height) - var(--desktop-titlebar-height, 0px));
   min-height: 0;
   overflow: hidden;
-  border-radius: 16px 17px 15px 16px;
-  background: var(--surface);
-  background-image: var(--grain), var(--fibres);
-  box-shadow: var(--sheet);
 }
-.workspace-heading {
-  display: flex;
+.workspace-title-row {
   flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  min-height: 68px;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
+  padding: 10px 0 12px 8px;
 }
-.workspace-heading-icon {
-  flex-shrink: 0;
-  color: var(--primary);
-}
-/* Actions wrap below rather than squeezing the summary into a narrow column. */
-.workspace-heading-copy {
-  flex: 1 1 16rem;
-  min-width: 0;
-}
-.workspace-heading h1 {
-  font: 600 18px/1.3 var(--font-sans);
-  letter-spacing: -0.2px;
-}
-.workspace-heading p {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.45;
-}
-.workspace-heading-actions {
-  display: flex;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-left: auto;
-}
-.workspace-heading-actions:empty {
+.workspace-title-fact:not(:has(> *)) {
   display: none;
 }
-.workspace-heading-actions .button {
-  height: 34px;
-  padding-inline: 12px;
-  font-size: 12px;
+.workspace-title-fact:has(> [data-page-fact]) > .workspace-default-fact {
+  display: none;
+}
+.workspace-title-segment {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.workspace-title-segment:empty,
+.workspace-title-actions:empty,
+.workspace-title-primary:empty {
+  display: none;
+}
+/* The one glaze primary ends the row, after the page's search and clay secondaries. */
+.workspace-title-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.workspace-title-actions:empty + .workspace-title-primary {
+  margin-left: auto;
 }
 :where(.workspace-body) {
   flex: 1;
@@ -71,23 +43,16 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 20px;
-}
-.workspace-toolbar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
+  padding: 2px 4px 16px 8px;
 }
 .workspace-loading {
-  padding: 24px;
+  padding: 24px 8px;
 }
 .workspace-body > .workspace-notice,
 .workspace-body > .error-banner {
   margin-bottom: 16px;
 }
-.workspace-frame .empty-state {
+.workspace-page .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -98,10 +63,10 @@
   border: 0;
   text-align: center;
 }
-.workspace-frame .empty-state h3 {
-  font: 600 18px/1.4 var(--font-sans);
+.workspace-page .empty-state h3 {
+  font: 600 1rem/1.4 var(--font-sans);
 }
-.workspace-frame .empty-state p {
+.workspace-page .empty-state p {
   max-width: 55ch;
   margin-top: 0;
 }
@@ -126,27 +91,39 @@
   padding: 16px 20px;
   padding-bottom: max(16px, env(safe-area-inset-bottom));
 }
+/* Narrow windows: the actions wrap to a second row; phones show the title and primary in the top
+ * bar, so the row keeps only the fact, segment and secondaries, and takes no space without them. */
 @variant max-mobile {
   .page.workspace-page {
-    padding: 7px;
+    padding: 0 12px 12px;
   }
-  .workspace-heading {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px;
+  .ui-title-row.workspace-title-row {
+    min-height: 0;
+    padding: 0 0 8px;
   }
-  .workspace-heading h1 {
-    font-size: 16px;
+  .ui-title-row.workspace-title-row:not(
+      :has(
+        > .workspace-title-fact > *,
+        > .workspace-title-segment > *,
+        > .workspace-title-actions > *,
+        > .workspace-title-primary > *
+      )
+    ) {
+    padding: 0;
   }
-  .workspace-heading-copy {
-    flex-basis: calc(100% - 30px);
+  .workspace-title-row > h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
-  .workspace-heading-actions {
-    flex: 1 1 calc(100% - 30px);
-    min-width: 0;
-    margin-left: 30px;
+  .workspace-title-actions {
+    flex: 1 1 100%;
+    margin-left: 0;
   }
   :where(.workspace-body) {
-    padding: 12px;
+    padding: 2px 0 12px;
   }
 }

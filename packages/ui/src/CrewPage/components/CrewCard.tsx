@@ -1,70 +1,76 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import type { CrewCardProps } from '@/CrewPage/types.ts';
-import { runtimeLabels } from '@/lib/labels.ts';
-import { instructionUpdateTitle } from '@/lib/instruction-updates.ts';
-import { MessageSquare, RotateCcw, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { capabilityLine, runtimeLine } from '@/CrewPage/helpers.ts';
+import type { CapabilityLine, CrewCardProps } from '@/CrewPage/types.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import {
+  FileText,
+  Globe,
+  Layers,
+  Mail,
+  MessageSquare,
+  PenLine,
+  Search,
+  ShieldCheck,
+  Sparkles,
+} from 'lucide-react';
+import { CrewCardMenu } from './CrewCardMenu.tsx';
+import { CrewStatusTray } from './CrewStatusTray.tsx';
+import { CrewTimeline } from './CrewTimeline.tsx';
 
-export const CrewCard = ({
-  role,
-  status,
-  update,
-  onConfigure,
-  onChat,
-  onRestore,
-  working,
-}: CrewCardProps) => {
+const icons: Record<CapabilityLine['icon'], typeof Globe> = {
+  browser: Globe,
+  draft: PenLine,
+  review: ShieldCheck,
+  fit: Search,
+  mail: Mail,
+  crew: Layers,
+  notes: FileText,
+  chat: MessageSquare,
+};
+
+/** One agent: identity, setup, today's work and what it is doing now. */
+export const CrewCard = (props: CrewCardProps) => {
+  const { role, status, update, now, onConfigure, onChat, onReview } = props;
+  const data = useWorkspaceStore((state) => state.data);
+  const capability = capabilityLine(role);
+  const Icon = icons[capability.icon];
   return (
-    <section className={`crew-card ${role.id}`} data-retired={role.retiredAt ? '' : undefined}>
-      <div className="crew-card-top">
-        <RoleAvatar agentRole={role.id} />
-        <div>
-          <h2>{role.name}</h2>
-          <span
-            className={`role-status ${!role.enabled || status === 'Unavailable' ? 'paused' : ''}`}
-          >
-            {status}
-          </span>
-        </div>
+    <article
+      className={`crew-card ${role.id}`}
+      data-status={status.kind}
+      aria-labelledby={`crew-${role.id}-name`}
+    >
+      <div className="crew-card-head">
+        <span className="crew-pebble" data-live={status.kind === 'working' ? '' : undefined}>
+          <RoleAvatar agentRole={role.id} size="large" />
+        </span>
+        <span className="crew-card-actions">
+          {update ? (
+            <Button className="ui-chip crew-card-update" data-tone="plum" onClick={onReview}>
+              <Sparkles size={12} aria-hidden="true" />
+              Update
+              <span className="sr-only"> to {role.name}’s default instructions</span>
+            </Button>
+          ) : null}
+          <Button className="text-button crew-card-chat" onClick={onChat}>
+            Chat
+          </Button>
+          <CrewCardMenu {...props} />
+        </span>
       </div>
-      <p className="crew-card-description">{role.description}</p>
-      {update ? (
-        <p className="crew-card-update">
-          <Sparkles size={14} aria-hidden="true" />
-          {instructionUpdateTitle}
-        </p>
-      ) : null}
-      <dl className="crew-runtime">
-        <div>
-          <dt>Runtime</dt>
-          <dd>{runtimeLabels[role.runtime]}</dd>
-        </div>
-        <div>
-          <dt>Model</dt>
-          <dd title={role.model || undefined}>
-            {role.runtime === 'demo' ? 'Scripted' : role.model || 'CLI default'}
-          </dd>
-        </div>
-      </dl>
-      <div className="crew-card-actions">
-        <Button className="button primary" onClick={onChat}>
-          <MessageSquare size={14} aria-hidden="true" /> Chat
+      <h2 id={`crew-${role.id}-name`} className="crew-card-name">
+        <Button className="crew-card-name-button" onClick={onConfigure}>
+          {role.name}
         </Button>
-        {role.retiredAt ? (
-          <Button className="button" onClick={onRestore} disabled={working}>
-            <RotateCcw size={14} aria-hidden="true" /> Restore agent
-          </Button>
-        ) : (
-          <Button className="button" onClick={onConfigure}>
-            <SlidersHorizontal size={14} aria-hidden="true" /> Configure
-          </Button>
-        )}
-      </div>
-      {role.retiredAt ? (
-        <p className="quiet crew-card-retired-note">
-          Restores paused. Resume in Configure when ready.
-        </p>
-      ) : null}
-    </section>
+      </h2>
+      <p className="crew-card-model">{data ? runtimeLine(role, data) : null}</p>
+      <p className="crew-card-capability">
+        <Icon size={14} aria-hidden="true" />
+        {capability.label}
+      </p>
+      <CrewTimeline roleId={role.id} name={role.name} now={now} />
+      <CrewStatusTray status={status} name={role.name} />
+    </article>
   );
 };

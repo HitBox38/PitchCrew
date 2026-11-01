@@ -43,7 +43,7 @@ export const ExportRequest = ({
               formats: format === 'markdown' ? [] : format === 'both' ? ['pdf', 'docx'] : [format],
               layout,
             },
-            'Documents generated for review in Inbox',
+            'Documents generated for review in Decisions',
           )
         }
       >

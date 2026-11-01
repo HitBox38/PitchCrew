@@ -18,7 +18,7 @@ export const MemoryEntryActions = ({
 }) => {
   const { editing, setEditing, deleting, setDeleting, content, setContent, setTags, save } = editor;
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="chat-memory-actions flex flex-wrap items-center gap-3">
       <Button className="text-button" size="xs" variant="ghost" onClick={openSource}>
         View source
       </Button>

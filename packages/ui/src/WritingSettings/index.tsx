@@ -1,48 +1,50 @@
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Switch } from '@/components/ui/switch/index.tsx';
+import { Plus } from 'lucide-react';
 import { useWritingSettings } from './hooks/useWritingSettings.ts';
 import { GuidePreferences } from './components/GuidePreferences.tsx';
 import { GuideProposals } from './components/GuideProposals.tsx';
 import { PreferenceEditor } from './components/PreferenceEditor.tsx';
-import { SettingsIntro } from '@/SettingsPage/components/SettingsIntro.tsx';
+import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
+import { SettingRow } from '@/SettingsPage/components/SettingRow.tsx';
 
 export const WritingSettings = () => {
   const model = useWritingSettings();
   const { guide, working, change } = model;
   if (!guide) return null;
+  const active = guide.preferences.filter((item) => item.enabled).length;
   return (
-    <section className="settings-section space-y-5" aria-labelledby="writing-heading">
-      <SettingsIntro
+    <>
+      <GuideProposals guide={guide} change={change} working={working} />
+      <SettingsSection
         id="writing-heading"
         title="Writing guide"
-        description="Tell Writer and Reviewer how you want your applications to read. Your explicit preferences take precedence over learned suggestions."
-        actions={<Button onClick={() => model.setEditing(null)}>Add preference</Button>}
-      />
-      <div className="flex flex-wrap gap-2">
-        <span className="badge">
-          {guide.preferences.filter((item) => item.enabled).length} active preferences
-        </span>
-        <span className="badge">Shared by Writer and Reviewer</span>
-      </div>
-      <label className="settings-row" htmlFor="writing-learning">
-        <span>
-          <strong>Learn from chat corrections</strong>
-          <span className="quiet block">
-            Learn after consistent corrections across two applications. Older conversations stay
-            excluded.
-          </span>
-        </span>
-        <Switch
+        count={`${active} active`}
+        description="Writer and Reviewer share this guide. Your explicit preferences take precedence over learned ones."
+        actions={
+          <Button size="sm" onClick={() => model.setEditing(null)}>
+            <Plus size={14} aria-hidden="true" /> Add preference
+          </Button>
+        }
+      >
+        <SettingRow
           id="writing-learning"
-          checked={guide.automatic}
-          disabled={working}
-          onCheckedChange={(automatic) =>
-            void change({ action: 'learning', automatic }).catch(() => {})
-          }
-        />
-      </label>
-      <GuidePreferences guide={guide} change={change} working={working} edit={model.setEditing} />
-      <GuideProposals guide={guide} change={change} working={working} />
+          title="Learn from chat corrections"
+          description="Learn after consistent corrections across two applications. Older conversations stay excluded."
+        >
+          <Switch
+            id="writing-learning"
+            aria-labelledby="writing-learning-label"
+            aria-describedby="writing-learning-description"
+            checked={guide.automatic}
+            disabled={working}
+            onCheckedChange={(automatic) =>
+              void change({ action: 'learning', automatic }).catch(() => {})
+            }
+          />
+        </SettingRow>
+        <GuidePreferences guide={guide} change={change} working={working} edit={model.setEditing} />
+      </SettingsSection>
       {model.editing !== undefined ? (
         <PreferenceEditor
           key={model.editing?.id ?? 'new'}
@@ -53,6 +55,6 @@ export const WritingSettings = () => {
           working={working}
         />
       ) : null}
-    </section>
+    </>
   );
 };

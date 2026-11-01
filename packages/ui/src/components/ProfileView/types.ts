@@ -1,4 +1,6 @@
 import type { useProfileView } from '@/components/ProfileView/hooks/useProfileView.ts';
+import type { useProfileNotes } from './hooks/useProfileNotes.ts';
+import type { useProfileWorkspace } from './hooks/useProfileWorkspace.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import type { ProfileFile, Snapshot } from '@pitchcrew/core';
 
@@ -8,20 +10,15 @@ export interface ProfileViewProps {
   working: boolean;
 }
 export type ProfileViewModel = NonNullable<ReturnType<typeof useProfileView>>;
+export type ProfileTreeModel = ReturnType<typeof useProfileNotes>;
+export type ProfileWorkspaceModel = ReturnType<typeof useProfileWorkspace>;
 
-export type ProfileLocationProps = Pick<ProfileViewModel, 'data'>;
-
-export type ProfileNotesProps = Pick<
-  ProfileViewModel,
-  | 'data'
-  | 'name'
-  | 'openNote'
-  | 'createNote'
-  | 'sourceController'
-  | 'documents'
-  | 'working'
-  | 'organization'
-> & { hidden?: boolean };
+/** Shared props for the page sections composed by ProfileView. */
+export interface ProfileSectionProps {
+  controller: ProfileViewModel;
+  tree: ProfileTreeModel;
+  workspace: ProfileWorkspaceModel;
+}
 
 export interface ProfileDocument {
   id: string;
@@ -46,4 +43,6 @@ export interface ProfileTreeNode {
 }
 export type ProfileFolderOperation =
   | { kind: 'create'; parent: string }
-  | { kind: 'move'; name: string; current: string };
+  | { kind: 'move'; name: string; current: string }
+  | { kind: 'rename'; note: { name: string; content: string } };
+export type ProfileFolderChange = Exclude<ProfileFolderOperation, { kind: 'rename' }>;

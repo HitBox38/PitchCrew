@@ -8,8 +8,14 @@ import type { ProfileSourcesModel } from './types.ts';
 
 export const ProfileSources = (c: ProfileSourcesModel) => {
   return (
-    <section className="profile-sources" aria-label="Profile sources">
-      {c.proposalId ? (
+    <section
+      className="profile-sources"
+      aria-label="Profile sources"
+      data-review={c.preview ? '' : undefined}
+    >
+      {c.preview ? (
+        <ImportReview {...c} />
+      ) : c.proposalId ? (
         c.proposal ? (
           <ProfileMaintenance
             {...c.maintenance}
@@ -30,10 +36,11 @@ export const ProfileSources = (c: ProfileSourcesModel) => {
           <SourceListView {...c} />
         </>
       )}
-      <p className="mt-5 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
-        Reviewed copies stay on this device. Adding a source does not grant agents account access.
-      </p>
-      <ImportReview {...c} />
+      {c.preview ? null : (
+        <p className="profile-sources-footnote">
+          Reviewed copies stay on this device. Adding a source does not grant agents account access.
+        </p>
+      )}
       {c.connection.editing ? <ConnectAccountDialog {...c.connection} /> : null}
     </section>
   );

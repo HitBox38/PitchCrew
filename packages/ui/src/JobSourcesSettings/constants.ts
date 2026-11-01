@@ -50,3 +50,5 @@ export const emptyDraft: SourceDraft = {
   locationInclude: '',
   remoteOnly: false,
 };
+/** Matches core `maxJobSources`; the daemon enforces it, this only explains a disabled Add. */
+export const maxSources = 25;

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button/index.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { taskLabels } from '@/lib/task-status.ts';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 
 export const QueueFollowUps = ({
   tasks,
@@ -28,14 +29,17 @@ export const QueueFollowUps = ({
             <strong>
               {data.roles.find((role) => role.id === task.roleId)?.name ?? task.roleId}
             </strong>
-            <span>{taskLabels[task.status]}</span>
+            <span>
+              <StatusBead status={task.status} />
+              {taskLabels[task.status]}
+            </span>
           </div>
-          <p className="line-clamp-3" title={task.content}>
+          <p className="queue-follow-up-text" title={task.content}>
             {task.content}
           </p>
           {task.status === 'failed' ? (
-            <div className="queue-row-actions mt-2">
-              <p className="form-error w-full">{task.error}</p>
+            <div className="queue-row-actions">
+              <p className="queue-request-error">{task.error}</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -45,7 +49,7 @@ export const QueueFollowUps = ({
                 Retry follow-up
               </Button>
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 disabled={working}
                 onClick={() => recover(task.id, 'skip-follow-up')}

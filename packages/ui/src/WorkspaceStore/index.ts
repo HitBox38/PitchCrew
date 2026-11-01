@@ -28,7 +28,6 @@ export const createWorkspaceStore = () => {
       recentIds: readRecent(),
       query: '',
       showClosed: false,
-      flashStage: null,
       setToast: (toast, toastType = 'info') => set({ toast, toastType }),
       setAdd: (add) => set({ add }),
       setCreatingConversation: (creatingConversation) => set({ creatingConversation }),
@@ -36,7 +35,6 @@ export const createWorkspaceStore = () => {
       setRoleId: (roleId) => set({ roleId }),
       setQuery: (query) => set({ query }),
       setShowClosed: (showClosed) => set({ showClosed }),
-      setFlashStage: (flashStage) => set({ flashStage }),
       openCard: (id, section = 'job') => {
         const recentIds = [id, ...get().recentIds.filter((other) => other !== id)].slice(0, 5);
         set({ selectedId: id, selectedJobSection: section, recentIds });

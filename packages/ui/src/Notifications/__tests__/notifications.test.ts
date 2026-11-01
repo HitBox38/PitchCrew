@@ -1,7 +1,10 @@
 import type { ChatMessage, Snapshot } from '@pitchcrew/core';
+import type { CrewNotification } from '../types.ts';
 import { expect, it } from 'vitest';
 import { notificationPresentation } from '../constants.ts';
 import {
+  groupNotifications,
+  notificationGroup,
   collectNotifications,
   NotificationTracker,
   notificationToastOptions,
@@ -154,6 +157,7 @@ it('distinguishes questions, approvals and proposals by their saved source', () 
         threadId: 'crew',
         status: 'pending',
         reason: 'Add this checklist.',
+        skill: { name: 'Checklist' },
         createdAt: message.createdAt,
       },
     ],
@@ -172,7 +176,10 @@ it('distinguishes questions, approvals and proposals by their saved source', () 
     ].sort(),
   );
   const question = items.find((item) => item.context === 'input')!;
-  expect(question).toMatchObject({ title: 'Scout needs your answer', target: '/chat/scout' });
+  expect(question).toMatchObject({ title: 'Scout asks you a question', target: '/chat/scout' });
+  expect(items.find((item) => item.context === 'skill_proposal')?.title).toBe(
+    'Scout suggests the Checklist skill',
+  );
   expect(notificationToastOptions(question).description).toBe(message.content);
   expect(items.find((item) => item.context === 'skill_proposal')?.target).toBe('/chat/crew');
   expect(
@@ -218,6 +225,7 @@ it('lists unanswered default instruction updates as attention items for Crew', (
       body: 'Fictional change summary.',
       target: '/crew',
       reviewId: 'scout',
+      roleId: 'scout',
       createdAt: '2026-10-05T00:00:00.000Z',
     },
   ]);
@@ -348,4 +356,25 @@ it('skips message toasts only for the visible conversation the user is reading',
   expect(notificationInView({ context: 'input', target: '/chat/scout' }, '/chat/scout', true)).toBe(
     false,
   );
+});
+
+it('groups the panel into Needs you, Updates and Messages, newest first within each', () => {
+  expect(notificationGroup({ context: 'packet_approval' })).toBe('needs');
+  expect(notificationGroup({ context: 'input' })).toBe('needs');
+  expect(notificationGroup({ context: 'skill_update' })).toBe('updates');
+  expect(notificationGroup({ context: 'message' })).toBe('messages');
+  const item = (id: string, context: CrewNotification['context']) =>
+    ({ id, context }) as CrewNotification;
+  const groups = groupNotifications([
+    item('m1', 'message'),
+    item('u1', 'runtime_update'),
+    item('n1', 'browser_approval'),
+    item('m2', 'message'),
+  ]);
+  expect(groups.map((group) => [group.title, group.items.map((entry) => entry.id)])).toEqual([
+    ['Needs you', ['n1']],
+    ['Updates', ['u1']],
+    ['Messages', ['m1', 'm2']],
+  ]);
+  expect(groupNotifications([])).toEqual([]);
 });

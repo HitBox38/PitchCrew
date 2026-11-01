@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import type { Card } from './cards.ts';
 import { applicationFormSchema } from './application-form.ts';
+import type { PacketReviewSummary } from './packets.ts';
 export const missingPersonalAnswers = (context: ApplicationContext) => {
   return context.requirements.filter((r) => r.required && r.personal && !r.answer.trim());
 };
@@ -107,4 +108,6 @@ export interface PacketReviewEvidence {
   packetDigest: string;
   runId: string;
   reviewedAt: string;
+  /** Reviewer's summary for the user; absent on reviews recorded before event v32. */
+  summary?: PacketReviewSummary;
 }

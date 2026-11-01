@@ -141,7 +141,7 @@ export const jobNextAction = (model: CardDetailsModel) => {
   if (card.state === 'agreed')
     return {
       label: 'Prepare export',
-      hint: 'Choose formats, then review the exact documents in Inbox.',
+      hint: 'Choose formats, then review the exact documents in Decisions.',
       perform: () => openApplication('export'),
     };
   if (card.state === 'awaiting_approval')
@@ -157,7 +157,7 @@ export const jobNextAction = (model: CardDetailsModel) => {
             ),
         }
       : {
-          label: 'Open approval inbox',
+          label: 'Open in Decisions',
           hint: 'Review the exact documents before export.',
           perform: model.openInbox,
         };

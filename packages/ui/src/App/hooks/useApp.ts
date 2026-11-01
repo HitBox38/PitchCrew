@@ -1,4 +1,4 @@
-import { inboxPendingCount } from '@/lib/inbox.ts';
+import { decisions } from '@/ClayInterface/signals.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { copyDataDirectory } from '@/lib/data-directory.ts';
 import { useShortcuts } from '@/shortcuts.ts';
@@ -78,16 +78,9 @@ export const useApp = () => {
       }),
     [router, closePanels],
   );
-  const pending = data ? inboxPendingCount(data) : 0;
+  const pending = data ? decisions(data).length : 0;
   const selected = data?.cards.find((c) => c.id === selectedId);
   const selectedRole = data?.roles.find((r) => r.id === roleId);
-  const jumpToStage = (id: string) => {
-    go('board');
-    const { setShowClosed, setQuery, setFlashStage } = useWorkspaceStore.getState();
-    setShowClosed(false);
-    setQuery('');
-    setFlashStage(id);
-  };
   const copyDirectory = () => {
     if (!data) return;
     copyDataDirectory(data.dataDirectory);
@@ -130,7 +123,6 @@ export const useApp = () => {
     pending,
     selected,
     selectedRole,
-    jumpToStage,
     copyDirectory,
     checkRuntimes,
   };

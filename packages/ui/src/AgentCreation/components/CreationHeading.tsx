@@ -1,59 +1,33 @@
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
-import { SheetDescription } from '@/components/ui/sheet/components/SheetDescription.tsx';
-import { creationSteps } from '../constants.ts';
+import { DialogDescription, DialogTitle } from '@/components/ui/dialog/index.tsx';
 import type { CreationController } from '../types.ts';
+import { CreationSteps } from './CreationSteps.tsx';
 
-export const CreationHeading = ({
-  step,
-  close,
-  created,
-  saving,
-  working,
-  goTo,
-}: Pick<CreationController, 'step' | 'close' | 'created' | 'saving' | 'working' | 'goTo'>) => {
+export const CreationHeading = (
+  props: Pick<CreationController, 'step' | 'close' | 'created' | 'saving' | 'working' | 'goTo'>,
+) => {
+  const { close, created, saving } = props;
   return (
-    <>
-      <header className="role-settings-heading">
-        <div>
-          <SheetTitle>{created ? 'Agent created' : 'Create agent'}</SheetTitle>
-          <SheetDescription>
-            {created
-              ? 'Your new crew member is ready to configure or chat.'
-              : 'Define a role for any kind of work.'}
-          </SheetDescription>
-        </div>
-        <Button
-          variant="ghost"
-          className="icon-button"
-          disabled={saving}
-          onClick={close}
-          aria-label="Close agent creation"
-        >
-          <X size={20} />
-        </Button>
-      </header>
-      {!created ? (
-        <nav className="creation-progress" aria-label="Agent setup steps">
-          <ol>
-            {creationSteps.map((label, index) => (
-              <li key={label}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={saving || working || index > step}
-                  aria-current={index === step ? 'step' : undefined}
-                  onClick={() => goTo(index)}
-                >
-                  <span className="creation-step-number">{index + 1}</span>
-                  <span>{label}</span>
-                </Button>
-              </li>
-            ))}
-          </ol>
-        </nav>
-      ) : null}
-    </>
+    <header className="agent-wizard-heading">
+      <div className="agent-wizard-titles">
+        <DialogTitle>{created ? `${created.name} joined your crew` : 'New agent'}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {created
+            ? 'Your new crew member is ready to configure or chat.'
+            : 'Define a role for any kind of work.'}
+        </DialogDescription>
+      </div>
+      {!created ? <CreationSteps {...props} /> : null}
+      <Button
+        variant="ghost"
+        className="icon-button agent-panel-close"
+        disabled={saving}
+        onClick={close}
+        aria-label="Close agent creation"
+      >
+        <X size={18} />
+      </Button>
+    </header>
   );
 };

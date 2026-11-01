@@ -1,30 +1,48 @@
-import { outcomeLabels } from '@/lib/labels.ts';
+import { Button } from '@/components/ui/button/components/Button.tsx';
 import { outcomes, type ApplicationInsights } from '@pitchcrew/core/insights';
 import { outcomeHints } from '../constants.ts';
+import type { ChangeSearch } from '../types.ts';
 
-export const OutcomeSummary = ({ insights }: { insights: ApplicationInsights }) => {
+/** Recessed figures strip. Zeros print as 0 (they are the honest empty state); example jobs are
+ * never counted. */
+export const OutcomeSummary = ({
+  insights,
+  filtered,
+  change,
+}: {
+  insights: ApplicationInsights;
+  filtered: boolean;
+  change: ChangeSearch;
+}) => {
   return (
-    <section aria-labelledby="insights-outcomes">
+    <section className="insights-figures-section" aria-labelledby="insights-outcomes">
       <h2 id="insights-outcomes" className="sr-only">
         Outcomes
       </h2>
-      <dl className="insights-outcome-grid grid grid-cols-2 wide:grid-cols-5">
-        <div className="insight-tile">
+      <dl className="insights-figures">
+        <div>
           <dt>Applications</dt>
           <dd>{insights.total}</dd>
-          <small>Matching the filters</small>
         </div>
         {outcomes.map((outcome) => (
-          <div key={outcome} className={`insight-tile ${outcome}`}>
-            <dt>
-              <span className="outcome-dot" aria-hidden="true" />
-              {outcomeLabels[outcome]}
-            </dt>
+          <div key={outcome} data-outcome={outcome}>
+            <dt>{outcomeHints[outcome]}</dt>
             <dd>{insights.outcomes[outcome]}</dd>
-            <small>{outcomeHints[outcome]}</small>
           </div>
         ))}
       </dl>
+      {!insights.total && filtered ? (
+        <p className="insights-empty-line">
+          No applications match these filters.{' '}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => change({ tag: undefined, from: undefined, to: undefined })}
+          >
+            Clear filters
+          </Button>
+        </p>
+      ) : null}
     </section>
   );
 };

@@ -29,7 +29,7 @@ export const CorrectionEvidence = ({ id }: { id: string }) => {
       ) : !evidence ? (
         <p className="quiet">Open to load the correction.</p>
       ) : (
-        <div className="space-y-2">
+        <div className="settings-evidence">
           <p>{evidence.instruction}</p>
           <p className="quiet">
             {card ? (
@@ -44,7 +44,7 @@ export const CorrectionEvidence = ({ id }: { id: string }) => {
           {(['resume', 'coverLetter'] as const)
             .filter((source) => evidence.scope === 'all' || evidence.scope === source)
             .map((source) => (
-              <div key={source}>
+              <div key={source} className="settings-evidence-pair">
                 <SourceBlock
                   label={`${source === 'resume' ? 'Resume' : 'Cover letter'} before correction`}
                   value={evidence.before[source]}

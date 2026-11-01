@@ -35,6 +35,8 @@ export const actorLabels: Record<string, string> = {
   user: 'You',
   demo: 'Demo runtime',
   system: 'Pitchcrew',
+  orchestrator: 'Pitchcrew',
+  'external-mcp': 'External agent',
   mcp: 'Crew tools',
   scout: 'Scout',
   writer: 'Writer',

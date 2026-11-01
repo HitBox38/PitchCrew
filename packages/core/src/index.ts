@@ -36,11 +36,13 @@ export type { ChatMessage, ChatResult, ChatStreamState, ChatStreamUpdate } from 
 export * from './computer.ts';
 export { currentEventVersion, decodeEvent } from './events.ts';
 export type { BoardEvent } from './events.ts';
-export { packetSchema } from './packets.ts';
+export { packetChangeNotesSchema, packetReviewSummarySchema, packetSchema } from './packets.ts';
 export type {
   ArtifactLayout,
   Packet,
   PacketArtifact,
+  PacketChanges,
+  PacketReviewSummary,
   DocumentFinding,
   DocumentVerification,
 } from './packets.ts';
@@ -54,7 +56,7 @@ export {
   customCapabilities,
 } from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
-export { runResultSchema } from './runs.ts';
+export { compactRun, runResultSchema } from './runs.ts';
 export type { AgentTask, Run, RunResult, RunActivity, RuntimeActivity } from './runs.ts';
 export { routineInput } from './routines.ts';
 export type { Routine, RoutineInput } from './routines.ts';

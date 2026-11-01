@@ -51,3 +51,15 @@ export const remotePoint = (
 export const touchScroll = (startY: number, endY: number, height: number, remoteHeight: number) => {
   return Math.max(-2000, Math.min(2000, ((startY - endY) * remoteHeight) / height));
 };
+
+/** An address split for display: the host carries the weight, the path stays quiet. */
+export const addressParts = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    if (!/^https?:$/.test(parsed.protocol)) return null;
+    const rest = `${parsed.pathname === '/' ? '' : parsed.pathname}${parsed.search}${parsed.hash}`;
+    return { host: parsed.host, rest };
+  } catch {
+    return null;
+  }
+};

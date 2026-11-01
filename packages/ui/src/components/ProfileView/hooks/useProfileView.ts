@@ -5,13 +5,13 @@ import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useProfileSources } from '@/components/ProfileSources/hooks/useProfileSources.ts';
 import { useProfileDocuments } from './useProfileDocuments.ts';
 import { useProfileOrganization } from './useProfileOrganization.ts';
-import { documentDirty } from '../helpers.ts';
+import { documentDirty, saveBlocker } from '../helpers.ts';
 
 export const useProfileView = ({ data, action, working }: ProfileViewProps) => {
   const save = async (e: FormEvent) => {
     e.preventDefault();
     const note = documents.active;
-    if (working || !note) return;
+    if (working || !note || saveBlocker(data.runs, data.profileProposals)) return;
     const snapshot = { name: note.name, content: note.content };
     try {
       await action('/profile', 'PUT', snapshot, 'Profile note saved');
@@ -71,12 +71,12 @@ export const useProfileView = ({ data, action, working }: ProfileViewProps) => {
     data,
     working,
     name: documents.active?.name ?? '',
+    activeSavedName: documents.active?.saved.name ?? '',
     content: documents.active?.content ?? '',
     error: documents.active?.error ?? '',
     dirty: documents.active ? documentDirty(documents.active) : false,
-    setName: (name: string) => {
-      if (documents.active) documents.update(documents.active.id, { name });
-    },
+    blocker: saveBlocker(data.runs, data.profileProposals),
+    renameNote: documents.rename,
     setContent: (content: string) => {
       if (documents.active) documents.update(documents.active.id, { content });
     },

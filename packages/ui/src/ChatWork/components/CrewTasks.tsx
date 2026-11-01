@@ -5,14 +5,22 @@ import { MessageResponse } from '@/components/ai-elements/message/components/Mes
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { timeAgo } from '@/lib/time.ts';
-import { Check, Clock3, GitBranch } from 'lucide-react';
+import { GitBranch } from 'lucide-react';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 
 export const CrewTasks = ({ tasks, data, name, onOpenCard, working, act }: CrewTasksProps) => {
   return (
     <WorkSection className="chat-work-section">
       <div className="chat-work-heading">
         <div>
-          <h3>Crew follow-ups</h3>
+          <h3>
+            Crew follow-ups
+            {tasks.length ? (
+              <span className="chat-count" data-tone="quiet">
+                {tasks.length}
+              </span>
+            ) : null}
+          </h3>
           <p>See what the crew has queued and completed.</p>
         </div>
         <GitBranch size={18} />
@@ -24,7 +32,7 @@ export const CrewTasks = ({ tasks, data, name, onOpenCard, working, act }: CrewT
             return (
               <li className={`chat-task ${task.status}`} key={task.id}>
                 <span className="chat-task-marker" aria-hidden="true">
-                  {task.status === 'completed' ? <Check size={12} /> : <Clock3 size={12} />}
+                  <StatusBead status={task.status} />
                 </span>
                 <div>
                   <header>

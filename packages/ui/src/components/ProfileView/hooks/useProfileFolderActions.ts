@@ -1,25 +1,26 @@
 import { useState } from 'react';
-import type { ProfileFolderOperation, ProfileNotesProps } from '../types.ts';
-import type { useProfileNotes } from './useProfileNotes.ts';
+import type { ProfileFolderOperation, ProfileTreeModel, ProfileViewModel } from '../types.ts';
 
-export const useProfileFolderActions = (
-  props: ProfileNotesProps,
-  notes: ReturnType<typeof useProfileNotes>,
-) => {
+export const useProfileFolderActions = (controller: ProfileViewModel, tree: ProfileTreeModel) => {
   const [operation, setOperation] = useState<ProfileFolderOperation | null>(null);
   const start = (next: ProfileFolderOperation) => {
-    props.organization.clearError();
+    controller.organization.clearError();
     setOperation(next);
   };
   const submit = async (folder: string) => {
-    if (!operation || props.working) return;
-    const changed = await props.organization.change(
+    if (!operation || controller.working) return;
+    if (operation.kind === 'rename') {
+      controller.renameNote(operation.note, folder);
+      setOperation(null);
+      return;
+    }
+    const changed = await controller.organization.change(
       operation.kind === 'create'
         ? { action: 'create', path: folder }
         : { action: 'move', name: operation.name, folder },
     );
     if (changed) {
-      notes.reveal(folder);
+      tree.reveal(folder);
       setOperation(null);
     }
   };

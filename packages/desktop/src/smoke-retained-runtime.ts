@@ -1,6 +1,10 @@
 /** Verify production can display and reconfigure a retained Demo role without running it. */
 export const smokeRetainedRuntime = `(async () => {
   if (snapshot.runtimes.some((runtime) => runtime.id === 'demo')) throw new Error('Demo must be absent in production.');
+  // Role chats sit in the sidebar's Agent chats group, folded on a fresh device; later checks reuse it open.
+  const agentChats = document.querySelector('button[aria-label="Agent chats"]');
+  if (agentChats?.getAttribute('aria-expanded') !== 'true') agentChats?.click();
+  await waitFor(() => !!document.querySelector('a[href="/chat/writer"]'));
   document.querySelector('a[href="/chat/writer"]')?.click();
   const chat = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('[role="textbox"][aria-label="Message Writer"]'));
   if (!chat) throw new Error('Retained Demo chat failed to render.');
@@ -22,8 +26,8 @@ export const smokeRetainedRuntime = `(async () => {
   [...document.querySelectorAll('[role="option"]')].find((item) => item.textContent === 'Claude Code')?.click();
   const selected = await waitFor(() => document.querySelector('#writer-runtime [data-slot="select-value"]')?.textContent === 'Claude Code');
   if (!selected) throw new Error('Could not select a real runtime for retained Demo role.');
-  document.querySelector('.role-settings-form')?.requestSubmit();
-  const saved = await waitFor(() => !document.querySelector('.role-settings-panel') && document.querySelector('[role="textbox"][aria-label="Message Writer"]')?.getAttribute('contenteditable') === 'true');
+  document.querySelector('.agent-panel-form')?.requestSubmit();
+  const saved = await waitFor(() => !document.querySelector('.agent-panel') && document.querySelector('[role="textbox"][aria-label="Message Writer"]')?.getAttribute('contenteditable') === 'true');
   const after = await fetch('/api/snapshot', { headers: { 'x-pitchcrew-client': 'ui' } }).then((response) => response.json());
   const restored = after.roles.find((role) => role.id === 'writer');
   const original = snapshot.roles.find((role) => role.id === 'writer');

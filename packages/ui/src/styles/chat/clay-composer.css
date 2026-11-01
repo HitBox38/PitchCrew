@@ -1,0 +1,200 @@
+/* Clay interface preview: clay-composer. Scoped under [data-interface='clay'].
+ * One quiet toolbar: who the message reaches (recessed), the model and browser mode as plain
+ * picks, then what happens on send, a rose Stop and the round send. */
+[data-interface='clay'] .chat-prompt-footer {
+  justify-content: flex-start;
+  gap: 4px;
+  padding: 6px 10px 10px 12px;
+}
+[data-interface='clay'] .chat-prompt-footer .chat-add-context {
+  margin-right: 2px;
+}
+
+/* Recipient: recessed, because it reflects the draft rather than acting. */
+.chat-composer-recipient {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 6px;
+  max-width: 14rem;
+  height: 28px;
+  padding: 0 10px 0 4px;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 600;
+}
+.chat-composer-recipient-avatars {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.chat-composer-recipient-avatars:empty {
+  display: none;
+}
+.chat-composer-recipient .role-avatar.small {
+  width: 20px;
+  height: 20px;
+}
+.chat-composer-recipient .role-avatar + .role-avatar {
+  margin-left: -7px;
+  outline: 2px solid var(--paper-deep);
+}
+.chat-composer-recipient > .chat-select-prefix {
+  margin-left: 4px;
+  font-weight: 500;
+}
+.chat-composer-recipient-avatars:not(:empty) + .chat-select-prefix {
+  margin-left: 0;
+}
+.chat-composer-recipient-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chat-composer-recipient[data-empty] {
+  padding-left: 10px;
+  color: var(--rose);
+}
+
+/* Model and browser mode: plain picks that only lift on hover. */
+[data-interface='clay'] .chat-composer-runtime {
+  gap: 6px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 8px;
+  font-size: 12px;
+}
+[data-interface='clay'] .chat-composer-runtime > svg:last-child {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+[data-interface='clay'] .chat-composer-runtime .role-avatar.small {
+  width: 18px;
+  height: 18px;
+}
+[data-interface='clay'] .chat-composer-runtime .role-avatar svg {
+  width: 11px;
+  height: 11px;
+}
+[data-interface='clay'] .chat-prompt-footer .chat-browser-mode {
+  gap: 6px;
+  max-width: 13rem;
+  height: 28px;
+  padding: 0 8px;
+  border-color: transparent;
+  border-radius: 8px;
+  background: none;
+  box-shadow: none;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+[data-interface='clay'] .chat-prompt-footer .chat-browser-mode:hover,
+[data-interface='clay'] .chat-prompt-footer .chat-browser-mode[data-popup-open],
+[data-interface='clay'] .chat-composer-runtime:hover {
+  border-color: transparent;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+
+/* What happens on send: quiet text, or the follow-up choice styled as that text. */
+[data-interface='clay'] .chat-send-actions {
+  gap: 6px;
+}
+.chat-send-note {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+span.chat-send-note {
+  margin-right: 4px;
+}
+[data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select {
+  flex-shrink: 1;
+  max-width: 17rem;
+  height: 28px;
+  padding: 0 6px 0 8px;
+  border-color: transparent;
+  border-radius: 8px;
+  background: none;
+  box-shadow: none;
+  color: var(--muted);
+  font-weight: 400;
+}
+[data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select:hover,
+[data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select[data-popup-open] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+
+/* Stop: a raised clay button in rose, named rather than an icon alone. */
+[data-interface='clay'] .chat-stop-response {
+  flex-shrink: 0;
+  gap: 6px;
+  width: auto;
+  height: 30px;
+  padding: 0 11px 0 9px;
+  color: var(--rose);
+  font-size: 12px;
+  font-weight: 600;
+}
+[data-interface='clay'] .chat-stop-response:hover {
+  color: var(--rose);
+}
+
+/* Context above the draft: the job and files as compact raised chips. */
+[data-interface='clay'] .chat-composer-context {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+[data-interface='clay'] .chat-composer-context .chat-context-job {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 6px 0 2px;
+  border-radius: 8px;
+}
+[data-interface='clay'] .chat-context-job > button:first-child {
+  gap: 7px;
+  height: 28px;
+  color: var(--ink);
+  font-weight: 600;
+}
+[data-interface='clay'] .chat-context-job > button:first-child:hover {
+  background: none;
+  color: var(--primary);
+}
+[data-interface='clay'] .chat-context-job > svg {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+[data-interface='clay'] .chat-composer-context [data-slot='attachment'] {
+  min-width: 0;
+  height: 30px;
+  padding: 0 4px 0 6px;
+  gap: 7px;
+  border-radius: 8px;
+}
+[data-interface='clay'] .chat-composer-context [data-slot='attachment-media'] {
+  width: 20px;
+  border-radius: 6px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+}
+
+@container chat-desk (width < 32rem) {
+  [data-interface='clay'] .chat-composer-recipient {
+    max-width: 9rem;
+  }
+  [data-interface='clay'] .chat-send-actions .chat-send-note.chat-context-select {
+    max-width: none;
+  }
+}

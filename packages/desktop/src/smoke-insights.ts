@@ -20,7 +20,7 @@ export const smokeInsights = `(async () => {
   const importReady = importedCard?.weight === -1 && importedCard.lessons?.[0]?.text === 'Fictional imported lesson from native smoke.';
   const first = await register(0);
   document.querySelector('a[href="/"]')?.click();
-  const cardSelector = '.job-card[aria-label="Open Fictional Analyst at Fictional Learning 0"]';
+  const cardSelector = '.clay-job-card[aria-label="Open Fictional Analyst at Fictional Learning 0"]';
   if (!await waitFor(() => !!document.querySelector(cardSelector))) return false;
   document.querySelector(cardSelector).click();
   if (!await waitFor(() => !!document.querySelector('.detail-tabs'))) return false;
@@ -54,7 +54,7 @@ export const smokeInsights = `(async () => {
   document.querySelector('[aria-label="Close dialog"]')?.click();
   if (!await waitFor(() => !document.querySelector('.card-details-panel'))) return false;
   for (let index = 1; index < 201; index++) await register(index);
-  document.querySelector('a[href="/insights"]')?.click();
+  await openPage('Insights');
   const insightsReady = await waitFor(() => location.pathname === '/insights' && !!document.querySelector('.insights-table'));
   const tidy = document.querySelector('.insights-tidy-trigger');
   if (tidy?.getAttribute('aria-expanded') !== 'true') tidy?.click();

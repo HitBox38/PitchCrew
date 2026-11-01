@@ -1,7 +1,7 @@
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import { AnimatePresence } from 'motion/react';
 import * as m from 'motion/react-m';
-import { RoleProposalContent } from '@/ChatWork/components/RoleProposalContent.tsx';
+import { ClayRoleProposal } from '@/ChatWork/components/ClayRoleProposal.tsx';
 import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import type { RoleProposalsProps } from '@/ChatWork/types.ts';
 import { CircleCheck } from 'lucide-react';
@@ -12,10 +12,16 @@ export const RoleProposals = ({ proposals, data, working, act }: RoleProposalsPr
     <WorkSection className="chat-work-section">
       <div className="chat-work-heading">
         <div>
-          <h3>Proposed changes</h3>
+          <h3>
+            Proposed changes
+            {proposals.length ? (
+              <span className="chat-count" data-tone="plum">
+                {proposals.length}
+              </span>
+            ) : null}
+          </h3>
           <p>Review how your agents want to work.</p>
         </div>
-        {proposals.length ? <span className="chat-count">{proposals.length}</span> : null}
       </div>
       <AnimatePresence initial={false} mode="popLayout">
         {proposals.length ? (
@@ -35,7 +41,7 @@ export const RoleProposals = ({ proposals, data, working, act }: RoleProposalsPr
                 key={proposal.id}
                 aria-label={`${current.name} proposed changes`}
               >
-                <RoleProposalContent
+                <ClayRoleProposal
                   proposal={proposal}
                   current={current}
                   sourceName={data.roles.find((r) => r.id === proposal.sourceRoleId)?.name}

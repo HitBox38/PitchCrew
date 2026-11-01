@@ -16,45 +16,48 @@ export const RoutineDialogs = ({
   action: Action;
   working: boolean;
 }) => {
+  const { editing, deleting } = controller;
   return (
     <>
-      {controller.editing ? (
+      {editing ? (
         <RoutineEditor
-          key={controller.editing === 'new' ? 'new' : controller.editing.id}
-          routine={controller.editing === 'new' ? null : controller.editing}
+          key={editing === 'new' ? 'new' : editing.id}
+          routine={editing === 'new' ? null : editing}
           roles={data.roles}
           cards={data.cards}
           action={action}
           working={working}
           onClose={() => controller.setEditing(null)}
+          onDelete={editing === 'new' ? undefined : () => controller.setDeleting(editing)}
         />
       ) : null}
-      {controller.deleting ? (
+      {deleting ? (
         <Modal
           title="Delete routine"
+          className="routine-delete"
           onClose={() => {
             if (!working) controller.setDeleting(null);
           }}
         >
           <p>
-            Delete <strong>{controller.deleting.name}</strong>? Future runs will stop. Any active
-            run continues, and history is kept.
+            Delete <strong>{deleting.name}</strong>? Future runs stop. A run already in progress
+            continues, and its history is kept.
           </p>
           {controller.error ? (
             <p role="alert" className="form-error">
               {controller.error}
             </p>
           ) : null}
-          <div className="mt-5 flex justify-end gap-2">
+          <div className="routine-delete-footer">
             <Button
-              className="button"
+              variant="outline"
               disabled={working}
               onClick={() => controller.setDeleting(null)}
             >
               Cancel
             </Button>
             <Button
-              className="button danger"
+              variant="destructive"
               disabled={working}
               onClick={() => void controller.remove()}
             >

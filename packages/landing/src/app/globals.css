@@ -18,6 +18,7 @@
 @import '../../../ui/src/styles/board.css' layer(components);
 @import '../../../ui/src/styles/forms.css' layer(components);
 @import '../../../ui/src/styles/job-details.css' layer(components);
+@import '../../../ui/src/styles/clay-interface.css' layer(components);
 @import '../styles/chat-demo.css' layer(components);
 
 @source not '../**/__tests__/**';

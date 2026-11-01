@@ -1,4 +1,9 @@
-import type { ChatMessage, ConversationHistoryPage, Run } from '@pitchcrew/core';
+import {
+  compactRun,
+  type ChatMessage,
+  type ConversationHistoryPage,
+  type Run,
+} from '@pitchcrew/core';
 import type { Board } from '../index.ts';
 
 /** Index transcript positions without parsing saved message bodies or run configurations. */
@@ -54,14 +59,10 @@ export const conversationHistory = (
             kind: 'turn',
             id: item.id,
             createdAt: item.createdAt,
-            run: visibleRun(board.get<Run>('run', item.id.slice(5))),
+            run: compactRun(board.get<Run>('run', item.id.slice(5))),
           },
     ),
   };
-};
-const visibleRun = (run: Run): Run => {
-  const { configuration: _configuration, ...visible } = run;
-  return visible;
 };
 
 /** Search every saved message and attachment, without retaining their bodies in the renderer. */

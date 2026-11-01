@@ -1,6 +1,6 @@
 import type { Card, Run, Snapshot } from '@pitchcrew/core';
 import { workflowSeat } from '@pitchcrew/core/states';
-import type { JobAgent } from './types.ts';
+import type { ApplicationSection, JobAgent } from './types.ts';
 
 /** Stream activity overrides persisted activity without losing run identity. */
 export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
@@ -73,4 +73,63 @@ export const latestJobFailure = (cardId: string, runs: Run[]) => {
       : current;
   }, undefined);
   return latest?.status === 'failed' ? latest : undefined;
+};
+
+export type ApplicationRow = {
+  id: ApplicationSection;
+  title: string;
+  status: string;
+  done: boolean;
+  /** The user, not an agent, moves this step forward. */
+  yours: boolean;
+};
+
+export const applicationRows = (
+  card: Card,
+  confirmed: boolean,
+  exported: boolean,
+): ApplicationRow[] => {
+  const reviewed = Boolean(card.packetReview) && !packetNeedsReview(card);
+  return [
+    {
+      id: 'brief',
+      title: 'Brief and requirements',
+      status: confirmed ? 'Confirmed' : 'Needs review',
+      done: confirmed,
+      yours: true,
+    },
+    {
+      id: 'documents',
+      title: 'Documents',
+      status: card.packet ? 'Draft available' : 'Not drafted',
+      done: Boolean(card.packet),
+      yours: false,
+    },
+    {
+      id: 'reviews',
+      title: 'Reviews',
+      status: reviewed ? 'Reviewed' : 'Review needed',
+      done: reviewed,
+      yours: false,
+    },
+    {
+      id: 'export',
+      title: 'Export',
+      status: exported
+        ? 'Exported'
+        : card.state === 'awaiting_approval'
+          ? 'Approval requested'
+          : 'Not exported',
+      done: exported,
+      yours: true,
+    },
+  ];
+};
+
+/** Bead per application step: done, the first unfinished step as current, then to do. */
+export const applicationBeads = (rows: ApplicationRow[]) => {
+  const current = rows.findIndex((row) => !row.done);
+  return rows.map((row, index) =>
+    row.done ? 'done' : index === current ? (row.yours ? 'ochre' : 'current') : undefined,
+  );
 };

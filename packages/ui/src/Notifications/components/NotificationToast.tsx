@@ -10,6 +10,8 @@ import { notificationPresentation } from '../constants.ts';
 import { NotificationIcon } from './NotificationIcon.tsx';
 import type { CrewNotification } from '../types.ts';
 import { NotificationLink } from './NotificationLink.tsx';
+import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
+import type { RoleId } from '@pitchcrew/core';
 
 export const NotificationToast = ({
   toast,
@@ -26,18 +28,19 @@ export const NotificationToast = ({
       className="notification-context"
       data-context={item.context}
       data-kind={item.kind}
+      data-tone={item.kind === 'attention' ? 'warning' : 'info'}
       swipeDirection={['right', 'down']}
     >
       <ToastContent>
-        <NotificationIcon context={item.context} />
+        {item.roleId ? (
+          <RoleAvatar agentRole={item.roleId as RoleId} size="small" />
+        ) : (
+          <NotificationIcon context={item.context} />
+        )}
         <div className="ui-toast-text">
           <ToastTitle />
           {item.kind === 'attention' ? <ToastDescription /> : null}
-          <NotificationLink
-            item={item}
-            onOpen={onOpen}
-            className={`ui-toast-link ${item.kind === 'attention' ? 'button small' : 'text-button'}`}
-          >
+          <NotificationLink item={item} onOpen={onOpen} className="ui-toast-link">
             {notificationPresentation[item.context].action}
           </NotificationLink>
         </div>

@@ -1,0 +1,278 @@
+/* Clay interface preview: clay-browser-layout. Scoped under [data-interface='clay'].
+ * One right panel for a job chat: a Packet | Browser switch, the task's mode chip, then Take
+ * control, expand and more. Expanded, the page fills the window beside a column with the agent's
+ * live activity and the approval tray. Shapes encode state: the mode chip is plain while
+ * supervised, moss for granted autonomous preparation and primary while you hold control. */
+
+/* The page region is one stable element; classic layout ignores it (display: contents). */
+.browser-page-region {
+  display: contents;
+}
+
+/* Packet | Browser: a recessed track with the shown view raised. */
+[data-interface='clay'] .browser-view-switch-root {
+  flex: none;
+}
+[data-interface='clay'] .browser-view-switch {
+  width: fit-content;
+  height: 32px;
+  padding: 3px;
+  gap: 3px;
+  border-radius: 10px 11px 9px 10px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger'] {
+  flex: 0 0 auto;
+  height: 26px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 7px 8px 7px 6px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+[data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger'][data-active] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}
+[data-interface='clay'] .browser-view-switch [data-slot='tabs-trigger']:hover:not([data-active]) {
+  color: var(--ink);
+}
+
+/* Header order per the mock: mode chip, Take control, expand, more, hide. */
+[data-interface='clay'] .browser-heading-actions {
+  gap: 4px;
+}
+[data-interface='clay'] .browser-heading-actions > .browser-task-trigger {
+  order: -1;
+}
+[data-interface='clay'] .browser-heading-actions > .browser-expand {
+  order: 1;
+}
+[data-interface='clay'] .browser-heading-actions > [aria-label='Browser options'] {
+  order: 2;
+}
+[data-interface='clay'] .browser-heading-actions > .browser-hide {
+  order: 3;
+}
+[data-interface='clay'] .browser-handoff {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-handoff[data-variant='secondary'] {
+  background: var(--primary-soft);
+  box-shadow: var(--clay-sunken);
+  color: var(--primary);
+}
+
+/* The mode chip opens task details: the captured permission for the active task. */
+[data-interface='clay'] .browser-mode-chip {
+  max-width: 13rem;
+  height: 26px;
+  padding: 0 9px;
+  gap: 6px;
+  border-radius: 7px;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+[data-interface='clay'] .browser-mode-chip[data-tone='autonomous'] {
+  background: var(--moss-soft);
+  color: var(--moss);
+}
+[data-interface='clay'] .browser-mode-chip[data-tone='private'] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+[data-interface='clay'] .browser-mode-chip.browser-task-elsewhere {
+  box-shadow: inset 0 0 0 1px var(--teal);
+}
+
+/* Packet tab: the documents scroll inside the panel; the browser region above stays mounted. */
+[data-interface='clay'] .browser-packet-view {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 14px 16px 18px;
+  overscroll-behavior: contain;
+}
+
+/* Narrow panels keep the switch and chips readable by dropping the agent's name. */
+@container browser-panel (max-width: 40rem) {
+  [data-interface='clay']
+    .browser-heading-identity:has(.browser-view-switch)
+    .browser-agent-picker
+    > .truncate,
+  [data-interface='clay']
+    .browser-heading-identity:has(.browser-view-switch)
+    .browser-agent-name
+    > .truncate {
+    display: none;
+  }
+  [data-interface='clay'] .browser-mode-chip {
+    max-width: 8.5rem;
+  }
+}
+@container browser-panel (max-width: 30rem) {
+  [data-interface='clay'] .browser-mode-chip > .truncate {
+    display: none;
+  }
+  [data-interface='clay'] .browser-mode-chip {
+    width: 30px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Expanded: the page column on the left, activity and approvals on the right. The page spans
+ * the full height of its column, so the tray never changes the inspected page's size. */
+[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side) {
+  display: grid;
+  grid-template-areas: 'head head' 'error error' 'page side';
+  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) min(24rem, 34%);
+  column-gap: 12px;
+  padding-right: 12px;
+  background: var(--paper);
+}
+[data-interface='clay']
+  .agent-browser-panel:has(> .browser-expanded-side)
+  > .browser-panel-heading {
+  grid-area: head;
+  margin-right: -12px;
+}
+[data-interface='clay'] .agent-browser-panel:has(> .browser-expanded-side) > .form-error {
+  grid-area: error;
+}
+[data-interface='clay'] .agent-browser-panel > .browser-page-region:has(~ .browser-expanded-side) {
+  display: flex;
+  grid-area: page;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  margin: 12px 0 12px 12px;
+  border-radius: 14px 15px 13px 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-expanded-side {
+  display: flex;
+  grid-area: side;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding-block: 12px;
+}
+[data-interface='clay'] .browser-expanded-activity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  padding: 14px 16px;
+  border-radius: 14px 15px 13px 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-run-activity {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+[data-interface='clay'] .browser-run-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: var(--text-label);
+}
+[data-interface='clay'] .browser-run-heading > strong {
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+}
+[data-interface='clay'] .browser-run-state {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-run-stop {
+  margin-left: auto;
+  color: var(--rose);
+}
+[data-interface='clay'] .browser-run-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  overflow-y: auto;
+  font-size: var(--text-label);
+  overscroll-behavior: contain;
+}
+[data-interface='clay'] .browser-run-body > .quiet {
+  margin: 0;
+}
+/* The message box: a recessed field at the bottom of the activity card, sharing chat's draft. */
+[data-interface='clay'] .browser-reply {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 6px;
+}
+[data-interface='clay'] .browser-reply > .form-error {
+  margin: 0;
+}
+[data-interface='clay'] .browser-reply-field {
+  position: relative;
+}
+[data-interface='clay'] .browser-reply-input {
+  min-height: 38px;
+  max-height: 8.5rem;
+  padding-right: 40px;
+  resize: none;
+  font-size: var(--text-label);
+  field-sizing: content;
+}
+[data-interface='clay'] .browser-reply-send {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-reply-send:not(:disabled) {
+  color: var(--color-primary-foreground);
+}
+[data-interface='clay'] .browser-reply-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-expand-kbd {
+  margin-left: 2px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+}
+
+/* The tray in the side column: a raised card that stacks its decision buttons. */
+[data-interface='clay'] .browser-expanded-side > .browser-approvals {
+  flex: none;
+  margin: 0;
+  border: 0;
+  border-radius: 14px 15px 13px 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-expanded-side > .browser-approvals[data-reserved] {
+  height: min(15rem, calc(var(--browser-viewport-height, 100dvh) * 0.4));
+}
+[data-interface='clay'] .browser-expanded-side .browser-pending-action {
+  flex-direction: column;
+  align-items: stretch;
+}
