@@ -5,7 +5,7 @@ import {
 /** Isolated, hidden actual Electron + daemon-driver integration. No live sites or provider calls. */
 import { build } from 'tsdown';
 import { spawn } from 'node:child_process';
-import { mkdtemp, readFile, rm, rename, writeFile as writeContents } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile as writeContents } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -14,6 +14,7 @@ import { Board } from '../../board/src/index.ts';
 import { ComputerManager } from '../../mcp/src/computer.ts';
 import { electronExecutable } from '../../../scripts/electron-path.ts';
 import type { DesktopBrowserHost } from '../../core/src/native-browser.ts';
+import { writeNativeCommand } from './fixtures/native-browser-command.ts';
 
 const formsOnly = process.argv.includes('--forms-only');
 const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-native-browser-'));
@@ -22,9 +23,7 @@ const commands = join(directory, 'command.json');
 const resultFile = join(directory, 'result.json');
 const writeFile = async (path: string, data: string | Uint8Array) => {
   if (path !== commands) return writeContents(path, data);
-  const pending = commands + '.pending';
-  await writeContents(pending, data);
-  await rename(pending, commands);
+  await writeNativeCommand(commands, data);
 };
 
 await build({
