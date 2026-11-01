@@ -40,6 +40,25 @@ const fixture = () => {
 };
 afterEach(() => vi.useRealTimers());
 
+it('rejects mirror captures after a renderer crash without blocking tab teardown', async () => {
+  vi.useFakeTimers();
+  const { automation, contents, events, capturePage, sendCommand } = fixture();
+  vi.mocked(contents.executeJavaScriptInIsolatedWorld).mockReturnValue(new Promise(() => {}));
+  events.emit('render-process-gone');
+  const capture = automation.send('Page.captureScreenshot', {}, undefined, 'floating:1').then(
+    () => undefined,
+    (error: unknown) => error,
+  );
+  await vi.advanceTimersByTimeAsync(5000);
+  expect(String(await capture)).toContain('stopped responding');
+  await drainNativeCapture(contents);
+  expect(contents.executeJavaScriptInIsolatedWorld).not.toHaveBeenCalled();
+  expect(capturePage).not.toHaveBeenCalled();
+  expect(sendCommand).not.toHaveBeenCalled();
+  expect(automation.active).toBe(false);
+  events.emit('destroyed');
+});
+
 it('retries a transient compositor readback after repaint without changing capture options', async () => {
   const { contents, capturePage } = fixture();
   for (let attempt = 0; attempt < 6; attempt++)
