@@ -39,6 +39,7 @@ export const initialize = async (
   const interruptedTasks: AgentTask[] = [];
   try {
     await context.connectors.initialize();
+    await context.detectors.initialize();
     for (const approval of context.board
       .list<ComputerApproval>('computer_approval')
       .filter((a) => ['pending', 'approved'].includes(a.status)))

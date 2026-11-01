@@ -1,6 +1,6 @@
 # Application writing quality and detector advisories
 
-Product direction agreed on 2026-10-30 and refined on 2026-11-01 against the clay redesign (Decisions, stage beads and event version 32). Milestone 1 (writing improvements) is implemented as described under Implementation; milestone 2 (optional detector checks) remains planned, and its provider decisions are deferred.
+Product direction agreed on 2026-10-30 and refined on 2026-11-01 against the clay redesign (Decisions, stage beads and event version 32). Both milestones are implemented as described under Implementation. Detector checks use the user's own account on any of four providers (bring your own key).
 
 ## Purpose
 
@@ -126,24 +126,32 @@ Validation should compare before/after drafts for clearer, more specific prose w
 
 Instruction/contract checks can verify the guidance and review boundaries. Representative draft comparisons are also needed to assess actual writing quality; passing automated checks alone does not establish that generated prose improved. Live runtime evaluation remains separate from automated verification.
 
-### Milestone 2: Optional detector checks
+### Milestone 2: Optional detector checks (implemented)
 
-Add the manual detector-check and revision experience only after selecting a provider and evaluating its suitability on representative application materials. Retain the consent, document scope, binding, cost and advisory boundaries above.
+- **Core:** `packages/core/src/detectors.ts` holds the provider catalog (limits, retention and billing notes, documented/unverified contract flag), the `DetectorAdvisory` card field (event version 33), the check and key input schemas and the fixed revision prefix.
+- **Daemon:** `packages/orchestrator/src/detectors/` holds the 0600 key store, the four adapters and `DetectorManager.check`, which verifies the digest before and after the upload, enforces provider length limits, pins HTTPS hosts, forbids redirects, bounds time (30 s) and size (1 MB), redacts credentials from errors and replaces the previous result for the same provider and document (at most eight per card). Routes: `POST /api/detectors/check`, `PUT`/`DELETE /api/detectors/:provider/key`, all UI-session only. Configured providers join the snapshot revision; the gateway has no detector action.
+- **UI:** `packages/ui/src/DetectorChecks/` renders rows in the Decisions packet sheet (actions only while the approval is pending) and job details' Reviews section, computes digests with Web Crypto, shows the consent dialog with the exact text, and prefills the Ask Writer to revise draft. `WritingSettings/components/DetectorSettings.tsx` manages keys. Rows use ochre for flagged, moss for clear, muted ink for outdated and an empty socket for Not checked; rose is reserved for failures, which only ever appear as toasts.
+- **Learning:** `writing_correct` saves corrections whose quote contains the revision prefix with `eligible: false`.
+- **Tests:** adapter request/parse fixtures for all four providers, daemon tests for key storage, digest binding, replacement, failure handling, Copyleaks sign-in and session protection, and UI helper tests for row state and the revision draft.
 
-Resolve these details during that milestone:
-
-- Provider selection, data-handling terms and API access requirements.
-- Eligible document lengths and languages, with evaluation beyond merely satisfying an API's minimum input length.
-- Presentation of provider-supported passage details and uncertainty.
-- Handling unavailable, failed and unsupported checks without presenting them as a clean detector result.
-- The exact event version number and card field shape for saved advisories, assigned when milestone 2 starts so it follows whatever version is current then.
-- The provider's passage detail format and how much of it the Decisions row can show before opening the shared read-only file dialog.
+Not evaluated: detector accuracy on representative application materials and non-English documents. The UI states results are advisory, and nothing in the product treats a score as a verdict.
 
 ## Detector access and cost
 
-Optional external detection uses the user's own provider API account and key. The provider bills the user directly; Pitchcrew does not bundle or subsidize detector usage. Writing-quality improvements remain available without a detector account.
+Optional external detection uses the user's own provider API account and key (bring your own key). The provider bills the user directly; Pitchcrew does not bundle or subsidize detector usage. Writing-quality improvements remain available without a detector account.
 
-The key follows the connector credential pattern: stored in the data directory's connector credentials file, never in board events, snapshots, prompts, run folders or MCP configuration, and filtered from every role CLI environment. Removing the service deletes the key locally; provider-side revocation is the user's separate action. Settings > Writing holds the detector service section, since it concerns application drafts rather than agent accounts; it shows only whether a key is saved, never the key, and Find a setting indexes it.
+Supported providers and what their documentation established when the integration was written (2026-11-01):
+
+| Provider       | Request contract                                                                                            | Length limits enforced locally                         | Retention handling                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------ |
+| Sapling        | Documented: `POST /api/v1/aidetect` with `zero_retention: true` and sentence scores                         | 300 to 200,000 characters; under 500 is low confidence | Per-request no-retention flag                          |
+| Copyleaks      | Documented: sign-in at `id.copyleaks.com`, then `POST /v2/writer-detector/{scanId}/check`                   | 255 to 100,000 characters                              | Not documented for this endpoint; shown to the user    |
+| GPTZero        | Unverified: `POST /v2/predict/text` with `x-api-key`, from client libraries; official docs were unreachable | 250 to 50,000 characters                               | Provider states API inputs are not stored; unverified  |
+| Originality.ai | Unverified: `POST /api/v1/scan/ai` with `storeScan: 'false'`; official docs were truncated                  | 250 to 50,000 characters                               | Scan history may train models unless the user opts out |
+
+Each adapter parses with a strict schema; a response it does not recognize fails the check without saving anything, so an unverified contract degrades to a visible error rather than a wrong result.
+
+Keys follow the connector credential pattern: stored in `detectors/keys.json` in the data directory with 0600 permissions, never in board events, snapshots, prompts, run folders, MCP configuration or role CLI environments. Removing a key deletes it locally; provider-side revocation is the user's separate action. Settings > Writing holds the AI-text detectors section, since it concerns application drafts rather than agent accounts; it shows only whether a key is saved and when, never the key, and Find a setting indexes it.
 
 ## Initial investigation
 

@@ -14,6 +14,7 @@ import { registerAnalyticsRoutes, type AnalyticsConfig } from './http/analytics.
 import { registerChatStream } from './http/chat-stream.ts';
 import { registerAgentRoutes } from './http/routes/agent.ts';
 import { registerQualityRoutes } from './http/routes/quality.ts';
+import { registerDetectorRoutes } from './http/routes/detectors.ts';
 import { registerApprovalsRoutes } from './http/routes/approvals.ts';
 import { registerBrowserRoutes } from './http/routes/browser.ts';
 import { registerBoardRoutes } from './http/routes/board.ts';
@@ -161,6 +162,7 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
     for (const registerRoutes of [
       registerAgentRoutes,
       registerQualityRoutes,
+      registerDetectorRoutes,
       registerBoardRoutes,
       registerOnboardingRoutes,
       registerPacketRulesRoutes,
