@@ -5,6 +5,7 @@ import { useWritingSettings } from './hooks/useWritingSettings.ts';
 import { GuidePreferences } from './components/GuidePreferences.tsx';
 import { GuideProposals } from './components/GuideProposals.tsx';
 import { PreferenceEditor } from './components/PreferenceEditor.tsx';
+import { DetectorSettings } from './components/DetectorSettings.tsx';
 import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
 import { SettingRow } from '@/SettingsPage/components/SettingRow.tsx';
 
@@ -45,6 +46,7 @@ export const WritingSettings = () => {
         </SettingRow>
         <GuidePreferences guide={guide} change={change} working={working} edit={model.setEditing} />
       </SettingsSection>
+      <DetectorSettings />
       {model.editing !== undefined ? (
         <PreferenceEditor
           key={model.editing?.id ?? 'new'}

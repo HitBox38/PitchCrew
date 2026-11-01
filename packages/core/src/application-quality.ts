@@ -89,6 +89,8 @@ export interface CareerPlan {
 }
 export interface QualitySnapshot {
   writingGuide: WritingGuide;
+  /** Which external AI-text detectors have a saved key; never the keys. */
+  detectors: import('./detectors.ts').DetectorStatus[];
   writingCorrections: Omit<WritingCorrection, 'before' | 'after'>[];
   careerPlans: (CareerPlan & { stale: boolean })[];
 }

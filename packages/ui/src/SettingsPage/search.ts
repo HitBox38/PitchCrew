@@ -73,6 +73,12 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['writing', 'learning', 'automatic'],
   },
   {
+    label: 'AI-text detectors',
+    section: 'writing',
+    target: 'detectors-heading',
+    keywords: ['detector', 'GPTZero', 'Copyleaks', 'Sapling', 'Originality', 'API key', 'AI'],
+  },
+  {
     label: 'Packet rules',
     section: 'rules',
     target: 'packet-rules-heading',

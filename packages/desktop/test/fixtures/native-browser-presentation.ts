@@ -60,8 +60,11 @@ export const checkNativeBrowserPresentation = async (
   );
   // Native contentView children used to cover the renderer even when reordered.
   // DOM guests must keep background captures live without covering app pixels.
-  background.paint(background.active, true);
+  const owner = 'presentation-fixture';
   try {
+    // Own painting through automation: a previous command's idle-release timer
+    // can clear a direct paint(true) while this fixture is still capturing.
+    await backgroundPage.send('Page.startScreencast', { format: 'jpeg' }, undefined, owner);
     await waitFor(async () => {
       // The guest command owns painting until readback finishes, even if an older
       // relay command's grace timer or disconnect releases its separate owner.
@@ -69,7 +72,7 @@ export const checkNativeBrowserPresentation = async (
         'Page.captureScreenshot',
         { format: 'png' },
         undefined,
-        'presentation-capture',
+        owner,
       )) as { data: string };
       const image = nativeImage.createFromBuffer(Buffer.from(capture.data, 'base64'));
       const { width, height } = image.getSize();
@@ -86,7 +89,11 @@ export const checkNativeBrowserPresentation = async (
       assert.ok(isRed(await pixel(600, 450)), 'An inactive guest covered the selected page');
     }
   } finally {
-    background.paint(background.active, false);
+    try {
+      await backgroundPage.send('Page.stopScreencast', {}, undefined, owner);
+    } finally {
+      backgroundPage.releaseAutomation?.(owner);
+    }
   }
   for (const kind of [
     'context-menu-content',

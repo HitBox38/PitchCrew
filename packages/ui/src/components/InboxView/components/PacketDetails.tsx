@@ -8,6 +8,7 @@ import { HandoffSummary } from './PacketHandoff.tsx';
 import { PacketExport } from './PacketExport.tsx';
 import { packetHandoff } from '../handoff.ts';
 import { resumePageWarning } from '../helpers.ts';
+import { DetectorChecks } from '@/DetectorChecks/index.tsx';
 
 const filesNote = {
   pending: 'Exactly what you’re approving',
@@ -27,6 +28,7 @@ export const PacketDetails = ({ approval, data }: { approval: Approval; data: Sn
         checks={packetChecks(approval, card)}
       />
       {warning ? <p className="packet-warning">{warning}</p> : null}
+      {card ? <DetectorChecks card={card} canAct={approval.status === 'pending'} /> : null}
       <section className="packet-section" aria-label="Files">
         <h3 className="packet-section-heading">
           Files <span>{filesNote[approval.status]}</span>

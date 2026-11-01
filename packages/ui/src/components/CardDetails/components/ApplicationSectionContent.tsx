@@ -8,6 +8,7 @@ import { Button } from '@pitchcrew/design-system/button';
 import { packetNeedsReview } from '../helpers.ts';
 import { HandoffSummary } from '@/components/InboxView/components/PacketHandoff.tsx';
 import { cardHandoff } from '@/components/InboxView/handoff.ts';
+import { DetectorChecks } from '@/DetectorChecks/index.tsx';
 
 export const ApplicationSectionContent = ({
   model,
@@ -27,6 +28,7 @@ export const ApplicationSectionContent = ({
         {packetNeedsReview(card) ? null : (
           <HandoffSummary handoff={cardHandoff(card, model.data)} />
         )}
+        <DetectorChecks card={card} />
         <Button variant="link" onClick={model.openWriting}>
           Writing guide
         </Button>

@@ -120,6 +120,7 @@ export class Board {
         | 'packetContextRevision'
         | 'packetReview'
         | 'packetChanges'
+        | 'detectorAdvisories'
       >
     >,
     actor: string,

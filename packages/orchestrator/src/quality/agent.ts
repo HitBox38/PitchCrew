@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { assertConfirmedContext, digestPacket } from '@pitchcrew/board';
 import {
   qualityAgentInput,
+  detectorRevisionPrefix,
   defaultCapabilities,
   workflowSeat,
   type Card,
@@ -152,7 +153,8 @@ export const qualityAgentAction = async (
         packetDigest: digestPacket(card.id, card.packet!),
         before: { resume: card.packet!.resume, coverLetter: card.packet!.coverLetter },
         retired: false,
-        eligible: guide.automatic,
+        // A revision the user requested from a detector advisory is not a style instruction.
+        eligible: guide.automatic && !input.quote.includes(detectorRevisionPrefix),
         createdAt: new Date().toISOString(),
       };
       const task = context.enqueue(capability, writer.id, 'workflow', input.quote, 'invoke');

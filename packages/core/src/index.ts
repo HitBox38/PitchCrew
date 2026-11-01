@@ -1,5 +1,6 @@
 export * from './conversations.ts';
 export * from './application-quality.ts';
+export * from './detectors.ts';
 export * from './work-queue.ts';
 export * from './skill-updates.ts';
 export * from './application-context.ts';

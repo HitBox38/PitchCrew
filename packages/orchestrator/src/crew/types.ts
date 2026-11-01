@@ -28,6 +28,7 @@ import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import type { ProfileOrganizationStore } from '../profile-organization.ts';
 import type { ProfileSourceManager } from '../profile-sources/index.ts';
 import type { JobSourceManager } from '../job-sources/index.ts';
+import type { DetectorManager } from '../detectors/index.ts';
 
 /** Shared run state. Internal to the orchestrator; never exposed to runtime adapters. */
 export interface CrewContext {
@@ -48,6 +49,7 @@ export interface CrewContext {
   profileSources: ProfileSourceManager;
   profileOrganization: ProfileOrganizationStore;
   jobSources: JobSourceManager;
+  detectors: DetectorManager;
   profileWriting: boolean;
   profileRevision: number;
   computer: ComputerManager;

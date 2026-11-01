@@ -43,6 +43,7 @@ export interface BoardContext {
         | 'packetContextRevision'
         | 'packetReview'
         | 'packetChanges'
+        | 'detectorAdvisories'
       >
     >,
     actor: string,

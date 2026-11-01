@@ -17,6 +17,7 @@ import { ConnectorManager } from '@pitchcrew/mcp/connectors';
 import { join } from 'node:path';
 import { ProfileSourceManager } from '../profile-sources/index.ts';
 import { JobSourceManager } from '../job-sources/index.ts';
+import { DetectorManager } from '../detectors/index.ts';
 import { createCard, exportPacket, loadExamples, moveCard, saveProfile } from './cards.ts';
 import {
   addMessage,
@@ -80,6 +81,7 @@ export const createCrewContext = (
     profileSources: new ProfileSourceManager(directory, connectors),
     profileOrganization: new ProfileOrganizationStore(directory),
     jobSources: new JobSourceManager(directory, board),
+    detectors: new DetectorManager(directory, board),
     profileWriting: false,
     profileRevision: 0,
     computer: new ComputerManager(board, directory, browserLaunch),
