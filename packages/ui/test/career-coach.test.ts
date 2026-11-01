@@ -25,6 +25,12 @@ beforeAll(async () => {
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
 }, 60000);
+/** Long starter lists keep three in view and fold the rest under "N more starters". */
+const showAllStarters = async () => {
+  const more = page.getByRole('button', { name: /^\d+ more starters?$/ });
+  await more.waitFor();
+  if ((await more.getAttribute('aria-expanded')) !== 'true') await more.click();
+};
 afterAll(async () => {
   await browser?.close();
   await cleanup();
@@ -33,8 +39,9 @@ afterAll(async () => {
 test('offers all coaching activities with or without an attached job, fills the existing composer and fits mobile', async () => {
   await page.goto(`${host.daemon.url}/chat/career-coach`);
   await page
-    .getByRole('heading', { name: 'Prepare for your next career step', exact: true })
+    .getByText('Career Coach: Prepare for your next career step', { exact: true })
     .waitFor({ timeout: 30000 });
+  await showAllStarters();
   for (const label of starters)
     expect(await page.getByRole('button', { name: label, exact: true }).isVisible()).toBe(true);
   await page.getByRole('button', { name: 'Improve my LinkedIn', exact: true }).click();
@@ -55,6 +62,7 @@ test('offers all coaching activities with or without an attached job, fills the 
     (await host.request('/conversations/career-coach', 'PUT', { cardId: card.id })).response.status,
   ).toBe(200);
   await page.reload();
+  await showAllStarters();
   await page.getByRole('button', { name: 'Evaluate an offer', exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   for (const label of starters)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { remotePoint, touchScroll } from '../helpers.ts';
+import { addressParts, remotePoint, touchScroll } from '../helpers.ts';
 
 describe('manual browser coordinates', () => {
   const frame = { width: 1280, height: 800 };
@@ -28,5 +28,21 @@ describe('manual browser coordinates', () => {
   it('bounds large swipes to the manual-input contract', () => {
     expect(touchScroll(1000, 0, 200, 800)).toBe(2000);
     expect(touchScroll(0, 1000, 200, 800)).toBe(-2000);
+  });
+});
+
+describe('address display', () => {
+  it('splits web addresses into host and path', () => {
+    expect(addressParts('https://boards.greenhouse.io/waypoint/jobs/1?gh=1#apply')).toEqual({
+      host: 'boards.greenhouse.io',
+      rest: '/waypoint/jobs/1?gh=1#apply',
+    });
+    expect(addressParts('https://example.com/')).toEqual({ host: 'example.com', rest: '' });
+  });
+
+  it('leaves blank and non-web addresses to the plain field', () => {
+    expect(addressParts('')).toBeNull();
+    expect(addressParts('about:blank')).toBeNull();
+    expect(addressParts('file:///etc/hosts')).toBeNull();
   });
 });

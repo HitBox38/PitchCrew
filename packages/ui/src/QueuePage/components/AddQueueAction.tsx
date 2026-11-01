@@ -30,8 +30,8 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
   return (
     <>
       <Button
-        className={cardId ? undefined : 'button primary'}
-        variant={cardId ? 'outline' : 'default'}
+        className={cardId ? 'queue-add-request' : undefined}
+        variant={cardId ? 'ghost' : 'default'}
         size={cardId ? 'sm' : 'default'}
         onClick={() => setOpen(true)}
         disabled={!data.cards.length}
@@ -40,12 +40,12 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
         Add action
       </Button>
       {open ? (
-        <Modal title="Add queued action" onClose={() => setOpen(false)}>
-          <div className="form grid gap-4">
-            <p className="quiet">
-              Actions run in order when their prerequisites are ready. You can add a review after a
-              draft, or deliberately repeat a stage.
-            </p>
+        <Modal
+          title="Add queued action"
+
+          onClose={() => setOpen(false)}
+        >
+          <div className="ui-field-group">
             <FormSelect
               label="Job"
               value={selected}
@@ -66,15 +66,12 @@ export const AddQueueAction = ({ data, cardId }: { data: Snapshot; cardId?: stri
                 {error}
               </p>
             ) : null}
-            <div className="form-footer flex justify-end gap-2.5 border-t border-border pt-4">
-              <Button className="button" onClick={() => setOpen(false)}>
+            <div className="queue-add-footer">
+              <p>Joins this job’s queue and starts when its prerequisites are ready.</p>
+              <Button variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button
-                className="button primary"
-                disabled={working || !selected}
-                onClick={() => void add()}
-              >
+              <Button disabled={working || !selected} onClick={() => void add()}>
                 Add to queue
               </Button>
             </div>

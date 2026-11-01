@@ -1,0 +1,69 @@
+/* Clay interface preview: clay-transcript. Scoped under [data-interface='clay']. */
+
+/* Job changes sit in the transcript where they happened: quiet recessed chips, one bead each
+ * coloured by the stage or outcome they record. */
+[data-interface='clay'] .chat-workspace .clay-job-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -12px 0 0;
+  padding: 0 0 0 30px;
+  list-style: none;
+}
+[data-interface='clay'] .chat-workspace .clay-job-events:first-child,
+[data-interface='clay'] .chat-workspace .chat-day + .clay-job-events {
+  margin-top: 0;
+}
+[data-interface='clay'] .chat-workspace .clay-job-event {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  height: 24px;
+  padding: 0 9px 0 8px;
+  gap: 6px;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 500;
+  white-space: nowrap;
+}
+[data-interface='clay'] .chat-workspace .clay-job-event > span:not(.clay-bead) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Job-first header: company, role and fit lead; the conversation's own name follows below. */
+[data-interface='clay'] .clay-job-title {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 10px;
+}
+[data-interface='clay'] .clay-job-title h1 {
+  min-width: 0;
+  font-weight: 500;
+}
+[data-interface='clay'] .clay-job-title h1 strong {
+  font-weight: 600;
+}
+[data-interface='clay'] .clay-job-title h1 span {
+  color: var(--muted);
+}
+/* Fit and location give way before the company and role do. */
+[data-interface='clay'] .clay-job-title-meta {
+  flex: 0 100 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+@variant max-compact {
+  [data-interface='clay'] .clay-job-title-meta {
+    display: none;
+  }
+}

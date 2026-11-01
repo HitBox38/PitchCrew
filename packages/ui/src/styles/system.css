@@ -1,0 +1,204 @@
+/* Shared page vocabulary for the redesign. Pages compose these instead of local variants:
+ * title row, sections, recessed trays, raised cards, chips, list rows, field groups,
+ * footer action bars and empty states. */
+.ui-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 56px;
+  padding: 10px 0;
+}
+.ui-title-row > h1,
+.ui-title {
+  margin: 0;
+  color: var(--ink);
+  font: 600 var(--text-title) / var(--text-title--line-height) var(--font-sans);
+  letter-spacing: -0.01em;
+}
+.ui-title-fact {
+  color: var(--muted);
+  font-size: var(--text-body);
+  line-height: var(--text-body--line-height);
+  white-space: nowrap;
+}
+.ui-title-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.ui-section + .ui-section {
+  margin-top: 24px;
+}
+.ui-section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin: 0 0 10px;
+  color: var(--ink);
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.ui-section-heading > .ui-count,
+.ui-count {
+  color: var(--muted);
+  font-weight: 400;
+}
+.ui-section-heading > .ui-section-action {
+  margin-left: auto;
+}
+.ui-tray {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.ui-card {
+  padding: 16px;
+  border-radius: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.ui-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  color: var(--ink-soft, var(--ink));
+  font-size: var(--text-detail);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ui-chip[data-tone='ochre'] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+.ui-chip[data-tone='plum'] {
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+.ui-chip[data-tone='rose'] {
+  background: var(--rose-soft);
+  color: var(--rose);
+}
+.ui-chip[data-tone='moss'] {
+  background: var(--moss-soft);
+  color: var(--moss);
+}
+.ui-chip[data-tone='primary'] {
+  background: var(--primary-soft, var(--sunken-fill));
+  color: var(--primary);
+}
+.ui-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+.ui-row + .ui-row {
+  margin-top: 2px;
+}
+.ui-row[data-selected],
+.ui-row[aria-current='page'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.ui-row-meta {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: var(--text-detail--line-height);
+}
+.ui-field-group {
+  display: grid;
+  gap: 16px;
+}
+.ui-field-group + .ui-field-group {
+  margin-top: 24px;
+}
+.ui-footer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 56px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.ui-footer-bar > .ui-footer-note {
+  margin-right: auto;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.ui-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font-size: var(--text-label);
+}
+/* Segmented switch: a recessed track of links or pressed buttons with one raised choice; each
+ * choice is a 32px target (44px on touch, from responsive.css).
+ * Mark the chosen item with aria-current, aria-pressed="true" or data-active. */
+.ui-segment {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  margin: 0;
+  padding: 2px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.ui-segment > a,
+.ui-segment > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 32px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 120ms ease,
+    box-shadow 120ms ease;
+}
+.ui-segment > :is(a, button):hover {
+  background: transparent;
+  color: var(--ink);
+}
+.ui-segment > :is([aria-current='page'], [aria-pressed='true'], [data-active]) {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}
+.ui-segment > :is(a, button):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.ui-segment .ui-count {
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}

@@ -8,10 +8,13 @@ export const useSettingFocus = () => {
     const reveal = () => {
       const anchor = document.getElementById(hash);
       if (!anchor || anchor.closest('[hidden]')) return false;
-      const target = anchor.matches('input[aria-hidden="true"]')
-        ? (anchor.parentElement?.querySelector<HTMLElement>('[role="switch"], [role="checkbox"]') ??
-          anchor)
-        : anchor;
+      const target = anchor.matches('[role="radiogroup"]')
+        ? (anchor.querySelector<HTMLElement>('[role="radio"][aria-checked="true"]') ?? anchor)
+        : anchor.matches('input[aria-hidden="true"]')
+          ? (anchor.parentElement?.querySelector<HTMLElement>(
+              '[role="switch"], [role="checkbox"]',
+            ) ?? anchor)
+          : anchor;
       if (!target.matches('button, input, textarea, select, a[href], [tabindex]'))
         target.tabIndex = -1;
       target.focus({ preventScroll: true });

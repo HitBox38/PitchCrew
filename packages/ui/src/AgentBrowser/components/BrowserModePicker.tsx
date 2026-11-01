@@ -1,6 +1,7 @@
 import { ConversationSelect } from '@/ChatView/components/ConversationSelect.tsx';
 import type { Conversation, Role } from '@pitchcrew/core';
 import { BrowserModeHelp } from './BrowserModeHelp.tsx';
+import { Globe } from 'lucide-react';
 
 export const BrowserModePicker = ({
   role,
@@ -21,6 +22,8 @@ export const BrowserModePicker = ({
       ) : null}
       <ConversationSelect
         label={`${role.name} browser permissions`}
+        className="chat-browser-mode"
+        icon={<Globe size={13} aria-hidden="true" />}
         disabled={disabled || !conversation}
         value={override?.browserMode ?? 'agent'}
         items={[

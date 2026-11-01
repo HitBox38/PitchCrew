@@ -8,6 +8,7 @@ export const sourceLocation = (source: ProfileSource) => {
 };
 
 export const sourceHeading = (c: ProfileSourcesModel) => {
+  if (c.preview) return { title: 'Review profile documents', description: c.preview.source.label };
   if (c.proposalId)
     return {
       title: 'Review profile updates',
@@ -16,7 +17,7 @@ export const sourceHeading = (c: ProfileSourcesModel) => {
   if (!c.adding)
     return {
       title: 'Profile sources',
-      description: 'Manage the notes and projects behind your profile.',
+      description: 'Folders and projects your profile notes come from.',
     };
   if (!c.provider)
     return { title: 'Add a source', description: 'Choose where your notes or project live.' };
@@ -79,3 +80,10 @@ export const importStatus = {
   unchanged: 'Up to date',
   conflict: 'Local edits',
 };
+
+export const importTone = {
+  new: 'moss',
+  changed: 'primary',
+  unchanged: undefined,
+  conflict: 'ochre',
+} as const;

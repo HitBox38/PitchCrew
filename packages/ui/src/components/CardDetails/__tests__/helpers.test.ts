@@ -111,7 +111,7 @@ it('marks application steps done in order and gives the first open step to whoev
     ['reviews', 'Review needed', false],
     ['export', 'Not exported', false],
   ]);
-  expect(applicationBeads(rows)).toEqual(['done', 'done', 'plum', undefined]);
+  expect(applicationBeads(rows)).toEqual(['done', 'done', 'current', undefined]);
   const unconfirmed = applicationRows({ state: 'shortlisted' } as Card, false, false);
   expect(applicationBeads(unconfirmed)).toEqual(['ochre', undefined, undefined, undefined]);
   const awaiting = {

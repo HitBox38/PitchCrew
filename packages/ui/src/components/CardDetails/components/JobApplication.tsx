@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import type { CardDetailsModel, ApplicationSection } from '../types.ts';
-import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { ApplicationSectionContent } from './ApplicationSectionContent.tsx';
 import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
 import { FormAssessments } from './FormAssessments.tsx';
@@ -14,7 +13,6 @@ export const JobApplication = (model: CardDetailsModel) => {
   const { card, brief, sections, setSections } = model;
   const [reviewOpened, setReviewOpened] = useState(false);
   if (!reviewOpened && sections.includes('reviews')) setReviewOpened(true);
-  const clay = useDevicePreferences((state) => state.clayInterface);
   const rows = applicationRows(card, brief.confirmed, model.exported);
   const beads = applicationBeads(rows);
   return (
@@ -32,7 +30,7 @@ export const JobApplication = (model: CardDetailsModel) => {
       ) : null}
       <Accordion
         className="detail-application-sections"
-        data-steps={clay ? '' : undefined}
+        data-steps=""
         value={sections}
         onValueChange={(value) => {
           setSections(value as ApplicationSection[]);
@@ -42,14 +40,12 @@ export const JobApplication = (model: CardDetailsModel) => {
         {rows.map((row, index) => (
           <AccordionItem value={row.id} key={row.id}>
             <AccordionTrigger id={`job-section-${row.id}`}>
-              {clay ? (
-                <span
-                  className="clay-bead"
-                  data-size={beads[index] && beads[index] !== 'done' ? undefined : 'sm'}
-                  data-tone={beads[index]}
-                  aria-hidden="true"
-                />
-              ) : null}
+              <span
+                className="clay-bead"
+                data-size={beads[index] && beads[index] !== 'done' ? undefined : 'sm'}
+                data-tone={beads[index]}
+                aria-hidden="true"
+              />
               <span>
                 {row.title}
                 <small className="detail-section-status">{row.status}</small>

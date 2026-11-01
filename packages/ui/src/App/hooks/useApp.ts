@@ -81,13 +81,6 @@ export const useApp = () => {
   const pending = data ? decisions(data).length : 0;
   const selected = data?.cards.find((c) => c.id === selectedId);
   const selectedRole = data?.roles.find((r) => r.id === roleId);
-  const jumpToStage = (id: string) => {
-    go('board');
-    const { setShowClosed, setQuery, setFlashStage } = useWorkspaceStore.getState();
-    setShowClosed(false);
-    setQuery('');
-    setFlashStage(id);
-  };
   const copyDirectory = () => {
     if (!data) return;
     copyDataDirectory(data.dataDirectory);
@@ -130,7 +123,6 @@ export const useApp = () => {
     pending,
     selected,
     selectedRole,
-    jumpToStage,
     copyDirectory,
     checkRuntimes,
   };

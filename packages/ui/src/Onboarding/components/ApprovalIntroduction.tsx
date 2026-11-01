@@ -1,30 +1,32 @@
-import { FileText, FolderCheck, ShieldCheck } from 'lucide-react';
+const steps = [
+  { label: 'Packet drafted', tone: 'done' },
+  { label: 'Reviewer checks it', tone: 'done' },
+  { label: 'You approve', tone: 'ochre' },
+  { label: 'Exported to a folder', tone: undefined },
+] as const;
 
-export const ApprovalIntroduction = () => {
-  return (
-    <div className="grid gap-5">
-      <div
-        className="onboarding-handoff flex items-center justify-center gap-5 py-6"
-        aria-hidden="true"
-      >
-        <FileText size={32} />
-        <span className="h-px w-9 bg-border" />
-        <ShieldCheck size={44} />
-        <span className="h-px w-9 bg-border" />
-        <FolderCheck size={32} />
-      </div>
-      <p className="text-sm leading-relaxed text-ink-soft">
-        The crew works when you ask. You review the exact application packet before approving a
-        local export, then submit it yourself.
-      </p>
-      <p className="text-sm leading-relaxed text-ink-soft">
-        Optional browser actions need your approval each time. Account connections and scheduled
-        routines are optional, and you choose which tools each agent can use.
-      </p>
-      <p className="onboarding-local rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
-        Your profile, board and drafts are saved on this device. Agent runs use the AI runtime you
-        configure.
-      </p>
-    </div>
-  );
-};
+/** Screen two: the actual packet → review → your decision sequence, then the local-data line. */
+export const ApprovalIntroduction = () => (
+  <div className="onboarding-approval">
+    <ol className="onboarding-sequence">
+      {steps.map((step) => (
+        <li key={step.label}>
+          <span
+            className="clay-bead"
+            data-tone={step.tone}
+            data-empty={step.tone ? undefined : ''}
+            aria-hidden="true"
+          />
+          <span>{step.label}</span>
+        </li>
+      ))}
+    </ol>
+    <p>
+      The crew works when you ask. Nothing is exported, and no browser button is pressed, until you
+      approve that exact packet or action.
+    </p>
+    <p className="onboarding-local">
+      Your profile, board and drafts stay on this device. Agents run on the AI runtimes you choose.
+    </p>
+  </div>
+);

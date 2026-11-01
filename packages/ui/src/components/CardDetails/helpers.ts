@@ -130,6 +130,6 @@ export const applicationRows = (
 export const applicationBeads = (rows: ApplicationRow[]) => {
   const current = rows.findIndex((row) => !row.done);
   return rows.map((row, index) =>
-    row.done ? 'done' : index === current ? (row.yours ? 'ochre' : 'plum') : undefined,
+    row.done ? 'done' : index === current ? (row.yours ? 'ochre' : 'current') : undefined,
   );
 };

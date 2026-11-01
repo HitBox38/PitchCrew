@@ -32,6 +32,7 @@ export interface EditorProps {
   action: Action;
   working: boolean;
   onClose(): void;
+  onDelete?(): void;
 }
 export interface DraftFieldsProps {
   draft: RoutineDraft;

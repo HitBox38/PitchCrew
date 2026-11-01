@@ -1,14 +1,14 @@
-import { useNavigate, useSearch } from '@tanstack/react-router';
-import { ArrowLeft, Check, History } from 'lucide-react';
+import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import type { Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
-import { WorkspaceHeaderActions } from '@/App/components/WorkspacePage.tsx';
+import { WorkspaceHeaderFact, WorkspaceHeaderSegment } from '@/App/components/WorkspacePage.tsx';
 import { InboxView } from '@/components/InboxView/index.tsx';
-import { Button } from '@/components/ui/button/index.tsx';
+import { approvalRequests } from '@/components/InboxView/helpers.ts';
 import { decisions } from '@/ClayInterface/signals.ts';
 import { DecisionPager } from './components/DecisionPager.tsx';
-import { DecisionRail } from './components/DecisionRail.tsx';
+import { DecisionPeek } from './components/DecisionPeek.tsx';
 import { DecisionSheet } from './components/DecisionSheet.tsx';
+import { DecisionsSegment } from './components/DecisionsSegment.tsx';
 
 type DecisionsViewProps = {
   data: Snapshot;
@@ -27,16 +27,25 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
     items.findIndex((item) => item.id === wanted),
   );
   const current = items[index];
+  const history = view === 'history';
+  const past = history ? approvalRequests(data, 'history').length : 0;
   const select = (id: string) => void navigate({ search: { decision: id }, replace: true });
-  if (view === 'history')
-    return (
-      <>
-        <WorkspaceHeaderActions>
-          <Button variant="secondary" onClick={() => void navigate({ search: {} })}>
-            <ArrowLeft size={15} />
-            Decisions{items.length ? ` (${items.length})` : ''}
-          </Button>
-        </WorkspaceHeaderActions>
+  return (
+    <section className="decide" data-view={history ? 'history' : 'pending'} aria-label="Decisions">
+      {!history && items.length ? (
+        <WorkspaceHeaderFact>
+          <DecisionPager items={items} index={index} select={select} />
+        </WorkspaceHeaderFact>
+      ) : null}
+      {history ? (
+        <WorkspaceHeaderFact>
+          {past} past decision{past === 1 ? '' : 's'}
+        </WorkspaceHeaderFact>
+      ) : null}
+      <WorkspaceHeaderSegment>
+        <DecisionsSegment history={history} count={items.length} />
+      </WorkspaceHeaderSegment>
+      {history ? (
         <InboxView
           data={data}
           action={action}
@@ -47,19 +56,8 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
             void navigate({ search: { view: 'history', entry: key ?? undefined }, replace: !key })
           }
         />
-      </>
-    );
-  return (
-    <section className="clay-decide" aria-label="Decisions">
-      <WorkspaceHeaderActions>
-        {items.length > 1 ? <DecisionPager items={items} index={index} select={select} /> : null}
-        <Button variant="secondary" onClick={() => void navigate({ search: { view: 'history' } })}>
-          <History size={15} />
-          Inbox history
-        </Button>
-      </WorkspaceHeaderActions>
-      {current ? (
-        <>
+      ) : current ? (
+        <div className="decide-stack">
           <DecisionSheet
             key={current.id}
             decision={current}
@@ -68,14 +66,20 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
             working={working}
             openCard={openCard}
           />
-          <DecisionRail decision={current} items={items} data={data} select={select} />
-        </>
+          <DecisionPeek
+            next={items.length > 1 ? items[(index + 1) % items.length] : undefined}
+            data={data}
+            select={select}
+          />
+        </div>
       ) : (
-        <p className="clay-decide-clear">
-          <Check aria-hidden="true" size={18} />
-          Nothing needs you. Packets, browser requests, questions and briefs wait here when the crew
-          needs a decision.
-        </p>
+        <div className="ui-empty decide-empty">
+          <span>No decisions waiting</span>
+          <Link to="/inbox" search={{ view: 'history' }}>
+            History
+          </Link>
+          <Link to="/">Board</Link>
+        </div>
       )}
     </section>
   );

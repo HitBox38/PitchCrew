@@ -5,6 +5,8 @@ import { ComposerAttachmentMenu } from './ComposerAttachmentMenu.tsx';
 import type { ChatComposerProps } from '../types.ts';
 import { PromptInputFooter } from '@/components/ai-elements/prompt-input/components/PromptInputFooter.tsx';
 import { ComposerSendActions } from './ComposerSendActions.tsx';
+import { ComposerRuntime } from './ComposerRuntime.tsx';
+import { ComposerRecipient } from './ComposerRecipient.tsx';
 
 export const ComposerFooter = (
   props: ChatComposerProps & {
@@ -17,6 +19,8 @@ export const ComposerFooter = (
       data-follow-up={props.busy && (!!props.draft.trim() || !!props.files.length)}
     >
       <ComposerAttachmentMenu key={props.thread} {...props} />
+      <ComposerRecipient {...props} />
+      <ComposerRuntime {...props} />
       {props.role.capabilities?.computerUse ? (
         <BrowserModePicker
           role={props.browserPanel.roles.find((role) => role.id === props.role.id) ?? props.role}

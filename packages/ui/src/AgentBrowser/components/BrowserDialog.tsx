@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { Input } from '@/components/ui/input/index.tsx';
+import { MessageSquareWarning } from 'lucide-react';
 import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
 export const BrowserDialog = ({
@@ -13,6 +14,10 @@ export const BrowserDialog = ({
   const [text, setText] = useState('');
   return (
     <section className="browser-dialog" aria-label="Website dialog">
+      <span className="clay-browser-chip" data-tone="ochre">
+        <MessageSquareWarning size={13} aria-hidden="true" />
+        The website is asking
+      </span>
       <p>{dialog.message}</p>
       {control.leaseId ? (
         <>

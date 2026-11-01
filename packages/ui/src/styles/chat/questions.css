@@ -54,7 +54,8 @@
   padding: 8px 12px;
   color: var(--ink);
   text-align: left;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 20px;
   cursor: pointer;
 }
 .pending-question-label {
@@ -76,8 +77,8 @@
   display: grid;
   gap: 8px;
   padding: 0 12px 10px;
-  font-size: 13px;
-  line-height: 1.4;
+  font-size: 14px;
+  line-height: 20px;
 }
 .user-question-fields {
   display: grid;
@@ -96,7 +97,20 @@
 .user-question-fields > small {
   color: var(--muted);
   font-size: 12px;
+  line-height: 18px;
   overflow-wrap: anywhere;
+}
+/* The free answer sits outside the scrolling choices, directly above the actions. */
+.user-question-custom {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.user-question-custom-label {
+  color: var(--ink-soft);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
 }
 .user-question-options {
   display: grid;
@@ -122,7 +136,8 @@
   color: var(--ink);
   box-shadow: var(--clay);
   text-align: left;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 20px;
   cursor: pointer;
   transition: var(--motion);
 }
@@ -140,8 +155,21 @@
   outline-offset: 1px;
 }
 .user-question-option > span {
+  flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
+}
+.user-question-key {
+  display: grid;
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font: 600 var(--text-detail) / 1 var(--font-sans);
 }
 .user-question-option > [data-slot='checkbox'] {
   flex-shrink: 0;
@@ -166,12 +194,14 @@
   display: block;
   font-weight: 400;
   color: var(--muted);
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 18px;
 }
 .user-question-form textarea {
-  min-height: 36px;
+  min-height: 40px;
   max-height: 100px;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 20px;
   padding: 7px 9px;
   border: 1px solid var(--border);
   border-radius: 10px 11px 10px 9px;
@@ -224,11 +254,25 @@
   .pending-question-trigger {
     min-height: 44px;
   }
+  /* The lane holds one open question without scrolling itself: only the question text and its
+   * choices scroll, so the labelled free answer and the actions stay in view. */
+  .pending-user-questions-lane {
+    max-height: none;
+    overflow: visible;
+  }
+  .user-question-form {
+    padding-bottom: 4px;
+  }
   .user-question-fields {
-    max-height: clamp(48px, calc(100dvh - 520px - var(--desktop-titlebar-height, 0px)), 190px);
+    max-height: clamp(72px, calc(100dvh - 674px - var(--desktop-titlebar-height, 0px)), 190px);
   }
   .user-question-form textarea {
+    min-height: 44px;
     font-size: 16px;
+    line-height: 22px;
+  }
+  .user-question-actions > [data-slot='button'] {
+    min-height: 44px;
   }
 }
 

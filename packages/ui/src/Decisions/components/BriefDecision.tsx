@@ -1,36 +1,29 @@
 import type { Card } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/index.tsx';
-
-type BriefDecisionProps = {
-  card: Card;
-  openCard: (id: string, section?: 'application') => void;
-};
+import { briefAnswersNeeded } from '../helpers.ts';
 
 /** A read-only preview; confirming still happens in job details with its full checks. */
-export const BriefDecision = ({ card, openCard }: BriefDecisionProps) => {
+export const BriefDecision = ({ card }: { card: Card }) => {
   const context = card.applicationContext;
   const brief = context?.brief;
-  const requirements = context?.requirements ?? [];
-  const missing = requirements.filter(
-    (item) => item.required && item.personal && !item.answer.trim(),
-  ).length;
+  const form = context?.form;
+  const missing = briefAnswersNeeded(card);
   const facts = (
     [
       ['Responsibilities', brief?.responsibilities.length ?? 0, false],
       ['Qualifications', brief?.qualifications.length ?? 0, false],
-      ['Questions', requirements.length, false],
+      ['Questions', context?.requirements.length ?? 0, false],
       ['Answers needed', missing, true],
     ] as const
   ).filter(([, count]) => count > 0);
   return (
-    <div className="clay-decide-brief">
-      <p>
+    <div className="packet-details">
+      <p className="decide-lead">
         A brief was extracted from the posting. Check it and answer anything personal before
-        drafting. Writer and Reviewer only see what you confirm.
+        drafting.
       </p>
-      {brief?.companyContext ? <p className="clay-decide-quote">{brief.companyContext}</p> : null}
+      {brief?.companyContext ? <p className="decide-quote">{brief.companyContext}</p> : null}
       {facts.length ? (
-        <dl className="clay-decide-facts">
+        <dl className="decide-facts">
           {facts.map(([label, count, attention]) => (
             <div key={label} data-attention={attention ? '' : undefined}>
               <dt>{label}</dt>
@@ -44,15 +37,25 @@ export const BriefDecision = ({ card, openCard }: BriefDecisionProps) => {
         </p>
       )}
       {brief?.qualifications.length ? (
-        <ul className="clay-decide-lines">
-          {brief.qualifications.slice(0, 4).map((line) => (
-            <li key={line}>{line}</li>
-          ))}
-        </ul>
+        <section className="packet-section" aria-label="Qualifications">
+          <h3 className="packet-section-heading">Qualifications</h3>
+          <ul className="decide-lines">
+            {brief.qualifications.slice(0, 4).map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </section>
       ) : null}
-      <Button onClick={() => openCard(card.id, 'application')}>
-        {missing ? 'Answer and confirm' : 'Review and confirm'}
-      </Button>
+      <section className="packet-section" aria-label="Application form">
+        <h3 className="packet-section-heading">Application form</h3>
+        <p className="decide-lines-note">
+          {form?.status === 'inspected'
+            ? `Inspected: ${form.fields.filter((field) => field.visible).length} fields${form.uninspected.length ? `, ${form.uninspected.length} sections not inspected` : ''}.`
+            : form?.status === 'manual'
+              ? 'You chose to check this form yourself.'
+              : 'Not inspected yet. Its fields and uploads are unchecked.'}
+        </p>
+      </section>
     </div>
   );
 };

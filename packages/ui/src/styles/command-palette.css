@@ -1,57 +1,153 @@
-/* Command palette */
+/* Command palette: a 600px raised, opaque sheet 18vh from the top. Opening is instant. */
 [data-slot='dialog-content'].command-palette {
+  top: 18vh;
+  translate: -50% 0;
+  width: min(600px, calc(100vw - 32px));
+  max-width: min(600px, calc(100vw - 32px));
+  max-height: 70vh;
+  padding: 0;
   border: 0;
-  border-radius: 16px 17px 16px 15px;
+  border-radius: 16px;
   background: var(--surface-bright);
   box-shadow:
     0 0 0 1px var(--border),
+    var(--volume-sm),
     var(--pop);
-  max-width: min(620px, calc(100vw - 32px));
+}
+.command-palette [data-slot='command'] {
+  max-height: 70vh;
+  border-radius: inherit;
+  background: transparent;
+}
+.command-palette [data-slot='command-input-wrapper'] {
+  flex-shrink: 0;
+  height: 48px;
+  gap: 10px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+.command-palette [data-slot='command-input-wrapper'] > svg {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+  opacity: 1;
+}
+.command-palette [cmdk-input] {
+  height: 48px;
+  padding: 0;
+  color: var(--ink);
+  font-size: 15px;
+}
+.command-palette [cmdk-input]::placeholder {
+  color: var(--muted);
 }
 .command-palette [cmdk-input]:focus-visible {
   outline: none;
 }
+.command-palette [data-slot='command-list'] {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 4px 0 8px;
+  overscroll-behavior: contain;
+  scroll-padding-block: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
+}
+.command-palette [cmdk-group] {
+  padding: 0 8px;
+}
 .command-palette [cmdk-group-heading] {
-  font-size: 12px;
+  padding: 10px 8px 4px;
+  color: var(--muted);
+  font-size: var(--text-detail);
   font-weight: 600;
 }
 .command-palette [cmdk-item] {
-  border-radius: 9px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 10px;
+  border-radius: 10px;
+  color: var(--ink);
+  font-size: 0.875rem;
   cursor: pointer;
 }
-.command-palette [cmdk-item] .company-mark {
-  width: 20px;
-  height: 20px;
+.command-palette [cmdk-item] > svg {
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+}
+/* The keyboard selection is the one raised row. */
+.command-palette [cmdk-item][data-selected='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}
+.command-palette [cmdk-item][data-selected='true'] > svg {
+  color: var(--ink-soft);
+}
+.command-palette [cmdk-item] > :is(.company-mark, .role-avatar) {
+  width: 22px;
+  height: 22px;
   font-size: 11px;
 }
-.command-job {
+.command-palette .command-label {
+  flex-shrink: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.command-job small {
-  margin-left: 6px;
+.command-palette .command-context,
+.command-palette [cmdk-item] > .text-xs {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
   color: var(--muted);
-  font-size: 12px;
+  font-size: var(--text-detail);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.page-heading {
-  display: flex;
-  align-items: flex-end;
-  gap: 20px;
-  justify-content: space-between;
-  margin-bottom: 26px;
+.command-palette [cmdk-item] > .min-w-0.flex-1 + .text-xs {
+  flex: none;
 }
-h1 {
-  font-size: 30px;
-  letter-spacing: -0.5px;
-  line-height: 1.2;
-}
-.page-heading p {
-  font-size: 14px;
+.command-palette [data-slot='command-shortcut'] {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
   color: var(--muted);
-  margin-top: 6px;
+  font-size: 11px;
+  letter-spacing: 0.02em;
 }
-.page-heading p strong {
-  color: var(--ink);
-  font-weight: 600;
+.command-palette [cmdk-empty] {
+  padding: 24px 16px;
+  color: var(--muted);
+  font-size: var(--text-label);
+  text-align: center;
+}
+.command-palette [cmdk-separator] {
+  height: 1px;
+  margin: 4px 16px;
+  background: var(--border);
+}
+
+@variant max-phone {
+  [data-slot='dialog-content'].command-palette {
+    top: max(8px, env(safe-area-inset-top));
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+    max-height: calc(100dvh - 16px);
+  }
+  .command-palette [data-slot='command'] {
+    max-height: calc(100dvh - 16px);
+  }
+  .command-palette [cmdk-input] {
+    font-size: 16px;
+  }
+  .command-palette [cmdk-item] {
+    min-height: 44px;
+  }
 }

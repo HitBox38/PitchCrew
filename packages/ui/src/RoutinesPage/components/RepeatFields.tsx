@@ -20,7 +20,7 @@ export const RepeatFields = ({ draft, change }: DraftFieldsProps) => {
         ]}
       />
       {draft.frequency === 'interval' ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="routine-field-pair">
           <label>
             Every
             <Input

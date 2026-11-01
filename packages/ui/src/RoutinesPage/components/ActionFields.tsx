@@ -22,7 +22,7 @@ export const ActionFields = ({
           placeholder="Morning job-search check-in"
         />
       </label>
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="routine-field-pair">
         <FormSelect
           label="Agent"
           value={draft.roleId}

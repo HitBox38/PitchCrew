@@ -32,6 +32,4 @@ export type PacketApprovalActionsProps = ApprovalContext & {
   card: Card;
 };
 
-export type PacketApprovalListProps = ApprovalContext & { approvals: Approval[] };
-
 export type HistorySheetProps = InboxViewModel & { request: ApprovalRequest };

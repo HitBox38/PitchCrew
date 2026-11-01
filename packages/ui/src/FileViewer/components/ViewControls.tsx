@@ -35,7 +35,7 @@ export const ViewControls = (model: FileViewerModel) => {
         </>
       ) : null}
       {file.kind === 'markdown' || file.kind === 'docx' ? (
-        <fieldset aria-label="Document view" className="file-mode-toggle">
+        <fieldset aria-label="Document view" className="ui-segment file-mode-toggle">
           <Button
             size="sm"
             variant="ghost"

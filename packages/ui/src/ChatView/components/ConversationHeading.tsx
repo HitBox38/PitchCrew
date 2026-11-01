@@ -7,14 +7,22 @@ import { ConversationActions } from './ConversationActions.tsx';
 import { ConversationViewSwitch } from './ConversationViewSwitch.tsx';
 import { Square, Cpu } from 'lucide-react';
 import { ChatStageTrack } from '@/ClayInterface/components/ChatStageTrack.tsx';
+import { ClayJobLinks } from './ClayJobLinks.tsx';
+import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { WorkspaceMobileTitle } from '@/App/components/WorkspaceHeaderSlots.tsx';
 export const ConversationHeading = (props: ConversationHeadingProps) => {
   const { role, running, participants, setDialog, thread, working, action } = props;
+  const { isMobile } = useSidebar();
   return (
     <>
+      <WorkspaceMobileTitle>
+        <ConversationActions {...props} title={props.conversation?.title ?? role.name} />
+      </WorkspaceMobileTitle>
       <header className="chat-heading">
         <ConversationIdentity {...props} />
         <ConversationViewSwitch attention={props.attention} />
         <div className="chat-heading-actions">
+          <ClayJobLinks {...props} />
           <BrowserButton browserPanel={props.browserPanel} />
           {!props.readOnly ? (
             <Button
@@ -37,7 +45,7 @@ export const ConversationHeading = (props: ConversationHeadingProps) => {
               <Square size={12} /> Stop {participants.length > 1 ? 'group' : ''}
             </Button>
           ) : null}
-          <ConversationActions {...props} />
+          {isMobile ? null : <ConversationActions {...props} />}
         </div>
       </header>
       <ChatStageTrack thread={thread} />

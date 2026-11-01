@@ -18,15 +18,18 @@ export const PlanJobPicker = ({
     `${c.company} ${c.title}`.toLowerCase().includes(query.toLowerCase()),
   );
   return (
-    <AccordionSection heading={`Choose individual jobs (${selected.length} selected)`}>
-      <div className="space-y-3">
+    <AccordionSection
+      heading={`Choose individual jobs (${selected.length} selected)`}
+      className="career-plan-picker"
+    >
+      <div className="career-plan-picker-body">
         <Input
           aria-label="Search jobs for this plan"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
         {matching.slice(0, 20).map((c) => (
-          <label key={c.id} className="flex items-start gap-2">
+          <label key={c.id} className="career-plan-pick">
             <Checkbox
               checked={selectedIds.has(c.id)}
               disabled={!selectedIds.has(c.id) && selected.length >= 100}
@@ -40,7 +43,7 @@ export const PlanJobPicker = ({
           </label>
         ))}
         {matching.length > 20 ? (
-          <p className="quiet">
+          <p className="career-plan-note">
             Showing 20 of {matching.length} jobs. Refine the search to choose others.
           </p>
         ) : null}

@@ -1,70 +1,35 @@
-import { BrowserSettings } from './components/BrowserSettings.tsx';
-import { AgentMemory } from '@/AgentMemory/index.tsx';
-import { IdentitySettings } from './components/IdentitySettings.tsx';
-import { RoleInstructionUpdate } from './components/RoleInstructionUpdate.tsx';
-import { RoleRetirement } from './components/RoleRetirement.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
-import { CapabilitySettings } from '@/components/RoleSettings/components/CapabilitySettings.tsx';
-import { InstructionSettings } from '@/components/RoleSettings/components/InstructionSettings.tsx';
-import { RoleSettingsFooter } from '@/components/RoleSettings/components/RoleSettingsFooter.tsx';
-import { RoleSettingsHeading } from '@/components/RoleSettings/components/RoleSettingsHeading.tsx';
-import { RoleSkills } from '@/components/RoleSettings/components/RoleSkills.tsx';
-import { RuntimeSettings } from '@/components/RoleSettings/components/RuntimeSettings.tsx';
 import { useRoleSettings } from '@/components/RoleSettings/hooks/useRoleSettings.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
+import { instructionUpdateFor } from '@/lib/instruction-updates.ts';
+import { InstructionReviewForm } from './components/InstructionReviewForm.tsx';
+import { RoleSettingsForm } from './components/RoleSettingsForm.tsx';
+import { RoleSettingsHeading } from './components/RoleSettingsHeading.tsx';
 import { RoleSettingsSurface } from './components/RoleSettingsSurface.tsx';
-import { RuntimeRecommendation } from '@/RuntimeRecommendation/index.tsx';
-import { defaultRoleIds } from '@pitchcrew/core/states';
 
+/**
+ * The agent panel: identity, runtime, instructions (with any default update), tools, browser,
+ * skills, memory and retirement, saved together by one footer action. Opened to review a default
+ * update, the comparison leads and its decision holds the footer until resolved.
+ */
 export const RoleSettings = (props: RoleSettingsProps) => {
   const controller = useRoleSettings(props);
-  const { onClose, save, guard } = controller;
+  const { role, data, creating } = controller;
+  const update =
+    props.reviewInstructions && !creating && !role.retiredAt
+      ? instructionUpdateFor(data, role.id)
+      : undefined;
   return (
     <>
-      <RoleSettingsSurface docked={props.docked} onClose={onClose}>
+      <RoleSettingsSurface docked={props.docked} onClose={controller.onClose}>
         <RoleSettingsHeading {...controller} />
-        <form
-          className="form role-settings-form flex flex-col gap-4"
-          onSubmit={(e) => void save(e)}
-        >
-          <div className="role-settings-body">
-            {props.reviewInstructions ? <RoleInstructionUpdate {...controller} /> : null}
-            <IdentitySettings {...controller} />
-            <RuntimeSettings {...controller} stacked={props.docked}>
-              {!controller.creating && defaultRoleIds.some((id) => id === controller.role.id) ? (
-                <RuntimeRecommendation
-                  key={controller.role.id}
-                  roleId={controller.role.id}
-                  disabled={controller.working}
-                  configuration={{
-                    runtime: controller.runtime,
-                    model: controller.model,
-                    reasoning: controller.reasoning,
-                  }}
-                  onApply={(configuration) => {
-                    controller.setRuntime(configuration.runtime);
-                    controller.setModel(configuration.model);
-                    controller.setReasoning(configuration.reasoning ?? null);
-                  }}
-                />
-              ) : null}
-            </RuntimeSettings>
-            {!props.reviewInstructions ? <RoleInstructionUpdate {...controller} /> : null}
-            <InstructionSettings {...controller} />
-            <CapabilitySettings {...controller} />
-            <BrowserSettings {...controller} />
-            {controller.creating ? (
-              <p className="quiet">Save the role, then assign skills from its settings.</p>
-            ) : (
-              <RoleSkills {...controller} />
-            )}
-            {!controller.creating ? <AgentMemory roleId={controller.role.id} /> : null}
-            <RoleRetirement {...controller} />
-          </div>
-          <RoleSettingsFooter {...controller} />
-        </form>
+        {update ? (
+          <InstructionReviewForm key={update.revision} {...controller} update={update} />
+        ) : (
+          <RoleSettingsForm {...controller} />
+        )}
       </RoleSettingsSurface>
-      <DiscardChanges guard={guard} />
+      <DiscardChanges guard={controller.guard} />
     </>
   );
 };

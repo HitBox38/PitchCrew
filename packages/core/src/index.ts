@@ -56,7 +56,7 @@ export {
   customCapabilities,
 } from './roles.ts';
 export type { AgentCapabilities, Role, RoleProposal } from './roles.ts';
-export { runResultSchema } from './runs.ts';
+export { compactRun, runResultSchema } from './runs.ts';
 export type { AgentTask, Run, RunResult, RunActivity, RuntimeActivity } from './runs.ts';
 export { routineInput } from './routines.ts';
 export type { Routine, RoutineInput } from './routines.ts';

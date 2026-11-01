@@ -1,167 +1,273 @@
-.queue-widget-trigger {
-  min-width: 0;
-  height: 30px;
+/* The sidebar slot tray's Queue button and its popover. The tray itself (recessed, 44px,
+ * with the Settings gear beside it) belongs to the shell. */
+.queue-tray-button {
+  display: flex;
+  align-items: center;
   gap: 8px;
-  padding-inline: 10px;
-  border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
+  flex: 1;
+  min-width: 0;
+  min-height: 32px;
+  padding: 0 6px;
+  border: 0;
   border-radius: 8px;
-  background: var(--clay-fill);
+  background: transparent;
   color: var(--ink-soft);
-  font-size: 12px;
-  font-weight: 400;
+  font-size: var(--text-detail);
+  text-align: left;
+  transition:
+    background-color 0.12s,
+    box-shadow 0.12s;
+}
+.queue-tray-button:hover,
+.queue-tray-button[data-popup-open] {
+  background: var(--clay-fill);
   box-shadow: var(--clay);
+  color: var(--ink);
 }
-.queue-widget-trigger > .queue-slots {
-  width: 42px;
-  gap: 2px;
+.queue-tray-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
-.queue-widget-trigger .queue-slots > span {
-  height: 12px;
-  border-radius: 2px;
+.queue-tray-button[data-variant='rail'] {
+  flex: none;
+  justify-content: center;
+  width: 36px;
+  min-height: 36px;
+  padding: 0;
 }
-.queue-widget-trigger > .queue-slots[data-dense='true'] {
-  gap: 0.5px;
+.queue-tray-sockets {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
 }
-.queue-widget-trigger > .queue-widget-pending {
-  color: var(--muted);
-  border-left: 1px solid var(--border);
-  padding-left: 8px;
+.queue-tray-sockets > .clay-bead {
+  --bead-size: 0.625rem;
 }
-.queue-widget-held {
-  color: var(--ochre);
+.queue-tray-button[data-variant='rail'] .queue-tray-sockets {
+  flex-direction: column;
+  gap: 3px;
 }
-.queue-widget-panel {
-  width: min(420px, calc(100vw - 24px));
-  padding: 16px;
+.queue-tray-button[data-variant='rail'] .queue-tray-sockets > .clay-bead {
+  --bead-size: 0.4375rem;
+}
+/* Wraps only between its facts, so “1 on hold” never clips; the sockets keep their size. */
+.queue-tray-label {
+  min-width: 0;
+  padding-block: 2px;
+  line-height: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ui-popover.queue-widget-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(360px, calc(100vw - 16px));
+  max-height: min(60vh, var(--available-height));
+  overflow: hidden;
+  padding: 0;
 }
 .queue-widget-heading {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 4px;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 14px 16px 2px;
 }
 .queue-widget-heading h2 {
-  font-size: 14px;
-  font-weight: 600;
+  margin: 0;
+  font: 600 1rem/1.35 var(--font-sans);
 }
-.queue-widget-heading > span {
-  color: var(--teal);
-  font-size: 12px;
+.queue-widget-heading > .ui-count {
+  margin-left: auto;
+  font-size: var(--text-detail);
   font-variant-numeric: tabular-nums;
 }
-.queue-widget-panel > .queue-slots {
-  margin-block: 14px;
-}
-.queue-widget-panel > .queue-widget-background {
-  margin: -2px 0 14px;
-  padding: 0;
+.queue-widget-description {
+  flex-shrink: 0;
+  margin: 0;
+  padding: 0 16px 8px;
+  color: var(--muted);
+  font-size: var(--text-detail);
 }
 .queue-widget-work-list {
-  max-height: min(400px, 50dvh);
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  list-style: none;
-  padding: 2px 4px 4px 2px;
-  margin: 0 -4px 12px -2px;
+  padding: 0 8px 8px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar) transparent;
 }
-.queue-widget-work {
-  padding: 12px;
-  border: 1px solid color-mix(in srgb, var(--ink) 7%, transparent);
-  border-radius: 10px 11px 10px 9px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-  font-size: 12px;
-}
-.queue-widget-work .queue-state {
-  flex-shrink: 0;
-}
-.queue-widget-agent {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-top: 8px;
-}
-.queue-widget-work > .quiet {
-  margin-top: 6px;
-  overflow-wrap: anywhere;
-}
-.queue-widget-empty,
-.queue-widget-background {
-  color: var(--muted);
-  font-size: 12px;
-  padding-block: 12px;
-}
-@variant max-phone {
-  .queue-widget-trigger > .queue-slots {
-    width: 30px;
-  }
-  .queue-widget-trigger > .queue-widget-pending {
-    display: none;
-  }
-  .queue-widget-trigger {
-    gap: 6px;
-    padding-inline: 7px;
-  }
-}
-
 .queue-widget-group + .queue-widget-group {
-  margin-top: 16px;
+  margin-top: 4px;
 }
 .queue-widget-group h3 {
   display: flex;
-  align-items: center;
-  gap: 7px;
-  margin-bottom: 8px;
-  font: 600 12px var(--font-sans);
-}
-.queue-widget-group h3 span {
+  align-items: baseline;
+  gap: 6px;
+  margin: 0;
+  padding: 8px 8px 4px;
   color: var(--muted);
-  font-weight: 400;
-  font-variant-numeric: tabular-nums;
+  font: 600 var(--text-detail) / 1.4 var(--font-sans);
 }
 .queue-widget-group > ul {
   display: grid;
-  gap: 8px;
-  list-style: none;
+  gap: 2px;
+  margin: 0;
   padding: 0;
+  list-style: none;
+}
+.queue-widget-empty {
+  margin: 0;
+  padding: 2px 8px 4px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.queue-widget-more {
+  margin: 4px 8px 0;
+  min-height: 28px;
+  font-size: var(--text-detail);
+}
+.queue-widget-work {
+  padding: 2px 0 4px;
+  border-radius: 10px;
 }
 .queue-widget-open {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 40px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  transition:
+    background-color 0.12s,
+    box-shadow 0.12s;
+}
+.queue-widget-open:hover {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.queue-widget-open:active {
+  box-shadow: var(--clay-sunken);
+}
+.queue-widget-open:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.queue-widget-identity {
+  display: grid;
   flex: 1;
   min-width: 0;
-  height: auto;
-  justify-content: flex-start;
-  padding: 0;
-  background: transparent;
-  text-align: left;
-  color: var(--ink);
-  font-size: 12px;
+  font-size: 0.875rem;
+  line-height: 1.3;
 }
-.queue-widget-open:hover strong {
+.queue-widget-identity > strong,
+.queue-widget-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.queue-widget-identity > strong {
+  font-weight: 600;
+}
+.queue-widget-subtitle {
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.queue-widget-action {
+  flex-shrink: 0;
+  color: var(--primary);
+  font-size: var(--text-detail);
+  font-weight: 600;
+}
+.queue-widget-preview {
+  margin: 0;
+  padding: 0 8px 2px 30px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.queue-widget-preview[data-state='waiting'] {
+  color: var(--ochre);
+}
+.queue-widget-agent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  margin-left: 22px;
+  padding: 2px 8px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-detail);
+  text-decoration: none;
+}
+.queue-widget-agent:hover {
+  background: rgb(var(--tint) / 0.05);
+}
+.queue-widget-agent:hover .queue-widget-agent-name {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.queue-widget-subtitle {
-  display: block;
+.queue-widget-agent:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.queue-widget-agent-name {
+  flex-shrink: 0;
+  max-width: 7rem;
   overflow: hidden;
+  font-weight: 600;
   text-overflow: ellipsis;
-  margin-top: 3px;
+  white-space: nowrap;
+}
+.queue-widget-agent-activity {
+  min-width: 0;
+  overflow: hidden;
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 400;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.queue-widget-agent {
-  border-radius: 5px;
-  padding-block: 3px;
-  color: var(--ink-soft);
-  text-decoration: none;
-}
-.queue-widget-agent:hover > span:nth-child(2) {
-  text-decoration: underline;
-}
-.queue-widget-preview {
-  margin-top: 8px;
+.queue-widget-background {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  margin: 0;
+  padding: 8px 16px;
+  border-top: 1px solid var(--border);
   color: var(--muted);
-  line-height: 1.5;
-  overflow-wrap: anywhere;
+  font-size: var(--text-detail);
+}
+.queue-widget-footer {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--border);
+}
+.queue-widget-footer .text-button {
+  min-height: 32px;
+}
+
+@variant max-phone {
+  .queue-tray-button {
+    min-height: 44px;
+  }
+  .queue-widget-open {
+    min-height: 48px;
+  }
+  .queue-widget-agent {
+    min-height: 40px;
+  }
 }

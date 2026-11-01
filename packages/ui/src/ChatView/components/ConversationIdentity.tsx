@@ -1,28 +1,30 @@
 import type { ConversationHeadingProps } from '../types.ts';
-import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Users } from 'lucide-react';
 import { conversationSubtitle, leadIsUnavailable } from '../presentation.ts';
+import { ChatParticipants } from '@/ClayInterface/components/ChatParticipants.tsx';
+import { ClayJobTitle } from './ClayJobTitle.tsx';
 
 export const ConversationIdentity = (props: ConversationHeadingProps) => {
-  const { conversation, roleId, participants, role, data, setDialog } = props;
+  const { conversation, participants, role, data, setDialog } = props;
   const lead = data.roles.find((agent) => agent.id === conversation?.leadId);
   const leadUnavailable = leadIsUnavailable(data, conversation, lead);
   // A lone agent with an uninstalled runtime needs a runtime, not a different lead.
   const pickRuntime =
     participants.length === 1 && !!lead && lead.enabled && !lead.retiredAt && !!leadUnavailable;
+  const job = props.attached;
+  const title = conversation?.title ?? role.name;
   return (
-    <div className="chat-heading-identity">
-      {participants.length === 1 ? (
-        <RoleAvatar agentRole={roleId} size="normal" />
-      ) : (
-        <span className="crew-chat-icon">
-          <Users size={18} />
-        </span>
-      )}
+    <div className="chat-heading-identity" data-job={job ? '' : undefined}>
+      <ChatParticipants
+        participants={participants}
+        running={props.running}
+        questions={props.questions}
+        data={data}
+      />
       <div className="chat-heading-copy">
-        <h2>{conversation?.title ?? role.name}</h2>
+        {job ? <ClayJobTitle card={job} /> : <h1>{title}</h1>}
         <p>
+          {job ? <span className="clay-chat-title">{title} · </span> : null}
           {conversationSubtitle(props, lead)}
           {props.questions.length && participants.length > 1 ? (
             <span> · Waiting for you</span>

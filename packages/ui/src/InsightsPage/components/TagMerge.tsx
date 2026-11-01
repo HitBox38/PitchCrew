@@ -8,12 +8,12 @@ import { TagMergeConfirm } from './TagMergeConfirm.tsx';
 export const TagMerge = ({ cards, tags }: { cards: Card[]; tags: string[] }) => {
   const merge = useTagMerge(cards);
   return (
-    <div>
+    <div className="insights-tidy-part">
       <h3>Merge tags</h3>
-      <p className="quiet">
-        Move every job from one tag to another and drop the old tag. Jobs keep at most 10 tags.
+      <p className="insights-note">
+        Every job moves to the new tag and drops the old one. Jobs keep at most 10 tags.
       </p>
-      <div className="form mt-2 flex flex-wrap items-end gap-3">
+      <div className="insights-tidy-row">
         <FormSelect
           label="Old tag"
           value={merge.from}
@@ -41,7 +41,7 @@ export const TagMerge = ({ cards, tags }: { cards: Card[]; tags: string[] }) => 
         </Button>
       </div>
       {merge.from ? (
-        <p className="quiet mt-2">
+        <p className="insights-note">
           {merge.affected.length} {merge.affected.length === 1 ? 'job has' : 'jobs have'} this tag.
         </p>
       ) : null}

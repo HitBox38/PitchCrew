@@ -6,6 +6,7 @@ import {
   documentDirty,
   initialProfileNote,
   openDocument,
+  renameDocument,
   syncDocuments,
   reorderDocument,
 } from '../helpers.ts';
@@ -37,6 +38,10 @@ export const useProfileDocuments = (data: ProfileViewProps['data']) => {
     open: (note: { name: string; content: string }, replace = false) => {
       const id = crypto.randomUUID();
       setState((state) => openDocument(state, note, id, replace));
+    },
+    rename: (note: { name: string; content: string }, name: string) => {
+      const id = crypto.randomUUID();
+      setState((state) => renameDocument(state, note, id, name));
     },
     close: (id: string) => setState((state) => closeDocument(state, id)),
     discard: () => setState(discardDocuments),

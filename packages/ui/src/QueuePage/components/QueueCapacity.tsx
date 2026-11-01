@@ -11,6 +11,7 @@ import {
   PopoverDescription,
 } from '@/components/ui/popover/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { slotFact } from '../helpers.ts';
 
 export const QueueCapacity = ({ queue }: { queue: WorkspaceQueue }) => {
   const [open, setOpen] = useState(false);
@@ -33,17 +34,15 @@ export const QueueCapacity = ({ queue }: { queue: WorkspaceQueue }) => {
         render={<Button variant="ghost" size="sm" className="queue-capacity-trigger" />}
         aria-label={`Capacity settings, ${queue.active} of ${queue.concurrency} slots in use`}
       >
-        <span>
-          {queue.active} of {queue.concurrency} slots in use
-        </span>
+        <span>{slotFact(queue.active, queue.concurrency)}</span>
         <ChevronDown size={13} aria-hidden="true" />
       </PopoverTrigger>
       <PopoverContent className="queue-capacity-popup">
-        <PopoverTitle className="text-sm font-semibold">Capacity settings</PopoverTitle>
-        <PopoverDescription className="mt-2 text-xs text-muted-foreground">
+        <PopoverTitle className="queue-capacity-title">Capacity settings</PopoverTitle>
+        <PopoverDescription className="queue-capacity-note">
           Each job or conversation uses one slot. Agents within a job can work together.
         </PopoverDescription>
-        <div className="queue-capacity-controls mt-4">
+        <div className="queue-capacity-controls">
           <label htmlFor="queue-concurrency">Concurrent work</label>
           <Input
             id="queue-concurrency"
@@ -56,12 +55,10 @@ export const QueueCapacity = ({ queue }: { queue: WorkspaceQueue }) => {
           />
         </div>
         {queue.active > queue.concurrency ? (
-          <p className="mt-3 text-xs text-muted-foreground">
-            Running work will finish before new work starts.
-          </p>
+          <p className="queue-capacity-note">Running work will finish before new work starts.</p>
         ) : null}
         <Button
-          className="mt-4 w-full"
+          className="w-full"
           disabled={
             working ||
             !Number.isInteger(Number(value)) ||

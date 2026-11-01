@@ -31,10 +31,10 @@ beforeEach(async () => {
   host.daemon.service.moveCard(card.id, 'shortlisted');
   await confirmFixtureApplication(host.request, card.id);
   await page.goto(host.daemon.url);
-  await page.locator(`#board-job-${card.id} .job-card`).waitFor({ timeout: 30000 });
+  await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();
-  await page.locator(`#board-job-${card.id} .job-card`).click();
+  await page.locator(`#board-job-${card.id} .clay-job-card`).click();
   await page.getByRole('tab', { name: 'Job', exact: true }).waitFor();
 }, 30000);
 afterAll(async () => {
@@ -182,7 +182,7 @@ test('opens Writing settings from the redesigned application documents and close
   await page.getByRole('tab', { name: 'Application', exact: true }).click();
   await page.getByRole('button', { name: /^Documents/ }).click();
   await page.getByRole('button', { name: 'Writing guide', exact: true }).click();
-  await page.getByRole('heading', { name: 'Writing guide', exact: true }).waitFor();
+  await page.getByRole('heading', { name: /^Writing guide/ }).waitFor();
   expect(new URL(page.url()).searchParams.get('section')).toBe('writing');
   await expect
     .poll(() => page.getByRole('dialog', { name: 'Job details', exact: true }).count())
@@ -207,7 +207,7 @@ test('shows the job identity and a loading skeleton while its source is opening'
     release();
     await page.unroute(sourceUrl);
   });
-  await page.locator(`#board-job-${card.id} .job-card`).click();
+  await page.locator(`#board-job-${card.id} .clay-job-card`).click();
   const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
   await sheet.getByText('Loading job details…', { exact: true }).waitFor();
   expect(await sheet.getByRole('heading', { name: card.title, exact: true }).isVisible()).toBe(
@@ -249,7 +249,7 @@ test('acknowledges agent startup before the request completes, shares it with th
   release();
   await page.getByText('Fictional startup failed', { exact: true }).waitFor();
   await expect.poll(() => job.getByRole('status').count()).toBe(0);
-  await job.locator('.job-card').click();
+  await job.locator('.clay-job-card').click();
   await page.getByRole('button', { name: 'Draft application', exact: true }).waitFor();
   await expect
     .poll(() => page.getByRole('button', { name: 'Edit job', exact: true }).isDisabled())
@@ -314,8 +314,8 @@ test('reevaluates a submitted job with the whole packet and shows a separate pac
     };
   });
   await page.reload();
-  await page.locator(`#board-job-${card.id} .job-card`).waitFor({ timeout: 30000 });
-  await page.locator(`#board-job-${card.id} .job-card`).click();
+  await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
+  await page.locator(`#board-job-${card.id} .clay-job-card`).click();
   const sheet = page.getByRole('dialog', { name: 'Job details', exact: true });
   const region = sheet.getByRole('region', { name: 'Packet match to job', exact: true });
   await region.getByRole('button', { name: 'Reevaluate with packet', exact: true }).click();

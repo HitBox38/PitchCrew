@@ -9,20 +9,20 @@ export const StaleConfirm = ({ stale }: { stale: StaleCleanupModel }) => {
     if (!stale.working) stale.setConfirming(false);
   };
   return (
-    <Modal title="Mark as no response" onClose={close}>
+    <Modal title="Mark as no response" onClose={close} className="insights-confirm">
       <p>
         Move {cards.length} {cards.length === 1 ? 'job' : 'jobs'} from Submitted to No response?
         Each change takes effect from the day it reached {stale.preview!.days} days of silence, so a
         later reply can still move it forward.
       </p>
-      <ul className="quiet my-3 max-h-48 overflow-y-auto">
+      <ul className="insights-confirm-list">
         {cards.map((card) => (
           <li key={card.id}>
             {card.company} · {card.title} · since {new Date(card.staleAt).toLocaleDateString()}
           </li>
         ))}
       </ul>
-      <div className="mt-5 flex justify-end gap-2">
+      <div className="insights-confirm-actions">
         <Button className="button" disabled={stale.working} onClick={close}>
           Cancel
         </Button>

@@ -3,6 +3,7 @@ import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
 import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
 import type { ReactNode } from 'react';
 
+/** 480px agent panel: docked beside a chat, or an overlay sheet from Crew and elsewhere. */
 export const RoleSettingsSurface = ({
   docked,
   onClose,
@@ -14,7 +15,7 @@ export const RoleSettingsSurface = ({
 }) => {
   if (docked)
     return (
-      <SidePanel className="role-settings-panel" onClose={onClose}>
+      <SidePanel className="agent-panel" onClose={onClose}>
         {children}
       </SidePanel>
     );
@@ -25,7 +26,7 @@ export const RoleSettingsSurface = ({
         if (!open) onClose();
       }}
     >
-      <SheetContent className="role-settings-panel" showCloseButton={false}>
+      <SheetContent className="agent-panel" showCloseButton={false}>
         {children}
       </SheetContent>
     </Sheet>

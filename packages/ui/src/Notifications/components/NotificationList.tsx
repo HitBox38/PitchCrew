@@ -1,59 +1,41 @@
-import { NotificationLink } from './NotificationLink.tsx';
-import { NotificationIcon } from './NotificationIcon.tsx';
-import type { CrewNotification } from '../types.ts';
-import { notificationPresentation } from '../constants.ts';
-import { notificationPreview } from '../helpers.ts';
-import { timeAgo } from '@/lib/time.ts';
+import type { CrewNotification, NotificationGroupId } from '../types.ts';
+import { NotificationRow } from './NotificationRow.tsx';
 
 export const NotificationList = ({
-  items,
+  groups,
   read,
-  onOpen,
+  close,
 }: {
-  items: CrewNotification[];
+  groups: { id: NotificationGroupId; title: string; items: CrewNotification[] }[];
   read: string[];
-  onOpen: (item: CrewNotification) => void;
+  close: () => void;
 }) => {
   const readIds = new Set(read);
-  if (!items.length)
-    return (
-      <p className="quiet notification-empty">
-        Your crew’s messages and requests will appear here.
-      </p>
-    );
+  if (!groups.length) return <p className="notification-empty">You’re up to date</p>;
   return (
-    <ul className="notification-list">
-      {items.map((item) => (
-        <li
-          key={item.id}
-          className="notification-context"
-          data-context={item.context}
-          data-unread={!readIds.has(item.id)}
+    <div className="notification-groups">
+      {groups.map((group) => (
+        <section
+          key={group.id}
+          className="notification-group"
+          aria-labelledby={`notification-group-${group.id}`}
         >
-          <NotificationLink item={item} onOpen={onOpen} className="notification-link">
-            <NotificationIcon context={item.context} />
-            <span className="notification-item-content">
-              <span className="notification-item-heading">
-                <strong>{item.title}</strong>
-                {!readIds.has(item.id) ? (
-                  <span className="notification-unread">
-                    <span className="sr-only">Unread</span>
-                  </span>
-                ) : null}
-              </span>
-              <span className="notification-preview">{notificationPreview(item.body)}</span>
-              <span className="notification-item-footer">
-                <span className="notification-item-action">
-                  {notificationPresentation[item.context].action}
-                </span>
-                <time dateTime={item.createdAt} title={new Date(item.createdAt).toLocaleString()}>
-                  {timeAgo(item.createdAt)}
-                </time>
-              </span>
-            </span>
-          </NotificationLink>
-        </li>
+          <h3 id={`notification-group-${group.id}`}>
+            {group.title} <span className="ui-count">{group.items.length}</span>
+          </h3>
+          <ul>
+            {group.items.map((item) => (
+              <NotificationRow
+                key={item.id}
+                item={item}
+                group={group.id}
+                unread={!readIds.has(item.id)}
+                close={close}
+              />
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   );
 };

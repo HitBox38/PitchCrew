@@ -12,15 +12,11 @@ export const CreationBody = (props: CreationController) => {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();
-    heading.current?.closest('.role-settings-body')?.scrollTo(0, 0);
-    heading.current
-      ?.closest('.creation-panel')
-      ?.querySelector('[aria-current="step"]')
-      ?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    heading.current?.closest('.agent-wizard-body')?.scrollTo(0, 0);
   }, [props.step]);
   return (
-    <div className="role-settings-body creation-body">
-      <h3 ref={heading} tabIndex={-1} className="mb-4 font-sans text-base font-semibold">
+    <div className="agent-wizard-body">
+      <h3 ref={heading} tabIndex={-1} className="agent-wizard-step-heading">
         {creationSteps[props.step]}
       </h3>
       {props.step === 0 ? <PurposeStep {...props} /> : null}

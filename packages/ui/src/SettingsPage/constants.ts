@@ -13,7 +13,7 @@ export const settingsSections = [
   {
     id: 'general',
     label: 'General',
-    description: 'Appearance and notifications',
+    description: 'Appearance, chat and sounds',
     icon: SlidersHorizontal,
   },
   { id: 'accounts', label: 'Accounts', description: 'Services and external agents', icon: Link },
@@ -26,7 +26,7 @@ export const settingsSections = [
   {
     id: 'data',
     label: 'Local data',
-    description: 'Storage and background service',
+    description: 'Data folder and service',
     icon: HardDrive,
   },
 ] as const;

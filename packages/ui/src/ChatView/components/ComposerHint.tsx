@@ -1,12 +1,9 @@
 import type { ComposerHintProps } from '@/ChatView/types.ts';
 
-export const ComposerHint = ({ role }: ComposerHintProps) => {
-  return (
+/** Only the demo runtime gets a note under the composer; the placeholder covers the rest. */
+export const ComposerHint = ({ role }: ComposerHintProps) =>
+  role.runtime === 'demo' ? (
     <p className="chat-compose-hint">
-      <span>
-        Enter to send <span aria-hidden="true">·</span> Shift + Enter for a new line
-      </span>
-      <span>{role.runtime === 'demo' ? 'Demo replies are scripted' : 'Saved on this device'}</span>
+      <span>Demo replies are scripted</span>
     </p>
-  );
-};
+  ) : null;

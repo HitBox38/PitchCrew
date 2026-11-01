@@ -11,8 +11,9 @@ import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
 import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { TraceDescription } from '@/components/ui/trace/components/TraceDescription.tsx';
 import { TurnDuration } from './TurnDuration.tsx';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
-  const { Icon, status } = activityPresentation[entry.status];
+  const { status } = activityPresentation[entry.status];
   const Root = entry.kind === 'reasoning' ? Reasoning : Tool;
   const Trigger = entry.kind === 'reasoning' ? ReasoningTrigger : ToolTrigger;
   const Content = entry.kind === 'reasoning' ? ReasoningContent : ToolContent;
@@ -21,7 +22,7 @@ export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
       <Trigger className="chat-activity-step-trigger">
         <TraceLine className="flex-1" status={status}>
           <TraceIcon>
-            <Icon className={entry.status === 'running' ? 'spin' : undefined} />
+            <StatusBead status={entry.status} />
           </TraceIcon>
           <TraceTitle className="flex-1 whitespace-normal">{entry.label}</TraceTitle>
           <span className="sr-only">{outcomes[entry.status]}</span>

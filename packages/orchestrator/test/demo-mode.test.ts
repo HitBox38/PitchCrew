@@ -66,3 +66,41 @@ it('retains existing Demo role history but blocks chat and workflow runs in prod
   await expect(production.service.runtimeModels('demo', true)).rejects.toThrow('development mode');
   await expect(production.service.loadExamples()).rejects.toThrow('development mode');
 });
+
+it('loads an example job conversation in every chat state without starting work', async () => {
+  const chat = vi.spyOn(adapters.demo, 'chat');
+  const { daemon } = await setup(14573);
+  await daemon.service.loadExamples();
+  await new Promise((resolve) => setTimeout(resolve, 50));
+  const snapshot = await daemon.service.snapshot();
+  const thread = snapshot.conversations?.find((item) => item.title.endsWith('packet review'));
+  expect(thread?.participants).toEqual(['writer', 'reviewer']);
+  const requests = (snapshot.chatRequests ?? []).filter((item) => item.threadId === thread?.id);
+  expect(requests.map((item) => item.deliveries[0]?.status)).toEqual([
+    'queued',
+    'paused',
+    'failed',
+  ]);
+  expect(
+    snapshot.userInputs?.filter(
+      (item) => item.threadId === thread?.id && item.status === 'pending',
+    ),
+  ).toHaveLength(1);
+  const runs = snapshot.runs
+    .filter((run) => run.threadId === thread?.id)
+    .toSorted((a, b) => a.startedAt.localeCompare(b.startedAt));
+  expect(runs.map((run) => run.status)).toEqual(['completed', 'completed', 'waiting']);
+  expect(runs[0]?.activity?.some((step) => step.status === 'failed')).toBe(true);
+  expect(
+    snapshot.tasks.filter((task) => task.threadId === thread?.id).map((task) => task.status),
+  ).toEqual(['completed', 'failed', 'cancelled']);
+  const proposal = snapshot.proposals.find((item) => item.runId === runs[0]?.id);
+  expect(proposal).toMatchObject({ roleId: 'writer', status: 'pending' });
+  expect(proposal?.changes.instructions).toContain('packet rules');
+  expect(proposal?.changes.capabilities?.readApplications).toBe(true);
+  const skills = snapshot.skillProposals.filter((item) => item.threadId === thread?.id);
+  expect(skills).toHaveLength(1);
+  expect(skills[0]).toMatchObject({ roleId: 'reviewer', status: 'pending', skillId: null });
+  expect(skills[0]?.skill.roleIds).toEqual(['writer', 'reviewer']);
+  expect(chat).not.toHaveBeenCalled();
+});

@@ -11,24 +11,29 @@ export const CreationFooter = ({
   close,
 }: Pick<CreationController, 'step' | 'error' | 'saving' | 'working' | 'goTo' | 'close'>) => {
   return (
-    <footer className="role-settings-footer">
+    <footer className="ui-footer-bar agent-panel-footer">
       {error ? (
-        <p className="form-error" role="alert">
+        <p className="form-error agent-panel-error" role="alert">
           {error}
         </p>
       ) : null}
-      <div className="flex items-center justify-between gap-3">
-        <Button className="button" disabled={saving} onClick={step ? () => goTo(step - 1) : close}>
-          {step ? 'Back' : 'Cancel'}
-        </Button>
-        <Button type="submit" className="button primary" disabled={working || saving}>
-          {saving
-            ? 'Creating agent…'
-            : step === 5
-              ? 'Create agent'
-              : `Continue to ${creationSteps[step + 1].toLowerCase()}`}
-        </Button>
-      </div>
+      <span className="ui-footer-note">
+        {step === 5 ? 'Saves the agent, skills and routine together.' : ''}
+      </span>
+      <Button
+        className="button small"
+        disabled={saving}
+        onClick={step ? () => goTo(step - 1) : close}
+      >
+        {step ? 'Back' : 'Cancel'}
+      </Button>
+      <Button type="submit" className="button small primary" disabled={working || saving}>
+        {saving
+          ? 'Creating agent…'
+          : step === 5
+            ? 'Create agent'
+            : `Continue to ${creationSteps[step + 1].toLowerCase()}`}
+      </Button>
     </footer>
   );
 };

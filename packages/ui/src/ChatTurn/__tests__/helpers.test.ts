@@ -1,6 +1,6 @@
 import type { ChatMessage, Run, RunActivity } from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { activityGroups, durationLabel, transcriptItems } from '../helpers.ts';
+import { activityGroups, durationLabel, runModel, transcriptItems } from '../helpers.ts';
 
 const startedAt = '2026-10-13T08:00:00.000Z';
 const entry: RunActivity = {
@@ -94,4 +94,29 @@ it('formats elapsed time for live, completed and malformed timestamps', () => {
   expect(durationLabel(startedAt, null, Date.parse(startedAt) + 62000)).toBe('1m 2s');
   expect(durationLabel(startedAt, startedAt, Date.parse(startedAt) + 62000)).toBe('0s');
   expect(durationLabel('bad', null, 0)).toBe('0s');
+});
+
+it('names the model and reasoning a turn ran with, falling back to the runtime', () => {
+  const codex: Run = { ...run, runtime: 'codex' };
+  expect(runModel(codex)).toBe('Codex');
+  expect(runModel({ ...codex, model: 'gpt-6-sol', reasoning: 'high' })).toBe('gpt-6-sol · High');
+  expect(runModel({ ...codex, reasoning: 'low' })).toBe('Codex · Low');
+  expect(
+    runModel({ ...codex, model: 'gpt-6-sol' }, [{ value: 'gpt-6-sol', label: 'GPT-6.1 Sol' }]),
+  ).toBe('GPT-6.1 Sol');
+  expect(
+    runModel({ ...codex, model: 'gpt-7', reasoning: 'high' }, [
+      { value: 'gpt-6-sol', label: 'GPT-6.1 Sol' },
+    ]),
+  ).toBe('gpt-7 · High');
+  const configured = {
+    ...codex,
+    configuration: {
+      role: { model: 'gpt-6-astra', reasoning: 'medium' },
+      revision: 'r',
+      skills: [],
+      skillsRevision: 's',
+    },
+  } as unknown as Run;
+  expect(runModel(configured)).toBe('gpt-6-astra · Medium');
 });

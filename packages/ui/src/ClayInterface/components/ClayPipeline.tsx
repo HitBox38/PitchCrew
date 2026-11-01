@@ -4,26 +4,29 @@ import { dropStages, stages } from '@/board-stages.ts';
 import { pipelinePlugins, pipelineSensors } from '@/BoardPage/constants.ts';
 import { usePipelineDrag } from '@/BoardPage/hooks/usePipelineDrag.ts';
 import type { useBoardJobMutations } from '@/BoardPage/hooks/useBoardJobMutations.ts';
-import { sortBoardCards } from '@/BoardPage/sorting.ts';
 import { jobSignals } from '../signals.ts';
 import { ClayColumn } from './ClayColumn.tsx';
 import { ClayJobCard } from './ClayJobCard.tsx';
 
 type ClayPipelineProps = {
   filtered: Card[];
+  query: string;
+  /** The stage a phone shows; wider screens show every column. */
+  current: string;
   openCard: (id: string) => void;
   jobMutations: ReturnType<typeof useBoardJobMutations>;
 };
 
-/** Clay columns sharing the classic board's drag rules, menus and focus restoration. */
-export const ClayPipeline = ({ filtered, openCard, jobMutations }: ClayPipelineProps) => {
-  const { data, working, active, pending, startDrag, endDrag, moveJob, requestDelete } =
+/** Clay columns sharing the board's drag rules, menus and focus restoration. */
+export const ClayPipeline = ({ filtered, openCard, jobMutations, ...view }: ClayPipelineProps) => {
+  const { data, working, active, pending, reveal, startDrag, endDrag, moveJob, requestDelete } =
     usePipelineDrag(jobMutations);
   if (!data) return null;
   const signals = jobSignals(data);
-  const cards = filtered.map((card) =>
-    pending?.id === card.id && pending.from === card.state ? { ...card, state: pending.to } : card,
-  );
+  const preview = (card: Card) =>
+    pending?.id === card.id && pending.from === card.state ? { ...card, state: pending.to } : card;
+  const cards = filtered.map(preview);
+  const all = data.cards.map(preview);
   return (
     <DragDropProvider
       sensors={pipelineSensors}
@@ -41,10 +44,11 @@ export const ClayPipeline = ({ filtered, openCard, jobMutations }: ClayPipelineP
           <ClayColumn
             key={stage.id}
             stage={stage}
-            cards={sortBoardCards(
-              cards.filter((card) => stage.states.includes(card.state)),
-              'fit-desc',
-            )}
+            cards={cards.filter((card) => stage.states.includes(card.state))}
+            total={all.filter((card) => stage.states.includes(card.state)).length}
+            query={view.query}
+            reveal={reveal}
+            selected={view.current === stage.id}
             signals={signals}
             active={active}
             data={data}
@@ -60,7 +64,7 @@ export const ClayPipeline = ({ filtered, openCard, jobMutations }: ClayPipelineP
             <ClayJobCard
               card={active}
               signal={signals.get(active.id) ?? {}}
-              roles={data.roles}
+              data={data}
               onOpen={() => {}}
             />
           </div>

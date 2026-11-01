@@ -78,7 +78,7 @@ test('copies the selected text and clicked link without navigating', async () =>
   await heading.click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Copy selected text', exact: true }).click();
   expect(await page.evaluate(() => navigator.clipboard.readText())).toBe('Board');
-  const link = page.getByRole('link', { name: 'Queue', exact: true }).first();
+  const link = page.getByRole('link', { name: /^Profile/ }).first();
   const href = await link.evaluate((element) => (element as HTMLAnchorElement).href);
   await link.click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Copy link', exact: true }).click();
@@ -120,7 +120,7 @@ test('highlighted input text opens the copy menu and restores the field without 
 });
 
 test('highlighted text takes priority over job actions and ordinary right-click still opens the job menu', async () => {
-  const title = page.locator('.job-card h3').first();
+  const title = page.locator('.clay-job-card-title').first();
   await title.evaluate((element) => {
     const range = document.createRange();
     range.selectNodeContents(element);
@@ -140,7 +140,7 @@ test('highlighted text takes priority over job actions and ordinary right-click 
 
 test('highlighted textarea and document text can be copied inside a dialog while preserving its draft', async () => {
   await page.getByRole('button', { name: 'Add job', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Add a job post', exact: true });
+  const dialog = page.getByRole('dialog', { name: 'Add job', exact: true });
   const input = dialog.getByRole('textbox', { name: 'Job description', exact: true });
   await input.fill('Selected description\nKeep this draft');
   await input.evaluate((element: HTMLTextAreaElement) => element.setSelectionRange(0, 20));
@@ -152,7 +152,7 @@ test('highlighted textarea and document text can be copied inside a dialog while
     .poll(() => input.evaluate((element) => element === document.activeElement))
     .toBe(true);
   expect(await input.inputValue()).toBe('Selected description\nKeep this draft');
-  const intro = dialog.locator('.modal-intro');
+  const intro = dialog.getByRole('heading', { name: 'Add job', exact: true });
   const text = await intro.innerText();
   await intro.evaluate((element) => {
     const range = document.createRange();
@@ -170,7 +170,9 @@ test('highlighted textarea and document text can be copied inside a dialog while
 });
 
 test('highlighted chat drafts can be copied without sending or clearing the message', async () => {
-  await page.getByRole('link', { name: 'Chat', exact: true }).click();
+  await openMenu();
+  await page.getByRole('menuitem', { name: 'Go to…', exact: true }).press('ArrowRight');
+  await page.getByRole('menuitem', { name: 'Chat', exact: true }).click();
   const editor = page.locator('.chat-rich-input');
   await editor.fill('Selected chat draft');
   await editor.evaluate((element) => {

@@ -12,6 +12,7 @@ const filters: [HistoryFilter, string][] = [
 
 export const HistoryList = (model: InboxViewModel) => (
   <div className="decision-history-list">
+    <h2 className="sr-only">Past decisions</h2>
     <div className="decision-history-tools">
       <div className="search-input">
         <Search size={15} aria-hidden="true" />
@@ -22,12 +23,13 @@ export const HistoryList = (model: InboxViewModel) => (
           onChange={(event) => model.setSearch(event.target.value)}
         />
       </div>
-      <fieldset className="view-switch" aria-label="Decision type">
+      <fieldset className="ui-segment" aria-label="Decision type">
         {filters.map(([value, label]) => (
           <Button
             key={value}
+            variant="ghost"
+            size="sm"
             aria-pressed={value === model.filter}
-            className={value === model.filter ? 'active' : ''}
             onClick={() => model.setFilter(value)}
           >
             {label}
@@ -47,9 +49,7 @@ export const HistoryList = (model: InboxViewModel) => (
         </section>
       ))}
       {model.requests.length ? null : (
-        <p className="decision-history-empty">
-          {model.total ? 'No past decisions match.' : 'No past decisions yet.'}
-        </p>
+        <p className="decision-history-empty">No past decisions match.</p>
       )}
     </div>
   </div>

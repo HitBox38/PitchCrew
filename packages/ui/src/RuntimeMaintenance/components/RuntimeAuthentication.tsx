@@ -15,8 +15,8 @@ export const RuntimeAuthentication = ({
         ? 'Authentication needed'
         : 'Authentication unverified';
   return (
-    <div className="min-w-0 space-y-1 text-sm">
-      <h4 className="text-sm">
+    <div className="min-w-0">
+      <h4>
         <strong>{model || 'CLI default'}:</strong> {label}
       </h4>
       <p className="quiet">{result.detail}</p>

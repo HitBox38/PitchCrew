@@ -1,0 +1,222 @@
+/* Clay interface preview: clay-work. Scoped under [data-interface='clay']. */
+
+/* Section headings carry their counts as chips: plum for proposals waiting on a decision,
+ * recessed for plain tallies. */
+[data-interface='clay'] .chat-workspace .chat-work-heading h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+}
+[data-interface='clay'] .chat-workspace .chat-work-heading .chat-count {
+  height: 20px;
+  min-width: 22px;
+  padding: 0 8px;
+  border-radius: 999px;
+  font: 600 var(--text-detail) / 1 var(--font-sans);
+  font-variant-numeric: tabular-nums;
+}
+[data-interface='clay'] .chat-workspace .chat-work-heading .chat-count[data-tone='plum'] {
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+[data-interface='clay'] .chat-workspace .chat-work-heading .chat-count[data-tone='quiet'] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font-weight: 500;
+}
+
+/* Proposal cards: raised clay with a decision footer like the Decisions sheet. */
+[data-interface='clay'] .chat-workspace .chat-proposal {
+  padding: 16px 18px 0;
+  border-radius: 16px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  overflow: hidden;
+}
+[data-interface='clay'] .chat-workspace .chat-proposal + .chat-proposal {
+  margin-top: 14px;
+}
+[data-interface='clay'] .chat-workspace .chat-proposal > [data-streamdown] {
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 1.6;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 10px;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-header h4 {
+  font-size: 15px;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  margin-top: 3px;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 9px 0 7px;
+  gap: 6px;
+  border-radius: 999px;
+  background: var(--plum-soft);
+  color: var(--plum);
+  font-size: var(--text-detail);
+  font-weight: 600;
+  white-space: nowrap;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-summary {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-part {
+  margin-top: 14px;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-part h5 {
+  margin: 0 0 6px 2px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+
+/* The exact change sits in a recessed tray. */
+[data-interface='clay'] .chat-workspace .clay-proposal-tray {
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-tray .instruction-diff {
+  max-height: 260px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-tray .instruction-diff li {
+  border-radius: 6px;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-tray [data-slot='code-block'] {
+  border-radius: 8px;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-quiet {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+[data-interface='clay'] .chat-workspace .clay-proposal-tray > .clay-proposal-quiet {
+  margin: 0;
+  padding: 6px 8px;
+}
+[data-interface='clay'] .chat-workspace .clay-capability-changes {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+[data-interface='clay'] .chat-workspace .clay-capability-changes li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px 14px;
+  padding: 7px 8px;
+  color: var(--ink);
+  font-size: var(--text-label);
+}
+[data-interface='clay'] .chat-workspace .clay-capability-shift {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+}
+[data-interface='clay'] .chat-workspace .clay-capability-shift strong {
+  min-width: 1.75rem;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+[data-interface='clay'] .chat-workspace .chat-proposal > footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin: 16px -18px 0;
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+[data-interface='clay'] .chat-workspace .chat-proposal > footer > p {
+  flex: 1 1 14rem;
+}
+[data-interface='clay'] .chat-workspace .chat-proposal > footer > div {
+  margin-top: 0;
+}
+
+/* How an agent works: a compact recessed list, on capabilities first with moss beads. */
+[data-interface='clay'] .chat-workspace .chat-role-summary ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  gap: 0 12px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .chat-workspace .chat-role-summary li {
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.4;
+}
+[data-interface='clay'] .chat-workspace .chat-role-summary li > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+}
+[data-interface='clay'] .chat-workspace .chat-role-summary li[data-enabled] {
+  color: var(--ink);
+}
+[data-interface='clay'] .chat-workspace .chat-role-summary li > span:last-child {
+  font-size: var(--text-detail);
+}
+
+@variant max-chat {
+  [data-interface='clay'] .chat-workspace .chat-proposal {
+    padding: 14px 14px 0;
+  }
+  [data-interface='clay'] .chat-workspace .chat-proposal > footer {
+    margin-inline: -14px;
+    padding: 12px 14px;
+  }
+  [data-interface='clay'] .chat-workspace .chat-proposal > footer > div {
+    flex: 1;
+    justify-content: flex-end;
+  }
+  [data-interface='clay'] .chat-workspace .clay-capability-changes li {
+    flex-wrap: wrap;
+  }
+}
+
+/* Off beads read as hollow rings inside recessed trays, where a sunken bead would disappear. */
+[data-interface='clay'] .chat-workspace .clay-proposal-tray .clay-bead[data-empty],
+[data-interface='clay'] .chat-workspace .chat-role-summary ul .clay-bead[data-empty] {
+  background: transparent;
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+[data-interface='clay'] .chat-workspace .chat-proposal [data-slot='accordion'] {
+  margin-top: 10px;
+}

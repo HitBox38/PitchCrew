@@ -40,3 +40,7 @@ export const serviceCommands = ({ status, matches, commands }: BackgroundService
   if (!matches) return [commands.uninstall];
   return [commands.status, commands.logs, commands.uninstall];
 };
+
+/** The state bead: moss while this workspace's service runs, otherwise an empty socket. */
+export const serviceRunning = ({ status, matches }: BackgroundServiceInfo): boolean =>
+  !!status.platform && status.installed && matches && status.running;

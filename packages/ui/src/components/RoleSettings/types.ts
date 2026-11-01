@@ -17,23 +17,6 @@ export interface RoleSettingsProps {
 }
 export type RoleSettingsModel = NonNullable<ReturnType<typeof useRoleSettings>>;
 
-export type CapabilitySettingsProps = Pick<
-  RoleSettingsModel,
-  'role' | 'capabilities' | 'setCapabilities'
->;
-
-export type InstructionSettingsProps = Pick<
-  RoleSettingsModel,
-  'role' | 'instructions' | 'setInstructions'
->;
-
-export type RoleSettingsFooterProps = Pick<
-  RoleSettingsModel,
-  'error' | 'onClose' | 'working' | 'runtimeAvailable' | 'creating'
->;
-
-export type RoleSettingsHeadingProps = Pick<RoleSettingsModel, 'role' | 'onClose'>;
-
 export type RoleSkillsProps = Pick<RoleSettingsModel, 'role' | 'data' | 'onManageSkills'>;
 
 export type RuntimeSettingsProps = Pick<
@@ -50,4 +33,10 @@ export type RuntimeSettingsProps = Pick<
   | 'model'
   | 'enabled'
   | 'setEnabled'
-> & { children?: ReactNode; stacked?: boolean };
+> & {
+  children?: ReactNode;
+  stacked?: boolean;
+  bare?: boolean;
+  /** The agent panel's header owns enable/pause for existing roles. */
+  hideEnabled?: boolean;
+};

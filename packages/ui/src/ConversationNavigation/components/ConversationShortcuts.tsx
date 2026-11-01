@@ -12,11 +12,7 @@ export const ConversationShortcuts = ({
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <SidebarMenuButton
-          tooltip="Conversations"
-          aria-label="Open conversations"
-          onClick={openConversations}
-        >
+        <SidebarMenuButton tooltip="Open chats" aria-label="Open chats" onClick={openConversations}>
           <MessagesSquare />
         </SidebarMenuButton>
       </SidebarMenuItem>

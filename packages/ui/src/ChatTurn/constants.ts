@@ -1,5 +1,3 @@
-import { Check, CircleDashed, LoaderCircle, Square, X } from 'lucide-react';
-
 export const outcomes = {
   running: 'In progress',
   completed: 'Finished',
@@ -7,15 +5,15 @@ export const outcomes = {
   interrupted: 'Outcome unavailable',
 };
 export const activityPresentation = {
-  running: { Icon: LoaderCircle, status: 'running' },
-  failed: { Icon: X, status: 'error' },
-  interrupted: { Icon: CircleDashed, status: 'pending' },
-  completed: { Icon: Check, status: undefined },
+  running: { status: 'running' },
+  failed: { status: 'error' },
+  interrupted: { status: 'pending' },
+  completed: { status: undefined },
 } as const;
 export const turnPresentation = {
-  running: { Icon: LoaderCircle, label: 'Working…' },
-  failed: { Icon: X, label: 'Failed' },
-  cancelled: { Icon: Square, label: 'Stopped' },
-  waiting: { Icon: CircleDashed, label: 'Waiting for you' },
-  completed: { Icon: Check, label: 'Completed' },
+  running: { label: 'Working…' },
+  failed: { label: 'Failed' },
+  cancelled: { label: 'Stopped' },
+  waiting: { label: 'Waiting for you' },
+  completed: { label: 'Completed' },
 } as const;

@@ -25,10 +25,10 @@ beforeEach(async () => {
     tags: ['design'],
   });
   await page.goto(host.daemon.url);
-  await page.locator(`#board-job-${card.id} .job-card`).waitFor({ timeout: 30000 });
+  await page.locator(`#board-job-${card.id} .clay-job-card`).waitFor({ timeout: 30000 });
   const later = page.getByRole('button', { name: 'Set up later', exact: true });
   if (await later.isVisible()) await later.click();
-  await page.locator(`#board-job-${card.id} .job-card`).click();
+  await page.locator(`#board-job-${card.id} .clay-job-card`).click();
   await page.getByRole('button', { name: 'Edit job', exact: true }).click();
   await page.getByRole('dialog', { name: 'Edit job', exact: true }).waitFor();
 }, 30000);
@@ -186,7 +186,7 @@ test('continues to add new jobs with the shared form', async () => {
     .getByRole('button', { name: 'Close dialog', exact: true })
     .click();
   await page.getByRole('button', { name: 'Add job', exact: true }).click();
-  const form = page.getByRole('dialog', { name: 'Add a job post', exact: true });
+  const form = page.getByRole('dialog', { name: 'Add job', exact: true });
   expect(await form.getByRole('textbox', { name: 'Company', exact: true }).inputValue()).toBe('');
   expect(await form.getByRole('textbox', { name: 'Location', exact: true }).inputValue()).toBe(
     'Remote',

@@ -4,6 +4,7 @@ import { canDragJob } from '@/BoardPage/helpers.ts';
 import { JobActionsMenu } from '@/BoardPage/components/JobActionsMenu/index.tsx';
 import { JobContextMenu } from '@/BoardPage/components/JobActionsMenu/components/JobContextMenu.tsx';
 import type { JobMenuActions } from '@/BoardPage/components/JobActionsMenu/types.ts';
+import { JobCardSurface } from '@/components/JobCard/components/JobCardSurface.tsx';
 import type { JobSignal } from '../signals.ts';
 import { ClayJobCard } from './ClayJobCard.tsx';
 
@@ -17,7 +18,7 @@ type ClayDraggableJobProps = {
   menuActions: JobMenuActions;
 };
 
-/** Clay job card with the classic board's drag, context menu and actions menu. */
+/** Clay job card with the board's drag, context menu and actions menu on one Motion surface. */
 export const ClayDraggableJob = ({
   card,
   signal,
@@ -44,14 +45,16 @@ export const ClayDraggableJob = ({
         data-movable={movable || undefined}
         data-dragging={isDragSource || undefined}
       >
-        <ClayJobCard
-          card={card}
-          signal={signal}
-          roles={data.roles}
-          onOpen={onOpen}
-          buttonRef={handleRef}
-        />
-        <JobActionsMenu {...menuProps} />
+        <JobCardSurface card={card} stationary={dragging}>
+          <ClayJobCard
+            card={card}
+            signal={signal}
+            data={data}
+            onOpen={onOpen}
+            buttonRef={handleRef}
+          />
+          <JobActionsMenu {...menuProps} />
+        </JobCardSurface>
       </div>
     </JobContextMenu>
   );

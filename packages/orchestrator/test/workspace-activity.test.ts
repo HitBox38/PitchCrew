@@ -1,4 +1,4 @@
-import type { Run } from '@pitchcrew/core';
+import type { Role, Run } from '@pitchcrew/core';
 import { createWorkspaceActivity } from '../src/http/workspace-activity.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
 import { afterEach, expect, it } from 'vitest';
@@ -29,4 +29,41 @@ it('sends a terminal run once after its live activity is removed, and skips old 
   expect(read([])).toEqual([completed]);
   expect(read([])).toEqual([]);
   expect(createWorkspaceActivity(daemon.service)([])).toEqual([]);
+});
+
+it('streams the effective model and reasoning without the configuration snapshot', async () => {
+  const { daemon } = await setup(15094);
+  const scout = daemon.service.board.get<Role>('role', 'scout');
+  const role = { ...scout, model: 'sonnet', reasoning: null };
+  const run: Run = {
+    id: randomUUID(),
+    roleId: 'scout',
+    runtime: 'claude-code',
+    threadId: 'scout',
+    mode: 'chat',
+    cardId: null,
+    status: 'running',
+    startedAt: '',
+    finishedAt: null,
+    message: '',
+    configuration: {
+      role: { ...role, reasoning: 'high' },
+      revision: 'r',
+      skills: [],
+      skillsRevision: 's',
+    },
+  };
+  daemon.service.board.record('run', run, 'scout', 'Started run');
+  const { configuration: _configuration, ...visible } = run;
+  const read = createWorkspaceActivity(daemon.service);
+  expect(read([])).toEqual([{ ...visible, model: 'sonnet', reasoning: 'high' }]);
+  daemon.service.board.record(
+    'run',
+    { ...run, status: 'completed', configuration: { ...run.configuration!, role } },
+    'scout',
+    'Finished run',
+  );
+  const [terminal] = read([]);
+  expect(terminal).toEqual({ ...visible, status: 'completed', model: 'sonnet' });
+  expect(terminal).not.toHaveProperty('configuration');
 });

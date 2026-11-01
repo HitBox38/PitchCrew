@@ -1,45 +1,53 @@
-/* Named conversations share the app's paper sidebar and raised clay selection. */
+/* Chats in the sidebar: compact one-line rows (pebble, title, state bead), a two-line row only for
+ * search results, and collapsible Agent DMs, Crew history and Archived groups. */
 .sidebar-conversations > .sidebar-category-toggle {
-  padding-right: 36px;
+  padding-right: 100px;
 }
 .conversation-search {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 3px 0 7px;
+  margin: 2px 0 6px;
   padding-left: 8px;
+  border-radius: 8px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
-  border-radius: 9px;
   color: var(--muted);
 }
 .conversation-search input {
   min-width: 0;
-  height: 30px;
+  height: 32px;
   padding-left: 0;
-  font-size: 12px;
   border: 0;
   box-shadow: none;
   background: transparent;
+  font-size: var(--text-label);
 }
 .conversation-link {
-  height: 44px;
   gap: 8px;
-  padding: 7px 32px 7px 8px;
+  padding-right: 34px;
   text-align: left;
 }
+.conversation-link[data-detailed] {
+  height: 44px;
+}
 .conversation-link > .role-avatar {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
 }
-.conversation-menu-trigger {
-  top: 12px;
-  right: 6px;
+.conversation-link > .role-avatar svg {
+  width: 10px;
+  height: 10px;
+}
+.conversation-link > svg {
+  color: var(--muted);
 }
 .conversation-link-copy {
   display: grid;
-  gap: 2px;
-  min-width: 0;
   flex: 1;
+  gap: 1px;
+  min-width: 0;
   line-height: 1.25;
 }
 .conversation-link-copy strong,
@@ -49,29 +57,59 @@
   white-space: nowrap;
 }
 .conversation-link-copy strong {
-  font-size: 12px;
+  color: inherit;
+  font-size: var(--text-label);
+  font-weight: 400;
+}
+.conversation-link[data-active] .conversation-link-copy strong {
   font-weight: 600;
-  color: var(--ink);
 }
 .conversation-link-copy small {
-  font-size: 11px;
-  font-weight: 400;
   color: var(--muted);
+  font-size: var(--text-detail);
 }
 .conversation-link-status {
   display: flex;
   flex: 0 0 auto;
-  gap: 3px;
   align-items: center;
-  color: var(--primary);
-}
-.conversation-dms {
-  margin-top: 6px;
-}
-.conversation-archive {
-  justify-content: flex-start;
-  width: 100%;
-  margin-top: 3px;
-  font-size: 12px;
+  gap: 3px;
   color: var(--muted);
+}
+.conversation-link-status:empty {
+  display: none;
+}
+.conversation-menu-trigger {
+  top: 6px;
+  right: 6px;
+}
+.conversation-link[data-detailed] ~ .conversation-menu-trigger {
+  top: 12px;
+}
+@media (hover: hover) {
+  .conversation-item > .conversation-menu-trigger {
+    opacity: 0;
+  }
+  .conversation-item:is(:hover, :focus-within) > .conversation-menu-trigger,
+  .conversation-item > .conversation-menu-trigger[data-popup-open] {
+    opacity: 1;
+  }
+  .conversation-item:is(:hover, :focus-within) .conversation-link-status {
+    visibility: hidden;
+  }
+}
+.conversation-group {
+  margin-top: 4px;
+}
+.conversation-group-empty {
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.conversation-search:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+}
+.conversation-search input:focus-visible {
+  outline: none;
+  box-shadow: none;
 }

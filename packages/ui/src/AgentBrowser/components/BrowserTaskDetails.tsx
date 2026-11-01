@@ -1,11 +1,6 @@
-import { Info } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverTitle,
-} from '@/components/ui/popover/index.tsx';
+import { Popover, PopoverContent, PopoverTitle } from '@/components/ui/popover/index.tsx';
+import { browserModeChip } from '../layout.ts';
+import { BrowserTaskTrigger } from './BrowserTaskTrigger.tsx';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserTask } from './BrowserTask.tsx';
 import { BrowserSites } from './BrowserSites.tsx';
@@ -16,25 +11,10 @@ export const BrowserTaskDetails = (
 ) => {
   const session = props.browserPanel.session;
   const elsewhere = !!session?.threadId && session.threadId !== props.thread;
+  const chip = browserModeChip(session, !!props.control.leaseId);
   return (
     <Popover>
-      <PopoverTrigger
-        render={
-          <Button
-            size="icon-sm"
-            variant="ghost"
-            className={elsewhere ? 'browser-task-elsewhere' : undefined}
-            aria-label="Browser task details"
-            title={
-              elsewhere
-                ? 'This browser belongs to another conversation'
-                : 'Current task, permissions and site access'
-            }
-          />
-        }
-      >
-        <Info size={15} />
-      </PopoverTrigger>
+      <BrowserTaskTrigger chip={chip} elsewhere={elsewhere} />
       <PopoverContent className="browser-task-details w-72 max-w-[calc(100vw-24px)] p-3 font-sans text-sm leading-5">
         <div className="flex items-start justify-between gap-3">
           <PopoverTitle className="m-0 min-w-0 font-sans text-sm leading-5 font-semibold break-words">

@@ -1,54 +1,71 @@
+import { X } from 'lucide-react';
 import { RoutineConversation } from './RoutineConversation.tsx';
-import { Modal } from '@/components/Modal/index.tsx';
+import { SidePanel } from '@/components/SidePanel/index.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useRoutineEditor } from '../hooks/useRoutineEditor.ts';
 import type { EditorProps } from '../types.ts';
 import { ActionFields } from './ActionFields.tsx';
 import { ScheduleFields } from './ScheduleFields.tsx';
+import { RoutineSummary } from './RoutineSummary.tsx';
 
+/** A 480px non-modal side panel beside the list: Task, Schedule, computed next run, actions. */
 export const RoutineEditor = (props: EditorProps) => {
   const editor = useRoutineEditor(props);
+  const title = props.routine ? 'Edit routine' : 'New routine';
   return (
-    <Modal
-      title={props.routine ? 'Edit routine' : 'New routine'}
+    <SidePanel
+      className="routine-editor-panel"
       onClose={editor.close}
-      className="routine-editor flex max-h-[90dvh] flex-col overflow-hidden"
+      returnFocus={`[data-routine-focus="${props.routine?.id ?? 'new'}"]`}
     >
-      <form className="form flex min-h-0 flex-col" onSubmit={(event) => void editor.save(event)}>
-        <div className="routine-editor-body flex min-h-0 flex-col gap-5 overflow-y-auto">
-          <fieldset className="routine-editor-section flex min-w-0 flex-col gap-4">
+      <form
+        className="routine-editor"
+        aria-label={title}
+        onSubmit={(event) => void editor.save(event)}
+      >
+        <div className="routine-editor-heading">
+          <h2>{title}</h2>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            aria-label="Close routine editor"
+            disabled={props.working}
+            onClick={editor.close}
+          >
+            <X size={16} />
+          </Button>
+        </div>
+        <div className="routine-editor-body">
+          <fieldset className="ui-field-group routine-group">
             <legend>Task</legend>
             <ActionFields {...editor} roles={props.roles} cards={props.cards} />
             <RoutineConversation {...editor} />
           </fieldset>
           <ScheduleFields {...editor} />
-          <p className="quiet">
-            Times use the timezone above. Runs continue in the routine’s conversation. Exports and
-            browser actions still need your approval.
-          </p>
-          {props.routine ? (
-            <p className="quiet">
-              {props.routine.runCount} runs already dispatched. Editing keeps this count; run limits
-              apply to the total.
-            </p>
-          ) : null}
+          <RoutineSummary draft={editor.draft} initial={editor.initial} routine={props.routine} />
           {editor.error ? (
             <p role="alert" className="form-error">
               {editor.error}
             </p>
           ) : null}
         </div>
-        <div className="routine-editor-footer flex shrink-0 justify-end gap-2 border-t border-border">
-          <Button className="button" disabled={props.working} onClick={editor.close}>
+        <div className="ui-footer-bar routine-editor-footer">
+          {props.onDelete ? (
+            <Button variant="destructive" disabled={props.working} onClick={props.onDelete}>
+              Delete
+            </Button>
+          ) : null}
+          <span className="routine-editor-spacer" />
+          <Button variant="outline" disabled={props.working} onClick={editor.close}>
             Cancel
           </Button>
-          <Button type="submit" className="button primary" disabled={props.working}>
+          <Button type="submit" disabled={props.working}>
             Save routine
           </Button>
         </div>
       </form>
       <DiscardChanges guard={editor.guard} />
-    </Modal>
+    </SidePanel>
   );
 };

@@ -19,7 +19,7 @@ export const QueueRunningMenu = ({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<Button variant="outline" size="icon-sm" />}
+        render={<Button variant="ghost" size="icon" className="queue-menu-trigger" />}
         aria-label={`Queue actions for ${queue.title}`}
       >
         <MoreHorizontal size={16} aria-hidden="true" />

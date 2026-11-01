@@ -63,4 +63,20 @@ describe('profile folder tree', () => {
     expect(visibleProfileTree(tree.root, collapsed, 'no-match')).toEqual([]);
     expect(collapsed.size).toBe(3);
   });
+
+  it('treats the profile folder as the implicit top level when the root row is omitted', () => {
+    const tree = buildProfileTree(notes, paths);
+    const rows = visibleProfileTree(tree.root, new Set(['Projects']), '', false);
+    expect(rows.map(({ node }) => node.label)).toEqual([
+      'Experience',
+      'role.md',
+      'Projects',
+      'background.md',
+    ]);
+    expect(rows[0]).toMatchObject({ depth: 1, parent: null, position: 1, size: 3 });
+    expect(rows[1]).toMatchObject({ depth: 2, parent: 'folder:Experience' });
+    expect(
+      visibleProfileTree(tree.root, new Set(), 'context', false).map(({ node }) => node.label),
+    ).toEqual(['Projects', 'Atlas', 'context.md']);
+  });
 });

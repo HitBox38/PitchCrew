@@ -8,7 +8,7 @@ export const SourceSetup = (c: ProfileSourcesModel) => {
   if (!c.provider) return <SourceProviderChoices choose={c.chooseProvider} disabled={c.busy} />;
   if (c.provider === 'github' && !c.intent)
     return (
-      <div className="grid gap-3">
+      <div className="grid gap-2">
         <SourceChoice
           icon={FileText}
           title="Import profile notes"

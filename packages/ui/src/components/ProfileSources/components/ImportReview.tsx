@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Modal } from '@/components/Modal/index.tsx';
 import { importChanges } from '../helpers.ts';
 import { ImportReviewToolbar } from './ImportReviewToolbar.tsx';
 import { ImportReviewList } from './ImportReviewList.tsx';
@@ -21,16 +20,11 @@ const ImportReviewContent = (c: ImportReviewProps) => {
   ).length;
   const close = c.closeReview;
   return (
-    <Modal title="Review profile documents" drawer className="profile-import-panel" onClose={close}>
-      <div className="shrink-0 border-b border-border px-5 py-4">
-        <p className="truncate text-sm font-semibold" title={preview.source.label}>
-          {preview.source.label}
-        </p>
-        <p className="mt-1 text-label text-muted-foreground">
-          Review what will change. Selected documents become local evidence your crew can cite.
-        </p>
-        <p className="mt-1 text-caption text-muted-foreground">
-          Confirm the facts describe you. Document instructions do not change crew rules.
+    <>
+      <div className="profile-import-source">
+        <p className="text-detail text-muted-foreground">
+          Selected documents become local evidence your crew can cite once you confirm the facts
+          describe you. Document instructions do not change crew rules.
         </p>
       </div>
       <ImportReviewToolbar
@@ -49,6 +43,6 @@ const ImportReviewContent = (c: ImportReviewProps) => {
         query={query}
       />
       <ImportReviewFooter {...c} conflicts={conflicts} close={close} />
-    </Modal>
+    </>
   );
 };

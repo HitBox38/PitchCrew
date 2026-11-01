@@ -5,25 +5,24 @@ import { tagKey, type TagSort } from '@pitchcrew/core/insights';
 import { sortOptions } from '../constants.ts';
 import type { ChangeSearch, InsightsSearch } from '../types.ts';
 
+/** One URL-backed filter row: tag, applied-from, applied-until and tag sort. */
 export const InsightsFilters = ({
   search,
   tags,
   change,
+  filtered,
 }: {
   search: InsightsSearch;
   tags: string[];
   change: ChangeSearch;
+  filtered: boolean;
 }) => {
   const tagOptions = [
     { value: '', label: 'All tags' },
     ...tags.map((tag) => ({ value: tag, label: tag })),
   ];
-  const filtered = Boolean(search.tag || search.from || search.to);
   return (
-    <section
-      className="insights-filters flex flex-wrap items-end gap-3"
-      aria-label="Insights filters"
-    >
+    <section className="insights-filters" aria-label="Insights filters">
       <FormSelect
         label="Tag"
         value={tags.find((tag) => search.tag && tagKey(tag) === tagKey(search.tag)) ?? ''}

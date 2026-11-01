@@ -1,8 +1,12 @@
-import type { ProfileNotesProps } from '../types.ts';
+import type { ProfileViewModel } from '../types.ts';
 import { useState } from 'react';
-import { buildProfileTree, visibleProfileTree } from '../tree.ts';
+import { buildProfileTree, noteFolder, visibleProfileTree } from '../tree.ts';
 
-export const useProfileNotes = ({ data, sourceController, documents }: ProfileNotesProps) => {
+export const useProfileNotes = ({
+  data,
+  sourceController,
+  documents,
+}: Pick<ProfileViewModel, 'data' | 'sourceController' | 'documents'>) => {
   const [query, setQuery] = useState('');
   const [collapsed, setCollapsed] = useState(new Set<string>());
   const [selectedFolder, setSelectedFolder] = useState('');
@@ -18,7 +22,7 @@ export const useProfileNotes = ({ data, sourceController, documents }: ProfileNo
       .map((document) => ({ name: document.saved.name, content: document.content })),
   ];
   const tree = buildProfileTree(notes, paths, data.profileOrganization);
-  const rows = visibleProfileTree(tree.root, collapsed, query);
+  const rows = visibleProfileTree(tree.root, collapsed, query, false);
   const toggle = (path: string) =>
     setCollapsed((current) => {
       const next = new Set(current);
@@ -38,6 +42,13 @@ export const useProfileNotes = ({ data, sourceController, documents }: ProfileNo
     setSelectedFolder(path);
     setQuery('');
   };
+  const location = (name: string) =>
+    [
+      ...noteFolder(name, data.profileOrganization, paths).split('/'),
+      paths.get(name)?.split('/').at(-1) || name,
+    ]
+      .filter(Boolean)
+      .join(' / ');
   return {
     query,
     setQuery,
@@ -47,6 +58,7 @@ export const useProfileNotes = ({ data, sourceController, documents }: ProfileNo
     collapsed,
     toggle,
     reveal,
+    location,
     selectedFolder,
     setSelectedFolder,
   };

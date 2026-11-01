@@ -1,26 +1,23 @@
-import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.ts';
-import type { BrowserControl } from '@/AgentBrowser/types.ts';
 import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 import { ScreenshotDialog } from './components/ScreenshotDialog.tsx';
 import { BrowserRecording } from './components/BrowserRecording.tsx';
 import { BrowserToolsActions } from './components/BrowserToolsActions.tsx';
-import { useNativeBrowserTools } from './hooks/useNativeBrowserTools.ts';
+import type { useNativeBrowserTools } from './hooks/useNativeBrowserTools.ts';
 
+/** Page capture, recording, devices and floating; the panel lists the actions in Page settings
+ * and keeps only a running recording's control on the toolbar. */
 export const NativeBrowserTools = ({
-  model,
-  control,
+  tools,
   device,
   onAttachBrowserFile,
 }: {
-  model: NativeBrowserModel;
-  control: BrowserControl;
+  tools: ReturnType<typeof useNativeBrowserTools>;
   device: ReturnType<typeof useBrowserDevice>;
   onAttachBrowserFile?: (file: File) => void;
 }) => {
-  const tools = useNativeBrowserTools(model, control);
   const { recording, error, capture } = tools;
   return (
-    <div className="browser-tools border-b px-3 py-1.5">
+    <div className="browser-tools">
       <BrowserToolsActions model={tools} device={device} />
       {recording.recording ? (
         <output className="sr-only">

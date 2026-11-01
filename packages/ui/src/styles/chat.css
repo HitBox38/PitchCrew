@@ -12,3 +12,10 @@
 @import './chat/header.css' layer(components);
 @import './chat/panels.css' layer(components);
 @import './chat/browser.css' layer(components);
+@import './chat/clay.css' layer(components);
+@import './chat/clay-browser-states.css' layer(components);
+@import './chat/clay-browser-layout.css' layer(components);
+@import './chat/clay-transcript.css' layer(components);
+@import './chat/clay-composer.css' layer(components);
+@import './chat/clay-work.css' layer(components);
+@import './chat/clay-panels.css' layer(components);

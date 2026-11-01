@@ -1,14 +1,17 @@
-import { CreateRole } from './components/CreateRole.tsx';
-import { CrewUpdates } from './components/CrewUpdates.tsx';
-import { CrewUpdateReview } from './components/CrewUpdateReview.tsx';
 import { useNavigate, useSearch } from '@tanstack/react-router';
-import { CrewCard } from '@/CrewPage/components/CrewCard.tsx';
-import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
-import { getRoleStatus } from '@/lib/role-status.ts';
-import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { Role } from '@pitchcrew/core';
 import { useShallow } from 'zustand/react/shallow';
+import { useNow } from '@/ClayInterface/hooks/useNow.ts';
+import { CrewCard } from '@/CrewPage/components/CrewCard.tsx';
+import { crewRoster, crewStatus, roleToggleBody } from '@/CrewPage/helpers.ts';
+import { pendingInstructionUpdates } from '@/lib/instruction-updates.ts';
+import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { CrewDismissed } from './components/CrewDismissed.tsx';
+import { CrewRetired } from './components/CrewRetired.tsx';
+import { CrewTitleActions } from './components/CrewTitleActions.tsx';
+import { CrewUpdateReview } from './components/CrewUpdateReview.tsx';
+import { CrewWaiting } from './components/CrewWaiting.tsx';
 
 export const CrewPage = () => {
   const navigate = useNavigate({ from: '/crew' });
@@ -23,44 +26,49 @@ export const CrewPage = () => {
     })),
   );
   const { openChat } = useWorkspaceNavigation();
+  const now = useNow();
   if (!data) return null;
-  const roleStatus = (role: Role) => {
-    if (role.retiredAt) return 'Retired';
-    if (!role.enabled) return 'Paused';
-    if (!data.runtimes.some((runtime) => runtime.id === role.runtime && runtime.available))
-      return 'Unavailable';
-    const status = getRoleStatus(role, data);
-    return status.startsWith('Working') ? status : 'Ready';
-  };
+  const review = (id: string) =>
+    void navigate({ search: (previous) => ({ ...previous, review: id }) });
+  const toggle = (role: Role) =>
+    act(
+      `/roles/${role.id}`,
+      'PUT',
+      roleToggleBody(role),
+      `${role.name} ${role.enabled ? 'paused' : 'resumed'}`,
+    );
   const updates = pendingInstructionUpdates(data);
   const pendingIds = new Set(updates.map((update) => update.roleId));
-  const roles = data.roles
-    .filter((role) => !updatesOnly || pendingIds.has(role.id))
-    .toSorted((a, b) => Number(pendingIds.has(b.id)) - Number(pendingIds.has(a.id)));
+  const roles = crewRoster(data.roles).filter((role) => !updatesOnly || pendingIds.has(role.id));
   return (
-    <>
-      <CreateRole data={data} working={working} />
-      <CrewUpdates
-        data={data}
-        onReview={(id) => void navigate({ search: (previous) => ({ ...previous, review: id }) })}
-      />
+    <div className="crew-page">
+      <CrewTitleActions data={data} working={working} />
       <CrewUpdateReview data={data} action={action} working={working} />
-      <div className="crew-grid">
-        {roles.map((role) => (
-          <CrewCard
-            key={role.id}
-            role={role}
-            status={roleStatus(role)}
-            update={updates.find((update) => update.roleId === role.id)}
-            onConfigure={() => setRoleId(role.id)}
-            onChat={() => openChat(role.id)}
-            working={working}
-            onRestore={() =>
-              act(`/roles/${role.id}/restore`, 'POST', {}, `${role.name} restored paused`)
-            }
-          />
-        ))}
-      </div>
-    </>
+      {roles.length ? (
+        <div className="crew-grid">
+          {roles.map((role) => (
+            <CrewCard
+              key={role.id}
+              role={role}
+              status={crewStatus(role, data, now)}
+              update={updates.find((update) => update.roleId === role.id)}
+              now={now}
+              working={working}
+              onConfigure={() => setRoleId(role.id)}
+              onChat={() => void openChat(role.id)}
+              onToggle={() => toggle(role)}
+              onReview={() => review(role.id)}
+            />
+          ))}
+        </div>
+      ) : (
+        <p className="ui-empty">
+          {updatesOnly ? 'No agents have new default instructions.' : 'No agents yet.'}
+        </p>
+      )}
+      <CrewWaiting data={data} updates={updates} onReview={review} />
+      <CrewDismissed data={data} onReview={review} />
+      <CrewRetired roles={data.roles.filter((role) => role.retiredAt)} />
+    </div>
   );
 };

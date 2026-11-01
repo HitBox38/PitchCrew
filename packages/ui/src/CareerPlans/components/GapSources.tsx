@@ -10,7 +10,7 @@ export const GapSources = ({ sources }: { sources: CareerGap['sources'] }) => {
   const jobs = new Set(sources.map((s) => s.cardId)).size;
   return (
     <AccordionSection heading={`Requirements from ${jobs} ${jobs === 1 ? 'job' : 'jobs'}`}>
-      <ul className="space-y-2">
+      <ul className="career-gap-sources">
         {keyedItems(sources, (source) => JSON.stringify([source.cardId, source.requirement])).map(
           ({ item: source, key }) => {
             const card = cards?.find((c) => c.id === source.cardId);

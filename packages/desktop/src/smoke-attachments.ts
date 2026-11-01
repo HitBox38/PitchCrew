@@ -12,9 +12,9 @@ export const smokeAttachments = `(async () => {
   const validation = await waitFor(() => document.querySelector('.chat-compose [role="alert"]')?.textContent.includes('not supported') && !selected());
   select(transfer('fixture-notes.md'));
   const picked = await waitFor(() => selected()?.textContent.includes('fixture-notes.md') && !document.querySelector('button[aria-label="Send message"]').disabled);
-  document.querySelector('nav[aria-label="Conversations"] a[href="/chat/writer"]')?.click();
+  document.querySelector('nav[aria-label="Chats"] a[href="/chat/writer"]')?.click();
   const isolated = await waitFor(() => !!document.querySelector('[role="textbox"][aria-label="Message Writer"]') && !selected());
-  document.querySelector('nav[aria-label="Conversations"] a[href="/chat/scout"]')?.click();
+  document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.click();
   const retained = await waitFor(() => selected()?.textContent.includes('fixture-notes.md'));
   document.querySelector('button[aria-label="Remove fixture-notes.md"]')?.click();
   const removed = await waitFor(() => !selected());

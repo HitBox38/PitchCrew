@@ -191,9 +191,13 @@ export const startDesktop = async () => {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.waitForURL((url) => url.origin === ready.url);
     await page.waitForLoadState('load');
-    await page.locator('a[href="/chat/writer"]').first().waitFor({ timeout: 30000 });
+    // Role chats sit in the sidebar's Agent chats group, which starts folded on a fresh device.
+    const agentChats = page.locator('button[aria-label="Agent chats"]');
+    await agentChats.waitFor({ timeout: 30000 });
     const later = page.getByRole('button', { name: 'Set up later', exact: true });
     if (await later.isVisible()) await later.click();
+    if ((await agentChats.getAttribute('aria-expanded')) !== 'true') await agentChats.click();
+    await page.locator('a[href="/chat/writer"]').first().waitFor();
     await page.locator('a[href="/chat/writer"]').first().click();
     await page.locator('button[aria-controls="agent-browser-panel"]').waitFor({ timeout: 30000 });
     if (await later.isVisible()) await later.click();

@@ -15,6 +15,7 @@ export const packetHandoff = (approval: Approval, data: Snapshot) => {
     card?.packetReview?.packetDigest === approval.digest ? card.packetReview : undefined;
   return {
     reviewed: Boolean(review),
+    reviewedAt: review?.reviewedAt,
     summary: review?.summary,
     reviewer: reviewerOf(review?.runId, data),
     changes: card?.packetChanges?.packetDigest === approval.digest ? card.packetChanges.notes : [],
@@ -30,6 +31,7 @@ export const cardHandoff = (card: Card, data: Pick<Snapshot, 'runs' | 'roles'>) 
   const changes = card.packetChanges;
   return {
     reviewed: Boolean(review),
+    reviewedAt: review?.reviewedAt,
     summary: review?.summary,
     reviewer: reviewerOf(review?.runId, data),
     changes:

@@ -14,34 +14,9 @@ export interface SkillEditorProps {
   action: Action;
   working: boolean;
   onClose: () => void;
+  /** Receives a newly created skill's ID so the library can select it. */
+  onSaved: (id: string) => void;
+  onBack: () => void;
+  /** The library calls the registered guard before replacing this draft. */
+  registerLeave: (guard: ((next: () => void) => void) | null) => void;
 }
-
-export type SkillAssignmentProps = Pick<
-  SkillEditorModel,
-  'scope' | 'setScope' | 'roles' | 'roleIds' | 'setRoleIds'
->;
-
-export type SkillDetailsProps = Pick<
-  SkillEditorModel,
-  'source' | 'importing' | 'creator' | 'name' | 'setName' | 'description' | 'setDescription'
->;
-
-export type SkillEditorFooterProps = Pick<
-  SkillEditorModel,
-  'error' | 'working' | 'onClose' | 'loading' | 'skill'
->;
-
-export type SkillEditorHeadingProps = Pick<
-  SkillEditorModel,
-  'skill' | 'importing' | 'working' | 'onClose'
->;
-
-export type SkillImportProps = Pick<
-  SkillEditorModel,
-  'url' | 'setUrl' | 'loading' | 'working' | 'loadSkill' | 'skill' | 'starter'
->;
-
-export type SkillInstructionsProps = Pick<
-  SkillEditorModel,
-  'content' | 'setContent' | 'source' | 'working' | 'loading'
->;

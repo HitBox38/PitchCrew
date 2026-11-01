@@ -36,7 +36,7 @@ export const RulePatternFields = ({ rule, index, change }: RuleFormProps) => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 max-compact:grid-cols-1">
+        <div className="settings-field-grid">
           <FormSelect
             id={ruleFormKey(index, 'match')}
             label="Check"

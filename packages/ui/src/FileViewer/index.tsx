@@ -5,7 +5,9 @@ import { ViewControls } from './components/ViewControls.tsx';
 import { ViewerBody } from './components/ViewerBody.tsx';
 import { FindBar } from './components/FindBar.tsx';
 import { ViewerFindings } from './components/ViewerFindings.tsx';
+import { ViewerFileList } from './components/ViewerFileList.tsx';
 import type { ViewerFile } from './types.ts';
+import { viewerKeyDown } from './hooks/viewerKeys.ts';
 import '@/styles/file-viewer.css';
 export const FileViewer = ({
   files,
@@ -28,39 +30,7 @@ export const FileViewer = ({
         className="file-viewer-dialog"
         data-expanded={model.settings.expanded}
         showCloseButton={false}
-        onKeyDownCapture={(event) => {
-          if (
-            (event.metaKey || event.ctrlKey) &&
-            event.key.toLowerCase() === 'f' &&
-            model.file.kind !== 'image'
-          ) {
-            event.preventDefault();
-            model.openFind();
-          }
-          if (event.key === 'Escape' && model.findOpen) {
-            event.preventDefault();
-            event.stopPropagation();
-            model.setFindOpen(false);
-          }
-          if (
-            (event.metaKey || event.ctrlKey) &&
-            !['INPUT', 'TEXTAREA'].includes((event.target as HTMLElement).tagName)
-          ) {
-            if (['+', '=', '-'].includes(event.key)) {
-              event.preventDefault();
-              model.change({
-                zoom: Math.max(
-                  25,
-                  Math.min(400, model.settings.zoom + (event.key === '-' ? -25 : 25)),
-                ),
-              });
-            }
-            if (event.key === '0') {
-              event.preventDefault();
-              model.change({ zoom: 100, fit: 'actual' });
-            }
-          }
-        }}
+        onKeyDownCapture={viewerKeyDown(model)}
       >
         <DialogDescription className="sr-only">
           Read-only attachment viewer. Inspect the file, then close to decide on the request.
@@ -90,7 +60,10 @@ export const FileViewer = ({
             {model.error}
           </p>
         ) : null}
-        <ViewerBody key={model.file.id} model={model} />
+        <div className="file-view-main">
+          <ViewerFileList model={model} />
+          <ViewerBody key={model.file.id} model={model} />
+        </div>
       </DialogContent>
     </Dialog>
   );

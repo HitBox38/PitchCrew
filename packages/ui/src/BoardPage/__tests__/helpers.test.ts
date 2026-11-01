@@ -41,12 +41,19 @@ describe('manual status drops', () => {
         );
     }
   });
-  it('covers all statuses once, including closed statuses, and defaults columns to their first status', () => {
+  it('covers all statuses once and never picks a status for a grouped column', () => {
     expect(dropStages.flatMap((stage) => stage.states)).toEqual(states);
+    expect(dropStages.map((stage) => stage.label)).toEqual([
+      'Leads',
+      'Shortlisted',
+      'In progress',
+      'Applied',
+      'Closed',
+    ]);
     for (const state of states)
       for (const stage of dropStages)
         expect(pipelineDrop({ ...card, state }, stage, data)).toMatchObject(
-          stage.states.includes(state)
+          stage.states.length > 1 || stage.states.includes(state)
             ? { kind: 'blocked' }
             : { kind: 'move', state: stage.states[0] },
         );

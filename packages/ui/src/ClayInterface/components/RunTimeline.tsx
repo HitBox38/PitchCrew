@@ -1,22 +1,31 @@
+import type { ReactNode } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { timelineRuns } from '../helpers.ts';
 import { useNow } from '../hooks/useNow.ts';
 
 const time = (value: number) =>
   new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-/** Today's runs for one agent as clay bars in a groove; shown only in the clay preview. */
-export const RunTimeline = ({ roleId }: { roleId: string }) => {
-  const clay = useDevicePreferences((state) => state.clayInterface);
+/**
+ * Today's runs for one agent as clay bars in a groove, in the agent's identity dye. The count can
+ * be rendered by the caller, e.g. as the trigger for a keyboard-reachable list of the same runs.
+ */
+export const RunTimeline = ({
+  roleId,
+  count: renderCount,
+}: {
+  roleId: string;
+  count?: (label: string, count: number) => ReactNode;
+}) => {
   const runs = useWorkspaceStore((state) => state.data?.runs);
   const now = useNow();
-  if (!clay || !runs) return null;
+  if (!runs) return null;
   const placed = timelineRuns(
     runs.filter((run) => run.roleId === roleId && !run.reviewSeatReservation),
     now,
   );
   const count = placed.runs.length;
+  const label = count ? `${count} ${count === 1 ? 'run' : 'runs'} today` : 'No runs today';
   return (
     <div className="clay-run-timeline">
       <div className="clay-groove" aria-hidden="true">
@@ -32,7 +41,7 @@ export const RunTimeline = ({ roleId }: { roleId: string }) => {
       </div>
       <div className="clay-run-timeline-labels">
         <span>{time(placed.start)}</span>
-        <span>{count ? `${count} ${count === 1 ? 'run' : 'runs'} today` : 'No runs today'}</span>
+        {renderCount ? renderCount(label, count) : <span>{label}</span>}
       </div>
     </div>
   );

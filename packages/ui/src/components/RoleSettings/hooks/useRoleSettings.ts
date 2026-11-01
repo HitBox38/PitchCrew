@@ -5,6 +5,8 @@ import { capabilityDefaults } from '@/agent-capabilities.ts';
 import type { RoleSettingsProps } from '@/components/RoleSettings/types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { resolveRuntime } from '@/lib/runtimes.ts';
+import { roleToggleBody } from '@/CrewPage/helpers.ts';
+import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import type { BrowserMode, ReasoningLevel } from '@pitchcrew/core';
 import { useEffect, useState, type FormEvent } from 'react';
 
@@ -47,6 +49,23 @@ export const useRoleSettings = ({
       onClose();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save settings.');
+    }
+  };
+  // Pause/resume applies at once from the header with the saved settings only; draft edits stay
+  // unsaved in the form and still need Save.
+  const toggleEnabled = async () => {
+    const next = !role.enabled;
+    setError('');
+    try {
+      await action(
+        `/roles/${role.id}`,
+        'PUT',
+        roleToggleBody(role),
+        `${role.name} ${next ? 'resumed' : 'paused'}`,
+      );
+      setEnabled(next);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not change whether this role is enabled.');
     }
   };
   const retire = async () => {
@@ -102,6 +121,12 @@ export const useRoleSettings = ({
   }, [registerLeaveGuard, guard.requestLeave]);
   const close = () => guard.requestLeave(onClose);
   const manageSkills = () => guard.requestLeave(onManageSkills);
+  const { openChat } = useWorkspaceNavigation();
+  const chat = () =>
+    guard.requestLeave(() => {
+      onClose();
+      void openChat(role.id);
+    });
   const runtimeCatalog = resolveRuntime(data.runtimes, runtime);
   const runtimes = data.runtimes.some((item) => item.id === runtime)
     ? data.runtimes
@@ -130,6 +155,8 @@ export const useRoleSettings = ({
     working,
     onClose: close,
     onManageSkills: manageSkills,
+    chat,
+    toggleEnabled,
     guard,
     runtime,
     setRuntime,

@@ -1,60 +1,33 @@
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
-import { ProfileEditor } from './components/ProfileEditor.tsx';
-import { ProfileLocation } from './components/ProfileLocation.tsx';
 import { ProfileNotes } from './components/ProfileNotes.tsx';
-import { ProfileDocumentTabs } from './components/ProfileDocumentTabs.tsx';
-import { ProfileWorkspaceHeading } from './components/ProfileWorkspaceHeading.tsx';
+import { ProfileTitle } from './components/ProfileTitle.tsx';
+import { ProfileNotices } from './components/ProfileNotices.tsx';
+import { ProfileDocument } from './components/ProfileDocument.tsx';
+import { ProfileCitations } from './components/ProfileCitations.tsx';
 import { ProfileSourcesPanel } from './components/ProfileSourcesPanel.tsx';
-import { Tabs, TabsContent } from '@/components/ui/tabs/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import { useProfileView } from './hooks/useProfileView.ts';
+import { useProfileNotes } from './hooks/useProfileNotes.ts';
 import { useProfileWorkspace } from './hooks/useProfileWorkspace.ts';
 import type { ProfileViewProps } from './types.ts';
-import { FileText, Plus } from 'lucide-react';
+import { useNewNoteRequest } from '@/lib/new-note.ts';
 
 export const ProfileView = (props: ProfileViewProps) => {
   const controller = useProfileView(props);
+  const tree = useProfileNotes(controller);
   const workspace = useProfileWorkspace(controller);
+  const sections = { controller, tree, workspace };
+  // New note from the sidebar's New menu or the command palette lands here.
+  useNewNoteRequest(() => workspace.createNote());
   return (
     <>
       <section className="profile-workspace" aria-label="Profile workspace">
-        <ProfileWorkspaceHeading controller={controller} workspace={workspace} />
-        <div
-          className={`profile-workspace-body ${workspace.explorerVisible ? '' : 'explorer-hidden'}`}
-        >
-          <ProfileNotes
-            {...controller}
-            openNote={workspace.openNote}
-            createNote={workspace.createNote}
-            hidden={!workspace.explorerVisible}
-          />
-          <Tabs
-            value={controller.activeId}
-            onValueChange={(id) => {
-              if (typeof id === 'string') workspace.selectNote(id);
-            }}
-            className="profile-document"
-          >
-            <ProfileDocumentTabs {...controller} />
-            {controller.documents.map((document) => (
-              <TabsContent key={document.id} value={document.id} className="profile-note-panel">
-                <ProfileEditor {...controller} />
-              </TabsContent>
-            ))}
-            {!controller.documents.length ? (
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 p-5 text-center">
-                <FileText size={28} className="text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Open a note from the explorer, or start a new one.
-                </p>
-                <Button className="button small" onClick={() => void workspace.createNote()}>
-                  <Plus size={14} /> New note
-                </Button>
-              </div>
-            ) : null}
-          </Tabs>
+        <ProfileTitle {...sections} />
+        <ProfileNotices {...controller} />
+        <div className="profile-body" data-explorer={workspace.explorerVisible ? 'open' : 'closed'}>
+          <ProfileNotes {...sections} />
+          <ProfileDocument {...sections} />
+          <ProfileCitations data={controller.data} activeSavedName={controller.activeSavedName} />
         </div>
-        <ProfileLocation {...controller} />
       </section>
       <ProfileSourcesPanel {...controller} />
       <DiscardChanges guard={controller.guard} />

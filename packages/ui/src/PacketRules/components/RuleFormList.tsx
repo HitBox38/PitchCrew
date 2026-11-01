@@ -1,12 +1,13 @@
-import { Accordion } from '@/components/ui/accordion/index.tsx';
 import { Button } from '@/components/ui/button/components/Button.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Plus } from 'lucide-react';
 import { ruleKinds, type RulesDocument } from '../form-helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 import { useRuleForm } from '../hooks/useRuleForm.ts';
-import { RuleFormItem } from './RuleFormItem.tsx';
+import { RuleForm } from './RuleForm.tsx';
+import { RuleListItem } from './RuleListItem.tsx';
 
+/** A 280px rule list beside the selected rule's form. */
 export const RuleFormList = ({
   document,
   controller,
@@ -15,10 +16,27 @@ export const RuleFormList = ({
   controller: PacketRulesController;
 }) => {
   const model = useRuleForm(document, controller);
+  const current = model.selected === null ? undefined : model.rows[model.selected];
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end gap-3">
-        <div className="form min-w-48 flex-1">
+    <div className="packet-rules-panes">
+      <div className="packet-rules-list ui-tray">
+        {model.rows.length ? (
+          <ul aria-label="Packet rules">
+            {model.rows.map(({ rule, index, id }) => (
+              <RuleListItem
+                key={id}
+                rule={rule}
+                index={index}
+                issues={controller.issues}
+                selected={index === model.selected}
+                select={() => model.setSelected(index)}
+              />
+            ))}
+          </ul>
+        ) : (
+          <p className="quiet">No custom rules. Exact quotation checks always apply.</p>
+        )}
+        <div className="packet-rules-add form">
           <FormSelect
             id="new-rule-kind"
             label="Rule type"
@@ -26,39 +44,32 @@ export const RuleFormList = ({
             options={ruleKinds}
             onValueChange={model.setKind}
           />
+          <Button
+            id="add-packet-rule"
+            variant="outline"
+            size="sm"
+            onClick={model.addRule}
+            disabled={controller.working || document.rules.length >= 100}
+          >
+            <Plus size={14} aria-hidden="true" /> Add rule
+          </Button>
         </div>
-        <Button
-          id="add-packet-rule"
-          variant="outline"
-          onClick={model.addRule}
-          disabled={controller.working || document.rules.length >= 100}
-        >
-          <Plus size={15} aria-hidden="true" /> Add rule
-        </Button>
       </div>
-      {!document.rules.length ? (
-        <p className="settings-empty p-5 text-sm">
-          No custom rules. Add one above. Exact quotation checks always apply.
-        </p>
-      ) : null}
-      <Accordion
-        multiple
-        value={model.expanded}
-        onValueChange={model.setExpanded}
-        className="packet-rule-forms"
-      >
-        {model.rows.map(({ rule, index, id }) => (
-          <RuleFormItem
-            key={id}
-            rule={rule}
-            index={index}
-            change={(patch) => model.changeRule(index, patch)}
-            remove={() => model.removeRule(index)}
+      <div className="packet-rules-detail">
+        {current ? (
+          <RuleForm
+            key={current.id}
+            rule={current.rule}
+            index={current.index}
+            change={(patch) => model.changeRule(current.index, patch)}
+            remove={() => model.removeRule(current.index)}
             issues={controller.issues}
             working={controller.working}
           />
-        ))}
-      </Accordion>
+        ) : (
+          <p className="ui-empty">Choose a rule type and add your first rule.</p>
+        )}
+      </div>
     </div>
   );
 };

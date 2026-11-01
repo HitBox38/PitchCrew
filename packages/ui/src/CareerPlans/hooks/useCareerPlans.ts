@@ -27,3 +27,5 @@ export const useCareerPlans = () => {
   const coach = roles.find((r) => r.id === 'career-coach' && !r.retiredAt);
   return { plans, coach, working, creating, setCreating, change, discuss };
 };
+
+export type CareerPlansModel = ReturnType<typeof useCareerPlans>;

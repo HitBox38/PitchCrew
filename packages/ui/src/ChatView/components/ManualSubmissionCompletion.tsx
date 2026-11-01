@@ -18,7 +18,7 @@ export const ManualSubmissionCompletion = ({
   const [error, setError] = useState('');
   if (card.state !== 'awaiting_approval') return null;
   return (
-    <div className="flex flex-wrap items-center gap-2 py-3">
+    <div className="manual-submission-completion flex flex-wrap items-center gap-2 py-3">
       <p className="quiet">Finished this application yourself?</p>
       <Button
         size="sm"

@@ -20,6 +20,7 @@ import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { exampleProfile, examples } from '../../test/fixtures/examples.ts';
 import type { CrewContext } from './types.ts';
+import { loadChatExamples } from './chat-examples.ts';
 import { assertProfileReady, changeProfile } from '../profile-sources/mutation.ts';
 export const createCard = (context: CrewContext, data: unknown): Card => {
   const { provenance, ...input } = newCard.parse(data);
@@ -163,6 +164,7 @@ export const loadExamples = async (context: CrewContext): Promise<void> => {
       context.board.move(card.id, 'interviewing', 'demo', 'Example interview stage');
     }
   }
+  if (cards[4]) loadChatExamples(context, cards[4]);
 };
 export const exportPacket = async (
   context: CrewContext,

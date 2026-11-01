@@ -20,7 +20,7 @@ export const ImportReviewToolbar = ({
 }) => {
   const safe = changes.filter((file) => file.status !== 'conflict');
   return (
-    <div className="shrink-0 border-b border-border px-5 py-3">
+    <div className="profile-import-toolbar">
       <div className="relative">
         <Search
           size={16}

@@ -39,11 +39,27 @@
 .clay-bead[data-tone='teal'] {
   --bead-color: var(--teal);
 }
+.clay-bead[data-tone='rose'] {
+  --bead-color: var(--rose);
+}
 .clay-bead[data-live] {
   outline: 2px solid color-mix(in srgb, var(--bead-color, var(--plum)) 30%, transparent);
   outline-offset: 2px;
 }
 .clay-bead[data-empty] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+/* A job's present stage at rest: raised and neutral, ringed in primary. Plum is only for an agent
+ * actually working, ochre only when the user is asked. */
+.clay-bead[data-tone='current'] {
+  background: var(--clay-fill);
+  box-shadow:
+    var(--clay),
+    0 0 0 1.5px var(--primary);
+}
+/* Column summaries: a lead at rest is an empty socket. */
+.clay-column-beads > .clay-bead:not([data-tone]) {
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
@@ -92,13 +108,14 @@
   background: var(--run-color, var(--primary));
   box-shadow: inset -2px -3px 4px rgb(0 0 0 / 0.16);
 }
+/* The current time: a quiet neutral hairline, never a state colour. */
 .clay-groove-now {
   position: absolute;
   inset-block: -0.0625rem;
   right: 0;
-  width: 1.5px;
-  background: var(--rose);
-  opacity: 0.5;
+  width: 1px;
+  background: var(--muted);
+  opacity: 0.55;
 }
 
 .clay-stage-labels {
@@ -144,7 +161,14 @@
 }
 .clay-job-leads .clay-job-company {
   color: var(--muted);
-  font-weight: 500;
+  font-weight: 400;
+}
+.clay-job-best {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .clay-job-spinner {
   width: 0.75rem;
@@ -170,62 +194,131 @@
   display: none;
 }
 
+/* ── Board: the Needs you deck beside four stage columns of clay job cards ─────
+ * Deck 318 wide; columns at least 188 with a 12 gap; each column body scrolls on its own. */
 .clay-board {
   display: flex;
   min-height: 0;
   flex: 1;
-  gap: 0.875rem;
+  gap: 14px;
+}
+.clay-board:has(> .clay-deck-clear) {
+  flex-direction: column;
+  gap: 10px;
 }
 .clay-columns {
   display: grid;
   min-width: 0;
+  min-height: 0;
   flex: 1;
-  grid-template-columns: repeat(5, minmax(9.5rem, 1fr));
-  gap: 0.875rem;
-  align-items: start;
+  grid-template-columns: repeat(4, minmax(188px, 1fr));
+  gap: 12px;
   overflow-x: auto;
+  overscroll-behavior-x: contain;
 }
 .clay-column {
   display: flex;
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
-  gap: 0.625rem;
+  gap: 6px;
+  border-radius: 14px;
+  transition: box-shadow var(--duration-press) var(--ease-material);
 }
-.clay-column-heading,
-.clay-deck-heading {
+.clay-column[data-flash] {
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.clay-column-heading {
   display: flex;
-  min-height: 1.625rem;
+  min-height: 32px;
   align-items: center;
-  gap: 0.4375rem;
-  padding-inline: 0.25rem;
-  font-weight: 600;
+  gap: 7px;
+  padding-inline: 4px;
+}
+.clay-column-heading h2 {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--ink);
+  font: 600 0.9375rem/1.3 var(--font-sans);
+  white-space: nowrap;
+}
+.clay-column-heading h2:focus-visible {
+  border-radius: 6px;
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .clay-column-count {
   color: var(--muted);
   font-weight: 400;
+  font-variant-numeric: tabular-nums;
 }
 .clay-column-beads {
   display: flex;
-  gap: 0.1875rem;
+  align-items: center;
+  gap: 4px;
   margin-inline-start: auto;
 }
-.clay-column-empty,
-.clay-column-more {
-  padding: 0.75rem;
-  border-radius: var(--radius-md);
-  color: var(--faint);
-  font-size: var(--text-caption);
-  box-shadow: inset 0 0 0 1.5px var(--border);
+.clay-column-beads > .clay-bead {
+  --bead-size: 8px;
 }
-.clay-column-more {
-  box-shadow: none;
+/* A 32px hit area around a 16px icon. */
+.clay-column-sort {
+  width: 32px;
+  height: 32px;
+  margin-inline-end: -4px;
+  color: var(--muted);
+}
+.clay-column-sort[data-custom] {
+  color: var(--primary);
+}
+.clay-columns[data-dragging] .clay-column-beads > * {
+  display: none;
+}
+.clay-column-pages {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding-inline: 2px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+.clay-column-body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 10px;
+  margin: -6px;
+  padding: 6px 6px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.clay-column-empty {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 1.45;
 }
 
 .clay-job-card {
   display: flex;
+  width: 100%;
   flex-direction: column;
-  gap: 0.125rem;
-  padding: 0.6875rem 0.75rem 0.625rem;
+  gap: 2px;
+  padding: 11px 12px 10px;
   border-radius: 12px;
   background: var(--clay-fill);
   box-shadow: var(--clay);
@@ -248,20 +341,30 @@
   outline-offset: 2px;
 }
 .clay-job-card-company {
+  overflow: hidden;
   color: var(--muted);
   font-size: var(--text-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .clay-job-card-title {
+  font-size: 0.875rem;
   font-weight: 600;
   line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 .clay-job-card-footer {
   display: flex;
+  min-height: 20px;
   align-items: center;
-  gap: 0.375rem;
-  margin-top: 0.5rem;
+  gap: 6px;
+  margin-top: 8px;
   color: var(--muted);
   font-size: var(--text-caption);
+}
+.clay-job-card-footer > .role-avatar {
+  width: 18px;
+  height: 18px;
 }
 .clay-job-card-status {
   min-width: 0;
@@ -278,21 +381,27 @@
   font-weight: 600;
 }
 .clay-job-card-fit {
+  flex: none;
   margin-inline-start: auto;
   color: var(--ink);
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
+.clay-job-card-fit[data-unscored] {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 400;
+}
 .clay-job-card .clay-stage-track {
-  margin-top: 0.625rem;
+  margin-top: 10px;
 }
 
-/* Drag shares the classic board's targets; clay keeps its own trays and lift. */
+/* Dragging: exact status targets appear in every column, including Closed. */
 .clay-columns[data-dragging] {
-  grid-template-columns: repeat(6, minmax(8.5rem, 1fr));
+  grid-template-columns: repeat(5, minmax(160px, 1fr));
 }
 .clay-column[data-drop-allowed] {
-  border-radius: 14px;
   outline: 1px dashed var(--teal);
   outline-offset: 4px;
 }
@@ -300,27 +409,55 @@
   background: var(--teal-soft);
   outline: 2px solid var(--teal);
 }
-.clay-draggable-job > .clay-job-card {
-  width: 100%;
+.clay-column-targets {
+  display: grid;
+  gap: 4px;
 }
-.clay-draggable-job .clay-job-card-company {
-  padding-inline-end: 1.5rem;
+.status-drop-target {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  padding: 6px 10px;
+  border: 1px dashed var(--border-strong);
+  border-radius: 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
 }
-.clay-draggable-job[data-movable] > .clay-job-card {
+.status-drop-target[data-drop-allowed] {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+.status-drop-target[data-drop-target] {
+  border-style: solid;
+  background: var(--teal-soft);
+  font-weight: 600;
+}
+.status-drop-target[aria-disabled='true'] {
+  opacity: 0.5;
+}
+.clay-draggable-job[data-movable] .clay-job-card {
   cursor: grab;
 }
-.clay-draggable-job .job-actions-trigger.icon-button {
-  top: 0.375rem;
-  right: 0.375rem;
+.clay-draggable-job .clay-job-card-company {
+  padding-inline-end: 2rem;
+}
+.clay-draggable-job .job-actions-trigger {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--muted);
   opacity: 0;
 }
 .clay-draggable-job:hover .job-actions-trigger,
-.clay-draggable-job .job-actions-trigger:focus-visible,
+.clay-draggable-job:focus-within .job-actions-trigger,
 .clay-draggable-job .job-actions-trigger[data-popup-open] {
   opacity: 1;
 }
 @media (hover: none) {
-  .clay-draggable-job .job-actions-trigger.icon-button {
+  .clay-draggable-job .job-actions-trigger {
     opacity: 1;
   }
 }
@@ -330,61 +467,76 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .clay-job-card,
-  .clay-job-card:hover {
+  .clay-job-card:hover,
+  .clay-column {
     transform: none;
     transition: none;
   }
 }
 
+/* Needs you: a recessed deck with the top decision as a raised card over two shadows. The deck
+ * is as tall as its content (never a full-height well) and scrolls only past the page height. */
 .clay-deck {
   display: flex;
-  width: 16.5rem;
+  width: 318px;
+  max-height: 100%;
   flex: none;
   flex-direction: column;
-  gap: 0.375rem;
-  align-self: stretch;
-  padding: 0.875rem;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 14px;
+  overflow-y: auto;
   border-radius: 18px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
-}
-.clay-deck[data-clear] {
-  align-self: start;
+  scrollbar-width: thin;
 }
 .clay-deck-heading {
+  display: flex;
+  min-height: 26px;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 2px;
   color: var(--ochre);
+  font-weight: 600;
+}
+.clay-deck-count {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 400;
 }
 .clay-pips {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: 6px;
   margin-inline-start: auto;
 }
 .clay-pips > i {
-  width: 0.5rem;
-  height: 0.5rem;
+  width: 8px;
+  height: 8px;
   border-radius: 999px;
   background: var(--border-strong);
 }
 .clay-pips > i[data-current] {
-  width: 1.25rem;
-  background: var(--ochre);
+  width: 20px;
+  border-radius: 4px;
+  background: radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--ochre);
 }
 .clay-deck-stack {
   position: relative;
-  margin-top: 0.375rem;
+  margin-top: 4px;
 }
 .clay-deck-stack[data-depth='1'] {
-  padding-bottom: 0.625rem;
+  padding-bottom: 10px;
 }
 .clay-deck-stack[data-depth='2'] {
-  padding-bottom: 1.25rem;
+  padding-bottom: 20px;
 }
 .clay-deck-stack::before,
 .clay-deck-stack::after {
   position: absolute;
-  inset-inline: 0.625rem;
-  bottom: 0.625rem;
+  inset-inline: 10px;
+  bottom: 10px;
   height: 2rem;
   border-radius: 16px;
   background: var(--clay-fill);
@@ -393,7 +545,7 @@
   opacity: 0.85;
 }
 .clay-deck-stack::after {
-  inset-inline: 1.25rem;
+  inset-inline: 20px;
   bottom: 0;
   opacity: 0.55;
 }
@@ -410,17 +562,26 @@
   z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 1rem;
+  gap: 2px;
+  padding: 16px;
   border-radius: 16px;
   background: var(--clay-fill);
   box-shadow: var(--clay);
 }
+.clay-deck-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.clay-deck-source > .role-avatar {
+  width: 20px;
+  height: 20px;
+}
 .clay-deck-card h3 {
-  font-family: var(--font-sans);
-  font-size: 1.0625rem;
-  font-weight: 600;
-  line-height: 1.25;
+  font: 600 1.0625rem/1.25 var(--font-sans);
 }
 .clay-deck-job {
   color: var(--ink-soft);
@@ -428,41 +589,102 @@
 }
 .clay-deck-detail {
   display: -webkit-box;
-  margin-top: 0.375rem;
+  margin-top: 12px;
   overflow: hidden;
-  padding: 0.5rem 0.625rem;
+  padding: 8px 10px;
   border-radius: 8px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
   color: var(--ink-soft);
   font-size: var(--text-caption);
+  line-height: 1.45;
   -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
+  -webkit-line-clamp: 5;
+}
+.clay-deck-evidence {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+  font-size: var(--text-caption);
+}
+.clay-deck-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.clay-deck-files > li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  color: var(--ink-soft);
+}
+.clay-deck-highlights {
+  display: grid;
+  gap: 5px;
+  color: var(--ink-soft);
+}
+.clay-deck-highlights > li {
+  display: flex;
+  gap: 6px;
+  line-height: 1.4;
+}
+.clay-deck-highlights svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--moss);
+}
+.clay-deck-highlights span {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 .clay-deck-actions {
   display: flex;
-  gap: 0.375rem;
-  margin-top: 0.875rem;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 14px;
 }
 .clay-deck-actions > :first-child {
   flex: 1;
 }
 .clay-deck-then {
-  margin: 0.75rem 0.125rem 0.125rem;
+  margin: 12px 2px 0;
   color: var(--muted);
   font-size: var(--text-caption);
   font-weight: 600;
 }
 .clay-deck-next {
   display: flex;
-  flex-direction: column;
-  padding: 0.5625rem 0.625rem;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 10px;
   border-radius: 10px;
   background: var(--clay-fill);
   box-shadow: var(--clay);
   text-align: start;
+  transition: box-shadow var(--duration-press) var(--ease-material);
+}
+.clay-deck-next:hover {
+  box-shadow: var(--clay-hover);
+}
+.clay-deck-next:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.clay-deck-next > .role-avatar {
+  width: 20px;
+  height: 20px;
 }
 .clay-deck-next > span {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+.clay-deck-next > span > span {
   overflow: hidden;
   color: var(--muted);
   font-size: var(--text-caption);
@@ -471,27 +693,117 @@
 }
 .clay-deck-clear {
   display: flex;
-  gap: 0.5rem;
+  min-height: 48px;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
   color: var(--muted);
-  line-height: 1.45;
+  font-size: var(--text-label);
 }
 .clay-deck-clear svg {
   flex: none;
-  margin-top: 0.125rem;
   color: var(--moss);
+}
+
+/* Below 1124px of work width the deck becomes a compact strip above a scrolling pipeline. */
+@container board (width < 70.25rem) {
+  .clay-board {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .clay-deck {
+    width: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    align-self: stretch;
+    gap: 8px 12px;
+    padding: 10px 12px;
+    overflow: visible;
+  }
+  .clay-deck > .onboarding-checklist,
+  .clay-deck > .onboarding-checklist + .clay-deck-heading {
+    flex-basis: 100%;
+  }
+  .clay-deck-stack,
+  .clay-deck-stack[data-depth] {
+    min-width: 0;
+    flex: 1 1 20rem;
+    margin: 0;
+    padding: 0;
+  }
+  .clay-deck-stack::before,
+  .clay-deck-stack::after,
+  .clay-deck-source,
+  .clay-deck-evidence,
+  .clay-deck-detail,
+  .clay-deck-then,
+  .clay-deck-next {
+    display: none;
+  }
+  .clay-deck-card {
+    min-height: 0;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 12px;
+    padding: 8px 8px 8px 14px;
+    border-radius: 12px;
+  }
+  .clay-deck-card h3 {
+    font-size: 0.9375rem;
+  }
+  .clay-deck-actions {
+    margin-inline-start: auto;
+    padding-top: 0;
+  }
+  /* A question shows its own words (two lines at most) instead of the job's fit. */
+  .clay-deck-card[data-kind='question'] {
+    padding-block: 10px;
+  }
+  .clay-deck-card[data-kind='question'] h3 {
+    flex-basis: 100%;
+  }
+  /* Which job the question concerns: one muted 12/18 line, without the fit. */
+  .clay-deck-card[data-kind='question'] .clay-deck-job {
+    flex-basis: 100%;
+    overflow: hidden;
+    color: var(--muted);
+    font-size: var(--text-caption);
+    line-height: 1.125rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .clay-deck-card[data-kind='question'] .clay-deck-fit {
+    display: none;
+  }
+  .clay-deck-card[data-kind='question'] .clay-deck-detail {
+    display: -webkit-box;
+    flex: 1 1 18rem;
+    margin: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+    color: var(--ink);
+    font-size: var(--text-label);
+    line-height: 1.25rem;
+    -webkit-line-clamp: 2;
+  }
+  .clay-deck-card[data-kind='question'] .clay-deck-actions {
+    padding-top: 8px;
+  }
 }
 
 .clay-run-timeline {
   margin-block: 0.25rem 0.125rem;
 }
+/* Crew: today's runs carry the agent's identity dye (set as --tone on the card). */
 .crew-card .clay-groove-run {
-  --run-color: var(--teal);
-}
-.crew-card.writer .clay-groove-run {
-  --run-color: var(--plum);
-}
-.crew-card.reviewer .clay-groove-run {
-  --run-color: var(--moss);
+  --run-color: var(--tone, var(--teal));
 }
 .clay-groove-run[data-live] {
   outline: 2px solid color-mix(in srgb, var(--run-color) 30%, transparent);
@@ -501,13 +813,24 @@
   display: flex;
   justify-content: space-between;
   margin-top: 0.25rem;
-  color: var(--faint);
-  font-size: var(--text-caption);
+  color: var(--muted);
+  font-size: var(--text-detail);
 }
 
 .clay-chat-stage {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 2rem;
   padding: 0.625rem 1.25rem 0.75rem;
   border-bottom: 1px solid var(--border);
+}
+.clay-chat-stage > .clay-stage-track {
+  flex: 1 1 28rem;
+}
+.clay-chat-stage > .clay-job-now {
+  flex: 0 1 auto;
+  max-width: 22rem;
 }
 .clay-chat-stage .clay-stage-track {
   max-width: 34rem;
@@ -544,9 +867,12 @@
   color: var(--muted);
   font-size: var(--text-label);
 }
-.clay-job-now[data-asks] {
+.clay-job-now[data-tone='asks'] {
   color: var(--ochre);
   font-weight: 600;
+}
+.clay-job-now[data-tone='working'] {
+  color: var(--plum);
 }
 .detail-application-sections[data-steps] [data-slot='accordion-trigger'] > .clay-bead,
 .detail-history[data-beads] > div > .clay-bead {
@@ -562,5 +888,143 @@
 @variant max-mobile {
   .clay-job-progress {
     padding-inline: 1rem;
+  }
+}
+
+/* A short string of beads summarizing steps or queued requests, laid in a recessed groove. */
+.clay-step-beads {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.clay-step-beads > .clay-bead[data-empty] {
+  box-shadow: inset 0 0 0 1.5px var(--border-strong);
+}
+.clay-step-beads > .clay-job-spinner {
+  width: 0.5625rem;
+  height: 0.5625rem;
+}
+
+/* ── Sidebar: conversations nested under their jobs ──────────────────────────
+ * A live job folds out its conversations; the toggle carries the hidden count.
+ * Rows keep the state language: ochre age waits on you, plum age is working. */
+.clay-job-item:has(> .clay-job-toggle) > .clay-job-row {
+  padding-right: 2.5rem;
+}
+[data-slot='sidebar'] .clay-job-toggle {
+  top: 50%;
+  width: auto;
+  min-width: 2rem;
+  height: 2rem;
+  aspect-ratio: auto;
+  gap: 0.125rem;
+  padding-inline: 0.25rem;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  translate: 0 -50%;
+}
+[data-slot='sidebar'] .clay-job-item > .clay-job-toggle {
+  /* A job row holds one line; keep the toggle centered on it, not on the open sub-list. */
+  top: 1rem;
+}
+.clay-job-toggle > svg {
+  width: 0.875rem;
+  height: 0.875rem;
+  transition: rotate 160ms ease;
+}
+.clay-job-toggle[data-panel-open] > svg {
+  rotate: 90deg;
+}
+[data-slot='sidebar'] .clay-job-conversations {
+  gap: 1px;
+  margin: 1px 0 4px 12px;
+  padding: 0 0 0 8px;
+  border-left: 1.5px solid var(--border);
+  translate: none;
+}
+.clay-job-conversation > [data-slot='sidebar-menu-sub-button'] {
+  height: 2rem;
+  min-width: 0;
+  gap: 0.5rem;
+  padding: 0 0.375rem;
+  border-radius: 9px 10px 9px 8px;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  translate: none;
+}
+.clay-job-conversation > [data-slot='sidebar-menu-sub-button'][data-active] {
+  color: var(--ink);
+  font-weight: 600;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.clay-job-conversation-avatars {
+  display: inline-flex;
+  flex: none;
+}
+.clay-job-conversation-avatars > .role-avatar {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+.clay-job-conversation-avatars > .role-avatar svg {
+  width: 0.625rem;
+  height: 0.625rem;
+}
+.clay-job-conversation-avatars > .role-avatar + .role-avatar {
+  margin-inline-start: -0.375rem;
+}
+.clay-job-conversation-title {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.clay-job-conversation .conversation-link-status:empty {
+  display: none;
+}
+.clay-job-conversation-age {
+  flex: none;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+[data-tone='working'] > .clay-job-conversation-age {
+  color: var(--plum);
+  font-weight: 600;
+}
+[data-tone='asks'] > .clay-job-conversation-age {
+  color: var(--ochre);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .clay-job-conversation > .conversation-menu-trigger {
+    opacity: 0;
+  }
+  .clay-job-conversation:hover > .conversation-menu-trigger,
+  .clay-job-conversation:focus-within > .conversation-menu-trigger,
+  .clay-job-conversation > .conversation-menu-trigger[data-popup-open] {
+    opacity: 1;
+  }
+  .clay-job-conversation:is(:hover, :focus-within) .clay-job-conversation-age,
+  .clay-job-conversation:has(> [data-popup-open]) .clay-job-conversation-age {
+    visibility: hidden;
+  }
+}
+@media (hover: none) {
+  .clay-job-conversation > [data-slot='sidebar-menu-sub-button'] {
+    padding-right: 1.75rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .clay-job-toggle > svg {
+    transition: none;
   }
 }

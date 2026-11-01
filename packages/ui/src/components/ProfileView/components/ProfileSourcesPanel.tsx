@@ -27,29 +27,29 @@ export const ProfileSourcesPanel = (c: ProfileViewModel) => {
     >
       <DialogContent
         className="modal profile-sources-dialog"
+        data-review={sources.preview ? '' : undefined}
         initialFocus={headingRef}
         showCloseButton={!sources.proposalPending}
       >
-        <DialogHeader className="shrink-0 gap-2 border-b border-border px-6 py-5 pr-12 text-left">
+        <DialogHeader className="profile-sources-header">
           {sources.screen !== 'list' ? (
             <Button
               variant="ghost"
               size="sm"
               className="-ml-2 w-fit"
               disabled={sources.busy}
-              onClick={sources.back}
+              onClick={() => {
+                if (sources.preview) sources.setPreview(null);
+                sources.back();
+              }}
             >
               <ArrowLeft size={14} /> Back to sources
             </Button>
           ) : null}
-          <DialogTitle
-            ref={headingRef}
-            tabIndex={-1}
-            className="font-sans text-lg leading-snug outline-none"
-          >
+          <DialogTitle ref={headingRef} tabIndex={-1} className="ui-title outline-none">
             {copy.title}
           </DialogTitle>
-          <DialogDescription className="max-w-lg text-sm leading-relaxed">
+          <DialogDescription className="text-label text-muted-foreground">
             {copy.description}
           </DialogDescription>
         </DialogHeader>

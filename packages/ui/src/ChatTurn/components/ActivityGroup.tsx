@@ -11,6 +11,7 @@ import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
 import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
 import { ActivityStep } from './ActivityStep.tsx';
 
+/** A collapsed group of turn steps, used by the public landing page's chat demo. */
 export const ActivityGroup = ({
   entries,
   defaultOpen = false,

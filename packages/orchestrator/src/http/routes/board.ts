@@ -1,4 +1,5 @@
 import { registerDeepReviewRoutes } from './deep-reviews.ts';
+import { registerCardChangeRoutes } from './card-changes.ts';
 import { roleIdSchema, states } from '@pitchcrew/core';
 import { deleteJob, editJob, setCardStatus } from '@pitchcrew/board';
 import type { FastifyInstance } from 'fastify';
@@ -11,6 +12,7 @@ import { registerApplicationContextRoutes } from './application-context.ts';
 export const registerBoardRoutes = (app: FastifyInstance, service: CrewService) => {
   registerApplicationContextRoutes(app, service);
   registerDeepReviewRoutes(app, service);
+  registerCardChangeRoutes(app, service);
   app.get<IdRoute>('/api/cards/:id', (req) =>
     service.board.get<Card>('card', z.uuid().parse(req.params.id)),
   );

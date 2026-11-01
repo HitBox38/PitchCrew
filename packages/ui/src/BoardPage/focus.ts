@@ -10,7 +10,24 @@ export const restoreJobFocus = (target: ReturnType<typeof jobFocusTarget>, state
     (target.fallback ? document.getElementById(target.fallback) : null);
   const button =
     node?.querySelector<HTMLButtonElement>('.job-actions-trigger:not(:disabled)') ??
-    document.querySelector<HTMLButtonElement>('.board-toolbar .view-switch .active') ??
-    document.querySelector<HTMLButtonElement>('.board-workspace .welcome .button.primary');
+    document.querySelector<HTMLButtonElement>('.board-segment [aria-pressed="true"]') ??
+    document.querySelector<HTMLButtonElement>('.board-add-job');
   button?.focus({ preventScroll: true });
+};
+
+/** Wait for the jumped-to column to mount, then centre it, focus its heading and flash it. */
+export const focusStage = (id: string, tries = 10) => {
+  requestAnimationFrame(() => {
+    const column = document.getElementById(`stage-${id}`);
+    if (!column) return tries ? focusStage(id, tries - 1) : undefined;
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    column.scrollIntoView({
+      behavior: reduced ? 'auto' : 'smooth',
+      block: 'nearest',
+      inline: 'center',
+    });
+    column.querySelector<HTMLElement>('[data-stage-heading]')?.focus({ preventScroll: true });
+    column.dataset.flash = '';
+    setTimeout(() => delete column.dataset.flash, 1400);
+  });
 };

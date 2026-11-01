@@ -1,51 +1,72 @@
-/* The calendar is a working list on paper, with the controls kept above its scroll. */
+/* Routines: one recessed list of schedule rows on paper, edited in a 480px side panel. */
 .routines-workspace-body {
   display: flex;
-  flex-direction: column;
   overflow: hidden;
   padding: 0;
 }
-.routines-workspace {
-  display: flex;
+.routines-workspace-body > :is(.workspace-notice, .error-banner) {
+  margin: 16px 4px 0 8px;
+}
+.routines-page {
+  position: relative;
+  display: grid;
   flex: 1;
-  flex-direction: column;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
 }
-.routines-toolbar {
+.routines-page > .chat-side-panel-slot,
+.routines-page .chat-side-panel-portal {
   display: flex;
-  flex-shrink: 0;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  min-height: 0;
 }
-.routines-toolbar .quiet {
-  font-size: 12px;
+.routines-list-area {
+  container-type: inline-size;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px 4px 32px 8px;
 }
+.routines-list-area > .form-error {
+  margin-bottom: 12px;
+}
+/* The truthful availability fact: inside the empty row, or one quiet line under the list. */
+.routines-availability {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+}
+.routines-empty {
+  color: var(--ink);
+}
+.routines-list-note {
+  margin-top: 8px;
+  padding: 0 12px;
+}
+.routines-availability a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* Title row controls. */
 .routines-search {
   position: relative;
-  min-width: 0;
+  display: block;
+  width: 220px;
 }
 .routines-search > svg {
   position: absolute;
-  top: 11px;
-  left: 12px;
+  top: 50%;
+  left: 11px;
   color: var(--muted);
+  transform: translateY(-50%);
   pointer-events: none;
 }
 .routines-search input {
-  width: 100%;
-  height: 38px;
-  padding: 8px 11px 8px 36px;
-  border: 0;
-  border-radius: 10px 11px 10px 9px;
-  background: var(--sunken-fill);
-  color: var(--ink);
-  font-size: var(--text-body);
-  font-weight: 400;
-  box-shadow: var(--clay-sunken);
+  height: 34px;
+  padding-left: 32px;
 }
 .routines-agent-filter > label {
   position: absolute;
@@ -55,107 +76,249 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
-.routines-list-area {
+.routines-agent-filter [data-slot='select-trigger'] {
+  width: 160px;
+  height: 34px;
+}
+
+.routines-list {
+  margin: 0;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  list-style: none;
+}
+.routine-row {
+  display: grid;
+  grid-template-columns:
+    20px minmax(0, 1.5fr) minmax(0, 1.25fr) minmax(0, 0.9fr) minmax(0, 1fr)
+    auto;
+  grid-template-areas: 'pebble identity when job outcome controls';
+  align-items: center;
+  gap: 4px 16px;
+  min-height: 64px;
+  padding: 10px 12px;
+  font-size: var(--text-label);
+}
+.routine-row + .routine-row {
+  border-top: 1px solid var(--border);
+}
+.routine-row > .role-avatar {
+  grid-area: pebble;
+}
+.routine-identity {
+  grid-area: identity;
+  min-width: 0;
+}
+.routine-identity > button {
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 4px;
+  color: var(--ink);
+  font: 600 0.875rem/1.4 var(--font-sans);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.routine-identity > button:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.routine-identity > button:focus-visible,
+.routine-last-run:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.routine-identity > p,
+.routine-when > p,
+.routine-job {
+  overflow: hidden;
+  color: var(--muted);
+  line-height: 1.5;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.routine-when {
+  grid-area: when;
+  min-width: 0;
+}
+.routine-when > p:first-child {
+  color: var(--ink);
+}
+.routine-job {
+  grid-area: job;
+}
+.routine-outcome {
+  display: grid;
+  grid-area: outcome;
+  gap: 2px;
+  min-width: 0;
+}
+.routine-status,
+.routine-last-run {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+}
+.routine-status {
+  color: var(--ink);
+}
+.routine-last-run {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  text-overflow: ellipsis;
+}
+a.routine-last-run:hover {
+  color: var(--ink);
+}
+.routine-controls {
+  display: flex;
+  grid-area: controls;
+  align-items: center;
+  gap: 8px;
+}
+.routine-error {
+  grid-column: 2 / -1;
+  color: var(--error-ink);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.routine-row[data-enabled='false'] .routine-when > p:first-child {
+  color: var(--muted);
+}
+@container (max-width: 760px) {
+  .routine-row {
+    grid-template-columns: 20px minmax(0, 1fr) auto;
+    grid-template-areas:
+      'pebble identity controls'
+      '. when when'
+      '. job job'
+      '. outcome outcome';
+    align-items: start;
+    min-height: 96px;
+  }
+  .routine-row > .role-avatar {
+    margin-top: 2px;
+  }
+  .routine-job[data-empty] {
+    display: none;
+  }
+}
+
+/* Editor side panel. */
+.routine-editor-panel.chat-side-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 480px;
+  max-width: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.routine-editor {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+.routine-editor-heading {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 48px;
+  padding: 8px 12px 8px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.routine-editor-heading h2 {
+  font: 600 1rem/1.35 var(--font-sans);
+}
+.routine-editor-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 0 20px 20px;
-}
-.routines-list-area > .form-error {
-  margin-top: 16px;
-}
-.routine-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 260px);
-  gap: 16px 28px;
-  padding: 22px 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-.routine-row:last-child {
-  border-bottom: 0;
-}
-.routine-row h2 {
-  font: 600 16px/1.4 var(--font-sans);
-  overflow-wrap: anywhere;
-}
-.routine-row .quiet,
-.routine-actions [data-slot='button'],
-.routine-link {
-  font-size: 12px;
-}
-.routine-row .routine-status {
-  border: 0;
-  background: var(--paper-deep);
-  color: var(--muted);
-  font-size: 11px;
-}
-.routine-status[data-status='Scheduled'] {
-  background: var(--primary-soft);
-  color: var(--primary-deep);
-}
-.routine-status[data-status='Running'] {
-  background: var(--teal-soft);
-  color: var(--teal);
-}
-.routine-actions {
-  grid-column: 1 / -1;
-}
-.routine-link {
-  padding: 6px 8px;
-  border-radius: 6px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-.routine-link:hover {
-  background: rgb(var(--tint) / 0.045);
-}
-.routine-editor.modal {
-  padding: 0;
-}
-.routine-editor .modal-heading {
-  flex-shrink: 0;
-  margin: 0;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-}
-.routine-editor-body {
   padding: 20px;
-  overscroll-behavior: contain;
 }
-.routine-editor-section {
+.routine-group {
+  min-width: 0;
+  margin: 0;
   padding: 0;
   border: 0;
 }
-.routine-editor-section legend {
-  margin-bottom: 14px;
+.routine-group > legend {
+  margin-bottom: 12px;
   padding: 0;
   color: var(--ink);
-  font: 600 15px/1.4 var(--font-sans);
+  font: 600 1rem/1.35 var(--font-sans);
 }
-.routine-editor-section + .routine-editor-section {
-  padding-top: 20px;
-  border-top: 1px solid var(--border);
+.routine-group + .routine-group {
+  margin-top: 24px;
+}
+.routine-field-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 16px;
+}
+.routine-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.routine-summary {
+  display: grid;
+  gap: 6px;
+  margin-top: 24px;
+  color: var(--muted);
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+.routine-summary-next {
+  color: var(--ink);
+  font-weight: 600;
+}
+.routine-editor-body > .form-error {
+  margin-top: 16px;
 }
 .routine-editor-footer {
-  padding: 14px 20px;
-  background: var(--surface);
+  flex-shrink: 0;
+}
+.routine-editor-spacer {
+  flex: 1;
+}
+.routine-delete-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+/* The panel docks only while the list keeps at least 560px; otherwise it overlays the list. */
+@media (max-width: 82rem) {
+  .routine-editor-panel.chat-side-panel {
+    position: absolute;
+    inset: 0 0 0 auto;
+    z-index: 20;
+    width: min(480px, 100%);
+    box-shadow: var(--pop);
+  }
 }
 @variant max-mobile {
-  .routines-toolbar {
-    padding: 14px 16px;
+  .routines-workspace-body > :is(.workspace-notice, .error-banner) {
+    margin: 12px 0 0;
   }
   .routines-list-area {
-    padding: 0 16px 16px;
+    padding: 2px 0 24px;
   }
-  .routine-row {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 14px;
-    padding: 18px 0;
+  .routines-search {
+    flex: 1 1 160px;
+    width: auto;
   }
-  .routine-schedule {
-    padding-left: 12px;
-    border-left: 2px solid var(--border);
+  .routine-editor-panel.chat-side-panel {
+    width: 100%;
   }
 }

@@ -3,11 +3,12 @@ import { timeAgo } from '@/lib/time.ts';
 import { attachmentFiles } from '@/FileViewer/attachments.ts';
 import { packetHandoff } from '../handoff.ts';
 import { requestIdentity } from '../helpers.ts';
-import { RequestStatus } from './RequestStatus.tsx';
+import { DecisionOutcomeChip, DecisionStage } from './DecisionOutcome.tsx';
 import type { ApprovalRequest, InboxViewModel } from '../types.ts';
 
 type HistoryRowProps = { request: ApprovalRequest; model: InboxViewModel };
 
+/** One past decision: the job, who asked, the Reviewer's line, its outcome and when. */
 export const HistoryRow = ({ request, model }: HistoryRowProps) => {
   const { sender, subject, context } = requestIdentity(request, model.data);
   const Icon = request.kind === 'packet' ? FileCheck2 : Globe;
@@ -31,13 +32,14 @@ export const HistoryRow = ({ request, model }: HistoryRowProps) => {
         </span>
         <span className="decision-history-text">
           <strong>{context}</strong>
-          <span>
+          <span className="decision-history-sub">
             {subject} · {sender}
+            <DecisionStage request={request} data={model.data} />
           </span>
           {assessment ? <span className="decision-history-quote">{assessment}</span> : null}
         </span>
         <span className="decision-history-meta">
-          <RequestStatus request={request} data={model.data} />
+          <DecisionOutcomeChip request={request} />
           <span>
             {files ? (
               <>

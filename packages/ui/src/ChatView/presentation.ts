@@ -1,5 +1,5 @@
 import type { ConversationHeadingProps } from './types.ts';
-import type { Role, Snapshot, Conversation } from '@pitchcrew/core';
+import type { Card, Role, Snapshot, Conversation } from '@pitchcrew/core';
 
 export const leadIsUnavailable = (
   data: Snapshot,
@@ -21,3 +21,6 @@ export const conversationSubtitle = (props: ConversationHeadingProps, lead: Role
     return `${props.participants.length} agents · ${lead ? `${lead.name} leads` : 'Choose a lead'}`;
   return `${props.role.name} · ${props.roleState}`;
 };
+/** "Fit 82 · Remote, EU" under a job chat's company and title; empty parts are left out. */
+export const jobHeadingMeta = (card: Pick<Card, 'fit' | 'location'>) =>
+  [card.fit === null ? '' : `Fit ${card.fit}`, card.location.trim()].filter(Boolean).join(' · ');

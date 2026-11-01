@@ -1,77 +1,59 @@
-import { BoardToolbar } from '@/BoardPage/components/BoardToolbar.tsx';
-import { BoardWelcome } from '@/BoardPage/components/BoardWelcome.tsx';
-import { JobPipeline } from '@/BoardPage/components/JobPipeline.tsx';
-import { RecentActivity } from '@/BoardPage/components/RecentActivity.tsx';
-import { useBoardPage } from '@/BoardPage/hooks/useBoardPage.ts';
-import { LayoutGroup } from 'motion/react';
+import { useState } from 'react';
 import { TrackingReview } from '@/TrackingReview/index.tsx';
+import { ClayBoard } from '@/ClayInterface/components/ClayBoard.tsx';
+import { ImportApplications } from '@/ImportApplications/index.tsx';
+import { BoardSetup } from '@/Onboarding/index.tsx';
+import { useBoardPage } from './hooks/useBoardPage.ts';
+import { BoardTitle } from './components/BoardTitle.tsx';
+import { BoardEmpty } from './components/BoardEmpty.tsx';
+import { BoardStageSelect } from './components/BoardStageSelect.tsx';
+import { ClosedPipeline } from './components/ClosedPipeline.tsx';
 import { DeleteJobDialog } from './components/DeleteJobDialog.tsx';
 import { canDragJob } from './helpers.ts';
-import { ClayBoard } from '@/ClayInterface/components/ClayBoard.tsx';
-import { useDevicePreferences } from '@/lib/device-preferences.ts';
 
 export const BoardPage = () => {
   const controller = useBoardPage();
-  const clay = useDevicePreferences((state) => state.clayInterface);
+  const [importing, setImporting] = useState(false);
   if (!controller) return null;
-  const {
-    data,
-    working,
-    act,
-    openCard,
-    setAdd,
-    query,
-    setQuery,
-    showClosed,
-    setShowClosed,
-    flashStage,
-    go,
-    active,
-    filtered,
-    recent,
-    jobMutations,
-  } = controller;
+  const { data, working, act, openCard, query, showClosed, filtered, stage, jobMutations } =
+    controller;
+  const setup = data.onboarding?.status === 'setup' ? <BoardSetup /> : null;
+  const stageSelect = (
+    <BoardStageSelect data={data} current={stage.current} select={stage.select} />
+  );
   return (
-    <div className="board-workspace flex min-h-0 flex-1 flex-col gap-3">
+    <div className="board-workspace">
+      <BoardTitle {...controller} importApplications={() => setImporting(true)} />
       <TrackingReview />
       {!data.cards.length ? (
-        data.onboarding?.status !== 'setup' ? (
-          <BoardWelcome data={data} setAdd={setAdd} working={working} act={act} />
-        ) : null
+        (setup ?? <BoardEmpty data={data} working={working} act={act} />)
       ) : (
         <>
-          <BoardToolbar
-            showClosed={showClosed}
-            setShowClosed={setShowClosed}
-            data={data}
-            active={active}
-            query={query}
-            setQuery={setQuery}
-          />
-          {clay && !showClosed ? (
-            <ClayBoard
-              data={data}
-              filtered={filtered}
-              openCard={openCard}
-              jobMutations={jobMutations}
-            />
-          ) : null}
-          <LayoutGroup id="board-jobs">
-            {clay && !showClosed ? null : (
-              <JobPipeline
-                showClosed={showClosed}
+          {showClosed ? (
+            <>
+              {stageSelect}
+              <ClosedPipeline
                 filtered={filtered}
-                flashStage={flashStage}
-                setAdd={setAdd}
                 openCard={openCard}
                 query={query}
                 jobMutations={jobMutations}
               />
-            )}
-          </LayoutGroup>
-          {recent.length ? <RecentActivity go={go} recent={recent} /> : null}
+            </>
+          ) : (
+            <ClayBoard
+              data={data}
+              filtered={filtered}
+              query={query}
+              current={stage.current}
+              setup={setup}
+              stageSelect={stageSelect}
+              openCard={openCard}
+              jobMutations={jobMutations}
+            />
+          )}
         </>
       )}
+      <ImportApplications open={importing} onClose={() => setImporting(false)} />
       <DeleteJobDialog
         card={jobMutations.deletingCard}
         working={working}

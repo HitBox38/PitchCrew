@@ -15,8 +15,11 @@ const statusText = (file: NeededFile) =>
 export const NeededFiles = ({ approval, card }: { approval: Approval; card: Card }) => {
   const files = neededFiles(card, approval);
   return (
-    <section className="mail-handoff-files" aria-label="Files the application asks for">
-      <h4>Files the application asks for</h4>
+    <section
+      className="packet-section packet-needed-files"
+      aria-label="Files the application asks for"
+    >
+      <h3 className="packet-section-heading">Files the application asks for</h3>
       {files === null ? (
         <p className="quiet">
           {card.applicationContext?.form?.status === 'manual'

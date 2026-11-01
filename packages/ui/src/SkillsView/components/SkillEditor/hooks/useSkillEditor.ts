@@ -15,6 +15,8 @@ export const useSkillEditor = ({
   action,
   working,
   onClose,
+  onSaved,
+  registerLeave,
 }: SkillEditorProps) => {
   const initial = initialSkillDraft({ skill, starter, initialRole });
   const loadSkill = async () => {
@@ -51,7 +53,7 @@ export const useSkillEditor = ({
       return;
     }
     try {
-      await action(
+      const saved = await action(
         skill ? `/skills/${skill.id}` : '/skills',
         skill ? 'PUT' : 'POST',
         {
@@ -66,6 +68,7 @@ export const useSkillEditor = ({
         skill ? 'Updated skill' : 'Added skill',
       );
       onClose();
+      if (!skill && saved && typeof saved === 'object' && 'id' in saved) onSaved(String(saved.id));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save skill.');
     }
@@ -80,6 +83,7 @@ export const useSkillEditor = ({
   const [source, setSource] = useState(initial.source);
   const [url, setUrl] = useState(initial.url);
   const [loading, setLoading] = useState(false);
+  const [mode, setMode] = useState('write');
   const dirty =
     name !== initial.name ||
     description !== initial.description ||
@@ -90,6 +94,11 @@ export const useSkillEditor = ({
   const close = () => guard.requestLeave(onClose);
   const importRequest = useRef<AbortController | null>(null);
   useEffect(() => () => importRequest.current?.abort(), []);
+  // Library switches (Add skill, Import, a starter) ask before replacing this draft.
+  useEffect(() => {
+    registerLeave(guard.requestLeave);
+    return () => registerLeave(null);
+  });
   return {
     skill,
     creator: initial.bundled ? 'Pitchcrew' : creator,
@@ -118,5 +127,7 @@ export const useSkillEditor = ({
     setLoading,
     loadSkill,
     save,
+    mode,
+    setMode,
   };
 };

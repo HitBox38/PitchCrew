@@ -1,4 +1,6 @@
-import type { CardState } from '@pitchcrew/core';
+import type { CardState, ChatRequest, Run, RunActivity, UserInputRequest } from '@pitchcrew/core';
+
+type ChatDelivery = ChatRequest['deliveries'][number];
 
 export type TrackStep = { id: string; label: string; states: CardState[] };
 
@@ -28,16 +30,29 @@ export const trackBeads = (state: CardState): BeadState[] => {
   );
 };
 
-export type BeadTone = 'primary' | 'plum' | 'ochre' | 'moss' | 'teal';
+/**
+ * Bead law: plum only while an agent executes, ochre when the user is asked, primary for completed
+ * steps, moss for a recorded positive outcome, rose for failure, an empty socket when idle or not
+ * started. `current` is a job's present stage at rest: a neutral raised bead with a primary ring.
+ */
+export type BeadTone = 'primary' | 'plum' | 'ochre' | 'moss' | 'teal' | 'current';
 
-/** Bead colour for a job at rest; asks override it with ochre at the call site. */
+/** A job's place at rest (no agent running, nothing asked): approval is the user's move. */
 export const stateTone = (state: CardState): BeadTone | undefined => {
   const index = trackIndex(state);
   if (index === null || index === 0) return undefined;
-  if (index === 1) return 'primary';
   if (index === 5) return 'moss';
-  return index === 4 ? 'ochre' : 'plum';
+  return index === 4 ? 'ochre' : 'current';
 };
+
+/** A job's bead given what is happening on it: asked beats working beats its place at rest. */
+export const jobBeadTone = (
+  state: CardState,
+  { asks, working }: { asks?: boolean; working?: boolean },
+): BeadTone | undefined => (asks ? 'ochre' : working ? 'plum' : stateTone(state));
+
+/** A recorded status move: applied and later are positive outcomes, earlier moves completed steps. */
+export const moveTone = (state: CardState) => (trackIndex(state) === 5 ? 'moss' : 'done');
 
 export type TimelineRun = { id: string; left: number; width: number; live: boolean };
 
@@ -67,3 +82,39 @@ export const timelineRuns = (
   });
   return { start, runs: placed };
 };
+
+export type BeadStatus = Run['status'] | RunActivity['status'] | ChatDelivery['status'];
+
+/**
+ * Finished work is done, anything that needs the user (a question or a paused delivery) ochre and
+ * failures rose; queued, stopped or interrupted work stays hollow.
+ */
+export const statusTone = (status: BeadStatus) =>
+  status === 'completed'
+    ? 'done'
+    : status === 'waiting' || status === 'paused'
+      ? 'ochre'
+      : status === 'failed'
+        ? 'rose'
+        : undefined;
+
+/** The most pressing state among a queued request's deliveries, for one bead per request. */
+export const requestStatus = (statuses: ChatDelivery['status'][]): BeadStatus =>
+  (['failed', 'paused', 'waiting', 'running', 'queued'] as const).find((status) =>
+    statuses.includes(status),
+  ) ?? 'completed';
+
+/** Each participant with whether it is working in this conversation or waiting on the user. */
+export const participantStates = (
+  participants: string[],
+  running: Pick<Run, 'roleId'>[],
+  questions: Pick<UserInputRequest, 'roleId'>[],
+) =>
+  participants.map((id) => ({
+    id,
+    status: questions.some((question) => question.roleId === id)
+      ? ('waiting' as const)
+      : running.some((run) => run.roleId === id)
+        ? ('running' as const)
+        : undefined,
+  }));

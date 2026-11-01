@@ -119,7 +119,22 @@
 }
 .browser-tools {
   flex-shrink: 0;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border);
   background: var(--clay-fill);
+}
+.browser-chrome {
+  display: contents;
+}
+.browser-tools-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+/* Page settings lists the tools only in the clay preview, where the toolbar row is folded away. */
+.browser-settings-tools {
+  display: none;
 }
 .browser-screenshot-editor {
   max-height: 55dvh;

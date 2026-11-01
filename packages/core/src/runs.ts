@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { packetChangeNotesSchema, packetReviewSummarySchema, packetSchema } from './packets.ts';
 import type { Role } from './roles.ts';
 import type { Skill } from './skills.ts';
+import type { ReasoningLevel } from './reasoning.ts';
 import { type RoleId, type RuntimeId } from './states.ts';
 
 /** User-visible turn activity. Never contains private reasoning or raw tool payloads. */
@@ -55,9 +56,21 @@ export interface Run {
   routineId?: string;
   scheduledFor?: string;
   configuration?: { role: Role; revision: string; skills: Skill[]; skillsRevision: string };
+  /**
+   * Effective model and reasoning, derived from `configuration.role` for compact views that omit
+   * the configuration snapshot. Never stored in events; absent means the CLI default.
+   */
+  model?: string;
+  reasoning?: ReasoningLevel;
   inputPacketDigest?: string | null;
   outputPacketDigest?: string | null;
 }
+/** Replace the bulky configuration snapshot with the effective model and reasoning it records. */
+export const compactRun = ({ configuration, ...run }: Run): Run => ({
+  ...run,
+  ...(configuration?.role.model ? { model: configuration.role.model } : {}),
+  ...(configuration?.role.reasoning ? { reasoning: configuration.role.reasoning } : {}),
+});
 export interface AgentTask {
   writingCorrectionId?: string;
   id: string;

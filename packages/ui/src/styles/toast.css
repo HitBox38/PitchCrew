@@ -1,9 +1,11 @@
-/* shadcn base-vega Toast stacking, adapted to Pitchcrew's paper tokens. */
+/* shadcn base-vega Toast stacking as raised clay: at most three, bottom-right, 360px. While a modal
+ * dialog is open (useDialogToasts) the stack moves beside the dialog, or above its footer when
+ * neither side has room, so a toast never covers the dialog's actions. */
 .ui-toast-viewport {
   position: fixed;
-  right: max(22px, env(safe-area-inset-right));
-  bottom: max(72px, env(safe-area-inset-bottom));
-  width: min(380px, calc(100% - 32px));
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(var(--toast-inset-bottom, 16px), env(safe-area-inset-bottom));
+  width: min(360px, calc(100% - 32px));
   z-index: 100;
   pointer-events: none;
   outline: none;
@@ -23,12 +25,15 @@
   width: 100%;
   height: var(--height);
   pointer-events: auto;
+  background: var(--clay-fill);
   background-color: var(--surface);
-  background-image: var(--grain);
   color: var(--ink);
-  border: 1px solid var(--border);
-  border-radius: 12px 13px 12px 11px;
-  box-shadow: var(--pop);
+  border: 0;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--volume-sm, 0 0 0 transparent),
+    var(--pop);
   transform-origin: bottom;
   transform: translateX(var(--toast-swipe-movement-x))
     translateY(
@@ -38,8 +43,8 @@
     )
     scale(var(--scale));
   transition:
-    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.3s;
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s;
   outline: none;
 }
 .ui-toast::after {
@@ -51,16 +56,32 @@
   height: calc(var(--gap) + 1px);
 }
 .ui-toast[data-kind] .ui-toast-content {
-  padding: 14px;
+  align-items: center;
+  padding: 12px 8px 12px 14px;
 }
-.ui-toast[data-kind] .ui-toast-title {
-  padding-top: 3px;
+.ui-toast[data-kind='attention'] .ui-toast-content,
+.ui-toast[data-kind='message'] .ui-toast-content {
+  align-items: flex-start;
 }
-.ui-toast[data-tone='success'] .ui-toast-content > svg {
-  color: var(--primary);
+.ui-toast[data-kind] .ui-toast-content > .role-avatar,
+.ui-toast[data-kind] .ui-toast-content > .notification-context-icon {
+  width: 28px;
+  height: 28px;
+  margin-top: 0;
 }
-.ui-toast[data-tone='error'] .ui-toast-content > svg {
-  color: var(--error-ink);
+/* Semantic text: moss success, rose failure, ochre attention. */
+.ui-toast[data-tone='success'] :is(.ui-toast-content > svg, .ui-toast-title) {
+  color: var(--moss);
+}
+.ui-toast[data-tone='error'] :is(.ui-toast-content > svg, .ui-toast-title) {
+  color: var(--rose);
+}
+.ui-toast[data-tone='warning'] .ui-toast-content > svg,
+.ui-toast[data-kind='attention'] .ui-toast-link {
+  color: var(--ochre);
+}
+.ui-toast[data-tone='info'] .ui-toast-content > svg {
+  color: var(--muted);
 }
 .ui-toast[data-kind] .ui-toast-description {
   display: -webkit-box;
@@ -68,15 +89,13 @@
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
-.ui-toast[data-kind='attention'] .ui-toast-link {
-  margin-top: 4px;
-  text-decoration: none;
-}
-.ui-toast[data-kind='message'] .ui-toast-link {
+.ui-toast[data-kind] .ui-toast-link {
   min-height: 24px;
+  align-items: center;
+  font-weight: 600;
   text-decoration: none;
 }
-.ui-toast[data-kind='message'] .ui-toast-link:hover {
+.ui-toast[data-kind] .ui-toast-link:hover {
   text-decoration: underline;
 }
 .ui-toast[data-expanded] {
@@ -101,7 +120,7 @@
   opacity: 0;
 }
 .ui-toast:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
 .ui-toast-content {
@@ -128,13 +147,13 @@
   flex: 1;
   min-width: 0;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
   overflow-wrap: anywhere;
 }
 .ui-toast-title {
-  font-size: 14px;
-  font-weight: 600;
-  line-height: 1.4;
+  margin: 0;
+  font: 600 0.875rem / 1.4 var(--font-sans);
+  letter-spacing: 0;
 }
 .ui-toast-description {
   font-size: var(--text-label);
@@ -142,24 +161,19 @@
   color: var(--ink-soft);
 }
 .ui-toast-link {
+  display: inline-flex;
   width: fit-content;
-  color: var(--ink);
+  color: var(--primary);
   font-size: var(--text-label);
   text-decoration: underline;
   text-underline-offset: 3px;
   border-radius: 3px;
 }
-.ui-toast-link.button {
-  color: var(--ink);
-}
-.ui-toast-link.text-button {
-  color: var(--primary);
-}
 .ui-toast-link:hover {
   text-decoration-thickness: 2px;
 }
 .ui-toast-link:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
 .ui-toast-close {
@@ -172,13 +186,27 @@
   position: absolute;
   inset: -4px;
 }
+:root[data-toast-side='left'] .ui-toast-viewport {
+  right: auto;
+  left: max(16px, env(safe-area-inset-left));
+}
+:root[data-toast-side='above-footer'] .ui-toast-viewport {
+  right: 50%;
+  translate: 50% 0;
+}
 @variant max-phone {
   .ui-toast-viewport {
     right: max(16px, env(safe-area-inset-right));
   }
+  :root[data-toast-side='above-footer'] .ui-toast-viewport {
+    right: max(16px, env(safe-area-inset-right));
+    translate: none;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ui-toast,
+  .ui-toast {
+    transition: opacity 0.1s;
+  }
   .ui-toast-content {
     transition: none;
   }

@@ -1,26 +1,29 @@
 import type { CrewCommandsProps } from '@/CommandPalette/types.ts';
 import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
-import { MessageSquare, SlidersHorizontal } from 'lucide-react';
+import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
+import { SlidersHorizontal } from 'lucide-react';
+import { PaletteItem } from './PaletteItem.tsx';
 
-export const CrewCommands = ({ roles, run, onChatRole, onConfigureRole }: CrewCommandsProps) => {
-  return (
-    <CommandGroup heading="Crew">
-      {roles
-        .filter((role) => !role.retiredAt)
-        .map((role) => (
-          <div key={role.id}>
-            <CommandItem value={`chat talk ${role.name}`} onSelect={run(() => onChatRole(role.id))}>
-              <MessageSquare /> Chat with {role.name}
-            </CommandItem>
-            <CommandItem
-              value={`configure ${role.name}`}
-              onSelect={run(() => onConfigureRole(role.id))}
-            >
-              <SlidersHorizontal /> Configure {role.name}
-            </CommandItem>
-          </div>
-        ))}
-    </CommandGroup>
-  );
-};
+export const CrewCommands = ({ roles, run, onChatRole, onConfigureRole }: CrewCommandsProps) => (
+  <CommandGroup heading="Crew">
+    {roles
+      .filter((role) => !role.retiredAt)
+      .flatMap((role) => [
+        <PaletteItem
+          key={`chat-${role.id}`}
+          value={`chat talk ${role.name}`}
+          mark={<RoleAvatar agentRole={role.id} size="small" />}
+          label={`Chat with ${role.name}`}
+          context={role.enabled ? undefined : 'Paused'}
+          onSelect={run(() => onChatRole(role.id))}
+        />,
+        <PaletteItem
+          key={`configure-${role.id}`}
+          value={`configure ${role.name}`}
+          icon={SlidersHorizontal}
+          label={`Configure ${role.name}`}
+          onSelect={run(() => onConfigureRole(role.id))}
+        />,
+      ])}
+  </CommandGroup>
+);

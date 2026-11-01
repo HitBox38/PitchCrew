@@ -5,13 +5,13 @@ import { scanSummaryText } from '../helpers.ts';
 export const ScanSummary = ({ summary }: { summary: JobScanSummary }) => {
   const failed = summary.sources.filter((source) => source.status === 'failed');
   return (
-    <output className="job-source-summary mt-4 block" aria-live="polite">
+    <output className="settings-callout job-source-summary" aria-live="polite">
       <p>
         {scanSummaryText(summary)}{' '}
         {summary.new ? <Link to="/">Open the board to review new leads.</Link> : null}
       </p>
       {failed.length ? (
-        <ul className="quiet mt-2 grid gap-1">
+        <ul className="settings-failed grid gap-1">
           {failed.map((source) => (
             <li key={source.sourceId}>
               {source.name}: {source.error}

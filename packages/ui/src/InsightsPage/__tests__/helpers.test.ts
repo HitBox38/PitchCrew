@@ -4,7 +4,9 @@ import {
   boardTags,
   cardsWithTag,
   insightsFilter,
+  filteredLessons,
   percent,
+  share,
   staleSelection,
   validateInsightsSearch,
 } from '../helpers.ts';
@@ -52,5 +54,38 @@ describe('insights helpers', () => {
     expect(cardsWithTag(cards, 'REACT')).toHaveLength(2);
     expect(percent(null)).toBe('No outcomes yet');
     expect(percent(2 / 3)).toBe('67%');
+  });
+  it('prints a dash for an undecided share and keeps every filtered lesson', () => {
+    expect(share(null)).toBe('—');
+    expect(share(0)).toBe('0%');
+    const lessons = Array.from({ length: 12 }, (_, index) => ({
+      id: `lesson-${index}`,
+      text: `Lesson ${index}`,
+      createdAt: `2026-0${(index % 9) + 1}-01T00:00:00.000Z`,
+    }));
+    const board = [
+      {
+        id: 'a',
+        company: 'Fictional Co',
+        title: 'Engineer',
+        state: 'rejected',
+        tags: ['React'],
+        lessons,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+      {
+        id: 'b',
+        sample: true,
+        state: 'offer',
+        tags: ['React'],
+        lessons,
+        createdAt: '2026-01-01T00:00:00.000Z',
+      },
+    ] as unknown as Card[];
+    const groups = filteredLessons(board, { tag: 'react' });
+    expect(groups.negative).toHaveLength(12);
+    expect(groups.positive).toHaveLength(0);
+    expect(groups.negative[0].createdAt >= groups.negative[11].createdAt).toBe(true);
+    expect(filteredLessons(board, { tag: 'go' }).negative).toHaveLength(0);
   });
 });

@@ -1,14 +1,17 @@
 import { ConversationEditor } from './ConversationEditor.tsx';
 import { ConversationRuntime } from './ConversationRuntime.tsx';
 import { MemoryNotebook } from './MemoryNotebook.tsx';
+import { PacketPanel } from './PacketPanel.tsx';
 import { RoleSettings } from '@/App/constants.ts';
 import type { ChatViewModel } from '../types.ts';
 import { useNavigate } from '@tanstack/react-router';
 import { Suspense } from 'react';
+import { useMergedPacket } from '../hooks/useMergedPacket.ts';
 
 export const ChatSettingsPanels = (props: ChatViewModel) => {
   const navigate = useNavigate();
   const role = props.data.roles.find((agent) => agent.id === props.settingsRoleId);
+  const mergedPacket = useMergedPacket(props);
   return (
     <>
       {props.dialog === 'new' || props.dialog === 'manage' ? (
@@ -18,6 +21,9 @@ export const ChatSettingsPanels = (props: ChatViewModel) => {
         <ConversationRuntime key={`${props.thread}:${props.roleId}`} {...props} />
       ) : null}
       {props.dialog === 'memory' ? <MemoryNotebook key={props.thread} {...props} /> : null}
+      {props.dialog === 'packet' && !mergedPacket ? (
+        <PacketPanel key={props.thread} {...props} />
+      ) : null}
       {props.dialog === 'defaults' && role ? (
         <Suspense fallback={null}>
           <RoleSettings

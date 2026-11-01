@@ -5,7 +5,7 @@ import {
 } from '@/components/ui/accordion/index.tsx';
 import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
 import type { ProfileImportFile } from '@pitchcrew/core';
-import { importStatus } from '../helpers.ts';
+import { importStatus, importTone } from '../helpers.ts';
 import { ImportDocumentPreview } from './ImportDocumentPreview.tsx';
 
 export const ImportDocument = ({
@@ -36,7 +36,9 @@ export const ImportDocument = ({
           <span className="min-w-0 flex-1 truncate" title={file.path}>
             {file.path}
           </span>
-          <span className="profile-import-status">{importStatus[file.status]}</span>
+          <span className="ui-chip profile-import-status" data-tone={importTone[file.status]}>
+            {importStatus[file.status]}
+          </span>
         </AccordionTrigger>
       </div>
       <AccordionContent>{expanded ? <ImportDocumentPreview file={file} /> : null}</AccordionContent>
