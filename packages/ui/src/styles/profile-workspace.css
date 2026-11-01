@@ -303,13 +303,13 @@
   box-shadow: inset 0 2px 3px rgb(var(--tint) / 0.06);
   cursor: grab;
 }
-/* The open note's tab is part of its paper sheet, so it stays paper in both themes. */
+/* The open note's tab is part of its paper sheet, so it shares the sheet's themed surface. */
 .profile-tab-item[data-selected='true'] {
-  background: #fcfbf8;
+  background: var(--surface-bright);
   box-shadow: 0 -2px 6px rgb(var(--tint) / 0.06);
 }
 .profile-tab-item[data-selected='true'] :is(.profile-document-tab, .profile-tab-close) {
-  color: #282b30;
+  color: var(--ink);
 }
 .profile-tab-item[data-dragging='true'] {
   cursor: grabbing;
@@ -367,57 +367,8 @@
   background: var(--surface-bright);
   box-shadow: var(--sheet);
 }
-/* Document paper (Profile and Skills): the reading/writing sheet stays light paper with dark ink
- * in both themes, so its contents use the light tokens. Tabs, library, rail and footers follow the
- * theme. */
-:is(.profile-sheet, .skills-sheet) {
-  --paper: #f2f1ec;
-  --paper-deep: #e8e6df;
-  --surface: #f8f7f3;
-  --surface-bright: #fcfbf8;
-  --ink: #282b30;
-  --ink-soft: #464950;
-  --muted: #61646b;
-  --faint: #97999f;
-  --tint: 43 45 49;
-  --border: rgb(43 45 49 / 0.11);
-  --border-strong: rgb(43 45 49 / 0.18);
-  --primary: #3a5482;
-  --primary-deep: #2a3f66;
-  --primary-soft: #e0e6f0;
-  --teal: #2f6a69;
-  --teal-soft: #d9e9e6;
-  --moss: #53673d;
-  --moss-soft: #e1e8d4;
-  --plum: #76517a;
-  --plum-soft: #ece1ec;
-  --ochre: #82601c;
-  --ochre-soft: #f2e8cf;
-  --rose: #9f4757;
-  --rose-soft: #f4e0e2;
-  --error-ink: #843846;
-  --scrollbar: #c4c5c8;
-  --clay-fill: linear-gradient(160deg, #fcfbf8 0%, #f8f7f3 55%, #f0efea 100%);
-  --clay-fill-hover: linear-gradient(160deg, #fff 0%, #fafaf7 55%, #f2f1ec 100%);
-  --sunken-fill: linear-gradient(160deg, #e3e1da 0%, #e8e6df 40%, #ebe9e3 100%);
-  --clay:
-    0 1px 1px rgb(30 34 44 / 0.06), 0 2px 4px rgb(30 34 44 / 0.05),
-    inset 0 1px 0 rgb(255 255 255 / 0.95), inset -3px -4px 7px rgb(30 34 44 / 0.06);
-  --clay-sunken:
-    inset 0 1px 2px rgb(30 34 44 / 0.07), inset 3px 4px 8px rgb(30 34 44 / 0.07),
-    inset -3px -3px 7px rgb(255 255 255 / 0.75);
-  background: #fcfbf8;
-  color: #282b30;
-  color-scheme: light;
-  caret-color: #282b30;
-}
-:is(.profile-sheet, .skills-sheet) ::selection {
-  background: rgb(58 84 130 / 0.2);
-  color: #282b30;
-}
-:is(.profile-sheet, .skills-sheet) textarea::placeholder {
-  color: #8a8c92;
-}
+/* Document paper (Profile and Skills) follows the app theme like the tabs, library, rail and
+ * footers around it. */
 :root[data-theme='dark'] :is(.profile-sheet, .skills-sheet) {
   box-shadow:
     0 0 0 1px rgb(255 255 255 / 0.08),
