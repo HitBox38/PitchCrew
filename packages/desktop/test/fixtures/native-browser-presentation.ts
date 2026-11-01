@@ -63,7 +63,14 @@ export const checkNativeBrowserPresentation = async (
   background.paint(background.active, true);
   try {
     await waitFor(async () => {
-      const capture = await captureNativePage(backgroundPage.contents, { format: 'png' });
+      // The guest command owns painting until readback finishes, even if an older
+      // relay command's grace timer or disconnect releases its separate owner.
+      const capture = (await backgroundPage.send(
+        'Page.captureScreenshot',
+        { format: 'png' },
+        undefined,
+        'presentation-capture',
+      )) as { data: string };
       const image = nativeImage.createFromBuffer(Buffer.from(capture.data, 'base64'));
       const { width, height } = image.getSize();
       const bytes = image.toBitmap({ scaleFactor: 1 });

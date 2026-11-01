@@ -16,13 +16,12 @@ export const browserE2EChat: RuntimeAdapter['chat'] = async (context) => {
       const detail = (result.content as { type: string; text?: string }[])
         .map((item) => item.text ?? '')
         .join('\n');
-      // Resizing owns the session lock. Retry only the pre-action approval request.
-      if (
-        name !== 'computer_request' ||
-        detail.trim() !== 'A browser action is in progress.' ||
-        Date.now() >= deadline
-      )
-        throw new Error(detail);
+      // Resizing owns the session lock, including when a new run first binds it.
+      // Retry only inspection and pre-action requests, never action execution.
+      const retryable =
+        (name === 'computer_inspect' && detail.trim() === 'A browser action is still finishing.') ||
+        (name === 'computer_request' && detail.trim() === 'A browser action is in progress.');
+      if (!retryable || Date.now() >= deadline) throw new Error(detail);
       await delay(100, undefined, { signal: context.signal });
     }
   };
