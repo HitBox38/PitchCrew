@@ -98,7 +98,16 @@ export const useNativeBrowser = (
     (value: NativeBrowserCommand) =>
       runCommand(async () => {
         if (!leaseId) return;
-        setState(await browserCommand(roleId, thread, 'native', { leaseId, command: value }));
+        const revision = eventRevision.current;
+        const next = await browserCommand<NativeBrowserState>(roleId, thread, 'native', {
+          leaseId,
+          command: value,
+        });
+        setState((previous) =>
+          revision === eventRevision.current || previous?.id !== next.id
+            ? next
+            : { ...previous, dialog: next.dialog, warning: next.warning },
+        );
       }),
     [leaseId, runCommand, roleId, thread],
   );

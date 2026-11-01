@@ -421,6 +421,49 @@ test('receives native navigation events without waiting for polling and rejects 
   await page.unroute('**/api/browser/writer/native?*');
   await page.getByText(stale.warning, { exact: true }).waitFor({ state: 'hidden' });
 });
+test('keeps newer native events when a delayed command response arrives', async () => {
+  const before = structuredClone(state);
+  const stale = { ...before, warning: 'Delayed command response.' };
+  let started = false;
+  let release = () => {};
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  nativeCommand.mockImplementationOnce(async () => {
+    started = true;
+    await gate;
+    return stale;
+  });
+  // Prevent the next poll from concealing a stale command response.
+  await page.route('**/api/browser/writer/native?*', (route) =>
+    route.request().method() === 'GET' ? route.abort() : route.continue(),
+  );
+  try {
+    await page.getByRole('button', { name: 'Back', exact: true }).click();
+    await vi.waitFor(() => expect(started).toBe(true));
+    state = {
+      ...state,
+      tabs: state.tabs.map((tab) =>
+        tab.id === state.activeTab ? { ...tab, title: 'Newer native page' } : tab,
+      ),
+    };
+    await page.evaluate((next) => {
+      (
+        window as unknown as { publishBrowserState: (next: NativeBrowserState) => void }
+      ).publishBrowserState(next);
+    }, state);
+    const title = page.getByRole('button', { name: 'Newer native page', exact: true });
+    await title.waitFor();
+    release();
+    await page.getByText(stale.warning, { exact: true }).waitFor();
+    expect(await title.isVisible()).toBe(true);
+  } finally {
+    release();
+    state = before;
+    await page.unroute('**/api/browser/writer/native?*');
+    await page.getByText(stale.warning, { exact: true }).waitFor({ state: 'hidden' });
+  }
+});
 test('reopens visited and closed pages through the same leased native browser', async () => {
   await page.getByRole('button', { name: 'Browser history', exact: true }).click();
   const history = page.getByRole('region', { name: 'Recently visited in this profile' });
