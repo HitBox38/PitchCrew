@@ -115,3 +115,54 @@ it('retains the bounded pre-action request retry when resizing starts after insp
     'pitchcrew_computer_execute',
   ]);
 });
+
+const viewportError =
+  'screenshot: Protocol error (Page.captureScreenshot): The native browser viewport changed. Resize and inspect again.\nCall log:\n  - taking page screenshot\n  - fonts loaded';
+
+it('reinspects and requests fresh evidence when the pre-action screenshot races a resize', async () => {
+  client.callTool
+    .mockResolvedValueOnce(success({ page: { digest: 'old-viewport' } }))
+    .mockResolvedValueOnce(failure(viewportError))
+    .mockResolvedValueOnce(success({ page: { digest: 'current-viewport' } }))
+    .mockResolvedValueOnce(success({ approval: { id: 'fresh-action' } }))
+    .mockResolvedValueOnce(failure('Browser action is rejected.'));
+  await expect(browserE2EChat(context())).resolves.toEqual({
+    reply: 'I did not perform the rejected E2E action.',
+  });
+  expect(client.callTool.mock.calls.map(([call]) => call.name)).toEqual([
+    'pitchcrew_computer_inspect',
+    'pitchcrew_computer_request',
+    'pitchcrew_computer_inspect',
+    'pitchcrew_computer_request',
+    'pitchcrew_computer_execute',
+  ]);
+});
+
+it('does not replay an action if an execution screenshot reports a viewport change', async () => {
+  client.callTool
+    .mockResolvedValueOnce(success({ page: { digest: 'current-viewport' } }))
+    .mockResolvedValueOnce(success({ approval: { id: 'reviewed-action' } }))
+    .mockResolvedValueOnce(failure(viewportError));
+  await expect(browserE2EChat(context())).rejects.toThrow('The native browser viewport changed.');
+  expect(client.callTool.mock.calls.map(([call]) => call.name)).toEqual([
+    'pitchcrew_computer_inspect',
+    'pitchcrew_computer_request',
+    'pitchcrew_computer_execute',
+  ]);
+  expect(client.close).toHaveBeenCalledOnce();
+});
+
+it('bounds repeated pre-action viewport failures without executing an action', async () => {
+  client.callTool.mockImplementation(async ({ name }: { name: string }) =>
+    name === 'pitchcrew_computer_inspect'
+      ? success({ page: { digest: 'unstable-viewport' } })
+      : failure(viewportError),
+  );
+  await expect(browserE2EChat(context())).rejects.toThrow(
+    'The browser evidence kept changing across three fresh requests.',
+  );
+  const names = client.callTool.mock.calls.map(([call]) => call.name);
+  expect(names.filter((name) => name === 'pitchcrew_computer_request')).toHaveLength(3);
+  expect(names).not.toContain('pitchcrew_computer_execute');
+  expect(client.close).toHaveBeenCalledOnce();
+});
