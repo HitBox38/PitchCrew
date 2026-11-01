@@ -1,0 +1,280 @@
+.hero {
+  padding-top: clamp(20px, 3.5vw, 44px);
+}
+.hero-intro {
+  display: grid;
+  gap: 28px;
+  margin-bottom: 32px;
+}
+.hero-intro h1 {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  text-wrap: balance;
+}
+.hero-copy {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 12px 64px;
+  align-items: start;
+}
+.hero-facts {
+  display: grid;
+  gap: 6px;
+  padding-top: 4px;
+  color: var(--ink-soft);
+  font-size: var(--text-copy);
+  font-weight: 600;
+}
+.hero-facts li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+.hero-facts li::before {
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--primary);
+  content: '';
+}
+.hero-lede {
+  max-width: 52ch;
+  color: var(--ink);
+  font-size: var(--text-lede);
+  line-height: 1.45;
+}
+.roster-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 0 6px 10px;
+}
+.roster-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: var(--text-feature);
+  font-weight: 600;
+}
+.roster-count {
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 400;
+}
+.roster-job {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink-soft);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+.roster-replay {
+  justify-self: end;
+}
+.roster-tray {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+.roster-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+.agent-card {
+  display: grid;
+  gap: 10px;
+  padding: 16px 16px 14px;
+  transition: box-shadow 200ms var(--ease);
+}
+.agent-card[data-state='working'] {
+  box-shadow:
+    var(--clay),
+    0 0 0 2px color-mix(in srgb, var(--plum) 35%, transparent);
+}
+.agent-identity {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+.agent-name {
+  font-size: var(--text-copy);
+  font-weight: 600;
+  line-height: 1.2;
+}
+.agent-runtime {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.agent-capability {
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.45;
+}
+.agent-groove {
+  margin-top: 2px;
+}
+.agent-groove .groove-run {
+  transition: transform 1150ms var(--ease);
+}
+.groove-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: var(--text-fine);
+  font-variant-numeric: tabular-nums;
+}
+.agent-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 22px;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+.agent-card[data-state='working'] .agent-status {
+  color: var(--plum);
+}
+.agent-card[data-state='done'] .agent-status {
+  color: var(--ink);
+}
+.agent-status-text {
+  display: block;
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 260ms var(--ease),
+    transform 260ms var(--ease),
+    filter 260ms var(--ease);
+  @starting-style {
+    opacity: 0;
+    transform: translateY(4px);
+    filter: blur(3px);
+  }
+}
+/* Waiting on you: the tray stays reserved so the roster never jumps; its card rises when work stops. */
+.waiting {
+  display: grid;
+  gap: 8px;
+}
+.waiting-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline: 4px;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  transition: color 200ms ease;
+}
+.waiting[data-open] .waiting-title {
+  color: var(--ochre);
+}
+.decision {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(220px, 0.9fr);
+  gap: 16px 32px;
+  padding: 18px 20px;
+  opacity: 0.42;
+  transform: translateY(6px);
+  transition:
+    opacity 420ms var(--ease),
+    transform 420ms var(--ease);
+}
+.waiting[data-open] .decision {
+  opacity: 1;
+  transform: none;
+}
+.decision-job {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.decision-company {
+  font-size: var(--text-copy);
+  font-weight: 600;
+}
+.decision-ask {
+  color: var(--ink-soft);
+  font-size: 16px;
+}
+.decision-track {
+  grid-column: 1;
+  padding-inline: 2px;
+}
+.decision-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  align-content: center;
+  gap: 10px;
+}
+.decision-fine {
+  flex-basis: 100%;
+}
+@media (max-width: 1023px) {
+  .hero-copy {
+    grid-template-columns: 1fr;
+  }
+  .roster-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .decision {
+    grid-template-columns: 1fr;
+  }
+  .decision-actions {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+@media (max-width: 639px) {
+  .hero-intro {
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .roster-grid {
+    grid-template-columns: 1fr;
+  }
+  .roster-head {
+    grid-template-columns: 1fr auto;
+  }
+  .roster-job {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .roster-tray {
+    padding: 8px;
+  }
+  .decision {
+    padding: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-groove .groove-run,
+  .agent-status-text,
+  .decision,
+  .bead::after {
+    transition: none;
+  }
+  .agent-status-text {
+    @starting-style {
+      transform: none;
+      filter: none;
+    }
+  }
+}

@@ -1,28 +1,30 @@
 import { Analytics } from '../Analytics';
-import { Brand } from '../components/Brand';
 import { documentationUrl, licenseUrl, repository } from '../lib/links';
 
 export const Footer = () => {
   return (
-    <footer className="page-width border-t border-border py-9">
-      <div className="flex flex-wrap items-center justify-between gap-7">
-        <Brand />
-        <nav className="flex flex-wrap items-center gap-6 text-sm" aria-label="Footer navigation">
-          <a className="text-link" href={repository}>
-            GitHub
-          </a>
-          <a className="text-link" href={documentationUrl}>
-            Documentation
-          </a>
-          <a className="text-link" href={licenseUrl}>
-            MIT License
-          </a>
-          <Analytics />
-        </nav>
+    <footer className="site-footer">
+      <div className="page-width">
+        <div className="footer-row">
+          <p className="footer-name">Pitchcrew</p>
+          <nav className="footer-nav" aria-label="Footer navigation">
+            <a className="text-link" href={repository}>
+              GitHub
+            </a>
+            <a className="text-link" href={documentationUrl}>
+              Documentation
+            </a>
+            <a className="text-link" href={licenseUrl}>
+              MIT License
+            </a>
+            <Analytics />
+          </nav>
+        </div>
+        <p className="footer-line">
+          Free and open source. Your notes, your AI, your final say. Every job on this page is
+          fictional.
+        </p>
       </div>
-      <p className="mt-6 text-sm text-muted">
-        Free and open source. Your notes, your AI, your final say.
-      </p>
     </footer>
   );
 };

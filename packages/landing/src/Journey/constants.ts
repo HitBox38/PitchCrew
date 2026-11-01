@@ -1,46 +1,51 @@
-import { ChartNoAxesColumnIncreasing, FileText, Search, ShieldCheck } from 'lucide-react';
+import type { Role } from '../components/clay/Pebble';
 
 export const stages = [
+  'Lead',
+  'Shortlisted',
+  'Drafting',
+  'In review',
+  'Approval',
+  'Submitted',
+  'Interviewing',
+] as const;
+
+export interface Step {
+  id: 'fit' | 'draft' | 'submit' | 'track';
+  role: Role;
+  /** Index on the stage track this step reaches. */
+  reaches: number;
+  title: string;
+  text: string;
+}
+
+export const steps: Step[] = [
   {
     id: 'fit',
-    label: 'Fit',
     role: 'scout',
-    icon: Search,
-    description: 'See how well you match',
-    title: 'Scout checks the fit first.',
-    summary:
-      'Scout compares the posting with your background, scores the match and names what’s missing. You decide what to shortlist, and confirm the job brief the crew will work from.',
+    reaches: 1,
+    title: 'Scout scores the fit, you shortlist.',
+    text: 'Scout compares the posting with your background, scores the match out of 100 and names what is missing. You decide what to shortlist, and you confirm the job brief the crew will work from.',
   },
   {
     id: 'draft',
-    label: 'Draft',
     role: 'writer',
-    icon: FileText,
-    description: 'Tailor your application',
-    title: 'Writer drafts from your notes.',
-    summary:
-      'Writer prepares a resume, cover letter and form answers from your profile notes and the confirmed brief. Every claim quotes your own words.',
+    reaches: 3,
+    title: 'Writer drafts in the open.',
+    text: 'Ask for a draft in chat and watch each step: the confirmed brief, your notes, your packet rules. Writer says what it left out and why, and the reply is a packet for Reviewer, not a surprise.',
   },
   {
-    id: 'review',
-    label: 'Review',
-    role: 'reviewer',
-    icon: ShieldCheck,
-    description: 'Check every claim',
-    title: 'Reviewer checks, you approve.',
-    summary:
-      'Reviewer reads the whole packet against your notes and packet rules. You choose Markdown, PDF or DOCX and approve the exact files before they’re exported.',
+    id: 'submit',
+    role: 'submitter',
+    reaches: 5,
+    title: 'Submitter fills, you press send.',
+    text: 'After you approve the packet, Submitter can prepare the application form in a built-in browser. Every submit, button and dialog is an exact request you approve or deny. Sign-in and CAPTCHAs stay yours.',
   },
   {
     id: 'track',
-    label: 'Track',
-    role: 'you',
-    icon: ChartNoAxesColumnIncreasing,
-    description: 'Follow it after you apply',
-    title: 'Keep track and learn.',
-    summary:
-      'Record where you applied, follow the status as replies come in, and note what you learned. Insights shows what’s working across your search.',
+    role: 'tracker',
+    reaches: 6,
+    title: 'Tracker keeps the board honest.',
+    text: 'Record where you applied, let Tracker match replies when you connect Gmail, and drag the card as things move. Anything uncertain waits for you, and Insights shows what is working.',
   },
-] as const;
-
-export type JourneyStage = (typeof stages)[number];
+];
