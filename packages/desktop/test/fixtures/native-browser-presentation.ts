@@ -2,7 +2,6 @@ import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { BrowserWindow } from 'electron';
 import { nativeImage } from 'electron';
-import { captureNativePage } from '../../src/browser/capture.ts';
 import type { createNativeBrowserHost } from '../../src/browser/host.ts';
 import type { NativeGroup } from '../../src/browser/pages.ts';
 
@@ -59,10 +58,18 @@ export const checkNativeBrowserPresentation = async (
   );
   // Native contentView children used to cover the renderer even when reordered.
   // DOM guests must keep background captures live without covering app pixels.
-  background.paint(background.active, true);
+  const owner = 'presentation-fixture';
   try {
+    // Own painting through automation: a previous command's idle-release timer
+    // can clear a direct paint(true) while this fixture is still capturing.
+    await backgroundPage.send('Page.startScreencast', { format: 'jpeg' }, undefined, owner);
     await waitFor(async () => {
-      const capture = await captureNativePage(backgroundPage.contents, { format: 'png' });
+      const capture = (await backgroundPage.send(
+        'Page.captureScreenshot',
+        { format: 'png' },
+        undefined,
+        owner,
+      )) as { data: string };
       const image = nativeImage.createFromBuffer(Buffer.from(capture.data, 'base64'));
       const { width, height } = image.getSize();
       const bytes = image.toBitmap({ scaleFactor: 1 });
@@ -78,7 +85,11 @@ export const checkNativeBrowserPresentation = async (
       assert.ok(isRed(await pixel(600, 450)), 'An inactive guest covered the selected page');
     }
   } finally {
-    background.paint(background.active, false);
+    try {
+      await backgroundPage.send('Page.stopScreencast', {}, undefined, owner);
+    } finally {
+      backgroundPage.releaseAutomation?.(owner);
+    }
   }
   for (const kind of [
     'context-menu-content',
