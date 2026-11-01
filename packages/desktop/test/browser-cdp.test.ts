@@ -346,7 +346,11 @@ it.each(['paint', 'capture'])(
         capturePage: vi.fn(() => new Promise(() => {})),
       }) as unknown as WebContents;
       const captured = captureNativePage(contents, {});
-      const rejected = expect(captured).rejects.toThrow('Native browser capture timed out.');
+      const rejected = expect(captured).rejects.toThrow(
+        phase === 'paint'
+          ? 'Native browser capture timed out while waiting for credential masks to paint.'
+          : 'Native browser capture timed out while copying the native page.',
+      );
       await vi.advanceTimersByTimeAsync(5000);
       await rejected;
       expect(vi.getTimerCount()).toBe(0);

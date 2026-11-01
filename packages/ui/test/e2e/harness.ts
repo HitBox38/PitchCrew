@@ -84,6 +84,7 @@ export const startDesktop = async () => {
       log = (log + String(chunk)).slice(-64000);
     });
   let electron: ElectronApplication | undefined;
+  let electronLog = '';
   let page: Page | undefined;
   const errors: string[] = [];
   let closing: Promise<void> | undefined;
@@ -145,6 +146,7 @@ export const startDesktop = async () => {
     daemon.stdin?.end();
     await attempt(() => waitExit(daemon, 'Daemon'));
     await writeFile(join(directory, 'daemon.log'), log);
+    await writeFile(join(directory, 'electron.log'), electronLog);
     if (failures.length)
       throw new AggregateError(
         failures,
@@ -178,6 +180,9 @@ export const startDesktop = async () => {
       args: [resolve('packages/desktop/dist/main.mjs')],
       env,
       timeout: 30000,
+    });
+    electron.process().stderr?.on('data', (chunk) => {
+      electronLog = (electronLog + String(chunk)).slice(-64000);
     });
     page = await electron.firstWindow();
     // CI desktops can be narrower than the split-view breakpoint.
