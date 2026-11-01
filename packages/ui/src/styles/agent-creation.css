@@ -1,10 +1,11 @@
 /* New agent: a 760px dialog with a fixed heading and bead stepper, a scrolling step body and a
  * fixed footer. Phones swap the six labels for "Step 3 of 6: Tools" and a step menu. */
 [data-slot='dialog-content'].agent-wizard {
+  top: calc(50% + var(--desktop-titlebar-height, 0px) / 2);
   display: flex;
   width: min(760px, calc(100vw - 32px));
   max-width: none;
-  max-height: calc(100dvh - 32px);
+  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px);
   flex-direction: column;
   gap: 0;
   padding: 0;
@@ -17,7 +18,7 @@
 }
 /* Steps keep one fixed height so the footer does not jump between them. */
 [data-slot='dialog-content'].agent-wizard:has(.agent-wizard-form) {
-  height: min(720px, calc(100dvh - 32px));
+  height: min(720px, calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px));
 }
 .agent-wizard-heading {
   position: relative;
@@ -283,7 +284,7 @@
   [data-slot='dialog-content'].agent-wizard:has(.agent-wizard-form) {
     max-height: none;
     width: 100vw;
-    height: 100dvh;
+    height: calc(100dvh - var(--desktop-titlebar-height, 0px));
     border-radius: 0;
   }
 }

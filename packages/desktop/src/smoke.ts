@@ -280,6 +280,9 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
             `(async()=>{localStorage.setItem('pitchcrew-theme','${theme}');document.documentElement.dataset.theme='${theme}';await new Promise(r=>setTimeout(r,100));const bar=document.querySelector('.desktop-titlebar');const sidebar=document.querySelector('[data-slot="sidebar-container"]');return {platform:document.documentElement.dataset.desktop,height:bar.getBoundingClientRect().height,background:getComputedStyle(bar).backgroundColor,dragRegion:getComputedStyle(bar).getPropertyValue('-webkit-app-region'),sidebarTop:sidebar.getBoundingClientRect().top,overflow:document.documentElement.scrollHeight>innerHeight};})()`,
           );
           chrome.push({ theme, ...layout, nativeTheme: nativeTheme.themeSource });
+          // Exercise the compact desktop used by Windows CI on every platform.
+          const size = window.getContentSize();
+          window.setContentSize(1024, 768);
           result.sheetChecks[theme] = await window.webContents.executeJavaScript(smokeOpenCreation);
           await writeFile(
             `${smokeFile}.sheet-${theme}.png`,
@@ -287,6 +290,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
           );
           result.sheetChecks[`${theme}Closed`] =
             await window.webContents.executeJavaScript(smokeCloseCreation);
+          window.setContentSize(size[0], size[1]);
           await window.webContents.executeJavaScript(
             `(async () => { document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.click(); await new Promise((resolve) => setTimeout(resolve, 350)); })()`,
           );
