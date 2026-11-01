@@ -1,10 +1,10 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { RefreshCw } from 'lucide-react';
 import type { CardDetailsModel } from '../types.ts';
 import { jobRole, launchBlocker } from '../helpers.ts';
 import { keyedItems } from '@/lib/list-keys.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const PacketFit = ({ model }: { model: CardDetailsModel }) => {
   const { card, data, busy, brief } = model;

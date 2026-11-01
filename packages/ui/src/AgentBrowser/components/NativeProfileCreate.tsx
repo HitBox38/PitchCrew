@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import type { NativeProfilesModel } from '../hooks/useNativeProfiles.ts';
 export const NativeProfileCreate = ({ model }: { model: NativeProfilesModel }) => (
   <form

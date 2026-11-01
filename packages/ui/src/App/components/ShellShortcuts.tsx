@@ -1,4 +1,4 @@
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import type { View } from '@/navigation.ts';
 import { useShellShortcuts } from '../hooks/useShellShortcuts.ts';
 

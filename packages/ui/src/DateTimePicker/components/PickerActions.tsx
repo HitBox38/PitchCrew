@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const PickerActions = ({
   required,

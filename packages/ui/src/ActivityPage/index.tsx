@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { WorkspaceHeaderActions, WorkspaceHeaderFact } from '@/App/components/WorkspacePage.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { ActivityFilters } from './components/ActivityFilters.tsx';
 import { ActivityHistory } from './components/ActivityHistory.tsx';

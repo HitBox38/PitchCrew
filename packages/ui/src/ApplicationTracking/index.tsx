@@ -1,6 +1,6 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import type { Card } from '@pitchcrew/core';
 import { useApplicationTracking } from './hooks/useApplicationTracking.ts';
 import { TrackingSource } from '@/TrackingSource/index.tsx';

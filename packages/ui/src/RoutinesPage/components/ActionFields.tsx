@@ -1,8 +1,8 @@
 import type { Card, Role } from '@pitchcrew/core';
 import type { DraftFieldsProps } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 
 export const ActionFields = ({
   draft,

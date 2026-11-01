@@ -1,8 +1,10 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Dialog } from '@/components/ui/dialog/components/Dialog.tsx';
-import { DialogContent } from '@/components/ui/dialog/components/DialogContent.tsx';
-import { DialogTitle } from '@/components/ui/dialog/components/DialogTitle.tsx';
-import { DialogDescription } from '@/components/ui/dialog/components/DialogDescription.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+} from '@pitchcrew/design-system/dialog';
 import { CrewIntroduction } from './CrewIntroduction.tsx';
 import { ApprovalIntroduction } from './ApprovalIntroduction.tsx';
 import type { OnboardingActions } from '../types.ts';

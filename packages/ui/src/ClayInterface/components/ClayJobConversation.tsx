@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { SidebarMenuSubButton } from '@/components/ui/sidebar/components/SidebarMenuSubButton.tsx';
-import { SidebarMenuSubItem } from '@/components/ui/sidebar/components/SidebarMenuSubItem.tsx';
+import { SidebarMenuSubButton, SidebarMenuSubItem } from '@pitchcrew/design-system/sidebar';
 import { ConversationContextMenu } from '@/ConversationNavigation/components/ConversationContextMenu.tsx';
 import {
   ConversationMenu,

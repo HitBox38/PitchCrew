@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { StaleCleanup } from './StaleCleanup.tsx';
 import { TagMerge } from './TagMerge.tsx';
 

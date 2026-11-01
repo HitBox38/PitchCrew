@@ -1,9 +1,9 @@
 import { useReceiptDrafts } from '../hooks/useReceiptDrafts.ts';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalConfirmation } from './ExternalConfirmation.tsx';
 import type { JobOverviewProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const SubmissionReceipts = ({
   card,

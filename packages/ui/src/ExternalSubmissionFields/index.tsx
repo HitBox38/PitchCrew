@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { useState } from 'react';
 import { DateTimePicker } from '@/DateTimePicker/index.tsx';
 

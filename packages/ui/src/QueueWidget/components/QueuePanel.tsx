@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import type { Snapshot, WorkspaceQueue } from '@pitchcrew/core';
-import { PopoverDescription, PopoverTitle } from '@/components/ui/popover/index.tsx';
+import { PopoverDescription, PopoverTitle } from '@pitchcrew/design-system/popover';
 import { queueSummary } from '@/lib/work-queue.ts';
 import { queueActivityDescription } from '../helpers.ts';
 import { QueueWidgetQueues } from './QueueWidgetQueues.tsx';

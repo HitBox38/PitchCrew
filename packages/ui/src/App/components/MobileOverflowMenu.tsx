@@ -1,6 +1,6 @@
 import { Bell, Briefcase, FilePlus2, MessageSquarePlus, Search } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { PopoverTitle } from '@/components/ui/popover/index.tsx';
+import { PopoverTitle } from '@pitchcrew/design-system/popover';
 import { useNewActions } from '@/AppSidebar/hooks/useNewActions.ts';
 
 type MobileOverflowMenuProps = {

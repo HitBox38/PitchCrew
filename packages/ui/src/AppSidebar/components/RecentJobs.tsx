@@ -1,10 +1,12 @@
 import type { Card } from '@pitchcrew/core';
 import { CompanyMark } from '@/components/CompanyMark/index.tsx';
-import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import {
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@pitchcrew/design-system/sidebar';
 import { SidebarCategory } from './SidebarCategory.tsx';
 
 /** The five most recently opened jobs, newest first; each opens its job details. */

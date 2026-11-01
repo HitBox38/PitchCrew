@@ -6,8 +6,7 @@ import {
   QueueSectionTrigger,
   QueueSectionContent,
 } from '@/components/ai-elements/queue/index.tsx';
-import { TraceLine } from '@/components/ui/trace/components/TraceLine.tsx';
-import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
+import { TraceLine, TraceTitle } from '@pitchcrew/design-system/trace';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { requestStatus } from '@/ClayInterface/helpers.ts';
 

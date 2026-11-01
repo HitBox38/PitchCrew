@@ -1,11 +1,7 @@
 import type { ModalProps } from '@/components/Modal/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Dialog } from '@/components/ui/dialog/components/Dialog.tsx';
-import { DialogContent } from '@/components/ui/dialog/components/DialogContent.tsx';
-import { DialogTitle } from '@/components/ui/dialog/components/DialogTitle.tsx';
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Dialog, DialogContent, DialogTitle } from '@pitchcrew/design-system/dialog';
+import { Sheet, SheetContent, SheetTitle } from '@pitchcrew/design-system/sheet';
 import { X } from 'lucide-react';
 
 export const Modal = ({

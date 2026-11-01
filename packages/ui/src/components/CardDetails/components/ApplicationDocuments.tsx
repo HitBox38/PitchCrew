@@ -1,5 +1,5 @@
 import type { CardDetailsModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { JobPacket } from './JobPacket.tsx';
 
 export const ApplicationDocuments = ({ model }: { model: CardDetailsModel }) => {

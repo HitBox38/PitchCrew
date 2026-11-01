@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RefreshCw } from 'lucide-react';
 
 export const RefreshModels = ({ loading, refresh }: { loading: boolean; refresh: () => void }) => {

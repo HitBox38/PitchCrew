@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
 import { SettingRow } from '@/SettingsPage/components/SettingRow.tsx';

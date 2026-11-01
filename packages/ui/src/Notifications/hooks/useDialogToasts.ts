@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { useToastManager } from '@/components/ui/toast/index.tsx';
+import { useToastManager } from '@pitchcrew/design-system/toast';
 import { toastPlacement } from '../dialog-placement.ts';
 
 const modalSelector =

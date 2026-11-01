@@ -1,6 +1,6 @@
 import type { PromptInputFooterProps } from '@/components/ai-elements/prompt-input/types.ts';
-import { InputGroupAddon } from '@/components/ui/input-group/components/InputGroupAddon.tsx';
-import { cn } from '@/lib/utils.ts';
+import { InputGroupAddon } from '@pitchcrew/design-system/input-group';
+import { cn } from '@pitchcrew/design-system/utils';
 
 export const PromptInputFooter = ({ className, ...props }: PromptInputFooterProps) => (
   <InputGroupAddon

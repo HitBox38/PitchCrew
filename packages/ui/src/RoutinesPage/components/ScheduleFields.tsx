@@ -2,8 +2,8 @@ import { useId } from 'react';
 import type { DraftFieldsProps } from '../types.ts';
 import { RepeatFields } from './RepeatFields.tsx';
 import { DateTimePicker } from '@/DateTimePicker/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Switch } from '@pitchcrew/design-system/switch';
 
 export const ScheduleFields = (props: DraftFieldsProps) => {
   const { draft, change } = props;

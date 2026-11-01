@@ -1,6 +1,6 @@
 import type { ChatComposerProps } from '../types.ts';
 import { PromptInputHeader } from '@/components/ai-elements/prompt-input/components/PromptInputHeader.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { LockKeyhole, X } from 'lucide-react';
 import { ComposerAttachments } from './ComposerAttachments.tsx';
 import { stateTone } from '@/ClayInterface/helpers.ts';

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import type { Role } from '@pitchcrew/core';

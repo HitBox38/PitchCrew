@@ -1,12 +1,12 @@
 import { QueueRunningItems } from './QueueRunningItems.tsx';
 import type { WorkQueueView } from '@pitchcrew/core';
 import { MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import type { useQueueActions } from '@/hooks/useQueueActions.ts';
 
 export const QueueRunningMenu = ({

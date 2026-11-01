@@ -1,7 +1,7 @@
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { MarkdownEditor } from '@/components/MarkdownEditor/index.tsx';
 import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
-import { Tabs } from '@/components/ui/tabs/index.tsx';
+import { Tabs } from '@pitchcrew/design-system/tabs';
 import { skillContentLimit } from '@pitchcrew/core/base-skills';
 import { SkillAssignment } from './components/SkillAssignment.tsx';
 import { SkillDetails } from './components/SkillDetails.tsx';

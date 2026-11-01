@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { History } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import {
   Popover,
   PopoverContent,
   PopoverTitle,
   PopoverTrigger,
-} from '@/components/ui/popover/index.tsx';
+} from '@pitchcrew/design-system/popover';
 import { BrowserHistoryEntries } from './BrowserHistoryEntries.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 

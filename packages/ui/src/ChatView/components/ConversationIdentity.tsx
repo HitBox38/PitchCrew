@@ -1,5 +1,5 @@
 import type { ConversationHeadingProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { conversationSubtitle, leadIsUnavailable } from '../presentation.ts';
 import { ChatParticipants } from '@/ClayInterface/components/ChatParticipants.tsx';
 import { ClayJobTitle } from './ClayJobTitle.tsx';

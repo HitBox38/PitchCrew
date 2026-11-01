@@ -3,7 +3,7 @@ import { useReviewSetup } from '../hooks/useReviewSetup.ts';
 import type { ReviewLaunchProps } from '../types.ts';
 import { ReviewAlternatives } from './ReviewAlternatives.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ReviewSetupIntro } from './ReviewSetupIntro.tsx';
 export const ReviewSetup = ({
   card,

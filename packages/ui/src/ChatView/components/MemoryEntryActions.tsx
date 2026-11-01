@@ -1,6 +1,6 @@
 import type { AgentMemory } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useMemoryEntry } from '../hooks/useMemoryEntry.ts';
 
 export const MemoryEntryActions = ({

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import { Modal } from '@/components/Modal/index.tsx';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';

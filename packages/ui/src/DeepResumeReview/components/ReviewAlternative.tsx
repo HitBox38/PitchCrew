@@ -2,12 +2,14 @@ import type { ReviewRuntimeAlternative } from '@pitchcrew/core';
 import type { ReviewSupport } from '../types.ts';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { ModelField } from '@/ModelField/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Select } from '@/components/ui/select/constants.ts';
-import { SelectContent } from '@/components/ui/select/components/SelectContent.tsx';
-import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
-import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.tsx';
-import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@pitchcrew/design-system/select';
 export const ReviewAlternative = ({
   value,
   index,

@@ -1,7 +1,7 @@
 import type { InstructionUpdate, Snapshot } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
 /** Default versions the user chose to keep their own text over, still open for comparison. */
 export const CrewDismissed = ({

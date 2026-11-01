@@ -1,6 +1,8 @@
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@pitchcrew/design-system/collapsible';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { ChevronDown } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';

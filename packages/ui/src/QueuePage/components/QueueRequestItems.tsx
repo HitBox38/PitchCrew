@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpToLine, Pencil, Trash2 } from 'lucide-react';
-import { menuComponents } from '@/components/ui/context-menu/menu-components.ts';
+import { menuComponents } from '@pitchcrew/design-system/menu-components';
 import type { useQueueRequest } from '../hooks/useQueueRequest.ts';
 
 /** Ordering, editing and removal for one queued request; failed requests offer ordering only. */

@@ -1,5 +1,5 @@
 import { Check, Hand, Square, X } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { browserActionTitles } from '@/ComputerApprovals/helpers.ts';
 import type { AgentBrowserProps } from '../types.ts';

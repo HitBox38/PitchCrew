@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
-import { SidebarGroupLabel } from '@/components/ui/sidebar/components/SidebarGroupLabel.tsx';
+import { CollapsibleTrigger } from '@pitchcrew/design-system/collapsible';
+import { SidebarGroupLabel } from '@pitchcrew/design-system/sidebar';
 import { ChevronRight } from 'lucide-react';
 
 /**

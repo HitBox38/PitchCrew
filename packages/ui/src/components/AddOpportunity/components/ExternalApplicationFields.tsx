@@ -1,5 +1,5 @@
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 
 /** New jobs only: record a submission made elsewhere. It never sends an application. */
 export const ExternalApplicationFields = ({

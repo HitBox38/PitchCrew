@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronDown, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@pitchcrew/design-system/popover';
 
 /**
  * Task site grants without growing the fixed approval tray. A recessed Site access

@@ -1,6 +1,6 @@
 import { Streamdown, type LinkSafetyConfig, type StreamdownProps } from 'streamdown';
 import { useMemo } from 'react';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '@pitchcrew/design-system/utils';
 import { MarkdownCode } from './components/MarkdownCode.tsx';
 import { LinkConfirmation } from './components/LinkConfirmation.tsx';
 

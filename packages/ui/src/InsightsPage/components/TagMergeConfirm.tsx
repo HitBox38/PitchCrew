@@ -1,5 +1,5 @@
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useTagMerge } from '../hooks/useTagMerge.ts';
 
 export const TagMergeConfirm = ({ merge }: { merge: ReturnType<typeof useTagMerge> }) => {

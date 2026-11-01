@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { MemoryNotebook } from '@/ChatView/components/MemoryNotebook.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { BookOpen } from 'lucide-react';
 import type { Snapshot } from '@pitchcrew/core';
 

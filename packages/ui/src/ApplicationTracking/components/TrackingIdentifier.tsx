@@ -1,7 +1,7 @@
 import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import type { Card } from '@pitchcrew/core';
 import { useState } from 'react';
 

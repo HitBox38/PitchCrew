@@ -1,8 +1,8 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { Dispatch, SetStateAction } from 'react';
 import type { ReviewAlternativeRow, ReviewSupport } from '../types.ts';
 import { ReviewAlternative } from './ReviewAlternative.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 export const ReviewAlternatives = ({
   runtimes,
   alternatives,

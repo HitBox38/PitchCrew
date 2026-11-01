@@ -1,10 +1,10 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { ReviewDetail } from '../types.ts';
 import { PerspectiveAssessment } from './PerspectiveAssessment.tsx';
 import { ReviewFindings } from './ReviewFindings.tsx';
 import { deepReviewStages, reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
 import { runtimeLabels } from '@/lib/labels.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 export const SubagentResults = ({
   detail,
   offset,

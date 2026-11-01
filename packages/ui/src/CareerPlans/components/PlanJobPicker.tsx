@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Input } from '@pitchcrew/design-system/input';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 
 export const PlanJobPicker = ({
   selected,

@@ -1,10 +1,12 @@
 import type { Snapshot } from '@pitchcrew/core';
 import type { capabilityDefaults } from '@/agent-capabilities.ts';
 import { toolGroups } from '@/AgentCreation/constants.ts';
-import { Accordion } from '@/components/ui/accordion/components/Accordion.tsx';
-import { AccordionContent } from '@/components/ui/accordion/components/AccordionContent.tsx';
-import { AccordionItem } from '@/components/ui/accordion/components/AccordionItem.tsx';
-import { AccordionTrigger } from '@/components/ui/accordion/components/AccordionTrigger.tsx';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from '@pitchcrew/design-system/accordion';
 import { groupSummary, toolBlocker } from '../tools.ts';
 import { ToolRow } from './ToolRow.tsx';
 

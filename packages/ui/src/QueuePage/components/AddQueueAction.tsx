@@ -2,7 +2,7 @@ import { boardActionLabels } from '@pitchcrew/core/states';
 import { useState } from 'react';
 import { type BoardAction, type Snapshot } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
 import { Plus } from 'lucide-react';

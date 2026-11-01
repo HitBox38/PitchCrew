@@ -1,4 +1,4 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { Approval } from '@pitchcrew/core';
 export const DocumentFindings = ({ approval }: { approval: Approval }) => {

@@ -1,5 +1,5 @@
 import { JobActionFooter } from '@/components/CardDetails/components/JobActionFooter.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { JourneyStage } from '../constants';
 
 export const JobPanelFooter = ({

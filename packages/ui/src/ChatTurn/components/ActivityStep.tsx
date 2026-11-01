@@ -6,10 +6,7 @@ import {
   ReasoningTrigger,
   ReasoningContent,
 } from '@/components/ai-elements/reasoning/index.tsx';
-import { TraceLine } from '@/components/ui/trace/components/TraceLine.tsx';
-import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
-import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
-import { TraceDescription } from '@/components/ui/trace/components/TraceDescription.tsx';
+import { TraceLine, TraceIcon, TraceTitle, TraceDescription } from '@pitchcrew/design-system/trace';
 import { TurnDuration } from './TurnDuration.tsx';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 export const ActivityStep = ({ entry }: { entry: RunActivity }) => {

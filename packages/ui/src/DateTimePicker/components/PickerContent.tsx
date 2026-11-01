@@ -1,5 +1,5 @@
-import { Calendar } from '@/components/ui/calendar/index.tsx';
-import { PopoverContent, PopoverTitle } from '@/components/ui/popover/index.tsx';
+import { Calendar } from '@pitchcrew/design-system/calendar';
+import { PopoverContent, PopoverTitle } from '@pitchcrew/design-system/popover';
 import { pickerDate, pickerValue } from '../helpers.ts';
 import type { DateTimePickerProps } from '../types.ts';
 import { TimeFields } from './TimeFields.tsx';

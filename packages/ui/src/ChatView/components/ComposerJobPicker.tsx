@@ -1,11 +1,13 @@
 import type { ChatComposerProps } from '../types.ts';
 import { useRef, type RefObject } from 'react';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Command } from '@/components/ui/command/components/Command.tsx';
-import { CommandInput } from '@/components/ui/command/components/CommandInput.tsx';
-import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
-import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.tsx';
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
+import {
+  Command,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+  CommandItem,
+} from '@pitchcrew/design-system/command';
 import { BriefcaseBusiness, Check } from 'lucide-react';
 
 export const ComposerJobPicker = ({

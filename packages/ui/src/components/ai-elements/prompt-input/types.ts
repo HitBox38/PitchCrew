@@ -1,6 +1,8 @@
-import { InputGroupAddon } from '@/components/ui/input-group/components/InputGroupAddon.tsx';
-import { InputGroupButton } from '@/components/ui/input-group/components/InputGroupButton.tsx';
-import { InputGroupTextarea } from '@/components/ui/input-group/components/InputGroupTextarea.tsx';
+import {
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupTextarea,
+} from '@pitchcrew/design-system/input-group';
 import type { ChatStatus, FileUIPart } from 'ai';
 import type { ComponentProps, FormEvent, HTMLAttributes } from 'react';
 

@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react';
 import type { ProfileImportFile } from '@pitchcrew/core';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ImportReviewProps } from '../types.ts';
 
 export const ImportReviewToolbar = ({

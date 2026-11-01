@@ -7,10 +7,7 @@ import { JobMetadata } from '@/components/CardDetails/components/JobMetadata.tsx
 import { JobPacket } from '@/components/CardDetails/components/JobPacket.tsx';
 import { JobState } from '@/components/CardDetails/components/JobState.tsx';
 import { EmptyState } from '@/components/EmptyState/index.tsx';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import type { JourneyStage } from '../constants';
 import { events, views } from '../demo/data';
 import { useMounted } from '../hooks/useMounted';

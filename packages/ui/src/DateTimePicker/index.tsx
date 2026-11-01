@@ -1,7 +1,7 @@
 import { useId, useState } from 'react';
 import { CalendarClock } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
-import { Popover, PopoverTrigger } from '@/components/ui/popover/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Popover, PopoverTrigger } from '@pitchcrew/design-system/popover';
 import { pickerDate, pickerLabel } from './helpers.ts';
 import { PickerContent } from './components/PickerContent.tsx';
 import type { DateTimePickerProps } from './types.ts';

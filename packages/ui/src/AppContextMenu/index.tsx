@@ -6,7 +6,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import { copyText } from '@/lib/clipboard.ts';
 import { useAppContextMenu } from './hooks/useAppContextMenu.ts';
 import { NavigationMenu } from './components/NavigationMenu.tsx';

@@ -1,5 +1,5 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { browserCommand } from '../api.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 export const BrowserSites = ({

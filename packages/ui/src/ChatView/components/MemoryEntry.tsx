@@ -1,8 +1,8 @@
 import { useMemoryEntry } from '../hooks/useMemoryEntry.ts';
 import type { AgentMemory } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
+import { Input } from '@pitchcrew/design-system/input';
 import { MemoryEntryActions } from './MemoryEntryActions.tsx';
 export const MemoryEntry = ({
   note,

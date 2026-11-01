@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { X } from 'lucide-react';
 import { useRef } from 'react';
 import { AppUpdateButton } from './components/AppUpdateButton.tsx';

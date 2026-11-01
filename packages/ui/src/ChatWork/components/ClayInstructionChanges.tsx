@@ -3,7 +3,7 @@ import { InstructionComparison } from '@/ChatWork/components/InstructionComparis
 import type { InstructionComparisonProps } from '@/ChatWork/types.ts';
 import { InstructionDiff } from '@/components/InstructionUpdate/components/InstructionDiff.tsx';
 import { diffInstructions } from '@/components/InstructionUpdate/helpers.ts';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
 /** Only the changed paragraphs in a recessed tray; both full texts stay one disclosure away. */
 export const ClayInstructionChanges = ({ current, proposal }: InstructionComparisonProps) => {

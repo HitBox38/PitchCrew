@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { signedWeight } from '@/lib/labels.ts';
 import type { ApplicationInsights } from '@pitchcrew/core/insights';
 import { share } from '../helpers.ts';

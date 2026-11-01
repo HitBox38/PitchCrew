@@ -3,7 +3,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { ChevronDown } from 'lucide-react';
 import { serviceCommands } from '../helpers.ts';
 import { ServiceCommand } from './ServiceCommand.tsx';

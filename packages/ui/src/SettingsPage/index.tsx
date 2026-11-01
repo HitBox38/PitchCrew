@@ -6,7 +6,7 @@ import { ExternalMcpSettings } from '@/ExternalMcpSettings/index.tsx';
 import { JobSourcesSettings } from '@/JobSourcesSettings/index.tsx';
 import { PacketRulesSettings } from '@/PacketRules/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
+import { Tabs } from '@pitchcrew/design-system/tabs';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { DataSettings } from './components/DataSettings.tsx';
 import { GeneralSettings } from './components/GeneralSettings.tsx';

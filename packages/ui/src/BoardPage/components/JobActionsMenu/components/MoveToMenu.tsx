@@ -1,7 +1,7 @@
 import type { Card, CardState } from '@pitchcrew/core';
 import { dropStages } from '@/board-stages.ts';
 import { stateLabels } from '@/lib/labels.ts';
-import { menuComponents } from '@/components/ui/context-menu/menu-components.ts';
+import { menuComponents } from '@pitchcrew/design-system/menu-components';
 import { ArrowRightLeft, Check } from 'lucide-react';
 
 export const MoveToMenu = ({

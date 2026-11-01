@@ -1,6 +1,6 @@
 import { Lock } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Kbd } from '@/components/ui/kbd/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Kbd } from '@pitchcrew/design-system/kbd';
 import { modKey } from '@/shortcuts.ts';
 import { wordCount } from '../helpers.ts';
 

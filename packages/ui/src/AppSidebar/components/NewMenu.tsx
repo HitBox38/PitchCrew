@@ -6,9 +6,9 @@ import {
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+} from '@pitchcrew/design-system/dropdown-menu';
+import { Button } from '@pitchcrew/design-system/button';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { useNewActions } from '../hooks/useNewActions.ts';
 import { StripButton } from './StripButton.tsx';
 

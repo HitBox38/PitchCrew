@@ -1,5 +1,5 @@
 import type { UserInputRequest } from '@pitchcrew/core';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { QuestionOptions } from './QuestionOptions.tsx';
 import type { useQuestionAnswer } from '../hooks/useQuestionAnswer.ts';
 import { submitsAnswer } from '../helpers.ts';

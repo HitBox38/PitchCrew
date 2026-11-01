@@ -1,5 +1,5 @@
 import { importButtonLabel } from '../helpers.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { LoaderCircle } from 'lucide-react';
 
 export const ImportFooter = ({

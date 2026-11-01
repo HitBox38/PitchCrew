@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { ArrowLeft, FileCheck2, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { requestIdentity } from '../helpers.ts';
 import { DecisionOutcomeChip, DecisionStage } from './DecisionOutcome.tsx';
 import { BrowserApprovalDetails } from './BrowserApprovalDetails.tsx';

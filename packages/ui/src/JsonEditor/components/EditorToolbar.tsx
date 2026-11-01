@@ -1,5 +1,5 @@
 import { Braces } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { modKey } from '@/shortcuts.ts';
 import { EditorSettings } from './EditorSettings.tsx';
 

@@ -1,5 +1,5 @@
 import { Camera, PictureInPicture2, Smartphone, Square, Video } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 import type { useNativeBrowserTools } from '../hooks/useNativeBrowserTools.ts';
 

@@ -1,8 +1,8 @@
 import { currentVersionLabel, updateStatusMessage } from '../helpers.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { RefreshCw } from 'lucide-react';
 import { ReleaseLink } from './ReleaseLink.tsx';
 import { DesktopUpdateActions } from './DesktopUpdateActions.tsx';

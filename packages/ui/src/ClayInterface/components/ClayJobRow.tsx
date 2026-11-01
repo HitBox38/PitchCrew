@@ -1,11 +1,15 @@
 import { ChevronRight } from 'lucide-react';
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
-import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { SidebarMenuSub } from '@/components/ui/sidebar/components/SidebarMenuSub.tsx';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@pitchcrew/design-system/collapsible';
+import {
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+} from '@pitchcrew/design-system/sidebar';
 import type { ConversationMenuActions } from '@/ConversationNavigation/components/ConversationMenu.tsx';
 import type { ConversationNavigationRow } from '@/ConversationNavigation/types.ts';
 import { stateTone } from '../helpers.ts';

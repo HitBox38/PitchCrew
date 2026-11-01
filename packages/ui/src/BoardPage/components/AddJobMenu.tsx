@@ -1,11 +1,11 @@
 import { ChevronDown, Plus, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 
 /** The Board's one glaze action, with importing past applications under its caret. */
 export const AddJobMenu = ({

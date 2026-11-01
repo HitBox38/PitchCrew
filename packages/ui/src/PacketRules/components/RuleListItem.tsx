@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ruleFormKey, type RuleDraft } from '../form-helpers.ts';
 import { kindLabels } from '../constants.ts';
 import { issuesForRule, ruleSentence } from '../helpers.ts';

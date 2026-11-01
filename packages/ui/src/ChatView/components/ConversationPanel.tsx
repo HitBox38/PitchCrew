@@ -1,7 +1,7 @@
 import { ConversationWelcome } from '@/ChatView/components/ConversationWelcome.tsx';
 import { ConversationHistory } from './ConversationHistory.tsx';
 import type { ConversationPanelProps } from '@/ChatView/types.ts';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
+import { TabsContent } from '@pitchcrew/design-system/tabs';
 
 export const ConversationPanel = ({
   answerQuestion,

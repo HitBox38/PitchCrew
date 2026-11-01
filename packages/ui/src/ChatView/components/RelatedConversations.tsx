@@ -1,5 +1,5 @@
 import type { ChatViewModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { MessagesSquare } from 'lucide-react';
 export const RelatedConversations = ({ data, thread, onThread }: ChatViewModel) => {
   const related = (data.conversations ?? []).filter((item) => item.parentId === thread);

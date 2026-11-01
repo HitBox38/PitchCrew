@@ -1,5 +1,5 @@
 import { Hand, RotateCw, TriangleAlert } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** A failed or crashed tab, with the existing reload and take-control actions. */
 export const ClayPageError = ({

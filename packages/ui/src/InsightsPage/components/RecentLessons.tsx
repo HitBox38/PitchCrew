@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Tabs, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { outcomeLabels } from '@/lib/labels.ts';
 import { outcomes, type InsightLesson, type Outcome } from '@pitchcrew/core/insights';
 import { LessonList } from './LessonList.tsx';

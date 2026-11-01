@@ -3,8 +3,8 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+} from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { baseSkills } from '@pitchcrew/core/base-skills';
 import { StarterSkillErrors } from './StarterSkillErrors.tsx';

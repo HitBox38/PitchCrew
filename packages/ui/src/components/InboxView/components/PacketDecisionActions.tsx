@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ExternalLink } from 'lucide-react';
 import type { PacketApprovalActionsProps } from '../types.ts';
 import type { useSubmissionActions } from '../hooks/useSubmissionActions.ts';

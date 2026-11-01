@@ -4,7 +4,7 @@ import { ChatView } from '@/ChatView/index.tsx';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useShallow } from 'zustand/react/shallow';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const ChatPage = () => {
   const { data, action, working, setRoleId, openCard } = useWorkspaceStore(

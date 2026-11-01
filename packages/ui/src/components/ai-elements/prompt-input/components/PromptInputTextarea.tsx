@@ -1,6 +1,6 @@
 import type { PromptInputTextareaProps } from '@/components/ai-elements/prompt-input/types.ts';
-import { InputGroupTextarea } from '@/components/ui/input-group/components/InputGroupTextarea.tsx';
-import { cn } from '@/lib/utils.ts';
+import { InputGroupTextarea } from '@pitchcrew/design-system/input-group';
+import { cn } from '@pitchcrew/design-system/utils';
 import type { KeyboardEventHandler } from 'react';
 import { useCallback, useRef } from 'react';
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import { X, ArrowDown, ArrowUp } from 'lucide-react';
 export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void }) => {
   const [text, setText] = useState('');

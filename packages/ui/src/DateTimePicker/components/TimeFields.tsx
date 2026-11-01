@@ -1,5 +1,5 @@
 import { Label } from 'react-aria-components/Label';
-import { TimeField, TimeInput } from '@/components/ui/time-field/index.tsx';
+import { TimeField, TimeInput } from '@pitchcrew/design-system/time-field';
 import { useTimeFields } from '../hooks/useTimeFields.ts';
 import type { ReactNode } from 'react';
 

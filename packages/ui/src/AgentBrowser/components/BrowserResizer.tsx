@@ -1,4 +1,4 @@
-import { Separator } from '@/components/ui/separator/index.tsx';
+import { Separator } from '@pitchcrew/design-system/separator';
 import type { AgentBrowserProps } from '../types.ts';
 export const BrowserResizer = ({ browserPanel }: Pick<AgentBrowserProps, 'browserPanel'>) => {
   return (

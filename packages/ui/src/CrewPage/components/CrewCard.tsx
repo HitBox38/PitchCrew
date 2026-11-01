@@ -1,5 +1,5 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { capabilityLine, runtimeLine } from '@/CrewPage/helpers.ts';
 import type { CapabilityLine, CrewCardProps } from '@/CrewPage/types.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';

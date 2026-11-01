@@ -1,6 +1,6 @@
 import type { ConnectorStatus, Role } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { ArrowUpRight } from 'lucide-react';
 import { connectorAgents } from '../helpers.ts';

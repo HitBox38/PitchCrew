@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react';
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { Sheet, SheetContent, SheetTitle } from '@pitchcrew/design-system/sheet';
 
 export const JobSheet = ({ children, onClose }: { children: ReactNode; onClose: () => void }) => {
   return (

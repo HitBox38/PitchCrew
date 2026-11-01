@@ -1,5 +1,5 @@
 import type { WorkspaceCommandsProps } from '@/CommandPalette/types.ts';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
 import { FilePlus2, MessageSquarePlus, Plus } from 'lucide-react';
 import { PaletteItem } from './PaletteItem.tsx';
 

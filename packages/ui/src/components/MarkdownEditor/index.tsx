@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
-import { TabsContent } from '@/components/ui/tabs/index.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
+import { TabsContent } from '@pitchcrew/design-system/tabs';
 
 /** Shared Profile and Skill document panels, inside their parent Tabs and form. */
 export const MarkdownEditor = ({

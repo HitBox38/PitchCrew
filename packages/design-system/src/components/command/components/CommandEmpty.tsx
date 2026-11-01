@@ -1,0 +1,12 @@
+import type { CommandEmptyProps } from '../types.ts';
+import { Command as CommandPrimitive } from 'cmdk';
+
+export const CommandEmpty = ({ ...props }: CommandEmptyProps) => {
+  return (
+    <CommandPrimitive.Empty
+      data-slot="command-empty"
+      className="primitive:py-6 primitive:text-center primitive:text-sm"
+      {...props}
+    />
+  );
+};

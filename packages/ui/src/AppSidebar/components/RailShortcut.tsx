@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
-import { SidebarGroup } from '@/components/ui/sidebar/components/SidebarGroup.tsx';
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@pitchcrew/design-system/sidebar';
 import { categoryKey } from '../hooks/useCategoryOpen.ts';
 
 /**

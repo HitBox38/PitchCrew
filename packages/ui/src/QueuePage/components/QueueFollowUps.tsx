@@ -1,5 +1,5 @@
 import type { AgentTask, Snapshot } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { taskLabels } from '@/lib/task-status.ts';

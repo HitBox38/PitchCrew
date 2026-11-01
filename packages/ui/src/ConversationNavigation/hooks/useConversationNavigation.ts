@@ -1,7 +1,7 @@
 import { useHistorySearch } from './useHistorySearch.ts';
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { useParams } from '@tanstack/react-router';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useChatPreferenceStore } from '@/ChatView/preferences.ts';
 import { conversationRows } from '../helpers.ts';

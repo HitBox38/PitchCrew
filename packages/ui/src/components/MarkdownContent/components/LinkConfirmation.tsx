@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { LinkSafetyModalProps } from 'streamdown';
 import { Check, Copy, ExternalLink } from 'lucide-react';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { DialogDescription } from '@/components/ui/dialog/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { DialogDescription } from '@pitchcrew/design-system/dialog';
 import { blockUnsafeLink } from '@/Notifications/link-feedback.ts';
 
 export const LinkConfirmation = (props: LinkSafetyModalProps) => {

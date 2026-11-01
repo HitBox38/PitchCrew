@@ -1,5 +1,5 @@
 import { GripVertical } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { QueueMoves } from '../types.ts';
 
 /** The one reorder affordance: drag it, or focus it and use the arrow keys. */

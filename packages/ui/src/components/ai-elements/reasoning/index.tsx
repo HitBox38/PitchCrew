@@ -1,3 +1,3 @@
-export { TraceCollapsible as Reasoning } from '@/components/ui/trace/components/TraceCollapsible.tsx';
-export { TraceCollapsibleTrigger as ReasoningTrigger } from '@/components/ui/trace/components/TraceCollapsibleTrigger.tsx';
-export { TraceCollapsibleContent as ReasoningContent } from '@/components/ui/trace/components/TraceCollapsibleContent.tsx';
+export { TraceCollapsible as Reasoning } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleTrigger as ReasoningTrigger } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleContent as ReasoningContent } from '@pitchcrew/design-system/trace';

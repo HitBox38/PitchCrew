@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import type { WorkspaceQueue } from '@pitchcrew/core';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverTitle,
   PopoverDescription,
-} from '@/components/ui/popover/index.tsx';
+} from '@pitchcrew/design-system/popover';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { slotFact } from '../helpers.ts';
 

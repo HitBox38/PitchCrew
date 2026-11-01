@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Globe, Hand, TextCursorInput } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** The empty and opening page: one orb, a sentence and the existing action. */
 export const ClayBrowserPlaceholder = ({

@@ -1,8 +1,6 @@
 import { useCategoryOpen } from '@/AppSidebar/hooks/useCategoryOpen.ts';
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { SidebarGroup } from '@/components/ui/sidebar/components/SidebarGroup.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { Collapsible, CollapsibleContent } from '@pitchcrew/design-system/collapsible';
+import { SidebarGroup, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { SidebarCategoryTrigger } from './SidebarCategoryTrigger.tsx';
 import type { ReactNode } from 'react';
 

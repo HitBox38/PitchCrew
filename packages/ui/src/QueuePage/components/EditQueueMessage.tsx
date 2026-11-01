@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChatRequest } from '@pitchcrew/core';
 import { chatTokens } from '@pitchcrew/core/chat-references';
-import { Button } from '@/components/ui/button/index.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const EditQueueMessage = ({

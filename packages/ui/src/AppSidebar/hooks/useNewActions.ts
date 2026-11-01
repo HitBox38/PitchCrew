@@ -1,5 +1,5 @@
 import { useNavigate } from '@tanstack/react-router';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { requestNewNote } from '@/lib/new-note.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 

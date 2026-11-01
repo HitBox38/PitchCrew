@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { fieldNumber, fieldText, ruleFormKey } from '../form-helpers.ts';
 import type { RuleFormProps } from './RuleFormBasics.tsx';

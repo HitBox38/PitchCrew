@@ -1,8 +1,10 @@
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import type { ConversationWelcomeProps } from '@/ChatView/types.ts';
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@pitchcrew/design-system/collapsible';
 import { welcomeLine, welcomeStarters } from '../starters.ts';
 
 type Starter = { label: string; prompt: string };

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Snapshot } from '@pitchcrew/core';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover/index.tsx';
-import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@pitchcrew/design-system/popover';
+import { cn } from '@pitchcrew/design-system/utils';
 import { queueSummary } from '@/lib/work-queue.ts';
 import { queueTrayLabel } from './helpers.ts';
 import { QueuePanel } from './components/QueuePanel.tsx';

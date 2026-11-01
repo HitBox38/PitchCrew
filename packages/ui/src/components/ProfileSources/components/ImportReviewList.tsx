@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FileMinus2 } from 'lucide-react';
 import type { ProfileImportFile } from '@pitchcrew/core';
-import { Accordion } from '@/components/ui/accordion/index.tsx';
+import { Accordion } from '@pitchcrew/design-system/accordion';
 import { ImportDocument } from './ImportDocument.tsx';
 
 export const ImportReviewList = ({

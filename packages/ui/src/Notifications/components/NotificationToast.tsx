@@ -5,7 +5,7 @@ import {
   ToastDescription,
   ToastTitle,
   type ToastObject,
-} from '@/components/ui/toast/index.tsx';
+} from '@pitchcrew/design-system/toast';
 import { notificationPresentation } from '../constants.ts';
 import { NotificationIcon } from './NotificationIcon.tsx';
 import type { CrewNotification } from '../types.ts';

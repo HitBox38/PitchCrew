@@ -479,25 +479,3 @@
     transition: none;
   }
 }
-
-/* ── Shared floating menus and tooltips ────────────────────────────────────── */
-[data-slot='dropdown-menu-content'],
-[data-slot='context-menu-content'] {
-  border: 0;
-  border-radius: 12px;
-  background: var(--surface-bright);
-  box-shadow:
-    0 0 0 1px var(--border),
-    var(--pop);
-}
-[data-slot='dropdown-menu-item'],
-[data-slot='context-menu-item'],
-[data-slot='dropdown-menu-radio-item'],
-[data-slot='context-menu-radio-item'] {
-  border-radius: 8px;
-  cursor: pointer;
-}
-[data-slot='tooltip-content'] {
-  background: var(--inverse);
-  color: var(--on-inverse);
-}

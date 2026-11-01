@@ -1,5 +1,5 @@
 import { RotateCw } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
 import { BrowserAddress } from './BrowserAddress.tsx';

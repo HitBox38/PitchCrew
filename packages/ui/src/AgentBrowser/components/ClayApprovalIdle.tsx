@@ -1,5 +1,5 @@
 import { Bot, Hand } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { ClayAutomaticSteps } from './ClayAutomaticSteps.tsx';

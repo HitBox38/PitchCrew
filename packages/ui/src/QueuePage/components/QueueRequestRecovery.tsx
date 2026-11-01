@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useQueueRequest } from '../hooks/useQueueRequest.ts';
 
 /** Retry or skip a paused/failed request, aligned under its text. */

@@ -2,8 +2,8 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from '@/components/ui/accordion/index.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+} from '@pitchcrew/design-system/accordion';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import type { ProfileImportFile } from '@pitchcrew/core';
 import { importStatus, importTone } from '../helpers.ts';
 import { ImportDocumentPreview } from './ImportDocumentPreview.tsx';

@@ -1,6 +1,6 @@
 import type { DraftFieldsProps, Frequency, RoutineDraft } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 
 export const RepeatFields = ({ draft, change }: DraftFieldsProps) => {
   return (

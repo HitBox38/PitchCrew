@@ -1,9 +1,11 @@
 import type { ModelReasoning } from '@pitchcrew/core';
-import { Select } from '@/components/ui/select/constants.ts';
-import { SelectContent } from '@/components/ui/select/components/SelectContent.tsx';
-import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
-import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.tsx';
-import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@pitchcrew/design-system/select';
 import { reasoningLabels } from '@/lib/reasoning.ts';
 
 interface ReasoningFieldProps {

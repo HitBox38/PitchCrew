@@ -1,8 +1,8 @@
 import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
 import { LoaderCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { useApplicationBrief } from '../hooks/useApplicationBrief.ts';
 import type { Card } from '@pitchcrew/core';
 

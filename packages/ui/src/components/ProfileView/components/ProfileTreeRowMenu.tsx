@@ -1,11 +1,11 @@
 import { FilePen, FilePlus2, FolderInput, FolderPlus, MoreHorizontal } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import type { ProfileTreeNode } from '../types.ts';
 
 export interface ProfileTreeRowActions {

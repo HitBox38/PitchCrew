@@ -1,29 +1,18 @@
 'use client';
 
-import { Button as ButtonPrimitive } from '@base-ui/react/button';
-import { cva } from 'class-variance-authority';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { Button as SharedButton, type ButtonProps } from '@pitchcrew/design-system/button';
+import { cn } from '@pitchcrew/design-system/utils';
 
 export const Button = ({
   className,
   variant = 'primary',
   ...props
-}: ButtonPrimitive.Props & {
-  variant?: 'primary' | 'secondary' | 'ghost';
-}) => {
+}: Omit<ButtonProps, 'variant'> & { variant?: 'primary' | 'secondary' | 'ghost' }) => {
   return (
-    <ButtonPrimitive
-      type="button"
-      className={twMerge(clsx(buttonVariants({ variant }), className))}
+    <SharedButton
+      variant={variant === 'primary' ? 'default' : variant}
+      className={cn('button h-auto', `button-${variant}`, className)}
       {...props}
     />
   );
 };
-
-const buttonVariants = cva('button', {
-  variants: {
-    variant: { primary: 'button-primary', secondary: 'button-secondary', ghost: 'button-ghost' },
-  },
-  defaultVariants: { variant: 'primary' },
-});

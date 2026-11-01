@@ -1,5 +1,5 @@
 import type { RoleSkillsProps } from '@/components/RoleSettings/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** Shared and assigned skills that new runs copy; assignments are managed on Skills. */
 export const RoleSkills = ({ role, data, onManageSkills }: RoleSkillsProps) => {

@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { SheetTitle } from '@pitchcrew/design-system/sheet';
 import { X } from 'lucide-react';
 
 /** Matches Modal's heading so form sheets share their title style and close control. */

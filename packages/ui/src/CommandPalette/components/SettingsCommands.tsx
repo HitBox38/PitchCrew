@@ -1,6 +1,6 @@
 import { useCommandState } from 'cmdk';
 import { useNavigate } from '@tanstack/react-router';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
 import { settingsSections } from '@/SettingsPage/constants.ts';
 import { settingEntries } from '@/SettingsPage/search.ts';
 import type { SettingsCommandsProps } from '../types.ts';
