@@ -231,3 +231,30 @@ it('gives Writer and Reviewer workflow runs a summary of the user packet rules',
     'pitchcrew_get_packet_rules',
   );
 });
+it('gives Writer and Reviewer writing-quality guidance only in isolated drafting and review', () => {
+  const writer = promptFor({ ...context, purpose: 'application-draft' });
+  expect(writer).toContain('replace interchangeable company praise, stock enthusiasm');
+  expect(writer).toContain(
+    'a required personal answer without a confirmed user answer is a user question',
+  );
+  expect(writer).toContain('an optional one is omitted and noted in the packet note');
+  expect(writer).toContain('name the passage it reworded');
+  expect(writer).not.toContain('belongs in suggestions');
+  const reviewer = promptFor({ ...context, purpose: 'application-review' });
+  expect(reviewer).toContain('belongs in suggestions, never in feedback');
+  expect(reviewer).toContain('Never request invented motivations or experiences');
+  expect(reviewer).toContain(
+    'never claim an AI-detector result, an ATS parse or an employer decision',
+  );
+  expect(reviewer).not.toContain('name the passage it reworded');
+  for (const prompt of [
+    promptFor({ ...context, purpose: 'fit' }),
+    promptFor({ ...context, purpose: 'packet-evaluation' }),
+    promptFor({
+      ...context,
+      purpose: 'application-review',
+      deepReview: { id: 'review', subagent: { perspective: 'relevance' } } as never,
+    }),
+  ])
+    expect(prompt).not.toContain('Writing quality:');
+});
