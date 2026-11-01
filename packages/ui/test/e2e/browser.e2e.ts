@@ -209,6 +209,8 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       async () => (await second.read('location.pathname')) === '/next',
       'UI Forward did not reach the next document',
     );
+    // The guest navigates before its new title reaches the React tab strip.
+    await app.page.getByRole('button', { name: 'Fictional E2E next page', exact: true }).waitFor();
     await app.page.getByRole('button', { name: 'Fictional E2E application', exact: true }).click();
     await until(
       async () => (await activeGuest(app)).id === original.id,
