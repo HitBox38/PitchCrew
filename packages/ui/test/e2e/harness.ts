@@ -54,7 +54,11 @@ const waitExit = async (child: ChildProcess, label: string, tree = false) => {
       throw error;
     }
   }
-  assert.equal(child.exitCode, 0, `${label} exited unsuccessfully`);
+  assert.equal(
+    child.exitCode,
+    0,
+    `${label} exited unsuccessfully (code=${child.exitCode}, signal=${child.signalCode})`,
+  );
 };
 
 export const startDesktop = async () => {
@@ -71,7 +75,7 @@ export const startDesktop = async () => {
         PITCHCREW_PORT: String(port),
         PITCHCREW_POSTHOG_DISABLED: '1',
       },
-      stdio: ['ignore', 'pipe', 'pipe'],
+      stdio: ['pipe', 'pipe', 'pipe'],
       windowsHide: true,
     },
   );
@@ -137,11 +141,15 @@ export const startDesktop = async () => {
         if (error) throw error;
       });
     }
-    daemon.kill('SIGTERM');
+    // EOF requests graceful fixture shutdown on Windows too; kill(SIGTERM) does not.
+    daemon.stdin?.end();
     await attempt(() => waitExit(daemon, 'Daemon'));
     await writeFile(join(directory, 'daemon.log'), log);
     if (failures.length)
-      throw new AggregateError(failures, `Desktop E2E cleanup failed; evidence: ${directory}`);
+      throw new AggregateError(
+        failures,
+        `Desktop E2E cleanup failed: ${failures.map(String).join('; ')}; evidence: ${directory}`,
+      );
   };
   const close = () => (closing ??= cleanup());
 
