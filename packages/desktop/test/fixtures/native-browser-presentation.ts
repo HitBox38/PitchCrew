@@ -41,9 +41,10 @@ export const checkNativeBrowserPresentation = async (
   );
   const pixel = async (x: number, y: number) => {
     const { width, height } = window.getContentBounds();
-    const image = (
-      await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })
-    ).resize({ width, height });
+    const capture = await captureNativePage(window.webContents, { format: 'png' });
+    const image = nativeImage
+      .createFromBuffer(Buffer.from(capture.data, 'base64'))
+      .resize({ width, height });
     const bitmap = image.toBitmap({ scaleFactor: 1 });
     const offset = (y * width + x) * 4;
     return [bitmap[offset + 2], bitmap[offset + 1], bitmap[offset]];

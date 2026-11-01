@@ -329,7 +329,20 @@ void app
         }
         if (command.kind === 'presentation' && group && command.otherId) {
           const other = host.groups.get(command.otherId)!;
-          await checkNativeBrowserPresentation(window, host, group, other);
+          // Replay the transient hidden-window compositor failure seen on macOS CI.
+          // The retry must still capture real pixels and pass every composition assertion.
+          const capturePage = window.webContents.capturePage;
+          let copies = 0;
+          window.webContents.capturePage = async (...args) => {
+            if (++copies === 1) throw new Error('UnknownVizError');
+            return capturePage.apply(window.webContents, args);
+          };
+          try {
+            await checkNativeBrowserPresentation(window, host, group, other);
+            assert.ok(copies > 1, 'Presentation did not recover the compositor readback.');
+          } finally {
+            window.webContents.capturePage = capturePage;
+          }
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
             JSON.stringify({ nonce: command.nonce, liveOverlays: true }),
