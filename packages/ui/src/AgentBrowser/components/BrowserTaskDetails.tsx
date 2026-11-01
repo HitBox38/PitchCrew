@@ -1,4 +1,4 @@
-import { Popover, PopoverContent, PopoverTitle } from '@/components/ui/popover/index.tsx';
+import { Popover, PopoverContent, PopoverTitle } from '@pitchcrew/design-system/popover';
 import { browserModeChip } from '../layout.ts';
 import { BrowserTaskTrigger } from './BrowserTaskTrigger.tsx';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';

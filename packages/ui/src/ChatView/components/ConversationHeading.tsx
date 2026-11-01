@@ -1,14 +1,14 @@
 import { ConversationIdentity } from './ConversationIdentity.tsx';
 import { BrowserButton } from '@/AgentBrowser/components/BrowserButton.tsx';
 import type { ConversationHeadingProps } from '@/ChatView/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { ConversationActions } from './ConversationActions.tsx';
 import { ConversationViewSwitch } from './ConversationViewSwitch.tsx';
 import { Square, Cpu } from 'lucide-react';
 import { ChatStageTrack } from '@/ClayInterface/components/ChatStageTrack.tsx';
 import { ClayJobLinks } from './ClayJobLinks.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { WorkspaceMobileTitle } from '@/App/components/WorkspaceHeaderSlots.tsx';
 export const ConversationHeading = (props: ConversationHeadingProps) => {
   const { role, running, participants, setDialog, thread, working, action } = props;

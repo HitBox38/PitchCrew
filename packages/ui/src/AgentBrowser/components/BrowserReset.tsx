@@ -1,10 +1,10 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import { X } from 'lucide-react';
 import { browserCommand } from '../api.ts';
 import type { BrowserControl } from '../types.ts';

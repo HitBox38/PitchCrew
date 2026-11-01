@@ -3,7 +3,7 @@ import { ChatSidePanel } from './ChatSidePanel.tsx';
 import { ConversationSelect } from './ConversationSelect.tsx';
 import { MemoryEntry } from './MemoryEntry.tsx';
 import { PanelSection } from './PanelSection.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { useState } from 'react';
 const intro =

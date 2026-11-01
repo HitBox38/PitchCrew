@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import type { Card } from '@pitchcrew/core';
 import { lessonLimits } from '@pitchcrew/core/insights';
 import { Trash2 } from 'lucide-react';

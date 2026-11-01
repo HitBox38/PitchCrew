@@ -1,6 +1,6 @@
 import type { CrewWorkPanelProps } from '@/ChatView/types.ts';
 import { ChatWork } from '@/ChatWork/index.tsx';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
+import { TabsContent } from '@pitchcrew/design-system/tabs';
 
 export const CrewWorkPanel = ({
   data,

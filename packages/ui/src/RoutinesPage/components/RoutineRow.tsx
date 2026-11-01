@@ -1,6 +1,6 @@
 import type { Routine, Snapshot } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { scheduleLabel } from '../helpers.ts';
 import { nextRunLine, routineJob, runLimitLabel } from '../schedule-preview.ts';
 import { RoutineMenu } from './RoutineMenu.tsx';

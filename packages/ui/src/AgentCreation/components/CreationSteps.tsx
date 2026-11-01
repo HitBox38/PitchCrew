@@ -1,12 +1,12 @@
 import { ChevronDown } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { creationSteps } from '../constants.ts';
 import type { CreationController } from '../types.ts';
 

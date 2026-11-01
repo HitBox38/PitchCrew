@@ -1,12 +1,12 @@
 import type { ReactNode } from 'react';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '@pitchcrew/design-system/utils';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 export const ConversationSelect = ({
   label,
   id,

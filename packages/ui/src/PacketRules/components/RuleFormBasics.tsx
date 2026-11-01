@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { documentLabels } from '../constants.ts';
 import { fieldDocuments, fieldText, ruleFormKey, type RuleDraft } from '../form-helpers.ts';

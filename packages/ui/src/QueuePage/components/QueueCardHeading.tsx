@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import type { Snapshot, WorkQueueView } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useQueueActions } from '@/hooks/useQueueActions.ts';
 import { QueueIdentity } from './QueueIdentity.tsx';
 import { QueueOrderMenu } from './QueueOrderMenu.tsx';

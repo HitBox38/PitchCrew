@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { todaysRuns } from '@/CrewPage/helpers.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 

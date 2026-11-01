@@ -1,7 +1,7 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { CareerGap } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const GapSources = ({ sources }: { sources: CareerGap['sources'] }) => {

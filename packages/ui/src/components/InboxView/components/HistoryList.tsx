@@ -1,6 +1,6 @@
 import { Search } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { HistoryRow } from './HistoryRow.tsx';
 import type { HistoryFilter, InboxViewModel } from '../types.ts';
 

@@ -1,6 +1,6 @@
 import { Link, useNavigate, useSearch } from '@tanstack/react-router';
 import type { InstructionUpdate, Snapshot } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { pendingProposals } from '@/CrewPage/helpers.ts';
 import { PenLine, SlidersHorizontal, Sparkles } from 'lucide-react';
 

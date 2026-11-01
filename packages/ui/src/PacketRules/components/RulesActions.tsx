@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 
 export const RulesActions = ({ controller }: { controller: PacketRulesController }) => {

@@ -7,7 +7,7 @@ import { SubmissionReceipts } from './SubmissionReceipts.tsx';
 import { LearningSignals } from '@/LearningSignals/index.tsx';
 import { ApplicationTracking } from '@/ApplicationTracking/index.tsx';
 import { ExternalSubmissionRegistration } from '@/ExternalSubmissionRegistration/index.tsx';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
 export const JobActivity = (model: CardDetailsModel) => {
   const [lessonDirty, setLessonDirty] = useState(false);

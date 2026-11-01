@@ -1,5 +1,5 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { stateLabels } from '@/lib/labels.ts';
 import type { Card, TrackingSignal } from '@pitchcrew/core';
 import { useState } from 'react';

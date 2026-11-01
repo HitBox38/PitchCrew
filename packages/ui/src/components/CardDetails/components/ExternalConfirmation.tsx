@@ -1,10 +1,10 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { useCallback, useState } from 'react';
 import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import type { JobOverviewProps } from '../types.ts';
 
 export const ExternalConfirmation = ({

@@ -1,6 +1,6 @@
 import { RuntimeUpdateSettings } from '@/RuntimeMaintenance/components/RuntimeUpdateSettings.tsx';
 import { RuntimeList } from './RuntimeList.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { Snapshot } from '@pitchcrew/core';
 import { Link } from '@tanstack/react-router';

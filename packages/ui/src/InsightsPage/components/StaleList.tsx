@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { staleBatchLimit } from '@pitchcrew/core/insights';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 

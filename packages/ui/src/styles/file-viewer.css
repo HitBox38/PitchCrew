@@ -1,4 +1,4 @@
-@reference './theme.css';
+@reference '@pitchcrew/design-system/theme.css';
 [data-slot='dialog-content'].file-viewer-dialog {
   display: flex;
   flex-direction: column;

@@ -1,6 +1,6 @@
 import { Eye, Mail } from 'lucide-react';
 import type { Card, SubmissionAttempt } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   useSubmissionFollowUp,
   type SubmissionFollowUpProps,

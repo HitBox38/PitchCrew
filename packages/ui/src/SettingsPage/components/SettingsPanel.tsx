@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
+import { TabsContent } from '@pitchcrew/design-system/tabs';
 
 /** One section's scrolling content column; Packet rules uses the full width. */
 export const SettingsPanel = ({

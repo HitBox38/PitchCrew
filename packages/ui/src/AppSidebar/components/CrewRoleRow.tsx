@@ -8,11 +8,13 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
-import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+} from '@pitchcrew/design-system/dropdown-menu';
+import {
+  SidebarMenuAction,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar,
+} from '@pitchcrew/design-system/sidebar';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 
 type CrewRoleRowProps = {

@@ -1,5 +1,5 @@
 import type { NavigationCommandsProps } from '@/CommandPalette/types.ts';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
 import { paletteViews } from '../constants.ts';
 import { PaletteItem } from './PaletteItem.tsx';
 

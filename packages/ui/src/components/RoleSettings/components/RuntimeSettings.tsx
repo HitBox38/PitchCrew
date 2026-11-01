@@ -1,10 +1,12 @@
 import type { RuntimeSettingsProps } from '@/components/RoleSettings/types.ts';
-import { Switch } from '@/components/ui/switch/index.tsx';
-import { SelectContent } from '@/components/ui/select/components/SelectContent.tsx';
-import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
-import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.tsx';
-import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
-import { Select } from '@/components/ui/select/constants.ts';
+import { Switch } from '@pitchcrew/design-system/switch';
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Select,
+} from '@pitchcrew/design-system/select';
 import { ModelField } from '@/ModelField/index.tsx';
 import type { Role } from '@pitchcrew/core';
 

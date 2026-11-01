@@ -1,11 +1,11 @@
 import { QueueRequestItems } from './QueueRequestItems.tsx';
 import { Ellipsis } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import type { useQueueRequest } from '../hooks/useQueueRequest.ts';
 
 /** The request's trailing 44px menu; failed requests keep it only when they can still move. */

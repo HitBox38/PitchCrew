@@ -1,5 +1,5 @@
 import type { ConversationHeadingProps } from '../types.ts';
-import { DropdownMenuGroup, DropdownMenuItem } from '@/components/ui/dropdown-menu/index.tsx';
+import { DropdownMenuGroup, DropdownMenuItem } from '@pitchcrew/design-system/dropdown-menu';
 import { Pin, Archive, Users, BookOpen, Settings, Play, Bell } from 'lucide-react';
 
 /** The conversation's own options, shared by the header menu and the phone title menu. */

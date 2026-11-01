@@ -1,5 +1,4 @@
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { SidebarMenuButton, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { Download, RotateCw } from 'lucide-react';
 import { useId, type RefObject } from 'react';
 import type { useUpdateControl } from '../hooks/useUpdateControl.ts';

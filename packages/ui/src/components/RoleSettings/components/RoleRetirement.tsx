@@ -1,5 +1,5 @@
 import type { RoleSettingsModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** A separate, named final action; it never rides along with Save settings. */
 export const RoleRetirement = ({

@@ -1,8 +1,7 @@
 import { PanelLeft, Search, X } from 'lucide-react';
 import type { SidebarStripProps } from '@/AppSidebar/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { SidebarHeader } from '@/components/ui/sidebar/components/SidebarHeader.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import { SidebarHeader, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { NotificationBell } from '@/Notifications/index.tsx';
 import { modKey } from '@/shortcuts.ts';
 import { NewMenu } from './NewMenu.tsx';

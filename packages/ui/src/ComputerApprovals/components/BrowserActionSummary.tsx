@@ -1,4 +1,4 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { BrowserAction } from '@pitchcrew/core';
 import { actionFields } from '../helpers.ts';

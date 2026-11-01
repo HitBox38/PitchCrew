@@ -1,13 +1,13 @@
 import { AlertTriangle, Check, CircleDashed, PenLine, ShieldQuestion } from 'lucide-react';
 import type { DetectorProvider } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { timeAgo } from '@/lib/time.ts';
 import { providerNames, scoreLabel, type AdvisoryRow, type DocumentRow } from '../helpers.ts';
 

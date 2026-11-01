@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useId } from 'react';
 import {
   Select,
@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 
 const appearances = [

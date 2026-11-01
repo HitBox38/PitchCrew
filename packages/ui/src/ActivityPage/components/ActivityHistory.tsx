@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { BoardEvent } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { groupByDay, pageSize } from '../history.ts';
 import { ActivityRow } from './ActivityRow.tsx';

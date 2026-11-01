@@ -1,7 +1,7 @@
 import { useConversationEditor } from '../hooks/useConversationEditor.ts';
 import type { ConversationEditorProps } from '../types.ts';
 import { ChatSidePanel } from './ChatSidePanel.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { MessageSquarePlus, Users } from 'lucide-react';
 import { ParticipantFields } from './editor/ParticipantFields.tsx';
 import { ConversationEditorActions } from './editor/ConversationEditorActions.tsx';

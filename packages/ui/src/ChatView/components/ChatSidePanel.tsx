@@ -1,7 +1,6 @@
 import { SidePanel } from '@/components/SidePanel/index.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
-import { SheetDescription } from '@/components/ui/sheet/components/SheetDescription.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { SheetTitle, SheetDescription } from '@pitchcrew/design-system/sheet';
+import { Button } from '@pitchcrew/design-system/button';
 import { X } from 'lucide-react';
 import type { ReactNode } from 'react';
 

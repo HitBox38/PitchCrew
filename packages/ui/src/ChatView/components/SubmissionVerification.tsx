@@ -1,7 +1,7 @@
 import { ManualSubmissionCompletion } from './ManualSubmissionCompletion.tsx';
 import { useState } from 'react';
 import { SubmissionReceipts } from '@/components/CardDetails/components/SubmissionReceipts.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ChatViewModel } from '../types.ts';
 import { ClaySubmissionCheck } from './ClaySubmissionCheck.tsx';
 import type { SubmissionFollowUpProps } from '../hooks/useSubmissionFollowUp.ts';

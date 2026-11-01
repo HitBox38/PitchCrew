@@ -1,3 +1,3 @@
-export { TraceCollapsible as Tool } from '@/components/ui/trace/components/TraceCollapsible.tsx';
-export { TraceCollapsibleTrigger as ToolTrigger } from '@/components/ui/trace/components/TraceCollapsibleTrigger.tsx';
-export { TraceCollapsibleContent as ToolContent } from '@/components/ui/trace/components/TraceCollapsibleContent.tsx';
+export { TraceCollapsible as Tool } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleTrigger as ToolTrigger } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleContent as ToolContent } from '@pitchcrew/design-system/trace';

@@ -5,10 +5,7 @@ import {
   ChainOfThoughtTrigger,
   ChainOfThoughtContent,
 } from '@/components/ai-elements/chain-of-thought/index.tsx';
-import { Trace } from '@/components/ui/trace/components/Trace.tsx';
-import { TraceLine } from '@/components/ui/trace/components/TraceLine.tsx';
-import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
-import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
+import { Trace, TraceLine, TraceIcon, TraceTitle } from '@pitchcrew/design-system/trace';
 import { ActivityStep } from './ActivityStep.tsx';
 
 /** A collapsed group of turn steps, used by the public landing page's chat demo. */

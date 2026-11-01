@@ -1,7 +1,7 @@
 import type { Role } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { RotateCcw } from 'lucide-react';
 

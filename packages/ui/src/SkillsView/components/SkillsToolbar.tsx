@@ -1,6 +1,6 @@
 import { WorkspaceHeaderActions, WorkspaceHeaderPrimary } from '@/App/components/WorkspacePage.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { availableSkillUpdates } from '@/lib/skill-updates.ts';
 import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { Plus, Search } from 'lucide-react';

@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { actorLabels, eventKindLabels } from '../constants.ts';
 import type { ActivityContext } from '../history.ts';
 import { activityDetail, activitySentence } from '../labels.ts';

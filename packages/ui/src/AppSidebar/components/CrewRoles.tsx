@@ -1,7 +1,5 @@
 import type { CrewRolesProps } from '@/AppSidebar/types.ts';
-import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { SidebarGroupContent, SidebarMenu, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { getRoleStatus } from '@/lib/role-status.ts';
 import { CrewRoleRow } from './CrewRoleRow.tsx';
 import { SidebarCategory } from './SidebarCategory.tsx';

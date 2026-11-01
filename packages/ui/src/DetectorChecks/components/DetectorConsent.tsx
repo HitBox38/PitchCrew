@@ -1,11 +1,11 @@
 import { useRef } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { providerNames } from '../helpers.ts';
 import type { Consent } from '../hooks/useDetectorChecks.ts';

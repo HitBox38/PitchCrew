@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import type { CardDetailsModel, ApplicationSection } from '../types.ts';
 import { ApplicationSectionContent } from './ApplicationSectionContent.tsx';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import {
+  AccordionSection,
+  Accordion,
+  AccordionItem,
+  AccordionTrigger,
+  AccordionContent,
+} from '@pitchcrew/design-system/accordion';
 import { FormAssessments } from './FormAssessments.tsx';
-import { Accordion } from '@/components/ui/accordion/components/Accordion.tsx';
-import { AccordionItem } from '@/components/ui/accordion/components/AccordionItem.tsx';
-import { AccordionTrigger } from '@/components/ui/accordion/components/AccordionTrigger.tsx';
-import { AccordionContent } from '@/components/ui/accordion/components/AccordionContent.tsx';
 import { applicationBeads, applicationRows, packetNeedsReview } from '../helpers.ts';
 
 export const JobApplication = (model: CardDetailsModel) => {

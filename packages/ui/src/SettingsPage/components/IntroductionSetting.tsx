@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useOnboarding } from '@/Onboarding/hooks/useOnboarding.ts';
 import { SettingsSection } from './SettingsSection.tsx';
 

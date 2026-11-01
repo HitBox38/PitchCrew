@@ -1,4 +1,4 @@
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
+import { CommandItem } from '@pitchcrew/design-system/command';
 import { jobPagePrefix } from '../helpers.ts';
 import type { useJobCommands } from '../hooks/useJobCommands.ts';
 

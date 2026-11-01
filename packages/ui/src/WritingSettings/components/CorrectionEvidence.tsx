@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import type { WritingCorrection } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { api } from '@/api.ts';
 
 export const CorrectionEvidence = ({ id }: { id: string }) => {

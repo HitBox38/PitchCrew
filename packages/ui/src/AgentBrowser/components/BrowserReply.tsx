@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { ArrowUp } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { remapReferences, replyCopy } from '../reply.ts';
 import type { BrowserReplyProps } from '../types.ts';
 

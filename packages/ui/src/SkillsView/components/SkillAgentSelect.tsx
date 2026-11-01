@@ -4,7 +4,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 import type { SkillFilter, SkillsViewModel } from '@/SkillsView/types.ts';
 
 /** One bounded select replaces the per-agent chip row; the value stays URL-backed. */

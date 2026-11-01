@@ -1,5 +1,5 @@
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 
 export const StaleConfirm = ({ stale }: { stale: StaleCleanupModel }) => {

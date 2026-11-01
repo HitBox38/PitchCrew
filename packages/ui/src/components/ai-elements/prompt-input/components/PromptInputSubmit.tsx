@@ -1,6 +1,6 @@
 import type { PromptInputSubmitProps } from '@/components/ai-elements/prompt-input/types.ts';
-import { InputGroupButton } from '@/components/ui/input-group/components/InputGroupButton.tsx';
-import { cn } from '@/lib/utils.ts';
+import { InputGroupButton } from '@pitchcrew/design-system/input-group';
+import { cn } from '@pitchcrew/design-system/utils';
 import { ArrowUpIcon, LoaderCircle, SquareIcon, XIcon } from 'lucide-react';
 import { useCallback } from 'react';
 

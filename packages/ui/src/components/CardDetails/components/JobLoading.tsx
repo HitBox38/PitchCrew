@@ -2,8 +2,8 @@ import type { CardDetailsProps } from '../types.ts';
 import { JobSheet } from './JobSheet.tsx';
 import { JobSummary } from './JobSummary.tsx';
 import { JobActionFooter } from './JobActionFooter.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Skeleton } from '@/components/ui/skeleton/components/Skeleton.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Skeleton } from '@pitchcrew/design-system/skeleton';
 
 type JobLoadingProps = Pick<CardDetailsProps, 'card' | 'onClose'> & {
   error?: string;

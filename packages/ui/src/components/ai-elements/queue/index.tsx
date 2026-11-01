@@ -1,4 +1,4 @@
-export { TraceCollapsible as QueueSection } from '@/components/ui/trace/components/TraceCollapsible.tsx';
-export { TraceCollapsibleTrigger as QueueSectionTrigger } from '@/components/ui/trace/components/TraceCollapsibleTrigger.tsx';
-export { TraceCollapsibleContent as QueueSectionContent } from '@/components/ui/trace/components/TraceCollapsibleContent.tsx';
-export { Trace as Queue } from '@/components/ui/trace/components/Trace.tsx';
+export { TraceCollapsible as QueueSection } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleTrigger as QueueSectionTrigger } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleContent as QueueSectionContent } from '@pitchcrew/design-system/trace';
+export { Trace as Queue } from '@pitchcrew/design-system/trace';

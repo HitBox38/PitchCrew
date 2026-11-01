@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react';
 import { Dialog } from '@base-ui/react/dialog';
-import { SheetOverlay } from '@/components/ui/sheet/components/SheetOverlay.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
+import { SheetOverlay, SheetTitle } from '@pitchcrew/design-system/sheet';
 import type { BrowserSurfaceState } from '../context.ts';
 
 export const BrowserLayer = ({

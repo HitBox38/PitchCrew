@@ -2,7 +2,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import { useRef, type ReactElement } from 'react';
 import type { ConversationNavigationRow } from '../types.ts';
 import type { ConversationMenuActions } from './ConversationMenu.tsx';

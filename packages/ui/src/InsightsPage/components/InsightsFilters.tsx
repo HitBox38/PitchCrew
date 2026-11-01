@@ -1,6 +1,6 @@
 import { DateTimePicker } from '@/DateTimePicker/index.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { tagKey, type TagSort } from '@pitchcrew/core/insights';
 import { sortOptions } from '../constants.ts';
 import type { ChangeSearch, InsightsSearch } from '../types.ts';

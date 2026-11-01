@@ -1,6 +1,5 @@
 import { ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { buttonVariants } from '@/components/ui/button/constants.ts';
+import { Button, buttonVariants } from '@pitchcrew/design-system/button';
 import type { ProfileSourcesModel } from '../types.ts';
 
 export const SourceConnection = (c: ProfileSourcesModel) => {

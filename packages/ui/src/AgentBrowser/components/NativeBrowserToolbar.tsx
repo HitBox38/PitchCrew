@@ -1,6 +1,6 @@
 import { NativeBrowserSettings } from './NativeBrowserSettings.tsx';
 import { ArrowLeft, ArrowRight, RotateCw, Search, Square } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { BrowserAddress } from './BrowserAddress.tsx';
 import { BrowserLoadingProgress } from './BrowserLoadingProgress.tsx';
 import { NativeBrowserHistory } from './NativeBrowserHistory.tsx';

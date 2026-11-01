@@ -1,9 +1,8 @@
 import { useContext } from 'react';
 import type { MessageContentProps } from '../types.ts';
 import { MessageRoleContext } from '../context.ts';
-import { MessageContent as MessageBody } from '@/components/ui/message/components/MessageContent.tsx';
-import { Bubble } from '@/components/ui/bubble/components/Bubble.tsx';
-import { BubbleContent } from '@/components/ui/bubble/components/BubbleContent.tsx';
+import { MessageContent as MessageBody } from '@pitchcrew/design-system/message';
+import { Bubble, BubbleContent } from '@pitchcrew/design-system/bubble';
 
 export const MessageContent = ({ children, ...props }: MessageContentProps) => {
   const from = useContext(MessageRoleContext);

@@ -1,5 +1,5 @@
 import type { InstructionUpdateModel } from '../types.ts';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { instructionUpdateExplanation } from '@/lib/instruction-updates.ts';
 
 /** Release history behind "What's changed": every default revision since yours, and tool notes. */

@@ -1,5 +1,5 @@
 import type { ConversationHeadingProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { BriefcaseBusiness, FileText } from 'lucide-react';
 
 /** Job chats open the job and its packet from the header, as in the mock.

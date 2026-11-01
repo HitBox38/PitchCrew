@@ -1,5 +1,5 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { submissionAgentProblem } from '../submission.ts';
 import type { PacketApprovalActionsProps } from '../types.ts';

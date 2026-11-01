@@ -1,12 +1,12 @@
 import { ArrowDown, ArrowUp, ArrowUpToLine, Ellipsis } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import type { QueueMoves } from '../types.ts';
 
 /** Touch and pointer equivalents of dragging a waiting queue: Move to top, up or down. */

@@ -1,7 +1,7 @@
 import type { StepProps, CreationController } from '../types.ts';
 import { workflowOptions } from '../constants.ts';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
 export const PurposeStep = ({

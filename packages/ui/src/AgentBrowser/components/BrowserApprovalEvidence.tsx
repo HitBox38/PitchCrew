@@ -1,7 +1,7 @@
 import type { ComputerApproval } from '@pitchcrew/core';
 import { BrowserApprovalContent } from '@/ComputerApprovals/components/BrowserApprovalContent.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@pitchcrew/design-system/popover';
 import type { AgentBrowserProps } from '../types.ts';
 
 const heading = 'Review exact action and page evidence';

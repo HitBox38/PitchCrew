@@ -1,10 +1,10 @@
 import type { ConversationHeadingProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { ChevronDown, Ellipsis } from 'lucide-react';
 import { ConversationMenuItems } from './ConversationMenuItems.tsx';
 

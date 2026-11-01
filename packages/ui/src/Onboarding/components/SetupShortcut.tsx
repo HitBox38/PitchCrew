@@ -1,6 +1,5 @@
 import { Compass } from 'lucide-react';
-import { SidebarIconButton } from '@/components/ui/sidebar/components/SidebarIconButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
+import { SidebarIconButton, SidebarMenuItem } from '@pitchcrew/design-system/sidebar';
 import { useOnboarding } from '../hooks/useOnboarding.ts';
 
 export const SetupShortcut = () => {

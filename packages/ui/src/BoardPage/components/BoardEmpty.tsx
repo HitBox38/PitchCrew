@@ -1,6 +1,6 @@
 import type { BoardEmptyProps } from '../types.ts';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { LoaderCircle } from 'lucide-react';
 
 /** A board with no jobs: one line on what happens next; Add job lives in the title row. */

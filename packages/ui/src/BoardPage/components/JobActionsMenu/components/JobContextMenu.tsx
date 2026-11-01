@@ -2,7 +2,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import { useJobActionsMenu } from '../hooks/useJobActionsMenu.ts';
 import type { JobActionsMenuProps } from '../types.ts';
 import type { ReactElement } from 'react';

@@ -1,5 +1,5 @@
 import { FileUp, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ProfileSectionProps } from '../types.ts';
 
 /** Shown when every tab is closed: one line and the two ways to add background. */

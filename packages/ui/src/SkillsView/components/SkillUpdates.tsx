@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { availableSkillUpdates } from '@/lib/skill-updates.ts';
 import { Link } from '@tanstack/react-router';
 import type { SkillsViewModel } from '../types.ts';

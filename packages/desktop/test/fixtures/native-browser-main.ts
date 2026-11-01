@@ -329,7 +329,32 @@ void app
         }
         if (command.kind === 'presentation' && group && command.otherId) {
           const other = host.groups.get(command.otherId)!;
-          await checkNativeBrowserPresentation(window, host, group, other);
+          // Replay the transient hidden-window compositor failure seen on macOS CI.
+          // The retry must still capture real pixels and pass every composition assertion.
+          const capturePage = window.webContents.capturePage;
+          const background = other.pages.get(other.active)!;
+          const captureBackground = background.contents.capturePage;
+          let copies = 0;
+          window.webContents.capturePage = async (...args) => {
+            if (++copies === 1) throw new Error('UnknownVizError');
+            return capturePage.apply(window.webContents, args);
+          };
+          background.contents.capturePage = async (...args) => {
+            // A previous relay can finish while this readback is in progress.
+            background.releaseAutomation?.('presentation-previous-owner');
+            assert.ok(
+              other.painting.has(other.active),
+              'A completed relay owner parked the active background capture.',
+            );
+            return captureBackground.apply(background.contents, args);
+          };
+          try {
+            await checkNativeBrowserPresentation(window, host, group, other);
+            assert.ok(copies > 1, 'Presentation did not recover the compositor readback.');
+          } finally {
+            window.webContents.capturePage = capturePage;
+            background.contents.capturePage = captureBackground;
+          }
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
             JSON.stringify({ nonce: command.nonce, liveOverlays: true }),

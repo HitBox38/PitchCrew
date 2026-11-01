@@ -2,7 +2,7 @@ import { X } from 'lucide-react';
 import { RoutineConversation } from './RoutineConversation.tsx';
 import { SidePanel } from '@/components/SidePanel/index.tsx';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useRoutineEditor } from '../hooks/useRoutineEditor.ts';
 import type { EditorProps } from '../types.ts';
 import { ActionFields } from './ActionFields.tsx';

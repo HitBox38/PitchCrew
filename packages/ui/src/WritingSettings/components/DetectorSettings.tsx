@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
 import { timeAgo } from '@/lib/time.ts';
 import { useDetectorSettings } from '../hooks/useDetectorSettings.ts';

@@ -5,7 +5,7 @@ import {
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import { Compass } from 'lucide-react';
 import type { View } from '@/navigation.ts';
 

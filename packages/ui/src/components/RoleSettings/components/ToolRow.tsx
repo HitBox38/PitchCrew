@@ -1,7 +1,7 @@
 import { useId } from 'react';
 import { capabilityLabels } from '@/agent-capabilities.ts';
 import { toolHelp } from '@/AgentCreation/constants.ts';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 
 type Tool = keyof typeof capabilityLabels;
 

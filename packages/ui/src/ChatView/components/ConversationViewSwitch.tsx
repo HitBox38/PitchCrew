@@ -1,5 +1,4 @@
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
+import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { GitBranch, MessageSquare } from 'lucide-react';
 
 export const ConversationViewSwitch = ({ attention }: { attention: number }) => {

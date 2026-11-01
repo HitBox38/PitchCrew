@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Search } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { CommandDialog } from '@/components/ui/command/components/CommandDialog.tsx';
-import { CommandInput } from '@/components/ui/command/components/CommandInput.tsx';
-import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
-import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import {
+  CommandDialog,
+  CommandInput,
+  CommandList,
+  CommandEmpty,
+} from '@pitchcrew/design-system/command';
 import { SettingCommands } from './SettingCommands.tsx';
 
 export const SettingsSearch = () => {

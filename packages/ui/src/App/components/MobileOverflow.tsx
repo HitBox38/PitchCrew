@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover/index.tsx';
+import { Popover, PopoverContent, PopoverTrigger } from '@pitchcrew/design-system/popover';
 import { NotificationPanel } from '@/Notifications/components/NotificationPanel.tsx';
 import { useNotificationItems } from '@/Notifications/hooks/useNotificationItems.ts';
 import { useNotificationStore } from '@/Notifications/store.ts';

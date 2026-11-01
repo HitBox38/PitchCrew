@@ -5,7 +5,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import { QueueRunningItems } from './QueueRunningItems.tsx';
 
 export const QueueRunningContextMenu = ({

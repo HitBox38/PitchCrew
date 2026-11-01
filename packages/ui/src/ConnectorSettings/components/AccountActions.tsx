@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ConnectedAccountsProps } from '@/ConnectorSettings/types.ts';
 import type { ConnectorStatus } from '@pitchcrew/core';
 import { Unplug } from 'lucide-react';

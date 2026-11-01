@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Plus } from 'lucide-react';
 import { ruleKinds, type RulesDocument } from '../form-helpers.ts';

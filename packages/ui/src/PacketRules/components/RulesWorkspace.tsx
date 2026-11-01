@@ -1,10 +1,7 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import { lazy, Suspense, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@pitchcrew/design-system/tabs';
 import { parseDraft, fileIssues, issueText } from '../helpers.ts';
 import { editableDocument } from '../form-helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';

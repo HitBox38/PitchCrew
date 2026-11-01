@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ZoomControls } from './ZoomControls.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { ViewerMoreControls } from './ViewerMoreControls.tsx';

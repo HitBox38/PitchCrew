@@ -2,7 +2,7 @@ import { JobIdentityFields } from './JobIdentityFields.tsx';
 import { JobLocationFields } from './JobLocationFields.tsx';
 import { ExternalApplicationFields } from './ExternalApplicationFields.tsx';
 import { JobLinkField } from './JobLinkField.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { TagPicker } from '@/TagPicker/index.tsx';
 import type { AddOpportunityModel } from '../types.ts';
 

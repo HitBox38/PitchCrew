@@ -1,7 +1,7 @@
 import type { JobActionsProps } from '../types.ts';
 import { JobActionFooter } from './JobActionFooter.tsx';
 import { jobNextAction } from '../next-action.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { LoaderCircle } from 'lucide-react';
 import { runtimeLabels } from '@/lib/labels.ts';
 

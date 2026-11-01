@@ -1,5 +1,5 @@
 import type { WritingGuide, WritingPreference } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { writingScopes } from '@/lib/application-quality.ts';
 import { CorrectionEvidence } from './CorrectionEvidence.tsx';
 

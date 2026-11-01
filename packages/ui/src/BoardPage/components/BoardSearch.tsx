@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { Search, X } from 'lucide-react';
 
 /** Searches every job before columns sort and page; it never opens the command palette. */

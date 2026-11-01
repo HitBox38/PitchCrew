@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { PanelLeft } from 'lucide-react';
-import { Tabs } from '@/components/ui/tabs/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Tabs } from '@pitchcrew/design-system/tabs';
+import { Button } from '@pitchcrew/design-system/button';
 import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
 import type { ProfileSectionProps } from '../types.ts';
 import { ProfileDocumentTabs } from './ProfileDocumentTabs.tsx';

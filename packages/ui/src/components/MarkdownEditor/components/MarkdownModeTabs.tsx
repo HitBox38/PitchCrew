@@ -1,4 +1,4 @@
-import { TabsList, TabsTrigger } from '@/components/ui/tabs/index.tsx';
+import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { Eye, PencilLine } from 'lucide-react';
 
 export const MarkdownModeTabs = ({ label }: { label: string }) => {

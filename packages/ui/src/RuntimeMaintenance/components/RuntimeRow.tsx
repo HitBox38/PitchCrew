@@ -2,12 +2,12 @@ import { useState } from 'react';
 import type { RuntimeInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useSearch } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { ChevronDown } from 'lucide-react';
 import { RuntimeUpdate } from './RuntimeUpdate.tsx';

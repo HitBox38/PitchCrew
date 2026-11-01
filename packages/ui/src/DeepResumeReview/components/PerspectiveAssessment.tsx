@@ -6,7 +6,7 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from '@/components/ui/accordion/index.tsx';
+} from '@pitchcrew/design-system/accordion';
 export const PerspectiveAssessment = ({
   assessment,
   title,

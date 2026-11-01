@@ -1,5 +1,5 @@
 import { Plus, Search, X } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** The Chats heading's Find chats and New conversation buttons. */
 export const ChatsActions = ({

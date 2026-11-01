@@ -1,7 +1,7 @@
 import { ArrowLeft, ArrowRight, Download, Maximize2, Minimize2, X } from 'lucide-react';
-import { DialogTitle } from '@/components/ui/dialog/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { DialogTitle } from '@pitchcrew/design-system/dialog';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
 import { fileFormat } from '../attachments.ts';
 export const ViewerToolbar = ({ model, close }: { model: FileViewerModel; close: () => void }) => (

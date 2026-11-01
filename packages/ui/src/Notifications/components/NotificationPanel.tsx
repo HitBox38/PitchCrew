@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { X } from 'lucide-react';
-import { PopoverClose, PopoverTitle } from '@/components/ui/popover/index.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { PopoverClose, PopoverTitle } from '@pitchcrew/design-system/popover';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { groupNotifications } from '../helpers.ts';
 import { useNotificationItems } from '../hooks/useNotificationItems.ts';

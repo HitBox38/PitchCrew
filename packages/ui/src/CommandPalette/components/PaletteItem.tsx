@@ -1,7 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
-import { CommandShortcut } from '@/components/ui/command/components/CommandShortcut.tsx';
+import { CommandItem, CommandShortcut } from '@pitchcrew/design-system/command';
 
 /** One 40px result: icon or mark, the name, one line of muted context and an optional key. */
 export const PaletteItem = ({

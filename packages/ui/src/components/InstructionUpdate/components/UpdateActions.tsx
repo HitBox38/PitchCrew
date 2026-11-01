@@ -1,5 +1,5 @@
 import type { InstructionUpdateModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** Use new default, Edit from new default and Keep mine: inline, or as a pinned decision footer. */
 export const UpdateActions = ({

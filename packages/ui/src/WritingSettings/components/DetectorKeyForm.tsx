@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import type { DetectorProvider } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { detectorEntries } from './detector-entries.ts';
 
 /** Enter a key once; it is stored on this device only and never shown again. */

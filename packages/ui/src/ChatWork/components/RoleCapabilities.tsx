@@ -1,7 +1,7 @@
 import { WorkSection } from '@/ChatWork/components/WorkSection.tsx';
 import { capabilityDefaults, capabilityLabels } from '@/agent-capabilities.ts';
 import type { RoleCapabilitiesProps } from '@/ChatWork/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SlidersHorizontal } from 'lucide-react';
 
 export const RoleCapabilities = ({ role, onConfigure }: RoleCapabilitiesProps) => {

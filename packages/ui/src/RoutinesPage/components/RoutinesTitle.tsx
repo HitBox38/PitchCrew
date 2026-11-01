@@ -5,8 +5,8 @@ import {
   WorkspaceHeaderFact,
   WorkspaceHeaderPrimary,
 } from '@/App/components/WorkspacePage.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import type { useRoutinesPage } from '../hooks/useRoutinesPage.ts';
 import { routinesFact } from '../schedule-preview.ts';

@@ -1,4 +1,4 @@
-import { Toaster } from '@/components/ui/toast/index.tsx';
+import { Toaster } from '@pitchcrew/design-system/toast';
 import { useNotifications } from '../hooks/useNotifications.ts';
 import { openNotification } from '../open.ts';
 import { ActionToast } from './ActionToast.tsx';

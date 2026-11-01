@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { setupWarnings } from '../helpers.ts';
 import { reviewSections } from '../review.ts';
 import type { StepProps, CreationController } from '../types.ts';

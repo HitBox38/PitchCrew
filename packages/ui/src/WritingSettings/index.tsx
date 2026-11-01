@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { Plus } from 'lucide-react';
 import { useWritingSettings } from './hooks/useWritingSettings.ts';
 import { GuidePreferences } from './components/GuidePreferences.tsx';

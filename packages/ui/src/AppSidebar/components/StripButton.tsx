@@ -1,9 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Tooltip } from '@/components/ui/tooltip/components/Tooltip.tsx';
-import { TooltipContent } from '@/components/ui/tooltip/components/TooltipContent.tsx';
-import { TooltipTrigger } from '@/components/ui/tooltip/components/TooltipTrigger.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@pitchcrew/design-system/tooltip';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 
 /** A 32px quiet icon button in the sidebar's top strip or rail, named by its tooltip. */
 export const StripButton = ({

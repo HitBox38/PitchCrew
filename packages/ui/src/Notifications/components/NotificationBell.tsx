@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Bell } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover/index.tsx';
-import { cn } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@pitchcrew/design-system/popover';
+import { cn } from '@pitchcrew/design-system/utils';
 import { useNotificationItems } from '../hooks/useNotificationItems.ts';
 import { useNotificationStore } from '../store.ts';
 import { NotificationPanel } from './NotificationPanel.tsx';

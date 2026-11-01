@@ -1,6 +1,6 @@
 import { ArrowDown, ArrowUp, X } from 'lucide-react';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import type { DocumentFind } from '../hooks/useDocumentFind.ts';
 export const FindBar = ({
   find: {

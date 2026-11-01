@@ -2,7 +2,7 @@ import { ArrowUpRight, Link, Trash2 } from 'lucide-react';
 import { MoveToMenu } from './MoveToMenu.tsx';
 import { CrewAction } from './CrewAction.tsx';
 import { quickStatuses, shortcutLabels } from '../helpers.ts';
-import { menuComponents } from '@/components/ui/context-menu/menu-components.ts';
+import { menuComponents } from '@pitchcrew/design-system/menu-components';
 import type { JobActionsMenuProps } from '../types.ts';
 import type { useJobActionsMenu } from '../hooks/useJobActionsMenu.ts';
 

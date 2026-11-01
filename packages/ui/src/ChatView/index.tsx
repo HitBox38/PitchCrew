@@ -15,7 +15,7 @@ import { ConversationPanel } from '@/ChatView/components/ConversationPanel.tsx';
 import { CrewWorkPanel } from '@/ChatView/components/CrewWorkPanel.tsx';
 import { useChatView } from '@/ChatView/hooks/useChatView.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
+import { Tabs } from '@pitchcrew/design-system/tabs';
 
 export const ChatView = (props: ChatViewProps) => {
   const controller = useChatView(props);

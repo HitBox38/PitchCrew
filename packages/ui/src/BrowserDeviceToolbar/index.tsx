@@ -1,6 +1,6 @@
 import { RotateCw, Smartphone, X } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import {
   browserDevices,

@@ -2,10 +2,12 @@ import { Link } from '@tanstack/react-router';
 import { Briefcase } from 'lucide-react';
 import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
 import { RailShortcut } from '@/AppSidebar/components/RailShortcut.tsx';
-import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
+import {
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@pitchcrew/design-system/sidebar';
 import type { ClaySidebarState } from '../hooks/useClaySidebar.ts';
 import { ClayJobRow } from './ClayJobRow.tsx';
 

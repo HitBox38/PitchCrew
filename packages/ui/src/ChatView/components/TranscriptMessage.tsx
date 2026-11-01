@@ -4,7 +4,7 @@ import { AnimatedMessage } from '@/ChatView/constants.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { timeAgo } from '@/lib/time.ts';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle } from 'lucide-react';
 

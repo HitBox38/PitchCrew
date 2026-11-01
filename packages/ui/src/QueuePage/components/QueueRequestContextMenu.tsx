@@ -4,7 +4,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import type { useQueueRequest } from '../hooks/useQueueRequest.ts';
 import { QueueRequestItems } from './QueueRequestItems.tsx';
 

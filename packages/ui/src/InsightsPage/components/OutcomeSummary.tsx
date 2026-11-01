@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { outcomes, type ApplicationInsights } from '@pitchcrew/core/insights';
 import { outcomeHints } from '../constants.ts';
 import type { ChangeSearch } from '../types.ts';

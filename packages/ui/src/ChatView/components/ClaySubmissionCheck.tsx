@@ -1,8 +1,8 @@
 import { TriangleAlert } from 'lucide-react';
 import type { Card, SubmissionAttempt } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ExternalConfirmation } from '@/components/CardDetails/components/ExternalConfirmation.tsx';
 import type { JobOverviewProps } from '@/components/CardDetails/types.ts';
 import type { SubmissionFollowUpProps } from '../hooks/useSubmissionFollowUp.ts';

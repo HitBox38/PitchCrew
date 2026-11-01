@@ -1,5 +1,5 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { toggleAssignment } from '@/SkillsView/helpers.ts';
 import type { RoleId } from '@pitchcrew/core';
 import type { SkillEditorModel } from '../types.ts';

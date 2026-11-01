@@ -6,7 +6,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 
 /** Phones show one stage at a time; this 44px select picks it. Hidden on wider screens. */
 export const BoardStageSelect = ({

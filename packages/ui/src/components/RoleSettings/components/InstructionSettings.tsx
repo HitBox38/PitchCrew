@@ -1,5 +1,5 @@
 import type { RoleSettingsModel } from '@/components/RoleSettings/types.ts';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { RoleInstructionUpdate } from './RoleInstructionUpdate.tsx';
 
 /** Instructions, with an available default update compared beside them unless it leads the panel. */

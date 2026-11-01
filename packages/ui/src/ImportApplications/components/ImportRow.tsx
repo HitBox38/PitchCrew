@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { importStatusLabels } from '../constants.ts';
 import { importPath, importReason, importStatusChange, importTones } from '../helpers.ts';
 

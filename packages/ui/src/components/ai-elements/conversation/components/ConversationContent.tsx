@@ -1,6 +1,8 @@
 import type { ConversationContentProps } from '../types.ts';
-import { MessageScrollerContent } from '@/components/ui/message-scroller/components/MessageScrollerContent.tsx';
-import { MessageScrollerViewport } from '@/components/ui/message-scroller/components/MessageScrollerViewport.tsx';
+import {
+  MessageScrollerContent,
+  MessageScrollerViewport,
+} from '@pitchcrew/design-system/message-scroller';
 
 export const ConversationContent = ({ scrollClassName, ...props }: ConversationContentProps) => (
   <MessageScrollerViewport className={scrollClassName}>

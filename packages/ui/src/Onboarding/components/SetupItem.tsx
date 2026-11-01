@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 /** A 64px setup row: moss when done, ochre for the next step, an empty socket after it. */
 export const SetupItem = ({

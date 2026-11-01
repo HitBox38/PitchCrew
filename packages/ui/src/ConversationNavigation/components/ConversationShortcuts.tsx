@@ -1,6 +1,4 @@
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
+import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@pitchcrew/design-system/sidebar';
 import { MessagesSquare, Plus } from 'lucide-react';
 export const ConversationShortcuts = ({
   openConversations,

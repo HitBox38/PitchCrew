@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import type { BrowserWindow } from 'electron';
 import { nativeImage } from 'electron';
+import { captureNativePage } from '../../src/browser/capture.ts';
 import type { createNativeBrowserHost } from '../../src/browser/host.ts';
 import type { NativeGroup } from '../../src/browser/pages.ts';
 
@@ -40,9 +41,10 @@ export const checkNativeBrowserPresentation = async (
   );
   const pixel = async (x: number, y: number) => {
     const { width, height } = window.getContentBounds();
-    const image = (
-      await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })
-    ).resize({ width, height });
+    const capture = await captureNativePage(window.webContents, { format: 'png' });
+    const image = nativeImage
+      .createFromBuffer(Buffer.from(capture.data, 'base64'))
+      .resize({ width, height });
     const bitmap = image.toBitmap({ scaleFactor: 1 });
     const offset = (y * width + x) * 4;
     return [bitmap[offset + 2], bitmap[offset + 1], bitmap[offset]];
@@ -64,6 +66,8 @@ export const checkNativeBrowserPresentation = async (
     // can clear a direct paint(true) while this fixture is still capturing.
     await backgroundPage.send('Page.startScreencast', { format: 'jpeg' }, undefined, owner);
     await waitFor(async () => {
+      // The guest command owns painting until readback finishes, even if an older
+      // relay command's grace timer or disconnect releases its separate owner.
       const capture = (await backgroundPage.send(
         'Page.captureScreenshot',
         { format: 'png' },

@@ -1,9 +1,8 @@
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import type { RoleSettingsModel } from '@/components/RoleSettings/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { SheetDescription } from '@/components/ui/sheet/components/SheetDescription.tsx';
-import { SheetTitle } from '@/components/ui/sheet/components/SheetTitle.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { SheetDescription, SheetTitle } from '@pitchcrew/design-system/sheet';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { crewStatus, runtimeLine } from '@/CrewPage/helpers.ts';
 import { useNow } from '@/ClayInterface/hooks/useNow.ts';
 import { X } from 'lucide-react';
