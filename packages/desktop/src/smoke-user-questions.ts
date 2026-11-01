@@ -2,7 +2,7 @@ export const smokeDraftRequest = 'Pitchcrew smoke insert separate draft';
 export const smokeDraftText = 'Keep this separate draft.';
 /** Exercise a real saved question, multi-select answer and targeted continuation in the renderer. */
 export const smokeUserQuestions = `(async () => {
-  document.querySelector('nav[aria-label="Conversations"] a[href="/chat/scout"]')?.click();
+  document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.click();
   if (!await waitFor(() => !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'))) throw new Error('Question fixture chat did not open.');
   let poppedUp = false, exitInert = false;
   const motionObserver = new MutationObserver(() => {
@@ -22,7 +22,8 @@ export const smokeUserQuestions = `(async () => {
     return !!card && Math.abs(new DOMMatrixReadOnly(getComputedStyle(card).transform).m42) < 0.1;
   });
   const motionReady = matchMedia('(prefers-reduced-motion: reduce)').matches || poppedUp;
-  const waiting = document.querySelector('nav a[href="/chat/scout"]')?.textContent.includes('Waiting for you');
+  const waiting = await waitFor(() => document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.textContent.includes('Waiting for you'));
+  const waitingRow = document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.outerHTML.slice(-600);
   const question = document.querySelector('.pending-user-question');
   const trigger = question?.querySelector('.pending-question-trigger');
   const card = document.querySelector('.pending-user-questions-lane');
@@ -67,6 +68,6 @@ export const smokeUserQuestions = `(async () => {
   }
   const draftKept = compose.textContent === 'Keep this separate draft.';
   const checks = { pending, motionReady, docked, exitInert, composerIsToaster, scrollbarStable, waiting, collapsed, focused, answered, continued, draftKept };
-  if (!Object.values(checks).every(Boolean)) throw new Error('User question checks: ' + JSON.stringify(checks));
+  if (!Object.values(checks).every(Boolean)) throw new Error('User question checks: ' + JSON.stringify({ ...checks, waitingRow }));
   return true;
 })()`;

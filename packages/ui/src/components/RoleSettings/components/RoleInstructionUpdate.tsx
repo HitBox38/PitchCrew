@@ -2,6 +2,7 @@ import { InstructionUpdate } from '@/components/InstructionUpdate/index.tsx';
 import type { RoleSettingsModel } from '@/components/RoleSettings/types.ts';
 import { instructionUpdateFor } from '@/lib/instruction-updates.ts';
 
+/** An available default update compared inside the Instructions section, with inline actions. */
 export const RoleInstructionUpdate = ({
   creating,
   role,
@@ -11,7 +12,6 @@ export const RoleInstructionUpdate = ({
   instructions,
   setInstructions,
   setDefaultInstructionRevision,
-  reviewInstructions,
 }: RoleSettingsModel) => {
   const update = creating ? undefined : instructionUpdateFor(data, role.id);
   if (!update || role.retiredAt) return null;
@@ -19,7 +19,6 @@ export const RoleInstructionUpdate = ({
     <InstructionUpdate
       key={update.revision}
       role={role}
-      initiallyExpanded={reviewInstructions}
       update={update}
       action={action}
       working={working}

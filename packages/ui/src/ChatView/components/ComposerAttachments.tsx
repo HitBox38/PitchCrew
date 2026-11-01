@@ -1,12 +1,14 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import { Paperclip, X } from 'lucide-react';
-import { Attachment } from '@/components/ui/attachment/components/Attachment.tsx';
-import { AttachmentMedia } from '@/components/ui/attachment/components/AttachmentMedia.tsx';
-import { AttachmentContent } from '@/components/ui/attachment/components/AttachmentContent.tsx';
-import { AttachmentTitle } from '@/components/ui/attachment/components/AttachmentTitle.tsx';
-import { AttachmentDescription } from '@/components/ui/attachment/components/AttachmentDescription.tsx';
-import { AttachmentActions } from '@/components/ui/attachment/components/AttachmentActions.tsx';
-import { AttachmentAction } from '@/components/ui/attachment/components/AttachmentAction.tsx';
+import {
+  Attachment,
+  AttachmentMedia,
+  AttachmentContent,
+  AttachmentTitle,
+  AttachmentDescription,
+  AttachmentActions,
+  AttachmentAction,
+} from '@pitchcrew/design-system/attachment';
 
 import { attachmentSize } from '../attachment-helpers.ts';
 

@@ -1,46 +1,27 @@
 import type { View } from '@/navigation.ts';
 import type { Card, Role, RoleId, Snapshot } from '@pitchcrew/core';
 
-export interface StageLink {
-  id: string;
-  label: string;
-  color: string;
-  count: number;
-}
+export type SidebarCounts = Partial<Record<View, number>>;
 
 export interface AppSidebarProps {
   data: Snapshot;
   view: View | undefined;
-  stages: StageLink[];
-  onStage: (id: string) => void;
-  counts: Partial<Record<View, number>>;
-  roles: Role[];
-  roleStatus: (role: Role) => string;
-  runningRoles: RoleId[];
-  onConfigureRole: (id: RoleId) => void;
-  onChatRole: (id: RoleId) => void;
-  onToggleRole: (role: Role) => void;
+  counts: SidebarCounts;
+  /** Recently opened jobs, newest first (at most five). */
   recent: Card[];
+  working: boolean;
   onOpenCard: (id: string) => void;
   onSearch: () => void;
   onAddJob: () => void;
-  working: boolean;
+  onConfigureRole: (id: RoleId) => void;
+  onToggleRole: (role: Role) => Promise<unknown> | void;
 }
-export type AppSidebarModel = AppSidebarProps;
 
-export type CrewLinksProps = Pick<
-  AppSidebarModel,
-  | 'roles'
-  | 'runningRoles'
-  | 'roleStatus'
-  | 'onChatRole'
-  | 'onConfigureRole'
-  | 'working'
-  | 'onToggleRole'
+export type SidebarStripProps = Pick<AppSidebarProps, 'onSearch' | 'onAddJob'>;
+
+export type WorkspaceLinksProps = Pick<AppSidebarProps, 'view' | 'counts'>;
+
+export type CrewRolesProps = Pick<
+  AppSidebarProps,
+  'data' | 'working' | 'onConfigureRole' | 'onToggleRole'
 >;
-
-export type RecentJobsProps = Pick<AppSidebarModel, 'recent' | 'onOpenCard'>;
-
-export type SidebarHeadingProps = Pick<AppSidebarModel, 'onSearch' | 'onAddJob'>;
-
-export type WorkspaceLinksProps = Pick<AppSidebarModel, 'view' | 'stages' | 'onStage' | 'counts'>;

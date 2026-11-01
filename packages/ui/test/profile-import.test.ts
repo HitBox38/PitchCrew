@@ -122,7 +122,7 @@ test('keyboard accordion exposes saved-to-incoming word changes, exact source co
 
 test('phone layout keeps search and actions visible while only the list scrolls', async () => {
   await page.setViewportSize({ width: 390, height: 700 });
-  const layout = await page.locator('.profile-import-panel').evaluate((sheet) => {
+  const layout = await page.locator('.profile-sources-dialog').evaluate((sheet) => {
     const list = sheet.querySelector('.profile-import-review')!;
     const footer = sheet.querySelector('.profile-import-footer')!;
     return {
@@ -163,7 +163,7 @@ test('removed-only and unchanged reviews have no importable documents, and busy 
   expect(await page.getByRole('button', { name: 'Importing…', exact: true }).isDisabled()).toBe(
     true,
   );
-  await page.getByRole('button', { name: 'Close dialog' }).click();
+  await page.getByRole('button', { name: 'Close', exact: true }).click();
   await expect.poll(() => page.getByRole('dialog').count()).toBe(0);
   expect(errors).toEqual([]);
 });

@@ -1,5 +1,5 @@
 import type { PromptInputToolsProps } from '@/components/ai-elements/prompt-input/types.ts';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '@pitchcrew/design-system/utils';
 
 export const PromptInputTools = ({ className, ...props }: PromptInputToolsProps) => (
   <div

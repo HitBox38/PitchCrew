@@ -1,7 +1,7 @@
 import { useJobWork } from '@/components/JobWorkStatus/hooks/useJobWork.ts';
 import { LoaderCircle } from 'lucide-react';
 import type { OutcomeActionsProps } from '@/components/CardDetails/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { stateLabels } from '@/lib/labels.ts';
 import type { CardState } from '@pitchcrew/core';
 import { transitions } from '@pitchcrew/core/states';

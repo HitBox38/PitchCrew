@@ -2,12 +2,12 @@ import { useState } from 'react';
 import type { RuntimeInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useSearch } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { ChevronDown } from 'lucide-react';
 import { RuntimeUpdate } from './RuntimeUpdate.tsx';
@@ -31,26 +31,27 @@ export const RuntimeRow = ({ runtime }: { runtime: RuntimeInfo }) => {
       id={`runtime-${runtime.id}`}
       aria-label={label}
       tabIndex={-1}
-      className={`runtime-installation ${selected === runtime.id ? 'ring-2 ring-ring' : ''}`}
+      className="settings-runtime"
+      data-selected={selected === runtime.id || undefined}
     >
       <Collapsible open={open} onOpenChange={setOpen}>
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="min-w-0 flex-1 basis-52">
-            <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <div className="settings-runtime-main">
+          <div className="min-w-0 flex-1 basis-60">
+            <div className="settings-runtime-name">
               <h3>{label}</h3>
-              <span className="quiet text-sm wrap-anywhere tabular-nums">
+              <span className="ui-row-meta wrap-anywhere tabular-nums">
                 {runtime.version || 'Not installed'}
               </span>
             </div>
             <RuntimeSummary runtime={runtime} update={update} authentication={authentication} />
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="settings-row-actions">
             {update ? <RuntimeUpdateAction update={update} /> : null}
             <CollapsibleTrigger
-              render={<Button variant="outline" size="sm" />}
+              render={<Button variant="ghost" size="sm" />}
               aria-label={`${missingAuth ? 'Set up' : manual ? 'Update instructions for' : 'Details for'} ${label}`}
             >
-              {missingAuth ? 'Set up' : manual && !running ? 'Update instructions' : 'Details'}
+              {missingAuth ? 'Set up' : manual ? 'Update instructions' : 'Details'}
               <ChevronDown size={14} aria-hidden="true" className={open ? 'rotate-180' : ''} />
             </CollapsibleTrigger>
           </div>

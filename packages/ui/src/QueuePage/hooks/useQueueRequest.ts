@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import type { ChatRequest } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import type { QueueMoves } from '../types.ts';
 
-export const useQueueRequest = (request: ChatRequest, queueId: string) => {
+export const useQueueRequest = (request: ChatRequest, queueId: string, moves: QueueMoves) => {
   const [editing, setEditing] = useState(false);
   const actionsRef = useRef<HTMLButtonElement | null>(null);
   const wasEditing = useRef(false);
@@ -32,5 +33,16 @@ export const useQueueRequest = (request: ChatRequest, queueId: string) => {
       /* Displayed by the workspace. */
     }
   };
-  return { editing, setEditing, actionsRef, working, pending, failed, editable, command, skip };
+  return {
+    editing,
+    setEditing,
+    actionsRef,
+    working,
+    pending,
+    failed,
+    editable,
+    command,
+    skip,
+    moves,
+  };
 };

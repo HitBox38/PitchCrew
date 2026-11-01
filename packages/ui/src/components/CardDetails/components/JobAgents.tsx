@@ -1,9 +1,7 @@
 import type { JobAgent } from '../types.ts';
 import { turnPreview } from '../helpers.ts';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Tooltip } from '@/components/ui/tooltip/components/Tooltip.tsx';
-import { TooltipTrigger } from '@/components/ui/tooltip/components/TooltipTrigger.tsx';
-import { TooltipContent } from '@/components/ui/tooltip/components/TooltipContent.tsx';
+import { Tooltip, TooltipTrigger, TooltipContent } from '@pitchcrew/design-system/tooltip';
 import { TurnDuration } from '@/ChatTurn/components/TurnDuration.tsx';
 import { Link } from '@tanstack/react-router';
 

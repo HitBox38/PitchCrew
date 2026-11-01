@@ -1,12 +1,13 @@
-/* The page is a fixed workspace; documents, sources and the explorer scroll independently. */
+/* Profile (b5): open paper with a title row, optional notices, then a recessed note tree,
+ * the document sheet with its tabs and save bar, and a cited-in rail when packets quote the note.
+ * Only the tree, the sheet and the rail scroll. */
+/* The shell sizes and pads the dedicated page; Profile fills it. */
 .page.profile-page {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 48px - var(--desktop-titlebar-height, 0px));
   min-height: 0;
   max-width: none;
   overflow: hidden;
-  padding: 10px 14px 14px;
 }
 .profile-page > .workspace-notice,
 .profile-page > .error-banner {
@@ -18,470 +19,823 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: hidden;
-  background: var(--surface);
-  background-image: var(--grain), var(--fibres);
-  border: 0;
-  border-radius: 16px 17px 15px 16px;
-  box-shadow: var(--sheet);
+  container-type: inline-size;
 }
-.profile-workspace-heading {
+.profile-title-row {
+  flex-shrink: 0;
+}
+.profile-review-count {
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font-size: var(--text-detail);
+  line-height: 18px;
+  text-align: center;
+}
+
+/* Notices: content-sized clay cards, at most three across, only for saved items. */
+.profile-notices {
+  display: grid;
+  flex-shrink: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+  padding: 0;
+  list-style: none;
+}
+.profile-notice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 10px 10px 12px;
+  border-radius: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.profile-notice-kind {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.profile-notice-kind[data-tone='ochre'] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+.profile-notice-title {
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 1.35;
+}
+.profile-notice-detail {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Three columns; the document keeps a reading measure and the rail sits beside it. */
+.profile-body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: 240px minmax(0, 720px) 260px;
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'tree doc rail';
+  justify-content: start;
+  gap: 24px;
+  min-height: 0;
+}
+.profile-body:not(:has(.profile-citations)) {
+  grid-template-columns: 240px minmax(0, 760px);
+}
+.profile-body[data-explorer='closed'] {
+  grid-template-columns: minmax(0, 720px) 260px;
+  grid-template-areas: 'doc rail';
+}
+.profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
+  grid-template-columns: minmax(0, 760px);
+}
+/* The tray ends with its list; a long list scrolls inside the column's height. */
+.profile-aside {
+  display: flex;
+  grid-area: tree;
+  flex-direction: column;
+  align-self: start;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  max-height: 100%;
+  padding: 10px;
+  border-radius: 16px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.profile-aside[hidden] {
+  display: none;
+}
+.profile-tree-search {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 10px;
-  min-height: 68px;
-  padding: 12px 20px;
-  border-bottom: 1px solid var(--border);
+  gap: 4px;
 }
-.profile-heading-copy {
-  flex: 1;
-  min-width: 0;
+.profile-tree-search input {
+  height: 32px;
+  padding-left: 30px;
+  border-radius: 9px;
+  background: var(--surface-bright);
+  box-shadow: var(--clay);
+  font-size: var(--text-label);
 }
-.profile-heading-copy h1 {
-  font: 600 18px/1.3 var(--font-sans);
-  letter-spacing: -0.2px;
-}
-.profile-heading-copy p {
-  margin-top: 3px;
+.profile-tree-search-icon {
+  position: absolute;
+  top: 50%;
+  left: 10px;
   color: var(--muted);
-  font-size: 12px;
+  pointer-events: none;
+  transform: translateY(-50%);
+}
+.profile-tree-path {
+  overflow-wrap: anywhere;
+  font-weight: 400;
   line-height: 1.45;
-}
-.profile-workspace-heading .profile-sources-action {
-  flex-shrink: 0;
-  height: 34px;
-  padding-inline: 12px;
-  font-size: 12px;
-}
-.profile-workspace-body {
-  display: grid;
-  flex: 1;
-  grid-template-columns: 224px minmax(0, 1fr);
-  min-height: 0;
-  overflow: hidden;
-}
-.profile-workspace-body.explorer-hidden {
-  grid-template-columns: minmax(0, 1fr);
-}
-.explorer-hidden .profile-document-tabs,
-.explorer-hidden .profile-editor {
-  margin-left: 12px;
-}
-.profile-aside {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  min-height: 0;
-  background: transparent;
-}
-.profile-aside[hidden],
-.profile-document [data-slot='tabs-content'][hidden] {
-  display: none;
-}
-.profile-aside h2 {
-  font-family: var(--font-sans);
-}
-.profile-explorer-toggle {
-  height: 28px;
-  width: 28px;
-  padding: 0;
-  color: var(--muted);
-  border-radius: 8px 9px 8px 7px;
-}
-.profile-explorer-toggle:hover {
-  background: rgb(var(--tint) / 0.06);
-  color: var(--ink);
 }
 .profile-notes {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 3px 10px 12px;
+  margin: 0 -4px;
+  padding: 2px 4px 8px;
+}
+.profile-tree-empty {
+  padding: 8px;
+  color: var(--muted);
+  font-size: var(--text-label);
+}
+.profile-tree-row {
+  position: relative;
+  min-width: 0;
+}
+.profile-tree-row + .profile-tree-row {
+  margin-top: 1px;
 }
 .profile-file {
   display: flex;
   justify-content: flex-start;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 7px;
   width: 100%;
   min-width: 0;
-  height: auto;
-  min-height: 33px;
-  padding: 7px 12px;
-  border: 0;
-  border-radius: 9px 10px 9px 8px;
-  background: transparent;
+  height: 32px;
+  padding: 0 32px 0 calc(8px + var(--depth, 0) * 16px);
+  border-radius: 8px;
   color: var(--ink-soft);
-  font: 12px/1.5 var(--font-mono);
+  font: 400 var(--text-label) / 1.3 var(--font-sans);
   text-align: left;
-  box-shadow: none;
-  transition: var(--motion);
 }
-.profile-file > span {
+.profile-file > span:not(.profile-dirty-dot) {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.profile-file:hover {
-  background: rgb(var(--tint) / 0.045);
+.profile-file > svg {
+  color: var(--muted);
 }
-.profile-file.selected {
+.profile-folder {
+  color: var(--ink);
+  font-weight: 600;
+}
+.profile-tree-row[data-selected] .profile-file {
   background: var(--clay-fill);
-  color: var(--primary-deep);
   box-shadow: var(--clay);
+  color: var(--ink);
+  font-weight: 600;
 }
-.profile-file.selected:hover {
-  background: var(--clay-fill-hover);
-  box-shadow: var(--clay-hover);
+.profile-row-menu {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  opacity: 0;
 }
-.profile-document,
-.profile-editor,
-.profile-editor-modes {
+.profile-tree-row:hover .profile-row-menu,
+.profile-tree-row:focus-within .profile-row-menu,
+.profile-row-menu[data-popup-open] {
+  opacity: 1;
+}
+@media (hover: none) {
+  .profile-row-menu {
+    opacity: 1;
+  }
+}
+/* Matches the responsive.css touch floor: rows and their menu grow to 44px, so the menu sits
+ * flush in the row and the label stops before it. */
+@media (width < 48rem), (pointer: coarse) {
+  .profile-file {
+    padding-right: 48px;
+  }
+  .profile-row-menu {
+    top: 0;
+    right: 0;
+  }
+}
+.profile-dirty-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ochre);
+}
+
+/* Document column: tab row, paper sheet, then a separate save bar. */
+.profile-document {
   display: flex;
+  grid-area: doc;
   flex-direction: column;
+  gap: 0;
   min-width: 0;
   min-height: 0;
-  gap: 0;
-  overflow: hidden;
+}
+.profile-tab-row {
+  display: flex;
+  flex-shrink: 0;
+  align-items: flex-end;
+  gap: 8px;
+  height: 40px;
+}
+/* The tree toggle leads the document toolbar, 8px before the first tab and on its baseline. */
+.profile-tab-row > .profile-explorer-toggle {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  margin-bottom: 4px;
+  border-radius: 9px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--muted);
+}
+.profile-tab-row > .profile-explorer-toggle[aria-expanded='false'] {
+  color: var(--ink);
+}
+.profile-tab-row > .profile-mode-tabs {
+  margin-bottom: 4px;
+  margin-left: auto;
+}
+.profile-tabs-host {
+  min-width: 0;
+  flex: 0 1 auto;
 }
 .profile-document-tabs {
   display: flex;
   justify-content: flex-start;
-  flex-shrink: 0;
   gap: 6px;
-  overflow-x: auto;
-  overscroll-behavior-x: contain;
   width: auto;
-  height: 42px;
-  margin: 10px 12px 10px 0;
-  padding: 6px;
+  height: 36px;
+  padding: 0 4px;
+  border-radius: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  background: transparent;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+.profile-tab-item {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  min-width: 0;
+  max-width: 220px;
+  height: 36px;
+  border-radius: 10px 10px 0 0;
   background: var(--sunken-fill);
-  border-radius: 12px 13px 12px 11px;
-  box-shadow: var(--clay-sunken);
+  box-shadow: inset 0 2px 3px rgb(var(--tint) / 0.06);
+  cursor: grab;
+}
+/* The open note's tab is part of its paper sheet, so it shares the sheet's themed surface. */
+.profile-tab-item[data-selected='true'] {
+  background: var(--surface-bright);
+  box-shadow: 0 -2px 6px rgb(var(--tint) / 0.06);
+}
+.profile-tab-item[data-selected='true'] :is(.profile-document-tab, .profile-tab-close) {
+  color: var(--ink);
+}
+.profile-tab-item[data-dragging='true'] {
+  cursor: grabbing;
+  box-shadow: var(--clay-hover);
 }
 .profile-document-tab {
-  flex: 1;
   justify-content: flex-start;
+  gap: 7px;
   min-width: 0;
   height: 100%;
-  padding: 0 12px;
+  padding: 0 4px 0 14px;
   border: 0;
-  border-radius: 9px 10px 9px 8px;
-  color: var(--muted);
-  font-size: 12px;
-  font-weight: 600;
+  background: transparent;
   box-shadow: none;
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+  cursor: grab;
+  touch-action: none;
 }
-.profile-dirty-dot {
+.profile-document-tab[data-active] {
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+}
+.profile-tab-close {
   flex-shrink: 0;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--ochre);
+  width: 24px;
+  height: 24px;
+  margin-right: 6px;
+  padding: 0;
+  border-radius: 7px;
+  color: var(--muted);
+  opacity: 0.6;
 }
-.profile-update-count {
-  padding: 0 5px;
-  border-radius: 4px;
-  background: var(--ochre-soft);
-  color: var(--ochre);
+.profile-tab-item:hover .profile-tab-close,
+.profile-tab-item[data-selected='true'] .profile-tab-close,
+.profile-tab-close:focus-visible {
+  opacity: 1;
 }
-.profile-note-panel,
-.profile-write-panel {
+.profile-note-form {
   display: flex;
   flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+}
+.profile-sheet {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   min-height: 0;
   overflow: hidden;
-}
-.profile-editor,
-.profile-editor-modes {
-  flex: 1;
-  background: transparent;
-}
-.profile-editor {
-  margin: 0 12px 12px 0;
-  border-radius: 14px 15px 13px 14px;
+  border-radius: 4px;
   background: var(--surface-bright);
-  background-image: var(--fibres);
   box-shadow: var(--sheet);
 }
-.profile-editor-heading input {
+/* Document paper (Profile and Skills) follows the app theme like the tabs, library, rail and
+ * footers around it. */
+:root[data-theme='dark'] :is(.profile-sheet, .skills-sheet) {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 8px 24px rgb(0 0 0 / 0.3);
+}
+.profile-sheet .profile-write-panel,
+.profile-sheet .profile-preview-panel {
   flex: 1;
-  min-width: 120px;
-  height: 32px;
-  padding: 0 10px;
+  min-height: 0;
+}
+.profile-sheet .profile-write-panel[hidden],
+.profile-sheet .profile-preview-panel[hidden] {
+  display: none;
+}
+.profile-sheet textarea {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  padding: 36px 48px;
   border: 0;
-  border-radius: 9px 10px 9px 8px;
+  border-radius: 4px;
+  resize: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--ink);
+  font: 400 15px/1.6 var(--font-sans);
+  field-sizing: fixed;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  tab-size: 2;
+}
+.profile-sheet textarea:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+  box-shadow: none;
+}
+.profile-sheet .profile-preview-panel {
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 36px 48px;
+  background: transparent;
+}
+.profile-sheet .profile-preview-panel > div {
+  max-width: 640px;
+  font-size: 15px;
+  line-height: 1.7;
+}
+.profile-origin {
+  flex-shrink: 0;
+  padding: 10px 48px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-detail);
+  overflow-wrap: anywhere;
+}
+.profile-origin a {
+  color: var(--primary);
+}
+.profile-origin svg {
+  display: inline;
+  vertical-align: -1px;
+}
+.profile-empty {
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--ink-soft);
+  font-size: var(--text-body);
+  text-align: center;
+}
+.profile-save-bar {
+  display: flex;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-height: 48px;
+  padding: 6px 8px 6px 16px;
+  border-radius: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+.profile-save-path {
+  flex: 1 1 12rem;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-save-state {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  white-space: nowrap;
+}
+.profile-save-blocked {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ochre);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.profile-save-error {
+  color: var(--error-ink);
+  font-size: var(--text-label);
+}
+.profile-save-kbd {
+  height: 18px;
+  margin-left: 2px;
+  background: rgb(255 255 255 / 0.18);
+  color: inherit;
+  opacity: 0.85;
+}
+
+/* Cited-in rail: real packet claims quoting the open note. */
+.profile-citations {
+  grid-area: rail;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  padding-top: 44px;
+}
+.profile-citations-heading {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.profile-citations-heading svg {
+  transition: transform var(--duration-press, 120ms) var(--ease);
+}
+.profile-citations-heading[data-panel-open] svg {
+  transform: rotate(90deg);
+}
+.profile-citation-list {
+  display: grid;
+  margin: 8px 0 0;
+  padding: 4px;
+  border-radius: 12px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
-  color: var(--ink-soft);
-  font: 12px var(--font-mono);
+  list-style: none;
 }
+/* Quiet 72–88px rows: company and stage, one quoted line, then "N more quotes". */
+.profile-citation {
+  display: grid;
+  min-width: 0;
+  padding: 2px 0;
+}
+.profile-citation + .profile-citation {
+  box-shadow: 0 -1px 0 var(--border);
+}
+.profile-citation-open {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 10px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--text-detail);
+  line-height: 18px;
+  text-align: left;
+  cursor: pointer;
+}
+.profile-citation-open:hover {
+  background: rgb(var(--tint) / 0.05);
+}
+.profile-citation-open:focus-visible,
+.profile-citation-more:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+.profile-citation-job {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  color: var(--muted);
+}
+.profile-citation-job b {
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-label);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-citation-job > span {
+  flex: none;
+}
+.profile-citation-quote,
+.profile-citation-same {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.profile-citation-same {
+  color: var(--muted);
+}
+.profile-citation-rest {
+  padding: 0 10px 6px;
+}
+.profile-citation-more {
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--primary);
+  font-size: var(--text-detail);
+  cursor: pointer;
+}
+.profile-citation-quotes {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 2px;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-detail);
+  line-height: 18px;
+  list-style: none;
+}
+
+/* Narrower work areas: the rail becomes a disclosure under the document. */
+@container (width < 1040px) {
+  .profile-notices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .profile-body,
+  .profile-body:not(:has(.profile-citations)) {
+    grid-template-columns: 220px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: 'tree doc' 'tree rail';
+  }
+  .profile-body[data-explorer='closed'],
+  .profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'doc' 'rail';
+  }
+  .profile-citations {
+    max-height: 40cqh;
+    padding-top: 0;
+  }
+}
+/* Phones: the tree replaces the document until a note is chosen. */
+@variant max-mobile {
+  .profile-body,
+  .profile-body:not(:has(.profile-citations)),
+  .profile-body[data-explorer='closed'],
+  .profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'tree' 'rail';
+  }
+  .profile-body[data-explorer='closed'],
+  .profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
+    grid-template-areas: 'doc' 'rail';
+  }
+  .profile-body[data-explorer='open'] .profile-document,
+  .profile-body[data-explorer='open'] .profile-citations {
+    display: none;
+  }
+  .profile-sheet .profile-preview-panel {
+    padding: 20px;
+  }
+  /* 16px on phones so focusing the editor never zooms the page. */
+  .profile-sheet textarea {
+    padding: 20px;
+    font-size: 16px;
+  }
+  .profile-origin {
+    padding-inline: 20px;
+  }
+  /* One 44px toolbar: toggle, the tab lane (scrolling on its own) and Write | Preview share a
+   * centre line, and the paper starts at its bottom edge. */
+  .profile-tab-row {
+    align-items: center;
+    gap: 4px;
+    height: 44px;
+  }
+  .profile-tab-row > .profile-explorer-toggle,
+  .profile-tab-row > .profile-mode-tabs {
+    margin-bottom: 0;
+  }
+  .profile-tab-row > .profile-explorer-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  .profile-tabs-host {
+    align-self: stretch;
+  }
+  .profile-document-tabs,
+  .profile-tab-item {
+    height: 44px;
+  }
+  .profile-tab-row > .profile-mode-tabs {
+    height: 44px;
+    padding: 0;
+  }
+  /* Phones show the title in the shell's top bar; keep the heading for assistive tech. */
+  .profile-title-row {
+    min-height: 0;
+    padding: 0 0 8px;
+  }
+  .profile-title-row > h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* New note sits in the 48px bar; Insights and Sources share one 44px row. */
+  .profile-title-row > .ui-title-actions {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    margin-left: 0;
+  }
+  .profile-title-row > .ui-title-actions > * {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  .profile-tabs-host {
+    flex: 1 1 0;
+  }
+  /* Icon-only Write | Preview so the open tabs keep their room; names stay accessible. */
+  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-trigger'] {
+    gap: 0;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 9px;
+    font-size: 0;
+  }
+  .profile-notices {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Shared Markdown editor primitives (Profile and Skills): the Write | Preview segment and the
+ * panels. Pages style their own sheet around these. */
 .profile-mode-tabs {
   height: 32px;
   padding: 3px;
   gap: 2px;
-  border-radius: 10px 11px 10px 9px;
+  border-radius: 9px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
 .profile-mode-tabs [data-slot='tabs-trigger'] {
-  padding: 3px 8px;
-  font-size: 12px;
+  height: 26px;
+  padding: 0 10px;
   border: 0;
-  border-radius: 7px 8px 7px 6px;
+  border-radius: 7px;
   background: transparent;
   box-shadow: none;
+  font-size: var(--text-label);
 }
 .profile-mode-tabs [data-slot='tabs-trigger'][data-active] {
   background: var(--clay-fill);
   color: var(--ink);
   box-shadow: var(--clay);
 }
-.profile-editor textarea {
+.profile-write-panel {
+  display: flex;
   flex: 1;
-  width: 100%;
-  height: 100%;
   min-height: 0;
-  field-sizing: fixed;
-  padding: 24px 28px;
-  border: 0;
-  border-radius: 0;
-  resize: none;
-  background: transparent;
-  box-shadow: none;
-  color: var(--ink);
-  font: 13px/1.9 var(--font-mono);
-  tab-size: 2;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-.profile-editor textarea:focus-visible {
-  outline: 1px solid var(--primary);
-  outline-offset: -1px;
-  box-shadow: none;
-}
-.profile-editor-status {
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: 16px;
-  min-height: 32px;
-  padding: 7px 16px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
-}
-.profile-save-state {
-  white-space: nowrap;
-}
-.profile-workspace .data-location {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  gap: 8px;
-  min-width: 0;
-  min-height: 34px;
-  padding: 8px 20px;
-  border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 11px;
-}
-.data-location > span {
-  min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-.data-location code {
-  margin-left: 8px;
-  color: var(--ink-soft);
-  font: 11px var(--font-mono);
-}
-.profile-sources-panel,
 .profile-preview-panel {
   flex: 1;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
   padding: 24px 28px;
-  background: var(--surface-bright);
-  background-image: var(--fibres);
-}
-.profile-sources-panel .profile-sources {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 0;
-  border: 0;
 }
 .profile-preview-panel > div {
   max-width: 72ch;
-  margin: 0 auto;
   font-size: 15px;
-  line-height: 1.8;
+  line-height: 1.75;
 }
-@variant max-wide {
-  .profile-workspace-body {
-    grid-template-columns: 190px minmax(0, 1fr);
-  }
-}
-/* Match the shared sidebar's mobile breakpoint. Explorer replaces the document on phones. */
 @variant max-mobile {
-  .page.profile-page {
-    padding: 7px;
-  }
-  .profile-workspace-heading {
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 12px;
-  }
-  .profile-heading-copy h1 {
-    font-size: 16px;
-  }
-  .profile-heading-copy {
-    flex-basis: calc(100% - 74px);
-  }
-  .profile-sources-action {
-    margin-left: 36px;
-  }
-  .profile-workspace .data-location {
-    padding-inline: 12px;
-  }
-  .profile-workspace-body {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .profile-workspace-body:not(.explorer-hidden) .profile-document {
-    display: none;
-  }
-  .profile-document-tabs {
-    margin: 10px 12px;
-  }
-  .profile-editor {
-    margin-left: 12px;
-  }
-  .profile-editor-heading {
-    padding: 8px 12px;
-  }
-  .profile-editor-heading input {
-    flex-basis: calc(100% - 120px);
-  }
-  .profile-mode-tabs {
-    order: 1;
-  }
-  .profile-editor textarea {
-    padding: 18px;
-    font-size: 12px;
-  }
-  .profile-sources-panel,
   .profile-preview-panel {
     padding: 18px;
   }
-  .profile-document-tab {
-    padding: 0 12px;
-  }
 }
 
-.profile-tab-item {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  min-width: 0;
-  max-width: 240px;
-  height: 100%;
-  border-radius: 9px 10px 9px 8px;
-  transition: var(--motion);
-}
-.profile-tab-item:hover {
-  background: rgb(var(--tint) / 0.045);
-}
-.profile-tab-item[data-selected='true'] {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-}
-.profile-tab-item[data-selected='true']:hover {
-  background: var(--clay-fill-hover);
-  box-shadow: var(--clay-hover);
-}
-.profile-document-tab[data-active] {
-  background: transparent;
-  color: var(--ink);
-  box-shadow: none;
-}
-.profile-tab-close {
-  flex-shrink: 0;
-  height: 24px;
-  width: 24px;
-  padding: 0;
-  margin-right: 6px;
-  border-radius: 7px 8px 7px 6px;
-  color: var(--muted);
-}
+/* Profile sources dialog: list first; setup and proposal reviews replace it in place. */
 .profile-sources-dialog {
   display: flex;
   flex-direction: column;
   top: calc(50% + var(--desktop-titlebar-height, 0px) / 2);
-  width: min(680px, calc(100vw - 32px));
+  width: min(880px, calc(100vw - 32px));
   max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px);
   gap: 0;
   overflow: hidden;
   padding: 0;
 }
-.profile-sources-dialog .profile-sources-panel {
+/* Import review replaces the list in the same frame: the change list scrolls between the
+ * source line/toolbar and one pinned footer. */
+.profile-sources-dialog[data-review] {
+  height: min(820px, calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px));
+}
+.profile-sources-dialog[data-review] .profile-sources-panel {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+}
+.profile-sources[data-review] {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
+  min-height: 0;
+}
+.profile-sources-header {
+  flex-shrink: 0;
+  gap: 4px;
+  padding: 20px 56px 16px 24px;
+  text-align: left;
+}
+.profile-sources-panel {
   flex: 0 1 auto;
-  padding: 24px;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 4px 24px 24px;
 }
 .profile-sources-dialog [data-source-focus] {
   scroll-margin-block: 12px;
 }
 @variant max-mobile {
-  .profile-sources-dialog .profile-sources-panel {
-    padding: 16px;
+  /* Phones: one full-width surface rather than a floating card. */
+  .profile-sources-dialog,
+  .profile-sources-dialog[data-review] {
+    top: var(--desktop-titlebar-height, 0px);
+    left: 0;
+    width: 100vw;
+    max-width: none;
+    height: calc(100dvh - var(--desktop-titlebar-height, 0px));
+    max-height: none;
+    border-radius: 0;
+    translate: none;
+  }
+  .profile-sources-panel {
+    flex: 1 1 auto;
+    padding: 4px 16px 16px;
+  }
+  .profile-sources-header {
+    padding: 16px 48px 12px 16px;
   }
 }
-
-.profile-tree-row {
-  position: relative;
-  min-width: 0;
-  margin-bottom: 2px;
+.profile-sheet .profile-preview-panel h1 {
+  margin-bottom: 4px;
+  font-size: 1.375rem;
+  letter-spacing: -0.01em;
 }
-.profile-tree-row .profile-file:not(.profile-folder) {
-  padding-right: 34px;
-}
-.profile-folder {
-  font-family: var(--font-sans);
-}
-.profile-move-note {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 25px;
-  height: 25px;
-  padding: 0;
-  border-radius: 7px;
-  color: var(--muted);
-  opacity: 0;
-}
-.profile-tree-row:hover .profile-move-note,
-.profile-tree-row:focus-within .profile-move-note {
-  opacity: 1;
-}
-@media (hover: none) {
-  .profile-move-note {
-    opacity: 1;
-  }
-}
-
-.profile-tab-item {
-  cursor: grab;
-}
-.profile-tab-item[data-dragging='true'] {
-  cursor: grabbing;
-  box-shadow: var(--clay-hover);
-}
-.profile-tab-item .profile-document-tab {
-  cursor: grab;
-  touch-action: none;
+.profile-sheet .profile-preview-panel h2 {
+  font-size: 1rem;
 }

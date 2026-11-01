@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { fieldNumber, fieldText, ruleFormKey } from '../form-helpers.ts';
 import type { RuleFormProps } from './RuleFormBasics.tsx';
@@ -36,7 +36,7 @@ export const RulePatternFields = ({ rule, index, change }: RuleFormProps) => {
           </p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 gap-4 max-compact:grid-cols-1">
+        <div className="settings-field-grid">
           <FormSelect
             id={ruleFormKey(index, 'match')}
             label="Check"

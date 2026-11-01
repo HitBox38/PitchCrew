@@ -45,8 +45,8 @@ export const smokeComposerContext = `(async () => {
   const reattached = await attachJob();
   const snapshot = await fetch('/api/snapshot', { headers: { 'x-pitchcrew-client': 'ui' } }).then((response) => response.json());
   const persisted = snapshot.conversations.find((item) => item.id === conversation.id)?.cardId === job.id;
-  document.querySelector('nav[aria-label="Conversations"] a[href="/chat/scout"]').click();
-  await waitFor(() => location.pathname === '/chat/scout' && document.querySelector('.chat-heading h2')?.textContent === 'Scout chat' && !document.querySelector('.chat-context-job'));
+  document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]').click();
+  await waitFor(() => location.pathname === '/chat/scout' && document.querySelector('.chat-heading h1')?.textContent === 'Scout chat' && !document.querySelector('.chat-context-job'));
   const checks = { filePickerOpened, locked, selected, removed, reattached, persisted };
   if (!Object.values(checks).every(Boolean)) throw new Error('Composer context checks: ' + JSON.stringify(checks));
   return true;

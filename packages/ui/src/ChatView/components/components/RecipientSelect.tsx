@@ -1,10 +1,12 @@
 import type { RecipientSelectProps } from '@/ChatView/components/types.ts';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { SelectContent } from '@/components/ui/select/components/SelectContent.tsx';
-import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
-import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.tsx';
-import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
-import { Select } from '@/components/ui/select/constants.ts';
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Select,
+} from '@pitchcrew/design-system/select';
 import type { RoleId } from '@pitchcrew/core';
 
 export const RecipientSelect = ({

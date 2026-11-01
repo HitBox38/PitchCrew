@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { useStaleCleanup } from '../hooks/useStaleCleanup.ts';
 import { StaleConfirm } from './StaleConfirm.tsx';
 import { StaleList } from './StaleList.tsx';
@@ -7,14 +7,13 @@ import { StaleList } from './StaleList.tsx';
 export const StaleCleanup = () => {
   const stale = useStaleCleanup();
   return (
-    <div>
+    <div className="insights-tidy-part">
       <h3>Silent applications</h3>
-      <p className="quiet">
-        Find submitted jobs with no status change for a number of days, then choose which ones to
-        mark as no response. Nothing changes until you confirm. If a company replies later, move the
-        job forward from its details.
+      <p className="insights-note">
+        Submitted jobs with no status change for a number of days. Nothing changes until you
+        confirm; a later reply can still move a job forward.
       </p>
-      <div className="form mt-2 flex flex-wrap items-end gap-3">
+      <div className="insights-tidy-row">
         <label className="field">
           Days without a status change
           <Input

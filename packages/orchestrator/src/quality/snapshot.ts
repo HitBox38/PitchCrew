@@ -6,6 +6,7 @@ import { planRevision } from './plans.ts';
 export const qualitySnapshot = (context: CrewContext, profile: ProfileFile[]): QualitySnapshot => {
   return {
     writingGuide: writingGuide(context),
+    detectors: context.detectors.status(),
     writingCorrections: (
       context.board.db
         .prepare(

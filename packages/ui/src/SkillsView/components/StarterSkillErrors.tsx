@@ -1,16 +1,16 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import type { StarterSkillErrorsProps } from '@/SkillsView/types.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { groupedStarterErrors } from '../helpers.ts';
 
-export const StarterSkillErrors = ({ data, working, action }: StarterSkillErrorsProps) => {
+export const StarterSkillErrors = ({ data, working, action }: SkillsViewModel) => {
   return (
-    <div className="starter-skill-errors" aria-live="polite">
-      <h3>Some starter skills could not be loaded</h3>
+    <div className="skills-starter-errors" aria-live="polite">
+      <strong>Some starter skills couldn’t be loaded</strong>
       <ul>
         {groupedStarterErrors(data.starterSkillErrors).map(({ error, names }) => (
           <li key={error}>
             {error}
-            <span className="starter-skill-error-names">{names.join(', ')}</span>
+            <span>{names.join(', ')}</span>
           </li>
         ))}
       </ul>
@@ -23,7 +23,7 @@ export const StarterSkillErrors = ({ data, working, action }: StarterSkillErrors
           )
         }
       >
-        Retry missing starter skills
+        Retry
       </Button>
     </div>
   );

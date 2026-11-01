@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import type { GoogleCredentialsProps } from '@/ConnectorSettings/types.ts';
 
 export const GoogleCredentials = ({

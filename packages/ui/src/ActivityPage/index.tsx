@@ -1,23 +1,27 @@
-import { ActivityFilters } from '@/ActivityPage/components/ActivityFilters.tsx';
-import { ActivityHistory } from '@/ActivityPage/components/ActivityHistory.tsx';
-import { eventKindLabels } from '@/ActivityPage/constants.ts';
-import { EmptyState } from '@/components/EmptyState/index.tsx';
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useNavigate, useSearch } from '@tanstack/react-router';
+import { WorkspaceHeaderActions, WorkspaceHeaderFact } from '@/App/components/WorkspacePage.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { ActivityFilters } from './components/ActivityFilters.tsx';
+import { ActivityHistory } from './components/ActivityHistory.tsx';
+import type { eventKindLabels } from './constants.ts';
+import { filterEvents } from './history.ts';
+import { activitySentence } from './labels.ts';
 
+/** What changed, newest first, grouped by day; search and type filter live in the URL. */
 export const ActivityPage = () => {
   const events = useWorkspaceStore((state) => state.data?.events);
+  const roles = useWorkspaceStore((state) => state.data?.roles);
+  const conversations = useWorkspaceStore((state) => state.data?.conversations);
   const search = useSearch({ from: '/activity' });
   const navigate = useNavigate({ from: '/activity' });
   const query = search.q ?? '';
   const kind = search.kind ?? 'all';
   if (!events) return null;
-  const filtered = events.filter(
-    (event) =>
-      (kind === 'all' || event.kind === kind) &&
-      `${event.message} ${event.actor} ${eventKindLabels[event.kind]}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
+  const nameOf = (id: string) => roles?.find((role) => role.id === id)?.name;
+  const titleOf = (id: string) => conversations?.find((item) => item.id === id)?.title;
+  const filtered = filterEvents(events, query, kind, (event) =>
+    activitySentence(event, nameOf, titleOf),
   );
   const change = (q: string, nextKind: string) => {
     void navigate({
@@ -28,23 +32,29 @@ export const ActivityPage = () => {
       replace: true,
     });
   };
+  const count = `${filtered.length} ${filtered.length === 1 ? 'event' : 'events'}`;
   return (
-    <div className="activity-workspace flex min-h-0 min-w-0 flex-1 flex-col">
-      <ActivityFilters query={query} kind={kind} change={change} count={filtered.length} />
+    <section className="activity-page" aria-label="Activity">
+      <WorkspaceHeaderFact>
+        <output aria-live="polite" aria-atomic="true">
+          {filtered.length === events.length ? count : `${count} of ${events.length}`}
+        </output>
+      </WorkspaceHeaderFact>
+      <WorkspaceHeaderActions>
+        <ActivityFilters query={query} kind={kind} change={change} />
+      </WorkspaceHeaderActions>
       {filtered.length ? (
-        <ActivityHistory events={filtered} />
+        <ActivityHistory key={`${query}\n${kind}`} events={filtered} />
+      ) : events.length ? (
+        <p className="ui-empty">
+          No activity matches these filters.
+          <Button variant="ghost" size="sm" onClick={() => change('', 'all')}>
+            Clear filters
+          </Button>
+        </p>
       ) : (
-        <div className="min-h-0 flex-1 overflow-y-auto">
-          <EmptyState
-            title={events.length ? 'No matching activity' : 'Your history starts here'}
-            description={
-              events.length
-                ? 'Try another search or activity type.'
-                : 'Your jobs, crew runs, and decisions will appear here as you work.'
-            }
-          />
-        </div>
+        <p className="ui-empty">No activity yet. Jobs, crew runs and decisions appear here.</p>
       )}
-    </div>
+    </section>
   );
 };

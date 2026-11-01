@@ -1,25 +1,23 @@
 /** Real renderer checks using only the fixture daemon's injected release responses. */
 export const smokeUpdates = `(async () => {
   const updateSelector = '[aria-label="Download update"][data-slot="sidebar-menu-button"]';
-  const refreshSelector = '[aria-label="Check for updates"][data-slot="sidebar-menu-button"]';
   const notice = await waitFor(() => !!document.querySelector(updateSelector));
   const indicator = document.querySelector(updateSelector);
   const footer = !!indicator?.closest('[data-slot="sidebar-footer"]');
-  const utilityControls = [...indicator?.closest('[data-slot="sidebar-menu"]')?.querySelectorAll('[data-slot="sidebar-menu-button"]') ?? []];
-  const utilityBounds = utilityControls.map((control) => control.getBoundingClientRect());
+  // The update is a full-width footer row above the slot tray, with its dismissal on the same line.
   const updateBounds = indicator?.getBoundingClientRect();
   const dismissBounds = document.querySelector('[aria-label="Dismiss update notice"]')?.getBoundingClientRect();
-  const compactFooter = utilityBounds.length === 3 && utilityBounds.every((bounds) => bounds.width > 0 && bounds.width <= 40 && bounds.height > 0 && bounds.height <= 40);
-  const inlineUpdate = !!updateBounds && !!dismissBounds && [...utilityBounds, dismissBounds].every((bounds) => Math.abs(bounds.top + bounds.height / 2 - (updateBounds.top + updateBounds.height / 2)) < 1);
-  const spacedFooter = utilityBounds.every((bounds, index) => index === 0 || bounds.left >= utilityBounds[index - 1].right) && dismissBounds?.left >= updateBounds?.right;
+  const trayBounds = document.querySelector('.sidebar-tray')?.getBoundingClientRect();
+  const compactFooter = !!updateBounds && !!trayBounds && updateBounds.width > 120 && updateBounds.height > 0 && updateBounds.height <= 40 && updateBounds.bottom <= trayBounds.top + 1;
+  const inlineUpdate = !!updateBounds && !!dismissBounds && Math.abs(dismissBounds.top + dismissBounds.height / 2 - (updateBounds.top + updateBounds.height / 2)) < 1;
+  const spacedFooter = dismissBounds?.left >= updateBounds?.right;
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
   document.querySelector('a[href="/settings?section=general"]')?.click();
   if (!await waitFor(() => !!document.querySelector('.settings-tabs'))) throw new Error('Settings navigation missing.');
   [...document.querySelectorAll('.settings-tabs [role="tab"]')].find(tab => tab.textContent.startsWith('Updates'))?.click();
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
   const retained = document.querySelector(updateSelector) === indicator;
-  const toggle = document.querySelector('[data-slot="sidebar-trigger"]');
-  toggle?.click();
+  document.querySelector('button[aria-label="Hide sidebar"]')?.click();
   const collapsed = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-collapsible="icon"]'));
   const indicatorBounds = indicator?.getBoundingClientRect();
   const compactIndicator = indicatorBounds && indicatorBounds.width > 0 && indicatorBounds.width <= 40;
@@ -33,7 +31,7 @@ export const smokeUpdates = `(async () => {
   indicator?.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false, relatedTarget: document.body }));
   document.body.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: innerWidth - 1, clientY: 1 }));
   const closed = await waitFor(() => !document.querySelector('[data-slot="tooltip-content"]'));
-  toggle?.click();
+  document.querySelector('button[aria-label="Show sidebar"]')?.click();
   const expanded = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-state="expanded"]'));
   const section = document.querySelector('#updates-heading')?.closest('section');
   const version = section?.textContent.includes('Version 0.1.0') && section?.textContent.includes('Build aaaaaaaaaaaa');
@@ -54,12 +52,13 @@ export const smokeUpdates = `(async () => {
   await waitFor(() => !!document.querySelector('[aria-label="Dismiss update notice"]'));
   document.querySelector('[aria-label="Dismiss update notice"]')?.click();
   const dismissed = await waitFor(() => !document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]'));
-  const refresh = document.querySelector(refreshSelector);
-  const dismissalFocus = await waitFor(() => !!refresh && document.activeElement === refresh);
+  // Without a permanent check icon, dismissal hands focus to the footer's Settings control.
+  const dismissalFocus = await waitFor(() => document.activeElement === document.querySelector('.sidebar-settings'));
   const stillAvailable = !!section?.querySelector('a[aria-label="View release and download"]');
-  refresh?.click();
+  // A manual check from Settings > Updates brings the dismissed build back to the footer.
+  button?.click();
   const checkedAgain = await waitFor(() => !!document.querySelector(updateSelector));
-  const checkedAgainFocus = document.activeElement === document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]');
+  const checkedAgainFocus = !document.querySelector('[data-slot="popover-content"]') && document.activeElement === document.querySelector('.sidebar-settings');
   section?.scrollIntoView({ block: 'center' });
   interactionChecks.appUpdates = { notice, footer, inlineUpdate, compactFooter, spacedFooter, noPageBanner, settings, retained, collapsed, compactIndicator, details, detailsRelease, closed, expanded, version, link, enabled, compactControl, disabled, restored, manual, dismissed, dismissalFocus, stillAvailable, checkedAgain, checkedAgainFocus };
   return Object.values(interactionChecks.appUpdates).every(Boolean);

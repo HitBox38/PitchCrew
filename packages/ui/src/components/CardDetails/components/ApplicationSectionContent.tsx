@@ -4,8 +4,11 @@ import { ReviewLaunch } from '@/DeepResumeReview/components/ReviewLaunch.tsx';
 import { DeepResumeReview } from '@/DeepResumeReview/index.tsx';
 import { ApplicationDocuments } from './ApplicationDocuments.tsx';
 import { ExportRequest } from './ExportRequest.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { packetNeedsReview } from '../helpers.ts';
+import { HandoffSummary } from '@/components/InboxView/components/PacketHandoff.tsx';
+import { cardHandoff } from '@/components/InboxView/handoff.ts';
+import { DetectorChecks } from '@/DetectorChecks/index.tsx';
 
 export const ApplicationSectionContent = ({
   model,
@@ -22,6 +25,10 @@ export const ApplicationSectionContent = ({
   if (section === 'reviews')
     return (
       <div className="space-y-5">
+        {packetNeedsReview(card) ? null : (
+          <HandoffSummary handoff={cardHandoff(card, model.data)} />
+        )}
+        <DetectorChecks card={card} />
         <Button variant="link" onClick={model.openWriting}>
           Writing guide
         </Button>
@@ -43,11 +50,11 @@ export const ApplicationSectionContent = ({
         {model.exported
           ? 'The current packet was exported. Record submission only after you have applied.'
           : card.state === 'awaiting_approval'
-            ? 'Your exact documents are waiting for review in Inbox.'
+            ? 'Your exact documents are waiting for review in Decisions.'
             : 'Complete packet review before requesting export approval.'}
       </p>
       {card.state === 'awaiting_approval' && !model.exported ? (
-        <Button onClick={model.openInbox}>Open approval inbox</Button>
+        <Button onClick={model.openInbox}>Open in Decisions</Button>
       ) : null}
     </>
   );

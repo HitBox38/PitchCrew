@@ -31,6 +31,31 @@ export const ruleDetail = (rule: Record<string, unknown>): string => {
   return 'Unknown rule kind.';
 };
 
+/** The list title for a rule: its documents and condition, e.g. “Resume — at most 650 words”. */
+export const ruleSentence = (rule: Record<string, unknown>): string => {
+  const documents = Array.isArray(rule.documents)
+    ? rule.documents.map((value) => documentLabels[String(value)] ?? String(value)).join(', ')
+    : '';
+  return `${documents || kindLabels[text(rule.kind)] || 'Rule'} — ${ruleCondition(rule)}`;
+};
+
+const ruleCondition = (rule: Record<string, unknown>): string => {
+  if (rule.kind === 'word_limit')
+    return `at most ${String(rule.max)} ${rule.count === 'all' ? 'words' : 'body words'}`;
+  if (rule.kind === 'max_bullets') return `at most ${String(rule.max)} bullets per section`;
+  if (rule.kind === 'canonical_lines') {
+    const values = Array.isArray(rule.values) ? rule.values.length : 0;
+    return `lines matching ${regex(rule, 'selector')} use ${values} listed ${values === 1 ? 'value' : 'values'}`;
+  }
+  if (rule.kind === 'pattern') {
+    if (rule.equals !== undefined)
+      return `${regex(rule, 'pattern')} must capture “${text(rule.equals)}”`;
+    const count = typeof rule.maxCount === 'number' ? rule.maxCount : 0;
+    return count ? `at most ${count} of ${regex(rule, 'pattern')}` : `no ${regex(rule, 'pattern')}`;
+  }
+  return 'unknown rule kind';
+};
+
 /** Readable rows for whatever the draft holds, even when parts of it are invalid. */
 export const ruleViews = (value: unknown): RuleView[] => {
   const rules = (value as { rules?: unknown } | null)?.rules;

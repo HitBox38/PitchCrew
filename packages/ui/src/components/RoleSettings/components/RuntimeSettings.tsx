@@ -1,10 +1,12 @@
 import type { RuntimeSettingsProps } from '@/components/RoleSettings/types.ts';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-import { SelectContent } from '@/components/ui/select/components/SelectContent.tsx';
-import { SelectItem } from '@/components/ui/select/components/SelectItem.tsx';
-import { SelectTrigger } from '@/components/ui/select/components/SelectTrigger.tsx';
-import { SelectValue } from '@/components/ui/select/components/SelectValue.tsx';
-import { Select } from '@/components/ui/select/constants.ts';
+import { Switch } from '@pitchcrew/design-system/switch';
+import {
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Select,
+} from '@pitchcrew/design-system/select';
 import { ModelField } from '@/ModelField/index.tsx';
 import type { Role } from '@pitchcrew/core';
 
@@ -23,12 +25,18 @@ export const RuntimeSettings = ({
   setEnabled,
   children,
   stacked,
+  bare,
+  hideEnabled,
 }: RuntimeSettingsProps) => {
   return (
-    <section className="role-settings-section" aria-labelledby={`${role.id}-runtime-heading`}>
-      <h3 id={`${role.id}-runtime-heading`}>Runtime and model</h3>
+    <section
+      className="agent-panel-section"
+      id={bare ? undefined : 'agent-runtime'}
+      aria-labelledby={bare ? undefined : `${role.id}-runtime-heading`}
+    >
+      {bare ? null : <h3 id={`${role.id}-runtime-heading`}>Runtime, model and reasoning</h3>}
       <div
-        className={`form-row grid gap-3.5 ${stacked ? 'grid-cols-1' : 'grid-cols-2 max-compact:grid-cols-1'}`}
+        className={`agent-runtime-fields grid gap-4 ${stacked ? 'grid-cols-1' : 'grid-cols-2 max-compact:grid-cols-1'}`}
       >
         <div className="field">
           <label htmlFor={`${role.id}-runtime`}>Runtime</label>
@@ -68,14 +76,20 @@ export const RuntimeSettings = ({
         />
       </div>
       {children}
-      <label className="checkbox-label">
-        <Checkbox
-          aria-label="Enable this role"
-          checked={enabled}
-          onCheckedChange={(checked) => setEnabled(checked)}
-        />
-        Enable this role
-      </label>
+      {hideEnabled ? null : (
+        <div className="agent-tool">
+          <span className="agent-tool-copy">
+            <label htmlFor={`${role.id}-enabled`}>Enable this role</label>
+            <span>{enabled ? 'Takes new work and routines.' : 'Paused. Starts no new work.'}</span>
+          </span>
+          <Switch
+            id={`${role.id}-enabled`}
+            aria-label="Enable this role"
+            checked={enabled}
+            onCheckedChange={(checked) => setEnabled(checked)}
+          />
+        </div>
+      )}
     </section>
   );
 };

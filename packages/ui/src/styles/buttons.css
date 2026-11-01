@@ -1,13 +1,8 @@
 /* Outlines remain visible independently of the material's inset and raised shadows. */
-[data-slot='button']:focus-visible,
 .button:focus-visible,
 .icon-button:focus-visible,
 .text-button:focus-visible {
   outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-[data-slot='button'][aria-invalid='true'] {
-  outline: 2px solid var(--rose);
   outline-offset: 2px;
 }
 .button {
@@ -60,7 +55,7 @@
 .button.small {
   height: 32px;
   padding: 0 12px;
-  font-size: 12px;
+  font-size: var(--text-label);
   border-radius: 9px 10px 9px 8px;
 }
 .icon-button {

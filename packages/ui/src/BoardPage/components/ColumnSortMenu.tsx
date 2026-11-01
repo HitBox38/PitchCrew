@@ -1,5 +1,5 @@
 import { ArrowDownWideNarrow } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -8,9 +8,10 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from '@/components/ui/dropdown-menu/index.tsx';
-import { boardSortOptions, type BoardSort } from '../sorting.ts';
+} from '@pitchcrew/design-system/dropdown-menu';
+import { boardSortOptions, defaultBoardSort, type BoardSort } from '../sorting.ts';
 
+/** Single-choice sort menu; the trigger names the current choice and marks a non-default one. */
 export const ColumnSortMenu = ({
   label,
   sort,
@@ -28,16 +29,19 @@ export const ColumnSortMenu = ({
       <DropdownMenuTrigger
         render={
           <Button
-            className="icon-button"
+            variant="ghost"
+            size="icon-sm"
+            className="clay-column-sort"
+            data-custom={sort === defaultBoardSort ? undefined : ''}
             disabled={disabled}
             aria-label={`Sort ${label}: ${selected.label}`}
             title={`Sort ${label}: ${selected.label}`}
           />
         }
       >
-        <ArrowDownWideNarrow size={14} />
+        <ArrowDownWideNarrow size={16} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="min-w-56">
         <DropdownMenuGroup>
           <DropdownMenuLabel>Sort {label}</DropdownMenuLabel>
         </DropdownMenuGroup>

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserControl } from '../types.ts';
 export const BrowserInputKeys = ({ control }: { control: BrowserControl }) => {
   return (

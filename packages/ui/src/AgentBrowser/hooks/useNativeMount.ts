@@ -11,15 +11,10 @@ export const useNativeMount = (id: string, enabled = true) => {
     const sync = () => {
       animation = 0;
       const rect = element.getBoundingClientRect();
-      const covered = [
-        ...document.querySelectorAll(
-          '[data-slot="dialog-content"],[data-slot="sheet-content"],[data-slot="popover-content"],[data-slot="dropdown-menu-content"],[data-slot="context-menu-content"]',
-        ),
-      ].some((surface) => !surface.contains(element) && surface.getClientRects().length);
       const left = Math.max(0, rect.left + element.clientLeft);
       const top = Math.max(0, rect.top + element.clientTop);
       const bounds =
-        document.hidden || covered || !rect.width || !rect.height
+        document.hidden || !rect.width || !rect.height
           ? null
           : {
               x: Math.round(left),
@@ -36,14 +31,7 @@ export const useNativeMount = (id: string, enabled = true) => {
       if (!animation) animation = requestAnimationFrame(sync);
     };
     const resize = new ResizeObserver(schedule);
-    const mutations = new MutationObserver(schedule);
     resize.observe(element);
-    mutations.observe(document.body, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['data-open', 'data-closed', 'aria-hidden', 'style'],
-    });
     document.addEventListener('visibilitychange', schedule);
     window.addEventListener('resize', schedule);
     window.addEventListener('scroll', schedule, true);
@@ -52,7 +40,6 @@ export const useNativeMount = (id: string, enabled = true) => {
       disposed = true;
       cancelAnimationFrame(animation);
       resize.disconnect();
-      mutations.disconnect();
       document.removeEventListener('visibilitychange', schedule);
       window.removeEventListener('resize', schedule);
       window.removeEventListener('scroll', schedule, true);

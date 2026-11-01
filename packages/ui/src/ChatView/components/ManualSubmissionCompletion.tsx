@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { Approval, Card } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
 export const ManualSubmissionCompletion = ({
@@ -18,7 +18,7 @@ export const ManualSubmissionCompletion = ({
   const [error, setError] = useState('');
   if (card.state !== 'awaiting_approval') return null;
   return (
-    <div className="flex flex-wrap items-center gap-2 py-3">
+    <div className="manual-submission-completion flex flex-wrap items-center gap-2 py-3">
       <p className="quiet">Finished this application yourself?</p>
       <Button
         size="sm"

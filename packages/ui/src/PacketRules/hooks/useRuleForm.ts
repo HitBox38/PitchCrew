@@ -26,7 +26,8 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
     controller.setText(text);
   };
   const [kind, setKind] = useState<RuleKind>('word_limit');
-  const [expanded, setExpanded] = useState<number[]>([]);
+  const [chosen, setSelected] = useState(0);
+  const selected = document.rules.length ? Math.min(chosen, document.rules.length - 1) : null;
   const changeRule = (index: number, patch: Record<string, unknown>) =>
     writeRules(
       document.rules.map((rule, position) => (position === index ? { ...rule, ...patch } : rule)),
@@ -36,10 +37,8 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
       document.rules.filter((_, position) => position !== index),
       identity.ids.filter((_, position) => position !== index),
     );
-    setExpanded((current) =>
-      current
-        .filter((position) => position !== index)
-        .map((position) => (position > index ? position - 1 : position)),
+    setSelected((current) =>
+      current > index ? current - 1 : Math.min(current, document.rules.length - 2),
     );
     requestAnimationFrame(() =>
       window.document
@@ -57,7 +56,7 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
       [...identity.ids, identity.nextId],
       identity.nextId + 1,
     );
-    setExpanded((current) => [...current, document.rules.length]);
+    setSelected(document.rules.length);
     const field =
       kind === 'word_limit' || kind === 'max_bullets'
         ? 'max'
@@ -72,8 +71,8 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
     rows: document.rules.map((rule, index) => ({ rule, index, id: identity.ids[index] })),
     kind,
     setKind,
-    expanded,
-    setExpanded,
+    selected,
+    setSelected,
     changeRule,
     removeRule,
     addRule,

@@ -1,5 +1,5 @@
 import { HISTORY_PAGE_SIZE } from '../history.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useHistoryWindow } from '../hooks/useHistoryWindow.ts';
 
 export const HistoryNavigation = ({

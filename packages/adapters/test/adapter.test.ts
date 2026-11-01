@@ -75,6 +75,24 @@ it('requests specific activity descriptions and preserves bounded one-line runti
       parseResult(JSON.stringify({ role: 'scout', fit: 87, reasons: [], changeSummary }), context),
     ).toThrow();
 });
+it('requires technical blocker reporting across chat and isolated work while extraction stays tools-free', () => {
+  const prompts = [
+    chatPromptFor({ ...context, card: null, messages: [] }),
+    ...(
+      [undefined, 'fit', 'application-draft', 'application-review', 'packet-evaluation'] as const
+    ).map((purpose) => promptFor({ ...context, purpose })),
+  ];
+  for (const prompt of prompts) {
+    expect(prompt).toContain('call pitchcrew_report_technical_problem once');
+    expect(prompt).toContain('before asking the user for help or ending the turn');
+    expect(prompt).toContain('expected approval waits');
+    expect(prompt).toContain('never error messages');
+    expect(prompt).toContain('If reporting itself fails');
+  }
+  expect(
+    chatPromptFor({ ...context, purpose: 'source-extraction', card: null, messages: [] }),
+  ).not.toContain('pitchcrew_report_technical_problem');
+});
 it('requires a recognizable runtime version with the scoped-tool capabilities', () => {
   const health = { id: 'pi' as const, available: true, version: 'pi v1.0.0', detail: 'Installed.' };
   expect(requireCliVersion(health, [1, 0, 0], 'pi')).toBe(health);
@@ -212,4 +230,31 @@ it('gives Writer and Reviewer workflow runs a summary of the user packet rules',
   expect(chatPromptFor({ ...context, card: null, messages: [] })).toContain(
     'pitchcrew_get_packet_rules',
   );
+});
+it('gives Writer and Reviewer writing-quality guidance only in isolated drafting and review', () => {
+  const writer = promptFor({ ...context, purpose: 'application-draft' });
+  expect(writer).toContain('replace interchangeable company praise, stock enthusiasm');
+  expect(writer).toContain(
+    'a required personal answer without a confirmed user answer is a user question',
+  );
+  expect(writer).toContain('an optional one is omitted and noted in the packet note');
+  expect(writer).toContain('name the passage it reworded');
+  expect(writer).not.toContain('belongs in suggestions');
+  const reviewer = promptFor({ ...context, purpose: 'application-review' });
+  expect(reviewer).toContain('belongs in suggestions, never in feedback');
+  expect(reviewer).toContain('Never request invented motivations or experiences');
+  expect(reviewer).toContain(
+    'never claim an AI-detector result, an ATS parse or an employer decision',
+  );
+  expect(reviewer).not.toContain('name the passage it reworded');
+  for (const prompt of [
+    promptFor({ ...context, purpose: 'fit' }),
+    promptFor({ ...context, purpose: 'packet-evaluation' }),
+    promptFor({
+      ...context,
+      purpose: 'application-review',
+      deepReview: { id: 'review', subagent: { perspective: 'relevance' } } as never,
+    }),
+  ])
+    expect(prompt).not.toContain('Writing quality:');
 });

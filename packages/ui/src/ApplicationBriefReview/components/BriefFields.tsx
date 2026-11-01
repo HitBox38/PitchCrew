@@ -1,4 +1,4 @@
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import type { ExtractedJob } from '@pitchcrew/core';
 import { splitLines } from '../helpers.ts';
 

@@ -1,21 +1,30 @@
 import { NativeBrowserProfiles } from './NativeBrowserProfiles.tsx';
+import { NativeBrowserPageOptions } from './NativeBrowserPageOptions.tsx';
 import { Settings2, Minus, Plus, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverTitle,
-} from '@/components/ui/popover/index.tsx';
+} from '@pitchcrew/design-system/popover';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { BrowserToolsActions } from '@/NativeBrowserTools/components/BrowserToolsActions.tsx';
+import type { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';
+import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 export const NativeBrowserSettings = ({
   model,
   manual,
+  tools,
+  device,
 }: {
   model: NativeBrowserModel;
   manual: boolean;
+  tools: ReturnType<typeof useNativeBrowserTools>;
+  device: ReturnType<typeof useBrowserDevice>;
 }) => {
   const zoom = model.state?.tabs.find((tab) => tab.id === model.state?.activeTab)?.zoomFactor ?? 1;
+  // Pending commands disable the buttons; retain focus so Escape stays in this popover.
   const setZoom = (factor: number) => void model.command({ kind: 'zoom', factor });
   return (
     <Popover>
@@ -24,12 +33,16 @@ export const NativeBrowserSettings = ({
       >
         <Settings2 size={15} />
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-3 font-sans text-sm">
+      <PopoverContent className="max-h-[min(80dvh,42rem)] w-64 overflow-y-auto p-3 font-sans text-sm">
         <PopoverTitle>Page settings</PopoverTitle>
+        <div className="browser-settings-tools">
+          <BrowserToolsActions model={tools} device={device} />
+        </div>
         <div className="my-3 flex items-center justify-between gap-2" aria-label="Page zoom">
           <Button
             size="icon-sm"
             aria-label="Zoom out"
+            focusableWhenDisabled
             disabled={!manual || zoom <= 0.25}
             onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
           >
@@ -39,6 +52,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Zoom in"
+            focusableWhenDisabled
             disabled={!manual || zoom >= 5}
             onClick={() => setZoom(Math.min(5, zoom + 0.25))}
           >
@@ -47,6 +61,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Reset page zoom"
+            focusableWhenDisabled
             disabled={!manual || zoom === 1}
             onClick={() => setZoom(1)}
           >
@@ -72,6 +87,7 @@ export const NativeBrowserSettings = ({
           Clear cached website files
         </Button>
         <p className="quiet mt-2">Clearing the cache keeps saved sign-ins.</p>
+        <NativeBrowserPageOptions model={model} manual={manual} />
         <p className="quiet mt-2">Profile: {model.state?.profile?.name ?? 'Default'}</p>
         <NativeBrowserProfiles
           key={model.identity!.id}

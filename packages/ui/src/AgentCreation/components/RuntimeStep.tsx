@@ -10,12 +10,12 @@ export const RuntimeStep = ({ draft, changeRole, data }: StepProps) => {
       <p role="alert">The selected runtime is no longer available. Close setup and try again.</p>
     );
   return (
-    <div className="flex flex-col gap-5">
-      <p className="quiet">
-        Pitchcrew runs an installed CLI for this agent. Your CLI keeps its own sign-in and model
-        settings.
+    <div className="agent-wizard-step">
+      <p className="optional">
+        Runs on an installed CLI, which keeps its own sign-in and model settings.
       </p>
       <RuntimeSettings
+        bare
         role={{ ...role, id: 'new-agent' }}
         runtime={role.runtime}
         model={role.model}
@@ -47,13 +47,13 @@ export const RuntimeStep = ({ draft, changeRole, data }: StepProps) => {
         runtimeCatalog={catalog}
       />
       {role.runtime === 'demo' ? (
-        <p className="quiet">
+        <p className="optional">
           Demo returns fictional, deterministic results. Select an installed runtime for live agent
           work.
         </p>
       ) : null}
       {!catalog.available ? (
-        <p className="quiet">
+        <p className="optional">
           You can create this agent paused and install its runtime before enabling it.
         </p>
       ) : null}

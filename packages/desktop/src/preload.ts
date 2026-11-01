@@ -24,6 +24,24 @@ const startup: DesktopStartupBridge = {
 };
 contextBridge.exposeInMainWorld('pitchcrewStartup', startup);
 const browser: DesktopBrowserBridge = {
+  capture: (id) => ipcRenderer.invoke('pitchcrew:browser:capture', id),
+  saveArtifact: (kind, data) => ipcRenderer.invoke('pitchcrew:browser:save-artifact', kind, data),
+  copyCapture: (data) => ipcRenderer.invoke('pitchcrew:browser:copy-capture', data),
+  revealArtifact: (path) => ipcRenderer.invoke('pitchcrew:browser:reveal-artifact', path),
+  floating: (id, open) => ipcRenderer.invoke('pitchcrew:browser:floating', id, open),
+  subscribeState: (receive) => {
+    const listener = (_event: unknown, state: Parameters<typeof receive>[0]) => receive(state);
+    ipcRenderer.on('pitchcrew:browser:state', listener);
+    return () => ipcRenderer.removeListener('pitchcrew:browser:state', listener);
+  },
+  views: () => ipcRenderer.invoke('pitchcrew:browser:views'),
+  registerView: (token, contentsId) =>
+    ipcRenderer.invoke('pitchcrew:browser:register-view', token, contentsId),
+  subscribeViews: (receive) => {
+    const listener = (_event: unknown, views: Parameters<typeof receive>[0]) => receive(views);
+    ipcRenderer.on('pitchcrew:browser:views-changed', listener);
+    return () => ipcRenderer.removeListener('pitchcrew:browser:views-changed', listener);
+  },
   profiles: (id, command) => ipcRenderer.invoke('pitchcrew:browser:profiles', id, command),
   identify: () => ipcRenderer.invoke('pitchcrew:browser:identity'),
   focusPage: (id) => ipcRenderer.invoke('pitchcrew:browser:focus-page', id),

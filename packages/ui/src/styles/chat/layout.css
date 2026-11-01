@@ -1,13 +1,12 @@
-/* A fixed paper workspace, with independently scrolling conversation and work panes. */
+/* Chat sits directly on the shell's paper (the shell owns the page bounds), with
+ * independently scrolling conversation and work panes. */
 .page.chat-page {
   display: flex;
   flex-direction: column;
-  height: calc(100dvh - 48px - var(--desktop-titlebar-height, 0px));
   min-height: 0;
   max-width: none;
   width: 100%;
   overflow: hidden;
-  padding: 10px 14px 14px;
 }
 .chat-page > .workspace-notice,
 .chat-page > .error-banner {
@@ -22,11 +21,6 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  background: var(--surface);
-  background-image: var(--grain), var(--fibres);
-  border: 0;
-  border-radius: 16px 17px 15px 16px;
-  box-shadow: var(--sheet);
   overflow: hidden;
 }
 .chat-workspace.writer {

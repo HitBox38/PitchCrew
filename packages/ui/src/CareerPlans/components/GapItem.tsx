@@ -1,5 +1,5 @@
 import type { CareerGap, CareerPlan } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { gapKinds, planProgress } from '@/lib/application-quality.ts';
 import { GapSources } from './GapSources.tsx';
@@ -19,14 +19,14 @@ export const GapItem = ({
   const update = (data: Record<string, unknown>) =>
     void change({ id: plan.id, revision: plan.revision, ...data }).catch(() => {});
   return (
-    <section className="space-y-2 border-b border-border py-4">
-      <h4 className="font-semibold">
+    <section className="career-gap">
+      <h4>
         {gap.label}
         {gap.active ? ' (active priority)' : ''}
       </h4>
-      <p className="quiet">{gapKinds[gap.kind]}</p>
+      <p className="career-plan-note">{gapKinds[gap.kind]}</p>
       {gap.supportedInLatestAnalysis === false ? (
-        <p className="text-ochre">
+        <p className="career-plan-stale">
           Not reported in the latest analysis. Your chosen priority and progress are retained.
         </p>
       ) : null}
@@ -39,8 +39,9 @@ export const GapItem = ({
         <strong>Completion check: </strong>
         {gap.completionCriterion}
       </p>
-      <div className="flex flex-wrap items-end gap-2">
+      <div className="career-gap-actions">
         <Button
+          className="button small"
           disabled={working || (!gap.active && active.length >= 3)}
           onClick={() =>
             update({
@@ -60,6 +61,7 @@ export const GapItem = ({
         />
         {gap.kind === 'evidence' ? (
           <Button
+            className="button small"
             disabled={working}
             onClick={() => update({ action: 'plan_gap_kind', gapId: gap.id, kind: 'skill' })}
           >
@@ -67,7 +69,9 @@ export const GapItem = ({
           </Button>
         ) : null}
       </div>
-      {gap.progressSource ? <p className="quiet">User report: {gap.progressSource.quote}</p> : null}
+      {gap.progressSource ? (
+        <p className="career-plan-note">User report: {gap.progressSource.quote}</p>
+      ) : null}
       <GapSources sources={gap.sources} />
     </section>
   );

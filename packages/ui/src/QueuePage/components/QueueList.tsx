@@ -2,38 +2,42 @@ import type { ReactNode } from 'react';
 import { m } from 'motion/react';
 import { QueueGrip } from './QueueGrip.tsx';
 import { useQueueOrder } from '../hooks/useQueueOrder.ts';
+import type { QueueMoves } from '../types.ts';
 
+/** An ordered list with drag, arrow-key and menu reordering; Make next jumps to the top. */
 export const QueueList = <T extends { id: string }>({
   items,
   group,
   commit,
   render,
+  className = '',
   movable = () => true,
 }: {
   items: T[];
   group: string;
   commit: (id: string, beforeId: string | null) => Promise<unknown>;
-  render: (item: T, handle: ReactNode) => ReactNode;
+  render: (item: T, handle: ReactNode, moves: QueueMoves) => ReactNode;
+  className?: string;
   movable?: (item: T) => boolean;
 }) => {
   const model = useQueueOrder(items, commit);
   return (
-    <ol className="queue-list" aria-label={group}>
+    <ol className={`queue-list ${className}`} aria-label={group}>
       {model.visible.map((item, index) => {
         const disabled = model.busy || !movable(item);
-        const up = () => void model.move(item.id, model.visible[index - 1]?.id ?? null);
-        const down = () => void model.move(item.id, model.visible[index + 2]?.id ?? null);
-        const handle = (
-          <QueueGrip
-            group={group}
-            id={item.id}
-            disabled={disabled}
-            first={index === 0}
-            last={index === items.length - 1}
-            up={up}
-            down={down}
-          />
-        );
+        const move = (beforeId: string | null) => () => void model.move(item.id, beforeId);
+        const first = model.visible[0];
+        const moves: QueueMoves = disabled
+          ? {}
+          : {
+              up: index > 0 ? move(model.visible[index - 1]?.id ?? null) : undefined,
+              down:
+                index < model.visible.length - 1
+                  ? move(model.visible[index + 2]?.id ?? null)
+                  : undefined,
+              makeNext: index > 0 && first ? move(first.id) : undefined,
+            };
+        const handle = <QueueGrip group={group} id={item.id} disabled={disabled} moves={moves} />;
         return (
           <m.li
             key={item.id}
@@ -55,7 +59,7 @@ export const QueueList = <T extends { id: string }>({
               }
             }}
           >
-            {render(item, handle)}
+            {render(item, handle, moves)}
           </m.li>
         );
       })}

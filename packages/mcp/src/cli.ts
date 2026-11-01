@@ -15,6 +15,7 @@ import { registerTrackingTools } from './tools/tracking.ts';
 import { registerJobSourceTools } from './tools/job-sources.ts';
 import { registerApplicationInputTools } from './tools/application-input.ts';
 import { registerLinkedInTools } from './tools/linkedin.ts';
+import { registerDiagnosticTools } from './tools/diagnostics.ts';
 
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
@@ -36,6 +37,7 @@ if (purpose === 'source-extraction') {
   server.server.registerCapabilities({ tools: {} });
   server.server.setRequestHandler(ListToolsRequestSchema, () => ({ tools: [] }));
 } else {
+  registerDiagnosticTools(server, call);
   registerPacketTools(server, call, isolated);
 
   if (isolated) {

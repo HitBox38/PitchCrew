@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import type { ExtractedJob } from '@pitchcrew/core';
 
 export const RequirementFields = ({

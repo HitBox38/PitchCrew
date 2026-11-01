@@ -2,14 +2,14 @@ import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 import { useImperativeHandle, useRef, useState, type RefObject } from 'react';
 import type { ChatComposerProps } from '../types.ts';
 import { chatAttachmentAccept } from '@pitchcrew/core/chat-attachments';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { Plus, Paperclip, BriefcaseBusiness } from 'lucide-react';
 import { ComposerJobPicker } from './ComposerJobPicker.tsx';
 

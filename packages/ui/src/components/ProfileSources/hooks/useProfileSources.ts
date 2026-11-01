@@ -172,11 +172,13 @@ export const useProfileSources = (props: ProfileSourcesProps, open: boolean) => 
     setProposalPending,
     proposalPending,
     pending: !!task.progress || proposalPending,
-    screen: proposalId
-      ? `proposal-${proposalId}`
-      : setup.adding
-        ? `add-${setup.provider ?? ''}-${setup.intent ?? ''}`
-        : 'list',
+    screen: preview
+      ? 'review'
+      : proposalId
+        ? `proposal-${proposalId}`
+        : setup.adding
+          ? `add-${setup.provider ?? ''}-${setup.intent ?? ''}`
+          : 'list',
     toggle: (name: string) =>
       setSelected((current) =>
         current.includes(name) ? current.filter((value) => value !== name) : [...current, name],

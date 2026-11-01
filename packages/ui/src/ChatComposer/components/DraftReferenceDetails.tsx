@@ -1,6 +1,6 @@
 import { Popover } from '@base-ui/react/popover';
 import type { ReferenceValue } from '@/ChatReferences/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const DraftReferenceDetails = ({
   anchor,

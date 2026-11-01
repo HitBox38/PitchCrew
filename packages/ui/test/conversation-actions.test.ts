@@ -8,6 +8,20 @@ let browser: Browser;
 let page: Page;
 let conversation: Conversation;
 const errors: string[] = [];
+const archivedGroup = () => page.getByRole('button', { name: 'Archived', exact: true });
+/** Archived chats sit in a collapsible Chats sub-group that only exists while it has rows. */
+const showArchived = async () => {
+  await archivedGroup().waitFor();
+  if ((await archivedGroup().getAttribute('aria-expanded')) !== 'true')
+    await archivedGroup().click();
+};
+/** After archiving, the chat is listed only inside the expanded Archived group. */
+const expectArchived = async () => {
+  await showArchived();
+  const group = page.locator('.conversation-group').filter({ has: archivedGroup() });
+  await group.getByRole('link', { name: conversation.title, exact: true }).waitFor();
+  expect(await menu().count()).toBe(1);
+};
 const menu = () =>
   page.getByRole('button', { name: `Actions for ${conversation.title}`, exact: true });
 
@@ -40,9 +54,8 @@ test('right-click conversation actions preserve the page and retain deletion con
   await page.getByRole('menu', { name: 'Conversation actions', exact: true }).waitFor();
   expect(await page.getByRole('menu', { name: 'Workspace actions', exact: true }).count()).toBe(0);
   await page.getByRole('menuitem', { name: 'Archive conversation', exact: true }).click();
-  await expect.poll(() => menu().count()).toBe(0);
+  await expectArchived();
   expect(new URL(page.url()).pathname).toBe('/');
-  await page.getByRole('button', { name: 'Show archived', exact: true }).click();
   await link().click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Restore conversation', exact: true }).click();
   await expect
@@ -50,7 +63,7 @@ test('right-click conversation actions preserve the page and retain deletion con
       () => host.daemon.service.board.get<Conversation>('conversation', conversation.id).archived,
     )
     .toBe(false);
-  await page.getByRole('button', { name: 'Hide archived', exact: true }).click();
+  await expect.poll(() => archivedGroup().count()).toBe(0);
   await link().click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Delete conversation', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Delete this conversation?' });
@@ -69,9 +82,8 @@ test('archives and restores from the sidebar without navigating, then confirms d
   await menu().focus();
   await page.keyboard.press('Enter');
   await page.getByRole('menuitem', { name: 'Archive conversation', exact: true }).click();
-  await expect.poll(() => menu().count()).toBe(0);
+  await expectArchived();
   expect(new URL(page.url()).pathname).toBe('/');
-  await page.getByRole('button', { name: 'Show archived', exact: true }).click();
   await menu().click();
   await page.getByRole('menuitem', { name: 'Restore conversation', exact: true }).click();
   await expect
@@ -79,7 +91,7 @@ test('archives and restores from the sidebar without navigating, then confirms d
       () => host.daemon.service.board.get<Conversation>('conversation', conversation.id).archived,
     )
     .toBe(false);
-  await page.getByRole('button', { name: 'Hide archived', exact: true }).click();
+  await expect.poll(() => archivedGroup().count()).toBe(0);
   await page.getByRole('link', { name: conversation.title, exact: true }).click();
   await expect.poll(() => new URL(page.url()).pathname).toBe(`/chat/${conversation.id}`);
   await menu().click();
@@ -105,7 +117,7 @@ test('archives and restores from the sidebar without navigating, then confirms d
   await expect.poll(() => menu().count()).toBe(0);
   await expect.poll(() => new URL(page.url()).pathname).toBe('/');
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.getByRole('navigation', { name: 'Conversations', exact: true }).waitFor();
+  await page.getByRole('navigation', { name: 'Chats', exact: true }).waitFor();
   expect(await menu().count()).toBe(0);
   expect(errors).toEqual([]);
 }, 45000);
@@ -137,7 +149,7 @@ test('keeps mobile conversation actions available and reports a failed deletion 
   });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.getByRole('button', { name: 'Toggle Sidebar', exact: true }).click();
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await menu().waitFor();
   await menu().click();
   await page.getByRole('menuitem', { name: 'Delete conversation', exact: true }).click();

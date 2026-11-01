@@ -30,7 +30,7 @@ beforeAll(async () => {
             response.end(
               await vite.transformIndexHtml(
                 '/__ai-elements',
-                '<html><body><div id="root"></div><script type="module" src="/test/fixtures/ai-elements.tsx"></script></body></html>',
+                '<html data-interface="clay"><body><div id="root"></div><script type="module" src="/test/fixtures/ai-elements.tsx"></script></body></html>',
               ),
             );
           });
@@ -156,9 +156,6 @@ test('older pages remain anchored as replies arrive and Latest restores live fol
 });
 
 test('trace disclosure works by keyboard without exposing private reasoning', async () => {
-  const group = page.getByRole('button', { name: /1 step/ });
-  await group.focus();
-  await page.keyboard.press('Enter');
   const tool = page.getByRole('button', { name: /Read profile/ });
   await tool.waitFor();
   await tool.focus();

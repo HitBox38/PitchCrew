@@ -1,7 +1,7 @@
 import { Pause, Play, Square } from 'lucide-react';
 import type { WorkQueueView } from '@pitchcrew/core';
 import type { useQueueActions } from '@/hooks/useQueueActions.ts';
-import { menuComponents } from '@/components/ui/context-menu/menu-components.ts';
+import { menuComponents } from '@pitchcrew/design-system/menu-components';
 
 export const QueueRunningItems = ({
   queue,

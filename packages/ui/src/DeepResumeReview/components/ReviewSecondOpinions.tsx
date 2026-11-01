@@ -1,6 +1,6 @@
 import type { ReviewPerspective } from '@pitchcrew/core/deep-review-labels';
 import { reviewPerspectives } from '@pitchcrew/core/deep-review-labels';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 export const ReviewSecondOpinions = ({
   enabled,
   changeEnabled,

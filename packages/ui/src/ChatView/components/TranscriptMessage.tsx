@@ -4,7 +4,7 @@ import { AnimatedMessage } from '@/ChatView/constants.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { timeAgo } from '@/lib/time.ts';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle } from 'lucide-react';
 
@@ -17,8 +17,10 @@ export const TranscriptMessage = ({
   thread,
   onOpenCard,
   answerQuestion,
-}: Omit<MessageTranscriptProps, 'messages'> & { message: ChatMessage }) => {
+  continued,
+}: Omit<MessageTranscriptProps, 'messages'> & { message: ChatMessage; continued?: boolean }) => {
   const job = data.cards.find((card) => card.id === message.cardId);
+  const sameJob = data.conversations?.some((item) => item.id === thread && item.cardId === job?.id);
   const streaming = streamingIds.has(message.id);
   return (
     <AnimatedMessage
@@ -26,6 +28,7 @@ export const TranscriptMessage = ({
       animate={{ opacity: 1, y: 0 }}
       from={message.from === 'user' ? 'user' : 'assistant'}
       className={`chat-message ${message.from === 'system' ? 'chat-system' : ''}`}
+      data-continued={continued ? '' : undefined}
     >
       <div className="chat-message-meta flex items-center gap-2 text-detail text-muted-foreground">
         {message.from !== 'user' && message.from !== 'system' ? (
@@ -54,7 +57,12 @@ export const TranscriptMessage = ({
         </span>
       ) : null}
       {job ? (
-        <Button variant="ghost" className="chat-job-link" onClick={() => onOpenCard(job.id)}>
+        <Button
+          variant="ghost"
+          className="chat-job-link"
+          data-same-job={sameJob ? '' : undefined}
+          onClick={() => onOpenCard(job.id)}
+        >
           <BriefcaseBusiness size={12} /> {job.company} · {job.title}
         </Button>
       ) : null}

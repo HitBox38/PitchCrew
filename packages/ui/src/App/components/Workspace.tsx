@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { AppContextMenu } from '@/AppContextMenu/index.tsx';
 import { RuntimeMaintenance } from '@/RuntimeMaintenance/index.tsx';
 import { WorkspacePage } from '@/App/components/WorkspacePage.tsx';
@@ -5,13 +6,17 @@ import { WorkspaceNotification } from '@/App/components/WorkspaceNotification.ts
 import { WorkspacePalette } from '@/App/components/WorkspacePalette.tsx';
 import { WorkspacePanels } from '@/App/components/WorkspacePanels.tsx';
 import { WorkspaceSidebar } from '@/App/components/WorkspaceSidebar.tsx';
-import { WorkspaceToolbar } from '@/App/components/WorkspaceToolbar.tsx';
+import { ShellShortcuts } from '@/App/components/ShellShortcuts.tsx';
 import { getWorkspaceModel } from '@/App/helpers.tsx';
-import { SidebarInset } from '@/components/ui/sidebar/components/SidebarInset.tsx';
-import { SidebarProvider } from '@/components/ui/sidebar/components/SidebarProvider.tsx';
+import { SidebarInset, SidebarProvider } from '@pitchcrew/design-system/sidebar';
 import { useAutomaticUpdates } from '@/AppUpdates/hooks/useAutomaticUpdates.ts';
 import { AgentUpdates } from '@/AgentUpdates/index.tsx';
+import { DesktopBrowserHost } from '@/DesktopBrowserHost/index.tsx';
+import { NotificationCenter } from '@/Notifications/index.tsx';
 import type { ReadyWorkspaceProps } from '../types.ts';
+
+/** The sidebar shares the paper: 276 wide, a 56 rail when collapsed. */
+const shellWidths = { '--sidebar-width': '276px', '--sidebar-width-icon': '56px' } as CSSProperties;
 
 export const Workspace = (props: ReadyWorkspaceProps) => {
   useAutomaticUpdates();
@@ -19,20 +24,23 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
   const { sidebarOpen, paletteMounted } = controller;
   return (
     <AppContextMenu {...controller}>
-      <SidebarProvider defaultOpen={sidebarOpen}>
-        <AgentUpdates />
-        <RuntimeMaintenance />
-        <a className="skip-link" href="#main">
-          Skip to content
-        </a>
-        <WorkspaceSidebar {...controller} />
-        <SidebarInset id="main" tabIndex={-1}>
-          <WorkspaceToolbar {...controller} />
-          <WorkspacePage {...controller} />
-        </SidebarInset>
-        {paletteMounted ? <WorkspacePalette {...controller} /> : null}
-        <WorkspaceNotification {...controller} />
-        <WorkspacePanels {...controller} />
+      <SidebarProvider defaultOpen={sidebarOpen} style={shellWidths}>
+        <DesktopBrowserHost>
+          <AgentUpdates />
+          <RuntimeMaintenance />
+          <ShellShortcuts go={controller.go} />
+          <a className="skip-link" href="#main">
+            Skip to content
+          </a>
+          <WorkspaceSidebar {...controller} />
+          <SidebarInset id="main" tabIndex={-1} className="workspace-main">
+            <WorkspacePage {...controller} />
+          </SidebarInset>
+          {paletteMounted ? <WorkspacePalette {...controller} /> : null}
+          <WorkspaceNotification {...controller} />
+          <NotificationCenter />
+          <WorkspacePanels {...controller} />
+        </DesktopBrowserHost>
       </SidebarProvider>
     </AppContextMenu>
   );

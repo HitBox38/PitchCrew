@@ -1,5 +1,6 @@
 import type { ChatViewModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 export const ContinuationNotice = ({
   data,
   thread,
@@ -16,6 +17,7 @@ export const ContinuationNotice = ({
   if (count < 6) return null;
   return (
     <div className="chat-continuation">
+      <StatusBead status="paused" />
       <span>
         This round reached six automatic follow-ups. Continue summarizes the work before starting
         another round.

@@ -17,8 +17,11 @@ export interface CrewNotification {
   body: string;
   target: '/settings' | '/inbox' | '/crew' | '/skills' | `/chat/${string}`;
   reviewId?: string;
+  /** The agent the notice comes from, shown as its pebble. */
+  roleId?: string;
   createdAt: string;
 }
+export type NotificationGroupId = 'needs' | 'updates' | 'messages';
 export interface NotificationPreferences {
   sound: boolean;
 }

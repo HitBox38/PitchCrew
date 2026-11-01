@@ -1,15 +1,11 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import { lazy, Suspense, useState } from 'react';
 import { useLocation } from '@tanstack/react-router';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@pitchcrew/design-system/tabs';
 import { parseDraft, fileIssues, issueText } from '../helpers.ts';
 import { editableDocument } from '../form-helpers.ts';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 import { RuleFormList } from './RuleFormList.tsx';
-import { RuleFileActions } from './RuleFileActions.tsx';
 
 const RulesEditor = lazy(() =>
   import('./RulesEditor.tsx').then((module) => ({ default: module.RulesEditor })),
@@ -34,21 +30,20 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
     <Tabs
       value={document ? mode : 'source'}
       onValueChange={(value) => setSelection({ hash, mode: String(value) })}
-      className="gap-5"
+      className="packet-rules-tabs"
     >
-      <TabsList aria-label="Packet rules editor" className="w-fit flex-row">
-        <TabsTrigger value="form" className="w-auto flex-none" disabled={!document}>
-          Rule editor
+      <TabsList aria-label="Packet rules editor" className="settings-segment">
+        <TabsTrigger value="form" className="settings-segment-option" disabled={!document}>
+          Rules
         </TabsTrigger>
-        <TabsTrigger value="source" className="w-auto flex-none">
+        <TabsTrigger value="source" className="settings-segment-option">
           Advanced JSON
         </TabsTrigger>
       </TabsList>
       <TabsContent value="form" keepMounted>
-        <p className="quiet mb-5">Changes apply only after you save.</p>
         {document ? <RuleFormList document={document} controller={controller} /> : null}
         {issues.length ? (
-          <ul role="alert" className="form-error mt-4">
+          <ul role="alert" className="form-error packet-rules-problems">
             {keyedItems(issues, (issue) => JSON.stringify([issue.path, issue.message])).map(
               ({ item: issue, key }) => (
                 <li key={key}>{issueText(issue)}</li>
@@ -59,8 +54,8 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
       </TabsContent>
       <TabsContent value="source" keepMounted>
         {!document ? (
-          <p className="info-note mb-4">
-            Fix the file’s JSON, version, rule types or 100-rule limit to use the form editor. Your
+          <p className="settings-callout">
+            Fix the file’s JSON, version, rule types or 100-rule limit to use the Rules editor. Your
             source is preserved below.
           </p>
         ) : null}
@@ -69,7 +64,6 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
             <RulesEditor controller={controller} />
           </Suspense>
         ) : null}
-        <RuleFileActions controller={controller} />
       </TabsContent>
     </Tabs>
   );

@@ -1,7 +1,7 @@
 import { useCallback, useRef, useState } from 'react';
 import type { RoleId } from '@pitchcrew/core';
 
-type Panel = 'new' | 'manage' | 'runtime' | 'memory' | 'defaults' | null;
+type Panel = 'new' | 'manage' | 'runtime' | 'memory' | 'defaults' | 'packet' | null;
 type LeaveGuard = (action: () => void) => void;
 
 export const useChatPanels = (thread: string) => {

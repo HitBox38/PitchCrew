@@ -1,6 +1,7 @@
 import { chromium, type Browser, type BrowserContext, type Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
 import type { ProfileMaintenanceProposal, ProfileSource, Snapshot } from '@pitchcrew/core';
+import { openMorePage } from './helpers/navigation.ts';
 import { cleanup, setup } from './helpers/daemon.ts';
 import { createProposal, importSource, sourceFixture } from './helpers/profile-sources.ts';
 const openSources = async () => {
@@ -119,7 +120,7 @@ test('source reads and imports survive closing and navigation while retaining th
   ).toBe(true);
   await page.keyboard.press('Escape');
   await expect.poll(() => sources().isVisible()).toBe(false);
-  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  await openMorePage(page, 'Activity');
   const activity = page.getByRole('region', { name: 'Profile source activity' });
   await activity.getByRole('status').filter({ hasText: 'Reading GitHub documents…' }).waitFor();
   read();
@@ -127,9 +128,7 @@ test('source reads and imports survive closing and navigation while retaining th
     .getByRole('status')
     .filter({ hasText: 'Profile documents ready to review.' })
     .waitFor();
-  expect(
-    await page.locator('.profile-sources-dialog, .profile-import-panel').allTextContents(),
-  ).toEqual([]);
+  expect(await page.locator('.profile-sources-dialog').allTextContents()).toEqual([]);
   await activity.getByRole('link', { name: 'Open profile sources' }).click();
   const review = page.getByRole('dialog', { name: 'Review profile documents' });
   await review.waitFor();
@@ -137,11 +136,9 @@ test('source reads and imports survive closing and navigation while retaining th
   const save = await deferred('**/api/profile/sources/import');
   await review.getByRole('button', { name: 'Import 1 document', exact: true }).click();
   await review.getByRole('status').filter({ hasText: 'Importing documents…' }).waitFor();
-  await review.getByRole('button', { name: 'Close dialog', exact: true }).click();
-  await expect
-    .poll(() => page.locator('.profile-sources-dialog, .profile-import-panel').count())
-    .toBe(0);
-  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  await review.getByRole('button', { name: 'Close', exact: true }).click();
+  await expect.poll(() => page.locator('.profile-sources-dialog').count()).toBe(0);
+  await openMorePage(page, 'Activity');
   await activity.getByRole('status').filter({ hasText: 'Importing documents…' }).waitFor();
   await activity.getByRole('link', { name: 'Open profile sources' }).click();
   await review.getByRole('button', { name: 'Importing…', exact: true }).waitFor();
@@ -149,16 +146,12 @@ test('source reads and imports survive closing and navigation while retaining th
     true,
   );
   await page.keyboard.press('Escape');
-  await expect
-    .poll(() => page.locator('.profile-sources-dialog, .profile-import-panel').count())
-    .toBe(0);
-  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  await expect.poll(() => page.locator('.profile-sources-dialog').count()).toBe(0);
+  await openMorePage(page, 'Activity');
   save();
   await expect.poll(() => activity.count()).toBe(0);
-  expect(
-    await page.locator('.profile-sources-dialog, .profile-import-panel').allTextContents(),
-  ).toEqual([]);
-  await page.getByRole('link', { name: /^Profile(?: \(\d+\))?$/ }).click();
+  expect(await page.locator('.profile-sources-dialog').allTextContents()).toEqual([]);
+  await page.getByRole('link', { name: /^Profile(?:, \d+ [a-z ]+)?$/ }).click();
   await page.getByRole('button', { name: /^Sources/ }).click();
   await dialog().getByRole('status').filter({ hasText: 'Profile notes imported.' }).waitFor();
   const { result: snapshot } = await host.request<Snapshot>('/snapshot');
@@ -472,12 +465,12 @@ test('failed background reads preserve setup and allow retry after returning to 
   await sources().getByRole('button', { name: 'Review documents', exact: true }).click();
   await sources().getByRole('status').filter({ hasText: 'Reading GitHub documents…' }).waitFor();
   await sources().getByRole('button', { name: 'Close', exact: true }).click();
-  await page.getByRole('link', { name: 'Activity', exact: true }).click();
+  await openMorePage(page, 'Activity');
   release();
   await expect
     .poll(() => page.getByRole('region', { name: 'Profile source activity' }).count())
     .toBe(0);
-  await page.getByRole('link', { name: /^Profile(?: \(\d+\))?$/ }).click();
+  await page.getByRole('link', { name: /^Profile(?:, \d+ [a-z ]+)?$/ }).click();
   await page.getByRole('button', { name: /^Sources/ }).click();
   await sources()
     .getByRole('alert')

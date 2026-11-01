@@ -1,5 +1,5 @@
 import { importButtonLabel } from '../helpers.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { LoaderCircle } from 'lucide-react';
 
 export const ImportFooter = ({
@@ -14,22 +14,23 @@ export const ImportFooter = ({
   applied: boolean;
   onClose: () => void;
   confirmImport: () => Promise<void>;
-}) => {
-  return (
-    <div className="form-footer mt-4 flex justify-end gap-2.5 border-t border-border pt-4">
-      <Button className="button" disabled={busy} onClick={onClose}>
-        {applied ? 'Done' : 'Cancel'}
-      </Button>
-      {!applied ? (
-        <Button
-          className="button primary"
-          disabled={busy || !ready}
-          onClick={() => void confirmImport()}
-        >
+}) => (
+  <div className="ui-footer-bar import-footer">
+    <span className="ui-footer-note" aria-live="polite">
+      {busy && ready ? 'Importing applications. Keep this open until it finishes.' : ''}
+    </span>
+    {applied ? (
+      <Button onClick={onClose}>Done</Button>
+    ) : (
+      <>
+        <Button variant="ghost" disabled={busy} onClick={onClose}>
+          Cancel
+        </Button>
+        <Button disabled={busy || !ready} onClick={() => void confirmImport()}>
           {busy ? <LoaderCircle className="spin" size={15} /> : null}
           {importButtonLabel(busy, ready)}
         </Button>
-      ) : null}
-    </div>
-  );
-};
+      </>
+    )}
+  </div>
+);

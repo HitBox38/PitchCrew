@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { runtimeLabels } from '@/lib/labels.ts';
 import type { RuntimeConfiguration } from '@pitchcrew/core';
 import { useRuntimeRecommendation } from './hooks/useRuntimeRecommendation.ts';

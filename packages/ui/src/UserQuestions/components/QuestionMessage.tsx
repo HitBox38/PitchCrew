@@ -1,7 +1,9 @@
 import { Link } from '@tanstack/react-router';
 import type { Snapshot, UserInputRequest } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { MessageCircleQuestion, Check, X } from 'lucide-react';
+import { Button } from '@pitchcrew/design-system/button';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
+
+const beads = { pending: 'waiting', answered: 'completed', cancelled: 'cancelled' } as const;
 export const QuestionMessage = ({
   question,
   data,
@@ -18,13 +20,7 @@ export const QuestionMessage = ({
   return (
     <div className="user-question-message" data-status={question.status}>
       <span className="user-question-status">
-        {question.status === 'pending' ? (
-          <MessageCircleQuestion size={15} />
-        ) : question.status === 'answered' ? (
-          <Check size={15} />
-        ) : (
-          <X size={15} />
-        )}
+        <StatusBead status={beads[question.status]} />
         {question.status === 'pending'
           ? 'Waiting for you'
           : question.status === 'answered'
@@ -45,7 +41,10 @@ export const QuestionMessage = ({
       ) : null}
       {question.status === 'cancelled' ? <small>{question.cancellationReason}</small> : null}
       {delivery && ['failed', 'paused'].includes(delivery.status) ? (
-        <small>Your answer is saved. Resume this agent’s continuation from the queue.</small>
+        <small className="user-question-resume">
+          <StatusBead status={delivery.status} />
+          Your answer is saved. Resume this agent’s continuation from the queue.
+        </small>
       ) : null}
       {delivery &&
       ['failed', 'paused'].includes(delivery.status) &&

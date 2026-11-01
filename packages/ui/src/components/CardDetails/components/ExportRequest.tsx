@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { JobActionsProps } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
@@ -43,7 +43,7 @@ export const ExportRequest = ({
               formats: format === 'markdown' ? [] : format === 'both' ? ['pdf', 'docx'] : [format],
               layout,
             },
-            'Documents generated for review in Inbox',
+            'Documents generated for review in Decisions',
           )
         }
       >

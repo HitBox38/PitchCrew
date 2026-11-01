@@ -1,26 +1,25 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import type { BrowserControl } from '../types.ts';
+import { ClayPageError } from './ClayPageError.tsx';
 export const NativeBrowserStatus = ({
   model,
   manual,
+  control,
 }: {
   model: NativeBrowserModel;
   manual: boolean;
+  control: BrowserControl;
 }) => {
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
-  if (tab?.error)
-    return (
-      <div className="browser-page-error" role="alert">
-        <p>{tab.error}</p>
-        <Button
-          size="sm"
-          variant="outline"
-          disabled={!manual}
-          onClick={() => void model.command({ kind: 'reload' })}
-        >
-          Retry page
-        </Button>
-      </div>
-    );
-  return null;
+  if (!tab?.error) return null;
+  return (
+    <ClayPageError
+      error={tab.error}
+      crashed={!!tab.crashed}
+      manual={manual}
+      working={control.working}
+      reload={() => void model.command({ kind: 'reload' })}
+      take={control.leaseId ? undefined : () => void control.take()}
+    />
+  );
 };

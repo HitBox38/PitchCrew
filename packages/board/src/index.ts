@@ -119,6 +119,8 @@ export class Board {
         | 'applicationContext'
         | 'packetContextRevision'
         | 'packetReview'
+        | 'packetChanges'
+        | 'detectorAdvisories'
       >
     >,
     actor: string,

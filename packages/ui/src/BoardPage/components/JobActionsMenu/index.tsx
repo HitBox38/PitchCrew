@@ -1,10 +1,10 @@
 import { JobMenuItems } from './components/JobMenuItems.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { MoreHorizontal } from 'lucide-react';
 import { useJobActionsMenu } from './hooks/useJobActionsMenu.ts';
 import type { JobActionsMenuProps } from './types.ts';
@@ -15,7 +15,7 @@ export const JobActionsMenu = (props: JobActionsMenuProps) => {
   return (
     <DropdownMenu onOpenChange={model.menuOpenChange}>
       <DropdownMenuTrigger
-        render={<Button className="job-actions-trigger icon-button" />}
+        render={<Button variant="ghost" size="icon-sm" className="job-actions-trigger" />}
         aria-label={`Actions for ${card.title} at ${card.company}`}
         disabled={disabled}
         onPointerDown={(event) => event.stopPropagation()}

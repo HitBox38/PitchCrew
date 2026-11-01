@@ -1,5 +1,5 @@
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useTagMerge } from '../hooks/useTagMerge.ts';
 
 export const TagMergeConfirm = ({ merge }: { merge: ReturnType<typeof useTagMerge> }) => {
@@ -7,20 +7,20 @@ export const TagMergeConfirm = ({ merge }: { merge: ReturnType<typeof useTagMerg
     if (!merge.working) merge.setConfirming(false);
   };
   return (
-    <Modal title="Merge tags" onClose={close}>
+    <Modal title="Merge tags" onClose={close} className="insights-confirm">
       <p>
         Move {merge.affected.length} {merge.affected.length === 1 ? 'job' : 'jobs'} from{' '}
         <strong>{merge.from}</strong> to <strong>{merge.target}</strong>? The old tag is removed
         from every job. Job history keeps the earlier tags.
       </p>
-      <ul className="quiet my-3 max-h-48 overflow-y-auto">
+      <ul className="insights-confirm-list">
         {merge.affected.map((card) => (
           <li key={card.id}>
             {card.company} · {card.title}
           </li>
         ))}
       </ul>
-      <div className="mt-5 flex justify-end gap-2">
+      <div className="insights-confirm-actions">
         <Button className="button" disabled={merge.working} onClick={close}>
           Cancel
         </Button>

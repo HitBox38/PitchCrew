@@ -3,6 +3,7 @@ import { adapters } from '@pitchcrew/adapters';
 import type { DeepReview, Run, RunContext } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup } from './helpers/daemon.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 
 afterEach(cleanup);
 it('creates an initial draft, applies seven perspectives and rechecks without exporting', async () => {
@@ -17,6 +18,7 @@ it('creates an initial draft, applies seven perspectives and rechecks without ex
         role: 'reviewer',
         passed: true,
         feedback: [],
+        summary: reviewSummary(),
         assessment: assessment(),
         changeSummary: 'Rechecked the complete packet against the profile and seven perspectives.',
       };
@@ -62,7 +64,13 @@ it('keeps advisory findings from blocking the final packet and runs Writer corre
         correction: 'Keep the supported achievement near the top.',
         perspectives: ['recruiter'],
       });
-      return { role: 'reviewer', passed: true, feedback: [], assessment: result };
+      return {
+        role: 'reviewer',
+        passed: true,
+        feedback: [],
+        summary: reviewSummary(),
+        assessment: result,
+      };
     }
     return originalRun(context);
   });
@@ -92,6 +100,7 @@ it('runs more than two targeted subagents and records parent deadline extensions
         role: 'reviewer',
         passed: true,
         feedback: [],
+        summary: reviewSummary(),
         assessment: {
           ...assessment(),
           perspectives: [
@@ -121,7 +130,13 @@ it('runs more than two targeted subagents and records parent deadline extensions
           break;
       }
     }
-    return { role: 'reviewer', passed: true, feedback: [], assessment: assessment() };
+    return {
+      role: 'reviewer',
+      passed: true,
+      feedback: [],
+      summary: reviewSummary(),
+      assessment: assessment(),
+    };
   });
   const run = (await request<Run>(`/cards/${card.id}/deep-reviews`, 'POST', {})).result;
   await finish(request, run.id);

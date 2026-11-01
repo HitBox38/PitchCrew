@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { Link2, LoaderCircle, MessageSquare } from 'lucide-react';
 import { useId } from 'react';
 import type { useJobLookup } from '../hooks/useJobLookup.ts';
@@ -14,27 +14,29 @@ export const JobLinkField = ({
   scout,
   external,
   editing = false,
+  close,
 }: {
   lookup: ReturnType<typeof useJobLookup>;
   working: boolean;
   scout: ReturnType<typeof useScoutJobImport>;
   external: boolean;
   editing?: boolean;
+  close: () => void;
 }) => {
   const id = useId();
   const mode = jobLinkAction(lookup.url);
   const askScout = !editing && (mode === 'scout' || lookup.scoutUrl === lookup.url.trim());
   const blocker = askScout
     ? external
-      ? 'Fill in this application manually, or uncheck “Already applied” to ask Scout to add a lead.'
+      ? 'Fill in this application yourself, or clear “Already applied” to ask Scout to add a lead.'
       : scout.blocker
     : '';
   return (
-    <div className="field">
+    <div className="field add-job-link">
       <label htmlFor={id} className="flex-row items-baseline gap-2">
         Job post URL <span className="optional">optional</span>
       </label>
-      <div className="flex gap-2 max-phone:flex-col">
+      <div className="add-job-link-row">
         <Input
           id={id}
           aria-describedby={`${id}-help`}
@@ -47,7 +49,7 @@ export const JobLinkField = ({
           disabled={working}
         />
         <Button
-          className="button shrink-0"
+          variant="outline"
           disabled={mode === 'invalid' || lookup.pending || working || !!blocker}
           onClick={(event) =>
             void (askScout ? scout.askScout(event, lookup.scoutUrl) : lookup.fetchFromLink(event))
@@ -63,20 +65,22 @@ export const JobLinkField = ({
           {askScout ? 'Ask Scout to add job' : 'Fetch from link'}
         </Button>
       </div>
-      <p id={`${id}-help`} className="quiet font-normal" aria-live="polite">
+      <p id={`${id}-help`} className="add-job-hint" aria-live="polite">
         {blocker ||
           (askScout
-            ? 'Opens a Scout conversation to read this link and add the job to your board. You can also fill in the form yourself.'
-            : editing
-              ? 'Fetch reads supported job boards and structured public job pages. You can also edit the details manually.'
-              : 'Fetch reads supported job boards and structured public job pages. Other links can be sent to Scout.')}
+            ? 'Scout opens this link in a new conversation and adds the job. Or fill in the form.'
+            : 'Nothing is saved until you add it.')}
       </p>
       {scout.error ? (
         <p className="form-error" role="alert">
           {scout.error}
         </p>
       ) : null}
-      <LookupNotice message={lookup.message} duplicates={lookup.duplicates} />
+      <LookupNotice
+        message={lookup.message}
+        duplicates={lookup.duplicates}
+        close={editing ? undefined : close}
+      />
     </div>
   );
 };

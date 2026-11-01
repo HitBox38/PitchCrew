@@ -38,12 +38,18 @@ export const useRoutinesPage = (data: Snapshot, action: Action) => {
     setError('');
     try {
       await action(`/routines/${deleting.id}`, 'DELETE', undefined, 'Deleted routine');
+      if (editing !== 'new' && editing?.id === deleting.id) setEditing(null);
       setDeleting(null);
     } catch (error) {
       setError(error instanceof Error ? error.message : 'Could not delete routine.');
     }
   };
+  const clearFilters = () => {
+    setQuery('');
+    setFilter('all');
+  };
   return {
+    clearFilters,
     editing,
     setEditing,
     deleting,

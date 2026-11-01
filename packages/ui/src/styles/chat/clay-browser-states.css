@@ -1,0 +1,416 @@
+/* Clay interface preview: clay-browser-states. Scoped under [data-interface='clay'].
+ * Browser panel states: private control, opening and empty pages, failed tabs, website dialogs,
+ * stopped automatic preparation and the reserved tray's idle content. Shapes encode state:
+ * ochre waits on you, plum is the agent working, rose is a failure, primary is your control. */
+
+/* Small labelled chips (Stopped automatic filling, The website is asking, Needs checking). */
+[data-interface='clay'] .clay-browser-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  width: fit-content;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: var(--sunken-fill);
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+[data-interface='clay'] .clay-browser-chip[data-tone='ochre'] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+[data-interface='clay'] .clay-browser-chip[data-tone='rose'] {
+  background: var(--rose-soft);
+  color: var(--rose);
+}
+
+/* Private control: a primary strip over the page and a ring around the page you control. */
+[data-interface='clay'] .clay-control-bar {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  margin-bottom: 8px;
+  padding: 0 10px 0 12px;
+  border-radius: 9px;
+  background: var(--primary);
+  box-shadow: var(--clay);
+  color: var(--color-primary-foreground);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+[data-interface='clay'] .clay-control-bar > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-interface='clay'] .clay-control-private {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  font-weight: 400;
+  opacity: 0.85;
+}
+[data-interface='clay'] .browser-panel-body:has(> .clay-control-bar) > .browser-live-view {
+  border-color: var(--primary);
+  box-shadow:
+    0 0 0 1px var(--primary),
+    0 0 0 5px color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+/* Opening, empty, failed and popup pages: one orb, a short heading and a sentence. */
+[data-interface='clay'] .browser-placeholder {
+  align-content: center;
+}
+[data-interface='clay'] .clay-browser-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 32px 24px;
+  background: var(--paper);
+  color: var(--ink);
+  text-align: center;
+}
+[data-interface='clay'] .clay-browser-state > h3 {
+  margin: 4px 0 0;
+  color: var(--ink);
+  font: 600 15px/1.35 var(--font-sans);
+}
+[data-interface='clay'] .clay-browser-state > p {
+  max-width: 330px;
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-label);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  text-wrap: pretty;
+}
+[data-interface='clay'] .clay-browser-state > p.quiet {
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-browser-state > [data-slot='button'] {
+  margin-top: 6px;
+}
+[data-interface='clay'] .clay-browser-orb {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+}
+[data-interface='clay'] .clay-browser-orb svg {
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.6;
+}
+[data-interface='clay'] .clay-browser-orb[data-raised] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .clay-browser-orb[data-raised] > .clay-job-spinner {
+  width: 18px;
+  height: 18px;
+  border-width: 2px;
+  border-top-color: var(--primary);
+}
+[data-interface='clay'] .clay-browser-orb[data-tone='rose'] {
+  border-radius: 12px;
+  color: var(--rose);
+}
+[data-interface='clay'] .browser-placeholder:not(.clay-browser-state) .browser-placeholder-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay']
+  .browser-placeholder:not(.clay-browser-state)
+  .browser-placeholder-icon
+  svg {
+  width: 20px;
+  height: 20px;
+}
+[data-interface='clay'] .browser-placeholder:not(.clay-browser-state) .browser-placeholder-copy h3 {
+  font-size: 15px;
+}
+[data-interface='clay'] .clay-browser-state-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* Recently closed pages under the empty page. */
+[data-interface='clay'] .clay-recent-pages {
+  display: grid;
+  gap: 2px;
+  width: min(340px, 100%);
+  margin-top: 18px;
+  text-align: left;
+}
+[data-interface='clay'] .clay-recent-pages > h4 {
+  margin: 0 0 4px 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+[data-interface='clay'] .clay-recent-pages > p {
+  margin: 4px 0 0 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-recent-page {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  justify-content: stretch;
+  gap: 8px;
+  height: 32px;
+  padding: 0 8px;
+  font-weight: 400;
+  text-align: left;
+}
+[data-interface='clay'] .clay-recent-page:disabled {
+  opacity: 1;
+}
+[data-interface='clay'] .clay-recent-page > strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+[data-interface='clay'] .clay-recent-page > span {
+  overflow: hidden;
+  color: var(--muted);
+  text-overflow: ellipsis;
+}
+[data-interface='clay'] .clay-recent-page > time {
+  color: var(--faint);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Failed or crashed tab: paper, not an error wash; the rose orb carries the failure. */
+[data-interface='clay'] .browser-page-error.clay-browser-state {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: 10px;
+}
+
+/* Website dialogs and stopped automatic preparation: raised notes between the chrome and page. */
+[data-interface='clay'] .browser-dialog,
+[data-interface='clay'] .clay-browser-notice {
+  display: grid;
+  flex-shrink: 0;
+  gap: 8px;
+  margin: 8px 10px 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  font-size: var(--text-label);
+}
+[data-interface='clay'] .browser-dialog > p,
+[data-interface='clay'] .clay-browser-notice > p {
+  margin: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+[data-interface='clay'] .browser-dialog > p.quiet {
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-browser-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+[data-interface='clay'] .browser-panel-body > .browser-dialog,
+[data-interface='clay'] .browser-panel-body > .clay-browser-notice {
+  margin: 0 0 8px;
+}
+
+/* Site grants inside an approval: a recessed Site access chip beside Details opens the grants in a
+ * popover, so the reserved tray keeps its height whether or not a grant is offered. */
+[data-interface='clay'] .browser-approval-body > .clay-site-trigger {
+  flex: none;
+  order: 4;
+  height: 22px;
+  gap: 4px;
+  padding-inline: 7px;
+  border-radius: 7px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+}
+/* A request taller than the reserved tray scrolls inside it from its title, never clipped. */
+[data-interface='clay'] .browser-approvals[data-reserved] .browser-approval-body {
+  align-self: stretch;
+  align-content: safe center;
+}
+
+/* Reserved approval tray while nothing waits: same height, so the page never moves. */
+[data-interface='clay'] .clay-tray-state {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+  padding: 10px 14px;
+}
+[data-interface='clay'] .clay-tray-copy {
+  display: grid;
+  flex: 1;
+  align-content: center;
+  gap: 3px;
+  min-width: 0;
+}
+[data-interface='clay'] .clay-tray-copy > p {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: var(--text-label);
+  line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+[data-interface='clay'] .clay-tray-copy > .clay-tray-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-tray-title > strong {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+}
+[data-interface='clay'] .clay-tray-title > span:not(.clay-bead, .sr-only) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-interface='clay'] .clay-tray-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin: 0;
+  padding: 0;
+  color: var(--ink-soft);
+  font-size: var(--text-caption);
+  list-style: none;
+}
+[data-interface='clay'] .clay-tray-steps > li {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+[data-interface='clay'] .clay-tray-steps > li > svg {
+  color: var(--moss);
+}
+[data-interface='clay'] .clay-tray-steps > li[data-failed] > svg {
+  color: var(--rose);
+}
+[data-interface='clay'] .clay-tray-copy > .clay-tray-note {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-tray-note > svg {
+  flex: none;
+}
+@container browser-panel (max-width: 34rem) {
+  [data-interface='clay'] .clay-tray-state {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: center;
+    gap: 8px;
+  }
+  [data-interface='clay'] .clay-tray-state > [data-slot='button'] {
+    align-self: flex-start;
+  }
+}
+
+/* Streamed (web) private typing row under the page. */
+[data-interface='clay'] .browser-manual-input {
+  border-top: 0;
+  background: var(--clay-fill);
+  box-shadow: inset 0 1px 0 var(--rim);
+}
+
+/* Uncertain browser submission in the chat column: one raised card with the existing choices. */
+[data-interface='clay'] .chat-submission-verification {
+  padding: 0 16px;
+  border-bottom: 0;
+  background: transparent;
+}
+[data-interface='clay'] .clay-submission-check {
+  display: grid;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .clay-submission-check > h3 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+[data-interface='clay'] .clay-submission-check > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-label);
+  line-height: 1.5;
+}
+[data-interface='clay'] .clay-submission-check > blockquote {
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 9px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  font-size: var(--text-label);
+  white-space: pre-wrap;
+}
+[data-interface='clay'] .clay-submission-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+[data-interface='clay'] .manual-submission-completion {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .manual-submission-completion > p {
+  margin: 0;
+}
+[data-interface='clay'] .clay-submission-follow-up {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-inline: -8px;
+}

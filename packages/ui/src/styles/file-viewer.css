@@ -1,18 +1,19 @@
-@reference './theme.css';
+@reference '@pitchcrew/design-system/theme.css';
 [data-slot='dialog-content'].file-viewer-dialog {
   display: flex;
   flex-direction: column;
-  width: min(1120px, calc(100vw - 48px));
+  width: min(1120px, calc(100vw - 32px));
   max-width: none;
-  height: min(860px, calc(100dvh - 64px));
+  height: min(880px, calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px));
   top: calc(50% + var(--desktop-titlebar-height, 0px) / 2);
-  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 64px);
+  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px);
   padding: 0;
   gap: 0;
   overflow: hidden;
-  background: var(--paper);
-  border: 1px solid var(--border);
-  border-radius: 16px;
+  border: 0;
+  border-radius: 20px;
+  background: var(--clay-fill);
+  box-shadow: var(--pop), var(--clay);
 }
 [data-slot='dialog-content'].file-viewer-dialog[data-expanded='true'] {
   width: calc(100vw - 24px);
@@ -25,13 +26,11 @@
   justify-content: space-between;
   flex-shrink: 0;
   gap: 14px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+  min-height: 56px;
+  padding: 10px 14px 6px 20px;
 }
 .file-dialog-heading [data-slot='dialog-title'] {
-  font-family: var(--font-sans);
-  font-size: 16px;
+  font: 600 1rem/1.35 var(--font-sans);
   overflow-wrap: anywhere;
 }
 .file-dialog-heading p {
@@ -51,9 +50,8 @@
   flex-wrap: wrap;
   flex-shrink: 0;
   gap: 8px;
-  padding: 9px 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  min-height: 44px;
+  padding: 4px 16px 8px 20px;
 }
 .file-zoom-controls {
   display: flex;
@@ -74,21 +72,15 @@
   height: 1px;
   overflow: hidden;
 }
-.file-mode-toggle {
-  display: flex;
-  gap: 2px;
-  background: var(--paper-deep);
-  padding: 2px;
-  border-radius: 8px;
+.file-mode-toggle > button {
+  height: 28px;
 }
 .file-page-controls {
   display: flex;
   align-items: center;
   gap: 10px;
   justify-content: center;
-  background: var(--surface);
-  padding: 6px 16px;
-  border-bottom: 1px solid var(--border);
+  padding: 0 16px 6px;
 }
 .file-page-controls label {
   display: flex;
@@ -125,24 +117,80 @@
   background: var(--primary-soft);
 }
 .file-view-note {
-  font-size: 12px;
-  padding: 7px 16px;
+  padding: 0 20px 8px;
   color: var(--muted);
-  background: var(--surface);
+  font-size: var(--text-caption);
 }
 .file-verification-notes {
   flex-shrink: 0;
   max-height: 25%;
+  margin: 0 16px 8px;
+  padding-inline: 14px;
   overflow-y: auto;
-  padding-inline: 16px;
-  background: var(--surface);
+  border-radius: 12px;
+  background: var(--ochre-soft);
   font-size: var(--text-caption);
+}
+/* Reading stage: a recessed tray with the document's paper centred on it, and a file rail on the
+ * left when the request has several files. */
+.file-view-main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  gap: 12px;
+  padding: 0 12px 12px;
+}
+.file-view-list {
+  display: flex;
+  flex: 0 0 180px;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+}
+.file-view-list > button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-height: 44px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  text-align: left;
+}
+.file-view-list > button > span {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-view-list > button > small {
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.file-view-list > button:hover {
+  color: var(--ink);
+}
+.file-view-list > button[aria-current='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  font-weight: 600;
+}
+.file-view-list > button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
 }
 .file-view-body {
   flex: 1;
+  min-width: 0;
   min-height: 0;
   overflow: auto;
-  background: var(--paper-deep);
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
   overscroll-behavior: contain;
 }
 .file-text-document {
@@ -152,7 +200,7 @@
   padding: 40px;
   max-width: 85ch;
   min-height: calc(100% - 48px);
-  border: 1px solid var(--border);
+  border-radius: 4px;
   box-shadow: var(--sheet);
 }
 .file-text-document pre {
@@ -203,7 +251,6 @@
   align-content: start;
   padding: 12px;
   gap: 10px;
-  background: var(--surface);
   border-right: 1px solid var(--border);
 }
 .file-image-pan {
@@ -274,6 +321,14 @@
     margin: 12px;
     padding: 20px;
   }
+  .file-view-main {
+    padding: 0 8px 8px;
+  }
+}
+@variant max-wide {
+  .file-view-list {
+    display: none;
+  }
 }
 .pdf-thumbnail {
   display: flex;
@@ -316,4 +371,137 @@
   top: 50%;
   max-width: none;
   user-select: none;
+}
+/* Attachment tiles: each exact file as a small paper sheet on a raised clay tile. */
+.file-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  gap: 12px;
+}
+.file-tile {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 9px 10px;
+  border-radius: 10px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  text-align: left;
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease;
+}
+.file-tile:hover {
+  box-shadow: var(--clay-hover);
+  transform: translateY(-1px);
+}
+.file-tile:active {
+  box-shadow: var(--clay-sunken);
+  transform: none;
+}
+.file-tile:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.file-tile-sheet {
+  display: block;
+  height: 104px;
+  margin-bottom: 8px;
+  padding: 12px 11px;
+  border-radius: 2px;
+  background: var(--surface-bright);
+  box-shadow:
+    0 0 0 1px rgb(var(--tint) / 0.07),
+    0 2px 5px rgb(30 34 44 / 0.06);
+  overflow: hidden;
+}
+.file-tile-sheet > i {
+  display: block;
+  height: 3px;
+  margin: 6px 0;
+  border-radius: 2px;
+  background: rgb(var(--tint) / 0.12);
+}
+.file-tile-sheet > i:first-child {
+  width: 50%;
+  height: 4px;
+  margin-top: 0;
+  background: rgb(var(--tint) / 0.22);
+}
+.file-tile-sheet > i:nth-child(3) {
+  width: 82%;
+}
+.file-tile-sheet > i:nth-child(5) {
+  width: 66%;
+}
+.file-tile[data-kind='image'] .file-tile-sheet,
+.file-tile[data-kind='text'] .file-tile-sheet {
+  height: 64px;
+}
+.file-tile-name {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 6px;
+}
+.file-tile-name strong {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  font-size: var(--text-label);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.file-tile small {
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+.file-tile-name small {
+  flex: none;
+}
+.file-tile .file-tile-notes {
+  color: var(--ochre);
+}
+/* Phones: one 72px row per file, a small paper page beside its name and facts. */
+@container decide (width < 640px) {
+  .file-tiles {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 6px;
+  }
+  .file-tile {
+    display: grid;
+    min-height: 72px;
+    grid-template-columns: 38px minmax(0, 1fr);
+    align-content: center;
+    gap: 2px 12px;
+    padding: 10px 12px;
+  }
+  .file-tile-sheet,
+  .file-tile[data-kind] .file-tile-sheet {
+    height: 48px;
+    grid-row: 1 / span 3;
+    margin: 0;
+    padding: 7px 6px;
+  }
+  .file-tile-sheet > i {
+    height: 2px;
+    margin: 4px 0;
+  }
+  .file-tile-sheet > i:first-child {
+    height: 3px;
+  }
+  .file-tile-sheet > i:nth-child(n + 5) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .file-tile,
+  .file-tile:hover {
+    transition: none;
+    transform: none;
+  }
 }

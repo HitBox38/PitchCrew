@@ -38,6 +38,7 @@ export const snapshotRevision = async (context: CrewContext): Promise<string> =>
     runtimes: context.runtimes,
     runtimeMaintenance: context.runtimeMaintenance.revision(),
     connectors: context.connectors.status(),
+    detectors: context.detectors.revision(),
     starterSkillErrors: context.starterSkillErrors,
     streamingMessages: [...context.streamingMessages.values()],
     activity: [...context.runActivities],

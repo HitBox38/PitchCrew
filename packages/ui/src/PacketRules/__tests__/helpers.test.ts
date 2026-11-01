@@ -5,6 +5,7 @@ import {
   issueText,
   issuesForRule,
   parseDraft,
+  ruleSentence,
   ruleViews,
 } from '../helpers.ts';
 
@@ -80,4 +81,32 @@ it('places validation issues next to their rule', () => {
   expect(issuesForRule(issues, 1).map(issueText)).toEqual(['pattern: Nested repeats are slow.']);
   expect(issuesForRule(issues, 0)).toEqual([]);
   expect(fileIssues(issues).map(issueText)).toEqual(['rules: Too many patterns.', 'Too large.']);
+});
+
+it('titles each rule by its documents and condition', () => {
+  expect(draft.rules.map(ruleSentence)).toEqual([
+    'Resume — at most 650 words',
+    'Resume, Cover letter — /Led (\\d+) developers/i must capture “3”',
+    'Rule — unknown rule kind',
+  ]);
+  expect(
+    ruleSentence({ kind: 'max_bullets', documents: ['coverLetter'], max: 4, heading: 'x' }),
+  ).toBe('Cover letter — at most 4 bullets per section');
+  expect(ruleSentence({ kind: 'word_limit', documents: ['note'], max: 90 })).toBe(
+    'Note — at most 90 body words',
+  );
+  expect(
+    ruleSentence({
+      kind: 'canonical_lines',
+      documents: ['resume'],
+      selector: '^Ph',
+      values: ['a'],
+    }),
+  ).toBe('Resume — lines matching /^Ph/ use 1 listed value');
+  expect(ruleSentence({ kind: 'pattern', documents: [], pattern: 'TODO', flags: '' })).toBe(
+    'Pattern — no /TODO/',
+  );
+  expect(
+    ruleSentence({ kind: 'pattern', documents: ['resume'], pattern: '!', flags: 'g', maxCount: 2 }),
+  ).toBe('Resume — at most 2 of /!/g');
 });

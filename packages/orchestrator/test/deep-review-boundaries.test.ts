@@ -3,11 +3,13 @@ import type { Card, DeepReview, Role, Run, ReviewSubagent, Snapshot } from '@pit
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, waitForSnapshot } from './helpers/daemon.ts';
 import { assessment, deepReviewFixture } from './helpers/deep-reviews.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 afterEach(cleanup);
 const passing = () => ({
   role: 'reviewer' as const,
   passed: true,
   feedback: [],
+  summary: reviewSummary(),
   assessment: assessment(),
 });
 it('keeps blockers authoritative even when a model incorrectly sets passed=true', async () => {

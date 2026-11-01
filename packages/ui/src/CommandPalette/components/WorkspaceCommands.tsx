@@ -1,42 +1,37 @@
-import { themeOptions } from '@/lib/theme-options.ts';
 import type { WorkspaceCommandsProps } from '@/CommandPalette/types.ts';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
-import { CommandShortcut } from '@/components/ui/command/components/CommandShortcut.tsx';
-import { modKey } from '@/shortcuts.ts';
-import { Copy, PanelLeft, Plus, RefreshCw } from 'lucide-react';
+import { CommandGroup } from '@pitchcrew/design-system/command';
+import { FilePlus2, MessageSquarePlus, Plus } from 'lucide-react';
+import { PaletteItem } from './PaletteItem.tsx';
 
+/**
+ * The few everyday things to create, named by their consequence. Theme, runtime, data and update
+ * commands live under Settings so they never push jobs out of view.
+ */
 export const WorkspaceCommands = ({
   run,
   onAddJob,
-  toggleSidebar,
-  onCheckRuntimes,
-  onCopyDirectory,
-  onTheme,
-}: WorkspaceCommandsProps) => {
-  return (
-    <CommandGroup heading="Actions">
-      <CommandItem value="new job add" onSelect={run(onAddJob)}>
-        <Plus /> New job <CommandShortcut>N</CommandShortcut>
-      </CommandItem>
-      <CommandItem value="toggle sidebar" onSelect={run(toggleSidebar)}>
-        <PanelLeft /> Toggle sidebar <CommandShortcut>{modKey}B</CommandShortcut>
-      </CommandItem>
-      <CommandItem value="check runtimes" onSelect={run(onCheckRuntimes)}>
-        <RefreshCw /> Check installed runtimes
-      </CommandItem>
-      <CommandItem value="copy data folder path" onSelect={run(onCopyDirectory)}>
-        <Copy /> Copy data folder path
-      </CommandItem>
-      {themeOptions.map((option) => (
-        <CommandItem
-          key={option.id}
-          value={`theme ${option.label}`}
-          onSelect={run(() => onTheme(option.id))}
-        >
-          <option.icon /> Theme: {option.label}
-        </CommandItem>
-      ))}
-    </CommandGroup>
-  );
-};
+  onNewConversation,
+  onNewNote,
+}: WorkspaceCommandsProps) => (
+  <CommandGroup heading="Actions">
+    <PaletteItem
+      value="add job new"
+      icon={Plus}
+      label="Add job"
+      shortcut="N"
+      onSelect={run(onAddJob)}
+    />
+    <PaletteItem
+      value="new conversation chat"
+      icon={MessageSquarePlus}
+      label="New conversation"
+      onSelect={run(onNewConversation)}
+    />
+    <PaletteItem
+      value="new note profile"
+      icon={FilePlus2}
+      label="New note"
+      onSelect={run(onNewNote)}
+    />
+  </CommandGroup>
+);

@@ -1,7 +1,15 @@
 import { useEffect, useState } from 'react';
+import {
+  fillBrowserViewport,
+  type BrowserViewportSetting,
+} from '@/BrowserDeviceToolbar/viewport.ts';
 import type { BrowserControl } from '../types.ts';
 
-export const useBrowserSize = (enabled: boolean, resize: BrowserControl['resize']) => {
+export const useBrowserSize = (
+  enabled: boolean,
+  resize: BrowserControl['resize'],
+  setting: BrowserViewportSetting = fillBrowserViewport,
+) => {
   const [element, attach] = useState<HTMLDivElement | null>(null);
   const [size, setSize] = useState({ width: 0, height: 0 });
   const [error, setError] = useState('');
@@ -9,6 +17,8 @@ export const useBrowserSize = (enabled: boolean, resize: BrowserControl['resize'
     if (!element) return;
     const measure = () =>
       setSize((previous) => {
+        // A hidden page (the clay Packet view) keeps its last viewport rather than resizing it.
+        if (!element.offsetWidth && !element.offsetHeight) return previous;
         const next = { width: element.offsetWidth - 2, height: element.offsetHeight - 2 };
         return next.width === previous.width && next.height === previous.height ? previous : next;
       });
@@ -20,10 +30,13 @@ export const useBrowserSize = (enabled: boolean, resize: BrowserControl['resize'
     if (!enabled || !size.width || !size.height) return;
     const controller = new AbortController();
     let timer: ReturnType<typeof setTimeout>;
-    const viewport = {
-      width: Math.max(240, Math.min(2560, size.width)),
-      height: Math.max(160, Math.min(2160, size.height)),
-    };
+    const viewport =
+      setting.mode === 'fixed'
+        ? { width: setting.width, height: setting.height }
+        : {
+            width: Math.max(240, Math.min(2560, size.width)),
+            height: Math.max(160, Math.min(2160, size.height)),
+          };
     const update = async () => {
       try {
         const result = await resize(viewport, controller.signal);
@@ -40,6 +53,6 @@ export const useBrowserSize = (enabled: boolean, resize: BrowserControl['resize'
       controller.abort();
       clearTimeout(timer);
     };
-  }, [enabled, resize, size.width, size.height]);
+  }, [enabled, resize, size.width, size.height, setting]);
   return { attach, size, error };
 };

@@ -1,7 +1,7 @@
 import { Search } from 'lucide-react';
 import type { ProfileImportFile } from '@pitchcrew/core';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ImportReviewProps } from '../types.ts';
 
 export const ImportReviewToolbar = ({
@@ -20,7 +20,7 @@ export const ImportReviewToolbar = ({
 }) => {
   const safe = changes.filter((file) => file.status !== 'conflict');
   return (
-    <div className="shrink-0 border-b border-border px-5 py-3">
+    <div className="profile-import-toolbar">
       <div className="relative">
         <Search
           size={16}

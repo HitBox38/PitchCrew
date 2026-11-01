@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import { useNativeProfiles } from '../hooks/useNativeProfiles.ts';
 import { NativeProfileRow } from './NativeProfileRow.tsx';
 import { NativeProfileCreate } from './NativeProfileCreate.tsx';

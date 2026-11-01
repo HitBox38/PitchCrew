@@ -1,6 +1,6 @@
 import type { RuntimeUpdateInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ArrowDownToLine, LoaderCircle } from 'lucide-react';
 import { runtimeLabels } from '@/lib/labels.ts';
 

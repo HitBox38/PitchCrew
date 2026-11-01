@@ -1,7 +1,7 @@
 import type { Card, Snapshot } from '@pitchcrew/core';
 import { useDeepReviews } from './hooks/useDeepReviews.ts';
 import { ReviewReport } from './components/ReviewReport.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 export const DeepResumeReview = ({ card, data }: { card: Card; data: Snapshot }) => {
   const revision = data.runs
     .filter((run) => run.cardId === card.id && run.deepReviewId)

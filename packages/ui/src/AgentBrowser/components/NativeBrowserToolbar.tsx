@@ -1,16 +1,23 @@
 import { NativeBrowserSettings } from './NativeBrowserSettings.tsx';
 import { ArrowLeft, ArrowRight, RotateCw, Search, Square } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { BrowserAddress } from './BrowserAddress.tsx';
 import { BrowserLoadingProgress } from './BrowserLoadingProgress.tsx';
+import { NativeBrowserHistory } from './NativeBrowserHistory.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '../types.ts';
+import type { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';
+import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
 export const NativeBrowserToolbar = ({
   model,
   control,
+  tools,
+  device,
 }: {
   model: NativeBrowserModel;
   control: BrowserControl;
+  tools: ReturnType<typeof useNativeBrowserTools>;
+  device: ReturnType<typeof useBrowserDevice>;
 }) => {
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
   const manual = !!control.leaseId && !control.working;
@@ -61,7 +68,8 @@ export const NativeBrowserToolbar = ({
       >
         <Search size={15} />
       </Button>
-      <NativeBrowserSettings model={model} manual={manual} />
+      <NativeBrowserHistory model={model} manual={manual} />
+      <NativeBrowserSettings model={model} manual={manual} tools={tools} device={device} />
       {tab?.loading ? <BrowserLoadingProgress /> : null}
     </div>
   );

@@ -4,23 +4,18 @@ import type { JobMenuActions } from './components/JobActionsMenu/types.ts';
 
 export type BoardPageModel = NonNullable<ReturnType<typeof useBoardPage>>;
 
-export type BoardToolbarProps = Pick<
-  BoardPageModel,
-  'showClosed' | 'setShowClosed' | 'data' | 'active' | 'query' | 'setQuery'
->;
+export type BoardEmptyProps = Pick<BoardPageModel, 'working' | 'act' | 'data'>;
 
-export type BoardWelcomeProps = Pick<BoardPageModel, 'setAdd' | 'working' | 'act' | 'data'>;
-
-export type ClosedJobsProps = Pick<BoardPageModel, 'closed' | 'openCard' | 'data' | 'working'> & {
+export type ClosedJobsProps = Pick<BoardPageModel, 'openCard' | 'data' | 'working'> & {
+  closed: BoardPageModel['filtered'];
+  total: number;
   dragging: boolean;
   query: string;
   reveal: JobReveal;
   menuActions: JobMenuActions;
 };
 
-export type JobPipelineProps = Pick<
+export type ClosedPipelineProps = Pick<
   BoardPageModel,
-  'filtered' | 'flashStage' | 'setAdd' | 'openCard' | 'query' | 'showClosed' | 'jobMutations'
+  'filtered' | 'openCard' | 'query' | 'jobMutations'
 >;
-
-export type RecentActivityProps = Pick<BoardPageModel, 'go' | 'recent'>;

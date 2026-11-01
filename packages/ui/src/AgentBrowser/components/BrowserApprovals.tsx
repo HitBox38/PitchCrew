@@ -1,5 +1,6 @@
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserPendingAction } from './BrowserPendingAction.tsx';
+import { ClayApprovalIdle } from './ClayApprovalIdle.tsx';
 export const BrowserApprovals = (
   props: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'> & {
     control: BrowserControl;
@@ -20,9 +21,14 @@ export const BrowserApprovals = (
       aria-label="Browser action review"
     >
       {!approvals.length ? (
-        <p className="browser-approval-empty quiet">
-          Browser actions will appear here for your approval.
-        </p>
+        <ClayApprovalIdle
+          browserPanel={props.browserPanel}
+          data={props.data}
+          thread={props.thread}
+          action={props.action}
+          working={props.working}
+          control={props.control}
+        />
       ) : null}
       {approvals.map((approval) => (
         <BrowserPendingAction key={approval.id} approval={approval} {...props} />

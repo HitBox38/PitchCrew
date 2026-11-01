@@ -1,5 +1,5 @@
 import { ReviewExtensions } from './ReviewExtensions.tsx';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { ReviewDetail } from '../types.ts';
 import { PerspectiveAssessment } from './PerspectiveAssessment.tsx';
 import { ReviewFindings } from './ReviewFindings.tsx';

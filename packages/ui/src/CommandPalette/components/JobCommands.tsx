@@ -1,14 +1,13 @@
 import type { JobCommandsProps } from '@/CommandPalette/types.ts';
 import { CompanyMark } from '@/components/CompanyMark/index.tsx';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
-import { CommandShortcut } from '@/components/ui/command/components/CommandShortcut.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
+import { stateLabels } from '@/lib/labels.ts';
 import { useJobCommands } from '../hooks/useJobCommands.ts';
 import { JobCommandPages } from './JobCommandPages.tsx';
-import { stateLabels } from '@/lib/labels.ts';
+import { PaletteItem } from './PaletteItem.tsx';
 
-export const JobCommands = ({ cards, run, onOpenCard }: JobCommandsProps) => {
-  const page = useJobCommands(cards);
+export const JobCommands = ({ cards, run, onOpenCard, recentIds }: JobCommandsProps) => {
+  const page = useJobCommands(cards, recentIds);
   if (!page.total) return null;
   return (
     <CommandGroup
@@ -18,13 +17,14 @@ export const JobCommands = ({ cards, run, onOpenCard }: JobCommandsProps) => {
         {page.total} matching jobs. Showing {page.start + 1} through {page.end}.
       </output>
       {page.entries.map(({ card, value }) => (
-        <CommandItem key={card.id} value={value} onSelect={run(() => onOpenCard(card.id))}>
-          <CompanyMark name={card.company} />
-          <span className="command-job">
-            {card.title} <small>{card.company}</small>
-          </span>
-          <CommandShortcut>{stateLabels[card.state]}</CommandShortcut>
-        </CommandItem>
+        <PaletteItem
+          key={card.id}
+          value={value}
+          mark={<CompanyMark name={card.company} />}
+          label={card.title}
+          context={`${card.company} · ${stateLabels[card.state]}`}
+          onSelect={run(() => onOpenCard(card.id))}
+        />
       ))}
       <JobCommandPages {...page} />
     </CommandGroup>

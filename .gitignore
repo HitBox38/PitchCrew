@@ -1,5 +1,6 @@
 node_modules/
 dist/
+/brag-output*/
 coverage/
 test-results/
 *.log
@@ -18,3 +19,4 @@ test-results/
 **/.impeccable/live/
 **/.impeccable/questions/
 **/.impeccable/config.local.json
+**/.taste-skill/

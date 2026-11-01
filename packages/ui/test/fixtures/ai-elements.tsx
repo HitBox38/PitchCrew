@@ -1,5 +1,5 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Input } from '@pitchcrew/design-system/input';
 import { ServiceCommand } from '@/BackgroundServiceSettings/components/ServiceCommand.tsx';
 import { BrowserActionSummary } from '@/ComputerApprovals/components/BrowserActionSummary.tsx';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
@@ -9,14 +9,14 @@ import type { ChatMessage, Snapshot, RunActivity, ChatRequest } from '@pitchcrew
 import { AppMotion } from '@/AppMotion/index.tsx';
 import { ConversationHistory } from '@/ChatView/components/ConversationHistory.tsx';
 import { ConversationQueue } from '@/ChatView/components/ConversationQueue.tsx';
-import { ActivityGroup } from '@/ChatTurn/components/ActivityGroup.tsx';
+import { ClaySteps } from '@/ChatTurn/components/ClaySteps.tsx';
 import { ComposerAttachments } from '@/ChatView/components/ComposerAttachments.tsx';
 import { Suggestion } from '@/components/ai-elements/suggestion/index.tsx';
 import { PromptInput } from '@/components/ai-elements/prompt-input/components/PromptInput.tsx';
 import { PromptInputTextarea } from '@/components/ai-elements/prompt-input/components/PromptInputTextarea.tsx';
 import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/components/PromptInputSubmit.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Notifications } from '@/Notifications/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { NotificationCenter, Notifications } from '@/Notifications/index.tsx';
 import { LinkConfirmation } from '@/components/MarkdownContent/components/LinkConfirmation.tsx';
 import '@/styles.css';
 
@@ -34,6 +34,7 @@ const Fixture = () => {
   return (
     <AppMotion>
       <Notifications />
+      <NotificationCenter />
       <Button onClick={() => setUnsafeLinkOpen(true)}>Preview blocked link</Button>
       <output aria-label="Unsafe link opened">{String(unsafeLinkOpened)}</output>
       <LinkConfirmation
@@ -87,7 +88,7 @@ const Fixture = () => {
             {null}
           </ConversationHistory>
         </div>
-        <ActivityGroup entries={entries} />
+        <ClaySteps entries={entries} />
         <ConversationQueue
           queued={[queued]}
           data={data}

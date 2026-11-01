@@ -4,13 +4,18 @@ import type { Snapshot } from '@pitchcrew/core';
 import { pendingInstructionUpdates } from '../lib/instruction-updates.ts';
 import { pendingSkillUpdates } from '../lib/skill-updates.ts';
 import { skillSourceRevision } from '@pitchcrew/core/skill-updates';
-import type { CrewNotification } from './types.ts';
+import type { CrewNotification, NotificationGroupId } from './types.ts';
 
 export const collectNotifications = (data: Snapshot): CrewNotification[] => {
   const rolesById = new Map(data.roles.map((role) => [role.id, role]));
   const cardsById = new Map(data.cards.map((card) => [card.id, card]));
   const skillsById = new Map(data.skills.map((skill) => [skill.id, skill]));
   const roleName = (id: string) => rolesById.get(id)?.name ?? id;
+  const cardByThread = new Map((data.conversations ?? []).map((item) => [item.id, item.cardId]));
+  const threadJob = (threadId: string) => {
+    const cardId = cardByThread.get(threadId);
+    return cardId ? cardsById.get(cardId)?.company : undefined;
+  };
   const proposalNotices = new Map(
     data.proposals.filter((p) => p.noticeMessageId).map((p) => [p.noticeMessageId, p]),
   );
@@ -33,9 +38,10 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
         ? `${roleName(m.from)} suggests changes to ${roleName(proposalNotices.get(m.id)!.roleId)}`
         : reviewNotices.has(m.id)
           ? `${roleName(m.from)} saved a pipeline review`
-          : `${roleName(m.from)}${m.notification === 'attention' ? ' needs your answer' : ' sent a message'}`,
+          : messageTitle(roleName(m.from), m.notification === 'attention', threadJob(m.threadId)),
       body: m.content,
       target: `/chat/${m.threadId}` as CrewNotification['target'],
+      roleId: m.from === 'user' || m.from === 'system' ? undefined : m.from,
       createdAt: m.createdAt,
     }));
   for (const a of data.approvals.filter((a) => a.status === 'pending')) {
@@ -44,30 +50,36 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
       id: `approval:${a.id}`,
       kind: 'attention',
       context: 'packet_approval',
-      title: 'Packet approval needed',
-      body: `Review the packet${card ? ` for ${card.company}` : ''} before exporting.`,
+      title: card ? `${card.company} packet needs approval` : 'Packet needs approval',
+      body: `${card ? `${card.title} · ` : ''}Review the packet before exporting.`,
       target: '/inbox',
       createdAt: a.createdAt,
     });
   }
-  for (const a of data.computerApprovals.filter((a) => a.status === 'pending'))
+  for (const a of data.computerApprovals.filter((a) => a.status === 'pending')) {
+    const company = a.cardId ? cardsById.get(a.cardId)?.company : undefined;
     notifications.push({
       id: `computer:${a.id}`,
       kind: 'attention',
       context: 'browser_approval',
-      title: `${roleName(a.roleId)} needs browser approval`,
+      title: `${roleName(a.roleId)} asks to use the browser${company ? ` for ${company}` : ''}`,
       body: a.reason,
       target: '/inbox',
+      roleId: a.roleId,
       createdAt: a.createdAt,
     });
+  }
   for (const p of data.proposals.filter((p) => p.status === 'pending' && !p.noticeMessageId))
     notifications.push({
       id: `proposal:${p.id}`,
       kind: 'attention',
       context: 'role_proposal',
-      title: `${roleName(p.roleId)} suggests a role change`,
+      title: p.sourceRoleId
+        ? `${roleName(p.sourceRoleId)} suggests changes to ${roleName(p.roleId)}`
+        : `${roleName(p.roleId)} suggests changes to its own role`,
       body: p.reason,
       target: `/chat/${p.roleId}`,
+      roleId: p.roleId,
       createdAt: p.createdAt,
     });
   for (const p of data.skillProposals.filter((p) => p.status === 'pending'))
@@ -75,9 +87,12 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
       id: `proposal:${p.id}`,
       kind: 'attention',
       context: 'skill_proposal',
-      title: `${roleName(p.roleId)} suggests a skill`,
+      title: p.skill?.name
+        ? `${roleName(p.roleId)} suggests the ${p.skill.name} skill`
+        : `${roleName(p.roleId)} suggests a skill`,
       body: p.reason,
       target: `/chat/${p.threadId ?? p.roleId}`,
+      roleId: p.roleId,
       createdAt: p.createdAt,
     });
   // Shipped default changes; a dismissed or adopted revision leaves the list.
@@ -91,6 +106,7 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
       body: latest?.summary ?? 'Review the new default instructions in Crew.',
       target: '/crew',
       reviewId: update.roleId,
+      roleId: update.roleId,
       createdAt: `${latest?.date ?? '1970-01-01'}T00:00:00.000Z`,
     });
   }
@@ -132,8 +148,18 @@ export const collectNotifications = (data: Snapshot): CrewNotification[] => {
     .sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id))
     .filter((item, index) => index < 100 || !notificationShouldAlert(item));
 };
+/** A message notice names who wrote and, in a job's conversation, the job. */
+const messageTitle = (from: string, asks: boolean, company?: string) =>
+  asks
+    ? company
+      ? `${from} asks about ${company}`
+      : `${from} asks you a question`
+    : company
+      ? `${from} wrote about ${company}`
+      : `${from} sent a message`;
+
 /** Maintenance notices remain visible without interrupting current work. */
-export const notificationShouldAlert = (item: CrewNotification) => {
+export const notificationShouldAlert = (item: Pick<CrewNotification, 'context'>) => {
   return (
     item.context !== 'instruction_update' &&
     item.context !== 'skill_update' &&
@@ -196,3 +222,23 @@ export class NotificationTracker {
     return fresh;
   };
 }
+
+/** Requests that wait on the user, shipped updates to review, and plain crew messages. */
+export const notificationGroup = (item: Pick<CrewNotification, 'context'>): NotificationGroupId =>
+  item.context === 'message' ? 'messages' : notificationShouldAlert(item) ? 'needs' : 'updates';
+
+export const notificationGroupTitles: Record<NotificationGroupId, string> = {
+  needs: 'Needs you',
+  updates: 'Updates',
+  messages: 'Messages',
+};
+
+/** Groups in panel order, each keeping the newest-first order; empty groups are left out. */
+export const groupNotifications = (items: CrewNotification[]) =>
+  (['needs', 'updates', 'messages'] as const)
+    .map((id) => ({
+      id,
+      title: notificationGroupTitles[id],
+      items: items.filter((item) => notificationGroup(item) === id),
+    }))
+    .filter((group) => group.items.length);

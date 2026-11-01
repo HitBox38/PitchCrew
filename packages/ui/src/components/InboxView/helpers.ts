@@ -89,10 +89,61 @@ const browserTitles = {
   dialog: 'Resolve browser dialog',
 };
 
-/** Reading-pane intro that matches where the packet is in its approval flow. */
-export const packetIntro = (approval: Approval, current: boolean) =>
-  approval.status === 'pending'
-    ? 'Your reviewed application packet is ready. Open the attachments to check the exact files, then approve the packet and choose how you’d like to apply.'
-    : current && approval.status !== 'rejected'
-      ? 'You approved this packet. Choose how you’d like to apply, or open the attachments to check the exact files.'
-      : 'Your reviewed application packet. Open the attachments to check the exact files.';
+const dayStart = (date: Date) => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+/** History reads like a journal: today, yesterday, this week, then by month. */
+export const historyGroups = (requests: ApprovalRequest[], now: Date) => {
+  const today = dayStart(now).getTime();
+  const day = 24 * 60 * 60 * 1000;
+  const groups: { label: string; requests: ApprovalRequest[] }[] = [];
+  for (const request of requests) {
+    const created = new Date(request.approval.createdAt);
+    const age = today - dayStart(created).getTime();
+    const label =
+      age <= 0
+        ? 'Today'
+        : age <= day
+          ? 'Yesterday'
+          : age < 7 * day
+            ? 'Earlier this week'
+            : created.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const last = groups.at(-1);
+    if (last?.label === label) last.requests.push(request);
+    else groups.push({ label, requests: [request] });
+  }
+  return groups;
+};
+
+/** Colour for a past decision's outcome: moss moved forward, ochre needs a look, quiet ended. */
+export const historyTone = (
+  request: ApprovalRequest,
+  data: Pick<Snapshot, 'cards'>,
+): 'moss' | 'ochre' | 'quiet' | 'teal' => {
+  if (request.kind === 'browser')
+    return request.approval.status === 'failed'
+      ? 'ochre'
+      : request.approval.status === 'rejected'
+        ? 'quiet'
+        : 'teal';
+  const card = data.cards.find((item) => item.id === request.approval.cardId);
+  if (card?.submissionAttempts?.some((attempt) => attempt.status === 'uncertain')) return 'ochre';
+  if (card && ['screening', 'interviewing', 'offer'].includes(card.state)) return 'moss';
+  if (request.approval.status === 'rejected') return 'quiet';
+  if (!card || ['rejected', 'ghosted', 'withdrawn'].includes(card.state)) return 'quiet';
+  return 'teal';
+};
+
+/** The one consequence sentence beside a packet's decision buttons. */
+export const packetConsequence = (
+  approval: Pick<Approval, 'status' | 'submission'>,
+  company: string,
+  current: boolean,
+) => {
+  if (!current) return '';
+  if (approval.status === 'pending')
+    return `Approving freezes these exact files so you can export them. Nothing is sent to ${company}.`;
+  if (approval.submission?.method === 'manual')
+    return 'Record the submission only after you have applied.';
+  if (approval.submission) return '';
+  return 'Either choice exports the files to this computer first. An agent asks you before the final submit.';
+};

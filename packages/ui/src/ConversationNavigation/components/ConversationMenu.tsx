@@ -4,8 +4,8 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
-import { SidebarMenuAction } from '@/components/ui/sidebar/components/SidebarMenuAction.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
+import { SidebarMenuAction } from '@pitchcrew/design-system/sidebar';
 import type { Conversation } from '@pitchcrew/core';
 import type { ConversationNavigationRow } from '../types.ts';
 

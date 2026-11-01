@@ -1,8 +1,8 @@
 import type { PipelineReview } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { useFollowupForm } from '../hooks/useFollowupForm.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 

@@ -1,4 +1,4 @@
-import { Switch } from '../../components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 
 export const DiagnosticSettings = () => {

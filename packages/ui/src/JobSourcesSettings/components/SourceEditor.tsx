@@ -1,6 +1,6 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { providerOptions } from '../constants.ts';
 import { canTest } from '../helpers.ts';
 import type { JobSourcesModel, SourceDraft } from '../types.ts';
@@ -11,9 +11,9 @@ import { SourcePreview } from './SourcePreview.tsx';
 export const SourceEditor = (model: JobSourcesModel & { draft: SourceDraft }) => {
   const { draft, update } = model;
   return (
-    <form className="form job-source-editor mt-5 grid gap-4" onSubmit={model.save}>
+    <form className="form job-source-editor settings-form" onSubmit={model.save}>
       <h3>{model.editingId ? `Edit ${draft.name || 'source'}` : 'Add a job source'}</h3>
-      <div className="grid grid-cols-2 gap-3.5 max-compact:grid-cols-1">
+      <div className="settings-field-grid">
         <FormSelect
           label="Job board provider"
           value={draft.provider}
@@ -33,14 +33,14 @@ export const SourceEditor = (model: JobSourcesModel & { draft: SourceDraft }) =>
       </div>
       <BoardFields draft={draft} setBoard={model.setBoard} setToken={model.setToken} />
       <SourceFilters draft={draft} update={update} />
-      <div className="flex flex-wrap items-center gap-2 border-t border-border pt-4">
-        <Button className="button" disabled={model.busy || !canTest(draft)} onClick={model.test}>
+      <div className="settings-form-actions">
+        <Button variant="outline" disabled={model.busy || !canTest(draft)} onClick={model.test}>
           Test source
         </Button>
-        <Button className="button ml-auto" disabled={model.busy} onClick={model.cancel}>
+        <Button variant="ghost" className="ml-auto" disabled={model.busy} onClick={model.cancel}>
           Cancel
         </Button>
-        <Button className="button primary" type="submit" disabled={model.busy}>
+        <Button type="submit" disabled={model.busy}>
           Save source
         </Button>
       </div>

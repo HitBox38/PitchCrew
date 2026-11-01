@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { FileMinus2 } from 'lucide-react';
 import type { ProfileImportFile } from '@pitchcrew/core';
-import { Accordion } from '@/components/ui/accordion/index.tsx';
+import { Accordion } from '@pitchcrew/design-system/accordion';
 import { ImportDocument } from './ImportDocument.tsx';
 
 export const ImportReviewList = ({
@@ -61,12 +61,11 @@ export const ImportReviewList = ({
             className="mx-3 shrink-0 text-muted-foreground"
             aria-hidden="true"
           />
-          <span className="min-w-0 flex-1 truncate text-sm font-medium" title={path}>
+          <span className="min-w-0 flex-1 truncate text-label" title={path}>
             {path}
           </span>
-          <span className="text-right text-caption text-muted-foreground">
-            Removed from source <span className="block">Local copy kept</span>
-          </span>
+          <span className="ui-chip">Removed from source</span>
+          <span className="text-detail text-muted-foreground">Local copy kept</span>
         </div>
       ))}
     </div>

@@ -1,10 +1,10 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import type { Card } from '@pitchcrew/core';
 import { useRef } from 'react';
 

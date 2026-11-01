@@ -148,8 +148,9 @@ test('shows blank-page guidance over an empty streamed tab', async () => {
   await website.goto('about:blank');
   await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
   expect(await page.locator('.browser-screen').count()).toBe(0);
-  await page.getByRole('button', { name: 'Take control to browse', exact: true }).click();
-  await page.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  const placeholder = page.locator('.browser-placeholder');
+  await placeholder.getByRole('button', { name: 'Take control', exact: true }).click();
+  await placeholder.getByRole('button', { name: 'Enter an address', exact: true }).click();
   expect(
     await page
       .getByRole('textbox', { name: 'Browser address' })

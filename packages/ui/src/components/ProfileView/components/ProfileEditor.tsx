@@ -1,25 +1,19 @@
-import { useState } from 'react';
-import type { ProfileViewModel } from '../types.ts';
+import type { ProfileSectionProps } from '../types.ts';
 import { ProfileOrigin } from './ProfileOrigin.tsx';
-import { ProfileEditorHeading } from './ProfileEditorHeading.tsx';
-import { Tabs } from '@/components/ui/tabs/index.tsx';
+import { ProfileSaveBar } from './ProfileSaveBar.tsx';
 import { MarkdownEditor } from '@/components/MarkdownEditor/index.tsx';
-import { MarkdownStatus } from '@/components/MarkdownEditor/components/MarkdownStatus.tsx';
 import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
 
-export const ProfileEditor = (c: ProfileViewModel) => {
-  const [mode, setMode] = useState('write');
+export const ProfileEditor = ({ controller: c, tree }: ProfileSectionProps) => {
   const form = useMarkdownSaveShortcut();
   return (
-    <form className="profile-editor" ref={form} onSubmit={(event) => void c.save(event)}>
-      <Tabs
-        value={mode}
-        onValueChange={(value) => {
-          if (value === 'write' || value === 'preview') setMode(value);
-        }}
-        className="profile-editor-modes"
-      >
-        <ProfileEditorHeading {...c} />
+    <form
+      className="profile-note-form"
+      ref={form}
+      aria-label={c.name || 'Untitled note'}
+      onSubmit={(event) => void c.save(event)}
+    >
+      <div className="profile-sheet">
         <ProfileOrigin {...c} />
         <MarkdownEditor
           id="profile-content"
@@ -28,13 +22,10 @@ export const ProfileEditor = (c: ProfileViewModel) => {
           onChange={c.setContent}
           maxLength={50000}
         />
-      </Tabs>
-      {c.error ? (
-        <p className="form-error px-4 py-2" role="alert">
-          {c.error}
-        </p>
-      ) : null}
-      <MarkdownStatus
+      </div>
+      <ProfileSaveBar
+        location={tree.location(c.activeSavedName)}
+        renamed={c.name !== c.activeSavedName ? c.name : ''}
         content={c.content}
         status={
           c.dirty
@@ -43,6 +34,9 @@ export const ProfileEditor = (c: ProfileViewModel) => {
               ? 'Saved'
               : 'New note'
         }
+        error={c.error}
+        blocker={c.blocker}
+        working={c.working}
       />
     </form>
   );

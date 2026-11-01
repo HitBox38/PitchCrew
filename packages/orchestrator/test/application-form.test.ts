@@ -11,6 +11,7 @@ import {
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, finish, setup, waitForSnapshot } from './helpers/daemon.ts';
 import { formAssessment } from '../../board/test/fixtures/form.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 
 afterEach(cleanup);
 it('inspects before drafting and carries confirmed fields through isolated extraction, Writer and Reviewer tools', async () => {
@@ -203,7 +204,7 @@ it('inspects before drafting and carries confirmed fields through isolated extra
             ],
           },
         }
-      : { role: 'reviewer', passed: true, feedback: [] };
+      : { role: 'reviewer', passed: true, feedback: [], summary: reviewSummary() };
   });
   for (const roleId of ['writer', 'reviewer']) {
     const run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId })).result;

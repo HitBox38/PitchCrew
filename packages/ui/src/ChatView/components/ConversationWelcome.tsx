@@ -1,79 +1,51 @@
-import { conversationStarters, rolePurpose } from '@/ChatView/constants.ts';
+import { ArrowRight, ChevronDown } from 'lucide-react';
 import type { ConversationWelcomeProps } from '@/ChatView/types.ts';
-import { ConversationEmptyState } from '@/components/ai-elements/conversation/components/ConversationEmptyState.tsx';
-import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { Suggestion, Suggestions } from '@/components/ai-elements/suggestion/index.tsx';
-import { ArrowRight, Users } from 'lucide-react';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@pitchcrew/design-system/collapsible';
+import { welcomeLine, welcomeStarters } from '../starters.ts';
 
-export const ConversationWelcome = ({
-  roleId,
-  role,
-  applyStarter,
-  attached,
-  conversation,
-  readOnly,
-}: ConversationWelcomeProps) => {
-  const group = (conversation?.participants.length ?? 1) > 1;
+type Starter = { label: string; prompt: string };
+
+const StarterRow = ({ starter, apply }: { starter: Starter; apply: (prompt: string) => void }) => (
+  <button type="button" className="chat-starter" onClick={() => apply(starter.prompt)}>
+    <span>{starter.label}</span>
+    <ArrowRight size={15} aria-hidden="true" />
+  </button>
+);
+
+/** An empty conversation: one purpose line and a few quiet starters just above the composer. */
+export const ConversationWelcome = (props: ConversationWelcomeProps) => {
+  const { applyStarter, readOnly } = props;
+  const starters = readOnly ? [] : welcomeStarters(props);
+  // Three starters stay in view; any others fold behind one quiet toggle.
+  const shown = starters.slice(0, 3);
+  const more = starters.slice(shown.length);
   return (
-    <ConversationEmptyState className="chat-empty">
-      <div className="chat-empty-identity">
-        {group || readOnly ? (
-          <span className="crew-chat-icon">
-            <Users size={30} />
-          </span>
-        ) : (
-          <RoleAvatar agentRole={roleId} size="large" />
-        )}
-      </div>
-      <h3>{group || readOnly ? conversation?.title : (rolePurpose[roleId] ?? role.name)}</h3>
-      <p>
-        {readOnly
-          ? 'Saved exchanges appear here. You can follow the work and open a separate conversation to join in.'
-          : group
-            ? 'Ask the group, or mention an agent by @id to direct your request. The lead coordinates the work.'
-            : `${role.description} Start with a question, or attach a job to work on an application.`}
-      </p>
-      {!readOnly ? (
-        <Suggestions className="chat-starters mt-6.25 grid w-full max-w-110 grid-cols-2 gap-2.5 max-chat:mt-5 max-chat:gap-2 [&>:last-child:nth-child(odd)]:col-span-2">
-          {group ? (
-            <Suggestion
-              className="chat-starter"
-              variant="outline"
-              suggestion="Explain how the crew can help me take an application from evaluation through review."
-              onClick={applyStarter}
-            >
-              <span>How does the crew work?</span>
-              <ArrowRight size={15} />
-            </Suggestion>
-          ) : (
-            <>
-              <Suggestion
-                className="chat-starter"
-                variant="outline"
-                suggestion="What can you help me with, and how do you work with the other agents?"
-                onClick={applyStarter}
-              >
-                <span>Ask about this role</span>
-                <ArrowRight size={15} />
-              </Suggestion>
-              {(conversationStarters[roleId] ?? [])
-                .filter((starter) => attached || !starter.prompt.includes('attached job'))
-                .map((starter) => (
-                  <Suggestion
-                    className="chat-starter"
-                    variant="outline"
-                    key={starter.label}
-                    suggestion={starter.prompt}
-                    onClick={applyStarter}
-                  >
-                    <span>{starter.label}</span>
-                    <ArrowRight size={15} />
-                  </Suggestion>
+    <div className="chat-empty">
+      <p className="chat-empty-purpose">{welcomeLine(props)}</p>
+      {shown.length ? (
+        <fieldset className="chat-starters" aria-label="Conversation starters">
+          {shown.map((starter) => (
+            <StarterRow key={starter.label} starter={starter} apply={applyStarter} />
+          ))}
+          {more.length ? (
+            <Collapsible className="chat-starters-more">
+              <CollapsibleTrigger className="chat-starters-toggle">
+                {more.length} more {more.length === 1 ? 'starter' : 'starters'}
+                <ChevronDown size={14} aria-hidden="true" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="chat-starters">
+                {more.map((starter) => (
+                  <StarterRow key={starter.label} starter={starter} apply={applyStarter} />
                 ))}
-            </>
-          )}
-        </Suggestions>
+              </CollapsibleContent>
+            </Collapsible>
+          ) : null}
+        </fieldset>
       ) : null}
-    </ConversationEmptyState>
+    </div>
   );
 };

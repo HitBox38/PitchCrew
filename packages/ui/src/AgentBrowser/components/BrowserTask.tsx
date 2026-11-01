@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ArrowUpRight } from 'lucide-react';
 import type { AgentBrowserProps } from '../types.ts';
 export const BrowserTask = ({

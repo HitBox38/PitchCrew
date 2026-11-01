@@ -1,6 +1,5 @@
 import { settingsSections } from '../constants.ts';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
+import { TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import { useEffect, useRef } from 'react';
 import { useSearch } from '@tanstack/react-router';
 import { SettingsSearch } from './SettingsSearch.tsx';
@@ -14,31 +13,31 @@ export const SettingsTabs = ({ compact }: { compact: boolean }) => {
       const target = active.current;
       const list = target?.closest<HTMLElement>('[role="tablist"]');
       if (!target || !list) return;
-      const box = target.getBoundingClientRect();
-      const bounds = list.getBoundingClientRect();
       list.scrollTo({
-        left: list.scrollLeft + box.left - bounds.left - (list.clientWidth - box.width) / 2,
+        left: target.offsetLeft - (list.clientWidth - target.offsetWidth) / 2,
         behavior: 'instant',
       });
     });
     return () => cancelAnimationFrame(frame);
   }, [compact, section]);
   return (
-    <div className="settings-navigation">
+    <nav className="settings-navigation" aria-label="Settings">
       <SettingsSearch />
       <TabsList className="settings-tabs" aria-label="Settings sections" activateOnFocus>
-        {settingsSections.map(({ id, label, description, icon: Icon }) => (
-          <TabsTrigger key={id} value={id} ref={id === section ? active : undefined}>
-            <Icon size={17} aria-hidden="true" />
-            <span className="min-w-0 text-left">
-              <span className="block">{label}</span>
-              <span className="settings-tab-description" aria-hidden="true">
-                {description}
-              </span>
+        {settingsSections.map(({ id, label, description }) => (
+          <TabsTrigger
+            key={id}
+            value={id}
+            ref={id === section ? active : undefined}
+            className="settings-tab"
+          >
+            <span className="settings-tab-label">{label}</span>
+            <span className="settings-tab-description" aria-hidden="true">
+              {description}
             </span>
           </TabsTrigger>
         ))}
       </TabsList>
-    </div>
+    </nav>
   );
 };

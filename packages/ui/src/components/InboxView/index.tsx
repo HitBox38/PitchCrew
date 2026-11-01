@@ -1,23 +1,29 @@
-import { WorkspaceHeaderActions } from '@/App/components/WorkspacePage.tsx';
-import { InboxRequestList } from './components/InboxRequestList.tsx';
-import { InboxReview } from './components/InboxReview.tsx';
-import { InboxTabs } from './components/InboxTabs.tsx';
+import { Link } from '@tanstack/react-router';
+import { HistoryList } from './components/HistoryList.tsx';
+import { HistorySheet } from './components/HistorySheet.tsx';
 import { useInboxView } from './hooks/useInboxView.ts';
 import type { InboxViewProps } from './types.ts';
-import '@/styles/inbox.css';
 
+/** Decisions history: past packet and browser decisions beside the one being read. */
 export const InboxView = (props: InboxViewProps) => {
-  const controller = useInboxView(props);
+  const model = useInboxView(props);
+  if (!model.total)
+    return (
+      <div className="ui-empty decide-empty">
+        <span>No packet or browser decisions yet</span>
+        <Link to="/inbox" search={{}} activeOptions={{ exact: true }}>
+          Back to Decisions
+        </Link>
+      </div>
+    );
   return (
-    <section className="inbox-workspace email-inbox" aria-label="Inbox requests">
-      <WorkspaceHeaderActions>
-        <InboxTabs {...controller} />
-      </WorkspaceHeaderActions>
-      {controller.selectedRequest ? (
-        <InboxReview {...controller} request={controller.selectedRequest} />
-      ) : (
-        <InboxRequestList {...controller} />
-      )}
+    <section
+      className="decision-history"
+      aria-label="Decision history"
+      data-reading={model.selectedRequest ? '' : undefined}
+    >
+      <HistoryList {...model} />
+      {model.selectedRequest ? <HistorySheet {...model} request={model.selectedRequest} /> : null}
     </section>
   );
 };

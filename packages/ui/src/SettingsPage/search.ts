@@ -25,6 +25,12 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['audio', 'mute', 'alerts'],
   },
   {
+    label: 'Show introduction',
+    section: 'general',
+    target: 'show-introduction',
+    keywords: ['onboarding', 'getting started', 'welcome', 'tour'],
+  },
+  {
     label: 'Connected accounts',
     section: 'accounts',
     target: 'accounts-heading',
@@ -65,6 +71,12 @@ export const settingEntries: SettingEntry[] = [
     section: 'writing',
     target: 'writing-learning',
     keywords: ['writing', 'learning', 'automatic'],
+  },
+  {
+    label: 'AI-text detectors',
+    section: 'writing',
+    target: 'detectors-heading',
+    keywords: ['detector', 'GPTZero', 'Copyleaks', 'Sapling', 'Originality', 'API key', 'AI'],
   },
   {
     label: 'Packet rules',

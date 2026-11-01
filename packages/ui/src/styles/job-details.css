@@ -47,7 +47,8 @@
 }
 .detail-state strong {
   font-size: var(--text-label);
-  color: var(--moss);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 .detail-actions {
   display: flex;
@@ -156,12 +157,18 @@
 }
 
 /* The job sheet reserves a compact identity header and one contextual action footer. */
+/* Job details: a 680 sheet (full width on phones) with an identity header on the sheet's paper,
+ * Job / Application / Activity as a segment, section headings rather than a card per section,
+ * and one contextual footer. */
 .modal.card-details-panel,
 .modal.add-job-panel {
   display: flex;
   flex-direction: column;
   padding: 0;
   overflow: hidden;
+}
+.modal.drawer.card-details-panel {
+  width: min(680px, 100vw);
 }
 .card-details-panel .detail-company {
   margin-top: 0;
@@ -178,7 +185,8 @@
 }
 .card-details-panel .detail-company h2 {
   margin-top: 2px;
-  font: 600 22px/1.2 var(--font-serif);
+  font: 600 1.25rem/1.3 var(--font-sans);
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 .card-details-panel .detail-company > div > span {
@@ -195,23 +203,26 @@
   gap: 10px;
   margin: 0;
 }
+/* Three labels in a segment sized to them, left-aligned under the stage line. */
 .card-details-panel .detail-tabs {
-  width: 100%;
-  height: 38px;
+  width: max-content;
+  max-width: 100%;
+  height: 36px;
   margin: 0;
-  padding: 4px;
-  gap: 3px;
+  padding: 3px;
+  gap: 2px;
 }
 .card-details-panel .detail-tabs button {
-  flex: 1;
+  flex: none;
   min-width: 0;
+  padding-inline: 14px;
 }
 .card-details-panel .detail-navigation {
   padding-block: 2px 12px;
 }
 .card-details-panel .job-summary {
-  background: var(--clay-fill);
-  box-shadow: var(--volume-sm);
+  background: transparent;
+  box-shadow: none;
 }
 .card-details-panel .detail-tab-content {
   overscroll-behavior: contain;
@@ -221,23 +232,19 @@
 .card-details-panel .detail-tab-content[hidden] {
   display: none;
 }
-.card-details-panel .detail-job > section,
 .card-details-panel
   :is(.detail-application, .detail-activity)
   > [data-slot='accordion']
   > [data-slot='accordion-item'] {
   border: 0;
-  border-radius: 14px 16px 15px 13px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-}
-.card-details-panel .detail-job > section {
-  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .card-details-panel .detail-application-sections {
   display: flex;
   flex-direction: column;
-  gap: 12px;
 }
 .card-details-panel
   :is(.detail-application, .detail-activity)
@@ -245,19 +252,20 @@
   > [data-slot='accordion-item']
   > [data-slot='accordion-header']
   > [data-slot='accordion-trigger'] {
-  padding: 14px 16px;
-  border-radius: 14px 16px 15px 13px;
+  min-height: 52px;
+  padding: 12px 4px;
+  border-radius: 8px;
 }
 .card-details-panel
   :is(.detail-application, .detail-activity)
   > [data-slot='accordion']
   > [data-slot='accordion-item']
   > [data-slot='accordion-content'] {
-  padding: 4px 16px 16px;
+  padding: 0 4px 20px;
 }
 .card-details-panel .detail-source {
   padding-inline: 14px;
-  border-radius: 11px 13px 12px 10px;
+  border-radius: 12px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
 }
@@ -269,7 +277,7 @@
 }
 .card-details-panel .detail-tab-content h2,
 .card-details-panel .detail-tab-content h3 {
-  font: 600 15px/1.4 var(--font-sans);
+  font: 600 1rem/1.35 var(--font-sans);
   margin-top: 0;
 }
 .card-details-panel [data-slot='accordion-header'] {
@@ -294,10 +302,11 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  padding: 14px 20px max(14px, env(safe-area-inset-bottom));
+  min-height: 64px;
+  padding: 12px 20px max(12px, env(safe-area-inset-bottom));
   border-top: 1px solid var(--border);
-  background: var(--clay-fill);
-  box-shadow: var(--volume-sm);
+  background: transparent;
+  box-shadow: none;
 }
 .card-details-panel .action-hint {
   font-size: 12px;
@@ -313,7 +322,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  border-radius: 10px 12px 11px 9px;
+  border-radius: 8px;
   font-size: 12px;
   color: var(--ink);
   padding: 4px 8px;

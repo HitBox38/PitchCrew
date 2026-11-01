@@ -14,4 +14,6 @@ export interface QuestionFormProps {
   question: UserInputRequest;
   action: Action;
   working: boolean;
+  /** The expanded question owns the 1–9 option shortcuts. */
+  active: boolean;
 }

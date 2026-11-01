@@ -1,81 +1,43 @@
 import type { ConversationHeadingProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-} from '@/components/ui/dropdown-menu/index.tsx';
-import { Ellipsis, Pin, Archive, Users, BookOpen, Settings, Play, Bell } from 'lucide-react';
-export const ConversationActions = ({
-  questions,
-  conversation,
-  patchConversation,
-  setDialog,
-  onConfigure,
-  roleId,
-  readOnly,
-  action,
-  thread,
-  running,
-  messages,
-  working,
-}: ConversationHeadingProps) => {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="ghost" size="icon-sm" aria-label="Conversation options" />}
-      >
+} from '@pitchcrew/design-system/dropdown-menu';
+import { ChevronDown, Ellipsis } from 'lucide-react';
+import { ConversationMenuItems } from './ConversationMenuItems.tsx';
+
+/**
+ * The one conversation menu. On wider screens it is the header's ellipsis; on phones the
+ * conversation's title in the 48px top bar opens it (`title`).
+ */
+export const ConversationActions = (props: ConversationHeadingProps & { title?: string }) => (
+  <DropdownMenu>
+    <DropdownMenuTrigger
+      render={
+        props.title ? (
+          <Button
+            variant="ghost"
+            className="chat-mobile-title"
+            aria-label={`${props.title}, conversation options`}
+          />
+        ) : (
+          <Button variant="ghost" size="icon-sm" aria-label="Conversation options" />
+        )
+      }
+    >
+      {props.title ? (
+        <>
+          <span>{props.title}</span>
+          <ChevronDown size={16} aria-hidden="true" />
+        </>
+      ) : (
         <Ellipsis size={18} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            onClick={() => void patchConversation({ notifyAll: !conversation?.notifyAll })}
-          >
-            <Bell size={14} />
-            {conversation?.notifyAll
-              ? 'Use outcome notifications'
-              : 'Notify for every agent message'}
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => void patchConversation({ pinned: !conversation?.pinned })}
-          >
-            <Pin size={14} />
-            {conversation?.pinned ? 'Unpin' : 'Pin'} conversation
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => void patchConversation({ archived: !conversation?.archived })}
-          >
-            <Archive size={14} />
-            {conversation?.archived ? 'Restore' : 'Archive'} conversation
-          </DropdownMenuItem>
-          {!readOnly ? (
-            <DropdownMenuItem onClick={() => setDialog('manage')}>
-              <Users size={14} />
-              Name, participants and job
-            </DropdownMenuItem>
-          ) : null}
-          <DropdownMenuItem onClick={() => setDialog('memory')}>
-            <BookOpen size={14} />
-            Agent memory
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onConfigure(roleId)}>
-            <Settings size={14} />
-            Agent defaults
-          </DropdownMenuItem>
-          {!readOnly && messages.length ? (
-            <DropdownMenuItem
-              disabled={working || !!running.length || !!questions.length}
-              onClick={() => void action(`/conversations/${thread}/continue`).catch(() => {})}
-            >
-              <Play size={14} />
-              Continue with summary
-            </DropdownMenuItem>
-          ) : null}
-        </DropdownMenuGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-};
+      )}
+    </DropdownMenuTrigger>
+    <DropdownMenuContent align={props.title ? 'start' : 'end'}>
+      <ConversationMenuItems {...props} />
+    </DropdownMenuContent>
+  </DropdownMenu>
+);

@@ -1,6 +1,6 @@
 import type { DraftFieldsProps, Frequency, RoutineDraft } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 
 export const RepeatFields = ({ draft, change }: DraftFieldsProps) => {
   return (
@@ -20,7 +20,7 @@ export const RepeatFields = ({ draft, change }: DraftFieldsProps) => {
         ]}
       />
       {draft.frequency === 'interval' ? (
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="routine-field-pair">
           <label>
             Every
             <Input

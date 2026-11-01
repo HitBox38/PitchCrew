@@ -1,5 +1,5 @@
 import { defaultFilter } from 'cmdk';
-import type { Card } from '@pitchcrew/core';
+import type { Card, Conversation, Snapshot } from '@pitchcrew/core';
 import { settingEntries } from '../SettingsPage/search.ts';
 
 export const jobCommandValue = (card: Card) => {
@@ -39,4 +39,57 @@ export const settingsRankFirst = (cards: Card[], search: string) => {
     ),
   );
   return setting > job;
+};
+
+/** With no search, recently opened jobs lead (newest first); the rest keep board order. */
+export const recentJobsFirst = <T extends { card: Pick<Card, 'id'> }>(
+  entries: T[],
+  recentIds: string[],
+) => {
+  const rank = new Map(recentIds.map((id, index) => [id, index]));
+  return entries
+    .map((entry, index) => ({ entry, index, recent: rank.get(entry.card.id) ?? Infinity }))
+    .sort((a, b) => a.recent - b.recent || a.index - b.index)
+    .map(({ entry }) => entry);
+};
+
+type ConversationSource = Pick<Snapshot, 'cards' | 'roles'> & { conversations?: Conversation[] };
+
+/** Where a conversation lives: its job, or who is in it. */
+export const conversationContext = (conversation: Conversation, data: ConversationSource) => {
+  const card = conversation.cardId
+    ? data.cards.find((item) => item.id === conversation.cardId)
+    : undefined;
+  if (card) return `${card.company} · ${card.title}`;
+  const names = conversation.participants.map(
+    (id) => data.roles.find((role) => role.id === id)?.name ?? id,
+  );
+  return names.join(', ');
+};
+
+/**
+ * Conversations by fuzzy match across title, job and participants. With no search, the five
+ * most recently active open conversations; with a search, the best eight, archived included.
+ */
+export const matchingConversations = (data: ConversationSource, search: string) => {
+  const entries = (data.conversations ?? [])
+    .filter((conversation) => !conversation.deletedAt)
+    .map((conversation) => {
+      const context = conversationContext(conversation, data);
+      return {
+        conversation,
+        context,
+        value: `${conversation.title} ${context} ${conversation.id}`,
+      };
+    });
+  if (!search.trim())
+    return entries
+      .filter((entry) => !entry.conversation.archived)
+      .sort((a, b) => b.conversation.updatedAt.localeCompare(a.conversation.updatedAt))
+      .slice(0, 5);
+  return entries
+    .map((entry) => ({ ...entry, score: defaultFilter(entry.value, search) }))
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 8);
 };

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import type { Role } from '@pitchcrew/core';
@@ -15,19 +15,18 @@ export const CreationSuccess = ({
   const setRoleId = useWorkspaceStore((state) => state.setRoleId);
   const { openChat } = useWorkspaceNavigation();
   return (
-    <div className="role-settings-body flex flex-col gap-5">
-      <h3 className="text-xl">{role.name} has joined your crew</h3>
+    <div className="agent-wizard-body agent-wizard-step">
       <p>{role.description}</p>
-      <p className="quiet">
+      <p className="optional">
         {role.enabled
           ? 'Start with a message to give this agent its first task.'
           : 'This agent starts paused. Enable it in settings when you are ready.'}
         {scheduled ? ' Its first routine is saved on the Routines page.' : ''}
       </p>
-      <div className="flex flex-wrap gap-3">
+      <div className="agent-wizard-success-actions">
         {role.enabled ? (
           <Button
-            className="button primary"
+            className="button small primary"
             onClick={() => {
               close();
               openChat(role.id);
@@ -37,7 +36,7 @@ export const CreationSuccess = ({
           </Button>
         ) : null}
         <Button
-          className="button"
+          className="button small"
           onClick={() => {
             close();
             setRoleId(role.id);
@@ -45,7 +44,7 @@ export const CreationSuccess = ({
         >
           Open settings
         </Button>
-        <Button className="button" onClick={close}>
+        <Button className="button small" onClick={close}>
           Done
         </Button>
       </div>

@@ -1,6 +1,6 @@
 import type { AgentMemory } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useMemoryEntry } from '../hooks/useMemoryEntry.ts';
 
 export const MemoryEntryActions = ({
@@ -18,7 +18,7 @@ export const MemoryEntryActions = ({
 }) => {
   const { editing, setEditing, deleting, setDeleting, content, setContent, setTags, save } = editor;
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="chat-memory-actions flex flex-wrap items-center gap-3">
       <Button className="text-button" size="xs" variant="ghost" onClick={openSource}>
         View source
       </Button>

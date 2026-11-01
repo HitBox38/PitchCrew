@@ -7,12 +7,13 @@ The private browser/Electron renderer sends manually constructed PostHog `$excep
 - Browser `error` and `unhandledrejection` listeners.
 - React 19 root callbacks for errors caught by boundaries, uncaught root errors and recoverable root errors. The original error continues to local console/browser reporting; telemetry never changes boundary rendering or prevents default error handling.
 - Unexpected failures of actions already recognized by `actionEvent`: network rejection, HTTP 5xx and malformed JSON on a successful response. Their original rejection/message still reaches the caller. Expected HTTP 4xx, aborted requests, polling, browser input/streams and control renewals are excluded.
+- Crew agents report technical Pitchcrew blockers with `pitchcrew_report_technical_problem` before asking for help or ending a turn. The tool is available to active chat, workflow, isolated application, managed-review and review-subagent runs. Tools-free source extraction remains excluded. Shared runtime instructions distinguish actual technical failures from approval waits, missing answers, disabled permissions and candidate/application limitations. Agents report the affected fixed area only: `mcp`, `browser`, `runtime`, `documents`, `sources`, `workspace` or `other`.
 
 This slice does not capture daemon-only crashes, provider CLI internals, landing-page errors or boot errors before the analytics client is ready. It does not enable source-map upload or collect stack traces.
 
 ## Outbound data
 
-`error_source` is one of `window_error`, `unhandled_rejection`, `react_boundary`, `react_uncaught`, `react_recoverable` or `api_action`. `error_category` is a fixed native error class category or `request_network`, `request_server`, `request_response`; arbitrary error names are ignored. API failures include a fixed `error_action` domain, never a route or entity identifier.
+`error_source` is one of `window_error`, `unhandled_rejection`, `react_boundary`, `react_uncaught`, `react_recoverable`, `api_action` or `agent_report`. `error_category` is a fixed native error class category, `request_network`, `request_server`, `request_response` or agent-only `technical_problem`; arbitrary error names are ignored. API failures include a fixed `error_action` domain, never a route or entity identifier. Agent reports include only a fixed `error_area`; their issue name and fingerprint group by that area, with handled/synthetic mechanisms and error severity. Both daemon and renderer reconstruct their properties from the fixed vocabulary.
 
 The sanitizer constructs `$exception_list` with a fixed category as `type`, a repository-owned description as `value` and a handled/synthetic mechanism. `$exception_fingerprint` groups by the fixed source/category/action vocabulary; `$issue_name` and severity are fixed. It reconstructs these fields again in SDK `before_send`, discarding any injected nested payload. The common analytics boundary adds shipped package version, renderer, schema, anonymous SDK/session identifiers and privacy flags.
 
@@ -23,6 +24,8 @@ No error message, error stack, cause, component name/stack, path, URL, body, ans
 The reporter checks initialization and current usage/diagnostics consent before classifying or retaining an error. The SDK boundary checks both again immediately before sending. Disabling either preference drops new and pending outbound diagnostic events without queuing them for later consent.
 
 An error object is reported once per renderer lifetime, preventing React/browser double reports. Different errors with the same fixed fingerprint produce at most one report per minute; all fingerprints together produce at most 20 reports per minute. Only bounded fingerprints/counts and weak error references remain in memory. Global listeners have cleanup and Vite HMR disposal. Telemetry failures never replace application errors.
+
+Agent reports use the existing nonpersistent backend diagnostic buffer (256 entries, 60-second lifetime), with at most one report per fixed area per run capability. The elected, configured renderer relays them only while both usage analytics and diagnostics are enabled. Disabled periods and renderer reconnections do not upload historical reports. A successful tool response acknowledges local handling, never confirmed PostHog delivery. There is no direct agent ingestion, free-form report, automatic retry, notification, capability change or workflow change. Reporting remains best effort; shared prompts require the agent to explain the original blocker if the reporter itself fails. If the runtime or MCP connection is unusable, an agent cannot call this tool; runtime failure observations retain their existing separate coverage.
 
 ## PostHog resources
 

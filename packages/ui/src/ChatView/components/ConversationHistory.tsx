@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Conversation } from '@/components/ai-elements/conversation/components/Conversation.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ConversationContent } from '@/components/ai-elements/conversation/components/ConversationContent.tsx';
 import { ConversationScrollButton } from '@/components/ai-elements/conversation/components/ConversationScrollButton.tsx';
 import { useConversationHistory } from '../hooks/useConversationHistory.ts';
@@ -55,7 +55,12 @@ export const ConversationHistory = ({
           scrollClassName="min-h-0 flex-1"
         >
           {children}
-          <MessageTranscript key={page.anchor ?? 'latest'} {...props} items={page.items} />
+          <MessageTranscript
+            key={page.anchor ?? 'latest'}
+            {...props}
+            items={page.items}
+            edges={{ oldest: !page.older, newest: !page.newer }}
+          />
         </ConversationContent>
         {page.latest ? <ConversationScrollButton className="button chat-scroll" /> : null}
       </Conversation>

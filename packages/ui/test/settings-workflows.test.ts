@@ -67,11 +67,11 @@ afterAll(async () => {
 
 test('changes word limits without JSON, validates incomplete fields and saves the same source', async () => {
   await open('rules');
-  await page.getByRole('button', { name: /^Word limit for Resume/ }).click();
+  await page.getByRole('button', { name: /^Resume — at most 650 words/ }).click();
   const maximum = page.getByRole('spinbutton', { name: 'Maximum words', exact: true });
   await maximum.fill('');
   expect(
-    await page.getByRole('tab', { name: 'Rule editor', exact: true }).getAttribute('aria-selected'),
+    await page.getByRole('tab', { name: 'Rules', exact: true }).getAttribute('aria-selected'),
   ).toBe('true');
   await expect
     .poll(() => page.getByRole('button', { name: 'Save rules', exact: true }).isDisabled())
@@ -89,12 +89,12 @@ test('changes word limits without JSON, validates incomplete fields and saves th
   ) as PacketRules;
   expect(source.rules[0]).toMatchObject({ max: 700, severity: 'warn' });
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await page.getByText('At most 700 words.', { exact: true }).waitFor();
+  await page.getByRole('button', { name: /^Resume — at most 700 words/ }).waitFor();
 }, 30000);
 
 test('keeps rule editors mounted when names change and an earlier rule is removed', async () => {
   await open('rules');
-  await page.getByRole('button', { name: /^Word limit for Cover letter/ }).click();
+  await page.getByRole('button', { name: /^Cover letter — at most 500 words/ }).click();
   const name = page.getByRole('textbox', { name: 'Rule name', exact: true });
   await name.fill('cover-draft');
   await name.press('End');
@@ -103,22 +103,27 @@ test('keeps rule editors mounted when names change and an earlier rule is remove
   expect(await name.evaluate((element) => element === document.activeElement)).toBe(true);
   const retained = await name.elementHandle();
   if (!retained) throw new Error('Expected the rule editor to be mounted.');
+  // Renaming the rule (which also renames its form group) keeps the same mounted field.
+  await page.keyboard.type('!');
+  await page.keyboard.press('Backspace');
+  expect(await retained.evaluate((element) => element.isConnected)).toBe(true);
+  expect(await retained.evaluate((element) => element === document.activeElement)).toBe(true);
+  await retained.dispose();
 
-  await page.getByRole('button', { name: /^Word limit for Resume/ }).click();
+  // Rules are edited one at a time beside the list, so removing an earlier rule selects the
+  // renamed rule again at its new position with the unsaved name intact.
+  await page.getByRole('button', { name: /^Resume — at most 650 words/ }).click();
   await page
     .getByRole('group', { name: 'Edit rule resume-length', exact: true })
     .getByRole('button', { name: 'Remove rule', exact: true })
     .click();
-  expect(await retained.evaluate((element) => element.isConnected)).toBe(true);
-  expect(await retained.getAttribute('id')).toBe('packet-rule-0-id');
-  expect(await page.getByRole('textbox', { name: 'Rule name', exact: true }).inputValue()).toBe(
-    'cover-draft-edited',
-  );
+  await page.getByRole('group', { name: 'Edit rule cover-draft-edited', exact: true }).waitFor();
+  expect(await name.getAttribute('id')).toBe('packet-rule-0-id');
+  expect(await name.inputValue()).toBe('cover-draft-edited');
   await saveRules();
   expect(host.daemon.service.packetRules.current().rules.rules).toMatchObject([
     { id: 'cover-draft-edited', documents: ['coverLetter'] },
   ]);
-  await retained.dispose();
 }, 30000);
 
 test('creates bullet, allowed-line and captured-value rules with equivalent advanced JSON', async () => {
@@ -166,7 +171,7 @@ test('preserves malformed and unsupported source and guards unsaved rule navigat
   const editor = page.getByRole('textbox', { name: 'Rules file (JSON)', exact: true });
   const source = '{"version":1,"rules":[{"kind":"future-kind","preserved":"keep me"}]}';
   await editor.fill(source);
-  expect(await page.getByRole('tab', { name: 'Rule editor', exact: true }).isDisabled()).toBe(true);
+  expect(await page.getByRole('tab', { name: 'Rules', exact: true }).isDisabled()).toBe(true);
   expect(await editor.innerText()).toBe(source);
   await editor.fill('{broken');
   expect(await editor.innerText()).toBe('{broken');
@@ -178,8 +183,8 @@ test('preserves malformed and unsupported source and guards unsaved rule navigat
     .locator('.packet-rules-actions')
     .getByRole('button', { name: 'Discard changes', exact: true })
     .click();
-  await page.getByRole('tab', { name: 'Rule editor', exact: true }).click();
-  await page.getByRole('button', { name: /^Word limit for Resume/ }).waitFor();
+  await page.getByRole('tab', { name: 'Rules', exact: true }).click();
+  await page.getByRole('button', { name: /^Resume — at most 650 words/ }).waitFor();
 }, 30000);
 
 test('JSON editor settings default formatting off and remember explicit choices across reloads', async () => {
@@ -225,7 +230,8 @@ test('JSON editor settings default formatting off and remember explicit choices 
     .click();
   expect(await editor.innerText()).toBe(source);
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: 'Export saved rules', exact: true }).click();
+  await page.getByRole('button', { name: 'Rules file actions', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Export saved rules', exact: true }).click();
   const stream = await (await download).createReadStream();
   const chunks: Buffer[] = [];
   for await (const chunk of stream!) chunks.push(Buffer.from(chunk));
@@ -303,7 +309,7 @@ test('JSON editor supports formatting, undo across tabs, indentation, focus esca
   await editor.fill(source);
   await page.getByRole('button', { name: 'Format', exact: true }).click();
   expect(await editor.innerText()).toContain('\n  "version": 1');
-  await page.getByRole('tab', { name: 'Rule editor', exact: true }).click();
+  await page.getByRole('tab', { name: 'Rules', exact: true }).click();
   await page.getByRole('tab', { name: 'Advanced JSON', exact: true }).click();
   await editor.press('ControlOrMeta+z');
   expect(await editor.innerText()).toBe(source);
@@ -408,14 +414,18 @@ test('connected accounts show agent access and open the existing explicit config
   ];
   vi.spyOn(host.daemon.service.connectors, 'status').mockReturnValue(fixture);
   await open('accounts');
-  const account = page.getByRole('article', { name: 'GitHub account', exact: true });
+  await page.getByRole('article', { name: 'GitHub account', exact: true }).waitFor();
+  const account = page.getByRole('article', { name: 'GitHub access', exact: true });
   await account.getByText('No agents have access yet.', { exact: true }).waitFor();
   await account.getByRole('button', { name: 'Choose agents', exact: true }).click();
   const before = host.daemon.service.board.get<Role>('role', 'scout');
   await account
     .getByRole('button', { name: 'Configure Scout access to GitHub', exact: true })
     .click();
-  await page.getByRole('heading', { name: 'Scout settings', exact: true }).waitFor();
+  await page
+    .getByRole('dialog', { name: 'Scout', exact: true })
+    .getByRole('heading', { name: 'Scout', exact: true })
+    .waitFor();
   expect(host.daemon.service.board.get<Role>('role', 'scout')).toEqual(before);
   await page.getByRole('button', { name: 'Close agent settings', exact: true }).click();
 }, 30000);

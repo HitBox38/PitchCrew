@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ConnectedAccountsProps } from '@/ConnectorSettings/types.ts';
 import type { ConnectorStatus } from '@pitchcrew/core';
 import { Unplug } from 'lucide-react';
@@ -12,6 +12,7 @@ export const AccountActions = ({ connector, working, action, open }: Props) => {
     return (
       <Button
         variant="outline"
+        size="sm"
         disabled={working}
         onClick={() =>
           void action(
@@ -27,13 +28,18 @@ export const AccountActions = ({ connector, working, action, open }: Props) => {
       </Button>
     );
   return (
-    <div className="flex flex-col items-end gap-1 max-mobile:basis-full max-mobile:items-start max-mobile:pl-7.75">
-      <Button disabled={working} onClick={() => void open(connector.id)}>
-        {connector.id === 'google' ? 'Connect Google' : 'Connect'}
+    <div className="settings-row-actions">
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={working}
+        onClick={() => void open(connector.id)}
+      >
+        {connector.id === 'google' ? 'Connect Google' : 'Connect GitHub'}
       </Button>
       {connector.id === 'google' ? (
         <Button
-          variant="link"
+          variant="ghost"
           size="sm"
           disabled={working}
           onClick={() => void open('google', true)}

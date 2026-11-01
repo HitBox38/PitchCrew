@@ -1,22 +1,44 @@
-import type { SkillFilter, SkillsViewProps } from '@/SkillsView/types.ts';
+import type { SkillsViewProps } from '@/SkillsView/types.ts';
 import type { Skill } from '@pitchcrew/core';
 import { type BaseSkill } from '@pitchcrew/core/base-skills';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { pendingSkillUpdates } from '@/lib/skill-updates.ts';
+import { skillCreators, skillMatches } from '../helpers.ts';
 
-export const useSkillsView = ({
-  data,
-  action,
-  working,
-  filter: requestedFilter,
-  onFilter,
-  selectedId,
-  onSelect: setSelectedId,
-  updatesOnly,
-  onUpdatesOnly,
-  reviewId,
-  onReviewClose,
-}: SkillsViewProps) => {
+export type SkillEditing = Skill | 'new' | 'import';
+
+export const useSkillsView = (props: SkillsViewProps) => {
+  const { data, action, filter: requestedFilter, selectedId, onSelect, updatesOnly } = props;
+  const filter =
+    ['all', 'shared'].includes(requestedFilter) ||
+    data.roles.some((role) => role.id === requestedFilter)
+      ? requestedFilter
+      : 'all';
+  const [query, setQuery] = useState('');
+  const [editing, setEditingNow] = useState<SkillEditing | null>(null);
+  const [starter, setStarter] = useState<BaseSkill | null>(null);
+  const [startersOpen, setStartersOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Skill | null>(null);
+  const [error, setError] = useState('');
+  const [savedId, setSavedId] = useState<string | null>(null);
+  // The open editor registers its unsaved-changes guard so local switches also ask first.
+  const leave = useRef<((next: () => void) => void) | null>(null);
+  const setEditing = (next: SkillEditing | null, nextStarter: BaseSkill | null = null) => {
+    const go = () => {
+      setStarter(nextStarter);
+      setEditingNow(next);
+    };
+    if (leave.current && next) leave.current(go);
+    else go();
+  };
+  // Route changes (another skill, filter or Back) close the editor once the guard allows them.
+  const routeKey = `${filter}|${selectedId ?? ''}`;
+  const [previousRoute, setPreviousRoute] = useState(routeKey);
+  if (previousRoute !== routeKey) {
+    setPreviousRoute(routeKey);
+    setEditingNow(null);
+    setSavedId(null);
+  }
   const remove = async () => {
     if (!deleting) return;
     try {
@@ -26,77 +48,55 @@ export const useSkillsView = ({
       setError(e instanceof Error ? e.message : 'Could not delete skill.');
     }
   };
-
-  const filter =
-    ['all', 'shared'].includes(requestedFilter) ||
-    data.roles.some((role) => role.id === requestedFilter)
-      ? requestedFilter
-      : 'all';
-  const [query, setQuery] = useState('');
-  const [editing, setEditing] = useState<Skill | 'new' | 'import' | null>(null);
-  const [starter, setStarter] = useState<BaseSkill | null>(null);
-  const [deleting, setDeleting] = useState<Skill | null>(null);
-  const [error, setError] = useState('');
-  const agentCreators = new Map(
-    data.skillProposals
-      .filter((proposal) => proposal.status === 'applied' && proposal.skillId)
-      .map((proposal) => [
-        proposal.skillId,
-        data.roles.find((role) => role.id === proposal.roleId)?.name ?? proposal.roleId,
-      ]),
-  );
-  const creator = (skill: Skill) =>
-    skill.source?.repository.split('/')[0] ??
-    (skill.bundledId ? 'Pitchcrew' : (agentCreators.get(skill.id) ?? 'You'));
-  const pendingIds = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
-  const skills = data.skills.filter(
-    (skill) =>
-      (!updatesOnly || pendingIds.has(skill.id)) &&
-      (filter === 'all' ||
-        (filter === 'shared'
-          ? skill.scope === 'all'
-          : skill.scope === 'all' || skill.roleIds.includes(filter))) &&
-      `${skill.name} ${skill.description} ${skill.content} ${creator(skill)} ${skill.source?.repository ?? ''}`
-        .toLowerCase()
-        .includes(query.toLowerCase()),
-  );
-  skills.sort((a, b) => Number(pendingIds.has(b.id)) - Number(pendingIds.has(a.id)));
+  const creator = skillCreators(data);
+  const pending = new Set(pendingSkillUpdates(data).map((check) => check.skillId));
+  const skills = data.skills
+    .filter((skill) =>
+      skillMatches(skill, { filter, query, updatesOnly, pending, creator: creator(skill) }),
+    )
+    .sort((a, b) => Number(pending.has(b.id)) - Number(pending.has(a.id)));
   const chosen = skills.find((skill) => skill.id === selectedId);
   // A notification opens its exact review even when the existing local search hides that skill.
-  const requestedReview = data.skills.find((skill) => skill.id === reviewId);
-  const selected = requestedReview ?? chosen ?? skills[0] ?? null;
-  const showingDetail = Boolean(requestedReview ?? chosen);
-  const filters: { value: SkillFilter; label: string }[] = [
-    { value: 'all', label: 'All skills' },
-    { value: 'shared', label: 'Shared' },
-    ...data.roles.map((role) => ({ value: role.id, label: role.name })),
-  ];
+  const requestedReview = data.skills.find((skill) => skill.id === props.reviewId);
+  // A newly added skill opens even though its editor could not navigate while still mounted.
+  const saved = data.skills.find((skill) => skill.id === savedId);
+  const selected = requestedReview ?? saved ?? chosen ?? skills[0] ?? null;
+  const filtered = Boolean(query.trim() || updatesOnly || filter !== 'all');
+  const clearFilters = () => {
+    setQuery('');
+    if (updatesOnly) props.onUpdatesOnly();
+    if (filter !== 'all') props.onFilter('all');
+  };
   return {
-    data,
-    updatesOnly,
-    onUpdatesOnly,
-    reviewId,
-    onReviewClose,
-    action,
-    working,
+    ...props,
     filter,
-    onFilter,
     query,
     setQuery,
     editing,
     setEditing,
+    closeEditor: () => setEditingNow(null),
+    registerLeave: (guard: ((next: () => void) => void) | null) => {
+      leave.current = guard;
+    },
     starter,
-    setStarter,
+    startersOpen,
+    setStartersOpen,
     deleting,
     setDeleting,
     error,
     setError,
     creator,
+    pending,
     skills,
     selected,
-    setSelectedId,
-    showingDetail,
-    filters,
+    setSelectedId: (id: string | null) => {
+      setSavedId(null);
+      onSelect(id);
+    },
+    onSaved: setSavedId,
+    showingDetail: Boolean(requestedReview ?? chosen ?? saved ?? editing),
+    filtered,
+    clearFilters,
     remove,
   };
 };

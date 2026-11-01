@@ -2,7 +2,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import { useJobActionsMenu } from '../hooks/useJobActionsMenu.ts';
 import type { JobActionsMenuProps } from '../types.ts';
 import type { ReactElement } from 'react';
@@ -20,7 +20,7 @@ export const JobContextMenu = (props: JobActionsMenuProps & { children: ReactEle
           model.finalFocus()
             ? (document
                 .getElementById(`board-job-${props.card.id}`)
-                ?.querySelector<HTMLButtonElement>('.job-card') ?? true)
+                ?.querySelector<HTMLButtonElement>('.clay-job-card') ?? true)
             : false
         }
       >

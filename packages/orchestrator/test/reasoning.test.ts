@@ -53,6 +53,17 @@ it('saves defaults, applies chat overrides and CLI default, and replays exact ef
     expect(turns.at(-1)?.role.reasoning).toBe(expected);
     expect(daemon.service.board.get<Role>('role', role.id).reasoning).toBe('high');
   }
+  // Compact workspace snapshots keep the effective settings without the configuration snapshot.
+  const compact = (await request<{ runs: Run[] }>('/snapshot?view=workspace')).result.runs;
+  expect(compact.map(({ model, reasoning }) => [model, reasoning])).toEqual([
+    ['sonnet', undefined],
+    ['sonnet', 'low'],
+    ['sonnet', 'high'],
+  ]);
+  expect(compact.every((run) => run.configuration === undefined)).toBe(true);
+  expect(JSON.stringify(compact)).not.toContain(role.instructions);
+  const full = (await request<{ runs: Run[] }>('/snapshot')).result.runs;
+  expect(full.every((run) => run.configuration && run.model === undefined)).toBe(true);
   const before = daemon.service.board.list<Run>('run');
   daemon.service.board.rebuild();
   expect(daemon.service.board.list<Run>('run')).toEqual(before);

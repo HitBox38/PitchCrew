@@ -1,5 +1,5 @@
 import { ChevronDown, Hand } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -10,7 +10,7 @@ import {
   DropdownMenuRadioItem,
   DropdownMenuCheckboxItem,
   DropdownMenuSeparator,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 export const BrowserZoom = ({
   zoom,
   setZoom,

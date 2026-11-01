@@ -3,6 +3,13 @@ import { createRoot } from 'react-dom/client';
 import type { ProfileImportFile, ProfileSourcePreview } from '@pitchcrew/core';
 import { ImportReview } from '@/components/ProfileSources/components/ImportReview.tsx';
 import { AppMotion } from '@/AppMotion/index.tsx';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@pitchcrew/design-system/dialog';
 import '@fontsource-variable/fraunces/full.css';
 import '@fontsource/source-sans-3/latin-400.css';
 import '@fontsource/source-sans-3/latin-600.css';
@@ -35,25 +42,38 @@ const Fixture = () => {
   return (
     <AppMotion>
       <output aria-label="Imported names">{result}</output>
-      <ImportReview
-        preview={preview}
-        setPreview={setPreview}
-        closeReview={() => setPreview(null)}
-        selected={selected}
-        setSelected={setSelected}
-        toggle={(name) =>
-          setSelected((current) =>
-            current.includes(name) ? current.filter((n) => n !== name) : [...current, name],
-          )
-        }
-        progress={mode === 'busy' ? { label: 'Importing documents…' } : null}
-        busy={mode === 'busy'}
-        error=""
-        importSelected={() => {
-          setResult(JSON.stringify(selected));
-          setPreview(null);
-        }}
-      />
+      {/* The same dialog frame as ProfileSourcesPanel, which hosts the review in place. */}
+      <Dialog open={Boolean(preview)} onOpenChange={(open) => (open ? null : setPreview(null))}>
+        <DialogContent className="modal profile-sources-dialog" data-review="">
+          <DialogHeader className="profile-sources-header">
+            <DialogTitle className="ui-title">Review profile documents</DialogTitle>
+            <DialogDescription>{preview?.source.label}</DialogDescription>
+          </DialogHeader>
+          <div className="profile-sources-panel">
+            <section className="profile-sources" aria-label="Profile sources" data-review="">
+              <ImportReview
+                preview={preview}
+                setPreview={setPreview}
+                closeReview={() => setPreview(null)}
+                selected={selected}
+                setSelected={setSelected}
+                toggle={(name) =>
+                  setSelected((current) =>
+                    current.includes(name) ? current.filter((n) => n !== name) : [...current, name],
+                  )
+                }
+                progress={mode === 'busy' ? { label: 'Importing documents…' } : null}
+                busy={mode === 'busy'}
+                error=""
+                importSelected={() => {
+                  setResult(JSON.stringify(selected));
+                  setPreview(null);
+                }}
+              />
+            </section>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppMotion>
   );
 };

@@ -1,5 +1,5 @@
 /* Loaded with the chat route; shared tokens and responsive variants stay global. */
-@reference './theme.css';
+@reference '@pitchcrew/design-system/theme.css';
 @import './chat/layout.css' layer(components);
 @import './chat/conversation.css' layer(components);
 @import './chat/activity.css' layer(components);
@@ -12,3 +12,10 @@
 @import './chat/header.css' layer(components);
 @import './chat/panels.css' layer(components);
 @import './chat/browser.css' layer(components);
+@import './chat/clay.css' layer(components);
+@import './chat/clay-browser-states.css' layer(components);
+@import './chat/clay-browser-layout.css' layer(components);
+@import './chat/clay-transcript.css' layer(components);
+@import './chat/clay-composer.css' layer(components);
+@import './chat/clay-work.css' layer(components);
+@import './chat/clay-panels.css' layer(components);

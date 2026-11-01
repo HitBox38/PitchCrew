@@ -5,7 +5,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 
 export const FormSelect = <T extends string>({
   label,

@@ -1,5 +1,5 @@
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Input } from '@pitchcrew/design-system/input';
 import type { SourceDraft } from '../types.ts';
 
 export const SourceFilters = ({
@@ -10,12 +10,12 @@ export const SourceFilters = ({
   update: (patch: Partial<SourceDraft>) => void;
 }) => {
   return (
-    <fieldset className="grid gap-3.5">
-      <legend className="mb-2 font-semibold">Filters</legend>
+    <fieldset className="grid gap-3">
+      <legend className="settings-legend">Filters</legend>
       <p className="quiet">
         Separate keywords with commas. Leave a field empty to keep every posting.
       </p>
-      <div className="grid grid-cols-3 gap-3.5 max-compact:grid-cols-1">
+      <div className="settings-field-grid" data-columns="3">
         {fields.map((field) => (
           <label key={field.key}>
             {field.label}

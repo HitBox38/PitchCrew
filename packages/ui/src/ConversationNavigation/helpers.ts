@@ -66,3 +66,45 @@ export const conversationRows = (
         false,
     }));
 };
+
+/** A role's own preserved chat (“Scout chat”): direct, with only that agent, under its role ID. */
+export const isAgentChat = ({
+  id,
+  kind,
+  participants,
+}: ConversationNavigationRow['conversation']) =>
+  kind === 'direct' && participants.length === 1 && participants[0] === id;
+
+/**
+ * Splits the Chats list: archived chats in Archived, unpinned agent chats in Agent chats, read-only
+ * agent DMs and crew history in their own groups, and everything else (pinned first, as sorted) in
+ * the main list.
+ */
+export const chatGroups = (rows: ConversationNavigationRow[]) => {
+  const groups = {
+    main: [] as ConversationNavigationRow[],
+    agents: [] as ConversationNavigationRow[],
+    dms: [] as ConversationNavigationRow[],
+    history: [] as ConversationNavigationRow[],
+    archived: [] as ConversationNavigationRow[],
+  };
+  for (const row of rows) {
+    const { archived, kind, pinned } = row.conversation;
+    if (archived) groups.archived.push(row);
+    else if (kind === 'agent_dm') groups.dms.push(row);
+    else if (kind === 'history') groups.history.push(row);
+    else if (!pinned && isAgentChat(row.conversation)) groups.agents.push(row);
+    else groups.main.push(row);
+  }
+  return groups;
+};
+
+/** The most pressing state inside a folded group, shown on its heading so nothing hides there. */
+export const groupAttention = (rows: ConversationNavigationRow[]) =>
+  rows.some((row) => row.waitingForUser)
+    ? ('waiting' as const)
+    : rows.some((row) => row.working)
+      ? ('running' as const)
+      : rows.some((row) => row.unread)
+        ? ('unread' as const)
+        : undefined;

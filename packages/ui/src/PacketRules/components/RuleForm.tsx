@@ -1,6 +1,6 @@
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import { Trash2 } from 'lucide-react';
 import { fieldText, ruleFormKey } from '../form-helpers.ts';
 import { issuesForRule, issueText, ruleDetail } from '../helpers.ts';
@@ -16,7 +16,7 @@ export const RuleForm = (
   const problems = issuesForRule(issues, index);
   return (
     <fieldset
-      className="form grid gap-5"
+      className="form packet-rule-form"
       disabled={working}
       aria-label={`Edit rule ${fieldText(rule.id)}`}
     >
@@ -27,7 +27,7 @@ export const RuleForm = (
         <RulePatternFields {...props} />
       )}
       {rule.kind !== 'word_limit' ? (
-        <div className="max-w-sm">
+        <div className="packet-rule-flags">
           <label htmlFor={ruleFormKey(index, 'flags')}>Pattern flags (optional)</label>
           <Input
             id={ruleFormKey(index, 'flags')}
@@ -53,7 +53,7 @@ export const RuleForm = (
           maxLength={300}
         />
       </label>
-      <p className="quiet rounded-lg bg-muted/40 p-3">
+      <p className="packet-rule-summary">
         <strong>Checks:</strong> {ruleDetail(rule)}
       </p>
       {problems.length ? (

@@ -1,6 +1,6 @@
 import type { ConversationScrollButtonProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { MessageScrollerButton } from '@/components/ui/message-scroller/components/MessageScrollerButton.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { MessageScrollerButton } from '@pitchcrew/design-system/message-scroller';
 
 export const ConversationScrollButton = ({
   className,

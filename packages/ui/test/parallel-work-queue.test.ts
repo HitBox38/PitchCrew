@@ -141,6 +141,8 @@ test('keeps page and widget within a narrow viewport in dark mode and reduced mo
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
   await page.setViewportSize({ width: 390, height: 844 });
+  // Phones reach the slot tray's queue widget through the navigation drawer.
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await page.getByRole('button', { name: /^Work queue:/ }).click();
   const panel = page.getByRole('dialog', { name: 'Work queue' });
   await panel.waitFor();
@@ -152,6 +154,8 @@ test('keeps page and widget within a narrow viewport in dark mode and reduced mo
   await page.screenshot({ path: '/tmp/pitchcrew-parallel-queue-mobile.png' });
   await page.keyboard.press('Escape');
   await panel.waitFor({ state: 'hidden' });
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: /^Work queue:/ }).waitFor({ state: 'hidden' });
   await page.screenshot({ path: '/tmp/pitchcrew-quiet-queue-mobile.png' });
   await page.getByRole('button', { name: /^Capacity settings,/ }).click();
   const capacity = page.getByRole('dialog', { name: 'Capacity settings', exact: true });
@@ -163,6 +167,7 @@ test('keeps page and widget within a narrow viewport in dark mode and reduced mo
 });
 
 test('shows ready queues in the widget and opens a selected job or exact agent activity', async () => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
   const trigger = page.getByRole('button', { name: /^Work queue:/ });
   await trigger.click();
   const panel = page.getByRole('dialog', { name: 'Work queue', exact: true });

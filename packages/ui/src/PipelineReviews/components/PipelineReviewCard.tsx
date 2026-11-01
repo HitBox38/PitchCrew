@@ -1,4 +1,4 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { PipelineReview, RoleId } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import { PipelineFinding } from './PipelineFinding.tsx';

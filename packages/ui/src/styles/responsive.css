@@ -1,3 +1,71 @@
+/* Hit areas. Desktop controls are at least 32×32: small icon buttons keep their look and gain an
+ * invisible margin. Phones and coarse pointers get 44×44 on every control, visuals included. The
+ * zero-specificity :where() keeps feature positioning (absolute menu triggers) intact. */
+:where(
+  .icon-button,
+  [data-slot='button'][data-size='xs'],
+  [data-slot='button'][data-size='icon-xs']
+) {
+  position: relative;
+}
+:is(
+  .icon-button,
+  [data-slot='button'][data-size='xs'],
+  [data-slot='button'][data-size='icon-xs']
+)::after {
+  position: absolute;
+  inset: -4px;
+  content: '';
+}
+/* Touch floor: a global minimum, so it outranks feature sizes (hence !important). Inline text
+ * links keep their line height. */
+@media (width < 48rem), (pointer: coarse) {
+  :is(
+    button,
+    [data-slot='button'],
+    [role='button'],
+    [role='tab'],
+    [data-slot='select-trigger'],
+    [data-slot='dropdown-menu-item'],
+    [data-slot='dropdown-menu-checkbox-item'],
+    [data-slot='dropdown-menu-radio-item'],
+    [data-slot='context-menu-item'],
+    [data-slot='select-item'],
+    [data-slot='command-item'],
+    [data-slot='input'],
+    .button,
+    .ui-segment > a
+  ):not([data-slot='switch'], [data-slot='checkbox'], [data-sidebar='rail'], .skip-link) {
+    min-height: 44px !important;
+  }
+  :is(button, [data-slot='button'], .icon-button, .ui-segment > a):not(
+    [data-slot='switch'],
+    [data-slot='checkbox'],
+    [data-sidebar='rail']
+  ) {
+    min-width: 44px !important;
+  }
+  /* Switches and checkboxes keep their size and gain a 44px invisible target. */
+  :where([data-slot='switch'], [data-slot='checkbox']) {
+    position: relative;
+  }
+  :is([data-slot='switch'], [data-slot='checkbox'])::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 44px);
+    height: max(100%, 44px);
+    translate: -50% -50%;
+    content: '';
+  }
+  :is(
+    .icon-button,
+    [data-slot='button'][data-size='xs'],
+    [data-slot='button'][data-size='icon-xs']
+  )::after {
+    display: none;
+  }
+}
 .boot {
   min-height: 100vh;
   display: flex;
@@ -41,33 +109,15 @@
   top: 10px;
 }
 @variant max-wide {
-  .page {
-    padding: 6px 24px 40px;
-  }
   .runtime-row small {
     display: none;
   }
 }
 @variant max-compact {
-  .page {
-    padding: 4px 16px 32px;
-  }
-  .page-heading {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 14px;
-    margin-bottom: 20px;
-  }
-  h1 {
-    font-size: 26px;
-  }
   .search-input {
     order: 2;
     width: 100%;
     margin-left: 0;
-  }
-  .welcome {
-    padding: 22px 18px 24px;
   }
   .runtime-row {
     flex-wrap: wrap;

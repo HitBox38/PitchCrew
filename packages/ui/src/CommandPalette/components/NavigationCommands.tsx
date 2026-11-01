@@ -1,20 +1,19 @@
-import { viewIcons, viewTitles } from '@/AppSidebar/constants.ts';
 import type { NavigationCommandsProps } from '@/CommandPalette/types.ts';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
-import { CommandItem } from '@/components/ui/command/components/CommandItem.tsx';
-import type { View } from '@/navigation.ts';
+import { CommandGroup } from '@pitchcrew/design-system/command';
+import { paletteViews } from '../constants.ts';
+import { PaletteItem } from './PaletteItem.tsx';
 
-export const NavigationCommands = ({ run, onNavigate }: NavigationCommandsProps) => {
-  return (
-    <CommandGroup heading="Go to">
-      {(Object.keys(viewTitles) as View[]).map((id) => {
-        const Icon = viewIcons[id];
-        return (
-          <CommandItem key={id} value={`go ${viewTitles[id]}`} onSelect={run(() => onNavigate(id))}>
-            <Icon /> {viewTitles[id]}
-          </CommandItem>
-        );
-      })}
-    </CommandGroup>
-  );
-};
+export const NavigationCommands = ({ run, onNavigate }: NavigationCommandsProps) => (
+  <CommandGroup heading="Pages">
+    {paletteViews.map((view) => (
+      <PaletteItem
+        key={view.id}
+        value={`go open ${view.title}${view.id === 'inbox' ? ' inbox' : ''}`}
+        icon={view.icon}
+        label={`Open ${view.title}`}
+        context={view.context}
+        onSelect={run(() => onNavigate(view.id))}
+      />
+    ))}
+  </CommandGroup>
+);

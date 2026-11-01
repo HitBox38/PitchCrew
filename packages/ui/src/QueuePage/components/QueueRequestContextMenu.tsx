@@ -4,7 +4,7 @@ import {
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu/index.tsx';
+} from '@pitchcrew/design-system/context-menu';
 import type { useQueueRequest } from '../hooks/useQueueRequest.ts';
 import { QueueRequestItems } from './QueueRequestItems.tsx';
 
@@ -31,6 +31,7 @@ export const QueueRequestContextMenu = ({
             <ContextMenuItem disabled={model.working} onClick={() => void model.skip()}>
               Skip and continue
             </ContextMenuItem>
+            <QueueRequestItems model={model} context />
           </>
         ) : (
           <QueueRequestItems model={model} context />

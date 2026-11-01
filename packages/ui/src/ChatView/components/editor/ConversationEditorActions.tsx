@@ -1,4 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { PanelActions } from './PanelActions.tsx';
 
 export const ConversationEditorActions = ({
   editing,
@@ -12,13 +13,13 @@ export const ConversationEditorActions = ({
   close: () => void;
 }) => {
   return (
-    <div className="flex justify-end gap-3">
+    <PanelActions>
       <Button className="button" disabled={working} onClick={close}>
         Cancel
       </Button>
       <Button className="button primary" type="submit" disabled={disabled}>
         {editing ? 'Save conversation' : 'Create conversation'}
       </Button>
-    </div>
+    </PanelActions>
   );
 };

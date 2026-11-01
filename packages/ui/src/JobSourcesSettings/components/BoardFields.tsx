@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { boardExamples, boardHelp, boardLabels, tokenHelp, tokenProviders } from '../constants.ts';
 import type { JobSourcesModel, SourceDraft } from '../types.ts';
 
@@ -10,7 +10,7 @@ export const BoardFields = ({
 }: Pick<JobSourcesModel, 'setBoard' | 'setToken'> & { draft: SourceDraft }) => {
   const needsToken = tokenProviders.has(draft.provider);
   return (
-    <div className={needsToken ? 'grid grid-cols-2 gap-3.5 max-compact:grid-cols-1' : 'grid'}>
+    <div className="settings-field-grid" data-columns={needsToken ? undefined : '1'}>
       <label>
         {boardLabels[draft.provider]}
         <Input

@@ -95,7 +95,7 @@ test('checks releases and updates from the collapsed row; progress survives navi
       }),
   );
   await open();
-  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await page.getByRole('button', { name: 'Check now', exact: true }).click();
   const update = row().getByRole('button', { name: 'Update Codex to 1.1.0', exact: true });
   await update.waitFor();
   expect(await row().getByText('Update available: 1.1.0', { exact: true }).isVisible()).toBe(true);
@@ -150,7 +150,7 @@ test('explains busy runtimes and shows a copyable manual command beside installe
   ).toBe(true);
   expect(run).not.toHaveBeenCalled();
   busy.mockReturnValue([]);
-  await page.getByRole('button', { name: 'Check for updates', exact: true }).click();
+  await page.getByRole('button', { name: 'Check now', exact: true }).click();
   await expect.poll(() => update.isEnabled(), { timeout: 10000 }).toBe(true);
   await update.click();
   await row().getByText('Update failed', { exact: true }).waitFor();

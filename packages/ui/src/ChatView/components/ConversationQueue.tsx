@@ -6,10 +6,9 @@ import {
   QueueSectionTrigger,
   QueueSectionContent,
 } from '@/components/ai-elements/queue/index.tsx';
-import { TraceLine } from '@/components/ui/trace/components/TraceLine.tsx';
-import { TraceTitle } from '@/components/ui/trace/components/TraceTitle.tsx';
-import { TraceIcon } from '@/components/ui/trace/components/TraceIcon.tsx';
-import { Clock3, CircleAlert } from 'lucide-react';
+import { TraceLine, TraceTitle } from '@pitchcrew/design-system/trace';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
+import { requestStatus } from '@/ClayInterface/helpers.ts';
 
 export const ConversationQueue = ({
   queued,
@@ -19,6 +18,10 @@ export const ConversationQueue = ({
   thread,
 }: Pick<ChatViewModel, 'queued' | 'data' | 'action' | 'working' | 'thread'>) => {
   if (!queued.length) return null;
+  const has = (status: string) =>
+    queued.some((request) => request.deliveries.some((delivery) => delivery.status === status));
+  // Rose only when something failed; paused work waits on a person, so it is ochre.
+  const tone = has('failed') ? 'rose' : has('paused') ? 'ochre' : undefined;
   const attention = queued.filter((request) =>
     request.deliveries.some(
       (delivery) => delivery.status === 'paused' || delivery.status === 'failed',
@@ -29,16 +32,20 @@ export const ConversationQueue = ({
       ? '1 message needs attention'
       : `${queued.length} messages · ${attention} ${attention === 1 ? 'needs' : 'need'} attention`
     : `${queued.length} queued ${queued.length === 1 ? 'message' : 'messages'}`;
-  const Icon = attention ? CircleAlert : Clock3;
   return (
-    <section className="chat-queue" aria-label="Queued messages">
+    <section className="chat-queue" data-tone={tone} aria-label="Queued messages">
       <Queue>
         <QueueSection key={thread}>
           <QueueSectionTrigger className="chat-queue-trigger">
-            <TraceLine className="flex-1" status={attention ? 'error' : 'pending'}>
-              <TraceIcon>
-                <Icon size={13} />
-              </TraceIcon>
+            <TraceLine className="flex-1" status={tone ? undefined : 'pending'}>
+              <span className="clay-step-beads" aria-hidden="true">
+                {queued.slice(0, 8).map((request) => (
+                  <StatusBead
+                    key={request.id}
+                    status={requestStatus(request.deliveries.map((item) => item.status))}
+                  />
+                ))}
+              </span>
               <TraceTitle>{label}</TraceTitle>
             </TraceLine>
           </QueueSectionTrigger>

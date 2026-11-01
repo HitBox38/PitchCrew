@@ -1,5 +1,5 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { signedWeight, weightLabels } from '@/lib/labels.ts';
 import type { Card } from '@pitchcrew/core';
 import { cardWeight, weights } from '@pitchcrew/core/insights';

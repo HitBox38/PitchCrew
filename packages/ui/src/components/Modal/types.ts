@@ -1,5 +1,5 @@
 import { type ReactNode } from 'react';
-import type { DialogContentProps } from '@/components/ui/dialog/types.ts';
+import type { DialogContentProps } from '@pitchcrew/design-system/dialog';
 
 export interface ModalProps {
   title: string;

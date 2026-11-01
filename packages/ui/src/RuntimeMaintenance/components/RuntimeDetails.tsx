@@ -1,7 +1,7 @@
 import type { RuntimeInfo, RuntimeMaintenanceState, RuntimeUpdateInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RuntimeAuthentication } from './RuntimeAuthentication.tsx';
 import { RefreshCw } from 'lucide-react';
 import { runtimeLabels } from '@/lib/labels.ts';
@@ -21,9 +21,9 @@ export const RuntimeDetails = ({
   const failed =
     update?.operation?.stage === 'failed' || update?.operation?.stage === 'interrupted';
   return (
-    <div className="runtime-installation-details space-y-4 wrap-anywhere">
+    <div className="settings-runtime-details wrap-anywhere">
       <div>
-        <h4 className="mb-1 text-sm font-semibold">Installation</h4>
+        <h4>Installation</h4>
         <p className="quiet">{runtime.detail}</p>
         {update ? <p className="quiet mt-1">{update.detail}</p> : null}
         {update?.checkedAt ? (
@@ -46,6 +46,7 @@ export const RuntimeDetails = ({
         <Button
           variant="outline"
           size="sm"
+          className="justify-self-start"
           disabled={working || running}
           aria-label={`Recheck ${runtimeLabels[runtime.id]}`}
           onClick={() => act(`/runtimes/${runtime.id}/recheck`, 'POST', {}, 'Runtime checked')}

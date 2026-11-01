@@ -1,10 +1,12 @@
 import { useConversationEditor } from '../hooks/useConversationEditor.ts';
 import type { ConversationEditorProps } from '../types.ts';
 import { ChatSidePanel } from './ChatSidePanel.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { MessageSquarePlus, Users } from 'lucide-react';
 import { ParticipantFields } from './editor/ParticipantFields.tsx';
 import { ConversationEditorActions } from './editor/ConversationEditorActions.tsx';
-import { ConversationSelect } from './ConversationSelect.tsx';
+import { JobField } from './editor/JobField.tsx';
+import { PanelSection } from './PanelSection.tsx';
 export const ConversationEditor = ({
   data,
   conversation,
@@ -16,19 +18,15 @@ export const ConversationEditor = ({
   working,
   jobItems,
 }: ConversationEditorProps) => {
-  const {
-    current,
-    title,
-    setTitle,
-    participants,
-    setParticipants,
-    leadId,
-    setLeadId,
-    cardId,
-    setCardId,
-    error,
-    save,
-  } = useConversationEditor({ conversation, roleId, dialog, setDialog, action, onThread });
+  const editor = useConversationEditor({
+    conversation,
+    roleId,
+    dialog,
+    setDialog,
+    action,
+    onThread,
+  });
+  const { current, title, setTitle, participants, setParticipants, leadId, setLeadId } = editor;
   return (
     <ChatSidePanel
       title={current ? 'Conversation settings' : 'New conversation'}
@@ -36,25 +34,28 @@ export const ConversationEditor = ({
         if (!working) setDialog(null);
       }}
       className="chat-editor"
+      icon={current ? <Users size={15} /> : <MessageSquarePlus size={15} />}
     >
       <form
-        className="form grid gap-5"
+        className="form chat-panel-form"
         onSubmit={(event) => {
           event.preventDefault();
-          void save();
+          void editor.save();
         }}
       >
-        <div className="field">
-          <label htmlFor="conversation-title">Name</label>
-          <Input
-            id="conversation-title"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            maxLength={120}
-            placeholder="What are you working on?"
-            required
-          />
-        </div>
+        <PanelSection>
+          <div className="field">
+            <label htmlFor="conversation-title">Name</label>
+            <Input
+              id="conversation-title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              maxLength={120}
+              placeholder="What are you working on?"
+              required
+            />
+          </div>
+        </PanelSection>
         <ParticipantFields
           roles={data.roles}
           participants={participants}
@@ -62,24 +63,17 @@ export const ConversationEditor = ({
           leadId={leadId}
           setLeadId={setLeadId}
         />
-        <div className="field">
-          <label htmlFor="conversation-job">Attached job</label>
-          <ConversationSelect
-            id="conversation-job"
-            compact={false}
-            label="Conversation job"
-            value={cardId}
+        <PanelSection>
+          <JobField
+            value={editor.cardId}
+            onChange={editor.setCardId}
             items={jobItems}
-            onChange={setCardId}
-            disabled={!!current && data.messages.some((message) => message.threadId === current.id)}
+            locked={!!current && data.messages.some((message) => message.threadId === current.id)}
           />
-          <span className="optional">
-            One job per conversation. Start another conversation for a different application.
-          </span>
-        </div>
-        {error ? (
+        </PanelSection>
+        {editor.error ? (
           <p className="form-error" role="alert">
-            {error}
+            {editor.error}
           </p>
         ) : null}
         <ConversationEditorActions

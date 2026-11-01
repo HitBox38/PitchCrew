@@ -1,5 +1,5 @@
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ProfileSourcesModel } from '../types.ts';
 
 export const SourceProposalLinks = ({
@@ -12,7 +12,7 @@ export const SourceProposalLinks = ({
   if (!proposals.length) return null;
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="profile-source-badge profile-source-review-badge">
+      <span className="ui-chip" data-tone="ochre">
         {proposals.some((p) => p.status === 'applying')
           ? 'Update needs recovery'
           : 'Updates to review'}
@@ -21,6 +21,7 @@ export const SourceProposalLinks = ({
       {proposals.map((proposal, index) => (
         <Button
           key={proposal.id}
+          variant="outline"
           size="sm"
           disabled={c.busy}
           data-source-focus={`review-${proposal.id}`}

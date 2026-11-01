@@ -1,6 +1,6 @@
 import type { ChatRequest } from '@pitchcrew/core';
 import { QueuedMessageMenu } from './QueuedMessageMenu.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ArrowUp, Pencil, X, Play } from 'lucide-react';
 export const QueuedMessageActions = ({
   request,

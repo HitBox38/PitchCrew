@@ -2,14 +2,15 @@ import { useProfileFolderDialog } from '../hooks/useProfileFolderDialog.ts';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+} from '@pitchcrew/design-system/dialog';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import type { ProfileFolderOperation } from '../types.ts';
+import type { ProfileFolderChange } from '../types.ts';
 
 export const ProfileFolderDialog = ({
   operation,
@@ -19,7 +20,7 @@ export const ProfileFolderDialog = ({
   close,
   submit,
 }: {
-  operation: ProfileFolderOperation;
+  operation: ProfileFolderChange;
   folders: string[];
   working: boolean;
   error: string;
@@ -38,18 +39,18 @@ export const ProfileFolderDialog = ({
         if (!open && !working) close();
       }}
     >
-      <DialogContent className="modal">
+      <DialogContent className="modal profile-small-dialog">
         <DialogHeader>
           <DialogTitle>{create ? 'New folder' : 'Move note'}</DialogTitle>
           <DialogDescription>
             {create
-              ? 'Create a folder to organize your profile notes.'
-              : 'Choose a folder. Your note and its source links stay intact.'}
+              ? 'Folders organize notes in Pitchcrew. Files on disk stay where they are.'
+              : 'The note keeps its filename and source link.'}
           </DialogDescription>
         </DialogHeader>
-        <form className="form mt-5 grid gap-4" onSubmit={save}>
+        <form className="ui-field-group" onSubmit={save}>
           {create ? (
-            <label>
+            <label className="profile-dialog-field">
               Folder name
               <Input
                 value={name}
@@ -66,25 +67,21 @@ export const ProfileFolderDialog = ({
             value={folder}
             onValueChange={setFolder}
             disabled={working}
-            options={folders.map((path) => ({ value: path, label: path || 'profile (root)' }))}
+            options={folders.map((path) => ({ value: path, label: path || 'Profile (top level)' }))}
           />
           {validation || error ? (
             <p className="form-error" role="alert">
               {validation || error}
             </p>
           ) : null}
-          <div className="form-footer flex justify-end gap-2 border-t border-border pt-4">
-            <Button className="button" disabled={working} onClick={close}>
+          <DialogFooter>
+            <Button variant="outline" disabled={working} onClick={close}>
               Cancel
             </Button>
-            <Button
-              className="button primary"
-              type="submit"
-              disabled={working || (create && !name.trim())}
-            >
+            <Button type="submit" disabled={working || (create && !name.trim())}>
               {working ? 'Saving…' : create ? 'Create folder' : 'Move note'}
             </Button>
-          </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

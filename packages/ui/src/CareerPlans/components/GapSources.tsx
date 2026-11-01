@@ -1,7 +1,7 @@
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { CareerGap } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const GapSources = ({ sources }: { sources: CareerGap['sources'] }) => {
@@ -10,7 +10,7 @@ export const GapSources = ({ sources }: { sources: CareerGap['sources'] }) => {
   const jobs = new Set(sources.map((s) => s.cardId)).size;
   return (
     <AccordionSection heading={`Requirements from ${jobs} ${jobs === 1 ? 'job' : 'jobs'}`}>
-      <ul className="space-y-2">
+      <ul className="career-gap-sources">
         {keyedItems(sources, (source) => JSON.stringify([source.cardId, source.requirement])).map(
           ({ item: source, key }) => {
             const card = cards?.find((c) => c.id === source.cardId);

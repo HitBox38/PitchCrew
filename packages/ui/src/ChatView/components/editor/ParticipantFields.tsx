@@ -1,5 +1,5 @@
 import type { Role } from '@pitchcrew/core';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { ConversationSelect } from '../ConversationSelect.tsx';
 export const ParticipantFields = ({

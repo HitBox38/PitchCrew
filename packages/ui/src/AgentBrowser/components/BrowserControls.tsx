@@ -1,5 +1,5 @@
 import { Bot, Globe, Hand } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserControl, AgentBrowserProps } from '../types.ts';
 export const BrowserControls = ({
   browserPanel,
@@ -21,7 +21,11 @@ export const BrowserControls = ({
         variant={control.leaseId ? 'secondary' : 'ghost'}
         className="browser-handoff"
         aria-label={label}
-        title={label}
+        title={
+          label === 'Take control'
+            ? 'Take control to browse. Your agent pauses while you use the page.'
+            : label
+        }
         disabled={control.working}
         onClick={() => {
           if (!opened) void control.open();

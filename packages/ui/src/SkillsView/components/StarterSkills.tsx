@@ -3,69 +3,56 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import type { StarterSkillsProps } from '@/SkillsView/types.ts';
+} from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
+import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { baseSkills } from '@pitchcrew/core/base-skills';
+import { StarterSkillErrors } from './StarterSkillErrors.tsx';
 
-export const StarterSkills = ({
-  data,
-  query,
-  working,
-  setStarter,
-  setEditing,
-}: StarterSkillsProps) => {
+/** Starter catalog: a closed disclosure at the bottom of the library; each row is name, one line
+ * of what it does, and a clay Add or Import. */
+export const StarterSkills = (c: SkillsViewModel) => {
+  const query = c.query.trim().toLowerCase();
+  const starters = baseSkills.filter((item) =>
+    `${item.name} ${item.description} ${item.source}`.toLowerCase().includes(query),
+  );
   return (
-    <Accordion className="starter-skills" defaultValue={data.skills.length ? [] : ['starter']}>
-      <AccordionItem value="starter">
-        <AccordionTrigger>
-          <span>Starter skills</span>{' '}
-          <span className="starter-skill-count">
-            {baseSkills.length}
-            <span className="sr-only"> suggestions</span>
-          </span>
-        </AccordionTrigger>
-        <AccordionContent>
-          <p className="quiet">
-            These skills are loaded when your workspace starts. You can edit or remove them above,
-            or import a starter again after removing it.
-          </p>
-          <ul className="starter-skill-library">
-            {baseSkills
-              .filter((item) =>
-                `${item.name} ${item.description} ${item.source}`
-                  .toLowerCase()
-                  .includes(query.toLowerCase()),
-              )
-              .map((item) => (
-                <li className="starter-skill" key={item.name}>
+    <section className="skills-starters" aria-label="Starter skills">
+      {c.data.starterSkillErrors?.length ? <StarterSkillErrors {...c} /> : null}
+      <Accordion
+        value={c.startersOpen ? ['starter'] : []}
+        onValueChange={(value) => c.setStartersOpen(value.includes('starter'))}
+      >
+        <AccordionItem value="starter">
+          <AccordionTrigger className="skills-starters-trigger">
+            <span>
+              Starter skills <span className="ui-count">{baseSkills.length}</span>
+            </span>
+          </AccordionTrigger>
+          <AccordionContent>
+            <ul className="skills-starter-list">
+              {starters.map((item) => (
+                <li className="skills-starter" key={item.name}>
                   <div>
-                    <h3>{item.name}</h3>
-                    <p>{item.description}</p>
-                    <span className="quiet skill-source block">
-                      Made by {item.source.split('/')[0]}
-                    </span>
-                    {item.source.includes('/') ? (
-                      <span className="quiet skill-source block">{item.source}</span>
-                    ) : null}
-                    {item.note ? <p className="quiet">{item.note}</p> : null}
+                    <strong>{item.name}</strong>
+                    <p title={item.note ? `${item.description} ${item.note}` : item.description}>
+                      {item.description}
+                    </p>
                   </div>
                   <Button
                     className="button small"
                     aria-label={`${item.sourceType === 'bundled' ? 'Add' : 'Import'} ${item.name}`}
-                    disabled={working}
-                    onClick={() => {
-                      setStarter(item);
-                      setEditing('import');
-                    }}
+                    disabled={c.working}
+                    onClick={() => c.setEditing('import', item)}
                   >
                     {item.sourceType === 'bundled' ? 'Add' : 'Import'}
                   </Button>
                 </li>
               ))}
-          </ul>
-        </AccordionContent>
-      </AccordionItem>
-    </Accordion>
+            </ul>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+    </section>
   );
 };

@@ -1,906 +1,543 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-13T21:41:54+00:00",
+  "generatedAt": "2026-11-01T00:00:00+00:00",
   "title": "Design System: Pitchcrew landing page",
   "extensions": {
     "colorMeta": {
-      "paper": {
-        "role": "neutral",
-        "displayName": "Paper",
-        "canonical": "#f2f1ec",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.007 97.4)",
-          "oklch(26% 0.007 97.4)",
-          "oklch(38% 0.007 97.4)",
-          "oklch(50% 0.007 97.4)",
-          "oklch(62% 0.007 97.4)",
-          "oklch(74% 0.007 97.4)",
-          "oklch(85% 0.007 97.4)",
-          "oklch(95% 0.003 97.4)"
-        ]
-      },
-      "paper-deep": {
-        "role": "neutral",
-        "displayName": "Deep Paper",
-        "canonical": "#e8e6df",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.010 93.6)",
-          "oklch(26% 0.010 93.6)",
-          "oklch(38% 0.010 93.6)",
-          "oklch(50% 0.010 93.6)",
-          "oklch(62% 0.010 93.6)",
-          "oklch(74% 0.010 93.6)",
-          "oklch(85% 0.010 93.6)",
-          "oklch(95% 0.005 93.6)"
-        ]
-      },
-      "surface": {
-        "role": "neutral",
-        "displayName": "Surface",
-        "canonical": "#f8f7f3",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.005 95.1)",
-          "oklch(26% 0.005 95.1)",
-          "oklch(38% 0.005 95.1)",
-          "oklch(50% 0.005 95.1)",
-          "oklch(62% 0.005 95.1)",
-          "oklch(74% 0.005 95.1)",
-          "oklch(85% 0.005 95.1)",
-          "oklch(95% 0.003 95.1)"
-        ]
-      },
-      "surface-bright": {
-        "role": "neutral",
-        "displayName": "Bright Surface",
-        "canonical": "#fdfcf9",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.004 91.4)",
-          "oklch(26% 0.004 91.4)",
-          "oklch(38% 0.004 91.4)",
-          "oklch(50% 0.004 91.4)",
-          "oklch(62% 0.004 91.4)",
-          "oklch(74% 0.004 91.4)",
-          "oklch(85% 0.004 91.4)",
-          "oklch(95% 0.002 91.4)"
-        ]
-      },
-      "product-paper": {
-        "role": "neutral",
-        "displayName": "Product Paper",
-        "canonical": "#eae9e2",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.009 100.0)",
-          "oklch(26% 0.009 100.0)",
-          "oklch(38% 0.009 100.0)",
-          "oklch(50% 0.009 100.0)",
-          "oklch(62% 0.009 100.0)",
-          "oklch(74% 0.009 100.0)",
-          "oklch(85% 0.009 100.0)",
-          "oklch(95% 0.005 100.0)"
-        ]
-      },
-      "ink": {
-        "role": "neutral",
-        "displayName": "Ink",
-        "canonical": "#2b2d31",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.008 264.4)",
-          "oklch(26% 0.008 264.4)",
-          "oklch(38% 0.008 264.4)",
-          "oklch(50% 0.008 264.4)",
-          "oklch(62% 0.008 264.4)",
-          "oklch(74% 0.008 264.4)",
-          "oklch(85% 0.008 264.4)",
-          "oklch(95% 0.004 264.4)"
-        ]
-      },
-      "ink-soft": {
-        "role": "neutral",
-        "displayName": "Soft Ink",
-        "canonical": "#484b52",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.012 267.2)",
-          "oklch(26% 0.012 267.2)",
-          "oklch(38% 0.012 267.2)",
-          "oklch(50% 0.012 267.2)",
-          "oklch(62% 0.012 267.2)",
-          "oklch(74% 0.012 267.2)",
-          "oklch(85% 0.012 267.2)",
-          "oklch(95% 0.006 267.2)"
-        ]
-      },
-      "muted": {
-        "role": "neutral",
-        "displayName": "Muted",
-        "canonical": "#61646b",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.012 267.3)",
-          "oklch(26% 0.012 267.3)",
-          "oklch(38% 0.012 267.3)",
-          "oklch(50% 0.012 267.3)",
-          "oklch(62% 0.012 267.3)",
-          "oklch(74% 0.012 267.3)",
-          "oklch(85% 0.012 267.3)",
-          "oklch(95% 0.006 267.3)"
-        ]
-      },
       "primary": {
         "role": "primary",
-        "displayName": "Primary Indigo",
+        "displayName": "Glazed Indigo",
         "canonical": "#3a5482",
-        "theme": "light",
+        "darkPeer": "#93abd8",
         "tonalRamp": [
-          "oklch(15% 0.082 261.2)",
-          "oklch(26% 0.082 261.2)",
-          "oklch(38% 0.082 261.2)",
-          "oklch(50% 0.082 261.2)",
-          "oklch(62% 0.082 261.2)",
-          "oklch(74% 0.082 261.2)",
-          "oklch(85% 0.082 261.2)",
-          "oklch(95% 0.041 261.2)"
+          "oklch(18% 0.05 265)",
+          "oklch(28% 0.07 265)",
+          "oklch(38% 0.08 265)",
+          "oklch(48% 0.08 265)",
+          "oklch(60% 0.07 265)",
+          "oklch(72% 0.06 265)",
+          "oklch(84% 0.04 265)",
+          "oklch(95% 0.015 265)"
         ]
       },
       "primary-soft": {
         "role": "primary",
-        "displayName": "Primary Indigo Tint",
+        "displayName": "Indigo Wash",
         "canonical": "#e0e6f0",
-        "theme": "light",
+        "darkPeer": "rgb(147 171 216 / 0.16)",
         "tonalRamp": [
-          "oklch(15% 0.015 260.7)",
-          "oklch(26% 0.015 260.7)",
-          "oklch(38% 0.015 260.7)",
-          "oklch(50% 0.015 260.7)",
-          "oklch(62% 0.015 260.7)",
-          "oklch(74% 0.015 260.7)",
-          "oklch(85% 0.015 260.7)",
-          "oklch(95% 0.008 260.7)"
+          "oklch(18% 0.03 265)",
+          "oklch(28% 0.04 265)",
+          "oklch(40% 0.04 265)",
+          "oklch(52% 0.04 265)",
+          "oklch(64% 0.04 265)",
+          "oklch(76% 0.03 265)",
+          "oklch(86% 0.02 265)",
+          "oklch(95% 0.01 265)"
         ]
       },
       "teal": {
         "role": "secondary",
         "displayName": "Scout Teal",
         "canonical": "#2f6a69",
-        "theme": "light",
+        "darkPeer": "#84c0bc",
         "tonalRamp": [
-          "oklch(15% 0.061 193.8)",
-          "oklch(26% 0.061 193.8)",
-          "oklch(38% 0.061 193.8)",
-          "oklch(50% 0.061 193.8)",
-          "oklch(62% 0.061 193.8)",
-          "oklch(74% 0.061 193.8)",
-          "oklch(85% 0.061 193.8)",
-          "oklch(95% 0.031 193.8)"
-        ]
-      },
-      "teal-soft": {
-        "role": "secondary",
-        "displayName": "Scout Teal Tint",
-        "canonical": "#d9e9e6",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.017 183.5)",
-          "oklch(26% 0.017 183.5)",
-          "oklch(38% 0.017 183.5)",
-          "oklch(50% 0.017 183.5)",
-          "oklch(62% 0.017 183.5)",
-          "oklch(74% 0.017 183.5)",
-          "oklch(85% 0.017 183.5)",
-          "oklch(95% 0.009 183.5)"
+          "oklch(18% 0.03 190)",
+          "oklch(28% 0.05 190)",
+          "oklch(38% 0.06 190)",
+          "oklch(48% 0.06 190)",
+          "oklch(60% 0.06 190)",
+          "oklch(72% 0.05 190)",
+          "oklch(84% 0.04 190)",
+          "oklch(95% 0.015 190)"
         ]
       },
       "plum": {
-        "role": "tertiary",
-        "displayName": "Writer Plum",
+        "role": "secondary",
+        "displayName": "Executing Plum",
         "canonical": "#76517a",
-        "theme": "light",
+        "darkPeer": "#cda7d0",
         "tonalRamp": [
-          "oklch(15% 0.078 323.3)",
-          "oklch(26% 0.078 323.3)",
-          "oklch(38% 0.078 323.3)",
-          "oklch(50% 0.078 323.3)",
-          "oklch(62% 0.078 323.3)",
-          "oklch(74% 0.078 323.3)",
-          "oklch(85% 0.078 323.3)",
-          "oklch(95% 0.039 323.3)"
+          "oklch(18% 0.04 320)",
+          "oklch(28% 0.06 320)",
+          "oklch(38% 0.07 320)",
+          "oklch(48% 0.07 320)",
+          "oklch(60% 0.07 320)",
+          "oklch(72% 0.06 320)",
+          "oklch(84% 0.04 320)",
+          "oklch(95% 0.015 320)"
         ]
       },
-      "plum-soft": {
-        "role": "tertiary",
-        "displayName": "Writer Plum Tint",
-        "canonical": "#ece1ec",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.019 325.7)",
-          "oklch(26% 0.019 325.7)",
-          "oklch(38% 0.019 325.7)",
-          "oklch(50% 0.019 325.7)",
-          "oklch(62% 0.019 325.7)",
-          "oklch(74% 0.019 325.7)",
-          "oklch(85% 0.019 325.7)",
-          "oklch(95% 0.009 325.7)"
-        ]
-      },
-      "selection": {
+      "moss": {
         "role": "secondary",
-        "displayName": "Selection",
-        "canonical": "#d9e9e6",
-        "theme": "light",
+        "displayName": "Recorded Moss",
+        "canonical": "#53673d",
+        "darkPeer": "#a9c28a",
         "tonalRamp": [
-          "oklch(15% 0.017 183.5)",
-          "oklch(26% 0.017 183.5)",
-          "oklch(38% 0.017 183.5)",
-          "oklch(50% 0.017 183.5)",
-          "oklch(62% 0.017 183.5)",
-          "oklch(74% 0.017 183.5)",
-          "oklch(85% 0.017 183.5)",
-          "oklch(95% 0.009 183.5)"
+          "oklch(18% 0.03 130)",
+          "oklch(28% 0.05 130)",
+          "oklch(38% 0.06 130)",
+          "oklch(48% 0.06 130)",
+          "oklch(60% 0.06 130)",
+          "oklch(72% 0.06 130)",
+          "oklch(84% 0.04 130)",
+          "oklch(95% 0.015 130)"
         ]
       },
-      "link-rule": {
-        "role": "primary",
-        "displayName": "Link Rule",
-        "canonical": "#a6b2c5",
-        "theme": "light",
-        "tonalRamp": [
-          "oklch(15% 0.030 259.6)",
-          "oklch(26% 0.030 259.6)",
-          "oklch(38% 0.030 259.6)",
-          "oklch(50% 0.030 259.6)",
-          "oklch(62% 0.030 259.6)",
-          "oklch(74% 0.030 259.6)",
-          "oklch(85% 0.030 259.6)",
-          "oklch(95% 0.015 259.6)"
-        ]
-      },
-      "border": {
-        "role": "neutral",
-        "displayName": "Hairline",
-        "canonical": "rgb(43 45 49 / 0.14)",
-        "theme": "light"
-      },
-      "rim": {
-        "role": "neutral",
-        "displayName": "Rim",
-        "canonical": "rgb(255 255 255 / 0.95)",
-        "theme": "light"
-      },
-      "paper-dark": {
-        "role": "neutral",
-        "displayName": "Paper (dark theme)",
-        "canonical": "#1a1b1e",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.006 271.1)",
-          "oklch(26% 0.006 271.1)",
-          "oklch(38% 0.006 271.1)",
-          "oklch(50% 0.006 271.1)",
-          "oklch(62% 0.006 271.1)",
-          "oklch(74% 0.006 271.1)",
-          "oklch(85% 0.006 271.1)",
-          "oklch(95% 0.003 271.1)"
-        ]
-      },
-      "paper-deep-dark": {
-        "role": "neutral",
-        "displayName": "Deep Paper (dark theme)",
-        "canonical": "#141518",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.006 271.1)",
-          "oklch(26% 0.006 271.1)",
-          "oklch(38% 0.006 271.1)",
-          "oklch(50% 0.006 271.1)",
-          "oklch(62% 0.006 271.1)",
-          "oklch(74% 0.006 271.1)",
-          "oklch(85% 0.006 271.1)",
-          "oklch(95% 0.003 271.1)"
-        ]
-      },
-      "surface-dark": {
-        "role": "neutral",
-        "displayName": "Surface (dark theme)",
-        "canonical": "#222327",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.008 274.7)",
-          "oklch(26% 0.008 274.7)",
-          "oklch(38% 0.008 274.7)",
-          "oklch(50% 0.008 274.7)",
-          "oklch(62% 0.008 274.7)",
-          "oklch(74% 0.008 274.7)",
-          "oklch(85% 0.008 274.7)",
-          "oklch(95% 0.004 274.7)"
-        ]
-      },
-      "surface-bright-dark": {
-        "role": "neutral",
-        "displayName": "Bright Surface (dark theme)",
-        "canonical": "#2a2b30",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.009 276.8)",
-          "oklch(26% 0.009 276.8)",
-          "oklch(38% 0.009 276.8)",
-          "oklch(50% 0.009 276.8)",
-          "oklch(62% 0.009 276.8)",
-          "oklch(74% 0.009 276.8)",
-          "oklch(85% 0.009 276.8)",
-          "oklch(95% 0.005 276.8)"
-        ]
-      },
-      "product-paper-dark": {
-        "role": "neutral",
-        "displayName": "Product Paper (dark theme)",
-        "canonical": "#1e1f23",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.008 274.6)",
-          "oklch(26% 0.008 274.6)",
-          "oklch(38% 0.008 274.6)",
-          "oklch(50% 0.008 274.6)",
-          "oklch(62% 0.008 274.6)",
-          "oklch(74% 0.008 274.6)",
-          "oklch(85% 0.008 274.6)",
-          "oklch(95% 0.004 274.6)"
-        ]
-      },
-      "ink-dark": {
-        "role": "neutral",
-        "displayName": "Ink (dark theme)",
-        "canonical": "#e9e7e1",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.008 91.5)",
-          "oklch(26% 0.008 91.5)",
-          "oklch(38% 0.008 91.5)",
-          "oklch(50% 0.008 91.5)",
-          "oklch(62% 0.008 91.5)",
-          "oklch(74% 0.008 91.5)",
-          "oklch(85% 0.008 91.5)",
-          "oklch(95% 0.004 91.5)"
-        ]
-      },
-      "ink-soft-dark": {
-        "role": "neutral",
-        "displayName": "Soft Ink (dark theme)",
-        "canonical": "#c8c6c0",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.009 91.5)",
-          "oklch(26% 0.009 91.5)",
-          "oklch(38% 0.009 91.5)",
-          "oklch(50% 0.009 91.5)",
-          "oklch(62% 0.009 91.5)",
-          "oklch(74% 0.009 91.5)",
-          "oklch(85% 0.009 91.5)",
-          "oklch(95% 0.004 91.5)"
-        ]
-      },
-      "muted-dark": {
-        "role": "neutral",
-        "displayName": "Muted (dark theme)",
-        "canonical": "#aaa8af",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.010 299.2)",
-          "oklch(26% 0.010 299.2)",
-          "oklch(38% 0.010 299.2)",
-          "oklch(50% 0.010 299.2)",
-          "oklch(62% 0.010 299.2)",
-          "oklch(74% 0.010 299.2)",
-          "oklch(85% 0.010 299.2)",
-          "oklch(95% 0.005 299.2)"
-        ]
-      },
-      "primary-dark": {
-        "role": "primary",
-        "displayName": "Primary Indigo (dark theme)",
-        "canonical": "#93abd8",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.071 262.8)",
-          "oklch(26% 0.071 262.8)",
-          "oklch(38% 0.071 262.8)",
-          "oklch(50% 0.071 262.8)",
-          "oklch(62% 0.071 262.8)",
-          "oklch(74% 0.071 262.8)",
-          "oklch(85% 0.071 262.8)",
-          "oklch(95% 0.035 262.8)"
-        ]
-      },
-      "primary-soft-dark": {
-        "role": "primary",
-        "displayName": "Primary Indigo Tint (dark theme)",
-        "canonical": "#252e40",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.035 263.8)",
-          "oklch(26% 0.035 263.8)",
-          "oklch(38% 0.035 263.8)",
-          "oklch(50% 0.035 263.8)",
-          "oklch(62% 0.035 263.8)",
-          "oklch(74% 0.035 263.8)",
-          "oklch(85% 0.035 263.8)",
-          "oklch(95% 0.018 263.8)"
-        ]
-      },
-      "teal-dark": {
+      "ochre": {
         "role": "secondary",
-        "displayName": "Scout Teal (dark theme)",
-        "canonical": "#84c0bc",
-        "theme": "dark",
+        "displayName": "Waiting Ochre",
+        "canonical": "#82601c",
+        "darkPeer": "#dcb86c",
         "tonalRamp": [
-          "oklch(15% 0.062 190.7)",
-          "oklch(26% 0.062 190.7)",
-          "oklch(38% 0.062 190.7)",
-          "oklch(50% 0.062 190.7)",
-          "oklch(62% 0.062 190.7)",
-          "oklch(74% 0.062 190.7)",
-          "oklch(85% 0.062 190.7)",
-          "oklch(95% 0.031 190.7)"
+          "oklch(18% 0.04 80)",
+          "oklch(28% 0.06 80)",
+          "oklch(38% 0.08 80)",
+          "oklch(48% 0.09 80)",
+          "oklch(60% 0.09 80)",
+          "oklch(72% 0.08 80)",
+          "oklch(84% 0.06 80)",
+          "oklch(95% 0.02 80)"
         ]
       },
-      "teal-soft-dark": {
+      "rose": {
         "role": "secondary",
-        "displayName": "Scout Teal Tint (dark theme)",
-        "canonical": "#263536",
-        "theme": "dark",
+        "displayName": "Failed Rose",
+        "canonical": "#9f4757",
+        "darkPeer": "#e6939f",
         "tonalRamp": [
-          "oklch(15% 0.020 201.3)",
-          "oklch(26% 0.020 201.3)",
-          "oklch(38% 0.020 201.3)",
-          "oklch(50% 0.020 201.3)",
-          "oklch(62% 0.020 201.3)",
-          "oklch(74% 0.020 201.3)",
-          "oklch(85% 0.020 201.3)",
-          "oklch(95% 0.010 201.3)"
+          "oklch(18% 0.05 10)",
+          "oklch(28% 0.08 10)",
+          "oklch(38% 0.1 10)",
+          "oklch(48% 0.11 10)",
+          "oklch(60% 0.1 10)",
+          "oklch(72% 0.08 10)",
+          "oklch(84% 0.05 10)",
+          "oklch(95% 0.02 10)"
         ]
       },
-      "plum-dark": {
-        "role": "tertiary",
-        "displayName": "Writer Plum (dark theme)",
-        "canonical": "#cda7d0",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.071 323.9)",
-          "oklch(26% 0.071 323.9)",
-          "oklch(38% 0.071 323.9)",
-          "oklch(50% 0.071 323.9)",
-          "oklch(62% 0.071 323.9)",
-          "oklch(74% 0.071 323.9)",
-          "oklch(85% 0.071 323.9)",
-          "oklch(95% 0.035 323.9)"
-        ]
-      },
-      "plum-soft-dark": {
-        "role": "tertiary",
-        "displayName": "Writer Plum Tint (dark theme)",
-        "canonical": "#352b37",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.025 320.7)",
-          "oklch(26% 0.025 320.7)",
-          "oklch(38% 0.025 320.7)",
-          "oklch(50% 0.025 320.7)",
-          "oklch(62% 0.025 320.7)",
-          "oklch(74% 0.025 320.7)",
-          "oklch(85% 0.025 320.7)",
-          "oklch(95% 0.013 320.7)"
-        ]
-      },
-      "selection-dark": {
-        "role": "secondary",
-        "displayName": "Selection (dark theme)",
-        "canonical": "#34433f",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.021 177.1)",
-          "oklch(26% 0.021 177.1)",
-          "oklch(38% 0.021 177.1)",
-          "oklch(50% 0.021 177.1)",
-          "oklch(62% 0.021 177.1)",
-          "oklch(74% 0.021 177.1)",
-          "oklch(85% 0.021 177.1)",
-          "oklch(95% 0.010 177.1)"
-        ]
-      },
-      "link-rule-dark": {
-        "role": "primary",
-        "displayName": "Link Rule (dark theme)",
-        "canonical": "#6b82a9",
-        "theme": "dark",
-        "tonalRamp": [
-          "oklch(15% 0.066 260.8)",
-          "oklch(26% 0.066 260.8)",
-          "oklch(38% 0.066 260.8)",
-          "oklch(50% 0.066 260.8)",
-          "oklch(62% 0.066 260.8)",
-          "oklch(74% 0.066 260.8)",
-          "oklch(85% 0.066 260.8)",
-          "oklch(95% 0.033 260.8)"
-        ]
-      },
-      "border-dark": {
+      "paper": {
         "role": "neutral",
-        "displayName": "Hairline (dark theme)",
-        "canonical": "rgb(236 234 228 / 0.16)",
-        "theme": "dark"
+        "displayName": "Paper",
+        "canonical": "#f2f1ec",
+        "darkPeer": "#1a1b1e",
+        "tonalRamp": [
+          "oklch(15% 0.007 97)",
+          "oklch(26% 0.007 97)",
+          "oklch(38% 0.007 97)",
+          "oklch(50% 0.007 97)",
+          "oklch(62% 0.007 97)",
+          "oklch(74% 0.007 97)",
+          "oklch(85% 0.007 97)",
+          "oklch(95% 0.004 97)"
+        ]
       },
-      "rim-dark": {
+      "paper-deep": {
         "role": "neutral",
-        "displayName": "Rim (dark theme)",
-        "canonical": "rgb(255 255 255 / 0.08)",
-        "theme": "dark"
+        "displayName": "Deep Paper (sunken fill)",
+        "canonical": "#e8e6df",
+        "darkPeer": "#141518",
+        "tonalRamp": [
+          "oklch(15% 0.01 94)",
+          "oklch(26% 0.01 94)",
+          "oklch(38% 0.01 94)",
+          "oklch(50% 0.01 94)",
+          "oklch(62% 0.01 94)",
+          "oklch(74% 0.01 94)",
+          "oklch(85% 0.01 94)",
+          "oklch(93% 0.006 94)"
+        ]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Clay Surface",
+        "canonical": "#f8f7f3",
+        "darkPeer": "#222327",
+        "tonalRamp": [
+          "oklch(15% 0.005 95)",
+          "oklch(26% 0.005 95)",
+          "oklch(38% 0.005 95)",
+          "oklch(50% 0.005 95)",
+          "oklch(62% 0.005 95)",
+          "oklch(74% 0.005 95)",
+          "oklch(86% 0.005 95)",
+          "oklch(97% 0.003 95)"
+        ]
+      },
+      "surface-bright": {
+        "role": "neutral",
+        "displayName": "Bright Surface (panes)",
+        "canonical": "#fdfcf9",
+        "darkPeer": "#2a2b30",
+        "tonalRamp": [
+          "oklch(15% 0.004 95)",
+          "oklch(26% 0.004 95)",
+          "oklch(38% 0.004 95)",
+          "oklch(50% 0.004 95)",
+          "oklch(62% 0.004 95)",
+          "oklch(74% 0.004 95)",
+          "oklch(88% 0.004 95)",
+          "oklch(99% 0.002 95)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#2b2d31",
+        "darkPeer": "#e9e7e1",
+        "tonalRamp": [
+          "oklch(15% 0.006 265)",
+          "oklch(26% 0.006 265)",
+          "oklch(38% 0.006 265)",
+          "oklch(50% 0.006 265)",
+          "oklch(62% 0.006 265)",
+          "oklch(74% 0.006 265)",
+          "oklch(85% 0.006 265)",
+          "oklch(95% 0.003 265)"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Ink",
+        "canonical": "#61646b",
+        "darkPeer": "#9d9ca1",
+        "tonalRamp": [
+          "oklch(15% 0.006 265)",
+          "oklch(26% 0.006 265)",
+          "oklch(38% 0.006 265)",
+          "oklch(50% 0.006 265)",
+          "oklch(62% 0.006 265)",
+          "oklch(74% 0.006 265)",
+          "oklch(85% 0.006 265)",
+          "oklch(95% 0.003 265)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline (11% ink)",
+        "canonical": "rgb(43 45 49 / 0.11)",
+        "darkPeer": "rgb(236 234 228 / 0.09)"
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Hero H1 only, capped at 13ch."
-      },
-      "display-compact": {
-        "displayName": "Display (compact)",
-        "purpose": "Hero H1 in desktop windows at least 1024px wide and at most 860px tall."
-      },
-      "headline-gate": {
-        "displayName": "Gate headline",
-        "purpose": "The three gate titles: Quoted, Checked, Approved."
-      },
-      "headline-band": {
-        "displayName": "Band headline",
-        "purpose": "Section title inside the inverted ink band, capped at 11ch."
+        "purpose": "The hero H1 only, at most 16ch, balanced by line."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Section titles."
+        "purpose": "Section headlines beside a baseline-aligned copy column."
       },
-      "numeral": {
-        "displayName": "Numeral",
-        "purpose": "Claims readout in the review rail, teal, tabular figures."
+      "gate-title": { "displayName": "Gate title", "purpose": "The three single gate words." },
+      "step-title": {
+        "displayName": "Step title",
+        "purpose": "Journey step headings led by a role pebble."
       },
-      "title-crew": {
-        "displayName": "Crew title",
-        "purpose": "Workflow crew step titles."
-      },
-      "title": {
-        "displayName": "Title",
-        "purpose": "Feature titles, ownership facts, after-apply items, support-crew heading."
+      "document-heading": {
+        "displayName": "Document heading",
+        "purpose": "The packet document's section heading; the only Fraunces inside an object."
       },
       "wordmark": {
         "displayName": "Wordmark",
-        "purpose": "Pitchcrew name beside the mark; 21px below 640px."
+        "purpose": "The Pitchcrew brand word; the one Fraunces 600."
       },
-      "lede": {
-        "displayName": "Lede",
-        "purpose": "Hero paragraph, capped at 54ch; 18px in the compact hero."
+      "feature": { "displayName": "Feature", "purpose": "Roster title and feature titles." },
+      "lede": { "displayName": "Lede", "purpose": "Hero lede (44ch) and section copy (48ch)." },
+      "copy": { "displayName": "Copy", "purpose": "Body prose, claim lines, installer labels." },
+      "object-title": {
+        "displayName": "Object title",
+        "purpose": "Agent and decision names inside app objects."
       },
-      "section-copy": {
-        "displayName": "Section copy",
-        "purpose": "Paragraph beside section titles, capped at 46ch; 19px below 640px."
+      "object-text": {
+        "displayName": "Object text",
+        "purpose": "Capability lines, notes, crew rows, browser fields."
       },
-      "claim": {
-        "displayName": "Claim",
-        "purpose": "Resume lines in the claim tracer; 17px on phones and in the compact hero."
+      "label": { "displayName": "Label", "purpose": "Buttons, segment choices, status lines." },
+      "meta": { "displayName": "Meta", "purpose": "Runtime lines, pagers, readouts in muted ink." },
+      "fine": {
+        "displayName": "Fine",
+        "purpose": "Chips, fine print, stage labels, address bars."
       },
-      "body": {
-        "displayName": "Body",
-        "purpose": "Base text (17px on body) and descriptions."
-      },
-      "label": {
-        "displayName": "Label",
-        "purpose": "Buttons and platform tabs."
-      },
-      "meta": {
-        "displayName": "Meta",
-        "purpose": "Packet metadata, legends, posting captions."
-      },
-      "verdict": {
-        "displayName": "Verdict",
-        "purpose": "Quoted and Revised marks."
+      "groove-label": {
+        "displayName": "Groove label",
+        "purpose": "Tabular time marks beneath a run groove."
       },
       "source-path": {
         "displayName": "Source path",
-        "purpose": "Profile file and line under quoted claims."
+        "purpose": "The quoted note's file and line in teal-deep."
       }
     },
     "shadows": [
       {
-        "name": "clay-primary",
-        "value": "0 2px 3px rgb(26 38 66 / 0.15), 0 5px 10px rgb(26 38 66 / 0.1), inset 0 1px 0 rgb(255 255 255 / 0.28)",
-        "purpose": "Primary button."
+        "name": "clay",
+        "value": "var(--clay)",
+        "purpose": "Raised pressables at rest: agent cards, decision card, installer rows, active segment choice, open FAQ trigger, current-stage bead."
       },
       {
-        "name": "clay-secondary",
-        "value": "0 2px 4px rgb(30 34 44 / 0.05), inset 0 1px 0 var(--rim)",
-        "purpose": "Secondary button and theme trigger."
+        "name": "clay-hover",
+        "value": "var(--clay-hover)",
+        "purpose": "Hovered pressables, with the hover fill and a 1px lift."
       },
       {
-        "name": "clay-installer",
-        "value": "0 2px 3px rgb(30 34 44 / 0.03), inset 0 1px 0 var(--rim)",
-        "purpose": "Installer link at rest."
+        "name": "sunken",
+        "value": "var(--clay-sunken)",
+        "purpose": "Trays, grooves, tracks, beads at rest, chat threads, segment track, setup rule; pressed state of clay controls."
       },
       {
-        "name": "clay-installer-hover",
-        "value": "0 3px 7px rgb(30 34 44 / 0.07)",
-        "purpose": "Installer link on hover."
+        "name": "glaze",
+        "value": "var(--glaze)",
+        "purpose": "The one primary button per surface."
       },
       {
-        "name": "tab-active",
-        "value": "0 1px 3px rgb(30 34 44 / 0.09), inset 0 1px 0 var(--rim)",
-        "purpose": "Active platform tab."
+        "name": "glaze-pressed",
+        "value": "var(--glaze-pressed)",
+        "purpose": "Active state of the primary button."
       },
       {
         "name": "sheet",
-        "value": "0 30px 60px -44px rgb(30 34 44 / 0.45)",
-        "purpose": "Hero packet sheet."
+        "value": "var(--sheet)",
+        "purpose": "Flat panes: hairline ring with a 1px drop."
       },
       {
-        "name": "dock",
-        "value": "0 14px 30px -24px rgb(30 34 44 / 0.5), inset 0 1px 0 var(--rim)",
-        "purpose": "Approval bar holding the hero buttons."
+        "name": "pop",
+        "value": "0 0 0 1px var(--border), var(--pop)",
+        "purpose": "The theme menu."
       },
       {
-        "name": "note",
-        "value": "0 12px 26px -20px rgb(30 34 44 / 0.45)",
-        "purpose": "Review note cards."
+        "name": "working-ring",
+        "value": "var(--clay), 0 0 0 2px color-mix(in srgb, var(--plum) 35%, transparent)",
+        "purpose": "An agent card while its agent executes."
       },
       {
-        "name": "posting",
-        "value": "0 22px 44px -30px rgb(30 34 44 / 0.55)",
-        "purpose": "Fictional posting card in the injection example."
-      },
-      {
-        "name": "product-image",
-        "value": "0 4px 8px rgb(30 34 44 / 0.04), 0 26px 52px -18px rgb(30 34 44 / 0.22)",
-        "purpose": "Screenshot frames."
-      },
-      {
-        "name": "download-sheet",
-        "value": "0 3px 8px rgb(30 34 44 / 0.04)",
-        "purpose": "Download chooser panel."
-      },
-      {
-        "name": "menu",
-        "value": "0 10px 32px rgb(0 0 0 / 0.18)",
-        "purpose": "Theme menu popover."
-      },
-      {
-        "name": "focus-ring",
-        "value": "outline: 3px solid var(--primary); outline-offset: 5px",
-        "purpose": "Focus on links, buttons and summaries (claim lines use offset 2px; paper outline inside the ink band)."
+        "name": "pebble",
+        "value": "0 1px 2px rgb(30 34 44 / 0.12), inset 0 1px 0 var(--orb-light), inset -2px -3px 5px color-mix(in srgb, var(--tone) 14%, transparent)",
+        "purpose": "Identity orbs; gate pebbles add a 6px paper halo."
       }
     ],
     "motion": [
       {
         "name": "ease",
         "value": "cubic-bezier(0.23, 1, 0.32, 1)",
-        "purpose": "Shared easing for press feedback, menus, FAQ icon and the claim tracer."
+        "purpose": "The app's strong ease-out; every transition on the page."
       },
       {
         "name": "duration-press",
         "value": "160ms",
-        "purpose": "Button and installer lift/press, nav link colour, claim line background."
+        "purpose": "Button press, installer lift and sink; active scales to 0.97 over 100ms."
       },
       {
-        "name": "press-scale",
-        "value": "scale(0.98) buttons, scale(0.99) installer links; translateY(-1px) hover on fine pointers",
-        "purpose": "Clay press and hover feedback."
+        "name": "duration-popup",
+        "value": "180ms",
+        "purpose": "Theme menu scale from 0.97; opacity only under reduced motion."
+      },
+      { "name": "bead-fill", "value": "220ms", "purpose": "A bead's tone scales in from 0.8." },
+      {
+        "name": "groove-run",
+        "value": "1150ms",
+        "purpose": "A run scales along its groove from the left during the rehearsal."
       },
       {
-        "name": "menu",
-        "value": "150ms opacity + translateY(-4px)",
-        "purpose": "Theme menu enter and exit."
+        "name": "track-fill",
+        "value": "450ms",
+        "purpose": "The stage track's primary fill scales from the left."
       },
       {
-        "name": "faq-icon",
-        "value": "180ms rotate(45deg)",
-        "purpose": "FAQ plus icon when a question opens."
+        "name": "status-text",
+        "value": "260ms",
+        "purpose": "Status text enters with a 4px rise and 3px blur via @starting-style."
       },
       {
-        "name": "claim-tracer",
-        "value": "0.32s, ease [0.23, 1, 0.32, 1]; shared-layout highlight; note enter opacity 0 / y 6px / blur 3px, exit opacity 0 / y -4px / blur 2px",
-        "purpose": "The only choreographed motion on the page (Motion for React, reducedMotion=user)."
+        "name": "decision-rise",
+        "value": "420ms",
+        "purpose": "The Waiting on you card rises from 42% opacity and 6px below."
       },
       {
-        "name": "reduced-motion",
-        "value": "animation and transition none; button and installer transforms none; scroll-behavior auto",
-        "purpose": "prefers-reduced-motion: reduce."
+        "name": "review-note",
+        "value": "320ms",
+        "purpose": "A selected claim's review note enters with rise and blur."
+      },
+      { "name": "faq-panel", "value": "220ms", "purpose": "Accordion height and opacity." },
+      {
+        "name": "rehearsal-schedule",
+        "value": "idle 0ms · scout 500ms · writer 1750ms · reviewer 3000ms · done 4250ms",
+        "purpose": "Timed phases set data-phase on the roster once it is 35% in view; reduced motion and no-JS keep the finished state."
       }
     ],
     "breakpoints": [
       {
-        "name": "compact",
-        "value": "640px",
-        "note": "max-width 639px for phone rules; Tailwind --breakpoint-compact 40rem"
+        "name": "phone",
+        "value": "639px",
+        "purpose": "Gutter 20px, section 72px, one-column roster, stacked actions, current stage label only."
+      },
+      { "name": "compact", "value": "640px", "purpose": "Tailwind sm: GitHub nav link appears." },
+      { "name": "tablet", "value": "768px", "purpose": "Tailwind md: primary nav links appear." },
+      {
+        "name": "desktop",
+        "value": "1023px",
+        "purpose": "Below this, section heads, journey steps, packet body, roster (two columns) and two-column sections stack."
       },
       {
-        "name": "md",
-        "value": "768px",
-        "note": "max-width 767px collapses feature grids and switches screenshots to detail crops"
-      },
-      {
-        "name": "lg",
+        "name": "wide",
         "value": "1024px",
-        "note": "max-width 1023px stacks the hero rail and collapses two-column layouts"
-      },
-      {
-        "name": "short-desktop",
-        "value": "(min-width: 1024px) and (max-height: 860px)",
-        "note": "compact hero"
-      }
-    ],
-    "textures": [
-      {
-        "name": "grain",
-        "value": "SVG feTurbulence fractalNoise, baseFrequency .85, 3 octaves, 180px tile, alpha .035 (ink-tinted in light, paper-tinted in dark)",
-        "purpose": "Background image on body, the Crew band, the injection panel and the download band."
-      }
-    ],
-    "fonts": [
-      {
-        "family": "Fraunces",
-        "source": "@fontsource-variable/fraunces latin-full-normal woff2, weight 100–900, next/font/local, display swap",
-        "variable": "--font-fraunces"
-      },
-      {
-        "family": "Source Sans 3",
-        "source": "@fontsource/source-sans-3 latin 400/600/700 woff2, next/font/local, display swap",
-        "variable": "--font-source-sans"
+        "purpose": "Tailwind lg: Questions nav link and two-column section heads."
       }
     ]
   },
   "components": [
     {
-      "name": "Primary Button",
+      "name": "Primary (glazed) button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "Clay Download action; one per context.",
-      "html": "<button class=\"ds-btn ds-btn-primary\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg>Download for macOS</button>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-btn{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:9px;padding:11px 19px;border-radius:11px 12px 10px 12px;font-size:16px;font-weight:600;white-space:nowrap;cursor:pointer;border:0;font-family:inherit;transition:transform var(--duration-press) var(--ease),box-shadow var(--duration-press) var(--ease)} .ds-btn:hover{transform:translateY(-1px)} .ds-btn:active{transform:scale(0.98)} .ds-btn:focus-visible{outline:3px solid var(--primary);outline-offset:5px} .ds-btn-primary{color:#fff;background:linear-gradient(170deg,#4d6896,#3a5482 55%,#324a74);box-shadow:0 2px 3px rgb(26 38 66 / 0.15),0 5px 10px rgb(26 38 66 / 0.1),inset 0 1px 0 rgb(255 255 255 / 0.28)}"
+      "description": "The one glazed indigo action per surface: Download, Approve packet, Approve.",
+      "html": "<button class=\"ds-btn-primary\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg>Download</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 15px; border: 0; border-radius: 11px 12px 11px 10px; background: var(--glaze-fill); color: #fff; font-family: 'Source Sans 3', sans-serif; font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; box-shadow: var(--glaze); cursor: pointer; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background 150ms, box-shadow 150ms; } .ds-btn-primary:hover { background: var(--glaze-fill-hover); } .ds-btn-primary:active { box-shadow: var(--glaze-pressed); transform: scale(0.97); transition-duration: 100ms; } .ds-btn-primary:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }"
     },
     {
-      "name": "Secondary Button",
+      "name": "Clay button",
       "kind": "button",
-      "refersTo": "button-secondary",
-      "description": "Clay secondary action, header Download and theme trigger.",
-      "html": "<button class=\"ds-btn ds-btn-secondary\">See how it’s checked</button>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-btn{display:inline-flex;min-height:46px;align-items:center;justify-content:center;gap:9px;padding:11px 19px;border-radius:11px 12px 10px 12px;font-size:16px;font-weight:600;white-space:nowrap;cursor:pointer;border:0;font-family:inherit;transition:transform var(--duration-press) var(--ease),box-shadow var(--duration-press) var(--ease)} .ds-btn:hover{transform:translateY(-1px)} .ds-btn:active{transform:scale(0.98)} .ds-btn:focus-visible{outline:3px solid var(--primary);outline-offset:5px} .ds-btn-secondary{color:var(--ink);border:1px solid var(--border);background:linear-gradient(160deg,var(--surface-bright),var(--surface));box-shadow:0 2px 4px rgb(30 34 44 / 0.05),inset 0 1px 0 var(--rim)}"
+      "refersTo": "button-clay",
+      "description": "The second action on a surface: See the packet, Request changes, Deny, the theme trigger.",
+      "html": "<button class=\"ds-btn-clay\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M4 22h14a2 2 0 0 0 2-2V7l-5-5H6a2 2 0 0 0-2 2v4\"/><path d=\"M14 2v4a2 2 0 0 0 2 2h4\"/><path d=\"m3 15 2 2 4-4\"/></svg>See the packet</button>",
+      "css": ".ds-btn-clay { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 38px; padding: 0 15px; border: 0; border-radius: 11px 12px 11px 10px; background: var(--clay-fill); color: var(--ink); font-family: 'Source Sans 3', sans-serif; font-size: 14px; line-height: 20px; font-weight: 600; white-space: nowrap; box-shadow: var(--clay); cursor: pointer; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background 150ms, box-shadow 150ms; } .ds-btn-clay:hover { background: var(--clay-fill-hover); box-shadow: var(--clay-hover); } .ds-btn-clay:active { box-shadow: var(--clay-sunken); transform: scale(0.97); transition-duration: 100ms; } .ds-btn-clay:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }"
     },
     {
-      "name": "Header Navigation",
+      "name": "Ghost button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Quiet third action: Replay, Ask again.",
+      "html": "<button class=\"ds-btn-ghost\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\"/><path d=\"M3 3v5h5\"/></svg>Replay</button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border: 0; border-radius: 9px 10px 9px 8px; background: transparent; color: var(--muted); font-family: 'Source Sans 3', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), background-color 150ms, color 150ms; } .ds-btn-ghost:hover { background: rgb(var(--tint) / 0.06); color: var(--ink); } .ds-btn-ghost:active { transform: scale(0.97); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }"
+    },
+    {
+      "name": "Header navigation",
       "kind": "nav",
-      "refersTo": "button-secondary",
-      "description": "Brand wordmark, text links that turn primary on hover, and a secondary Download button.",
-      "html": "<header class=\"ds-header\"><span class=\"ds-wordmark\">Pitchcrew</span><nav class=\"ds-nav\"><a href=\"#\">How it’s checked</a><a href=\"#\">The crew</a><a href=\"#\">FAQ</a><a href=\"#\">GitHub</a><a class=\"ds-nav-btn\" href=\"#\">Download</a></nav></header>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:22px 0;background:var(--paper)} .ds-wordmark{font-family:Fraunces,Georgia,serif;font-size:25px;font-weight:600;letter-spacing:-0.035em} .ds-nav{display:flex;align-items:center;gap:26px;font-size:15px} .ds-nav a{color:var(--ink);text-decoration:none;transition:color var(--duration-press) ease} .ds-nav a:hover{color:var(--primary)} .ds-nav a:focus-visible{outline:3px solid var(--primary);outline-offset:5px;border-radius:4px} .ds-nav .ds-nav-btn{display:inline-flex;min-height:46px;align-items:center;padding:11px 19px;border-radius:11px 12px 10px 12px;font-size:16px;font-weight:600;border:1px solid var(--border);background:linear-gradient(160deg,var(--surface-bright),var(--surface));box-shadow:0 2px 4px rgb(30 34 44 / 0.05),inset 0 1px 0 var(--rim);transition:transform var(--duration-press) var(--ease)} .ds-nav .ds-nav-btn:hover{color:var(--ink);transform:translateY(-1px)}"
+      "refersTo": "nav-link",
+      "description": "Wordmark, soft-ink nav links with a 6% ink hover tint, then the glazed Download.",
+      "html": "<nav class=\"ds-nav\"><span class=\"ds-brand\">Pitchcrew</span><span class=\"ds-nav-links\"><a class=\"ds-nav-link\" href=\"#\">How it’s checked</a><a class=\"ds-nav-link\" href=\"#\">One job, start to finish</a><a class=\"ds-nav-link\" href=\"#\">GitHub</a><a class=\"ds-nav-cta\" href=\"#\">Download</a></span></nav>",
+      "css": ".ds-nav { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 0; font-family: 'Source Sans 3', sans-serif; } .ds-brand { font-family: 'Fraunces Variable', Georgia, serif; font-size: 23px; font-weight: 600; letter-spacing: -0.035em; color: var(--ink); } .ds-nav-links { display: flex; align-items: center; gap: 6px; } .ds-nav-link { padding: 8px 10px; border-radius: 8px; color: var(--ink-soft); font-size: 15px; font-weight: 600; text-decoration: none; transition: color 150ms ease, background-color 150ms ease; } .ds-nav-link:hover { background: rgb(var(--tint) / 0.06); color: var(--ink); } .ds-nav-link:focus-visible { border-radius: 6px; outline: 2px solid var(--primary); outline-offset: 3px; } .ds-nav-cta { display: inline-flex; align-items: center; height: 38px; margin-left: 6px; padding: 0 15px; border-radius: 11px 12px 11px 10px; background: var(--glaze-fill); color: #fff; font-size: 14px; font-weight: 600; text-decoration: none; box-shadow: var(--glaze); } .ds-nav-cta:hover { background: var(--glaze-fill-hover); }"
     },
     {
-      "name": "Platform Tabs",
+      "name": "Chip",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "24px borderless pill; tones follow the bead law and role colours.",
+      "html": "<span class=\"ds-chip\">React</span> <span class=\"ds-chip\" data-tone=\"moss\">Quoted</span> <span class=\"ds-chip\" data-tone=\"primary\">Revised</span> <span class=\"ds-chip\" data-tone=\"ochre\">Waiting on you</span> <span class=\"ds-chip\" data-tone=\"plum\">Running</span>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 9px; border-radius: 8px; background: var(--sunken-fill); color: var(--ink-soft); font-family: 'Source Sans 3', sans-serif; font-size: 13px; font-weight: 600; white-space: nowrap; } .ds-chip[data-tone='moss'] { background: var(--moss-soft); color: var(--moss); } .ds-chip[data-tone='primary'] { background: var(--primary-soft); color: var(--primary); } .ds-chip[data-tone='ochre'] { background: var(--ochre-soft); color: var(--ochre); } .ds-chip[data-tone='plum'] { background: var(--plum-soft); color: var(--plum); } .ds-chip[data-tone='teal'] { background: var(--teal-soft); color: var(--teal); } .ds-chip[data-tone='rose'] { background: var(--rose-soft); color: var(--rose); }"
+    },
+    {
+      "name": "Beads (the bead law)",
       "kind": "custom",
-      "refersTo": "platform-tab-active",
-      "description": "Recessed paper track with a raised active tab in the download chooser.",
-      "html": "<div class=\"ds-tabs\" role=\"tablist\"><button class=\"ds-tab\" role=\"tab\" aria-selected=\"true\" data-active>macOS</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Windows</button><button class=\"ds-tab\" role=\"tab\" aria-selected=\"false\">Linux</button></div>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-tabs{display:flex;gap:5px;padding:4px;background:var(--paper-deep);border-radius:10px} .ds-tab{flex:1;min-height:43px;padding:8px 12px;cursor:pointer;font:600 16px \"Source Sans 3\",sans-serif;color:var(--ink);background:transparent;border:0;border-radius:7px} .ds-tab[data-active]{background:var(--surface-bright);color:var(--primary);box-shadow:0 1px 3px rgb(30 34 44 / 0.09),inset 0 1px 0 var(--rim)} .ds-tab:focus-visible{outline:3px solid var(--primary);outline-offset:5px}"
+      "refersTo": "bead",
+      "description": "Sunken sockets that fill with meaning: plum executing, ochre waiting on you, primary completed, moss recorded positive, rose failed, empty idle, raised ringed current stage.",
+      "html": "<div class=\"ds-beads\"><i class=\"ds-bead\" data-tone=\"plum\" data-live title=\"Executing\"></i><i class=\"ds-bead\" data-tone=\"ochre\" title=\"Waiting on you\"></i><i class=\"ds-bead\" data-tone=\"primary\" title=\"Completed\"></i><i class=\"ds-bead\" data-tone=\"moss\" title=\"Recorded positive\"></i><i class=\"ds-bead\" data-tone=\"rose\" title=\"Failed\"></i><i class=\"ds-bead\" title=\"Idle\"></i><i class=\"ds-bead\" data-tone=\"current\" data-size=\"lg\" title=\"Current stage\"></i></div>",
+      "css": ".ds-beads { display: flex; align-items: center; gap: 14px; padding: 12px; } .ds-bead { --bead-size: 14px; position: relative; display: inline-block; width: var(--bead-size); height: var(--bead-size); border-radius: 999px; background: var(--sunken-fill); box-shadow: var(--clay-sunken); } .ds-bead[data-size='lg'] { --bead-size: 18px; } .ds-bead::after { position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--bead-color); box-shadow: 0 1px 2px rgb(30 34 44 / 0.2), inset -2px -3px 4px rgb(0 0 0 / 0.18); opacity: 0; transform: scale(0.8); transition: opacity 220ms cubic-bezier(0.23, 1, 0.32, 1), transform 220ms cubic-bezier(0.23, 1, 0.32, 1); content: ''; } .ds-bead[data-tone]::after { opacity: 1; transform: none; } .ds-bead[data-tone='primary'] { --bead-color: var(--primary); } .ds-bead[data-tone='plum'] { --bead-color: var(--plum); } .ds-bead[data-tone='ochre'] { --bead-color: var(--ochre); } .ds-bead[data-tone='moss'] { --bead-color: var(--moss); } .ds-bead[data-tone='rose'] { --bead-color: var(--rose); } .ds-bead[data-tone='current']::after { background: var(--clay-fill); box-shadow: var(--clay), 0 0 0 1.5px var(--primary); } .ds-bead[data-live]::after { outline: 2px solid color-mix(in srgb, var(--bead-color, var(--plum)) 30%, transparent); outline-offset: 2px; }"
     },
     {
-      "name": "Installer Link",
+      "name": "Identity pebble",
+      "kind": "custom",
+      "refersTo": "pebble",
+      "description": "The only round shaded object besides beads: a role-tinted orb lit from the top left holding an icon or initial.",
+      "html": "<div class=\"ds-pebbles\"><span class=\"ds-pebble\" data-role=\"scout\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"m21 21-4.34-4.34\"/><circle cx=\"11\" cy=\"11\" r=\"8\"/></svg></span><span class=\"ds-pebble\" data-role=\"writer\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 20h9\"/><path d=\"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z\"/></svg></span><span class=\"ds-pebble\" data-role=\"reviewer\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/></svg></span><span class=\"ds-pebble\" data-role=\"you\">F</span></div>",
+      "css": ".ds-pebbles { display: flex; gap: 12px; padding: 12px; } .ds-pebble { --tone: var(--primary); --tone-soft: var(--primary-soft); display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 32% 26%, var(--orb-light) 0%, transparent 50%), var(--tone-soft); color: var(--tone); box-shadow: 0 1px 2px rgb(30 34 44 / 0.12), inset 0 1px 0 var(--orb-light), inset -2px -3px 5px color-mix(in srgb, var(--tone) 14%, transparent); font-family: 'Source Sans 3', sans-serif; font-weight: 700; font-size: 16px; } .ds-pebble[data-role='scout'] { --tone: var(--teal); --tone-soft: var(--teal-soft); } .ds-pebble[data-role='writer'] { --tone: var(--plum); --tone-soft: var(--plum-soft); } .ds-pebble[data-role='reviewer'] { --tone: var(--moss); --tone-soft: var(--moss-soft); } .ds-pebble[data-role='you'] { --tone: var(--ochre); --tone-soft: var(--ochre-soft); }"
+    },
+    {
+      "name": "Agent card in a tray",
+      "kind": "card",
+      "refersTo": "clay-card",
+      "description": "A clay card inside a sunken tray: pebble, runtime, capability, today's run groove and a status bead. Working cards gain a plum ring.",
+      "html": "<div class=\"ds-tray\"><div class=\"ds-agent\" data-state=\"working\"><div class=\"ds-agent-id\"><span class=\"ds-agent-pebble\"><svg width=\"19\" height=\"19\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 20h9\"/><path d=\"M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z\"/></svg></span><div><div class=\"ds-agent-name\">Writer</div><div class=\"ds-agent-runtime\">Claude Code · Sonnet · High</div></div></div><p class=\"ds-agent-cap\">Drafts only from your notes, word for word.</p><div class=\"ds-groove\"><span class=\"ds-run\" style=\"left:30%;width:33%\"></span><span class=\"ds-now\" style=\"left:91%\"></span></div><div class=\"ds-groove-labels\"><span>9:00</span><span>This morning</span><span>9:30</span></div><p class=\"ds-agent-status\"><i class=\"ds-status-bead\"></i>Drafting the Forma packet</p></div></div>",
+      "css": ".ds-tray { padding: 12px; border-radius: 18px; background: var(--sunken-fill); box-shadow: var(--clay-sunken); font-family: 'Source Sans 3', sans-serif; } .ds-agent { display: grid; gap: 10px; max-width: 300px; padding: 16px 16px 14px; border-radius: 14px; background: var(--clay-fill); box-shadow: var(--clay); color: var(--ink); transition: box-shadow 200ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-agent[data-state='working'] { box-shadow: var(--clay), 0 0 0 2px color-mix(in srgb, var(--plum) 35%, transparent); } .ds-agent-id { display: flex; align-items: center; gap: 11px; } .ds-agent-pebble { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: radial-gradient(circle at 32% 26%, var(--orb-light) 0%, transparent 50%), var(--plum-soft); color: var(--plum); box-shadow: 0 1px 2px rgb(30 34 44 / 0.12), inset 0 1px 0 var(--orb-light), inset -2px -3px 5px color-mix(in srgb, var(--plum) 14%, transparent); } .ds-agent-name { font-size: 17px; font-weight: 600; line-height: 1.2; } .ds-agent-runtime { color: var(--muted); font-size: 13px; } .ds-agent-cap { margin: 0; color: var(--ink-soft); font-size: 15px; line-height: 1.45; } .ds-groove { position: relative; height: 14px; margin-top: 2px; } .ds-groove::before { position: absolute; inset-inline: 0; top: 4px; height: 5px; border-radius: 999px; background: var(--sunken-fill); box-shadow: var(--clay-sunken); content: ''; } .ds-run { position: absolute; top: 1px; height: 11px; min-width: 11px; border-radius: 999px; background: var(--plum); box-shadow: inset -2px -3px 4px rgb(0 0 0 / 0.16); } .ds-now { position: absolute; top: -1px; bottom: -1px; width: 1px; background: var(--muted); opacity: 0.55; } .ds-groove-labels { display: flex; justify-content: space-between; margin-top: -6px; color: var(--muted); font-size: 11.5px; font-variant-numeric: tabular-nums; } .ds-agent-status { display: flex; align-items: center; gap: 8px; margin: 0; min-height: 22px; color: var(--plum); font-size: 14px; font-weight: 600; } .ds-status-bead { position: relative; display: inline-block; width: 14px; height: 14px; border-radius: 999px; background: radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--plum); box-shadow: 0 1px 2px rgb(30 34 44 / 0.2), inset -2px -3px 4px rgb(0 0 0 / 0.18); outline: 2px solid color-mix(in srgb, var(--plum) 30%, transparent); outline-offset: 2px; }"
+    },
+    {
+      "name": "Segment (platform tabs)",
+      "kind": "nav",
+      "refersTo": "segment",
+      "description": "A recessed track with one raised clay choice.",
+      "html": "<div class=\"ds-segment\" role=\"tablist\"><button class=\"ds-segment-choice\" role=\"tab\" aria-selected=\"true\" data-active>macOS</button><button class=\"ds-segment-choice\" role=\"tab\">Windows</button><button class=\"ds-segment-choice\" role=\"tab\">Linux</button></div>",
+      "css": ".ds-segment { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: 11px; background: var(--sunken-fill); box-shadow: var(--clay-sunken); } .ds-segment-choice { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; height: 36px; padding: 0 14px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-family: 'Source Sans 3', sans-serif; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: color 120ms ease, box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-segment-choice:hover { color: var(--ink); } .ds-segment-choice[data-active] { background: var(--clay-fill); box-shadow: var(--clay); color: var(--ink); } .ds-segment-choice:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }"
+    },
+    {
+      "name": "Installer row",
       "kind": "card",
       "refersTo": "installer-link",
-      "description": "Pressable download row with label, detail and size.",
-      "html": "<a class=\"ds-installer\" href=\"#\"><span><span class=\"ds-installer-label\">Apple Silicon</span><span class=\"ds-installer-detail\">DMG for M-series Macs</span></span><span class=\"ds-installer-size\">142 MB <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg></span></a>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-installer{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:86px;padding:15px 18px;background:linear-gradient(160deg,var(--surface-bright),var(--surface));border:1px solid var(--border);border-radius:10px 11px 10px 9px;color:var(--primary);text-decoration:none;box-shadow:0 2px 3px rgb(30 34 44 / 0.03),inset 0 1px 0 var(--rim);transition:transform var(--duration-press) var(--ease),box-shadow var(--duration-press) var(--ease)} .ds-installer:hover{transform:translateY(-1px);box-shadow:0 3px 7px rgb(30 34 44 / 0.07)} .ds-installer:active{transform:scale(0.99)} .ds-installer:focus-visible{outline:3px solid var(--primary);outline-offset:5px} .ds-installer-label{display:block;font-size:18px;font-weight:600} .ds-installer-detail{display:block;margin-top:4px;font-size:14px;color:var(--muted)} .ds-installer-size{display:flex;align-items:center;gap:12px;font-size:14px}"
+      "description": "A clay row that is itself the download link; lifts on hover, sinks on press.",
+      "html": "<a class=\"ds-installer\" href=\"#\"><span><span class=\"ds-installer-label\">Apple Silicon</span><span class=\"ds-installer-detail\">M-series Macs · .dmg</span></span><span class=\"ds-installer-size\">497 MB <svg width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 15V3\"/><path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\"/><path d=\"m7 10 5 5 5-5\"/></svg></span></a>",
+      "css": ".ds-installer { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 72px; padding: 14px 18px; border-radius: 12px 13px 12px 11px; background: var(--clay-fill); box-shadow: var(--clay); color: var(--ink); font-family: 'Source Sans 3', sans-serif; text-decoration: none; transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1), box-shadow 160ms cubic-bezier(0.23, 1, 0.32, 1), background 160ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-installer:hover { background: var(--clay-fill-hover); box-shadow: var(--clay-hover); transform: translateY(-1px); } .ds-installer:active { box-shadow: var(--clay-sunken); transform: scale(0.985); } .ds-installer:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; } .ds-installer-label { display: block; font-size: 17px; font-weight: 600; } .ds-installer-detail { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; } .ds-installer-size { display: inline-flex; align-items: center; gap: 10px; color: var(--primary); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }"
     },
     {
-      "name": "Verdict Chips",
-      "kind": "chip",
-      "refersTo": "verdict-chip-agreed",
-      "description": "Teal for agreed or quoted, plum for revised.",
-      "html": "<span class=\"ds-chip\">Agreed</span> <span class=\"ds-chip ds-chip-revised\">Changed, then agreed</span>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-chip{display:inline-block;padding:2px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);font-size:13px;font-weight:700} .ds-chip-revised{background:var(--plum-soft);color:var(--plum)}"
-    },
-    {
-      "name": "Claim Line",
+      "name": "Stage track",
       "kind": "custom",
-      "refersTo": "claim-line-selected",
-      "description": "Ruled resume line in the claim tracer; the selected line carries the teal-soft highlight.",
-      "html": "<div class=\"ds-claims\"><label class=\"ds-claim\"><span class=\"ds-claim-text\">Built accessible React and TypeScript interfaces for a scheduling product.</span><span class=\"ds-verdict\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Quoted</span></label><label class=\"ds-claim\" data-selected><span class=\"ds-claim-text\">Created reusable UI components and documented their interaction patterns.</span><span class=\"ds-verdict\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 6 9 17l-5-5\"/></svg>Quoted</span></label><label class=\"ds-claim\"><span class=\"ds-claim-text\">Mentored two engineers through their first production releases.</span><span class=\"ds-verdict ds-verdict-revised\">Revised</span></label></div>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-claims{padding:0 16px;background:var(--surface-bright)} .ds-claim{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;gap:16px;margin-inline:-16px;padding:13px 16px;border-radius:12px;border-bottom:1px solid var(--border);cursor:pointer;font-size:18px;line-height:1.45;transition:background-color var(--duration-press) ease} .ds-claim:hover:not([data-selected]){background:var(--paper)} .ds-claim[data-selected]{background:var(--teal-soft)} .ds-claim-text{color:var(--ink-soft)} .ds-claim[data-selected] .ds-claim-text{color:var(--ink)} .ds-verdict{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;white-space:nowrap;color:var(--teal)} .ds-verdict-revised{color:var(--plum)}"
-    },
-    {
-      "name": "Review Note",
-      "kind": "card",
-      "refersTo": "review-note",
-      "description": "Reviewer margin note with verdict chip and the quoted profile source.",
-      "html": "<div class=\"ds-note\"><p class=\"ds-note-who\"><span class=\"ds-mark\"><svg width=\"15\" height=\"15\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z\"/><path d=\"m9 12 2 2 4-4\"/></svg></span>Reviewer<span class=\"ds-note-chip\">Agreed</span></p><p class=\"ds-note-text\">Matches your notes word for word.</p><figure class=\"ds-quote\"><blockquote>Created reusable UI components and documented their interaction patterns.</blockquote><figcaption>experience.md · line 7</figcaption></figure></div>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-note{padding:16px 18px;border:1px solid var(--border);border-radius:14px;background:var(--surface-bright);box-shadow:0 12px 26px -20px rgb(30 34 44 / 0.45);max-width:300px} .ds-note-who{display:flex;align-items:center;gap:9px;margin:0;font-size:15px;font-weight:700} .ds-mark{display:inline-grid;width:28px;height:28px;place-items:center;border-radius:8px;background:var(--primary-soft);color:var(--primary)} .ds-note-chip{margin-left:auto;padding:2px 9px;border-radius:999px;background:var(--teal-soft);color:var(--teal);font-size:13px} .ds-note-text{margin:8px 0 0;font-size:15px;line-height:1.5;color:var(--ink-soft)} .ds-quote{margin:12px 0 0;padding:12px 14px;border-radius:10px;background:var(--teal-soft)} .ds-quote blockquote{margin:0;font-size:15.5px;line-height:1.45} .ds-quote figcaption{margin-top:6px;font-family:ui-monospace,\"SFMono-Regular\",Menlo,monospace;font-size:12.5px;color:var(--teal)}"
-    },
-    {
-      "name": "Ink Band Runtime Chips",
-      "kind": "chip",
-      "refersTo": "runtime-chip",
-      "description": "Outlined pills inside the single inverted section.",
-      "html": "<p class=\"ds-band\"><span class=\"ds-band-label\">Works with</span><span class=\"ds-run\">Codex</span><span class=\"ds-run\">Claude Code</span><span class=\"ds-run\">Gemini CLI</span></p>",
-      "css": ":host{--paper:#f2f1ec;--paper-deep:#e8e6df;--surface:#f8f7f3;--surface-bright:#fdfcf9;--ink:#2b2d31;--ink-soft:#484b52;--muted:#61646b;--primary:#3a5482;--primary-soft:#e0e6f0;--teal:#2f6a69;--teal-soft:#d9e9e6;--plum:#76517a;--plum-soft:#ece1ec;--border:rgb(43 45 49 / 0.14);--rim:rgb(255 255 255 / 0.95);--ease:cubic-bezier(0.23,1,0.32,1);--duration-press:160ms;font-family:\"Source Sans 3\",sans-serif;color:var(--ink)} .ds-band{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:0;padding:32px;background:var(--ink);color:var(--paper)} .ds-run{padding:6px 13px;border:1px solid color-mix(in srgb,var(--paper) 26%,transparent);border-radius:999px;font-size:15px;color:color-mix(in srgb,var(--paper) 80%,transparent)} .ds-band-label{font-weight:700}"
+      "refersTo": "bead",
+      "description": "A sunken rail with a primary fill scaling from the left; completed stages are small primary beads, the current stage a raised ringed bead, later stages empty sockets.",
+      "html": "<ol class=\"ds-track\"><span class=\"ds-track-fill\" style=\"--fill:0.5\"></span><li><i class=\"ds-tbead\" data-tone=\"primary\"></i></li><li><i class=\"ds-tbead\" data-tone=\"primary\"></i></li><li><i class=\"ds-tbead\" data-tone=\"primary\"></i></li><li><i class=\"ds-tbead\" data-tone=\"current\"></i></li><li><i class=\"ds-tbead\"></i></li><li><i class=\"ds-tbead\"></i></li></ol>",
+      "css": ".ds-track { position: relative; display: flex; align-items: center; justify-content: space-between; margin: 0; padding: 8px 2px; list-style: none; } .ds-track::before { position: absolute; inset-inline: 4px; top: 50%; height: 4px; margin-top: -2px; border-radius: 999px; background: var(--sunken-fill); box-shadow: var(--clay-sunken); content: ''; } .ds-track-fill { position: absolute; left: 4px; top: 50%; width: calc(100% - 8px); height: 4px; margin-top: -2px; border-radius: 999px; background: var(--primary); transform: scaleX(var(--fill, 0)); transform-origin: left center; transition: transform 450ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-track li { position: relative; display: flex; } .ds-tbead { position: relative; display: inline-block; width: 9px; height: 9px; border-radius: 999px; background: var(--sunken-fill); box-shadow: var(--clay-sunken); } .ds-tbead[data-tone='primary'] { background: radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--primary); box-shadow: 0 1px 2px rgb(30 34 44 / 0.2), inset -2px -3px 4px rgb(0 0 0 / 0.18); } .ds-tbead[data-tone='current'] { width: 14px; height: 14px; background: var(--clay-fill); box-shadow: var(--clay), 0 0 0 1.5px var(--primary); }"
     }
   ],
   "narrative": {
-    "northStar": "The Packet Under Review",
-    "overview": "The landing page is built in the same world as the Pitchcrew desktop app: warm paper and soft ink, a Fraunces display face over Source Sans 3 text, and three role colours that mean the same thing they mean inside the app. The page reads like a document being checked. Ruled lines, margin notes, quoted sources and a pinned approval bar carry the story, and the hero is itself a working packet sheet whose lines trace back to profile quotes.\n\nDensity is calm and editorial. Sections are wide, single-purpose and separated by generous vertical space (108px) and hairline rules rather than boxes. Volume is rationed: flat paper for reading, soft lifted sheets for the packet and its notes, and clay (gradient fill, inner rim highlight, hover lift, press scale) only on things you can press. Light and dark themes are full peers; the dark theme mirrors the app's dark tokens rather than inverting the light ones.\n\nHeadings stand on their own without eyebrow labels. Motion is reserved for the claim tracer in the hero. Product evidence is real app screenshots with fictional demo data, and every example on the page says it is fictional.",
+    "northStar": "The Crew Board at Marketing Scale",
+    "overview": "The landing page is the desktop app's own Crew and Decisions vocabulary, enlarged for a visitor. The ground is one flat sheet of warm paper; nothing is drawn on it except type and hairlines. Work is held in trays pressed into the paper, and the only things with volume are the things you can press or pick up: agent cards, the installer rows, the active segment choice, and the glazed indigo button that is the one primary action of each surface. Round shaded objects are reserved for identity (pebbles) and state (beads). Everything else, including the packet document, the sheets around the browser panel and the chat reply, is a flat pane with a hairline edge.\n\nThe page tells one job's story with these materials and never with screenshots: four agent cards run the fictional Forma job in their grooves and stop on an ochre bead that is the visitor's to decide; the packet behind that decision opens as a claim tracer; a stage track carries the job across four stage objects. Type is Fraunces at weight 500 for display, over Source Sans 3 for everything that reads like the app. Light and dark are peers: the dark theme is the same clay lit by a faint rim, with the dye colours lifted so beads and chips keep their meaning.\n\nThe system reads calm and factual. It rejects the headline-over-screenshot template, rows of equal feature cards, terminal or hacker costume, HR-corporate gloss and gamified cuteness; its personality comes from the real objects of the product doing real work, labelled fictional.",
     "keyCharacteristics": [
-      "Paper ground with a faint SVG grain, surfaces stepping up from paper to surface to surface-bright.",
-      "Fraunces 500 for display, section and feature headings and the numeral readout; Source Sans 3 for everything else.",
-      "Teal, plum and moss carry role meaning (Scout and quoted, Writer and revised, Reviewer), matching the app's role avatars; blue is the primary action.",
-      "One inverted ink band (the Ownership section).",
-      "Clay only on pressables, with slightly uneven corner radii.",
-      "Real light/dark screenshot pairs, with phone-width detail crops below 768px.",
-      "A compact hero for short desktop windows (at least 1024px wide, at most 860px tall)."
+      "Flat paper ground; clay volume only on pressables; recessed trays hold work; at most two depth levels on any surface.",
+      "One glazed indigo primary action per surface; every other control is clay or ghost.",
+      "The bead law carries state everywhere: plum executing, ochre waiting on you, primary completed, moss recorded positive, rose failed, an empty socket idle, and a raised ringed bead for the job's current stage.",
+      "Identity pebbles (round, lit from the top left, tinted by role) are the only shaded circles besides beads.",
+      "Fraunces 500 display with tight negative tracking over Source Sans 3 at 17px copy and a 14/13px meta scale.",
+      "Transitions, never keyframes; transform and opacity only; the app's strong ease-out; a reduced-motion equivalent for every effect.",
+      "Light and dark are peers from the same tokens; nothing is designed for light alone."
     ],
     "rules": [
       {
-        "name": "The Role Colour Rule",
-        "body": "Teal, plum and moss are role signals, not decoration, using the app's own role tones. Teal means Scout or quoted, plum means Writer or revised, moss (#53673d, dark #a9c28a) means Reviewer, ink means You; blue stays the primary action. A role colour appears through `data-role`, which sets `--role` and `--role-soft` for the marks, dots and names in that block.",
+        "name": "The Bead Law",
+        "body": "A bead's tone is its meaning and nothing else: plum means an agent is executing, ochre means the decision is the visitor's, primary means a step completed, moss means a recorded positive outcome, rose means failed, and an empty socket means idle. A job's current stage at rest is a neutral raised bead ringed in primary. No bead tone may be chosen for looks.",
         "section": "colors"
       },
       {
-        "name": "The Single Inversion Rule",
-        "body": "The Ownership section (\"Your computer. Your AI. Your call.\") is the only section filled with ink. Its text uses paper, with paper at 80% for body copy and paper at 22–26% for rules and runtime chip strokes. In the dark theme it becomes the one light band, because it follows the ink token.",
+        "name": "The One Glaze Rule",
+        "body": "Each surface (header, waiting tray, packet footer, browser tray, download sheet) carries exactly one glazed indigo button. A second action on that surface is clay; a third is ghost.",
         "section": "colors"
       },
       {
-        "name": "The Paper Ground Rule",
-        "body": "No section sits on pure white or pure black. The page is paper with grain; raised material steps up to surface or surface-bright.",
+        "name": "The Evidence Is Teal Rule",
+        "body": "Profile quotations, their source paths and the posting's \"read as data\" flag use teal and teal-deep; nothing else on the page is teal except the Scout's pebble.",
         "section": "colors"
       },
       {
-        "name": "The No Eyebrow Rule",
-        "body": "Headings stand alone. There are no small labels, kickers or uppercase lines above headings, and no uppercase or letter-spaced text anywhere on the page.",
+        "name": "The Fraunces Stays Up Rule",
+        "body": "Fraunces appears only at headline level and above, in the wordmark, the gate words and the packet's document heading. Nothing a visitor would click, and no object text, is set in Fraunces.",
         "section": "typography"
       },
       {
-        "name": "The Balanced Heading Rule",
-        "body": "Headings use `text-wrap: balance` and paragraphs `text-wrap: pretty`; manual line breaks are used only where a section title is deliberately set on two lines.",
+        "name": "The App Scale Rule",
+        "body": "Objects borrowed from the app (cards, trays, chips, beads, status lines) use the app's 14/13 meta scale; the marketing scale (display, headline, lede, 17px copy) is for prose around them, never inside them.",
         "section": "typography"
       },
       {
-        "name": "The Compact Hero Rule",
-        "body": "On desktop windows 860px tall or less, the hero shrinks rather than overflows: header padding 22px to 14px, sheet top padding 40px to 28px, display-compact type, an 18px lede, claim rows 9px vertical padding at 17px, and 20px between the claim list and the approval bar.",
-        "section": "layout"
-      },
-      {
-        "name": "The Clay on Pressables Rule",
-        "body": "The clay treatment (gradient fill, 1px inner rim, hover lift, press scale) belongs to buttons, installer links, the active platform tab and the theme trigger. The approval bar carries a rim highlight as the dock for its buttons. Sheets, notes and cards never get the gradient or the lift.",
+        "name": "The Two Levels Rule",
+        "body": "A surface holds at most two depth levels: a tray with clay objects in it, or paper with a sheet on it. Nothing is raised inside something that is raised.",
         "section": "elevation"
       },
       {
-        "name": "The Long Faint Shadow Rule",
-        "body": "Document shadows are long and faint (for example 30px offset, 60px blur, −44px spread at 45% opacity on the packet sheet), so sheets read as paper resting on paper, not floating cards.",
+        "name": "The Pressables Only Rule",
+        "body": "Clay volume belongs to things you press or pick up. Decorative containers, prose and documents stay flat; if an object cannot be acted on in the app, it is not clay here.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "**Do** use the role colours only for their roles: teal for Scout and quoted, plum for Writer and revised, moss for Reviewer; primary blue for the primary action.",
-      "**Do** set display, section and feature headings in Fraunces 500 with negative tracking (−0.02em to −0.035em); small panel titles such as \"Review notes\" and all other text use Source Sans 3.",
-      "**Do** separate content with 1px hairline rules (border token) and ruled grids rather than boxed feature cards.",
-      "**Do** label every example as fictional (\"Fictional example candidate\", \"Fictional posting\", \"Fictional demo data\").",
-      "**Do** use real app screenshots captured with fictional demo data, in light and dark pairs, with a phone detail crop below 768px.",
-      "**Do** keep the compact hero working: at 1024px wide and 860px tall or less, the packet and approval bar fit the first viewport.",
-      "**Do** give links, buttons and FAQ summaries the 3px primary focus outline offset 5px (claim lines use a 2px offset), and give every transition a reduced-motion equivalent."
+      "Do keep the page ground flat paper; put work in sunken trays and give clay volume only to pressables.",
+      "Do follow the bead law exactly: plum executing, ochre waiting on you, primary completed, moss recorded positive, rose failed, empty socket idle, raised ringed bead for the current stage.",
+      "Do place exactly one glazed indigo button per surface; make the second action clay and the third ghost.",
+      "Do set every headline in Fraunces 500 with negative tracking and every object from the app in Source Sans 3 at the app's 14/13 scale.",
+      "Do label fictional data with the dashed fictional marker wherever a job, packet or board appears.",
+      "Do ship every transition as transform and opacity on the strong ease-out with a reduced-motion equivalent, and render the finished state on the server.",
+      "Do keep light and dark as peers from the same tokens; test every tone in both."
     ],
     "donts": [
-      "**Don't** add eyebrow labels, kickers or uppercase lines above headings.",
-      "**Don't** add animation outside the claim tracer beyond short state transitions (160ms press, 150ms menu, 180ms FAQ icon rotation).",
-      "**Don't** fill a second section with ink; the Ownership band is the only inverted section.",
-      "**Don't** put the clay gradient, rim highlight or hover lift on sheets, notes or cards.",
-      "**Don't** use pure white or pure black backgrounds; stay on paper and surface tokens.",
-      "**Don't** substitute mock-ups or illustrated app UI for the real screenshots. Authored examples (the hero packet, the posting card) are not app UI and stay labelled fictional."
+      "Don't raise an object inside a raised object, or stack more than two depth levels on a surface.",
+      "Don't use a bead or chip tone for decoration, or ochre for anything that is not the visitor's decision.",
+      "Don't put Fraunces on buttons, labels, chips or object text, or use any display face other than Fraunces.",
+      "Don't add screenshots, testimonials, counts, ratings or logos; the product's own objects are the proof.",
+      "Don't use keyframe animation, scale beyond press (0.97) or motion that moves layout; grooves, tracks and beads fill in place.",
+      "Don't draw borders heavier than the 11% ink hairline except the dashed plum outline on hidden posting text and the dashed fictional marker."
     ]
   }
 }

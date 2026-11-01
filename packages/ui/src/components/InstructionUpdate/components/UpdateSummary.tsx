@@ -1,29 +1,20 @@
 import type { InstructionUpdateModel } from '../types.ts';
-import { instructionUpdateExplanation, instructionUpdateTitle } from '@/lib/instruction-updates.ts';
 import { Sparkles } from 'lucide-react';
 
-export const UpdateSummary = ({ role, update, tools }: InstructionUpdateModel) => {
+/** The update's heading and one sentence on what the newest default changes. */
+export const UpdateSummary = ({ role, update }: InstructionUpdateModel) => {
+  const latest = update.changes.at(-1);
   return (
     <>
-      <h3 id={`${role.id}-instruction-update-heading`} className="flex items-center gap-2">
-        <Sparkles size={16} aria-hidden="true" />
-        {instructionUpdateTitle}
-      </h3>
-      <p className="quiet">{instructionUpdateExplanation(update)}</p>
-      <h4 className="instruction-update-label">What changed in the default</h4>
-      <ul className="instruction-update-changes">
-        {update.changes.map((change) => (
-          <li key={change.revision}>
-            <time dateTime={change.date}>{change.date}</time> {change.summary}
-          </li>
-        ))}
-      </ul>
-      {tools.length ? (
-        <p className="quiet">
-          Your tool settings differ from this default for: {tools.join('; ')}. This update changes
-          instructions only. Tools stay as they are.
-        </p>
-      ) : null}
+      <div className="instruction-update-heading">
+        <span className="ui-chip" data-tone="plum">
+          <Sparkles size={12} aria-hidden="true" />
+          Update
+        </span>
+        <h3 id={`${role.id}-instruction-update-heading`}>New default instructions</h3>
+        {latest ? <time dateTime={latest.date}>{latest.date}</time> : null}
+      </div>
+      {latest ? <p className="instruction-update-notice">{latest.summary}</p> : null}
     </>
   );
 };

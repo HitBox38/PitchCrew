@@ -1,19 +1,18 @@
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { ScheduleFields } from '@/RoutinesPage/components/ScheduleFields.tsx';
 import type { RoutineDraft } from '@/RoutinesPage/types.ts';
 import type { StepProps } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 
 export const RoutineStep = ({ draft, changeDraft, data }: StepProps) => {
   const change = (patch: Partial<RoutineDraft>) =>
     changeDraft({ routine: { ...draft.routine, ...patch } });
   return (
-    <div className="flex flex-col gap-5">
-      <p className="quiet">
-        Start work through chat whenever you need it, or add a scheduled action. You can add more
-        routines later.
+    <div className="agent-wizard-step">
+      <p className="optional">
+        Optional. Give it a scheduled task now, or start work from chat and add routines later.
       </p>
       <label className="checkbox-label">
         <Checkbox
@@ -59,12 +58,12 @@ export const RoutineStep = ({ draft, changeDraft, data }: StepProps) => {
             ]}
           />
           <ScheduleFields draft={draft.routine} change={change} />
-          <p className="quiet">
+          <p className="optional">
             Routines run while Pitchcrew is open, using this agent’s current settings and skills.
             Runs can spend provider tokens. Browser and export approvals still apply.
           </p>
           {!draft.role.enabled && draft.routine.enabled ? (
-            <p className="quiet">This routine waits until the agent is enabled.</p>
+            <p className="optional">This routine waits until the agent is enabled.</p>
           ) : null}
         </>
       ) : null}

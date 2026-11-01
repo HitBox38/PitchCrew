@@ -1,11 +1,11 @@
 import { MoreHorizontal, Unlink } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 
 export const SourceMenu = ({
   label,

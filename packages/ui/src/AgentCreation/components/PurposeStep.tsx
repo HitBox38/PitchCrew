@@ -1,7 +1,7 @@
 import type { StepProps, CreationController } from '../types.ts';
 import { workflowOptions } from '../constants.ts';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
 
 export const PurposeStep = ({
@@ -11,7 +11,7 @@ export const PurposeStep = ({
 }: StepProps & Pick<CreationController, 'changeName'>) => {
   const role = draft.role;
   return (
-    <div className="flex flex-col gap-5">
+    <div className="agent-wizard-step">
       <label htmlFor="agent-name">
         Agent name
         <Input
@@ -37,7 +37,7 @@ export const PurposeStep = ({
         />
       </label>
       <label htmlFor="agent-instructions">
-        How should it work? <span className="quiet font-normal">Optional</span>
+        How should it work? <span className="optional">Optional</span>
         <Textarea
           id="agent-instructions"
           className="min-h-32"
@@ -57,7 +57,7 @@ export const PurposeStep = ({
             onValueChange={(workflow) => changeRole({ workflow: workflow as RoleWorkflow })}
             options={workflowOptions}
           />
-          <span className="quiet font-normal">
+          <span className="optional">
             Chat and tools works for any responsibility. Choose a workflow action only if it
             evaluates, drafts or reviews applications.
           </span>
@@ -71,7 +71,7 @@ export const PurposeStep = ({
             value={role.id}
             onChange={(event) => changeRole({ id: event.target.value })}
           />
-          <span className="quiet font-normal">
+          <span className="optional">
             Lowercase letters, numbers and hyphens. This ID stays with the agent and its history.
           </span>
         </label>

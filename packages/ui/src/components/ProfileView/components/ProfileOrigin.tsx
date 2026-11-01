@@ -1,24 +1,21 @@
+import { ExternalLink } from 'lucide-react';
 import type { ProfileViewModel } from '../types.ts';
 
 export const ProfileOrigin = ({
-  name,
+  activeSavedName,
   sourceController,
-}: Pick<ProfileViewModel, 'name' | 'sourceController'>) => {
+}: Pick<ProfileViewModel, 'activeSavedName' | 'sourceController'>) => {
   const file = sourceController.sources
     .flatMap((source) => source.files)
-    .find((entry) => entry.name === name);
+    .find((entry) => entry.name === activeSavedName);
   if (!file) return null;
   return (
-    <div className="profile-origin">
-      <span>
-        Source:{' '}
-        <a href={file.url} target="_blank" rel="noreferrer">
-          {file.path}
-        </a>
-      </span>
-      <span>
-        Editing this note changes your local copy. Review updates to pull from its source again.
-      </span>
-    </div>
+    <p className="profile-origin">
+      Local copy of{' '}
+      <a href={file.url} target="_blank" rel="noreferrer">
+        {file.path} <ExternalLink size={12} aria-hidden="true" />
+      </a>
+      . Edits stay on this device; source updates need your review.
+    </p>
   );
 };

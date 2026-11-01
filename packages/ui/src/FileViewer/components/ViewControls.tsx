@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ZoomControls } from './ZoomControls.tsx';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { ViewerMoreControls } from './ViewerMoreControls.tsx';
@@ -35,7 +35,7 @@ export const ViewControls = (model: FileViewerModel) => {
         </>
       ) : null}
       {file.kind === 'markdown' || file.kind === 'docx' ? (
-        <fieldset aria-label="Document view" className="file-mode-toggle">
+        <fieldset aria-label="Document view" className="ui-segment file-mode-toggle">
           <Button
             size="sm"
             variant="ghost"

@@ -1,8 +1,9 @@
 import type { ChatComposerProps } from '../types.ts';
 import { PromptInputHeader } from '@/components/ai-elements/prompt-input/components/PromptInputHeader.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { BriefcaseBusiness, LockKeyhole, X } from 'lucide-react';
+import { Button } from '@pitchcrew/design-system/button';
+import { LockKeyhole, X } from 'lucide-react';
 import { ComposerAttachments } from './ComposerAttachments.tsx';
+import { stateTone } from '@/ClayInterface/helpers.ts';
 
 export const ComposerContext = (props: ChatComposerProps) => {
   const { attached, files, working, available, busy, messages, patchConversation, onOpenCard } =
@@ -21,7 +22,13 @@ export const ComposerContext = (props: ChatComposerProps) => {
             aria-label={`Open conversation job: ${attached.company} · ${attached.title}`}
             title={`${attached.company} · ${attached.title}`}
           >
-            <BriefcaseBusiness size={14} />
+            <span
+              className="clay-bead"
+              data-size="sm"
+              data-tone={stateTone(attached.state)}
+              data-empty={stateTone(attached.state) ? undefined : ''}
+              aria-hidden="true"
+            />
             <span className="min-w-0 truncate">
               {attached.company} · {attached.title}
             </span>

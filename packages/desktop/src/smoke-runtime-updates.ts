@@ -14,7 +14,7 @@ export const smokeRuntimeUpdates = `(async () => {
   document.querySelector('a[href="/crew"]')?.click();
   if (!await waitFor(() => location.pathname === '/crew')) throw new Error('Could not navigate during an update.');
   document.querySelector('.notification-bell')?.click();
-  const link = () => document.querySelector('.notification-list a[href*="runtime=claude-code"]');
+  const link = () => document.querySelector('.notification-panel a[href*="runtime=claude-code"]');
   if (!await waitFor(() => !!link())) throw new Error('Runtime progress notification missing.');
   link().click();
   if (!await waitFor(() => location.pathname === '/settings' && location.search.includes('runtime=claude-code') && row()?.textContent.includes('Runtime updated.'))) throw new Error('Runtime result did not survive navigation.');

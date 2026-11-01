@@ -1,41 +1,195 @@
-.inbox-tabs {
-  margin-bottom: 20px;
-}
-.approval-list {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  max-width: 900px;
-}
+/* Profile sources dialog: saved sources in one recessed tray, provider choices as clay rows,
+ * and proposal reviews with a Decisions-style footer. */
 .profile-sources {
+  display: grid;
+  gap: 16px;
   min-width: 0;
 }
-.profile-source-badge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: rgb(var(--tint) / 0.055);
+.profile-sources-footnote {
   color: var(--muted);
-  font-size: 11px;
-  font-weight: 600;
+  font-size: var(--text-detail);
   line-height: 1.5;
 }
-.profile-source-review-badge {
-  background: var(--ochre-soft);
-  color: var(--ochre);
-}
-.profile-origin {
+.profile-source-list {
   display: grid;
-  gap: 4px;
-  padding: 12px 18px;
-  background: var(--primary-soft);
-  border-bottom: 1px solid var(--border);
-  color: var(--ink-soft);
-  font-size: 12px;
+  gap: 2px;
+  margin: 0;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  list-style: none;
+}
+.profile-source-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 80px;
+  padding: 12px;
+  border-radius: 10px;
+}
+.profile-source-row + .profile-source-row {
+  box-shadow: 0 -1px 0 var(--border);
+}
+.profile-source-icon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--primary);
+}
+.profile-source-copy {
+  display: grid;
+  flex: 1 1 14rem;
+  gap: 2px;
+  min-width: 0;
+}
+.profile-source-name {
+  color: var(--ink);
+  font: 600 var(--text-label) / 1.35 var(--font-sans);
   overflow-wrap: anywhere;
 }
-.profile-origin a {
+.profile-source-meta {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.profile-source-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-left: auto;
+}
+.profile-source-watch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  cursor: pointer;
+}
+.profile-source-watch b {
+  min-width: 1.5rem;
+  color: var(--ink);
+}
+.profile-source-choice {
+  justify-content: flex-start;
+  gap: 12px;
+  width: 100%;
+  height: auto;
+  min-height: 64px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  text-align: left;
+  white-space: normal;
+}
+.profile-source-notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--moss-soft);
+  color: var(--ink);
+}
+.profile-source-notice svg {
+  color: var(--moss);
+}
+.profile-sources label.grid {
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.profile-dialog-field {
+  display: grid;
+  gap: 6px;
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.profile-small-dialog {
+  width: min(440px, calc(100vw - 32px));
+}
+
+/* Proposal review (watched sources): exact documents, evidence and the user's decision. */
+.profile-proposal {
+  display: grid;
+  gap: 16px;
+  font-size: var(--text-label);
+}
+.profile-proposal-summary {
+  display: grid;
+  gap: 6px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.profile-proposal-documents {
+  display: grid;
+  gap: 8px;
+}
+.profile-proposal-document {
+  padding: 0 12px;
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.profile-proposal-document [data-slot='accordion-content'] {
+  padding-bottom: 12px;
+}
+.profile-proposal-apply {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 4px 0 8px;
+  font-weight: 600;
+}
+.profile-proposal-link {
   color: var(--primary);
+  font-size: var(--text-detail);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.profile-proposal-document .source-block,
+.profile-proposal-document [data-slot='source-block'] {
+  margin-top: 8px;
+}
+.profile-proposal-verify {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  line-height: 1.5;
+}
+.profile-proposal-footer {
+  position: sticky;
+  bottom: -24px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin: 0 -24px;
+  padding: 12px 24px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.profile-proposal-footer > .ui-footer-note {
+  flex: 1 1 12rem;
+  margin-right: auto;
+  color: var(--muted);
+}
+@variant max-mobile {
+  .profile-proposal-footer {
+    bottom: -16px;
+    margin: 0 -16px;
+    padding: 12px 16px;
+  }
 }

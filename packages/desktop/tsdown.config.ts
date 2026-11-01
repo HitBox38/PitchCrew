@@ -10,7 +10,7 @@ export default defineConfig([
   },
   {
     // Sandboxed Electron preloads must be CommonJS, even though the host uses ESM.
-    entry: ['src/preload.ts'],
+    entry: ['src/preload.ts', 'src/browser-floating-preload.ts'],
     format: 'cjs',
     outDir: 'dist',
     clean: false,

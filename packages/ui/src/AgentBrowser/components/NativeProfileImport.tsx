@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Button } from '@pitchcrew/design-system/button';
 import type { NativeProfilesModel } from '../hooks/useNativeProfiles.ts';
 export const NativeProfileImport = ({ model }: { model: NativeProfilesModel }) => {
   const [confirmed, setConfirmed] = useState(false);

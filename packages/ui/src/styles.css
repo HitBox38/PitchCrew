@@ -1,11 +1,4 @@
-/* Primitive defaults < feature materials < caller utilities. Keep utilities unlayered:
- * primitive: emits into its named layer from this same utility entry point. */
-@layer theme, base, primitives, components;
-@import 'tailwindcss/theme.css' layer(theme);
-@import 'tailwindcss/preflight.css' layer(base);
-@import 'tailwindcss/utilities.css';
-@import 'tw-animate-css';
-@import './styles/theme.css';
+@import '@pitchcrew/design-system/styles.css';
 @import './styles/base.css' layer(base);
 @import './styles/identity.css' layer(components);
 @import './styles/desktop.css' layer(components);
@@ -27,7 +20,6 @@
 @import './styles/agent-creation.css' layer(components);
 @import './styles/onboarding.css' layer(components);
 @import './styles/forms.css' layer(components);
-@import './styles/code-block.css' layer(components);
 @import './styles/json-editor.css' layer(components);
 @import './styles/markdown.css' layer(components);
 @import './styles/tag-picker.css' layer(components);
@@ -35,14 +27,19 @@
 @import './styles/notifications.css' layer(components);
 @import './styles/toast.css' layer(components);
 @import './styles/job-details.css' layer(components);
+@import './styles/add-job.css' layer(components);
 @import './styles/profile.css' layer(components);
 @import './styles/profile-import.css' layer(components);
 @import './styles/approvals.css' layer(components);
 @import './styles/responsive.css' layer(components);
 @import './styles/skills.css' layer(components);
 @import './styles/profile-workspace.css' layer(components);
-@import './styles/motion.css' layer(components);
 @import './styles/workspace-frame.css' layer(components);
+@import './styles/clay-interface.css' layer(components);
+@import './styles/system.css' layer(components);
+@import './styles/decisions.css' layer(components);
+/* Question cards also appear in Decisions, outside the chat route that loads chat.css. */
+@import './styles/chat/questions.css' layer(components);
 
 /* Regression-test class strings must not add unused production utilities. */
 @source not './**/__tests__/**';

@@ -1,16 +1,13 @@
 import { commandFilter } from './helpers.ts';
 import { CrewCommands } from '@/CommandPalette/components/CrewCommands.tsx';
 import { RankedResults } from '@/CommandPalette/components/RankedResults.tsx';
-import { NavigationCommands } from '@/CommandPalette/components/NavigationCommands.tsx';
 import { WorkspaceCommands } from '@/CommandPalette/components/WorkspaceCommands.tsx';
 import { useCommandPalette } from '@/CommandPalette/hooks/useCommandPalette.ts';
 import type { CommandPaletteProps } from '@/CommandPalette/types.ts';
-import { CommandDialog } from '@/components/ui/command/components/CommandDialog.tsx';
-import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.tsx';
-import { CommandInput } from '@/components/ui/command/components/CommandInput.tsx';
-import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
-import { CommandSeparator } from '@/components/ui/command/components/CommandSeparator.tsx';
+import { CommandDialog, CommandInput, CommandList } from '@pitchcrew/design-system/command';
+import { PaletteEmpty } from './components/PaletteEmpty.tsx';
 
+/** Actions, Jobs, Conversations, Pages, Settings and Crew in one 600px search sheet. */
 export const CommandPalette = (props: CommandPaletteProps) => {
   const controller = useCommandPalette(props);
   const { open, onOpenChange } = controller;
@@ -20,18 +17,16 @@ export const CommandPalette = (props: CommandPaletteProps) => {
       open={open}
       onOpenChange={onOpenChange}
       title="Search Pitchcrew"
-      description="Jump to a view, a job or a role, or run an action."
+      description="Run an action or open a job, conversation, page, setting or agent."
       className="command-palette"
       showCloseButton={false}
     >
-      <CommandInput placeholder="Search jobs, views and actions…" />
+      <CommandInput placeholder="Search or run a command" />
       <CommandList>
-        <CommandEmpty>No matches.</CommandEmpty>
-        <NavigationCommands {...controller} />
+        <PaletteEmpty />
+        <WorkspaceCommands {...controller} />
         <RankedResults {...controller} />
         <CrewCommands {...controller} />
-        <CommandSeparator />
-        <WorkspaceCommands {...controller} />
       </CommandList>
     </CommandDialog>
   );

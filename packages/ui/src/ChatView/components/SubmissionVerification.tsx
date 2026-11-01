@@ -1,14 +1,14 @@
 import { ManualSubmissionCompletion } from './ManualSubmissionCompletion.tsx';
 import { useState } from 'react';
 import { SubmissionReceipts } from '@/components/CardDetails/components/SubmissionReceipts.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ChatViewModel } from '../types.ts';
-export const SubmissionVerification = ({
-  data,
-  thread,
-  action,
-  working,
-}: Pick<ChatViewModel, 'data' | 'thread' | 'action' | 'working'>) => {
+import { ClaySubmissionCheck } from './ClaySubmissionCheck.tsx';
+import type { SubmissionFollowUpProps } from '../hooks/useSubmissionFollowUp.ts';
+export const SubmissionVerification = (
+  props: Pick<ChatViewModel, 'thread'> & SubmissionFollowUpProps,
+) => {
+  const { data, thread, action, working } = props;
   const [later, setLater] = useState<string[]>([]);
   const approval = data.approvals.find((item) => item.submission?.threadId === thread);
   const card = data.cards.find((item) => item.id === approval?.cardId);
@@ -17,6 +17,9 @@ export const SubmissionVerification = ({
   if (!card || !approval) return null;
   const pending = attempts.find((attempt) => attempt.status === 'uncertain');
   const hidden = pending && later.includes(pending.id);
+  const act = (path: string, body?: unknown, success?: string) => {
+    void action(path, 'POST', body, success).catch(() => {});
+  };
   return (
     <div className="chat-submission-verification">
       {!pending && !attempts.some((attempt) => attempt.status === 'confirmed') ? (
@@ -45,21 +48,21 @@ export const SubmissionVerification = ({
         >
           Verify submission outcome
         </Button>
+      ) : pending ? (
+        <ClaySubmissionCheck
+          card={card}
+          attempt={pending}
+          act={act}
+          working={working}
+          later={() => setLater((ids) => [...ids, pending.id])}
+          followUp={props}
+        />
       ) : (
-        <>
-          <SubmissionReceipts
-            card={{ ...card, submissionAttempts: attempts }}
-            act={(path, body, success) => {
-              void action(path, 'POST', body, success).catch(() => {});
-            }}
-            working={working}
-          />
-          {pending ? (
-            <Button variant="ghost" onClick={() => setLater((ids) => [...ids, pending.id])}>
-              Verify later
-            </Button>
-          ) : null}
-        </>
+        <SubmissionReceipts
+          card={{ ...card, submissionAttempts: attempts }}
+          act={act}
+          working={working}
+        />
       )}
     </div>
   );

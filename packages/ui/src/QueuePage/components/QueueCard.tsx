@@ -4,15 +4,18 @@ import { queueAnswerThread } from '@/lib/work-queue.ts';
 import { QueueCardHeading } from './QueueCardHeading.tsx';
 import { QueueRunningCard } from './QueueRunningCard.tsx';
 import { QueueCardRequests } from './QueueCardRequests.tsx';
+import type { QueueMoves } from '../types.ts';
 
 export const QueueCard = ({
   queue,
   data,
   handle,
+  moves = {},
 }: {
   queue: WorkQueueView;
   data: Snapshot;
   handle?: ReactNode;
+  moves?: QueueMoves;
 }) => {
   if (queue.state === 'running') return <QueueRunningCard queue={queue} data={data} />;
   return (
@@ -21,6 +24,7 @@ export const QueueCard = ({
         queue={queue}
         data={data}
         handle={handle}
+        moves={moves}
         answerThreadId={queue.state === 'waiting' ? queueAnswerThread(queue, data) : undefined}
       />
       {queue.reason ? (

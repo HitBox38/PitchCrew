@@ -1,5 +1,5 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { documentLabels } from '../constants.ts';
 import { fieldDocuments, fieldText, ruleFormKey, type RuleDraft } from '../form-helpers.ts';
@@ -14,7 +14,7 @@ export const RuleFormBasics = ({ rule, index, change }: RuleFormProps) => {
   const selectedDocuments = new Set(documents);
   return (
     <>
-      <div className="grid grid-cols-2 gap-4 max-compact:grid-cols-1">
+      <div className="settings-field-grid">
         <div>
           <label htmlFor={ruleFormKey(index, 'id')}>Rule name</label>
           <Input
@@ -42,7 +42,7 @@ export const RuleFormBasics = ({ rule, index, change }: RuleFormProps) => {
         />
       </div>
       <fieldset>
-        <legend className="mb-2 font-semibold">Apply to</legend>
+        <legend className="settings-legend">Apply to</legend>
         <div className="flex flex-wrap gap-x-5 gap-y-3">
           {Object.entries(documentLabels).map(([value, label]) => (
             <label className="checkbox-label" key={value}>

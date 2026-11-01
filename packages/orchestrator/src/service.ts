@@ -169,6 +169,9 @@ export class CrewService {
   get jobSources() {
     return this.context.jobSources;
   }
+  get detectors() {
+    return this.context.detectors;
+  }
   scanJobSources = (input: unknown) => {
     return this.context.jobSources.scan({ actor: 'user', input });
   };

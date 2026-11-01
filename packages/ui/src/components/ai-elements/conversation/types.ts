@@ -1,7 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { MessageScroller } from '@/components/ui/message-scroller/components/MessageScroller.tsx';
-import { MessageScrollerContent } from '@/components/ui/message-scroller/components/MessageScrollerContent.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { MessageScroller, MessageScrollerContent } from '@pitchcrew/design-system/message-scroller';
 
 export type ConversationProps = ComponentProps<typeof MessageScroller> & {
   autoScroll?: boolean;

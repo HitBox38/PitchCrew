@@ -1,0 +1,113 @@
+.faq-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 32px 64px;
+  align-items: start;
+}
+.faq-head {
+  position: sticky;
+  top: 96px;
+  display: grid;
+  gap: 14px;
+}
+.faq-list {
+  display: grid;
+  gap: 2px;
+  padding: 6px;
+}
+.faq-item {
+  border: 0;
+  border-radius: 12px;
+}
+.faq-trigger {
+  min-height: 56px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  color: var(--ink);
+  font-size: var(--text-copy);
+  font-weight: 600;
+  line-height: 1.35;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+.faq-trigger[data-panel-open] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+@media (hover: hover) and (pointer: fine) {
+  .faq-trigger:not([data-panel-open]):hover {
+    background: rgb(var(--tint) / 0.05);
+  }
+}
+.faq-trigger .accordion-chevron {
+  color: var(--muted);
+}
+.faq-answer {
+  height: var(--accordion-panel-height);
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    height 220ms var(--ease),
+    opacity 220ms var(--ease);
+}
+.faq-answer[data-starting-style],
+.faq-answer[data-ending-style] {
+  height: 0;
+  opacity: 0;
+}
+.faq-answer p {
+  padding: 8px 16px 18px;
+  max-width: 64ch;
+  color: var(--ink-soft);
+  font-size: 16px;
+  line-height: 1.55;
+}
+.site-footer {
+  padding: 56px 0 48px;
+  background: var(--paper-deep);
+}
+.footer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 24px 48px;
+  align-items: end;
+}
+.footer-name {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+}
+.footer-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  font-size: var(--text-copy);
+}
+.footer-line {
+  max-width: 60ch;
+  margin-top: 28px;
+  color: var(--ink);
+  font-size: var(--text-copy);
+}
+@media (max-width: 639px) {
+  .footer-row {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 1023px) {
+  .faq-grid {
+    grid-template-columns: 1fr;
+  }
+  .faq-head {
+    position: static;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-answer {
+    transition: opacity 120ms var(--ease);
+  }
+}

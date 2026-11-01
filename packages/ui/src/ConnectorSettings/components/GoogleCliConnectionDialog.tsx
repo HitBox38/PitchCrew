@@ -1,7 +1,7 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ConnectAccountDialogProps } from '../types.ts';
 
 export const GoogleCliConnectionDialog = ({

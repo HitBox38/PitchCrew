@@ -1,15 +1,17 @@
 import { ArrowLeft, ArrowRight, Download, Maximize2, Minimize2, X } from 'lucide-react';
-import { DialogTitle } from '@/components/ui/dialog/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { DialogTitle } from '@pitchcrew/design-system/dialog';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
+import { fileFormat } from '../attachments.ts';
 export const ViewerToolbar = ({ model, close }: { model: FileViewerModel; close: () => void }) => (
   <>
     <div className="file-dialog-heading">
       <div>
         <DialogTitle>{model.file.name}</DialogTitle>
         <p>
-          {model.index + 1} of {model.files.length} attachments · Read-only
+          {model.files.length > 1 ? `${model.index + 1} of ${model.files.length} · ` : ''}
+          {fileFormat(model.file)} · Read-only
         </p>
       </div>
       <div className="file-heading-actions">

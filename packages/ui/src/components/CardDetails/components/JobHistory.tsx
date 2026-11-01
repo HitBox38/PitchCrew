@@ -7,10 +7,15 @@ export const JobHistory = ({ data, card }: JobHistoryProps) => {
   if (!events.length)
     return <p className="quiet">{loading ? 'Loading history…' : 'No history yet.'}</p>;
   return (
-    <div className="detail-history">
-      {events.map((event) => (
+    <div className="detail-history" data-beads="">
+      {events.map((event, index) => (
         <div key={event.id}>
-          <span className="history-dot" />
+          <span
+            className="clay-bead"
+            data-size="sm"
+            data-tone={index === 0 ? 'current' : 'done'}
+            aria-hidden="true"
+          />
           <div>
             <strong>{event.message}</strong>
             <p>

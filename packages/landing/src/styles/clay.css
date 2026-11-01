@@ -1,0 +1,272 @@
+/* The app's clay vocabulary at marketing scale, built on the design system's material tokens:
+ * beads carry state (plum executing, ochre waiting on you, primary done, moss recorded win,
+ * rose failed, an empty socket idle), grooves hold runs, trays recess, cards and pebbles rise. */
+.tray {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.clay-card {
+  border-radius: 14px;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}
+.sheet {
+  border-radius: 16px;
+  background: var(--surface-bright);
+  box-shadow: var(--sheet);
+  color: var(--ink);
+}
+.pebble {
+  --tone: var(--primary);
+  --tone-soft: var(--primary-soft);
+  display: inline-grid;
+  flex: none;
+  width: var(--pebble-size, 36px);
+  height: var(--pebble-size, 36px);
+  place-items: center;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, var(--orb-light) 0%, transparent 50%), var(--tone-soft);
+  color: var(--tone);
+  box-shadow:
+    0 1px 2px rgb(30 34 44 / 0.12),
+    inset 0 1px 0 var(--orb-light),
+    inset -2px -3px 5px color-mix(in srgb, var(--tone) 14%, transparent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+:root[data-theme='dark'] .pebble {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.4),
+    inset 0 1px 0 var(--orb-light),
+    inset -2px -3px 5px rgb(0 0 0 / 0.3);
+}
+[data-role='scout'] {
+  --tone: var(--teal);
+  --tone-soft: var(--teal-soft);
+}
+[data-role='writer'] {
+  --tone: var(--plum);
+  --tone-soft: var(--plum-soft);
+}
+[data-role='reviewer'] {
+  --tone: var(--moss);
+  --tone-soft: var(--moss-soft);
+}
+[data-role='you'] {
+  --tone: var(--ochre);
+  --tone-soft: var(--ochre-soft);
+}
+.bead {
+  --bead-size: 14px;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--bead-size);
+  height: var(--bead-size);
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.bead[data-size='sm'] {
+  --bead-size: 9px;
+}
+.bead[data-size='lg'] {
+  --bead-size: 18px;
+}
+.bead[data-size='xl'] {
+  --bead-size: 28px;
+}
+.bead::after {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--bead-color);
+  box-shadow:
+    0 1px 2px rgb(30 34 44 / 0.2),
+    inset -2px -3px 4px rgb(0 0 0 / 0.18);
+  opacity: 0;
+  transform: scale(0.8);
+  transition:
+    opacity 220ms var(--ease),
+    transform 220ms var(--ease);
+  content: '';
+}
+.bead[data-tone]::after {
+  opacity: 1;
+  transform: none;
+}
+.bead[data-tone='primary'],
+.bead[data-tone='done'] {
+  --bead-color: var(--primary);
+}
+.bead[data-tone='plum'] {
+  --bead-color: var(--plum);
+}
+.bead[data-tone='ochre'] {
+  --bead-color: var(--ochre);
+}
+.bead[data-tone='moss'] {
+  --bead-color: var(--moss);
+}
+.bead[data-tone='teal'] {
+  --bead-color: var(--teal);
+}
+.bead[data-tone='rose'] {
+  --bead-color: var(--rose);
+}
+/* A job's present stage at rest: raised and neutral, ringed in primary. */
+.bead[data-tone='current']::after {
+  background: var(--clay-fill);
+  box-shadow:
+    var(--clay),
+    0 0 0 1.5px var(--primary);
+}
+.bead[data-live]::after {
+  outline: 2px solid color-mix(in srgb, var(--bead-color, var(--plum)) 30%, transparent);
+  outline-offset: 2px;
+}
+.track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.track::before {
+  position: absolute;
+  inset-inline: 4px;
+  top: 50%;
+  height: 4px;
+  margin-top: -2px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.track-fill {
+  position: absolute;
+  left: 4px;
+  top: 50%;
+  height: 4px;
+  width: calc(100% - 8px);
+  margin-top: -2px;
+  border-radius: 999px;
+  background: var(--primary);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+  transition: transform 450ms var(--ease);
+}
+.track > .bead {
+  position: relative;
+}
+.groove {
+  position: relative;
+  height: 14px;
+  border-radius: 999px;
+}
+.groove::before {
+  position: absolute;
+  inset-inline: 0;
+  top: 4px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.groove-run {
+  position: absolute;
+  top: 1px;
+  height: 11px;
+  min-width: 11px;
+  border-radius: 999px;
+  background: var(--run-color, var(--plum));
+  box-shadow: inset -2px -3px 4px rgb(0 0 0 / 0.16);
+  transform-origin: left center;
+}
+.groove-now {
+  position: absolute;
+  inset-block: -1px;
+  width: 1px;
+  background: var(--muted);
+  opacity: 0.55;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  color: var(--ink-soft);
+  font-size: var(--text-fine);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.chip[data-tone='ochre'] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+.chip[data-tone='plum'] {
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+.chip[data-tone='moss'] {
+  background: var(--moss-soft);
+  color: var(--moss);
+}
+.chip[data-tone='teal'] {
+  background: var(--teal-soft);
+  color: var(--teal);
+}
+.chip[data-tone='primary'] {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+.chip[data-tone='rose'] {
+  background: var(--rose-soft);
+  color: var(--rose);
+}
+/* Segmented switch: a recessed track with one raised choice. */
+.segment {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.segment > * {
+  display: inline-flex;
+  min-width: 44px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    color 120ms ease,
+    box-shadow 160ms var(--ease);
+}
+.segment > :hover {
+  color: var(--ink);
+}
+.segment > :is([data-active], [aria-current='page'], [aria-pressed='true']) {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}

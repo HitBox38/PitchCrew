@@ -1,15 +1,17 @@
+import { useId } from 'react';
 import type { DraftFieldsProps } from '../types.ts';
 import { RepeatFields } from './RepeatFields.tsx';
 import { DateTimePicker } from '@/DateTimePicker/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Switch } from '@pitchcrew/design-system/switch';
 
 export const ScheduleFields = (props: DraftFieldsProps) => {
   const { draft, change } = props;
+  const enabledId = useId();
   return (
-    <fieldset className="routine-editor-section flex min-w-0 flex-col gap-4">
-      <legend>When to run</legend>
-      <div className="grid gap-4 sm:grid-cols-2">
+    <fieldset className="ui-field-group routine-group">
+      <legend>Schedule</legend>
+      <div className="routine-field-pair">
         <DateTimePicker
           label="Start date and time"
           required
@@ -27,7 +29,7 @@ export const ScheduleFields = (props: DraftFieldsProps) => {
         </label>
       </div>
       <RepeatFields {...props} />
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="routine-field-pair">
         <label>
           Stop after total runs
           <Input
@@ -46,10 +48,14 @@ export const ScheduleFields = (props: DraftFieldsProps) => {
           onValueChange={(endLocal) => change({ endLocal })}
         />
       </div>
-      <label className="checkbox-label">
-        <Checkbox checked={draft.enabled} onCheckedChange={(enabled) => change({ enabled })} />
-        <span>Enabled</span>
-      </label>
+      <div className="routine-switch">
+        <Switch
+          id={enabledId}
+          checked={draft.enabled}
+          onCheckedChange={(enabled) => change({ enabled })}
+        />
+        <label htmlFor={enabledId}>Enabled</label>
+      </div>
     </fieldset>
   );
 };

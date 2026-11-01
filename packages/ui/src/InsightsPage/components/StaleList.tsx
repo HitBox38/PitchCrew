@@ -1,6 +1,6 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { staleBatchLimit } from '@pitchcrew/core/insights';
 import type { StaleCleanupModel } from '../hooks/useStaleCleanup.ts';
 
@@ -8,23 +8,23 @@ export const StaleList = ({ stale }: { stale: StaleCleanupModel }) => {
   const preview = stale.preview!;
   if (!preview.cards.length)
     return (
-      <p className="quiet mt-3">
+      <p className="ui-empty">
         No submitted job has gone {preview.days} days without a status change.
       </p>
     );
   const selectedIds = new Set(stale.selected);
   return (
-    <div className="form mt-3 flex flex-col gap-3">
+    <div className="insights-stale">
       {preview.cards.length > staleBatchLimit ? (
-        <p className="quiet">
+        <p className="insights-note">
           Mark up to {staleBatchLimit} jobs at once. Find silent applications again to review the
           rest.
         </p>
       ) : null}
-      <ul className="flex flex-col gap-2" aria-label="Silent applications">
+      <ul className="insights-stale-list" aria-label="Silent applications">
         {preview.cards.map((card) => (
           <li key={card.id}>
-            <label className="checkbox-label flex items-start gap-3">
+            <label className="insights-stale-row">
               <Checkbox
                 aria-label={`${card.company} · ${card.title}`}
                 disabled={
@@ -36,7 +36,7 @@ export const StaleList = ({ stale }: { stale: StaleCleanupModel }) => {
               />
               <span>
                 {card.company} · {card.title}
-                <small className="quiet block font-normal">
+                <small>
                   {card.blocked ||
                     `No status change for ${card.idleDays} days, since ${new Date(card.since).toLocaleDateString()}`}
                 </small>

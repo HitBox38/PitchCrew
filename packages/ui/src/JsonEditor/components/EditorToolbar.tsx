@@ -1,5 +1,5 @@
 import { Braces } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { modKey } from '@/shortcuts.ts';
 import { EditorSettings } from './EditorSettings.tsx';
 
@@ -13,13 +13,13 @@ export const EditorToolbar = ({
   filename: string;
 }) => {
   return (
-    <div className="json-editor-toolbar flex flex-wrap items-center gap-3">
+    <div className="json-editor-toolbar flex flex-wrap items-center gap-2">
       <span className="mr-auto flex items-center gap-2 font-mono text-xs text-muted-foreground">
         <Braces size={15} aria-hidden="true" /> {filename}
       </span>
       <Button
         size="sm"
-        variant="outline"
+        variant="ghost"
         onClick={format}
         disabled={invalid}
         title={`Format JSON (${modKey}Shift+F)`}

@@ -1,5 +1,4 @@
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
+import { Dialog, DialogContent } from '@pitchcrew/design-system/dialog';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { CreationHeading } from './components/CreationHeading.tsx';
 import { CreationBody } from './components/CreationBody.tsx';
@@ -8,16 +7,17 @@ import { CreationSuccess } from './components/CreationSuccess.tsx';
 import { useAgentCreation } from './hooks/useAgentCreation.ts';
 import type { AgentCreationProps } from './types.ts';
 
+/** New agent: a 760px dialog walking Purpose, Runtime, Tools, Skills, Routine and Review. */
 export const AgentCreation = (props: AgentCreationProps) => {
   const controller = useAgentCreation(props);
   return (
-    <Sheet
+    <Dialog
       open
       onOpenChange={(open) => {
         if (!open) controller.close();
       }}
     >
-      <SheetContent className="role-settings-panel creation-panel" showCloseButton={false}>
+      <DialogContent className="agent-wizard" showCloseButton={false}>
         <CreationHeading {...controller} />
         {controller.created ? (
           <CreationSuccess
@@ -27,15 +27,15 @@ export const AgentCreation = (props: AgentCreationProps) => {
           />
         ) : (
           <form
-            className="form role-settings-form creation-form flex flex-col"
+            className="form agent-wizard-form"
             onSubmit={(event) => void controller.submit(event)}
           >
             <CreationBody {...controller} />
             <CreationFooter {...controller} />
           </form>
         )}
-      </SheetContent>
+      </DialogContent>
       <DiscardChanges guard={controller.guard} />
-    </Sheet>
+    </Dialog>
   );
 };

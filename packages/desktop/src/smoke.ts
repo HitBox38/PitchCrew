@@ -84,6 +84,14 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               }
               return false;
             };
+            // Secondary pages sit behind the sidebar's More menu; the command palette opens them too.
+            const openPage = async (title) => {
+              document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
+              const option = () => [...document.querySelectorAll('.command-palette [role="option"]')].find((item) => item.querySelector('.command-label')?.textContent === 'Open ' + title);
+              if (!await waitFor(() => !!option())) throw new Error('Command palette could not open ' + title + '.');
+              option().click();
+              return waitFor(() => !document.querySelector('.command-palette'));
+            };
             const uiReady = await waitFor(() => !!document.querySelector('main'));
             const startup = window.pitchcrewStartup;
             if (!startup || Object.keys(startup).join(',') !== 'getTiming')
@@ -97,7 +105,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
             const updateState = await desktopUpdater.getState();
             if (updateState.enabled || updateState.status !== 'disabled') throw new Error('Smoke updater must stay offline.');
             await desktopUpdater.check(); await desktopUpdater.download(); await desktopUpdater.install();
-            await waitFor(() => !!document.querySelector('[data-slot="button"].button'));
+            await waitFor(() => !!document.querySelector('[data-slot="button"].button, [data-slot="button"][data-variant="default"][data-size="default"]'));
             const blockedLinkToastReady = await (${smokeLinks})();
             const styleChecks = ${smokeStyles};
             let userQuestionsReady = null;
@@ -116,7 +124,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               // Action confirmations also have role=dialog; start the notification checks with a clean viewport.
               document.querySelectorAll('[data-slot="toast-close"]').forEach((button) => button.click());
               await waitFor(() => !document.querySelector('[data-slot="toast"]'));
-              document.querySelector('a[href="/chat"]')?.click();
+              document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.click();
               chatReady = await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('[role="textbox"][aria-label="Message Scout"]'));
               [...document.querySelectorAll('button')].find((button) => button.textContent === 'Ask about this role')?.click();
               await waitFor(() => !!document.querySelector('.chat-rich-input')?.textContent);
@@ -161,21 +169,27 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
                 return bounds.left >= bellBounds.left && bounds.right <= bellBounds.right && bounds.top >= bellBounds.top && bounds.bottom <= bellBounds.bottom;
               });
               bell?.click();
-              const notificationsVisible = await waitFor(() => document.querySelector('.notification-list')?.textContent.includes('Scout sent a message'));
-              sheetChecks.notifications = await ${smokeSheetBounds};
-              [...document.querySelectorAll('.notification-controls button')].find((button) => button.textContent === 'Mark all read')?.click();
+              const notificationsVisible = await waitFor(() => document.querySelector('.notification-panel .notification-groups')?.textContent.includes('Scout sent a message'));
+              // The bell's panel is a non-modal popover below the sidebar strip, inside the usable viewport.
+              sheetChecks.notifications = await (async () => {
+                await new Promise((resolve) => setTimeout(resolve, 350));
+                const panel = document.querySelector('.notification-panel')?.getBoundingClientRect();
+                const chromeBottom = document.querySelector('.desktop-titlebar')?.getBoundingClientRect().bottom ?? 0;
+                return !!panel && panel.top >= chromeBottom && panel.bottom <= innerHeight && panel.left >= 0 && panel.right <= innerWidth && !document.querySelector('[data-slot="sheet-overlay"], [data-slot="dialog-overlay"]');
+              })();
+              [...document.querySelectorAll('.notification-panel button')].find((button) => button.textContent === 'Mark all read')?.click();
               const notificationsRead = await waitFor(() => bell?.getAttribute('aria-label') === 'Notifications, 0 unread');
-              const inAppControlsOnly = !document.querySelector('.notification-controls')?.textContent.includes('Desktop alerts');
-              [...document.querySelectorAll('.notification-panel button')].find((button) => button.textContent === 'Close')?.click();
+              const inAppControlsOnly = !document.querySelector('.notification-panel')?.textContent.includes('Desktop alerts');
+              document.querySelector('.notification-panel button[aria-label="Close"]')?.click();
               const notificationsClosed = await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])'));
               interactionChecks.notifications = { notificationTriggerContained, unreadReady, notificationsVisible, notificationsRead, inAppControlsOnly, notificationsClosed, label: bell?.getAttribute('aria-label') };
               notificationPanelReady = notificationTriggerContained && unreadReady && notificationsVisible && notificationsRead && inAppControlsOnly && notificationsClosed;
               chatStreamingUpdates = partials.size;
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Crew work'))?.click();
               const workReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-work-content'));
-              document.querySelector('.chat-thread .role-avatar.writer')?.closest('a')?.click();
+              document.querySelector('nav[aria-label="Chats"] a.chat-thread[href="/chat/writer"]')?.click();
               const writerReady = await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('[role="textbox"][aria-label="Message Writer"]') && !!document.querySelector('.chat-empty'));
-              document.querySelector('.chat-thread .role-avatar.scout')?.closest('a')?.click();
+              document.querySelector('nav[aria-label="Chats"] a.chat-thread[href="/chat/scout"]')?.click();
               await waitFor(() => !!document.querySelector('.chat-work-content'));
               history.back();
               const backReady = await waitFor(() => location.pathname === '/chat/writer' && !!document.querySelector('[role="textbox"][aria-label="Message Writer"]'));
@@ -183,9 +197,9 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               routerHistoryReady = backReady && await waitFor(() => location.pathname === '/chat/scout' && !!document.querySelector('.chat-work-content'));
               [...document.querySelectorAll('[role="tab"]')].find((tab) => tab.textContent.includes('Conversation'))?.click();
               chatTabsReady = !!document.querySelector('.chat-heading [role="tablist"][aria-label="Conversation view"]') && workReady && writerReady && await waitFor(() => document.querySelectorAll('[role="tabpanel"]').length === 1 && !!document.querySelector('.chat-transcript'));
-              document.querySelector('a[href="/skills"]')?.click();
+              await openPage('Skills');
               await waitFor(() => !!document.querySelector('.skills-view'));
-              const addSkill = () => [...document.querySelectorAll('.workspace-heading-actions button')].find((button) => button.textContent.includes('Add skill'));
+              const addSkill = () => [...document.querySelectorAll('.workspace-title-primary button, .workspace-title-actions button')].find((button) => button.textContent.includes('Add skill'));
               await waitFor(() => !!addSkill());
               addSkill()?.click();
               const editorReady = await waitFor(() => !!document.querySelector('#skill-content'));
@@ -198,13 +212,13 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               fill('#skill-name', 'Fictional smoke checklist');
               fill('#skill-content', '# Fictional checklist\\n\\nKeep fixture claims supported.');
               document.querySelector('#skill-content').form.requestSubmit();
-              const skillSaved = await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])') && document.querySelector('.skill-library')?.textContent.includes('Fictional smoke checklist'));
+              const skillSaved = await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])') && document.querySelector('.skills-library')?.textContent.includes('Fictional smoke checklist'));
               document.querySelector('a[href="/crew"]')?.click();
               await waitFor(() => !!document.querySelector('.crew-card.scout'));
-              [...document.querySelectorAll('.crew-card.scout button')].find((button) => button.textContent.includes('Configure'))?.click();
-              const settingsReady = await waitFor(() => !!document.querySelector('.role-settings-panel'));
+              document.querySelector('.crew-card.scout .crew-card-name-button')?.click();
+              const settingsReady = await waitFor(() => !!document.querySelector('.agent-panel'));
               sheetChecks.settings = await ${smokeSheetBounds};
-              [...document.querySelectorAll('.role-settings-panel button')].find((button) => button.textContent === 'Cancel')?.click();
+              [...document.querySelectorAll('.agent-panel button')].find((button) => button.textContent === 'Cancel')?.click();
               const settingsClosed = await waitFor(() => !document.querySelector('[role="dialog"]:not([data-slot="toast"])'));
               interactionChecks.panels = { editorReady, skillSaved, settingsReady, settingsClosed };
               featurePanelsReady = editorReady && skillSaved && settingsReady && settingsClosed;
@@ -213,7 +227,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               await waitFor(() => !document.querySelector('[data-slot="toast"]'));
               // Watch from Board so none of the three conversations is on screen.
               document.querySelector('a[href="/"]')?.click();
-              await waitFor(() => location.pathname === '/' && !!document.querySelector('.workspace-heading'));
+              await waitFor(() => location.pathname === '/' && !!document.querySelector('.workspace-title-row'));
 
               await Promise.all(['scout', 'writer', 'reviewer'].map((role) => fetch('/api/roles/' + role + '/chat', {
                 method: 'POST', headers: { 'content-type': 'application/json', 'x-pitchcrew-client': 'ui' },
@@ -256,7 +270,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
           );
           // The title-bar checks below expect the bounded chat layout, not a scrolling Settings page.
           await window.webContents.executeJavaScript(
-            `(async () => { document.querySelector('a[href="/chat"]')?.click(); for (let i = 0; i < 80; i++) { if (document.querySelector('[role="textbox"][aria-label="Message Scout"]')) return; await new Promise((resolve) => setTimeout(resolve, 100)); } throw new Error('Could not restore chat after update checks.'); })()`,
+            `(async () => { document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.click(); for (let i = 0; i < 80; i++) { if (document.querySelector('[role="textbox"][aria-label="Message Scout"]')) return; await new Promise((resolve) => setTimeout(resolve, 100)); } throw new Error('Could not restore chat after update checks.'); })()`,
           );
         }
         const chrome = [];
@@ -266,6 +280,9 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
             `(async()=>{localStorage.setItem('pitchcrew-theme','${theme}');document.documentElement.dataset.theme='${theme}';await new Promise(r=>setTimeout(r,100));const bar=document.querySelector('.desktop-titlebar');const sidebar=document.querySelector('[data-slot="sidebar-container"]');return {platform:document.documentElement.dataset.desktop,height:bar.getBoundingClientRect().height,background:getComputedStyle(bar).backgroundColor,dragRegion:getComputedStyle(bar).getPropertyValue('-webkit-app-region'),sidebarTop:sidebar.getBoundingClientRect().top,overflow:document.documentElement.scrollHeight>innerHeight};})()`,
           );
           chrome.push({ theme, ...layout, nativeTheme: nativeTheme.themeSource });
+          // Exercise the compact desktop used by Windows CI on every platform.
+          const size = window.getContentSize();
+          window.setContentSize(1024, 768);
           result.sheetChecks[theme] = await window.webContents.executeJavaScript(smokeOpenCreation);
           await writeFile(
             `${smokeFile}.sheet-${theme}.png`,
@@ -273,8 +290,9 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
           );
           result.sheetChecks[`${theme}Closed`] =
             await window.webContents.executeJavaScript(smokeCloseCreation);
+          window.setContentSize(size[0], size[1]);
           await window.webContents.executeJavaScript(
-            `(async () => { document.querySelector('a[href="/chat"]')?.click(); await new Promise((resolve) => setTimeout(resolve, 350)); })()`,
+            `(async () => { document.querySelector('nav[aria-label="Chats"] a[href="/chat/scout"]')?.click(); await new Promise((resolve) => setTimeout(resolve, 350)); })()`,
           );
           await writeFile(
             `${smokeFile}.${theme}.png`,

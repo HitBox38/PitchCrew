@@ -1,5 +1,5 @@
 import type { WritingGuide, WritingPreference } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { writingScopes } from '@/lib/application-quality.ts';
 import { CorrectionEvidence } from './CorrectionEvidence.tsx';
 
@@ -14,61 +14,57 @@ export const GuidePreferences = ({
   working: boolean;
   edit: (item: WritingPreference) => void;
 }) => {
+  const state = (id: string, operation: string) =>
+    void change({ action: 'preference_state', id, operation }).catch(() => {});
+  if (!guide.preferences.length)
+    return (
+      <p className="ui-empty">
+        No preferences yet. Add one such as “Use short sentences”, or ask Writer to correct a draft
+        in chat.
+      </p>
+    );
   return (
-    <div className="space-y-4">
-      {!guide.preferences.length ? (
-        <div className="settings-empty p-5">
-          <h3>No writing preferences yet</h3>
-          <p className="quiet mt-2">
-            Choose Add preference to set a rule such as “Use short sentences.” You can also ask
-            Writer to correct a draft in chat.
-          </p>
-        </div>
-      ) : null}
+    <ul className="settings-list" aria-label="Writing preferences">
       {guide.preferences.map((item) => (
-        <article key={item.id} className="space-y-2 border-b border-border pb-4">
-          <p className="font-semibold">{item.text}</p>
-          <p className="quiet">
-            {writingScopes[item.scope]} ·{' '}
-            {item.origin === 'explicit' ? 'Explicit preference' : 'Learned from your corrections'}
-            {!item.enabled ? ' · Disabled' : ''}
-          </p>
-          <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" disabled={working} onClick={() => edit(item)}>
-              Edit
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={working}
-              onClick={() =>
-                void change({
-                  action: 'preference_state',
-                  id: item.id,
-                  operation: item.enabled ? 'disable' : 'enable',
-                }).catch(() => {})
-              }
-            >
-              {item.enabled ? 'Disable' : 'Enable'}
-            </Button>
-            {item.origin === 'learned' ? (
-              <Button
-                disabled={working}
-                onClick={() =>
-                  void change({ action: 'preference_state', id: item.id, operation: 'undo' }).catch(
-                    () => {},
-                  )
-                }
-              >
-                Undo learning
+        <li key={item.id} className="settings-list-row" data-disabled={!item.enabled || undefined}>
+          <div className="settings-list-main">
+            <div className="min-w-0 flex-1 basis-64">
+              <p className="settings-preference wrap-anywhere">{item.text}</p>
+              <p className="ui-row-meta">
+                {writingScopes[item.scope]} ·{' '}
+                {item.origin === 'explicit' ? 'Your preference' : 'Learned from your corrections'}
+                {!item.enabled ? ' · Disabled' : ''}
+              </p>
+            </div>
+            <div className="settings-row-actions">
+              <Button size="sm" variant="ghost" disabled={working} onClick={() => edit(item)}>
+                Edit
               </Button>
-            ) : null}
+              <Button
+                size="sm"
+                variant="ghost"
+                disabled={working}
+                onClick={() => state(item.id, item.enabled ? 'disable' : 'enable')}
+              >
+                {item.enabled ? 'Disable' : 'Enable'}
+              </Button>
+              {item.origin === 'learned' ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={working}
+                  onClick={() => state(item.id, 'undo')}
+                >
+                  Undo learning
+                </Button>
+              ) : null}
+            </div>
           </div>
           {item.correctionIds.map((id) => (
             <CorrectionEvidence id={id} key={id} />
           ))}
-        </article>
+        </li>
       ))}
-    </div>
+    </ul>
   );
 };

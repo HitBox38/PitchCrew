@@ -1,7 +1,9 @@
 import type { RuntimeInfo, RuntimeMaintenanceState, RuntimeUpdateInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { runtimeStatus } from '../helpers.ts';
+import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
+import { runtimeStatus, signInStatus } from '../helpers.ts';
 
+/** Installed/compatible, update and sign-in facts as chips, plus the agents using it. */
 export const RuntimeSummary = ({
   runtime,
   update,
@@ -12,18 +14,29 @@ export const RuntimeSummary = ({
   authentication: RuntimeMaintenanceState['authentication'];
 }) => {
   const roles = useWorkspaceStore((state) => state.data?.roles);
-  const names = roles
-    ?.filter((role) => !role.retiredAt && role.runtime === runtime.id)
-    .map((role) => role.name);
-  const status = runtimeStatus(runtime, update);
-  const missing = authentication.some((entry) => entry.result.status === 'missing');
+  const users = roles?.filter((role) => !role.retiredAt && role.runtime === runtime.id) ?? [];
+  const facts = [runtimeStatus(runtime, update), signInStatus(runtime, authentication)].filter(
+    (fact) => fact !== null,
+  );
   return (
-    <div className="mt-2 space-y-1">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className={`badge ${status.tone}`}>{status.label}</span>
-        {missing ? <span className="runtime-auth-needed">Sign-in needed</span> : null}
-      </div>
-      {names?.length ? <p className="quiet wrap-anywhere">Used by {names.join(', ')}</p> : null}
+    <div className="settings-runtime-facts">
+      {facts.map((fact) => (
+        <span key={fact.label} className="ui-chip" data-tone={fact.tone || undefined}>
+          {fact.label}
+        </span>
+      ))}
+      {users.length ? (
+        <span className="settings-runtime-users">
+          <span className="settings-pebbles" aria-hidden="true">
+            {users.slice(0, 4).map((role) => (
+              <RoleAvatar key={role.id} agentRole={role.id} size="small" />
+            ))}
+          </span>
+          <span className="ui-row-meta wrap-anywhere">
+            Used by {users.map((role) => role.name).join(', ')}
+          </span>
+        </span>
+      ) : null}
     </div>
   );
 };

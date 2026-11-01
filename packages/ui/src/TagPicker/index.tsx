@@ -60,10 +60,8 @@ export const TagPicker = (props: TagPickerProps) => {
         </Combobox.InputGroup>
         <TagSuggestions custom={options.custom} atLimit={atLimit} />
       </Combobox.Root>
-      <p id={`${id}-hint`} className="optional" aria-live="polite">
-        {atLimit
-          ? '10 of 10 tags. Remove a tag to add another.'
-          : 'Choose a suggestion, or type a tag and press Enter or comma.'}
+      <p id={`${id}-hint`} className={atLimit ? 'optional' : 'sr-only'} aria-live="polite">
+        {atLimit ? '10 of 10 tags. Remove a tag to add another.' : ''}
       </p>
       {error ? (
         <p className="form-error" role="alert">

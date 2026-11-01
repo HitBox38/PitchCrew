@@ -17,7 +17,15 @@ export const roleResult = (prompt: string, mode?: string) => {
         : role === 'writer'
           ? { role, packet }
           : role === 'reviewer'
-            ? { role, passed: true, feedback: [] }
+            ? {
+                role,
+                passed: true,
+                feedback: [],
+                summary: {
+                  assessment: 'Fixture café packet is ready.',
+                  nextSteps: ['Check the café packet.'],
+                },
+              }
             : { role: 'scout', fit: 87, reasons: ['Fixture result'] };
   return mode === 'invalid' ? 'This is not JSON.' : JSON.stringify(result);
 };

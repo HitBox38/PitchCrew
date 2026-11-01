@@ -1,4 +1,5 @@
-/* Desktop chrome uses the same paper as the workspace, with native OS controls. */
+/* Desktop chrome is the same paper as the workspace: a draggable inset for the native window
+ * controls, with no rule between it and the sidebar or page. */
 .desktop-titlebar {
   display: none;
 }
@@ -15,8 +16,6 @@
   height: var(--desktop-titlebar-height);
   padding: 0 160px;
   background-color: var(--paper);
-  background-image: var(--grain), var(--fibres);
-  border-bottom: 1px solid var(--border);
   color: var(--muted);
   font-size: var(--text-label);
   font-weight: 600;

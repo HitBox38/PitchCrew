@@ -1,10 +1,10 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { fieldNumber, fieldText, ruleFormKey } from '../form-helpers.ts';
 import type { RuleFormProps } from './RuleFormBasics.tsx';
 
 export const RuleLimitFields = ({ rule, index, change }: RuleFormProps) => (
-  <div className="grid grid-cols-2 gap-4 max-compact:grid-cols-1">
+  <div className="settings-field-grid">
     <label htmlFor={ruleFormKey(index, 'max')}>
       {rule.kind === 'word_limit' ? 'Maximum words' : 'Maximum bullets per section'}
       <Input

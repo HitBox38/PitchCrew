@@ -1,12 +1,12 @@
 import type { Snapshot } from '@pitchcrew/core';
-import { Link } from '@tanstack/react-router';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { setupProgress } from '../helpers.ts';
+import { missingSeats, setupProgress } from '../helpers.ts';
 import type { OnboardingActions } from '../types.ts';
 import { SetupItem } from './SetupItem.tsx';
 
+/** Three real requirements with one next step each; finishing appears only once all pass. */
 export const SetupChecklist = ({
   data,
   working,
@@ -17,66 +17,65 @@ export const SetupChecklist = ({
   const setAdd = useWorkspaceStore((state) => state.setAdd);
   const progress = setupProgress(data);
   const count = Object.values(progress).filter(Boolean).length;
+  const current = !progress.profile ? 'profile' : !progress.crew ? 'crew' : 'job';
+  const missing = missingSeats(data);
   return (
-    <section className="onboarding-checklist mb-7 max-w-210" aria-labelledby="setup-title">
-      <header className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 id="setup-title" className="font-serif text-2xl">
-            {count === 3 ? 'Your crew is ready to begin.' : 'Make this workspace yours.'}
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            {count === 3
-              ? 'Open your job and ask Scout to evaluate the fit.'
-              : 'A few saved details give the crew somewhere to start.'}
-          </p>
-        </div>
-        <output className="text-sm text-muted-foreground">{count} of 3 ready</output>
+    <section className="onboarding-checklist" aria-labelledby="setup-title">
+      <header className="onboarding-checklist-heading">
+        <h2 id="setup-title">Make this workspace yours</h2>
+        <output>{count} of 3 ready</output>
       </header>
       <ol>
         <SetupItem
           title="Add your background"
-          description="Save a profile note with your experience, projects and job preferences. You can also import existing notes."
+          description="A profile note with your experience and goals."
           done={progress.profile}
+          current={current === 'profile'}
           label="Add profile"
           action={() => go('profile')}
           disabled={working}
         />
         <SetupItem
           title="Set up your crew"
-          description="In Crew, choose an installed runtime for Scout, Writer and Reviewer, then enable each agent. Sign in through the runtime’s own CLI first."
+          description={
+            missing.length
+              ? `Needs an enabled, installed ${missing.join(', ')}.`
+              : 'Scout, Writer and Reviewer are ready.'
+          }
           done={progress.crew}
+          current={current === 'crew'}
           label="Set up crew"
           action={() => go('crew')}
           disabled={working}
         />
         <SetupItem
           title="Bring your first job"
-          description="Add a real job post you’re considering. Keep its description so the crew can assess it."
+          description="A real job post you’re considering."
           done={progress.job}
-          label="Add job"
+          current={current === 'job' && !progress.job}
+          label="Add a job"
           action={() => (progress.job ? go('board') : setAdd(true))}
           disabled={working}
         />
       </ol>
-      <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
-        <p className="text-sm text-muted-foreground">
-          Connections,{' '}
-          <Link to="/skills" className="text-primary underline underline-offset-4">
-            skills
-          </Link>{' '}
-          and routines can wait.
-        </p>
-        <Button
-          variant={count === 3 ? 'default' : 'ghost'}
-          className={count === 3 ? 'button primary small' : 'text-button min-h-8'}
-          disabled={working}
-          onClick={() => void save(count === 3 ? 'completed' : 'dismissed')}
-        >
-          {working ? 'Saving…' : count === 3 ? 'Finish setup' : 'Set up later'}
-        </Button>
+      <footer className="onboarding-checklist-footer">
+        {count === 3 ? (
+          <Button size="sm" disabled={working} onClick={() => void save('completed')}>
+            {working ? 'Saving…' : 'Finish setup'}
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={working}
+            onClick={() => void save('dismissed')}
+          >
+            {working ? 'Saving…' : 'Set up later'}
+          </Button>
+        )}
       </footer>
       {error ? (
-        <p className="form-error mt-3" role="alert">
+        <p className="form-error" role="alert">
           {error}
         </p>
       ) : null}

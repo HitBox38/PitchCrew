@@ -1,0 +1,64 @@
+import { describe, expect, it } from 'vitest';
+import {
+  followUpLabels,
+  messageTargets,
+  nameList,
+  recipientLabel,
+  sendNote,
+} from '../composer-status.ts';
+
+const names: Record<string, string> = { writer: 'Writer', reviewer: 'Reviewer', scout: 'Scout' };
+const name = (id: string) => names[id] ?? id;
+const crew = ['writer', 'reviewer', 'scout'];
+const idle = {
+  hasInput: true,
+  busy: false,
+  busyElsewhere: false,
+  sendMode: 'queue' as const,
+  running: [],
+  asking: [],
+};
+
+describe('composer recipient', () => {
+  it('addresses everyone in a group unless participants are mentioned', () => {
+    expect(recipientLabel(messageTargets('Draft it', crew), crew, name)).toBe('Everyone');
+    expect(recipientLabel(messageTargets('@reviewer check', crew), crew, name)).toBe('Reviewer');
+    expect(recipientLabel(messageTargets('@writer and @scout', crew), crew, name)).toBe(
+      'Writer and Scout',
+    );
+    expect(recipientLabel(messageTargets('@tracker look', crew), crew, name)).toBe(
+      'No participant',
+    );
+  });
+  it('names the only agent in a direct conversation', () => {
+    expect(recipientLabel(messageTargets('hi', ['writer']), ['writer'], name)).toBe('Writer');
+  });
+});
+
+describe('composer send note', () => {
+  it('says nothing when the message simply sends', () => {
+    expect(sendNote(idle)).toBe('');
+    expect(sendNote({ ...idle, busy: true, hasInput: false, running: ['Writer'] })).toBe('');
+  });
+  it('describes queueing and interrupting the running agent', () => {
+    const busy = { ...idle, busy: true, running: ['Writer', 'Writer'] };
+    expect(sendNote(busy)).toBe('Sends after Writer finishes');
+    expect(sendNote({ ...busy, sendMode: 'interrupt' })).toBe('Interrupts Writer');
+    expect(sendNote({ ...busy, running: ['Writer', 'Reviewer'] })).toBe(
+      'Sends after Writer and Reviewer finish',
+    );
+  });
+  it('describes work running in another conversation on the same job', () => {
+    expect(followUpLabels({ busyElsewhere: true, running: [] })).toEqual({
+      queue: 'Sends after current job work finishes',
+      interrupt: 'Stops current work and sends',
+    });
+  });
+  it('waits for a pending question when nothing runs', () => {
+    expect(sendNote({ ...idle, asking: ['Reviewer'] })).toBe('Sends after you answer Reviewer');
+  });
+  it('collapses long name lists', () => {
+    expect(nameList(['A', 'B', 'C'])).toBe('A, B and C');
+    expect(nameList(['A', 'B', 'C', 'D'])).toBe('4 agents');
+  });
+});

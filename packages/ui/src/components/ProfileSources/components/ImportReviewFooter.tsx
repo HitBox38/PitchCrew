@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SourceProgress } from './SourceProgress.tsx';
 import type { ImportReviewProps } from '../types.ts';
 
@@ -15,7 +15,7 @@ export const ImportReviewFooter = ({
   close: () => void;
 }) => {
   return (
-    <div className="profile-import-footer">
+    <footer className="profile-import-footer">
       {conflicts ? (
         <output className="mb-3 block text-label text-ochre">
           Importing replaces local edits in {conflicts} selected{' '}
@@ -33,12 +33,12 @@ export const ImportReviewFooter = ({
         <Button variant="outline" disabled={busy} onClick={close}>
           Cancel
         </Button>
-        <Button className="primary" disabled={busy || !selected.length} onClick={importSelected}>
+        <Button disabled={busy || !selected.length} onClick={importSelected}>
           {busy
             ? 'Importing…'
             : `Import ${selected.length} ${selected.length === 1 ? 'document' : 'documents'}`}
         </Button>
       </div>
-    </div>
+    </footer>
   );
 };

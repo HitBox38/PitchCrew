@@ -1,32 +1,41 @@
 import type { UserInputRequest } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { Check } from 'lucide-react';
+/** The option's number key, shown as in T3 Code's question panel. */
+const OptionKey = ({ index }: { index: number }) =>
+  index < 9 ? (
+    <kbd className="user-question-key" aria-hidden="true">
+      {index + 1}
+    </kbd>
+  ) : null;
+
 export const QuestionOptions = ({
   question,
   selected,
   disabled,
-  toggleOption,
+  choose,
 }: {
   question: UserInputRequest;
   selected: string[];
   disabled: boolean;
-  toggleOption: (id: string) => void;
+  choose: (id: string) => void;
 }) => {
   const selectedIds = new Set(selected);
   return (
     <div className="user-question-options" aria-label="Suggested answers">
-      {question.options.map((option) =>
+      {question.options.map((option, index) =>
         question.multiSelect ? (
           <label
             key={option.id}
             className="user-question-option"
             data-selected={selectedIds.has(option.id)}
           >
+            <OptionKey index={index} />
             <Checkbox
               checked={selectedIds.has(option.id)}
               disabled={disabled}
-              onCheckedChange={() => toggleOption(option.id)}
+              onCheckedChange={() => choose(option.id)}
             />
             <span>
               <strong>{option.label}</strong>
@@ -40,8 +49,10 @@ export const QuestionOptions = ({
             className="user-question-option"
             aria-pressed={selectedIds.has(option.id)}
             disabled={disabled}
-            onClick={() => toggleOption(option.id)}
+            onClick={() => choose(option.id)}
+            aria-keyshortcuts={index < 9 ? String(index + 1) : undefined}
           >
+            <OptionKey index={index} />
             <span>
               <strong>{option.label}</strong>
               {option.description ? <small>{option.description}</small> : null}

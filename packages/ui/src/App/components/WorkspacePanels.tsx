@@ -9,6 +9,7 @@ import { JobLoading } from '@/components/CardDetails/components/JobLoading.tsx';
 import type { WorkspacePanelsProps } from '@/App/types.ts';
 import { AnimatePresence } from 'motion/react';
 import { Suspense } from 'react';
+import { decisions } from '@/ClayInterface/signals.ts';
 
 export const WorkspacePanels = ({
   add,
@@ -18,7 +19,6 @@ export const WorkspacePanels = ({
   selected,
   data,
   setSelectedId,
-  go,
   selectedRole,
   navigate,
   setRoleId,
@@ -59,7 +59,11 @@ export const WorkspacePanels = ({
               working={working}
               onClose={() => setSelectedId(null)}
               initialSection={selectedJobSection}
-              onInbox={() => go('inbox')}
+              onInbox={() => {
+                setSelectedId(null);
+                const waiting = decisions(data).find((item) => item.cardId === selected.id);
+                void navigate({ to: '/inbox', search: { decision: waiting?.id } });
+              }}
               onChat={(thread, run) => {
                 setSelectedId(null);
                 void navigate({ to: '/chat/$thread', params: { thread }, search: { run } });

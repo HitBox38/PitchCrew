@@ -50,21 +50,22 @@ let page: Page;
 let info: AppUpdateInfo;
 const errors: string[] = [];
 const action = () =>
-  page.locator('[data-slot="sidebar-footer"] [data-slot="sidebar-menu-button"]').filter({
-    hasText: /Download update|Restart to update|Downloading|Restarting|Check for updates/,
-  });
+  page.locator(
+    '[data-slot="sidebar-footer"] .sidebar-update-row [data-slot="sidebar-menu-button"]',
+  );
+/** The update row sits in the sidebar footer only while an update exists: a full-width action
+ * with its session dismissal on the same line, above the slot tray and Settings. */
 const expectInlineAction = async () => {
   const bounds = (await action().boundingBox())!;
-  expect(bounds.width).toBe(32);
-  expect(bounds.height).toBe(32);
-  for (const control of [
-    page.getByRole('link', { name: 'Settings', exact: true }),
-    page.getByRole('button', { name: 'Getting started', exact: true }),
-    page.getByRole('button', { name: 'Dismiss update notice', exact: true }),
-  ]) {
-    const other = (await control.boundingBox())!;
-    expect(other.y + other.height / 2).toBeCloseTo(bounds.y + bounds.height / 2, 0);
-  }
+  expect(bounds.width).toBeGreaterThan(120);
+  expect(bounds.height).toBeGreaterThanOrEqual(32);
+  const dismiss = (await page
+    .getByRole('button', { name: 'Dismiss update notice', exact: true })
+    .boundingBox())!;
+  expect(dismiss.y + dismiss.height / 2).toBeCloseTo(bounds.y + bounds.height / 2, 0);
+  expect(dismiss.x).toBeGreaterThanOrEqual(bounds.x + bounds.width - 1);
+  const settings = (await page.getByRole('link', { name: 'Settings', exact: true }).boundingBox())!;
+  expect(settings.y).toBeGreaterThan(bounds.y + bounds.height - 1);
 };
 
 beforeAll(async () => {
@@ -122,11 +123,9 @@ test('the download icon stops spinning when the native check finishes before the
   }, native);
   try {
     await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
-    const checking = page.getByRole('button', { name: 'Checking for updates…', exact: true });
-    await checking.waitFor();
-    expect(
-      await checking.locator('svg').evaluate((icon) => getComputedStyle(icon).animationName),
-    ).toBe('spin');
+    // While both checks run there is no update to offer, so the footer has no update row.
+    await page.locator('.sidebar-tray').waitFor();
+    expect(await page.locator('.sidebar-update-row').count()).toBe(0);
     await update(native);
     const download = page.getByRole('button', { name: 'Download update', exact: true });
     await download.waitFor();
@@ -165,14 +164,25 @@ test('manual download, changelog tooltip, collapse and session dismissal need no
     available.latest!.url,
   );
   expect(await page.locator('[data-slot="popover-content"]').count()).toBe(0);
-  await page.locator('[data-slot="sidebar-trigger"]').click();
+  await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
   expect((await action().boundingBox())!.width).toBeLessThanOrEqual(40);
+  // The rail shows the action only; dismissal lives on the expanded row.
+  await page.getByRole('button', { name: 'Show sidebar', exact: true }).click();
   await page.getByRole('button', { name: 'Dismiss update notice' }).click();
-  await page.getByRole('button', { name: 'Check for updates', exact: true }).waitFor();
-  expect(await action().evaluate((element) => document.activeElement === element)).toBe(true);
-  await action().click();
+  await expect.poll(() => action().count()).toBe(0);
+  await expect
+    .poll(() =>
+      page
+        .getByRole('link', { name: 'Settings', exact: true })
+        .evaluate((element) => document.activeElement === element),
+    )
+    .toBe(true);
+  // A manual check (command palette or Settings > Updates) restores the dismissed build.
+  await page.keyboard.press('ControlOrMeta+k');
+  const palette = page.getByRole('dialog', { name: 'Search Pitchcrew', exact: true });
+  await palette.getByRole('combobox').fill('Check for updates');
+  await palette.getByRole('option', { name: /Check for updates/ }).click();
   await action().filter({ hasText: 'Download update' }).waitFor();
-  expect(await action().evaluate((element) => document.activeElement === element)).toBe(true);
 }, 45000);
 
 test('native download stays visible through navigation and enables restart only after completion', async () => {
@@ -250,7 +260,7 @@ test('mobile keeps the inline action and older releases have an explicit notes f
   info = { ...available, latest: { commit: available.latest!.commit, url: available.latest!.url } };
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
-  await page.locator('[data-slot="sidebar-trigger"]').click();
+  await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await action().waitFor();
   await expectInlineAction();
   await focusAction();

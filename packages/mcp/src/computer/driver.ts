@@ -158,6 +158,7 @@ const contextDriver = async (
   }
   const owned = new Set<Page>();
   const tabIds = new Map<Page, string>();
+  const documentIds = new WeakMap<Page, string>();
   let page: Page = native?.page ?? (await sessionPage(context));
   let pendingDialog: Dialog | undefined;
   let previous: BrowserSnapshot | undefined;
@@ -196,6 +197,7 @@ const contextDriver = async (
     owned.add(current);
     diagnostics.attach(current);
     tabIds.set(current, randomUUID());
+    documentIds.set(current, randomUUID());
     policies.set(current, guard);
     await guard.attach(current);
     current.setDefaultTimeout(10000);
@@ -204,6 +206,7 @@ const contextDriver = async (
       frames.refresh();
     });
     current.on('framenavigated', (frame) => {
+      if (frame === current.mainFrame()) documentIds.set(current, randomUUID());
       if (current === page && frame === current.mainFrame()) {
         references.clear();
         frames.reset();
@@ -230,9 +233,11 @@ const contextDriver = async (
     void (async () => {
       const opener = await popup.opener();
       if (opener ? !owned.has(opener) : browserUsers.get(context) !== 1) return;
-      page = popup;
-      previous = undefined;
-      frames.reset();
+      if (!native) {
+        page = popup;
+        previous = undefined;
+        frames.reset();
+      }
       await attach(popup);
       await sizePage(popup);
       frames.reset();
@@ -443,6 +448,7 @@ const contextDriver = async (
         const state = await current.evaluate(
           (credentials) => ({
             html: document.documentElement.outerHTML,
+            rendering: { width: innerWidth, height: innerHeight, pixelRatio: devicePixelRatio },
             fields: Array.from(document.querySelectorAll('input,textarea,select')).map(
               (element) => {
                 const field = element as HTMLInputElement;
@@ -478,7 +484,13 @@ const contextDriver = async (
           ...(options.references ? { elements: await references.capture(current) } : {}),
           controls: evidence.controls,
           uninspected: evidence.uninspected,
-          digest: hash({ url, state, frames: evidence.frames, viewport: snapshotViewport }),
+          digest: hash({
+            document: documentIds.get(current),
+            url,
+            state,
+            frames: evidence.frames,
+            viewport: snapshotViewport,
+          }),
         };
         return previous;
       }),

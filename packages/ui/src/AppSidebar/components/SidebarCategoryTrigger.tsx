@@ -1,23 +1,33 @@
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
-import { SidebarGroupLabel } from '@/components/ui/sidebar/components/SidebarGroupLabel.tsx';
+import type { ReactNode } from 'react';
+import { CollapsibleTrigger } from '@pitchcrew/design-system/collapsible';
+import { SidebarGroupLabel } from '@pitchcrew/design-system/sidebar';
 import { ChevronRight } from 'lucide-react';
 
-export const SidebarCategoryTrigger = ({ label, count }: { label: string; count?: number }) => {
+/**
+ * A category or sub-group heading: its label, an optional state bead, then its count on the
+ * trailing edge before the chevron.
+ */
+export const SidebarCategoryTrigger = ({
+  label,
+  count,
+  indicator,
+}: {
+  label: string;
+  count?: number;
+  indicator?: ReactNode;
+}) => {
   return (
     <CollapsibleTrigger
       render={
         <SidebarGroupLabel
           render={<button type="button" aria-label={label} />}
-          className="sidebar-category-toggle w-full cursor-pointer justify-between group-data-[collapsible=icon]:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+          className="sidebar-category-toggle w-full cursor-pointer group-data-[collapsible=icon]:hidden hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
         />
       }
     >
-      <span>
-        {label}
-        {count !== undefined ? (
-          <span className="ml-2 font-normal tabular-nums">{count}</span>
-        ) : null}
-      </span>
+      <span className="sidebar-category-label">{label}</span>
+      {indicator}
+      {count !== undefined ? <span className="sidebar-category-count">{count}</span> : null}
       <ChevronRight aria-hidden="true" />
     </CollapsibleTrigger>
   );

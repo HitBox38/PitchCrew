@@ -1,6 +1,6 @@
 import type { ConnectorStatus, Role } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { ArrowUpRight } from 'lucide-react';
 import { connectorAgents } from '../helpers.ts';
@@ -15,36 +15,32 @@ export const AccountAgentAccess = ({
   const setRoleId = useWorkspaceStore((store) => store.setRoleId);
   const entries = connectorAgents(roles, connector);
   const enabled = entries.filter((entry) => entry.enabled);
+  const service = connector.id === 'github' ? 'GitHub' : 'Google';
   return (
-    <div className="account-agent-access">
+    <div className="settings-agent-access">
       <p className="quiet">
         {enabled.length
           ? `Enabled for ${enabled.map((entry) => entry.role.name).join(', ')}.`
           : 'No agents have access yet.'}
       </p>
-      <AccordionSection heading="Choose agents" contentClassName="pb-3">
-        <p className="quiet mb-3">
-          Open an agent, review its connected-service capabilities and save to apply. Connecting an
-          account does not grant access automatically.
-        </p>
-        <div className="grid gap-1">
-          {entries.map(({ role, enabled: allowed }) => (
-            <div key={role.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-              <span className="min-w-0 text-sm wrap-anywhere">
-                {role.name}
-                <span className="quiet ml-2">{allowed ? 'Access enabled' : 'Not enabled'}</span>
-              </span>
-              <Button
-                size="sm"
-                variant="outline"
-                aria-label={`Configure ${role.name} access to ${connector.id === 'github' ? 'GitHub' : 'Google'}`}
-                onClick={() => setRoleId(role.id)}
-              >
-                Configure <ArrowUpRight size={14} aria-hidden="true" />
-              </Button>
-            </div>
-          ))}
-        </div>
+      <AccordionSection heading="Choose agents" contentClassName="settings-agent-choices">
+        <p className="quiet">Opens the agent’s settings. Save there to change its access.</p>
+        {entries.map(({ role, enabled: allowed }) => (
+          <div key={role.id} className="settings-agent-choice">
+            <span className="min-w-0 wrap-anywhere">
+              {role.name}
+              <span className="ui-row-meta"> · {allowed ? 'Access enabled' : 'Not enabled'}</span>
+            </span>
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label={`Configure ${role.name} access to ${service}`}
+              onClick={() => setRoleId(role.id)}
+            >
+              Configure <ArrowUpRight size={14} aria-hidden="true" />
+            </Button>
+          </div>
+        ))}
       </AccordionSection>
     </div>
   );

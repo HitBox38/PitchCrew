@@ -148,7 +148,7 @@ it('keeps packet review, export approval and manual submission as distinct decis
   };
   expect(jobNextAction({ ...base, card: reviewed }).label).toBe('Prepare export');
   const awaiting = { ...reviewed, state: 'awaiting_approval' as const };
-  expect(jobNextAction({ ...base, card: awaiting }).label).toBe('Open approval inbox');
+  expect(jobNextAction({ ...base, card: awaiting }).label).toBe('Open in Decisions');
   expect(jobNextAction({ ...base, card: awaiting, exported: true }).label).toBe(
     'Record manual submission',
   );

@@ -1,6 +1,6 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { Minus, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { FileViewerModel } from '../hooks/useFileViewer.ts';
 /** The preset menu shows the current percentage, so it is the only percentage on screen. */
 export const ZoomControls = ({

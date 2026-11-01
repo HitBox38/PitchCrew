@@ -1,80 +1,142 @@
-.download-section {
-  background-color: var(--primary-soft);
-  background-image: var(--grain);
-  border-block: 1px solid var(--border);
+.download-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 48px 80px;
+  align-items: start;
+}
+.setup {
+  display: grid;
+  gap: 28px;
+}
+.setup-steps {
+  display: grid;
+  gap: 0;
+}
+.setup-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 16px;
+  padding-bottom: 22px;
+}
+.setup-step:last-child {
+  padding-bottom: 0;
+}
+.setup-bead {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding-top: 3px;
+}
+.setup-rule {
+  position: absolute;
+  top: 28px;
+  bottom: -22px;
+  width: 4px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.setup-title {
+  margin-bottom: 4px;
+  font-size: var(--text-copy);
+  font-weight: 600;
 }
 .download-sheet {
-  padding: 26px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 15px;
-  box-shadow: 0 3px 8px rgb(30 34 44 / 0.04);
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 20px;
 }
 .platform-tabs {
   display: flex;
-  gap: 5px;
-  padding: 4px;
-  background: var(--paper-deep);
-  border-radius: 10px;
+  width: 100%;
 }
 .platform-tab {
   flex: 1;
-  min-height: 43px;
-  padding: 8px 12px;
-  cursor: pointer;
-  font-size: 16px;
+  height: 40px;
+  color: var(--muted);
+  font-size: var(--text-meta);
   font-weight: 600;
-  border-radius: 7px;
 }
 .platform-tab[data-active] {
-  background: var(--surface-bright);
-  color: var(--primary);
-  box-shadow:
-    0 1px 3px rgb(30 34 44 / 0.09),
-    inset 0 1px 0 var(--rim);
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+}
+.platform-tab:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
 }
 .platform-panel {
-  padding-top: 20px;
-  outline-offset: 5px;
+  display: grid;
+  gap: 12px;
+  padding-top: 4px;
 }
-.installer-link {
+.installers {
+  display: grid;
+  gap: 8px;
+}
+.installer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  min-height: 86px;
-  padding: 15px 18px;
-  background: linear-gradient(160deg, var(--surface-bright), var(--surface));
-  border: 1px solid var(--border);
-  border-radius: 10px 11px 10px 9px;
-  color: var(--primary);
-  box-shadow:
-    0 2px 3px rgb(30 34 44 / 0.03),
-    inset 0 1px 0 var(--rim);
+  min-height: 72px;
+  padding: 14px 18px;
+  border-radius: 12px 13px 12px 11px;
+  color: var(--ink);
   transition:
     transform var(--duration-press) var(--ease),
-    box-shadow var(--duration-press) var(--ease);
+    box-shadow var(--duration-press) var(--ease),
+    background var(--duration-press) var(--ease);
 }
-.installer-link:active {
-  transform: scale(0.99);
+.installer:active {
+  box-shadow: var(--clay-sunken);
+  transform: scale(0.985);
 }
 @media (hover: hover) and (pointer: fine) {
-  .installer-link:hover {
+  .installer:hover {
+    background: var(--clay-fill-hover);
+    box-shadow: var(--clay-hover);
     transform: translateY(-1px);
-    box-shadow: 0 3px 7px rgb(30 34 44 / 0.07);
   }
 }
-@media (max-width: 639px) {
-  .download-sheet {
-    padding: 18px;
+.installer-label {
+  display: block;
+  font-size: var(--text-copy);
+  font-weight: 600;
+}
+.installer-detail {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--text-fine);
+}
+.installer-size {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+.download-foot {
+  display: grid;
+  gap: 10px;
+  padding: 4px 4px 0;
+}
+@media (max-width: 1023px) {
+  .download-grid {
+    grid-template-columns: 1fr;
+    gap: 40px;
   }
-  .installer-link {
-    flex-wrap: wrap;
-    padding: 14px;
-    gap: 10px;
-  }
-  .platform-tab {
-    padding-inline: 8px;
-    font-size: 15px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .installer,
+  .installer:hover,
+  .installer:active {
+    transform: none;
+    transition: none;
   }
 }

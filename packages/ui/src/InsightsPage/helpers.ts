@@ -1,7 +1,13 @@
 import type { Card, StaleSubmission } from '@pitchcrew/core';
 import {
+  applicationDate,
+  cardOutcome,
+  cardWeight,
+  outcomes,
   staleBatchLimit,
   tagKey,
+  type InsightLesson,
+  type Outcome,
   tagSorts,
   type InsightsFilter,
   type TagSort,
@@ -57,6 +63,49 @@ export const staleSelection = (cards: StaleSubmission[]): string[] => {
     .filter((card) => !card.blocked)
     .slice(0, staleBatchLimit)
     .map((card) => card.id);
+};
+
+/** Positive share for the tag table: a dash when nothing is decided yet. */
+export const share = (rate: number | null): string => {
+  return rate === null ? '—' : `${Math.round(rate * 100)}%`;
+};
+
+/**
+ * Every lesson on the filtered applications, newest first, grouped by outcome. The shared
+ * insights summary keeps only recent ones; Show all needs the complete list.
+ */
+export const filteredLessons = (
+  cards: readonly Card[],
+  search: InsightsSearch,
+): Record<Outcome, InsightLesson[]> => {
+  const filter = insightsFilter(search);
+  const tag = filter.tag ? tagKey(filter.tag) : '';
+  const from = filter.from ? Date.parse(filter.from) : Number.NEGATIVE_INFINITY;
+  const to = filter.to ? Date.parse(filter.to) : Number.POSITIVE_INFINITY;
+  const groups = Object.fromEntries(outcomes.map((outcome) => [outcome, []])) as unknown as Record<
+    Outcome,
+    InsightLesson[]
+  >;
+  for (const card of cards) {
+    const date = Date.parse(applicationDate(card));
+    if (card.sample || date < from || date > to) continue;
+    if (tag && !card.tags.some((value) => tagKey(value) === tag)) continue;
+    const outcome = cardOutcome(card.state);
+    for (const lesson of card.lessons ?? [])
+      groups[outcome].push({
+        ...lesson,
+        cardId: card.id,
+        company: card.company,
+        title: card.title,
+        state: card.state,
+        weight: cardWeight(card),
+      });
+  }
+  for (const outcome of outcomes)
+    groups[outcome].sort(
+      (a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id),
+    );
+  return groups;
 };
 
 const localDateTime = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2})?$/;

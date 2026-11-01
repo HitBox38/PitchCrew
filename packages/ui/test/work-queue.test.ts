@@ -52,7 +52,11 @@ test('returns an invalid stage move to its saved order and permits deliberate re
   const response = page.waitForResponse(
     (r) => r.url().includes('/queue/requests/') && r.request().method() === 'PUT',
   );
-  await review.getByRole('button', { name: 'Move up', exact: true }).click();
+  await review.getByRole('button', { name: 'Queued request actions', exact: true }).click();
+  await page
+    .getByRole('menu', { name: 'Queued request actions', exact: true })
+    .getByRole('menuitem', { name: 'Move up', exact: true })
+    .click();
   expect((await response).status()).toBe(400);
   await expect
     .poll(() => card.locator('.queue-request').first().textContent())

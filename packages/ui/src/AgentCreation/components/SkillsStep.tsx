@@ -1,18 +1,14 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { skillSize } from '../helpers.ts';
 import type { StepProps } from '../types.ts';
 
 export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
   const skills = data.skills.filter((skill) => !skill.deletedAt);
   return (
-    <div className="flex flex-col gap-5">
-      <p className="quiet">
-        Skills add reusable instructions. Shared skills apply automatically. Assign any other saved
-        skills to this agent; their existing assignments stay in place.
-      </p>
-      <p className="quiet" aria-live="polite">
+    <div className="agent-wizard-step">
+      <p className="optional" aria-live="polite">
         {skillSize(draft, data).toLocaleString()} / 60,000 characters assigned
       </p>
       {!skills.length ? (
@@ -22,8 +18,8 @@ export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
         const selected = draft.skills.find((reference) => reference.id === skill.id);
         const shared = skill.scope === 'all';
         return (
-          <section key={skill.id} className="border-b border-border pb-4">
-            <label className="flex flex-row items-start gap-3" aria-label={skill.name}>
+          <section key={skill.id} className="agent-wizard-skill">
+            <label className="agent-wizard-skill-choice" aria-label={skill.name}>
               <Checkbox
                 aria-label={skill.name}
                 disabled={shared}
@@ -36,17 +32,17 @@ export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
                   })
                 }
               />
-              <span className="flex min-w-0 flex-col gap-1">
-                <span>
+              <span className="agent-tool-copy">
+                <span className="agent-wizard-skill-name">
                   {skill.name}
-                  {shared ? ' · All agents' : ''}
+                  {shared ? <span className="ui-chip">All agents</span> : null}
                 </span>
-                <span className="quiet font-normal">{skill.description}</span>
+                <span className="optional">{skill.description}</span>
               </span>
             </label>
             <AccordionSection
-              className="mt-3 ml-7"
-              triggerClassName="cursor-pointer text-sm"
+              className="agent-wizard-skill-text"
+              triggerClassName="agent-wizard-skill-trigger"
               heading="Read instructions"
             >
               <SourceBlock label={skill.name} value={skill.content} contentClassName="max-h-64" />
@@ -73,10 +69,7 @@ export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
             Removed skill — deselect to continue
           </label>
         ))}
-      <p className="quiet">
-        Skills do not grant tool access. You can import or write additional skills after creating
-        the agent.
-      </p>
+      <p className="optional">Shared skills apply automatically. Skills never grant tools.</p>
     </div>
   );
 };

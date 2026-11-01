@@ -10,7 +10,7 @@ export const SourceProviderChoices = ({
   disabled: boolean;
 }) => {
   return (
-    <div className="grid gap-3 compact:grid-cols-2">
+    <div className="grid gap-2">
       <SourceChoice
         icon={GitBranch}
         title="GitHub"

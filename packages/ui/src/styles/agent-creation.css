@@ -1,44 +1,290 @@
-.creation-panel {
-  width: min(760px, 100vw);
-}
-.creation-progress {
-  flex-shrink: 0;
-  border-bottom: 1px solid var(--border);
-  padding: 12px 20px;
-  overflow-x: auto;
-}
-.creation-progress ol {
+/* New agent: a 760px dialog with a fixed heading and bead stepper, a scrolling step body and a
+ * fixed footer. Phones swap the six labels for "Step 3 of 6: Tools" and a step menu. */
+[data-slot='dialog-content'].agent-wizard {
+  top: calc(50% + var(--desktop-titlebar-height, 0px) / 2);
   display: flex;
-  gap: 4px;
-  justify-content: space-between;
-  min-width: max-content;
+  width: min(760px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px);
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 20px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--pop);
 }
-.creation-progress button {
-  gap: 7px;
+/* Steps keep one fixed height so the footer does not jump between them. */
+[data-slot='dialog-content'].agent-wizard:has(.agent-wizard-form) {
+  height: min(720px, calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px));
+}
+.agent-wizard-heading {
+  position: relative;
+  display: grid;
+  flex: none;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'title close'
+    'steps steps';
+  align-items: center;
+  gap: 4px 12px;
+  padding: 12px 14px 12px 24px;
+}
+.agent-wizard-heading::after {
+  position: absolute;
+  inset: auto 24px 0;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.agent-wizard-titles {
+  grid-area: title;
+  min-height: 32px;
+  align-content: center;
+}
+.agent-wizard-titles h2 {
+  margin: 0;
+  font: 600 17px/1.3 var(--font-sans);
+}
+.agent-wizard-heading > .agent-panel-close {
+  grid-area: close;
+}
+.agent-wizard-steps {
+  grid-area: steps;
+  padding: 4px 10px 6px 0;
+}
+
+/* Bead stepper: a recessed track joining six beads; done beads are primary, the current one
+ * is raised with a ring, future ones stay empty sockets. */
+.agent-wizard-track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.agent-wizard-track::before {
+  position: absolute;
+  inset-inline: calc(100% / 12);
+  top: 15px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  content: '';
+}
+.agent-wizard-track li {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+.agent-wizard-track button {
+  display: flex;
+  height: auto;
+  min-height: 52px;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-radius: 10px;
+  background: none;
   color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 600;
 }
-.creation-progress button[aria-current='step'] {
-  background: var(--primary-soft);
-  color: var(--primary-deep);
+.agent-wizard-track button:hover:not(:disabled) {
+  background: rgb(var(--tint) / 0.05);
+  color: var(--ink);
 }
-.creation-step-number {
-  font-variant-numeric: tabular-nums;
+.agent-wizard-track button:disabled {
+  opacity: 1;
 }
-.form.creation-form textarea {
+.agent-wizard-track .clay-bead {
+  position: relative;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.agent-wizard-track [data-state='done'] .clay-bead {
+  --bead-color: var(--primary);
+  background:
+    radial-gradient(circle at 35% 30%, var(--orb-light), transparent 46%), var(--bead-color);
+  box-shadow:
+    0 1px 2px rgb(30 34 44 / 0.2),
+    inset -2px -3px 4px rgb(0 0 0 / 0.18);
+}
+.agent-wizard-track [data-state='current'] .clay-bead {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.agent-wizard-track [data-state='current'] button,
+.agent-wizard-track [data-state='done'] button {
+  color: var(--ink);
+}
+.agent-wizard-step-menu {
+  display: none;
+}
+
+.form.agent-wizard-form {
+  display: flex;
   min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
 }
-.form.creation-form .creation-tool {
-  flex-direction: row;
+.agent-wizard-body {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 20px 24px 28px;
 }
-.creation-tool [data-slot='checkbox'] {
-  flex-shrink: 0;
-  margin-top: 3px;
+.agent-wizard-step-heading {
+  margin: 0 0 16px;
+  font: 600 16px/1.35 var(--font-sans);
 }
-.creation-body h3:focus {
+.agent-wizard-step-heading:focus {
   outline: none;
 }
-@variant max-phone {
-  .creation-progress {
-    padding-inline: 12px;
+.agent-wizard-step {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.agent-wizard-step > .optional,
+.agent-wizard-step .optional {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 1.5;
+  font-weight: 400;
+}
+.form.agent-wizard-form textarea {
+  min-height: 0;
+}
+
+.agent-wizard-skill {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.form.agent-wizard-form .agent-wizard-skill-choice {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12px;
+}
+.agent-wizard-skill-choice [data-slot='checkbox'] {
+  flex: none;
+  margin-top: 3px;
+}
+.agent-wizard-skill-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.agent-wizard-skill-text {
+  margin: 4px 0 0 28px;
+}
+.agent-wizard-skill-trigger {
+  min-height: 32px;
+  padding-block: 4px;
+  font-size: var(--text-detail);
+}
+
+.agent-wizard-review {
+  display: grid;
+  gap: 0;
+  padding: 4px 16px;
+}
+.agent-wizard-review-row {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 12px 0;
+}
+.agent-wizard-review-row + .agent-wizard-review-row {
+  border-top: 1px solid var(--border);
+}
+.agent-wizard-review-row dt {
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+.agent-wizard-review-row dd {
+  margin: 0;
+  font-size: var(--text-label);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-wizard-warnings {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--ochre-soft);
+  color: var(--ink);
+  font-size: var(--text-label);
+}
+.agent-wizard-warnings h4 {
+  margin-bottom: 6px;
+  color: var(--ochre);
+  font-weight: 600;
+}
+.agent-wizard-warnings ul {
+  display: grid;
+  gap: 4px;
+  padding-left: 18px;
+  list-style: disc;
+  line-height: 1.5;
+}
+.agent-wizard-success-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+@variant max-narrow {
+  .agent-wizard-track {
+    display: none;
+  }
+  .agent-wizard .ui-footer-note:empty {
+    display: none;
+  }
+  .agent-wizard .ui-footer-note {
+    flex-basis: 100%;
+  }
+  .agent-wizard .ui-footer-bar {
+    justify-content: flex-end;
+  }
+  .agent-wizard-step-menu {
+    display: inline-flex;
+    gap: 6px;
+    height: 36px;
+    padding-inline: 8px;
+    font-size: var(--text-label);
+    font-weight: 600;
+  }
+  .agent-wizard-review-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .agent-wizard-review-row dd {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+}
+@variant max-mobile {
+  [data-slot='dialog-content'].agent-wizard,
+  [data-slot='dialog-content'].agent-wizard:has(.agent-wizard-form) {
+    max-height: none;
+    width: 100vw;
+    height: calc(100dvh - var(--desktop-titlebar-height, 0px));
+    border-radius: 0;
   }
 }

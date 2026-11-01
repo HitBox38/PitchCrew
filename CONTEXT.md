@@ -136,6 +136,18 @@ _Avoid_: ATS verdict, factual verification, export approval
 Guidance about the user's preferred tone, phrasing and presentation for application drafts, stated directly or inferred from the user's edits. It is separate from factual evidence about the user's experience.
 _Avoid_: Verified Profile evidence, employer requirement (when referring to the user's preferred style)
 
+**Writing-quality finding**:
+A Reviewer observation about an application draft's clarity, specificity or generic phrasing, reported as a non-blocking suggestion unless an explicit packet rule or an inadequately addressed required answer makes it a blocking review finding. It concerns prose quality, not factual support or any detector's result.
+_Avoid_: AI-detector advisory (when referring to Reviewer's own assessment), factual finding (when the claim is supported)
+
+**AI-detector advisory**:
+A user-visible notice based on an actual result from a named AI-text detector, bound to the exact text of one application document version, separate from a Reviewer's writing-quality finding. It is an advisory assessment, not proof of authorship, an employer's screening decision or a condition for packet approval or export.
+_Avoid_: AI verdict, guaranteed detection risk, Reviewer impression (when referring to a detector result), writing-quality finding (when referring only to a detector's result)
+
+**External AI-detector check**:
+An optional, user-only assessment of one application document's exact text by a named outside service, explicitly authorized by the user after seeing the service and text to be shared. That single-use authorization covers only that document version, not Profile files, the job brief, registered claims or conversation history, and agents cannot start it.
+_Avoid_: Local check (when text leaves the device), blanket data-sharing consent, agent tool (when referring to the check)
+
 **Deep resume review**:
 An optional assessment of a tailored resume against a specific job's confirmed brief, using multiple hiring perspectives to identify supported strengths, weaknesses and corrections for Writer. Its findings do not constitute an employer's hiring decision or authorize packet export or submission.
 _Avoid_: Hiring panel (when implying actual employer participation), ATS verdict (when referring to a model's assessment)

@@ -1,12 +1,15 @@
-import { Collapsible } from '@/components/ui/collapsible/components/Collapsible.tsx';
-import { CollapsibleContent } from '@/components/ui/collapsible/components/CollapsibleContent.tsx';
-import { CollapsibleTrigger } from '@/components/ui/collapsible/components/CollapsibleTrigger.tsx';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@pitchcrew/design-system/collapsible';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { ChevronDown, MessageCircleQuestion } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import { AnimatePresence } from 'motion/react';
 import { QuestionAnswerForm } from './components/QuestionAnswerForm.tsx';
 import { QuestionToaster } from './components/QuestionToaster.tsx';
 import type { PendingQuestionsProps } from './types.ts';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 export const PendingQuestions = (props: PendingQuestionsProps) => {
   const active =
     props.activeQuestionId === ''
@@ -34,7 +37,7 @@ export const PendingQuestions = (props: PendingQuestionsProps) => {
                   </strong>{' '}
                   is waiting for you
                 </span>
-                <MessageCircleQuestion size={15} />
+                <StatusBead status="waiting" />
                 <ChevronDown className="pending-question-chevron" size={15} />
               </CollapsibleTrigger>
               <CollapsibleContent keepMounted>
@@ -42,6 +45,7 @@ export const PendingQuestions = (props: PendingQuestionsProps) => {
                   question={question}
                   action={props.action}
                   working={props.working}
+                  active={active === question.id}
                 />
               </CollapsibleContent>
             </Collapsible>

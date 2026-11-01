@@ -1,58 +1,31 @@
-import type { InboxTab, InboxViewProps } from '../types.ts';
-import { approvalRequests, requestIdentity } from '../helpers.ts';
+import type { HistoryFilter, InboxViewProps } from '../types.ts';
+import { approvalRequests, historyGroups, requestIdentity } from '../helpers.ts';
 import { useState } from 'react';
 import { attachmentFiles } from '@/FileViewer/attachments.ts';
-import {
-  readInboxPreference,
-  saveInboxPreference,
-  readInboxReadIds,
-  saveInboxReadIds,
-} from './preferences.ts';
+import { readInboxPreference, saveInboxPreference } from './preferences.ts';
 
-export const useInboxView = ({ data, action, working, onOpen }: InboxViewProps) => {
-  const [tab, changeTab] = useState<InboxTab>(() => readInboxPreference('tab', 'pending'));
-  const [selectedKey, setSelectedKey] = useState<string | null>(() =>
-    readInboxPreference('selected', null),
-  );
+/** Past packet and browser decisions, searchable, with the open one kept in the URL. */
+export const useInboxView = (props: InboxViewProps) => {
+  const { data, action } = props;
   const [search, changeSearch] = useState(() => readInboxPreference('search', ''));
-  const [filter, changeFilter] = useState<'all' | 'packet' | 'browser'>(() =>
+  const [filter, changeFilter] = useState<HistoryFilter>(() =>
     readInboxPreference('filter', 'all'),
   );
-  const [unreadOnly, setUnreadOnly] = useState(false);
-  const [readIds, setReadIds] = useState(readInboxReadIds);
-  const allRequests = [...approvalRequests(data, 'pending'), ...approvalRequests(data, 'history')];
-  const selectedRequest = allRequests.find((request) => request.key === selectedKey);
-  const markRead = (key: string, read: boolean) =>
-    setReadIds((ids) => {
-      const next = read ? [...new Set([...ids, key])] : ids.filter((id) => id !== key);
-      saveInboxReadIds(next);
-      return next;
-    });
-  const selectRequest = (key: string) => {
-    setSelectedKey(key);
-    saveInboxPreference('selected', key);
-    markRead(key, true);
-  };
-  const showRequests = () => {
-    setSelectedKey(null);
-    saveInboxPreference('selected', null);
-  };
-  const setTab = (next: InboxTab) => {
-    changeTab(next);
-    saveInboxPreference('tab', next);
-    showRequests();
-  };
+  // Day groups are relative to when history opened; a reopen refreshes them.
+  const [now] = useState(() => new Date());
+  const allRequests = approvalRequests(data, 'history');
+  const selectedRequest = allRequests.find((request) => request.key === props.selected);
   const setSearch = (next: string) => {
     changeSearch(next);
     saveInboxPreference('search', next);
   };
-  const setFilter = (next: typeof filter) => {
+  const setFilter = (next: HistoryFilter) => {
     changeFilter(next);
     saveInboxPreference('filter', next);
   };
-  const requests = approvalRequests(data, tab).filter((request) => {
+  const query = search.trim().toLocaleLowerCase();
+  const requests = allRequests.filter((request) => {
     if (filter !== 'all' && request.kind !== filter) return false;
-    if (unreadOnly && readIds.includes(request.key)) return false;
     const identity = requestIdentity(request, data);
     return [
       identity.sender,
@@ -62,32 +35,21 @@ export const useInboxView = ({ data, action, working, onOpen }: InboxViewProps) 
     ]
       .join(' ')
       .toLocaleLowerCase()
-      .includes(search.toLocaleLowerCase());
+      .includes(query);
   });
   const act = (path: string, body?: unknown, success?: string) => {
     void action(path, 'POST', body, success).catch(() => {});
   };
   return {
-    data,
-    action,
-    working,
-    onOpen,
-    tab,
-    setTab,
+    ...props,
     requests,
-    allRequests,
+    groups: historyGroups(requests, now),
+    total: allRequests.length,
     selectedRequest,
-    reviewOpen: !!selectedRequest,
-    selectRequest,
-    showRequests,
     act,
     search,
     setSearch,
     filter,
     setFilter,
-    unreadOnly,
-    setUnreadOnly,
-    readIds,
-    markRead,
   };
 };

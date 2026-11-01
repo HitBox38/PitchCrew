@@ -1,9 +1,10 @@
 import type { FormAssessment, SubmissionAttempt } from './submissions.ts';
 import type { ApplicationContext, PacketReviewEvidence } from './application-context.ts';
 import { z } from 'zod';
-import type { Packet } from './packets.ts';
+import type { Packet, PacketChanges } from './packets.ts';
 import type { ApplicationTracking } from './tracking.ts';
 import type { JobDiscovery } from './job-sources.ts';
+import type { DetectorAdvisory } from './detectors.ts';
 import { type CardState, type RoleId } from './states.ts';
 
 export const cardInput = z.object({
@@ -49,6 +50,10 @@ export interface Card extends CardInput {
   applicationContext?: ApplicationContext;
   packetContextRevision?: string;
   packetReview?: PacketReviewEvidence;
+  /** Writer's notes on the current packet's revision. Event v32. */
+  packetChanges?: PacketChanges;
+  /** User-requested external AI-text detector results bound to document digests. Event v33. */
+  detectorAdvisories?: DetectorAdvisory[];
   /** Version 18 tombstone; retained in events and removed from current projections. */
   deletedAt?: string;
   tracking?: ApplicationTracking;

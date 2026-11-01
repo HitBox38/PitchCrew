@@ -1,9 +1,10 @@
 import { useBrowserAddress } from '../hooks/useBrowserAddress.ts';
 import { ArrowRight, Globe } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
+import { addressParts } from '../helpers.ts';
 export const BrowserAddress = ({
   frame,
   control,
@@ -18,24 +19,29 @@ export const BrowserAddress = ({
   onNavigate?: () => void;
 }) => {
   const address = url === 'about:blank' ? '' : url;
-  const input = useBrowserAddress(address, control.leaseId, contextId);
+  const { input, ...model } = useBrowserAddress(address, control.leaseId, contextId);
+  // The field shows the saved address as host and path until the field is edited.
+  const parts = model.value === address ? addressParts(address) : null;
   return (
     <form
       className="browser-address"
+      data-display={parts ? '' : undefined}
       onSubmit={(event) => {
         event.preventDefault();
         if (!control.leaseId) return;
-        if (!String(new FormData(event.currentTarget).get('browserAddress') ?? '').trim()) return;
-        control.input({
-          kind: 'navigate',
-          url: normalizeAddress(
-            String(new FormData(event.currentTarget).get('browserAddress') ?? ''),
-          ),
-        });
+        if (!model.draft.trim()) return;
+        control.input({ kind: 'navigate', url: normalizeAddress(model.draft) });
+        input.current?.blur();
         onNavigate?.();
       }}
     >
       <Globe size={14} aria-hidden="true" />
+      {parts ? (
+        <span className="browser-address-display" aria-hidden="true">
+          <strong>{parts.host}</strong>
+          <span>{parts.rest}</span>
+        </span>
+      ) : null}
       <Input
         ref={input}
         key={control.leaseId ?? 'watch'}
@@ -45,7 +51,18 @@ export const BrowserAddress = ({
         title={frame?.title ? `${frame.title} · ${url}` : url}
         autoComplete="off"
         spellCheck={false}
-        defaultValue={address}
+        value={model.value}
+        onChange={(event) => model.setDraft(event.target.value)}
+        onFocus={model.focus}
+        onBlur={model.blur}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' && event.nativeEvent.isComposing) event.preventDefault();
+          if (event.key !== 'Escape') return;
+          event.preventDefault();
+          event.stopPropagation();
+          model.reset();
+          onNavigate?.();
+        }}
         readOnly={!control.leaseId || control.working}
         placeholder={control.leaseId ? 'Enter a URL or search…' : 'No page open'}
       />

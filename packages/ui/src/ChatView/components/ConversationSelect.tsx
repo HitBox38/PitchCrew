@@ -1,10 +1,12 @@
+import type { ReactNode } from 'react';
+import { cn } from '@pitchcrew/design-system/utils';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 export const ConversationSelect = ({
   label,
   id,
@@ -13,6 +15,8 @@ export const ConversationSelect = ({
   onChange,
   disabled = false,
   compact = true,
+  className,
+  icon,
 }: {
   label: string;
   id?: string;
@@ -21,6 +25,10 @@ export const ConversationSelect = ({
   onChange: (value: string) => void;
   disabled?: boolean;
   compact?: boolean;
+  /** Extra trigger classes, such as a clay composer chip. */
+  className?: string;
+  /** Leading trigger icon. */
+  icon?: ReactNode;
 }) => {
   return (
     <Select
@@ -34,9 +42,10 @@ export const ConversationSelect = ({
       <SelectTrigger
         id={id}
         aria-label={label}
-        className={compact ? 'chat-context-select' : undefined}
+        className={cn(compact && 'chat-context-select', className) || undefined}
         size={compact ? 'sm' : 'default'}
       >
+        {icon}
         <SelectValue />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>

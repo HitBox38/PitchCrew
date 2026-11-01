@@ -1,12 +1,12 @@
 import { useRef } from 'react';
 import type { Conversation } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 
 export const DeleteConversationDialog = ({
   conversation,

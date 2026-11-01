@@ -1,10 +1,10 @@
 import type { ProfileDocument } from '../types.ts';
-import { TabsTrigger } from '@/components/ui/tabs/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { Button } from '@pitchcrew/design-system/button';
 import { documentDirty } from '../helpers.ts';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
-import { FileText, X } from 'lucide-react';
+import { X } from 'lucide-react';
 
 export const ProfileDocumentTab = ({
   document,
@@ -22,6 +22,7 @@ export const ProfileDocumentTab = ({
   reorder: (index: number) => void;
 }) => {
   const reduced = useAppReducedMotion();
+  const dirty = documentDirty(document);
   const { ref, handleRef, isDragging } = useSortable({
     id: document.id,
     index,
@@ -41,7 +42,7 @@ export const ProfileDocumentTab = ({
         ref={handleRef}
         value={document.id}
         className="profile-document-tab"
-        aria-label={document.name || 'Untitled note'}
+        aria-label={`${document.name || 'Untitled note'}${dirty ? ', unsaved changes' : ''}`}
         aria-keyshortcuts="Alt+ArrowLeft Alt+ArrowRight"
         title="Drag to reorder. Keyboard: Alt + left/right arrow."
         onKeyDown={(event) => {
@@ -52,11 +53,8 @@ export const ProfileDocumentTab = ({
           }
         }}
       >
-        <FileText size={15} />
         <span className="truncate">{document.name || 'Untitled note'}</span>
-        {documentDirty(document) ? (
-          <span className="profile-dirty-dot" aria-label="Unsaved changes" />
-        ) : null}
+        {dirty ? <span className="profile-dirty-dot" aria-hidden="true" /> : null}
       </TabsTrigger>
       <Button
         variant="ghost"
@@ -65,7 +63,7 @@ export const ProfileDocumentTab = ({
         onClick={close}
         disabled={isDragging}
       >
-        <X size={13} />
+        <X size={13} aria-hidden="true" />
       </Button>
     </div>
   );

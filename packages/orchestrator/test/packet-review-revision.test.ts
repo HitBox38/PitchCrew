@@ -5,6 +5,7 @@ import { packet } from '../../board/test/fixtures/packet.ts';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, confirmFixtureApplication, finish, setup } from './helpers/daemon.ts';
 import * as documents from '../src/quality/documents.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 
 afterEach(cleanup);
 
@@ -47,7 +48,7 @@ it('delivers saved review corrections to the next Writer prompt and tools before
     expect(JSON.stringify(context.card)).not.toContain('RAW-SOURCE-EXCLUDED-FROM-REVISION');
     if (context.purpose === 'application-review') {
       expect(context.card.feedback).toEqual([]);
-      return { role: 'reviewer', passed: true, feedback: [] };
+      return { role: 'reviewer', passed: true, feedback: [], summary: reviewSummary() };
     }
     expect(context.card.packet).toEqual(packet);
     expect(context.card.feedback).toEqual(feedback);

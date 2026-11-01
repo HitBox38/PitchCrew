@@ -1,8 +1,8 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { ExternalLink, GitBranch } from 'lucide-react';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { GithubTokenForm } from './GithubTokenForm.tsx';
 import type { ConnectAccountDialogProps } from '../types.ts';
 

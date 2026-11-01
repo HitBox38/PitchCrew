@@ -10,6 +10,7 @@ import {
   waitForSnapshot,
 } from './helpers/daemon.ts';
 import * as documents from '../src/quality/documents.ts';
+import { reviewSummary } from './helpers/review-summary.ts';
 const prepared = async (port: number) => {
   const env = await setup(port);
   await env.request('/profile', 'PUT', { name: 'profile.md', content: 'Built React interfaces.' });
@@ -115,7 +116,7 @@ it('runs at most one document correction plus Reviewer recheck, with scoped tool
       daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN, 'card', {}),
     ).resolves.toHaveProperty('card');
     return context.purpose === 'application-review'
-      ? { role: 'reviewer', passed: true, feedback: [] }
+      ? { role: 'reviewer', passed: true, feedback: [], summary: reviewSummary() }
       : { role: 'writer', packet };
   });
   const run = (await request<Run>(`/cards/${card.id}/run`, 'POST', { roleId: 'writer' })).result;
@@ -208,7 +209,7 @@ it('offers verified DOCX files for approval and export when PDF rendering fails'
   await daemon.service.applyResult(
     card.id,
     board.get<Role>('role', 'reviewer'),
-    { role: 'reviewer', passed: true, feedback: [] },
+    { role: 'reviewer', passed: true, feedback: [], summary: reviewSummary() },
     [{ name: 'profile.md', content: 'Built React interfaces.' }],
   );
   const { response, result: approval } = await request<import('@pitchcrew/core').Approval>(

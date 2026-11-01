@@ -6,6 +6,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { cleanup, finish } from '../../orchestrator/test/helpers/daemon.ts';
 import { assessment, deepReviewFixture } from '../../orchestrator/test/helpers/deep-reviews.ts';
+import { reviewSummary } from '../../orchestrator/test/helpers/review-summary.ts';
 const clientFor = async (context: RunContext, run: (client: Client) => Promise<void>) => {
   const client = new Client({ name: 'fictional-deep-review-test', version: '1.0.0' });
   try {
@@ -45,6 +46,11 @@ it('exposes distinct parent and child review tools over actual MCP stdio without
       await clientFor(context, async (client) => {
         const names = (await client.listTools()).tools.map((tool) => tool.name);
         expect(names).toContain('pitchcrew_request_review_time');
+        const report = await client.callTool({
+          name: 'pitchcrew_report_technical_problem',
+          arguments: { area: 'documents' },
+        });
+        expect(report.isError, JSON.stringify(report)).not.toBe(true);
         expect(names).not.toContain('pitchcrew_start_review_subagent');
         expect(names).not.toContain('pitchcrew_extend_review_deadline');
         expect(names).not.toContain('pitchcrew_ask_user');
@@ -66,6 +72,7 @@ it('exposes distinct parent and child review tools over actual MCP stdio without
       return {
         role: 'reviewer',
         passed: true,
+        summary: reviewSummary(),
         feedback: [],
         assessment: {
           ...assessment(),
@@ -111,13 +118,19 @@ it('exposes distinct parent and child review tools over actual MCP stdio without
         }
         expect(checkedChild).toBe(true);
       });
-    return { role: 'reviewer', passed: true, feedback: [], assessment: assessment() };
+    return {
+      role: 'reviewer',
+      passed: true,
+      feedback: [],
+      summary: reviewSummary(),
+      assessment: assessment(),
+    };
   });
   const run = (await request<Run>(`/cards/${card.id}/deep-reviews`, 'POST', {})).result;
   await finish(request, run.id);
   expect(checkedChild).toBe(true);
 });
-it('gives a parent deadline decision only the extension tool and application reads over stdio', async () => {
+it('gives a parent deadline decision extension, diagnostic and application read tools over stdio', async () => {
   const { daemon, request, card } = await deepReviewFixture(24532);
   const original = adapters.demo.run.bind(adapters.demo);
   let decided = false;
@@ -132,6 +145,7 @@ it('gives a parent deadline decision only the extension tool and application rea
             'pitchcrew_get_packet_rules',
             'pitchcrew_lint_packet',
             'pitchcrew_read_profile',
+            'pitchcrew_report_technical_problem',
           ].sort(),
         );
         expect(
@@ -142,9 +156,14 @@ it('gives a parent deadline decision only the extension tool and application rea
             })
           ).isError,
         ).not.toBe(true);
+        const report = await client.callTool({
+          name: 'pitchcrew_report_technical_problem',
+          arguments: { area: 'runtime' },
+        });
+        expect(report.isError, JSON.stringify(report)).not.toBe(true);
         decided = true;
       });
-      return { role: 'reviewer', passed: true, feedback: [] };
+      return { role: 'reviewer', passed: true, feedback: [], summary: reviewSummary() };
     }
     if (context.deepReview?.subagent)
       await daemon.service.agentCall(context.mcp.env.PITCHCREW_RUN_TOKEN!, 'request_review_time', {

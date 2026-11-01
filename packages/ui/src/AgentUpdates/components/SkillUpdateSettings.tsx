@@ -1,4 +1,4 @@
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { SkillCheckButton } from './SkillCheckButton.tsx';
 

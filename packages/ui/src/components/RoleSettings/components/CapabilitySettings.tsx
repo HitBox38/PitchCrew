@@ -1,35 +1,25 @@
-import { capabilityGroups } from '../constants.ts';
-import type { CapabilitySettingsProps } from '@/components/RoleSettings/types.ts';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import type { RoleSettingsModel } from '@/components/RoleSettings/types.ts';
+import { ToolGroups } from './ToolGroups.tsx';
 
+/** Tools: each group a disclosure with its enabled count; changes apply on Save settings. */
 export const CapabilitySettings = ({
   role,
+  data,
   capabilities,
   setCapabilities,
-}: CapabilitySettingsProps) => {
+}: RoleSettingsModel) => {
   return (
-    <section className="role-settings-section" aria-labelledby={`${role.id}-capabilities-heading`}>
-      <h3 id={`${role.id}-capabilities-heading`}>Agent capabilities</h3>
-      {capabilityGroups.map((group) => (
-        <fieldset className="role-settings-capabilities" key={group.title}>
-          <legend>{group.title}</legend>
-          {group.entries.map(([key, label]) => (
-            <label className="checkbox-label" key={key}>
-              <Checkbox
-                checked={capabilities[key as keyof typeof capabilities]}
-                onCheckedChange={(checked) =>
-                  setCapabilities((current) => ({ ...current, [key]: checked }))
-                }
-              />
-              {label}
-            </label>
-          ))}
-        </fieldset>
-      ))}
-      <p className="quiet">
-        Crew follow-ups run after the current turn finishes, with at most six per chain. Agents
-        propose instruction and capability changes for you to apply in chat.
+    <section
+      className="agent-panel-section"
+      id="agent-tools"
+      aria-labelledby={`${role.id}-capabilities-heading`}
+    >
+      <h3 id={`${role.id}-capabilities-heading`}>Tools</h3>
+      <p className="agent-panel-fact">
+        Chat, your local Profile and assigned skills need no extra access. Exports, browser actions
+        and submissions still ask you first.
       </p>
+      <ToolGroups capabilities={capabilities} data={data} onChange={setCapabilities} />
     </section>
   );
 };

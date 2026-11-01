@@ -1,12 +1,12 @@
 import { ExternalLink } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button, buttonVariants } from '@pitchcrew/design-system/button';
 import type { ProfileSourcesModel } from '../types.ts';
 
 export const SourceConnection = (c: ProfileSourcesModel) => {
   return (
     <>
       {!c.canRead ? (
-        <div className="grid gap-3 rounded-lg bg-primary/5 p-4 text-sm">
+        <div className="ui-tray grid gap-3 text-label">
           <p className="text-muted-foreground">
             {c.provider === 'github'
               ? 'Connect GitHub with read access to this repository.'
@@ -29,7 +29,7 @@ export const SourceConnection = (c: ProfileSourcesModel) => {
       ) : null}
       {c.connection.authorizationUrl && c.connection.google?.pending ? (
         <a
-          className="button w-fit"
+          className={buttonVariants({ variant: 'outline', size: 'sm', className: 'w-fit' })}
           href={c.connection.authorizationUrl}
           target="_blank"
           rel="noreferrer"
