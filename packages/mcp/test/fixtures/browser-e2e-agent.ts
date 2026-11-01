@@ -1,20 +1,30 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import type { RuntimeAdapter } from '../../../core/src/index.ts';
+import { setTimeout as delay } from 'node:timers/promises';
 
 /** Deterministic provider boundary; calls the real scoped MCP stdio server. */
 export const browserE2EChat: RuntimeAdapter['chat'] = async (context) => {
   const client = new Client({ name: 'pitchcrew-browser-e2e', version: '1.0.0' });
   const transport = new StdioClientTransport({ ...context.mcp, stderr: 'pipe' });
   const call = async (name: string, args: Record<string, unknown> = {}) => {
-    const result = await client.callTool({ name: `pitchcrew_${name}`, arguments: args });
-    if (result.isError)
-      throw new Error(
-        (result.content as { type: string; text?: string }[])
-          .map((item) => item.text ?? '')
-          .join('\n'),
-      );
-    return result.structuredContent as Record<string, unknown>;
+    const deadline = Date.now() + 5000;
+    for (;;) {
+      context.signal.throwIfAborted();
+      const result = await client.callTool({ name: `pitchcrew_${name}`, arguments: args });
+      if (!result.isError) return result.structuredContent as Record<string, unknown>;
+      const detail = (result.content as { type: string; text?: string }[])
+        .map((item) => item.text ?? '')
+        .join('\n');
+      // Resizing owns the session lock. Retry only the pre-action approval request.
+      if (
+        name !== 'computer_request' ||
+        detail.trim() !== 'A browser action is in progress.' ||
+        Date.now() >= deadline
+      )
+        throw new Error(detail);
+      await delay(100, undefined, { signal: context.signal });
+    }
   };
   try {
     await client.connect(transport);
