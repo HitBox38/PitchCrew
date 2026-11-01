@@ -172,6 +172,11 @@ export const startDesktop = async () => {
       timeout: 30000,
     });
     page = await electron.firstWindow();
+    // CI desktops can be narrower than the split-view breakpoint.
+    // Modal-layout journeys explicitly expand the browser.
+    await electron.evaluate(({ BrowserWindow }) => {
+      BrowserWindow.getAllWindows()[0].setContentSize(1440, 1000);
+    });
     await electron.context().tracing.start({ snapshots: true, sources: true });
     await electron.evaluate(({ app, BrowserWindow }) => {
       const violations: string[] = [];

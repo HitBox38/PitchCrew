@@ -88,33 +88,48 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     assert.equal(await guest.read('window.lastInputTrusted'), true);
   });
   it('keeps a live native page and the same guest beneath a real application popover', async () => {
-    const guest = await activeGuest(app);
-    const before = await guest.read<number>(
-      'Number(document.querySelector("#pulse").getAnimations()[0].currentTime)',
-    );
-    const initialScale = await guest.read<number>('devicePixelRatio');
-    await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
-    await app.page.getByRole('button', { name: 'Zoom in', exact: true }).waitFor();
-    await assertLiveGuest(app, app.page.locator('[data-slot="popover-content"]'));
-    await until(
-      async () =>
-        (await guest.read<number>(
-          'Number(document.querySelector("#pulse").getAnimations()[0].currentTime)',
-        )) >
-        before + 2,
-      'The native page froze beneath its popover',
-    );
-    assert.equal((await activeGuest(app)).id, guest.id);
-    await app.page.getByRole('button', { name: 'Zoom in', exact: true }).click();
-    await until(
-      async () =>
-        Math.abs((await guest.read<number>('devicePixelRatio')) - initialScale * 1.25) < 0.05,
-      'Page zoom did not reach the actual guest',
-    );
-    await app.page.keyboard.press('Escape');
-    await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
-    await app.page.getByRole('button', { name: 'Reset page zoom', exact: true }).click();
-    await app.page.keyboard.press('Escape');
+    // Exercise the modal sheet used on narrow Windows CI desktops.
+    await app.page.getByRole('button', { name: 'Expand browser', exact: true }).click();
+    try {
+      await readyViewport(app);
+      const guest = await activeGuest(app);
+      const before = await guest.read<number>(
+        'Number(document.querySelector("#pulse").getAnimations()[0].currentTime)',
+      );
+      const initialScale = await guest.read<number>('devicePixelRatio');
+      await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
+      await app.page.getByRole('button', { name: 'Zoom in', exact: true }).waitFor();
+      await assertLiveGuest(app, app.page.locator('[data-slot="popover-content"]'));
+      await until(
+        async () =>
+          (await guest.read<number>(
+            'Number(document.querySelector("#pulse").getAnimations()[0].currentTime)',
+          )) >
+          before + 2,
+        'The native page froze beneath its popover',
+      );
+      assert.equal((await activeGuest(app)).id, guest.id);
+      await app.page.getByRole('button', { name: 'Zoom in', exact: true }).click();
+      await until(
+        async () =>
+          Math.abs((await guest.read<number>('devicePixelRatio')) - initialScale * 1.25) < 0.05,
+        'Page zoom did not reach the actual guest',
+      );
+      await app.page.keyboard.press('Escape');
+      await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
+      await app.page.getByRole('button', { name: 'Reset page zoom', exact: true }).click();
+      await until(
+        async () => Math.abs((await guest.read<number>('devicePixelRatio')) - initialScale) < 0.05,
+        'Reset page zoom did not reach the actual guest',
+      );
+      await app.page.keyboard.press('Escape');
+      await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).waitFor();
+      await app.page.getByRole('button', { name: 'Back to chat', exact: true }).waitFor();
+      assert.equal((await activeGuest(app)).id, guest.id);
+    } finally {
+      const back = app.page.getByRole('button', { name: 'Back to chat', exact: true });
+      if (await back.isVisible()) await back.click();
+    }
   });
   it(
     'keeps the guest live beneath real context menus, a confirmation dialog and a sheet',

@@ -24,6 +24,7 @@ export const NativeBrowserSettings = ({
   device: ReturnType<typeof useBrowserDevice>;
 }) => {
   const zoom = model.state?.tabs.find((tab) => tab.id === model.state?.activeTab)?.zoomFactor ?? 1;
+  // Pending commands disable the buttons; retain focus so Escape stays in this popover.
   const setZoom = (factor: number) => void model.command({ kind: 'zoom', factor });
   return (
     <Popover>
@@ -41,6 +42,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Zoom out"
+            focusableWhenDisabled
             disabled={!manual || zoom <= 0.25}
             onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
           >
@@ -50,6 +52,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Zoom in"
+            focusableWhenDisabled
             disabled={!manual || zoom >= 5}
             onClick={() => setZoom(Math.min(5, zoom + 0.25))}
           >
@@ -58,6 +61,7 @@ export const NativeBrowserSettings = ({
           <Button
             size="icon-sm"
             aria-label="Reset page zoom"
+            focusableWhenDisabled
             disabled={!manual || zoom === 1}
             onClick={() => setZoom(1)}
           >
