@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { useJobPage } from '../hooks/useJobPage.ts';
 
 /** Previous / range / Next directly under a column heading, so Next is never buried. */

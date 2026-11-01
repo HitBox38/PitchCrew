@@ -3,7 +3,7 @@ import { JobState } from './JobState.tsx';
 import { trackIndex } from '@/ClayInterface/helpers.ts';
 import { JobAgents } from './JobAgents.tsx';
 import type { CardDetailsModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ExternalLink, Pencil, X } from 'lucide-react';
 
 type JobSummaryProps = Pick<CardDetailsModel, 'card' | 'onClose'> &

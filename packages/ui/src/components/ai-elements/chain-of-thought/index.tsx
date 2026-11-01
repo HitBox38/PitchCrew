@@ -1,3 +1,3 @@
-export { TraceCollapsible as ChainOfThought } from '@/components/ui/trace/components/TraceCollapsible.tsx';
-export { TraceCollapsibleTrigger as ChainOfThoughtTrigger } from '@/components/ui/trace/components/TraceCollapsibleTrigger.tsx';
-export { TraceCollapsibleContent as ChainOfThoughtContent } from '@/components/ui/trace/components/TraceCollapsibleContent.tsx';
+export { TraceCollapsible as ChainOfThought } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleTrigger as ChainOfThoughtTrigger } from '@pitchcrew/design-system/trace';
+export { TraceCollapsibleContent as ChainOfThoughtContent } from '@pitchcrew/design-system/trace';

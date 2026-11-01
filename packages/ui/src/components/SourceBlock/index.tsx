@@ -1,10 +1,12 @@
-import { CodeBlock } from '@/components/ui/code-block/components/CodeBlock.tsx';
-import { CodeBlockHeader } from '@/components/ui/code-block/components/CodeBlockHeader.tsx';
-import { CodeBlockTitle } from '@/components/ui/code-block/components/CodeBlockTitle.tsx';
-import { CodeBlockActions } from '@/components/ui/code-block/components/CodeBlockActions.tsx';
-import { CodeBlockCopyButton } from '@/components/ui/code-block/components/CodeBlockCopyButton.tsx';
-import { CodeBlockContent } from '@/components/ui/code-block/components/CodeBlockContent.tsx';
-import { cn } from '@/lib/utils.ts';
+import {
+  CodeBlock,
+  CodeBlockHeader,
+  CodeBlockTitle,
+  CodeBlockActions,
+  CodeBlockCopyButton,
+  CodeBlockContent,
+} from '@pitchcrew/design-system/code-block';
+import { cn } from '@pitchcrew/design-system/utils';
 
 /** Exact source text for review and copying; content is never parsed as markup. */
 export const SourceBlock = ({

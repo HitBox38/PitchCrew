@@ -1,11 +1,11 @@
 import { CircleHelp } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverTitle,
-} from '@/components/ui/popover/index.tsx';
+} from '@pitchcrew/design-system/popover';
 export const BrowserModeHelp = ({ name }: { name: string }) => {
   return (
     <Popover>

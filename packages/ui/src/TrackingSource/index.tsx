@@ -1,4 +1,4 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { TrackingSignal } from '@pitchcrew/core';
 
 export const TrackingSource = ({ signal }: { signal: TrackingSignal }) => {

@@ -1,7 +1,7 @@
 import { useDirtyNotification } from '@/hooks/useDirtyNotification.ts';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { ExternalSubmissionFields } from '@/ExternalSubmissionFields/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { Card } from '@pitchcrew/core';
 import { useExternalSubmission } from './hooks/useExternalSubmission.ts';
 

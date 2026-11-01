@@ -1,4 +1,4 @@
-import { Dialog, DialogContent } from '@/components/ui/dialog/index.tsx';
+import { Dialog, DialogContent } from '@pitchcrew/design-system/dialog';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { CreationHeading } from './components/CreationHeading.tsx';
 import { CreationBody } from './components/CreationBody.tsx';

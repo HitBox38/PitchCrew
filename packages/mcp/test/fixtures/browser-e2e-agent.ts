@@ -16,13 +16,12 @@ export const browserE2EChat: RuntimeAdapter['chat'] = async (context) => {
       const detail = (result.content as { type: string; text?: string }[])
         .map((item) => item.text ?? '')
         .join('\n');
-      // Resizing owns the session lock. Retry only the pre-action approval request.
-      if (
-        name !== 'computer_request' ||
-        detail.trim() !== 'A browser action is in progress.' ||
-        Date.now() >= deadline
-      )
-        throw new Error(detail);
+      // Resizing owns the session lock, including when a new run first binds it.
+      // Retry only inspection and pre-action requests, never action execution.
+      const retryable =
+        (name === 'computer_inspect' && detail.trim() === 'A browser action is still finishing.') ||
+        (name === 'computer_request' && detail.trim() === 'A browser action is in progress.');
+      if (!retryable || Date.now() >= deadline) throw new Error(detail);
       await delay(100, undefined, { signal: context.signal });
     }
   };
@@ -46,11 +45,19 @@ export const browserE2EChat: RuntimeAdapter['chat'] = async (context) => {
           request === 'E2E: click Continue'
             ? { kind: 'click', selector: '#continue' }
             : { kind: 'fill', selector: '#name', value: 'Agent E2E' };
-        const { approval } = await call('computer_request', {
-          input: action,
-          reason: 'E2E exact action on the fictional application',
-        });
-        const id = (approval as { id: string }).id;
+        let requested: Record<string, unknown>;
+        try {
+          requested = await call('computer_request', {
+            input: action,
+            reason: 'E2E exact action on the fictional application',
+          });
+        } catch (error) {
+          // A failed evidence freeze saved no approval. Refresh before retrying;
+          // keep execution outside this catch so a performed action cannot replay.
+          if (/native browser viewport changed/i.test(String(error))) continue;
+          throw error;
+        }
+        const id = (requested.approval as { id: string }).id;
         let outcome: Record<string, unknown>;
         do {
           context.signal.throwIfAborted();

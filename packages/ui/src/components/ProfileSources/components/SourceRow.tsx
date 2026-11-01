@@ -1,7 +1,7 @@
 import { FolderOpen, GitBranch, RefreshCw } from 'lucide-react';
 import type { ProfileSource } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { sourceLocation } from '../helpers.ts';
 import { SourceMenu } from './SourceMenu.tsx';
 import { SourceProgress } from './SourceProgress.tsx';

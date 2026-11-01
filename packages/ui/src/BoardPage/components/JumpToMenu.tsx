@@ -1,7 +1,7 @@
 import type { Card } from '@pitchcrew/core';
 import { ChevronDown } from 'lucide-react';
 import { dropStages } from '@/board-stages.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 
 /** Stage links: each opens its column with the search cleared. Counts cover the whole group. */
 export const JumpToMenu = ({ cards, jump }: { cards: Card[]; jump: (stage: string) => void }) => (

@@ -1,5 +1,5 @@
 import { WorkspaceHeaderFact, WorkspaceHeaderPrimary } from '@/App/components/WorkspacePage.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ApplicationInsights } from '@pitchcrew/core/insights';
 import { Plus } from 'lucide-react';
 

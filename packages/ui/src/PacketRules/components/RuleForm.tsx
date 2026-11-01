@@ -1,6 +1,6 @@
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import { Trash2 } from 'lucide-react';
 import { fieldText, ruleFormKey } from '../form-helpers.ts';
 import { issuesForRule, issueText, ruleDetail } from '../helpers.ts';

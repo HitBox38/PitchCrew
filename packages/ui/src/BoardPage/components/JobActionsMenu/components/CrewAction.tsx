@@ -1,5 +1,5 @@
 import type { CrewShortcut } from '../types.ts';
-import { menuComponents } from '@/components/ui/context-menu/menu-components.ts';
+import { menuComponents } from '@pitchcrew/design-system/menu-components';
 import { Play, Square } from 'lucide-react';
 import { useId } from 'react';
 

@@ -1,11 +1,11 @@
 import { useRef, useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import { Trash2 } from 'lucide-react';
 import type { JobSource } from '@pitchcrew/core';
 import type { JobSourcesModel } from '../types.ts';

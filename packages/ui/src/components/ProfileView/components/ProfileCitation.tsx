@@ -3,7 +3,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { stateLabels } from '@/lib/labels.ts';
 

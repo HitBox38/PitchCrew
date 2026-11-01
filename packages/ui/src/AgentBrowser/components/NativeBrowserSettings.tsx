@@ -1,13 +1,13 @@
 import { NativeBrowserProfiles } from './NativeBrowserProfiles.tsx';
 import { NativeBrowserPageOptions } from './NativeBrowserPageOptions.tsx';
 import { Settings2, Minus, Plus, RotateCcw } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverTitle,
-} from '@/components/ui/popover/index.tsx';
+} from '@pitchcrew/design-system/popover';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
 import { BrowserToolsActions } from '@/NativeBrowserTools/components/BrowserToolsActions.tsx';
 import type { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';

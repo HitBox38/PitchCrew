@@ -1,5 +1,5 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const DesktopUpdateActions = () => {
   const state = useWorkspaceStore((store) => store.desktopUpdate);

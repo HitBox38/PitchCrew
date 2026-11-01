@@ -246,7 +246,21 @@ Native input: ${JSON.stringify(await fixture({ kind: 'input-signals', id: state.
     bounds: { x: 20, y: 100, width: 1280, height: 800 },
     before: `document.querySelector('#name').focus();document.querySelector('#name').select()`,
     inputs: [...'Human native edit'].map((keyCode) => ({ type: 'char', keyCode })),
-    expression: `({value:document.querySelector('#name').value,selection:(()=>{document.querySelector('h1').firstChild&&getSelection().selectAllChildren(document.querySelector('h1'));return getSelection().toString()})()})`,
+    // Native input is asynchronous. Selecting the heading before the characters
+    // arrive can steal the input's focus; observe delivery before testing selection.
+    expression: `new Promise((resolve, reject) => {
+      const until = performance.now() + 2000;
+      const read = () => {
+        const value = document.querySelector('#name').value;
+        if (value === 'Human native edit') {
+          getSelection().selectAllChildren(document.querySelector('h1'));
+          resolve({value, selection: getSelection().toString()});
+        } else if (performance.now() >= until) {
+          reject(new Error('Native keystrokes did not reach the focused input: ' + value));
+        } else requestAnimationFrame(read);
+      };
+      read();
+    })`,
   });
   assert.equal(typed.value, 'Human native edit');
   assert.equal(typed.selection, 'Fictional native application');

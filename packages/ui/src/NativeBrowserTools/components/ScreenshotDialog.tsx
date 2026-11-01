@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
 import { useScreenshotCanvas } from '../hooks/useScreenshotCanvas.ts';
 import { useScreenshotActions } from '../hooks/useScreenshotActions.ts';

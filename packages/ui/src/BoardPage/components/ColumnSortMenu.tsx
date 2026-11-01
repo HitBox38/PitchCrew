@@ -1,5 +1,5 @@
 import { ArrowDownWideNarrow } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { boardSortOptions, defaultBoardSort, type BoardSort } from '../sorting.ts';
 
 /** Single-choice sort menu; the trigger names the current choice and marks a non-default one. */

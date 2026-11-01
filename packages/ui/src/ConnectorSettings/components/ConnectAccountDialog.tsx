@@ -1,5 +1,5 @@
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { GoogleConnectionSetup } from '@/ConnectorSettings/components/GoogleConnectionSetup.tsx';
 import { GithubConnectionDialog } from './GithubConnectionDialog.tsx';
 import { GoogleCliConnectionDialog } from './GoogleCliConnectionDialog.tsx';

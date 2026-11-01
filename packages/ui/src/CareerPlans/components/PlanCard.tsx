@@ -1,6 +1,6 @@
 import type { CareerPlan } from '@pitchcrew/core';
-import { AccordionSection } from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { planScope } from '../helpers.ts';
 import { GapItem } from './GapItem.tsx';
 import { PlanPriorities } from './PlanPriorities.tsx';

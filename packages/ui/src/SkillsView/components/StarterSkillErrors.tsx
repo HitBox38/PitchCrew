@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { groupedStarterErrors } from '../helpers.ts';
 

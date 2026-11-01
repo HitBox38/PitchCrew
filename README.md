@@ -242,20 +242,21 @@ Create feature, fix, refactor, documentation and maintenance branches from the l
 
 The standalone public landing page uses Next.js in `packages/landing`. Run `bun run landing:dev` at **http://127.0.0.1:3000**, `bun run landing:build` for its production build, and `bun run landing:start` to serve that build. It is independent of the local app and uses fictional demo screenshots. Vercel deployment is configured later; see [landing page setup](docs/landing-page.md).
 
-The workspace uses strict TypeScript, Bun workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Oxlint and Oxfmt handle linting and formatting; Vitest runs the complete suite on Node, and a separate Bun integration check exercises the daemon, MCP and bounded helpers.
+The workspace uses strict TypeScript, Bun workspaces, SQLite, Fastify and the official MCP SDK. The shared UI uses React, shadcn/ui, AI Elements, Tailwind, TanStack Router and Zustand, built with Vite 8. Electron hosts the same renderer. Reusable primitives and the paper/clay theme live in [`@pitchcrew/design-system`](packages/design-system/README.md), shared with the landing page. Oxlint and Oxfmt handle linting and formatting; Vitest runs the complete suite on Node, and a separate Bun integration check exercises the daemon, MCP and bounded helpers.
 
 Pitchcrew launches runtime CLIs with scoped MCP tools. Shared work is persisted on the board, with an append-only event history; the runtime supplies the agent execution loop.
 
-| Package                 | Responsibility                                                     |
-| ----------------------- | ------------------------------------------------------------------ |
-| `packages/core`         | Contracts, validation, capabilities and card transitions           |
-| `packages/board`        | SQLite events, projections and approval state                      |
-| `packages/orchestrator` | Loopback daemon, run launches, crew tasks and routines             |
-| `packages/adapters`     | Provider-specific CLI and ACP integrations, plus Demo              |
-| `packages/mcp`          | Scoped tools, read-only connectors and export/browser gates        |
-| `packages/packet`       | Evidence checks, packet rules, packet files and PDF/DOCX rendering |
-| `packages/ui`           | Shared browser and desktop renderer                                |
-| `packages/desktop`      | Sandboxed Electron host                                            |
+| Package                  | Responsibility                                                     |
+| ------------------------ | ------------------------------------------------------------------ |
+| `packages/core`          | Contracts, validation, capabilities and card transitions           |
+| `packages/board`         | SQLite events, projections and approval state                      |
+| `packages/orchestrator`  | Loopback daemon, run launches, crew tasks and routines             |
+| `packages/adapters`      | Provider-specific CLI and ACP integrations, plus Demo              |
+| `packages/mcp`           | Scoped tools, read-only connectors and export/browser gates        |
+| `packages/packet`        | Evidence checks, packet rules, packet files and PDF/DOCX rendering |
+| `packages/design-system` | Reusable React primitives, utilities and theme for app and landing |
+| `packages/ui`            | Shared browser and desktop renderer                                |
+| `packages/desktop`       | Sandboxed Electron host                                            |
 
 ```sh
 bun run lint

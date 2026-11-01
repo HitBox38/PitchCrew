@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { PdfThumbnail } from './PdfThumbnail.tsx';
 export const PdfSidebar = ({
   document,

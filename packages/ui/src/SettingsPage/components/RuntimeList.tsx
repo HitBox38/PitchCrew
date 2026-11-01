@@ -2,7 +2,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { RuntimeRow } from '@/RuntimeMaintenance/components/RuntimeRow.tsx';
 import type { Snapshot } from '@pitchcrew/core';
 import { ChevronDown } from 'lucide-react';

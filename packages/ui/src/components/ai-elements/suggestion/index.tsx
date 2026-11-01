@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import { cn } from '@pitchcrew/design-system/utils';
 
 export const Suggestions = ({ className, ...props }: ComponentProps<'div'>) => {
   return (

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { creationSteps } from '../constants.ts';
 import type { CreationController } from '../types.ts';
 

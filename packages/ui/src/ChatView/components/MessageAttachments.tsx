@@ -1,13 +1,15 @@
 import type { ChatMessage } from '@pitchcrew/core';
 import { Download, FileText, ImageIcon } from 'lucide-react';
 import { useState } from 'react';
-import { Attachment } from '@/components/ui/attachment/components/Attachment.tsx';
-import { AttachmentMedia } from '@/components/ui/attachment/components/AttachmentMedia.tsx';
-import { AttachmentContent } from '@/components/ui/attachment/components/AttachmentContent.tsx';
-import { AttachmentTitle } from '@/components/ui/attachment/components/AttachmentTitle.tsx';
-import { AttachmentDescription } from '@/components/ui/attachment/components/AttachmentDescription.tsx';
-import { AttachmentActions } from '@/components/ui/attachment/components/AttachmentActions.tsx';
-import { AttachmentTrigger } from '@/components/ui/attachment/components/AttachmentTrigger.tsx';
+import {
+  Attachment,
+  AttachmentMedia,
+  AttachmentContent,
+  AttachmentTitle,
+  AttachmentDescription,
+  AttachmentActions,
+  AttachmentTrigger,
+} from '@pitchcrew/design-system/attachment';
 
 import { attachmentSize } from '../attachment-helpers.ts';
 import { downloadAttachment } from '../api.ts';

@@ -2,11 +2,10 @@ import { useState } from 'react';
 import type { WritingPreference } from '@pitchcrew/core';
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges.ts';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
+import { Sheet, SheetContent } from '@pitchcrew/design-system/sheet';
 import { SheetHeading } from '@/components/SheetHeading/index.tsx';
-import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { writingScopes } from '@/lib/application-quality.ts';
 

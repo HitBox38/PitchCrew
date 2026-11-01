@@ -4,11 +4,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
+} from '@pitchcrew/design-system/dialog';
 import { ProfileSources } from '@/components/ProfileSources/index.tsx';
 import { useSourceDialogFocus } from '@/components/ProfileSources/hooks/useSourceDialogFocus.ts';
 import { sourceHeading } from '@/components/ProfileSources/helpers.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ArrowLeft } from 'lucide-react';
 import type { ProfileViewModel } from '../types.ts';
 

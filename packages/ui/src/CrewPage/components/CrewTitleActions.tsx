@@ -1,7 +1,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { Snapshot } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   WorkspaceHeaderActions,
   WorkspaceHeaderFact,

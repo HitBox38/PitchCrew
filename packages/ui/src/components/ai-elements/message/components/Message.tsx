@@ -1,7 +1,7 @@
 import type { MessageProps } from '../types.ts';
 import { MessageRoleContext } from '../context.ts';
-import { Message as MessageRoot } from '@/components/ui/message/components/Message.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Message as MessageRoot } from '@pitchcrew/design-system/message';
+import { cn } from '@pitchcrew/design-system/utils';
 
 export const Message = ({ className, from, ...props }: MessageProps) => (
   <MessageRoleContext value={from}>

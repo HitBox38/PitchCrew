@@ -1,5 +1,5 @@
 import { useCommandState } from 'cmdk';
-import { CommandEmpty } from '@/components/ui/command/components/CommandEmpty.tsx';
+import { CommandEmpty } from '@pitchcrew/design-system/command';
 
 export const PaletteEmpty = () => {
   const search = useCommandState((state) => state.search);

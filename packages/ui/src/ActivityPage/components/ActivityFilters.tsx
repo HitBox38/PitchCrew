@@ -1,13 +1,13 @@
 import { eventKindLabels } from '@/ActivityPage/constants.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select/index.tsx';
+} from '@pitchcrew/design-system/select';
 import { Search, X } from 'lucide-react';
 
 /** Scoped search and the existing event-type filter, in the page title row. */

@@ -1,6 +1,6 @@
 import { Maximize2, Minimize2 } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Kbd } from '@/components/ui/kbd/components/Kbd.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Kbd } from '@pitchcrew/design-system/kbd';
 
 /** Expands the browser over the window or returns to the split view ("Back to chat"), which
  * Escape also does. */

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ChevronDown, ChevronRight, FileText } from 'lucide-react';
 import type { ProfileTreeNode } from '../types.ts';
 import type { KeyboardEvent } from 'react';

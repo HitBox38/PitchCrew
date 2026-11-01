@@ -3,7 +3,7 @@ import type { Approval, Card, ComputerApproval, Snapshot } from '@pitchcrew/core
 import type { Action } from '@/WorkspaceStore/index.ts';
 import { BrowserDecisionFooter } from '@/components/InboxView/components/BrowserDecisionFooter.tsx';
 import { PacketApprovalActions } from '@/components/InboxView/components/PacketApprovalActions.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { Decision } from '@/ClayInterface/signals.ts';
 import { briefAnswersNeeded } from '../helpers.ts';
 

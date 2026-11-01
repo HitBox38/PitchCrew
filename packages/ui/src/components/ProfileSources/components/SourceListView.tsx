@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SourceList } from './SourceList.tsx';
 import { SourceProviderChoices } from './SourceProviderChoices.tsx';
 import { SourceProposalLinks } from './SourceProposalLinks.tsx';

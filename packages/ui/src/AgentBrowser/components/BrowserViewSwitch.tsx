@@ -1,7 +1,5 @@
 import { FileText, Globe } from 'lucide-react';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
+import { Tabs, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 import type { BrowserPanelView } from '../layout.ts';
 
 export const browserPagePanelId = 'agent-browser-page';

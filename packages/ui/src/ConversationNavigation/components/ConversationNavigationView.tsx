@@ -1,5 +1,5 @@
 import { SidebarCategory } from '@/AppSidebar/components/SidebarCategory.tsx';
-import { SidebarGroupContent } from '@/components/ui/sidebar/components/SidebarGroupContent.tsx';
+import { SidebarGroupContent } from '@pitchcrew/design-system/sidebar';
 import { ConversationShortcuts } from './ConversationShortcuts.tsx';
 import { ChatsActions } from './ChatsActions.tsx';
 import { ChatsList } from './ChatsList.tsx';

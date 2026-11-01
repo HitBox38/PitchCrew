@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { skillContentLimit } from '@pitchcrew/core/base-skills';
 import type { SkillEditorModel } from '../types.ts';
 import { LoaderCircle } from 'lucide-react';

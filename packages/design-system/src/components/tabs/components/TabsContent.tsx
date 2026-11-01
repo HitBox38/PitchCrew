@@ -1,0 +1,13 @@
+import type { TabsContentProps } from '../types.ts';
+import { cn } from '../../../lib/utils.ts';
+import { Tabs as TabsPrimitive } from '@base-ui/react/tabs';
+
+export const TabsContent = ({ className, ...props }: TabsContentProps) => {
+  return (
+    <TabsPrimitive.Panel
+      data-slot="tabs-content"
+      className={cn('primitive:flex-1 primitive:outline-none', className)}
+      {...props}
+    />
+  );
+};

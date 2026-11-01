@@ -12,7 +12,7 @@ Durable product context lives in `packages/landing/PRODUCT.md`; the page's direc
 
 ## Design
 
-The page deliberately shares the desktop app's world and imports the app's `theme.css`: paper `#f2f1ec`, surface `#f8f7f3`, ink `#2b2d31`, blue `#3a5482` for the primary action, Scout teal `#2f6a69`, Writer plum `#76517a` and Reviewer moss `#53673d`, with the app's dark ink palette for the dark theme. Fraunces supplies headlines and Source Sans 3 body text and controls; both are served locally. Clay volume is reserved for things people press. Dark mode follows the system by default, with a keyboard-accessible Light / Dark / System menu in the header. A small head script applies the saved theme before paint; the versioned website preference synchronizes across tabs and follows live system changes when System is selected. Storage failures still allow a choice for the current visit.
+The page deliberately shares the desktop app's world and imports `@pitchcrew/design-system/styles.css` for its theme and primitives: paper `#f2f1ec`, surface `#f8f7f3`, ink `#2b2d31`, blue `#3a5482` for the primary action, Scout teal `#2f6a69`, Writer plum `#76517a` and Reviewer moss `#53673d`, with the app's dark ink palette for the dark theme. Fraunces supplies headlines and Source Sans 3 body text and controls; both are served locally. Clay volume is reserved for things people press. Dark mode follows the system by default, with a keyboard-accessible Light / Dark / System menu in the header. A small head script applies the saved theme before paint; the versioned website preference synchronizes across tabs and follows live system changes when System is selected. Storage failures still allow a choice for the current visit.
 
 The first viewport pairs a centred whole-search headline with a journey frame: the fictional Forma job, four keyboard-navigable stage tabs (Fit, Draft, Review, Track) in the role colours, an approval note, and for the selected stage its copy beside the app's Job details drawer rendered from its own components (heading, metadata, state, contextual action footer, Job / Application / Activity tabs, brief summary, packet and Sources, history) with fictional Forma data. The drawer's own action buttons advance the walkthrough to the next stage, and stage changes animate only after the visitor acts. The header carries a filled Download.
 
@@ -39,6 +39,8 @@ Brand / GitHub / Documentation / MIT License / Opt out of analytics
 Avoid generic dashboard illustrations, testimonials, made-up statistics, eyebrow labels and repeating card grids. Motion belongs to the claim tracer and the journey's stage changes; other sections stay still.
 
 ## Development
+
+Shared controls and theme come from the `@pitchcrew/design-system` workspace package, compiled by Next.js with explicit Tailwind source scanning in the shared CSS entry. The landing button and platform-tab wrappers only adapt marketing variants and layout; they reuse the same primitives as the app. App-specific job and chat demo components still come from `packages/ui` through the existing alias.
 
 Use Bun 1.4.4 from the root `.bun-version`/`packageManager` pin and a supported Node engine for the Next.js build CLI, then `bun install --frozen-lockfile`. `bun run landing:dev` serves the page at `http://127.0.0.1:3000`; `bun run landing:build` creates the production build, and `bun run landing:start` serves it. Root lint, formatting and type checks cover the site; CI builds it separately from desktop packaging.
 

@@ -2,7 +2,7 @@ import { useNavigate } from '@tanstack/react-router';
 import type { CommandPaletteProps } from '@/CommandPalette/types.ts';
 import type { ChatThread } from '@/navigation.ts';
 import { useManualUpdateCheck } from '@/AppUpdates/hooks/useManualUpdateCheck.ts';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { requestNewNote } from '@/lib/new-note.ts';
 import { useWorkspaceNavigation } from '@/workspace-navigation.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';

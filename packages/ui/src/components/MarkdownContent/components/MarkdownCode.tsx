@@ -1,11 +1,13 @@
 import type { ComponentProps } from 'react';
 import { defaultComponents, type ExtraProps } from 'streamdown';
-import { CodeBlock } from '@/components/ui/code-block/components/CodeBlock.tsx';
-import { CodeBlockHeader } from '@/components/ui/code-block/components/CodeBlockHeader.tsx';
-import { CodeBlockTitle } from '@/components/ui/code-block/components/CodeBlockTitle.tsx';
-import { CodeBlockActions } from '@/components/ui/code-block/components/CodeBlockActions.tsx';
-import { CodeBlockCopyButton } from '@/components/ui/code-block/components/CodeBlockCopyButton.tsx';
-import { CodeBlockContent } from '@/components/ui/code-block/components/CodeBlockContent.tsx';
+import {
+  CodeBlock,
+  CodeBlockHeader,
+  CodeBlockTitle,
+  CodeBlockActions,
+  CodeBlockCopyButton,
+  CodeBlockContent,
+} from '@pitchcrew/design-system/code-block';
 
 export const MarkdownCode = ({
   children,

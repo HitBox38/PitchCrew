@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Keyboard, X } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import type { BrowserControl } from '../types.ts';
 import { BrowserInputKeys } from './BrowserInputKeys.tsx';
 export const BrowserManualInput = ({ control }: { control: BrowserControl }) => {

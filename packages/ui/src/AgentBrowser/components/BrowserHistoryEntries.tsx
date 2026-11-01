@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserHistoryEntry } from '../history.ts';
 
 export const BrowserHistoryEntries = ({

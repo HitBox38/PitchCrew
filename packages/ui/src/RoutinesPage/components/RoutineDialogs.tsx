@@ -1,5 +1,5 @@
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { Action } from '@/WorkspaceStore/types.ts';
 import type { Snapshot } from '@pitchcrew/core';
 import type { useRoutinesPage } from '../hooks/useRoutinesPage.ts';

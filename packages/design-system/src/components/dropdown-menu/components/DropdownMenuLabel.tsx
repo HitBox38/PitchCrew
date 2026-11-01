@@ -1,0 +1,17 @@
+import type { DropdownMenuLabelProps } from '../types.ts';
+import { cn } from '../../../lib/utils.ts';
+import { Menu as MenuPrimitive } from '@base-ui/react/menu';
+
+export const DropdownMenuLabel = ({ className, inset, ...props }: DropdownMenuLabelProps) => {
+  return (
+    <MenuPrimitive.GroupLabel
+      data-slot="dropdown-menu-label"
+      data-inset={inset}
+      className={cn(
+        'primitive:px-2 primitive:py-1.5 primitive:text-sm primitive:font-medium primitive:data-inset:pl-8',
+        className,
+      )}
+      {...props}
+    />
+  );
+};

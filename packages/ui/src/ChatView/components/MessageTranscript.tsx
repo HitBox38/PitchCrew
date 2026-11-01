@@ -7,7 +7,7 @@ import { messageDay } from '@/ChatView/helpers.ts';
 import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { useTranscriptJobEvents } from '../hooks/useTranscriptJobEvents.ts';
 import { AnimatePresence } from 'motion/react';
-import { MessageScrollerItem } from '@/components/ui/message-scroller/components/MessageScrollerItem.tsx';
+import { MessageScrollerItem } from '@pitchcrew/design-system/message-scroller';
 
 /** A reply directly under its own turn; both hang on one thread. */
 const repliesTo = (previous: TranscriptItem | undefined, message: ChatMessage) =>

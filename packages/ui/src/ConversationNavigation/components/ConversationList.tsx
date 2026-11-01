@@ -1,4 +1,4 @@
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
+import { SidebarMenu } from '@pitchcrew/design-system/sidebar';
 import { ConversationLink } from './ConversationLink.tsx';
 import type { ConversationNavigationRow } from '../types.ts';
 import type { ConversationMenuActions } from './ConversationMenu.tsx';

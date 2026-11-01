@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import type { Ref } from 'react';
 
 /** Find chats: searches titles, participants and the full saved message history. */

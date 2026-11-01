@@ -1,5 +1,5 @@
 import { Bot, Globe, Hand } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserControl, AgentBrowserProps } from '../types.ts';
 export const BrowserControls = ({
   browserPanel,

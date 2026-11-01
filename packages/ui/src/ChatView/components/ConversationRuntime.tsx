@@ -1,6 +1,6 @@
 import type { ChatViewModel } from '../types.ts';
 import { ChatSidePanel } from './ChatSidePanel.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { ModelField } from '@/ModelField/index.tsx';
 import { useConversationRuntime } from '../hooks/useConversationRuntime.ts';

@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { FileCheck2, LoaderCircle } from 'lucide-react';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { buttonVariants } from '@/components/ui/button/constants.ts';
+import { buttonVariants } from '@pitchcrew/design-system/button';
 
 export const SourceActivity = () => {
   const progress = useWorkspaceStore((state) => state.profileSources.progress);

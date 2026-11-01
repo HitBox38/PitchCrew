@@ -5,14 +5,14 @@ import { citationFile } from '../file-citations.ts';
 import { loadCitationAttachment } from '../api.ts';
 import { parseFileCitation } from '@pitchcrew/core/chat-citations';
 import type { ViewerFile } from '@/FileViewer/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
   PopoverTitle,
   PopoverDescription,
-} from '@/components/ui/popover/index.tsx';
+} from '@pitchcrew/design-system/popover';
 const FileViewer = lazy(() =>
   import('@/FileViewer/index.tsx').then((module) => ({ default: module.FileViewer })),
 );

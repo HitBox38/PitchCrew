@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { BriefActions } from './components/BriefActions.tsx';
 import { FlaggedSource } from './components/FlaggedSource.tsx';
 import { BriefFields } from './components/BriefFields.tsx';

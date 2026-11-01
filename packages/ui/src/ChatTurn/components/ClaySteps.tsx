@@ -1,7 +1,7 @@
 import type { RunActivity } from '@pitchcrew/core';
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Trace } from '@/components/ui/trace/components/Trace.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Trace } from '@pitchcrew/design-system/trace';
 import { ActivityStep } from './ActivityStep.tsx';
 
 // Long turns show their latest steps; earlier ones stay one click away.

@@ -1,13 +1,13 @@
 import { useRef, useState } from 'react';
 import { Download, Ellipsis, RotateCcw, Upload } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 import { RestoreDefaults } from './RestoreDefaults.tsx';
 

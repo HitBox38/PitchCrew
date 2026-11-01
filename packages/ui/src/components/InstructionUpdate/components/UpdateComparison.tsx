@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { InstructionUpdateModel } from '../types.ts';
 import { InstructionDiff } from './InstructionDiff.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 
 const views = [

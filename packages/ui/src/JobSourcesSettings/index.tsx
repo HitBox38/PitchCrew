@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { Plus, Radar } from 'lucide-react';
 import { ScanSummary } from './components/ScanSummary.tsx';
 import { SourceEditor } from './components/SourceEditor.tsx';

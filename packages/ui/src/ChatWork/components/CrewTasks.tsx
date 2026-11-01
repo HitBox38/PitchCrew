@@ -3,7 +3,7 @@ import { taskLabels } from '@/ChatWork/constants.ts';
 import type { CrewTasksProps } from '@/ChatWork/types.ts';
 import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { timeAgo } from '@/lib/time.ts';
 import { GitBranch } from 'lucide-react';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';

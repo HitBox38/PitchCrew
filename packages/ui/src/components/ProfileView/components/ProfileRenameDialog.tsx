@@ -6,9 +6,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+} from '@pitchcrew/design-system/dialog';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 import { filenameProblem } from '../helpers.ts';
 
 /** Drafts a filename on the note's tab; Save writes the note under it. */

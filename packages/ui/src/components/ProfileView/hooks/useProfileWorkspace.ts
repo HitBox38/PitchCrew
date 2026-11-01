@@ -1,4 +1,4 @@
-import { useIsMobile } from '@/hooks/use-mobile.ts';
+import { useIsMobile } from '@pitchcrew/design-system/use-mobile';
 import { useState } from 'react';
 import type { ProfileViewModel } from '../types.ts';
 

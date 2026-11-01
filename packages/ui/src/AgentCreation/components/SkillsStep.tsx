@@ -1,6 +1,6 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { skillSize } from '../helpers.ts';
 import type { StepProps } from '../types.ts';
 

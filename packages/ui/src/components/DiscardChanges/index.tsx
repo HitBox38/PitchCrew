@@ -5,8 +5,8 @@ import {
   DialogContent,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+} from '@pitchcrew/design-system/dialog';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const DiscardChanges = ({
   guard,

@@ -1,6 +1,6 @@
 import type { ChatComposerProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@pitchcrew/design-system/tooltip';
 import { Square } from 'lucide-react';
 
 export const ComposerStop = ({

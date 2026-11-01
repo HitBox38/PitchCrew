@@ -1,5 +1,5 @@
 import type { CareerGap, CareerPlan } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { gapKinds, planProgress } from '@/lib/application-quality.ts';
 import { GapSources } from './GapSources.tsx';

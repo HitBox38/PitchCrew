@@ -3,11 +3,13 @@ import type { WorkspaceLinksProps } from '@/AppSidebar/types.ts';
 import { primaryShortcutViews, viewIcons, viewTitles } from '@/AppSidebar/constants.ts';
 import { countedLabel } from '@/AppSidebar/helpers.ts';
 import { MoreMenu } from '@/AppSidebar/components/MoreMenu.tsx';
-import { SidebarGroup } from '@/components/ui/sidebar/components/SidebarGroup.tsx';
-import { SidebarMenu } from '@/components/ui/sidebar/components/SidebarMenu.tsx';
-import { SidebarMenuBadge } from '@/components/ui/sidebar/components/SidebarMenuBadge.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
+import {
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@pitchcrew/design-system/sidebar';
 import { viewPaths } from '@/navigation.ts';
 import { isMac } from '@/shortcuts.ts';
 

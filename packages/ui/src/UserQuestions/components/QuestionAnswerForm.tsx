@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { QuestionAnswerFields } from './QuestionAnswerFields.tsx';
 import { useQuestionAnswer } from '../hooks/useQuestionAnswer.ts';
 import type { QuestionFormProps } from '../types.ts';

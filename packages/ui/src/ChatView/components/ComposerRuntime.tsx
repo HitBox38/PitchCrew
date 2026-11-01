@@ -1,5 +1,5 @@
 import type { ChatComposerProps } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { reasoningLabels } from '@/lib/reasoning.ts';
 import { ChevronDown, Cpu } from 'lucide-react';

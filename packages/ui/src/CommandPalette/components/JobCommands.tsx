@@ -1,6 +1,6 @@
 import type { JobCommandsProps } from '@/CommandPalette/types.ts';
 import { CompanyMark } from '@/components/CompanyMark/index.tsx';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
 import { stateLabels } from '@/lib/labels.ts';
 import { useJobCommands } from '../hooks/useJobCommands.ts';
 import { JobCommandPages } from './JobCommandPages.tsx';

@@ -1,7 +1,7 @@
 import { createContext, useContext } from 'react';
 import type { ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 
 export type HeaderTargets = {
   fact: HTMLSpanElement | null;

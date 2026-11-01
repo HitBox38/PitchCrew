@@ -1,6 +1,6 @@
 import { packetDocumentLabels } from '@/lib/packet-labels.ts';
 import type { PacketDocumentPickerProps } from '@/components/CardDetails/types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const PacketDocumentPicker = ({ document, setDocument }: PacketDocumentPickerProps) => {
   return (

@@ -1,7 +1,7 @@
 import { CircleDot, EyeOff, Info, ShieldCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { PopoverTrigger } from '@/components/ui/popover/index.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import { PopoverTrigger } from '@pitchcrew/design-system/popover';
+import { cn } from '@pitchcrew/design-system/utils';
 import type { BrowserModeChip } from '../layout.ts';
 
 const icons = { supervised: CircleDot, autonomous: ShieldCheck, private: EyeOff };

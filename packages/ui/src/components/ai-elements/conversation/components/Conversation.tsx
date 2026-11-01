@@ -1,6 +1,8 @@
 import type { ConversationProps } from '../types.ts';
-import { MessageScroller } from '@/components/ui/message-scroller/components/MessageScroller.tsx';
-import { MessageScrollerProvider } from '@/components/ui/message-scroller/components/MessageScrollerProvider.tsx';
+import {
+  MessageScroller,
+  MessageScrollerProvider,
+} from '@pitchcrew/design-system/message-scroller';
 
 export const Conversation = ({
   autoScroll = true,

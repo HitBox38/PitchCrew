@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { boardExamples, boardHelp, boardLabels, tokenHelp, tokenProviders } from '../constants.ts';
 import type { JobSourcesModel, SourceDraft } from '../types.ts';
 

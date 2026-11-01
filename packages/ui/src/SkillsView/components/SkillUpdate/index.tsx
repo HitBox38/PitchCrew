@@ -1,6 +1,6 @@
 import type { Skill } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RefreshCw } from 'lucide-react';
 import { useSkillUpdate } from './hooks/useSkillUpdate.ts';
 import { SkillUpdateReview } from './components/SkillUpdateReview.tsx';

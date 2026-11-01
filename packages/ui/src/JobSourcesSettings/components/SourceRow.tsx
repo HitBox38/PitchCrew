@@ -1,7 +1,7 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { jobProviderLabels } from '@/lib/labels.ts';
 import type { JobSource } from '@pitchcrew/core';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { RemoveSource } from './RemoveSource.tsx';
 import { filterSummary, lastScanText } from '../helpers.ts';
 import type { JobSourcesModel } from '../types.ts';

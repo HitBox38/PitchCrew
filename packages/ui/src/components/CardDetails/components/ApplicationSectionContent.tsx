@@ -4,7 +4,7 @@ import { ReviewLaunch } from '@/DeepResumeReview/components/ReviewLaunch.tsx';
 import { DeepResumeReview } from '@/DeepResumeReview/index.tsx';
 import { ApplicationDocuments } from './ApplicationDocuments.tsx';
 import { ExportRequest } from './ExportRequest.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { packetNeedsReview } from '../helpers.ts';
 import { HandoffSummary } from '@/components/InboxView/components/PacketHandoff.tsx';
 import { cardHandoff } from '@/components/InboxView/handoff.ts';

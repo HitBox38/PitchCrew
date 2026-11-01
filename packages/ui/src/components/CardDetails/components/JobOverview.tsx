@@ -2,7 +2,7 @@ import { keyedItems } from '@/lib/list-keys.ts';
 import { PacketFit } from './PacketFit.tsx';
 import { JobMetadata } from './JobMetadata.tsx';
 import type { JobOverviewProps } from '../types.ts';
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
 export const JobOverview = (model: JobOverviewProps) => {
   const { card } = model;

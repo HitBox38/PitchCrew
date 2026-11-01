@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SourceProgress } from './SourceProgress.tsx';
 import type { ImportReviewProps } from '../types.ts';
 

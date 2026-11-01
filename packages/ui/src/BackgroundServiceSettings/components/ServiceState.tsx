@@ -1,5 +1,5 @@
 import type { BackgroundServiceInfo } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { Download, LoaderCircle } from 'lucide-react';
 import { serviceBadges, serviceNotes, serviceRunning } from '../helpers.ts';
 import { ServiceCommands } from './ServiceCommands.tsx';

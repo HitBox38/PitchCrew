@@ -1,7 +1,7 @@
 import type { RuntimeInfo, RuntimeMaintenanceState, RuntimeUpdateInfo } from '@pitchcrew/core';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RuntimeAuthentication } from './RuntimeAuthentication.tsx';
 import { RefreshCw } from 'lucide-react';
 import { runtimeLabels } from '@/lib/labels.ts';

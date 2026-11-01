@@ -1,6 +1,6 @@
 import type { ProfileDocument } from '../types.ts';
-import { TabsTrigger } from '@/components/ui/tabs/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { TabsTrigger } from '@pitchcrew/design-system/tabs';
+import { Button } from '@pitchcrew/design-system/button';
 import { documentDirty } from '../helpers.ts';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';

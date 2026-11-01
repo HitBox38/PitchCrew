@@ -4,9 +4,7 @@ import { RankedResults } from '@/CommandPalette/components/RankedResults.tsx';
 import { WorkspaceCommands } from '@/CommandPalette/components/WorkspaceCommands.tsx';
 import { useCommandPalette } from '@/CommandPalette/hooks/useCommandPalette.ts';
 import type { CommandPaletteProps } from '@/CommandPalette/types.ts';
-import { CommandDialog } from '@/components/ui/command/components/CommandDialog.tsx';
-import { CommandInput } from '@/components/ui/command/components/CommandInput.tsx';
-import { CommandList } from '@/components/ui/command/components/CommandList.tsx';
+import { CommandDialog, CommandInput, CommandList } from '@pitchcrew/design-system/command';
 import { PaletteEmpty } from './components/PaletteEmpty.tsx';
 
 /** Actions, Jobs, Conversations, Pages, Settings and Crew in one 600px search sheet. */

@@ -1,13 +1,13 @@
 import { Settings2 } from 'lucide-react';
-import { Button } from '@/components/ui/button/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog/index.tsx';
-import { Switch } from '@/components/ui/switch/index.tsx';
+} from '@pitchcrew/design-system/dialog';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 
 export const EditorSettings = () => {

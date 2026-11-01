@@ -3,8 +3,8 @@ import { RequestDeliveryStatus } from './RequestDeliveryStatus.tsx';
 import { useQueuedMessage } from '../hooks/useQueuedMessage.ts';
 import type { ChatRequest, Snapshot } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/types.ts';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Button } from '@pitchcrew/design-system/button';
 export const QueuedMessage = ({
   request,
   data,

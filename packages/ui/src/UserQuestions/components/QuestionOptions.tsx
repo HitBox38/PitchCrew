@@ -1,6 +1,6 @@
 import type { UserInputRequest } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { Check } from 'lucide-react';
 /** The option's number key, shown as in T3 Code's question panel. */
 const OptionKey = ({ index }: { index: number }) =>

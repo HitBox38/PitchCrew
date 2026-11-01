@@ -1,5 +1,5 @@
 import { Archive, ArchiveRestore, Trash2 } from 'lucide-react';
-import { menuComponents } from '@/components/ui/context-menu/menu-components.ts';
+import { menuComponents } from '@pitchcrew/design-system/menu-components';
 import type { ConversationNavigationRow } from '../types.ts';
 import type { ConversationMenuActions } from './ConversationMenu.tsx';
 

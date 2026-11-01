@@ -27,6 +27,7 @@ const maximumLines = 100;
 const violations: string[] = [];
 let components = 0;
 
+await checkDirectory('packages/design-system/src', true);
 await checkDirectory('packages/ui/src', true);
 await checkDirectory('packages/landing/src');
 if (violations.length) {

@@ -1,5 +1,5 @@
 import type { MessageResponseProps } from '@/components/ai-elements/message/types.ts';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '@pitchcrew/design-system/utils';
 import { memo } from 'react';
 import { MarkdownContent } from '@/components/MarkdownContent/index.tsx';
 

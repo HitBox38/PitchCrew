@@ -1,7 +1,7 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ProfileMaintenanceProposal } from '@pitchcrew/core';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 
 const proposalStatus: Record<string, string> = { new: 'Added', changed: 'Changed' };
 const proposalTone: Record<string, string> = { new: 'moss', changed: 'primary', conflict: 'ochre' };

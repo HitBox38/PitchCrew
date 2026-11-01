@@ -1,10 +1,10 @@
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { ScheduleFields } from '@/RoutinesPage/components/ScheduleFields.tsx';
 import type { RoutineDraft } from '@/RoutinesPage/types.ts';
 import type { StepProps } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Input } from '@/components/ui/input/index.tsx';
-import { Textarea } from '@/components/ui/textarea/index.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 
 export const RoutineStep = ({ draft, changeDraft, data }: StepProps) => {
   const change = (patch: Partial<RoutineDraft>) =>

@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { RefreshCw } from 'lucide-react';
 import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
 import { ServiceState } from './components/ServiceState.tsx';

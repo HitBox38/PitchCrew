@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogDescription } from '@/components/ui/dialog/index.tsx';
+import { Dialog, DialogContent, DialogDescription } from '@pitchcrew/design-system/dialog';
 import { useFileViewer } from './hooks/useFileViewer.ts';
 import { ViewerToolbar } from './components/ViewerToolbar.tsx';
 import { ViewControls } from './components/ViewControls.tsx';

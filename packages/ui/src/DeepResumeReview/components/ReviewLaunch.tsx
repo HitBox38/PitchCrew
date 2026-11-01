@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ScanSearch } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ReviewLaunchProps } from '../types.ts';
 import { ReviewSetup } from './ReviewSetup.tsx';
 export const ReviewLaunch = (props: ReviewLaunchProps) => {

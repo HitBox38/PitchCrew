@@ -2,7 +2,7 @@ import { OpportunityFields } from './components/OpportunityFields.tsx';
 import { useAddOpportunity } from '@/components/AddOpportunity/hooks/useAddOpportunity.ts';
 import type { AddOpportunityProps } from '@/components/AddOpportunity/types.ts';
 import { Modal } from '@/components/Modal/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { LoaderCircle } from 'lucide-react';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 

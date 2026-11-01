@@ -1,7 +1,7 @@
 import { useCommandState } from 'cmdk';
 import { Archive, MessageSquare } from 'lucide-react';
 import type { ConversationCommandsProps } from '@/CommandPalette/types.ts';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
 import { matchingConversations } from '../helpers.ts';
 import { PaletteItem } from './PaletteItem.tsx';
 

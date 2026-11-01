@@ -1,7 +1,11 @@
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@pitchcrew/design-system/collapsible';
 import { GoogleCredentials } from '@/ConnectorSettings/components/GoogleCredentials.tsx';
 import { GoogleInstructions } from '@/ConnectorSettings/components/GoogleInstructions.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { GoogleConnectionSetupProps } from '@/ConnectorSettings/types.ts';
 
 export const GoogleConnectionSetup = (props: GoogleConnectionSetupProps) => {

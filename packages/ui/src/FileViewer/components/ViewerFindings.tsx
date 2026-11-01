@@ -1,4 +1,4 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { ViewerFile } from '../types.ts';
 export const ViewerFindings = ({ file }: { file: ViewerFile }) => {

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Ellipsis } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
-} from '@/components/ui/dropdown-menu/index.tsx';
+} from '@pitchcrew/design-system/dropdown-menu';
 import { browserCommand } from '../api.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserReset } from './BrowserReset.tsx';

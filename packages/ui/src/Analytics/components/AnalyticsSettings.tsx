@@ -1,6 +1,6 @@
 import { ReplaySettings } from './ReplaySettings.tsx';
 import { DiagnosticSettings } from './DiagnosticSettings.tsx';
-import { Switch } from '../../components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { useDevicePreferences } from '../../lib/device-preferences.ts';
 import { useAnalyticsConfig } from '../api.ts';
 

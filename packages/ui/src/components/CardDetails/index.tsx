@@ -6,7 +6,7 @@ import { JobTabs } from './components/JobTabs.tsx';
 import { JobActions } from './components/JobActions.tsx';
 import { JobLoading } from './components/JobLoading.tsx';
 import type { CardDetailsProps } from './types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { DiscardChanges } from '@/components/DiscardChanges/index.tsx';
 import { AddOpportunity } from '@/components/AddOpportunity/index.tsx';
 import { JobProgress } from '@/ClayInterface/components/JobProgress.tsx';

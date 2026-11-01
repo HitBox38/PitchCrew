@@ -1,6 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Conversation } from '@/components/ai-elements/conversation/components/Conversation.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { ConversationContent } from '@/components/ai-elements/conversation/components/ConversationContent.tsx';
 import { ConversationScrollButton } from '@/components/ai-elements/conversation/components/ConversationScrollButton.tsx';
 import { useConversationHistory } from '../hooks/useConversationHistory.ts';

@@ -7,10 +7,8 @@ import {
   DropdownMenuItem,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu/index.tsx';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { SidebarMenuItem } from '@/components/ui/sidebar/components/SidebarMenuItem.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+} from '@pitchcrew/design-system/dropdown-menu';
+import { SidebarMenuButton, SidebarMenuItem, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { viewPaths } from '@/navigation.ts';
 import type { WorkspaceLinksProps } from '../types.ts';
 import { moreViews, viewIcons, viewTitles } from '../constants.ts';

@@ -1,5 +1,5 @@
 import type { ChatViewModel } from '../types.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 export const ContinuationNotice = ({
   data,

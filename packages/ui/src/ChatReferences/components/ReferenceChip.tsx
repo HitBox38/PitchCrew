@@ -8,8 +8,8 @@ import {
   PopoverContent,
   PopoverTitle,
   PopoverDescription,
-} from '@/components/ui/popover/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+} from '@pitchcrew/design-system/popover';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const ReferenceChip = ({
   reference,

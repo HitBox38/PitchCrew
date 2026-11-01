@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { DialogDescription, DialogTitle } from '@/components/ui/dialog/index.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { DialogDescription, DialogTitle } from '@pitchcrew/design-system/dialog';
 import type { CreationController } from '../types.ts';
 import { CreationSteps } from './CreationSteps.tsx';
 

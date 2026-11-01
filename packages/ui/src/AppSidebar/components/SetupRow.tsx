@@ -1,7 +1,6 @@
 import { useNavigate } from '@tanstack/react-router';
 import { Compass } from 'lucide-react';
-import { SidebarMenuButton } from '@/components/ui/sidebar/components/SidebarMenuButton.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { SidebarMenuButton, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { setupProgress } from '@/Onboarding/helpers.ts';
 import { useOnboarding } from '@/Onboarding/hooks/useOnboarding.ts';
 

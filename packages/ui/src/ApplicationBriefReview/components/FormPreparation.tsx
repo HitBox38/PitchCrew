@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { FormRequirements } from './FormRequirements.tsx';
 import type { useApplicationBrief } from '../hooks/useApplicationBrief.ts';

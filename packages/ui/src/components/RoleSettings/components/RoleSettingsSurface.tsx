@@ -1,6 +1,5 @@
 import { SidePanel } from '@/components/SidePanel/index.tsx';
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
-import { SheetContent } from '@/components/ui/sheet/components/SheetContent.tsx';
+import { Sheet, SheetContent } from '@pitchcrew/design-system/sheet';
 import type { ReactNode } from 'react';
 
 /** 480px agent panel: docked beside a chat, or an overlay sheet from Crew and elsewhere. */

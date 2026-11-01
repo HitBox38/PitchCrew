@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { FileUp } from 'lucide-react';
 import { useRef } from 'react';
 import { maxImportRows } from '../constants.ts';

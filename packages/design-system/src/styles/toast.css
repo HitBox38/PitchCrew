@@ -1,0 +1,184 @@
+/* shadcn base-vega Toast stacking as raised clay: at most three, bottom-right, 360px. While a modal
+ * dialog is open (useDialogToasts) the stack moves beside the dialog, or above its footer when
+ * neither side has room, so a toast never covers the dialog's actions. */
+.ui-toast-viewport {
+  position: fixed;
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(var(--toast-inset-bottom, 16px), env(safe-area-inset-bottom));
+  width: min(360px, calc(100% - 32px));
+  z-index: 100;
+  pointer-events: none;
+  outline: none;
+}
+.ui-toast {
+  --gap: 12px;
+  --height: var(--toast-frontmost-height, var(--toast-height));
+  --offset-y: calc(
+    var(--toast-offset-y) * -1 - var(--toast-index) * var(--gap) + var(--toast-swipe-movement-y)
+  );
+  --scale: max(0, calc(1 - var(--toast-index) * 0.1));
+  --shrink: calc(1 - var(--scale));
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: calc(1000 - var(--toast-index));
+  width: 100%;
+  height: var(--height);
+  pointer-events: auto;
+  background: var(--clay-fill);
+  background-color: var(--surface);
+  color: var(--ink);
+  border: 0;
+  border-radius: 12px;
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--volume-sm, 0 0 0 transparent),
+    var(--pop);
+  transform-origin: bottom;
+  transform: translateX(var(--toast-swipe-movement-x))
+    translateY(
+      calc(
+        var(--toast-swipe-movement-y) - var(--toast-index) * 12px - var(--shrink) * var(--height)
+      )
+    )
+    scale(var(--scale));
+  transition:
+    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s;
+  outline: none;
+}
+.ui-toast::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  height: calc(var(--gap) + 1px);
+}
+.ui-toast[data-expanded] {
+  height: var(--toast-height);
+  transform: translateX(var(--toast-swipe-movement-x)) translateY(var(--offset-y));
+}
+.ui-toast[data-limited] {
+  opacity: 0;
+  pointer-events: none;
+}
+.ui-toast[data-starting-style],
+.ui-toast[data-ending-style]:not([data-limited]):not([data-swipe-direction]) {
+  transform: translateY(150%);
+  opacity: 0;
+}
+.ui-toast[data-ending-style][data-swipe-direction='right'] {
+  transform: translateX(calc(var(--toast-swipe-movement-x) + 150%)) translateY(var(--offset-y));
+  opacity: 0;
+}
+.ui-toast[data-ending-style][data-swipe-direction='down'] {
+  transform: translateY(calc(var(--toast-swipe-movement-y) + 150%));
+  opacity: 0;
+}
+.ui-toast:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.ui-toast-content {
+  display: flex;
+  height: 100%;
+  align-items: flex-start;
+  gap: 10px;
+  overflow: hidden;
+  padding: 16px;
+  transition: opacity 0.2s;
+}
+.ui-toast-content[data-behind] {
+  opacity: 0;
+}
+.ui-toast-content[data-expanded] {
+  opacity: 1;
+}
+.ui-toast-content > svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.ui-toast-text {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+.ui-toast-title {
+  margin: 0;
+  font: 600 0.875rem / 1.4 var(--font-sans);
+  letter-spacing: 0;
+}
+.ui-toast-description {
+  font-size: var(--text-label);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+.ui-toast-link {
+  display: inline-flex;
+  width: fit-content;
+  color: var(--primary);
+  font-size: var(--text-label);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  border-radius: 3px;
+}
+.ui-toast-link:hover {
+  text-decoration-thickness: 2px;
+}
+.ui-toast-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.ui-toast-close {
+  flex-shrink: 0;
+  position: relative;
+  color: var(--ink-soft);
+}
+.ui-toast-close::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+}
+:root[data-toast-side='left'] .ui-toast-viewport {
+  right: auto;
+  left: max(16px, env(safe-area-inset-left));
+}
+:root[data-toast-side='above-footer'] .ui-toast-viewport {
+  right: 50%;
+  translate: 50% 0;
+}
+@variant max-phone {
+  .ui-toast-viewport {
+    right: max(16px, env(safe-area-inset-right));
+  }
+  :root[data-toast-side='above-footer'] .ui-toast-viewport {
+    right: max(16px, env(safe-area-inset-right));
+    translate: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ui-toast {
+    transition: opacity 0.1s;
+  }
+  .ui-toast-content {
+    transition: none;
+  }
+}
+
+/* Semantic text: moss success, rose failure, ochre attention. */
+.ui-toast[data-tone='success'] :is(.ui-toast-content > svg, .ui-toast-title) {
+  color: var(--moss);
+}
+.ui-toast[data-tone='error'] :is(.ui-toast-content > svg, .ui-toast-title) {
+  color: var(--rose);
+}
+.ui-toast[data-tone='warning'] .ui-toast-content > svg {
+  color: var(--ochre);
+}
+.ui-toast[data-tone='info'] .ui-toast-content > svg {
+  color: var(--muted);
+}

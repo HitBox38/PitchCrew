@@ -1,7 +1,7 @@
 import type { Ref } from 'react';
 import { Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { useSidebar } from '@/components/ui/sidebar/hooks/useSidebar.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { NotificationBell } from '@/Notifications/index.tsx';
 import { MobileOverflow } from './MobileOverflow.tsx';
 

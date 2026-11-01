@@ -1,5 +1,5 @@
 import type { WritingGuide } from '@pitchcrew/core';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 

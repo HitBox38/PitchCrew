@@ -1,6 +1,6 @@
 import type { LucideIcon } from 'lucide-react';
 import { Compass, Copy, Download, PanelLeft, RefreshCw } from 'lucide-react';
-import { SIDEBAR_KEYBOARD_SHORTCUT } from '@/components/ui/sidebar/constants.ts';
+import { SIDEBAR_KEYBOARD_SHORTCUT } from '@pitchcrew/design-system/sidebar';
 import { themeOptions } from '@/lib/theme-options.ts';
 import { modKey } from '@/shortcuts.ts';
 import type { SettingsCommandsProps } from './types.ts';

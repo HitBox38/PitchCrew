@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { JobActionsProps } from '../types.ts';
 import { FormSelect } from '@/FormSelect/index.tsx';
 

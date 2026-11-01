@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ApplicationInsights } from '@pitchcrew/core/insights';
 import { tagPreview } from '../constants.ts';
 import type { ChangeSearch } from '../types.ts';

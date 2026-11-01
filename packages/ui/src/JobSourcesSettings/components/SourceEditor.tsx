@@ -1,6 +1,6 @@
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { providerOptions } from '../constants.ts';
 import { canTest } from '../helpers.ts';
 import type { JobSourcesModel, SourceDraft } from '../types.ts';

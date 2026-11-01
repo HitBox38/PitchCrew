@@ -1,7 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Lightbulb, GitBranch, Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { buttonVariants } from '@/components/ui/button/constants.ts';
+import { Button, buttonVariants } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { WorkspaceHeaderPrimary } from '@/App/components/WorkspacePage.tsx';
 import type { ProfileSectionProps } from '../types.ts';

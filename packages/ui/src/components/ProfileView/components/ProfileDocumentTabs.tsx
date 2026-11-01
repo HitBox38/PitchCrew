@@ -1,6 +1,6 @@
 import type { ProfileViewModel } from '../types.ts';
 import { useState } from 'react';
-import { TabsList } from '@/components/ui/tabs/index.tsx';
+import { TabsList } from '@pitchcrew/design-system/tabs';
 import { DragDropProvider } from '@dnd-kit/react';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
 import { ProfileDocumentTab } from './ProfileDocumentTab.tsx';

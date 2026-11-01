@@ -4,8 +4,8 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+} from '@pitchcrew/design-system/dialog';
+import { Button } from '@pitchcrew/design-system/button';
 export const WithdrawConfirmation = ({
   open,
   close,

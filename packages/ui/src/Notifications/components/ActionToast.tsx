@@ -5,7 +5,7 @@ import {
   ToastContent,
   ToastTitle,
   type ToastObject,
-} from '@/components/ui/toast/index.tsx';
+} from '@pitchcrew/design-system/toast';
 import type { CrewNotification } from '../types.ts';
 export const ActionToast = ({ toast }: { toast: ToastObject<CrewNotification> }) => {
   const Icon =

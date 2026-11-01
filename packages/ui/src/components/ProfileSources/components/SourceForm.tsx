@@ -1,4 +1,4 @@
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Input } from '@pitchcrew/design-system/input';
 import { GitHubSourceFields } from './GitHubSourceFields.tsx';
 import { SourceActions } from './SourceActions.tsx';
 import { SourceConnection } from './SourceConnection.tsx';

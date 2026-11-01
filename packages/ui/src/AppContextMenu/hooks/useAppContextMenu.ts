@@ -2,7 +2,7 @@ import { useRef, useState, type MouseEvent, type SyntheticEvent } from 'react';
 import type { BaseUIEvent } from '@base-ui/react/types';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { contextFocusTarget, selectedText } from '../helpers.ts';
-import type { ContextMenuContentProps } from '@/components/ui/context-menu/types.ts';
+import type { ContextMenuContentProps } from '@pitchcrew/design-system/context-menu';
 import type { AppContextMenuProps } from '../types.ts';
 
 export const useAppContextMenu = (props: AppContextMenuProps) => {

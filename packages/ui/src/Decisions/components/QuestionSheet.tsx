@@ -1,7 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import type { Card, Snapshot, UserInputRequest } from '@pitchcrew/core';
 import type { Action } from '@/WorkspaceStore/index.ts';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { QuestionAnswerFields } from '@/UserQuestions/components/QuestionAnswerFields.tsx';
 import { useQuestionAnswer } from '@/UserQuestions/hooks/useQuestionAnswer.ts';
 import type { Decision } from '@/ClayInterface/signals.ts';

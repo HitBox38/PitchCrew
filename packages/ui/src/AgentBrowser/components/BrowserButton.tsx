@@ -1,5 +1,5 @@
 import { Monitor } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { ChatViewModel } from '@/ChatView/types.ts';
 export const BrowserButton = ({ browserPanel }: Pick<ChatViewModel, 'browserPanel'>) => {
   if (!browserPanel.available) return null;

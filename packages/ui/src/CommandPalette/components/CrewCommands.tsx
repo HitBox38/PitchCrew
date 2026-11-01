@@ -1,5 +1,5 @@
 import type { CrewCommandsProps } from '@/CommandPalette/types.ts';
-import { CommandGroup } from '@/components/ui/command/components/CommandGroup.tsx';
+import { CommandGroup } from '@pitchcrew/design-system/command';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { SlidersHorizontal } from 'lucide-react';
 import { PaletteItem } from './PaletteItem.tsx';

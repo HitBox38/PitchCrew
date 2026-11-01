@@ -1,5 +1,5 @@
-import { Checkbox } from '@/components/ui/checkbox/components/Checkbox.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Checkbox } from '@pitchcrew/design-system/checkbox';
+import { Input } from '@pitchcrew/design-system/input';
 import type { SourceDraft } from '../types.ts';
 
 export const SourceFilters = ({

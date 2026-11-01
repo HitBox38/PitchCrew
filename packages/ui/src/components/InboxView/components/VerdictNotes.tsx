@@ -3,8 +3,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
-import { useIsMobile } from '@/hooks/use-mobile.ts';
+} from '@pitchcrew/design-system/collapsible';
+import { useIsMobile } from '@pitchcrew/design-system/use-mobile';
 import { keyedItems } from '@/lib/list-keys.ts';
 import type { PacketHandoffData } from '../handoff.ts';
 

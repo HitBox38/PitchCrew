@@ -1,5 +1,5 @@
 import { MarkdownModeTabs } from '@/components/MarkdownEditor/components/MarkdownModeTabs.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import type { SkillEditorModel } from '../types.ts';
 import { ArrowLeft } from 'lucide-react';
 

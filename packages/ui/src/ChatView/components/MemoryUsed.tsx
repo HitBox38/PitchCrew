@@ -1,4 +1,4 @@
-import { AccordionSection } from '@/components/ui/accordion/components/AccordionSection.tsx';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import type { ChatMessage, Snapshot } from '@pitchcrew/core';
 import { BookOpen } from 'lucide-react';
 export const MemoryUsed = ({ message, data }: { message: ChatMessage; data: Snapshot }) => {

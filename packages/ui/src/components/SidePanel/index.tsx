@@ -1,4 +1,4 @@
-import { Sheet } from '@/components/ui/sheet/components/Sheet.tsx';
+import { Sheet } from '@pitchcrew/design-system/sheet';
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog';
 import { useState, type ReactNode } from 'react';
 

@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { CircleCheck, CircleAlert, LoaderCircle } from 'lucide-react';
 
 export const RuntimeOperation = ({ update }: { update: RuntimeUpdateInfo }) => {

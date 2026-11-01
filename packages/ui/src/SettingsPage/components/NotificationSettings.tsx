@@ -1,5 +1,5 @@
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
-import { Switch } from '@/components/ui/switch/index.tsx';
+import { Switch } from '@pitchcrew/design-system/switch';
 import { SettingsSection } from './SettingsSection.tsx';
 import { SettingRow } from './SettingRow.tsx';
 

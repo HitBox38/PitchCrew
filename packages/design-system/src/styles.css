@@ -1,0 +1,16 @@
+/* Import once from the consumer's global Tailwind CSS entry. Caller utilities stay unlayered. */
+@layer theme, base, primitives, components;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+@import 'tw-animate-css';
+@import './styles/theme.css';
+@import './styles/controls.css' layer(components);
+@import './styles/surfaces.css' layer(components);
+@import './styles/calendar.css' layer(components);
+@import './styles/code-block.css' layer(components);
+@import './styles/toast.css' layer(components);
+@import './styles/motion.css' layer(components);
+
+/* Workspace dependencies are not scanned automatically through node_modules. */
+@source './components';

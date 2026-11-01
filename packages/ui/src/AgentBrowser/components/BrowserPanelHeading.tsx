@@ -1,6 +1,6 @@
 import { X } from 'lucide-react';
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { cn } from '@/lib/utils.ts';
+import { Button } from '@pitchcrew/design-system/button';
+import { cn } from '@pitchcrew/design-system/utils';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { browserStatus } from '../helpers.ts';
 import { browserModeChip, type BrowserPanelView } from '../layout.ts';

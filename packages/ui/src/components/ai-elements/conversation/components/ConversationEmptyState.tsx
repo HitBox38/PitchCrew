@@ -1,5 +1,5 @@
 import type { ConversationEmptyStateProps } from '@/components/ai-elements/conversation/types.ts';
-import { cn } from '@/lib/utils.ts';
+import { cn } from '@pitchcrew/design-system/utils';
 
 export const ConversationEmptyState = ({
   className,

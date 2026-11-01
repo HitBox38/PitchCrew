@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet/index.tsx';
+import { Sheet, SheetContent, SheetTitle } from '@pitchcrew/design-system/sheet';
 import { useBrowserViewport } from '../hooks/useBrowserViewport.ts';
 import { useDesktopBrowserHost } from '@/DesktopBrowserHost/context.ts';
 import { BrowserSheet } from '@/DesktopBrowserHost/BrowserSheet.tsx';

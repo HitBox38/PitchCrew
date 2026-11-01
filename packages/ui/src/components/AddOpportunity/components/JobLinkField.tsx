@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
-import { Input } from '@/components/ui/input/components/Input.tsx';
+import { Button } from '@pitchcrew/design-system/button';
+import { Input } from '@pitchcrew/design-system/input';
 import { Link2, LoaderCircle, MessageSquare } from 'lucide-react';
 import { useId } from 'react';
 import type { useJobLookup } from '../hooks/useJobLookup.ts';

@@ -1,6 +1,6 @@
 import type { RoleSettingsModel } from '../types.ts';
-import { Input } from '@/components/ui/input/components/Input.tsx';
-import { Textarea } from '@/components/ui/textarea/components/Textarea.tsx';
+import { Input } from '@pitchcrew/design-system/input';
+import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
 import { workflowOptions } from '@/AgentCreation/constants.ts';
 

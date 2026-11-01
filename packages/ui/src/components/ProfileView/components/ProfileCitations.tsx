@@ -4,7 +4,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible/index.tsx';
+} from '@pitchcrew/design-system/collapsible';
 import { citationRows, noteCitations } from '../helpers.ts';
 import type { ProfileViewModel } from '../types.ts';
 import { ProfileCitation } from './ProfileCitation.tsx';

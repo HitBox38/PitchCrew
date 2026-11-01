@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 import { timeAgo } from '@/lib/time.ts';
 import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { starterNote } from '../helpers.ts';

@@ -5,8 +5,8 @@ import {
   AccordionItem,
   AccordionTrigger,
   AccordionContent,
-} from '@/components/ui/accordion/index.tsx';
-import { Button } from '@/components/ui/button/index.tsx';
+} from '@pitchcrew/design-system/accordion';
+import { Button } from '@pitchcrew/design-system/button';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { QueueList } from './QueueList.tsx';
 import { QueueRequestRow } from './QueueRequestRow.tsx';

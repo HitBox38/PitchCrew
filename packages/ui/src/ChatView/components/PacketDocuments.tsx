@@ -2,10 +2,7 @@ import type { Card, Packet } from '@pitchcrew/core';
 import { packetReviewLabel, packetTabs, wordCount } from '../packet-panel.ts';
 import { MarkdownContent } from '@/components/MarkdownContent/index.tsx';
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
-import { Tabs } from '@/components/ui/tabs/components/Tabs.tsx';
-import { TabsContent } from '@/components/ui/tabs/components/TabsContent.tsx';
-import { TabsList } from '@/components/ui/tabs/components/TabsList.tsx';
-import { TabsTrigger } from '@/components/ui/tabs/components/TabsTrigger.tsx';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@pitchcrew/design-system/tabs';
 
 import type { ComponentProps } from 'react';
 

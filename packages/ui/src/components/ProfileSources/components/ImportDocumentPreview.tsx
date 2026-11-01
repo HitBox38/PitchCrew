@@ -4,7 +4,7 @@ import type { ProfileImportFile } from '@pitchcrew/core';
 import { InstructionDiff } from '@/components/InstructionUpdate/components/InstructionDiff.tsx';
 import { diffCounts, diffInstructions } from '@/components/InstructionUpdate/helpers.ts';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
-import { Button } from '@/components/ui/button/components/Button.tsx';
+import { Button } from '@pitchcrew/design-system/button';
 
 export const ImportDocumentPreview = ({ file }: { file: ProfileImportFile }) => {
   const [full, setFull] = useState(false);
