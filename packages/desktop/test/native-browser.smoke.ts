@@ -65,7 +65,10 @@ const child = spawn(electronExecutable, [join(directory, 'main.mjs')], {
   stdio: ['ignore', 'ignore', 'inherit'],
   windowsHide: true,
 });
-const wait = async <T>(read: () => Promise<T | undefined>): Promise<T> => {
+const wait = async <T>(
+  read: () => Promise<T | undefined>,
+  label = 'Native browser fixture',
+): Promise<T> => {
   const until = performance.now() + 15000;
   while (performance.now() < until) {
     const result = await read();
@@ -74,23 +77,26 @@ const wait = async <T>(read: () => Promise<T | undefined>): Promise<T> => {
       throw new Error(`Native fixture exited with code ${child.exitCode}.`);
     await delay(30);
   }
-  throw new Error('Native browser fixture timed out.');
+  throw new Error(`${label} timed out.`);
 };
 const fixture: NativeFixture = async (command) => {
   const nonce = `${command.kind}-${Date.now()}-${Math.random()}`;
   await writeFile(commands, JSON.stringify({ ...command, nonce }));
-  return wait(async () => {
-    try {
-      const result = JSON.parse(await readFile(resultFile, 'utf8')) as {
-        nonce: string;
-        value: unknown;
-        error?: string;
-      };
-      return result.nonce === nonce ? { value: result.value, error: result.error } : undefined;
-    } catch {
-      return undefined;
-    }
-  }).then((result) => {
+  return wait(
+    async () => {
+      try {
+        const result = JSON.parse(await readFile(resultFile, 'utf8')) as {
+          nonce: string;
+          value: unknown;
+          error?: string;
+        };
+        return result.nonce === nonce ? { value: result.value, error: result.error } : undefined;
+      } catch {
+        return undefined;
+      }
+    },
+    `Native fixture ${command.kind} ${command.operation ?? ''} (${command.id ?? 'global'})`,
+  ).then((result) => {
     if (result.error)
       throw new Error(
         `Native fixture ${command.kind} ${command.operation ?? command.expression?.slice(0, 300) ?? ''} failed: ${result.error}`,
@@ -103,6 +109,7 @@ const board = new Board(join(directory, 'board.db'));
 const manager = new ComputerManager(board, directory);
 let renewal: ReturnType<typeof setInterval> | undefined;
 let cleanupPassed = false;
+let failed = false;
 let cleanupState = { closed: false, forced: false, exitCode: null as number | null };
 try {
   const descriptor = await wait(async () => {
@@ -349,6 +356,28 @@ try {
   if (page.screenshot.length === 0 || resumed.screenshot.length === 0)
     throw new Error('Agent screenshots were unavailable.');
 } catch (error) {
+  failed = true;
+  const command = await readFile(commands, 'utf8')
+    .then(JSON.parse)
+    .catch(() => ({}));
+  const response = await readFile(resultFile, 'utf8')
+    .then(JSON.parse)
+    .catch(() => ({}));
+  await writeContents(
+    join(directory, 'failure.json'),
+    JSON.stringify({
+      error: String(error),
+      command: {
+        kind: command.kind,
+        operation: command.operation,
+        id: command.id,
+        nonce: command.nonce,
+      },
+      response: { nonce: response.nonce, error: response.error },
+    }),
+  ).catch((failure: unknown) =>
+    console.error('Could not save native fixture failure evidence:', failure),
+  );
   console.error(error);
   throw error;
 } finally {
@@ -379,9 +408,10 @@ try {
       });
     });
   board.close();
-  await rm(directory, { recursive: true, force: true });
   cleanupPassed = closed && !forced && child.exitCode === 0;
   cleanupState = { closed, forced, exitCode: child.exitCode };
+  // Retain failed fixtures for CI diagnosis; successful runs still clean up completely.
+  if (!failed && cleanupPassed) await rm(directory, { recursive: true, force: true });
 }
 if (!cleanupPassed)
   throw new Error(

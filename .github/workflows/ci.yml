@@ -170,6 +170,7 @@ jobs:
             ${{ runner.temp }}/pitchcrew-browser-e2e-*/renderer-errors.json
             ${{ runner.temp }}/pitchcrew-browser-e2e-*/daemon.log
             ${{ runner.temp }}/pitchcrew-browser-e2e-*/trace.zip
+            ${{ runner.temp }}/pitchcrew-native-browser-*/failure.json
           if-no-files-found: ignore
           retention-days: 7
 
