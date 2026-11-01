@@ -1,8 +1,8 @@
 'use client';
 
 import { Menu } from '@base-ui/react/menu';
+import { Button } from '@pitchcrew/design-system/button';
 import { Check, Monitor, Moon, Sun } from 'lucide-react';
-import { Button } from '../components/ui/button';
 import { useTheme, type ThemeChoice } from './hooks/useTheme';
 
 export const Theme = () => {
@@ -11,11 +11,11 @@ export const Theme = () => {
   return (
     <Menu.Root>
       <Menu.Trigger
-        render={<Button variant="secondary" className="theme-trigger" />}
+        render={<Button variant="secondary" size="icon" className="theme-trigger" />}
         aria-label={`Color theme: ${choice}`}
         title="Choose color theme"
       >
-        <Icon size={19} aria-hidden="true" />
+        <Icon size={18} aria-hidden="true" />
       </Menu.Trigger>
       <Menu.Portal>
         <Menu.Positioner sideOffset={8} align="end" className="z-50">
@@ -27,10 +27,10 @@ export const Theme = () => {
             >
               {choices.map(({ value, label, icon: OptionIcon }) => (
                 <Menu.RadioItem key={value} value={value} closeOnClick className="theme-option">
-                  <OptionIcon size={17} aria-hidden="true" />
+                  <OptionIcon size={16} aria-hidden="true" />
                   <span className="flex-1">{label}</span>
                   <Menu.RadioItemIndicator>
-                    <Check size={16} aria-hidden="true" />
+                    <Check size={15} aria-hidden="true" />
                   </Menu.RadioItemIndicator>
                 </Menu.RadioItem>
               ))}

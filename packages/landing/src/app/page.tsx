@@ -6,10 +6,10 @@ import { Footer } from '../Footer';
 import { Gates } from '../Gates';
 import { Header } from '../Header';
 import { Hero } from '../Hero';
+import { Journey } from '../Journey';
 import { Ownership } from '../Ownership';
-import { ReviewThread } from '../ReviewThread';
+import { Packet } from '../Packet';
 import { SEO } from '../SEO';
-import { WatchItWork } from '../WatchItWork';
 
 const LandingPage = async () => {
   const release = await latestRelease();
@@ -19,10 +19,10 @@ const LandingPage = async () => {
       <Header />
       <main id="main" data-replay-public data-replay-surface="landing">
         <Hero />
-        <ReviewThread />
+        <Packet />
         <Gates />
+        <Journey />
         <Crew />
-        <WatchItWork />
         <Ownership />
         <Downloads release={release} />
         <FAQ />

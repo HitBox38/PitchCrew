@@ -1,0 +1,104 @@
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-block: 18px;
+}
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+}
+.brand-word {
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.nav-link {
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: var(--ink-soft);
+  font-size: 16px;
+  font-weight: 600;
+  transition:
+    color 150ms ease,
+    background-color 150ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover {
+    background: rgb(var(--tint) / 0.06);
+    color: var(--ink);
+  }
+}
+.site-nav > .theme-trigger {
+  margin-left: 6px;
+}
+.header-download {
+  margin-left: 6px;
+}
+.theme-menu {
+  min-width: 164px;
+  padding: 4px;
+  border-radius: 10px;
+  background: var(--surface-bright);
+  box-shadow:
+    0 0 0 1px var(--border),
+    var(--pop);
+  transform-origin: var(--transform-origin);
+  transition:
+    transform var(--duration-popup) var(--ease),
+    opacity var(--duration-popup) var(--ease);
+}
+.theme-menu[data-starting-style],
+.theme-menu[data-ending-style] {
+  opacity: 0;
+  transform: scale(0.97);
+}
+.theme-option {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  color: var(--ink);
+  font-size: var(--text-meta);
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+.theme-option[data-highlighted] {
+  background: rgb(var(--tint) / 0.06);
+}
+.theme-option svg:last-child {
+  color: var(--primary);
+}
+@media (max-width: 639px) {
+  .site-header {
+    padding-block: 12px;
+  }
+  .brand-word {
+    font-size: var(--text-feature);
+  }
+  .header-download {
+    height: 36px;
+    padding-inline: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .theme-menu {
+    transition: opacity 120ms var(--ease);
+  }
+  .theme-menu[data-starting-style],
+  .theme-menu[data-ending-style] {
+    transform: none;
+  }
+}

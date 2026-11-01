@@ -1,43 +1,47 @@
-import { ClipboardList, FilePenLine, LineChart, Send } from 'lucide-react';
+import type { Role } from '../components/clay/Pebble';
 
-export const supportCrew = [
+export const supportCrew: { role: Role; name: string; text: string; state: string }[] = [
   {
+    role: 'submitter',
     name: 'Submitter',
-    icon: Send,
-    text: 'prepares application forms in a built-in browser; you approve each submission.',
+    text: 'Prepares application forms in the built-in browser. Every submit waits for you.',
+    state: 'Starts paused',
   },
   {
-    name: 'Tracker',
-    icon: ClipboardList,
-    text: 'keeps statuses current, using Gmail only if you connect it.',
-  },
-  {
+    role: 'documenter',
     name: 'Documenter',
-    icon: FilePenLine,
-    text: 'proposes profile updates from GitHub or Drive folders you choose.',
+    text: 'Proposes profile updates from GitHub or Drive folders you choose to watch.',
+    state: 'Starts paused',
   },
   {
+    role: 'pipeline-coach',
     name: 'Pipeline Coach',
-    icon: LineChart,
-    text: 'reviews how the crew is doing and suggests improvements.',
+    text: 'Reviews how the crew is doing across your applications and proposes changes you approve.',
+    state: 'Starts paused',
   },
-] as const;
-
-export const afterApply = [
   {
-    title: 'Track every application.',
-    text: 'Drag jobs between stages, record submissions you made elsewhere, and let Tracker match status emails. Anything uncertain waits for you.',
+    role: 'career-coach',
+    name: 'Career Coach',
+    text: 'Interview practice, offer questions and career plans, in chat, from your own notes.',
+    state: 'Starts paused',
+  },
+];
+
+export const extras = [
+  {
+    title: 'Find openings.',
+    text: 'Scan public Greenhouse, Ashby, Lever, Comeet and Workable boards you save, or paste a posting link.',
   },
   {
     title: 'Bring your history.',
     text: 'Import past applications from a JSON or CSV export, or a supported older tracker, after a preview.',
   },
   {
-    title: 'Find openings.',
-    text: 'Scan public Greenhouse, Ashby, Lever, Comeet and Workable boards you save, or paste a posting link.',
+    title: 'Make your own agent.',
+    text: 'Six steps: purpose, runtime, tools, skills, an optional routine and a review. It starts with chat only.',
   },
   {
-    title: 'Learn what works.',
-    text: 'Insights shows outcomes by tag, your wins and misses, and the lessons you noted.',
+    title: 'Give them skills.',
+    text: 'Markdown instructions you write or import from skills.sh. Skills grant no permissions.',
   },
-] as const;
+];

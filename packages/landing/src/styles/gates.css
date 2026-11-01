@@ -1,0 +1,118 @@
+.gate-rule {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+}
+.gate-rule::before {
+  position: absolute;
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+  background: var(--border);
+  content: '';
+}
+.gate-rule > li {
+  position: relative;
+  display: flex;
+}
+.gate-rule .pebble {
+  box-shadow:
+    0 0 0 6px var(--paper),
+    0 1px 2px rgb(30 34 44 / 0.12),
+    inset 0 1px 0 var(--orb-light),
+    inset -2px -3px 5px color-mix(in srgb, var(--tone) 14%, transparent);
+}
+.gate-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  margin-top: 22px;
+}
+.gate {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+.gate-title {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: var(--text-headline);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+.gate-stops {
+  color: var(--tone);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+.gate-stops strong {
+  font-weight: 700;
+}
+.injection {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 24px 56px;
+  align-items: center;
+  margin-top: 88px;
+  padding-top: 56px;
+  border-top: 1px solid var(--border);
+}
+.injection-copy {
+  display: grid;
+  gap: 12px;
+}
+.posting {
+  display: grid;
+  gap: 12px;
+  padding: 22px 24px;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1.5;
+}
+.posting-caption {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--ink);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+.posting-hidden {
+  padding: 10px 12px;
+  border: 1.5px dashed var(--plum);
+  border-radius: 10px;
+  color: var(--plum);
+  font-size: 16px;
+}
+.posting-flag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+  color: var(--teal-deep);
+  font-size: var(--text-meta);
+  font-weight: 600;
+}
+@media (max-width: 1023px) {
+  .gate-grid {
+    gap: 24px;
+  }
+  .injection {
+    grid-template-columns: 1fr;
+    margin-top: 64px;
+    padding-top: 40px;
+  }
+}
+@media (max-width: 639px) {
+  .gate-rule {
+    gap: 16px;
+  }
+  .gate-grid {
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+}

@@ -1,28 +1,14 @@
 @import '@pitchcrew/design-system/styles.css';
 @import '../styles/theme.css';
 @import '../styles/base.css' layer(base);
-@import '../styles/buttons.css' layer(components);
-@import '../styles/sections.css' layer(components);
+@import '../styles/clay.css' layer(components);
+@import '../styles/header.css' layer(components);
+@import '../styles/roster.css' layer(components);
+@import '../styles/packet.css' layer(components);
+@import '../styles/gates.css' layer(components);
 @import '../styles/journey.css' layer(components);
-@import '../styles/thread.css' layer(components);
+@import '../styles/crew.css' layer(components);
 @import '../styles/downloads.css' layer(components);
-@import '../styles/theme-control.css' layer(components);
-@import '../../../ui/src/styles/identity.css' layer(components);
-@import '../../../ui/src/styles/chat/conversation.css' layer(components);
-@import '../../../ui/src/styles/chat/activity.css' layer(components);
-@import '../../../ui/src/styles/board.css' layer(components);
-@import '../../../ui/src/styles/forms.css' layer(components);
-@import '../../../ui/src/styles/job-details.css' layer(components);
-@import '../../../ui/src/styles/clay-interface.css' layer(components);
-@import '../styles/chat-demo.css' layer(components);
+@import '../styles/faq.css' layer(components);
 
 @source not '../**/__tests__/**';
-/* App components rendered in the chat demo. */
-@source '../../../ui/src/ChatTurn/components';
-@source '../../../ui/src/components/RoleAvatar';
-@source '../../../ui/src/components/ai-elements/message/components';
-@source '../../../ui/src/components/CardDetails/components';
-@source '../../../ui/src/components/CompanyMark';
-@source '../../../ui/src/components/EmptyState';
-@source '../../../ui/src/ApplicationBriefReview/components';
-@source '../../../ui/src/FormSelect';
