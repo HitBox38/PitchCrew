@@ -367,7 +367,19 @@ void app
             `document.querySelector('#name').focus(); document.querySelector('#password').value='fictional-password';`,
           );
           for (const keyCode of 'Human') contents.sendInputEvent({ type: 'char', keyCode });
-          const value = await contents.executeJavaScript(`document.querySelector('#name').value`);
+          // sendInputEvent queues native delivery; an immediate read can see a prefix.
+          // Observe the completed edit without resending keys or accepting lost input.
+          const value = await contents.executeJavaScript(`new Promise((resolve, reject) => {
+            const until = performance.now() + 2000;
+            const read = () => {
+              const value = document.querySelector('#name').value;
+              if (value === 'Human') resolve(value);
+              else if (performance.now() >= until)
+                reject(new Error('Native human input did not finish: ' + JSON.stringify(value)));
+              else setTimeout(read, 20);
+            };
+            read();
+          })`);
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
             JSON.stringify({
