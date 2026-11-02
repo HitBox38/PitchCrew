@@ -20,6 +20,7 @@ export const installSite = async (electron: ElectronApplication) => {
       contents.session.protocol.handle('https', (request) => {
         const url = new URL(request.url);
         if (url.hostname !== '8.8.8.8') return Response.error();
+        if (url.pathname === '/unavailable') return Response.error();
         return new Response(
           url.pathname === '/next'
             ? '<!doctype html><title>Fictional E2E next page</title><h1>Fictional E2E next page</h1><a href="/form">Application</a>'

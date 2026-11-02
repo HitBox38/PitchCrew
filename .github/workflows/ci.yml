@@ -164,8 +164,7 @@ jobs:
           path: |
             ${{ runner.temp }}/pitchcrew-electron-check-*/result.json
             ${{ runner.temp }}/pitchcrew-electron-check-*/result.json.png
-            ${{ runner.temp }}/pitchcrew-browser-e2e-*/desktop.png
-            ${{ runner.temp }}/pitchcrew-browser-e2e-*/live-page-*.png
+            ${{ runner.temp }}/pitchcrew-browser-e2e-*/*.png
             ${{ runner.temp }}/pitchcrew-browser-e2e-*/renderer.html
             ${{ runner.temp }}/pitchcrew-browser-e2e-*/renderer-errors.json
             ${{ runner.temp }}/pitchcrew-browser-e2e-*/daemon.log
