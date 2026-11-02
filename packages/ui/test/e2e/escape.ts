@@ -93,24 +93,41 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     // Real app menus and dialogs keep their existing first-Escape precedence.
     await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
     await page.keyboard.press('Escape');
+    await page.locator('[data-slot="popover-content"]').waitFor({ state: 'detached' });
     assert.equal(await back.isVisible(), true);
     await page.getByRole('button', { name: 'Browser options', exact: true }).click();
     await page.getByRole('menuitem', { name: 'Reset saved sign-ins…', exact: true }).click();
-    const dialog = page.getByRole('dialog', { name: 'Reset this agent’s browser?', exact: true });
+    const dialog = page.getByRole('dialog', {
+      name: 'Reset this agent’s browser?',
+      exact: true,
+      includeHidden: true,
+    });
     await dialog.waitFor();
     await page.keyboard.press('Escape');
-    await dialog.waitFor({ state: 'hidden' });
+    await dialog.waitFor({ state: 'detached' });
     assert.equal(await back.isVisible(), true);
 
     await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
     await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
     await page.keyboard.press('Escape');
+    // Closing the settings popover restores focus to its trigger. Wait for that exit
+    // before opening the preset select, or it can dismiss the selection mid-click.
+    await page.locator('[data-slot="popover-content"]').waitFor({ state: 'detached' });
     await page.getByRole('combobox', { name: 'Browser viewport preset', exact: true }).click();
     await page.getByRole('option', { name: 'Desktop 1440', exact: true }).click();
     await until(
       async () => (await guest.read('innerWidth')) === 1440,
       'Fixed viewport was not applied',
-    );
+    ).catch(async (error) => {
+      const preset = await page
+        .getByRole('combobox', { name: 'Browser viewport preset', exact: true })
+        .innerText();
+      const viewport = await guest.read('({width:innerWidth,height:innerHeight})');
+      throw new Error(
+        `${String(error)}; selected preset=${preset}; actual viewport=${JSON.stringify(viewport)}`,
+        { cause: error },
+      );
+    });
 
     // The reproduction: static website content owns native keyboard focus.
     await clickGuest('h1');
