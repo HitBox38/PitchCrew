@@ -6,7 +6,7 @@ The deterministic provider connects to the real scoped MCP stdio server for insp
 
 ## Journeys
 
-The thirteen cases verify observable results:
+The fifteen cases verify observable results:
 
 - Open the browser from Chat and navigate its actual native guest through the address bar.
 - Retain a blank tab's failed DNS address and explanation across tab switching and retry, then recover by editing the address.
@@ -14,6 +14,7 @@ The thirteen cases verify observable results:
 - Open the real page-settings popover, observe changing compositor pixels beneath it and change actual page zoom.
 - Keep that same live guest beneath the app context menu, reset confirmation dialog and notification sheet.
 - Expand and restore the Base UI browser surface while human input continues to reach the same guest.
+- Return to chat with a trusted Escape from static native page content or app activity, preserving the guest, viewport, draft and manual lease; page fields (including shadow DOM), cancelled/stopped keys, website menus/dialogs and app overlays keep Escape first.
 - Navigate to Settings and back while preserving the page, its human field draft and manual-control lease.
 - Create, navigate, select and close a real second tab, use Back/Forward and retain the first tab's draft.
 - Capture the real native page, annotate it and attach its PNG to the existing composer draft without sending a message.
@@ -21,6 +22,7 @@ The thirteen cases verify observable results:
 - Reject another agent action in the UI and verify its native click never happens.
 - Crash the actual guest renderer and recover through the UI's Retry action with a new guest generation.
 - Close through the app controls, assert that owned guests are destroyed and require normal Electron and daemon process exit.
+- Keep an inactive iPhone SE page concealed with three real tabs through repeated DNS preflight failures, a Chromium failed navigation, tab switches, window resizing, expansion and panel hide/restore. Full-window compositor bitmap checks detect escaped page pixels and verify that the restored selected page paints only inside its viewport without losing its guest or device setting.
 
 The website's changing color marker uses a CSS animation. It proves live native composition without changing the DOM that exact-action approval fingerprints bind. A viewport change invalidates stale approval normally; the deterministic agent follows the tool's instruction to inspect and request fresh evidence. The test waits for the displayed approval to match the real viewport before deciding it.
 
@@ -31,6 +33,8 @@ The failed-navigation case runs in its own fresh desktop session and saves `fail
 Every run creates `pitchcrew-browser-e2e-*` under the OS temporary directory. `PITCHCREW_E2E_FILE` selects isolated Electron data and hidden, nonfocusable startup without starting the older smoke interaction script. The harness watches window show/focus events throughout the journeys. Captures use Electron `capturePage` with `stayHidden` and `stayAwake`.
 
 The printed evidence directory contains a Playwright trace (`trace.zip`), native captures beneath the actual overlays (`live-page-*.png`), a final desktop capture (`desktop.png`), renderer HTML, renderer errors and daemon logs. CI retains these artifacts. `bun x --no-install playwright show-trace <path-to-trace.zip>` from `packages/ui` opens a trace for manual investigation.
+
+For local verification with the actual Windows window shown, set `PITCHCREW_E2E_VISIBLE=1` before running `bun run test:e2e`. This opt-in skips only the hidden-window assertions; test data and browser profiles remain isolated. The tab-failure case also saves the exact compositor bitmaps it checks as `phone-*.png`, `failed-*.png`, `native-failed-*.png`, `resized-*.png`, `expanded.png`, `hidden.png` and `restored.png`.
 
 Normal Playwright close releases its test-owned Node inspector and uses Electron's ordinary quit path. Parent-observed process exit has a separate ten-second deadline. Forced cleanup of a failed child and its owned helpers always fails the suite. The existing independent Electron shutdown limitation remains documented in [desktop shutdown performance](desktop-shutdown-performance.md).
 

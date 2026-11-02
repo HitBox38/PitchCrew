@@ -9,6 +9,7 @@ The email-style list described below has been replaced for every user, supersedi
 - Each row shows the job, request type, Reviewer's assessment, an outcome-coloured status, file count and age.
 - The selected request opens beside the list in the same clay sheet Decisions uses, with its attachments, summary and remaining actions. Its key is kept in the URL (`entry=`).
 - Narrow screens show the list or one sheet, with an All history control.
+- Browser execution failures keep the saved approval outcome visible separately from the execution result. Navigation timeouts have a plain explanation; full diagnostics remain under a collapsed Details disclosure with copying. Terminal formatting is stripped before saving new execution errors and when displaying older errors, without rewriting historical events. Approval cards and browser request trays use the same error presentation.
 
 Attachment viewing, approval placement and the submission handoff below are unchanged.
 

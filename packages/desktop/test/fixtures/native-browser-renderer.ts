@@ -3,6 +3,10 @@ import { browserViewStyle } from '../../../ui/src/DesktopBrowserHost/presentatio
 
 /** Minimal trusted host using the production presentation contract and preload bridge. */
 const bridge = window.pitchcrewBrowser!;
+const layer = document.createElement('div');
+layer.dataset.desktopBrowserLayer = '';
+layer.style.display = 'contents';
+document.body.append(layer);
 const nodes = new Map<string, Electron.WebviewTag>();
 const guards = new Map<string, HTMLElement>();
 const sizes = new Map<string, { width: number; height: number }>();
@@ -37,7 +41,7 @@ const render = (views: DesktopBrowserView[]) => {
       node.addEventListener('destroyed', () => fixture.destroyed++);
       nodes.set(view.token, node);
       fixture.created++;
-      document.body.append(node);
+      layer.append(node);
     }
     if (view.bounds) sizes.set(view.token, view.bounds);
     if (view.bounds && !view.manual) {
@@ -46,7 +50,7 @@ const render = (views: DesktopBrowserView[]) => {
         guard = document.createElement('div');
         guard.dataset.browserInputGuard = view.token;
         guards.set(view.token, guard);
-        document.body.append(guard);
+        layer.append(guard);
       }
       Object.assign(guard.style, {
         position: 'fixed',
@@ -73,7 +77,9 @@ const render = (views: DesktopBrowserView[]) => {
       const name = property.replace(/[A-Z]/g, (letter) => `-${letter.toLowerCase()}`);
       node.style.setProperty(
         name,
-        typeof value === 'number' && property !== 'zIndex' ? `${value}px` : String(value),
+        typeof value === 'number' && !['zIndex', 'opacity'].includes(property)
+          ? `${value}px`
+          : String(value),
       );
     }
   }

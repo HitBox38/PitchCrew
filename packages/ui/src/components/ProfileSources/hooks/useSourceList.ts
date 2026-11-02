@@ -29,7 +29,8 @@ export const useSourceList = (open: boolean) => {
     }
   }, []);
   useEffect(() => {
-    if (!open) return;
+    // Profile also needs source paths and origins while the Sources dialog is closed.
+    // Mounts, dialog transitions and completed source tasks refresh the same list.
     const controller = new AbortController();
     void Promise.resolve().then(() => {
       if (!controller.signal.aborted) return refresh(controller.signal);
