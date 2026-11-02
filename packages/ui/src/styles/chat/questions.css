@@ -83,7 +83,9 @@
 .user-question-fields {
   display: grid;
   gap: 7px;
-  max-height: clamp(48px, calc(38dvh - 90px), 220px);
+  /* Leave reading space when the split pane wraps the heading and composer into more rows.
+   * Only the question and choices scroll; the answer and actions retain their natural height. */
+  max-height: clamp(48px, calc(32dvh - 220px), 120px);
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 2px 3px 4px;
