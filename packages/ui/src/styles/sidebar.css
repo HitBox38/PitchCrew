@@ -1,6 +1,5 @@
-/* App sidebar on the paper: a 44px top strip, four places and More, then Jobs, Chats, Recent and
- * Crew in one scrolling region, and a pinned footer ending in the recessed slot tray. Selected rows
- * are raised clay; everything else stays flat on the paper. */
+/* Places and conversations share one full-height scroll region beneath the app bar. Phones
+ * retain a drawer header and compact queue footer. Selected rows are raised clay. */
 [data-slot='sidebar-container'] {
   border-color: transparent;
 }
@@ -72,6 +71,7 @@
 /* ── Rows ──────────────────────────────────────────────────────────────────── */
 [data-slot='sidebar-content'].sidebar-scroll {
   gap: 0;
+  padding-block: 8px;
   overscroll-behavior: contain;
 }
 [data-slot='sidebar'] [data-slot='sidebar-group'] {
@@ -299,6 +299,15 @@
 .sidebar-footer-row {
   color: var(--ink-soft);
 }
+.sidebar-notices {
+  display: grid;
+  gap: 2px;
+  padding-inline: 10px;
+  margin-top: auto;
+}
+.sidebar-notices:not(:has(.sidebar-setup-row, .sidebar-source-activity > *)) {
+  display: none;
+}
 .sidebar-setup-progress {
   margin-left: auto;
   color: var(--muted);
@@ -320,32 +329,6 @@
   width: 100%;
   justify-content: flex-start;
   color: var(--ink-soft);
-}
-.sidebar-update-row {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-.sidebar-update-button {
-  position: relative;
-  overflow: hidden;
-  color: var(--teal);
-  font-weight: 600;
-}
-.sidebar-update-button > :not(.sidebar-update-progress) {
-  position: relative;
-}
-[data-sidebar='menu-button'].sidebar-update-button > svg {
-  color: inherit;
-}
-.sidebar-update-progress {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: color-mix(in srgb, var(--teal), transparent 85%);
-}
-.sidebar-update-dismiss {
-  color: var(--muted);
 }
 .sidebar-tray {
   display: flex;
@@ -369,11 +352,6 @@
 }
 
 /* ── Collapsed rail (56px) ─────────────────────────────────────────────────── */
-[data-collapsible='icon'] .sidebar-strip {
-  flex-direction: column;
-  height: auto;
-  padding: 8px 0;
-}
 [data-collapsible='icon'] [data-slot='sidebar-group'] {
   padding: 0 12px;
 }
@@ -415,29 +393,19 @@
 [data-collapsible='icon'] .sidebar-count[data-tone='plum'] {
   background: var(--plum);
 }
-[data-collapsible='icon'] .sidebar-footer {
-  align-items: center;
-  padding: 8px 0 10px;
-}
 [data-collapsible='icon'] .sidebar-setup-row {
   width: 32px;
   justify-content: center;
   padding: 0;
 }
 [data-collapsible='icon'] .sidebar-setup-row > span,
-[data-collapsible='icon'] .sidebar-footer-beads,
-[data-collapsible='icon'] .sidebar-update-dismiss,
-[data-collapsible='icon'] .sidebar-update-button > span:not(.sidebar-update-progress) {
+[data-collapsible='icon'] .sidebar-footer-beads {
   display: none;
 }
 [data-collapsible='icon'] .sidebar-source-activity a {
   width: 32px;
   padding: 0;
   justify-content: center;
-}
-[data-collapsible='icon'] .sidebar-tray {
-  flex-direction: column;
-  padding: 6px 4px;
 }
 
 /* The phone drawer has no keyboard hints. */

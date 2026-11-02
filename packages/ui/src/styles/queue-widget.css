@@ -1,19 +1,22 @@
-/* The sidebar slot tray's Queue button and its popover. The tray itself (recessed, 44px,
- * with the Settings gear beside it) belongs to the shell. */
+/* Capacity is a number and an aggregate meter, so slot counts never add width or rows. */
 .queue-tray-button {
-  display: flex;
+  display: inline-grid;
+  grid-template-columns: 8px 76px;
+  grid-auto-flow: column;
+  grid-auto-columns: 36px;
   align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
+  gap: 6px;
+  flex: none;
   min-height: 32px;
-  padding: 0 6px;
+  padding: 3px 8px;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: var(--ink-soft);
   font-size: var(--text-detail);
   text-align: left;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
   transition:
     background-color 0.12s,
     box-shadow 0.12s;
@@ -28,35 +31,75 @@
   outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
-.queue-tray-button[data-variant='rail'] {
-  flex: none;
-  justify-content: center;
-  width: 36px;
-  min-height: 36px;
-  padding: 0;
+.queue-tray-button[data-variant='tray'] {
+  grid-template-columns: 8px minmax(0, 1fr);
+  flex: 1;
+  min-width: 0;
+  padding-inline: 6px;
 }
-.queue-tray-sockets {
+.queue-tray-button > .clay-bead[data-size='sm'] {
+  --bead-size: 8px;
+}
+.queue-tray-summary {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.queue-tray-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 18px;
+}
+.queue-capacity-meter {
+  display: block;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgb(var(--tint) / 0.12);
+  box-shadow: inset 0 1px 2px rgb(var(--tint) / 0.12);
+}
+.queue-capacity-meter > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--plum);
+}
+.queue-tray-attention {
   display: inline-flex;
   align-items: center;
   gap: 3px;
+  flex: none;
+  line-height: 18px;
+}
+.queue-tray-attention svg {
+  width: 12px;
+  height: 12px;
+}
+.queue-tray-attention[data-tone='ochre'] {
+  color: var(--ochre);
+}
+.queue-tray-attention[data-tone='rose'] {
+  color: var(--rose);
+}
+.queue-widget-capacity {
+  display: grid;
+  gap: 8px;
   flex-shrink: 0;
-}
-.queue-tray-sockets > .clay-bead {
-  --bead-size: 0.625rem;
-}
-.queue-tray-button[data-variant='rail'] .queue-tray-sockets {
-  flex-direction: column;
-  gap: 3px;
-}
-.queue-tray-button[data-variant='rail'] .queue-tray-sockets > .clay-bead {
-  --bead-size: 0.4375rem;
-}
-/* Wraps only between its facts, so “1 on hold” never clips; the sockets keep their size. */
-.queue-tray-label {
-  min-width: 0;
-  padding-block: 2px;
-  line-height: 16px;
+  margin: 4px 16px 8px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--muted);
+  font-size: var(--text-detail);
   font-variant-numeric: tabular-nums;
+}
+.queue-widget-capacity .queue-capacity-meter {
+  height: 6px;
+}
+.queue-widget-capacity > span:last-child {
+  overflow-wrap: anywhere;
 }
 
 .ui-popover.queue-widget-panel {
@@ -79,9 +122,12 @@
   font: 600 1rem/1.35 var(--font-sans);
 }
 .queue-widget-heading > .ui-count {
+  min-width: 0;
   margin-left: auto;
   font-size: var(--text-detail);
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+  text-align: right;
 }
 .queue-widget-description {
   flex-shrink: 0;
@@ -269,5 +315,15 @@
   }
   .queue-widget-agent {
     min-height: 40px;
+  }
+}
+@media (pointer: coarse) {
+  .queue-tray-button {
+    min-height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .queue-tray-button {
+    transition: none;
   }
 }

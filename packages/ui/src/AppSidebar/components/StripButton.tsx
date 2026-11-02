@@ -9,6 +9,7 @@ export const StripButton = ({
   hint,
   onClick,
   render,
+  side,
   children,
 }: {
   label: string;
@@ -16,6 +17,7 @@ export const StripButton = ({
   onClick?: () => void;
   /** A trigger element (e.g. a menu trigger) wrapping the button. */
   render?: ReactElement;
+  side?: 'top' | 'right' | 'bottom' | 'left';
   children: ReactNode;
 }) => {
   const { state, isMobile } = useSidebar();
@@ -31,7 +33,10 @@ export const StripButton = ({
   return (
     <Tooltip>
       <TooltipTrigger render={render ?? button}>{children}</TooltipTrigger>
-      <TooltipContent side={state === 'collapsed' && !isMobile ? 'right' : 'bottom'} sideOffset={6}>
+      <TooltipContent
+        side={side ?? (state === 'collapsed' && !isMobile ? 'right' : 'bottom')}
+        sideOffset={6}
+      >
         {label}
         {hint ? <span className="sidebar-strip-hint"> {hint}</span> : null}
       </TooltipContent>

@@ -7,8 +7,6 @@ export const WorkspaceSidebar = ({
   pending,
   data,
   openCard,
-  setPaletteOpen,
-  setAdd,
   recentCards,
   toggleRole,
   setRoleId,
@@ -21,8 +19,6 @@ export const WorkspaceSidebar = ({
     recent={recentCards}
     working={working}
     onOpenCard={openCard}
-    onSearch={() => setPaletteOpen(true)}
-    onAddJob={() => setAdd(true)}
     onConfigureRole={setRoleId}
     onToggleRole={toggleRole}
   />

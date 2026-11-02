@@ -17,8 +17,13 @@ const stopErrorTracking = installErrorTracking(window);
 if (import.meta.hot) import.meta.hot.dispose(stopErrorTracking);
 createRoot(document.getElementById('root')!, reactErrorHandlers).render(
   <React.StrictMode>
-    <div className="desktop-titlebar" aria-hidden="true">
-      <span>Pitchcrew</span>
+    <a className="skip-link" href="#main">
+      Skip to content
+    </a>
+    <div className="desktop-titlebar" id="workspace-app-bar-root">
+      <span className="desktop-titlebar-brand" aria-hidden="true">
+        Pitchcrew
+      </span>
     </div>
     <AppMotion>
       <RouterProvider router={router} />

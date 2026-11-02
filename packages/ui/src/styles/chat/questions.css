@@ -24,7 +24,10 @@
 }
 .pending-user-questions-lane {
   width: 100%;
-  max-height: 42dvh;
+  /* Share the page's viewport budget after the app bar and phone page bar. */
+  max-height: calc(
+    (100dvh - var(--desktop-titlebar-height, 0px) - var(--shell-bar-height, 0px)) * 0.42
+  );
   /* Keep actions above the composer and contain the accordion's two-pixel closing edge. */
   padding-bottom: calc(var(--question-composer-overlap) + 2px);
   overflow-y: auto;
@@ -85,7 +88,13 @@
   gap: 7px;
   /* Leave reading space when the split pane wraps the heading and composer into more rows.
    * Only the question and choices scroll; the answer and actions retain their natural height. */
-  max-height: clamp(48px, calc(32dvh - 220px), 120px);
+  max-height: clamp(
+    48px,
+    calc(
+      (100dvh - var(--desktop-titlebar-height, 0px) - var(--shell-bar-height, 0px)) * 0.32 - 220px
+    ),
+    120px
+  );
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 2px 3px 4px;

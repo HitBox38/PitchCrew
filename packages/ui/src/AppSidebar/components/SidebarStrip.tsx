@@ -1,20 +1,12 @@
-import { PanelLeft, Search, X } from 'lucide-react';
-import type { SidebarStripProps } from '@/AppSidebar/types.ts';
+import { X } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import { SidebarHeader, useSidebar } from '@pitchcrew/design-system/sidebar';
-import { NotificationBell } from '@/Notifications/index.tsx';
-import { modKey } from '@/shortcuts.ts';
-import { NewMenu } from './NewMenu.tsx';
-import { StripButton } from './StripButton.tsx';
 
 /**
- * The 44px top strip: the window's own controls sit above it (native on desktop), then Hide
- * sidebar, Search, New and the notification bell. The phone drawer starts with its own 48px bar
- * instead (close and the app name): Search, New and the bell live in the page's top bar.
+ * The phone drawer's close button and app name. Global desktop controls live in the app bar.
  */
-export const SidebarStrip = ({ onSearch, onAddJob }: SidebarStripProps) => {
-  const { state, isMobile, toggleSidebar, setOpenMobile } = useSidebar();
-  const collapsed = state === 'collapsed' && !isMobile;
+export const SidebarStrip = () => {
+  const { isMobile, setOpenMobile } = useSidebar();
   if (isMobile)
     return (
       <SidebarHeader className="sidebar-strip sidebar-drawer-bar">
@@ -30,24 +22,5 @@ export const SidebarStrip = ({ onSearch, onAddJob }: SidebarStripProps) => {
         <span className="sidebar-drawer-title">Pitchcrew</span>
       </SidebarHeader>
     );
-  return (
-    <SidebarHeader className="sidebar-strip">
-      <StripButton
-        label={collapsed ? 'Show sidebar' : 'Hide sidebar'}
-        hint={`${modKey}\\`}
-        onClick={toggleSidebar}
-      >
-        <PanelLeft aria-hidden="true" />
-      </StripButton>
-      <StripButton label="Search" hint={`${modKey}K`} onClick={onSearch}>
-        <Search aria-hidden="true" />
-      </StripButton>
-      <NewMenu onAddJob={onAddJob} />
-      <NotificationBell
-        className="sidebar-strip-button"
-        side={collapsed ? 'right' : 'bottom'}
-        align="start"
-      />
-    </SidebarHeader>
-  );
+  return null;
 };

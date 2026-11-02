@@ -206,7 +206,10 @@ test('keeps history and the answer footer reachable beside an expanded long ques
         layout.composer.top,
       );
       expect(layout.lane.scroll).toBeLessThanOrEqual(layout.lane.height + 2);
-      if (size.height >= 900) expect(layout.composer.bottom).toBeLessThanOrEqual(size.height);
+      if (size.height >= 900)
+        expect(layout.composer.bottom, JSON.stringify({ size, open, layout })).toBeLessThanOrEqual(
+          size.height,
+        );
       const submit = page.locator('.pending-user-question button[type="submit"]');
       await submit.scrollIntoViewIfNeeded();
       const submitBounds = (await submit.boundingBox())!;

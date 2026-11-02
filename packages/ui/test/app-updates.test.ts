@@ -10,6 +10,12 @@ const focusAction = async () => {
   await page.keyboard.press('Tab');
   await action().focus();
 };
+const details = () => page.getByRole('dialog', { name: 'Pitchcrew update', exact: true });
+const inspectUpdate = async () => {
+  await action().click();
+  await details().waitFor();
+  return details();
+};
 const update = async (patch: Partial<DesktopUpdateState>) => {
   await page.evaluate((value) => (window as unknown as FixtureWindow).updateFixture(value), patch);
 };
@@ -49,23 +55,21 @@ let browser: Browser;
 let page: Page;
 let info: AppUpdateInfo;
 const errors: string[] = [];
-const action = () =>
-  page.locator(
-    '[data-slot="sidebar-footer"] .sidebar-update-row [data-slot="sidebar-menu-button"]',
-  );
-/** The update row sits in the sidebar footer only while an update exists: a full-width action
- * with its session dismissal on the same line, above the slot tray and Settings. */
-const expectInlineAction = async () => {
+const action = () => page.locator('.app-update-button');
+/** Updates use one icon target in the app bar, independent of sidebar collapse. */
+const expectCompactIndicator = async () => {
   const bounds = (await action().boundingBox())!;
-  expect(bounds.width).toBeGreaterThan(120);
+  expect(bounds.width).toBeLessThanOrEqual(44);
   expect(bounds.height).toBeGreaterThanOrEqual(32);
-  const dismiss = (await page
-    .getByRole('button', { name: 'Dismiss update notice', exact: true })
-    .boundingBox())!;
-  expect(dismiss.y + dismiss.height / 2).toBeCloseTo(bounds.y + bounds.height / 2, 0);
-  expect(dismiss.x).toBeGreaterThanOrEqual(bounds.x + bounds.width - 1);
-  const settings = (await page.getByRole('link', { name: 'Settings', exact: true }).boundingBox())!;
-  expect(settings.y).toBeGreaterThan(bounds.y + bounds.height - 1);
+  if (page.viewportSize()!.width >= 768) {
+    const settings = (await page
+      .getByRole('link', { name: 'Settings', exact: true })
+      .boundingBox())!;
+    expect(settings.y + settings.height / 2).toBeCloseTo(bounds.y + bounds.height / 2, 0);
+    expect(bounds.y).toBeLessThan(40);
+  } else {
+    expect(bounds.height).toBeGreaterThanOrEqual(44);
+  }
 };
 
 beforeAll(async () => {
@@ -216,27 +220,23 @@ test('the download icon stops spinning when the native check finishes before the
   }, native);
   try {
     await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
-    // While both checks run there is no update to offer, so the footer has no update row.
-    await page.locator('.sidebar-tray').waitFor();
-    expect(await page.locator('.sidebar-update-row').count()).toBe(0);
+    await page.locator('.workspace-app-bar').waitFor();
+    expect(await action().count()).toBe(0);
     await update(native);
-    const download = page.getByRole('button', { name: 'Download update', exact: true });
-    await download.waitFor();
-    expect(await download.getAttribute('aria-busy')).toBe('true');
+    await action().waitFor();
+    expect(await action().getAttribute('aria-busy')).toBe('true');
     expect(
-      await download.locator('svg').evaluate((icon) => getComputedStyle(icon).animationName),
+      await action()
+        .locator('svg')
+        .evaluate((icon) => getComputedStyle(icon).animationName),
     ).toBe('none');
   } finally {
     finishDaemonCheck();
   }
-  await page.waitForFunction(
-    () =>
-      document.querySelector('button[aria-label="Download update"]')?.getAttribute('aria-busy') ===
-      'false',
-  );
+  await expect.poll(() => action().getAttribute('aria-busy')).toBe('false');
 }, 45000);
 
-test('manual download, changelog tooltip, collapse and session dismissal need no popover', async () => {
+test('inspects update details before download, retains the compact target when collapsed and restores dismissal focus', async () => {
   await page.addInitScript(() => {
     window.open = (url) => {
       (window as unknown as FixtureWindow).openedRelease = String(url);
@@ -244,24 +244,31 @@ test('manual download, changelog tooltip, collapse and session dismissal need no
     };
   });
   await open();
-  await expectInlineAction();
+  await expectCompactIndicator();
   await focusAction();
-  const tooltip = page.getByRole('tooltip');
-  await tooltip.waitFor();
-  expect(await tooltip.textContent()).toContain('Version 0.2.0');
-  expect(await tooltip.locator('li').allTextContents()).toEqual(available.latest!.changes);
-  expect(await tooltip.textContent()).toContain('More changes in release notes');
-  expect(await tooltip.locator('a,button').count()).toBe(0);
-  await action().click();
+  await page.keyboard.press('Enter');
+  const panel = details();
+  await panel.waitFor();
+  expect(await panel.textContent()).toContain('Version 0.2.0');
+  expect(await panel.locator('li').allTextContents()).toEqual(available.latest!.changes);
+  expect(await panel.textContent()).toContain('More changes in release notes');
+  expect(
+    await page.evaluate(() => (window as unknown as FixtureWindow).openedRelease),
+  ).toBeUndefined();
+  await panel.getByRole('button', { name: 'Download update', exact: true }).click();
   expect(await page.evaluate(() => (window as unknown as FixtureWindow).openedRelease)).toBe(
     available.latest!.url,
   );
-  expect(await page.locator('[data-slot="popover-content"]').count()).toBe(0);
+  await page.keyboard.press('Escape');
+  await panel.waitFor({ state: 'hidden' });
+  await expect
+    .poll(() => action().evaluate((element) => element === document.activeElement))
+    .toBe(true);
   await page.getByRole('button', { name: 'Hide sidebar', exact: true }).click();
-  expect((await action().boundingBox())!.width).toBeLessThanOrEqual(40);
-  // The rail shows the action only; dismissal lives on the expanded row.
+  await expectCompactIndicator();
   await page.getByRole('button', { name: 'Show sidebar', exact: true }).click();
-  await page.getByRole('button', { name: 'Dismiss update notice' }).click();
+  await inspectUpdate();
+  await panel.getByRole('button', { name: 'Dismiss update notice' }).click();
   await expect.poll(() => action().count()).toBe(0);
   await expect
     .poll(() =>
@@ -275,10 +282,11 @@ test('manual download, changelog tooltip, collapse and session dismissal need no
   const palette = page.getByRole('dialog', { name: 'Search Pitchcrew', exact: true });
   await palette.getByRole('combobox').fill('Check for updates');
   await palette.getByRole('option', { name: /Check for updates/ }).click();
-  await action().filter({ hasText: 'Download update' }).waitFor();
+  await action().waitFor();
+  expect(await action().getAttribute('aria-label')).toContain('Download update');
 }, 45000);
 
-test('native download stays visible through navigation and enables restart only after completion', async () => {
+test('native progress stays visible through navigation and restart requires its explicit action', async () => {
   await page.addInitScript((initial) => {
     const fixture = window as unknown as FixtureWindow;
     let state = initial;
@@ -310,18 +318,20 @@ test('native download stays visible through navigation and enables restart only 
     };
   }, native);
   await open();
-  await expectInlineAction();
-  await action().click();
+  await expectCompactIndicator();
+  const panel = await inspectUpdate();
+  expect(await page.evaluate(() => (window as unknown as FixtureWindow).updateCalls)).toEqual([]);
+  await panel.getByRole('button', { name: 'Download update', exact: true }).click();
   await update({ downloadPercent: 42 });
-  await page.getByRole('button', { name: 'Downloading… 42%' }).waitFor();
-  await expectInlineAction();
-  expect(await page.getByRole('button', { name: 'Dismiss update notice' }).isDisabled()).toBe(true);
-  expect(await action().getAttribute('aria-disabled')).toBe('true');
-  await focusAction();
-  await page.keyboard.press('Enter');
-  expect(await page.evaluate(() => (window as unknown as FixtureWindow).updateCalls)).toEqual([
-    'download',
-  ]);
+  await panel.getByRole('button', { name: 'Downloading… 42%' }).waitFor();
+  expect(await panel.getByRole('button', { name: 'Dismiss update notice' }).isDisabled()).toBe(
+    true,
+  );
+  expect(await panel.getByRole('button', { name: 'Downloading… 42%' }).isDisabled()).toBe(true);
+  await page.keyboard.press('Escape');
+  await panel.waitFor({ state: 'hidden' });
+  expect(await action().getAttribute('aria-label')).toContain('42%');
+  expect(await page.locator('.app-update-progress').getAttribute('style')).toContain('42%');
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await page.getByRole('tab', { name: 'Updates', exact: true }).click();
   await page.getByRole('heading', { name: 'Pitchcrew updates' }).waitFor();
@@ -329,26 +339,20 @@ test('native download stays visible through navigation and enables restart only 
     .getByRole('region', { name: 'Pitchcrew updates', exact: true })
     .getByRole('status');
   expect(await status.allTextContents()).toEqual([native.message]);
-  expect(await action().textContent()).toContain('42%');
-  expect(await page.locator('.sidebar-update-progress').getAttribute('style')).toContain('42%');
+  expect(await action().getAttribute('aria-label')).toContain('42%');
   await update({ status: 'error', message: 'Could not download the update. Try again.' });
   await expect
     .poll(() => status.allTextContents())
     .toEqual(['Could not download the update. Try again.']);
-  await action().filter({ hasText: 'Download update' }).waitFor();
-  await focusAction();
-  await page.getByRole('tooltip').waitFor();
-  expect(await page.getByRole('tooltip').textContent()).toContain('Could not download');
-  await action().click();
+  await inspectUpdate();
+  expect(await panel.textContent()).toContain('Could not download');
+  await panel.getByRole('button', { name: 'Download update', exact: true }).click();
   await update({ status: 'downloaded', downloadedVersion: '0.2.0', downloadPercent: 100 });
-  await page.getByRole('button', { name: 'Restart to update', exact: true }).waitFor();
-  await expectInlineAction();
-  await focusAction();
-  expect(await page.getByRole('tooltip').textContent()).toContain(
-    'Restarting interrupts running agents',
-  );
-  await action().click();
-  await action().filter({ hasText: 'Restarting…' }).waitFor();
+  await panel.getByRole('button', { name: 'Restart to update', exact: true }).waitFor();
+  await expectCompactIndicator();
+  expect(await panel.textContent()).toContain('Restarting interrupts running agents');
+  await panel.getByRole('button', { name: 'Restart to update', exact: true }).click();
+  await panel.getByRole('button', { name: 'Restarting…', exact: true }).waitFor();
   expect(await page.evaluate(() => (window as unknown as FixtureWindow).updateCalls)).toEqual([
     'download',
     'download',
@@ -356,15 +360,19 @@ test('native download stays visible through navigation and enables restart only 
   ]);
 }, 45000);
 
-test('mobile keeps the inline action and older releases have an explicit notes fallback', async () => {
+test('mobile retains a compact indicator and older releases have an explicit notes fallback', async () => {
   info = { ...available, latest: { commit: available.latest!.commit, url: available.latest!.url } };
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: 'Open navigation', exact: true }).click();
   await action().waitFor();
-  await expectInlineAction();
-  await focusAction();
-  await page.getByRole('tooltip').waitFor();
-  expect(await page.getByRole('tooltip').textContent()).toContain('Release notes unavailable.');
-  expect(await page.locator('[data-slot="popover-content"]').count()).toBe(0);
+  await expectCompactIndicator();
+  const panel = await inspectUpdate();
+  expect(await panel.textContent()).toContain('Release notes unavailable.');
+  const bounds = (await panel.boundingBox())!;
+  expect(bounds.x).toBeGreaterThanOrEqual(0);
+  expect(bounds.x + bounds.width).toBeLessThanOrEqual(390);
+  expect(
+    await page.evaluate(() => (window as unknown as FixtureWindow).openedRelease),
+  ).toBeUndefined();
 }, 45000);

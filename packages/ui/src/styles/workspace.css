@@ -1,5 +1,5 @@
-/* The window is paper: the sidebar and the page share it, with no toolbar or card between them.
- * --shell-bar-height is the phone top bar (0 on wider windows); page heights subtract it. */
+/* Sidebar and page share the paper beneath the global app bar. --shell-bar-height is the phone
+ * page bar (0 on wider windows); page heights subtract both bars. */
 :root {
   --shell-bar-height: 0px;
 }

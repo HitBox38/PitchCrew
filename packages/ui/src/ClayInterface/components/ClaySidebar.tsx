@@ -3,6 +3,9 @@ import { CrewRoles } from '@/AppSidebar/components/CrewRoles.tsx';
 import { RecentJobs } from '@/AppSidebar/components/RecentJobs.tsx';
 import { SidebarFooterTray } from '@/AppSidebar/components/SidebarFooterTray.tsx';
 import { SidebarStrip } from '@/AppSidebar/components/SidebarStrip.tsx';
+import { SetupRow } from '@/AppSidebar/components/SetupRow.tsx';
+import { SourceActivity } from '@/components/ProfileSources/components/SourceActivity.tsx';
+import { useSidebar } from '@pitchcrew/design-system/sidebar';
 import { Sidebar, SidebarContent, SidebarRail } from '@pitchcrew/design-system/sidebar';
 import { ConversationNavigationView } from '@/ConversationNavigation/components/ConversationNavigationView.tsx';
 import { useClaySidebar } from '../hooks/useClaySidebar.ts';
@@ -10,15 +13,15 @@ import { ClayJobs } from './ClayJobs.tsx';
 import { ClayNav } from './ClayNav.tsx';
 
 /**
- * The app sidebar on the paper: the top strip, four places and More, live jobs with their
- * conversations nested beneath, the remaining chats, recently opened jobs and the crew, then the
- * footer with setup, source activity, updates, the slot tray and Settings.
+ * Places and conversations use the full sidebar height. Setup and source notices scroll with
+ * them; only phones keep queue, updates and Settings in the drawer footer.
  */
 export const ClaySidebar = (props: AppSidebarProps) => {
   const sidebar = useClaySidebar(props.data);
+  const { setOpenMobile } = useSidebar();
   return (
     <Sidebar collapsible="icon" aria-label="Pitchcrew" className="clay-sidebar">
-      <SidebarStrip onSearch={props.onSearch} onAddJob={props.onAddJob} />
+      <SidebarStrip />
       <SidebarContent className="sidebar-scroll">
         <ClayNav view={props.view} counts={props.counts} />
         <ClayJobs sidebar={sidebar} onOpenCard={props.onOpenCard} />
@@ -35,6 +38,12 @@ export const ClaySidebar = (props: AppSidebarProps) => {
           onConfigureRole={props.onConfigureRole}
           onToggleRole={props.onToggleRole}
         />
+        <div className="sidebar-notices">
+          <SetupRow />
+          <div className="sidebar-source-activity" onClickCapture={() => setOpenMobile(false)}>
+            <SourceActivity />
+          </div>
+        </div>
       </SidebarContent>
       <SidebarFooterTray data={props.data} active={props.view === 'settings'} />
       <SidebarRail />
