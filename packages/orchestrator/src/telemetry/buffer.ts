@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { agentProblemTextLimits } from '@pitchcrew/core/telemetry-errors';
 import type {
   DiagnosticObservation,
   DiagnosticSanitizer,
@@ -31,7 +32,10 @@ export const createTelemetryBuffer = (
               (typeof value === 'number'
                 ? !Number.isFinite(value)
                 : typeof value === 'string'
-                  ? value.length > 200
+                  ? value.length >
+                    (event === '$exception' && properties.error_source === 'agent_report'
+                      ? (agentProblemTextLimits[key as keyof typeof agentProblemTextLimits] ?? 200)
+                      : 200)
                   : typeof value !== 'boolean'),
           )
         )

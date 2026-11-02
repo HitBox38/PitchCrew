@@ -85,8 +85,13 @@ it('requires technical blocker reporting across chat and isolated work while ext
   for (const prompt of prompts) {
     expect(prompt).toContain('call pitchcrew_report_technical_problem once');
     expect(prompt).toContain('before asking the user for help or ending the turn');
-    expect(prompt).toContain('expected approval waits');
+    expect(prompt).toContain('Expected approval waits');
     expect(prompt).toContain('never error messages');
+    expect(prompt).toContain('always include summary, expected and actual behavior');
+    expect(prompt).toContain('kind bug or missing_capability');
+    expect(prompt).toContain(
+      'Do not investigate or ask the user questions just to complete a report',
+    );
     expect(prompt).toContain('If reporting itself fails');
   }
   expect(
