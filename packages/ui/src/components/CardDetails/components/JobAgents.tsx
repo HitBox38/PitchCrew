@@ -17,7 +17,7 @@ export const JobAgents = ({
       className="detail-agents flex flex-wrap items-center gap-2"
       aria-label="Agents on this job"
     >
-      {agents.map(({ run, name }) => {
+      {agents.map(({ run, name, detail }) => {
         const preview = turnPreview(run);
         return (
           <Tooltip key={run.id}>
@@ -29,8 +29,8 @@ export const JobAgents = ({
                   search={{ run: run.id }}
                 />
               }
-              className="detail-agent"
-              aria-label={`${name}: ${run.status === 'waiting' ? 'Waiting for you' : 'Running'}. Open job chat`}
+              className="detail-agent max-w-full"
+              aria-label={`${name}${detail ? ` (${detail})` : ''}: ${run.status === 'waiting' ? 'Waiting for you' : 'Running'}. Open job chat`}
               aria-disabled={!run.threadId}
               onClick={(event) => {
                 if (!run.threadId) {
@@ -45,6 +45,11 @@ export const JobAgents = ({
             >
               <RoleAvatar agentRole={run.roleId} size="small" />
               <span>{name}</span>
+              {detail ? (
+                <span className="max-w-28 truncate sm:max-w-48" title={detail}>
+                  {detail}
+                </span>
+              ) : null}
               <span className="detail-agent-status">
                 {run.status === 'waiting' ? 'Waiting for you' : 'Running'}
               </span>
@@ -63,6 +68,7 @@ export const JobAgents = ({
                   active={run.status === 'running'}
                 />
               </div>
+              {detail ? <p>{detail}</p> : null}
               <p className="break-words">{preview.status}</p>
               {preview.commentary ? (
                 <p className="line-clamp-5 break-words whitespace-pre-wrap">{preview.commentary}</p>
