@@ -28,6 +28,10 @@ The four additional specialties are job relevance, recruiter readability, demons
 
 Strong resumes deserve honest assessments. Reviewers must not manufacture reasons to reject them or demand invented metrics. Findings quote actual resume text; a missing section is explicitly labeled `[MISSING: ...]`, not presented as a quotation. Exact duplicate findings are merged with perspective attribution, and blockers precede advisory suggestions. The parent resolves disagreements against verified Profile evidence and confirmed requirements rather than voting. Unresolved subjective trade-offs stay advisory.
 
+Quotation checks use exact contiguous passages from the supplied `packet.resume` Markdown, including emphasis, whitespace and Unicode. They do not compare against PDF extraction, normalize punctuation, remove Markdown or accept paraphrases. Whole-packet blockers about other documents belong in `feedback`, not resume quotations. Both findings and perspective weakest lines are checked before a stage is marked completed.
+
+An invalid parent quotation triggers at most one fresh isolated repair execution per assessment stage, within the same shared deadline and against the same packet/context/evidence gates. The diagnostic identifies the field and rejected quotation. Completed second opinions are reused. The allowance survives question continuations. A repeated rejection fails the review explicitly; no rejected assessment becomes a before/after result, packet review or approval. The user can inspect the diagnostic and start a fresh review after checking the Reviewer runtime/model.
+
 ## Targeted review subagents
 
 Subagents are temporary, scoped second opinions rather than permanent Crew roles. Each receives a neutral concern, the candidate resume, confirmed job data and verified Profile evidence. Other packet documents, peer notes, earlier conclusions, memory, raw job sources and ordinary conversation history are not supplied. Child results identify their stage and candidate packet digest.
@@ -57,6 +61,8 @@ Registered claims require exact verified Profile quotations, and all prose remai
 Advisory findings and optional suggestions cannot independently fail a packet. Blocking findings and unresolved requirements prevent agreement. Final review evidence binds the current confirmed context and exact packet bytes; stale context, packet or Profile inputs reject the result. Export and submission retain their existing separate user approvals.
 
 ## Reports and history
+
+Each new stage saves `deep-review-input.json` and `deep-review-output.json` in its local `roles/<role id>/runs/<run id>/` directory. The input retains the exact supplied card/packet, stage, packet digest, confirmed context revision and Profile digest; the output retains the returned structured result before quotation validation. These artifacts are local diagnostic evidence, not validated assessments or verified Profile facts. Failed runs retain them, and a repair has its own run and files. Older failures did not save rejected parent assessments, so their exact rejected quotations cannot be recovered from report summaries or inferred from completed child results.
 
 The job's **Reviews** section contains paged report history, the original and final seven assessments, attributed severity-ranked findings, packet blockers and advice, independent child results, deadline extensions and original/improved resume text. Chat receives a concise summary with the priority findings and before/after heuristic screen verdicts. Reports identify the packet, context and evidence versions they assessed, and historical reports do not establish readiness of a later packet.
 

@@ -204,6 +204,8 @@ Browser panels share sculpted clay chrome, raised active tabs, recessed address 
 
 ## Invariants
 
+Deep-review stages retain local `deep-review-input.json` and `deep-review-output.json` run artifacts before semantic quotation validation. Exact resume Markdown quotation checks remain strict. Invalid parent quotations get at most one isolated repair per stage against current provenance gates; rejected stages remain failed and never populate successful before/after assessments. See [deep resume review](docs/deep-resume-review.md).
+
 These must stay true. A change that breaks one is a bug even if tests pass.
 
 1. **No outward action without approval.** Anything that sends, submits, posts or emails must go through a gated MCP tool checking an unused approval bound to the exact payload. The check belongs in MCP, not in prompts or UI. Browser interactions use an exact-action gate bound to run, role, card, page fingerprint and upload contents. User-approved task site browsing grants can authorize bounded HTTPS read navigation, hover and scroll, while separate preparation grants authorize only the bounded preparation rules described above; submission, buttons, keys, dialogs and unfamiliar controls always require an exact user decision. Website-controlled scripts remain outside payload verification. Local export also uses its gate. Configured anonymous app analytics follows the device opt-out preference described above; it never carries application content or grants agents an outward-action bypass.
