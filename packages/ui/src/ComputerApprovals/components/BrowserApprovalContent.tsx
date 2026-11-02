@@ -4,6 +4,7 @@ import type { ComputerApproval } from '@pitchcrew/core';
 import { browserActionTitles, browserStatusLabels } from '../helpers.ts';
 import { BrowserActionSummary } from './BrowserActionSummary.tsx';
 import { BrowserApprovalActions } from './BrowserApprovalActions.tsx';
+import { BrowserApprovalError } from './BrowserApprovalError.tsx';
 import type { ComputerApprovalsProps } from '../types.ts';
 
 type Props = Pick<ComputerApprovalsProps, 'action' | 'working'> & {
@@ -71,11 +72,7 @@ export const BrowserApprovalContent = ({
         This allows one interaction on this page. Clicks, typing and uploads may send information to
         the website.
       </p>
-      {approval.error ? (
-        <p className="form-error" role="alert">
-          {approval.error}
-        </p>
-      ) : null}
+      <BrowserApprovalError approval={approval} />
       {showActions ? (
         <BrowserApprovalActions approval={approval} action={action} working={working} />
       ) : null}
