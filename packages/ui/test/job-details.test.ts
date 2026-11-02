@@ -1,7 +1,7 @@
 import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, beforeAll, beforeEach, expect, test, vi } from 'vitest';
 import { adapters } from '../../adapters/src/index.ts';
-import type { Card, RunContext, Run } from '@pitchcrew/core';
+import type { Card, RunContext, Run, UserInputRequest } from '@pitchcrew/core';
 import { cleanup, confirmFixtureApplication, finish, setup } from './helpers/daemon.ts';
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
@@ -175,6 +175,132 @@ test('previews the live workflow turn and opens that exact job chat without canc
   expect(await page.locator(`#run-${run.id}`).innerText()).toContain(
     'Matching the draft to the role.',
   );
+  expect(errors).toEqual([]);
+}, 30000);
+
+test('shows a waiting review once across sheet entry points and keeps independent turns navigable', async () => {
+  const service = host.daemon.service;
+  const thread = service.createConversation({
+    title: 'Resume review',
+    participants: ['reviewer'],
+    cardId: card.id,
+  });
+  const otherThread = service.createConversation({
+    title: 'Packet questions',
+    participants: ['reviewer'],
+    cardId: card.id,
+  });
+  const parent: Run = {
+    id: `review-parent-${card.id}`,
+    cardId: card.id,
+    roleId: 'reviewer',
+    runtime: 'demo',
+    mode: 'workflow',
+    purpose: 'deep-review',
+    deepReviewId: `report-${card.id}`,
+    rootRunId: 'earlier-request',
+    threadId: thread.id,
+    status: 'waiting',
+    message: 'Waiting for your answer',
+    startedAt: new Date().toISOString(),
+    finishedAt: null,
+  };
+  const worker: Run = {
+    ...parent,
+    id: `review-question-${card.id}`,
+    purpose: 'application-review',
+    reviewStage: 'review',
+    activity: [
+      {
+        id: 'public',
+        kind: 'commentary',
+        label: 'Update',
+        text: 'Checking the evidence for this review.',
+        status: 'completed',
+        startedAt: parent.startedAt,
+        finishedAt: parent.startedAt,
+      },
+    ],
+  };
+  const saveRun = (run: Run) => service.board.record('run', run, run.roleId, run.message);
+  saveRun(parent);
+  saveRun(worker);
+  service.board.record(
+    'user_input',
+    {
+      id: `question-${card.id}`,
+      runId: worker.id,
+      roleId: worker.roleId,
+      cardId: card.id,
+      threadId: thread.id,
+      sourceThreadId: thread.id,
+      messageId: `question-message-${card.id}`,
+      question: 'Which evidence should I use?',
+      continuationNotes: 'Continue the review.',
+      options: [],
+      multiSelect: false,
+      reason: '',
+      status: 'pending',
+      createdAt: parent.startedAt,
+    } satisfies UserInputRequest,
+    'reviewer',
+    'Asked a review question',
+  );
+  const openBoardJob = async () => {
+    await page.goto(host.daemon.url);
+    await page.locator(`#board-job-${card.id} .clay-job-card`).click();
+    await page.getByRole('tab', { name: 'Job', exact: true }).waitFor();
+  };
+  await openBoardJob();
+  const chips = page.locator('.detail-agent');
+  await expect.poll(() => chips.count()).toBe(1);
+  expect(await chips.innerText()).toContain('Reviewer');
+  expect(await chips.innerText()).toContain('Waiting for you');
+  expect(await chips.getAttribute('href')).toBe(`/chat/${thread.id}?run=${worker.id}`);
+  await chips.hover();
+  await page
+    .locator('[data-slot=tooltip-content]')
+    .getByText('Waiting for you', { exact: true })
+    .waitFor();
+  await page.getByRole('button', { name: 'Close dialog', exact: true }).click();
+  await page.locator(`#board-job-${card.id} .clay-job-card`).click();
+  await expect.poll(() => chips.count()).toBe(1);
+  await chips.click();
+  await page.waitForURL(`**/chat/${thread.id}?run=${worker.id}`);
+  await page.locator(`#run-${worker.id}`).waitFor();
+  await page.getByRole('button', { name: 'Job', exact: true }).click();
+  await expect.poll(() => chips.count()).toBe(1);
+
+  const independent: Run = {
+    ...worker,
+    id: `independent-${card.id}`,
+    threadId: otherThread.id,
+    deepReviewId: 'another-report',
+    status: 'running',
+    message: 'Checking packet files',
+    activity: [{ ...worker.activity![0], text: 'Inspecting the separate packet.' }],
+  };
+  saveRun(independent);
+  await openBoardJob();
+  await expect.poll(() => chips.count()).toBe(2);
+  const review = chips.filter({ hasText: 'Resume review' });
+  const packet = chips.filter({ hasText: 'Packet questions' });
+  expect(await review.innerText()).toContain('Waiting for you');
+  expect(await packet.innerText()).toContain('Running');
+  await page.keyboard.press('Tab');
+  await packet.focus();
+  await page
+    .locator('[data-slot=tooltip-content]')
+    .getByText('Inspecting the separate packet.', { exact: true })
+    .waitFor();
+  await packet.click();
+  await page.waitForURL(`**/chat/${otherThread.id}?run=${independent.id}`);
+  await page.locator(`#run-${independent.id}`).waitFor();
+  expect(service.board.get<Run>('run', independent.id).status).toBe('running');
+  expect(service.board.get<Run>('run', worker.id).status).toBe('waiting');
+  saveRun({ ...independent, status: 'completed' });
+  saveRun({ ...worker, status: 'cancelled' });
+  saveRun({ ...parent, status: 'cancelled' });
   expect(errors).toEqual([]);
 }, 30000);
 

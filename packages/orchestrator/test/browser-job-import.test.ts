@@ -15,6 +15,7 @@ import {
   rawPostingExtraction,
   readablePosting,
 } from './fixtures/job-posting-extraction.ts';
+import posting from './fixtures/job-boards/browser-posting.json';
 
 const runId = 'browser-job-import';
 const token = 'browser-job-import-token';
@@ -177,14 +178,76 @@ it('returns browser text for extraction without saving guessed fields', async ()
   expect(service.board.list<Card>('card')).toEqual([]);
 });
 
-it('rejects raw browser extraction, then saves every heading, paragraph and bullet on a readable retry', async () => {
+it('saves readable full browser postings and preserves the original inspection evidence', async () => {
+  const { service, navigate, importLink, changePage, driver } = await fixture();
+  await navigate();
+  changePage({ text: posting.raw });
+  const original = await driver.snapshot();
+  expect(
+    (await importLink({ details: { ...details, description: posting.raw } })).result.status,
+  ).toBe('added');
+  const [card] = service.board.list<Card>('card');
+  expect(card.description).toBe(posting.readable);
+  expect(original.text).toBe(posting.raw);
+  expect((await driver.snapshot()).text).toBe(posting.raw);
+  expect((service.board.history(card.id)[0].data as Card).description).toBe(posting.readable);
+  service.board.rebuild();
+  expect(service.board.get<Card>('card', card.id).description).toBe(posting.readable);
+  expect(
+    (await importLink({ cardId: card.id, details: { ...details, description: posting.raw } }))
+      .result.status,
+  ).toBe('updated');
+  expect(service.board.get<Card>('card', card.id).description).toBe(posting.readable);
+});
+
+it('does not create or refresh a job from unsupported browser extraction syntax', async () => {
   const { service, navigate, importLink, changePage } = await fixture();
   await navigate();
-  changePage({ text: rawPostingExtraction });
+  const raw = '- heading "About us" [level=2]\n- button "Original text"';
+  changePage({ text: raw });
+  const input = { details: { ...details, description: raw } };
+  await expect(importLink(input)).rejects.toThrow('could not be converted safely');
+  expect(service.board.list<Card>('card')).toHaveLength(0);
+  await importLink();
+  const [card] = service.board.list<Card>('card');
+  await expect(importLink({ ...input, cardId: card.id })).rejects.toThrow(
+    'could not be converted safely',
+  );
+  expect(service.board.get<Card>('card', card.id)).toEqual(card);
+});
+
+it('rejects oversized browser descriptions instead of silently clipping the posting', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
+  const text = 'x'.repeat(20001);
+  changePage({ text });
+  expect((await importLink({ details: undefined })).result).toMatchObject({
+    status: 'needs_details',
+    text,
+  });
+  await expect(importLink({ details: { ...details, description: text } })).rejects.toThrow();
+  expect(service.board.list<Card>('card')).toHaveLength(0);
+});
+
+it('rejects structural metadata left outside the supported browser conversion grammar', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
+  const raw = 'heading "About us" [level=2]\nparagraph: Build UI.';
+  changePage({ text: raw });
+  await expect(importLink({ details: { ...details, description: raw } })).rejects.toThrow(
+    'browser accessibility/extraction syntax',
+  );
+  expect(service.board.list<Card>('card')).toHaveLength(0);
+});
+
+it('rejects unevidenced browser extraction, then saves every heading, paragraph and bullet on a readable retry', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
   const before = service.board.events().length;
   await expect(
     importLink({ details: { ...details, description: rawPostingExtraction } }),
-  ).rejects.toThrow('browser accessibility/extraction syntax');
+  ).rejects.toThrow('could not be converted safely');
+  changePage({ text: rawPostingExtraction });
   expect(service.board.list<Card>('card')).toEqual([]);
   expect(service.board.events()).toHaveLength(before);
   expect((await importLink({ details: undefined })).result).toMatchObject({
@@ -209,7 +272,7 @@ it('rejects raw browser extraction, then saves every heading, paragraph and bull
   expect(service.board.get<Card>('card', card.id).description).toBe(readablePosting);
 });
 
-it('rejects raw extraction on refresh without changing the saved record or its history', async () => {
+it('rejects unevidenced extraction on refresh without changing the saved record or its history', async () => {
   const { service, navigate, importLink } = await fixture();
   await navigate();
   await importLink();
@@ -217,7 +280,7 @@ it('rejects raw extraction on refresh without changing the saved record or its h
   const history = service.board.history(card.id);
   await expect(
     importLink({ cardId: card.id, details: { ...details, description: rawPostingExtraction } }),
-  ).rejects.toThrow('Nothing was saved');
+  ).rejects.toThrow('could not be converted safely');
   expect(service.board.get<Card>('card', card.id)).toEqual(card);
   expect(service.board.history(card.id)).toEqual(history);
 });

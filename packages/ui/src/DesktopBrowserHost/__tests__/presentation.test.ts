@@ -20,6 +20,7 @@ it('keeps the selected page live within renderer stacking across paint activity'
     height: 500,
     visibility: 'visible',
     pointerEvents: 'auto',
+    opacity: 1,
   });
   expect(shown.zIndex).toBeLessThan(50);
   expect(browserViewStyle({ ...view, painting: true })).toEqual(shown);
@@ -61,6 +62,22 @@ it('lets a pending blank guest render before main-process registration', () => {
     visibility: 'visible',
     pointerEvents: 'none',
   });
+});
+
+it('conceals unselected native surfaces independently of paint leases and platform parking', () => {
+  for (const painting of [false, true])
+    for (const manual of [false, true])
+      for (const keepPaintable of [false, true])
+        for (const contentsId of [undefined, 1]) {
+          const background = browserViewStyle(
+            { ...view, bounds: null, painting, manual, contentsId },
+            undefined,
+            undefined,
+            keepPaintable,
+          );
+          expect(background.opacity).toBe(0);
+          expect(browserViewStyle({ ...view, painting, manual }).opacity).toBe(1);
+        }
 });
 
 it('fits background painting inside narrow windows without changing its layout viewport', () => {

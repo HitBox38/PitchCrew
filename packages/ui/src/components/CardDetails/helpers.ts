@@ -6,29 +6,64 @@ import type { ApplicationSection, JobAgent } from './types.ts';
 export const jobAgents = (cardId: string, data: Snapshot): JobAgent[] => {
   const runs = new Map(data.runs.map((run) => [run.id, run]));
   for (const run of data.activityRuns ?? []) runs.set(run.id, { ...runs.get(run.id), ...run });
-  return [...runs.values()]
+  const active = [...runs.values()].filter(
+    (run) =>
+      run.cardId === cardId &&
+      ['running', 'waiting'].includes(run.status) &&
+      !run.reviewSeatReservation,
+  );
+  // Answered turns stay waiting until their continuation chain finishes. Follow question
+  // links rather than grouping by role or root, which can also contain independent work.
+  const superseded = new Set<string>();
+  for (const run of active) {
+    let current: Run | undefined = run;
+    const visited = new Set<string>();
+    while (current?.requestId && !visited.has(current.id)) {
+      visited.add(current.id);
+      const question = data.userInputs?.find(
+        (question) =>
+          question.status === 'answered' &&
+          question.continuationRequestId === current?.requestId &&
+          question.roleId === run.roleId,
+      );
+      if (!question) break;
+      superseded.add(question.runId);
+      current = runs.get(question.runId);
+    }
+  }
+  const agents = active
+    // Deep-review coordinators mirror their workers, including when a worker asks a question.
+    // Their rootRunId can point farther upstream; the report identifies this execution.
     .filter(
       (run) =>
-        run.cardId === cardId &&
-        ['running', 'waiting'].includes(run.status) &&
-        !run.reviewSeatReservation,
-    )
-    .filter(
-      (run, _, all) =>
-        !all.some(
-          (other) =>
-            other.rootRunId === run.id && other.id !== run.id && other.status === 'running',
+        !(
+          run.purpose === 'deep-review' &&
+          run.deepReviewId &&
+          active.some(
+            (other) =>
+              other.id !== run.id &&
+              other.deepReviewId === run.deepReviewId &&
+              other.purpose !== 'deep-review',
+          )
         ),
     )
-    .filter(
-      (run, _, all) =>
-        run.status === 'running' ||
-        !all.some((other) => other.roleId === run.roleId && other.status === 'running'),
-    )
-    .map((run) => ({
+    .filter((run) => run.status !== 'waiting' || !superseded.has(run.id))
+    .map((run): JobAgent => ({
       run,
       name: data.roles.find((role) => role.id === run.roleId)?.name ?? run.roleId,
     }));
+  return agents.map((agent) => {
+    const peers = agents.filter((other) => other.name === agent.name);
+    if (peers.length < 2) return agent;
+    const ordered = peers.toSorted(
+      (a, b) => a.run.startedAt.localeCompare(b.run.startedAt) || a.run.id.localeCompare(b.run.id),
+    );
+    const conversation = data.conversations?.find((thread) => thread.id === agent.run.threadId);
+    return {
+      ...agent,
+      detail: `Turn ${ordered.indexOf(agent) + 1} · ${conversation?.title ?? agent.run.message}`,
+    };
+  });
 };
 export const turnPreview = (run: Run) => {
   const commentary = run.activity?.findLast(

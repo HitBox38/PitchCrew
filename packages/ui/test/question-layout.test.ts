@@ -135,18 +135,25 @@ afterAll(async () => {
 test('keeps history and the answer footer reachable beside an expanded long question', async () => {
   const toggleBrowser = page.locator('button[aria-controls="agent-browser-panel"]');
   const answer = page.locator('.pending-user-question textarea');
+  await answer.fill('Keep my answer draft.');
   await expect.poll(() => page.locator('html').getAttribute('data-question-entered')).toBe('true');
-  // The entrance is observed above; measure the resting layout after the spring lands.
+  // Keep the entrance visibly in flight even when draft entry has already waited for stability.
+  await page.locator('.pending-user-questions-lane').evaluate((lane) => {
+    lane.animate([{ transform: 'translateY(40px)' }, { transform: 'translateY(0px)' }], {
+      duration: 1200,
+    });
+  });
+  // The entrance deliberately passes behind the composer. Measure its resting layout only
+  // after the lane reaches its final position, without weakening any of the bounds below.
   await expect
     .poll(
       () =>
         page
           .locator('.pending-user-questions-lane')
-          .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42),
+          .evaluate((lane) => new DOMMatrixReadOnly(getComputedStyle(lane).transform).m42),
       { timeout: 5000 },
     )
     .toBe(0);
-  await answer.fill('Keep my answer draft.');
   for (const size of [
     { width: 1442, height: 962 },
     { width: 1366, height: 768 },
@@ -195,7 +202,9 @@ test('keeps history and the answer footer reachable beside an expanded long ques
       expect(layout.fields.scroll).toBeGreaterThan(layout.fields.height);
       expect(layout.answer.top).toBeGreaterThanOrEqual(layout.fields.bottom);
       expect(layout.actions.top).toBeGreaterThanOrEqual(layout.answer.bottom);
-      expect(layout.actions.bottom).toBeLessThanOrEqual(layout.composer.top);
+      expect(layout.actions.bottom, JSON.stringify({ size, open, layout })).toBeLessThanOrEqual(
+        layout.composer.top,
+      );
       expect(layout.lane.scroll).toBeLessThanOrEqual(layout.lane.height + 2);
       if (size.height >= 900) expect(layout.composer.bottom).toBeLessThanOrEqual(size.height);
       const submit = page.locator('.pending-user-question button[type="submit"]');

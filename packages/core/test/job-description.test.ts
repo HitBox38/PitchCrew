@@ -1,7 +1,21 @@
 import { expect, it } from 'vitest';
-import { cardInput, jobLinkDetails } from '../src/index.ts';
+import { cardInput, jobLinkDetails, jobLinkImportInput } from '../src/index.ts';
 
 const details = { company: 'Northwind Labs', title: 'Engineer' };
+
+it('defers structural browser details to evidenced conversion while rejecting raw public-page details', () => {
+  const input = {
+    url: 'https://example.com/jobs/engineer',
+    details: { ...details, description: '- heading "About us" [level=2]\n- paragraph: Build UI.' },
+  };
+  const publicPage = jobLinkImportInput.safeParse(input);
+  expect(publicPage.success).toBe(false);
+  if (!publicPage.success)
+    expect(publicPage.error.issues[0]?.path).toEqual(['details', 'description']);
+  expect(
+    jobLinkImportInput.parse({ ...input, browserDigest: 'current-page' }).details,
+  ).toMatchObject(input.details);
+});
 
 it.each([
   'Build accessible applications.',

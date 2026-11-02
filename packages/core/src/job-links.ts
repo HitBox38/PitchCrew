@@ -36,12 +36,21 @@ export const jobLinkDetails = cardInput
     description: extractedJobDescription.min(1),
   })
   .strict();
-export const jobLinkImportInput = jobLookupInput.extend({
-  cardId: z.uuid().optional(),
-  details: jobLinkDetails.optional(),
-  /** Read the current scoped browser instead of fetching HTML; requires computerUse. */
-  browserDigest: z.string().trim().min(1).max(128).optional(),
-});
+export const jobLinkImportInput = jobLookupInput
+  .extend({
+    cardId: z.uuid().optional(),
+    // Browser evidence is converted at the scoped import boundary before final validation.
+    details: jobLinkDetails.extend({ description: z.string().trim().min(1).max(20000) }).optional(),
+    /** Read the current scoped browser instead of fetching HTML; requires computerUse. */
+    browserDigest: z.string().trim().min(1).max(128).optional(),
+  })
+  .superRefine((input, context) => {
+    if (input.browserDigest || !input.details) return;
+    const parsed = jobLinkDetails.safeParse(input.details);
+    if (!parsed.success)
+      for (const issue of parsed.error.issues)
+        context.addIssue({ ...issue, path: ['details', ...issue.path] });
+  });
 /**
  * Provenance the UI sends back when the user saves a fetched job. It is saved as the card's
  * `discovery` (event version 10 shape) with `sourceId` set to `jobLinkSourceId`. It never holds

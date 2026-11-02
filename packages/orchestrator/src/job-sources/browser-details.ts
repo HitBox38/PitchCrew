@@ -1,11 +1,13 @@
 import {
   cardInput,
+  extractedJobDescription,
   recognizeJobLink,
   type BrowserSnapshot,
   type JobLinkProvenance,
 } from '@pitchcrew/core';
 import type { z } from 'zod';
 import type { jobLinkImportInput } from '@pitchcrew/core';
+import { browserJobDescription } from './browser-description.ts';
 
 /** Browser navigation and manual-control gates remain owned by the scoped computer tools. */
 export const browserJobDetails = (
@@ -53,5 +55,15 @@ export const browserJobDetails = (
         postedAt: null,
       }
     : undefined;
-  return { fields: cardInput.parse({ ...input.details, url: resolvedUrl, tags: [] }), provenance };
+  return {
+    fields: cardInput.parse({
+      ...input.details,
+      description: extractedJobDescription.parse(
+        browserJobDescription(input.details.description, page.text),
+      ),
+      url: resolvedUrl,
+      tags: [],
+    }),
+    provenance,
+  };
 };

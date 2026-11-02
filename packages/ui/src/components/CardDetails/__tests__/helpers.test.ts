@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import type { Card, Run, Snapshot } from '@pitchcrew/core';
+import type { Card, Run, Snapshot, UserInputRequest } from '@pitchcrew/core';
 import {
   jobAgents,
   turnPreview,
@@ -43,16 +43,129 @@ it('merges streamed activity, hides finished work and seat reservations, and kee
     [],
   );
 });
-it('shows actual review workers instead of the coordinating parent and superseded waits', () => {
-  const parent = { ...run, roleId: 'reviewer', id: 'parent' };
-  const child = { ...run, id: 'child', rootRunId: 'parent' };
-  const reviewer = { ...run, roleId: 'reviewer', id: 'second-opinion' };
-  const waiting = { ...run, id: 'waiting', status: 'waiting' as const };
+it.each(['running', 'waiting'] as const)(
+  'shows the %s review worker instead of its coordinator even with an upstream root',
+  (status) => {
+    const parent: Run = {
+      ...run,
+      roleId: 'reviewer',
+      id: 'parent',
+      purpose: 'deep-review',
+      deepReviewId: 'report',
+      rootRunId: 'earlier-chat',
+      status,
+    };
+    const child: Run = {
+      ...parent,
+      id: 'question-turn',
+      purpose: 'application-review',
+      reviewStage: 'review',
+      threadId: 'job-chat',
+    };
+    expect(
+      jobAgents('job', {
+        ...data,
+        runs: [parent, child],
+        activityRuns: [{ ...child, message: 'Current activity' }],
+      }),
+    ).toEqual([{ name: 'reviewer', run: { ...child, message: 'Current activity' } }]);
+    expect(
+      jobAgents('job', { ...data, runs: [parent, { ...child, status: 'completed' }] }).map(
+        ({ run }) => run.id,
+      ),
+    ).toEqual(['parent']);
+    expect(
+      jobAgents('job', { ...data, runs: [parent, { ...child, deepReviewId: 'another-report' }] }),
+    ).toHaveLength(2);
+  },
+);
+it('preserves independent waiting and running turns of the same role, including siblings with a shared root and report', () => {
+  const waiting: Run = {
+    ...run,
+    id: 'waiting',
+    status: 'waiting',
+    rootRunId: 'upstream',
+    deepReviewId: 'report',
+    purpose: 'application-review',
+  };
+  const running: Run = { ...waiting, id: 'running', status: 'running' };
+  const secondWait: Run = { ...waiting, id: 'second-wait' };
+  const agents = jobAgents('job', { ...data, runs: [waiting, running, secondWait] });
+  expect(agents.map(({ run }) => run.id)).toEqual(['waiting', 'running', 'second-wait']);
+  expect(new Set(agents.map(({ detail }) => detail)).size).toBe(3);
   expect(
-    jobAgents('job', { ...data, runs: [parent, child, reviewer, waiting] }).map(
+    jobAgents('job', { ...data, runs: [secondWait, running, waiting] }).find(
+      ({ run }) => run.id === waiting.id,
+    )?.detail,
+  ).toBe(agents[0].detail);
+});
+it('never deduplicates separate role identities with the same display name', () => {
+  const other = { ...run, id: 'other', roleId: 'another-writer', status: 'waiting' as const };
+  const agents = jobAgents('job', {
+    ...data,
+    roles: [...data.roles, { ...data.roles[0], id: other.roleId }],
+    runs: [run, other],
+  });
+  expect(agents.map(({ run }) => run.roleId)).toEqual(['writer', 'another-writer']);
+  expect(agents[0].detail).not.toBe(agents[1].detail);
+});
+it('supersedes a saved wait only with its answered question continuation', () => {
+  const waiting: Run = { ...run, id: 'waiting', status: 'waiting' };
+  const continuation: Run = {
+    ...run,
+    id: 'continuation',
+    requestId: 'answer',
+    rootRunId: 'upstream',
+  };
+  const question = {
+    runId: waiting.id,
+    roleId: waiting.roleId,
+    status: 'answered',
+    continuationRequestId: 'answer',
+  } as UserInputRequest;
+  expect(
+    jobAgents('job', { ...data, runs: [waiting, continuation], userInputs: [question] }).map(
       ({ run }) => run.id,
     ),
-  ).toEqual(['child', 'second-opinion']);
+  ).toEqual(['continuation']);
+  expect(
+    jobAgents('job', {
+      ...data,
+      runs: [waiting, { ...continuation, status: 'completed' }],
+      userInputs: [question],
+    }).map(({ run }) => run.id),
+  ).toEqual(['waiting']);
+  expect(
+    jobAgents('job', {
+      ...data,
+      runs: [waiting, continuation],
+      userInputs: [{ ...question, status: 'pending' }],
+    }),
+  ).toHaveLength(2);
+});
+it('follows successive answered questions to the actual waiting turn', () => {
+  const first: Run = { ...run, id: 'first', status: 'waiting' };
+  const middle: Run = { ...first, id: 'middle', requestId: 'answer-one' };
+  const last: Run = { ...first, id: 'last', requestId: 'answer-two' };
+  const questions = [
+    {
+      runId: first.id,
+      roleId: first.roleId,
+      status: 'answered',
+      continuationRequestId: middle.requestId,
+    },
+    {
+      runId: middle.id,
+      roleId: middle.roleId,
+      status: 'answered',
+      continuationRequestId: last.requestId,
+    },
+  ] as UserInputRequest[];
+  expect(
+    jobAgents('job', { ...data, runs: [first, middle, last], userInputs: questions }).map(
+      ({ run }) => run.id,
+    ),
+  ).toEqual(['last']);
 });
 it('previews public commentary and the active step without exposing reasoning text', () => {
   const preview = turnPreview({

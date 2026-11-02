@@ -54,6 +54,10 @@ export const checkNativeBrowserPresentation = async (
     async () => isRed(await pixel(600, 450)),
     'The native guest was absent from app composition',
   );
+  // Stay left of the guest (x >= 50) and below the fixture heading. Sampling
+  // (20, 50) hits font antialiasing on macOS/Retina rather than bare workspace.
+  const workspacePixel = () => pixel(20, 150);
+  assert.deepEqual(await workspacePixel(), [242, 241, 236], 'The workspace probe is not clear');
   const backgroundPage = background.pages.get(background.active)!;
   await backgroundPage.contents.executeJavaScript(
     `document.documentElement.style.background = 'rgb(25, 200, 40)'; document.body.style.background = 'rgb(25, 200, 40)';`,
@@ -80,6 +84,23 @@ export const checkNativeBrowserPresentation = async (
       const offset = (Math.floor(height / 2) * width + Math.floor(width / 2)) * 4;
       return bytes[offset + 1] > 170 && bytes[offset] < 80 && bytes[offset + 2] < 80;
     }, 'The inactive DOM guest stopped painting for native capture');
+    // The real expanded browser gives this permanent guest ancestor its own
+    // stacking context. A background webview's z-index:-1 then sits ABOVE the
+    // workspace, regardless of its order among the other guests.
+    for (const expanded of [false, true, false, true]) {
+      await read(
+        `document.querySelector('[data-desktop-browser-layer]').style.cssText = ${JSON.stringify(expanded ? 'position:fixed;inset:0;z-index:50' : 'display:contents')}`,
+      );
+      assert.deepEqual(
+        await workspacePixel(),
+        [242, 241, 236],
+        'An inactive paint lease exposed its native surface outside the browser panel',
+      );
+      assert.ok(isRed(await pixel(600, 450)), 'A layout transition hid the selected guest');
+    }
+    await read(
+      `document.querySelector('[data-desktop-browser-layer]').style.cssText = 'display:contents'`,
+    );
     for (let cycle = 0; cycle < 3; cycle++) {
       assert.deepEqual(
         await pixel(900, 600),
