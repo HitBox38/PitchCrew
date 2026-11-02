@@ -144,6 +144,9 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       await menu.waitFor();
       await assertLiveGuest(app, menu);
       await app.page.keyboard.press('Escape');
+      // The exiting context menu restores focus on unmount. Let it finish before opening
+      // another menu, otherwise that restoration can dismiss Browser options on macOS.
+      await app.page.locator('[data-slot="context-menu-content"]').waitFor({ state: 'detached' });
       await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
       await app.page.getByRole('menuitem', { name: 'Reset saved sign-ins…', exact: true }).click();
       const dialog = app.page.getByRole('dialog', {
