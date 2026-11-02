@@ -6,7 +6,7 @@ import {
   synchronizeTelemetryPreferences,
   useDevicePreferences,
 } from '../../lib/device-preferences.ts';
-import { loadAnalyticsConfig, useAnalyticsConfig } from '../api.ts';
+import { startAnalyticsConfigLoading, useAnalyticsConfig } from '../api.ts';
 import { analytics } from '../client.ts';
 import { analyticsPage } from '../helpers.ts';
 import { installApplicationMetrics } from '../metrics/install.ts';
@@ -31,10 +31,13 @@ export const useAnalytics = () => {
     analytics.capture('$pageview', { page });
   }, [page]);
   useEffect(() => {
-    void loadAnalyticsConfig();
+    const stopLoading = startAnalyticsConfigLoading();
     const synchronize = synchronizeTelemetryPreferences;
     window.addEventListener('storage', synchronize);
-    return () => window.removeEventListener('storage', synchronize);
+    return () => {
+      stopLoading();
+      window.removeEventListener('storage', synchronize);
+    };
   }, []);
   useEffect(() => {
     let active = true;
