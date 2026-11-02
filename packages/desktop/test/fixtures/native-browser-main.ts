@@ -363,11 +363,32 @@ void app
         if (command.kind === 'human' && group) {
           host.mount(group.id, { x: 50, y: 100, width: 700, height: 500 });
           const contents = group.pages.get(group.active)!.contents;
-          await contents.executeJavaScript(
-            `document.querySelector('#name').focus(); document.querySelector('#password').value='fictional-password';`,
-          );
-          for (const keyCode of 'Human') contents.sendInputEvent({ type: 'char', keyCode });
-          const value = await contents.executeJavaScript(`document.querySelector('#name').value`);
+          // A hidden window has no OS focus. Use the same page focus emulation
+          // as the trusted-key E2E fixture while retaining native input events.
+          await contents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+            enabled: true,
+          });
+          let value: string;
+          try {
+            contents.focus();
+            await contents.executeJavaScript(
+              `document.querySelector('#name').focus(); document.querySelector('#password').value='fictional-password';`,
+            );
+            for (const keyCode of 'Human') contents.sendInputEvent({ type: 'char', keyCode });
+            // sendInputEvent queues delivery; executeJavaScript can overtake it.
+            value = await contents.executeJavaScript(`new Promise(resolve => {
+            const field = document.querySelector('#name');
+            const finish = () => { clearTimeout(timer); field.removeEventListener('input', check); resolve(field.value); };
+            const check = () => { if (field.value === 'Human') finish(); };
+            const timer = setTimeout(finish, 2000);
+            field.addEventListener('input', check);
+            check();
+          })`);
+          } finally {
+            await contents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+              enabled: false,
+            });
+          }
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
             JSON.stringify({

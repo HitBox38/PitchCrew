@@ -1,9 +1,11 @@
 import { Hand, RotateCw, TriangleAlert } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
+import { AccordionSection } from '@pitchcrew/design-system/accordion';
 
 /** A failed or crashed tab, with the existing reload and take-control actions. */
 export const ClayPageError = ({
   error,
+  details,
   crashed,
   manual,
   working,
@@ -11,6 +13,7 @@ export const ClayPageError = ({
   take,
 }: {
   error: string;
+  details?: string;
   crashed: boolean;
   manual: boolean;
   working: boolean;
@@ -24,6 +27,11 @@ export const ClayPageError = ({
     </div>
     <h3>{crashed ? 'This page stopped responding' : 'This page didn’t load'}</h3>
     <p>{error}</p>
+    {details ? (
+      <AccordionSection heading="Technical details" className="text-left break-words">
+        <p>{details}</p>
+      </AccordionSection>
+    ) : null}
     <div className="clay-browser-state-actions">
       {take ? (
         <Button size="sm" disabled={working} onClick={take}>

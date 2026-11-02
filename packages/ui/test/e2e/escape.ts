@@ -108,21 +108,20 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     assert.equal(await back.isVisible(), true);
 
     await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
-    await page.keyboard.press('Escape');
-    // Closing the settings popover restores focus to its trigger. Wait for that exit
-    // before opening the preset select, or it can dismiss the selection mid-click.
+    await page
+      .getByRole('button', { name: 'Toggle browser device toolbar', exact: true })
+      .press('Space');
+    const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
+    await preset.waitFor();
+    // Match the tab-paint fixture's keyboard path for hidden windows.
+    await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
+    // Let the closing popover finish restoring focus before opening the select.
     await page.locator('[data-slot="popover-content"]').waitFor({ state: 'detached' });
-    await page.getByRole('combobox', { name: 'Browser viewport preset', exact: true }).click();
-    // The long preset list scrolls during pointer targeting in hidden Electron windows.
-    // Activate the actual option by keyboard so setup cannot silently retain Fill panel.
+    await preset.press('Space');
     await page.getByRole('option', { name: 'Desktop 1440', exact: true }).press('Enter');
     await until(
-      async () =>
-        (await page
-          .getByRole('combobox', { name: 'Browser viewport preset', exact: true })
-          .innerText()) === 'Desktop 1440',
-      'The fixed viewport preset was not selected',
+      async () => (await preset.innerText()) === 'Desktop 1440',
+      'Fixed viewport preset was not selected',
     );
     await until(
       async () => (await guest.read('innerWidth')) === 1440,
@@ -184,7 +183,7 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     if (await back.isVisible()) await back.click();
     const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
     if (await preset.isVisible()) {
-      await preset.click();
+      await preset.press('Space');
       await page.getByRole('option', { name: 'Fill panel', exact: true }).press('Enter');
       await page.getByRole('button', { name: 'Hide device toolbar', exact: true }).click();
     }
