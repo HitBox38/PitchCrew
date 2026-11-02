@@ -8,6 +8,19 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
   const guest = await activeGuest(app);
   const expand = page.getByRole('button', { name: 'Expand browser', exact: true });
   const back = page.getByRole('button', { name: 'Back to chat', exact: true });
+  const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
+  const selectPreset = async (name: string) => {
+    await preset.click();
+    // Use keyboard setup so scrolling the long device list cannot swallow a
+    // pointer selection on hidden native CI windows. Verify the committed value.
+    await page.getByRole('option', { name, exact: true }).press('Enter');
+    await until(
+      async () =>
+        (await preset.innerText()) === name &&
+        (await preset.getAttribute('aria-expanded')) === 'false',
+      `Browser viewport preset did not select ${name}`,
+    );
+  };
   const clickGuest = async (selector: string) => {
     const point = await guest.read<{ x: number; y: number }>(`(() => {
       const rect = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();
@@ -105,12 +118,14 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
     await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
     await page.keyboard.press('Escape');
-    await page.getByRole('combobox', { name: 'Browser viewport preset', exact: true }).click();
-    await page.getByRole('option', { name: 'Desktop 1440', exact: true }).click();
-    await until(
-      async () => (await guest.read('innerWidth')) === 1440,
-      'Fixed viewport was not applied',
-    );
+    await selectPreset('Desktop 1440');
+    await until(async () => {
+      assert.deepEqual(await guest.read('({width:innerWidth,height:innerHeight})'), {
+        width: 1440,
+        height: 900,
+      });
+      return true;
+    }, 'Fixed viewport was not applied');
 
     // The reproduction: static website content owns native keyboard focus.
     await clickGuest('h1');
@@ -156,10 +171,8 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     );
   } finally {
     if (await back.isVisible()) await back.click();
-    const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
     if (await preset.isVisible()) {
-      await preset.click();
-      await page.getByRole('option', { name: 'Fill panel', exact: true }).click();
+      await selectPreset('Fill panel');
       await page.getByRole('button', { name: 'Hide device toolbar', exact: true }).click();
     }
     await app.electron.evaluate(
