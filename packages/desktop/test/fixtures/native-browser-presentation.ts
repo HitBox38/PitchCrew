@@ -54,6 +54,10 @@ export const checkNativeBrowserPresentation = async (
     async () => isRed(await pixel(600, 450)),
     'The native guest was absent from app composition',
   );
+  // Stay left of the guest (x >= 50) and below the fixture heading. Sampling
+  // (20, 50) hits font antialiasing on macOS/Retina rather than bare workspace.
+  const workspacePixel = () => pixel(20, 150);
+  assert.deepEqual(await workspacePixel(), [242, 241, 236], 'The workspace probe is not clear');
   const backgroundPage = background.pages.get(background.active)!;
   await backgroundPage.contents.executeJavaScript(
     `document.documentElement.style.background = 'rgb(25, 200, 40)'; document.body.style.background = 'rgb(25, 200, 40)';`,
@@ -88,7 +92,7 @@ export const checkNativeBrowserPresentation = async (
         `document.querySelector('[data-desktop-browser-layer]').style.cssText = ${JSON.stringify(expanded ? 'position:fixed;inset:0;z-index:50' : 'display:contents')}`,
       );
       assert.deepEqual(
-        await pixel(20, 50),
+        await workspacePixel(),
         [242, 241, 236],
         'An inactive paint lease exposed its native surface outside the browser panel',
       );
