@@ -10,7 +10,11 @@ import type { setup } from './daemon.ts';
 import { digest } from '../../../orchestrator/src/profile-sources/helpers.ts';
 import { proposalDigest } from '../../../orchestrator/src/crew/gateway/profile-project.ts';
 export const sourceFixture = (host: Host) => {
-  const remote = { content: '# Background\n\nBuilt a fictional scheduling tool.', fail: false };
+  const remote = {
+    content: '# Background\n\nBuilt a fictional scheduling tool.',
+    fail: false,
+    paths: ['about-me/background.md'],
+  };
   vi.spyOn(host.daemon.service.connectors, 'status').mockReturnValue([
     {
       id: 'github',
@@ -36,9 +40,18 @@ export const sourceFixture = (host: Host) => {
     if (name === 'github_get_revision') return { sha: 'a'.repeat(40) };
     if (name === 'github_read_file') {
       const input = raw as { path: string };
-      return input.path === 'about-me'
-        ? { entries: [{ path: 'about-me/background.md', type: 'file' }] }
-        : { text: remote.content, sha: 'b'.repeat(40) };
+      if (remote.paths.includes(input.path)) return { text: remote.content, sha: 'b'.repeat(40) };
+      const children = new Set(
+        remote.paths
+          .filter((path) => path.startsWith(input.path + '/'))
+          .map((path) => input.path + '/' + path.slice(input.path.length + 1).split('/')[0]),
+      );
+      return {
+        entries: [...children].map((path) => ({
+          path,
+          type: remote.paths.includes(path) ? 'file' : 'dir',
+        })),
+      };
     }
     if (name === 'google_drive_get_file')
       return {

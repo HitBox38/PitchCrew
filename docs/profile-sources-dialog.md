@@ -73,6 +73,13 @@ in the current source list.
 
 ## Loading, errors and completion
 
+Profile loads saved source metadata on entry, independently of opening this dialog.
+The note tree, displayed paths and origin links share that list. Until its first
+successful response, show a loading state (or an error with retry) rather than
+generated filenames and a misleading flat tree. Keep the document editor mounted
+so metadata arrival preserves its draft, selected document, focus and caret.
+Returning to Profile loads metadata again; failed refreshes retain an existing list.
+
 Show a visible spinner with action-specific status text while data is being
 fetched, including initial source loading, document reading and project-watch
 creation. Example labels include **Loading sources…**, **Reading GitHub
