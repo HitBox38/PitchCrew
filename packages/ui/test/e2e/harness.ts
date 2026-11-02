@@ -62,6 +62,7 @@ const waitExit = async (child: ChildProcess, label: string, tree = false) => {
 };
 
 export const startDesktop = async () => {
+  const visible = process.env.PITCHCREW_E2E_VISIBLE === '1';
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-browser-e2e-'));
   const port = await freePort();
   let log = '';
@@ -123,12 +124,14 @@ export const startDesktop = async () => {
           violations: (globalThis as unknown as { browserE2EVisibility: string[] })
             .browserE2EVisibility,
         }));
-        assert.equal(visibility.current, true, 'E2E showed or focused a desktop window');
-        assert.deepEqual(
-          visibility.violations,
-          [],
-          'E2E showed or focused a window during a workflow',
-        );
+        if (!visible) {
+          assert.equal(visibility.current, true, 'E2E showed or focused a desktop window');
+          assert.deepEqual(
+            visibility.violations,
+            [],
+            'E2E showed or focused a window during a workflow',
+          );
+        }
       });
       await attempt(async () => {
         // Normal close also releases Playwright's Node inspector. It does not
@@ -171,7 +174,7 @@ export const startDesktop = async () => {
       PITCHCREW_URL: ready.url,
       PITCHCREW_E2E_FILE: join(directory, 'desktop', 'result.json'),
       PITCHCREW_POSTHOG_DISABLED: '1',
-      PITCHCREW_SMOKE_VISIBLE: '0',
+      PITCHCREW_SMOKE_VISIBLE: visible ? '1' : '0',
     };
     delete env.ELECTRON_RUN_AS_NODE;
     delete env.PITCHCREW_SMOKE_FILE;

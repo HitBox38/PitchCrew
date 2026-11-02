@@ -6,20 +6,51 @@ import { isJobLinkBoard, isJobLinkId, maxJobLinkLength } from './job-link-recogn
 export * from './job-link-recognition.ts';
 
 export const jobLookupInput = z.object({ url: z.string().max(maxJobLinkLength) }).strict();
+/** Only agent-extracted descriptions: never rewrite saved records or user-authored text. */
+export const extractedJobDescription = z
+  .string()
+  .trim()
+  .max(20000)
+  .refine(
+    (text) => !hasBrowserExtractionSyntax(text),
+    'Description contains browser accessibility/extraction syntax. Copy the full original posting wording into readable headings, paragraphs and bullets; remove only extraction labels such as heading, [level=2], paragraph:, list: and listitem:. Do not summarize, rewrite, translate or truncate. Inspect again if the complete posting is unavailable. Nothing was saved.',
+  );
+
+const hasBrowserExtractionSyntax = (text: string): boolean => {
+  let nodes = 0;
+  for (const line of text.split(/\r?\n/)) {
+    // Require snapshot-shaped lines, not ordinary prose mentioning accessibility roles.
+    if (/^\s*(?:-\s+)?heading\s+".*"\s+\[level=\d+\](?:\s+\[[^\]]*\])*(?:\s*:)?\s*$/.test(line))
+      return true;
+    if (/^\s*(?:-\s+)?(?:paragraph|list|listitem):(?:\s|$)/.test(line)) nodes++;
+    if (nodes >= 2) return true;
+  }
+  return false;
+};
+
 /** Agent-extracted details from public HTML or an inspected browser posting. */
 export const jobLinkDetails = cardInput
   .pick({ company: true, title: true, location: true, salary: true, description: true })
   .extend({
     location: z.string().trim().max(120).default(''),
-    description: z.string().trim().min(1).max(20000),
+    description: extractedJobDescription.min(1),
   })
   .strict();
-export const jobLinkImportInput = jobLookupInput.extend({
-  cardId: z.uuid().optional(),
-  details: jobLinkDetails.optional(),
-  /** Read the current scoped browser instead of fetching HTML; requires computerUse. */
-  browserDigest: z.string().trim().min(1).max(128).optional(),
-});
+export const jobLinkImportInput = jobLookupInput
+  .extend({
+    cardId: z.uuid().optional(),
+    // Browser evidence is converted at the scoped import boundary before final validation.
+    details: jobLinkDetails.extend({ description: z.string().trim().min(1).max(20000) }).optional(),
+    /** Read the current scoped browser instead of fetching HTML; requires computerUse. */
+    browserDigest: z.string().trim().min(1).max(128).optional(),
+  })
+  .superRefine((input, context) => {
+    if (input.browserDigest || !input.details) return;
+    const parsed = jobLinkDetails.safeParse(input.details);
+    if (!parsed.success)
+      for (const issue of parsed.error.issues)
+        context.addIssue({ ...issue, path: ['details', ...issue.path] });
+  });
 /**
  * Provenance the UI sends back when the user saves a fetched job. It is saved as the card's
  * `discovery` (event version 10 shape) with `sourceId` set to `jobLinkSourceId`. It never holds

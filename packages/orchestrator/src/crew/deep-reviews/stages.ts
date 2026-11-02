@@ -6,6 +6,8 @@ import { reviewClarifications } from './clarifications.ts';
 import { subagentCard } from './inputs.ts';
 import { randomUUID } from 'node:crypto';
 import { join } from 'node:path';
+import { writeFile } from 'node:fs/promises';
+import { assessmentFor } from './assessment.ts';
 import { adapters } from '@pitchcrew/adapters';
 import {
   draftingCard,
@@ -35,6 +37,7 @@ const executeReviewStagePrepared = async (
   child?: ReviewSubagent,
   childSignal?: AbortSignal,
   budgetRequest?: { minutes: number; reason: string },
+  quotationRepair?: string,
 ) => {
   assertApplicationRuntime(role);
   if (!context.runtimes.some((r) => r.id === role.runtime && r.available))
@@ -90,12 +93,28 @@ const executeReviewStagePrepared = async (
   try {
     await context.writeRunInstructions(directory, role, run.configuration!.skills);
     const currentCard = assertReviewCurrent(context, live);
+    const inputCard = child
+      ? subagentCard(draftingCard(currentCard, run.purpose))
+      : draftingCard(currentCard, run.purpose);
+    // Local run artifacts retain the exact supplied version, including rejected output.
+    await writeFile(
+      join(directory, 'deep-review-input.json'),
+      JSON.stringify({
+        runId: run.id,
+        reviewId: live.id,
+        stage,
+        inputPacketDigest: run.inputPacketDigest,
+        contextRevision: live.contextRevision,
+        profileDigest: live.profileDigest,
+        quotationRepair,
+        card: inputCard,
+      }),
+      { mode: 0o600 },
+    );
     const result = await ai.observe(
       () =>
         adapters[role.runtime].run({
-          card: child
-            ? subagentCard(draftingCard(currentCard, run.purpose))
-            : draftingCard(currentCard, run.purpose),
+          card: inputCard,
           purpose: run.purpose,
           role,
           skills: run.configuration!.skills,
@@ -107,6 +126,7 @@ const executeReviewStagePrepared = async (
           deepReview: {
             id: live.id,
             stage,
+            quotationRepair,
             findings,
             clarifications: reviewClarifications(context, live.id),
             budgetRequest,
@@ -149,6 +169,9 @@ const executeReviewStagePrepared = async (
         }),
       controller.signal,
     );
+    await writeFile(join(directory, 'deep-review-output.json'), JSON.stringify(result), {
+      mode: 0o600,
+    });
     if (endQuestionTurn(context, run)) {
       if (context.board.get<Run>('run', run.id).status === 'cancelled') {
         live.controller.abort();
@@ -161,6 +184,20 @@ const executeReviewStagePrepared = async (
     const parsed = runResultSchema.parse(result);
     if (parsed.role !== (role.workflow === 'writer' ? 'writer' : 'reviewer'))
       throw new Error('Review stage returned the wrong workflow result.');
+    if (parsed.role === 'reviewer' && !budgetRequest) {
+      if (!child) {
+        const children = [...live.children.values()];
+        for (const item of children) item.controller.abort();
+        await Promise.allSettled(children.map((item) => item.done));
+        await assertReviewEvidence(context, live);
+      }
+      const additional = child
+        ? []
+        : reviewChildren(context, live.id)
+            .filter((item) => item.stage === stage && item.status === 'completed')
+            .map((item) => item.perspective);
+      assessmentFor(parsed, inputCard.packet?.resume ?? '', child?.perspective, additional);
+    }
     context.board.record(
       'run',
       {

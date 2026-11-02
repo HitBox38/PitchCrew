@@ -339,6 +339,25 @@ Native input: ${JSON.stringify(await fixture({ kind: 'input-signals', id: state.
   assert.ok(mirrorKeys.keys.some((key) => key.key === 'ArrowLeft' && key.trusted));
   assert.ok(mirrorKeys.keys.some((key) => key.key === 'Enter' && key.trusted));
 
+  for (const viewport of [
+    { width: 600, height: 1130 },
+    { width: 1920, height: 1080 },
+  ]) {
+    await manager.resizeBrowser(key, viewport, lease);
+    await fixture({ kind: 'artifact', id: state.id, operation: 'floating-close' });
+    await fixture({ kind: 'artifact', id: state.id, operation: 'floating-open' });
+    const layout = await fixture<{ sameGuest: boolean; checks: number; hidden: boolean }>({
+      kind: 'artifact',
+      id: state.id,
+      operation: 'floating-layout',
+    });
+    assert.equal(layout.sameGuest, true);
+    assert.equal(layout.checks, 9);
+    assert.equal(layout.hidden, true);
+  }
+  await manager.resizeBrowser(key, { width: 1280, height: 800 }, lease);
+  await fixture({ kind: 'artifact', id: state.id, operation: 'floating-open' });
+
   const downloadPoint = await query<{ x: number; y: number }>(
     `(()=>{const link=document.querySelector('#download');link.scrollIntoView({block:'center'});const box=link.getBoundingClientRect();return {x:Math.floor(box.x+box.width/2),y:Math.floor(box.y+box.height/2)}})()`,
   );

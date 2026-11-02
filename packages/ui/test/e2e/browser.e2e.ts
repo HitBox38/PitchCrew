@@ -11,6 +11,7 @@ import {
   send,
 } from './observe.ts';
 import type { Request } from 'playwright';
+import { checkExpandedEscape } from './escape.ts';
 
 describe('Production UI → daemon → Electron browser E2E', { concurrency: false }, () => {
   let app: DesktopE2E;
@@ -87,6 +88,11 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     );
     assert.equal(await guest.read('window.lastInputTrusted'), true);
   });
+  it(
+    'returns from native static content on Escape after website fields, handlers, menus and dialogs',
+    { timeout: 45000 },
+    async () => checkExpandedEscape(app),
+  );
   it('keeps a live native page and the same guest beneath a real application popover', async () => {
     // Exercise the modal sheet used on narrow Windows CI desktops.
     await app.page.getByRole('button', { name: 'Expand browser', exact: true }).click();
@@ -144,6 +150,9 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       await menu.waitFor();
       await assertLiveGuest(app, menu);
       await app.page.keyboard.press('Escape');
+      // The exiting context menu restores focus on unmount. Let it finish before opening
+      // another menu, otherwise that restoration can dismiss Browser options on macOS.
+      await app.page.locator('[data-slot="context-menu-content"]').waitFor({ state: 'detached' });
       await app.page.getByRole('button', { name: 'Browser options', exact: true }).click();
       await app.page.getByRole('menuitem', { name: 'Reset saved sign-ins…', exact: true }).click();
       const dialog = app.page.getByRole('dialog', {
@@ -407,5 +416,88 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       'UI close retained an owned native guest',
     );
     assert.deepEqual(app.errors, [], 'The production renderer reported runtime exceptions');
+  });
+});
+
+describe('Failed navigation in the production Electron browser', { concurrency: false }, () => {
+  let app: DesktopE2E;
+  before(
+    async () => {
+      app = await startDesktop();
+    },
+    { timeout: 60000 },
+  );
+  after(
+    async () => {
+      await app?.close();
+    },
+    { timeout: 25000 },
+  );
+  it('retains failed navigation across tab switching and retry, then recovers through the address field', async () => {
+    const { page } = app;
+    await page.locator('button[aria-controls="agent-browser-panel"]').click();
+    await page.getByRole('button', { name: 'Open browser', exact: true }).last().click();
+    await page
+      .locator('.browser-panel-heading')
+      .getByRole('button', { name: 'Return to agent', exact: true })
+      .waitFor();
+    await navigate(app, `${siteOrigin}/form`, 'Fictional E2E application');
+    await readyViewport(app);
+    const firstGuest = (await activeGuest(app)).id;
+    await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
+    try {
+      await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+      const address = page.getByRole('textbox', { name: 'Browser address' });
+      const failedUrl = 'https://pitchcrew-browser-test.invalid/';
+      await address.fill(failedUrl);
+      await address.press('Enter');
+      const error = page.locator('.browser-page-error');
+      await error.waitFor();
+      assert.equal(await address.inputValue(), failedUrl);
+      assert.equal(
+        await page.getByRole('heading', { name: 'No page open', exact: true }).count(),
+        0,
+      );
+      assert.match((await error.textContent()) ?? '', /ENOTFOUND pitchcrew-browser-test.invalid/);
+      await page.screenshot({ path: `${app.directory}/failed-navigation.png` });
+      await page.locator('.browser-tab-select').nth(0).click();
+      await error.waitFor({ state: 'hidden' });
+      assert.equal(await address.inputValue(), `${siteOrigin}/form`);
+      await page.locator('.browser-tab-select').nth(1).click();
+      await error.waitFor();
+      assert.equal(await address.inputValue(), failedUrl);
+      const retried = page.waitForResponse(
+        (response) =>
+          response.request().method() === 'POST' &&
+          response.url().includes('/native?') &&
+          response.request().postDataJSON()?.command?.kind === 'reload',
+      );
+      await error.getByRole('button', { name: 'Retry page', exact: true }).click();
+      assert.equal((await retried).ok(), true);
+      assert.equal(await address.inputValue(), failedUrl);
+      assert.match((await error.textContent()) ?? '', /ENOTFOUND pitchcrew-browser-test.invalid/);
+      await address.fill(`${siteOrigin}/next`);
+      await address.press('Enter');
+      await error.waitFor({ state: 'hidden' });
+      await until(
+        async () => (await (await activeGuest(app)).read('location.href')) === `${siteOrigin}/next`,
+        'The recovered tab did not load its replacement URL',
+      );
+      assert.equal(await address.inputValue(), `${siteOrigin}/next`);
+      await page.locator('.browser-tab-select').nth(0).click();
+      await page.locator('.browser-tab-select').nth(1).click();
+      await until(
+        async () => (await address.inputValue()) === `${siteOrigin}/next`,
+        'The recovered address did not survive switching tabs',
+      );
+      assert.equal(await error.count(), 0);
+    } finally {
+      await page.locator('.browser-tab-close').nth(1).click();
+      await until(
+        async () => (await activeGuest(app)).id === firstGuest,
+        'Closing the recovered tab did not restore the original guest',
+      );
+      await readyViewport(app);
+    }
   });
 });

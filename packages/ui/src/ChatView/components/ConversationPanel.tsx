@@ -21,7 +21,10 @@ export const ConversationPanel = ({
   readOnly,
 }: ConversationPanelProps) => {
   return (
-    <TabsContent value="conversation" className="chat-conversation-panel flex min-h-0 flex-col">
+    <TabsContent
+      value="conversation"
+      className="chat-conversation-panel flex min-h-[var(--chat-history-min-height,0px)] flex-col"
+    >
       <ConversationHistory
         key={`${thread}:${focusRunId ?? 'latest'}`}
         focusRunId={focusRunId}

@@ -1,6 +1,6 @@
 {
   "name": "@pitchcrew/core",
-  "version": "0.17.0",
+  "version": "0.17.1",
   "private": true,
   "type": "module",
   "exports": {
@@ -21,9 +21,11 @@
     "./telemetry-mcp": "./src/telemetry-mcp.ts",
     "./telemetry-errors": "./src/telemetry-errors.ts",
     "./message-notifications": "./src/message-notifications.ts",
-    "./chat-citations": "./src/chat-citations.ts"
+    "./chat-citations": "./src/chat-citations.ts",
+    "./browser-errors": "./src/browser-errors.ts"
   },
   "dependencies": {
+    "strip-ansi": "^7.2.0",
     "tsx": "4.23.15",
     "zod": "^4.3.6"
   }

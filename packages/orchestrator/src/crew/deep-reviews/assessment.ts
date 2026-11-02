@@ -3,6 +3,13 @@ import {
   originalReviewPerspectives,
   type ReviewPerspective,
 } from '@pitchcrew/core/deep-review-labels';
+export class ReviewQuotationError extends Error {
+  constructor(field: string, quote: string) {
+    super(
+      `Reviewer quotation at ${field} is not an exact part of the reviewed resume: ${JSON.stringify(quote)}. Copy a contiguous passage from that resume, preserving Markdown, whitespace and Unicode; use [MISSING: specific requirement] for absent material. Put other packet blockers in feedback.`,
+    );
+  }
+}
 export const assessmentFor = (
   result: RunResult,
   resume: string,
@@ -30,12 +37,12 @@ export const assessmentFor = (
     if (!verdicts.includes(item.verdict))
       throw new Error('Reviewer used a verdict that does not match its perspective.');
   }
-  for (const item of assessment.perspectives)
+  for (const [index, item] of assessment.perspectives.entries())
     if (item.weakestLine && !resume.includes(item.weakestLine))
-      throw new Error('Reviewer quoted a weakest line that is not in the resume.');
-  for (const finding of assessment.findings) {
+      throw new ReviewQuotationError(`perspectives[${index}].weakestLine`, item.weakestLine);
+  for (const [index, finding] of assessment.findings.entries()) {
     if (!resume.includes(finding.quote) && !/^\[MISSING: [^\]\n]+\]$/.test(finding.quote))
-      throw new Error('Reviewer quoted text that is not in the resume.');
+      throw new ReviewQuotationError(`findings[${index}].quote`, finding.quote);
     if (finding.perspectives.some((p) => ![...expected, ...additionalPerspectives].includes(p)))
       throw new Error('Review finding names an unreviewed perspective.');
   }
