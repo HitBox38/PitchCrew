@@ -1,5 +1,6 @@
 import { BrowserWindow, nativeImage } from 'electron';
 import type { NativeGroup } from '../../src/browser/pages.ts';
+import { checkFloatingLayout } from './native-browser-floating.ts';
 
 const floatingWindows = new Map<string, BrowserWindow>();
 
@@ -34,6 +35,12 @@ export const nativeArtifactFixture = async (
     );
     return { hidden: !floating.isVisible() && !floating.isFocused(), contentsId: contents.id };
   }
+  if (operation === 'floating-close') {
+    await invoke(`window.pitchcrewBrowser.floating(${JSON.stringify(group.id)},false)`);
+    return true;
+  }
+  if (operation === 'floating-layout')
+    return checkFloatingLayout(floatingWindows.get(group.id)!, group);
   if (operation === 'floating-input') {
     const floating = floatingWindows.get(group.id)!;
     const target = await contents.executeJavaScript(
@@ -111,13 +118,20 @@ export const nativeArtifactFixture = async (
       const result = await contents.executeJavaScript(
         `({value:document.querySelector('#name').value,result:document.querySelector('#result').textContent,keys:window.fixtureKeys})`,
       );
-      if (result.value === 'Mirro!r' && result.result === 'Native Enter received')
+      if (result.value === 'Mirro!r' && result.result === 'Native Enter received') {
+        sendKeys(['Tab']);
+        for (let next = 0; next < 100; next++) {
+          if (await contents.executeJavaScript(`document.activeElement.id==='location'`)) break;
+          if (next === 99) throw new Error('Floating Tab did not navigate the real form.');
+          await new Promise((resolve) => setTimeout(resolve, 20));
+        }
         return {
           ...result,
           caret,
           hidden: !floating.isVisible() && !floating.isFocused(),
           contentsId: contents.id,
         };
+      }
       await new Promise((resolve) => setTimeout(resolve, 20));
     }
     throw new Error(
