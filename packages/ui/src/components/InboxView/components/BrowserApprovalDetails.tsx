@@ -1,5 +1,6 @@
 import type { ComputerApproval } from '@pitchcrew/core';
 import { BrowserActionSummary } from '@/ComputerApprovals/components/BrowserActionSummary.tsx';
+import { BrowserApprovalError } from '@/ComputerApprovals/components/BrowserApprovalError.tsx';
 import { AttachmentList } from '@/FileViewer/components/AttachmentList.tsx';
 import { attachmentFiles } from '@/FileViewer/attachments.ts';
 
@@ -17,10 +18,6 @@ export const BrowserApprovalDetails = ({ approval }: { approval: ComputerApprova
         files={attachmentFiles({ kind: 'browser', key: `browser:${approval.id}`, approval })}
       />
     </section>
-    {approval.error ? (
-      <p role="alert" className="form-error">
-        {approval.error}
-      </p>
-    ) : null}
+    <BrowserApprovalError approval={approval} />
   </div>
 );

@@ -2,6 +2,7 @@ import { DesktopBrowserHosts } from './native-host.ts';
 import type { Board } from '@pitchcrew/board';
 import {
   browserActionSchema,
+  browserErrorText,
   browserWaitSchema,
   browserTabsSchema,
   type Approval,
@@ -441,7 +442,7 @@ export class ComputerManager {
       };
     if (approval.status !== 'approved')
       throw new Error(
-        `Browser action is ${approval.status}.${approval.error ? ` ${approval.error}` : ''}`,
+        `Browser action is ${approval.status}.${approval.error ? ` ${browserErrorText(approval.error)}` : ''}`,
       );
     if (this.busy.has(runId) || this.busyRoles.has(this.browsers.keyForRun(runId)))
       throw new Error('A browser action is in progress.');
@@ -533,16 +534,25 @@ export class ComputerManager {
       return { approvalId: id, status: 'consumed', page: result };
     } catch (error) {
       const current = this.board.get<ComputerApproval>('computer_approval', id);
+      const message = browserErrorText(
+        error instanceof Error ? error.message : 'Browser action failed.',
+      );
       this.board.record(
         'computer_approval',
         {
           ...current,
           status: 'failed',
-          error: error instanceof Error ? error.message : 'Browser action failed.',
+          error: message,
         },
         'mcp',
         'Browser action failed; approval cannot be reused',
       );
+      // The MCP caller can show the same failure in chat; keep that message plain too.
+      if (error instanceof Error && error.message !== message) {
+        const plain = new Error(message, { cause: error });
+        plain.name = error.name;
+        throw plain;
+      }
       throw error;
     } finally {
       this.busy.delete(runId);
