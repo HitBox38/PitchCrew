@@ -86,6 +86,7 @@ export interface Snapshot extends WorkspaceMessages {
   proposals: RoleProposal[];
   pipelineReviews?: PipelineReview[];
   tasks: AgentTask[];
+  delegationRounds?: import('./delegation-rounds.ts').DelegationRound[];
   routines: Routine[];
   connectors: ConnectorStatus[];
 }

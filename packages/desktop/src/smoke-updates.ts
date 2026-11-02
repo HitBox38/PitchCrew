@@ -1,36 +1,29 @@
 /** Real renderer checks using only the fixture daemon's injected release responses. */
 export const smokeUpdates = `(async () => {
-  const updateSelector = '[aria-label="Download update"][data-slot="sidebar-menu-button"]';
+  const updateSelector = '.app-update-button';
   const notice = await waitFor(() => !!document.querySelector(updateSelector));
   const indicator = document.querySelector(updateSelector);
-  const footer = !!indicator?.closest('[data-slot="sidebar-footer"]');
-  // The update is a full-width footer row above the slot tray, with its dismissal on the same line.
+  const appbar = !!indicator?.closest('.workspace-app-bar');
   const updateBounds = indicator?.getBoundingClientRect();
-  const dismissBounds = document.querySelector('[aria-label="Dismiss update notice"]')?.getBoundingClientRect();
-  const trayBounds = document.querySelector('.sidebar-tray')?.getBoundingClientRect();
-  const compactFooter = !!updateBounds && !!trayBounds && updateBounds.width > 120 && updateBounds.height > 0 && updateBounds.height <= 40 && updateBounds.bottom <= trayBounds.top + 1;
-  const inlineUpdate = !!updateBounds && !!dismissBounds && Math.abs(dismissBounds.top + dismissBounds.height / 2 - (updateBounds.top + updateBounds.height / 2)) < 1;
-  const spacedFooter = dismissBounds?.left >= updateBounds?.right;
+  const settingsBounds = document.querySelector('.workspace-settings')?.getBoundingClientRect();
+  const compactIndicator = !!updateBounds && updateBounds.width > 0 && updateBounds.width <= 44 && updateBounds.height >= 32;
+  const sameRow = !!updateBounds && !!settingsBounds && Math.abs(updateBounds.top + updateBounds.height / 2 - (settingsBounds.top + settingsBounds.height / 2)) < 1;
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
-  document.querySelector('a[href="/settings?section=general"]')?.click();
+  document.querySelector('.workspace-settings')?.click();
   if (!await waitFor(() => !!document.querySelector('.settings-tabs'))) throw new Error('Settings navigation missing.');
   [...document.querySelectorAll('.settings-tabs [role="tab"]')].find(tab => tab.textContent.startsWith('Updates'))?.click();
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
   const retained = document.querySelector(updateSelector) === indicator;
   document.querySelector('button[aria-label="Hide sidebar"]')?.click();
   const collapsed = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-collapsible="icon"]'));
-  const indicatorBounds = indicator?.getBoundingClientRect();
-  const compactIndicator = indicatorBounds && indicatorBounds.width > 0 && indicatorBounds.width <= 40;
-  const hover = { clientX: indicatorBounds.left + indicatorBounds.width / 2, clientY: indicatorBounds.top + indicatorBounds.height / 2 };
-  indicator?.dispatchEvent(new PointerEvent('pointerover', { bubbles: true, pointerType: 'mouse', ...hover }));
-  indicator?.dispatchEvent(new MouseEvent('mouseenter', { relatedTarget: document.body, ...hover }));
-  indicator?.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, movementX: 4, ...hover }));
-  const details = await waitFor(() => !!document.querySelector('[data-slot="tooltip-content"]')?.textContent.includes('Fictional inline updates'));
-  const detailsContent = document.querySelector('[data-slot="tooltip-content"]');
-  const detailsRelease = detailsContent?.textContent.includes('Version 0.2.0') && !detailsContent?.querySelector('a, button') && !document.querySelector('[data-slot="popover-content"]');
-  indicator?.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false, relatedTarget: document.body }));
-  document.body.dispatchEvent(new MouseEvent('mousemove', { bubbles: true, clientX: innerWidth - 1, clientY: 1 }));
-  const closed = await waitFor(() => !document.querySelector('[data-slot="tooltip-content"]'));
+  const collapsedBounds = indicator?.getBoundingClientRect();
+  const stableIndicator = collapsedBounds?.width === updateBounds?.width && collapsedBounds?.top === updateBounds?.top;
+  indicator?.click();
+  const details = await waitFor(() => !!document.querySelector('.app-update-panel')?.textContent.includes('Fictional inline updates'));
+  const detailsContent = document.querySelector('.app-update-panel');
+  const detailsRelease = detailsContent?.textContent.includes('Version 0.2.0') && [...detailsContent?.querySelectorAll('button') ?? []].some(button => button.textContent === 'Download update');
+  indicator?.click();
+  const closed = await waitFor(() => !document.querySelector('.app-update-panel'));
   document.querySelector('button[aria-label="Show sidebar"]')?.click();
   const expanded = await waitFor(() => !!document.querySelector('[data-slot="sidebar"][data-state="expanded"]'));
   const section = document.querySelector('#updates-heading')?.closest('section');
@@ -49,17 +42,17 @@ export const smokeUpdates = `(async () => {
   button?.click();
   await new Promise((resolve) => setTimeout(resolve, 0));
   const manual = await waitFor(() => section?.querySelector('output')?.textContent.includes('A newer Pitchcrew build is available.') && !button?.disabled);
-  await waitFor(() => !!document.querySelector('[aria-label="Dismiss update notice"]'));
-  document.querySelector('[aria-label="Dismiss update notice"]')?.click();
-  const dismissed = await waitFor(() => !document.querySelector(updateSelector) && !document.querySelector('[data-slot="popover-content"]'));
-  // Without a permanent check icon, dismissal hands focus to the footer's Settings control.
-  const dismissalFocus = await waitFor(() => document.activeElement === document.querySelector('.sidebar-settings'));
+  indicator?.click();
+  await waitFor(() => !!document.querySelector('.app-update-panel'));
+  [...document.querySelectorAll('.app-update-panel button')].find(button => button.textContent === 'Dismiss update notice')?.click();
+  const dismissed = await waitFor(() => !document.querySelector(updateSelector) && !document.querySelector('.app-update-panel'));
+  const dismissalFocus = await waitFor(() => document.activeElement === document.querySelector('.workspace-settings'));
   const stillAvailable = !!section?.querySelector('a[aria-label="View release and download"]');
-  // A manual check from Settings > Updates brings the dismissed build back to the footer.
+  // A manual check from Settings > Updates brings the indicator back without reopening details.
   button?.click();
   const checkedAgain = await waitFor(() => !!document.querySelector(updateSelector));
-  const checkedAgainFocus = !document.querySelector('[data-slot="popover-content"]') && document.activeElement === document.querySelector('.sidebar-settings');
+  const checkedAgainFocus = !document.querySelector('.app-update-panel') && document.activeElement === document.querySelector('.workspace-settings');
   section?.scrollIntoView({ block: 'center' });
-  interactionChecks.appUpdates = { notice, footer, inlineUpdate, compactFooter, spacedFooter, noPageBanner, settings, retained, collapsed, compactIndicator, details, detailsRelease, closed, expanded, version, link, enabled, compactControl, disabled, restored, manual, dismissed, dismissalFocus, stillAvailable, checkedAgain, checkedAgainFocus };
+  interactionChecks.appUpdates = { notice, appbar, compactIndicator, sameRow, noPageBanner, settings, retained, collapsed, stableIndicator, details, detailsRelease, closed, expanded, version, link, enabled, compactControl, disabled, restored, manual, dismissed, dismissalFocus, stillAvailable, checkedAgain, checkedAgainFocus };
   return Object.values(interactionChecks.appUpdates).every(Boolean);
 })()`;

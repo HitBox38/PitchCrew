@@ -8,7 +8,7 @@ import type { Role } from './roles.ts';
 import type { ModelReasoning } from './reasoning.ts';
 import type { RunResult, RuntimeActivity } from './runs.ts';
 import type { Skill } from './skills.ts';
-import { type RuntimeId } from './states.ts';
+import { type RoleId, type RuntimeId } from './states.ts';
 import type { ProfileFile } from './workspace.ts';
 
 export interface RuntimeHealth {
@@ -81,6 +81,13 @@ export interface RuntimeAdapter {
 export interface ChatContext extends Omit<RunContext, 'card'> {
   card: Card | null;
   conversation?: Pick<Conversation, 'id' | 'kind' | 'leadId' | 'participants'>;
+  /** Delegation round membership: a delegate's subtask turn or the lead's collection turn. */
+  delegation?: {
+    part: 'delegate' | 'collection';
+    leadId: RoleId;
+    initiator: 'user' | RoleId;
+    delegates: RoleId[];
+  };
   session?: { id?: string; directory: string };
   onSession?: (id: string) => void;
   messages: ChatMessage[];

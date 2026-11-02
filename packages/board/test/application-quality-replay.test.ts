@@ -9,7 +9,7 @@ import {
 } from '@pitchcrew/core';
 import { Board } from '../src/index.ts';
 
-it('replays v24 queues and prerelease quality records together, then appends v25 without rewriting history', () => {
+it('replays v24 queues and prerelease quality records together, then appends the current version without rewriting history', () => {
   const board = new Board(':memory:');
   try {
     const now = new Date().toISOString();
@@ -86,7 +86,6 @@ it('replays v24 queues and prerelease quality records together, then appends v25
       'user',
       'Disable learning',
     );
-    expect(currentEventVersion).toBe(33);
     expect(board.events()[0].version).toBe(currentEventVersion);
     board.rebuild();
     expect(board.get<WritingGuide>('writing_guide', guide.id).automatic).toBe(false);

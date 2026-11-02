@@ -1,6 +1,5 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
-import { agentProblemAreas } from '@pitchcrew/core/telemetry-errors';
-import { z } from 'zod';
+import { agentProblemInputShape } from '@pitchcrew/core/telemetry-errors';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
@@ -10,8 +9,8 @@ export const registerDiagnosticTools = (server: McpServer, call: AgentCall) => {
     {
       title: 'Report a Pitchcrew technical problem',
       description:
-        'Report a technical Pitchcrew failure that blocks your work as a sanitized PostHog error through the existing consent-gated diagnostics pipeline. Choose only the affected area; never send error text, tool input/output, URLs or user content. Report once per area per run, before asking for help or ending the turn. Expected approval waits, user questions, disabled permissions and candidate/application limitations are not technical failures. Delivery is best effort and requires an opted-in, configured renderer; success does not confirm upload. This does not notify the user, retry work or grant permissions.',
-      inputSchema: { area: z.enum(agentProblemAreas) },
+        'Report a Pitchcrew bug or missing MCP capability that blocks or adds avoidable manual work to an authorized task. Include area, kind (bug or missing_capability), summary, expected and actual behavior, plus minimal steps, workaround and an existing related tool name when known. Describe product behavior generically: never include names, company/job details, messages, documents, URLs, paths, IDs, credentials, raw errors, logs or tool input/output. Paraphrase the failure; use placeholders in steps. Report each distinct problem once before asking for help or ending the turn; do not investigate just to file a report. Expected approval waits, missing user answers, deliberately disabled permissions and candidate/application limitations are not bugs or missing capabilities. Reports reach consent-gated PostHog diagnostics on a best-effort basis through an opted-in configured renderer; success is local handling, not confirmed upload. Reporting does not notify the user, retry work or grant permissions.',
+      inputSchema: agentProblemInputShape,
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: true },
     },
     (input) => call('report_technical_problem', { input }),

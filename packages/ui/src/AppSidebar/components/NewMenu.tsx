@@ -13,13 +13,20 @@ import { useNewActions } from '../hooks/useNewActions.ts';
 import { StripButton } from './StripButton.tsx';
 
 /** The strip's + menu: a job, a conversation or a Profile note, using the existing actions. */
-export const NewMenu = ({ onAddJob }: { onAddJob: () => void }) => {
+export const NewMenu = ({
+  onAddJob,
+  side,
+}: {
+  onAddJob: () => void;
+  side?: 'bottom' | 'right';
+}) => {
   const { state, isMobile } = useSidebar();
   const create = useNewActions(onAddJob);
   return (
     <DropdownMenu>
       <StripButton
         label="New"
+        side={side}
         render={
           <DropdownMenuTrigger
             render={<Button variant="ghost" size="icon-sm" className="sidebar-strip-button" />}
@@ -31,7 +38,7 @@ export const NewMenu = ({ onAddJob }: { onAddJob: () => void }) => {
       </StripButton>
       <DropdownMenuContent
         className="sidebar-new-menu min-w-52"
-        side={state === 'collapsed' && !isMobile ? 'right' : 'bottom'}
+        side={side ?? (state === 'collapsed' && !isMobile ? 'right' : 'bottom')}
         align="start"
       >
         <DropdownMenuGroup>

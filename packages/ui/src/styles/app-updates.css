@@ -1,0 +1,78 @@
+/* One quiet app-bar target; release notes and actions use the shared floating sheet. */
+.app-update {
+  display: flex;
+  flex: none;
+}
+.app-update-button {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--teal);
+  cursor: pointer;
+}
+.app-update-button > svg {
+  width: 16px;
+  height: 16px;
+}
+.app-update-button:is(:hover, [data-popup-open]) {
+  background: rgb(var(--tint) / 0.06);
+}
+.app-update-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.app-update-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.app-update-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--teal);
+}
+.ui-popover.app-update-panel {
+  display: grid;
+  gap: 12px;
+  width: min(360px, calc(100vw - 16px));
+  max-height: min(600px, var(--available-height));
+  overflow-y: auto;
+  padding: 16px;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+}
+.app-update-panel > h2 {
+  color: var(--ink);
+  font: 600 1rem/1.4 var(--font-sans);
+}
+.app-update-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+@media (width < 48rem), (pointer: coarse) {
+  .app-update-button {
+    width: 44px;
+    height: 44px;
+  }
+  .app-update-actions > button {
+    min-height: 44px;
+  }
+}

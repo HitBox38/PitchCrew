@@ -1,6 +1,12 @@
 import { expect, it } from 'vitest';
 import type { WorkspaceQueue, WorkQueueView } from '@pitchcrew/core';
-import { queueBeadTone, queueTrayLabel, traySockets } from '../helpers.ts';
+import {
+  queueAttention,
+  queueBeadTone,
+  queueTrayLabel,
+  queueCountLabel,
+  queueUtilization,
+} from '../helpers.ts';
 
 const view = (state: WorkQueueView['state'], pauseKind?: WorkQueueView['pauseKind']) =>
   ({ state, paused: state === 'paused', pauseKind }) as WorkQueueView;
@@ -20,16 +26,33 @@ it('says held and failed work in words beside the slot count', () => {
   ).toBe('2 of 5 working · 1 on hold · 2 failed');
 });
 
-it('draws at most five sockets with occupied slots first', () => {
-  expect(traySockets({ active: 3, background: 1, concurrency: 5 })).toEqual([
-    'working',
-    'working',
-    'background',
-    'free',
-    'free',
-  ]);
-  expect(traySockets({ active: 2, background: 0, concurrency: 12 })).toHaveLength(5);
-  expect(traySockets({ active: 0, background: 0, concurrency: 2 })).toEqual(['free', 'free']);
+it('summarizes occupancy without allocating an item per slot', () => {
+  expect(queueUtilization({ active: 3, concurrency: 10 })).toBe(30);
+  expect(queueUtilization({ active: 250_000, concurrency: 1_000_000 })).toBe(25);
+  expect(queueUtilization({ active: 0, concurrency: Number.MAX_SAFE_INTEGER })).toBe(0);
+  expect(queueCountLabel(10)).toBe('10');
+  expect(queueCountLabel(1_500)).toBe('1.5K');
+  expect(queueCountLabel(1_000_000)).toBe('1M');
+});
+
+it('saturates the meter while retaining exact counts above a reduced limit', () => {
+  expect(queueUtilization({ active: 7, concurrency: 3 })).toBe(100);
+  expect(queueTrayLabel(workspace([], 7, 3))).toBe('7 of 3 working');
+});
+
+it('reports failed work separately from queues on hold', () => {
+  expect(
+    queueAttention(
+      workspace([
+        view('running'),
+        view('ready'),
+        view('waiting'),
+        view('paused', 'user'),
+        view('paused', 'interrupted'),
+        view('blocked'),
+      ]),
+    ),
+  ).toEqual({ onHold: 2, failed: 2 });
 });
 
 it('colours queue beads by state, not by agent', () => {

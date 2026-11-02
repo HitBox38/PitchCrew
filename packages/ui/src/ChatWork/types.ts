@@ -1,7 +1,14 @@
 import type { ChatThread } from '@/ChatView/types.ts';
 import type { getChatWorkModel } from '@/ChatWork/helpers.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
-import type { AgentTask, Role, RoleProposal, SkillProposal, Snapshot } from '@pitchcrew/core';
+import type {
+  AgentTask,
+  DelegationRound,
+  Role,
+  RoleProposal,
+  SkillProposal,
+  Snapshot,
+} from '@pitchcrew/core';
 
 export interface ChatWorkProps {
   data: Snapshot;
@@ -10,6 +17,7 @@ export interface ChatWorkProps {
   proposals: RoleProposal[];
   skillProposals: SkillProposal[];
   tasks: AgentTask[];
+  rounds: DelegationRound[];
   action: Action;
   working: boolean;
   onConfigure: () => void;
@@ -27,6 +35,11 @@ export type InstructionComparisonProps = { proposal: RoleProposal; current: Role
 export type RoleCapabilitiesProps = Pick<ChatWorkModel, 'role' | 'onConfigure'>;
 
 export type RoleProposalsProps = Pick<ChatWorkModel, 'proposals' | 'data' | 'working' | 'act'>;
+
+export type DelegationRoundsProps = Pick<
+  ChatWorkModel,
+  'rounds' | 'data' | 'name' | 'thread' | 'working' | 'act'
+>;
 
 export type SkillProposalsProps = Pick<
   ChatWorkModel,

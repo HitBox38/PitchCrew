@@ -30,7 +30,8 @@ import { join } from 'node:path';
 import { pipelineAction } from './gateway/pipeline.ts';
 import { computerAction } from './gateway/computer.ts';
 import { connectorAccess, connectorAction } from './gateway/connectors.ts';
-import { notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
+import { delegateRound, notifyUser, queueMessage, readMessages } from './gateway/messages.ts';
+import { runIsDelegate } from './delegation-rounds.ts';
 import { proposeRole, proposeSkill } from './gateway/proposals.ts';
 import { changeWorkflow } from './gateway/workflow.ts';
 import { correctJobDetails } from './gateway/job-details.ts';
@@ -87,6 +88,7 @@ const dispatchAgentCall = async (
       throw new Error('Run capability is invalid or expired.');
     return {
       purpose: activeRun.purpose ?? null,
+      delegate: runIsDelegate(context, activeRun),
       reviewMode: activeRun.deepReviewId
         ? activeRun.reviewSubagentId
           ? 'subagent'
@@ -101,6 +103,20 @@ const dispatchAgentCall = async (
   if (activeRun?.purpose === 'source-extraction')
     throw new Error(
       'Source extraction cannot call agent tools. Return only the structured source result.',
+    );
+  if (
+    [
+      'message',
+      'invoke',
+      'delegate_round',
+      'create_group',
+      'invite_agent',
+      'start_deep_review',
+    ].includes(action) &&
+    runIsDelegate(context, activeRun)
+  )
+    throw new Error(
+      'Delegates in a delegation round cannot message, invoke or delegate other agents. Finish your subtask and reply with your findings.',
     );
   if (action === 'report_technical_problem') {
     if (!activeRun || activeRun.status !== 'running' || questionForRun(context, capability.runId))
@@ -306,6 +322,8 @@ const dispatchAgentCall = async (
   if (action === 'chat_attachment') return readChatAttachment(context, capability, token, data);
   if (action === 'message' || action === 'invoke')
     return queueMessage(context, capability, permissions, action, data);
+  if (action === 'delegate_round')
+    return delegateRound(context, capability, permissions, activeRun, data.input ?? data);
   if (action === 'propose') return proposeRole(context, capability, role, data);
   if (action === 'propose_skill') return proposeSkill(context, capability, role, token, data);
   if (action === 'update_job') {

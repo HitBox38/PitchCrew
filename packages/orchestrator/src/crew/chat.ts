@@ -38,6 +38,7 @@ import { readProfile } from '@pitchcrew/packet';
 import { randomUUID, createHash } from 'node:crypto';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { delegationContext, taskReplyTarget } from './delegation-rounds.ts';
 
 export const chatState = (context: CrewContext): ChatStreamState => {
   return {
@@ -241,7 +242,7 @@ const startChatRunPrepared = async (
     id: randomUUID(),
     threadId,
     from: roleId,
-    to: task ? context.board.get<Run>('run', task.parentRunId).roleId : 'user',
+    to: task ? taskReplyTarget(context, task) : 'user',
     content: '',
     cardId,
     runId: run.id,
@@ -320,6 +321,7 @@ const startChatRunPrepared = async (
               .slice(-1),
           ),
           request: content,
+          delegation: delegationContext(context, task),
           conversation: conversation
             ? {
                 id: conversation.id,

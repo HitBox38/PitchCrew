@@ -1,36 +1,38 @@
-import { useState } from 'react';
-import { ChevronRight } from 'lucide-react';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@pitchcrew/design-system/collapsible';
-import { citationRows, noteCitations } from '../helpers.ts';
-import type { ProfileViewModel } from '../types.ts';
-import { ProfileCitation } from './ProfileCitation.tsx';
+import { X } from 'lucide-react';
+import { Button } from '@pitchcrew/design-system/button';
+import type { ProfileSectionProps } from '../types.ts';
+import { ProfileCitationList } from './ProfileCitationList.tsx';
 
-/** Packets whose registered claims quote this exact note, as compact rows in one recessed tray. */
-export const ProfileCitations = ({
-  data,
-  activeSavedName,
-}: Pick<ProfileViewModel, 'data' | 'activeSavedName'>) => {
-  const [open, setOpen] = useState(() => window.matchMedia('(min-width: 80rem)').matches);
-  const cited = activeSavedName ? citationRows(noteCitations(data.cards, activeSavedName)) : [];
-  if (!cited.length) return null;
-  const heading = `Cited in ${cited.length} ${cited.length === 1 ? 'packet' : 'packets'}`;
+/** The rail beside the note: packets whose registered claims quote its exact lines. */
+export const ProfileCitations = ({ controller, workspace, citations }: ProfileSectionProps) => {
+  const count = citations.rows.length;
   return (
-    <Collapsible open={open} onOpenChange={setOpen} className="profile-citations">
-      <CollapsibleTrigger className="profile-citations-heading">
-        <ChevronRight size={14} aria-hidden="true" />
-        {heading}
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        <ul className="profile-citation-list">
-          {cited.map((card) => (
-            <ProfileCitation key={card.id} card={card} />
-          ))}
-        </ul>
-      </CollapsibleContent>
-    </Collapsible>
+    <aside
+      id="profile-citations"
+      className="profile-citations"
+      aria-label="Packets citing this note"
+    >
+      <div className="profile-citations-heading">
+        <h2>
+          Cited in {count} {count === 1 ? 'packet' : 'packets'}
+        </h2>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Hide citations"
+          onClick={() => {
+            document.querySelector<HTMLButtonElement>('.profile-cited')?.focus();
+            workspace.toggleCitations();
+          }}
+        >
+          <X size={15} aria-hidden="true" />
+        </Button>
+      </div>
+      <ProfileCitationList
+        rows={citations.rows}
+        content={controller.content}
+        reveal={workspace.revealQuote}
+      />
+    </aside>
   );
 };

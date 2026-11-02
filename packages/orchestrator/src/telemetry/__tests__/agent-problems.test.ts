@@ -50,6 +50,45 @@ afterEach(async () => {
 });
 
 describe('agent-reported technical blockers', () => {
+  it('preserves structured bug and capability reports, redacts identifiers and deduplicates distinct problems', async () => {
+    const { context, buffer } = await fixture();
+    const input = {
+      area: 'mcp',
+      kind: 'missing_capability',
+      summary: 'No way to batch update job tags',
+      expected: (
+        'Update tags across selected jobs in one tool call. ' + 'A generic detail. '.repeat(15)
+      ).trim(),
+      actual:
+        'Only individual updates are available; contacted person@example.com at https://private.test/job.',
+      steps: '1. Select jobs. 2. Check available tools. 3. Try updating their tags.',
+      workaround: 'Updated each job individually; extra calls were required.',
+      tool: 'pitchcrew_update_job',
+    };
+    const report = (data: Record<string, unknown>) =>
+      context.agentCall('private-token', 'report_technical_problem', data);
+    expect(await report(input)).toEqual({ ok: true, duplicate: false });
+    expect(await report(input)).toEqual({ ok: true, duplicate: true });
+    await report({ ...input, kind: 'bug', summary: 'Tag updates fail to persist' });
+    const exceptions = buffer.read(0).observations.filter((entry) => entry.event === '$exception');
+    expect(exceptions).toHaveLength(2);
+    expect(exceptions[0].properties).toMatchObject({
+      error_kind: 'missing_capability',
+      error_summary: input.summary,
+      error_expected: input.expected,
+      error_steps: input.steps,
+      error_workaround: input.workaround,
+      error_tool: input.tool,
+      error_actual: 'Only individual updates are available; contacted [email] at [url]',
+    });
+    expect(JSON.stringify(exceptions)).not.toMatch(/person@example|private\.test|private-run/);
+    for (let i = 0; i < 6; i++) await report({ ...input, summary: `Separate capability ${i}` });
+    expect(await report({ ...input, summary: 'Over limit' })).toMatchObject({ limited: true });
+    expect(
+      buffer.read(0).observations.filter((entry) => entry.event === '$exception'),
+    ).toHaveLength(8);
+  });
+
   it('buffers a fixed exception once per area per run without task or role data', async () => {
     const { context, buffer } = await fixture();
     expect(
@@ -103,7 +142,19 @@ describe('agent-reported technical blockers', () => {
 
   it('rejects free-form input and contains missing, disabled and broken diagnostic sinks', async () => {
     const { context, buffer } = await fixture();
-    for (const data of [{ area: 'private-error' }, { area: 'mcp', message: 'private error' }])
+    for (const data of [
+      { area: 'private-error' },
+      { area: 'mcp', message: 'private error' },
+      { area: 'mcp', summary: 'Incomplete' },
+      { area: 'mcp', summary: 'Too long', expected: 'x'.repeat(601), actual: 'Failed' },
+      {
+        area: 'mcp',
+        summary: 'Invalid tool',
+        expected: 'Work',
+        actual: 'Failed',
+        tool: 'secret URL',
+      },
+    ])
       await expect(
         context.agentCall('private-token', 'report_technical_problem', data),
       ).rejects.toThrow();

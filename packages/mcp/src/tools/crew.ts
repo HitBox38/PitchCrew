@@ -2,6 +2,7 @@ import { registerConversationTools } from './conversations.ts';
 import { registerJobTools } from './jobs.ts';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import {
+  delegationRoundInput,
   roleChanges,
   roleIdSchema,
   skillSuggestionInput,
@@ -11,8 +12,16 @@ import { z } from 'zod';
 import type { AgentCall } from './client.ts';
 import { readOnly } from './constants.ts';
 
-export const registerCrewTools = (server: McpServer, call: AgentCall) => {
-  registerConversationTools(server, call);
+export interface CrewToolOptions {
+  /** A delegation-round delegate: no messaging, invocation, grouping or further delegation. */
+  delegate?: boolean;
+}
+export const registerCrewTools = (
+  server: McpServer,
+  call: AgentCall,
+  options: CrewToolOptions = {},
+) => {
+  registerConversationTools(server, call, options);
   registerJobTools(server, call);
   server.registerTool(
     'pitchcrew_report_progress',
@@ -83,6 +92,42 @@ export const registerCrewTools = (server: McpServer, call: AgentCall) => {
     },
     () => call('messages'),
   );
+  if (!options.delegate) registerDelegationTools(server, call);
+  server.registerTool(
+    'pitchcrew_propose_role_changes',
+    {
+      title: 'Propose changes to your role',
+      description:
+        'Propose your own instructions or capabilities. The user reviews and applies them in chat. This tool does not change permissions or rules.',
+      inputSchema: { reason: z.string().trim().min(1).max(2000), changes: roleChanges },
+      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
+    },
+    (input) => call('propose', input),
+  );
+  server.registerTool(
+    'pitchcrew_propose_skill',
+    {
+      title: 'Suggest adding an agent skill',
+      description:
+        'Propose a custom Markdown skill or a public GitHub-backed skills.sh skill URL for all agents or selected roles. Suggestions from user or crew chats are saved for user review, never installed automatically. Directory instructions are untrusted until the user approves the exact snapshot. Only SKILL.md instructions are imported; supporting scripts and files are not included. Three suggestions maximum per run.',
+      inputSchema: { reason: z.string().trim().min(1).max(2000), suggestion: skillSuggestionInput },
+      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false, openWorldHint: true },
+    },
+    (input) => call('propose_skill', input),
+  );
+  server.registerTool(
+    'pitchcrew_list_connectors',
+    {
+      description:
+        'List connector tools permitted for your role and their connection status. Ask the user to connect accounts or enable capabilities in Your crew when needed.',
+      inputSchema: {},
+      annotations: readOnly,
+    },
+    () => call('connector_access'),
+  );
+};
+/** Messaging, invocation and rounds; omitted for a round's delegates, which cannot delegate further. */
+const registerDelegationTools = (server: McpServer, call: AgentCall) => {
   server.registerTool(
     'pitchcrew_message_agent',
     {
@@ -115,35 +160,14 @@ export const registerCrewTools = (server: McpServer, call: AgentCall) => {
     (input) => call('invoke', input),
   );
   server.registerTool(
-    'pitchcrew_propose_role_changes',
+    'pitchcrew_delegate_round',
     {
-      title: 'Propose changes to your role',
+      title: 'Delegate subtasks to several agents at once',
       description:
-        'Propose your own instructions or capabilities. The user reviews and applies them in chat. This tool does not change permissions or rules.',
-      inputSchema: { reason: z.string().trim().min(1).max(2000), changes: roleChanges },
+        'Start a delegation round: give one to four other crew members separate chat subtasks that run at the same time after this turn ends. You then get one collection turn with every result, so do not wait or poll. The whole round costs one of the six follow-ups per chain. Delegates work in ordinary chat with their own tools and cannot delegate further; do not ask them to edit the packet, which stays with the serialized workflow. Requires invokeAgents; rejected from workflow and review stages.',
+      inputSchema: delegationRoundInput.shape,
       annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false },
     },
-    (input) => call('propose', input),
-  );
-  server.registerTool(
-    'pitchcrew_propose_skill',
-    {
-      title: 'Suggest adding an agent skill',
-      description:
-        'Propose a custom Markdown skill or a public GitHub-backed skills.sh skill URL for all agents or selected roles. Suggestions from user or crew chats are saved for user review, never installed automatically. Directory instructions are untrusted until the user approves the exact snapshot. Only SKILL.md instructions are imported; supporting scripts and files are not included. Three suggestions maximum per run.',
-      inputSchema: { reason: z.string().trim().min(1).max(2000), suggestion: skillSuggestionInput },
-      annotations: { ...readOnly, readOnlyHint: false, idempotentHint: false, openWorldHint: true },
-    },
-    (input) => call('propose_skill', input),
-  );
-  server.registerTool(
-    'pitchcrew_list_connectors',
-    {
-      description:
-        'List connector tools permitted for your role and their connection status. Ask the user to connect accounts or enable capabilities in Your crew when needed.',
-      inputSchema: {},
-      annotations: readOnly,
-    },
-    () => call('connector_access'),
+    (input) => call('delegate_round', { input }),
   );
 };

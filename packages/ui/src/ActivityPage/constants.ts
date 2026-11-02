@@ -29,6 +29,7 @@ export const eventKindLabels = {
   profile_proposal: 'Profile updates',
   form_assessment: 'Form assessments',
   submission_attempt: 'Submission receipts',
+  delegation_round: 'Delegation rounds',
 } as const;
 
 export const actorLabels: Record<string, string> = {

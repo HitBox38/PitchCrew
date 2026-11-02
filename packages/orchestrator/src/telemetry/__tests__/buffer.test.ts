@@ -39,3 +39,18 @@ it('does not invoke sanitizers when disabled and contains bad measurements and s
   invalid.record('fixture', {});
   expect(invalid.read(0).observations).toEqual([]);
 });
+
+it('expands only the reviewed agent report fields while retaining ordinary string limits', () => {
+  const buffer = createTelemetryBuffer((_event, input) => input as Record<string, string>, true);
+  buffer.record('fixture', { error_expected: 'x'.repeat(201) });
+  buffer.record('$exception', { error_source: 'window_error', error_expected: 'x'.repeat(201) });
+  buffer.record('$exception', { error_source: 'agent_report', unrelated: 'x'.repeat(201) });
+  buffer.record('$exception', { error_source: 'agent_report', error_expected: 'x'.repeat(601) });
+  expect(buffer.read(0).observations).toEqual([]);
+  buffer.record('$exception', {
+    error_source: 'agent_report',
+    error_expected: 'x'.repeat(600),
+    error_steps: 'x'.repeat(1000),
+  });
+  expect(buffer.read(0).observations).toHaveLength(1);
+});

@@ -69,13 +69,17 @@ export const createDomBrowserHost = (
     publish();
   };
   const reset = () => {
+    const closing = [...guests.values()].map((guest) => guest.contents);
     onReset();
     for (const request of [...requests.values()])
-      remove(request, new Error('The desktop browser host reloaded.'), true);
-    for (const guest of [...guests.values()]) {
-      forgetGuest(guest);
-      if (!guest.contents.isDestroyed()) guest.contents.close();
-    }
+      remove(request, new Error('The desktop browser host reloaded.'), false);
+    for (const guest of [...guests.values()]) forgetGuest(guest);
+    // Revoke ownership immediately, but do not destroy guests reentrantly inside
+    // Chromium's embedder navigation/destruction callbacks (Windows can exit).
+    if (closing.length)
+      setImmediate(() => {
+        for (const contents of closing) if (!contents.isDestroyed()) contents.close();
+      });
   };
   const authorize = (event: Electron.IpcMainInvokeEvent) => {
     const window = getWindow();

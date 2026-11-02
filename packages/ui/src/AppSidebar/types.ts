@@ -11,13 +11,9 @@ export interface AppSidebarProps {
   recent: Card[];
   working: boolean;
   onOpenCard: (id: string) => void;
-  onSearch: () => void;
-  onAddJob: () => void;
   onConfigureRole: (id: RoleId) => void;
   onToggleRole: (role: Role) => Promise<unknown> | void;
 }
-
-export type SidebarStripProps = Pick<AppSidebarProps, 'onSearch' | 'onAddJob'>;
 
 export type WorkspaceLinksProps = Pick<AppSidebarProps, 'view' | 'counts'>;
 

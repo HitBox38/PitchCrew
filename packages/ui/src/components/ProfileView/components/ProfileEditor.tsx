@@ -1,10 +1,11 @@
 import type { ProfileSectionProps } from '../types.ts';
-import { ProfileOrigin } from './ProfileOrigin.tsx';
-import { ProfileSaveBar } from './ProfileSaveBar.tsx';
+import { ProfileStatusBar } from './ProfileStatusBar.tsx';
 import { MarkdownEditor } from '@/components/MarkdownEditor/index.tsx';
 import { useMarkdownSaveShortcut } from '@/components/MarkdownEditor/hooks/useMarkdownSaveShortcut.ts';
 
-export const ProfileEditor = ({ controller: c, tree }: ProfileSectionProps) => {
+/** The open note: the Write and Preview panels, then the status bar with Save. */
+export const ProfileEditor = (props: ProfileSectionProps) => {
+  const { controller: c } = props;
   const form = useMarkdownSaveShortcut();
   return (
     <form
@@ -14,7 +15,6 @@ export const ProfileEditor = ({ controller: c, tree }: ProfileSectionProps) => {
       onSubmit={(event) => void c.save(event)}
     >
       <div className="profile-sheet">
-        <ProfileOrigin {...c} />
         <MarkdownEditor
           id="profile-content"
           label="Profile Markdown"
@@ -23,21 +23,7 @@ export const ProfileEditor = ({ controller: c, tree }: ProfileSectionProps) => {
           maxLength={50000}
         />
       </div>
-      <ProfileSaveBar
-        location={tree.location(c.activeSavedName)}
-        renamed={c.name !== c.activeSavedName ? c.name : ''}
-        content={c.content}
-        status={
-          c.dirty
-            ? 'Unsaved changes'
-            : c.data.profile.some((file) => file.name === c.name)
-              ? 'Saved'
-              : 'New note'
-        }
-        error={c.error}
-        blocker={c.blocker}
-        working={c.working}
-      />
+      <ProfileStatusBar {...props} />
     </form>
   );
 };

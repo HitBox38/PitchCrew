@@ -10,6 +10,14 @@ import {
   conversation,
 } from './conversations.ts';
 import { drainConversationQueue } from './conversation-queue.ts';
+import {
+  assertFollowUpBudget,
+  collectionPrompt,
+  refreshRound,
+  roundOf,
+  taskParentReady,
+  taskParentRun,
+} from './delegation-rounds.ts';
 import { requireRole } from './roles.ts';
 import {
   defaultCapabilities,
@@ -39,10 +47,7 @@ export const enqueue = (
     throw new Error('The target runtime is not available.');
   if (mode === 'workflow' && !capability.cardId)
     throw new Error('Attach a job before invoking a workflow.');
-  if (context.board.list<AgentTask>('task').filter((t) => t.rootRunId === rootRunId).length >= 6)
-    throw new Error(
-      'This run chain reached its six follow-up limit. Ask the user to start another turn.',
-    );
+  assertFollowUpBudget(context, rootRunId);
   const task: AgentTask = {
     id: randomUUID(),
     parentRunId: parent.id,
@@ -119,6 +124,7 @@ export const finishTask = (context: CrewContext, run: Run): void => {
       run.roleId,
       `${run.roleId} ${finished.status} a crew task`,
     );
+    if (task.roundId) refreshRound(context, task.roundId);
   }
   if (run.mode === 'workflow' && finished.status !== 'waiting')
     context.addMessage(
@@ -131,7 +137,9 @@ export const finishTask = (context: CrewContext, run: Run): void => {
     );
 };
 export const taskPermissionsAllow = (context: CrewContext, task: AgentTask): boolean => {
-  const parent = context.board.get<Run>('run', task.parentRunId);
+  const parent = taskParentRun(context, task);
+  // A user-initiated round carries the user's own authority; only conversation access is rechecked.
+  if (!parent) return !!task.roundId && canReadConversation(context, task.roleId, task.threadId);
   const source = context.board.get<Role>('role', parent.roleId);
   const permissions = source.capabilities ?? defaultCapabilities;
   return (
@@ -152,19 +160,20 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
   try {
     for (const task of context.board.list<AgentTask>('task').filter((t) => t.status === 'queued')) {
       if (context.closing) break;
-      const parent = context.board.get<Run>('run', task.parentRunId);
+      const parent = taskParentRun(context, task);
       if (
-        ['running', 'waiting'].includes(parent.status) ||
+        ['running', 'waiting'].includes(parent?.status ?? 'completed') ||
         waitingOnUser(context, task.threadId, task.roleId)
       )
         continue;
-      if (parent.status !== 'completed') {
+      if (parent ? parent.status !== 'completed' : !task.roundId) {
         context.board.record(
           'task',
           { ...task, status: 'cancelled', error: 'The parent run did not complete.' },
           'system',
           'Cancelled crew follow-up',
         );
+        if (task.roundId) refreshRound(context, task.roundId);
         continue;
       }
       if (!context.taskPermissionsAllow(task)) {
@@ -174,18 +183,11 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
           'system',
           'Cancelled crew follow-up after settings change',
         );
+        if (task.roundId) refreshRound(context, task.roundId);
         continue;
       }
-      if (
-        task.cardId &&
-        context.board
-          .list<Run>('run')
-          .some(
-            (r) =>
-              r.cardId === task.cardId && (r.status === 'running' || context.controllers.has(r.id)),
-          )
-      )
-        continue;
+      if (task.roundId && !taskParentReady(context, task)) continue;
+      if (task.cardId && cardBusyFor(context, task)) continue;
       const taskRole = requireRole(context, task.roleId);
       const taskConfig =
         task.mode === 'workflow'
@@ -206,22 +208,24 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
         continue;
       if (!(await queueMayStart(context, taskLane(context, task), task.rootRunId))) continue;
       try {
+        const launch = task.roundPart === 'collection' ? collectionTask(context, task) : task;
         const run =
-          task.mode === 'workflow'
-            ? await context.startRun(task.cardId!, task.roleId, task)
+          launch.mode === 'workflow'
+            ? await context.startRun(launch.cardId!, launch.roleId, launch)
             : await context.startChatRun(
-                task.roleId,
-                task.content,
-                task.cardId,
-                task.threadId,
-                task,
+                launch.roleId,
+                launch.content,
+                launch.cardId,
+                launch.threadId,
+                launch,
               );
         context.board.record(
           'task',
-          { ...task, status: 'running', runId: run.id },
+          { ...launch, status: 'running', runId: run.id },
           'orchestrator',
           `Started queued ${task.roleId} ${task.mode}`,
         );
+        if (task.roundId) refreshRound(context, task.roundId);
       } catch (error) {
         if (error instanceof RuntimeHeldError || error instanceof QueueBusyError) continue;
         if (context.board.get<AgentTask>('task', task.id).status === 'cancelled') continue;
@@ -232,8 +236,10 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
           'system',
           message,
         );
+        if (task.roundId) refreshRound(context, task.roundId);
         const queueId = taskLane(context, task);
-        if (!queueId.startsWith('routine:'))
+        // A failed delegate becomes a result for the lead; it does not pause the queue.
+        if (!queueId.startsWith('routine:') && task.roundPart !== 'delegate')
           patchQueue(context, queueId, {
             paused: true,
             pauseKind: 'failed',
@@ -259,6 +265,29 @@ export const drainTasks = async (context: CrewContext): Promise<void> => {
   }
 };
 
+/** Other work on the card blocks a follow-up unless every active run is a delegate of the same round. */
+const cardBusyFor = (context: CrewContext, task: AgentTask): boolean => {
+  const active = context.board
+    .list<Run>('run')
+    .filter(
+      (r) => r.cardId === task.cardId && (r.status === 'running' || context.controllers.has(r.id)),
+    );
+  if (!active.length) return false;
+  if (task.roundPart !== 'delegate') return true;
+  const tasks = context.board.list<AgentTask>('task');
+  return !active.every((run) => {
+    const sibling = tasks.find((entry) => entry.id === run.taskId);
+    return !!sibling && sibling.roundId === task.roundId && sibling.roundPart === 'delegate';
+  });
+};
+/** Fill the collection turn's prompt from the settled delegate results just before it starts. */
+const collectionTask = (context: CrewContext, task: AgentTask): AgentTask => {
+  const round = roundOf(context, task);
+  if (!round) return task;
+  const filled = { ...task, content: collectionPrompt(context, round) };
+  context.board.record('task', filled, 'system', 'Prepared the collection turn');
+  return filled;
+};
 const workflowResultMessage = (context: CrewContext, run: Run): string => {
   if (run.status !== 'completed' || !run.cardId) return run.message;
   const card = context.board.get<import('@pitchcrew/core').Card>('card', run.cardId);

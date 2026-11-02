@@ -68,7 +68,7 @@ export const nativeArtifactFixture = async (
   if (operation === 'floating-keyboard') {
     const floating = floatingWindows.get(group.id)!;
     const field = await contents.executeJavaScript(
-      `(()=>{const field=document.querySelector('#name');field.value='';field.scrollIntoView({block:'center'});const rect=field.getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2,width:innerWidth,height:innerHeight}})()`,
+      `(()=>{const field=document.querySelector('#name');field.value='';window.fixtureKeys=[];field.scrollIntoView({block:'center'});const rect=field.getBoundingClientRect();return {x:rect.x+rect.width/2,y:rect.y+rect.height/2,width:innerWidth,height:innerHeight}})()`,
     );
     const point = await floating.webContents.executeJavaScript(
       `(()=>{const rect=document.querySelector('img').getBoundingClientRect();const field=${JSON.stringify(field)};const scale=Math.min(rect.width/field.width,rect.height/field.height);return {x:Math.floor(rect.left+(rect.width-field.width*scale)/2+field.x*scale),y:Math.floor(rect.top+(rect.height-field.height*scale)/2+field.y*scale)}})()`,
@@ -92,14 +92,11 @@ export const nativeArtifactFixture = async (
     let caret: unknown;
     let focusState: unknown;
     for (let attempt = 0; attempt < 100; attempt++) {
-      const signal = await contents.executeJavaScript(
-        `window.fixtureKeys.some(key=>key.key==='ArrowLeft')`,
+      // A prior ArrowLeft or its keydown event does not prove native caret movement finished.
+      caret = await contents.executeJavaScript(
+        `(()=>{const field=document.querySelector('#name');return window.fixtureKeys.some(key=>key.key==='ArrowLeft'&&key.trusted)&&field.value==='Mirror'&&field.selectionStart===5&&field.selectionEnd===5?{start:field.selectionStart,end:field.selectionEnd,value:field.value}:null})()`,
       );
-      if (signal) {
-        await new Promise((resolve) => setTimeout(resolve, 20));
-        caret = await contents.executeJavaScript(
-          `({start:document.querySelector('#name').selectionStart,end:document.querySelector('#name').selectionEnd,value:document.querySelector('#name').value})`,
-        );
+      if (caret) {
         focusState = {
           focusedFrame: contents.focusedFrame?.routingId,
           mainFrame: contents.mainFrame.routingId,

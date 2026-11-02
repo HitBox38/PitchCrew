@@ -29,7 +29,7 @@ This document records decisions from the chat redesign discussion. The conversat
 - An unaddressed user message gives each available participant one chance to contribute. Each evaluation uses a runtime call even if the participant chooses silence.
 - A user message with explicit mentions calls only the named participants.
 - Agent replies do not automatically trigger a new group-wide round. They continue exchanges through explicit mentions or delegation.
-- Each initiating user request or scheduled occurrence has a shared limit of six automatic follow-ups across its group work, delegated DMs and newly created conversations. Creating a conversation does not reset the limit. Initial participant evaluations are separate from this follow-up allowance.
+- Each initiating user request or scheduled occurrence has a shared limit of six automatic follow-ups across its group work, delegated DMs and newly created conversations. Creating a conversation does not reset the limit. Initial participant evaluations are separate from this follow-up allowance. A [delegation round](delegation-rounds.md), including its collection turn, counts as one follow-up.
 - At the limit, show completed work, remaining tasks and a user-only Continue action that starts another bounded round.
 - Continue first creates a concise continuation summary covering the request, decisions, completed work, outstanding tasks and relevant sources, reducing the context sent into the next round.
 - Preserve full messages and attachments. Summaries link back to their sources, and participating agents can retrieve details as needed. Each agent receives context appropriate to its work and permitted conversations.

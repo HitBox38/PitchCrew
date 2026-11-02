@@ -264,7 +264,11 @@ it('rejects pending work and closes registered guests on a renderer reload and r
   const pending = host.create(partition);
   const rejected = expect(pending).rejects.toThrow('reloaded');
   contents.emit('did-start-navigation', {}, `${origin}/chat/writer`, false, true);
+  expect(guest.value.close).not.toHaveBeenCalled();
+  expect(views()).toEqual([]);
+  expect(() => call(domBrowserChannels.register, token, guest.value.id)).toThrow('not owned');
   await rejected;
+  await vi.advanceTimersByTimeAsync(0);
   expect(guest.value.close).toHaveBeenCalledOnce();
   expect(views()).toEqual([]);
   host.close();
@@ -272,4 +276,27 @@ it('rejects pending work and closes registered guests on a renderer reload and r
   expect(contents.listenerCount('will-attach-webview')).toBe(0);
   expect(contents.listenerCount('did-attach-webview')).toBe(0);
   await expect(host.create(partition)).rejects.toThrow('unavailable');
+});
+
+it('defers reset cleanup without closing a replacement guest or double-closing one destroyed by Chromium', async () => {
+  const { host, views, attach, call, contents } = fixture();
+  const first = host.create(partition);
+  const oldToken = views()[0].token;
+  const old = attach(oldToken);
+  call(domBrowserChannels.register, oldToken, old.value.id);
+  await first;
+  contents.emit('render-process-gone');
+  expect(views()).toEqual([]);
+  expect(old.value.close).not.toHaveBeenCalled();
+
+  const replacement = host.create(partition);
+  const newToken = views()[0].token;
+  const current = attach(newToken);
+  call(domBrowserChannels.register, newToken, current.value.id);
+  await replacement;
+  old.value.close(); // Chromium can dispose the old DOM guest during reload itself.
+  await vi.advanceTimersByTimeAsync(0);
+  expect(old.value.close).toHaveBeenCalledOnce();
+  expect(current.value.close).not.toHaveBeenCalled();
+  expect(views()).toMatchObject([{ token: newToken, contentsId: current.value.id }]);
 });

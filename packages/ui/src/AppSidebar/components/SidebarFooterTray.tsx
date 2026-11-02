@@ -3,28 +3,21 @@ import { Link } from '@tanstack/react-router';
 import { Settings } from 'lucide-react';
 import { AppUpdates } from '@/AppUpdates/index.tsx';
 import { buttonVariants } from '@pitchcrew/design-system/button';
-import { SourceActivity } from '@/components/ProfileSources/components/SourceActivity.tsx';
 import { SidebarFooter, useSidebar } from '@pitchcrew/design-system/sidebar';
 import { QueueWidget } from '@/QueueWidget/index.tsx';
-import { SetupRow } from './SetupRow.tsx';
 import { StripButton } from './StripButton.tsx';
 
 /**
- * Conditional rows (setup, profile-source activity, app update) above the recessed slot tray:
- * the queue button with its sockets, and a separate Settings gear.
+ * Phones keep queue and Settings in their navigation drawer. Desktop uses the app bar.
  */
 export const SidebarFooterTray = ({ data, active }: { data: Snapshot; active: boolean }) => {
-  const { state, isMobile, setOpenMobile } = useSidebar();
-  const rail = state === 'collapsed' && !isMobile;
+  const { isMobile, setOpenMobile } = useSidebar();
+  if (!isMobile) return null;
   return (
     <SidebarFooter className="sidebar-footer">
-      <SetupRow />
-      <div className="sidebar-source-activity" onClickCapture={() => setOpenMobile(false)}>
-        <SourceActivity />
-      </div>
-      <AppUpdates />
       <div className="sidebar-tray">
-        <QueueWidget data={data} variant={rail ? 'rail' : 'tray'} className="sidebar-tray-queue" />
+        <QueueWidget data={data} variant="tray" className="sidebar-tray-queue" />
+        <AppUpdates />
         <StripButton
           label="Settings"
           render={
