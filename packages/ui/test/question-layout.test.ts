@@ -135,8 +135,18 @@ afterAll(async () => {
 test('keeps history and the answer footer reachable beside an expanded long question', async () => {
   const toggleBrowser = page.locator('button[aria-controls="agent-browser-panel"]');
   const answer = page.locator('.pending-user-question textarea');
-  await answer.fill('Keep my answer draft.');
   await expect.poll(() => page.locator('html').getAttribute('data-question-entered')).toBe('true');
+  // The entrance is observed above; measure the resting layout after the spring lands.
+  await expect
+    .poll(
+      () =>
+        page
+          .locator('.pending-user-questions-lane')
+          .evaluate((el) => new DOMMatrixReadOnly(getComputedStyle(el).transform).m42),
+      { timeout: 5000 },
+    )
+    .toBe(0);
+  await answer.fill('Keep my answer draft.');
   for (const size of [
     { width: 1442, height: 962 },
     { width: 1366, height: 768 },
