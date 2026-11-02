@@ -35,13 +35,29 @@ export const BrowserGuest = ({
         }),
       );
     };
+    const escape = (event: Event) => {
+      if (
+        (event as Event & { channel?: string }).channel !== 'pitchcrew:browser:escape' ||
+        !view.bounds ||
+        !view.manual ||
+        !guest.closest('[data-desktop-browser-layer][data-expanded]')
+      )
+        return;
+      // Guest DOM events cannot bubble into the app. Re-enter the containing
+      // dialog's normal Escape path, retaining nested app-surface precedence.
+      guest.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true }),
+      );
+    };
     guest.addEventListener('dom-ready', register);
     guest.addEventListener('focus', focus);
+    guest.addEventListener('ipc-message', escape);
     return () => {
       guest.removeEventListener('dom-ready', register);
       guest.removeEventListener('focus', focus);
+      guest.removeEventListener('ipc-message', escape);
     };
-  }, [view.token, element]);
+  }, [view.token, view.bounds, view.manual, element]);
   return (
     <>
       {createElement('webview', {

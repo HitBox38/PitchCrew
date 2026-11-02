@@ -22,7 +22,9 @@ export const useProfileNotes = ({
       .map((document) => ({ name: document.saved.name, content: document.content })),
   ];
   const tree = buildProfileTree(notes, paths, data.profileOrganization);
-  const rows = visibleProfileTree(tree.root, collapsed, query, false);
+  const rows = sourceController.loaded
+    ? visibleProfileTree(tree.root, collapsed, query, false)
+    : [];
   const toggle = (path: string) =>
     setCollapsed((current) => {
       const next = new Set(current);
@@ -42,13 +44,18 @@ export const useProfileNotes = ({
     setSelectedFolder(path);
     setQuery('');
   };
-  const location = (name: string) =>
-    [
+  const location = (name: string) => {
+    if (!sourceController.loaded)
+      return sourceController.loading
+        ? 'Loading note information…'
+        : 'Note information unavailable';
+    return [
       ...noteFolder(name, data.profileOrganization, paths).split('/'),
       paths.get(name)?.split('/').at(-1) || name,
     ]
       .filter(Boolean)
       .join(' / ');
+  };
   return {
     query,
     setQuery,
