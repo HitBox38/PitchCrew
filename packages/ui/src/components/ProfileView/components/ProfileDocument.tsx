@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { PanelLeft } from 'lucide-react';
 import { Tabs } from '@pitchcrew/design-system/tabs';
 import { Button } from '@pitchcrew/design-system/button';
@@ -8,16 +7,15 @@ import { ProfileDocumentTabs } from './ProfileDocumentTabs.tsx';
 import { ProfileEditor } from './ProfileEditor.tsx';
 import { ProfileEmpty } from './ProfileEmpty.tsx';
 
-/** Open-note tabs and the Write | Preview segment share one row above the document sheet. */
+/** The note sheet: a tab band (explorer toggle, open notes, Write | Preview) over the editor. */
 export const ProfileDocument = (props: ProfileSectionProps) => {
   const { controller: c, workspace } = props;
-  const [mode, setMode] = useState('write');
   const open = workspace.explorerVisible;
   return (
     <Tabs
-      value={mode}
+      value={workspace.mode}
       onValueChange={(value) => {
-        if (value === 'write' || value === 'preview') setMode(value);
+        if (value === 'write' || value === 'preview') workspace.setMode(value);
       }}
       className="profile-document"
     >
