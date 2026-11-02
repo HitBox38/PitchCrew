@@ -50,10 +50,11 @@ if (purpose === 'source-extraction') {
         execution.structuredContent.reviewMode as 'parent' | 'subagent' | 'writer' | 'budget',
       );
   } else {
-    registerCrewTools(server, call);
+    const delegate = execution.structuredContent.delegate === true;
+    registerCrewTools(server, call, { delegate });
     registerQualityTools(server, call);
     registerLinkedInTools(server, call);
-    registerDeepReviewTools(server, call);
+    if (!delegate) registerDeepReviewTools(server, call);
     registerRoutineTools(server, call);
     registerProfileTools(server, call);
     registerTrackingTools(server, call);

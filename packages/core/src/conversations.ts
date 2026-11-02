@@ -56,6 +56,8 @@ export interface ChatRequest {
   summarize?: boolean;
   userInputId?: string;
   rootRunId?: string;
+  /** User-initiated delegation round anchored by this request. */
+  roundId?: string;
   mode?: 'chat' | 'workflow';
 }
 export interface AgentMemory {

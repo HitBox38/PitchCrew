@@ -304,3 +304,112 @@
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Delegation rounds: one card per round with a member row per delegate and the collection. */
+.chat-round-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+.chat-round {
+  padding: 14px 16px;
+  border-radius: 12px 13px 11px 12px;
+  background: var(--surface-bright);
+  border: 1px solid var(--border);
+}
+.chat-round-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.chat-round-heading strong {
+  display: block;
+  font: 600 var(--text-body) / 1.4 var(--font-sans);
+}
+.chat-round-meta {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: var(--text-label);
+}
+.chat-round-members {
+  list-style: none;
+  padding: 0;
+  margin: 12px 0 0;
+  display: grid;
+  gap: 8px;
+}
+.chat-round-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  padding: 6px 8px;
+  border-radius: 9px;
+  background: var(--surface);
+}
+.chat-round-member[data-part='collection'] {
+  border-top: 1px dashed var(--border);
+  border-radius: 0 0 9px 9px;
+  margin-top: 4px;
+}
+.chat-round-member-body {
+  flex: 1;
+  min-width: 0;
+}
+.chat-round-member-body strong {
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  font-size: var(--text-body);
+}
+.chat-round-member-body strong span {
+  color: var(--muted);
+  font-weight: 400;
+  font-size: var(--text-label);
+}
+.chat-round-subtask {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: var(--text-label);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.chat-round-error {
+  margin: 2px 0 0;
+  color: var(--destructive);
+  font-size: var(--text-label);
+}
+.chat-round-state {
+  color: var(--muted);
+  font-size: var(--text-label);
+  white-space: nowrap;
+}
+.chat-delegate-draft {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--border);
+  color: var(--muted);
+  font-size: var(--text-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 7.5em;
+  overflow: auto;
+}
+.chat-delegate-picker {
+  border: 0;
+  padding: 0;
+  margin: 0 0 12px;
+  min-width: 0;
+}
+.chat-delegate-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: var(--text-label);
+}

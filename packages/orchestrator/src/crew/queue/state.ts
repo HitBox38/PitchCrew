@@ -10,6 +10,7 @@ import {
   type UserInputRequest,
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
+import { taskParentReady } from '../delegation-rounds.ts';
 
 export const concurrency = (context: CrewContext): number => {
   return context.board.list<QueueSettings>('queue_settings')[0]?.concurrency ?? 5;
@@ -139,7 +140,7 @@ export const activeQueues = (context: CrewContext): Map<string, Set<string>> => 
         (task) =>
           task.rootRunId === root &&
           task.status === 'queued' &&
-          runs.find((r) => r.id === task.parentRunId)?.status === 'completed',
+          taskParentReady(context, task, runs),
       )
     )
       add(id, root);

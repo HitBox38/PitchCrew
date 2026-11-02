@@ -1,4 +1,5 @@
 export * from './conversations.ts';
+export * from './delegation-rounds.ts';
 export * from './application-quality.ts';
 export * from './detectors.ts';
 export * from './work-queue.ts';

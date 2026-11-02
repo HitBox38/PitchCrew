@@ -86,6 +86,9 @@ export interface AgentTask {
   runId: string | null;
   error: string;
   createdAt: string;
+  /** Delegation round membership; a delegate runs a subtask and the collection turn gathers results. */
+  roundId?: string;
+  roundPart?: 'delegate' | 'collection';
 }
 // Older runtime results remain accepted; the daemon supplies a factual activity fallback.
 const changeSummary = z

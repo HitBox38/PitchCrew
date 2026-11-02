@@ -6,7 +6,7 @@ export interface ComposerSuggestion {
   label: string;
   description: string;
   reference?: ReferenceValue;
-  action?: 'attach' | 'job' | 'skills';
+  action?: 'attach' | 'job' | 'skills' | 'delegate';
   disabled?: string;
 }
 export interface ComposerEditorProps {

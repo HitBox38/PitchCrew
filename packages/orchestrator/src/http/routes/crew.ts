@@ -50,6 +50,9 @@ export const registerCrewRoutes = (app: FastifyInstance, service: CrewService) =
     async (req, res) =>
       res.status(202).send(await service.sendConversation(req.params.id, req.body)),
   );
+  app.post<IdRoute>('/api/conversations/:id/delegate', async (req, res) =>
+    res.status(202).send(await service.delegateConversation(req.params.id, req.body)),
+  );
   app.post<IdRoute>('/api/conversations/:id/stop', (req, res) =>
     res.send(
       service.stopConversation(

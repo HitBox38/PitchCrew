@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { chatTokens, chatTrigger, validChatReferences } from '@pitchcrew/core/chat-references';
-import { filterSuggestions, trimmedReferences } from '../helpers.ts';
+import { composerSuggestions, filterSuggestions, trimmedReferences } from '../helpers.ts';
 
 it('detects only standalone symbols outside code, links, paths, prices and addresses', () => {
   for (const text of [
@@ -40,4 +40,18 @@ it('ranks exact and prefix matches and preserves shifted selected references aft
   expect(trimmedReferences('  @reviewer  ', [ref])[0]).toMatchObject({ start: 0, end: 9 });
   expect(validChatReferences('@reviewer', [{ ...ref, start: 0, end: 9 }])).toHaveLength(1);
   expect(validChatReferences('`@reviewer`', [{ ...ref, start: 1, end: 10 }])).toHaveLength(0);
+});
+
+it('offers /delegate as a composer action beside the other slash actions', () => {
+  const items = composerSuggestions([], [], [], '', false, () => undefined);
+  const actions = items.filter((item) => item.action).map((item) => [item.label, item.action]);
+  expect(actions).toEqual([
+    ['/attach', 'attach'],
+    ['/job', 'job'],
+    ['/skills', 'skills'],
+    ['/delegate', 'delegate'],
+  ]);
+  expect(
+    filterSuggestions(items, { symbol: '/', query: 'del', start: 0, end: 4 }).map((i) => i.key),
+  ).toEqual(['action:delegate']);
 });

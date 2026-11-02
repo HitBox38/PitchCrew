@@ -7,5 +7,6 @@ export const getChatWorkModel = (props: ChatWorkProps) => {
     void action(path, 'POST', body).catch(() => {});
   };
   const name = (id: Role['id']) => data.roles.find((item) => item.id === id)?.name ?? id;
-  return { ...props, act, name };
+  // Round members are shown inside their round card rather than as loose follow-ups.
+  return { ...props, tasks: props.tasks.filter((task) => !task.roundId), act, name };
 };

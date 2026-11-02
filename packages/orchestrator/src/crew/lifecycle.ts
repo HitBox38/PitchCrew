@@ -26,6 +26,7 @@ import { qualitySnapshot } from '../quality/snapshot.ts';
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { CrewContext } from './types.ts';
+import { refreshOpenRounds, taskParentRun } from './delegation-rounds.ts';
 import { migrateConversations, conversations } from './conversations.ts';
 import { routines } from './routines/index.ts';
 import { instructionUpdates } from './instruction-updates.ts';
@@ -147,7 +148,9 @@ export const initialize = async (
     for (const task of context.board
       .list<AgentTask>('task')
       .filter((t) => ['queued', 'running'].includes(t.status))) {
-      const parent = context.board.get<Run>('run', task.runId ?? task.parentRunId);
+      const parent = task.runId
+        ? context.board.get<Run>('run', task.runId)
+        : (taskParentRun(context, task) ?? { status: 'completed' as const });
       if (task.status === 'queued' && parent.status === 'completed') continue;
       const status = parent.status === 'waiting' ? (task.runId ? 'waiting' : 'queued') : 'failed';
       context.board.record(
@@ -181,6 +184,7 @@ export const initialize = async (
           reason: 'Interrupted by daemon restart. Retry or skip this follow-up.',
         });
     }
+    refreshOpenRounds(context);
     for (const request of context.board.list<import('@pitchcrew/core').ChatRequest>(
       'chat_request',
     )) {
@@ -253,6 +257,8 @@ export const snapshot = async (
     proposals: context.board.list<RoleProposal>('proposal'),
     pipelineReviews: context.board.list<PipelineReview>('pipeline_review').reverse(),
     tasks: context.board.list<AgentTask>('task'),
+    delegationRounds:
+      context.board.list<import('@pitchcrew/core').DelegationRound>('delegation_round'),
     routines: routines(context),
     connectors: context.connectors.status(),
   };

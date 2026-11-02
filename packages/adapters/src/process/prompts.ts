@@ -38,8 +38,16 @@ export const chatPromptFor = (context: ChatContext) => {
   if (context.purpose === 'source-extraction') return extractionPrompt(context);
   const draftingBoundary =
     'When the user asks for a deep resume review or hiring panel, use pitchcrew_start_deep_review for the attached or explicitly selected job. If there is no selected job, ask the user to choose one. It starts the managed first-draft/review/correction/recheck flow and saves its report on the job. Do not try to implement the panel in ordinary chat. Employer-facing application copy must use the isolated application workflow. Do not draft it inside this source-discussion chat: direct the user to review the job brief and start Draft application from the job. Custom agents can use the same drafting entry point. Chat discussion alone is never a reviewed or approved packet.';
+  const delegation =
+    context.delegation?.part === 'delegate'
+      ? `You are a delegate in ${context.delegation.leadId}'s delegation round${context.delegation.initiator === 'user' ? ', started by the user' : ''}. Complete only the subtask in the current request and reply with your findings in full; the lead collects every delegate's reply in one turn. In this turn you cannot message, invoke or delegate other agents or start a group, and you must not edit the application packet. You may still ask the user a question when the subtask cannot proceed without one.`
+      : context.delegation?.part === 'collection'
+        ? `You are collecting the results of your delegation round with ${context.delegation.delegates.join(', ')}. The current request lists every delegate result; synthesize them for the user, say plainly which delegates failed or were stopped, and read a listed conversation with pitchcrew_read_conversation only when you need more detail.`
+        : 'To assign separate subtasks to several agents at once, use pitchcrew_delegate_round with one to four other crew members; they run at the same time after your turn ends and you get one collection turn with every result. The whole round costs one of the six follow-ups. Delegates work in chat only and cannot delegate further; never ask a delegate to edit the packet. Use pitchcrew_invoke_agent for a single follow-up instead.';
   const collaboration =
     draftingBoundary +
+    '\n' +
+    delegation +
     '\n' +
     (context.conversation && ['group', 'application'].includes(context.conversation.kind)
       ? `Group conversation ${context.conversation.id}. Lead: ${context.conversation.leadId ?? 'not selected'}. Participants: ${context.conversation.participants.join(', ')}. Contribute useful findings independently; if you have nothing useful to add, return {"reply":"","silent":true}. Ordinary replies do not wake everyone. Explicit peer messages or invocations can target a shared conversationId. Summarize outcomes when you are the lead.`

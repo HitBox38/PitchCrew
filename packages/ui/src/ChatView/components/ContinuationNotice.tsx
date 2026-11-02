@@ -1,6 +1,7 @@
 import type { ChatViewModel } from '../types.ts';
 import { Button } from '@pitchcrew/design-system/button';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
+import { chainFollowUpCount, chainFollowUpLimit } from '@pitchcrew/core/delegation-rounds';
 export const ContinuationNotice = ({
   data,
   thread,
@@ -13,8 +14,7 @@ export const ContinuationNotice = ({
   const latest = data.chatRequests?.findLast(
     (request) => request.threadId === thread && !request.summarize,
   );
-  const count = data.tasks.filter((task) => task.rootRunId === latest?.id).length;
-  if (count < 6) return null;
+  if (!latest || chainFollowUpCount(data.tasks, latest.id) < chainFollowUpLimit) return null;
   return (
     <div className="chat-continuation">
       <StatusBead status="paused" />

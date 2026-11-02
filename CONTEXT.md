@@ -68,6 +68,18 @@ _Avoid_: Agent queue (when implying that conversations with the same agent share
 A request in a job queue for one agent action on that job, such as evaluating fit on a lead.
 _Avoid_: Action chain (when referring to a single requested board action)
 
+**Delegation round**:
+A lead agent's single request that assigns separate subtasks to several crew agents at once and returns to the lead one time with every delegate's result. It is one unit of the lead's work, not a series of independent follow-ups.
+_Avoid_: Fan-out (when referring to the product concept), parallel follow-ups (when implying separate uncoordinated follow-ups), swarm
+
+**Delegate result**:
+The outcome a delegate hands back from its subtask in a delegation round, including a failure or an unanswered question. The lead receives all delegate results together.
+_Avoid_: Agent reply (when referring to the result collected for the lead), notification
+
+**Collection turn**:
+The lead agent's single turn that receives every delegate result of a delegation round and replies in the conversation where the round was requested. It runs once per round, after all delegates have settled.
+_Avoid_: Summary (when referring to the turn itself), continuation summary
+
 **Crew follow-up**:
 Additional work requested by a crew agent as part of an initiating request or routine occurrence. It belongs to that request's work rather than a separate user-queued action.
 _Avoid_: Queued user action, review subagent
