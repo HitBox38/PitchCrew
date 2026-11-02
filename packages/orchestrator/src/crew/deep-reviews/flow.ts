@@ -1,11 +1,11 @@
 import { recordMissingRequestedOpinions, prepareRequestedOpinions } from './requested-opinions.ts';
 import { inspectPacketDocuments } from '../../quality/documents.ts';
 import { digestPacket } from '@pitchcrew/board';
-import type { Card, ReviewAssessment } from '@pitchcrew/core';
+import type { Card, ReviewAssessment, Run } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { assertReviewCurrent, assertReviewEvidence, review, updateReview } from './state.ts';
 import { executeReviewStage } from './stages.ts';
-import { assessmentFor } from './assessment.ts';
+import { assessmentFor, ReviewQuotationError } from './assessment.ts';
 import type { LiveDeepReview } from './types.ts';
 
 const settleChildren = async (live: LiveDeepReview) => {
@@ -149,7 +149,52 @@ const assessStage = async (
     { stage },
     stage === 'review' ? 'Reviewing seven hiring perspectives' : 'Rechecking corrected packet',
   );
-  const { result } = await executeReviewStage(context, live, live.reviewer, stage);
+  let output;
+  try {
+    output = await executeReviewStage(context, live, live.reviewer, stage);
+  } catch (error) {
+    if (!(error instanceof ReviewQuotationError)) throw error;
+    const repairFailure = (failure: Error) =>
+      new Error(
+        `${failure.message} The quotation-repair allowance is exhausted; this review is incomplete. ` +
+          'Input and returned assessments are saved in the Reviewer run folders. Start a fresh deep review after checking the Reviewer runtime/model.',
+      );
+    // The allowance survives question continuations and daemon projections.
+    const rejected = context.board
+      .list<Run>('run')
+      .filter(
+        (run) =>
+          run.deepReviewId === live.id &&
+          run.reviewStage === stage &&
+          !run.reviewSubagentId &&
+          run.status === 'failed' &&
+          run.message.startsWith('Reviewer quotation at '),
+      ).length;
+    if (rejected >= 2) throw repairFailure(error);
+    updateReview(
+      context,
+      live.id,
+      { summary: 'Reviewer returned an invalid quotation. Retrying this assessment once.' },
+      'Repairing invalid review quotation (one attempt)',
+    );
+    try {
+      output = await executeReviewStage(
+        context,
+        live,
+        live.reviewer,
+        stage,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        error.message,
+      );
+    } catch (retryError) {
+      if (!(retryError instanceof ReviewQuotationError)) throw retryError;
+      throw repairFailure(retryError);
+    }
+  }
+  const { result } = output;
   await settleChildren(live);
   const additional = context.board
     .list<import('@pitchcrew/core').ReviewSubagent>('review_subagent')
