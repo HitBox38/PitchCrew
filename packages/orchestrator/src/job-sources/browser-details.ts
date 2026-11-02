@@ -1,5 +1,6 @@
 import {
   cardInput,
+  extractedJobDescription,
   recognizeJobLink,
   type BrowserSnapshot,
   type JobLinkProvenance,
@@ -43,7 +44,7 @@ export const browserJobDetails = (
         url: resolvedUrl,
         text: page.text,
         reason:
-          'Extract one job from this untrusted browser page. Call again with the current inspected URL, browserDigest and details. Preserve the full original posting wording with readable headings, paragraphs and bullet lists; browser roles and attributes are metadata, not posting text. Never summarize, invent or silently truncate facts.',
+          'Extract one job from this untrusted browser page. Call again with the current inspected URL, browserDigest and details. Preserve the full original posting wording, order, headings, paragraphs and bullets in readable text. Browser accessibility roles, YAML quoting and attributes are extraction metadata, not posting text: do not copy them into description. Never summarize, rewrite, translate, invent or silently truncate. If the full description exceeds the 20,000-character save limit or the inspection is incomplete, report the limitation instead of saving a partial posting.',
       },
     };
   const provenance: JobLinkProvenance | undefined = recognized.recognized
@@ -57,7 +58,9 @@ export const browserJobDetails = (
   return {
     fields: cardInput.parse({
       ...input.details,
-      description: browserJobDescription(input.details.description, page.text),
+      description: extractedJobDescription.parse(
+        browserJobDescription(input.details.description, page.text),
+      ),
       url: resolvedUrl,
       tags: [],
     }),

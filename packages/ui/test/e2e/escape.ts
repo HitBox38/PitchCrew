@@ -8,6 +8,19 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
   const guest = await activeGuest(app);
   const expand = page.getByRole('button', { name: 'Expand browser', exact: true });
   const back = page.getByRole('button', { name: 'Back to chat', exact: true });
+  const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
+  const selectPreset = async (name: string) => {
+    await preset.press('Space');
+    // Use keyboard setup so scrolling the long device list cannot swallow a
+    // pointer selection on hidden native CI windows. Verify the committed value.
+    await page.getByRole('option', { name, exact: true }).press('Enter');
+    await until(
+      async () =>
+        (await preset.innerText()) === name &&
+        (await preset.getAttribute('aria-expanded')) === 'false',
+      `Browser viewport preset did not select ${name}`,
+    );
+  };
   const clickGuest = async (selector: string) => {
     const point = await guest.read<{ x: number; y: number }>(`(() => {
       const rect = document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();
@@ -111,22 +124,18 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     await page
       .getByRole('button', { name: 'Toggle browser device toolbar', exact: true })
       .press('Space');
-    const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
     await preset.waitFor();
     // Match the tab-paint fixture's keyboard path for hidden windows.
     await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
     // Let the closing popover finish restoring focus before opening the select.
     await page.locator('[data-slot="popover-content"]').waitFor({ state: 'detached' });
-    await preset.press('Space');
-    await page.getByRole('option', { name: 'Desktop 1440', exact: true }).press('Enter');
-    await until(
-      async () => (await preset.innerText()) === 'Desktop 1440',
-      'Fixed viewport preset was not selected',
-    );
-    await until(
-      async () => (await guest.read('innerWidth')) === 1440,
-      'Fixed viewport was not applied',
-    ).catch(async (error) => {
+    await selectPreset('Desktop 1440');
+    await until(async () => {
+      const viewport = await guest.read<{ width: number; height: number }>(
+        '({width:innerWidth,height:innerHeight})',
+      );
+      return viewport.width === 1440 && viewport.height === 900;
+    }, 'Fixed viewport was not applied').catch(async (error) => {
       const preset = await page
         .getByRole('combobox', { name: 'Browser viewport preset', exact: true })
         .innerText();
@@ -181,10 +190,8 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     );
   } finally {
     if (await back.isVisible()) await back.click();
-    const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
     if (await preset.isVisible()) {
-      await preset.press('Space');
-      await page.getByRole('option', { name: 'Fill panel', exact: true }).press('Enter');
+      await selectPreset('Fill panel');
       await page.getByRole('button', { name: 'Hide device toolbar', exact: true }).click();
     }
     await app.electron.evaluate(
