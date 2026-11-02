@@ -3,7 +3,7 @@ import { api } from '@/api.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import type { ExtractedJob } from '@pitchcrew/core';
 import { useEffect, useRef, useState } from 'react';
-import { emptyBrief, normalizedBrief } from '../helpers.ts';
+import { briefFromContext, emptyBrief, normalizedBrief } from '../helpers.ts';
 import type { ApplicationBriefProps, ContextResponse } from '../types.ts';
 
 export const useApplicationBrief = ({
@@ -34,7 +34,13 @@ export const useApplicationBrief = ({
   useEffect(() => {
     editingRef.current = editing;
   }, [editing]);
-  useDirtyNotification(editing, onDirtyChange);
+  const dirty = Boolean(
+    editing &&
+    loaded &&
+    JSON.stringify(normalizedBrief(draft)) !==
+      JSON.stringify(normalizedBrief(briefFromContext(loaded))),
+  );
+  useDirtyNotification(dirty, onDirtyChange);
   const available = roles.filter(
     (role) =>
       role.enabled &&
@@ -70,16 +76,7 @@ export const useApplicationBrief = ({
           return;
         }
         setLoaded(result);
-        setDraft(
-          result.context
-            ? {
-                brief: result.context.brief,
-                requirements: result.context.requirements,
-                flagged: result.context.flagged,
-                form: result.form ?? result.context.form,
-              }
-            : { ...emptyBrief(), flagged: result.flagged, form: result.form ?? undefined },
-        );
+        setDraft(briefFromContext(result));
       })
       .catch((failure) => {
         if (!cancelled)
@@ -102,13 +99,7 @@ export const useApplicationBrief = ({
       await action(`/cards/${card.id}/${path}`, 'POST', body, message);
       const result = await api<ContextResponse>(`/cards/${card.id}/application-context`);
       setLoaded(result);
-      if (result.context)
-        setDraft({
-          brief: result.context.brief,
-          requirements: result.context.requirements,
-          flagged: result.context.flagged,
-          form: result.form ?? result.context.form,
-        });
+      setDraft(briefFromContext(result));
       editingRef.current = false;
       setEditing(false);
     } catch (failure) {
@@ -180,16 +171,7 @@ export const useApplicationBrief = ({
     editing,
     setEditing,
     cancelEditing: () => {
-      setDraft(
-        loaded?.context
-          ? {
-              brief: loaded.context.brief,
-              requirements: loaded.context.requirements,
-              flagged: loaded.context.flagged,
-              form: loaded.form ?? loaded.context.form,
-            }
-          : emptyBrief(),
-      );
+      setDraft(loaded ? briefFromContext(loaded) : emptyBrief());
       setEditing(false);
     },
     available,
