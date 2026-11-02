@@ -1,7 +1,8 @@
 import { conversationMessages } from '../conversation-context.ts';
 import { conversation, canReadConversation } from '../conversations.ts';
 import type { AgentCapabilities } from '@pitchcrew/core';
-import { roleIdSchema, type ChatMessage } from '@pitchcrew/core';
+import { delegationRoundInput, roleIdSchema, type ChatMessage, type Run } from '@pitchcrew/core';
+import { startRound } from '../delegation-rounds.ts';
 import { z } from 'zod';
 import type { CrewContext, RunCapability } from '../types.ts';
 
@@ -58,6 +59,46 @@ export const queueMessage = async (
       action,
       input.conversationId,
     ),
+  };
+};
+
+/** A lead assigns chat-only subtasks to several agents and collects every result in one turn. */
+export const delegateRound = (
+  context: CrewContext,
+  capability: RunCapability,
+  permissions: AgentCapabilities,
+  activeRun: Run | undefined,
+  data: unknown,
+): Record<string, unknown> => {
+  if (!permissions.invokeAgents) throw new Error('This capability is disabled for your role.');
+  if (!activeRun || activeRun.status !== 'running')
+    throw new Error('Delegation rounds require an active chat turn.');
+  if (
+    activeRun.mode !== 'chat' ||
+    activeRun.purpose ||
+    activeRun.deepReviewId ||
+    !activeRun.threadId
+  )
+    throw new Error(
+      'Delegation rounds start from ordinary chat turns, not workflow or review stages.',
+    );
+  const input = delegationRoundInput.parse(data);
+  const round = startRound(context, {
+    leadId: capability.roleId,
+    threadId: activeRun.threadId,
+    cardId: capability.cardId,
+    initiator: capability.roleId,
+    parentRunId: activeRun.id,
+    requestId: null,
+    rootRunId: activeRun.rootRunId ?? activeRun.id,
+    delegates: input.delegates,
+  });
+  return {
+    round: {
+      id: round.id,
+      delegates: round.delegates,
+      note: 'Delegates start after this turn ends and run at the same time. You will get one collection turn with every result; do not wait or poll for them now.',
+    },
   };
 };
 

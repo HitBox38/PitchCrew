@@ -12,6 +12,7 @@ import { createConversation, updateConversation } from './crew/conversations.ts'
 import { deleteConversation } from './crew/delete-conversation.ts';
 import {
   sendConversation,
+  sendDelegation,
   updateRequest,
   stopConversationWork,
 } from './crew/conversation-queue.ts';
@@ -134,6 +135,9 @@ export class CrewService {
   };
   sendConversation = (id: string, data: unknown) => {
     return sendConversation(this.context, id, data);
+  };
+  delegateConversation = (id: string, data: unknown) => {
+    return sendDelegation(this.context, id, data);
   };
   updateChatRequest = (id: string, data: unknown) => {
     return updateRequest(this.context, id, data);

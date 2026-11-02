@@ -31,6 +31,8 @@ import {
 import { z } from 'zod';
 import { saveAttachments, removeAttachments } from './attachments/storage.ts';
 import { conversation, conversations, canReadConversation } from './conversations.ts';
+import { openRoundRoots, refreshOpenRounds, startRound } from './delegation-rounds.ts';
+import { userDelegationInput } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
 export const saveRequest = (context: CrewContext, request: ChatRequest): void => {
   const queue = ensureQueue(context, request.threadId, request.rootRunId);
@@ -382,7 +384,10 @@ const stopConversationBranch = (
   const roots = new Set(
     rootId
       ? [rootId]
-      : runs.filter((run) => run.threadId === id).map((run) => run.rootRunId ?? run.id),
+      : [
+          ...runs.filter((run) => run.threadId === id).map((run) => run.rootRunId ?? run.id),
+          ...openRoundRoots(context, id),
+        ],
   );
   const owned = runs.filter(
     (run) => roots.has(run.rootRunId ?? run.id) && (!roleId || run.roleId === roleId),
@@ -429,6 +434,7 @@ const stopConversationBranch = (
         'user',
         'Cancelled delegated work',
       );
+  refreshOpenRounds(context);
   for (const request of context.board
     .list<ChatRequest>('chat_request')
     .filter((request) => request.threadId === id && (!rootId || request.id === rootId))) {
@@ -445,6 +451,74 @@ const stopConversationBranch = (
   }
   context.publishChat(true);
 };
+/** The user assigns one message to several agents; the conversation's lead collects their results. */
+export const sendDelegation = async (
+  context: CrewContext,
+  id: string,
+  data: unknown,
+): Promise<ChatRequest> => {
+  const item = conversation(context, id);
+  if (item.kind === 'history' || item.kind === 'agent_dm')
+    throw new Error('This conversation is read-only.');
+  const input = userDelegationInput.parse(data);
+  const leadId = item.leadId ?? item.participants[0];
+  if (!leadId || !item.participants.includes(leadId))
+    throw new Error('Choose a lead for this conversation before delegating.');
+  const lead = context.board.get<Role>('role', leadId);
+  const leadConfig = { ...lead, ...item.configurations[leadId] };
+  if (
+    !lead.enabled ||
+    lead.retiredAt ||
+    !context.runtimes.some((runtime) => runtime.id === leadConfig.runtime && runtime.available)
+  )
+    throw new Error(`${lead.name} must be enabled with an available runtime to collect results.`);
+  await Promise.all(
+    [leadId, ...input.roleIds].map((roleId) => {
+      const role = context.board.get<Role>('role', roleId);
+      return context.runtimeMaintenance.refreshOnRetry({ ...role, ...item.configurations[roleId] });
+    }),
+  );
+  if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
+    throw new Error('The conversation changed. Try sending again.');
+  const request: ChatRequest = {
+    id: randomUUID(),
+    threadId: id,
+    messageId: randomUUID(),
+    content: input.content,
+    attachments: [],
+    createdAt: new Date().toISOString(),
+    order: Math.max(
+      Date.now(),
+      ...context.board.list<ChatRequest>('chat_request').map((entry) => entry.order + 1),
+    ),
+    deliveries: [],
+  };
+  context.board.db.transaction(() => {
+    const round = startRound(context, {
+      leadId,
+      threadId: id,
+      cardId: item.cardId,
+      initiator: 'user',
+      parentRunId: null,
+      requestId: request.id,
+      rootRunId: request.id,
+      delegates: input.roleIds.map((roleId) => ({ roleId, content: input.content })),
+    });
+    request.roundId = round.id;
+    context.addMessage(
+      id,
+      'user',
+      item.kind === 'group' || item.kind === 'application' ? 'crew' : leadId,
+      input.content,
+      item.cardId,
+      null,
+      request.messageId,
+    );
+    saveRequest(context, request);
+  })();
+  void context.drainTasks();
+  return request;
+};
 export const stopConversationWork = (
   context: CrewContext,
   id: string,
@@ -460,7 +534,10 @@ export const stopConversationWork = (
       (queue.cardId ? run.cardId === queue.cardId : run.threadId === id) &&
       (!rootId || (run.rootRunId ?? run.id) === rootId),
   );
-  const roots = new Set(owned.map((run) => run.rootRunId ?? run.id));
+  const roots = new Set([
+    ...owned.map((run) => run.rootRunId ?? run.id),
+    ...(rootId ? [] : openRoundRoots(context, id)),
+  ]);
   cancelUserQuestions(
     context,
     (q) => roots.has(runs.find((run) => run.id === q.runId)?.rootRunId ?? q.runId),
@@ -479,6 +556,7 @@ export const stopConversationWork = (
         'user',
         'Cancelled crew follow-up',
       );
+  refreshOpenRounds(context);
   for (const request of queueRequests(context, queue.id)) {
     for (const entry of request.deliveries) {
       if (entry.status === 'running') entry.status = 'paused';

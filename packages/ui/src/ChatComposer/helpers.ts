@@ -85,6 +85,12 @@ export const composerSuggestions = (
       description: 'Browse assigned skills',
       action: 'skills',
     },
+    {
+      key: 'action:delegate',
+      label: '/delegate',
+      description: 'Send this message to several agents; the lead collects their results',
+      action: 'delegate',
+    },
     ...assigned,
   ];
 };

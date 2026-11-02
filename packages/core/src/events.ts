@@ -20,6 +20,7 @@ import type { Routine } from './routines.ts';
 import type { Skill, SkillProposal } from './skills.ts';
 import type { Approval } from './workspace.ts';
 import type { TrackingSignal, TrackingScan } from './tracking.ts';
+import type { DelegationRound } from './delegation-rounds.ts';
 export const decodeEvent = (raw: string): BoardEvent => {
   const event = JSON.parse(raw) as BoardEvent;
   if (
@@ -55,7 +56,8 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 30 &&
     event.version !== 31 &&
     event.version !== 32 &&
-    event.version !== 33
+    event.version !== 33 &&
+    event.version !== 34
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -96,7 +98,8 @@ export interface BoardEvent {
     | 30
     | 31
     | 32
-    | 33;
+    | 33
+    | 34;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -127,7 +130,8 @@ export interface BoardEvent {
     | 'browser_site_permission'
     | 'profile_proposal'
     | 'form_assessment'
-    | 'submission_attempt';
+    | 'submission_attempt'
+    | 'delegation_round';
   entityId: string;
   actor: string;
   message: string;
@@ -161,8 +165,9 @@ export interface BoardEvent {
     | BrowserSitePermission
     | ProfileMaintenanceProposal
     | FormAssessment
-    | SubmissionAttempt;
+    | SubmissionAttempt
+    | DelegationRound;
   createdAt: string;
 }
-/** Version 33 adds user-requested AI-text detector advisories on cards; versions 1–32 remain readable. */
-export const currentEventVersion = 33 as const;
+/** Version 34 adds delegation rounds and round membership on crew tasks; versions 1–33 remain readable. */
+export const currentEventVersion = 34 as const;

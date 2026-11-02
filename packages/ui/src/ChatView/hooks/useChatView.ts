@@ -107,10 +107,20 @@ export const useChatView = (props: ChatViewProps) => {
     .filter((task) => task.threadId === thread || roots.has(task.rootRunId))
     .slice(-12)
     .reverse();
+  const rounds = (data.delegationRounds ?? [])
+    .filter(
+      (round) =>
+        round.threadId === thread ||
+        roots.has(round.rootRunId) ||
+        round.delegates.some((delegate) => delegate.threadId === thread),
+    )
+    .slice(-6)
+    .reverse();
   const attention =
     proposals.length +
     skillProposals.length +
-    tasks.filter((task) => ['queued', 'running'].includes(task.status)).length;
+    tasks.filter((task) => ['queued', 'running'].includes(task.status)).length +
+    rounds.filter((round) => !['completed', 'cancelled'].includes(round.status)).length;
   const roleState = chatRoleState(data, role, questions, busy);
   const name = (id: ChatMessage['from'] | ChatMessage['to']) =>
     id === 'user'
@@ -177,6 +187,33 @@ export const useChatView = (props: ChatViewProps) => {
     }
   };
 
+  const sendDelegation = async (text: string, roleIds: string[]) => {
+    if (!text.trim() || !roleIds.length || working || sendingRef.current || readOnly || !available)
+      return false;
+    if (text.trim().length > 8000) {
+      setError('Messages can contain at most 8,000 characters.');
+      return false;
+    }
+    const sentThread = thread;
+    setPane('conversation');
+    setError('');
+    sendingRef.current = true;
+    try {
+      await action(`/conversations/${thread}/delegate`, 'POST', {
+        content: text.trim(),
+        roleIds,
+      });
+      setDrafts((current) => ({ ...current, [sentThread]: '' }));
+      setReferenceDrafts((current) => ({ ...current, [sentThread]: [] }));
+      return true;
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Could not delegate the message.');
+      return false;
+    } finally {
+      sendingRef.current = false;
+    }
+  };
+
   return {
     ...props,
     data,
@@ -212,12 +249,14 @@ export const useChatView = (props: ChatViewProps) => {
     proposals,
     skillProposals,
     tasks,
+    rounds,
     attention,
     attached,
     roleState,
     name,
     applyStarter,
     send,
+    sendDelegation,
     conversation,
     participants,
     readOnly,

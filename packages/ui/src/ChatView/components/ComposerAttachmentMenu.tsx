@@ -3,15 +3,11 @@ import { useImperativeHandle, useRef, useState, type RefObject } from 'react';
 import type { ChatComposerProps } from '../types.ts';
 import { chatAttachmentAccept } from '@pitchcrew/core/chat-attachments';
 import { Button } from '@pitchcrew/design-system/button';
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from '@pitchcrew/design-system/dropdown-menu';
-import { Plus, Paperclip, BriefcaseBusiness } from 'lucide-react';
+import { DropdownMenu, DropdownMenuTrigger } from '@pitchcrew/design-system/dropdown-menu';
+import { Plus } from 'lucide-react';
+import { ComposerContextItems } from './ComposerContextItems.tsx';
 import { ComposerJobPicker } from './ComposerJobPicker.tsx';
+import { ComposerDelegatePicker } from './ComposerDelegatePicker.tsx';
 
 export const ComposerAttachmentMenu = (
   props: ChatComposerProps & {
@@ -23,14 +19,17 @@ export const ComposerAttachmentMenu = (
   const input = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const [choosingJob, setChoosingJob] = useState(false);
+  const [delegating, setDelegating] = useState(false);
   const jobLocked = props.busy || !!props.messages.length;
+  const canDelegate = !props.readOnly && props.available && !props.working;
   useImperativeHandle(
     props.contextActions,
     () => (action) => {
       if (action === 'attach' && props.available && !props.working) input.current?.click();
       if (action === 'job' && !jobLocked && !props.working) setChoosingJob(true);
+      if (action === 'delegate' && canDelegate) setDelegating(true);
     },
-    [props.available, props.working, jobLocked],
+    [props.available, props.working, jobLocked, canDelegate],
   );
   return (
     <>
@@ -62,30 +61,25 @@ export const ComposerAttachmentMenu = (
         >
           <Plus size={16} /> <span>Add context</span>
         </DropdownMenuTrigger>
-        <DropdownMenuContent side="top" align="start" className="w-64">
-          <DropdownMenuItem onClick={() => input.current?.click()} disabled={!props.available}>
-            <Paperclip />
-            <span className="grid gap-0.5">
-              <span>Add files…</span>
-              <span className="text-xs text-muted-foreground">
-                For this message · up to 5 files, 10 MB
-              </span>
-            </span>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem disabled={jobLocked} onClick={() => setChoosingJob(true)}>
-            <BriefcaseBusiness />
-            <span className="grid gap-0.5">
-              <span>{props.attached ? 'Change conversation job…' : 'Attach a job…'}</span>
-              <span className="text-xs text-muted-foreground">
-                {jobLocked ? 'Fixed after the first message' : 'For the whole conversation'}
-              </span>
-            </span>
-          </DropdownMenuItem>
-        </DropdownMenuContent>
+        <ComposerContextItems
+          attached={!!props.attached}
+          available={props.available}
+          jobLocked={jobLocked}
+          canDelegate={canDelegate}
+          onFiles={() => input.current?.click()}
+          onJob={() => setChoosingJob(true)}
+          onDelegate={() => setDelegating(true)}
+        />
       </DropdownMenu>
       {choosingJob ? (
         <ComposerJobPicker {...props} returnFocus={trigger} onClose={() => setChoosingJob(false)} />
+      ) : null}
+      {delegating ? (
+        <ComposerDelegatePicker
+          {...props}
+          returnFocus={trigger}
+          onClose={() => setDelegating(false)}
+        />
       ) : null}
     </>
   );

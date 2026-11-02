@@ -2,6 +2,7 @@ import type { AgentTask, Conversation, Role, Run, WorkQueue } from '@pitchcrew/c
 import type { CrewContext } from '../types.ts';
 import { requestProblem } from './requests.ts';
 import { activeQueues, queueRequests, queueWaiting, taskLane } from './state.ts';
+import { taskParentReady } from '../delegation-rounds.ts';
 
 /** Keep an admitted action together; otherwise serve the oldest ready queue. */
 export const queueMayStart = async (
@@ -38,7 +39,7 @@ export const queueMayStart = async (
       return (
         task.status === 'queued' &&
         taskLane(context, task) === queue.id &&
-        runs.find((r) => r.id === task.parentRunId)?.status === 'completed' &&
+        taskParentReady(context, task, runs) &&
         role.enabled &&
         !role.retiredAt &&
         !context.configuring.has(role.id) &&

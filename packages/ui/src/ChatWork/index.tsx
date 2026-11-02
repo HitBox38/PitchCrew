@@ -1,5 +1,6 @@
 import { PipelineReviews } from '@/PipelineReviews/index.tsx';
 import { CrewTasks } from '@/ChatWork/components/CrewTasks.tsx';
+import { DelegationRounds } from '@/ChatWork/components/DelegationRounds.tsx';
 import { RoleCapabilities } from '@/ChatWork/components/RoleCapabilities.tsx';
 import { RoleProposals } from '@/ChatWork/components/RoleProposals.tsx';
 import { SkillProposals } from '@/ChatWork/components/SkillProposals.tsx';
@@ -14,6 +15,7 @@ export const ChatWork = (props: ChatWorkProps) => {
       <PipelineReviews {...controller} />
       <RoleProposals {...controller} />
       <SkillProposals {...controller} />
+      <DelegationRounds {...controller} />
       <CrewTasks {...controller} />
       {thread !== 'crew' ? <RoleCapabilities {...controller} /> : null}
     </div>

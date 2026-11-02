@@ -9,6 +9,7 @@ export const CrewWorkPanel = ({
   proposals,
   skillProposals,
   tasks,
+  rounds,
   action,
   working,
   onConfigure,
@@ -24,6 +25,7 @@ export const CrewWorkPanel = ({
         proposals={proposals}
         skillProposals={skillProposals}
         tasks={tasks}
+        rounds={rounds}
         action={action}
         working={working}
         onConfigure={() => onConfigure(roleId)}

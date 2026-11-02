@@ -2,6 +2,7 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Card, DetectorAdvisory, Snapshot } from '@pitchcrew/core';
+import { currentEventVersion } from '@pitchcrew/core';
 import { packet } from '../../board/test/fixtures/packet.ts';
 import { digestDocument } from '../src/detectors/index.ts';
 import { cleanup, confirmFixtureApplication, setup } from './helpers/daemon.ts';
@@ -76,7 +77,7 @@ it('saves a key on this device only, runs a user-authorized check and binds the 
   expect(body.text).not.toContain('Built React interfaces.');
   const saved2 = daemon.service.board.get<Card>('card', card.id);
   expect(saved2.detectorAdvisories).toHaveLength(1);
-  expect(daemon.service.board.events().at(-1)!.version).toBe(33);
+  expect(daemon.service.board.events().at(-1)!.version).toBe(currentEventVersion);
 
   // A second check of the same document replaces the earlier result for that provider.
   await request('/detectors/check', 'POST', {

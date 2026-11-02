@@ -71,6 +71,7 @@ const labels: Record<string, string> = {
   update_job: 'Correcting saved job details',
   message: 'Messaging a crew member',
   invoke: 'Requesting crew work',
+  delegate_round: 'Delegating subtasks to the crew',
   ask_user: 'Asking you a question',
   notify_user: 'Posting an update',
   report_technical_problem: 'Reporting a technical problem',
