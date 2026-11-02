@@ -37,6 +37,7 @@ await build({
   entry: {
     preload: resolve('packages/desktop/src/preload.ts'),
     'browser-floating-preload': resolve('packages/desktop/src/browser-floating-preload.ts'),
+    'browser-guest-preload': resolve('packages/desktop/src/browser-guest-preload.ts'),
   },
   outDir: directory,
   format: 'cjs',

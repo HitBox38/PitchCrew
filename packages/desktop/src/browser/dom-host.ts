@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { ipcMain, session, type BrowserWindow, type WebContents } from 'electron';
 import { z } from 'zod';
 import type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
@@ -155,7 +156,10 @@ export const createDomBrowserHost = (
           return;
         }
         request.accepted = true;
-        delete preferences.preload;
+        // Never accept a renderer-supplied preload for an untrusted website.
+        preferences.preload = fileURLToPath(
+          new URL('./browser-guest-preload.cjs', import.meta.url),
+        );
         preferences.session = session.fromPartition(request.view.partition);
         preferences.partition = request.view.partition;
         preferences.sandbox = true;

@@ -171,7 +171,8 @@ it('requires a one-shot bootstrap nonce and exact partition and removes guest pr
     webviewTag: false,
     partition,
   });
-  expect(preferences.preload).toBeUndefined();
+  expect(preferences.preload).toMatch(/browser-guest-preload\.cjs$/);
+  expect(preferences.preload).not.toBe('/untrusted/preload.js');
   expect(preferences.additionalArguments).toBeUndefined();
   expect(permit(token).event.preventDefault).toHaveBeenCalled();
   host.close();

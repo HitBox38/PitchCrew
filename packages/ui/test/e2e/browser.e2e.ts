@@ -11,6 +11,7 @@ import {
   send,
 } from './observe.ts';
 import type { Request } from 'playwright';
+import { checkExpandedEscape } from './escape.ts';
 
 describe('Production UI → daemon → Electron browser E2E', { concurrency: false }, () => {
   let app: DesktopE2E;
@@ -87,6 +88,11 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
     );
     assert.equal(await guest.read('window.lastInputTrusted'), true);
   });
+  it(
+    'returns from native static content on Escape after website fields, handlers, menus and dialogs',
+    { timeout: 45000 },
+    async () => checkExpandedEscape(app),
+  );
   it('keeps a live native page and the same guest beneath a real application popover', async () => {
     // Exercise the modal sheet used on narrow Windows CI desktops.
     await app.page.getByRole('button', { name: 'Expand browser', exact: true }).click();

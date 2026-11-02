@@ -6,6 +6,7 @@ import { useProfileFolderActions } from '../hooks/useProfileFolderActions.ts';
 import { ProfileTreeSearch } from './ProfileTreeSearch.tsx';
 import { ProfileTreeRow } from './ProfileTreeRow.tsx';
 import { ProfileTreeDialogs } from './ProfileTreeDialogs.tsx';
+import { ProfileMetadataStatus } from './ProfileMetadataStatus.tsx';
 
 export const ProfileNotes = ({ controller: props, tree: c, workspace }: ProfileSectionProps) => {
   const element = useRef<HTMLDivElement>(null);
@@ -49,6 +50,7 @@ export const ProfileNotes = ({ controller: props, tree: c, workspace }: ProfileS
         createFolder={() => rowActions.createFolder(c.selectedFolder)}
       />
       <div className="profile-notes">
+        <ProfileMetadataStatus {...props} />
         <div ref={element} role="tree" aria-label="Profile notes">
           {c.rows.map((row) => (
             <ProfileTreeRow
@@ -73,7 +75,7 @@ export const ProfileNotes = ({ controller: props, tree: c, workspace }: ProfileS
             />
           ))}
         </div>
-        {!c.rows.length ? (
+        {props.sourceController.loaded && !c.rows.length ? (
           <p className="profile-tree-empty">
             {searching ? 'No notes match your search.' : 'No notes yet.'}
           </p>
