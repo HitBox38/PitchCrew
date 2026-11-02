@@ -49,8 +49,12 @@ test('puts the role first, defers reviews and preserves the compact layout on mo
     'Activity',
   ]);
   expect(await sheet.getByRole('heading', { name: 'About the role' }).isVisible()).toBe(true);
+  const sheetBounds = (await sheet.boundingBox())!;
+  const appBarBounds = (await page.locator('.desktop-titlebar').boundingBox())!;
+  expect(sheetBounds.y).toBe(appBarBounds.y + appBarBounds.height);
   const description = await sheet.getByRole('heading', { name: 'About the role' }).boundingBox();
-  expect(description!.y).toBeLessThan(300);
+  // Keep the same compact content budget below the app bar, where the sheet now begins.
+  expect(description!.y - sheetBounds.y).toBeLessThan(300);
   expect(await sheet.getByRole('button', { name: 'Draft application', exact: true }).count()).toBe(
     1,
   );
