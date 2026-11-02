@@ -3,17 +3,21 @@ import type { NativeBrowserCommand } from '../../../core/src/native-browser.ts';
 import { isAllowedExternalUrl } from '../external-url.ts';
 import type { NativeGroup } from './pages.ts';
 
-export const runNativeBrowserCommand = (
+export const runNativeBrowserCommand = async (
   group: NativeGroup,
   command: NativeBrowserCommand,
   agent = false,
-) =>
-  group.mutate(async () => {
+) => {
+  let navigation: Promise<void> | undefined;
+  const state = await group.mutate(async () => {
     if (agent ? group.manualUntil > Date.now() : group.manualUntil <= Date.now())
       throw new Error('Browser control changed.');
     const page = group.pages.get(group.active);
     const contents = page?.contents;
     switch (command.kind) {
+      case 'navigate':
+        navigation = group.navigate(group.active, command.url);
+        break;
       case 'select-tab':
         group.select(command.tabId);
         break;
@@ -31,13 +35,18 @@ export const runNativeBrowserCommand = (
         if (contents?.navigationHistory.canGoForward()) contents.navigationHistory.goForward();
         break;
       case 'reload':
-        if (!(await group.recover(group.active))) contents?.reload();
+      case 'hard-reload': {
+        const tab = group.state().tabs.find((tab) => tab.id === group.active);
+        if (tab?.error && tab.navigationUrl && !tab.crashed)
+          navigation = group.navigate(group.active, tab.navigationUrl);
+        else if (!(await group.recover(group.active))) {
+          if (command.kind === 'hard-reload') contents?.reloadIgnoringCache();
+          else contents?.reload();
+        }
         break;
-      case 'hard-reload':
-        if (!(await group.recover(group.active))) contents?.reloadIgnoringCache();
-        break;
+      }
       case 'stop':
-        contents?.stop();
+        group.stop(group.active);
         break;
       case 'zoom':
         contents?.setZoomFactor(command.factor);
@@ -76,3 +85,10 @@ export const runNativeBrowserCommand = (
     group.changed();
     return group.state();
   });
+  // Loading must not hold the tab mutation queue: Stop and tab switching remain usable.
+  if (navigation) {
+    await navigation;
+    return group.state();
+  }
+  return state;
+};

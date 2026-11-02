@@ -45,7 +45,23 @@ const input = vi.fn(async (value: BrowserInput) => {
     state = {
       ...state,
       tabs: state.tabs.map((tab) =>
-        tab.id === state.activeTab ? { ...tab, url: value.url, title: 'Fixture page' } : tab,
+        tab.id !== state.activeTab
+          ? tab
+          : value.url.includes('pitchcrew-browser-test.invalid')
+            ? {
+                ...tab,
+                navigationUrl: value.url,
+                error: 'Check the address and your connection, then try again.',
+                errorDetails: 'getaddrinfo ENOTFOUND pitchcrew-browser-test.invalid',
+              }
+            : {
+                ...tab,
+                url: value.url,
+                title: 'Fixture page',
+                error: undefined,
+                navigationUrl: undefined,
+                errorDetails: undefined,
+              },
       ),
     };
 });
@@ -54,6 +70,10 @@ const subscribeFrames = vi.fn(() => () => {});
 let viewport = { width: 1280, height: 800 };
 let tabSerial = 1;
 const nativeCommand = vi.fn(async (command: NativeBrowserCommand) => {
+  if (command.kind === 'reload') {
+    const tab = state.tabs.find((tab) => tab.id === state.activeTab);
+    if (tab?.navigationUrl) await input({ kind: 'navigate', url: tab.navigationUrl });
+  }
   if (command.kind === 'new-tab') {
     const id = ++tabSerial === 2 ? 'two' : `fixture-tab-${tabSerial}`;
     state = {
@@ -938,6 +958,47 @@ test('provides native zoom, cache, loading and failure recovery controls', async
     .getByRole('button', { name: 'Retry page', exact: true })
     .click();
   state = { ...state, tabs: state.tabs.map((tab) => ({ ...tab, error: undefined })) };
+});
+test('keeps a failed blank tab address and explanation across switches, retries and successful replacement', async () => {
+  const saved = structuredClone(state);
+  try {
+    await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
+    const failedUrl = 'https://pitchcrew-browser-test.invalid/';
+    const address = page.getByRole('textbox', { name: 'Browser address' });
+    await address.fill(failedUrl);
+    await address.press('Enter');
+    const error = page.locator('.browser-page-error');
+    await error.waitFor();
+    expect(await address.inputValue()).toBe(failedUrl);
+    expect(await page.getByRole('heading', { name: 'No page open', exact: true }).count()).toBe(0);
+    await error.getByText('Technical details', { exact: true }).click();
+    await error
+      .getByText('getaddrinfo ENOTFOUND pitchcrew-browser-test.invalid', { exact: true })
+      .waitFor();
+    const failedIndex = state.tabs.findIndex((tab) => tab.id === state.activeTab);
+    const otherIndex = state.tabs.findIndex((tab) => tab.id !== state.activeTab);
+    await page.locator('.browser-tab-select').nth(otherIndex).click();
+    await error.waitFor({ state: 'hidden' });
+    expect(await address.inputValue()).not.toBe(failedUrl);
+    await page.locator('.browser-tab-select').nth(failedIndex).click();
+    await error.waitFor();
+    expect(await address.inputValue()).toBe(failedUrl);
+    const before = input.mock.calls.length;
+    await error.getByRole('button', { name: 'Retry page', exact: true }).click();
+    await vi.waitFor(() => expect(input.mock.calls.length).toBeGreaterThan(before));
+    expect(input).toHaveBeenLastCalledWith({ kind: 'navigate', url: failedUrl });
+    expect(await address.inputValue()).toBe(failedUrl);
+    await address.fill('https://example.com/recovered');
+    await address.press('Enter');
+    await error.waitFor({ state: 'hidden' });
+    expect(await address.inputValue()).toBe('https://example.com/recovered');
+    await page.locator('.browser-tab-select').nth(otherIndex).click();
+    await page.locator('.browser-tab-select').nth(failedIndex).click();
+    expect(await address.inputValue()).toBe('https://example.com/recovered');
+    expect(await error.count()).toBe(0);
+  } finally {
+    state = saved;
+  }
 });
 test('manages named profiles and reviews a session import before confirmation', async () => {
   await page.getByRole('button', { name: 'Browser page settings' }).click();

@@ -3,6 +3,7 @@ import { z } from 'zod';
 import type { BrowserFrame } from './computer.ts';
 
 export const nativeBrowserCommandSchema = z.discriminatedUnion('kind', [
+  z.object({ kind: z.literal('navigate'), url: z.url().max(2000) }).strict(),
   z
     .object({
       kind: z.enum([
@@ -56,6 +57,9 @@ export interface NativeBrowserState extends NativeBrowserIdentity {
     colorScheme?: 'system' | 'light' | 'dark';
     floating?: boolean;
     error?: string;
+    /** Address being attempted, including failures before Chromium starts loading. */
+    navigationUrl?: string;
+    errorDetails?: string;
     crashed?: boolean;
     window?: boolean;
     canGoBack: boolean;

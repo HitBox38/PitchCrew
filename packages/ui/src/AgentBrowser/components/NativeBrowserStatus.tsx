@@ -15,6 +15,7 @@ export const NativeBrowserStatus = ({
   return (
     <ClayPageError
       error={tab.error}
+      details={tab.errorDetails}
       crashed={!!tab.crashed}
       manual={manual}
       working={control.working}
