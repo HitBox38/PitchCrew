@@ -10,6 +10,7 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
+import posting from './fixtures/job-boards/browser-posting.json';
 
 const runId = 'browser-job-import';
 const token = 'browser-job-import-token';
@@ -170,6 +171,57 @@ it('returns browser text for extraction without saving guessed fields', async ()
     text: expect.stringContaining(details.description),
   });
   expect(service.board.list<Card>('card')).toEqual([]);
+});
+
+it('saves readable full browser postings and preserves the original inspection evidence', async () => {
+  const { service, navigate, importLink, changePage, driver } = await fixture();
+  await navigate();
+  changePage({ text: posting.raw });
+  const original = await driver.snapshot();
+  expect(
+    (await importLink({ details: { ...details, description: posting.raw } })).result.status,
+  ).toBe('added');
+  const [card] = service.board.list<Card>('card');
+  expect(card.description).toBe(posting.readable);
+  expect(original.text).toBe(posting.raw);
+  expect((await driver.snapshot()).text).toBe(posting.raw);
+  expect((service.board.history(card.id)[0].data as Card).description).toBe(posting.readable);
+  service.board.rebuild();
+  expect(service.board.get<Card>('card', card.id).description).toBe(posting.readable);
+  expect(
+    (await importLink({ cardId: card.id, details: { ...details, description: posting.raw } }))
+      .result.status,
+  ).toBe('updated');
+  expect(service.board.get<Card>('card', card.id).description).toBe(posting.readable);
+});
+
+it('does not create or refresh a job from unsupported browser extraction syntax', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
+  const raw = '- heading "About us" [level=2]\n- button "Original text"';
+  changePage({ text: raw });
+  const input = { details: { ...details, description: raw } };
+  await expect(importLink(input)).rejects.toThrow('could not be converted safely');
+  expect(service.board.list<Card>('card')).toHaveLength(0);
+  await importLink();
+  const [card] = service.board.list<Card>('card');
+  await expect(importLink({ ...input, cardId: card.id })).rejects.toThrow(
+    'could not be converted safely',
+  );
+  expect(service.board.get<Card>('card', card.id)).toEqual(card);
+});
+
+it('rejects oversized browser descriptions instead of silently clipping the posting', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
+  const text = 'x'.repeat(20001);
+  changePage({ text });
+  expect((await importLink({ details: undefined })).result).toMatchObject({
+    status: 'needs_details',
+    text,
+  });
+  await expect(importLink({ details: { ...details, description: text } })).rejects.toThrow();
+  expect(service.board.list<Card>('card')).toHaveLength(0);
 });
 
 it.each(['permission', 'cancelled', 'manual'] as const)(
