@@ -27,6 +27,10 @@ export const browserViewStyle = (
     width: page.width,
     height: page.height,
     zIndex: view.bounds ? 1 : -1,
+    // A paint lease keeps Chromium capture/input alive; it does not select a tab.
+    // Negative stacking alone cannot conceal guests inside the expanded dialog's
+    // stacking context. Keep their native surfaces transparent even while painting.
+    opacity: view.bounds ? 1 : 0,
     // Chromium uses this hit-test region for OOPIF CDP input as well as human input.
     // A separate app-owned shield blocks humans while automation uses the guest.
     pointerEvents: view.painting || (view.bounds && view.manual) ? 'auto' : 'none',

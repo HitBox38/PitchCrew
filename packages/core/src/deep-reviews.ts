@@ -147,6 +147,7 @@ export interface RuntimeDeadline {
 }
 export interface DeepReviewRunContext {
   id: string;
+  quotationRepair?: string;
   budgetRequest?: { minutes: number; reason: string };
   stage: DeepReview['stage'];
   subagent?: { perspective: ReviewPerspective; focus: string };

@@ -167,3 +167,4 @@ export {
 export type { ChatFileCitation } from './chat-citations.ts';
 
 export * from './browser-tabs.ts';
+export { browserErrorText } from './browser-errors.ts';
