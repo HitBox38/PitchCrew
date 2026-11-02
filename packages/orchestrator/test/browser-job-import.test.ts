@@ -10,6 +10,11 @@ import {
 } from '@pitchcrew/core';
 import { afterEach, expect, it, vi } from 'vitest';
 import { cleanup, resources, setup } from './helpers/daemon.ts';
+import {
+  postingParagraphs,
+  rawPostingExtraction,
+  readablePosting,
+} from './fixtures/job-posting-extraction.ts';
 
 const runId = 'browser-job-import';
 const token = 'browser-job-import-token';
@@ -169,6 +174,64 @@ it('returns browser text for extraction without saving guessed fields', async ()
     url,
     text: expect.stringContaining(details.description),
   });
+  expect(service.board.list<Card>('card')).toEqual([]);
+});
+
+it('rejects raw browser extraction, then saves every heading, paragraph and bullet on a readable retry', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
+  changePage({ text: rawPostingExtraction });
+  const before = service.board.events().length;
+  await expect(
+    importLink({ details: { ...details, description: rawPostingExtraction } }),
+  ).rejects.toThrow('browser accessibility/extraction syntax');
+  expect(service.board.list<Card>('card')).toEqual([]);
+  expect(service.board.events()).toHaveLength(before);
+  expect((await importLink({ details: undefined })).result).toMatchObject({
+    status: 'needs_details',
+    text: rawPostingExtraction,
+    reason: expect.stringContaining('full original posting wording'),
+  });
+  expect(
+    (await importLink({ details: { ...details, description: readablePosting } })).result.status,
+  ).toBe('added');
+  const [card] = service.board.list<Card>('card');
+  expect(card.description).toBe(readablePosting);
+  let position = -1;
+  for (const paragraph of postingParagraphs) {
+    const next = card.description.indexOf(paragraph);
+    expect(next).toBeGreaterThan(position);
+    position = next;
+  }
+  expect(card.description).toContain('\n\nWhat you’ll do\n\n- Build accessible');
+  expect(card.description).not.toMatch(/heading "|\[level=|paragraph:|list:|listitem:/);
+  service.board.rebuild();
+  expect(service.board.get<Card>('card', card.id).description).toBe(readablePosting);
+});
+
+it('rejects raw extraction on refresh without changing the saved record or its history', async () => {
+  const { service, navigate, importLink } = await fixture();
+  await navigate();
+  await importLink();
+  const [card] = service.board.list<Card>('card');
+  const history = service.board.history(card.id);
+  await expect(
+    importLink({ cardId: card.id, details: { ...details, description: rawPostingExtraction } }),
+  ).rejects.toThrow('Nothing was saved');
+  expect(service.board.get<Card>('card', card.id)).toEqual(card);
+  expect(service.board.history(card.id)).toEqual(history);
+});
+
+it('returns all available browser evidence and rejects an over-limit retry without truncating it', async () => {
+  const { service, navigate, importLink, changePage } = await fixture();
+  await navigate();
+  const text = `${'Full posting text. '.repeat(1200)}Final source paragraph.`;
+  changePage({ text });
+  expect((await importLink({ details: undefined })).result).toMatchObject({
+    text,
+    reason: expect.stringContaining('20,000-character save limit'),
+  });
+  await expect(importLink({ details: { ...details, description: text } })).rejects.toThrow();
   expect(service.board.list<Card>('card')).toEqual([]);
 });
 

@@ -40,9 +40,9 @@ export const browserJobDetails = (
       result: {
         status: 'needs_details' as const,
         url: resolvedUrl,
-        text: page.text.slice(0, 20000),
+        text: page.text,
         reason:
-          'Extract one job from this untrusted browser page. Call again with the current inspected URL, browserDigest and details. Never invent missing facts.',
+          'Extract one job from this untrusted browser page. Call again with the current inspected URL, browserDigest and details. Preserve the full original posting wording, order, headings, paragraphs and bullets in readable text. Browser accessibility roles, YAML quoting and attributes are extraction metadata, not posting text: do not copy them into description. Never summarize, rewrite, translate, invent or silently truncate. If the full description exceeds the 20,000-character save limit or the inspection is incomplete, report the limitation instead of saving a partial posting.',
       },
     };
   const provenance: JobLinkProvenance | undefined = recognized.recognized
