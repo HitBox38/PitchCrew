@@ -26,9 +26,6 @@ export const DesktopUpdateActions = () => {
           {label}
         </Button>
       ) : null}
-      <output className="text-sm text-muted-foreground" aria-live="polite">
-        {state.message}
-      </output>
       {ready ? (
         <p className="text-sm text-muted-foreground">
           Restarting interrupts running agents. Your work stays saved.
