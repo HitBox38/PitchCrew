@@ -375,15 +375,19 @@ void app
               `document.querySelector('#name').focus(); document.querySelector('#password').value='fictional-password';`,
             );
             for (const keyCode of 'Human') contents.sendInputEvent({ type: 'char', keyCode });
-            // sendInputEvent queues delivery; executeJavaScript can overtake it.
-            value = await contents.executeJavaScript(`new Promise(resolve => {
-            const field = document.querySelector('#name');
-            const finish = () => { clearTimeout(timer); field.removeEventListener('input', check); resolve(field.value); };
-            const check = () => { if (field.value === 'Human') finish(); };
-            const timer = setTimeout(finish, 2000);
-            field.addEventListener('input', check);
-            check();
-          })`);
+            // sendInputEvent queues native delivery; an immediate read can see a prefix.
+            // Observe the completed edit without resending keys or accepting lost input.
+            value = await contents.executeJavaScript(`new Promise((resolve, reject) => {
+              const until = performance.now() + 2000;
+              const read = () => {
+                const value = document.querySelector('#name').value;
+                if (value === 'Human') resolve(value);
+                else if (performance.now() >= until)
+                  reject(new Error('Native human input did not finish: ' + JSON.stringify(value)));
+                else setTimeout(read, 20);
+              };
+              read();
+            })`);
           } finally {
             await contents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
               enabled: false,
