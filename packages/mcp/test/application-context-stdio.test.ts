@@ -96,7 +96,14 @@ it('exposes no extraction tools and only application-scoped drafting/review tool
         expect(JSON.stringify(result)).not.toContain('RAW-HIDDEN-DIRECTIVE');
         const report = await client.callTool({
           name: 'pitchcrew_report_technical_problem',
-          arguments: { area: 'documents' },
+          arguments: {
+            area: 'documents',
+            kind: 'bug',
+            summary: 'Document preview fails to open',
+            expected: 'Open the generated preview.',
+            actual: 'Preview remains unavailable.',
+            steps: 'Generate a document, then open its preview.',
+          },
         });
         expect(report.isError).not.toBe(true);
         expect(report.structuredContent).toEqual({ ok: true, duplicate: false });

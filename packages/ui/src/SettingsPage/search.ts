@@ -117,10 +117,17 @@ export const settingEntries: SettingEntry[] = [
     keywords: ['telemetry', 'posthog', 'tracking', 'opt out'],
   },
   {
-    label: 'Anonymous diagnostics',
+    label: 'Share diagnostics',
     section: 'privacy',
     target: 'diagnostic-analytics',
-    keywords: ['telemetry', 'errors', 'performance'],
+    keywords: [
+      'telemetry',
+      'errors',
+      'performance',
+      'bug reports',
+      'missing capabilities',
+      'anonymous diagnostics',
+    ],
   },
   {
     label: 'Masked session replay',
