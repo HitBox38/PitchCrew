@@ -106,7 +106,16 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
     await page.keyboard.press('Escape');
     await page.getByRole('combobox', { name: 'Browser viewport preset', exact: true }).click();
-    await page.getByRole('option', { name: 'Desktop 1440', exact: true }).click();
+    // The long preset list scrolls during pointer targeting in hidden Electron windows.
+    // Activate the actual option by keyboard so setup cannot silently retain Fill panel.
+    await page.getByRole('option', { name: 'Desktop 1440', exact: true }).press('Enter');
+    await until(
+      async () =>
+        (await page
+          .getByRole('combobox', { name: 'Browser viewport preset', exact: true })
+          .innerText()) === 'Desktop 1440',
+      'The fixed viewport preset was not selected',
+    );
     await until(
       async () => (await guest.read('innerWidth')) === 1440,
       'Fixed viewport was not applied',
@@ -159,7 +168,7 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
     if (await preset.isVisible()) {
       await preset.click();
-      await page.getByRole('option', { name: 'Fill panel', exact: true }).click();
+      await page.getByRole('option', { name: 'Fill panel', exact: true }).press('Enter');
       await page.getByRole('button', { name: 'Hide device toolbar', exact: true }).click();
     }
     await app.electron.evaluate(
