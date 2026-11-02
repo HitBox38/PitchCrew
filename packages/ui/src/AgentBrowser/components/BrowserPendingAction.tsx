@@ -1,4 +1,5 @@
 import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
+import { BrowserApprovalError } from '@/ComputerApprovals/components/BrowserApprovalError.tsx';
 import { browserActionTitles, actionFields } from '@/ComputerApprovals/helpers.ts';
 import type { ComputerApproval } from '@pitchcrew/core';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
@@ -52,11 +53,7 @@ export const BrowserPendingAction = ({
             Return control before deciding. The agent will refresh its request.
           </p>
         ) : null}
-        {approval.error ? (
-          <p className="form-error" role="alert">
-            {approval.error}
-          </p>
-        ) : null}
+        <BrowserApprovalError approval={approval} />
       </div>
       <BrowserApprovalActions
         approval={approval}
