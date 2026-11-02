@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { setTimeout as delay } from 'node:timers/promises';
 import { screen, type BrowserWindow } from 'electron';
 import type { NativeGroup } from '../../src/browser/pages.ts';
+import { floatingToolbarHeight } from '../../src/browser/floating-layout.ts';
 
 const waitFor = async (check: () => Promise<boolean>, message: string) => {
   for (let attempt = 0; attempt < 100; attempt++) {
@@ -22,17 +23,34 @@ export const checkFloatingLayout = async (floating: BrowserWindow, group: Native
   );
   const zoom = source.getZoomFactor();
   const outer = floating.getBounds();
+  const content = floating.getContentBounds();
   const area = screen.getDisplayMatching(outer).workArea;
   assert.ok(outer.x >= area.x && outer.y >= area.y);
   assert.ok(outer.x + outer.width <= area.x + area.width);
   assert.ok(outer.y + outer.height <= area.y + area.height);
   if (original.height > original.width)
     assert.ok(outer.height > outer.width, 'Tall pages need a tall initial window');
+  // A short display can legitimately fit a tall page below 50%. Require the
+  // available fit instead, so a fixed landscape window still fails on a big screen.
+  const availableScale = Math.min(
+    1,
+    (Math.floor(area.width * 0.92) - (outer.width - content.width)) / original.width,
+    (Math.floor(area.height * 0.92) - (outer.height - content.height) - floatingToolbarHeight) /
+      original.height,
+  );
+  await waitFor(
+    () =>
+      read(
+        `(()=>{const i=document.querySelector('img');return !!i.style.width&&i.getBoundingClientRect().width>0})()`,
+      ),
+    'The initial floating frame did not finish layout',
+  );
+  const displayed = await read<{ width: number; height: number }>(
+    `(()=>{const r=document.querySelector('img').getBoundingClientRect();return {width:r.width,height:r.height}})()`,
+  );
   assert.ok(
-    await read<boolean>(
-      `document.querySelector('img').getBoundingClientRect().width > Math.min(${original.width} * .5, 400)`,
-    ),
-    'Initial page was unnecessarily tiny',
+    displayed.width >= original.width * availableScale - 1,
+    `Initial page did not use the available screen area: ${JSON.stringify({ original, area, outer, content, displayed, availableScale })}`,
   );
 
   const pointer = (point: { x: number; y: number }) => {

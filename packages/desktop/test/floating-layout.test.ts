@@ -29,3 +29,12 @@ it('keeps a narrow secondary display bounded, including controls', () => {
   expect(size.width).toBe(350);
   expect(size.height).toBeLessThanOrEqual(600);
 });
+
+it('uses the available height even when a short display needs less than 50% scale', () => {
+  const page = { width: 600, height: 1130 };
+  const size = floatingContentSize(page, { width: 926, height: 597 });
+  expect(size).toEqual({ width: 400, height: 597 });
+  const scale = (size.height - floatingToolbarHeight) / page.height;
+  expect(scale).toBeLessThan(0.5);
+  expect(page.width * scale).toBeCloseTo(278.76, 2);
+});
