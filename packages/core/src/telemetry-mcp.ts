@@ -40,6 +40,7 @@ export const mcpGatewayTools = Object.freeze({
   messages: 'pitchcrew_read_messages',
   message: 'pitchcrew_message_agent',
   invoke: 'pitchcrew_invoke_agent',
+  delegate_round: 'pitchcrew_delegate_round',
   propose: 'pitchcrew_propose_role_changes',
   workflow: 'pitchcrew_change_workflow',
   jobs: 'pitchcrew_list_jobs',
