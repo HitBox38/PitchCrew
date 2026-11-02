@@ -71,6 +71,119 @@ afterAll(async () => {
   await browser?.close();
 });
 
+test('direct Profile navigation loads source paths without Sources and preserves the active draft', async () => {
+  remote.paths.push('about-me/Projects/tool.md');
+  const imported = await importSource(host);
+  const before = (await host.request<Snapshot>('/snapshot')).result.profile;
+  const active = imported.files.find((file) => file.name === before[0].name)!;
+  const label = active.path.split('/').at(-1)!;
+  const release = await deferred('**/api/profile/sources');
+  await page.goto(`${host.daemon.url}/profile`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Set up later', exact: true }).click();
+  const explorer = page.getByRole('complementary', { name: 'Notes explorer' });
+  await explorer.getByRole('status').filter({ hasText: 'Loading note information' }).waitFor();
+  expect(await explorer.getByRole('treeitem').count()).toBe(0);
+  expect(await page.locator('.profile-save-path').textContent()).not.toContain(active.name);
+  const editor = page.getByRole('textbox', { name: 'Profile Markdown' });
+  await editor.fill('# Unsaved draft while metadata loads');
+  const selected = await page
+    .locator('.profile-document-tab[aria-selected="true"]')
+    .getAttribute('id');
+  // Keep the same editor DOM node, including focus and caret, when metadata arrives.
+  await editor.evaluate((element) => element.setAttribute('data-draft-editor', 'original'));
+  await editor.evaluate((element: HTMLTextAreaElement) => element.setSelectionRange(5, 12));
+  release();
+  await explorer.getByRole('treeitem', { name: 'about-me', exact: true }).waitFor();
+  await explorer.getByRole('treeitem', { name: 'Projects', exact: true }).waitFor();
+  expect(
+    await explorer.getByRole('treeitem', { name: /^tool.md/ }).getAttribute('aria-level'),
+  ).toBe('3');
+  await explorer
+    .getByRole('treeitem', { name: `${label}, unsaved changes`, exact: true })
+    .waitFor();
+  await page
+    .locator('.profile-origin')
+    .getByRole('link', { name: active.path, exact: true })
+    .waitFor();
+  expect(await page.locator('.profile-save-path').textContent()).toContain(
+    active.path.split('/').join(' / '),
+  );
+  expect(await editor.inputValue()).toBe('# Unsaved draft while metadata loads');
+  expect(await editor.getAttribute('data-draft-editor')).toBe('original');
+  expect(await editor.evaluate((element) => document.activeElement === element)).toBe(true);
+  expect(
+    await editor.evaluate((element: HTMLTextAreaElement) => [
+      element.selectionStart,
+      element.selectionEnd,
+    ]),
+  ).toEqual([5, 12]);
+  expect(selected).toBeTruthy();
+  expect(await page.locator('.profile-document-tab[aria-selected="true"]').getAttribute('id')).toBe(
+    selected,
+  );
+  expect(
+    await explorer
+      .getByRole('treeitem', { name: `${label}, unsaved changes`, exact: true })
+      .getAttribute('aria-selected'),
+  ).toBe('true');
+  expect(await dialog().count()).toBe(0);
+  expect((await host.request<Snapshot>('/snapshot')).result.profile).toEqual(before);
+});
+
+test('Profile loads metadata on client navigation and reloads it after navigating away and back', async () => {
+  await importSource(host);
+  await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Set up later', exact: true }).click();
+  const profileLink = page.getByRole('link', { name: /^Profile(?:, \d+ [a-z ]+)?$/ });
+  await profileLink.click();
+  await page
+    .locator('.profile-origin')
+    .getByRole('link', { name: /about-me\/background.md/ })
+    .waitFor();
+  await openMorePage(page, 'Activity');
+  const release = await deferred('**/api/profile/sources');
+  await profileLink.click();
+  await page.getByRole('status').filter({ hasText: 'Loading note information' }).waitFor();
+  release();
+  await page.getByRole('treeitem', { name: 'background.md', exact: true }).waitFor();
+  await page
+    .locator('.profile-origin')
+    .getByRole('link', { name: /about-me\/background.md/ })
+    .waitFor();
+  expect(await page.locator('.profile-save-path').textContent()).toContain(
+    'about-me / background.md',
+  );
+  expect(await dialog().count()).toBe(0);
+});
+
+test('Profile metadata failures offer retry without showing fallback paths or resetting edits', async () => {
+  await importSource(host);
+  await page.route('**/api/profile/sources', (route) =>
+    route.fulfill({ status: 503, json: { error: 'Fictional metadata unavailable.' } }),
+  );
+  await page.goto(`${host.daemon.url}/profile`, { waitUntil: 'domcontentloaded' });
+  await page.getByRole('button', { name: 'Set up later', exact: true }).click();
+  const explorer = page.getByRole('complementary', { name: 'Notes explorer' });
+  await explorer
+    .getByRole('alert')
+    .filter({ hasText: 'Fictional metadata unavailable.' })
+    .waitFor();
+  expect(await explorer.getByRole('treeitem').count()).toBe(0);
+  expect(await page.locator('.profile-save-path').textContent()).toContain(
+    'Note information unavailable',
+  );
+  const editor = page.getByRole('textbox', { name: 'Profile Markdown' });
+  await editor.fill('# Draft survives retry');
+  await page.unroute('**/api/profile/sources');
+  await explorer.getByRole('button', { name: 'Retry loading note information' }).click();
+  await page
+    .getByRole('treeitem', { name: 'background.md, unsaved changes', exact: true })
+    .waitFor();
+  await page.locator('.profile-origin').waitFor();
+  expect(await editor.inputValue()).toBe('# Draft survives retry');
+  expect(await dialog().count()).toBe(0);
+});
+
 test('initial loading has a spinner, failed loading has retry, and setup stays in the dialog', async () => {
   const release = await deferred('**/api/profile/sources');
   await openSources();
