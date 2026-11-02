@@ -6,9 +6,10 @@ The deterministic provider connects to the real scoped MCP stdio server for insp
 
 ## Journeys
 
-The fourteen cases verify observable results:
+The fifteen cases verify observable results:
 
 - Open the browser from Chat and navigate its actual native guest through the address bar.
+- Retain a blank tab's failed DNS address and explanation across tab switching and retry, then recover by editing the address.
 - Type into the website with trusted pointer and keyboard input after takeover.
 - Open the real page-settings popover, observe changing compositor pixels beneath it and change actual page zoom.
 - Keep that same live guest beneath the app context menu, reset confirmation dialog and notification sheet.
@@ -24,6 +25,8 @@ The fourteen cases verify observable results:
 - Keep an inactive iPhone SE page concealed with three real tabs through repeated DNS preflight failures, a Chromium failed navigation, tab switches, window resizing, expansion and panel hide/restore. Full-window compositor bitmap checks detect escaped page pixels and verify that the restored selected page paints only inside its viewport without losing its guest or device setting.
 
 The website's changing color marker uses a CSS animation. It proves live native composition without changing the DOM that exact-action approval fingerprints bind. A viewport change invalidates stale approval normally; the deterministic agent follows the tool's instruction to inspect and request fresh evidence. The test waits for the displayed approval to match the real viewport before deciding it.
+
+The failed-navigation case runs in its own fresh desktop session and saves `failed-navigation.png` alongside the trace. Its DNS failure is real; only the recovery website uses fixture responses.
 
 ## Isolation and evidence
 

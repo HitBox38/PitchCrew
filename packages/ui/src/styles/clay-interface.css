@@ -213,6 +213,9 @@
   flex: 1;
   grid-template-columns: repeat(4, minmax(188px, 1fr));
   gap: 12px;
+  /* Match the card bodies' shadow gutters without overflowing the last column. */
+  margin: -6px;
+  padding: 6px;
   overflow-x: auto;
   overscroll-behavior-x: contain;
 }
@@ -224,6 +227,7 @@
   gap: 6px;
   border-radius: 14px;
   transition: box-shadow var(--duration-press) var(--ease-material);
+  container: board-column / inline-size;
 }
 .clay-column[data-flash] {
   box-shadow: 0 0 0 2px var(--primary);
@@ -231,6 +235,7 @@
 .clay-column-heading {
   display: flex;
   min-height: 32px;
+  flex-shrink: 0;
   align-items: center;
   gap: 7px;
   padding-inline: 4px;
@@ -238,11 +243,12 @@
 .clay-column-heading h2 {
   display: flex;
   min-width: 0;
+  flex: 1;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 6px;
+  gap: 2px 6px;
   color: var(--ink);
   font: 600 0.9375rem/1.3 var(--font-sans);
-  white-space: nowrap;
 }
 .clay-column-heading h2:focus-visible {
   border-radius: 6px;
@@ -250,31 +256,41 @@
   outline-offset: 2px;
 }
 .clay-column-count {
+  flex: none;
   color: var(--muted);
   font-weight: 400;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 .clay-column-beads {
   display: flex;
+  flex: none;
   align-items: center;
   gap: 4px;
-  margin-inline-start: auto;
 }
-.clay-column-beads > .clay-bead {
+.clay-column-beads > .clay-bead[data-size='sm'] {
   --bead-size: 8px;
 }
 /* A 32px hit area around a 16px icon. */
 .clay-column-sort {
   width: 32px;
   height: 32px;
+  flex: none;
   margin-inline-end: -4px;
   color: var(--muted);
 }
 .clay-column-sort[data-custom] {
   color: var(--primary);
 }
-.clay-columns[data-dragging] .clay-column-beads > * {
+.clay-columns[data-dragging] .clay-column-beads {
   display: none;
+}
+/* Preserve the title, full count and sort target before spending space on summary beads.
+ * Use each column's width: the decision deck and sidebar can both reduce it. */
+@container board-column (width < 16rem) {
+  .clay-column-beads {
+    display: none;
+  }
 }
 .clay-column-pages {
   display: flex;

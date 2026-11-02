@@ -53,7 +53,7 @@ export const NativeBrowserToolbar = ({
       <BrowserAddress
         frame={null}
         control={control}
-        url={tab?.url ?? ''}
+        url={tab?.navigationUrl ?? tab?.url ?? ''}
         contextId={tab?.id}
         onNavigate={() => {
           void window.pitchcrewBrowser?.focusPage(model.identity!.id).catch(() => {});

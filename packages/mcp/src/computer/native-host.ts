@@ -210,6 +210,13 @@ export class DesktopBrowserHosts {
           }
         },
         native: { id: state.id, ownerId: host.ownerId },
+        input: async (input) => {
+          if (input.kind !== 'navigate') return driver.input!(input);
+          await syncSelected();
+          if (driver.viewMetadata?.().dialog)
+            throw new Error('Resolve the website dialog before navigating.');
+          await request<NativeBrowserState>(`/sessions/${state.id}/command`, 'POST', input);
+        },
         newTab: () => this.launch(profile),
         nativeState: async () => {
           const next = await request<NativeBrowserState>(`/sessions/${state.id}`);

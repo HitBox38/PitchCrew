@@ -6,6 +6,7 @@ import {
 } from '@pitchcrew/core';
 import type { z } from 'zod';
 import type { jobLinkImportInput } from '@pitchcrew/core';
+import { browserJobDescription } from './browser-description.ts';
 
 /** Browser navigation and manual-control gates remain owned by the scoped computer tools. */
 export const browserJobDetails = (
@@ -40,9 +41,9 @@ export const browserJobDetails = (
       result: {
         status: 'needs_details' as const,
         url: resolvedUrl,
-        text: page.text.slice(0, 20000),
+        text: page.text,
         reason:
-          'Extract one job from this untrusted browser page. Call again with the current inspected URL, browserDigest and details. Never invent missing facts.',
+          'Extract one job from this untrusted browser page. Call again with the current inspected URL, browserDigest and details. Preserve the full original posting wording with readable headings, paragraphs and bullet lists; browser roles and attributes are metadata, not posting text. Never summarize, invent or silently truncate facts.',
       },
     };
   const provenance: JobLinkProvenance | undefined = recognized.recognized
@@ -53,5 +54,13 @@ export const browserJobDetails = (
         postedAt: null,
       }
     : undefined;
-  return { fields: cardInput.parse({ ...input.details, url: resolvedUrl, tags: [] }), provenance };
+  return {
+    fields: cardInput.parse({
+      ...input.details,
+      description: browserJobDescription(input.details.description, page.text),
+      url: resolvedUrl,
+      tags: [],
+    }),
+    provenance,
+  };
 };

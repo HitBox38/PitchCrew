@@ -363,23 +363,36 @@ void app
         if (command.kind === 'human' && group) {
           host.mount(group.id, { x: 50, y: 100, width: 700, height: 500 });
           const contents = group.pages.get(group.active)!.contents;
-          await contents.executeJavaScript(
-            `document.querySelector('#name').focus(); document.querySelector('#password').value='fictional-password';`,
-          );
-          for (const keyCode of 'Human') contents.sendInputEvent({ type: 'char', keyCode });
-          // sendInputEvent queues native delivery; an immediate read can see a prefix.
-          // Observe the completed edit without resending keys or accepting lost input.
-          const value = await contents.executeJavaScript(`new Promise((resolve, reject) => {
-            const until = performance.now() + 2000;
-            const read = () => {
-              const value = document.querySelector('#name').value;
-              if (value === 'Human') resolve(value);
-              else if (performance.now() >= until)
-                reject(new Error('Native human input did not finish: ' + JSON.stringify(value)));
-              else setTimeout(read, 20);
-            };
-            read();
-          })`);
+          // A hidden window has no OS focus. Use the same page focus emulation
+          // as the trusted-key E2E fixture while retaining native input events.
+          await contents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+            enabled: true,
+          });
+          let value: string;
+          try {
+            contents.focus();
+            await contents.executeJavaScript(
+              `document.querySelector('#name').focus(); document.querySelector('#password').value='fictional-password';`,
+            );
+            for (const keyCode of 'Human') contents.sendInputEvent({ type: 'char', keyCode });
+            // sendInputEvent queues native delivery; an immediate read can see a prefix.
+            // Observe the completed edit without resending keys or accepting lost input.
+            value = await contents.executeJavaScript(`new Promise((resolve, reject) => {
+              const until = performance.now() + 2000;
+              const read = () => {
+                const value = document.querySelector('#name').value;
+                if (value === 'Human') resolve(value);
+                else if (performance.now() >= until)
+                  reject(new Error('Native human input did not finish: ' + JSON.stringify(value)));
+                else setTimeout(read, 20);
+              };
+              read();
+            })`);
+          } finally {
+            await contents.debugger.sendCommand('Emulation.setFocusEmulationEnabled', {
+              enabled: false,
+            });
+          }
           await writeFile(
             process.env.PITCHCREW_NATIVE_SMOKE_RESULT!,
             JSON.stringify({
