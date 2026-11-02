@@ -4,13 +4,13 @@ import type { Snapshot } from '@pitchcrew/core';
 import { Popover, PopoverContent, PopoverTrigger } from '@pitchcrew/design-system/popover';
 import { cn } from '@pitchcrew/design-system/utils';
 import { queueSummary } from '@/lib/work-queue.ts';
-import { queueAttention, queueTrayLabel } from './helpers.ts';
+import { queueAttention, queueCountLabel, queueTrayLabel } from './helpers.ts';
 import { QueuePanel } from './components/QueuePanel.tsx';
-import { QueueSlots } from './components/QueueSlots.tsx';
+import { QueueCapacityMeter } from './components/QueueCapacityMeter.tsx';
 
 /**
- * A compact app-bar queue indicator, with every slot and separate counts for held and failed
- * queues. The phone drawer uses a bounded grid instead of the toolbar's two-row strip.
+ * A capacity-independent summary: one state bead, aggregate occupancy and active/limit counts.
+ * Exact counts and bounded work details live in the popover, for desktop and phones alike.
  */
 export const QueueWidget = ({
   data,
@@ -39,22 +39,31 @@ export const QueueWidget = ({
         aria-label={`Work queue: ${queue.active} of ${queue.concurrency} slots in use, ${ready.length} ready, ${onHold} on hold, ${failed} failed`}
         title={label}
       >
-        <QueueSlots queue={queue} layout={variant === 'tray' ? 'grid' : 'compact'} />
-        <span className="queue-tray-label">
-          {queue.active} / {queue.concurrency}
-          <span className="sr-only"> slots in use</span>
+        <span
+          className="clay-bead"
+          data-size="sm"
+          data-tone={queue.active ? 'plum' : undefined}
+          data-empty={queue.active ? undefined : ''}
+          aria-hidden="true"
+        />
+        <span className="queue-tray-summary">
+          <span className="queue-tray-label">
+            {queueCountLabel(queue.active)} / {queueCountLabel(queue.concurrency)}
+            <span className="sr-only"> slots in use</span>
+          </span>
+          <QueueCapacityMeter queue={queue} />
         </span>
         {onHold ? (
           <span className="queue-tray-attention" data-tone="ochre" title={`${onHold} on hold`}>
             <Pause aria-hidden="true" />
-            {onHold}
+            {onHold > 99 ? '99+' : onHold}
             <span className="sr-only"> on hold</span>
           </span>
         ) : null}
         {failed ? (
           <span className="queue-tray-attention" data-tone="rose" title={`${failed} failed`}>
             <CircleAlert aria-hidden="true" />
-            {failed}
+            {failed > 99 ? '99+' : failed}
             <span className="sr-only"> failed</span>
           </span>
         ) : null}

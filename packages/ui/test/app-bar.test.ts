@@ -9,6 +9,8 @@ let browser: Browser;
 let page: Page;
 const errors: string[] = [];
 const shots = resolve('test-results/sidebar-redesign');
+let capacity = 10;
+let active = 0;
 
 beforeAll(async () => {
   host = await setup(14629);
@@ -22,6 +24,15 @@ beforeAll(async () => {
   browser = await chromium.launch({ headless: true });
   page = await browser.newPage({ viewport: { width: 1280, height: 900 }, reducedMotion: 'reduce' });
   page.on('pageerror', (error) => errors.push(error.message));
+  // Exercise display scalability independently of the daemon's configured capacity limit.
+  await page.route('**/api/snapshot?view=workspace', async (route) => {
+    const headers = { ...route.request().headers() };
+    delete headers['if-none-match'];
+    const response = await route.fetch({ headers });
+    const snapshot = await response.json();
+    snapshot.queue = { ...snapshot.queue, concurrency: capacity, active };
+    await route.fulfill({ json: snapshot });
+  });
   await page.goto(host.daemon.url, { waitUntil: 'domcontentloaded' });
   await page.getByRole('banner', { name: 'Workspace controls' }).waitFor({ timeout: 30000 });
   await page.evaluate(() => document.fonts.ready);
@@ -51,22 +62,21 @@ test('global controls share the app bar and leave the sidebar free of pinned des
   await bar.getByRole('button', { name: 'New', exact: true }).click();
   await page.getByRole('menuitem', { name: 'New job', exact: false }).waitFor();
   await page.keyboard.press('Escape');
-  expect(await bar.locator('.queue-tray-sockets > span').count()).toBe(10);
+  expect(await bar.locator('.queue-tray-label').textContent()).toContain('0 / 10');
 });
 
-test('all slots fit below native window controls and above the full-height sidebar', async () => {
-  for (const concurrency of [10, 50]) {
-    host.daemon.service.board.record(
-      'queue_settings',
-      { id: 'workspace', concurrency },
-      'user',
-      'Layout fixture',
-    );
+test('capacity never grows the indicator or its DOM, across native window layouts', async () => {
+  const trigger = page.getByRole('button', { name: /^Work queue:/ });
+  const initialWidth = (await trigger.boundingBox())!.width;
+  const initialNodes = await trigger.locator('*').count();
+  for (const concurrency of [1, 10, 50, 10_000, 1_000_000]) {
+    capacity = concurrency;
+    active = Math.floor(concurrency / 2);
     await expect
-      .poll(() => page.locator('.workspace-app-bar .queue-tray-sockets > span').count(), {
-        timeout: 5000,
-      })
-      .toBe(concurrency);
+      .poll(() => trigger.getAttribute('aria-label'), { timeout: 5000 })
+      .toContain(`${active} of ${concurrency} slots in use`);
+    expect((await trigger.boundingBox())!.width).toBe(initialWidth);
+    expect(await trigger.locator('*').count()).toBe(initialNodes);
     for (const platform of ['web', 'win32', 'darwin', 'fullscreen']) {
       await page.evaluate((platform) => {
         if (platform === 'web') delete document.documentElement.dataset.desktop;
@@ -84,9 +94,7 @@ test('all slots fit below native window controls and above the full-height sideb
           tools: rect('.workspace-app-bar-tools'),
           status: rect('.workspace-app-bar-status'),
           sidebar: rect('[data-slot="sidebar-container"]'),
-          sockets: Array.from(bar.querySelectorAll('.clay-bead')).map((slot) =>
-            slot.getBoundingClientRect().toJSON(),
-          ),
+          meter: rect('.workspace-app-bar .queue-capacity-meter'),
           scroll: document.documentElement.scrollWidth,
           height: document.documentElement.scrollHeight,
           noDrag: getComputedStyle(bar.querySelector('.workspace-app-bar-tools')!).getPropertyValue(
@@ -100,34 +108,28 @@ test('all slots fit below native window controls and above the full-height sideb
       expect(layout.tools.right + 16).toBeLessThanOrEqual(layout.status.left);
       expect(layout.status.right).toBeLessThanOrEqual(platform === 'win32' ? 620 : 768);
       if (platform === 'darwin') expect(layout.tools.left).toBeGreaterThanOrEqual(80);
-      for (const slot of layout.sockets) {
-        expect(slot.width).toBeGreaterThan(0);
-        expect(slot.left).toBeGreaterThanOrEqual(layout.status.left);
-        expect(slot.right).toBeLessThanOrEqual(layout.status.right);
-        expect(slot.top).toBeGreaterThanOrEqual(layout.bar.top);
-        expect(slot.bottom).toBeLessThanOrEqual(layout.bar.bottom);
-      }
+      expect(layout.meter.width).toBe(76);
+      expect(layout.meter.left).toBeGreaterThanOrEqual(layout.status.left);
+      expect(layout.meter.right).toBeLessThanOrEqual(layout.status.right);
+      expect(layout.meter.top).toBeGreaterThanOrEqual(layout.bar.top);
+      expect(layout.meter.bottom).toBeLessThanOrEqual(layout.bar.bottom);
       expect(layout.scroll).toBeLessThanOrEqual(768);
       expect(layout.height).toBeLessThanOrEqual(900);
       expect(layout.noDrag).toBe('no-drag');
     }
   }
   await page.setViewportSize({ width: 1280, height: 900 });
-  host.daemon.service.board.record(
-    'queue_settings',
-    { id: 'workspace', concurrency: 10 },
-    'user',
-    'Layout fixture',
-  );
+  capacity = 10;
+  active = 0;
   await expect
-    .poll(() => page.locator('.workspace-app-bar .queue-tray-sockets > span').count(), {
-      timeout: 5000,
-    })
-    .toBe(10);
+    .poll(() => trigger.getAttribute('aria-label'), { timeout: 5000 })
+    .toContain('0 of 10 slots in use');
   await page.screenshot({ path: resolve(shots, 'desktop.png') });
-});
+}, 30000);
 
-test('phones retain one page bar and reach every slot through the navigation drawer', async () => {
+test('phones retain a compact summary and exact large totals in the bounded popover', async () => {
+  capacity = 1_000_000;
+  active = 250_000;
   await page.evaluate(() => {
     delete document.documentElement.dataset.desktop;
     delete document.documentElement.dataset.fullscreen;
@@ -137,12 +139,20 @@ test('phones retain one page bar and reach every slot through the navigation dra
   const queue = page.getByRole('button', { name: /^Work queue:/ });
   await queue.waitFor();
   expect(await page.locator('.workspace-app-bar').count()).toBe(0);
-  expect(await queue.locator('.clay-bead').count()).toBe(10);
+  await expect
+    .poll(() => queue.getAttribute('aria-label'), { timeout: 5000 })
+    .toContain('250000 of 1000000');
+  expect(await queue.locator('.queue-tray-label').textContent()).toContain('250K / 1M');
+  expect((await queue.boundingBox())!.height).toBe(44);
   await queue.click();
   const panel = page.getByRole('dialog', { name: 'Work queue', exact: true });
   await panel.waitFor();
   await expect.poll(() => panel.evaluate((element) => getComputedStyle(element).opacity)).toBe('1');
-  expect(await panel.locator('.clay-bead').count()).toBe(10);
+  expect(await panel.locator('.queue-widget-capacity').textContent()).toContain('250000 working');
+  expect(await panel.locator('.queue-widget-capacity').textContent()).toContain('750000 free');
+  expect(await panel.locator('.queue-capacity-meter > span').getAttribute('style')).toContain(
+    '25%',
+  );
   const bounds = (await panel.boundingBox())!;
   expect(bounds.x).toBeGreaterThanOrEqual(0);
   expect(bounds.x + bounds.width).toBeLessThanOrEqual(320);

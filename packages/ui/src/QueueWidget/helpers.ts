@@ -29,15 +29,14 @@ export const queueTrayLabel = (queue: WorkspaceQueue) => {
     .join(' · ');
 };
 
-/** Every slot, including work still finishing after a capacity reduction. */
-export const traySockets = (queue: Pick<WorkspaceQueue, 'active' | 'background' | 'concurrency'>) =>
-  Array.from({ length: Math.max(queue.concurrency, queue.active) }, (_, index) =>
-    index < queue.active - queue.background
-      ? ('working' as const)
-      : index < queue.active
-        ? ('background' as const)
-        : ('free' as const),
-  );
+const compactCount = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
+
+/** Compact labels keep their width; the tooltip and queue panel retain exact counts. */
+export const queueCountLabel = (count: number) => compactCount.format(count);
+
+/** Aggregate occupancy needs no per-slot allocation, even for very large capacities. */
+export const queueUtilization = (queue: Pick<WorkspaceQueue, 'active' | 'concurrency'>) =>
+  queue.concurrency > 0 ? Math.min(100, Math.max(0, (queue.active / queue.concurrency) * 100)) : 0;
 
 /** The bead for one job or conversation queue, by the state law: plum working, ochre waiting. */
 export const queueBeadTone = (queue: Pick<WorkQueueView, 'state' | 'paused' | 'pauseKind'>) =>

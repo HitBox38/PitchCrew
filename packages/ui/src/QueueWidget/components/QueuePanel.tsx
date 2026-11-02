@@ -3,7 +3,7 @@ import type { Snapshot, WorkspaceQueue } from '@pitchcrew/core';
 import { PopoverDescription, PopoverTitle } from '@pitchcrew/design-system/popover';
 import { queueSummary } from '@/lib/work-queue.ts';
 import { queueActivityDescription } from '../helpers.ts';
-import { QueueSlots } from './QueueSlots.tsx';
+import { QueueCapacityMeter } from './QueueCapacityMeter.tsx';
 import { QueueWidgetQueues } from './QueueWidgetQueues.tsx';
 
 export const QueuePanel = ({
@@ -28,7 +28,7 @@ export const QueuePanel = ({
         {queueActivityDescription(agents.length, running.length)}
       </PopoverDescription>
       <div className="queue-widget-capacity">
-        <QueueSlots queue={queue} layout="grid" />
+        <QueueCapacityMeter queue={queue} />
         <span>
           {queue.active} working · {available} free
         </span>
