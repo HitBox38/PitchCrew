@@ -1,6 +1,15 @@
 .chat-conversation {
   min-height: 0;
 }
+/* A waiting question yields space before the transcript loses its reading area and pager. */
+.chat-panel:has(.pending-user-questions) {
+  /* Short windows can scroll the column after the history and answer controls reach their
+   * minimum usable sizes; the browser keeps its independent viewport. */
+  overflow-y: auto;
+}
+.chat-panel:has(.pending-user-questions) .chat-conversation-panel {
+  --chat-history-min-height: min(25%, 170px);
+}
 .chat-transcript {
   padding: 23px 32px 28px;
   gap: 27px;

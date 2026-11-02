@@ -16,6 +16,7 @@ let page: Page;
 let approval: Approval;
 let card: Card;
 const errors: string[] = [];
+
 beforeAll(async () => {
   host = await setup(14679);
   await host.request('/profile', 'PUT', {
@@ -296,3 +297,62 @@ test('opens the Submitter conversation and verifies its captured outcome there',
     .toBe('submitted');
   expect(errors).toEqual([]);
 }, 60000);
+
+test.each([
+  {
+    error:
+      'page.goto: Timeout 20000ms exceeded.\nCall log:\n\u001b[2m  - navigating to "https://example.com/fictional-application", waiting until "domcontentloaded"\u001b[22m\n',
+    diagnostics:
+      'page.goto: Timeout 20000ms exceeded.\nCall log:\n  - navigating to "https://example.com/fictional-application", waiting until "domcontentloaded"\n',
+    summary: 'You approved this request, but opening the page timed out after 20 seconds.',
+  },
+  {
+    error: 'The page changed. Inspect it and request a new approval.',
+    diagnostics: 'The page changed. Inspect it and request a new approval.',
+    summary: 'You approved this request, but the browser action failed.',
+  },
+])(
+  'shows approval separately from a saved execution failure with collapsed plain diagnostics: $summary',
+  async ({ error, diagnostics, summary }) => {
+    const saved: ComputerApproval = {
+      id: randomUUID(),
+      runId: 'historical-run',
+      roleId: 'submitter',
+      cardId: card.id,
+      action: { kind: 'navigate', url: card.url },
+      reason: 'Open the application page for inspection',
+      page: { url: 'about:blank', title: '', text: '', screenshot: '', digest: 'historical-page' },
+      digest: 'historical-action',
+      status: 'failed',
+      error,
+      createdAt: '2026-11-01T22:33:00.029Z',
+      decidedAt: '2026-11-01T22:33:03.000Z',
+    };
+    host.daemon.service.board.record(
+      'computer_approval',
+      saved,
+      'mcp',
+      'Historical execution failure fixture',
+    );
+    await page.goto(`${host.daemon.url}/inbox?view=history&entry=browser:${saved.id}`);
+    const sheet = page.getByRole('article', { name: 'Selected decision' });
+    await sheet.getByText('Approved, then failed', { exact: true }).waitFor();
+    expect(await sheet.getByRole('alert').textContent()).toBe(summary);
+    const errorView = sheet.locator('.browser-approval-error');
+    const details = errorView.getByRole('button', { name: 'Details', exact: true });
+    expect(await details.getAttribute('aria-expanded')).toBe('false');
+    expect(await sheet.innerText()).not.toContain(diagnostics);
+    await details.click();
+    const source = errorView.getByLabel('Browser execution diagnostics', { exact: true });
+    await source.waitFor({ state: 'visible' });
+    expect(await source.textContent()).toBe(diagnostics);
+    expect(await source.textContent()).not.toContain('\u001b');
+    expect(await source.textContent()).not.toMatch(/\[2m|\[22m/);
+    expect(
+      await sheet.getByRole('button', { name: 'Approve interaction', exact: true }).count(),
+    ).toBe(0);
+    expect(host.daemon.service.board.get<ComputerApproval>('computer_approval', saved.id)).toEqual(
+      saved,
+    );
+  },
+);

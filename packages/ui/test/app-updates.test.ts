@@ -90,6 +90,99 @@ afterAll(async () => {
   await cleanup();
 });
 
+test.each([false, true])(
+  'Settings shows one current-version status before and after a manual check (native: %s)',
+  async (desktop) => {
+    const message = 'You are running the latest published version.';
+    info = {
+      ...available,
+      current: { ...available.current, version: '0.17.0' },
+      latest: { ...available.latest!, commit: available.current.commit!, version: '0.17.0' },
+      status: 'current',
+      checkedAt: '2026-11-02T08:51:53Z',
+      message,
+    };
+    await page.addInitScript(() => localStorage.setItem('pitchcrew-automatic-updates-v1', 'false'));
+    if (desktop) {
+      await page.addInitScript(
+        (initial) => {
+          (window as unknown as FixtureWindow).pitchcrewUpdates = {
+            getState: async () => initial,
+            check: async () => initial,
+            download: async () => initial,
+            install: async () => initial,
+            subscribe: () => () => {},
+          };
+        },
+        {
+          ...native,
+          currentVersion: '0.17.0',
+          status: 'current',
+          availableVersion: null,
+          checkedAt: info.checkedAt,
+          message,
+        } satisfies DesktopUpdateState,
+      );
+    }
+    await page.goto(`${host.daemon.url}/settings?section=updates`, {
+      waitUntil: 'domcontentloaded',
+    });
+    await page.getByRole('tab', { name: 'Updates', exact: true }).click();
+    const section = page.getByRole('region', { name: 'Pitchcrew updates', exact: true });
+    const status = section.getByRole('status');
+    const check = section.getByRole('button', { name: 'Check for updates', exact: true });
+    await expect.poll(() => status.allTextContents()).toEqual([message]);
+    expect(await section.textContent()).toContain('Version 0.17.0');
+    const checkedAt = await page.evaluate(
+      (date) => new Date(date!).toLocaleString(),
+      info.checkedAt,
+    );
+    expect(await section.textContent()).toContain(`Last checked ${checkedAt}.`);
+
+    let finishCheck!: () => void;
+    const pending = new Promise<void>((resolve) => {
+      finishCheck = resolve;
+    });
+    await page.route('**/api/app-updates/check?manual=true', async (route) => {
+      await pending;
+      await route.fulfill({ json: info });
+    });
+    try {
+      await check.click();
+      await expect.poll(() => status.allTextContents()).toEqual(['Checking for updates…']);
+      expect(
+        await section.getByRole('button', { name: 'Checking…', exact: true }).isDisabled(),
+      ).toBe(true);
+      info = { ...info, checkedAt: '2026-11-02T08:52:53Z' };
+    } finally {
+      finishCheck();
+    }
+    await expect.poll(() => status.allTextContents()).toEqual([message]);
+    const nextCheckedAt = await page.evaluate(
+      (date) => new Date(date!).toLocaleString(),
+      info.checkedAt,
+    );
+    expect(await section.textContent()).toContain(`Last checked ${nextCheckedAt}.`);
+    expect(await check.isEnabled()).toBe(true);
+
+    await page.route('**/api/app-updates/check?manual=true', (route) =>
+      route.fulfill({ status: 503, json: { error: 'offline' } }),
+    );
+    await check.click();
+    await expect
+      .poll(() => status.allTextContents())
+      .toEqual(['Could not reach the local daemon to check for updates.']);
+    expect(await check.isEnabled()).toBe(true);
+    expect(await section.getByText(message, { exact: true }).count()).toBe(0);
+    await page.route('**/api/app-updates/check?manual=true', (route) =>
+      route.fulfill({ json: info }),
+    );
+    await check.click();
+    await expect.poll(() => status.allTextContents()).toEqual([message]);
+  },
+  45000,
+);
+
 test('the download icon stops spinning when the native check finishes before the daemon', async () => {
   await page.emulateMedia({ reducedMotion: 'no-preference' });
   let finishDaemonCheck!: () => void;
@@ -232,9 +325,16 @@ test('native download stays visible through navigation and enables restart only 
   await page.getByRole('link', { name: 'Settings', exact: true }).click();
   await page.getByRole('tab', { name: 'Updates', exact: true }).click();
   await page.getByRole('heading', { name: 'Pitchcrew updates' }).waitFor();
+  const status = page
+    .getByRole('region', { name: 'Pitchcrew updates', exact: true })
+    .getByRole('status');
+  expect(await status.allTextContents()).toEqual([native.message]);
   expect(await action().textContent()).toContain('42%');
   expect(await page.locator('.sidebar-update-progress').getAttribute('style')).toContain('42%');
   await update({ status: 'error', message: 'Could not download the update. Try again.' });
+  await expect
+    .poll(() => status.allTextContents())
+    .toEqual(['Could not download the update. Try again.']);
   await action().filter({ hasText: 'Download update' }).waitFor();
   await focusAction();
   await page.getByRole('tooltip').waitFor();
