@@ -13,6 +13,7 @@ The twelve cases verify observable results:
 - Open the real page-settings popover, observe changing compositor pixels beneath it and change actual page zoom.
 - Keep that same live guest beneath the app context menu, reset confirmation dialog and notification sheet.
 - Expand and restore the Base UI browser surface while human input continues to reach the same guest.
+- Return to chat with a trusted Escape from static native page content or app activity, preserving the guest, viewport, draft and manual lease; page fields (including shadow DOM), cancelled/stopped keys, website menus/dialogs and app overlays keep Escape first.
 - Navigate to Settings and back while preserving the page, its human field draft and manual-control lease.
 - Create, navigate, select and close a real second tab, use Back/Forward and retain the first tab's draft.
 - Capture the real native page, annotate it and attach its PNG to the existing composer draft without sending a message.
