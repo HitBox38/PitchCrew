@@ -993,8 +993,13 @@ test('keeps a failed blank tab address and explanation across switches, retries 
     await error.waitFor({ state: 'hidden' });
     expect(await address.inputValue()).toBe('https://example.com/recovered');
     await page.locator('.browser-tab-select').nth(otherIndex).click();
+    await vi.waitFor(async () =>
+      expect(await address.inputValue()).not.toBe('https://example.com/recovered'),
+    );
     await page.locator('.browser-tab-select').nth(failedIndex).click();
-    expect(await address.inputValue()).toBe('https://example.com/recovered');
+    await vi.waitFor(async () =>
+      expect(await address.inputValue()).toBe('https://example.com/recovered'),
+    );
     expect(await error.count()).toBe(0);
   } finally {
     state = saved;
