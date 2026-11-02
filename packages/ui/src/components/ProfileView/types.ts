@@ -1,4 +1,5 @@
 import type { useProfileView } from '@/components/ProfileView/hooks/useProfileView.ts';
+import type { useProfileCitations } from './hooks/useProfileCitations.ts';
 import type { useProfileNotes } from './hooks/useProfileNotes.ts';
 import type { useProfileWorkspace } from './hooks/useProfileWorkspace.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
@@ -12,12 +13,14 @@ export interface ProfileViewProps {
 export type ProfileViewModel = NonNullable<ReturnType<typeof useProfileView>>;
 export type ProfileTreeModel = ReturnType<typeof useProfileNotes>;
 export type ProfileWorkspaceModel = ReturnType<typeof useProfileWorkspace>;
+export type ProfileCitationsModel = ReturnType<typeof useProfileCitations>;
 
 /** Shared props for the page sections composed by ProfileView. */
 export interface ProfileSectionProps {
   controller: ProfileViewModel;
   tree: ProfileTreeModel;
   workspace: ProfileWorkspaceModel;
+  citations: ProfileCitationsModel;
 }
 
 export interface ProfileDocument {

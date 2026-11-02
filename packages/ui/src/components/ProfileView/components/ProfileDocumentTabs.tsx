@@ -1,5 +1,5 @@
 import type { ProfileViewModel } from '../types.ts';
-import { useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { TabsList } from '@pitchcrew/design-system/tabs';
 import { DragDropProvider } from '@dnd-kit/react';
 import { isSortableOperation } from '@dnd-kit/react/sortable';
@@ -9,6 +9,24 @@ import { profileTabModifiers } from '../tab-drag-modifier.ts';
 
 export const ProfileDocumentTabs = (c: ProfileViewModel) => {
   const [announcement, setAnnouncement] = useState('');
+  const strip = useRef<HTMLDivElement>(null);
+  const activeIndex = c.documents.findIndex((document) => document.id === c.activeId);
+  useLayoutEffect(() => {
+    const lane = strip.current;
+    if (!lane) return;
+    const reveal = () => {
+      const tab = lane.querySelector<HTMLElement>('[data-selected="true"]');
+      if (!tab) return;
+      const bounds = lane.getBoundingClientRect();
+      const selected = tab.getBoundingClientRect();
+      if (selected.right > bounds.right) lane.scrollLeft += selected.right - bounds.right;
+      else if (selected.left < bounds.left) lane.scrollLeft -= bounds.left - selected.left;
+    };
+    reveal();
+    const observer = new ResizeObserver(reveal);
+    observer.observe(lane);
+    return () => observer.disconnect();
+  }, [c.activeId, activeIndex]);
   return (
     <DragDropProvider
       sensors={profileTabSensors}
@@ -19,7 +37,7 @@ export const ProfileDocumentTabs = (c: ProfileViewModel) => {
           c.reorderNote(String(operation.source.id), operation.source.index);
       }}
     >
-      <TabsList className="profile-document-tabs" aria-label="Open profile notes">
+      <TabsList ref={strip} className="profile-document-tabs" aria-label="Open profile notes">
         {c.documents.map((document, index) => (
           <ProfileDocumentTab
             key={document.id}

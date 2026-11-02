@@ -1,6 +1,7 @@
-/* Profile (b5): open paper with a title row, optional notices, then a recessed note tree,
- * the document sheet with its tabs and save bar, and a cited-in rail when packets quote the note.
- * Only the tree, the sheet and the rail scroll. */
+/* Profile: an editor workspace on the paper. The title row, optional one-line notices, then one
+ * frame to the window's edge: the notes explorer sits directly on the paper, a drag handle, the
+ * note sheet (tab band, editor, status bar) fills the remaining width, and the citations rail
+ * opens beside it on request. Only the tree, the editor and the rail scroll. */
 /* The shell sizes and pads the dedicated page; Profile fills it. */
 .page.profile-page {
   display: flex;
@@ -19,7 +20,6 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  container-type: inline-size;
 }
 .profile-title-row {
   flex-shrink: 0;
@@ -35,106 +35,99 @@
   text-align: center;
 }
 
-/* Notices: content-sized clay cards, at most three across, only for saved items. */
+/* Notices: one flat line per saved item waiting for review, only when there are any. */
 .profile-notices {
   display: grid;
   flex-shrink: 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0 0 16px;
+  gap: 4px;
+  margin: 0 0 12px;
   padding: 0;
   list-style: none;
 }
 .profile-notice {
   display: flex;
   align-items: center;
-  gap: 12px;
-  min-width: 0;
-  padding: 10px 10px 10px 12px;
-  border-radius: 12px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
+  gap: 10px;
+  min-height: 40px;
+  padding: 4px 4px 4px 12px;
+  border-radius: 10px;
+  background: rgb(var(--tint) / 0.05);
 }
 .profile-notice-kind {
-  display: grid;
   flex: none;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: var(--primary-soft);
   color: var(--primary);
 }
 .profile-notice-kind[data-tone='ochre'] {
-  background: var(--ochre-soft);
   color: var(--ochre);
 }
-.profile-notice-title {
-  color: var(--ink);
+.profile-notice-text {
+  display: flex;
+  flex: 1;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
   font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+}
+.profile-notice-title {
+  flex: none;
+  color: var(--ink);
   font-weight: 600;
-  line-height: 1.35;
 }
 .profile-notice-detail {
   overflow: hidden;
   color: var(--muted);
-  font-size: var(--text-detail);
-  line-height: 1.4;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Three columns; the document keeps a reading measure and the rail sits beside it. */
+/* The frame: explorer | handle | sheet [| rail]. Columns close on the page's edges. */
 .profile-body {
   display: grid;
   flex: 1;
-  grid-template-columns: 240px minmax(0, 720px) 260px;
+  grid-template-columns: var(--explorer-width, 240px) 8px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
-  grid-template-areas: 'tree doc rail';
-  justify-content: start;
-  gap: 24px;
+  grid-template-areas: 'tree handle doc';
   min-height: 0;
 }
-.profile-body:not(:has(.profile-citations)) {
-  grid-template-columns: 240px minmax(0, 760px);
+.profile-body[data-citations='open'] {
+  grid-template-columns: var(--explorer-width, 240px) 8px minmax(0, 1fr) 264px;
+  grid-template-areas: 'tree handle doc rail';
 }
 .profile-body[data-explorer='closed'] {
-  grid-template-columns: minmax(0, 720px) 260px;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'doc';
+}
+.profile-body[data-explorer='closed'][data-citations='open'] {
+  grid-template-columns: minmax(0, 1fr) 264px;
   grid-template-areas: 'doc rail';
 }
-.profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
-  grid-template-columns: minmax(0, 760px);
-}
-/* The tray ends with its list; a long list scrolls inside the column's height. */
+
+/* Explorer: a tree on the paper, no card. Search on top; the list scrolls to the frame's foot. */
 .profile-aside {
   display: flex;
   grid-area: tree;
   flex-direction: column;
-  align-self: start;
-  gap: 8px;
   min-width: 0;
   min-height: 0;
-  max-height: 100%;
-  padding: 10px;
-  border-radius: 16px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
+  padding: 0 2px 0 0;
 }
 .profile-aside[hidden] {
   display: none;
 }
+/* Level with the sheet's 40px tab band, so the search and the open tab share one line. */
 .profile-tree-search {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: 4px;
+  height: 40px;
+  margin-bottom: 4px;
 }
 .profile-tree-search input {
   height: 32px;
   padding-left: 30px;
   border-radius: 9px;
-  background: var(--surface-bright);
-  box-shadow: var(--clay);
   font-size: var(--text-label);
 }
 .profile-tree-search-icon {
@@ -155,11 +148,10 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-  margin: 0 -4px;
-  padding: 2px 4px 8px;
+  padding: 0 0 8px;
 }
 .profile-tree-empty {
-  padding: 8px;
+  padding: 8px 6px;
   color: var(--muted);
   font-size: var(--text-label);
 }
@@ -173,12 +165,12 @@
 .profile-file {
   display: flex;
   justify-content: flex-start;
-  gap: 7px;
+  gap: 6px;
   width: 100%;
   min-width: 0;
-  height: 32px;
-  padding: 0 32px 0 calc(8px + var(--depth, 0) * 16px);
-  border-radius: 8px;
+  height: 28px;
+  padding: 0 28px 0 calc(6px + var(--depth, 0) * 14px);
+  border-radius: 7px;
   color: var(--ink-soft);
   font: 400 var(--text-label) / 1.3 var(--font-sans);
   text-align: left;
@@ -197,16 +189,17 @@
   color: var(--ink);
   font-weight: 600;
 }
+/* The open note: a neutral tone step, the label in ink. */
 .profile-tree-row[data-selected] .profile-file {
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
+  background: rgb(var(--tint) / 0.08);
+  box-shadow: none;
   color: var(--ink);
   font-weight: 600;
 }
 .profile-row-menu {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   opacity: 0;
 }
 .profile-tree-row:hover .profile-row-menu,
@@ -238,51 +231,91 @@
   background: var(--ochre);
 }
 
-/* Document column: tab row, paper sheet, then a separate save bar. */
+/* The handle: invisible until hovered, dragged or focused. */
+.profile-resizer {
+  position: relative;
+  grid-area: handle;
+  align-self: stretch;
+  width: 8px;
+  height: auto;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+.profile-resizer::before {
+  position: absolute;
+  inset: 0 3px;
+  border-radius: 2px;
+  background: var(--primary);
+  content: '';
+  opacity: 0;
+  transition: opacity var(--duration-press, 120ms) var(--ease);
+}
+.profile-resizer:hover::before,
+.profile-resizer[data-dragging]::before {
+  opacity: 0.45;
+}
+.profile-resizer:focus-visible {
+  outline: none;
+}
+.profile-resizer:focus-visible::before {
+  opacity: 1;
+}
+
+/* The sheet: one cream surface with a hairline edge, no shadow, from the tab band to the status
+ * bar. The explorer toggle, the open notes and Write | Preview share its 40px top band. */
 .profile-document {
+  container-type: inline-size;
   display: flex;
   grid-area: doc;
   flex-direction: column;
   gap: 0;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--surface-bright);
+  box-shadow: 0 0 0 1px var(--border);
 }
 .profile-tab-row {
   display: flex;
   flex-shrink: 0;
-  align-items: flex-end;
-  gap: 8px;
+  align-items: center;
+  gap: 4px;
   height: 40px;
+  padding: 0 8px 0 4px;
+  background: var(--surface);
+  box-shadow: inset 0 -1px 0 var(--border);
 }
-/* The tree toggle leads the document toolbar, 8px before the first tab and on its baseline. */
 .profile-tab-row > .profile-explorer-toggle {
   flex: none;
   width: 32px;
   height: 32px;
-  margin-bottom: 4px;
-  border-radius: 9px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
+  border-radius: 8px;
   color: var(--muted);
 }
 .profile-tab-row > .profile-explorer-toggle[aria-expanded='false'] {
   color: var(--ink);
 }
 .profile-tab-row > .profile-mode-tabs {
-  margin-bottom: 4px;
+  flex: none;
   margin-left: auto;
 }
 .profile-tabs-host {
+  flex: 1 1 auto;
+  align-self: stretch;
   min-width: 0;
-  flex: 0 1 auto;
 }
 .profile-document-tabs {
   display: flex;
   justify-content: flex-start;
-  gap: 6px;
+  gap: 0;
   width: auto;
-  height: 36px;
-  padding: 0 4px;
+  height: 40px;
+  padding: 0;
   border-radius: 0;
   overflow-x: auto;
   overflow-y: hidden;
@@ -291,29 +324,42 @@
   box-shadow: none;
   scrollbar-width: none;
 }
+/* Tabs are flat cells split by hairlines; the open note's tab takes the sheet's colour, a 2px
+ * primary top edge, and covers the band's bottom hairline so it joins the editor below. */
 .profile-tab-item {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   min-width: 0;
-  max-width: 220px;
-  height: 36px;
-  border-radius: 10px 10px 0 0;
-  background: var(--sunken-fill);
-  box-shadow: inset 0 2px 3px rgb(var(--tint) / 0.06);
+  max-width: min(220px, 100%);
+  height: 40px;
+  background: transparent;
+  box-shadow: inset -1px 0 0 var(--border);
   cursor: grab;
 }
-/* The open note's tab is part of its paper sheet, so it shares the sheet's themed surface. */
+.profile-tab-item:first-child {
+  box-shadow:
+    inset 1px 0 0 var(--border),
+    inset -1px 0 0 var(--border);
+}
 .profile-tab-item[data-selected='true'] {
   background: var(--surface-bright);
-  box-shadow: 0 -2px 6px rgb(var(--tint) / 0.06);
+  box-shadow:
+    inset -1px 0 0 var(--border),
+    inset 0 2px 0 var(--primary);
+}
+.profile-tab-item[data-selected='true']:first-child {
+  box-shadow:
+    inset 1px 0 0 var(--border),
+    inset -1px 0 0 var(--border),
+    inset 0 2px 0 var(--primary);
 }
 .profile-tab-item[data-selected='true'] :is(.profile-document-tab, .profile-tab-close) {
   color: var(--ink);
 }
 .profile-tab-item[data-dragging='true'] {
+  background: var(--surface-bright);
   cursor: grabbing;
-  box-shadow: var(--clay-hover);
 }
 .profile-document-tab {
   justify-content: flex-start;
@@ -337,11 +383,11 @@
 }
 .profile-tab-close {
   flex-shrink: 0;
-  width: 24px;
-  height: 24px;
-  margin-right: 6px;
+  width: 22px;
+  height: 22px;
+  margin-right: 8px;
   padding: 0;
-  border-radius: 7px;
+  border-radius: 6px;
   color: var(--muted);
   opacity: 0.6;
 }
@@ -350,11 +396,12 @@
 .profile-tab-close:focus-visible {
   opacity: 1;
 }
+
+/* The editor fills the sheet between the tab band and the status bar. */
 .profile-note-form {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 16px;
   min-height: 0;
 }
 .profile-sheet {
@@ -363,17 +410,6 @@
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  border-radius: 4px;
-  background: var(--surface-bright);
-  box-shadow: var(--sheet);
-}
-/* Document paper (Profile and Skills) follows the app theme like the tabs, library, rail and
- * footers around it. */
-:root[data-theme='dark'] :is(.profile-sheet, .skills-sheet) {
-  box-shadow:
-    0 0 0 1px rgb(255 255 255 / 0.08),
-    0 1px 2px rgb(0 0 0 / 0.4),
-    0 8px 24px rgb(0 0 0 / 0.3);
 }
 .profile-sheet .profile-write-panel,
 .profile-sheet .profile-preview-panel {
@@ -384,54 +420,39 @@
 .profile-sheet .profile-preview-panel[hidden] {
   display: none;
 }
+/* Prose wraps at the sheet's width like an editor, capped at a long measure on wide windows. */
 .profile-sheet textarea {
   flex: 1;
   width: 100%;
   height: 100%;
   min-height: 0;
-  padding: 36px 48px;
+  padding: 28px max(40px, calc(100% - 120ch - 40px)) 48px 40px;
   border: 0;
-  border-radius: 4px;
+  border-radius: 0;
   resize: none;
   background: transparent;
   box-shadow: none;
   color: var(--ink);
-  font: 400 15px/1.6 var(--font-sans);
+  font: 400 15px/1.65 var(--font-sans);
   field-sizing: fixed;
   overflow-y: auto;
   overscroll-behavior: contain;
   tab-size: 2;
 }
 .profile-sheet textarea:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
+  outline: none;
   box-shadow: none;
 }
 .profile-sheet .profile-preview-panel {
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 36px 48px;
+  padding: 28px 40px 48px;
   background: transparent;
 }
 .profile-sheet .profile-preview-panel > div {
-  max-width: 640px;
+  max-width: 90ch;
   font-size: 15px;
   line-height: 1.7;
-}
-.profile-origin {
-  flex-shrink: 0;
-  padding: 10px 48px;
-  border-bottom: 1px solid var(--border);
-  color: var(--muted);
-  font-size: var(--text-detail);
-  overflow-wrap: anywhere;
-}
-.profile-origin a {
-  color: var(--primary);
-}
-.profile-origin svg {
-  display: inline;
-  vertical-align: -1px;
 }
 .profile-empty {
   align-items: center;
@@ -442,34 +463,80 @@
   font-size: var(--text-body);
   text-align: center;
 }
+
+/* Status bar: path and origin on the left; words, citations, the save state and Save on the
+ * right. The one place that says whether the note is saved. */
 .profile-save-bar {
   display: flex;
   flex-shrink: 0;
-  flex-wrap: wrap;
   align-items: center;
+  flex-wrap: wrap;
   gap: 4px 12px;
   min-height: 48px;
-  padding: 6px 8px 6px 16px;
-  border-radius: 12px;
-  background: var(--clay-fill);
-  box-shadow: var(--clay);
-}
-.profile-save-path {
-  flex: 1 1 12rem;
-  min-width: 0;
-  overflow: hidden;
+  padding: 8px 8px 8px 16px;
+  background: var(--surface);
+  box-shadow: inset 0 1px 0 var(--border);
   color: var(--muted);
   font-size: var(--text-detail);
+  line-height: var(--text-detail--line-height);
+}
+.profile-save-path {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-soft);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.profile-save-state {
-  color: var(--muted);
-  font-size: var(--text-detail);
+.profile-origin {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
+}
+.profile-origin a {
+  color: var(--primary);
+}
+.profile-origin svg {
+  display: inline;
+  vertical-align: -1px;
+}
+.profile-status-words {
+  flex: none;
+  white-space: nowrap;
+}
+.profile-cited {
+  flex: none;
+  color: var(--ink-soft);
+}
+.profile-cited[aria-pressed='true'],
+.profile-cited[data-popup-open] {
+  background: rgb(var(--tint) / 0.08);
+  color: var(--ink);
+}
+.profile-save-state {
+  flex: none;
+  white-space: nowrap;
+}
+.profile-save-state[data-dirty] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ochre);
+  font-weight: 600;
+}
+.profile-save-state[data-dirty]::before {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ochre);
+  content: '';
 }
 .profile-save-blocked {
   display: flex;
+  flex: 1 0 100%;
+  order: -1;
   align-items: center;
   gap: 6px;
   color: var(--ochre);
@@ -477,6 +544,10 @@
   font-weight: 600;
 }
 .profile-save-error {
+  flex: 1 0 100%;
+  order: -1;
+  margin: 0;
+  overflow-wrap: anywhere;
   color: var(--error-ink);
   font-size: var(--text-label);
 }
@@ -488,98 +559,135 @@
   opacity: 0.85;
 }
 
-/* Cited-in rail: real packet claims quoting the open note. */
+/* Citations: the rail on the paper beside the sheet, or the same list in a popover. */
 .profile-citations {
+  display: flex;
   grid-area: rail;
+  flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow-y: auto;
-  padding-top: 44px;
+  padding-left: 16px;
 }
 .profile-citations-heading {
   display: flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  color: var(--muted);
-  font-size: var(--text-label);
-  font-weight: 600;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 0 0 8px;
+  color: var(--ink);
+  font: 600 var(--text-label) / var(--text-label--line-height) var(--font-sans);
 }
-.profile-citations-heading svg {
-  transition: transform var(--duration-press, 120ms) var(--ease);
+.profile-citations-heading > h2 {
+  margin: 0;
+  font: inherit;
 }
-.profile-citations-heading[data-panel-open] svg {
-  transform: rotate(90deg);
+.profile-cited-popover {
+  width: min(360px, calc(100vw - 32px));
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 4px 8px 8px;
+}
+.profile-cited-popover > .profile-citations-heading {
+  min-height: 36px;
+  padding-left: 8px;
 }
 .profile-citation-list {
-  display: grid;
-  margin: 8px 0 0;
-  padding: 4px;
-  border-radius: 12px;
-  background: var(--sunken-fill);
-  box-shadow: var(--clay-sunken);
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   list-style: none;
 }
-/* Quiet 72–88px rows: company and stage, one quoted line, then "N more quotes". */
+/* Quiet rows: company and stage, one quoted line, then "N more quotes". */
 .profile-citation {
   display: grid;
+  gap: 2px;
   min-width: 0;
-  padding: 2px 0;
+  padding: 8px 0 10px;
 }
 .profile-citation + .profile-citation {
-  box-shadow: 0 -1px 0 var(--border);
+  box-shadow: inset 0 1px 0 var(--border);
 }
 .profile-citation-open {
-  display: grid;
-  gap: 2px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   width: 100%;
   min-width: 0;
-  padding: 8px 10px 4px;
+  padding: 2px 8px;
   border: 0;
-  border-radius: 8px;
+  border-radius: 6px;
   background: transparent;
-  color: var(--ink-soft);
+  color: var(--muted);
   font-size: var(--text-detail);
   line-height: 18px;
   text-align: left;
   cursor: pointer;
 }
-.profile-citation-open:hover {
-  background: rgb(var(--tint) / 0.05);
-}
-.profile-citation-open:focus-visible,
-.profile-citation-more:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
-}
-.profile-citation-job {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  min-width: 0;
-  color: var(--muted);
-}
-.profile-citation-job b {
+.profile-citation-open b {
   overflow: hidden;
   color: var(--ink);
   font-size: var(--text-label);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.profile-citation-job > span {
+.profile-citation-open > span {
   flex: none;
 }
-.profile-citation-quote,
-.profile-citation-same {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.profile-citation-open:hover {
+  background: rgb(var(--tint) / 0.05);
 }
-.profile-citation-same {
+.profile-citation-quote {
+  display: block;
+  width: 100%;
+  padding: 3px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: var(--text-detail);
+  line-height: 18px;
+  text-align: left;
+}
+button.profile-citation-quote {
+  cursor: pointer;
+}
+button.profile-citation-quote:hover {
+  background: rgb(var(--tint) / 0.05);
+  color: var(--ink);
+}
+.profile-citation-quote > q {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.profile-citation-quote[data-missing] {
   color: var(--muted);
 }
+.profile-citation-quote > small {
+  display: block;
+  color: var(--ochre);
+  font-size: var(--text-detail);
+}
+.profile-citation-same {
+  padding: 3px 8px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.profile-citation-open:focus-visible,
+.profile-citation-quote:focus-visible,
+.profile-citation-more:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
 .profile-citation-rest {
-  padding: 0 10px 6px;
+  padding: 0 8px;
 }
 .profile-citation-more {
   min-height: 24px;
@@ -593,52 +701,47 @@
 }
 .profile-citation-quotes {
   display: grid;
-  gap: 6px;
-  margin: 4px 0 2px;
+  gap: 2px;
+  margin: 4px -8px 0;
   padding: 0;
-  color: var(--ink-soft);
-  font-size: var(--text-detail);
-  line-height: 18px;
   list-style: none;
 }
 
-/* Narrower work areas: the rail becomes a disclosure under the document. */
-@container (width < 1040px) {
-  .profile-notices {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* Compact sheets preserve Save and the full blocker/error; secondary metadata yields first. */
+@container (width < 42rem) {
+  .profile-status-words,
+  .profile-origin {
+    display: none;
   }
-  .profile-body,
-  .profile-body:not(:has(.profile-citations)) {
-    grid-template-columns: 220px minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) auto;
-    grid-template-areas: 'tree doc' 'tree rail';
+  .profile-save-bar {
+    gap: 4px 8px;
+    padding-left: 12px;
   }
-  .profile-body[data-explorer='closed'],
-  .profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'doc' 'rail';
+  .profile-save-bar:has(.profile-cited) .profile-save-path {
+    flex-basis: 100%;
   }
-  .profile-citations {
-    max-height: 40cqh;
-    padding-top: 0;
+  .profile-cited {
+    margin-right: auto;
   }
 }
 /* Phones: the tree replaces the document until a note is chosen. */
 @variant max-mobile {
   .profile-body,
-  .profile-body:not(:has(.profile-citations)),
+  .profile-body[data-citations='open'],
   .profile-body[data-explorer='closed'],
-  .profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
+  .profile-body[data-explorer='closed'][data-citations='open'] {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'tree' 'rail';
+    grid-template-areas: 'tree';
   }
   .profile-body[data-explorer='closed'],
-  .profile-body[data-explorer='closed']:not(:has(.profile-citations)) {
-    grid-template-areas: 'doc' 'rail';
+  .profile-body[data-explorer='closed'][data-citations='open'] {
+    grid-template-areas: 'doc';
   }
-  .profile-body[data-explorer='open'] .profile-document,
-  .profile-body[data-explorer='open'] .profile-citations {
+  .profile-body[data-explorer='open'] .profile-document {
     display: none;
+  }
+  .profile-aside {
+    padding: 0;
   }
   .profile-sheet .profile-preview-panel {
     padding: 20px;
@@ -648,26 +751,15 @@
     padding: 20px;
     font-size: 16px;
   }
-  .profile-origin {
-    padding-inline: 20px;
-  }
-  /* One 44px toolbar: toggle, the tab lane (scrolling on its own) and Write | Preview share a
-   * centre line, and the paper starts at its bottom edge. */
+  /* One 44px band: toggle, the tab lane (scrolling on its own) and Write | Preview. */
   .profile-tab-row {
-    align-items: center;
     gap: 4px;
     height: 44px;
-  }
-  .profile-tab-row > .profile-explorer-toggle,
-  .profile-tab-row > .profile-mode-tabs {
-    margin-bottom: 0;
+    padding: 0 4px;
   }
   .profile-tab-row > .profile-explorer-toggle {
     width: 44px;
     height: 44px;
-  }
-  .profile-tabs-host {
-    align-self: stretch;
   }
   .profile-document-tabs,
   .profile-tab-item {
@@ -676,6 +768,24 @@
   .profile-tab-row > .profile-mode-tabs {
     height: 44px;
     padding: 0;
+  }
+  /* Icon-only Write | Preview so the open tabs keep their room; names stay accessible. */
+  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-trigger'] {
+    gap: 0;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 9px;
+    font-size: 0;
+  }
+  /* The status bar keeps the path, the save state and Save; words and origin go. */
+  .profile-save-bar {
+    gap: 8px;
+    min-height: 52px;
+    padding: 4px 4px 4px 12px;
+  }
+  .profile-status-words,
+  .profile-origin {
+    display: none;
   }
   /* Phones show the title in the shell's top bar; keep the heading for assistive tech. */
   .profile-title-row {
@@ -703,21 +813,29 @@
   .profile-tabs-host {
     flex: 1 1 0;
   }
-  /* Icon-only Write | Preview so the open tabs keep their room; names stay accessible. */
-  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-trigger'] {
-    gap: 0;
-    height: 44px;
-    padding: 0 12px;
-    border-radius: 9px;
-    font-size: 0;
-  }
-  .profile-notices {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 /* Shared Markdown editor primitives (Profile and Skills): the Write | Preview segment and the
  * panels. Pages style their own sheet around these. */
+@media (pointer: coarse) and (width >= 48rem) {
+  .profile-tree-search,
+  .profile-tab-row,
+  .profile-document-tabs,
+  .profile-tab-item {
+    height: 44px;
+  }
+  .profile-tab-row > .profile-explorer-toggle {
+    width: 44px;
+    height: 44px;
+  }
+  .profile-tab-row > .profile-mode-tabs {
+    height: 44px;
+    padding: 0;
+  }
+  .profile-tab-row > .profile-mode-tabs [data-slot='tabs-trigger'] {
+    height: 44px;
+  }
+}
 .profile-mode-tabs {
   height: 32px;
   padding: 3px;
@@ -762,6 +880,13 @@
   .profile-preview-panel {
     padding: 18px;
   }
+}
+/* Skills' document paper follows the app theme like the library and footers around it. */
+:root[data-theme='dark'] .skills-sheet {
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.08),
+    0 1px 2px rgb(0 0 0 / 0.4),
+    0 8px 24px rgb(0 0 0 / 0.3);
 }
 
 /* Profile sources dialog: list first; setup and proposal reviews replace it in place. */
