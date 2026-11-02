@@ -25,4 +25,4 @@ export type JobPacketProps = Pick<CardDetailsModel, 'document' | 'setDocument' |
 export type JobTabsProps = CardDetailsModel;
 export type OutcomeActionsProps = Pick<CardDetailsModel, 'card' | 'working' | 'run' | 'act'>;
 export type PacketDocumentPickerProps = Pick<CardDetailsModel, 'document' | 'setDocument'>;
-export type JobAgent = { run: Run; name: string };
+export type JobAgent = { run: Run; name: string; detail?: string };
