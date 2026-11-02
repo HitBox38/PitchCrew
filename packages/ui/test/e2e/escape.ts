@@ -10,7 +10,7 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
   const back = page.getByRole('button', { name: 'Back to chat', exact: true });
   const preset = page.getByRole('combobox', { name: 'Browser viewport preset', exact: true });
   const selectPreset = async (name: string) => {
-    await preset.click();
+    await preset.press('Space');
     // Use keyboard setup so scrolling the long device list cannot swallow a
     // pointer selection on hidden native CI windows. Verify the committed value.
     await page.getByRole('option', { name, exact: true }).press('Enter');
@@ -121,10 +121,13 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     assert.equal(await back.isVisible(), true);
 
     await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
-    await page.getByRole('button', { name: 'Toggle browser device toolbar', exact: true }).click();
-    await page.keyboard.press('Escape');
-    // Closing the settings popover restores focus to its trigger. Wait for that exit
-    // before opening the preset select, or it can dismiss the selection mid-click.
+    await page
+      .getByRole('button', { name: 'Toggle browser device toolbar', exact: true })
+      .press('Space');
+    await preset.waitFor();
+    // Match the tab-paint fixture's keyboard path for hidden windows.
+    await page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
+    // Let the closing popover finish restoring focus before opening the select.
     await page.locator('[data-slot="popover-content"]').waitFor({ state: 'detached' });
     await selectPreset('Desktop 1440');
     await until(async () => {

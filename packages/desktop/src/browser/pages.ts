@@ -26,6 +26,8 @@ export interface NativeGroup extends RelayGroup {
   create(existingContents?: WebContents, select?: boolean): Promise<RelayPage>;
   changed(): void;
   recover(id: string): Promise<boolean>;
+  navigate(id: string, url: string): Promise<void>;
+  stop(id: string): void;
   close(id: string): Promise<void>;
   appearance: Map<string, 'system' | 'light' | 'dark'>;
   mutate<T>(operation: () => Promise<T>): Promise<T>;
@@ -77,6 +79,9 @@ export const createNativeGroup = (
     autoplayPolicy: 'user-gesture-required',
   };
   const errors = new Map<string, string>();
+  const navigationUrls = new Map<string, string>();
+  const errorDetails = new Map<string, string>();
+  const pendingNavigations = new Map<string, () => void>();
   const crashed = new Set<string>();
   const addresses = new Map<string, string>();
   const logicalTabs = new Map<string, string>();
@@ -141,6 +146,10 @@ export const createNativeGroup = (
         dom.forget(created.id);
         if (!id) return;
         errors.delete(id);
+        navigationUrls.delete(id);
+        errorDetails.delete(id);
+        pendingNavigations.get(id)?.();
+        pendingNavigations.delete(id);
         crashed.delete(id);
         addresses.delete(id);
         logicalTabs.delete(id);
@@ -381,10 +390,17 @@ export const createNativeGroup = (
         contents.on('did-stop-loading', group.changed);
         contents.on('did-navigate', (_event, url) => {
           addresses.set(pageId, url);
+          navigationUrls.delete(pageId);
+          errors.delete(pageId);
+          errorDetails.delete(pageId);
           group.changed();
         });
-        contents.on('did-navigate-in-page', (_event, url) => {
+        contents.on('did-navigate-in-page', (_event, url, mainFrame) => {
+          if (!mainFrame) return;
           addresses.set(pageId, url);
+          navigationUrls.delete(pageId);
+          errors.delete(pageId);
+          errorDetails.delete(pageId);
           group.changed();
         });
         contents.on('page-title-updated', group.changed);
@@ -405,9 +421,9 @@ export const createNativeGroup = (
             })
             .catch(() => {});
         });
-        contents.on('did-start-navigation', (_event, _url, inPlace, mainFrame) => {
+        contents.on('did-start-navigation', (_event, url, inPlace, mainFrame) => {
           if (mainFrame) {
-            if (!crashed.has(pageId)) errors.delete(pageId);
+            navigationUrls.set(pageId, nativeBrowserPageUrl(url));
             if (!inPlace) {
               favicons.delete(pageId);
               iconRequests.get(pageId)?.abort();
@@ -415,12 +431,12 @@ export const createNativeGroup = (
             group.changed();
           }
         });
-        contents.on('did-fail-load', (_event, code, _description, _url, mainFrame) => {
-          if (mainFrame && code !== -3)
-            errors.set(
-              pageId,
-              `The page could not load (error ${code}). Check the address or reload.`,
-            );
+        contents.on('did-fail-load', (_event, code, description, url, mainFrame) => {
+          if (mainFrame && code !== -3) {
+            navigationUrls.set(pageId, nativeBrowserPageUrl(url));
+            errors.set(pageId, 'Check the address and your connection, then try again.');
+            errorDetails.set(pageId, `${description} (${code})`);
+          }
           group.changed();
         });
         contents.on('render-process-gone', () => {
@@ -488,6 +504,53 @@ export const createNativeGroup = (
       } finally {
         closing.delete(id);
       }
+    },
+    navigate: async (id, value) => {
+      const page = group.pages.get(id);
+      if (!page || page.contents.isDestroyed()) throw new Error('Browser tab is closed.');
+      if (group.manualUntil <= Date.now()) throw new Error('Browser control changed.');
+      const url = new URL(value);
+      if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password)
+        throw new Error('Only public HTTP(S) pages are available.');
+      navigationUrls.set(id, url.href);
+      group.changed();
+      pendingNavigations.get(id)?.();
+      let stopped = false;
+      let cancel = () => {};
+      const cancellation = new Promise<never>((_resolve, reject) => {
+        cancel = () => {
+          stopped = true;
+          reject(new Error('Navigation stopped (ERR_ABORTED).'));
+        };
+      });
+      pendingNavigations.set(id, cancel);
+      try {
+        await Promise.race([
+          (async () => {
+            await assertPublicUrl(value);
+            if (stopped) throw new Error('Navigation stopped (ERR_ABORTED).');
+            if (group.manualUntil <= Date.now()) throw new Error('Browser control changed.');
+            await page.contents.loadURL(value);
+          })(),
+          cancellation,
+        ]);
+      } catch (error) {
+        if (!group.pages.has(id) || page.contents.isDestroyed()) return;
+        // Stop/replacement is an intentional cancellation, not a failed page.
+        if (stopped || (error instanceof Error && 'code' in error && error.code === 'ERR_ABORTED'))
+          throw error;
+        errors.set(id, 'Check the address and your connection, then try again.');
+        errorDetails.set(id, error instanceof Error ? error.message : 'Navigation failed.');
+        group.changed();
+      } finally {
+        if (pendingNavigations.get(id) === cancel) pendingNavigations.delete(id);
+        group.changed();
+      }
+    },
+    stop: (id) => {
+      // Electron can resolve loadURL on Stop, so cancel the caller independently.
+      pendingNavigations.get(id)?.();
+      group.pages.get(id)?.contents.stop();
     },
     recover: async (id) => {
       if (!crashed.has(id)) return false;
@@ -569,7 +632,7 @@ export const createNativeGroup = (
           logicalId: logicalTabs.get(id) ?? id,
           title: contents.getTitle(),
           url: nativeBrowserPageUrl(contents.getURL()),
-          loading: contents.isLoadingMainFrame(),
+          loading: contents.isLoadingMainFrame() || pendingNavigations.has(id),
           zoomFactor: contents.getZoomFactor(),
           muted: contents.isAudioMuted(),
           floating: browserIsFloating(contents.id),
@@ -578,6 +641,8 @@ export const createNativeGroup = (
           ...(favicons.has(id) ? { favicon: favicons.get(id)! } : {}),
           ...(group.popupWindows.has(contents.id) ? { window: true } : {}),
           ...(errors.has(id) ? { error: errors.get(id)! } : {}),
+          ...(navigationUrls.has(id) ? { navigationUrl: navigationUrls.get(id)! } : {}),
+          ...(errorDetails.has(id) ? { errorDetails: errorDetails.get(id)! } : {}),
           ...(crashed.has(id) ? { crashed: true } : {}),
           canGoBack: contents.navigationHistory.canGoBack(),
           canGoForward: contents.navigationHistory.canGoForward(),

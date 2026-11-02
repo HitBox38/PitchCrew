@@ -90,13 +90,21 @@ it(
       const second = await navigate(app, `${siteOrigin}/next`, 'Fictional E2E next page');
       await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
       const address = page.getByRole('textbox', { name: 'Browser address' });
-      for (let attempt = 0; attempt < 2; attempt++) {
-        await address.fill('https://pitchcrew-browser-test.invalid');
+      const failNavigation = async (url: string) => {
+        await address.fill(url);
+        const response = page.waitForResponse(
+          (response) =>
+            response.request().method() === 'POST' &&
+            new URL(response.url()).pathname === '/api/browser/writer/input',
+        );
         await page.getByRole('button', { name: 'Go to address', exact: true }).click();
-        await page
-          .getByText(/ENOTFOUND|could not load/)
-          .first()
-          .waitFor();
+        assert.equal((await response).ok(), true);
+        await page.locator('.browser-page-error').waitFor();
+        assert.equal(await address.inputValue(), new URL(url).href);
+      };
+      for (let attempt = 0; attempt < 2; attempt++) {
+        await failNavigation('https://pitchcrew-browser-test.invalid');
+        assert.match((await page.locator('.browser-page-error').textContent()) ?? '', /ENOTFOUND/);
         for (let frame = 0; frame < 8; frame++)
           assert.equal(
             await capture(app, `failed-${attempt}-${frame}`),
@@ -105,9 +113,7 @@ it(
           );
       }
       // Unlike the DNS preflight above, this reaches Chromium and emits did-fail-load.
-      await address.fill(`${siteOrigin}/unavailable`);
-      await page.getByRole('button', { name: 'Go to address', exact: true }).click();
-      await page.locator('.browser-page-error').waitFor();
+      await failNavigation(`${siteOrigin}/unavailable`);
       for (let frame = 0; frame < 8; frame++) await capture(app, `native-failed-${frame}`);
       await page.getByRole('button', { name: 'Fictional E2E next page', exact: true }).click();
       await until(
