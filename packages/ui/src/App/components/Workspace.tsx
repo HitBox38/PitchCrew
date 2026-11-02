@@ -6,6 +6,7 @@ import { WorkspaceNotification } from '@/App/components/WorkspaceNotification.ts
 import { WorkspacePalette } from '@/App/components/WorkspacePalette.tsx';
 import { WorkspacePanels } from '@/App/components/WorkspacePanels.tsx';
 import { WorkspaceSidebar } from '@/App/components/WorkspaceSidebar.tsx';
+import { WorkspaceAppBar } from './WorkspaceAppBar.tsx';
 import { ShellShortcuts } from '@/App/components/ShellShortcuts.tsx';
 import { getWorkspaceModel } from '@/App/helpers.tsx';
 import { SidebarInset, SidebarProvider } from '@pitchcrew/design-system/sidebar';
@@ -29,9 +30,12 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
           <AgentUpdates />
           <RuntimeMaintenance />
           <ShellShortcuts go={controller.go} />
-          <a className="skip-link" href="#main">
-            Skip to content
-          </a>
+          <WorkspaceAppBar
+            data={controller.data}
+            settingsActive={controller.view === 'settings'}
+            onSearch={() => controller.setPaletteOpen(true)}
+            onAddJob={() => controller.setAdd(true)}
+          />
           <WorkspaceSidebar {...controller} />
           <SidebarInset id="main" tabIndex={-1} className="workspace-main">
             <WorkspacePage {...controller} />

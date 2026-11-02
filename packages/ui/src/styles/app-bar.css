@@ -1,0 +1,62 @@
+/* Quiet tools on the paper leave a broad drag region between navigation and live work. */
+.workspace-app-bar {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 12px;
+  color: var(--ink-soft);
+  background: var(--paper);
+}
+.desktop-titlebar:has(.workspace-app-bar) > .desktop-titlebar-brand {
+  display: none;
+}
+.workspace-app-bar-tools,
+.workspace-app-bar-status {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 2px;
+  -webkit-app-region: no-drag;
+}
+.workspace-app-bar-status {
+  margin-left: auto;
+  gap: 6px;
+}
+.workspace-app-bar-brand {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  font-weight: 600;
+}
+.workspace-settings[aria-current='page'] {
+  color: var(--ink);
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+/* Windows/Linux overlay buttons occupy the right edge; macOS traffic lights occupy the left. */
+:root[data-desktop]:not([data-desktop='darwin']) .workspace-app-bar {
+  padding-right: 148px;
+}
+:root[data-desktop='darwin'] .workspace-app-bar {
+  padding-left: 84px;
+}
+:root[data-desktop='darwin'][data-fullscreen='true'] .workspace-app-bar {
+  padding-left: 12px;
+}
+@media (width < 68rem) {
+  .workspace-app-bar-brand {
+    display: none;
+  }
+}
+@media (width < 56rem) {
+  .workspace-app-bar {
+    gap: 8px;
+  }
+}
+@media (pointer: coarse) {
+  .workspace-app-bar :is(.sidebar-strip-button, .notification-bell) {
+    width: 44px;
+    height: 44px;
+  }
+}

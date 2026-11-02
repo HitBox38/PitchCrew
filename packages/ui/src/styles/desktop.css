@@ -1,12 +1,15 @@
-/* Desktop chrome is the same paper as the workspace: a draggable inset for the native window
- * controls, with no rule between it and the sidebar or page. */
+/* Shared app chrome. The legacy height variable also bounds browser workspaces and portaled
+ * surfaces, keeping page, native guests and sheets below the same app bar. */
+:root {
+  --desktop-titlebar-height: 0px;
+}
 .desktop-titlebar {
   display: none;
 }
-:root[data-desktop] {
+:root:is([data-desktop], :has(.workspace-app-bar)) {
   --desktop-titlebar-height: 40px;
 }
-:root[data-desktop] .desktop-titlebar {
+:root:is([data-desktop], :has(.workspace-app-bar)) .desktop-titlebar {
   position: fixed;
   inset: 0 0 auto;
   z-index: 40;
@@ -22,38 +25,45 @@
   user-select: none;
   -webkit-app-region: drag;
 }
-:root[data-desktop] #root {
+:root:is([data-desktop], :has(.workspace-app-bar)) #root {
   padding-top: var(--desktop-titlebar-height);
 }
-:root[data-desktop] [data-slot='sidebar-wrapper'],
+:root:is([data-desktop], :has(.workspace-app-bar)) [data-slot='sidebar-wrapper'],
 :root[data-desktop] .boot {
   min-height: calc(100svh - var(--desktop-titlebar-height));
 }
-:root[data-desktop] [data-slot='sidebar-container'] {
+:root:is([data-desktop], :has(.workspace-app-bar)) [data-slot='sidebar-container'] {
   top: var(--desktop-titlebar-height);
   height: calc(100svh - var(--desktop-titlebar-height));
 }
 /* Portaled sheets share the workspace bounds, including the mobile sidebar. */
-:root[data-desktop] [data-slot='sheet-overlay'] {
+:root:is([data-desktop], :has(.workspace-app-bar)) [data-slot='sheet-overlay'] {
   top: var(--desktop-titlebar-height);
 }
-:root[data-desktop] [data-sheet-content] {
+:root:is([data-desktop], :has(.workspace-app-bar)) [data-sheet-content] {
   max-height: calc(100dvh - var(--desktop-titlebar-height));
 }
-:root[data-desktop] [data-sheet-content]:is([data-side='left'], [data-side='right']) {
+:root:is([data-desktop], :has(.workspace-app-bar))
+  [data-sheet-content]:is([data-side='left'], [data-side='right']) {
   top: var(--desktop-titlebar-height);
   bottom: 0;
   height: calc(100dvh - var(--desktop-titlebar-height));
 }
-:root[data-desktop] [data-sheet-content][data-side='top'] {
+:root:is([data-desktop], :has(.workspace-app-bar)) [data-sheet-content][data-side='top'] {
   top: var(--desktop-titlebar-height);
 }
-:root[data-desktop] .skip-link:focus {
+:root:is([data-desktop], :has(.workspace-app-bar)) .skip-link:focus {
   top: calc(var(--desktop-titlebar-height) + 10px);
 }
-:root[data-desktop='darwin'][data-fullscreen='true'] {
+:root[data-desktop='darwin'][data-fullscreen='true']:not(:has(.workspace-app-bar)) {
   --desktop-titlebar-height: 0px;
 }
-:root[data-desktop='darwin'][data-fullscreen='true'] .desktop-titlebar {
+:root[data-desktop='darwin'][data-fullscreen='true']:not(:has(.workspace-app-bar))
+  .desktop-titlebar {
   display: none;
+}
+@media (pointer: coarse) {
+  :root:has(.workspace-app-bar) {
+    --desktop-titlebar-height: 48px;
+  }
 }

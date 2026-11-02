@@ -2,6 +2,8 @@
 @import './styles/base.css' layer(base);
 @import './styles/identity.css' layer(components);
 @import './styles/desktop.css' layer(components);
+@import './styles/app-bar.css' layer(components);
+@import './styles/app-updates.css' layer(components);
 @import './styles/sidebar.css' layer(components);
 @import './styles/conversation-navigation.css' layer(components);
 @import './styles/workspace.css' layer(components);
