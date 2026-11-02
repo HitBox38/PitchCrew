@@ -1,4 +1,4 @@
-import { sanitizeAgentProblem } from '@pitchcrew/core/telemetry-errors';
+import { agentProblemFingerprint, sanitizeAgentProblem } from '@pitchcrew/core/telemetry-errors';
 
 /** Rebuild even already-encoded SDK payloads; never trust exception text or nested objects. */
 export const sanitizeException = (
@@ -7,17 +7,29 @@ export const sanitizeException = (
   if (input.error_source === 'agent_report') {
     const problem = sanitizeAgentProblem(input);
     if (!problem) return null;
-    const issue = `Pitchcrew agent technical problem: ${problem.error_area}`;
+    const issue = problem.error_summary
+      ? `Pitchcrew ${problem.error_kind === 'missing_capability' ? 'missing capability' : 'bug'}: ${problem.error_summary}`
+      : `Pitchcrew agent technical problem: ${problem.error_area}`;
+    const description = problem.error_summary
+      ? [
+          issue,
+          `Expected: ${problem.error_expected}`,
+          `Actual: ${problem.error_actual}`,
+          ...(problem.error_steps ? [`Steps: ${problem.error_steps}`] : []),
+          ...(problem.error_workaround ? [`Workaround: ${problem.error_workaround}`] : []),
+          ...(problem.error_tool ? [`Tool: ${problem.error_tool}`] : []),
+        ].join('\n')
+      : issue;
     return {
       ...problem,
       $exception_list: [
         {
           type: 'technical_problem',
-          value: issue,
+          value: description,
           mechanism: { type: 'agent_report', handled: true, synthetic: true },
         },
       ],
-      $exception_fingerprint: `pitchcrew-v1:agent_report:technical_problem:${problem.error_area}`,
+      $exception_fingerprint: agentProblemFingerprint(problem),
       $exception_level: 'error',
       $issue_name: issue,
     };

@@ -8,14 +8,16 @@ export const DiagnosticSettings = () => {
   return (
     <label className="settings-row" htmlFor="diagnostic-analytics">
       <span>
-        <strong>Share anonymous diagnostics</strong>
+        <strong>Share diagnostics</strong>
         <span className="quiet block">
-          Send content-free reliability and performance measurements. Requires usage analytics.
+          Send reliability measurements and agent-written bug or missing-capability reports to
+          PostHog, including expected and actual behavior. Reports should omit private content;
+          common identifiers are redacted. Requires usage analytics.
         </span>
       </span>
       <Switch
         id="diagnostic-analytics"
-        aria-label="Share anonymous diagnostics"
+        aria-label="Share diagnostics"
         checked={allowed && enabled}
         disabled={!allowed}
         onCheckedChange={setEnabled}

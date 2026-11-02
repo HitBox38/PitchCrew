@@ -1,8 +1,7 @@
-import { agentProblemAreas } from '@pitchcrew/core/telemetry-errors';
-import { z } from 'zod';
+import { agentProblemInput, sanitizeAgentProblem } from '@pitchcrew/core/telemetry-errors';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-// Capability objects expire with their runs. At most one report per fixed area survives a retry.
+// Capability objects expire with their runs. Exact duplicates and report volume are bounded.
 const reports = new WeakMap<RunCapability, Set<string>>();
 
 export const reportTechnicalProblem = (
@@ -10,20 +9,27 @@ export const reportTechnicalProblem = (
   capability: RunCapability,
   data: unknown,
 ) => {
-  const { area } = z
-    .object({ area: z.enum(agentProblemAreas) })
-    .strict()
-    .parse(data);
+  const input = agentProblemInput.parse(data);
+  const properties = sanitizeAgentProblem({
+    error_source: 'agent_report',
+    error_category: 'technical_problem',
+    error_area: input.area,
+    error_kind: input.kind,
+    error_summary: input.summary,
+    error_expected: input.expected,
+    error_actual: input.actual,
+    error_steps: input.steps,
+    error_workaround: input.workaround,
+    error_tool: input.tool,
+  })!;
+  const identity = JSON.stringify(properties);
   const seen = reports.get(capability) ?? new Set<string>();
-  if (seen.has(area)) return { ok: true, duplicate: true };
-  seen.add(area);
+  if (seen.has(identity)) return { ok: true, duplicate: true };
+  if (seen.size >= 8) return { ok: true, duplicate: false, limited: true };
+  seen.add(identity);
   reports.set(capability, seen);
   try {
-    context.diagnostics?.record('$exception', {
-      error_source: 'agent_report',
-      error_category: 'technical_problem',
-      error_area: area,
-    });
+    context.diagnostics?.record('$exception', properties);
   } catch {
     // Reporting must never become another blocker, even when the diagnostic sink fails.
   }
