@@ -49,6 +49,7 @@ export const mcpGatewayTools = Object.freeze({
   bulk_move_jobs: 'pitchcrew_bulk_move_jobs',
   bulk_delete_jobs: 'pitchcrew_bulk_delete_jobs',
   propose_skill: 'pitchcrew_propose_skill',
+  read_skill: 'pitchcrew_read_skill',
   conversations: 'pitchcrew_list_conversations',
   conversation_messages: 'pitchcrew_read_conversation',
   create_group: 'pitchcrew_create_group',

@@ -52,6 +52,7 @@ const labels: Record<string, string> = {
   roles: 'Checking crew',
   chat_attachment: 'Reading attachment',
   recall_memory: 'Recalling saved context',
+  read_skill: 'Reading skill instructions',
   save_memory: 'Saving a memory',
   scan_job_sources: 'Scanning saved job boards',
   import_job_link: 'Reading job link and saving job details',

@@ -237,6 +237,20 @@ it('persists agent-created groups and user-visible read-only DMs without resetti
 });
 it('summarizes before continuing, trims the next runtime context and retains original source messages', async () => {
   const { request, daemon } = await fixture();
+  const standing = daemon.service.saveSkill({
+    name: 'Standing guidance',
+    content: 'Keep fictional summaries concise.',
+    scope: 'all',
+    roleIds: [],
+  });
+  const deferred = daemon.service.saveSkill({
+    name: 'Fictional procedure',
+    description: 'For fictional research.',
+    content: 'Deferred fictional instructions.',
+    includeInEveryRun: false,
+    scope: 'all',
+    roleIds: [],
+  });
   const contexts: ChatContext[] = [];
   vi.spyOn(adapters.demo, 'chat').mockImplementation(async (context) => {
     contexts.push(context);
@@ -263,6 +277,9 @@ it('summarizes before continuing, trims the next runtime context and retains ori
       ),
   );
   expect(contexts).toHaveLength(3);
+  expect(contexts[0].skills).toEqual([standing, deferred]);
+  expect(contexts[1].skills).toEqual([standing]);
+  expect(contexts[2].skills).toEqual([standing, deferred]);
   expect(
     contexts[2].messages.some((message) => message.content === 'Original remote-work request.'),
   ).toBe(false);

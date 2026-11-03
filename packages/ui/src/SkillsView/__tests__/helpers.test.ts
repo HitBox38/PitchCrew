@@ -1,5 +1,7 @@
 import { expect, it } from 'vitest';
 import type { Skill } from '@pitchcrew/core';
+import { baseSkills } from '@pitchcrew/core/base-skills';
+import { initialSkillDraft } from '../components/SkillEditor/helpers.ts';
 import {
   groupedStarterErrors,
   latestSuccessfulCheck,
@@ -74,4 +76,22 @@ it('reports the latest successful update check', () => {
     ]),
   ).toBe('2026-10-03T00:00:00.000Z');
   expect(latestSuccessfulCheck([])).toBeUndefined();
+});
+
+it('preserves saved delivery and defaults manual skills, imports and starter restoration deliberately', () => {
+  const initial = { skill: null, starter: null, initialRole: null, importing: false };
+  expect(initialSkillDraft(initial).includeInEveryRun).toBe(true);
+  expect(initialSkillDraft({ ...initial, importing: true }).includeInEveryRun).toBe(false);
+  expect(initialSkillDraft({ ...initial, skill: skill({}) }).includeInEveryRun).toBe(true);
+  expect(
+    initialSkillDraft({ ...initial, skill: skill({ includeInEveryRun: false }) }).includeInEveryRun,
+  ).toBe(false);
+  for (const name of ['prompt-injection-guard', 'cover-letter']) {
+    const starter = baseSkills.find((entry) => entry.name === name)!;
+    expect(initialSkillDraft({ ...initial, importing: true, starter }).includeInEveryRun).toBe(
+      name === 'prompt-injection-guard',
+    );
+  }
+  const starter = baseSkills.find((entry) => entry.name === 'career-application-tailoring')!;
+  expect(initialSkillDraft({ ...initial, starter }).includeInEveryRun).toBe(false);
 });
