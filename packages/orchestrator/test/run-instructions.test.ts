@@ -62,38 +62,3 @@ it('settles the other writes before reporting a failure so retries cannot race t
   release();
   expect(await result).toBe('Fixture write failure');
 });
-
-it('keeps deferred bodies out of native instructions while retaining exact skill artifacts', async () => {
-  const role = { instructions: 'Fictional standing instructions.' } as Role;
-  const skills = ['historical', 'selected', 'deferred'].map(
-    (id) =>
-      ({
-        id,
-        name: `Skill ${id}`,
-        description: `Use for ${id}.`,
-        content: `Exact ${id} instructions.`,
-        ...(id === 'historical' ? {} : { includeInEveryRun: false }),
-      }) as Skill,
-  );
-  await writeRunInstructions({} as CrewContext, '/fictional/run', role, skills, [skills[1]!]);
-
-  const instructions = vi
-    .mocked(writeFile)
-    .mock.calls.find(([path]) => path === '/fictional/run/AGENTS.md')![1] as string;
-  expect(instructions).toContain(role.instructions);
-  expect(instructions).toContain(skills[0]!.content);
-  expect(instructions).toContain(skills[1]!.content);
-  expect(instructions).not.toContain(skills[2]!.content);
-  expect(instructions).toContain('pitchcrew_read_skill using its id');
-  expect(instructions).toContain(
-    JSON.stringify([
-      { id: skills[2]!.id, name: skills[2]!.name, description: skills[2]!.description },
-    ]),
-  );
-  for (const item of skills)
-    expect(writeFile).toHaveBeenCalledWith(
-      `/fictional/run/skills/${item.id}/SKILL.md`,
-      `---\nname: ${JSON.stringify(item.name)}\ndescription: ${JSON.stringify(item.description)}\n---\n\n${item.content}\n`,
-      'utf8',
-    );
-});

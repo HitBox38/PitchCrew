@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Role, Skill, Snapshot } from '@pitchcrew/core';
+import type { Role, Snapshot } from '@pitchcrew/core';
 import {
   creationInput,
   initialCreation,
@@ -86,33 +86,5 @@ describe('agent setup decisions', () => {
     const draft = initialCreation(data);
     draft.skills = [{ id: 'removed', updatedAt: '2030-01-01T00:00:00Z' }];
     expect(stepError(3, draft, data)).toContain('changed or was removed');
-  });
-  it('allows large shared and selected skills without treating assignment as a prompt budget', () => {
-    const skills = [
-      {
-        id: 'shared',
-        updatedAt: '2030-01-01T00:00:00Z',
-        name: 'Standing guidance',
-        description: '',
-        content: 'a'.repeat(50000),
-        scope: 'all',
-        roleIds: [],
-      },
-      {
-        id: 'cover-letter',
-        updatedAt: '2030-01-01T00:00:00Z',
-        name: 'Cover letter',
-        description: '',
-        content: 'b'.repeat(50000),
-        includeInEveryRun: false,
-        scope: 'roles',
-        roleIds: ['writer'],
-      },
-    ] as Skill[];
-    const draft = initialCreation(data);
-    draft.skills = [{ id: skills[1].id, updatedAt: skills[1].updatedAt }];
-    expect(stepError(3, draft, { ...data, skills })).toBe('');
-    skills[1] = { ...skills[1], updatedAt: '2030-01-02T00:00:00Z' };
-    expect(stepError(3, draft, { ...data, skills })).toContain('changed or was removed');
   });
 });

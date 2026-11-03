@@ -317,7 +317,6 @@ describe.each([
       const tools = request.args[request.args.indexOf('--tools') + 1].split(',');
       expect(tools).toEqual(
         expect.arrayContaining([
-          'mcp__pitchcrew_read_skill',
           'mcp__pitchcrew_check_linkedin_draft',
           'mcp__pitchcrew_list_conversations',
           'mcp__pitchcrew_read_conversation',

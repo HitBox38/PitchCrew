@@ -1,6 +1,5 @@
 import type { RoleSkillsProps } from '@/components/RoleSettings/types.ts';
 import { Button } from '@pitchcrew/design-system/button';
-import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
 
 /** Shared and assigned skills that new runs copy; assignments are managed on Skills. */
 export const RoleSkills = ({ role, data, onManageSkills }: RoleSkillsProps) => {
@@ -21,9 +20,6 @@ export const RoleSkills = ({ role, data, onManageSkills }: RoleSkillsProps) => {
           {skills.map((skill) => (
             <li key={skill.id} className="ui-chip" title={skill.description}>
               {skill.name}
-              <span className="agent-skill-scope">
-                {skillIncludedEveryRun(skill) ? 'Every run' : 'When relevant'}
-              </span>
               {skill.scope === 'all' ? <span className="agent-skill-scope">All agents</span> : null}
             </li>
           ))}

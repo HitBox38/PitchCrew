@@ -1,5 +1,4 @@
 import type { SkillProposal } from '@pitchcrew/core';
-import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
 import { ClayProposalHeader } from '@/ChatWork/components/ClayProposalHeader.tsx';
 import { ProposalFooter } from '@/ChatWork/components/ProposalFooter.tsx';
 import { skillProposalSummary } from '@/ChatWork/summary.ts';
@@ -28,9 +27,6 @@ export const ClaySkillProposal = ({ proposal, name, working, act }: ClaySkillPro
         {proposal.reason}
       </MessageResponse>
       {skill.description ? <p className="clay-proposal-quiet">{skill.description}</p> : null}
-      <p className="clay-proposal-quiet">
-        {skillIncludedEveryRun(skill) ? 'Included in every run' : 'Read when relevant'}
-      </p>
       <section className="clay-proposal-part" aria-label="Skill instructions">
         <h5>Exact instructions</h5>
         <div className="clay-proposal-tray">
@@ -43,7 +39,7 @@ export const ClaySkillProposal = ({ proposal, name, working, act }: ClaySkillPro
         ) : null}
       </section>
       <ProposalFooter
-        note="Available in new runs after you add it."
+        note="Applies to new runs after you add it."
         path={`/skill-proposals/${proposal.id}/decide`}
         approveLabel="Add skill"
         working={working}

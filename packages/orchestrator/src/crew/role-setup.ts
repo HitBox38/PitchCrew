@@ -15,6 +15,14 @@ export const validateRoleSetup = (context: CrewContext, input: RoleSetup): Skill
       throw new Error('A selected skill changed. Review the current skills and try again.');
     return skill;
   });
+  const assigned = context
+    .skills()
+    .filter((skill) => skill.scope === 'all' || selected.some((item) => item.id === skill.id));
+  const total = assigned.reduce(
+    (size, skill) => size + skill.name.length + skill.description.length + skill.content.length,
+    0,
+  );
+  if (total > 60000) throw new Error('Assigned skills must total at most 60,000 characters.');
   if (input.routine) {
     if (input.routine.roleId !== input.id)
       throw new Error('The first routine must belong to the new agent.');

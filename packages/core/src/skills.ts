@@ -51,8 +51,6 @@ export const skillInput = z
     name: z.string().trim().min(1).max(80),
     description: z.string().trim().max(500).default(''),
     content: z.string().trim().min(1).max(skillContentLimit),
-    // Missing on historical skills means full inclusion; resolve creation defaults in the service.
-    includeInEveryRun: z.boolean().optional(),
     scope: z.enum(['all', 'roles']),
     roleIds: z.array(roleIdSchema).max(50).default([]),
     source: skillSourceSchema.optional(),

@@ -112,18 +112,6 @@ _Avoid_: Sole responder
 Persistent context saved locally for an individual agent, available across that agent's conversations. The agent recalls it when it judges it relevant or when the user asks it to.
 _Avoid_: Conversation history (when referring to saved context across conversations)
 
-**Skill**:
-User-managed, reusable Markdown guidance assigned to all crew agents or selected agents. A skill grants no additional capabilities or approvals.
-_Avoid_: Tool, capability (when referring to reusable agent guidance)
-
-**Skill assignment**:
-The crew agents eligible to receive a skill's guidance, independent of a user's selection of that skill for a particular request.
-_Avoid_: Skill selection (when referring to the agents a skill is assigned to)
-
-**Explicit skill selection**:
-A user's choice of a specific assigned skill for a request, bound to the skill version selected for that request. Selecting a skill does not grant tool access or approve a restricted action.
-_Avoid_: Skill assignment (when referring to a choice for one request), approval
-
 **Memory sharing**:
 An agent communicates relevant recalled context to another agent through a direct or group conversation. Each agent reads its own memory directly, while the user can inspect all agents' memories.
 _Avoid_: Shared memory pool

@@ -8,7 +8,6 @@
     "./isolated-worker": "./src/isolated-worker.ts",
     "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
-    "./skill-delivery": "./src/skill-delivery.ts",
     "./states": "./src/states.ts",
     "./desktop-links": "./src/desktop-links.ts",
     "./job-link-recognition": "./src/job-link-recognition.ts",

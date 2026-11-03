@@ -25,8 +25,7 @@ export const SkillUpdateReview = (c: ReturnType<typeof useSkillUpdate>) => {
               <>
                 <p className="skills-update-consequence">
                   Using it replaces the saved name, description and instructions, including any
-                  local edits. Agent assignments and Include in every run are kept. Future runs use
-                  the update.
+                  local edits. Agent assignments are kept. Future runs use the update.
                 </p>
                 <SkillUpdateChanges review={c.review} />
               </>

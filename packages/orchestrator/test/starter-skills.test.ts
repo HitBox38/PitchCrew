@@ -19,7 +19,6 @@ describe('starter skills at workspace startup', () => {
         bundledId: starter.name,
         scope: starter.defaultScope ?? 'roles',
         roleIds: starter.defaultRoles,
-        includeInEveryRun: starter.includeInEveryRun ?? false,
       });
       expect(guard.source).toBeUndefined();
       for (const role of daemon.service.board.list<import('@pitchcrew/core').Role>('role')) {
@@ -62,7 +61,6 @@ describe('starter skills at workspace startup', () => {
         })
       ).result;
       expect(edited.bundledId).toBe(starter.name);
-      expect(edited.includeInEveryRun).toBe(starter.includeInEveryRun ?? false);
       daemon.service.board.rebuild();
       await daemon.service.initialize(true);
       const bundled = () =>
@@ -110,7 +108,6 @@ describe('starter skills at workspace startup', () => {
       expect(snapshot.skills.find((skill) => skill.name === starter.name)).toMatchObject({
         scope: starter.defaultScope ?? 'roles',
         roleIds: starter.defaultScope === 'all' ? [] : starter.defaultRoles,
-        includeInEveryRun: starter.includeInEveryRun ?? false,
       });
     const cover = snapshot.skills.find((skill) => skill.name === 'cover-letter')!;
     const humanizer = snapshot.skills.find((skill) => skill.name === 'humanizer')!;

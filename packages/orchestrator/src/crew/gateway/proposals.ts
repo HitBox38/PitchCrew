@@ -59,17 +59,13 @@ export const proposeSkill = async (
   if (proposalCount() >= 3) throw new Error('Three skill suggestions maximum per run.');
   const skill =
     input.suggestion.kind === 'custom'
-      ? skillInput.parse({
-          ...input.suggestion.skill,
-          includeInEveryRun: input.suggestion.skill.includeInEveryRun ?? true,
-        })
+      ? skillInput.parse(input.suggestion.skill)
       : skillInput.parse({
           ...(await skillDirectory.preview(
             input.suggestion.url,
             context.controllers.get(capability.runId)?.signal,
           )),
           ...input.suggestion.assignment,
-          includeInEveryRun: false,
         });
   if (
     context.closing ||
