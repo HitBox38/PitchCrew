@@ -1,10 +1,12 @@
 import { Board } from '@pitchcrew/board';
+import { createHash } from 'node:crypto';
 import type {
   Conversation,
   ChatMessage,
   Role,
   ConversationSession,
   AgentMemory,
+  Skill,
 } from '@pitchcrew/core';
 import { afterEach, expect, it } from 'vitest';
 import { prepareSession, finishSession } from '../src/crew/sessions.ts';
@@ -139,4 +141,74 @@ it('does not resume an interrupted native session', () => {
   expect(next.session.nativeId).toBeNull();
   expect(next.messages).toEqual(messages);
   expect(next.directory).not.toBe(first.directory);
+});
+
+it('starts a new session for pre-delivery native transcripts even when their skills are unchanged', () => {
+  const context = fixture();
+  const oldRevision = createHash('sha256')
+    .update(
+      JSON.stringify({
+        role,
+        skills: [],
+        participants: conversation.participants,
+        leadId: conversation.leadId,
+        cardId: conversation.cardId,
+        summary: conversation.summary,
+        memories: [],
+      }),
+    )
+    .digest('hex');
+  const oldSession: ConversationSession = {
+    id: 'old-session',
+    nativeId: '11111111-1111-4111-8111-111111111111',
+    directoryId: 'old-directory',
+    threadId: conversation.id,
+    roleId: role.id,
+    runtime: role.runtime,
+    revision: oldRevision,
+    lastMessageId: 'reply',
+    invalid: false,
+  };
+  context.board.record('conversation_session', oldSession, role.id, 'Saved old transcript');
+  const next = prepareSession(context, role, [], conversation, messages);
+  expect(next.session.nativeId).toBeNull();
+  expect(next.session.revision).not.toBe(oldRevision);
+  expect(next.directory).not.toContain('old-directory');
+  expect(next.messages).toEqual(messages);
+  next.onSession('22222222-2222-4222-8222-222222222222');
+  finishSession(context, next.session, 'reply', false);
+  expect(prepareSession(context, role, [], conversation, messages).session.nativeId).toBe(
+    '22222222-2222-4222-8222-222222222222',
+  );
+});
+
+it('refreshes native context for skill delivery, body and assignment changes', () => {
+  const context = fixture();
+  const skill: Skill = {
+    id: 'fixture-skill',
+    name: 'Fixture skill',
+    description: 'Use when relevant.',
+    content: 'Exact initial instructions.',
+    includeInEveryRun: false,
+    scope: 'roles',
+    roleIds: [role.id],
+    createdAt: '',
+    updatedAt: '',
+    deletedAt: null,
+  };
+  const first = prepareSession(context, role, [skill], conversation, messages);
+  first.onSession('11111111-1111-4111-8111-111111111111');
+  finishSession(context, first.session, 'reply', false);
+  expect(prepareSession(context, role, [skill], conversation, messages).session.nativeId).toBe(
+    first.session.nativeId,
+  );
+  for (const skills of [
+    [{ ...skill, includeInEveryRun: true }],
+    [{ ...skill, content: 'Updated instructions.' }],
+    [],
+  ]) {
+    const changed = prepareSession(context, role, skills, conversation, messages);
+    expect(changed.session.nativeId).toBeNull();
+    expect(changed.directory).not.toBe(first.directory);
+  }
 });

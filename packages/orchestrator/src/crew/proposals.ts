@@ -6,6 +6,7 @@ import {
   type SkillProposal,
 } from '@pitchcrew/core';
 import { configRevision } from './pipeline/snapshots.ts';
+import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
 import { z } from 'zod';
 import type { CrewContext } from './types.ts';
 
@@ -93,7 +94,12 @@ export const decideSkillProposal = (
     const proposal = context.board.get<SkillProposal>('skill_proposal', z.uuid().parse(id));
     if (proposal.status !== 'pending') throw new Error('This proposal has already been decided.');
     // Save the reviewed snapshot; approving never fetches a potentially changed remote file.
-    const skill = approved ? context.saveSkill(proposal.skill) : null;
+    const skill = approved
+      ? context.saveSkill({
+          ...proposal.skill,
+          includeInEveryRun: skillIncludedEveryRun(proposal.skill),
+        })
+      : null;
     const next: SkillProposal = {
       ...proposal,
       status: approved ? 'applied' : 'rejected',

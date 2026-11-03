@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import { checkLinkedInDraft, linkedInFieldLimits } from '../src/linkedin-draft.ts';
-import { baseSkills } from '../src/base-skills.ts';
+import { baseSkills, skillContentLimit } from '../src/base-skills.ts';
 
 it.each(Object.entries(linkedInFieldLimits))(
   'checks %s at and beyond its boundary',
@@ -74,7 +74,7 @@ it.each([
   expect(() => checkLinkedInDraft(input)).toThrow();
 });
 
-it('bundles the agreed assignments offline and fits the existing role content budget', () => {
+it('bundles the agreed assignments offline within the individual skill limit', () => {
   expect(baseSkills.find((skill) => skill.name === 'career-company-research')).toMatchObject({
     sourceType: 'bundled',
     defaultRoles: ['scout', 'career-coach'],
@@ -83,21 +83,7 @@ it('bundles the agreed assignments offline and fits the existing role content bu
     sourceType: 'bundled',
     defaultRoles: ['career-coach'],
   });
-  for (const role of ['scout', 'career-coach']) {
-    const total = baseSkills
-      .filter(
-        (skill) =>
-          skill.sourceType === 'bundled' &&
-          (skill.defaultScope === 'all' || skill.defaultRoles.includes(role)),
-      )
-      .reduce(
-        (sum, skill) =>
-          sum +
-          skill.name.length +
-          skill.description.length +
-          (skill.sourceType === 'bundled' ? skill.content.length : 0),
-        0,
-      );
-    expect(total).toBeLessThanOrEqual(60000);
-  }
+  for (const skill of baseSkills)
+    if (skill.sourceType === 'bundled')
+      expect(skill.content.length).toBeLessThanOrEqual(skillContentLimit);
 });

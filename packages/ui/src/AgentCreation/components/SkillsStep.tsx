@@ -1,15 +1,17 @@
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import { Checkbox } from '@pitchcrew/design-system/checkbox';
-import { skillSize } from '../helpers.ts';
+import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
+import { assignedSkills } from '../helpers.ts';
 import type { StepProps } from '../types.ts';
 
 export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
   const skills = data.skills.filter((skill) => !skill.deletedAt);
+  const available = assignedSkills(draft, data).length;
   return (
     <div className="agent-wizard-step">
       <p className="optional" aria-live="polite">
-        {skillSize(draft, data).toLocaleString()} / 60,000 characters assigned
+        {available} {available === 1 ? 'skill' : 'skills'} available
       </p>
       {!skills.length ? (
         <p>No saved skills yet. You can create this agent now and add skills on the Skills page.</p>
@@ -38,6 +40,9 @@ export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
                   {shared ? <span className="ui-chip">All agents</span> : null}
                 </span>
                 <span className="optional">{skill.description}</span>
+                <span className="optional">
+                  {skillIncludedEveryRun(skill) ? 'Included in every run' : 'Read when relevant'}
+                </span>
               </span>
             </label>
             <AccordionSection
@@ -69,7 +74,9 @@ export const SkillsStep = ({ draft, changeDraft, data }: StepProps) => {
             Removed skill — deselect to continue
           </label>
         ))}
-      <p className="optional">Shared skills apply automatically. Skills never grant tools.</p>
+      <p className="optional">
+        Shared skills are available automatically. Skills never grant tools.
+      </p>
     </div>
   );
 };

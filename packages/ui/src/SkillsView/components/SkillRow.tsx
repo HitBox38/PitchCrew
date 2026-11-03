@@ -34,7 +34,7 @@ export const SkillRow = ({ skill, c }: { skill: Skill; c: SkillsViewModel }) => 
             </span>
           ) : (
             <span className="skills-pebbles" title={assignment(skill, c.data.roles)}>
-              <span className="sr-only">Used by {assignment(skill, c.data.roles)}</span>
+              <span className="sr-only">Available to {assignment(skill, c.data.roles)}</span>
               {roles.slice(0, 4).map((role) => (
                 <RoleAvatar key={role.id} agentRole={role.id} size="small" />
               ))}

@@ -20,7 +20,7 @@ export const SkillAssignment = ({
   const selected = new Set(roleIds);
   return (
     <fieldset className="skills-assign">
-      <legend>Used by</legend>
+      <legend>Available to</legend>
       <div className="skills-assign-chips">
         <Button
           className="skills-assign-chip"
@@ -44,7 +44,9 @@ export const SkillAssignment = ({
           ))}
       </div>
       {scope === 'all' ? (
-        <p className="skills-assign-note">Every current and future agent receives this skill.</p>
+        <p className="skills-assign-note">
+          Every current and future agent can read this skill when relevant.
+        </p>
       ) : null}
     </fieldset>
   );

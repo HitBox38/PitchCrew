@@ -18,7 +18,7 @@ export const useSkillEditor = ({
   onSaved,
   registerLeave,
 }: SkillEditorProps) => {
-  const initial = initialSkillDraft({ skill, starter, initialRole });
+  const initial = initialSkillDraft({ skill, starter, initialRole, importing });
   const loadSkill = async () => {
     importRequest.current?.abort();
     const controller = new AbortController();
@@ -60,6 +60,7 @@ export const useSkillEditor = ({
           name,
           description,
           content,
+          includeInEveryRun,
           scope,
           roleIds: scope === 'all' ? [] : roleIds,
           ...(source ? { source } : {}),
@@ -77,6 +78,7 @@ export const useSkillEditor = ({
   const [name, setName] = useState(initial.name);
   const [description, setDescription] = useState(initial.description);
   const [content, setContent] = useState(initial.content);
+  const [includeInEveryRun, setIncludeInEveryRun] = useState(initial.includeInEveryRun);
   const [scope, setScope] = useState<'all' | 'roles'>(initial.scope);
   const [roleIds, setRoleIds] = useState<RoleId[]>(initial.roleIds);
   const [error, setError] = useState('');
@@ -88,6 +90,7 @@ export const useSkillEditor = ({
     name !== initial.name ||
     description !== initial.description ||
     content !== initial.content ||
+    includeInEveryRun !== initial.includeInEveryRun ||
     scope !== initial.scope ||
     JSON.stringify(roleIds) !== JSON.stringify(initial.roleIds);
   const guard = useUnsavedChanges(dirty, onClose);
@@ -114,6 +117,8 @@ export const useSkillEditor = ({
     setDescription,
     content,
     setContent,
+    includeInEveryRun,
+    setIncludeInEveryRun,
     scope,
     setScope,
     roleIds,
