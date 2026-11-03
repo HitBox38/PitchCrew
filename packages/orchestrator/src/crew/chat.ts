@@ -4,6 +4,7 @@ import { reserveLaunch } from './queue/admission.ts';
 import { ensureQueue } from './queue/state.ts';
 import { agentChatReferences } from '@pitchcrew/core/chat-references';
 import { selectedChatSkills } from './chat-references.ts';
+import { skillDelivery } from '@pitchcrew/core/skill-delivery';
 import { activityRuns, recordChatActivity, finishChatActivity } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn, finishUserContinuation, waitingOnUser } from './user-input/lifecycle.ts';
@@ -191,14 +192,15 @@ const startChatRunPrepared = async (
       context.runtimes.find((runtime) => runtime.id === role.runtime)!,
     );
   const skills = context.skills(roleId);
-  const selectedSkills = delivery
-    ? selectedChatSkills(
-        context,
-        context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', delivery.requestId)
-          .references,
-        roleId,
-      )
+  const chatRequest = delivery
+    ? context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', delivery.requestId)
+    : undefined;
+  const selectedSkills = chatRequest
+    ? selectedChatSkills(context, chatRequest.references, roleId)
     : [];
+  const summarizing = chatRequest?.summarize === true;
+  // Summary-only turns retain standing instructions but cannot advertise an unavailable reader.
+  const instructionSkills = summarizing ? skillDelivery(skills, selectedSkills).included : skills;
   if (context.configuring.has(roleId)) throw new Error('Wait for this role’s settings update.');
   if (!role.enabled) throw new Error('Enable this role in Crew first.');
   if (!context.runtimes.find((r) => r.id === role.runtime)?.available)
@@ -254,7 +256,7 @@ const startChatRunPrepared = async (
   const ai = beginAiRun(context.diagnostics, 'chat');
   // Start in the background; HTTP returns the run so the user can cancel setup or execution.
   void (async () => {
-    await context.writeRunInstructions(dir, role, skills);
+    await context.writeRunInstructions(dir, role, instructionSkills, selectedSkills);
     if (controller.signal.aborted) throw new Error('Run cancelled.');
     if (!canReadConversation(context, roleId, threadId))
       throw new Error('Conversation access was removed.');
@@ -276,7 +278,12 @@ const startChatRunPrepared = async (
       });
     if (conversation && adapters[role.runtime].sessionSupport === 'resume') {
       nativeSession = prepareSession(context, role, skills, conversation, messages);
-      await context.writeRunInstructions(nativeSession.directory, role, skills);
+      await context.writeRunInstructions(
+        nativeSession.directory,
+        role,
+        instructionSkills,
+        selectedSkills,
+      );
     }
     const attachments = await prepareAttachments(
       context.directory,
@@ -299,7 +306,7 @@ const startChatRunPrepared = async (
         adapters[role.runtime].chat({
           card,
           role,
-          skills,
+          skills: instructionSkills,
           selectedSkills,
           messages: nativeSession?.messages ?? messages,
           session: nativeSession
@@ -380,10 +387,6 @@ const startChatRunPrepared = async (
         context.publishChat(true);
       }
     }
-    const summarizing =
-      run.requestId &&
-      context.board.get<import('@pitchcrew/core').ChatRequest>('chat_request', run.requestId)
-        .summarize;
     if (
       !summarizing &&
       conversation &&

@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { z } from 'zod';
+import { skillDeliveryVersion } from '@pitchcrew/core/skill-delivery';
 import type {
   ConversationSession,
   Role,
@@ -21,6 +22,7 @@ export const prepareSession = (
   const revision = createHash('sha256')
     .update(
       JSON.stringify({
+        skillDeliveryVersion,
         role,
         skills,
         participants: conversation.participants,

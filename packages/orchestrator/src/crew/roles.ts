@@ -1,5 +1,6 @@
 import { cancelUserQuestions } from './user-input/lifecycle.ts';
 import { defaultInstructionHistory, instructionRevision } from '@pitchcrew/board';
+import { skillInstructions } from '@pitchcrew/adapters';
 import {
   defaultCapabilities,
   roleIdSchema,
@@ -24,6 +25,7 @@ export const writeRunInstructions = async (
   dir: string,
   role: Role,
   skills: Skill[],
+  selectedSkills: Skill[] = [],
 ): Promise<void> => {
   await mkdir(dir, { recursive: true });
   // These files are independent; finish every write before a runtime can read them.
@@ -39,7 +41,7 @@ export const writeRunInstructions = async (
     }),
     writeFile(
       join(dir, 'AGENTS.md'),
-      `${role.instructions}\n\n## Assigned skills\n\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n\n${skill.content}`).join('\n\n')}\n`,
+      `${role.instructions}\n\n${skillInstructions(skills, selectedSkills)}\n`,
       'utf8',
     ),
     writeFile(join(dir, 'CLAUDE.md'), '@AGENTS.md\n', 'utf8'),

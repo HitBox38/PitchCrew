@@ -44,12 +44,6 @@ export const assignedSkills = (draft: CreationDraft, data: Snapshot) => {
       (skill.scope === 'all' || draft.skills.some((reference) => reference.id === skill.id)),
   );
 };
-export const skillSize = (draft: CreationDraft, data: Snapshot) => {
-  return assignedSkills(draft, data).reduce(
-    (size, skill) => size + skill.name.length + skill.description.length + skill.content.length,
-    0,
-  );
-};
 export const creationInput = (draft: CreationDraft) => {
   return {
     ...draft.role,
@@ -89,8 +83,6 @@ export const stepError = (step: number, draft: CreationDraft, data: Snapshot): s
       )
     )
       return 'A selected skill changed or was removed. Deselect it and review the current version.';
-    if (skillSize(draft, data) > 60000)
-      return 'Assigned skills must total at most 60,000 characters.';
   }
   if (step === 4 && draft.scheduled) {
     if (!draft.routine.name.trim() || !draft.routine.content.trim())

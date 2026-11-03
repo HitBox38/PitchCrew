@@ -16,6 +16,7 @@ import { registerJobSourceTools } from './tools/job-sources.ts';
 import { registerApplicationInputTools } from './tools/application-input.ts';
 import { registerLinkedInTools } from './tools/linkedin.ts';
 import { registerDiagnosticTools } from './tools/diagnostics.ts';
+import { registerSkillTools } from './tools/skills.ts';
 
 const url = process.env.PITCHCREW_DAEMON_URL;
 const token = process.env.PITCHCREW_RUN_TOKEN;
@@ -39,6 +40,7 @@ if (purpose === 'source-extraction') {
 } else {
   registerDiagnosticTools(server, call);
   registerPacketTools(server, call, isolated);
+  if (execution.structuredContent.readSkills === true) registerSkillTools(server, call);
 
   if (isolated) {
     if (!['subagent', 'budget'].includes(String(execution.structuredContent.reviewMode)))
