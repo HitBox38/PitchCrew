@@ -126,9 +126,8 @@ save feedback for the end. Users can pause or end either style.
 Use compact, self-contained bundled skills under `packages/core/src/starter-skills/`
 and register assignments in `packages/core/src/base-skills.ts`. They must describe
 Pitchcrew tools and context rather than referring to unavailable career-ops
-files, scripts, trackers, CLI workers or configuration. Each skill can contain
-up to 50,000 characters; there is no combined per-role budget. New procedural
-starters load on demand, while existing saved delivery choices are preserved.
+files, scripts, trackers, CLI workers or configuration. Keep assigned content
+within the existing 60,000-character per-role budget.
 
 Add Career Coach as an ordinary editable and retireable chat role in
 `packages/board/src/board/default-roles.ts`, using existing backfill and runtime

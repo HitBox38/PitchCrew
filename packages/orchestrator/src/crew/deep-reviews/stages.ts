@@ -91,12 +91,7 @@ const executeReviewStagePrepared = async (
   context.board.record('run', run, role.id, run.message);
   const ai = beginAiRun(context.diagnostics, 'workflow');
   try {
-    await context.writeRunInstructions(
-      directory,
-      role,
-      budgetRequest ? [] : run.configuration!.skills,
-      budgetRequest ? [] : selectedSkills,
-    );
+    await context.writeRunInstructions(directory, role, run.configuration!.skills);
     const currentCard = assertReviewCurrent(context, live);
     const inputCard = child
       ? subagentCard(draftingCard(currentCard, run.purpose))

@@ -10,8 +10,6 @@ These integrations have subprocess contract coverage. Live provider executions a
 
 Before launch, independent assigned-skill and instruction-file writes run concurrently and all settle before setup finishes, including on failure. Queue dispatch checks lane and workspace capacity before reading Profile prerequisites, then rechecks admission after asynchronous validation. Authentication and final state/permission checks still gate every launch.
 
-Assigned skills use one shared delivery plan in runtime prompts and generated instruction files. Skills marked **Include in every run** and explicit selections include full instructions immediately; other assigned skills expose only catalog metadata and load through the scoped `pitchcrew_read_skill` MCP tool. Reads return the active run's frozen version, never the latest board or upstream text. Source extraction, review-deadline decisions, summary-only turns and waiting-question states receive no reader. Native discovery remains disabled where adapters disable it; oh-my-pi explicitly permits the reader in ordinary chat. A delivery-format revision resets existing native sessions on rollout. See [skill delivery](skills.md).
-
 ## Executables and models
 
 | Runtime            | Executable     | Model setting                                    |

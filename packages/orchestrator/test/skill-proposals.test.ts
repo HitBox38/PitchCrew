@@ -115,21 +115,12 @@ describe('directory imports and skill suggestions', () => {
     expect(before.skills).toEqual([]);
     const custom = before.skillProposals.find((proposal) => proposal.roleId === 'scout')!;
     const imported = before.skillProposals.find((proposal) => proposal.roleId === 'writer')!;
-    expect(custom).toMatchObject({
-      threadId: 'scout',
-      status: 'pending',
-      skill: { includeInEveryRun: true },
-    });
+    expect(custom).toMatchObject({ threadId: 'scout', status: 'pending' });
     const dm = before.conversations!.find((item) => item.kind === 'agent_dm')!;
     expect(imported).toMatchObject({
       threadId: dm.id,
       status: 'pending',
-      skill: {
-        ...directorySkill,
-        scope: 'roles',
-        roleIds: ['writer', 'reviewer'],
-        includeInEveryRun: false,
-      },
+      skill: { ...directorySkill, scope: 'roles', roleIds: ['writer', 'reviewer'] },
     });
     expect(before.messages).toEqual(
       expect.arrayContaining([
@@ -158,7 +149,6 @@ describe('directory imports and skill suggestions', () => {
       ...directorySkill,
       scope: 'roles',
       roleIds: ['writer', 'reviewer'],
-      includeInEveryRun: false,
     });
     expect(daemon.service.skills('scout')).toEqual([]);
     const events = daemon.service.board.events();
@@ -189,33 +179,6 @@ describe('directory imports and skill suggestions', () => {
       body: JSON.stringify({ approved: true }),
     });
     expect(unauthenticated.status).toBe(403);
-  });
-  it('keeps a historical imported proposal included when its delivery field is absent', async () => {
-    const { daemon, request } = await setup(14447);
-    const proposal: SkillProposal = {
-      id: crypto.randomUUID(),
-      roleId: 'scout',
-      runId: crypto.randomUUID(),
-      threadId: 'scout',
-      reason: 'Fictional legacy proposal.',
-      skill: { ...directorySkill, scope: 'roles', roleIds: ['writer'] },
-      status: 'pending',
-      skillId: null,
-      createdAt: '2026-10-01T00:00:00.000Z',
-    };
-    daemon.service.board.record('skill_proposal', proposal, 'scout', 'Fictional old proposal');
-    daemon.service.board.rebuild();
-    const approved = await request<SkillProposal>(
-      `/skill-proposals/${proposal.id}/decide`,
-      'POST',
-      {
-        approved: true,
-      },
-    );
-    expect(approved.response.status).toBe(200);
-    expect(
-      daemon.service.board.get<Skill>('skill', approved.result.skillId!).includeInEveryRun,
-    ).toBe(true);
   });
   it('bounds suggestions and rejects late remote results from cancelled capabilities', async () => {
     const { daemon, request } = await setup(14442);

@@ -16,7 +16,6 @@ import { pi } from './pi/index.ts';
 export { discoverModels, suggestedModels } from './model-discovery.ts';
 export { hasRuntimeRecommendation, recommendRuntime } from './recommendations/index.ts';
 export * from './maintenance/index.ts';
-export { skillInstructions } from './process/skill-instructions.ts';
 export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   demo,
   'claude-code': claudeCode,

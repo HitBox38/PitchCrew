@@ -5,7 +5,7 @@ import { assignedRoles } from '../helpers.ts';
 /** Read-only assignment: one chip per agent with its pebble, or All agents. */
 export const SkillAssignedChips = ({ skill, roles }: { skill: Skill; roles: Role[] }) => {
   return (
-    <ul className="skills-chips" aria-label="Available to">
+    <ul className="skills-chips" aria-label="Used by">
       {skill.scope === 'all' ? (
         <li className="ui-chip">All agents</li>
       ) : (

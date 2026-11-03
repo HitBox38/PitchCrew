@@ -169,7 +169,7 @@ describe('default crew', () => {
     expect(board.events(100)).toEqual(before);
   });
 
-  it('backfills roles above the former shared-skill budget without changing legacy skills', () => {
+  it('defers seeding if inherited shared skills exceed the creation budget', () => {
     const board = create();
     const skills: Skill[] = [0, 1].map((index) => ({
       id: `fixture-${index}`,
@@ -184,11 +184,15 @@ describe('default crew', () => {
     }));
     for (const skill of skills) board.record('skill', skill, 'user', 'Shared fixture');
     board.seedRoles();
-    expect(board.list('role')).toHaveLength(8);
-    expect(board.list('skill')).toEqual(skills);
-    const events = board.events(100);
+    expect(board.list('role')).toEqual([]);
+    board.record(
+      'skill',
+      { ...skills[0], deletedAt: '2026-10-04T01:00:00.000Z' },
+      'user',
+      'Removed fixture',
+    );
     board.seedRoles();
-    expect(board.events(100)).toEqual(events);
+    expect(board.list('role')).toHaveLength(8);
   });
 
   it('rolls back every default if an event cannot be recorded', () => {

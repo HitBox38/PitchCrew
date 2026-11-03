@@ -5,7 +5,6 @@ import { connectorTools } from '../src/connectors/tools.ts';
 import { registerQualityTools } from '../src/tools/quality.ts';
 import { registerDiagnosticTools } from '../src/tools/diagnostics.ts';
 import { registerCrewTools } from '../src/tools/crew.ts';
-import { registerSkillTools } from '../src/tools/skills.ts';
 import { registerPacketTools } from '../src/tools/packet.ts';
 import { registerComputerTools } from '../src/tools/computer.ts';
 import { registerTrackingTools } from '../src/tools/tracking.ts';
@@ -33,7 +32,6 @@ it('keeps reviewed telemetry names aligned with all advertised production tools'
     },
   });
   registerCrewTools(server, call);
-  registerSkillTools(server, call);
   registerDiagnosticTools(server, call);
   registerQualityTools(server, call);
   registerLinkedInTools(server, call);

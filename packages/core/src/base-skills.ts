@@ -18,8 +18,6 @@ interface BaseSkillMetadata {
   skillPath: string;
   defaultRoles: RoleId[];
   defaultScope?: 'all' | 'roles';
-  /** New starters load on demand unless explicitly included; saved choices are preserved. */
-  includeInEveryRun?: boolean;
   note?: string;
 }
 export type BaseSkill = BaseSkillMetadata &
@@ -37,7 +35,6 @@ export const baseSkills: BaseSkill[] = [
   },
   {
     ...promptInjectionGuard,
-    includeInEveryRun: true,
     source: 'Pitchcrew',
     sourceType: 'bundled',
     skillPath: 'src/starter-skills/prompt-injection-guard.ts',

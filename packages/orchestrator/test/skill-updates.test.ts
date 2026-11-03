@@ -63,7 +63,6 @@ describe('user-reviewed registry skill updates', () => {
       createdAt: skill.createdAt,
       scope: skill.scope,
       roleIds: skill.roleIds,
-      includeInEveryRun: false,
     });
     expect(load).toHaveBeenCalledOnce();
     expect(
@@ -224,12 +223,9 @@ describe('user-reviewed registry skill updates', () => {
     expect(daemon.service.board.events()).toEqual(events);
   });
 
-  it('accepts updates above the former total and preserves the user delivery choice', async () => {
-    const { request } = await setup(15086);
-    const { result: skill } = await request<Skill>('/skills', 'POST', {
-      ...input,
-      includeInEveryRun: true,
-    });
+  it('retains assignment limits and records no rejected approval', async () => {
+    const { daemon, request } = await setup(15086);
+    const { result: skill } = await request<Skill>('/skills', 'POST', input);
     await request('/skills', 'POST', {
       ...input,
       name: 'Other instructions',
@@ -243,16 +239,13 @@ describe('user-reviewed registry skill updates', () => {
       `/skills/${skill.id}/update/preview`,
       'POST',
     );
-    const { response, result } = await request<Skill>(
-      `/skills/${skill.id}/update/approve`,
-      'POST',
-      {
-        previewId: review.id,
-        approved: true,
-      },
-    );
-    expect(response.status).toBe(200);
-    expect(result.includeInEveryRun).toBe(true);
-    expect(result.content).toHaveLength(50000);
+    const events = daemon.service.board.events();
+    const { response } = await request(`/skills/${skill.id}/update/approve`, 'POST', {
+      previewId: review.id,
+      approved: true,
+    });
+    expect(response.status).toBe(400);
+    expect(daemon.service.board.events()).toEqual(events);
+    expect(daemon.service.skills().find((item) => item.id === skill.id)).toEqual(skill);
   });
 });

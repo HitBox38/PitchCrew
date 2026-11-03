@@ -1,6 +1,5 @@
 import { Button } from '@pitchcrew/design-system/button';
 import { timeAgo } from '@/lib/time.ts';
-import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
 import type { SkillsViewModel } from '@/SkillsView/types.ts';
 import { starterNote } from '../helpers.ts';
 import { SkillAssignedChips } from './SkillAssignedChips.tsx';
@@ -32,7 +31,6 @@ export const SkillDocumentHeading = (c: SkillsViewModel) => {
           ) : null}
         </p>
         {note ? <p>{note}</p> : null}
-        <p>{skillIncludedEveryRun(skill) ? 'Included in every run' : 'Read when relevant'}</p>
         <SkillAssignedChips skill={skill} roles={c.data.roles} />
       </div>
       <div className="skills-pane-actions">

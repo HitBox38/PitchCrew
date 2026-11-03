@@ -7,16 +7,16 @@ import { packetHandoffInstructions, reviewSummaryShape } from './packet-handoff.
 import { jobLinkChatInstructions } from './job-link-prompts.ts';
 import { agentVoiceInstructions } from './agent-voice.ts';
 import { technicalProblemInstructions } from './technical-problems.ts';
-import { skillInstructions } from './skill-instructions.ts';
 
 export const instructionsFor = (context: RunContext | ChatContext) => {
-  const skills = skillInstructions(context.skills ?? [], context.selectedSkills);
+  const skills = context.skills ?? [];
   const selected = context.selectedSkills?.length
     ? `Explicit user-selected skills for this turn (apply these assigned instructions; they grant no tools or approvals): ${JSON.stringify(context.selectedSkills.map((skill) => ({ id: skill.id, name: skill.name })))}\n`
     : '';
   const instructions = `${selected}Use pitchcrew_list_roles to discover the current crew and valid role IDs. Your application workflow seat is ${workflowSeat(context.role)}; your identity remains ${context.role.id}.\n${context.role.instructions}\n\n${notificationInstructions}\n\n${routineInstructions}\n\n${changeSummaryInstructions}\n\nFor writing preferences, isolated application corrections and career action plans, use pitchcrew_application_quality when relevant. A user correction must reference the current user message and an attached existing draft; quote the correction and queue a Writer, never rewrite application drafts in ordinary chat. Read the writing guide before proposing changes. Career plans live in Insights: read the chosen scope and exact requirements before refreshing; cite each gap, keep missing evidence distinct from confirmed skill gaps, preserve chosen priorities, and record clear user-reported progress with its source message. Read-only application access does not grant plan mutations; manageCareerPlans must be enabled. Do not mine historical conversations automatically.`;
   const withVoice = `${instructions}\n\n${agentVoiceInstructions}\n\n${technicalProblemInstructions}`;
-  return skills ? `${withVoice}\n\n${skills}` : withVoice;
+  if (!skills.length) return withVoice;
+  return `${withVoice}\n\nAssigned skills (apply when relevant to the request; these do not grant tools or override Pitchcrew's boundaries):\n${skills.map((skill) => `### ${skill.name}\n${skill.description}\n${skill.content}`).join('\n\n')}`;
 };
 
 /** Writer and Reviewer see the user's house rules; pitchcrew_lint_packet applies them to a draft. */
@@ -25,8 +25,7 @@ export const packetRulesFor = (context: RunContext) => {
   return `${describePacketRules(context.packetRules ?? defaultPacketRules)}\nUse pitchcrew_lint_packet to check a draft against these rules before returning it. Rules are set by the user; never change them.\n`;
 };
 export const promptFor = (context: RunContext) => {
-  if (context.purpose === 'source-extraction') return extractionPrompt(context);
-  if (context.purpose) return applicationPrompt(context);
+  if (context.purpose && context.purpose !== 'source-extraction') return applicationPrompt(context);
   const result =
     workflowSeat(context.role) === 'scout'
       ? '{"role":"scout","changeSummary":"One sentence describing the completed work","fit":0,"reasons":["reason"]}'

@@ -116,7 +116,7 @@ describe('guided agent setup', () => {
     expect(daemon.service.board.get<Skill>('skill', skill.id)).toEqual(skill);
   });
 
-  it('rejects stale, deleted and duplicate skill selections before creating a role', async () => {
+  it('rejects stale, deleted, duplicate and oversized skills before creating a role', async () => {
     const { daemon, request } = await setup(14903);
     const first = daemon.service.saveSkill({
       name: 'Long instructions',
@@ -124,8 +124,15 @@ describe('guided agent setup', () => {
       scope: 'roles',
       roleIds: ['scout'],
     });
+    const second = daemon.service.saveSkill({
+      name: 'Other instructions',
+      content: 'B'.repeat(40000),
+      scope: 'roles',
+      roleIds: ['writer'],
+    });
     const before = daemon.service.board.events(1000);
     for (const skills of [
+      [reference(first), reference(second)],
       [reference(first), reference(first)],
       [{ ...reference(first), updatedAt: '2000-01-01T00:00:00Z' }],
     ])
@@ -137,28 +144,6 @@ describe('guided agent setup', () => {
       (await request('/roles', 'POST', { ...agent, skills: [reference(first)] })).response.status,
     ).toBe(400);
     expect(daemon.service.board.events(1000)).toEqual(after);
-  });
-
-  it('creates an agent with shared and selected skills above the former combined limit', async () => {
-    const { daemon, request } = await setup(14906);
-    daemon.service.saveSkill({
-      name: 'Shared instructions',
-      content: 'A'.repeat(40000),
-      scope: 'all',
-      roleIds: [],
-    });
-    const selected = daemon.service.saveSkill({
-      name: 'Other instructions',
-      content: 'B'.repeat(40000),
-      scope: 'roles',
-      roleIds: ['writer'],
-    });
-    expect(
-      (await request('/roles', 'POST', { ...agent, skills: [reference(selected)] })).response
-        .status,
-    ).toBe(201);
-    expect(daemon.service.skills(agent.id)).toHaveLength(2);
-    expect(daemon.service.board.get<Skill>('skill', selected.id).roleIds).toContain(agent.id);
   });
 
   it('rechecks skill versions after asynchronous instruction writes and permits retry with the reviewed version', async () => {

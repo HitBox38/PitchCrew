@@ -1,11 +1,11 @@
 import { confirmFixtureJob } from '../../board/test/fixtures/application-context.ts';
-import { currentEventVersion, decodeEvent } from '@pitchcrew/core';
+import { currentEventVersion } from '@pitchcrew/core';
 import { adapters } from '@pitchcrew/adapters';
 import type { Run, Skill, Snapshot } from '@pitchcrew/core';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, directorySkill, finish, setup } from './helpers/daemon.ts';
+import { cleanup, finish, setup } from './helpers/daemon.ts';
 
 afterEach(cleanup);
 describe('managed agent skills', () => {
@@ -178,71 +178,26 @@ describe('managed agent skills', () => {
       await readFile(join(directory, 'roles', 'scout', 'runs', active.id, 'AGENTS.md'), 'utf8'),
     ).toBe(firstInstructions);
   });
-  it('lets an ordinary isolated Writer run read its deferred cover-letter instructions', async () => {
-    const { daemon, request } = await setup(14448);
-    daemon.service.saveSkill({ ...sharedInput, content: 'a'.repeat(50000) });
-    const cover = daemon.service.saveSkill({
-      ...directorySkill,
-      name: 'cover-letter',
-      content: 'Full frozen cover-letter guidance. '.repeat(1400).trim(),
-      scope: 'roles',
-      roleIds: ['writer'],
-    });
-    expect(cover.includeInEveryRun).toBe(false);
-    await daemon.service.saveProfile(
-      'profile.md',
-      '# Fictional Candidate\n\n- Built fictional software.',
-    );
-    const card = daemon.service.createCard({ company: 'Fictional employer', title: 'Engineer' });
-    daemon.service.board.move(card.id, 'shortlisted', 'user');
-    confirmFixtureJob(daemon.service.board, card.id);
-    const originalRun = adapters.demo.run;
-    const writer = vi.spyOn(adapters.demo, 'run').mockImplementation(async (context) => {
-      const token = context.mcp.env.PITCHCREW_RUN_TOKEN;
-      expect(await daemon.service.agentCall(token, 'execution_access', {})).toMatchObject({
-        purpose: 'application-draft',
-        readSkills: true,
-      });
-      expect(
-        await daemon.service.agentCall(token, 'read_skill', { input: { skillId: cover.id } }),
-      ).toMatchObject({ skill: { id: cover.id, content: cover.content } });
-      return originalRun(context);
-    });
-    const run = await daemon.service.startRun(card.id, 'writer');
-    await finish(request, run.id);
-    expect(writer).toHaveBeenCalledOnce();
-  });
-  it('accepts assigned skills above the former combined limit while retaining the library bound', async () => {
+  it('bounds the total assigned instructions without appending rejected updates', async () => {
     const { daemon, request } = await setup(14439);
-    for (let index = 0; index < 2; index++)
+    for (let index = 0; index < 4; index++)
       expect(
         (
           await request('/skills', 'POST', {
             ...sharedInput,
             name: `Skill ${index}`,
-            content: 'a'.repeat(index === 0 ? 50000 : 5000),
+            content: 'a'.repeat(12000),
           })
         ).response.status,
       ).toBe(201);
-    const imported = await request<Skill>('/skills', 'POST', {
-      ...directorySkill,
-      name: 'cover-letter',
-      content: 'b'.repeat(49000),
-      scope: 'roles',
-      roleIds: ['writer'],
-    });
-    expect(imported.response.status).toBe(201);
-    expect(imported.result.includeInEveryRun).toBe(false);
-    expect(daemon.service.skills('writer').reduce((n, skill) => n + skill.content.length, 0)).toBe(
-      104000,
-    );
-    for (let index = 3; index < 100; index++)
-      daemon.service.saveSkill({ ...sharedInput, name: `Skill ${index}`, content: 'Short.' });
     const events = daemon.service.board.events();
-    expect((await request('/skills', 'POST', sharedInput)).response.status).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(12000) })).response
+        .status,
+    ).toBe(400);
     expect(daemon.service.board.events()).toEqual(events);
   });
-  it('stores and replays larger writing skills while retaining the individual limit', async () => {
+  it('stores and replays larger writing skills while retaining individual and role limits', async () => {
     const { daemon, request } = await setup(14445);
     const { result: skill, response } = await request<Skill>('/skills', 'POST', {
       ...sharedInput,
@@ -251,48 +206,15 @@ describe('managed agent skills', () => {
     expect(response.status).toBe(201);
     daemon.service.board.rebuild();
     expect(daemon.service.skills()[0].content).toBe(skill.content);
-    expect(
-      (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(10000) })).response
-        .status,
-    ).toBe(201);
     const events = daemon.service.board.events();
     expect(
       (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(50001) })).response
         .status,
     ).toBe(400);
+    expect(
+      (await request('/skills', 'POST', { ...sharedInput, content: 'a'.repeat(10000) })).response
+        .status,
+    ).toBe(400);
     expect(daemon.service.board.events()).toEqual(events);
-  });
-
-  it('preserves legacy inclusion on replay and omitted edits while defaulting new imports on demand', async () => {
-    const { daemon, request } = await setup(14446);
-    const manual = daemon.service.saveSkill(sharedInput);
-    expect(manual.includeInEveryRun).toBe(true);
-    const legacy = { ...manual };
-    delete legacy.includeInEveryRun;
-    const oldEvent = decodeEvent(
-      JSON.stringify({ ...daemon.service.board.events().at(-1), version: 34, data: legacy }),
-    );
-    expect(oldEvent.data).not.toHaveProperty('includeInEveryRun');
-    daemon.service.board.record('skill', legacy, 'user', 'Fictional legacy skill');
-    daemon.service.board.rebuild();
-    expect(daemon.service.board.get<Skill>('skill', manual.id)).not.toHaveProperty(
-      'includeInEveryRun',
-    );
-    const updated = await request<Skill>(`/skills/${manual.id}`, 'PUT', sharedInput);
-    expect(updated.result.includeInEveryRun).toBe(true);
-    const imported = daemon.service.saveSkill({ ...directorySkill, scope: 'all', roleIds: [] });
-    expect(imported.includeInEveryRun).toBe(false);
-    const edited = await request<Skill>(`/skills/${imported.id}`, 'PUT', {
-      ...sharedInput,
-      name: 'Local edit of import',
-    });
-    expect(edited.result.includeInEveryRun).toBe(false);
-    const included = await request<Skill>(`/skills/${imported.id}`, 'PUT', {
-      ...sharedInput,
-      includeInEveryRun: true,
-    });
-    expect(included.result.includeInEveryRun).toBe(true);
-    daemon.service.board.rebuild();
-    expect(daemon.service.skills().every((skill) => skill.includeInEveryRun === true)).toBe(true);
   });
 });

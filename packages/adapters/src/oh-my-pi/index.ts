@@ -78,7 +78,6 @@ export const ohMyPi = withChat({
         'export_packet',
         ...('messages' in context && !context.purpose
           ? [
-              'read_skill',
               'check_linkedin_draft',
               'list_conversations',
               'read_conversation',
