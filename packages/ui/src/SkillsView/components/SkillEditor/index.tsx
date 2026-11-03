@@ -5,6 +5,7 @@ import { Tabs } from '@pitchcrew/design-system/tabs';
 import { skillContentLimit } from '@pitchcrew/core/base-skills';
 import { SkillAssignment } from './components/SkillAssignment.tsx';
 import { SkillDetails } from './components/SkillDetails.tsx';
+import { SkillDelivery } from './components/SkillDelivery.tsx';
 import { SkillEditorFooter } from './components/SkillEditorFooter.tsx';
 import { SkillEditorHeading } from './components/SkillEditorHeading.tsx';
 import { SkillImport } from './components/SkillImport.tsx';
@@ -37,6 +38,7 @@ export const SkillEditor = (props: SkillEditorProps) => {
             {c.importing ? <SkillImport {...c} /> : null}
             <SkillDetails {...c} />
             <SkillAssignment {...c} />
+            <SkillDelivery {...c} />
           </div>
           <div className="skills-sheet">
             <MarkdownEditor
