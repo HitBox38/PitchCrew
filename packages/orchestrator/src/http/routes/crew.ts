@@ -50,6 +50,13 @@ export const registerCrewRoutes = (app: FastifyInstance, service: CrewService) =
     async (req, res) =>
       res.status(202).send(await service.sendConversation(req.params.id, req.body)),
   );
+  app.get<{ Params: { id: string; clientRequestId: string } }>(
+    '/api/conversations/:id/messages/receipts/:clientRequestId',
+    (req, res) =>
+      res.header('Cache-Control', 'no-store').send({
+        request: service.chatSubmissionReceipt(req.params.id, req.params.clientRequestId),
+      }),
+  );
   app.post<IdRoute>('/api/conversations/:id/delegate', async (req, res) =>
     res.status(202).send(await service.delegateConversation(req.params.id, req.body)),
   );

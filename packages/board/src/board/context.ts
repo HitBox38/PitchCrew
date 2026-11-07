@@ -38,7 +38,10 @@ export const createBoardContext = (filename: string): BoardContext => {
       -- A single-column kind index is ordered by implicit rowid within each kind. The
       -- (kind,id) primary key instead requires sorting every matching JSON document.
       CREATE INDEX IF NOT EXISTS entities_kind ON entities(kind);
+      CREATE INDEX IF NOT EXISTS entities_queue_status ON entities(kind,json_extract(json,'$.status')) WHERE kind='run' OR kind='task';
       CREATE INDEX IF NOT EXISTS entities_thread ON entities(kind,json_extract(json,'$.threadId')) WHERE kind='message' OR kind='run';
+      CREATE UNIQUE INDEX IF NOT EXISTS entities_chat_submission ON entities(json_extract(json,'$.threadId'),json_extract(json,'$.submission.id')) WHERE kind='chat_request';
+      CREATE INDEX IF NOT EXISTS entities_chat_request_order ON entities(kind,json_extract(json,'$.order')) WHERE kind='chat_request' AND json_type(json,'$.order') IN ('integer','real');
       CREATE INDEX IF NOT EXISTS entities_deep_review_card ON entities(kind,json_extract(json,'$.cardId')) WHERE kind='deep_review';
       CREATE INDEX IF NOT EXISTS entities_review_parent ON entities(kind,json_extract(json,'$.reviewId')) WHERE kind='review_subagent';
       CREATE INDEX IF NOT EXISTS events_entity_id ON events(json_extract(json,'$.entityId'));

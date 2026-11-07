@@ -1,6 +1,7 @@
 import type { ChatViewModel } from '@/ChatView/types.ts';
 import type { useBrowserControl } from './hooks/useBrowserControl.ts';
 import type { BrowserFrame } from '@pitchcrew/core';
+import type { ComposerRetryMode } from '@/ChatView/composer-retry.ts';
 export type AgentBrowserProps = Pick<
   ChatViewModel,
   | 'browserPanel'
@@ -36,7 +37,8 @@ export type BrowserReplyProps = Pick<
   | 'participants'
   | 'questions'
   | 'error'
->;
+> &
+  ComposerRetryMode;
 export type BrowserControl = ReturnType<typeof useBrowserControl>;
 export type BrowserViewProps = {
   size: { width: number; height: number };

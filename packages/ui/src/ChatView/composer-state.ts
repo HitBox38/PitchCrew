@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { ChatReference } from '@pitchcrew/core';
 
 export interface ComposerPayload {
+  submission?: { id: string; intent: 'queue' | 'interrupt' };
   text: string;
   references: ChatReference[];
   files: File[];
@@ -21,6 +22,7 @@ export interface ComposerOperation {
   payload: ComposerPayload;
   nextDraftId: string;
   kind: 'message' | 'delegation';
+  hadSubmission?: boolean;
 }
 export interface ComposerState {
   draft: ComposerDraft;
@@ -56,18 +58,37 @@ export const updateComposer = (thread: string, update: (state: ComposerState) =>
 export const changeComposer = (thread: string, text: string, references: ChatReference[]) =>
   updateComposer(thread, (state) => ({
     ...state,
-    draft: { ...state.draft, revision: state.draft.revision + 1, text, references },
+    draft: {
+      ...state.draft,
+      submission:
+        state.draft.text === text &&
+        JSON.stringify(state.draft.references) === JSON.stringify(references)
+          ? state.draft.submission
+          : undefined,
+      revision: state.draft.revision + 1,
+      text,
+      references,
+    },
   }));
 export const changeComposerFiles = (thread: string, files: File[]) =>
   updateComposer(thread, (state) => ({
     ...state,
-    draft: { ...state.draft, revision: state.draft.revision + 1, files },
+    draft: {
+      ...state.draft,
+      submission:
+        files.length === state.draft.files.length &&
+        files.every((file, index) => file === state.draft.files[index])
+          ? state.draft.submission
+          : undefined,
+      revision: state.draft.revision + 1,
+      files,
+    },
   }));
 const hasPayload = (payload: ComposerPayload) => !!payload.text.trim() || !!payload.files.length;
 const keep = (payload: ComposerPayload, label: string, details?: string): KeptComposerDraft => ({
   id: crypto.randomUUID(),
   payload,
-  label,
+  label: payload.submission ? 'Send not confirmed' : label,
   details,
 });
 
@@ -92,17 +113,36 @@ export const consumeComposerHandoff = (thread: string) => {
 };
 
 /** Atomic draft swap precedes FileReader and HTTP. Only Send is locked; editing continues. */
-export const beginComposerSend = (thread: string, kind: ComposerOperation['kind']) => {
+export const beginComposerSend = (
+  thread: string,
+  kind: ComposerOperation['kind'],
+  intent: 'queue' | 'interrupt' = 'queue',
+) => {
   let operation: ComposerOperation | undefined;
   updateComposer(thread, (state) => {
     if (state.operation) return state;
+    if (kind === 'delegation' && state.draft.submission)
+      return {
+        ...state,
+        notice:
+          'This message has an unconfirmed send. Retry it or edit the message to start a new request before delegating.',
+      };
     const draft = freshDraft();
     const payload = {
+      ...(kind === 'message'
+        ? { submission: state.draft.submission ?? { id: crypto.randomUUID(), intent } }
+        : {}),
       text: state.draft.text,
       references: [...state.draft.references],
       files: kind === 'message' ? [...state.draft.files] : [],
     };
-    operation = { token: Symbol(thread), payload, nextDraftId: draft.id, kind };
+    operation = {
+      token: Symbol(thread),
+      payload,
+      nextDraftId: draft.id,
+      kind,
+      hadSubmission: !!state.draft.submission,
+    };
     // The delegation endpoint sends text only; selected files stay in the editable draft.
     if (kind === 'delegation') draft.files = state.draft.files;
     return {
@@ -136,34 +176,51 @@ export const failComposerSend = (
   token: symbol,
   details: string,
   beforePost = false,
+  rejectedStatus?: number,
 ) =>
   updateComposer(thread, (state) => {
     const operation = state.operation;
     if (operation?.token !== token) return state;
+    const rejected = rejectedStatus !== undefined && rejectedStatus >= 400 && rejectedStatus < 500;
+    const conflict = rejectedStatus === 409;
+    // A failed retry says nothing about whether its earlier attempt was accepted.
+    // Only a fresh send can lose its identity after a definite local/server rejection.
+    const originalUnconfirmed = operation.kind === 'message' && operation.hadSubmission;
+    const definite = (beforePost || rejected) && !originalUnconfirmed;
+    const payload = { ...operation.payload };
+    if (!originalUnconfirmed && (beforePost || rejected)) delete payload.submission;
     const pristine = state.draft.id === operation.nextDraftId && state.draft.revision === 0;
-    if (beforePost && pristine)
+    if (definite && pristine)
       return {
         ...state,
         operation: undefined,
         draft: {
           ...freshDraft(),
-          ...operation.payload,
-          files: operation.kind === 'delegation' ? state.draft.files : operation.payload.files,
+          ...payload,
+          files: operation.kind === 'delegation' ? state.draft.files : payload.files,
         },
-        notice: 'The message was not sent. Your draft is kept.',
+        notice: `Not sent: ${details}`,
         refreshNeeded: false,
         details,
       };
     return {
       ...state,
       operation: undefined,
-      notice: beforePost
-        ? 'The message was not sent. Your drafts are kept.'
-        : 'Could not confirm the send. Your drafts are kept. Review the conversation before sending it again.',
+      notice: originalUnconfirmed
+        ? `Retry failed: ${details}. The original send is still unconfirmed. Refresh the conversation or retry the unchanged draft.`
+        : definite
+          ? `Not sent: ${details}`
+          : operation.kind === 'message'
+            ? 'Could not confirm the send. Your draft is kept. Retry the unchanged draft safely, or check the conversation.'
+            : 'Could not confirm the send. Your drafts are kept. Review the conversation before sending it again.',
       refreshNeeded: false,
       kept: [
         ...state.kept,
-        keep(operation.payload, beforePost ? 'Unsent message' : 'Send not confirmed', details),
+        keep(
+          payload,
+          definite ? (conflict ? 'Send rejected' : 'Unsent message') : 'Send not confirmed',
+          details,
+        ),
       ],
     };
   });

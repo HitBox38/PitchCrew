@@ -392,6 +392,72 @@ test('restores address drafts, searches on Enter and switches the focused addres
   );
   await address.press('Escape');
 });
+test('preserves a typed address when the first native tab hydrates under the same control lease', async () => {
+  const original = structuredClone(state);
+  const take = page.getByRole('button', { name: 'Take control', exact: true });
+  if (await take.isVisible()) await take.click();
+  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
+  let held = false;
+  let release = () => {};
+  const metadata = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let response: Promise<void> | undefined;
+  const pattern = '**/api/browser/writer/native?*';
+  await page.getByRole('link', { name: 'Settings', exact: true }).click();
+  await page.getByRole('heading', { name: 'Settings', exact: true }).waitFor();
+  await page.route(pattern, (route) => {
+    if (route.request().method() !== 'GET') return route.continue();
+    held = true;
+    response = metadata.then(() => route.fulfill({ json: state }));
+    return response;
+  });
+  try {
+    await page.goBack();
+    await vi.waitFor(() => expect(held).toBe(true));
+    const address = page.getByRole('textbox', { name: 'Browser address' });
+    await address.fill('https://example.com/typed-before-tab-hydration');
+    const manualCalls = setManual.mock.calls.length;
+    state = {
+      ...original,
+      tabs: original.tabs.map((tab) =>
+        tab.id === original.activeTab
+          ? { ...tab, title: '', url: 'about:blank', navigationUrl: undefined }
+          : tab,
+      ),
+    };
+    await page.evaluate((next) => {
+      (
+        window as unknown as { publishBrowserState: (next: NativeBrowserState) => void }
+      ).publishBrowserState(next);
+    }, state);
+    await vi.waitFor(async () =>
+      expect(
+        await page.locator('.browser-tab[data-active="true"] .browser-tab-select').textContent(),
+      ).toBe('New tab'),
+    );
+    expect(await address.inputValue()).toBe('https://example.com/typed-before-tab-hydration');
+    await page.getByRole('button', { name: 'Go to address', exact: true }).click();
+    await vi.waitFor(() =>
+      expect(input).toHaveBeenCalledWith({
+        kind: 'navigate',
+        url: 'https://example.com/typed-before-tab-hydration',
+      }),
+    );
+    expect(setManual.mock.calls.length).toBe(manualCalls);
+  } finally {
+    state = original;
+    release();
+    await response;
+    await page.unroute(pattern);
+    await page.evaluate((next) => {
+      (
+        window as unknown as { publishBrowserState: (next: NativeBrowserState) => void }
+      ).publishBrowserState(next);
+    }, original);
+    await page.getByRole('textbox', { name: 'Browser address' }).press('Escape');
+  }
+}, 30000);
 test('receives native navigation events without waiting for polling and rejects another session update', async () => {
   const stale = { ...structuredClone(state), warning: 'Fictional delayed backend status.' };
   let held = false;

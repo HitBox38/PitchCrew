@@ -1,7 +1,9 @@
 import type { Action } from '@/WorkspaceStore/types.ts';
 import { ActionRefreshError } from '@/WorkspaceStore/action-errors.ts';
+import { ApiHttpError } from '@/api-errors.ts';
 import { referenceInputs } from '@/ChatComposer/helpers.ts';
 import { encodeAttachment } from './api.ts';
+import { findComposerReceipt } from './composer-receipts.ts';
 import {
   acceptComposerSend,
   beginComposerSend,
@@ -18,17 +20,22 @@ export const sendComposerDraft = async (
   const current = composerState(thread).draft;
   if ((!current.text.trim() && !current.files.length) || current.text.trim().length > 8000)
     return false;
-  const operation = beginComposerSend(thread, options.roleIds ? 'delegation' : 'message');
+  const operation = beginComposerSend(
+    thread,
+    options.roleIds ? 'delegation' : 'message',
+    options.intent,
+  );
   if (!operation) return false;
   let beforePost = true;
   try {
     const body = options.roleIds
       ? { content: operation.payload.text.trim(), roleIds: options.roleIds }
       : {
+          clientRequestId: operation.payload.submission!.id,
           content: operation.payload.text.trim(),
           references: referenceInputs(operation.payload.text, operation.payload.references),
           attachments: await Promise.all(operation.payload.files.map(encodeAttachment)),
-          intent: options.intent ?? 'queue',
+          intent: operation.payload.submission!.intent,
         };
     beforePost = false;
     await action(
@@ -45,11 +52,21 @@ export const sendComposerDraft = async (
       acceptComposerSend(thread, operation.token, true);
       return true;
     }
+    if (
+      !beforePost &&
+      !(error instanceof ApiHttpError && error.status < 500) &&
+      operation.payload.submission &&
+      (await findComposerReceipt(thread, operation.payload.submission.id))
+    ) {
+      acceptComposerSend(thread, operation.token, true);
+      return true;
+    }
     failComposerSend(
       thread,
       operation.token,
       error instanceof Error ? error.message : 'Request failed.',
       beforePost,
+      error instanceof ApiHttpError ? error.status : undefined,
     );
     return false;
   }

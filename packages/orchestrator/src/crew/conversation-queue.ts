@@ -1,4 +1,5 @@
 import { queueMayStart } from './queue/dispatch.ts';
+import { submitChatOnce } from './chat-submissions.ts';
 import { pauseForUnfinishedHead, resumeHeadRequest } from './queue/recovery.ts';
 import { QueueBusyError, launchProblem } from './queue/admission.ts';
 import {
@@ -35,7 +36,7 @@ import { conversation, conversations, canReadConversation } from './conversation
 import { openRoundRoots, refreshOpenRounds, startRound } from './delegation-rounds.ts';
 import { userDelegationInput } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
-export const saveRequest = (context: CrewContext, request: ChatRequest): void => {
+export const saveRequest = (context: CrewContext, request: ChatRequest, publish = true): void => {
   const queue = ensureQueue(context, request.threadId, request.rootRunId);
   if (
     !context.board.list<ChatRequest>('chat_request').some((r) => r.id === request.id) &&
@@ -44,20 +45,75 @@ export const saveRequest = (context: CrewContext, request: ChatRequest): void =>
   )
     patchQueue(context, queue.id, { order: nextOrder(context) });
   context.board.record('chat_request', request, 'user', 'Updated queued message');
-  context.publishChat(true);
+  if (publish) context.publishChat(true);
+};
+
+const prepareInterrupt = (context: CrewContext, id: string, effects: (() => void)[]) => {
+  stopConversationWork(context, id, undefined, undefined, (effect) => effects.push(effect));
+  const queue = ensureQueue(context, id);
+  patchQueue(context, queue.id, { paused: false, pauseKind: undefined, reason: '' });
+  for (const pending of queueRequests(context, queue.id)) {
+    for (const entry of pending.deliveries)
+      if (entry.status === 'paused') entry.status = entry.runId ? 'cancelled' : 'queued';
+    saveRequest(context, pending, false);
+  }
+};
+
+const publishAccepted = (context: CrewContext, effects: (() => void)[]) => {
+  // Durable acceptance survives failed observers; remaining aborts and dispatch still run.
+  for (const effect of [...effects, () => context.publishChat(true)]) {
+    try {
+      effect();
+    } catch {
+      /* Live observers recover from the next authoritative snapshot. */
+    }
+  }
+  void drainConversationQueue(context);
+};
+
+const requestOrder = (context: CrewContext, intent: 'queue' | 'interrupt') => {
+  const direction = intent === 'interrupt' ? 'ASC' : 'DESC';
+  const bound = context.board.db
+    .prepare(
+      `SELECT json_extract(json,'$.order') AS position FROM entities
+       WHERE kind='chat_request' AND json_type(json,'$.order') IN ('integer','real')
+       ORDER BY json_extract(json,'$.order') ${direction} LIMIT 1`,
+    )
+    .get() as { position: number } | undefined;
+  const now = Date.now();
+  return intent === 'interrupt'
+    ? Math.min(now, bound?.position ?? now) - 1
+    : Math.max(now, (bound?.position ?? 0) + 1);
 };
 export const sendConversation = async (
   context: CrewContext,
   id: string,
   data: unknown,
 ): Promise<ChatRequest> => {
-  const item = conversation(context, id);
-  if (item.kind === 'history' || item.kind === 'agent_dm')
-    throw new Error('This conversation is read-only.');
   const input = chatInput.parse(data);
   const { intent } = z
     .object({ intent: z.enum(['queue', 'interrupt']).default('queue') })
     .parse(data);
+  const { clientRequestId } = input;
+  const payload = {
+    content: input.content,
+    references: input.references ?? [],
+    attachments: input.attachments,
+  };
+  return submitChatOnce(context, id, clientRequestId, { ...payload, intent }, (submission) =>
+    sendConversationPrepared(context, id, input, intent, submission),
+  );
+};
+const sendConversationPrepared = async (
+  context: CrewContext,
+  id: string,
+  input: z.infer<typeof chatInput>,
+  intent: 'queue' | 'interrupt',
+  submission?: ChatRequest['submission'],
+): Promise<ChatRequest> => {
+  const item = conversation(context, id);
+  if (item.kind === 'history' || item.kind === 'agent_dm')
+    throw new Error('This conversation is read-only.');
   const references = resolveChatReferences(context, item, input.content, input.references);
   const targets = messageRecipients(input.content, item);
   if (!targets.length) throw new Error('Mention an agent participating in this conversation.');
@@ -79,25 +135,31 @@ export const sendConversation = async (
     }),
   );
   const files = await saveAttachments(context.directory, input.attachments);
+  let committed = false;
   try {
     if (JSON.stringify(conversation(context, id)) !== JSON.stringify(item))
       throw new Error('The conversation changed. Try sending again.');
     if (isDeepReviewRequest(input.content)) {
-      const request = queueDeepReviewChat(context, item, input.content, files, references);
-      void drainConversationQueue(context);
+      const effects: (() => void)[] = [];
+      const request = context.board.db.transaction(() => {
+        if (intent === 'interrupt') prepareInterrupt(context, id, effects);
+        return queueDeepReviewChat(
+          context,
+          item,
+          input.content,
+          files,
+          references,
+          submission,
+          (effect) => effects.push(effect),
+          requestOrder(context, intent),
+        );
+      })();
+      committed = true;
+      publishAccepted(context, effects);
       return request;
     }
-    if (intent === 'interrupt') {
-      stopConversationWork(context, id);
-      const queue = ensureQueue(context, id);
-      patchQueue(context, queue.id, { paused: false, pauseKind: undefined, reason: '' });
-      for (const pending of queueRequests(context, queue.id)) {
-        for (const entry of pending.deliveries)
-          if (entry.status === 'paused') entry.status = entry.runId ? 'cancelled' : 'queued';
-        saveRequest(context, pending);
-      }
-    }
     const request: ChatRequest = {
+      ...(submission ? { submission } : {}),
       id: randomUUID(),
       threadId: id,
       messageId: randomUUID(),
@@ -105,19 +167,12 @@ export const sendConversation = async (
       references,
       attachments: files,
       createdAt: new Date().toISOString(),
-      order:
-        intent === 'interrupt'
-          ? Math.min(
-              Date.now(),
-              ...context.board.list<ChatRequest>('chat_request').map((entry) => entry.order),
-            ) - 1
-          : Math.max(
-              Date.now(),
-              ...context.board.list<ChatRequest>('chat_request').map((entry) => entry.order + 1),
-            ),
+      order: requestOrder(context, intent),
       deliveries: eligible.map((roleId) => ({ roleId, status: 'queued', runId: null, error: '' })),
     };
+    const effects: (() => void)[] = [];
     context.board.db.transaction(() => {
+      if (intent === 'interrupt') prepareInterrupt(context, id, effects);
       context.addMessage(
         id,
         'user',
@@ -129,13 +184,15 @@ export const sendConversation = async (
         undefined,
         files,
         references,
+        false,
       );
-      saveRequest(context, request);
+      saveRequest(context, request, false);
     })();
-    void drainConversationQueue(context);
+    committed = true;
+    publishAccepted(context, effects);
     return request;
   } catch (error) {
-    await removeAttachments(context.directory, files);
+    if (!committed) await removeAttachments(context.directory, files);
     throw error;
   }
 };
@@ -531,10 +588,16 @@ export const stopConversationWork = (
   id: string,
   roleId?: string,
   rootId?: string,
+  effect: (action: () => void) => void = (action) => action(),
 ): void => {
   if (roleId) return stopConversationBranch(context, id, roleId, rootId);
   const queue = ensureQueue(context, id);
-  patchQueue(context, queue.id, { paused: true, pauseKind: 'user', reason: 'Paused by you.' });
+  patchQueue(
+    context,
+    queue.id,
+    { paused: true, pauseKind: 'user', reason: 'Paused by you.' },
+    effect,
+  );
   const runs = context.board.list<Run>('run');
   const owned = runs.filter(
     (run) =>
@@ -549,11 +612,14 @@ export const stopConversationWork = (
     context,
     (q) => roots.has(runs.find((run) => run.id === q.runId)?.rootRunId ?? q.runId),
     'Stopped by you.',
+    effect,
   );
   for (const run of runs)
     if (roots.has(run.rootRunId ?? run.id)) {
-      context.controllers.get(run.id)?.abort();
-      context.streamingMessages.delete(run.id);
+      effect(() => {
+        context.controllers.get(run.id)?.abort();
+        context.streamingMessages.delete(run.id);
+      });
     }
   for (const task of context.board.list<AgentTask>('task'))
     if (roots.has(task.rootRunId) && task.status === 'queued')
@@ -569,9 +635,9 @@ export const stopConversationWork = (
       if (entry.status === 'running') entry.status = 'paused';
       else if (entry.status === 'queued') entry.status = 'paused';
     }
-    saveRequest(context, request);
+    saveRequest(context, request, false);
   }
-  context.publishChat(true);
+  effect(() => context.publishChat(true));
 };
 export const finishQueueRun = (context: CrewContext, run: Run): void => {
   const finished = context.board.get<Run>('run', run.id);

@@ -9,11 +9,19 @@ export const useBrowserAddress = (
   const input = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(address);
   const [focused, setFocused] = useState(false);
+  const edited = useRef(false);
   const previousContext = useRef(contextId);
   const previousLease = useRef(leaseId);
   useEffect(() => {
-    if (previousContext.current !== contextId || previousLease.current !== leaseId)
+    const firstContext = previousContext.current === undefined && contextId !== undefined;
+    // Initial native metadata may arrive after typing, including while Go blurs the field.
+    if (
+      previousLease.current !== leaseId ||
+      (previousContext.current !== contextId && !(firstContext && edited.current))
+    ) {
       setDraft(address);
+      edited.current = false;
+    }
     if (previousLease.current !== leaseId) setFocused(false);
     previousContext.current = contextId;
     previousLease.current = leaseId;
@@ -22,14 +30,19 @@ export const useBrowserAddress = (
     input,
     draft,
     value: focused ? draft : address,
-    setDraft,
+    setDraft: (value: string) => {
+      edited.current = true;
+      setDraft(value);
+    },
     focus: () => {
+      edited.current = false;
       setDraft(address);
       setFocused(true);
       queueMicrotask(() => input.current?.select());
     },
     blur: () => setFocused(false),
     reset: () => {
+      edited.current = false;
       setDraft(address);
       input.current?.blur();
     },

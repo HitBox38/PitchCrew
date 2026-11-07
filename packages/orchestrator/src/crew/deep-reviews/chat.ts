@@ -25,6 +25,9 @@ export const queueDeepReviewChat = (
   content: string,
   attachments: ChatMessage['attachments'] = [],
   references: ChatMessage['references'] = [],
+  submission?: ChatRequest['submission'],
+  effect: (action: () => void) => void = (action) => action(),
+  order = Date.now(),
 ): ChatRequest => {
   const reviewer = context.board
     .list<Role>('role')
@@ -46,6 +49,7 @@ export const queueDeepReviewChat = (
     : [];
   const preferences = { secondOpinions, requestedPerspectives };
   const request: ChatRequest = {
+    ...(submission ? { submission } : {}),
     deepReviewPreferences: preferences,
     id: randomUUID(),
     threadId: item.id,
@@ -54,7 +58,7 @@ export const queueDeepReviewChat = (
     references,
     attachments: attachments ?? [],
     createdAt: new Date().toISOString(),
-    order: Date.now(),
+    order,
     deliveries: [{ roleId, status: item.cardId ? 'queued' : 'waiting', runId: null, error: '' }],
     mode: 'workflow',
     ...(item.cardId ? { deepReviewRequest: { cardId: item.cardId, preferences } } : {}),
@@ -70,6 +74,7 @@ export const queueDeepReviewChat = (
     undefined,
     attachments,
     references,
+    false,
   );
   if (!item.cardId) {
     const role = context.board.get<Role>('role', roleId);
@@ -112,11 +117,12 @@ export const queueDeepReviewChat = (
         })),
         continuationNotes: 'Start the managed deep resume review for the selected job.',
       },
+      effect,
     );
-    endQuestionTurn(context, run);
+    endQuestionTurn(context, run, effect);
   } else
     context.board.record('chat_request', request, 'user', 'Queued deep resume review from chat');
-  context.publishChat(true);
+  effect(() => context.publishChat(true));
   return request;
 };
 export const deepReviewQuestionRequest = (

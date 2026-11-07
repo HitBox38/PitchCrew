@@ -4,6 +4,7 @@ import type { ChatMessage, ChatStreamState, Snapshot } from '@pitchcrew/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWorkspaceStore } from '../index.ts';
 import { ActionRefreshError } from '../action-errors.ts';
+import { composerState, emptyComposer, useComposerStore } from '@/ChatView/composer-state.ts';
 const deferred = <T>() => {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((done) => {
@@ -51,6 +52,7 @@ const stream: ChatStreamState = { messages: [], streamingMessages: [message] };
 let stop: (() => void) | undefined;
 const unsubscribe = vi.fn();
 beforeEach(() => {
+  useComposerStore.setState({ threads: {} });
   vi.useFakeTimers();
   vi.mocked(api).mockReset().mockResolvedValue(snapshot);
   vi.mocked(subscribeChatStream).mockReset().mockReturnValue(unsubscribe);
@@ -135,6 +137,48 @@ describe('workspace store', () => {
     expect(store.getState().data).toEqual(completed);
     onState(stream);
     expect(store.getState().data?.streamingMessages).toEqual([message]);
+  });
+
+  it('rechecks uncertain send receipts once after reconnect without posting or consuming the current draft', async () => {
+    const submission = { id: '00000000-0000-4000-8000-000000000001', intent: 'queue' as const };
+    useComposerStore.setState({
+      threads: {
+        scout: {
+          ...emptyComposer,
+          draft: { ...emptyComposer.draft, text: 'New unsent text' },
+          kept: [
+            {
+              id: 'kept',
+              label: 'Send not confirmed',
+              payload: { text: 'Prior send', references: [], files: [], submission },
+            },
+          ],
+        },
+      },
+    });
+    vi.mocked(api).mockImplementation(async (path: string) =>
+      path.includes('/messages/receipts/')
+        ? { request: { threadId: 'scout', submission } }
+        : snapshot,
+    );
+    const store = createWorkspaceStore();
+    stop = store.getState().startSync();
+    await vi.advanceTimersByTimeAsync(0);
+    const [onState, onDisconnect] = vi.mocked(subscribeChatStream).mock.calls[0]!;
+    onState(stream);
+    expect(composerState('scout').kept).toHaveLength(1);
+    onDisconnect();
+    onState(stream);
+    onState(stream);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(composerState('scout').kept).toEqual([]);
+    expect(composerState('scout').draft.text).toBe('New unsent text');
+    const reads = vi
+      .mocked(api)
+      .mock.calls.filter(([path]) => path.includes('/messages/receipts/'));
+    expect(reads).toHaveLength(1);
+    expect(reads[0][1]).toBe('GET');
+    expect(vi.mocked(api).mock.calls.some((call) => call[1] === 'POST')).toBe(false);
   });
 
   it('uses one subscription, ignores late updates after cleanup, and can restart', async () => {

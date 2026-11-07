@@ -20,7 +20,7 @@ export const TurnActivity = ({ run }: { run: Run }) => {
           <ActivityEntries entries={entries} />
           {run.activityTruncated ? (
             <p className="text-detail text-muted-foreground">
-              Showing the first 80 activity entries.
+              Activity is limited to 80 entries; some steps are omitted.
             </p>
           ) : null}
         </CollapsibleContent>

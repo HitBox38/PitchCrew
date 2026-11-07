@@ -1,12 +1,6 @@
-import {
-  type Card,
-  type Conversation,
-  type Run,
-  type AgentTask,
-  type WorkQueue,
-  type WorkspaceQueue,
-} from '@pitchcrew/core';
+import { type Card, type Conversation, type WorkQueue, type WorkspaceQueue } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
+import { activeRuns, tasksWithStatus } from './queries.ts';
 import {
   activeQueues,
   concurrency,
@@ -20,10 +14,15 @@ export const workspaceQueue = (context: CrewContext): WorkspaceQueue => {
   const active = activeQueues(context);
   const cards = context.board.list<Card>('card');
   const conversations = context.board.list<Conversation>('conversation');
-  const runs = context.board.list<Run>('run');
-  const tasks = context.board.list<AgentTask>('task');
-  const queues = context.board
-    .list<WorkQueue>('work_queue')
+  const workQueues = context.board.list<WorkQueue>('work_queue');
+  const runs = activeRuns(context);
+  const tasks = tasksWithStatus(context, [
+    'queued',
+    'running',
+    'waiting',
+    ...(workQueues.some((queue) => queue.paused) ? ['failed' as const] : []),
+  ]);
+  const queues = workQueues
     .flatMap((queue) => {
       if (queue.id.startsWith('routine:')) return [];
       if (

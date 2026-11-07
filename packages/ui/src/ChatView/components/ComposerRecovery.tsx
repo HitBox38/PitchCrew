@@ -37,7 +37,10 @@ export const ComposerRecovery = ({ thread }: { thread: string }) => {
           Review {state.kept.length} kept {state.kept.length === 1 ? 'draft' : 'drafts'}
         </Button>
       ) : null}
-      {state.refreshNeeded || state.kept.some((draft) => draft.label === 'Send not confirmed') ? (
+      {state.refreshNeeded ||
+      state.kept.some(
+        (draft) => draft.payload.submission || draft.label === 'Send not confirmed',
+      ) ? (
         <Button variant="ghost" size="sm" disabled={checking} onClick={() => void refresh()}>
           {checking ? 'Refreshing…' : 'Refresh conversation'}
         </Button>

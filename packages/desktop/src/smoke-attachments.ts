@@ -27,7 +27,8 @@ export const smokeAttachments = `(async () => {
   window.fetch = (url, options) => {
     if (!String(url).endsWith('/conversations/scout/messages')) return fetchOriginal(url, options);
     attempts++;
-    return Promise.resolve(new Response(JSON.stringify({ error: 'Fixture send failure.' }), { status: 400, headers: { 'content-type': 'application/json' } }));
+    // A 5xx leaves acceptance uncertain; 4xx restores a definitively rejected draft directly.
+    return Promise.resolve(new Response(JSON.stringify({ error: 'Fixture send failure.' }), { status: 503, headers: { 'content-type': 'application/json' } }));
   };
   try {
     document.querySelector('.chat-prompt').requestSubmit();
@@ -39,7 +40,7 @@ export const smokeAttachments = `(async () => {
     kept()?.querySelector('.chat-queue-details-trigger')?.click();
     failureDetails = await waitFor(() => kept()?.querySelector('pre')?.textContent === 'Fixture send failure.');
     kept()?.querySelector('[data-kept-draft-use]')?.click();
-    restored = await waitFor(() => !document.querySelector('.chat-draft-recovery') && selected()?.children.length === 2 && !document.querySelector('button[aria-label="Send message"]').disabled);
+    restored = await waitFor(() => !document.querySelector('.chat-draft-recovery') && selected()?.children.length === 2 && document.querySelector('button[aria-label="Retry original queued send"]')?.disabled === false);
     noAutoResend = attempts === 1;
   } finally {
     window.fetch = fetchOriginal;

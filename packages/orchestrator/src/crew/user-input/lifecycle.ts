@@ -9,10 +9,14 @@ export const waitingOnUser = (context: CrewContext, threadId: string, roleId: st
     .list<UserInputRequest>('user_input')
     .some((q) => q.sourceThreadId === threadId && q.roleId === roleId && q.status === 'pending');
 };
-export const endQuestionTurn = (context: CrewContext, run: Run): boolean => {
+export const endQuestionTurn = (
+  context: CrewContext,
+  run: Run,
+  effect: (action: () => void) => void = (action) => action(),
+): boolean => {
   const question = questionForRun(context, run.id);
   if (!question) return false;
-  context.streamingMessages.delete(run.id);
+  effect(() => context.streamingMessages.delete(run.id));
   const cancelled = question.status === 'cancelled';
   context.board.record(
     'run',
@@ -25,7 +29,7 @@ export const endQuestionTurn = (context: CrewContext, run: Run): boolean => {
     run.roleId,
     cancelled ? 'Cancelled user question' : 'Waiting for user input',
   );
-  context.publishChat(true);
+  effect(() => context.publishChat(true));
   return true;
 };
 export const finishUserContinuation = (context: CrewContext, run: Run): void => {
@@ -72,6 +76,7 @@ export const cancelUserQuestions = (
   context: CrewContext,
   matches: (q: UserInputRequest) => boolean,
   reason: string,
+  effect: (action: () => void) => void = (action) => action(),
 ): void => {
   const questions = context.board.list<UserInputRequest>('user_input');
   const selected = new Set(questions.filter(matches).map((q) => q.id));
@@ -114,7 +119,7 @@ export const cancelUserQuestions = (
       'user',
       reason,
     );
-    context.controllers.get(run.id)?.abort();
+    effect(() => context.controllers.get(run.id)?.abort());
     if (run.deepReviewId) {
       const report = context.board.get<DeepReview>('deep_review', run.deepReviewId);
       if (report.status === 'waiting') {
@@ -143,7 +148,7 @@ export const cancelUserQuestions = (
     if (q.continuationRequestId) {
       const request = context.board.get<ChatRequest>('chat_request', q.continuationRequestId);
       for (const delivery of request.deliveries) {
-        if (delivery.runId) context.controllers.get(delivery.runId)?.abort();
+        if (delivery.runId) effect(() => context.controllers.get(delivery.runId!)?.abort());
         if (!['completed', 'cancelled'].includes(delivery.status)) delivery.status = 'cancelled';
       }
       context.board.record('chat_request', request, 'user', reason);
@@ -154,5 +159,5 @@ export const cancelUserQuestions = (
       settleOrigin(context, cancelled, 'cancelled');
     }
   }
-  context.publishChat(true);
+  effect(() => context.publishChat(true));
 };
