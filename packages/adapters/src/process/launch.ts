@@ -6,6 +6,9 @@ import { chatEventStream } from '../streaming.ts';
 import { runtimeEnvironment, runtimeTimeLimit } from './environment.ts';
 import { chatPromptFor } from './prompts.ts';
 import { cleanResult, parseWorkflowResult } from './results.ts';
+import { runtimeCommand } from './executable.ts';
+import { terminalRedactor } from './sign-in-terminal-redaction.ts';
+import { redactRuntimeConnectionSecrets } from './runtime-connection.ts';
 
 export const terminateCli = (child: ChildProcess) => {
   if (process.platform === 'win32' && child.pid)
@@ -55,14 +58,17 @@ export const runCliText = async (
   if (context.signal.aborted) throw new Error('Run cancelled.');
   const stream = chatEventStream(context);
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const invocation = runtimeCommand(command, args);
+    const environment = runtimeEnvironment(context, env);
+    const redactStderr = terminalRedactor(environment);
+    const child = spawn(invocation.file, invocation.args, {
       cwd:
         !context.purpose && 'session' in context && context.session
           ? context.session.directory
           : context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: runtimeEnvironment(context, env),
+      env: environment,
     });
     let buffer = '',
       result = '',
@@ -102,14 +108,17 @@ export const runCliText = async (
       }
     });
     child.stderr.on('data', (chunk: Buffer) => {
-      error = (error + chunk.toString()).slice(-3000);
+      error = (error + redactStderr(chunk.toString())).slice(-3000);
     });
     child.on('error', (err) => {
       clearDeadline();
       context.signal.removeEventListener('abort', kill);
+      err.message = redactRuntimeConnectionSecrets(err.message);
+      if (err.stack) err.stack = redactRuntimeConnectionSecrets(err.stack);
       reject(err);
     });
     child.on('close', (code, signal) => {
+      error = (error + redactStderr('', true)).slice(-3000);
       stream.finish();
       clearDeadline();
       context.signal.removeEventListener('abort', kill);

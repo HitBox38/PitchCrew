@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { adapters } from '../src/index.ts';
 import { detectCli, runCliText } from '../src/process.ts';
 import { cleanup, contextFor, requestFor } from './helpers/runtime.ts';
+import { hermesVersion } from '../src/hermes/version.ts';
 
 afterEach(cleanup);
 describe('Hermes scoped one-shot turns', () => {
@@ -17,6 +18,7 @@ describe('Hermes scoped one-shot turns', () => {
       detail: 'Installed.',
     });
     expect(await adapters.hermes.detect()).toMatchObject({ available });
+    expect(detectCli).toHaveBeenCalledWith('hermes', 'hermes', hermesVersion);
   });
   it('preserves provider-qualified model names containing slashes and untrusted prompt text', async () => {
     const context = await contextFor('hermes');

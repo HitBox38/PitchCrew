@@ -61,6 +61,15 @@ export class RuntimeMaintenance {
   get checking() {
     return !!this.checkRequest;
   }
+  private scope = <T>(action: () => T, runtime?: RuntimeId): T => {
+    const context = this.context(),
+      setup = context.runtimeSetup;
+    const scoped = () =>
+      runtime && context.runtimeConnections
+        ? context.runtimeConnections.withEnvironment(runtime, action)
+        : action();
+    return setup ? setup.withExecutables(scoped) : scoped();
+  };
   revision = () => {
     return {
       state: this.store.state,
@@ -122,7 +131,14 @@ export class RuntimeMaintenance {
       .filter(([key]) => /AUTH|TOKEN|KEY|PROVIDER|BASE_URL|HOME|PATH/i.test(key))
       .sort(([a], [b]) => a.localeCompare(b));
     return createHash('sha256')
-      .update(JSON.stringify([config.runtime, config.model, environment]))
+      .update(
+        JSON.stringify([
+          config.runtime,
+          config.model,
+          environment,
+          this.context().runtimeConnections?.revision(config.runtime),
+        ]),
+      )
       .digest('hex');
   };
   authenticate = async (config: Configuration, force = false): Promise<RuntimeAuthentication> => {
@@ -140,8 +156,10 @@ export class RuntimeMaintenance {
     const pending = this.authRequests.get(key);
     if (pending) return pending;
     this.preparations.set(config.runtime, (this.preparations.get(config.runtime) ?? 0) + 1);
-    const request = this.host
-      .authenticate(config, this.controller.signal)
+    const request = Promise.resolve()
+      .then(() =>
+        this.scope(() => this.host.authenticate(config, this.controller.signal), config.runtime),
+      )
       .then((result) => {
         if (this.authentication.size >= 100)
           this.authentication.delete(this.authentication.keys().next().value!);
@@ -174,7 +192,7 @@ export class RuntimeMaintenance {
       throw new RuntimeHeldError('The workspace is closing.');
     if (this.isUpdating(config.runtime))
       throw new RuntimeHeldError(
-        'This runtime is updating. Your work can resume when verification finishes.',
+        'This runtime is being set up or updated. Your work can resume when verification finishes.',
       );
     this.preparations.set(config.runtime, (this.preparations.get(config.runtime) ?? 0) + 1);
     try {
@@ -189,7 +207,7 @@ export class RuntimeMaintenance {
         throw new RuntimeHeldError(
           'Runtime settings changed during preparation. Retry with the current settings.',
         );
-      return await action();
+      return await this.scope(action, config.runtime);
     } finally {
       this.preparations.set(
         config.runtime,
@@ -197,12 +215,16 @@ export class RuntimeMaintenance {
       );
     }
   };
-  metadata = async <T>(id: RuntimeId, action: () => Promise<T>): Promise<T> => {
+  metadata = async <T>(
+    id: RuntimeId,
+    action: () => Promise<T>,
+    options: { installationOnly?: boolean } = {},
+  ): Promise<T> => {
     if (this.isUpdating(id))
-      throw new RuntimeHeldError('This runtime is updating. Wait for verification.');
+      throw new RuntimeHeldError('This runtime is being set up or updated. Wait for verification.');
     this.preparations.set(id, (this.preparations.get(id) ?? 0) + 1);
     try {
-      return await action();
+      return await this.scope(action, options.installationOnly ? undefined : id);
     } finally {
       this.preparations.set(id, Math.max(0, (this.preparations.get(id) ?? 1) - 1));
     }
@@ -252,7 +274,7 @@ export class RuntimeMaintenance {
     this.store.save();
     const request = Promise.resolve()
       .then(async () => {
-        await this.host.detect(this.context());
+        await this.scope(() => this.host.detect(this.context()));
         return Promise.all(
           this.context()
             .runtimes.filter(
@@ -278,9 +300,11 @@ export class RuntimeMaintenance {
               const checkedAt = new Date(this.host.now()).toISOString();
               this.preparations.set(runtime.id, (this.preparations.get(runtime.id) ?? 0) + 1);
               try {
-                const installation = await this.host.resolve(
-                  runtime.id as Exclude<RuntimeId, 'demo'>,
-                  this.controller.signal,
+                const installation = await this.scope(() =>
+                  this.host.resolve(
+                    runtime.id as Exclude<RuntimeId, 'demo'>,
+                    this.controller.signal,
+                  ),
                 );
                 if (!installation)
                   throw new Error('The runtime executable is no longer installed.');
@@ -373,7 +397,7 @@ export class RuntimeMaintenance {
     this.store.save();
     // Reserve synchronously before the first await; another launch cannot pass the gate.
     const operation = Promise.resolve()
-      .then(() => executeRuntimeUpdate(this, id))
+      .then(() => this.scope(() => executeRuntimeUpdate(this, id)))
       .finally(() => this.active.delete(id));
     this.active.set(id, operation);
     return this.current();
@@ -421,7 +445,7 @@ export class RuntimeMaintenance {
       };
       update.canUpdate = false;
       this.clearAuthentication(update.id);
-      const health = await adapters[update.id].detect();
+      const health = await this.scope(() => adapters[update.id].detect());
       this.context().runtimes = this.context().runtimes.map((runtime) =>
         runtime.id === update.id ? { ...runtime, ...health } : runtime,
       );
@@ -436,7 +460,9 @@ export class RuntimeMaintenance {
       )
         continue;
       try {
-        const installation = await this.host.resolve(update.id, this.controller.signal);
+        const installation = await this.scope(() =>
+          this.host.resolve(update.id as Exclude<RuntimeId, 'demo'>, this.controller.signal),
+        );
         if (installation?.identity === this.store.state.identities[update.id])
           this.installations.set(update.id, installation);
         else {

@@ -110,3 +110,25 @@ it('titles each rule by its documents and condition', () => {
     ruleSentence({ kind: 'pattern', documents: ['resume'], pattern: '!', flags: 'g', maxCount: 2 }),
   ).toBe('Resume — at most 2 of /!/g');
 });
+
+it('describes empty numeric drafts without leaking null or a made-up zero', () => {
+  for (const kind of ['word_limit', 'max_bullets']) {
+    const rule = { kind, max: null, documents: ['resume'] };
+    expect(ruleSentence(rule)).toContain('needs a value');
+    expect(ruleViews({ rules: [rule] })[0]?.detail).not.toContain('null');
+  }
+  expect(
+    issueText({
+      path: ['rules', 0, 'max'],
+      message: 'Invalid input: expected number, received null',
+    }),
+  ).toBe('max: Enter a number.');
+});
+
+it('distinguishes missing limits from values that need correction', () => {
+  for (const max of [0, 12.5, 200000]) {
+    const rule = { kind: 'word_limit', max, documents: ['resume'] };
+    expect(ruleSentence(rule)).toContain('needs correction');
+    expect(ruleViews({ rules: [rule] })[0]?.detail).toContain('Correct the word limit');
+  }
+});

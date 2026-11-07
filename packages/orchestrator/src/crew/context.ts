@@ -1,4 +1,7 @@
 import { RuntimeMaintenance } from '../runtime-maintenance/index.ts';
+import { RuntimeSetupManager } from '../runtime-setup/index.ts';
+import { RuntimeAuthManager } from '../runtime-setup/auth.ts';
+import { RuntimeConnections } from '../runtime-connections/index.ts';
 import { Board } from '@pitchcrew/board';
 import { writingGuide, saveGuide } from '../quality/writing.ts';
 import { ProfileOrganizationStore } from '../profile-organization.ts';
@@ -99,6 +102,9 @@ export const createCrewContext = (
     deciding: new Set<string>(),
     runtimes: [],
     runtimeMaintenance: new RuntimeMaintenance(directory, () => context),
+    runtimeSetup: new RuntimeSetupManager(directory, () => context),
+    runtimeAuth: new RuntimeAuthManager(() => context),
+    runtimeConnections: new RuntimeConnections(directory, () => context),
     modelCatalogs: new Map<RuntimeId, { catalog: RuntimeModelCatalog; expiresAt: number }>(),
     modelRequests: new Map<RuntimeId, Promise<RuntimeModelCatalog>>(),
     modelController: new AbortController(),

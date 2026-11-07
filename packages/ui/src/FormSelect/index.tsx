@@ -15,6 +15,7 @@ export const FormSelect = <T extends string>({
   id: suppliedId,
   disabled,
   className,
+  describedBy,
 }: {
   label: string;
   value: T;
@@ -23,6 +24,7 @@ export const FormSelect = <T extends string>({
   id?: string;
   disabled?: boolean;
   className?: string;
+  describedBy?: string;
 }) => {
   const generatedId = useId();
   const id = suppliedId ?? generatedId;
@@ -37,7 +39,7 @@ export const FormSelect = <T extends string>({
           if (next !== null) onValueChange(next);
         }}
       >
-        <SelectTrigger id={id} aria-label={label}>
+        <SelectTrigger id={id} aria-label={label} aria-describedby={describedBy}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent alignItemWithTrigger={false} align="start" sideOffset={6}>

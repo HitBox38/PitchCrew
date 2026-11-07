@@ -19,7 +19,7 @@ export const detectorEntries: Record<
   gptzero: {
     name: 'GPTZero',
     docsUrl: 'https://docs.gptzero.me/',
-    note: 'Paid plan with API access. Request contract taken from GPTZero client libraries.',
+    note: 'Requires a paid plan with API access.',
   },
   originality: {
     name: 'Originality.ai',

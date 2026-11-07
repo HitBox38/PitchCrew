@@ -6,9 +6,9 @@ export const RulesIntro = ({ controller }: { controller: PacketRulesController }
   return (
     <header className="packet-rules-intro">
       <div className="settings-section-head">
-        <h2 id="packet-rules-heading" className="ui-section-heading" tabIndex={-1}>
-          Packet rules <span className="ui-count">{rules.length}</span>
-        </h2>
+        <h3 id="packet-rules-heading" className="ui-section-heading" tabIndex={-1}>
+          Rules <span className="ui-count">{rules.length}</span>
+        </h3>
         <div className="settings-section-actions">
           <RuleFileActions controller={controller} />
         </div>

@@ -46,7 +46,7 @@ export const GoogleConnectionSetup = (props: GoogleConnectionSetupProps) => {
       </Collapsible>
       <p className="quiet">
         After connecting, choose which agents can use each service in Crew. Sign-in credentials are
-        saved on this device and never included in agent prompts.
+        saved on the computer running Pitchcrew and never included in agent prompts.
       </p>
     </>
   );

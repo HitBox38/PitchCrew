@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { CommandGroup, CommandItem } from '@pitchcrew/design-system/command';
 import { settingEntries } from '../search.ts';
 import { settingsSections } from '../constants.ts';
+import { settingDestination } from '../destination.ts';
 export const SettingCommands = ({
   run,
   always = false,
@@ -24,11 +25,7 @@ export const SettingCommands = ({
             value={`Settings ${entry.label}`}
             keywords={entry.keywords}
             onSelect={run(() => {
-              void navigate({
-                to: '/settings',
-                search: { section: entry.section },
-                hash: entry.target,
-              });
+              void navigate(settingDestination(entry));
             })}
           >
             <Icon aria-hidden="true" />

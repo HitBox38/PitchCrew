@@ -3,6 +3,8 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { cliEnvironment } from '../process/environment.ts';
 import { terminateCli } from '../process/launch.ts';
+import { runtimeCommand } from '../process/executable.ts';
+import { redactRuntimeConnectionSecrets } from '../process/runtime-connection.ts';
 
 export interface MaintenanceCommand {
   file: string;
@@ -15,9 +17,7 @@ export const redactMaintenanceOutput = (text: string): string => {
     .replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, '')
     // oxlint-disable-next-line no-control-regex -- Installer output is untrusted terminal text.
     .replace(/[\x00-\x08\x0b-\x1f\x7f]/g, '');
-  for (const [key, value] of Object.entries(process.env))
-    if (/TOKEN|SECRET|PASSWORD|API_KEY|AUTH/i.test(key) && value && value.length >= 4)
-      result = result.replaceAll(value, '[redacted]');
+  result = redactRuntimeConnectionSecrets(result);
   return result
     .replace(/(?:Bearer\s+)[\w.\-+/=]+/gi, 'Bearer [redacted]')
     .replace(/\b(?:sk-|gh[pousr]_|github_pat_)[\w-]+/g, '[redacted]')
@@ -38,7 +38,8 @@ export const runMaintenanceCommand = async (
 ): Promise<{ code: number | null; stdout: string; stderr: string }> => {
   options.signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const child = spawn(command.file, command.args, {
+    const invocation = runtimeCommand(command.file, command.args);
+    const child = spawn(invocation.file, invocation.args, {
       cwd: tmpdir(),
       env: { ...cliEnvironment(), ...command.env, CI: '1', NO_COLOR: '1' },
       windowsHide: true,

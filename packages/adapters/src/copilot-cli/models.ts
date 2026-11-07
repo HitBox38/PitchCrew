@@ -8,6 +8,7 @@ import {
 } from '../model-discovery.ts';
 import { modelReasoning } from '../reasoning.ts';
 import { cliEnvironment, terminateCli } from '../process.ts';
+import { runtimeCommand } from '../process/executable.ts';
 
 export const parseCopilotModels = (result: unknown): RuntimeModel[] => {
   const output = result as { models?: unknown } | undefined;
@@ -43,7 +44,8 @@ export const readCopilotModels = async (
 ): Promise<RuntimeModel[]> => {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const invocation = runtimeCommand(command, args);
+    const child = spawn(invocation.file, invocation.args, {
       cwd: tmpdir(),
       env: cliEnvironment(),
       windowsHide: true,

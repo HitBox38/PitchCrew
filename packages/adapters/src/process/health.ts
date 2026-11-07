@@ -2,6 +2,7 @@ import type { RuntimeHealth, RuntimeId } from '@pitchcrew/core';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import { cliEnvironment } from './environment.ts';
+import { runtimeCommand } from './executable.ts';
 export const requireCliVersion = (
   health: RuntimeHealth,
   minimum: readonly number[],
@@ -18,7 +19,11 @@ export const requireCliVersion = (
     detail: `${command} ${minimum.join('.')} or newer is required for scoped MCP runs. Upgrade ${command} and retry.`,
   };
 };
-export const detectCli = async (id: RuntimeId, command: string): Promise<RuntimeHealth> => {
+export const detectCli = async (
+  id: RuntimeId,
+  command: string,
+  normalizeVersion?: (stdout: string) => string,
+): Promise<RuntimeHealth> => {
   try {
     const { stdout } = await exec(command, ['--version'], {
       env: cliEnvironment(),
@@ -28,7 +33,7 @@ export const detectCli = async (id: RuntimeId, command: string): Promise<Runtime
     return {
       id,
       available: true,
-      version: stdout.trim().slice(0, 100),
+      version: (normalizeVersion ? normalizeVersion(stdout) : stdout).trim().slice(0, 100),
       detail: 'Installed. Authentication is managed by the CLI.',
     };
   } catch {
@@ -41,4 +46,8 @@ export const detectCli = async (id: RuntimeId, command: string): Promise<Runtime
   }
 };
 
-export const exec = promisify(execFile);
+const execFileAsync = promisify(execFile);
+export const exec: typeof execFileAsync = ((command: string, args: string[], options: object) => {
+  const invocation = runtimeCommand(command, args);
+  return execFileAsync(invocation.file, invocation.args, options);
+}) as typeof execFileAsync;

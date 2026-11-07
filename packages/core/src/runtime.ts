@@ -27,7 +27,14 @@ export interface RuntimeModelCatalog {
   modelSource: 'runtime' | 'fallback' | 'none';
   modelDetail: string;
 }
-export interface RuntimeInfo extends RuntimeHealth, RuntimeModelCatalog {}
+export interface RuntimeInfo extends RuntimeHealth, RuntimeModelCatalog {
+  /** Configuration can block execution independently of a compatible installation. */
+  configurationError?: {
+    code: 'credentials_unreadable';
+    message: string;
+    installationAvailable: boolean;
+  };
+}
 export type RuntimeConfiguration = Pick<Role, 'runtime' | 'model' | 'reasoning' | 'browserMode'>;
 export interface RuntimeRecommendation extends RuntimeConfiguration {
   available: boolean;

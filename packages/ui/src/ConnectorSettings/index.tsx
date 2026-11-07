@@ -15,7 +15,12 @@ export const ConnectorSettings = (props: ConnectorSettingsProps) => {
       <SettingsSection
         id="accounts-heading"
         title="Connected services"
-        description="Read-only. Disconnect removes credentials saved on this device; revoke access separately with your provider. Application claims still come from your Profile."
+        scope="This workspace"
+        description={
+          props.data.connectors.some((connector) => connector.connected)
+            ? 'Read-only. Disconnect removes the saved connection on the computer running Pitchcrew; revoke provider access separately.'
+            : 'Connect a service, then choose which agents may read it. Application claims still come from your Profile.'
+        }
       >
         <ConnectedAccounts {...controller} />
         {authorizationUrl && google?.pending ? (

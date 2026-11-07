@@ -2,6 +2,8 @@ import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
 import type { ConnectorStatus, ExternalMcpInfo, PacketRules, Role } from '@pitchcrew/core';
 import { cleanup, setup } from './helpers/daemon.ts';
+import { smokeSettingsNavigation } from '../../desktop/src/smoke-settings.ts';
+import { smokeAutomaticUpdatesSelector } from '../../desktop/src/smoke-updates.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
@@ -42,7 +44,7 @@ const saveRules = async () => {
   await expect.poll(() => button.isDisabled()).toBe(true);
 };
 beforeAll(async () => {
-  host = await setup(15752);
+  host = await setup(15752, false, { dev: false });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);
@@ -55,6 +57,45 @@ beforeEach(async () => {
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
 });
+test.each([1440, 860])(
+  'desktop smoke selects actual settings sections at %ipx',
+  async (width) => {
+    await page.setViewportSize({ width, height: 900 });
+    await open('updates');
+    const navigation = page.getByRole('navigation', { name: 'Settings', exact: true });
+    await (
+      width === 860
+        ? navigation.getByRole('combobox', { name: 'Settings section', exact: true })
+        : navigation.getByRole('tab', { name: 'Updates', exact: true })
+    ).waitFor();
+    for (const [section, label, selector] of [
+      ['updates', 'Updates', '#updates-heading'],
+      ['runtimes', 'Runtimes', '#runtime-heading'],
+      ['accounts', 'Accounts', '#external-mcp-enabled-label'],
+    ]) {
+      await page.evaluate(`(async () => {
+      const waitFor = async (test) => {
+        for (let i = 0; i < 80; i++) {
+          if (test()) return true;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return false;
+      };
+      ${smokeSettingsNavigation}
+      await openSettingsSection(${JSON.stringify(section)}, ${JSON.stringify(label)});
+    })()`);
+      expect(new URL(page.url()).searchParams.get('section')).toBe(section);
+      await page.locator(selector).waitFor();
+      if (section === 'updates') {
+        const preference = page.locator(smokeAutomaticUpdatesSelector);
+        expect(await preference.count()).toBe(1);
+        expect(await preference.getAttribute('role')).toBe('switch');
+        expect(await preference.isVisible()).toBe(true);
+      }
+    }
+  },
+  30000,
+);
 afterEach(async () => {
   await page?.close();
   vi.restoreAllMocks();
@@ -70,6 +111,14 @@ test('changes word limits without JSON, validates incomplete fields and saves th
   await page.getByRole('button', { name: /^Resume — at most 650 words/ }).click();
   const maximum = page.getByRole('spinbutton', { name: 'Maximum words', exact: true });
   await maximum.fill('');
+  await page.getByText('Enter a whole number between 1 and 100,000.', { exact: true }).waitFor();
+  expect(await maximum.getAttribute('aria-invalid')).toBe('true');
+  expect(await maximum.getAttribute('aria-describedby')).toBe('packet-rule-0-max-error');
+  await expect
+    .poll(() => page.locator('.packet-rules-actions .ui-footer-note').innerText())
+    .toBe('1 problem to fix before saving');
+  expect(await page.locator('.packet-rules').innerText()).not.toContain('null');
+  expect(await page.locator('.packet-rules').innerText()).not.toContain('Invalid input:');
   expect(
     await page.getByRole('tab', { name: 'Rules', exact: true }).getAttribute('aria-selected'),
   ).toBe('true');
@@ -128,7 +177,7 @@ test('keeps rule editors mounted when names change and an earlier rule is remove
 
 test('creates bullet, allowed-line and captured-value rules with equivalent advanced JSON', async () => {
   await open('rules');
-  await choose('Rule type', 'Bullets per section');
+  await choose('New rule type', 'Bullets per section');
   await addRule('Maximum bullets per section');
   await page
     .getByRole('spinbutton', { name: 'Maximum bullets per section', exact: true })
@@ -136,7 +185,7 @@ test('creates bullet, allowed-line and captured-value rules with equivalent adva
   await page
     .getByRole('textbox', { name: 'Section heading pattern (optional)', exact: true })
     .fill('Experience');
-  await choose('Rule type', 'Allowed lines');
+  await choose('New rule type', 'Allowed lines');
   await addRule('Lines to check (regular expression)');
   await page
     .getByRole('textbox', { name: 'Lines to check (regular expression)', exact: true })
@@ -144,7 +193,7 @@ test('creates bullet, allowed-line and captured-value rules with equivalent adva
   await page
     .getByRole('textbox', { name: 'Allowed lines', exact: true })
     .fill('Degree: Fictional BSc\nDegree: Fictional MSc');
-  await choose('Rule type', 'Text pattern');
+  await choose('New rule type', 'Text pattern');
   await addRule('Text to match (regular expression)');
   await page
     .getByRole('textbox', { name: 'Text to match (regular expression)', exact: true })
@@ -360,6 +409,25 @@ test('JSON editor completes properties and values and locates daemon validation 
     .toBe(true);
 }, 30000);
 
+test('phone rule removal keeps focus on the remaining rule or its picker', async () => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await open('rules');
+  const picker = page.getByRole('combobox', { name: 'Rule to edit', exact: true });
+  await picker.click();
+  await page.getByRole('option', { name: /Cover letter — at most 500 words/ }).click();
+  await page.getByRole('button', { name: 'Remove rule', exact: true }).click();
+  await expect
+    .poll(() =>
+      picker.evaluate(
+        (element) =>
+          document.activeElement === element ||
+          document.activeElement?.id === 'packet-rule-0-editor',
+      ),
+    )
+    .toBe(true);
+  expect(await picker.innerText()).toContain('Resume');
+}, 30000);
+
 test('Settings search and global search navigate to and focus a preference', async () => {
   await open('rules');
   await page.getByRole('button', { name: 'Find a setting', exact: true }).click();
@@ -374,6 +442,17 @@ test('Settings search and global search navigate to and focus a preference', asy
     )
     .toBe(true);
   expect(page.url()).toContain('section=general#notification-sounds');
+  // Repeating the same result must jump again after the command dialog restores focus.
+  await page.getByRole('button', { name: 'Find a setting', exact: true }).click();
+  await search.getByRole('combobox').fill('mute');
+  await search.getByRole('option', { name: /Notification sounds/ }).click();
+  await expect
+    .poll(() =>
+      page
+        .getByRole('switch', { name: 'Notification sounds', exact: true })
+        .evaluate((element) => document.activeElement === element),
+    )
+    .toBe(true);
   await page.keyboard.press('ControlOrMeta+k');
   const global = page.getByRole('dialog', { name: 'Search Pitchcrew', exact: true });
   await global.getByRole('combobox').fill('telemetry');
@@ -397,6 +476,17 @@ test('Settings search and global search navigate to and focus a preference', asy
     )
     .toBe(true);
   expect(page.url()).toContain('section=rules#json-editor-settings');
+  await page.getByRole('tab', { name: 'Rules', exact: true }).click();
+  await page.keyboard.press('ControlOrMeta+k');
+  await global.getByRole('combobox').fill('format JSON');
+  await global.getByRole('option', { name: /JSON editor settings/ }).click();
+  await expect
+    .poll(() =>
+      page
+        .getByRole('button', { name: 'JSON editor settings', exact: true })
+        .evaluate((element) => document.activeElement === element),
+    )
+    .toBe(true);
 }, 30000);
 
 test('connected accounts show agent access and open the existing explicit configuration flow', async () => {
@@ -416,7 +506,7 @@ test('connected accounts show agent access and open the existing explicit config
   await open('accounts');
   await page.getByRole('article', { name: 'GitHub account', exact: true }).waitFor();
   const account = page.getByRole('article', { name: 'GitHub access', exact: true });
-  await account.getByText('No agents have access yet.', { exact: true }).waitFor();
+  await account.getByText('No agents', { exact: true }).waitFor();
   await account.getByRole('button', { name: 'Choose agents', exact: true }).click();
   const before = host.daemon.service.board.get<Role>('role', 'scout');
   await account
@@ -444,7 +534,8 @@ test('mobile source editing protects drafts and removal explains that leads stay
   await page.getByRole('switch', { name: 'Watch Fixture Company', exact: true }).waitFor();
   await page.getByRole('button', { name: 'Edit', exact: true }).click();
   await page.getByRole('textbox', { name: 'Company name', exact: true }).fill('Edited fixture');
-  await page.getByRole('tab', { name: 'Accounts', exact: true }).click();
+  await page.getByRole('combobox', { name: 'Settings section', exact: true }).click();
+  await page.getByRole('option', { name: 'Accounts', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Discard unsaved changes?', exact: true });
   await dialog.getByRole('button', { name: 'Keep editing', exact: true }).click();
   expect(await page.getByRole('textbox', { name: 'Company name', exact: true }).inputValue()).toBe(
@@ -481,7 +572,7 @@ test('external agent access is opt-in, exposes a copyable configuration and revo
   expect(initial.result).toMatchObject({ enabled: true, write: false });
   expect(JSON.parse((await configuration.textContent())!)).toEqual(initial.result.configuration);
   await page.getByRole('button', { name: 'Copy Pitchcrew MCP configuration', exact: true }).click();
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+  expect((await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n')).toBe(
     JSON.stringify(initial.result.configuration, null, 2),
   );
   await write.click();
@@ -533,7 +624,9 @@ test.each(['denied', 'unavailable'] as const)(
     await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
     await copy.click();
     await expect.poll(() => copy.getAttribute('data-copied')).toBe('true');
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(expected);
+    expect((await page.evaluate(() => navigator.clipboard.readText())).replace(/\r\n/g, '\n')).toBe(
+      expected,
+    );
     expect(await guidance.count()).toBe(0);
     await host.request('/external-mcp/access', 'PUT', { enabled: false, write: false });
   },

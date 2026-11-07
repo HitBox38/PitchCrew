@@ -35,7 +35,11 @@ describe.each([
       hermes: 'hermes',
     }[runtime];
     expect(await adapters[runtime].detect()).toMatchObject({ id: runtime, available: true });
-    expect(detectCli).toHaveBeenCalledWith(runtime, command);
+    expect(detectCli).toHaveBeenCalledWith(
+      runtime,
+      command,
+      ...(runtime === 'hermes' ? [expect.any(Function)] : []),
+    );
     expect(runCliText).not.toHaveBeenCalled();
     expect(runAcp).not.toHaveBeenCalled();
     expect(runAcpText).not.toHaveBeenCalled();

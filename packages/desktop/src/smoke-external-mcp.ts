@@ -29,9 +29,7 @@ export const clickSmokeMcpCopy = async (window: BrowserWindow) => {
 
 /** Clicks the real Settings copy button; the main process checks the native clipboard. */
 export const smokeExternalMcp = `(async () => {
-  document.querySelector('a[href^="/settings"]')?.click();
-  if (!await waitFor(() => location.pathname === '/settings')) throw new Error('MCP settings navigation failed.');
-  [...document.querySelectorAll('[role="tab"]')].find(tab => tab.textContent.includes('Accounts'))?.click();
+  await openSettingsSection('accounts', 'Accounts');
   const enabled = () => document.querySelector('[role="switch"][aria-labelledby="external-mcp-enabled-label"]');
   if (!await waitFor(() => enabled() && !enabled().disabled)) throw new Error('External MCP settings unavailable.');
   if (enabled().getAttribute('aria-checked') !== 'false') throw new Error('External MCP smoke requires disabled fixture access.');

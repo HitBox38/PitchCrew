@@ -212,6 +212,15 @@ export class CrewService {
   get runtimeMaintenance() {
     return this.context.runtimeMaintenance;
   }
+  get runtimeSetup() {
+    return this.context.runtimeSetup;
+  }
+  get runtimeAuth() {
+    return this.context.runtimeAuth;
+  }
+  get runtimeConnections() {
+    return this.context.runtimeConnections;
+  }
   get runtimes() {
     return this.context.runtimes;
   }

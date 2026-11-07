@@ -1,4 +1,5 @@
 import { smokeRuntimeUpdates } from './smoke-runtime-updates.ts';
+import { smokeSettingsNavigation } from './smoke-settings.ts';
 import { installSmokeShutdownCheck } from './smoke-shutdown.ts';
 import { smokeUserQuestions, smokeDraftRequest, smokeDraftText } from './smoke-user-questions.ts';
 import { app, clipboard, nativeTheme, type BrowserWindow, type NativeImage } from 'electron';
@@ -85,6 +86,7 @@ export const installSmokeCheck = (window: BrowserWindow, appIcon: NativeImage) =
               return false;
             };
             // Secondary pages sit behind the sidebar's More menu; the command palette opens them too.
+            ${smokeSettingsNavigation}
             const openPage = async (title) => {
               document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true, bubbles: true }));
               const option = () => [...document.querySelectorAll('.command-palette [role="option"]')].find((item) => item.querySelector('.command-label')?.textContent === 'Open ' + title);

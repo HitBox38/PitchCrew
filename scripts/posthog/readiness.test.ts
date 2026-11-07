@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import { compareReadiness } from './readiness.ts';
 import type { DailyReadiness, ReadinessInput } from './readiness.ts';
 
@@ -147,7 +148,8 @@ test('the bundled CLI consumes aggregates and never echoes malformed input', asy
     const path = join(directory, 'input.json');
     const script = new URL('./readiness.ts', import.meta.url);
     await writeFile(path, JSON.stringify(input(15)));
-    const run = () => spawnSync(process.execPath, [script.pathname, path], { encoding: 'utf8' });
+    const run = () =>
+      spawnSync(process.execPath, [fileURLToPath(script), path], { encoding: 'utf8' });
     const result = run();
     assert.equal(result.status, 0, result.stderr);
     assert.equal(JSON.parse(result.stdout).baselineKind, 'partial');

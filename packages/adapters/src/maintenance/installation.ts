@@ -6,8 +6,19 @@ import { delimiter, dirname, isAbsolute, join, resolve, sep } from 'node:path';
 import { homedir } from 'node:os';
 import { cliEnvironment } from '../process/environment.ts';
 import { maintenanceDefinitions } from './catalog.ts';
+import { npmCliEntry } from './npm.ts';
 import { runMaintenanceCommand, type MaintenanceCommand } from './process.ts';
+import { runtimeExecutable } from '../process/executable.ts';
 export const findRuntimeExecutable = async (command: string): Promise<string | null> => {
+  const configured = runtimeExecutable(command);
+  if (configured !== command) {
+    try {
+      await access(configured, process.platform === 'win32' ? constants.F_OK : constants.X_OK);
+      return configured;
+    } catch {
+      return null;
+    }
+  }
   const env = cliEnvironment();
   const path = Object.entries(env).find(([key]) => key.toUpperCase() === 'PATH')?.[1] ?? '';
   const extensions = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
@@ -70,7 +81,10 @@ export const resolveRuntimeInstallation = async (
         join(prefix, 'lib/node_modules/npm/bin/npm-cli.js'),
         join(prefix, 'node_modules/npm/bin/npm-cli.js'),
       ];
-      if (npm && !/\.(cmd|bat)$/i.test(npm)) candidates.push(await realpath(npm));
+      if (npm) {
+        const entry = await npmCliEntry(npm);
+        if (entry) candidates.push(entry);
+      }
       for (const cli of candidates) {
         if (!normalized(cli).endsWith('/npm/bin/npm-cli.js')) continue;
         try {

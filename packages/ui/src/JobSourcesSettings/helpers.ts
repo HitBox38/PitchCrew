@@ -1,6 +1,7 @@
 import type { JobScanSummary, JobSource, JobSourceInput } from '@pitchcrew/core';
 import { comeetTokenPattern, comeetUidPattern, tokenProviders } from './constants.ts';
 import type { BoardLink, SourceDraft } from './types.ts';
+import { settingsTime } from '@/lib/settings-time.ts';
 
 /** Split comma or line separated keywords, dropping blanks and repeats. */
 export const keywordList = (value: string): string[] => {
@@ -100,17 +101,17 @@ export const sourceDraft = (source: JobSource): SourceDraft => {
 export const filterSummary = (source: JobSource): string => {
   const { titleInclude, titleExclude, locationInclude, remoteOnly } = source.filters;
   const parts = [
-    titleInclude.length ? `titles with ${titleInclude.join(', ')}` : '',
-    titleExclude.length ? `not ${titleExclude.join(', ')}` : '',
-    locationInclude.length ? `in ${locationInclude.join(', ')}` : '',
-    remoteOnly ? 'remote only' : '',
+    titleInclude.length ? `Titles include: ${titleInclude.join(', ')}` : '',
+    titleExclude.length ? `Titles exclude: ${titleExclude.join(', ')}` : '',
+    locationInclude.length ? `Locations include: ${locationInclude.join(', ')}` : '',
+    remoteOnly ? 'Remote only' : '',
   ].filter(Boolean);
   return parts.length ? parts.join(' · ') : 'All postings';
 };
 export const lastScanText = (source: JobSource): string => {
   const scan = source.lastScan;
   if (!scan) return 'Not scanned yet';
-  const when = new Date(scan.at).toLocaleString();
+  const when = settingsTime(scan.at);
   if (scan.status === 'failed') return `Last scan failed ${when}: ${scan.error ?? 'unknown error'}`;
   return `Scanned ${when}: ${plural(scan.new, 'new lead')}, ${scan.duplicate} already on the board`;
 };

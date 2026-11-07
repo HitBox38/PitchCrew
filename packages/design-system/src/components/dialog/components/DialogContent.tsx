@@ -10,11 +10,12 @@ export const DialogContent = ({
   children,
   showCloseButton = true,
   motion = true,
+  forceRenderBackdrop = false,
   ...props
 }: DialogContentProps) => {
   return (
     <DialogPortal>
-      <DialogOverlay data-motion={motion} />
+      <DialogOverlay data-motion={motion} forceRender={forceRenderBackdrop} />
       <DialogPrimitive.Popup
         data-slot="dialog-content"
         data-motion={motion}

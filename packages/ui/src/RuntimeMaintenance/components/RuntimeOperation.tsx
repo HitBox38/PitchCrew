@@ -36,7 +36,7 @@ export const RuntimeOperation = ({ update }: { update: RuntimeUpdateInfo }) => {
         </div>
       </div>
       {failed && update.manualCommand ? (
-        <div className="mt-3 space-y-2">
+        <div className="mt-3 space-y-2 pl-6">
           <p className="quiet">
             Run this command in your terminal to update manually, then recheck the runtime.
           </p>
@@ -44,7 +44,7 @@ export const RuntimeOperation = ({ update }: { update: RuntimeUpdateInfo }) => {
         </div>
       ) : null}
       {operation.output ? (
-        <Collapsible className="mt-2">
+        <Collapsible className="mt-2 pl-6">
           <CollapsibleTrigger className="settings-text-trigger">
             Installer output
           </CollapsibleTrigger>

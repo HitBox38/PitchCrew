@@ -1,8 +1,6 @@
 /** Shared renderer check using only the fixture daemon's fake authentication and installer. */
 export const smokeRuntimeUpdates = `(async () => {
-  document.querySelector('a[href^="/settings"]')?.click();
-  if (!await waitFor(() => location.pathname === '/settings')) throw new Error('Runtime settings navigation failed.');
-  [...document.querySelectorAll('[role="tab"]')].find(tab => tab.textContent.includes('Runtimes'))?.click();
+  await openSettingsSection('runtimes', 'Runtimes');
   if (!await waitFor(() => !!document.querySelector('#automatic-runtime-updates'))) throw new Error('Runtime update preference missing.');
   document.querySelector('#automatic-runtime-updates').click();
   const row = () => document.querySelector('#runtime-claude-code');

@@ -60,7 +60,9 @@ export const executeRuntimeUpdate = async (
     });
     if (result.code !== 0)
       throw new Error(
-        'The installer failed. See its output; use manual instructions if it needs permissions or interactive input.',
+        operation.output.trim()
+          ? 'The installer failed. Review Installer output below, or use manual instructions if it needs permissions or interactive input.'
+          : 'The installer failed without diagnostic output. Use manual instructions if it needs permissions or interactive input.',
       );
     stage('verifying', 'Verifying the installed version…');
     const verified = await manager.host.resolve(id, manager.controller.signal);

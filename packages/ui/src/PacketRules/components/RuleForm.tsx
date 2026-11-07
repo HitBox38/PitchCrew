@@ -13,10 +13,20 @@ export const RuleForm = (
   props: RuleFormProps & { issues: RuleIssue[]; remove: () => void; working: boolean },
 ) => {
   const { rule, index, change, issues, remove, working } = props;
-  const problems = issuesForRule(issues, index);
+  const numericField =
+    rule.kind === 'word_limit' || rule.kind === 'max_bullets'
+      ? 'max'
+      : rule.kind === 'pattern' && rule.equals === undefined
+        ? 'maxCount'
+        : null;
+  const problems = issuesForRule(issues, index).filter(
+    (issue) => issue.path.at(-1) !== numericField,
+  );
   return (
     <fieldset
       className="form packet-rule-form"
+      id={ruleFormKey(index, 'editor')}
+      tabIndex={-1}
       disabled={working}
       aria-label={`Edit rule ${fieldText(rule.id)}`}
     >
