@@ -116,7 +116,7 @@ it('bounds per-run history and text while retaining updates to existing steps', 
   const saved = daemon.service.board.get<Run>('run', run.id);
   expect(saved.activity).toHaveLength(80);
   expect(saved.activityTruncated).toBe(true);
-  expect(saved.activity![0]).toMatchObject({ text: 'Finished checking', status: 'completed' });
+  expect(saved.activity!.at(-1)).toMatchObject({ text: 'Finished checking', status: 'completed' });
   expect(saved.activity![1]).toMatchObject({
     status: 'interrupted',
     finishedAt: expect.any(String),

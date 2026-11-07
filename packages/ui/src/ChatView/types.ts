@@ -1,6 +1,7 @@
 import type { useChatView } from '@/ChatView/hooks/useChatView.ts';
 import type { Action } from '@/WorkspaceStore/index.ts';
 import type { RoleId, Snapshot } from '@pitchcrew/core';
+import type { ComposerRetryMode } from './composer-retry.ts';
 
 export type ChatThread = RoleId | 'crew';
 
@@ -57,7 +58,8 @@ export type ChatComposerProps = Pick<
   | 'action'
   | 'setDialog'
   | 'questions'
->;
+> &
+  ComposerRetryMode;
 
 export type ComposerHintProps = Pick<ChatViewModel, 'role'>;
 

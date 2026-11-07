@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, expect, it } from 'vitest';
 import { chromium, type Browser } from 'playwright';
 import { createServer, type ViteDevServer } from 'vite';
-import { mkdtemp, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -366,6 +366,61 @@ it('closes the last discarded recovery draft onto a visible neutral question con
   await page.close();
 });
 
+it('preserves a lost-send UUID through actual Lexical restoration, reference hydration and unchanged retry', async () => {
+  const page = await fresh();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addStyleTag({
+    content: [
+      await readFile(new URL('../../styles/chat/composer.css', import.meta.url), 'utf8'),
+      await readFile(new URL('../../styles/chat/clay-composer.css', import.meta.url), 'utf8'),
+    ].join('\n'),
+  });
+  await page.evaluate(() => {
+    document.documentElement.dataset.interface = 'clay';
+  });
+  await page.evaluate(() => window.composerFixture.seed());
+  const input = page.locator('.chat-compose .chat-textarea');
+  await input.press('Enter');
+  await page.waitForFunction(() => window.composerFixture.read().requests.length === 1);
+  const original = (await page.evaluate(() => window.composerFixture.read())).requests[0][2] as {
+    clientRequestId: string;
+  };
+  await page.evaluate(() => window.composerFixture.settle('fail'));
+  await page.waitForFunction(() => window.composerFixture.read().kept.length === 1);
+  await page
+    .locator('.chat-compose')
+    .getByRole('button', { name: 'Review 1 kept draft', exact: true })
+    .click();
+  await page.getByRole('button', { name: 'Use this draft', exact: true }).press('Enter');
+  const warning = page.locator('.chat-compose .chat-send-note');
+  await warning.getByText('Retry keeps the original Queue action.', { exact: false }).waitFor();
+  expect(await warning.isVisible()).toBe(true);
+  expect(await warning.evaluate((element) => getComputedStyle(element).gridRowStart)).toBe('3');
+  for (const destination of ['board', 'crew']) {
+    await page.getByRole('link', { name: destination, exact: true }).click();
+    await page.getByRole('link', { name: 'Return to chat', exact: true }).click();
+    await page.waitForFunction(
+      () =>
+        document.querySelector('.chat-compose input[name=message]')?.getAttribute('value') ===
+        'Ask @career-coach now',
+    );
+    expect((await page.evaluate(() => window.composerFixture.read())).draft.submission?.id).toBe(
+      original.clientRequestId,
+    );
+  }
+  expect(await input.locator('.chat-reference-token').count()).toBe(1);
+  await input.press('Enter');
+  await page.waitForFunction(() => window.composerFixture.read().requests.length === 2);
+  const retried = (await page.evaluate(() => window.composerFixture.read())).requests[1][2] as {
+    clientRequestId: string;
+    references: unknown[];
+  };
+  expect(retried.clientRequestId).toBe(original.clientRequestId);
+  expect(retried.references).toHaveLength(1);
+  await page.evaluate(() => window.composerFixture.settle('success'));
+  await page.close();
+});
+
 declare global {
   interface Window {
     composerFixture: {
@@ -377,7 +432,12 @@ declare global {
       read: () => {
         working: boolean;
         requests: unknown[][];
-        draft: { text: string; references: unknown[]; files: { name: string }[] };
+        draft: {
+          text: string;
+          references: unknown[];
+          files: { name: string }[];
+          submission?: { id: string };
+        };
         kept: { payload: { text: string } }[];
         sending: boolean;
         sameFile: boolean;

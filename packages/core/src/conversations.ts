@@ -26,6 +26,8 @@ export interface Conversation {
   summary?: { content: string; through: string; sources: string[] };
 }
 export interface ChatRequest {
+  /** Durable receipt for one user send; retries must carry the same normalized payload. */
+  submission?: { id: string; digest: string };
   submissionApprovalId?: string;
   boardAction?: import('./work-queue.ts').BoardAction;
   deepReviewOptions?: import('./deep-reviews.ts').DeepReviewOptions;
@@ -59,6 +61,12 @@ export interface ChatRequest {
   /** User-initiated delegation round anchored by this request. */
   roundId?: string;
   mode?: 'chat' | 'workflow';
+}
+/** Receipt lookups expose acceptance identity rather than saved request content or digests. */
+export interface ChatSubmissionReceipt {
+  id: string;
+  threadId: string;
+  submission: { id: string };
 }
 export interface AgentMemory {
   id: string;

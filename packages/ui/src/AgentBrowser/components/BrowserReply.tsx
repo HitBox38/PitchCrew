@@ -5,6 +5,8 @@ import { Textarea } from '@pitchcrew/design-system/textarea';
 import { remapReferences, replyCopy } from '../reply.ts';
 import type { BrowserReplyProps } from '../types.ts';
 import { ComposerRecovery } from '@/ChatView/components/ComposerRecovery.tsx';
+import { composerRetryLabel, composerSubmitMode } from '@/ChatView/composer-retry.ts';
+import { conversationQueueHold } from '@/ChatView/queue-recovery-plan.ts';
 
 /** Clay expanded browser: a compact box that edits the conversation's shared draft and sends it
  * through the chat composer's send path, so typing here or in chat is the same message. */
@@ -17,6 +19,7 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
     group: props.participants.length > 1,
     name,
     files: props.files.length,
+    retryMode: props.retryMode,
     status: {
       hasInput,
       busy: props.busy,
@@ -26,11 +29,12 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
         .filter((run) => !run.reviewSeatReservation)
         .map((run) => roleName(run.roleId)),
       asking: props.questions.map((question) => roleName(question.roleId)),
+      queueHold: conversationQueueHold(props.data, props.thread),
     },
   });
   const disabled = !props.available;
   const sendDisabled = disabled || props.working || props.sending;
-  const submit = () => void props.send(props.draft, props.busy ? props.sendMode : 'queue');
+  const submit = () => void props.send(props.draft, composerSubmitMode(props));
   return (
     <form
       className="browser-reply"
@@ -69,7 +73,13 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
           size="icon-sm"
           variant={hasInput && !sendDisabled ? 'default' : 'ghost'}
           className="browser-reply-send"
-          aria-label={props.busy && props.sendMode === 'queue' ? 'Queue follow-up' : 'Send message'}
+          aria-label={
+            props.retryMode
+              ? composerRetryLabel(props.retryMode)
+              : props.busy && props.sendMode === 'queue'
+                ? 'Queue follow-up'
+                : 'Send message'
+          }
           disabled={!hasInput || sendDisabled}
         >
           <ArrowUp size={15} aria-hidden="true" />

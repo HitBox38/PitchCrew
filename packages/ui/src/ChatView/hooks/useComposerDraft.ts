@@ -17,6 +17,7 @@ export const useComposerDraft = (thread: string) => {
     draft: state.draft.text,
     draftReferences: state.draft.references,
     sending: !!state.operation,
+    retryMode: state.draft.submission?.intent,
     changeDraft: (text: string, references: ChatReference[]) =>
       changeComposer(thread, text, references),
     setDraftReferences: (references: ChatReference[]) =>

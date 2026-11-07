@@ -81,6 +81,7 @@ export const addMessage = (
   notification?: ChatMessage['notification'],
   attachments?: ChatAttachment[],
   references?: ChatMessage['references'],
+  publish = true,
 ): ChatMessage => {
   references ??=
     from !== 'user' && from !== 'system'
@@ -113,7 +114,7 @@ export const addMessage = (
     from,
     `${from === 'user' ? 'You' : from} messaged ${to}`,
   );
-  context.publishChat(true);
+  if (publish) context.publishChat(true);
   return message;
 };
 export const sendChat = async (

@@ -1,5 +1,6 @@
 import type { ChatReference } from '@pitchcrew/core';
 import { followUpLabels, sendNote, type SendNoteInput } from '../ChatView/composer-status.ts';
+import { composerRetryNote, type ComposerRetryMode } from '../ChatView/composer-retry.ts';
 
 /**
  * The clay expanded browser's message box edits the conversation's shared draft as plain text.
@@ -38,15 +39,17 @@ export const replyCopy = ({
   name,
   files,
   status,
+  retryMode,
 }: {
   group: boolean;
   name: string;
   files: number;
   status: SendNoteInput;
-}) => ({
+} & ComposerRetryMode) => ({
   label: `Message ${group ? 'the group' : name}`,
   note: [
-    status.busy ? followUpLabels(status)[status.sendMode] : sendNote(status),
+    composerRetryNote(retryMode) ||
+      (status.busy ? followUpLabels(status)[status.sendMode] : sendNote(status)),
     files ? `Includes ${files} ${files === 1 ? 'file' : 'files'} attached in chat` : '',
   ]
     .filter(Boolean)

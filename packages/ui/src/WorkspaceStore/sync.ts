@@ -3,6 +3,7 @@ import { api } from '@/api.ts';
 import { subscribeChatStream } from '@/chat-stream.ts';
 import type { ChatStreamState, Snapshot } from '@pitchcrew/core';
 import type { WorkspaceSet } from './types.ts';
+import { reconcileComposerReceipts } from '@/ChatView/composer-receipts.ts';
 
 export const createWorkspaceSync = (set: WorkspaceSet) => {
   let chatState: ChatStreamState | null = null;
@@ -14,17 +15,23 @@ export const createWorkspaceSync = (set: WorkspaceSet) => {
     let active = true;
     let etag: string | null = null;
     let streamGeneration = 0;
+    let reconcileAfterReconnect = false;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const controller = new AbortController();
     const unsubscribe = subscribeChatStream(
       (state) => {
         if (!active) return;
+        if (reconcileAfterReconnect) {
+          reconcileAfterReconnect = false;
+          void reconcileComposerReceipts();
+        }
         chatState = state;
         set(({ data }) => ({ data: data ? mergeChatState(data, state) : data }));
       },
       () => {
         if (active) {
           streamGeneration += 1;
+          reconcileAfterReconnect = true;
           chatState = null;
           etag = null;
         }

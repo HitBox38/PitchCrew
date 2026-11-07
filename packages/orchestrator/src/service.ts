@@ -9,6 +9,7 @@ import { answerUserQuestion, cancelUserQuestion } from './crew/user-input/answer
 import { extractApplicationContext } from './crew/application-context/extraction.ts';
 import { inspectApplicationForm } from './crew/application-context/form-inspection.ts';
 import { createConversation, updateConversation } from './crew/conversations.ts';
+import { chatSubmissionIdentity } from './crew/chat-submissions.ts';
 import { deleteConversation } from './crew/delete-conversation.ts';
 import {
   sendConversation,
@@ -82,6 +83,8 @@ export class CrewService {
     return task;
   };
   private readonly context: CrewContext;
+  chatSubmissionReceipt = (id: string, clientRequestId: string) =>
+    chatSubmissionIdentity(this.context, id, clientRequestId);
   private readonly skillUpdates = new SkillUpdates();
   constructor(
     readonly directory: string,

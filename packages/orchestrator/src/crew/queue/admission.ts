@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
-import { type Run, type WorkQueue } from '@pitchcrew/core';
+import { type WorkQueue } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { activeQueues, concurrency, runLane, queueWaiting } from './state.ts';
+import { activeRuns } from './queries.ts';
 export const launchProblem = (context: CrewContext, input: LaunchScope): string => {
   const lane =
     input.routineId && !input.cardId
@@ -15,15 +16,10 @@ export const launchProblem = (context: CrewContext, input: LaunchScope): string 
   if (roots && (!input.rootRunId || [...roots].some((root) => root !== input.rootRunId)))
     return 'This job or conversation already has active work.';
   if (!roots && active.size >= concurrency(context)) return 'Waiting for workspace capacity.';
-  const runs = context.board.list<Run>('run');
   if (
     !input.isolated &&
-    runs.some(
-      (r) =>
-        (r.status === 'running' || context.controllers.has(r.id)) &&
-        r.threadId === input.threadId &&
-        r.roleId === input.roleId &&
-        !r.reviewSeatReservation,
+    activeRuns(context).some(
+      (r) => r.threadId === input.threadId && r.roleId === input.roleId && !r.reviewSeatReservation,
     )
   )
     return 'This conversation participant already has an active turn.';

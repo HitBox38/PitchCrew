@@ -4,6 +4,7 @@ import { PromptInputBody } from '@/components/ai-elements/prompt-input/component
 import { ChatComposerEditor } from '@/ChatComposer/index.tsx';
 import { composerSuggestions } from '@/ChatComposer/helpers.ts';
 import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
+import { composerSubmitMode } from '../composer-retry.ts';
 
 export const ComposerInput = (
   props: ChatComposerProps & {
@@ -54,16 +55,7 @@ export const ComposerInput = (
         onFiles={props.addFiles}
         onChange={props.changeDraft}
         onSend={(alternate) => {
-          void props.send(
-            props.draft,
-            props.busy && alternate
-              ? props.sendMode === 'queue'
-                ? 'interrupt'
-                : 'queue'
-              : props.busy
-                ? props.sendMode
-                : 'queue',
-          );
+          void props.send(props.draft, composerSubmitMode(props, alternate));
         }}
       />
     </PromptInputBody>
