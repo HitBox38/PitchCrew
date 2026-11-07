@@ -6,46 +6,80 @@ import { activeGuest, startDesktop, until, type DesktopE2E } from './harness.ts'
 import { navigate, readyViewport } from './observe.ts';
 import { siteOrigin } from './site.ts';
 
-const capture = async (app: DesktopE2E, name: string, selected = false) => {
+const capture = async (
+  app: DesktopE2E,
+  name: string,
+  { selected = false, fresh = false }: { selected?: boolean; fresh?: boolean } = {},
+) => {
   const allowed = selected
     ? await app.page.getByLabel('Native browser page', { exact: true }).boundingBox()
     : null;
-  const result = await app.electron.evaluate(async ({ BrowserWindow, nativeImage }, allowed) => {
-    const window = BrowserWindow.getAllWindows()[0];
-    const { width, height } = window.getContentBounds();
-    const image = (
-      await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })
-    ).resize({ width, height });
-    const bytes = image.toBitmap({ scaleFactor: 1 });
-    let green = 0;
-    let outside = 0;
-    for (let offset = 0; offset < bytes.length; offset += 4) {
-      if (bytes[offset] >= 90 || bytes[offset + 1] <= 210 || bytes[offset + 2] >= 60) continue;
-      green++;
-      const x = (offset / 4) % width;
-      const y = Math.floor(offset / 4 / width);
-      if (
-        !allowed ||
-        x < allowed.x ||
-        x >= allowed.x + allowed.width ||
-        y < allowed.y ||
-        y >= allowed.y + allowed.height
-      )
-        outside++;
-    }
-    // Save exactly the bitmap being asserted, including on scaled Windows displays.
-    return {
-      green,
-      outside,
-      png: nativeImage
-        .createFromBitmap(bytes, { width, height, scaleFactor: 1 })
-        .toPNG()
-        .toString('base64'),
-    };
-  }, allowed);
-  await writeFile(join(app.directory, `${name}.png`), Buffer.from(result.png, 'base64'));
-  assert.equal(result.outside, 0, `A native page painted outside its selected viewport (${name})`);
-  return result.green;
+  if (fresh)
+    await app.page.evaluate(() => {
+      const marker = document.createElement('div');
+      marker.id = 'native-capture-frame';
+      marker.style.cssText =
+        'position:fixed;left:0;top:0;width:8px;height:8px;z-index:2147483647;background:rgb(211,17,197);pointer-events:none';
+      document.body.append(marker);
+    });
+  try {
+    const result = await app.electron.evaluate(
+      async ({ BrowserWindow, nativeImage }, { allowed, fresh }) => {
+        const window = BrowserWindow.getAllWindows()[0];
+        const { width, height } = window.getContentBounds();
+        const deadline = Date.now() + 10000;
+        let bytes: Buffer;
+        for (;;) {
+          const image = (
+            await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })
+          ).resize({ width, height });
+          bytes = image.toBitmap({ scaleFactor: 1 });
+          // Windows can return the previous whole-window copy after DOM/layout settle.
+          // Wait only for a new frame marker, never for the green-page assertion to pass.
+          if (!fresh || (bytes[0] === 197 && bytes[1] === 17 && bytes[2] === 211)) break;
+          if (Date.now() >= deadline)
+            throw new Error('The hidden renderer did not paint a fresh frame');
+          await new Promise((resolve) => setTimeout(resolve, 25));
+        }
+        let green = 0;
+        let outside = 0;
+        for (let offset = 0; offset < bytes.length; offset += 4) {
+          if (bytes[offset] >= 90 || bytes[offset + 1] <= 210 || bytes[offset + 2] >= 60) continue;
+          green++;
+          const x = (offset / 4) % width;
+          const y = Math.floor(offset / 4 / width);
+          if (
+            !allowed ||
+            x < allowed.x ||
+            x >= allowed.x + allowed.width ||
+            y < allowed.y ||
+            y >= allowed.y + allowed.height
+          )
+            outside++;
+        }
+        // Save exactly the bitmap being asserted, including on scaled Windows displays.
+        return {
+          green,
+          outside,
+          png: nativeImage
+            .createFromBitmap(bytes, { width, height, scaleFactor: 1 })
+            .toPNG()
+            .toString('base64'),
+        };
+      },
+      { allowed, fresh },
+    );
+    await writeFile(join(app.directory, `${name}.png`), Buffer.from(result.png, 'base64'));
+    assert.equal(
+      result.outside,
+      0,
+      `A native page painted outside its selected viewport (${name})`,
+    );
+    return result.green;
+  } finally {
+    if (fresh)
+      await app.page.evaluate(() => document.getElementById('native-capture-frame')?.remove());
+  }
 };
 
 it(
@@ -83,7 +117,7 @@ it(
         'The actual phone viewport did not apply',
       );
       await until(
-        async () => (await capture(app, 'phone-selected', true)) > 1000,
+        async () => (await capture(app, 'phone-selected', { selected: true })) > 1000,
         'The selected phone page did not paint',
       );
       await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
@@ -150,12 +184,12 @@ it(
         'The original tab lost its device viewport',
       );
       await until(
-        async () => (await capture(app, 'restored', true)) > 1000,
+        async () => (await capture(app, 'restored', { selected: true })) > 1000,
         'The selected phone page did not paint',
       );
       await page.getByRole('button', { name: 'Expand browser', exact: true }).click();
       await until(
-        async () => (await capture(app, 'phone-expanded', true)) > 1000,
+        async () => (await capture(app, 'phone-expanded', { selected: true })) > 1000,
         'The expanded phone page did not paint',
       );
       await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
@@ -168,18 +202,16 @@ it(
         'Hiding the browser did not withdraw guest presentation',
       );
       await page.locator('#agent-browser-panel').waitFor({ state: 'hidden' });
-      // The host's null bounds arrive before React commits the hidden panel. Wait
-      // for that renderer frame, rather than reading a previous whole-window copy.
-      await page.evaluate(
+      await page.waitForFunction(
         () =>
-          new Promise<void>((resolve) => {
-            requestAnimationFrame(() => requestAnimationFrame(() => setTimeout(resolve, 0)));
-          }),
+          [...document.querySelectorAll('webview')].every(
+            (guest) => getComputedStyle(guest).opacity === '0',
+          ) && !document.querySelector('[data-browser-input-guard]'),
       );
-      await capture(app, 'phone-hidden');
+      await capture(app, 'phone-hidden', { fresh: true });
       await page.locator('button[aria-controls="agent-browser-panel"]').click();
       await until(
-        async () => (await capture(app, 'phone-restored', true)) > 1000,
+        async () => (await capture(app, 'phone-restored', { selected: true })) > 1000,
         'The selected phone page did not return after hiding the panel',
       );
       assert.deepEqual(app.errors, [], 'The production renderer reported an exception');
