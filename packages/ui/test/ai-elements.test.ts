@@ -193,16 +193,22 @@ test('suggestions and composer retain drafts on failure, respect Shift+Enter and
 });
 
 test('queue disclosure preserves explicit delivery commands', async () => {
-  const section = page.getByRole('region', { name: 'Queued messages' });
-  // The existing semantic section is labelled but not assigned a new role.
-  const queue = page.locator('section[aria-label="Queued messages"]');
-  expect(await queue.getByRole('button', { name: 'Resume unfinished deliveries' }).count()).toBe(0);
-  await queue.getByRole('button', { name: /1 message needs attention/ }).click();
-  await queue.getByRole('button', { name: 'Resume unfinished deliveries' }).click();
-  expect(await page.getByRole('status', { name: 'Queue action' }).textContent()).toBe(
-    JSON.stringify({ path: '/chat-requests/request', method: 'PUT', body: { action: 'resume' } }),
-  );
-  expect(await section.count()).toBe(1);
+  const queue = page
+    .getByRole('region', { name: 'Queued messages', exact: true })
+    .and(page.locator('.chat-queue'));
+  const disclosure = queue.getByRole('button', { name: /^1 not sent/ });
+  const resume = queue.getByRole('button', { name: 'Resume message', exact: true });
+  expect(await disclosure.getAttribute('aria-expanded')).toBe('false');
+  expect(await resume.isVisible()).toBe(true);
+  await disclosure.click();
+  expect(await disclosure.getAttribute('aria-expanded')).toBe('true');
+  await resume.click();
+  await expect
+    .poll(() => page.getByRole('status', { name: 'Queue action' }).textContent())
+    .toBe(
+      JSON.stringify({ path: '/chat-requests/request', method: 'PUT', body: { action: 'resume' } }),
+    );
+  expect(await queue.count()).toBe(1);
   if (process.env.PITCHCREW_UI_EVIDENCE)
     await page.screenshot({ path: process.env.PITCHCREW_UI_EVIDENCE, fullPage: true });
 });

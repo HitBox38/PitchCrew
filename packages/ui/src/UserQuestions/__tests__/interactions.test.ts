@@ -185,10 +185,16 @@ it('latches a cleared Lexical draft through blur until question collapse/reopen'
   await page.keyboard.press('Backspace');
   await page.keyboard.type('a b', { delay: 25 });
   expect(await draft.innerText()).toBe('a b');
+  await expect.poll(async () => (await state(page)).draft).toBe('a b');
   expect(await draft.evaluate((element) => element === document.activeElement)).toBe(true);
   expect((await state(page)).requests).toEqual([]);
-  await draft.fill('');
+  // Exercise Lexical's keyboard selection/deletion instead of fill's synthetic DOM selection.
+  await draft.press('ControlOrMeta+A');
+  await draft.press('Backspace');
   await page.locator('#outside').click();
+  expect((await state(page)).draft).toBe('');
+  expect(await page.locator('#composer input[name="message"]').inputValue()).toBe('');
+  expect(await draft.textContent()).toBe('');
   expect(
     await page
       .locator('#composer')
@@ -959,6 +965,7 @@ declare global {
       fail: () => void;
       deferFocus: (id: string) => void;
       read: () => {
+        draft: string;
         pending: boolean;
         working: boolean;
         activeQuestionId?: string;
