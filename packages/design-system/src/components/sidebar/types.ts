@@ -75,6 +75,8 @@ export type SidebarProviderProps = React.ComponentProps<'div'> & {
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  /** Temporary rail default; explicit changes in this mode do not replace the normal preference. */
+  preferRail?: boolean;
 };
 
 export type SidebarRailProps = React.ComponentProps<'button'>;

@@ -2,7 +2,8 @@ import type { ChatComposerProps } from '../types.ts';
 import { ComposerStop } from './ComposerStop.tsx';
 import { ConversationSelect } from './ConversationSelect.tsx';
 import { ComposerSubmit } from './ComposerSubmit.tsx';
-import { followUpLabels, sendNote } from '../composer-status.ts';
+import { followUpLabels, queueHoldWording, sendNote } from '../composer-status.ts';
+import { conversationQueueHold } from '../queue-recovery-plan.ts';
 
 export const ComposerSendActions = (props: ChatComposerProps) => {
   const hasInput = !!props.draft.trim() || !!props.files.length;
@@ -17,6 +18,7 @@ export const ComposerSendActions = (props: ChatComposerProps) => {
       .filter((run) => !run.reviewSeatReservation)
       .map((run) => name(run.roleId)),
     asking: props.questions.map((question) => name(question.roleId)),
+    queueHold: conversationQueueHold(props.data, props.thread),
   };
   const labels = followUpLabels(status);
   const note = props.busy ? '' : sendNote(status);
@@ -25,6 +27,23 @@ export const ComposerSendActions = (props: ChatComposerProps) => {
       {props.busy && hasInput ? (
         <ConversationSelect
           label="Follow-up action"
+          displayValue={
+            <>
+              <span className="chat-followup-wide">
+                {props.sendMode === 'queue' ? labels.queue : labels.interrupt}
+              </span>
+              <span className="chat-followup-short">
+                {props.sendMode === 'queue'
+                  ? status.queueHold
+                    ? queueHoldWording(status.queueHold).short
+                    : props.questions.length
+                      ? 'After answer'
+                      : 'After reply'
+                  : 'Interrupt'}
+              </span>
+            </>
+          }
+          description={props.sendMode === 'queue' ? labels.queue : labels.interrupt}
           className="chat-send-note"
           disabled={props.working}
           value={props.sendMode}

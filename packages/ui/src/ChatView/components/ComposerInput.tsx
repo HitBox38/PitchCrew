@@ -48,18 +48,11 @@ export const ComposerInput = (
         references={props.draftReferences}
         disabled={props.disabled}
         label={`Message ${props.participants.length > 1 ? 'the group' : props.role.name}`}
-        placeholder={
-          props.busy
-            ? 'Send a follow-up while your agent works…'
-            : `Message ${props.participants.length > 1 ? 'the group' : props.role.name}, or use @, $ or /…`
-        }
+        placeholder={props.busy ? 'Write a follow-up…' : 'Write a message…'}
         suggestions={suggestions}
         onAction={props.onAction}
         onFiles={props.addFiles}
-        onChange={(text, references) => {
-          props.setDrafts((current) => ({ ...current, [props.thread]: text }));
-          props.setDraftReferences(references);
-        }}
+        onChange={props.changeDraft}
         onSend={(alternate) => {
           void props.send(
             props.draft,

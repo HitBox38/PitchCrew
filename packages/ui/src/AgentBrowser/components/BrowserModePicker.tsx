@@ -15,14 +15,15 @@ export const BrowserModePicker = ({
   save: (configuration: unknown) => void;
 }) => {
   const override = conversation?.configurations[role.id];
+  const autonomous = (override?.browserMode ?? role.browserMode) === 'autonomous';
+  const mode = autonomous ? 'Autonomous preparation' : 'Supervised';
   return (
     <div className="flex min-w-0 items-center gap-1">
-      {conversation && conversation.participants.length > 1 ? (
-        <span className="quiet">{role.name}</span>
-      ) : null}
       <ConversationSelect
         label={`${role.name} browser permissions`}
-        className="chat-browser-mode"
+        description={`${role.name}: ${mode}${override?.browserMode ? '' : ', following agent defaults'}. Applies to the next turn.`}
+        displayValue={mode}
+        className={`chat-browser-mode${autonomous ? ' chat-browser-mode-autonomous' : ''}`}
         icon={<Globe size={13} aria-hidden="true" />}
         disabled={disabled || !conversation}
         value={override?.browserMode ?? 'agent'}

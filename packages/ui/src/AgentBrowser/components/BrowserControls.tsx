@@ -1,4 +1,4 @@
-import { Bot, Globe, Hand } from 'lucide-react';
+import { Bot, Hand } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import type { BrowserControl, AgentBrowserProps } from '../types.ts';
 export const BrowserControls = ({
@@ -6,14 +6,14 @@ export const BrowserControls = ({
   control,
 }: Pick<AgentBrowserProps, 'browserPanel' | 'thread'> & { control: BrowserControl }) => {
   const opened = browserPanel.session?.status === 'open';
-  const label = !opened
-    ? 'Open browser'
-    : control.leaseId
-      ? 'Return to agent'
-      : browserPanel.session?.manual
-        ? 'Recover control'
-        : 'Take control';
-  const Icon = !opened ? Globe : control.leaseId ? Bot : Hand;
+  // The empty page owns its one Open browser action.
+  if (!opened) return null;
+  const label = control.leaseId
+    ? 'Return to agent'
+    : browserPanel.session?.manual
+      ? 'Recover control'
+      : 'Take control';
+  const Icon = control.leaseId ? Bot : Hand;
   return (
     <div data-browser-controls>
       <Button
@@ -28,8 +28,7 @@ export const BrowserControls = ({
         }
         disabled={control.working}
         onClick={() => {
-          if (!opened) void control.open();
-          else if (control.leaseId) void control.release();
+          if (control.leaseId) void control.release();
           else void control.take();
         }}
       >

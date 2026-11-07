@@ -8,8 +8,10 @@ import {
   PopoverContent,
   PopoverTitle,
   PopoverDescription,
+  PopoverClose,
 } from '@pitchcrew/design-system/popover';
 import { Button } from '@pitchcrew/design-system/button';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 
 export const ReferenceChip = ({
   reference,
@@ -40,9 +42,17 @@ export const ReferenceChip = ({
         </PopoverTitle>
         <PopoverDescription>
           {mention && !unavailable
-            ? 'An agent mentioned in this message. Open Crew to see their configuration; actual activity appears in the conversation trace.'
+            ? 'An agent mentioned in this reply. Their activity appears in this turn’s activity log.'
             : description}
         </PopoverDescription>
+        {mention && reference.kind === 'agent' && !unavailable ? (
+          <PopoverClose
+            render={<Button variant="outline" size="sm" />}
+            onClick={() => useWorkspaceStore.getState().setRoleId(reference.id)}
+          >
+            Agent settings
+          </PopoverClose>
+        ) : null}
       </PopoverContent>
     </Popover>
   );

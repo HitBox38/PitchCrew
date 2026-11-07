@@ -8,6 +8,7 @@ import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import { useTranscriptJobEvents } from '../hooks/useTranscriptJobEvents.ts';
 import { AnimatePresence } from 'motion/react';
 import { MessageScrollerItem } from '@pitchcrew/design-system/message-scroller';
+import { useOpenQuestionId } from '@/UserQuestions/QuestionDockProvider.tsx';
 
 /** A reply directly under its own turn; both hang on one thread. */
 const repliesTo = (previous: TranscriptItem | undefined, message: ChatMessage) =>
@@ -21,7 +22,7 @@ const continues = (items: TranscriptItem[], index: number) => {
 };
 
 export const MessageTranscript = ({
-  items,
+  items: sourceItems,
   edges = { oldest: true, newest: true },
   ...props
 }: MessageTranscriptProps & {
@@ -29,6 +30,13 @@ export const MessageTranscript = ({
   /** Whether this page starts or ends the conversation, so job events show once. */
   edges?: { oldest: boolean; newest: boolean };
 }) => {
+  const openQuestionId = useOpenQuestionId();
+  const items = sourceItems.filter(
+    (item) =>
+      item.kind !== 'message' ||
+      item.message.userInput?.kind !== 'question' ||
+      item.message.userInput.id !== openQuestionId,
+  );
   const replyingRuns = new Set(props.data.streamingMessages.map((message) => message.runId));
   const jobEvents = useTranscriptJobEvents(props.data, props.thread, items, edges, (index) =>
     continues(items, index),
@@ -62,6 +70,7 @@ export const MessageTranscript = ({
             <TranscriptMessage
               {...props}
               message={item.message}
+              timestamp={item.createdAt}
               continued={continues(items, index)}
             />
           )}

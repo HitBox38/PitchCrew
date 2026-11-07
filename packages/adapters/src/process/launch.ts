@@ -157,6 +157,6 @@ export const runCliText = async (
       /* Process startup errors are handled above. */
     });
     child.stdin.end(prompt);
-    context.onMessage('CLI started with restricted tools; waiting for its result.');
+    context.onMessage('Agent started. Preparing a reply…');
   });
 };

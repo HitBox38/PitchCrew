@@ -1,9 +1,13 @@
 import {
   compactRun,
+  transcriptOrder,
+  transcriptWindow,
   type ChatMessage,
   type ConversationHistoryPage,
   type Run,
+  type TranscriptRunPosition,
 } from '@pitchcrew/core';
+import { conversationTranscriptIndex } from './transcript-messages.ts';
 import type { Board } from '../index.ts';
 
 /** Index transcript positions without parsing saved message bodies or run configurations. */
@@ -12,41 +16,42 @@ export const conversationHistory = (
   thread: string,
   anchor?: string,
 ): ConversationHistoryPage => {
-  const messages = board.db
-    .prepare(`SELECT id, json_extract(json,'$.createdAt') AS createdAt,
-    json_extract(json,'$.from') AS sender, json_extract(json,'$.runId') AS runId
-    FROM entities WHERE kind='message' AND json_extract(json,'$.threadId')=? ORDER BY rowid`)
-    .all(thread) as MessageIndex[];
-  const triggers = new Map<string, string>();
-  const entries: Entry[] = messages.map((m) => {
-    const user = m.sender === 'user' || m.sender === 'system';
-    if (user && m.runId && !triggers.has(m.runId)) triggers.set(m.runId, m.createdAt);
-    return { kind: 'message', id: m.id, createdAt: m.createdAt, rank: user ? 0 : 2 };
-  });
   const runs = board.db
-    .prepare(`SELECT id, json_extract(json,'$.startedAt') AS startedAt
+    .prepare(`SELECT id, json_extract(json,'$.startedAt') AS startedAt,
+    json_extract(json,'$.roleId') AS roleId, json_extract(json,'$.status') AS status,
+    json_extract(json,'$.requestId') AS requestId,
+    (json_array_length(json,'$.activity')>0 OR json_extract(json,'$.status') IN ('running','waiting','failed','cancelled')) AS displayed
     FROM entities WHERE kind='run' AND json_extract(json,'$.threadId')=?
     AND json_extract(json,'$.mode') IN ('chat','workflow')
-    AND COALESCE(json_extract(json,'$.reviewSeatReservation'),0)=0
-    AND (json_array_length(json,'$.activity')>0 OR json_extract(json,'$.status') IN ('running','waiting')) ORDER BY rowid DESC`)
-    .all(thread) as { id: string; startedAt: string }[];
-  for (const run of runs)
-    entries.push({
-      kind: 'turn',
-      id: `turn-${run.id}`,
-      createdAt: triggers.get(run.id) ?? run.startedAt,
-      rank: 1,
-    });
-  entries.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.rank - b.rank);
-  const found = anchor ? entries.findIndex((item) => item.id === anchor) : -1;
-  const start = found < 0 ? Math.max(0, entries.length - pageSize) : found;
-  const end = Math.min(entries.length, start + pageSize);
+    AND COALESCE(json_extract(json,'$.reviewSeatReservation'),0)=0 ORDER BY rowid`)
+    .all(thread) as (TranscriptRunPosition & { displayed: number | null })[];
+  const startedRequests = new Set(runs.flatMap((run) => (run.requestId ? [run.requestId] : [])));
+  const { messages, hidden, requests } = conversationTranscriptIndex(
+    board,
+    thread,
+    startedRequests,
+  );
+  const entries = transcriptOrder(
+    messages.filter((message) => !hidden.has(message.id)),
+    runs.filter((run) => run.displayed),
+    { requests, dispatchRuns: runs },
+  );
+  const { start, end, older, newer } = transcriptWindow(
+    entries,
+    anchor ?? null,
+    50,
+    (previous, current) =>
+      previous.kind === 'turn' &&
+      current.kind === 'message' &&
+      previous.runId === current.runId &&
+      previous.createdAt === current.createdAt,
+  );
   return {
     start,
     end,
     total: entries.length,
-    older: start > 0 ? entries[Math.max(0, start - pageSize)].id : null,
-    newer: end < entries.length ? entries[end].id : null,
+    older,
+    newer,
     items: entries.slice(start, end).map((item) =>
       item.kind === 'message'
         ? {
@@ -85,17 +90,3 @@ export const searchConversationMessages = (board: Board, query: string): string[
   }
   return [...matches];
 };
-
-const pageSize = 50;
-interface Entry {
-  kind: 'message' | 'turn';
-  id: string;
-  createdAt: string;
-  rank: number;
-}
-interface MessageIndex {
-  id: string;
-  createdAt: string;
-  sender: string;
-  runId: string | null;
-}

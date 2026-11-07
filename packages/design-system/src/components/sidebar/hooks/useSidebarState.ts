@@ -11,18 +11,27 @@ export const useSidebarState = ({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
+  preferRail = false,
 }: {
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  preferRail?: boolean;
 }) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
   const [_open, _setOpen] = React.useState(defaultOpen);
-  const open = openProp ?? _open;
+  const [rail, setRail] = React.useState({ active: preferRail, open: false });
+  // Reset before rendering children so a new mode never inherits an earlier temporary toggle.
+  if (rail.active !== preferRail) setRail({ active: preferRail, open: false });
+  const open = preferRail ? rail.active && rail.open : (openProp ?? _open);
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === 'function' ? value(open) : value;
+      if (preferRail) {
+        setRail({ active: true, open: openState });
+        return;
+      }
       if (setOpenProp) {
         setOpenProp(openState);
       } else {
@@ -32,7 +41,7 @@ export const useSidebarState = ({
       // This sets the cookie to keep the sidebar state.
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
-    [setOpenProp, open],
+    [setOpenProp, open, preferRail],
   );
   const toggleSidebar = React.useCallback(() => {
     return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);

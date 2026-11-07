@@ -89,3 +89,38 @@ it('pages turn activity, trigger messages, day boundaries and replies without dr
     ),
   ).toHaveLength(3);
 });
+
+it('keeps a settled activity/reply pair together on both sides of a page boundary', () => {
+  const answer = { ...messages[49], from: 'scout', to: 'user', runId: 'paired' };
+  const run = {
+    id: 'paired',
+    roleId: 'scout',
+    runtime: 'codex',
+    mode: 'chat',
+    status: 'completed',
+    threadId: 'scout',
+    startedAt: messages[0].createdAt,
+    activity: [{ id: 'step', kind: 'tool', label: 'Done', status: 'completed' }],
+  } as Run;
+  const paired = transcriptItems(
+    [...messages.slice(0, 49), answer, ...messages.slice(50)],
+    [run],
+    'scout',
+  );
+  const first = historyWindow(paired, paired[0].id);
+  expect(first.items.slice(-2).map((item) => item.id)).toEqual(['turn-paired', answer.id]);
+  expect(first.items).toHaveLength(HISTORY_PAGE_SIZE + 1);
+  const anchoredReply = historyWindow(paired, answer.id);
+  expect(anchoredReply.items.slice(0, 2).map((item) => item.id)).toEqual([
+    'turn-paired',
+    answer.id,
+  ]);
+  const second = historyWindow(paired, first.newer);
+  expect([...first.items, ...second.items].map((item) => item.id)).toEqual(
+    paired.slice(0, first.end + second.items.length).map((item) => item.id),
+  );
+  const latest = historyWindow(paired.slice(0, 99), null);
+  expect(latest.items.slice(0, 2).map((item) => item.id)).toEqual(['turn-paired', answer.id]);
+  expect(latest.items.at(-1)?.id).toBe(paired[98].id);
+  expect(latest.newer).toBeNull();
+});

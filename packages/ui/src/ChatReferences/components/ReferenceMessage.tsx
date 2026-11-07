@@ -1,12 +1,15 @@
 import { copyReferenceSelection } from '../clipboard.ts';
 import { useMemo } from 'react';
 import { agentChatReferences } from '@pitchcrew/core/chat-references';
-import type { StreamdownProps } from 'streamdown';
+import { defaultRemarkPlugins, type StreamdownProps } from 'streamdown';
 import type { ChatMessage } from '@pitchcrew/core';
 import type { ReferenceCatalog } from '../types.ts';
 import { referenceMarkdown } from '../markdown.ts';
 import { ReferenceMarkdownChip } from './ReferenceMarkdownChip.tsx';
 import { FileMarkdownCitation } from './FileMarkdownCitation.tsx';
+import { ChatMarkdownTable } from './ChatMarkdownTable.tsx';
+import { ChatMarkdownInput, ChatMarkdownListItem } from './ChatMarkdownInput.tsx';
+import { ChatMarkdownList, ChatMarkdownOrderedList } from './ChatMarkdownList.tsx';
 import { ReferenceContext } from '../context.ts';
 import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
 import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
@@ -27,7 +30,13 @@ export const ReferenceMessage = ({
   );
   const decorated = references.length > 0 || message.content.includes('pitchcrew-file:');
   const plugins = useMemo<StreamdownProps['remarkPlugins']>(
-    () => (decorated ? [[referenceMarkdown, { content: message.content, references }]] : undefined),
+    () =>
+      decorated
+        ? [
+            ...Object.values(defaultRemarkPlugins),
+            [referenceMarkdown, { content: message.content, references }],
+          ]
+        : undefined,
     [message.content, references, decorated],
   );
   return (
@@ -36,6 +45,7 @@ export const ReferenceMessage = ({
         <MessageResponse
           mode={streaming ? 'streaming' : 'static'}
           isAnimating={streaming}
+          controls={{ table: false }}
           components={components}
           remarkPlugins={plugins}
           allowedTags={allowedTags}
@@ -52,6 +62,11 @@ const oneBlock = (text: string) => [text];
 const allowedTags = { 'chat-reference': ['index'], 'file-citation': ['url', 'label'] };
 const components = {
   ...noRemoteImages,
+  table: ChatMarkdownTable,
+  input: ChatMarkdownInput,
+  li: ChatMarkdownListItem,
+  ul: ChatMarkdownList,
+  ol: ChatMarkdownOrderedList,
   'chat-reference': ReferenceMarkdownChip,
   'file-citation': FileMarkdownCitation,
 };

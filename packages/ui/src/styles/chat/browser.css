@@ -60,7 +60,7 @@
   height: 30px;
   margin: 0;
   padding: 0 4px;
-  font-family: var(--font-serif);
+  font-family: var(--font-sans);
   font-size: 14px;
   font-weight: 600;
 }

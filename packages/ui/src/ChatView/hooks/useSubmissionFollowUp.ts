@@ -11,7 +11,7 @@ export type SubmissionFollowUpProps = Pick<
   | 'action'
   | 'working'
   | 'onThread'
-  | 'setDrafts'
+  | 'offerDraft'
   | 'applyStarter'
   | 'setPane'
   | 'readOnly'
@@ -58,7 +58,7 @@ export const useSubmissionFollowUp = (
               cardId: card.id,
             })) as Conversation);
       const draft = trackerDraft(card, tracker.id, thread.participants);
-      props.setDrafts((current) => ({ ...current, [thread.id]: draft }));
+      props.offerDraft(thread.id, draft);
       props.onThread(thread.id);
       requestAnimationFrame(() => props.inputRef.current?.focus());
     } catch {

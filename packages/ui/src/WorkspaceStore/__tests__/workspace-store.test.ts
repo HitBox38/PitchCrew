@@ -3,6 +3,7 @@ import { subscribeChatStream } from '@/chat-stream.ts';
 import type { ChatMessage, ChatStreamState, Snapshot } from '@pitchcrew/core';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createWorkspaceStore } from '../index.ts';
+import { ActionRefreshError } from '../action-errors.ts';
 const deferred = <T>() => {
   let resolve!: (value: T) => void;
   const promise = new Promise<T>((done) => {
@@ -203,6 +204,54 @@ describe('workspace store', () => {
     );
     expect(store.getState().toast).toBe('Offline');
     expect(store.getState().error).toBe('Offline');
+    expect(store.getState().working).toBe(false);
+  });
+
+  it('reports an acknowledged mutation separately from a failed refresh without repeating it', async () => {
+    const store = createWorkspaceStore();
+    const result = { id: 'accepted-continuation', userInputId: 'question' };
+    const cause = new Error('Refresh offline');
+    vi.mocked(api).mockResolvedValueOnce(result).mockRejectedValueOnce(cause);
+    const error = await store
+      .getState()
+      .action('/user-input/question/answer', 'POST', {
+        text: 'My preserved answer',
+      })
+      .catch((error: unknown) => error);
+    expect(error).toBeInstanceOf(ActionRefreshError);
+    expect(error).toMatchObject({ mutationAccepted: true, result, cause });
+    expect(vi.mocked(api).mock.calls.map(([path]) => path)).toEqual([
+      '/user-input/question/answer',
+      '/snapshot?view=workspace',
+    ]);
+    expect(store.getState().toast).toBe('Refresh offline');
+    expect(store.getState().working).toBe(false);
+  });
+
+  it('lets an inline caller suppress only its shared error toast, for rejection and refresh failure', async () => {
+    const store = createWorkspaceStore();
+    store.getState().setToast('Unrelated notice', 'info');
+    const rejected = new Error('Server rejected the answer');
+    vi.mocked(api).mockRejectedValueOnce(rejected);
+    await expect(
+      store
+        .getState()
+        .action('/user-input/question/answer', 'POST', {}, undefined, { errorToast: false }),
+    ).rejects.toBe(rejected);
+    expect(store.getState().toast).toBe('Unrelated notice');
+    expect(api).toHaveBeenCalledTimes(1);
+    expect(store.getState().working).toBe(false);
+    vi.mocked(api)
+      .mockResolvedValueOnce({ id: 'accepted' })
+      .mockRejectedValueOnce(new Error('Offline'));
+    await expect(
+      store
+        .getState()
+        .action('/user-input/question/cancel', 'POST', {}, undefined, { errorToast: false }),
+    ).rejects.toBeInstanceOf(ActionRefreshError);
+    expect(store.getState().toast).toBe('Unrelated notice');
+    expect(store.getState().error).toBe('Offline');
+    expect(api).toHaveBeenCalledTimes(3);
     expect(store.getState().working).toBe(false);
   });
 

@@ -70,9 +70,9 @@ export const nextUp = (card: Card, data: Snapshot): NextUp | null => {
   if (run) return { text: `${roleName(data.roles, run.roleId)} is working`, tone: 'working' };
   const step = trackSteps[trackIndex(card.state) ?? -1]?.id;
   const next = {
-    lead: `${seatName(data, 'scout', 'Scout')} checks the fit, then you`,
+    lead: `${seatName(data, 'scout', 'Scout')} checks the fit`,
     shortlisted: `${seatName(data, 'writer', 'Writer')} drafts the packet`,
-    drafting: `${seatName(data, 'reviewer', 'Reviewer')}, then you`,
+    drafting: `${seatName(data, 'reviewer', 'Reviewer')} reviews the packet`,
     review: 'you approve the packet',
     approve: 'you approve the packet',
     applied: 'you track their reply',

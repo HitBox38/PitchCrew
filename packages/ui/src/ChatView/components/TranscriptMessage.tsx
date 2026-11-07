@@ -5,8 +5,9 @@ import type { MessageTranscriptProps } from '@/ChatView/types.ts';
 import type { ChatMessage } from '@pitchcrew/core';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { Button } from '@pitchcrew/design-system/button';
-import { timeAgo } from '@/lib/time.ts';
 import { ArrowRight, BriefcaseBusiness, LoaderCircle } from 'lucide-react';
+import { ReplyActions } from './ReplyActions.tsx';
+import { MessageTimestamp } from './MessageTimestamp.tsx';
 
 export const TranscriptMessage = ({
   message,
@@ -18,10 +19,22 @@ export const TranscriptMessage = ({
   onOpenCard,
   answerQuestion,
   continued,
-}: Omit<MessageTranscriptProps, 'messages'> & { message: ChatMessage; continued?: boolean }) => {
+  timestamp,
+}: Omit<MessageTranscriptProps, 'messages'> & {
+  message: ChatMessage;
+  continued?: boolean;
+  timestamp?: string;
+}) => {
   const job = data.cards.find((card) => card.id === message.cardId);
   const sameJob = data.conversations?.some((item) => item.id === thread && item.cardId === job?.id);
   const streaming = streamingIds.has(message.id);
+  const request =
+    message.from === 'user'
+      ? data.chatRequests?.find((item) => item.messageId === message.id)
+      : undefined;
+  const cancelledUnsent =
+    request?.deliveries.length &&
+    request.deliveries.every((delivery) => !delivery.runId && delivery.status === 'cancelled');
   return (
     <AnimatedMessage
       initial={{ opacity: 0, y: reduced ? 0 : 8 }}
@@ -30,7 +43,9 @@ export const TranscriptMessage = ({
       className={`chat-message ${message.from === 'system' ? 'chat-system' : ''}`}
       data-continued={continued ? '' : undefined}
     >
-      <div className="chat-message-meta flex items-center gap-2 text-detail text-muted-foreground">
+      <div
+        className={`chat-message-meta flex items-center gap-2 text-detail text-muted-foreground${continued ? ' sr-only' : ''}`}
+      >
         {message.from !== 'user' && message.from !== 'system' ? (
           <RoleAvatar agentRole={message.from} size="small" />
         ) : null}
@@ -40,9 +55,9 @@ export const TranscriptMessage = ({
             <ArrowRight size={12} /> {name(message.to)}
           </span>
         ) : null}
-        <time dateTime={message.createdAt} title={new Date(message.createdAt).toLocaleString()}>
-          {timeAgo(message.createdAt)}
-        </time>
+        {message.from === 'user' || message.from === 'system' ? (
+          <MessageTimestamp createdAt={message.createdAt} timestamp={timestamp} />
+        ) : null}
       </div>
       <TranscriptMessageContent
         message={message}
@@ -51,6 +66,10 @@ export const TranscriptMessage = ({
         answerQuestion={answerQuestion}
       />
       <MemoryUsed message={message} data={data} />
+      {cancelledUnsent ? <span className="chat-message-delivery">Not sent · cancelled</span> : null}
+      {message.from !== 'user' && message.from !== 'system' && !message.userInput && !streaming ? (
+        <ReplyActions message={message} />
+      ) : null}
       {streaming ? (
         <span className="chat-stream-status ml-7.5 flex items-center gap-1.5 text-detail text-muted-foreground">
           <LoaderCircle size={12} className="spin" /> Replying…

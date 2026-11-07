@@ -6,4 +6,5 @@ export interface ConversationNavigationRow {
   working: boolean;
   waiting: boolean;
   waitingForUser: boolean;
+  failed?: boolean;
 }

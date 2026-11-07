@@ -20,11 +20,14 @@
   --reference-fill: var(--plum-soft);
 }
 .chat-reference {
+  --reference-target: 32px;
+  position: relative;
   display: inline-flex;
   align-items: center;
-  vertical-align: baseline;
+  vertical-align: text-bottom;
   gap: 5px;
   height: 1.6em;
+  min-height: 0;
   max-width: 100%;
   padding: 0 7px;
   font-size: 0.86em;
@@ -32,6 +35,24 @@
   font-weight: 600;
   box-shadow: none;
   white-space: nowrap;
+}
+.chat-reference::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: max(100%, var(--reference-target));
+  height: var(--reference-target);
+  translate: -50% -50%;
+  content: '';
+}
+.chat-reference:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+@media (width < 48rem), (pointer: coarse) {
+  .chat-reference {
+    --reference-target: 44px;
+  }
 }
 .chat-reference > span {
   overflow: hidden;
@@ -53,7 +74,12 @@
   width: min(340px, calc(100vw - 32px));
   display: grid;
   gap: 8px;
-  font-size: 13px;
+  padding: 12px;
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+.chat-reference-details > [data-slot='button'] {
+  justify-self: start;
 }
 .chat-reference-token {
   display: inline-block;

@@ -16,6 +16,8 @@ export const RuntimeReadinessNotice = ({ data, role, conversation }: ChatViewMod
   );
   const updating = !!update?.operation && !update.operation.finishedAt;
   if (!updating && !auth) return null;
+  // Unknown sign-in is advisory in runtime settings; it neither blocks a turn nor needs a banner.
+  if (!updating && auth?.status === 'unknown') return null;
   return (
     <output className="runtime-readiness-notice mx-4 my-2 rounded-lg px-3.5 py-3 text-sm">
       <p>

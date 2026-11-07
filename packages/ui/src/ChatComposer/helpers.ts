@@ -142,3 +142,14 @@ export const trimmedReferences = (text: string, references: ChatReference[]) => 
     }))
     .filter((ref) => ref.start >= 0 && ref.end <= text.trim().length);
 };
+
+/** The strict chat API accepts identity/provenance, never display-only reference labels. */
+export const referenceInputs = (text: string, references: ChatReference[]) =>
+  trimmedReferences(text, references).map(({ kind, id, token, start, end, revision }) => ({
+    kind,
+    id,
+    token,
+    start,
+    end,
+    revision,
+  }));

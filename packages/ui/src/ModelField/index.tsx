@@ -10,6 +10,10 @@ export const ModelField = (props: ModelFieldProps) => {
   const controller = useModelField(props);
   const { id, runtime, available, value, onValueChange, catalog, loading, refreshModels } =
     controller;
+  const inheritedModel =
+    catalog.models.find((item) => item.value === props.agentDefaults?.model)?.label ||
+    props.agentDefaults?.model ||
+    'CLI default';
   return (
     <>
       <div className="field">
@@ -25,7 +29,7 @@ export const ModelField = (props: ModelFieldProps) => {
             props.agentDefaults
               ? {
                   value: agentModelDefaultValue,
-                  label: `Use agent default (${props.agentDefaults.model || 'CLI default'})`,
+                  label: `Use agent default (${inheritedModel})`,
                 }
               : undefined
           }
@@ -42,12 +46,6 @@ export const ModelField = (props: ModelFieldProps) => {
         <output className="optional" aria-live="polite">
           {modelStatus(controller)}
         </output>
-        {runtime !== 'demo' && !loading && (
-          <span className="optional">
-            {catalog.modelSource === 'runtime' ? 'Runtime models' : 'Suggested models'} · CLI
-            default uses your runtime’s default.
-          </span>
-        )}
         {runtime !== 'demo' && !value ? (
           <span className="optional">Choose a model to configure its reasoning.</span>
         ) : null}

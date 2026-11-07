@@ -2,7 +2,9 @@ import { useEffect, useLayoutEffect, useRef } from 'react';
 const typing = (target: EventTarget | null) => {
   return (
     target instanceof HTMLElement &&
-    (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName))
+    (target.isContentEditable ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName) ||
+      !!target.closest('form, [data-shortcut-scope="input"]'))
   );
 };
 // Global shortcuts: ⌘K / Ctrl+K anywhere, single keys only when not typing or in a dialog.

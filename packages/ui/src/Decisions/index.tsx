@@ -9,6 +9,9 @@ import { DecisionPager } from './components/DecisionPager.tsx';
 import { DecisionPeek } from './components/DecisionPeek.tsx';
 import { DecisionSheet } from './components/DecisionSheet.tsx';
 import { DecisionsSegment } from './components/DecisionsSegment.tsx';
+import { useRef } from 'react';
+import { useDecisionResolutionFocus } from './hooks/useDecisionResolutionFocus.ts';
+import { QuestionRecoveries } from './components/QuestionRecoveries.tsx';
 
 type DecisionsViewProps = {
   data: Snapshot;
@@ -19,6 +22,7 @@ type DecisionsViewProps = {
 
 /** One decision at a time; resolved decisions leave the list and the next one takes focus. */
 export const DecisionsView = ({ data, action, working, openCard }: DecisionsViewProps) => {
+  const focusRoot = useRef<HTMLElement>(null);
   const { decision: wanted, view, entry } = useSearch({ from: '/inbox' });
   const navigate = useNavigate({ from: '/inbox' });
   const items = decisions(data);
@@ -27,11 +31,17 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
     items.findIndex((item) => item.id === wanted),
   );
   const current = items[index];
+  const onResolved = useDecisionResolutionFocus(focusRoot, current?.id);
   const history = view === 'history';
   const past = history ? approvalRequests(data, 'history').length : 0;
   const select = (id: string) => void navigate({ search: { decision: id }, replace: true });
   return (
-    <section className="decide" data-view={history ? 'history' : 'pending'} aria-label="Decisions">
+    <section
+      ref={focusRoot}
+      className="decide"
+      data-view={history ? 'history' : 'pending'}
+      aria-label="Decisions"
+    >
       {!history && items.length ? (
         <WorkspaceHeaderFact>
           <DecisionPager items={items} index={index} select={select} />
@@ -45,6 +55,7 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
       <WorkspaceHeaderSegment>
         <DecisionsSegment history={history} count={items.length} />
       </WorkspaceHeaderSegment>
+      <QuestionRecoveries questions={data.userInputs} />
       {history ? (
         <InboxView
           data={data}
@@ -65,6 +76,7 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
             action={action}
             working={working}
             openCard={openCard}
+            onResolved={onResolved}
           />
           <DecisionPeek
             next={items.length > 1 ? items[(index + 1) % items.length] : undefined}
@@ -74,7 +86,9 @@ export const DecisionsView = ({ data, action, working, openCard }: DecisionsView
         </div>
       ) : (
         <div className="ui-empty decide-empty">
-          <span>No decisions waiting</span>
+          <span tabIndex={-1} data-decision-focus="">
+            No decisions waiting
+          </span>
           <Link to="/inbox" search={{ view: 'history' }}>
             History
           </Link>

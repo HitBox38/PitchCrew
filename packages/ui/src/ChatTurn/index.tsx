@@ -1,12 +1,11 @@
 import type { Run } from '@pitchcrew/core';
-import { activityGroups, runModel, turnStatus } from './helpers.ts';
-import { ClaySteps } from './components/ClaySteps.tsx';
+import { runModel, turnStatus } from './helpers.ts';
+import { TurnActivity } from './components/TurnActivity.tsx';
 import { TurnDuration } from './components/TurnDuration.tsx';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
-import { MessageResponse } from '@/components/ai-elements/message/components/MessageResponse.tsx';
-import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { RunFailure } from './components/RunFailure.tsx';
 
 export const ChatTurn = ({
   run,
@@ -22,8 +21,14 @@ export const ChatTurn = ({
     (state) => state.data?.runtimes.find((item) => item.id === run.runtime)?.models,
   );
   const active = run.status === 'running';
+  const answered = useWorkspaceStore((state) =>
+    state.data?.userInputs?.some(
+      (question) => question.runId === run.id && question.status === 'answered',
+    ),
+  );
+  const handedOff = run.status === 'waiting' && answered;
   const { status } = turnStatus(run, replying);
-  const groups = activityGroups(run.activity ?? []);
+  const hasActivity = !!run.activity?.length || run.activityTruncated;
   return (
     <section
       id={`run-${run.id}`}
@@ -31,35 +36,36 @@ export const ChatTurn = ({
       tabIndex={-1}
       aria-label={`${name} turn activity`}
     >
-      <div className="chat-turn-heading flex items-center gap-2 text-detail text-muted-foreground">
+      <div className="chat-turn-heading text-detail text-muted-foreground">
         <RoleAvatar agentRole={run.roleId} size="small" />
-        <strong className="shrink-0 text-foreground">{name}</strong>
-        <span className="chat-turn-model">{runModel(run, models)}</span>
-        <StatusBead status={run.status} />
-        <output className="min-w-0 truncate">{status}</output>
-        <TurnDuration startedAt={run.startedAt} finishedAt={run.finishedAt} active={active} />
-      </div>
-      <div className="chat-turn-body ml-7.5 flex flex-col gap-3">
-        {groups.map((group) =>
-          group.kind === 'work' ? (
-            <ClaySteps key={group.id} entries={group.entries} />
-          ) : (
-            <div key={group.id} className="chat-turn-commentary">
-              <MessageResponse
-                mode={group.entries[0].status === 'running' ? 'streaming' : 'static'}
-                components={noRemoteImages}
-              >
-                {group.entries[0].text}
-              </MessageResponse>
-            </div>
-          ),
-        )}
-        {run.activityTruncated ? (
-          <p className="text-detail text-muted-foreground">
-            Showing the first 80 activity entries.
-          </p>
+        <div className="chat-turn-identity">
+          <strong className="text-foreground" title={name}>
+            {name}
+          </strong>
+          <span className="chat-turn-model" title={runModel(run, models)}>
+            {runModel(run, models)}
+          </span>
+        </div>
+        {!hasActivity ? (
+          <div className="chat-turn-phase">
+            <StatusBead status={handedOff ? 'queued' : run.status} />
+            <span
+              className="chat-turn-status min-w-0 truncate"
+              title={handedOff ? 'Answer saved' : status}
+            >
+              {handedOff ? 'Answer saved' : status}
+            </span>
+            <TurnDuration
+              runId={run.id}
+              startedAt={run.startedAt}
+              finishedAt={run.finishedAt}
+              active={active}
+            />
+          </div>
         ) : null}
       </div>
+      <TurnActivity run={run} />
+      {run.status === 'failed' && run.message ? <RunFailure run={run} /> : null}
     </section>
   );
 };

@@ -1,64 +1,64 @@
 import type { ChatRequest } from '@pitchcrew/core';
 import { QueuedMessageMenu } from './QueuedMessageMenu.tsx';
 import { Button } from '@pitchcrew/design-system/button';
-import { ArrowUp, Pencil, X, Play } from 'lucide-react';
+import { Pencil } from 'lucide-react';
+import { requestRecovery } from '../queue-recovery.ts';
 export const QueuedMessageActions = ({
   request,
   editable,
   working,
+  busy,
   update,
   edit,
+  canMoveEarlier,
+  canMoveLater,
+  queuePaused,
+  canResume,
 }: {
   request: ChatRequest;
   editable: boolean;
   working: boolean;
+  busy: boolean;
   update: (command: string) => Promise<unknown>;
   edit: () => void;
+  canMoveEarlier: boolean;
+  canMoveLater: boolean;
+  queuePaused: boolean;
+  canResume: boolean;
 }) => {
   if (
     !request.deliveries.some((delivery) => ['queued', 'paused', 'failed'].includes(delivery.status))
   )
     return null;
+  const recovery = requestRecovery(request);
   return (
-    <div className="flex gap-1">
-      {request.deliveries.some((delivery) => ['paused', 'failed'].includes(delivery.status)) ? (
+    <div className="chat-queued-actions flex gap-1">
+      {editable ? (
         <Button
+          className="chat-queued-edit"
           size="icon-xs"
           variant="ghost"
-          aria-label="Resume unfinished deliveries"
+          aria-label="Edit queued message"
+          title="Edit queued message"
           disabled={working}
-          onClick={() => void update('resume')}
+          onClick={edit}
         >
-          <Play size={13} />
-        </Button>
-      ) : null}
-      {editable ? (
-        <Button size="icon-xs" variant="ghost" aria-label="Edit queued message" onClick={edit}>
           <Pencil size={13} />
         </Button>
       ) : null}
-      <Button
-        size="icon-xs"
-        variant="ghost"
-        aria-label="Make next"
-        disabled={working}
-        onClick={() => void update('next')}
-      >
-        <ArrowUp size={13} />
-      </Button>
-      <Button
-        size="icon-xs"
-        variant="ghost"
-        aria-label="Cancel pending deliveries"
-        disabled={working}
-        onClick={() => void update('remove')}
-      >
-        <X size={13} />
-      </Button>
       {request.deliveries.some((delivery) =>
         ['queued', 'paused', 'failed'].includes(delivery.status),
       ) ? (
-        <QueuedMessageMenu update={update} working={working} />
+        <QueuedMessageMenu
+          request={request}
+          update={update}
+          working={working}
+          busy={busy}
+          canMoveEarlier={canMoveEarlier}
+          canMoveLater={canMoveLater}
+          queuePaused={queuePaused}
+          menuRecovery={canResume ? recovery : null}
+        />
       ) : null}
     </div>
   );

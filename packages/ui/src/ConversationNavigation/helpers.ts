@@ -35,6 +35,16 @@ export const conversationRows = (
       ?.filter((request) => request.deliveries.some((delivery) => delivery.status === 'queued'))
       .map((request) => request.threadId),
   );
+  const paused = new Set(
+    data.chatRequests
+      ?.filter((request) => request.deliveries.some((delivery) => delivery.status === 'paused'))
+      .map((request) => request.threadId),
+  );
+  const failed = new Set(
+    data.chatRequests
+      ?.filter((request) => request.deliveries.some((delivery) => delivery.status === 'failed'))
+      .map((request) => request.threadId),
+  );
   return (data.conversations ?? [])
     .filter(
       (item) =>
@@ -61,9 +71,11 @@ export const conversationRows = (
         : (messages.get(conversation.id)?.unread ?? false),
       working: working.has(conversation.id),
       waiting: waiting.has(conversation.id),
+      failed: failed.has(conversation.id),
       waitingForUser:
-        data.userInputs?.some((q) => q.threadId === conversation.id && q.status === 'pending') ??
-        false,
+        paused.has(conversation.id) ||
+        (data.userInputs?.some((q) => q.threadId === conversation.id && q.status === 'pending') ??
+          false),
     }));
 };
 
@@ -101,10 +113,12 @@ export const chatGroups = (rows: ConversationNavigationRow[]) => {
 
 /** The most pressing state inside a folded group, shown on its heading so nothing hides there. */
 export const groupAttention = (rows: ConversationNavigationRow[]) =>
-  rows.some((row) => row.waitingForUser)
-    ? ('waiting' as const)
-    : rows.some((row) => row.working)
-      ? ('running' as const)
-      : rows.some((row) => row.unread)
-        ? ('unread' as const)
-        : undefined;
+  rows.some((row) => row.failed)
+    ? ('failed' as const)
+    : rows.some((row) => row.waitingForUser)
+      ? ('waiting' as const)
+      : rows.some((row) => row.working)
+        ? ('running' as const)
+        : rows.some((row) => row.unread)
+          ? ('unread' as const)
+          : undefined;

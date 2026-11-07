@@ -8,6 +8,8 @@ export const QuestionAnswerForm = (props: QuestionFormProps) => {
   return (
     <form
       className="user-question-form"
+      aria-labelledby={`question-title-${props.question.id}`}
+      aria-busy={form.submitting}
       onSubmit={(event) => {
         event.preventDefault();
         void form.respond();
@@ -22,7 +24,7 @@ export const QuestionAnswerForm = (props: QuestionFormProps) => {
           disabled={form.disabled}
           onClick={() => void form.respond(true)}
         >
-          Cancel
+          Cancel question
         </Button>
         <Button
           type="submit"
