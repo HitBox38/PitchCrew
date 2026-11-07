@@ -1,0 +1,115 @@
+{
+  "comparison": "Original dev renderer and reviewed v7 renderer against the same current benign saved QA API; UI-only comparison, not a historical backend/database reconstruction.",
+  "baseline": {
+    "commit": "707af32d35da42d098f477044b3eb26ed6b6cbb7",
+    "indexSha256": "aee055b37392e3c7e37dd89bc6a12f09203f1f3e240c7998e777b5358a55e698"
+  },
+  "after": {
+    "indexSha256": "40632ebe88d7229dc322961cae1fdac6b7840a6455600f46e8a5ef99d992133d"
+  },
+  "capture": "Fresh private contexts, matching route/viewports, empty local drafts, read-only actual QA API; non-GET/external requests blocked. Genuine full-viewport PNGs, no DOM/CSS/response rewrites or image editing.",
+  "limits": [
+    "Original inline activity and final folded activity naturally expose different portions of the same long turn, especially the mobile job pair.",
+    "Short job sheet images show the same initial loaded viewport. The reader scroll improvement (40px to273px) is measured interaction evidence, not visible text equivalence.",
+    "Benign illustrative job/conversation content; no personal application/profile/files, credentials, email or real username visible.",
+    "Browser touch emulation is not a physical-device test."
+  ],
+  "files": [
+    {
+      "file": "desktop-answer-before.png",
+      "version": "before",
+      "width": 1440,
+      "height": 900,
+      "bytes": 239701,
+      "sha256": "6feab5dfc7a032e440bb46a3c98fa94e7ff88742a4980f4b300c027de37f96ad"
+    },
+    {
+      "file": "desktop-answer-after.png",
+      "version": "after",
+      "width": 1440,
+      "height": 900,
+      "bytes": 225566,
+      "sha256": "b356ad58de15840cfc1b64bd7ccda3571f3939a6f4ec972e0febcbd1c3d9e564"
+    },
+    {
+      "file": "desktop-question-before.png",
+      "version": "before",
+      "width": 1440,
+      "height": 900,
+      "bytes": 274275,
+      "sha256": "b17deac871d56bbfca38917d245c8118a3153c108d698ea33f42ccf60d2e9fc5"
+    },
+    {
+      "file": "desktop-question-after.png",
+      "version": "after",
+      "width": 1440,
+      "height": 900,
+      "bytes": 250361,
+      "sha256": "83ed120a1cd820efab7782a9cb1b9b4e8b4af511144ae5a45623aa614fefe398"
+    },
+    {
+      "file": "mobile-job-before.png",
+      "version": "before",
+      "width": 390,
+      "height": 844,
+      "bytes": 92528,
+      "sha256": "313acf19f59add25ad59644df1ad58219351e6f8673cc515571db5e63ee0fd6a"
+    },
+    {
+      "file": "mobile-job-after.png",
+      "version": "after",
+      "width": 390,
+      "height": 844,
+      "bytes": 120295,
+      "sha256": "8879d51fb274c246f8e42a1f8f161bb1063b71a63ac3f38f9fc07e338f801d32"
+    },
+    {
+      "file": "mobile-group-before.png",
+      "version": "before",
+      "width": 390,
+      "height": 844,
+      "bytes": 123725,
+      "sha256": "5498c825a65dc801a27e9bbc2d24ad4b4c4f086b7c359de5c195e9e8500be5db"
+    },
+    {
+      "file": "mobile-group-after.png",
+      "version": "after",
+      "width": 390,
+      "height": 844,
+      "bytes": 121181,
+      "sha256": "edba54f83e4e782888b62a93e5522bce6b98a3572f18264d04a840e404fa7297"
+    },
+    {
+      "file": "mobile-multiselect-before.png",
+      "version": "before",
+      "width": 390,
+      "height": 844,
+      "bytes": 147731,
+      "sha256": "11bd13ff6e2658dff5d8aea5316fb6a3879b0849b5957e3134a8de6bd0ea643e"
+    },
+    {
+      "file": "mobile-multiselect-after.png",
+      "version": "after",
+      "width": 390,
+      "height": 844,
+      "bytes": 141089,
+      "sha256": "de0aa96ddd0d8e5feeeace75aa8b9cd666a9948361d1238ceba9168a35432903"
+    },
+    {
+      "file": "short-job-sheet-before.png",
+      "version": "before",
+      "width": 844,
+      "height": 390,
+      "bytes": 55866,
+      "sha256": "7510cb63bd21aae8352fbc3f561a81656ca8ae01015aa2b6db5c2d3436a29238"
+    },
+    {
+      "file": "short-job-sheet-after.png",
+      "version": "after",
+      "width": 844,
+      "height": 390,
+      "bytes": 61531,
+      "sha256": "f3f693b6cf372a0b32dce90cae1cfb40e8f3a3a15bfdb6f4931e4a80199d92ec"
+    }
+  ]
+}

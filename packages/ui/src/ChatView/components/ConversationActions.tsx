@@ -29,7 +29,10 @@ export const ConversationActions = (props: ConversationHeadingProps & { title?: 
     >
       {props.title ? (
         <>
-          <span>{props.title}</span>
+          <span className="chat-mobile-title-copy" data-job={props.attached ? '' : undefined}>
+            <span>{props.attached?.title ?? props.title}</span>
+            {props.attached ? <small>{props.attached.company}</small> : null}
+          </span>
           <ChevronDown size={16} aria-hidden="true" />
         </>
       ) : (

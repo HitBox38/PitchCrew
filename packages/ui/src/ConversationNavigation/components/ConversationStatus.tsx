@@ -9,13 +9,15 @@ export const ConversationStatus = ({
   row: ConversationNavigationRow;
   selected: boolean;
 }) => {
-  const { conversation: item, unread, working, waiting, waitingForUser } = row;
+  const { conversation: item, unread, working, waiting, waitingForUser, failed } = row;
   return (
     <span className="conversation-link-status">
       {item.pinned ? <Pin size={10} aria-label="Pinned" /> : null}
       {item.archived ? <Archive size={10} aria-label="Archived" /> : null}
       {working ? (
         <StatusBead status="running" label="Working" />
+      ) : failed ? (
+        <StatusBead status="failed" label="Message failed" />
       ) : waitingForUser ? (
         <StatusBead status="waiting" label="Waiting for you" />
       ) : waiting ? (

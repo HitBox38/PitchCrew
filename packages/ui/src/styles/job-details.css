@@ -170,6 +170,23 @@
 .modal.drawer.card-details-panel {
   width: min(680px, 100vw);
 }
+.job-details-reading {
+  display: contents;
+}
+/* Short sheets scroll their identity and section controls together; the action footer stays put. */
+@media (height < 40rem) {
+  .card-details-panel .job-details-reading {
+    display: block;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-gutter: stable;
+  }
+  .card-details-panel .job-details-reading .job-sections {
+    display: block;
+  }
+}
 .card-details-panel .detail-company {
   margin-top: 0;
   align-items: flex-start;

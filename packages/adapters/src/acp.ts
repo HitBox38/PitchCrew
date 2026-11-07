@@ -224,6 +224,6 @@ export const runAcpText = async (
         clientInfo: { name: 'pitchcrew', version: '0.1.0' },
       },
     });
-    context.onMessage('CLI started with scoped MCP tools; waiting for its result.');
+    context.onMessage('Agent started. Preparing a reply…');
   });
 };

@@ -175,10 +175,12 @@ test('previews the live workflow turn and opens that exact job chat without canc
   release();
   await finish(host.request, run.id);
   await page.reload();
-  await page.locator(`#run-${run.id}`).waitFor({ timeout: 30000 });
-  expect(await page.locator(`#run-${run.id}`).innerText()).toContain(
-    'Matching the draft to the role.',
-  );
+  const savedTurn = page.locator(`#run-${run.id}`);
+  await savedTurn.waitFor({ timeout: 30000 });
+  const activity = savedTurn.locator('.chat-turn-disclosure');
+  expect(await activity.getAttribute('aria-expanded')).toBe('false');
+  await activity.click();
+  await savedTurn.getByText('Matching the draft to the role.', { exact: true }).waitFor();
   expect(errors).toEqual([]);
 }, 30000);
 

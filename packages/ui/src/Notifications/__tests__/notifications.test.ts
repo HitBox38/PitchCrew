@@ -358,6 +358,32 @@ it('skips message toasts only for the visible conversation the user is reading',
   );
 });
 
+it('suppresses only the exact open question toast on its visible conversation route', () => {
+  const item = { id: 'message:question', context: 'input', target: '/chat/scout' } as const;
+  const openQuestions = new Set(['message:question']);
+  expect(notificationInView(item, '/chat/scout', true, openQuestions)).toBe(true);
+  expect(notificationInView(item, '/chat/scout', true, new Set())).toBe(false);
+  expect(notificationInView(item, '/chat/writer', true, openQuestions)).toBe(false);
+  expect(notificationInView(item, '/chat/scout', false, openQuestions)).toBe(false);
+  expect(
+    notificationInView(
+      { ...item, id: 'message:other-question' },
+      '/chat/scout',
+      true,
+      openQuestions,
+    ),
+  ).toBe(false);
+  for (const context of [
+    'role_proposal',
+    'skill_proposal',
+    'browser_approval',
+    'packet_approval',
+  ] as const)
+    expect(notificationInView({ ...item, context }, '/chat/scout', true, openQuestions)).toBe(
+      false,
+    );
+});
+
 it('groups the panel into Needs you, Updates and Messages, newest first within each', () => {
   expect(notificationGroup({ context: 'packet_approval' })).toBe('needs');
   expect(notificationGroup({ context: 'input' })).toBe('needs');

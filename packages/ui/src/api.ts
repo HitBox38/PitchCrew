@@ -4,6 +4,9 @@ import { apiErrorAction, reportErrorDiagnostic } from './Analytics/error-trackin
 import type { ErrorCategory } from './Analytics/error-sanitizer.ts';
 import { beginApiMetric } from './Analytics/metrics/runtime.ts';
 import { diagnosticRequestHeaders } from './Analytics/request-context.ts';
+import { ApiHttpError } from './api-errors.ts';
+
+export { ApiHttpError } from './api-errors.ts';
 
 export interface ConditionalRequest {
   etag: string | null;
@@ -45,12 +48,27 @@ export const api = (async <T>(
     result = response.ok ? 'invalid_response' : 'http_error';
     category =
       response.status >= 500 ? 'request_server' : response.ok ? 'request_response' : undefined;
-    const data = (await response.json()) as T & { error?: string };
-    if (!response.ok) throw new Error(data.error ?? 'Request failed.');
+    let data: unknown;
+    try {
+      data = await response.json();
+    } catch (error) {
+      if (response.ok) throw error;
+      throw new ApiHttpError(response.status, undefined, { cause: error });
+    }
+    if (!response.ok)
+      throw new ApiHttpError(
+        response.status,
+        data !== null &&
+          typeof data === 'object' &&
+          'error' in data &&
+          typeof data.error === 'string'
+          ? data.error
+          : undefined,
+      );
     if (tracked) analytics.capture(tracked.event, tracked.properties);
     result = 'success';
     conditional?.updateEtag(response.headers.get('etag'));
-    return data;
+    return data as T;
   } catch (error) {
     const aborted = signal?.aborted || (error instanceof Error && error.name === 'AbortError');
     if (aborted) result = 'aborted';

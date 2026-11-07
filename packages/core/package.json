@@ -14,6 +14,8 @@
     "./job-link-recognition": "./src/job-link-recognition.ts",
     "./public-job-links": "./src/public-job-links.ts",
     "./chat-references": "./src/chat-references.ts",
+    "./transcript-order": "./src/transcript-order.ts",
+    "./transcript-visibility": "./src/transcript-visibility.ts",
     "./delegation-rounds": "./src/delegation-rounds.ts",
     "./chat-attachments": "./src/chat-attachments.ts",
     "./insights": "./src/insights.ts",

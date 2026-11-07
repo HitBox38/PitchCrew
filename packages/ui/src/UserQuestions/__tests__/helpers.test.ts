@@ -1,5 +1,20 @@
 import { describe, expect, it } from 'vitest';
-import { optionShortcut, submitsAnswer } from '../helpers.ts';
+import { activeQuestion, optionShortcut, submitsAnswer } from '../helpers.ts';
+
+describe('shared question dock selection', () => {
+  const questions = [{ id: 'first' }, { id: 'second' }];
+  it('keeps an explicit collapse closed even when pending questions remain', () => {
+    expect(activeQuestion(questions, '')).toBe('');
+  });
+  it('selects the first pending question initially and after the selected question resolves', () => {
+    expect(activeQuestion(questions, undefined)).toBe('first');
+    expect(activeQuestion(questions, 'resolved')).toBe('first');
+    expect(activeQuestion([], 'resolved')).toBeUndefined();
+  });
+  it('keeps a chosen pending question active instead of switching to the first', () => {
+    expect(activeQuestion(questions, 'second')).toBe('second');
+  });
+});
 
 const key = (overrides: Partial<Parameters<typeof submitsAnswer>[0]> = {}) => ({
   key: 'Enter',

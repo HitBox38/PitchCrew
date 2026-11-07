@@ -23,7 +23,17 @@ export const QuestionOptions = ({
 }) => {
   const selectedIds = new Set(selected);
   return (
-    <div className="user-question-options" aria-label="Suggested answers">
+    <fieldset
+      className="user-question-options"
+      data-question-choice-target={question.id}
+      tabIndex={-1}
+      aria-labelledby={`question-title-${question.id} question-options-${question.id}`}
+      aria-describedby={question.reason ? `question-reason-${question.id}` : undefined}
+      style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+    >
+      <legend id={`question-options-${question.id}`} className="sr-only">
+        Suggested answers
+      </legend>
       {question.options.map((option, index) =>
         question.multiSelect ? (
           <label
@@ -37,7 +47,7 @@ export const QuestionOptions = ({
               disabled={disabled}
               onCheckedChange={() => choose(option.id)}
             />
-            <span>
+            <span className="user-question-option-label">
               <strong>{option.label}</strong>
               {option.description ? <small>{option.description}</small> : null}
             </span>
@@ -53,7 +63,7 @@ export const QuestionOptions = ({
             aria-keyshortcuts={index < 9 ? String(index + 1) : undefined}
           >
             <OptionKey index={index} />
-            <span>
+            <span className="user-question-option-label">
               <strong>{option.label}</strong>
               {option.description ? <small>{option.description}</small> : null}
             </span>
@@ -61,6 +71,6 @@ export const QuestionOptions = ({
           </Button>
         ),
       )}
-    </div>
+    </fieldset>
   );
 };

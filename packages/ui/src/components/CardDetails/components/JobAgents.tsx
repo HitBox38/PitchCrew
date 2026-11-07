@@ -63,6 +63,7 @@ export const JobAgents = ({
               <div className="flex items-center justify-between gap-4">
                 <strong>{name}</strong>
                 <TurnDuration
+                  runId={run.id}
                   startedAt={run.startedAt}
                   finishedAt={run.finishedAt}
                   active={run.status === 'running'}

@@ -13,7 +13,11 @@ export const ComposerContext = (props: ChatComposerProps) => {
   return (
     <PromptInputHeader className="chat-composer-context">
       {attached ? (
-        <div className="chat-context-chip chat-context-job">
+        <div
+          className="chat-context-chip chat-context-job"
+          data-locked={jobLocked ? '' : undefined}
+          data-header-job={props.conversation?.cardId === attached.id ? '' : undefined}
+        >
           <Button
             variant="ghost"
             size="sm"
@@ -49,11 +53,7 @@ export const ComposerContext = (props: ChatComposerProps) => {
           )}
         </div>
       ) : null}
-      <ComposerAttachments
-        files={files}
-        removeFile={props.removeFile}
-        disabled={working || !available}
-      />
+      <ComposerAttachments files={files} removeFile={props.removeFile} disabled={!available} />
     </PromptInputHeader>
   );
 };

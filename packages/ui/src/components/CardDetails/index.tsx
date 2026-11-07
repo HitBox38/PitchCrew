@@ -37,15 +37,17 @@ const CardDetailsContent = (
   const model = useCardDetails(props);
   return (
     <JobSheet onClose={model.onClose}>
-      <JobSummary {...model} />
-      <JobProgress card={model.card} data={model.data} />
-      {props.sourceError ? (
-        <div role="alert" className="px-5">
-          <p>{props.sourceError}</p>
-          <Button onClick={props.retrySource}>Retry</Button>
-        </div>
-      ) : null}
-      <JobTabs {...model} />
+      <div className="job-details-reading">
+        <JobSummary {...model} />
+        <JobProgress card={model.card} data={model.data} />
+        {props.sourceError ? (
+          <div role="alert" className="px-5">
+            <p>{props.sourceError}</p>
+            <Button onClick={props.retrySource}>Retry</Button>
+          </div>
+        ) : null}
+        <JobTabs {...model} />
+      </div>
       <JobActions {...model} />
       <DiscardChanges guard={model.guard} />
       {model.editing ? (

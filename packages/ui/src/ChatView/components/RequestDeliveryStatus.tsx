@@ -1,4 +1,6 @@
 import type { ChatRequest, Snapshot } from '@pitchcrew/core';
+import { QueueDiagnostics } from './QueueDiagnostics.tsx';
+import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 export const RequestDeliveryStatus = ({
   request,
   data,
@@ -20,11 +22,10 @@ export const RequestDeliveryStatus = ({
             'another conversation')
           : null;
         return (
-          <span
-            key={delivery.roleId}
-            title={delivery.error || (label ? `Working in ${label}` : '')}
-          >
-            {data.roles.find((agent) => agent.id === delivery.roleId)?.name ?? delivery.roleId}:{' '}
+          <span key={delivery.roleId} title={label ? `Working in ${label}` : undefined}>
+            <StatusBead status={delivery.status} />
+            {data.roles.find((agent) => agent.id === delivery.roleId)?.name ??
+              delivery.roleId}:{' '}
             {delivery.status === 'queued'
               ? label
                 ? `waiting · ${label}`
@@ -33,11 +34,33 @@ export const RequestDeliveryStatus = ({
                 ? 'working'
                 : delivery.status === 'completed'
                   ? 'finished'
-                  : delivery.status}
-            {delivery.error ? ` · ${delivery.error}` : ''}
+                  : delivery.status === 'failed'
+                    ? 'reply failed'
+                    : delivery.status === 'paused'
+                      ? delivery.runId
+                        ? 'reply stopped'
+                        : 'not sent'
+                      : delivery.status === 'cancelled'
+                        ? 'cancelled'
+                        : 'waiting for your answer'}
           </span>
         );
       })}
+      <QueueDiagnostics
+        entries={request.deliveries.flatMap((delivery) => {
+          const run = data.runs.find((item) => item.id === delivery.runId);
+          const text = delivery.error || (run?.status === 'failed' ? run.message : '');
+          return text
+            ? [
+                {
+                  label:
+                    data.roles.find((role) => role.id === delivery.roleId)?.name ?? delivery.roleId,
+                  text,
+                },
+              ]
+            : [];
+        })}
+      />
     </div>
   );
 };

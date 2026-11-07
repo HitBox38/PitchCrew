@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest';
-import type { ChatMessage, ConversationHistoryPage } from '@pitchcrew/core';
+import type { ChatMessage, ConversationHistoryPage, Run } from '@pitchcrew/core';
 import { liveHistoryItems } from '../remote-history.ts';
 
 const message = (id: string, from = 'scout'): ChatMessage => {
@@ -70,4 +70,105 @@ it('keeps saved activity and its trigger timestamp when workspace run metadata h
   };
   const { activity: _activity, ...metadata } = run;
   expect(liveHistoryItems(page, [], [metadata], 'scout')).toEqual(page.items);
+});
+
+it('does not re-sort joined parallel turns back to their start timestamps while merging live data', () => {
+  const at = '2026-10-17T00:00:10.000Z';
+  const runs = ['coach', 'scout'].map((id) => ({
+    id,
+    roleId: id,
+    runtime: 'codex' as const,
+    threadId: 'scout',
+    mode: 'chat' as const,
+    cardId: null,
+    status: 'completed' as const,
+    startedAt: '2026-10-17T00:00:00.000Z',
+    finishedAt: at,
+    message: '',
+    activity: [
+      {
+        id: `${id}-step`,
+        kind: 'tool' as const,
+        label: 'Done',
+        status: 'completed' as const,
+        startedAt: '',
+        finishedAt: '',
+      },
+    ],
+  }));
+  const replies = [message('scout-reply'), { ...message('coach-reply'), from: 'coach' }].map(
+    (reply) => ({ ...reply, createdAt: at, runId: reply.from }),
+  );
+  const page: ConversationHistoryPage = {
+    items: [
+      { kind: 'turn', id: 'turn-scout', createdAt: at, run: runs[1] },
+      { kind: 'message', id: replies[0].id, createdAt: at, message: replies[0] },
+      { kind: 'turn', id: 'turn-coach', createdAt: at, run: runs[0] },
+      { kind: 'message', id: replies[1].id, createdAt: at, message: replies[1] },
+    ],
+    start: 0,
+    end: 4,
+    total: 4,
+    older: null,
+    newer: null,
+  };
+  expect(liveHistoryItems(page, [], runs, 'scout').map((item) => item.id)).toEqual([
+    'turn-scout',
+    'scout-reply',
+    'turn-coach',
+    'coach-reply',
+  ]);
+});
+
+it('merges waiting metadata without dropping saved activity or a queued input’s server dispatch time', () => {
+  const createdAt = '2026-10-17T00:00:06.000Z';
+  const input = { ...message('queued-input', 'user'), runId: null };
+  const run: Run = {
+    id: 'delivery',
+    roleId: 'scout',
+    runtime: 'codex',
+    threadId: 'scout',
+    mode: 'chat',
+    cardId: null,
+    status: 'running',
+    startedAt: createdAt,
+    finishedAt: null,
+    message: '',
+    activity: [
+      {
+        id: 'step',
+        kind: 'tool',
+        label: 'Saved step',
+        status: 'completed',
+        startedAt: createdAt,
+        finishedAt: createdAt,
+      },
+    ],
+  };
+  const page: ConversationHistoryPage = {
+    items: [
+      { kind: 'message', id: input.id, createdAt, message: input },
+      { kind: 'turn', id: 'turn-delivery', createdAt, run },
+    ],
+    start: 0,
+    end: 2,
+    total: 2,
+    older: null,
+    newer: null,
+  };
+  const { activity: _activity, ...metadata } = run;
+  const result = liveHistoryItems(
+    page,
+    [],
+    [{ ...metadata, status: 'waiting', message: 'Waiting for your answer.' }],
+    'scout',
+  );
+  expect(result[0]).toEqual(page.items[0]);
+  expect(result[1]).toMatchObject({
+    run: { status: 'waiting', message: 'Waiting for your answer.', activity: run.activity },
+  });
+  const reply = { ...message('final'), runId: run.id, createdAt: '2026-10-18T00:00:09.000Z' };
+  const settled = liveHistoryItems(page, [reply], [{ ...metadata, status: 'completed' }], 'scout');
+  expect(settled.map((item) => item.id)).toEqual([input.id, 'turn-delivery', reply.id]);
+  expect(settled[1].createdAt).toBe(reply.createdAt);
 });

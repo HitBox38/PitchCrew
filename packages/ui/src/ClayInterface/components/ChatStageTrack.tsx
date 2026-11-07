@@ -1,6 +1,6 @@
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { executingRuns } from '@/lib/work-queue.ts';
-import { trackIndex } from '../helpers.ts';
+import { trackIndex, trackSteps } from '../helpers.ts';
 import { decisions } from '../signals.ts';
 import { NextUp } from './NextUp.tsx';
 import { StageTrack } from './StageTrack.tsx';
@@ -14,7 +14,17 @@ export const ChatStageTrack = ({ thread }: { thread: string }) => {
   const live = executingRuns(data.runs).some((run) => run.cardId === card.id);
   const asks = decisions(data).some((decision) => decision.cardId === card.id);
   return (
-    <div className="clay-chat-stage" aria-label={`${card.company} progress`}>
+    <section className="clay-chat-stage" aria-label={`${card.company} progress`}>
+      <span className="clay-chat-current">
+        <span
+          className="clay-bead"
+          data-size="sm"
+          data-tone={asks ? 'ochre' : live ? 'plum' : 'current'}
+          data-live={live && !asks ? '' : undefined}
+          aria-hidden="true"
+        />
+        {trackSteps[trackIndex(card.state) ?? 0]?.label}
+      </span>
       <StageTrack
         state={card.state}
         live={live}
@@ -23,6 +33,6 @@ export const ChatStageTrack = ({ thread }: { thread: string }) => {
         labelled
       />
       <NextUp card={card} data={data} />
-    </div>
+    </section>
   );
 };

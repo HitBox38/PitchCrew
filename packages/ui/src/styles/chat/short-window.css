@@ -1,0 +1,116 @@
+/* A short window trades secondary chrome for a readable transcript. If answer controls or
+ * attachments still need more room, the chat column scrolls independently of the browser. */
+@media (height < 40rem) {
+  .chat-heading {
+    min-height: 0;
+    gap: 4px 8px;
+    padding-block: 0;
+  }
+  .chat-heading h1 {
+    font-size: 16px;
+    line-height: 22px;
+  }
+  [data-interface='clay'] .clay-job-title h1 {
+    display: flex;
+    flex-direction: column;
+    line-height: 18px;
+  }
+  .clay-job-title h1 > :is(strong, span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .clay-job-title h1 > strong {
+    font-size: var(--text-detail);
+  }
+  [data-interface='clay'] .clay-job-title h1 > span {
+    color: var(--ink);
+    font-size: var(--text-label);
+  }
+  .chat-heading-copy > p:not(:has(button)) {
+    display: none;
+  }
+  .chat-heading > .clay-chat-stage {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-block: 0;
+  }
+  .clay-chat-stage > .clay-stage-track {
+    display: none;
+  }
+  .chat-heading .clay-chat-current {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    width: auto;
+    font-size: var(--text-detail);
+    line-height: 18px;
+  }
+  .chat-heading .clay-chat-stage > .clay-job-now {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--text-detail);
+    line-height: 18px;
+  }
+  .clay-chat-stage .clay-job-now > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-compose {
+    padding-block: 0;
+  }
+  .chat-textarea {
+    min-height: 44px;
+    max-height: 96px;
+    padding-top: 8px;
+  }
+  [data-interface='clay'] .chat-prompt-footer {
+    padding-block: 2px;
+  }
+  .chat-question-compose-switch {
+    padding-block: 4px;
+  }
+  .chat-panel .chat-conversation-panel,
+  .chat-panel:has(.pending-user-questions) .chat-conversation-panel {
+    --chat-history-min-height: clamp(7rem, 35dvh, 10rem);
+  }
+  .chat-queue-content,
+  .chat-queue-content:has(.chat-queued-full-text) {
+    max-height: min(10rem, 22dvh);
+  }
+  .chat-queue-content:has(.chat-queued-full-text) {
+    max-height: min(16rem, 40dvh);
+  }
+  @container chat-composer (30rem <= width < 36rem) {
+    [data-interface='clay']
+      .chat-prompt
+      .chat-prompt-footer:not([data-follow-up='true']):not([data-held='true']) {
+      display: flex;
+    }
+    .chat-prompt-footer:not([data-follow-up='true']):not([data-held='true'])
+      .chat-composer-controls {
+      display: flex;
+    }
+    [data-interface='clay']
+      .chat-prompt-footer:not([data-follow-up='true']):not([data-held='true'])
+      .chat-send-actions {
+      display: flex;
+    }
+    [data-interface='clay']
+      .chat-prompt-footer:not([data-follow-up='true']):not([data-held='true'])
+      .chat-composer-runtime {
+      width: auto;
+      flex: 0 1 auto;
+    }
+    .chat-composer-runtime > span:not(.role-avatar) {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}

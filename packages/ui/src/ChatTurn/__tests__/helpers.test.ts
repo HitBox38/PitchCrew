@@ -90,6 +90,75 @@ it('groups contiguous tools and thinking without hiding interleaved commentary',
   expect(activityGroups([{ ...commentary, text: '' }])).toEqual([]);
 });
 
+it('joins settled parallel group turns to their own replies even when final timestamps tie', () => {
+  const coach = { ...run, id: 'coach', roleId: 'coach' };
+  const scout = { ...run, id: 'scout', startedAt: '2026-10-13T08:00:01.000Z' };
+  const replies = [
+    {
+      ...user,
+      id: 'scout-answer',
+      from: 'scout',
+      to: 'user',
+      runId: 'scout',
+      createdAt: '2026-10-13T08:00:03.000Z',
+    },
+    {
+      ...user,
+      id: 'coach-answer',
+      from: 'coach',
+      to: 'user',
+      runId: 'coach',
+      createdAt: '2026-10-13T08:00:03.000Z',
+    },
+  ];
+  const result = transcriptItems([user, ...replies], [coach, scout], 'chat');
+  expect(result.map((item) => item.id)).toEqual([
+    'user',
+    'turn-scout',
+    'scout-answer',
+    'turn-coach',
+    'coach-answer',
+  ]);
+  expect(result.map((item) => item.createdAt)).toEqual([
+    startedAt,
+    ...Array(4).fill('2026-10-13T08:00:03.000Z'),
+  ]);
+});
+
+it('keeps active group activity chronological instead of moving it beside streaming replies', () => {
+  const active = { ...run, status: 'running' as const };
+  const other = { ...user, id: 'other', runId: null, createdAt: '2026-10-13T08:00:01.000Z' };
+  const partial = {
+    ...user,
+    id: 'partial',
+    from: 'scout',
+    to: 'user',
+    createdAt: '2026-10-13T08:00:02.000Z',
+  };
+  expect(transcriptItems([user, other, partial], [active], 'chat').map((item) => item.id)).toEqual([
+    'user',
+    'turn-run',
+    'other',
+    'partial',
+  ]);
+});
+
+it('shows failures and stops even when a runtime never emitted activity or an answer', () => {
+  const failed = {
+    ...run,
+    runtime: 'codex' as const,
+    id: 'failed',
+    status: 'failed' as const,
+    activity: undefined,
+    message: 'Runtime exited before replying.',
+  };
+  const stopped = { ...failed, id: 'stopped', status: 'cancelled' as const };
+  expect(transcriptItems([], [failed, stopped], 'chat').map((item) => item.id)).toEqual([
+    'turn-failed',
+    'turn-stopped',
+  ]);
+});
+
 it('formats elapsed time for live, completed and malformed timestamps', () => {
   expect(durationLabel(startedAt, null, Date.parse(startedAt) + 62000)).toBe('1m 2s');
   expect(durationLabel(startedAt, startedAt, Date.parse(startedAt) + 62000)).toBe('0s');

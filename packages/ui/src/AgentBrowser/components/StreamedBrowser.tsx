@@ -18,15 +18,17 @@ export const StreamedBrowser = ({
   presentation: ReturnType<typeof useBrowserPresentation>;
 }) => (
   <>
-    <BrowserToolbar
-      frame={frame}
-      control={control}
-      url={browserPanel.session?.url ?? ''}
-      zoom={presentation.zoom}
-      setZoom={presentation.setZoom}
-      panView={presentation.panView}
-      setPanView={presentation.setPanView}
-    />
+    {browserPanel.session?.status === 'open' ? (
+      <BrowserToolbar
+        frame={frame}
+        control={control}
+        url={browserPanel.session?.url ?? ''}
+        zoom={presentation.zoom}
+        setZoom={presentation.setZoom}
+        panView={presentation.panView}
+        setPanView={presentation.setPanView}
+      />
+    ) : null}
     <BrowserPage
       viewport={viewport}
       browserPanel={browserPanel}

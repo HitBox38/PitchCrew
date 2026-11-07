@@ -1,14 +1,20 @@
 import type { ChatViewModel } from '../types.ts';
-import { QueuedMessage } from './QueuedMessage.tsx';
+import { Queue, QueueSection, QueueSectionContent } from '@/components/ai-elements/queue/index.tsx';
+import { QueueHeading } from './QueueHeading.tsx';
 import {
-  Queue,
-  QueueSection,
-  QueueSectionTrigger,
-  QueueSectionContent,
-} from '@/components/ai-elements/queue/index.tsx';
-import { TraceLine, TraceTitle } from '@pitchcrew/design-system/trace';
-import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
-import { requestStatus } from '@/ClayInterface/helpers.ts';
+  conversationQueue,
+  initialQueueAttention,
+  queueAttentionKeys,
+  queueCountLabel,
+  queueStateLabel,
+} from '../queue-presentation.ts';
+import { useQueueDisclosure } from '../hooks/useQueueDisclosure.ts';
+import { QueuedMessageList } from './QueuedMessageList.tsx';
+import { QueuedEditorSession } from './QueuedEditorSession.tsx';
+import { queueExplanation } from '../queue-recovery.ts';
+import { queueRecoveryPlan } from '../queue-recovery-plan.ts';
+import { SharedQueueContext } from './SharedQueueContext.tsx';
+import { useQueuedEditorSelection } from '../hooks/useQueuedEditorSelection.ts';
 
 export const ConversationQueue = ({
   queued,
@@ -17,53 +23,75 @@ export const ConversationQueue = ({
   working,
   thread,
 }: Pick<ChatViewModel, 'queued' | 'data' | 'action' | 'working' | 'thread'>) => {
-  if (!queued.length) return null;
   const has = (status: string) =>
     queued.some((request) => request.deliveries.some((delivery) => delivery.status === status));
   // Rose only when something failed; paused work waits on a person, so it is ochre.
   const tone = has('failed') ? 'rose' : has('paused') ? 'ochre' : undefined;
-  const attention = queued.filter((request) =>
-    request.deliveries.some(
-      (delivery) => delivery.status === 'paused' || delivery.status === 'failed',
+  const queue = conversationQueue(data.queue, thread, data.conversations);
+  const { open, setOpen } = useQueueDisclosure(
+    thread,
+    queueAttentionKeys(queued),
+    initialQueueAttention(queue, queued),
+  );
+  const { selection, selected, edit } = useQueuedEditorSelection(thread, data.chatRequests);
+  const count = queueCountLabel(queued, queue);
+  const state = queueStateLabel(
+    queue,
+    queued,
+    data.userInputs?.some(
+      (question) => question.threadId === thread && question.status === 'pending',
     ),
-  ).length;
-  const label = attention
-    ? queued.length === 1
-      ? '1 message needs attention'
-      : `${queued.length} messages · ${attention} ${attention === 1 ? 'needs' : 'need'} attention`
-    : `${queued.length} queued ${queued.length === 1 ? 'message' : 'messages'}`;
+  );
+  const plan = queueRecoveryPlan(queue, queued, thread, data.conversations);
+  const explanation =
+    plan?.kind === 'chat' || plan?.kind === 'queue' ? plan.explanation : queueExplanation(queue);
   return (
-    <section className="chat-queue" data-tone={tone} aria-label="Queued messages">
-      <Queue>
-        <QueueSection key={thread}>
-          <QueueSectionTrigger className="chat-queue-trigger">
-            <TraceLine className="flex-1" status={tone ? undefined : 'pending'}>
-              <span className="clay-step-beads" aria-hidden="true">
-                {queued.slice(0, 8).map((request) => (
-                  <StatusBead
-                    key={request.id}
-                    status={requestStatus(request.deliveries.map((item) => item.status))}
-                  />
-                ))}
-              </span>
-              <TraceTitle>{label}</TraceTitle>
-            </TraceLine>
-          </QueueSectionTrigger>
-          <QueueSectionContent>
-            <div className="chat-queue-content">
-              {queued.map((request) => (
-                <QueuedMessage
-                  key={request.id}
-                  request={request}
+    <>
+      {!queued.length && queue && plan ? (
+        <SharedQueueContext
+          queue={queue}
+          plan={plan}
+          conversations={data.conversations}
+          action={action}
+          working={working}
+        />
+      ) : null}
+      {queued.length ? (
+        <section className="chat-queue" data-tone={tone} aria-label="Queued messages">
+          <Queue>
+            <QueueSection key={thread} open={open} onOpenChange={setOpen}>
+              <QueueHeading
+                count={count}
+                state={state}
+                queued={queued}
+                plan={plan}
+                action={action}
+                working={working}
+                onReview={() => setOpen(true)}
+              />
+              <QueueSectionContent keepMounted>
+                {explanation ? <p className="chat-queue-explanation">{explanation}</p> : null}
+                <QueuedMessageList
+                  queued={queued}
                   data={data}
                   action={action}
                   working={working}
+                  onEdit={edit}
                 />
-              ))}
-            </div>
-          </QueueSectionContent>
-        </QueueSection>
-      </Queue>
-    </section>
+              </QueueSectionContent>
+            </QueueSection>
+          </Queue>
+        </section>
+      ) : null}
+      {selection && selected ? (
+        <QueuedEditorSession
+          key={`${selected.id}-${selection.session}`}
+          request={selected}
+          action={action}
+          working={working}
+          started={data.runs.some((run) => run.requestId === selected.id)}
+        />
+      ) : null}
+    </>
   );
 };

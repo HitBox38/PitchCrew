@@ -12,8 +12,12 @@
 /* The chat's title row, on the paper like every page title row: who/what, the
  * Conversation | Crew work segment, then the job, packet and browser toggles on the right. */
 .chat-heading {
-  display: flex;
-  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 4;
+  background: var(--paper);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 8px 16px;
   min-height: 56px;
@@ -21,9 +25,32 @@
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
+@container chat-desk (width < 64rem) {
+  [data-interface='clay'] .clay-job-title-meta {
+    display: none;
+  }
+  [data-interface='clay'] .clay-job-title h1 {
+    display: flex;
+    flex-direction: column;
+    line-height: 20px;
+  }
+  .clay-job-title h1 > :is(strong, span) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .clay-job-title h1 > strong {
+    font-size: var(--text-detail);
+    line-height: 18px;
+  }
+  [data-interface='clay'] .clay-job-title h1 > span {
+    color: var(--ink);
+    font-size: var(--text-label);
+  }
+}
 .chat-heading-identity {
   display: flex;
-  flex: 0 1 auto;
+  grid-column: 1;
   align-items: center;
   min-width: 0;
   gap: 12px;
@@ -57,6 +84,8 @@
   line-height: 1.45;
 }
 .chat-heading > .chat-heading-actions {
+  grid-column: 3;
+  grid-row: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -70,6 +99,8 @@
   border: 1px solid var(--border);
 }
 .chat-view-switch {
+  grid-column: 2;
+  grid-row: 1;
   flex: 0 0 auto;
   width: fit-content;
   height: 38px;
@@ -78,6 +109,9 @@
   border-radius: 10px;
   background: var(--sunken-fill);
   box-shadow: var(--clay-sunken);
+}
+.chat-view-short-label {
+  display: none;
 }
 .chat-view-switch [data-slot='tabs-trigger'] {
   flex: 0 0 auto;
@@ -98,12 +132,30 @@
 .chat-view-switch [data-slot='tabs-trigger']:hover:not([data-active]) {
   color: var(--ink);
 }
+.chat-heading > .clay-chat-stage {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: 6px 8px 2px;
+  border-bottom: 0;
+}
+.clay-chat-current {
+  display: none;
+}
 @container chat-desk (width < 52rem) {
-  .chat-heading-identity {
-    flex: 1 1 12rem;
+  .chat-heading {
+    gap: 8px;
   }
-  .chat-view-switch {
-    order: 3;
+  .chat-view-switch .chat-view-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .chat-view-switch [data-slot='tabs-trigger'] {
+    min-width: 36px;
+    padding: 0 8px;
   }
 }
 @container chat-desk (width < 32rem) {
@@ -128,9 +180,8 @@
   line-height: 20px;
 }
 
-/* Phones: the 48px top bar names the conversation and opens its menu. Below it sit the job (or
- * participants) and agent state, then one 44px toolbar: Conversation | Crew work on the left,
- * Job, Packet and Browser as icon buttons on the right. */
+/* Phones: the top bar gives the full available width to the job or conversation.
+ * Labelled view tabs share the lower row with current state and job/browser actions. */
 @variant max-mobile {
   .chat-mobile-title {
     flex: 1;
@@ -148,21 +199,86 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
+  .chat-mobile-title-copy {
+    display: grid;
+  }
+  .chat-mobile-title-copy > :is(span, small) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-mobile-title-copy[data-job] > span {
+    font-size: var(--text-label);
+    line-height: 20px;
+  }
+  .chat-mobile-title-copy > small {
+    color: var(--muted);
+    font-size: var(--text-detail);
+    line-height: 16px;
+    font-weight: 400;
+  }
   .chat-mobile-title > svg {
     flex: none;
     color: var(--muted);
   }
+  .chat-mobile-view {
+    grid-column: 2;
+    grid-row: 1;
+    flex: none;
+  }
+  .chat-mobile-view .chat-view-switch {
+    height: 44px;
+    padding: 0;
+  }
+  .chat-mobile-view .chat-view-switch [data-slot='tabs-trigger'] {
+    position: relative;
+    min-width: 44px;
+    height: 44px;
+    padding: 0 6px;
+  }
+  .chat-mobile-view .chat-view-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .chat-mobile-view .chat-view-switch [data-slot='tabs-trigger'] > svg {
+    display: none;
+  }
+  .chat-mobile-view .chat-view-short-label {
+    display: inline;
+    font-size: var(--text-label);
+  }
+  .chat-mobile-view .chat-count {
+    position: absolute;
+    top: 1px;
+    right: 0;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
+  }
   .chat-heading {
-    gap: 6px 8px;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 0 4px;
     min-height: 0;
-    padding: 4px 4px 8px;
+    padding: 0 4px;
   }
-  .chat-heading > .chat-heading-identity {
-    flex: 1 1 100%;
+  .chat-heading > .chat-heading-actions {
+    grid-column: 3;
+    grid-row: 1;
+    gap: 0;
   }
-  /* The bar already shows a standalone conversation's title; the job leads a job chat. */
-  .chat-heading-identity:not([data-job]) .chat-heading-copy > h1,
-  .chat-heading-copy .clay-chat-title {
+  .chat-heading:not(:has(.clay-chat-stage)) > .chat-heading-identity {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    white-space: normal;
+    gap: 6px;
+  }
+  .chat-heading-identity:not([data-job]) .chat-heading-copy > h1 {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -171,26 +287,15 @@
     white-space: nowrap;
   }
   .chat-heading-identity:not([data-job]) .chat-heading-copy > p {
-    margin-top: 0;
-    font-size: 14px;
-    line-height: 20px;
+    display: block;
+    margin: 0;
+    font-size: var(--text-detail);
   }
-  .chat-heading > .chat-view-switch {
-    order: 2;
-    height: 44px;
+  .chat-heading:not(:has(.clay-chat-stage)) > .chat-heading-actions {
+    grid-column: 3;
   }
-  .chat-view-switch [data-slot='tabs-trigger'] {
-    position: relative;
-    height: 38px;
-  }
-  .chat-view-switch [data-slot='tabs-trigger']::before {
-    position: absolute;
-    inset: -3px 0;
-    content: '';
-  }
-  .chat-heading > .chat-heading-actions {
-    order: 3;
-    gap: 0;
+  .chat-heading:not(:has(.clay-chat-stage)):not(:has(.chat-heading-actions > *)) {
+    grid-template-columns: minmax(0, 1fr) auto;
   }
   .chat-heading-actions > [data-slot='button'] {
     width: 44px;
@@ -206,9 +311,42 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  /* A compact progress and wait block under the toolbar. */
-  .chat-workspace .clay-chat-stage {
-    gap: 2px 16px;
-    padding: 2px 16px 6px;
+  .chat-heading:has(.chat-mobile-view) > .clay-chat-stage {
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
+    min-height: 44px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    padding: 3px 0;
+  }
+  .clay-chat-stage > .clay-stage-track {
+    display: none;
+  }
+  .clay-chat-current {
+    display: flex;
+    flex: none;
+    width: auto;
+    align-items: center;
+    gap: 6px;
+    color: var(--ink-soft);
+    font-size: var(--text-detail);
+    font-weight: 600;
+    line-height: 18px;
+  }
+  .chat-heading .clay-chat-stage > .clay-job-now {
+    flex: 1;
+    min-width: 0;
+    max-width: 100%;
+    font-size: var(--text-detail);
+    line-height: 18px;
+  }
+  .clay-chat-stage .clay-job-now > span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }

@@ -9,12 +9,18 @@ export const SidebarProvider = ({
   defaultOpen = true,
   open: openProp,
   onOpenChange: setOpenProp,
+  preferRail = false,
   className,
   style,
   children,
   ...props
 }: SidebarProviderProps) => {
-  const contextValue = useSidebarState({ defaultOpen, open: openProp, onOpenChange: setOpenProp });
+  const contextValue = useSidebarState({
+    defaultOpen,
+    open: openProp,
+    onOpenChange: setOpenProp,
+    preferRail,
+  });
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delay={0}>

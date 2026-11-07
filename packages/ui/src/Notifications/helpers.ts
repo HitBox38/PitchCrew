@@ -166,12 +166,17 @@ export const notificationShouldAlert = (item: Pick<CrewNotification, 'context'>)
     item.context !== 'runtime_update'
   );
 };
-/** Plain messages in the conversation the user is already reading need no toast. */
+/** A visible message or the exact question already open in its dock needs no duplicate toast. */
 export const notificationInView = (
-  item: Pick<CrewNotification, 'context' | 'target'>,
+  item: Pick<CrewNotification, 'context' | 'target'> & Partial<Pick<CrewNotification, 'id'>>,
   pathname: string,
   visible: boolean,
-) => visible && item.context === 'message' && pathname === item.target;
+  visibleQuestionIds: ReadonlySet<string> = new Set(),
+) =>
+  visible &&
+  pathname === item.target &&
+  (item.context === 'message' ||
+    (item.context === 'input' && !!item.id && visibleQuestionIds.has(item.id)));
 export const readStored = <T>(
   key: string,
   fallback: T,

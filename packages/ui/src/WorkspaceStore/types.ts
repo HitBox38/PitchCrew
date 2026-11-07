@@ -10,6 +10,7 @@ export type Action = (
   method?: string,
   body?: unknown,
   success?: string | ((result: unknown) => string),
+  options?: { errorToast?: boolean },
 ) => Promise<unknown>;
 export interface WorkspaceState extends AppUpdateState, SkillUpdateActions, ProfileSourcesActions {
   data: Snapshot | null;

@@ -4,6 +4,7 @@ import { Button } from '@pitchcrew/design-system/button';
 import { Textarea } from '@pitchcrew/design-system/textarea';
 import { remapReferences, replyCopy } from '../reply.ts';
 import type { BrowserReplyProps } from '../types.ts';
+import { ComposerRecovery } from '@/ChatView/components/ComposerRecovery.tsx';
 
 /** Clay expanded browser: a compact box that edits the conversation's shared draft and sends it
  * through the chat composer's send path, so typing here or in chat is the same message. */
@@ -27,7 +28,8 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
       asking: props.questions.map((question) => roleName(question.roleId)),
     },
   });
-  const disabled = props.working || !props.available;
+  const disabled = !props.available;
+  const sendDisabled = disabled || props.working || props.sending;
   const submit = () => void props.send(props.draft, props.busy ? props.sendMode : 'queue');
   return (
     <form
@@ -42,6 +44,7 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
           {props.error}
         </p>
       ) : null}
+      <ComposerRecovery thread={props.thread} />
       <div className="browser-reply-field">
         <Textarea
           rows={1}
@@ -53,8 +56,7 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
           disabled={disabled}
           onChange={(event) => {
             const text = event.target.value;
-            props.setDraftReferences(remapReferences(props.draft, text, props.draftReferences));
-            props.setDrafts((current) => ({ ...current, [props.thread]: text }));
+            props.changeDraft(text, remapReferences(props.draft, text, props.draftReferences));
           }}
           onKeyDown={(event) => {
             if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return;
@@ -65,10 +67,10 @@ export const BrowserReply = ({ name, ...props }: BrowserReplyProps & { name: str
         <Button
           type="submit"
           size="icon-sm"
-          variant={hasInput && !disabled ? 'default' : 'ghost'}
+          variant={hasInput && !sendDisabled ? 'default' : 'ghost'}
           className="browser-reply-send"
           aria-label={props.busy && props.sendMode === 'queue' ? 'Queue follow-up' : 'Send message'}
-          disabled={!hasInput || disabled}
+          disabled={!hasInput || sendDisabled}
         >
           <ArrowUp size={15} aria-hidden="true" />
         </Button>
