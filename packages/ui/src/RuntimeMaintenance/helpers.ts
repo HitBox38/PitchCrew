@@ -1,4 +1,51 @@
-import type { RuntimeAuthentication, RuntimeInfo, RuntimeUpdateInfo, Run } from '@pitchcrew/core';
+import type {
+  RuntimeAuthentication,
+  RuntimeInfo,
+  RuntimeUpdateInfo,
+  RuntimeMaintenanceState,
+  Run,
+} from '@pitchcrew/core';
+
+/** Presentation only: keep complete provider metadata intact for compatibility and diagnostics. */
+export const runtimeVersionLabel = (version: string): string =>
+  version.match(/(?:^|[^\d])(\d+\.\d+\.\d+(?:-[\w.-]+)?(?:\+[\w.-]+)?)/)?.[1] ??
+  version
+    .split(/\r?\n/)
+    .find((line) => line.trim())
+    ?.trim() ??
+  'Not installed';
+
+export const runtimeNeedsAttention = (
+  runtime: RuntimeInfo,
+  state?: RuntimeMaintenanceState,
+): boolean => {
+  if (runtime.id === 'demo') return false;
+  if (runtime.configurationError) return true;
+  const operation = state?.updates.find((entry) => entry.id === runtime.id)?.operation;
+  if (operation?.stage === 'failed' || operation?.stage === 'interrupted') return true;
+  if (!runtime.available && !runtime.version) return false;
+  return (
+    !runtime.available ||
+    !!state?.authentication.some(
+      (entry) => entry.runtime === runtime.id && entry.result.status === 'missing',
+    )
+  );
+};
+
+export const runtimeOverview = (
+  runtimes: RuntimeInfo[],
+  state?: RuntimeMaintenanceState,
+): string | undefined => {
+  const attention = runtimes.filter((runtime) => runtimeNeedsAttention(runtime, state)).length;
+  const updates = runtimeUpdateCount(runtimes, state?.updates);
+  const parts = [
+    attention
+      ? `${attention} ${attention === 1 ? 'runtime needs' : 'runtimes need'} attention`
+      : '',
+    updates ? `${updates} ${updates === 1 ? 'update' : 'updates'} available` : '',
+  ].filter(Boolean);
+  return parts.length ? `${parts.join(' · ')}.` : undefined;
+};
 
 export const runtimeUpdateCount = (runtimes: RuntimeInfo[], updates: RuntimeUpdateInfo[] = []) => {
   const installed = new Set(
@@ -18,6 +65,8 @@ export const runtimeStatus = (
   update?: RuntimeUpdateInfo,
 ): { label: string; tone: RuntimeTone } => {
   if (runtime.id === 'demo') return { label: 'Scripted demo', tone: '' };
+  if (runtime.configurationError)
+    return { label: 'Recover authentication settings', tone: 'ochre' };
   if (!runtime.version) return { label: 'Not installed', tone: '' };
   if (!runtime.available) return { label: 'Incompatible version', tone: 'ochre' };
   if (update?.operation && !update.operation.finishedAt) return { label: 'Updating', tone: 'plum' };
@@ -36,7 +85,8 @@ export const signInStatus = (
   runtime: RuntimeInfo,
   results: { result: RuntimeAuthentication }[],
 ): { label: string; tone: RuntimeTone } | null => {
-  if (runtime.id === 'demo' || !runtime.version || !runtime.available) return null;
+  if (runtime.id === 'demo' || runtime.configurationError || !runtime.version || !runtime.available)
+    return null;
   if (results.some(({ result }) => result.status === 'missing'))
     return { label: 'Sign-in needed', tone: 'ochre' };
   if (results.length && results.every(({ result }) => result.status === 'authenticated'))

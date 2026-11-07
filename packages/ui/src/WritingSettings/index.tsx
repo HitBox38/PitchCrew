@@ -20,6 +20,7 @@ export const WritingSettings = () => {
       <SettingsSection
         id="writing-heading"
         title="Writing guide"
+        scope="This workspace"
         count={`${active} active`}
         description="Writer and Reviewer share this guide. Your explicit preferences take precedence over learned ones."
         actions={
@@ -28,22 +29,24 @@ export const WritingSettings = () => {
           </Button>
         }
       >
-        <SettingRow
-          id="writing-learning"
-          title="Learn from chat corrections"
-          description="Learn after consistent corrections across two applications. Older conversations stay excluded."
-        >
-          <Switch
+        <div className="settings-list settings-preferences">
+          <SettingRow
             id="writing-learning"
-            aria-labelledby="writing-learning-label"
-            aria-describedby="writing-learning-description"
-            checked={guide.automatic}
-            disabled={working}
-            onCheckedChange={(automatic) =>
-              void change({ action: 'learning', automatic }).catch(() => {})
-            }
-          />
-        </SettingRow>
+            title="Learn from chat corrections"
+            description="Learn after consistent corrections across two applications. Older conversations stay excluded."
+          >
+            <Switch
+              id="writing-learning"
+              aria-labelledby="writing-learning-label"
+              aria-describedby="writing-learning-description"
+              checked={guide.automatic}
+              disabled={working}
+              onCheckedChange={(automatic) =>
+                void change({ action: 'learning', automatic }).catch(() => {})
+              }
+            />
+          </SettingRow>
+        </div>
         <GuidePreferences guide={guide} change={change} working={working} edit={model.setEditing} />
       </SettingsSection>
       <DetectorSettings />

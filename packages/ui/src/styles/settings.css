@@ -1,4 +1,4 @@
-/* Settings: a 220px local list of sections beside one scrolling content column on paper.
+/* Settings: a 192px grouped section rail beside one scrolling content column on paper.
  * Rows are title + description + control; lists sit in recessed trays with hairline seams. */
 .workspace-body.settings-workspace-body {
   display: flex;
@@ -13,6 +13,7 @@
 .settings-page {
   container: settings / inline-size;
   display: flex;
+  flex-direction: column;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -22,7 +23,7 @@
   display: flex;
   flex: 1;
   flex-direction: row;
-  gap: 24px;
+  gap: 32px;
   min-width: 0;
   min-height: 0;
   padding-top: 4px;
@@ -31,9 +32,9 @@
 /* Local section list */
 .settings-navigation {
   display: flex;
-  flex: 0 0 220px;
+  flex: 0 0 192px;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-height: 0;
   margin-left: -4px;
   padding: 4px 4px 24px;
@@ -56,6 +57,11 @@
   background: var(--sunken-fill);
   color: var(--ink);
 }
+.settings-search-key {
+  margin-left: auto;
+  font: inherit;
+  font-size: var(--text-detail);
+}
 .settings-tabs {
   display: flex;
   flex-direction: column;
@@ -68,33 +74,48 @@
   border-radius: 0;
   background: transparent;
 }
+.settings-nav-item {
+  width: 100%;
+}
+.settings-nav-group {
+  display: block;
+  margin: 20px 10px 6px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 18px;
+  font-weight: 600;
+}
+.settings-nav-item:first-child .settings-nav-group {
+  margin-top: 12px;
+}
 .settings-tab {
   display: flex;
   flex: 0 0 auto;
-  flex-direction: column;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   justify-content: flex-start;
-  gap: 1px;
+  gap: 10px;
   width: 100%;
   height: auto;
-  min-height: 44px;
-  padding: 7px 10px;
+  min-height: 38px;
+  padding: 8px 10px;
   border: 0;
   border-radius: 10px;
   color: var(--ink);
   text-align: left;
   white-space: normal;
 }
+.settings-tab > svg {
+  flex: none;
+  color: var(--muted);
+}
+.settings-tab[aria-selected='true'] > svg {
+  color: var(--primary);
+}
 .settings-tab-label {
   font-size: 0.875rem;
-  font-weight: 600;
-  line-height: 1.35;
-}
-.settings-tab-description {
-  color: var(--muted);
-  font-size: 0.75rem;
   font-weight: 400;
-  line-height: 1.35;
+  line-height: 20px;
 }
 .settings-tab:hover {
   background: rgb(var(--tint) / 0.045);
@@ -103,6 +124,9 @@
   background: var(--clay-fill);
   box-shadow: var(--clay);
   color: var(--ink);
+}
+.settings-tab[aria-selected='true'] .settings-tab-label {
+  font-weight: 600;
 }
 .settings-tab:focus-visible {
   outline: 2px solid var(--primary);
@@ -115,9 +139,10 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 4px 24px 48px 4px;
+  padding: 8px 24px 48px 4px;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 .settings-content[hidden] {
   display: none;
@@ -125,8 +150,30 @@
 .settings-column {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: 24px;
   max-width: 760px;
+}
+.settings-heading {
+  display: grid;
+  gap: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.settings-heading > h2 {
+  margin: 0;
+  color: var(--ink);
+  font: 600 21px/28px var(--font-sans);
+}
+.settings-heading > p {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+
+.settings-picker {
+  width: 100%;
 }
 .settings-content[data-wide] .settings-column {
   max-width: none;
@@ -144,10 +191,31 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 8px 12px;
-  min-height: 32px;
+  min-height: 24px;
 }
 .settings-section-head > .ui-section-heading {
   margin: 0;
+  font: 600 16px/22px var(--font-sans);
+}
+.settings-section-scope {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 18px;
+}
+.settings-general {
+  display: grid;
+  gap: 20px;
+}
+.settings-list.settings-preferences {
+  padding-inline: 16px;
+}
+.settings-introduction {
+  padding-inline: 0;
+}
+[data-setting-target] {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 6px;
 }
 .settings-section-head > .ui-section-heading:focus-visible {
   border-radius: 4px;
@@ -166,13 +234,13 @@
   margin: -6px 0 0;
   color: var(--muted);
   font-size: var(--text-label);
-  line-height: 1.5;
+  line-height: 20px;
 }
 .settings-content .quiet {
   max-width: 72ch;
   color: var(--muted);
   font-size: var(--text-label);
-  line-height: 1.5;
+  line-height: 20px;
 }
 .settings-content :is(h2, h3, h4) {
   font-family: var(--font-sans);
@@ -188,13 +256,6 @@
   color: var(--ink-soft);
   font-size: var(--text-label);
   font-weight: 600;
-}
-/* Sections from other features (updates, privacy) keep the same heading scale. */
-.settings-section > h2:not(.ui-section-heading),
-.settings-section > div > h2:not(.ui-section-heading) {
-  margin: 0;
-  color: var(--ink);
-  font: 600 1rem/1.35 var(--font-sans);
 }
 .settings-section > .info-note,
 .settings-section > output.info-note {
@@ -411,38 +472,6 @@
   outline: 2px solid var(--primary);
   outline-offset: 1px;
 }
-.settings-width-example {
-  display: flex;
-  flex-basis: 100%;
-  min-width: 0;
-  contain: inline-size;
-  justify-content: center;
-  margin: 0;
-  color: var(--ink-soft, var(--ink));
-  font-size: 14px;
-  line-height: 20px;
-}
-.settings-width-example > span {
-  min-width: 0;
-  overflow: hidden;
-  width: 100%;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  transition: width var(--duration-surface, 150ms) var(--ease, ease);
-}
-.settings-width-example strong {
-  display: inline;
-  margin-right: 6px;
-  color: var(--ink);
-  font-size: inherit;
-}
-.settings-width-example[data-width='comfortable'] > span {
-  width: 52%;
-}
-.settings-width-example[data-width='wide'] > span {
-  width: 80%;
-}
-
 /* Recessed lists of services, boards, runtimes and preferences */
 .settings-stack {
   display: grid;
@@ -571,6 +600,11 @@
   align-items: center;
   gap: 6px 10px;
   margin-top: 6px;
+}
+.settings-runtime-name > h4 {
+  margin: 0;
+  color: var(--ink);
+  font: 600 14px/20px var(--font-sans);
 }
 .settings-runtime-users {
   display: inline-flex;
@@ -847,6 +881,7 @@
   justify-self: start;
 }
 .packet-rules-detail {
+  container: rule-editor / inline-size;
   min-width: 0;
   max-width: 760px;
 }
@@ -899,42 +934,38 @@
   }
   .settings-navigation {
     flex: 0 0 auto;
-    gap: 8px;
+    flex-direction: row;
+    gap: 12px;
     margin-left: 0;
-    padding: 4px 0 8px;
+    padding: 4px 4px 12px;
     overflow: visible;
     border-bottom: 1px solid var(--border);
   }
-  /* The tab row scrolls on its own (the selected tab is scrolled into view); the page never
-   * scrolls sideways, and the last tab ends 16px before the row's edge. */
-  .settings-tabs {
-    position: relative;
-    flex-direction: row;
-    flex-wrap: nowrap;
-    width: 100%;
-    max-width: 100%;
-    margin-inline: 0;
-    padding: 4px 16px 4px 4px;
-    overflow-x: auto;
-    overflow-y: hidden;
-    overscroll-behavior-x: contain;
-    scroll-padding-inline: 4px 16px;
-    scrollbar-width: none;
-  }
-  .settings-tab {
-    flex-shrink: 0;
-  }
-  .settings-tab {
-    width: auto;
-    min-height: 36px;
+  .settings-search-trigger {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    padding: 0;
     justify-content: center;
-    padding: 6px 12px;
   }
-  .settings-tab-description {
+  .settings-search-trigger > span {
     display: none;
+  }
+  .settings-search-key {
+    display: none;
+  }
+  .settings-picker {
+    flex: 1;
+    min-width: 0;
+    height: 40px;
+  }
+  .settings-heading {
+    gap: 4px;
+    padding-bottom: 12px;
   }
   .settings-content {
     padding: 16px 4px 40px;
+    scrollbar-gutter: auto;
   }
   .settings-theme {
     flex: 1 1 88px;
@@ -947,9 +978,6 @@
   }
   .settings-row-stacked > .settings-segment {
     align-self: flex-start;
-  }
-  .settings-width-example {
-    flex-basis: auto;
   }
   .settings-field-grid,
   .settings-field-grid[data-columns='3'] {
@@ -971,11 +999,137 @@
 
 /* Touch: every settings control keeps a 44px hit area */
 @media (max-width: 767px), (pointer: coarse) {
+  .settings-search-trigger,
+  .settings-picker {
+    min-width: 44px;
+    min-height: 44px;
+  }
   .settings-tab,
   .settings-segment-option {
     min-height: 44px;
   }
   .settings-segment-option {
     height: 44px;
+  }
+  .settings-content .checkbox-label {
+    min-height: 44px;
+  }
+  .packet-rules-actions > button[type='submit'] {
+    margin-left: auto;
+  }
+  .settings-content button[data-size^='icon'] {
+    min-width: 44px;
+  }
+  .settings-content
+    :is(
+      button:not([role='switch']):not([role='checkbox']),
+      [role='combobox'],
+      .settings-disclosure-trigger
+    ) {
+    min-height: 44px;
+  }
+}
+
+/* Rule forms size to their own editor column, not the whole settings workspace. */
+@container rule-editor (width < 30rem) {
+  .settings-field-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.packet-rule-form {
+  scroll-margin-block: 16px 96px;
+}
+.packet-rule-form:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 5px;
+  border-radius: 8px;
+}
+.settings-runtime[data-attention] {
+  position: relative;
+}
+.settings-runtime[data-attention]::before {
+  position: absolute;
+  inset-block: 12px;
+  inset-inline-start: 4px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--ochre, #82601c);
+  content: '';
+}
+.settings-runtime > [data-slot='collapsible'] {
+  display: grid;
+  gap: 10px;
+}
+.settings-list
+  > :is(.settings-list-row, .settings-runtime)
+  + :is(.settings-list-row, .settings-runtime) {
+  position: relative;
+  border-top: 0;
+}
+.settings-list
+  > :is(.settings-list-row, .settings-runtime)
+  + :is(.settings-list-row, .settings-runtime)::after {
+  position: absolute;
+  top: 0;
+  inset-inline: 16px;
+  border-top: 1px solid var(--border);
+  content: '';
+}
+.settings-preferences .settings-link-row {
+  margin-inline: 0;
+  padding-inline: 0;
+}
+.settings-preferences .settings-link-row + .settings-link-row {
+  border-top-color: var(--border);
+}
+@container settings (width < 46rem) {
+  .settings-heading > h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .settings-heading {
+    border-bottom: 0;
+    padding-bottom: 0;
+  }
+  .settings-content button[data-size^='icon'] {
+    min-width: 44px;
+  }
+}
+@container settings (width >= 32rem) and (width < 46rem) {
+  .settings-search-trigger {
+    flex-basis: auto;
+    width: auto;
+    padding-inline: 12px;
+  }
+  .settings-search-trigger > span {
+    display: block;
+  }
+}
+@media (pointer: coarse) {
+  .packet-rule-form input[type='number'] {
+    appearance: textfield;
+  }
+  .packet-rule-form input[type='number']::-webkit-inner-spin-button,
+  .packet-rule-form input[type='number']::-webkit-outer-spin-button {
+    appearance: none;
+    margin: 0;
+  }
+}
+
+.settings-source-watch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  font-size: var(--text-label);
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .settings-source-watch {
+    min-height: 44px;
   }
 }

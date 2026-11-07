@@ -8,7 +8,7 @@ export const SkillCheckButton = () => {
     (state) => state.checkingSkills || state.data?.skillUpdates?.checking,
   );
   return (
-    <Button className="button small" disabled={busy} onClick={() => void check()}>
+    <Button variant="outline" size="sm" disabled={busy} onClick={() => void check()}>
       <RefreshCw size={14} aria-hidden="true" className={busy ? 'spin' : ''} />
       {busy ? 'Checking skills…' : 'Check now'}
     </Button>

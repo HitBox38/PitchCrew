@@ -6,7 +6,7 @@ export const RuntimeUpdate = ({ update }: { update: RuntimeUpdateInfo }) => {
   const running = !!operation && !operation.finishedAt;
   const busy = !!update.busyReasons?.length;
   return (
-    <div className="settings-runtime-update">
+    <div className="settings-runtime-update mt-3">
       <RuntimeOperation update={update} />
       {busy && !running && update.status === 'available' ? (
         <p id={`runtime-busy-${update.id}`} className="quiet" aria-live="polite">

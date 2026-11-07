@@ -2,6 +2,8 @@ import { createInterface } from 'node:readline';
 
 const scenario = process.argv[2];
 if (scenario === 'account') {
+  if (process.argv.includes('--ignore-user-config'))
+    throw new Error('Unsupported app-server argument.');
   createInterface({ input: process.stdin }).on('line', (line) => {
     const request = JSON.parse(line) as {
       id?: number;

@@ -1,4 +1,5 @@
 import { currentVersionLabel, updateStatusMessage } from '../helpers.ts';
+import { settingsTime } from '@/lib/settings-time.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useDevicePreferences } from '@/lib/device-preferences.ts';
 import { Button } from '@pitchcrew/design-system/button';
@@ -6,6 +7,8 @@ import { Switch } from '@pitchcrew/design-system/switch';
 import { RefreshCw } from 'lucide-react';
 import { ReleaseLink } from './ReleaseLink.tsx';
 import { DesktopUpdateActions } from './DesktopUpdateActions.tsx';
+import { SettingsSection } from '@/SettingsPage/components/SettingsSection.tsx';
+import { SettingRow } from '@/SettingsPage/components/SettingRow.tsx';
 
 export const UpdateSettings = () => {
   const info = useWorkspaceStore((state) => state.appUpdate);
@@ -15,45 +18,53 @@ export const UpdateSettings = () => {
   const check = useWorkspaceStore((state) => state.checkAppUpdate);
   const automatic = useDevicePreferences((state) => state.automaticUpdates);
   const setAutomatic = useDevicePreferences((state) => state.setAutomaticUpdates);
+  const automaticAvailable = !!info?.automatic && info.status !== 'disabled';
   return (
-    <section className="settings-section" aria-labelledby="updates-heading">
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
-        <h2 id="updates-heading">Pitchcrew updates</h2>
+    <SettingsSection
+      id="updates-heading"
+      title="Pitchcrew updates"
+      scope="This device"
+      description={currentVersionLabel(info, native)}
+      actions={
         <Button
-          className="button"
+          variant="outline"
+          size="sm"
           disabled={loading || info?.status === 'disabled'}
           onClick={() => void check()}
         >
           <RefreshCw size={15} aria-hidden="true" /> {loading ? 'Checking…' : 'Check for updates'}
         </Button>
-      </div>
-      <p className="quiet">{currentVersionLabel(info, native)}</p>
-      <label className="settings-row" htmlFor="automatic-updates" aria-label="Check automatically">
-        <span>
-          <strong>Check automatically</strong>
-          <span className="quiet block">
-            Check GitHub when you open Pitchcrew and once an hour. Downloads and installation are
-            your choice.
-          </span>
-        </span>
-        <Switch
+      }
+    >
+      <div className="settings-list settings-preferences">
+        <SettingRow
           id="automatic-updates"
-          aria-label="Check automatically"
-          checked={automatic}
-          onCheckedChange={setAutomatic}
-          disabled={!info?.automatic}
-        />
-      </label>
-      {info && !info.automatic && info.status !== 'disabled' ? (
-        <p className="info-note">
-          Automatic checks are off in development. You can check manually.
-        </p>
+          title="Check automatically"
+          description={
+            automaticAvailable
+              ? 'Check GitHub when you open Pitchcrew and once an hour. Downloads and installation are your choice.'
+              : !info
+                ? 'Checking whether automatic updates are available…'
+                : `${info.status === 'disabled' ? info.message : 'Automatic checks are inactive in development; you can check manually.'} Your saved preference is ${automatic ? 'on' : 'off'}.`
+          }
+        >
+          <Switch
+            id="automatic-updates"
+            aria-labelledby="automatic-updates-label"
+            aria-describedby="automatic-updates-description"
+            checked={automaticAvailable && automatic}
+            onCheckedChange={setAutomatic}
+            disabled={!automaticAvailable}
+          />
+        </SettingRow>
+      </div>
+      {info?.status !== 'disabled' || error || loading || native?.enabled ? (
+        <output className="info-note block" aria-live="polite">
+          {updateStatusMessage(info, native, loading, error)}
+        </output>
       ) : null}
-      <output className="info-note block" aria-live="polite">
-        {updateStatusMessage(info, native, loading, error)}
-      </output>
       {info?.checkedAt ? (
-        <p className="quiet">Last checked {new Date(info.checkedAt).toLocaleString()}.</p>
+        <p className="quiet">Last checked {settingsTime(info.checkedAt)}.</p>
       ) : null}
       {info?.latest && (info.status === 'available' || info.status === 'unknown') ? (
         <ReleaseLink url={info.latest.url} />
@@ -62,6 +73,6 @@ export const UpdateSettings = () => {
       {native?.status === 'disabled' && info?.current.packaged ? (
         <p className="quiet">{native.message}</p>
       ) : null}
-    </section>
+    </SettingsSection>
   );
 };

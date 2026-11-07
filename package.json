@@ -51,6 +51,7 @@
   "trustedDependencies": [
     "better-sqlite3",
     "electron",
-    "esbuild"
+    "esbuild",
+    "node-pty"
   ]
 }

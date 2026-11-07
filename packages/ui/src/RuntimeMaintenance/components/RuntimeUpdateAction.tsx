@@ -17,11 +17,15 @@ export const RuntimeUpdateAction = ({ update }: { update: RuntimeUpdateInfo }) =
       : 'Update';
   return (
     <Button
+      variant="ghost"
       size="sm"
       disabled={working || busy || running}
       aria-label={`${label} ${runtimeLabels[update.id]}${!running && update.latestVersion ? ` to ${update.latestVersion}` : ''}`}
       aria-describedby={busy ? `runtime-busy-${update.id}` : undefined}
-      onClick={() => act(`/runtimes/${update.id}/update`, 'POST', {}, 'Runtime update started')}
+      onClick={() => {
+        useWorkspaceStore.getState().setToast('');
+        act(`/runtimes/${update.id}/update`, 'POST', {});
+      }}
     >
       {running ? (
         <LoaderCircle

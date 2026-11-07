@@ -9,6 +9,7 @@ export const SettingsSection = ({
   actions,
   autosave = false,
   className,
+  scope,
   children,
 }: {
   id: string;
@@ -18,6 +19,7 @@ export const SettingsSection = ({
   actions?: ReactNode;
   autosave?: boolean;
   className?: string;
+  scope?: string;
   children?: ReactNode;
 }) => (
   <section
@@ -26,11 +28,12 @@ export const SettingsSection = ({
     data-autosave={autosave || undefined}
   >
     <div className="settings-section-head">
-      <h2 id={id} className="ui-section-heading" tabIndex={-1}>
+      <h3 id={id} className="ui-section-heading" tabIndex={-1}>
         {title}
         {count !== undefined ? <span className="ui-count">{count}</span> : null}
         {autosave ? <span className="settings-saved" aria-hidden="true" /> : null}
-      </h2>
+      </h3>
+      {scope ? <span className="settings-section-scope">{scope}</span> : null}
       {actions ? <div className="settings-section-actions">{actions}</div> : null}
     </div>
     {description ? <p className="settings-section-note">{description}</p> : null}

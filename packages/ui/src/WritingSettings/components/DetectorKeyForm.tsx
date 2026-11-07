@@ -1,10 +1,10 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { DetectorProvider } from '@pitchcrew/core';
 import { Button } from '@pitchcrew/design-system/button';
 import { Input } from '@pitchcrew/design-system/input';
 import { detectorEntries } from './detector-entries.ts';
 
-/** Enter a key once; it is stored on this device only and never shown again. */
+/** Enter a key once; it is stored on the daemon host only and never shown again. */
 export const DetectorKeyForm = ({
   provider,
   working,
@@ -19,6 +19,10 @@ export const DetectorKeyForm = ({
   const entry = detectorEntries[provider];
   const [key, setKey] = useState('');
   const [email, setEmail] = useState('');
+  const keyField = useRef<HTMLInputElement>(null);
+  useEffect(() => {
+    keyField.current?.focus();
+  }, [provider]);
   const submit = (event: FormEvent) => {
     event.preventDefault();
     void save(key.trim(), email.trim()).catch(() => {});
@@ -29,6 +33,7 @@ export const DetectorKeyForm = ({
         <label>
           {entry.secondary}
           <Input
+            ref={keyField}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -41,6 +46,8 @@ export const DetectorKeyForm = ({
       <label>
         {entry.name} API key
         <Input
+          ref={entry.secondary ? undefined : keyField}
+          id={`detector-${provider}-api-key`}
           type="password"
           value={key}
           onChange={(e) => setKey(e.target.value)}

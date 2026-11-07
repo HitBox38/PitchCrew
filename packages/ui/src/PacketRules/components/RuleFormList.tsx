@@ -6,6 +6,9 @@ import type { PacketRulesController } from '../hooks/usePacketRules.ts';
 import { useRuleForm } from '../hooks/useRuleForm.ts';
 import { RuleForm } from './RuleForm.tsx';
 import { RuleListItem } from './RuleListItem.tsx';
+import { RulePicker } from './RulePicker.tsx';
+import { useContext } from 'react';
+import { SettingsCompact } from '@/SettingsPage/layout-context.ts';
 
 /** A 280px rule list beside the selected rule's form. */
 export const RuleFormList = ({
@@ -16,11 +19,14 @@ export const RuleFormList = ({
   controller: PacketRulesController;
 }) => {
   const model = useRuleForm(document, controller);
+  const compact = useContext(SettingsCompact);
   const current = model.selected === null ? undefined : model.rows[model.selected];
   return (
     <div className="packet-rules-panes">
       <div className="packet-rules-list ui-tray">
-        {model.rows.length ? (
+        {compact && model.rows.length ? (
+          <RulePicker rows={model.rows} selected={model.selected} select={model.setSelected} />
+        ) : model.rows.length ? (
           <ul aria-label="Packet rules">
             {model.rows.map(({ rule, index, id }) => (
               <RuleListItem
@@ -39,7 +45,7 @@ export const RuleFormList = ({
         <div className="packet-rules-add form">
           <FormSelect
             id="new-rule-kind"
-            label="Rule type"
+            label="New rule type"
             value={model.kind}
             options={ruleKinds}
             onValueChange={model.setKind}

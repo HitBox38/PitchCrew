@@ -2,6 +2,8 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { apiModels } from '../models.ts';
 import { detectCli, requireCliVersion, runCliText, withChat } from '../process.ts';
+import { hermesVersion } from './version.ts';
+import { runtimeConnectionEnvironment } from '../process/runtime-connection.ts';
 
 // Native API providers only: ACP/agent CLI providers may expose their own tools.
 const providers = ['openrouter', 'anthropic', 'openai-api', 'gemini', 'nous', 'xai', 'lmstudio'];
@@ -10,14 +12,15 @@ export const hermes = withChat({
   id: 'hermes',
   // OpenRouter keeps the vendor/model selector intact after the Hermes provider prefix.
   models: apiModels.map((model) => ({ ...model, value: `openrouter:${model.value}` })),
-  detect: async () => requireCliVersion(await detectCli('hermes', 'hermes'), [0, 21, 5], 'hermes'),
+  detect: async () =>
+    requireCliVersion(await detectCli('hermes', 'hermes', hermesVersion), [0, 21, 5], 'hermes'),
   launch: async (context, prompt) => {
     if (context.signal.aborted) throw new Error('Run cancelled.');
     const separator = context.role.model.indexOf(':');
     const provider =
       separator >= 0
         ? context.role.model.slice(0, separator)
-        : process.env.HERMES_INFERENCE_PROVIDER || 'openrouter';
+        : runtimeConnectionEnvironment().HERMES_INFERENCE_PROVIDER || 'openrouter';
     const model = separator >= 0 ? context.role.model.slice(separator + 1) : context.role.model;
     if (!providers.includes(provider) || (separator >= 0 && !model) || model.includes(':'))
       throw new Error(
@@ -77,7 +80,7 @@ export const hermes = withChat({
       {
         // Clear ambient Hermes controls; provider API keys remain in the native environment.
         ...Object.fromEntries(
-          Object.keys(process.env)
+          Object.keys(runtimeConnectionEnvironment())
             .filter((key) => key.startsWith('HERMES_'))
             .map((key) => [key, undefined]),
         ),

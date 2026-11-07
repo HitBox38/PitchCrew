@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { apiModels } from '../models.ts';
 import { detectCli, runCliText, withChat } from '../process.ts';
+import { runtimeConnectionEnvironment } from '../process/runtime-connection.ts';
 
 export const goose = withChat({
   id: 'goose',
@@ -14,7 +15,7 @@ export const goose = withChat({
     const qualified = separator > 0 && separator < context.role.model.length - 1;
     const provider = qualified
       ? context.role.model.slice(0, separator)
-      : process.env.GOOSE_PROVIDER;
+      : runtimeConnectionEnvironment().GOOSE_PROVIDER;
     // Native CLI/ACP providers can execute their own tools outside the recipe's extension list.
     if (!provider || !['openai', 'anthropic', 'google', 'ollama', 'openrouter'].includes(provider))
       throw new Error(

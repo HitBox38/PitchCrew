@@ -1,6 +1,7 @@
 import type { ChatContext, RunContext } from '@pitchcrew/core';
 import { homedir } from 'node:os';
 import { delimiter, join } from 'node:path';
+import { runtimeConnectionEnvironment } from './runtime-connection.ts';
 export const runtimeEnvironment = (
   context: RunContext | ChatContext,
   env: Record<string, string | undefined> = {},
@@ -10,7 +11,9 @@ export const runtimeEnvironment = (
 export const cliEnvironment = (env: Record<string, string | undefined> = {}) => {
   const environment: NodeJS.ProcessEnv = {
     ...Object.fromEntries(
-      Object.entries(process.env).filter(([key]) => !key.startsWith('PITCHCREW_GOOGLE_')),
+      Object.entries(runtimeConnectionEnvironment()).filter(
+        ([key]) => !key.startsWith('PITCHCREW_GOOGLE_'),
+      ),
     ),
     ...env,
   };

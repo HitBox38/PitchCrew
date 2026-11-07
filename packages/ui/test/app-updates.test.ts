@@ -73,7 +73,7 @@ const expectCompactIndicator = async () => {
 };
 
 beforeAll(async () => {
-  host = await setup(15749);
+  host = await setup(15749, false, { dev: false });
   host.daemon.service.onboarding.save({ version: 1, status: 'dismissed', step: 0 });
   browser = await chromium.launch({ headless: true });
 }, 60000);
@@ -138,7 +138,7 @@ test.each([false, true])(
     await expect.poll(() => status.allTextContents()).toEqual([message]);
     expect(await section.textContent()).toContain('Version 0.17.0');
     const checkedAt = await page.evaluate(
-      (date) => new Date(date!).toLocaleString(),
+      (date) => new Date(date!).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
       info.checkedAt,
     );
     expect(await section.textContent()).toContain(`Last checked ${checkedAt}.`);
@@ -163,7 +163,7 @@ test.each([false, true])(
     }
     await expect.poll(() => status.allTextContents()).toEqual([message]);
     const nextCheckedAt = await page.evaluate(
-      (date) => new Date(date!).toLocaleString(),
+      (date) => new Date(date!).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }),
       info.checkedAt,
     );
     expect(await section.textContent()).toContain(`Last checked ${nextCheckedAt}.`);

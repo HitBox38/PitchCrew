@@ -7,6 +7,8 @@ import { RuntimeRow } from '@/RuntimeMaintenance/components/RuntimeRow.tsx';
 import type { Snapshot } from '@pitchcrew/core';
 import { ChevronDown } from 'lucide-react';
 import { useSearch } from '@tanstack/react-router';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { runtimeNeedsAttention } from '@/RuntimeMaintenance/helpers.ts';
 
 const RuntimeRows = ({ runtimes }: { runtimes: Snapshot['runtimes'] }) => {
   const { runtime: selected } = useSearch({ from: '/settings' });
@@ -21,10 +23,27 @@ const RuntimeRows = ({ runtimes }: { runtimes: Snapshot['runtimes'] }) => {
 
 export const RuntimeList = ({ runtimes }: { runtimes: Snapshot['runtimes'] }) => {
   const { runtime: selected } = useSearch({ from: '/settings' });
-  const available = runtimes.filter(
-    (runtime) => runtime.id !== 'demo' && (runtime.available || !!runtime.version),
+  const maintenance = useWorkspaceStore((state) => state.data?.runtimeMaintenance);
+  const priority = (runtime: Snapshot['runtimes'][number]) => {
+    const update = maintenance?.updates.find((entry) => entry.id === runtime.id);
+    if (runtimeNeedsAttention(runtime, maintenance)) return 0;
+    if (update?.operation && !update.operation.finishedAt) return 1;
+    return update?.status === 'available' ? 2 : 3;
+  };
+  const available = runtimes
+    .filter(
+      (runtime) =>
+        runtime.id !== 'demo' &&
+        (runtime.available || !!runtime.version || runtimeNeedsAttention(runtime, maintenance)),
+    )
+    .sort((a, b) => priority(a) - priority(b));
+  const unavailable = runtimes.filter(
+    (runtime) =>
+      runtime.id !== 'demo' &&
+      !runtime.available &&
+      !runtime.version &&
+      !runtimeNeedsAttention(runtime, maintenance),
   );
-  const unavailable = runtimes.filter((runtime) => !runtime.available && !runtime.version);
   const demo = runtimes.find((runtime) => runtime.id === 'demo');
   return (
     <div className="settings-stack">

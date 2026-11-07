@@ -1,6 +1,8 @@
 import { adapters, discoverModels, suggestedModels } from '@pitchcrew/adapters';
 import { type RuntimeId, type RuntimeInfo, type RuntimeModelCatalog } from '@pitchcrew/core';
 import type { CrewContext } from './types.ts';
+import { runtimeModelsWithCustomDefinitions } from '../runtime-model-preferences/index.ts';
+import { RuntimeConnectionReadError } from '../runtime-connections/store.ts';
 
 export const detect = async (context: CrewContext): Promise<RuntimeInfo[]> => {
   context.runtimes = await Promise.all(
@@ -9,9 +11,25 @@ export const detect = async (context: CrewContext): Promise<RuntimeInfo[]> => {
       .map(async (adapter) => {
         if (context.runtimeMaintenance.isUpdating(adapter.id))
           return context.runtimes.find((entry) => entry.id === adapter.id)!;
-        const health = await context.runtimeMaintenance.metadata(adapter.id, () =>
-          adapter.detect(),
-        );
+        const health = await context.runtimeMaintenance
+          .metadata(adapter.id, () => adapter.detect())
+          .catch(async (error: unknown) => {
+            if (!(error instanceof RuntimeConnectionReadError)) throw error;
+            const installation = await context.runtimeMaintenance.metadata(
+              adapter.id,
+              () => adapter.detect(),
+              { installationOnly: true },
+            );
+            return {
+              ...installation,
+              available: false,
+              configurationError: {
+                code: 'credentials_unreadable' as const,
+                message: error.message,
+                installationAvailable: installation.available,
+              },
+            };
+          });
         const cached = context.modelCatalogs.get(adapter.id);
         return {
           ...health,
@@ -39,7 +57,7 @@ const runtimeModelsPrepared = async (
     if (refresh) {
       const health = await adapters[id].detect();
       context.runtimes = context.runtimes.map((runtime) =>
-        runtime.id === id ? { ...runtime, ...health } : runtime,
+        runtime.id === id ? { ...runtime, configurationError: undefined, ...health } : runtime,
       );
     }
     return discoverModels(
@@ -64,7 +82,7 @@ export const runtimeModels = (
   context: CrewContext,
   ...args: Parameters<CrewContext['runtimeModels']>
 ): Promise<RuntimeModelCatalog> => {
-  return context.runtimeMaintenance.metadata(args[0], () =>
-    runtimeModelsPrepared(context, ...args),
-  );
+  return context.runtimeMaintenance
+    .metadata(args[0], () => runtimeModelsPrepared(context, ...args))
+    .then((catalog) => runtimeModelsWithCustomDefinitions(context.directory, args[0], catalog));
 };

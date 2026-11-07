@@ -27,6 +27,21 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
   };
   const [kind, setKind] = useState<RuleKind>('word_limit');
   const [chosen, setSelected] = useState(0);
+  const selectRule = (index: number) => {
+    setSelected(index);
+    requestAnimationFrame(() => {
+      const editor = window.document.getElementById(ruleFormKey(index, 'editor'));
+      const list = editor?.closest('.packet-rules-panes')?.firstElementChild;
+      if (
+        editor &&
+        list &&
+        editor.getBoundingClientRect().top > list.getBoundingClientRect().bottom
+      ) {
+        editor.focus({ preventScroll: true });
+        editor.scrollIntoView({ block: 'start', inline: 'nearest' });
+      }
+    });
+  };
   const selected = document.rules.length ? Math.min(chosen, document.rules.length - 1) : null;
   const changeRule = (index: number, patch: Record<string, unknown>) =>
     writeRules(
@@ -40,15 +55,15 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
     setSelected((current) =>
       current > index ? current - 1 : Math.min(current, document.rules.length - 2),
     );
-    requestAnimationFrame(() =>
-      window.document
-        .getElementById(
+    requestAnimationFrame(() => {
+      const target =
+        window.document.getElementById(
           document.rules.length > 1
             ? ruleFormKey(Math.min(index, document.rules.length - 2), 'trigger')
             : 'add-packet-rule',
-        )
-        ?.focus(),
-    );
+        ) ?? window.document.getElementById('selected-packet-rule');
+      target?.focus();
+    });
   };
   const addRule = () => {
     writeRules(
@@ -72,7 +87,7 @@ export const useRuleForm = (document: RulesDocument, controller: PacketRulesCont
     kind,
     setKind,
     selected,
-    setSelected,
+    setSelected: selectRule,
     changeRule,
     removeRule,
     addRule,

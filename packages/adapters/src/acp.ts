@@ -8,6 +8,9 @@ import {
 } from './process.ts';
 import { activityStream } from './activity/index.ts';
 import { replyPreview } from './streaming.ts';
+import { runtimeCommand } from './process/executable.ts';
+import { terminalRedactor } from './process/sign-in-terminal-redaction.ts';
+import { redactRuntimeConnectionSecrets } from './process/runtime-connection.ts';
 
 // A single ACP session and prompt; the native runtime owns the agent loop.
 export const runAcp = async (
@@ -30,11 +33,14 @@ export const runAcpText = async (
   const preview = replyPreview(context);
   const activity = activityStream(context);
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
+    const invocation = runtimeCommand(command, args);
+    const environment = runtimeEnvironment(context, env);
+    const redactStderr = terminalRedactor(environment);
+    const child = spawn(invocation.file, invocation.args, {
       cwd: context.directory,
       windowsHide: true,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: runtimeEnvironment(context, env),
+      env: environment,
     });
     let buffer = '',
       stderr = '',
@@ -121,7 +127,9 @@ export const runAcpText = async (
         const error = event.error as { message?: string };
         stop(
           new Error(
-            typeof error.message === 'string' ? error.message : 'ACP runtime request failed.',
+            typeof error.message === 'string'
+              ? redactRuntimeConnectionSecrets(error.message)
+              : 'ACP runtime request failed.',
           ),
         );
         return;
@@ -150,7 +158,9 @@ export const runAcpText = async (
         if (result?.stopReason !== 'end_turn') {
           stop(
             new Error(
-              `The runtime did not complete its turn (${String(result?.stopReason ?? 'missing stop reason')}).`,
+              redactRuntimeConnectionSecrets(
+                `The runtime did not complete its turn (${String(result?.stopReason ?? 'missing stop reason')}).`,
+              ),
             ),
           );
           return;
@@ -180,7 +190,7 @@ export const runAcpText = async (
     });
     child.stderr.setEncoding('utf8');
     child.stderr.on('data', (chunk: string) => {
-      stderr = (stderr + chunk).slice(-3000);
+      stderr = (stderr + redactStderr(chunk)).slice(-3000);
     });
     child.stdin.on('error', () => {
       /* Startup and premature exits are handled below. */
@@ -189,9 +199,12 @@ export const runAcpText = async (
       settled = true;
       clearTimeout(timer);
       context.signal.removeEventListener('abort', abort);
+      error.message = redactRuntimeConnectionSecrets(error.message);
+      if (error.stack) error.stack = redactRuntimeConnectionSecrets(error.stack);
       reject(error);
     });
     child.on('close', (code, signal) => {
+      stderr = (stderr + redactStderr('', true)).slice(-3000);
       activity.boundary();
       if (settled) return;
       if (!failure && !completed && buffer.trim()) {

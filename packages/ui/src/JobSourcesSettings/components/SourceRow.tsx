@@ -13,22 +13,26 @@ export const SourceRow = ({ source, model }: { source: JobSource; model: JobSour
       <div className="settings-list-main">
         <div className="min-w-0 flex-1 basis-56">
           <div className="settings-list-title">
-            <h3>{source.name}</h3>
+            <h4 id={`source-name-${source.id}`}>{source.name}</h4>
             <span className="ui-row-meta wrap-anywhere">
               {jobProviderLabels[source.provider]} · {source.slug}
             </span>
-            {!source.enabled ? <span className="ui-chip">Paused</span> : null}
+            {!source.enabled ? <span className="ui-chip">Not watched</span> : null}
           </div>
           <p className="quiet">{filterSummary(source)}</p>
           <p className={`quiet ${failed ? 'settings-failed' : ''}`}>{lastScanText(source)}</p>
         </div>
         <div className="settings-row-actions">
-          <Switch
-            checked={source.enabled}
-            disabled={model.busy || !!model.draft}
-            aria-label={`Watch ${source.name}`}
-            onCheckedChange={(enabled) => model.setEnabled(source, enabled)}
-          />
+          <label className="settings-source-watch" htmlFor={`source-watch-${source.id}`}>
+            <span id={`source-watch-label-${source.id}`}>Watch</span>
+            <Switch
+              id={`source-watch-${source.id}`}
+              checked={source.enabled}
+              disabled={model.busy || !!model.draft}
+              aria-labelledby={`source-watch-label-${source.id} source-name-${source.id}`}
+              onCheckedChange={(enabled) => model.setEnabled(source, enabled)}
+            />
+          </label>
           <Button
             variant="ghost"
             size="sm"

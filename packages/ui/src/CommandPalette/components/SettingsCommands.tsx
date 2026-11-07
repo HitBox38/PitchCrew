@@ -6,6 +6,7 @@ import { settingEntries } from '@/SettingsPage/search.ts';
 import type { SettingsCommandsProps } from '../types.ts';
 import { preferenceCommands } from '../preference-commands.ts';
 import { PaletteItem } from './PaletteItem.tsx';
+import { settingDestination } from '@/SettingsPage/destination.ts';
 
 /**
  * Settings: appearance, sidebar, runtime, data and update commands, then, once two letters are
@@ -33,11 +34,7 @@ export const SettingsCommands = (props: SettingsCommandsProps) => {
                 label={entry.label}
                 context={section.label}
                 onSelect={props.run(() => {
-                  void navigate({
-                    to: '/settings',
-                    search: { section: entry.section },
-                    hash: entry.target,
-                  });
+                  void navigate(settingDestination(entry));
                 })}
               />
             );

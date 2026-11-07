@@ -9,4 +9,5 @@ export interface ModalProps {
   className?: string;
   initialFocus?: DialogContentProps['initialFocus'];
   finalFocus?: DialogContentProps['finalFocus'];
+  closeDisabled?: boolean;
 }

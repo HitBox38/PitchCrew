@@ -1,3 +1,4 @@
+import { numericProblem } from './numeric.ts';
 import { documentLabels, kindLabels } from './constants.ts';
 import type { DraftResult, RuleIssue, RuleView } from './types.ts';
 
@@ -16,6 +17,14 @@ export const parseDraft = (text: string): DraftResult => {
 };
 
 export const ruleDetail = (rule: Record<string, unknown>): string => {
+  if (rule.kind === 'word_limit' && numericProblem(rule, 'max'))
+    return rule.max === null || rule.max === undefined
+      ? 'Set a word limit to finish this rule.'
+      : 'Correct the word limit to finish this rule.';
+  if (rule.kind === 'max_bullets' && numericProblem(rule, 'max'))
+    return rule.max === null || rule.max === undefined
+      ? 'Set a bullet limit to finish this rule.'
+      : 'Correct the bullet limit to finish this rule.';
   if (rule.kind === 'word_limit')
     return `At most ${String(rule.max)} ${rule.count === 'all' ? 'words' : 'body words'}.`;
   if (rule.kind === 'max_bullets')
@@ -24,6 +33,15 @@ export const ruleDetail = (rule: Record<string, unknown>): string => {
     const values = Array.isArray(rule.values) ? rule.values.length : 0;
     return `Lines matching ${regex(rule, 'selector')} must equal one of ${values} listed ${values === 1 ? 'entry' : 'entries'}.`;
   }
+  if (
+    rule.kind === 'pattern' &&
+    rule.equals === undefined &&
+    rule.maxCount !== undefined &&
+    numericProblem(rule, 'maxCount')
+  )
+    return rule.maxCount === null || rule.maxCount === undefined
+      ? 'Set a match limit to finish this rule.'
+      : 'Correct the match limit to finish this rule.';
   if (rule.kind === 'pattern')
     return rule.equals !== undefined
       ? `Every match of ${regex(rule, 'pattern')} must capture “${text(rule.equals)}”.`
@@ -40,6 +58,14 @@ export const ruleSentence = (rule: Record<string, unknown>): string => {
 };
 
 const ruleCondition = (rule: Record<string, unknown>): string => {
+  if (rule.kind === 'word_limit' && numericProblem(rule, 'max'))
+    return rule.max === null || rule.max === undefined
+      ? 'word limit needs a value'
+      : 'word limit needs correction';
+  if (rule.kind === 'max_bullets' && numericProblem(rule, 'max'))
+    return rule.max === null || rule.max === undefined
+      ? 'bullet limit needs a value'
+      : 'bullet limit needs correction';
   if (rule.kind === 'word_limit')
     return `at most ${String(rule.max)} ${rule.count === 'all' ? 'words' : 'body words'}`;
   if (rule.kind === 'max_bullets') return `at most ${String(rule.max)} bullets per section`;
@@ -48,6 +74,14 @@ const ruleCondition = (rule: Record<string, unknown>): string => {
     return `lines matching ${regex(rule, 'selector')} use ${values} listed ${values === 1 ? 'value' : 'values'}`;
   }
   if (rule.kind === 'pattern') {
+    if (
+      rule.equals === undefined &&
+      rule.maxCount !== undefined &&
+      numericProblem(rule, 'maxCount')
+    )
+      return rule.maxCount === null || rule.maxCount === undefined
+        ? 'match limit needs a value'
+        : 'match limit needs correction';
     if (rule.equals !== undefined)
       return `${regex(rule, 'pattern')} must capture “${text(rule.equals)}”`;
     const count = typeof rule.maxCount === 'number' ? rule.maxCount : 0;
@@ -80,7 +114,10 @@ export const ruleViews = (value: unknown): RuleView[] => {
 export const issueText = (issue: RuleIssue): string => {
   const inRule = issue.path[0] === 'rules' && typeof issue.path[1] === 'number';
   const path = (inRule ? issue.path.slice(2) : issue.path).join('.');
-  return path ? `${path}: ${issue.message}` : issue.message;
+  const message = issue.message
+    .replace(/Invalid input: expected number, received \w+/g, 'Enter a number.')
+    .replace(/Invalid input: expected string, received \w+/g, 'Enter text.');
+  return path ? `${path}: ${message}` : message;
 };
 
 const text = (value: unknown) => (typeof value === 'string' ? value : '');

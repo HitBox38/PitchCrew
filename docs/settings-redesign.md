@@ -6,7 +6,7 @@ Settings now separates everyday preferences, update decisions and privacy choice
 
 Keep Pitchcrew’s existing materials rather than introduce a separate settings theme. The light palette uses paper `#f2f1ec`, surface `#f8f7f3`, ink `#2b2d31`, indigo `#3a5482`, moss `#53673d` and ochre `#82601c`; dark mode uses the existing corresponding tokens. Source Sans 3 carries settings navigation, headings and controls. Fraunces remains part of the surrounding product identity; settings adds no font dependency.
 
-Use a quiet section rail and one scrolling work area. The rail describes what each section contains. Runtime rows share one bounded list so users can compare installations without repeated large cards. Only actions use the existing raised clay material. Status has text as well as color. Keep the main action visible and defer command output, timestamps and diagnostics to shared Base UI disclosures. No entrance animation is needed for frequent settings navigation.
+Use a quiet section rail and one scrolling work area. The 192px rail groups Preferences, Connections and System settings with icons and concise labels. Runtime rows share one bounded list so users can compare installations without repeated large cards. Only actions use the existing raised clay material. Status has text as well as color. Keep the main action visible and defer command output, timestamps and diagnostics to shared Base UI disclosures. No entrance animation is needed for frequent settings navigation.
 
 ```text
 Settings
@@ -21,7 +21,7 @@ Settings
   Local data
 ```
 
-The initial alternative of individual runtime cards repeated setup text, timestamps and commands at equal visual weight. The final list prioritizes decisions and comparison. General no longer requires scrolling through update settings to reach telemetry consent. When the Settings area is narrower than 46rem (phones, and tablets beside the app sidebar), the keyboard-accessible tab strip moves to the top and scrolls the selected section into view, including direct links. `useCompactSettings` measures the Settings area so the tab orientation matches the `settings` container query.
+The initial alternative of individual runtime cards repeated setup text, timestamps and commands at equal visual weight. The final list prioritizes decisions and comparison. General no longer requires scrolling through update settings to reach telemetry consent. When the Settings area is narrower than 46rem (phones, and tablets beside the app sidebar), a labelled section picker replaces the rail beside the search button; content becomes a labelled region and direct links retain their section. `useCompactSettings` measures the Settings area so the tab orientation matches the `settings` container query.
 
 ## Resolved pains
 
@@ -30,7 +30,7 @@ The initial alternative of individual runtime cards repeated setup text, timesta
 - `packages/ui/src/RuntimeMaintenance/components/RuntimeUpdate.tsx`: installation progress, failure and retry must stay visible without expanding diagnostics. Progress explains that navigation is safe; busy updates explain what must finish first. Failed or interrupted updates show the installer-specific manual update command and copy control directly beside the error, with instructions to run it in a terminal and recheck the runtime. A successful update does not imply successful authentication.
 - `packages/ui/src/RuntimeMaintenance/components/RuntimeAuthentication.tsx`: setup required nested disclosures. The row’s **Set up** action now reveals the instructions and sign-in command directly.
 - `packages/ui/src/SettingsPage/index.tsx`: General mixed appearance, notifications, application updates, skill maintenance and telemetry. **Updates** and **Privacy** have dedicated URL-backed sections. An Updates link leads directly to runtime maintenance.
-- `packages/ui/src/SettingsPage/components/SettingsTabs.tsx`: terse navigation and offscreen selected tabs on mobile. Desktop descriptions clarify each destination; mobile direct links reveal the selected tab.
+- `packages/ui/src/SettingsPage/components/SettingsTabs.tsx`: terse navigation and offscreen selected tabs on mobile. Desktop groups clarify each destination; mobile direct links select the correct labelled picker value.
 
 ## Further improvements implemented
 
@@ -44,14 +44,24 @@ Find a setting searches preference names and synonyms. The global command palett
 
 Job sources shows saved/watching counts, a primary Add source action and switches for watching. Edited drafts use the shared unsaved-changes guard when cancelling, switching editors or navigating. Removing a source has a confirmation that explains that existing leads stay. Writing and Local data now share the heading hierarchy, and Writing shows active preference counts and a useful empty state.
 
-Settings editor discard dialogs return focus to their own editor when users keep editing. Returning focus to an automatically activated navigation tab would reopen the navigation attempt and the same dialog.
+Settings editor discard dialogs return focus to their own editor when users keep editing. Desktop arrow keys move focus without activating sections; Enter or Space starts guarded navigation.
 
 ## Suggested next change
 
-**Offer guided runtime sign-in where the CLI supports it.** Setup still involves copying a command into a terminal. Investigate an explicit user-launched native sign-in flow, with completion followed by Recheck. Keep unknown authentication distinct from missing authentication and never read credential files. This requires runtime-specific work beyond a visual redesign.
+**Guided runtime setup is implemented in the follow-up.** [Runtime setup](runtime-setup.md) adds native Codex/Claude sign-in, executable selection, supported first installs and model management. Other CLIs retain their own sign-in instructions. Authentication checks remain distinct from model entitlement and provider inference.
 
 ## Verification
 
 Browser fixtures also cover guided-rule saves and JSON round trips, all four rule types, malformed source preservation, unsaved-change decisions, Settings and global search focus, explicit account configuration handoffs, and mobile source draft/removal behavior. Runtime fixtures exercise the real user-session HTTP updater with fictional installers: release checks, a single update click from a collapsed row, progress across navigation, verified completion, missing sign-in after installation, busy blocking, installer failure and retry availability, manual instructions, unavailable-runtime deep links, dark mobile layout and keyboard tab navigation. Existing runtime maintenance tests retain coverage for ownership checks, duplicate operations and queue reservations. No test updates an installed runtime or makes a provider inference request.
 
 The interface review also applies the [Web Interface Guidelines](https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md): named controls, focus visibility, live async status, text overflow, reduced motion, URL-backed navigation and shared disclosure semantics.
+
+## T3 comparison and follow-up
+
+The November settings pass borrows T3's grouped navigation, clear row hierarchy, explicit scope and visible search destinations. It keeps Pitchcrew's clay materials and one-workspace model. General is condensed into appearance plus a two-row preference tray; the inaccurate cropped chat-width preview is removed. Heavy settings panels load on demand behind local loading/error boundaries. Scope uses this device for browser/desktop preferences and this workspace for data shared through the local daemon. Onboarding remains workspace state.
+
+Autosave feedback follows the actual user-targeted control and verifies known device storage values, including failures immediately after a successful save. A storage failure uses the existing toast so the setting stays under the pointer. Repeated search results carry a fresh navigation token, wait for modal focus restoration, and reveal a temporary outline. Runtime hashes use validated known runtime IDs. Mobile sections use labelled regions rather than orphaned tab panels, and all settings buttons/disclosures/switches receive 44px minimum touch targets. Runtime maintenance sorts attention-needed installations first without changing launch, authentication, update or approval gates.
+
+Detector key forms focus their first required field and return focus to the row action after closing; removing a key in another row preserves the open draft. Moving a background service explicitly warns when it immediately stops the other workspace's running service and interrupts its work.
+
+Independent review evidence and validation are recorded in [the settings review](reviews/settings-review.md).

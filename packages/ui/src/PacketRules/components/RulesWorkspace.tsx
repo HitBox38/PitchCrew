@@ -13,12 +13,18 @@ const RulesEditor = lazy(() =>
 
 export const RulesWorkspace = ({ controller }: { controller: PacketRulesController }) => {
   const hash = useLocation({ select: (location) => location.hash });
+  const navigation = useLocation({ select: (location) => location.state.settingsFocus });
   const [selection, setSelection] = useState({
     hash,
+    navigation,
     mode: controller.state.error || hash === 'json-editor-settings' ? 'source' : 'form',
   });
-  if (selection.hash !== hash)
-    setSelection({ hash, mode: hash === 'json-editor-settings' ? 'source' : selection.mode });
+  if (selection.hash !== hash || selection.navigation !== navigation)
+    setSelection({
+      hash,
+      navigation,
+      mode: hash === 'json-editor-settings' ? 'source' : selection.mode,
+    });
   const mode = selection.mode;
   const parsed = parseDraft(controller.text);
   const document = editableDocument('value' in parsed ? parsed.value : null);
@@ -29,7 +35,7 @@ export const RulesWorkspace = ({ controller }: { controller: PacketRulesControll
   return (
     <Tabs
       value={document ? mode : 'source'}
-      onValueChange={(value) => setSelection({ hash, mode: String(value) })}
+      onValueChange={(value) => setSelection({ hash, navigation, mode: String(value) })}
       className="packet-rules-tabs"
     >
       <TabsList aria-label="Packet rules editor" className="settings-segment">

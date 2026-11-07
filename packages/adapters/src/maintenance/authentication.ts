@@ -3,11 +3,14 @@ import { maintenanceDefinitions } from './catalog.ts';
 import { findRuntimeExecutable } from './installation.ts';
 import { runMaintenanceCommand } from './process.ts';
 import { readCodexAccount } from './account.ts';
+import { runtimeConnectionEnvironment } from '../process/runtime-connection.ts';
+import { workspaceGrokCredentialState } from '../process/auth-credentials.ts';
 export const checkRuntimeAuthentication = async (
   config: Pick<RuntimeConfiguration, 'runtime' | 'model'>,
   signal?: AbortSignal,
 ): Promise<RuntimeAuthentication> => {
   const { runtime, model } = config;
+  const environment = runtimeConnectionEnvironment();
   const checkedAt = new Date().toISOString();
   const definition = runtime === 'demo' ? null : maintenanceDefinitions[runtime];
   const base = {
@@ -25,9 +28,24 @@ export const checkRuntimeAuthentication = async (
   });
   if (!definition)
     return { ...base, status: 'authenticated', detail: 'Demo does not require authentication.' };
+  if (runtime === 'codex' && environment.CODEX_API_KEY?.trim())
+    return unknown(
+      'CODEX_API_KEY is configured for Codex exec. Its validity has not been verified with a model request.',
+    );
   if (runtime === 'kiro-cli' || runtime === 'grok') {
     const key = runtime === 'kiro-cli' ? 'KIRO_API_KEY' : 'XAI_API_KEY';
-    return process.env[key]?.trim()
+    if (runtime === 'grok') {
+      const credentials = await workspaceGrokCredentialState();
+      if (credentials === 'present')
+        return unknown(
+          'Workspace native Grok credentials are present; the CLI will verify them when work starts. Sign out to use an API key instead.',
+        );
+      if (credentials === 'invalid')
+        return unknown(
+          'The workspace Grok sign-in cannot be read safely. Sign out and sign in again.',
+        );
+    }
+    return environment[key]?.trim()
       ? unknown(`${key} is configured; the CLI will verify it when work starts.`)
       : missing(`${key} is missing from the daemon environment.`);
   }
@@ -36,14 +54,14 @@ export const checkRuntimeAuthentication = async (
       runtime === 'hermes'
         ? model.includes(':')
           ? model.split(':')[0]
-          : process.env.HERMES_INFERENCE_PROVIDER || 'openrouter'
+          : environment.HERMES_INFERENCE_PROVIDER || 'openrouter'
         : model.includes('/')
           ? model.split('/')[0]
           : '';
     const keys = providerKeys[provider];
-    if (process.env.OPENAI_BASE_URL && provider.startsWith('openai'))
+    if (environment.OPENAI_BASE_URL && provider.startsWith('openai'))
       return unknown('Custom endpoint authentication will be checked by the runtime.');
-    if (keys && !keys.some((key) => process.env[key]?.trim()))
+    if (keys && !keys.some((key) => environment[key]?.trim()))
       return missing(
         `The selected ${provider} provider needs ${keys.join(' or ')} in the daemon environment.`,
       );
@@ -93,7 +111,7 @@ export const checkRuntimeAuthentication = async (
         'CLAUDE_CODE_USE_BEDROCK',
         'CLAUDE_CODE_USE_VERTEX',
         'CLAUDE_CODE_USE_FOUNDRY',
-      ].some((key) => process.env[key]);
+      ].some((key) => environment[key]);
       if (status.loggedIn === false && !alternate)
         return missing('Claude requires native sign-in or supported provider authentication.');
     }
@@ -105,8 +123,8 @@ export const checkRuntimeAuthentication = async (
       const text = `${result.stdout}\n${result.stderr}`.toLowerCase();
       if (
         /not authenticated|not logged in|logged out/.test(text) &&
-        !process.env.CURSOR_API_KEY &&
-        !process.env.CURSOR_AUTH_TOKEN
+        !environment.CURSOR_API_KEY &&
+        !environment.CURSOR_AUTH_TOKEN
       )
         return missing('Cursor requires sign-in.');
       if (

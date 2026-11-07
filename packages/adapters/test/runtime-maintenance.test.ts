@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { fileURLToPath } from 'node:url';
 import { mkdtemp, mkdir, writeFile, symlink, rm, realpath } from 'node:fs/promises';
-import { join } from 'node:path';
+import { delimiter, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import {
   checkRuntimeAuthentication,
@@ -161,6 +161,31 @@ it('validates stable release metadata and never offers a downgrade', async () =>
   );
   await expect(latestRuntimeVersion('codex', install)).rejects.toThrow('invalid stable');
 });
+
+it.skipIf(process.platform !== 'win32')(
+  'keeps an isolated npm runtime updatable through npm outside its prefix',
+  async () => {
+    const root = await mkdtemp(join(tmpdir(), 'pitchcrew-runtime-install-'));
+    directories.push(root);
+    const runtimePrefix = join(root, 'managed-codex');
+    const npmPrefix = join(root, 'node-installation');
+    const npmEntry = join(npmPrefix, 'node_modules/npm/bin/npm-cli.js');
+    await mkdir(runtimePrefix);
+    await mkdir(join(npmPrefix, 'node_modules/npm/bin'), { recursive: true });
+    await writeFile(
+      join(runtimePrefix, 'codex.cmd'),
+      '@"%dp0%\\node_modules\\@openai\\codex\\bin\\codex.js" %*',
+    );
+    await writeFile(join(npmPrefix, 'npm.cmd'), '@"%dp0%\\node_modules\\npm\\bin\\npm-cli.js" %*');
+    await writeFile(npmEntry, '// Fictional npm entry, never executed');
+    vi.stubEnv('PATH', [runtimePrefix, npmPrefix].join(delimiter));
+    const result = await resolveRuntimeInstallation('codex');
+    expect(result?.installer).toBe('npm');
+    expect(result?.command?.args[0]).toBe(npmEntry);
+    expect(result?.command?.args).toContain(runtimePrefix);
+    expect(result?.lockKey).toBe(`npm:${runtimePrefix}`);
+  },
+);
 
 it('refuses interactive password prompts instead of leaving an installer waiting', async () => {
   await expect(

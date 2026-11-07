@@ -40,7 +40,7 @@ export const SourceFilters = ({
           checked={draft.enabled}
           onCheckedChange={(checked) => update({ enabled: checked })}
         />
-        Include in scans
+        Watch this source
       </label>
     </fieldset>
   );
