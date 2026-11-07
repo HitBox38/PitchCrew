@@ -1,0 +1,75 @@
+.chat-compose:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -3px;
+  border-radius: 20px;
+}
+.chat-composer-recovery {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  width: 100%;
+  max-width: var(--chat-content-width);
+  margin: 0 auto 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--sunken-fill);
+  color: var(--ink-soft);
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+.chat-composer-recovery > p {
+  flex: 1 1 16rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.chat-composer-recovery > [data-slot='button'] {
+  flex: none;
+  min-height: 32px;
+}
+.chat-draft-recovery {
+  display: grid;
+  gap: 16px;
+  width: min(640px, calc(100vw - 32px));
+}
+.chat-kept-draft {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--sunken-fill);
+}
+.chat-kept-draft > h3 {
+  font-size: var(--text-label);
+  line-height: 20px;
+  font-weight: 600;
+}
+.chat-kept-draft > pre {
+  font: var(--text-label) / 20px var(--font-sans);
+  color: var(--ink);
+}
+.chat-kept-draft > :is(p, ul) {
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 18px;
+}
+.chat-kept-draft > [data-slot='button'] {
+  justify-self: start;
+}
+.chat-kept-draft-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chat-kept-draft-actions > [data-slot='button'] {
+  min-height: 32px;
+}
+@media (width < 48rem), (pointer: coarse) {
+  .chat-composer-recovery > [data-slot='button'],
+  .chat-kept-draft-actions > [data-slot='button'] {
+    min-height: 44px;
+  }
+}

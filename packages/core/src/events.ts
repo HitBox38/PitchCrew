@@ -57,7 +57,8 @@ export const decodeEvent = (raw: string): BoardEvent => {
     event.version !== 31 &&
     event.version !== 32 &&
     event.version !== 33 &&
-    event.version !== 34
+    event.version !== 34 &&
+    event.version !== 35
   )
     throw new Error(`Unsupported event version: ${event.version}`);
   return event;
@@ -99,7 +100,8 @@ export interface BoardEvent {
     | 31
     | 32
     | 33
-    | 34;
+    | 34
+    | 35;
   kind:
     | 'writing_guide'
     | 'writing_correction'
@@ -169,5 +171,5 @@ export interface BoardEvent {
     | DelegationRound;
   createdAt: string;
 }
-/** Version 34 adds delegation rounds and round membership on crew tasks; versions 1–33 remain readable. */
-export const currentEventVersion = 34 as const;
+/** Version 35 adds user-owned skill delivery settings; versions 1–34 remain readable. */
+export const currentEventVersion = 35 as const;

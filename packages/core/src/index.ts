@@ -1,6 +1,12 @@
 export * from './conversations.ts';
 export * from './delegation-rounds.ts';
 export * from './application-quality.ts';
+export type {
+  RuntimeAuthState,
+  RuntimeAuthMethod,
+  RuntimeAuthInteraction,
+  RuntimeAuthResponse,
+} from './runtime-auth.ts';
 export * from './detectors.ts';
 export * from './work-queue.ts';
 export * from './skill-updates.ts';
@@ -150,10 +156,24 @@ export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telem
 
 export type { ProfileOrganization } from './profile-organization.ts';
 export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from './chat-history.ts';
+export { transcriptOrder, transcriptWindow } from './transcript-order.ts';
+export type {
+  TranscriptMessagePosition,
+  TranscriptRunPosition,
+  TranscriptRequestPosition,
+} from './transcript-order.ts';
+export { hiddenTranscriptMessageIds } from './transcript-visibility.ts';
+export type {
+  TranscriptVisibilityMessage,
+  TranscriptVisibilityTask,
+  TranscriptVisibilityRequest,
+} from './transcript-visibility.ts';
 export { isNotificationMessage } from './message-notifications.ts';
 
 export * from './deep-reviews.ts';
 export * from './runtime-maintenance.ts';
+export * from './runtime-setup.ts';
+export * from './runtime-connection.ts';
 export { checkLinkedInDraft, linkedInDraftInput, linkedInFieldLimits } from './linkedin-draft.ts';
 
 export type { ChatReference, ChatReferenceInput } from './chat-references.ts';
@@ -169,3 +189,4 @@ export type { ChatFileCitation } from './chat-citations.ts';
 
 export * from './browser-tabs.ts';
 export { browserErrorText } from './browser-errors.ts';
+export * from './runtime-model-preferences.ts';

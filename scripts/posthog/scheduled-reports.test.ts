@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
+import { fileURLToPath } from 'node:url';
 import type { ReportBindings } from './scheduled-reports.ts';
 import manifest from '../../posthog/scheduled-reports/reports.json' with { type: 'json' };
 import { planScheduledReports, publicReportPlan } from './scheduled-reports.ts';
@@ -216,7 +217,9 @@ test('CLI writes private payload exclusively and never prints recipient, includi
     await writeFile(inputPath, JSON.stringify(input), { mode: 0o600 });
     const command = new URL('./scheduled-reports.ts', import.meta.url);
     const run = () =>
-      spawnSync(process.execPath, [command.pathname, inputPath, outputPath], { encoding: 'utf8' });
+      spawnSync(process.execPath, [fileURLToPath(command), inputPath, outputPath], {
+        encoding: 'utf8',
+      });
     const result = run();
     assert.equal(result.status, 0, result.stderr);
     assert.equal(result.stdout.includes(input.user.email), false);

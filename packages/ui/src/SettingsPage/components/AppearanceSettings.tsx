@@ -9,12 +9,7 @@ export const AppearanceSettings = () => {
   const theme = useDevicePreferences((state) => state.theme);
   const setTheme = useDevicePreferences((state) => state.setTheme);
   return (
-    <SettingsSection
-      id="appearance-heading"
-      title="Appearance"
-      description="Preferences on this tab save on this device."
-      autosave
-    >
+    <SettingsSection id="appearance-heading" title="Appearance" scope="This device" autosave>
       <RadioGroup
         className="settings-themes"
         aria-labelledby="appearance-heading"

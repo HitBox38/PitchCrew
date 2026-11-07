@@ -2,6 +2,7 @@ import { pendingJobAction } from './job-actions.ts';
 import { api } from '@/api.ts';
 import type { Snapshot } from '@pitchcrew/core';
 import type { WorkspaceGet, WorkspaceSet, WorkspaceState } from './types.ts';
+import { ActionRefreshError } from './action-errors.ts';
 
 export const createWorkspaceActions = (
   set: WorkspaceSet,
@@ -20,7 +21,7 @@ export const createWorkspaceActions = (
         throw error;
       }
     },
-    action: async (path, method = 'POST', body, success) => {
+    action: async (path, method = 'POST', body, success, options) => {
       pendingActions += 1;
       const jobAction = pendingJobAction(path, method, body, get().data);
       set((state) => ({
@@ -34,7 +35,11 @@ export const createWorkspaceActions = (
       }));
       try {
         const result = await api<unknown>(path, method, body);
-        await get().reload();
+        try {
+          await get().reload();
+        } catch (error) {
+          throw new ActionRefreshError(result, error);
+        }
         if (success)
           set({
             toast: typeof success === 'function' ? success(result) : success,
@@ -42,10 +47,11 @@ export const createWorkspaceActions = (
           });
         return result;
       } catch (error) {
-        set({
-          toast: error instanceof Error ? error.message : 'Action failed.',
-          toastType: 'error',
-        });
+        if (options?.errorToast !== false)
+          set({
+            toast: error instanceof Error ? error.message : 'Action failed.',
+            toastType: 'error',
+          });
         throw error;
       } finally {
         pendingActions -= 1;

@@ -1,14 +1,18 @@
 # Runtime setup
 
-Pitchcrew starts an installed agent CLI for each chat or workflow run. Install the runtime on `PATH`, configure its native authentication, then select it in Crew settings. **Settings > Runtimes** shows installation/compatibility, authentication, and update status separately.
+Pitchcrew starts an installed agent CLI for each chat or workflow run. **Settings > Runtimes** guides installation, native account sign-in and model choices, with compatibility, authentication and update status reported separately. Open **Set up** or **Manage** for a runtime, then select its default model and reasoning in Crew settings. See [runtime setup and model choices](runtime-setup.md) for the complete flow and its limits.
 
-After installing a runtime while Pitchcrew is open, select **Check runtimes**. Checks, model discovery and agent runs also search `~/.local/bin`, `~/.grok/bin` and `~/.opencode/bin` after the inherited `PATH`, so native installations in those folders work without restarting the app. Installations in other newly added `PATH` folders require restarting the daemon or background service with the updated environment.
+After installing a runtime while Pitchcrew is open, select **Recheck installation** in its setup dialog. Automatic detection searches `~/.local/bin`, `~/.grok/bin` and `~/.opencode/bin` after the inherited `PATH`, so native installations in those folders work without restarting the app. For another location, save an absolute executable path under **Executable location**; the same workspace selection applies to checks, model discovery, native sign-in, maintenance and future agent runs. Otherwise installations in newly added `PATH` folders require restarting the daemon or background service with the updated environment.
 
-Pitchcrew never reads, copies or stores provider credentials. Authentication remains with the CLI, including supported environment variables inherited from the daemon. Isolated runtime configuration can exclude existing login or configuration files; see the notes below before assuming that an interactive CLI login will also work in Pitchcrew.
+For missing runtimes, Pitchcrew can install the official npm distribution of Claude Code, Codex, Gemini CLI, OpenCode, GitHub Copilot CLI, Grok Build, Pi and oh-my-pi into a dedicated workspace data prefix. Cursor Agent, Goose, Kiro CLI and Hermes Agent retain manual first-install guidance. Installation is explicit, cancellable and verified before adoption; it does not replace an existing global installation or change system `PATH`. Executable changes invalidate saved native conversation sessions and cached readiness before committing the new selection, and are blocked while the runtime is in use.
+
+Pitchcrew can save allowlisted per-runtime authentication variables in a private workspace credentials file, with secret values write-only to the UI. Other native credentials remain with their CLI; Grok additionally has a workspace-managed native auth home and bounded private credential transport. Saved overrides and daemon inheritance apply consistently to sign-in, checks, discovery and agent work. Isolated configuration can exclude ambient login files, so an external interactive login is not always sufficient. See [runtime authentication](runtime-authentication.md) for the exact support matrix, storage and recovery boundaries.
 
 These integrations have subprocess contract coverage. Live provider executions are not part of automated verification.
 
 Before launch, independent assigned-skill and instruction-file writes run concurrently and all settle before setup finishes, including on failure. Queue dispatch checks lane and workspace capacity before reading Profile prerequisites, then rechecks admission after asynchronous validation. Authentication and final state/permission checks still gate every launch.
+
+Assigned skills use one shared delivery plan in runtime prompts and generated instruction files. Skills marked **Include in every run** and explicit selections include full instructions immediately; other assigned skills expose only catalog metadata and load through the scoped `pitchcrew_read_skill` MCP tool. Reads return the active run's frozen version, never the latest board or upstream text. Source extraction, review-deadline decisions, summary-only turns and waiting-question states receive no reader. Native discovery remains disabled where adapters disable it; oh-my-pi explicitly permits the reader in ordinary chat. A delivery-format revision resets existing native sessions on rollout. See [skill delivery](skills.md).
 
 ## Executables and models
 
@@ -27,15 +31,23 @@ Before launch, independent assigned-skill and instruction-file writes run concur
 | oh-my-pi           | `omp`          | `provider/model`, or empty for its default       |
 | Hermes Agent       | `hermes`       | `provider:model`, or native environment defaults |
 
-Crew settings provide a searchable model picker. Native catalogs are loaded where supported and cached for five minutes; **Refresh models** forces a new check. Curated suggestions are labeled separately. Changing runtimes resets the model to the CLI default. Saved model names remain visible even when absent from the current catalog.
+Crew settings provide a searchable model picker. Native catalogs are loaded where supported and cached for five minutes; **Refresh models** forces a new check. Curated suggestions are labeled separately. The setup dialog's **Models** step manages workspace favorites, picker visibility, order and explicit unverified custom definitions, including supported reasoning metadata. These preferences do not rewrite saved agent or conversation selections; a selected hidden or unlisted model remains visible to its editor. Changing runtimes resets the model to the CLI default. See [model discovery](model-discovery.md#workspace-model-choices).
+
+If the preferences file cannot be read, native discovery and native reasoning remain available with a visible recovery warning. Preference editing is disabled until explicit recovery, which keeps the damaged file as a backup and resets choices for all runtimes. Saved custom selectors remain visible, but unavailable custom metadata does not grant reasoning support.
 
 Installation checks read the CLI version. Authentication probes use native status/account metadata where available, without a model request. A reliably missing sign-in or required environment variable holds new work; an inconclusive check is labelled unverified and permits an attempt. Checks use Pitchcrew’s actual isolated authentication settings. A present API key is configured, not verified account access. Model discovery does not start an inference turn, and a listed model does not guarantee that your account can use it. See [model discovery](model-discovery.md) for commands, fallbacks and limits.
 
 ## Authentication checks and runtime updates
 
-Authentication results are shared by runtime/model and effective authentication environment for five minutes. Startup, **Recheck**, post-update verification and stale preflight checks refresh them. Retrying after fixing sign-in forces a fresh check. Native setup instructions and copyable commands stay in Settings; sign-in flows remain owned by the CLI. Claude and Cursor have native status probes; Codex uses account metadata without creating a thread. Kiro and Grok require their documented daemon-environment keys. Pi, OMP and Hermes check missing keys for explicitly selected supported providers. Other inconclusive or unsupported probes report unknown. Provider credential files and secret values never enter maintenance state.
+Authentication results are shared by runtime/model and effective authentication configuration for five minutes. Startup, **Recheck sign-in**, post-update verification and stale preflight checks refresh them. Retrying after fixing sign-in forces a fresh check. Codex, Claude Code and Cursor support native browser sign-in; Claude accepts a code only when requested. OpenCode and Copilot use dedicated auth-only PTYs. Grok offers device-login PTY and ACP browser methods advertised by its installed CLI, using workspace-managed native credentials. The remaining runtimes retain credential settings and external native guidance, without claiming universal in-app OAuth. Native readiness checks do not create an inference turn. Provider credential files and secret values never enter maintenance state.
 
-Installed runtimes check stable-release availability when the app opens and daily while open. **Check runtime updates automatically** is a separate default-on workspace preference; **Check runtimes** refreshes immediately. **Update** is always a user action. The daemon shares checks and update progress across browser tabs and Electron. Notifications quietly link to the exact runtime, including while an update runs and after its outcome.
+**Credentials and provider settings** is available for all twelve production runtimes. Its allowlist excludes shell, tool and startup overrides. Secret fields report saved, inherited, disabled or unset without returning saved or inherited secret values. Saved settings use an opaque optimistic revision, live outside board events and run folders, and can be recovered only through a confirmed private-backup reset affecting all runtime overrides. The same asynchronous runtime scope applies them to metadata and work; installers remain separate.
+
+Codex exec uses `CODEX_API_KEY`. A configured or inherited key remains **Unverified** without a model request; native ChatGPT account metadata is not proof that the key works. Kiro requires its supported key. Grok accepts an xAI key or workspace native OAuth, with native OAuth taking precedence. Pi, OMP and Hermes check missing keys for explicitly selected supported providers. Unsupported or inconclusive probes report unknown rather than claiming success.
+
+Native sign-in, optional confirmed sign-out and credential edits reserve an idle runtime and invalidate existing native conversation sessions before credentials can change. The native child has a five-minute attempt limit; the countdown does not claim the provider's authorization URL expires at that time. Cancel stops the owned flow and clears cached readiness, but cannot roll back an account change that raced with a browser callback. Temporary interactions remain private, memory-only setup state and never enter board events, snapshots or agent tools. Authentication state polling does not launch native probes; method discovery is separate, exclusive and cancellable. Setup and model-choice mutations require the local user session. See [authentication interactions and isolation](runtime-authentication.md#shared-interaction-contract).
+
+Installed runtimes check stable-release availability when the app opens and daily while open. **Check runtime updates automatically** is a separate default-on workspace preference; **Check for updates** refreshes immediately. When release checks are disabled, **Recheck installations** checks local runtimes instead. **Update** is always a user action. The daemon shares checks and update progress across browser tabs and Electron. Notifications quietly link to the exact runtime, including while an update runs and after its outcome.
 
 Updates preserve the installation method and use the latest stable version from that distribution. Verified npm installations use their original prefix; verified Homebrew formulae/casks use Homebrew and its own stable release metadata. Deliberate pins and ambiguous installations stay manual. Known native Claude, Codex, OpenCode, Grok and Cursor layouts can use their native updaters. Other installer layouts show manual instructions. No elevation or interactive password collection is offered. A failed or unsupported check never claims a runtime is current.
 
@@ -58,7 +70,7 @@ Quitting a desktop that owns its daemon waits for an in-progress update and offe
 
 ### Claude Code and Codex
 
-Configure the CLI's native authentication before launching runs. Select a model or leave the setting empty for its default. Provider-specific launch configuration lives in [the adapters package](../packages/adapters/src).
+Connect the CLI's native account in **Settings > Runtimes > Sign-in**, or save supported API-key/provider variables under **Credentials and provider settings** and recheck before launching runs. Codex uses `CODEX_API_KEY` for exec; Claude exposes its supported key, token, endpoint and cloud-provider switches. Arbitrary native provider configuration is not edited by Pitchcrew. Select a model or leave the setting empty for its default. Provider-specific launch configuration lives in [the adapters package](../packages/adapters/src).
 
 Codex turns, including resumed conversations, require the scoped Pitchcrew MCP server to initialize before execution. A server startup failure fails the run instead of allowing a reply without Pitchcrew tools. The adapter approves native calls only for that server (`mcp_servers.pitchcrew.default_tools_approval_mode="approve"`), so local job deletion does not hit an unanswerable CLI approval prompt. Pitchcrew still checks current role capabilities on every call and enforces its own packet export, browser interaction and settings proposal approvals. The read-only sandbox and disabled native shell tools remain in place.
 
@@ -76,7 +88,7 @@ OpenCode receives an isolated configuration directory, a fresh session and `--pu
 
 The adapter targets Copilot CLI 1.0.91. It uses an isolated `COPILOT_HOME`, exposes only `pitchcrew/*` tools, and disables built-in MCP, hooks and session export.
 
-Native keychain or native authentication environment configuration must supply sign-in. Fallback tokens stored in the user's Copilot configuration file are not imported.
+Use the setup dialog's dedicated native sign-in terminal, native keychain authentication or supported token settings. Fallback tokens stored in the user's Copilot configuration file are not imported into isolated agent runs.
 
 ### Cursor Agent
 
@@ -92,15 +104,15 @@ Goose receives an isolated `GOOSE_PATH_ROOT` and a recipe containing only Pitchc
 
 ### Kiro CLI
 
-The adapter targets Kiro CLI 2.26.1. Set `KIRO_API_KEY` in the daemon environment for native headless authentication; existing login files are not imported.
+The adapter targets Kiro CLI 2.26.1. Save `KIRO_API_KEY` in this runtime's credential settings or inherit it from the daemon environment for native headless authentication; existing login files are not imported.
 
 Kiro runs a fresh ACP session with the V2 engine and isolated `KIRO_HOME`. The generated agent exposes only `@pitchcrew/*`, with external MCP discovery, powers, resources and hooks disabled. Pitchcrew declines ACP permission requests and provides no filesystem or terminal client capabilities.
 
 ### Grok Build
 
-The official xAI Grok Build CLI **1.0.45 or newer** is required. Set `XAI_API_KEY` in the daemon environment; existing login files are not imported.
+The official xAI Grok Build CLI **1.0.45 or newer** is required. Use workspace native device/ACP sign-in or save/inherit `XAI_API_KEY`. Ambient user login files are not imported. The workspace native OAuth account takes precedence over the key; use confirmed Sign out to switch to API-key authentication.
 
-Grok receives an isolated `GROK_HOME` and a fresh headless session. Only Pitchcrew MCP and its native MCP search/call helpers are available. Native file reads, shell, editing, web and subagent tools are excluded; memory, compatibility discovery and automatic updates are disabled.
+Grok receives an isolated `GROK_HOME` and a fresh headless session. OAuth-backed work copies only managed workspace credentials into private temporary homes outside job run folders, serializes refresh-token use and conditionally writes refreshes back before cleanup. API-key work retains independent homes and can run in parallel. Only Pitchcrew MCP and its native MCP search/call helpers are available. Native file reads, shell, editing, web and subagent tools are excluded; memory, compatibility discovery and automatic updates are disabled. The authentication-only ACP client grants none of those host/tool capabilities and sends no user prompt. See [Grok workspace OAuth](runtime-authentication.md#grok-workspace-oauth).
 
 ### Pi and oh-my-pi
 
@@ -113,13 +125,13 @@ memory, crew-message, user-question and progress tools needed by the bundled
 career skills. These are Pitchcrew MCP tools, not native memory or shell tools;
 the daemon rechecks run access and role permissions on every call.
 
-Both inherit native provider authentication environment variables, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. User auth files, OAuth login files and custom provider configuration are not imported. Leave the model empty for the runtime default or use `provider/model`.
+Both use allowlisted provider variables saved for this runtime or inherited from the daemon, such as `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. User auth files, OAuth login files and custom provider configuration are not imported. No auth-only native mode is integrated, so Pitchcrew does not start an interactive chat to sign in. Leave the model empty for the runtime default or use `provider/model`.
 
 ### Hermes Agent
 
 [Hermes Agent](https://hermes-agent.nousresearch.com/docs/reference/cli-commands/) **0.21.5 or newer** is required for structured one-shot output. The adapter runs `hermes chat --query-file - --oneshot --format stream-json` in an isolated `HERMES_HOME`, exposing only the `pitchcrew` toolset. User configuration, login files, plugins, ambient rules, memory and background self-improvement are not imported or enabled. Pitchcrew's role instructions and assigned skills arrive in the prompt.
 
-Set native provider authentication variables in the daemon environment, such as `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. Credentials saved by `hermes model` in the user's `.env` or auth files are not imported. Use `provider:model` with `openrouter`, `anthropic`, `openai-api`, `gemini`, `nous`, `xai` or `lmstudio`. For example, `openrouter:anthropic/claude-sonnet-5-5` retains OpenRouter's full model selector. Bare model names and an empty model use `HERMES_INFERENCE_PROVIDER`, defaulting to `openrouter`; empty models use that provider's Hermes default. Agent CLI/ACP providers and MoA presets are excluded. Native model discovery is not supported; the picker shows curated OpenRouter suggestions and accepts custom selectors.
+Save supported provider variables in this runtime's credential settings or inherit them from the daemon, such as `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`. Credentials saved by `hermes model` in the user's `.env` or auth files are not imported. Dedicated native OAuth is not wired; a saved credential remains configured, not verified provider access. Use `provider:model` with `openrouter`, `anthropic`, `openai-api`, `gemini`, `nous`, `xai` or `lmstudio`. For example, `openrouter:anthropic/claude-sonnet-5-5` retains OpenRouter's full model selector. Bare model names and an empty model use `HERMES_INFERENCE_PROVIDER`, defaulting to `openrouter`; empty models use that provider's Hermes default. Agent CLI/ACP providers and MoA presets are excluded. Native model discovery is not supported; the picker shows curated OpenRouter suggestions and accepts custom selectors.
 
 ## Demo
 

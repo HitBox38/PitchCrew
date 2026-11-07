@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $draftState, $loadDraft } from '../editor-state.ts';
 import type { ComposerEditorProps } from '../types.ts';
@@ -11,10 +11,10 @@ export const useEditorSync = (
   const [editor] = useLexicalComposerContext();
   const last = useRef({ text: props.value, references: props.references });
   const callbacks = useRef({ onChange: props.onChange, onCaret });
-  useEffect(() => {
+  useLayoutEffect(() => {
     callbacks.current = { onChange: props.onChange, onCaret };
   }, [props.onChange, onCaret]);
-  useEffect(
+  useLayoutEffect(
     () =>
       editor.registerUpdateListener(({ editorState, dirtyElements, dirtyLeaves }) => {
         editorState.read(() => {
@@ -32,7 +32,7 @@ export const useEditorSync = (
       }),
     [editor],
   );
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (
       props.value === last.current.text &&
       JSON.stringify(props.references) === JSON.stringify(last.current.references)
@@ -45,7 +45,7 @@ export const useEditorSync = (
         $loadDraft(props.value, props.references);
         if (focused) $getRoot().selectEnd();
       },
-      { tag: HISTORY_MERGE_TAG },
+      { tag: HISTORY_MERGE_TAG, discrete: true },
     );
     if (!props.value) editor.dispatchCommand(CLEAR_HISTORY_COMMAND, undefined);
   }, [editor, props.value, props.references]);

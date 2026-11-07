@@ -1,5 +1,7 @@
 import { configDefaults, defineConfig } from 'vitest/config';
+import { fileURLToPath } from 'node:url';
 export default defineConfig({
+  resolve: { alias: { '@': fileURLToPath(new URL('./packages/ui/src', import.meta.url)) } },
   test: {
     // Browser and bounded-worker fixtures share host resources; match the CI default.
     // Developers can opt into more parallelism with --maxWorkers.

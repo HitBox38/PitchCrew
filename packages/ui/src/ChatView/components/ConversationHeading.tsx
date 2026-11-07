@@ -13,14 +13,28 @@ import { WorkspaceMobileTitle } from '@/App/components/WorkspaceHeaderSlots.tsx'
 export const ConversationHeading = (props: ConversationHeadingProps) => {
   const { role, running, participants, setDialog, thread, working, action } = props;
   const { isMobile } = useSidebar();
+  const mobileTitle = props.attached
+    ? `${props.attached.company} · ${props.attached.title}`
+    : (props.conversation?.title ?? role.name);
   return (
     <>
       <WorkspaceMobileTitle>
-        <ConversationActions {...props} title={props.conversation?.title ?? role.name} />
+        <ConversationActions {...props} title={mobileTitle} />
       </WorkspaceMobileTitle>
       <header className="chat-heading">
-        <ConversationIdentity {...props} />
-        <ConversationViewSwitch attention={props.attention} />
+        {isMobile && props.attached ? (
+          <h1 className="sr-only">{mobileTitle}</h1>
+        ) : (
+          <ConversationIdentity {...props} />
+        )}
+        {isMobile ? (
+          <div className="chat-mobile-view">
+            <ConversationViewSwitch attention={props.attention} />
+          </div>
+        ) : (
+          <ConversationViewSwitch attention={props.attention} />
+        )}
+        <ChatStageTrack thread={thread} />
         <div className="chat-heading-actions">
           <ClayJobLinks {...props} />
           <BrowserButton browserPanel={props.browserPanel} />
@@ -48,7 +62,6 @@ export const ConversationHeading = (props: ConversationHeadingProps) => {
           {isMobile ? null : <ConversationActions {...props} />}
         </div>
       </header>
-      <ChatStageTrack thread={thread} />
     </>
   );
 };

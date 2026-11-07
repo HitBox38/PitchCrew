@@ -13,6 +13,7 @@ type DecisionSheetProps = {
   action: Action;
   working: boolean;
   openCard: (id: string, section?: 'application') => void;
+  onResolved?: () => void;
 };
 
 /** One raised sheet: what is being decided, its evidence, then what follows and the job so far. */
@@ -25,7 +26,12 @@ export const DecisionSheet = (props: DecisionSheetProps) => {
   if (decision.kind === 'question' && question)
     return <QuestionSheet {...props} question={question} card={card} />;
   return (
-    <article className="decide-sheet" data-kind={decision.kind} aria-label="Decision">
+    <article
+      className="decide-sheet"
+      data-kind={decision.kind}
+      data-decision-id={decision.id}
+      aria-label="Decision"
+    >
       <div className="decide-sheet-scroll">
         <div className="decide-main">
           <DecisionHeading {...props} card={card} packet={packet} browser={browser} />

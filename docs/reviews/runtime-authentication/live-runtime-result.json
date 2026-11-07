@@ -1,0 +1,41 @@
+{
+  "passed": true,
+  "phase": "claude-code:passed",
+  "checks": [
+    {
+      "runtime": "codex",
+      "version": "codex-cli 0.167.0",
+      "readiness": "authenticated",
+      "catalogSource": "runtime",
+      "catalogCount": 8,
+      "model": "gpt-6.1-sol",
+      "reasoning": "low",
+      "firstRun": "30c66d5d-e3bd-4a7f-826d-3b88cbdcdd00",
+      "secondRun": "f8885df2-6e6f-426c-bd55-c890a7cb15d4",
+      "profileMcpObserved": true,
+      "replyMarkerMatched": true,
+      "nativeSessionReused": true
+    },
+    {
+      "runtime": "claude-code",
+      "version": "2.1.318 (Claude Code)",
+      "readiness": "authenticated",
+      "catalogSource": "runtime",
+      "catalogCount": 13,
+      "model": "sonnet",
+      "reasoning": "low",
+      "firstRun": "0db7bde2-9871-46f9-9367-760ba74ba949",
+      "secondRun": "f10953fc-aadb-4cf7-b708-ab891853efab",
+      "profileMcpObserved": true,
+      "replyMarkerMatched": true,
+      "nativeSessionReused": true
+    }
+  ],
+  "noJobsCreated": true,
+  "nativeAccountChangedByHarness": false,
+  "notes": [
+    "Pitchcrew data and fictional inputs are isolated.",
+    "Native CLIs may retain ordinary session/cache state or refresh their existing account.",
+    "Profile content is also part of the normal chat prompt; observed MCP gateway completion proves tool use."
+  ]
+}

@@ -13,6 +13,7 @@ export const ExternalMcpSettings = () => {
       <SettingsSection
         id="external-mcp-heading"
         title="External agents"
+        scope="This workspace"
         description="Connect desktop agent apps through local MCP. Enabled clients can read your board, Profile and conversations."
         actions={
           <Button variant="ghost" size="sm" disabled={busy} onClick={refresh}>
@@ -28,34 +29,40 @@ export const ExternalMcpSettings = () => {
         {!info && !error ? <p className="quiet">Checking external agent access…</p> : null}
         {info ? (
           <>
-            <SettingRow
-              id="external-mcp-enabled"
-              title="Allow external agents"
-              description="Turning this off revokes access for every connected app."
-            >
-              <Switch
+            <div className="settings-list settings-preferences">
+              <SettingRow
                 id="external-mcp-enabled"
-                aria-labelledby="external-mcp-enabled-label"
-                aria-describedby="external-mcp-enabled-description"
-                checked={info.enabled}
-                disabled={busy}
-                onCheckedChange={(enabled) => void configure(enabled, info.write)}
-              />
-            </SettingRow>
-            <SettingRow
-              id="external-mcp-write"
-              title="Allow changes and crew messages"
-              description="Manage jobs and start crew work, which may spend runtime credits. Approvals stay in Pitchcrew."
-            >
-              <Switch
+                title="Allow external agents"
+                description="Turning this off revokes access for every connected app."
+              >
+                <Switch
+                  id="external-mcp-enabled"
+                  aria-labelledby="external-mcp-enabled-label"
+                  aria-describedby="external-mcp-enabled-description"
+                  checked={info.enabled}
+                  disabled={busy}
+                  onCheckedChange={(enabled) => void configure(enabled, info.write)}
+                />
+              </SettingRow>
+              <SettingRow
                 id="external-mcp-write"
-                aria-labelledby="external-mcp-write-label"
-                aria-describedby="external-mcp-write-description"
-                checked={info.write}
-                disabled={busy || !info.enabled}
-                onCheckedChange={(write) => void configure(true, write)}
-              />
-            </SettingRow>
+                title="Allow changes and crew messages"
+                description={
+                  info.enabled
+                    ? 'Manage jobs and start crew work, which may spend runtime credits. Approvals stay in Pitchcrew.'
+                    : 'Enable external agents first. Then allow job changes and crew work, which may spend runtime credits. Approvals stay in Pitchcrew.'
+                }
+              >
+                <Switch
+                  id="external-mcp-write"
+                  aria-labelledby="external-mcp-write-label"
+                  aria-describedby="external-mcp-write-description"
+                  checked={info.write}
+                  disabled={busy || !info.enabled}
+                  onCheckedChange={(write) => void configure(true, write)}
+                />
+              </SettingRow>
+            </div>
             {info.enabled ? (
               <div className="settings-config">
                 <p className="quiet">

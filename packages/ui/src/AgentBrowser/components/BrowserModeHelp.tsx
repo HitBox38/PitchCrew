@@ -15,6 +15,7 @@ export const BrowserModeHelp = ({ name }: { name: string }) => {
             size="icon-sm"
             variant="ghost"
             aria-label={`${name} browser permission details`}
+            title="Browser permission details"
           />
         }
       >

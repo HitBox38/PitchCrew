@@ -203,7 +203,7 @@ describe('job source helpers', () => {
   });
 
   it('summarizes filters and scans in plain words', () => {
-    expect(filterSummary(source)).toBe('titles with designer · remote only');
+    expect(filterSummary(source)).toBe('Titles include: designer · Remote only');
     const summary: JobScanSummary = {
       scannedAt: '2026-10-01T00:00:00.000Z',
       new: 1,

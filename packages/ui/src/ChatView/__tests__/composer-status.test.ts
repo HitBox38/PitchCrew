@@ -57,6 +57,45 @@ describe('composer send note', () => {
   it('waits for a pending question when nothing runs', () => {
     expect(sendNote({ ...idle, asking: ['Reviewer'] })).toBe('Sends after you answer Reviewer');
   });
+  it('explains that stopped and interrupted queues require an explicit resume before a message sends', () => {
+    expect(sendNote({ ...idle, queuePaused: true })).toBe('Sends after you resume');
+    expect(sendNote({ ...idle, queuePaused: true, asking: ['Reviewer'] })).toBe(
+      'Sends after you answer Reviewer and resume the queue',
+    );
+    expect(sendNote({ ...idle, queuePaused: true, hasInput: false })).toBe('');
+    expect(sendNote({ ...idle, busy: true, running: ['Scout'], queuePaused: true })).toBe(
+      'Sends after you resume',
+    );
+    expect(
+      sendNote({
+        ...idle,
+        busy: true,
+        running: ['Scout'],
+        queuePaused: true,
+        sendMode: 'interrupt',
+      }),
+    ).toBe('Stops current work and resumes the queue to send');
+  });
+  it('explains the question gate even while another agent is running', () => {
+    const input = { ...idle, busy: true, running: ['Scout'], asking: ['Reviewer'] };
+    expect(sendNote(input)).toBe('Sends after you answer Reviewer and current work finishes');
+    expect(sendNote({ ...input, sendMode: 'interrupt' })).toBe(
+      'Stops current work, cancels pending questions and sends',
+    );
+  });
+  it('uses the actual recovery action in failed, interrupted and cross-conversation holds', () => {
+    expect(sendNote({ ...idle, queueHold: 'retry' })).toBe('Sends after you retry');
+    expect(sendNote({ ...idle, queueHold: 'review' })).toBe('Sends after this queue continues');
+    expect(sendNote({ ...idle, queueHold: 'retry', asking: ['Scout'] })).toBe(
+      'Sends after you answer Scout and retry unfinished work',
+    );
+    expect(sendNote({ ...idle, queueHold: 'review', asking: ['Scout'] })).toBe(
+      'Sends after you answer Scout and this queue continues',
+    );
+    expect(sendNote({ ...idle, queueHold: 'retry', busy: true, running: ['Scout'] })).toBe(
+      'Sends after you retry',
+    );
+  });
   it('collapses long name lists', () => {
     expect(nameList(['A', 'B', 'C'])).toBe('A, B and C');
     expect(nameList(['A', 'B', 'C', 'D'])).toBe('4 agents');

@@ -35,7 +35,11 @@ describe.each([
       hermes: 'hermes',
     }[runtime];
     expect(await adapters[runtime].detect()).toMatchObject({ id: runtime, available: true });
-    expect(detectCli).toHaveBeenCalledWith(runtime, command);
+    expect(detectCli).toHaveBeenCalledWith(
+      runtime,
+      command,
+      ...(runtime === 'hermes' ? [expect.any(Function)] : []),
+    );
     expect(runCliText).not.toHaveBeenCalled();
     expect(runAcp).not.toHaveBeenCalled();
     expect(runAcpText).not.toHaveBeenCalled();
@@ -317,6 +321,7 @@ describe.each([
       const tools = request.args[request.args.indexOf('--tools') + 1].split(',');
       expect(tools).toEqual(
         expect.arrayContaining([
+          'mcp__pitchcrew_read_skill',
           'mcp__pitchcrew_check_linkedin_draft',
           'mcp__pitchcrew_list_conversations',
           'mcp__pitchcrew_read_conversation',

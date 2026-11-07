@@ -4,13 +4,23 @@ import { useBrowserPanel } from '@/AgentBrowser/hooks/useBrowserPanel.ts';
 import { useChatPanels } from './useChatPanels.ts';
 import { useChatAttachments } from './useChatAttachments.ts';
 import { useChatPreferences } from './useChatPreferences.ts';
-import { encodeAttachment } from '../api.ts';
 import { useAppReducedMotion } from '@/AppMotion/hooks/useAppReducedMotion.ts';
 import type { ChatViewProps } from '@/ChatView/types.ts';
-import { trimmedReferences } from '@/ChatComposer/helpers.ts';
-import type { ChatReference } from '@pitchcrew/core';
 import type { ChatMessage } from '@pitchcrew/core';
 import { useMemo, useRef, useState } from 'react';
+import { focusAfterReveal, questionReturnFocus } from '@/UserQuestions/focus.ts';
+import type { QuestionFocusIntent } from '@/UserQuestions/types.ts';
+import {
+  collapseQuestions,
+  emptyQuestionSelection,
+  pendingQuestionId,
+  useQuestionState,
+} from '@/UserQuestions/question-state.ts';
+import { useQuestionSelection } from '@/UserQuestions/hooks/useQuestionSelection.ts';
+import { useQuestionLifecycle } from '@/UserQuestions/hooks/useQuestionLifecycle.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { useComposerDraft } from './useComposerDraft.ts';
+import { sendComposerDraft } from '../composer-send.ts';
 
 export const useChatView = (props: ChatViewProps) => {
   const { thread, action, working } = props;
@@ -21,20 +31,10 @@ export const useChatView = (props: ChatViewProps) => {
     return [...runsById.values()];
   }, [props.data.runs, props.data.activityRuns]);
   const data = useMemo(() => ({ ...props.data, runs }), [props.data, runs]);
+  useQuestionLifecycle(data.userInputs);
   const reduced = useAppReducedMotion();
   const inputRef = useRef<HTMLDivElement>(null);
-  const [drafts, setDrafts] = useState<Record<string, string>>(() => {
-    try {
-      const draft = sessionStorage.getItem(`pitchcrew.handoff-draft.${thread}`);
-      sessionStorage.removeItem(`pitchcrew.handoff-draft.${thread}`);
-      return draft ? { [thread]: draft } : {};
-    } catch {
-      return {};
-    }
-  });
-  const [referenceDrafts, setReferenceDrafts] = useState<Record<string, ChatReference[]>>({});
-  const setDraftReferences = (references: ChatReference[]) =>
-    setReferenceDrafts((current) => ({ ...current, [thread]: references }));
+  const composerDraft = useComposerDraft(thread);
   const [recipient, setRecipient] = useState('');
   const [panes, setPanes] = useState<Record<string, 'conversation' | 'work'>>({});
   const pane = panes[thread] ?? 'conversation';
@@ -42,19 +42,48 @@ export const useChatView = (props: ChatViewProps) => {
     setPanes((current) => ({ ...current, [thread]: next }));
   const panels = useChatPanels(thread);
   const [error, setError] = useState('');
-  const [activeQuestions, setActiveQuestions] = useState<Record<string, string>>({});
-  const activeQuestionId = activeQuestions[thread];
-  const setActiveQuestionId = (id: string) =>
-    setActiveQuestions((current) => ({ ...current, [thread]: id }));
   const questions = (data.userInputs ?? []).filter(
     (question) => question.threadId === thread && question.status === 'pending',
   );
+  const { activeQuestionId, setActiveQuestionId } = useQuestionSelection(thread, questions);
+  const writeMessage = () => {
+    setPane('conversation');
+    collapseQuestions(
+      thread,
+      questions.map((question) => question.id),
+    );
+    focusAfterReveal(() => inputRef.current);
+  };
+  const questionResolved = (id: string, intent: QuestionFocusIntent = 'text') => {
+    focusAfterReveal(() => {
+      if (useQuestionState.getState().recoveries[id])
+        return document.getElementById(`question-response-recovery-${id}`);
+      const pending = (
+        useWorkspaceStore.getState().data?.userInputs ??
+        data.userInputs ??
+        []
+      ).filter(
+        (question) =>
+          question.threadId === thread && question.status === 'pending' && question.id !== id,
+      );
+      const next = pendingQuestionId(
+        pending,
+        useQuestionState.getState().docks[thread] ?? emptyQuestionSelection,
+      );
+      if (intent === 'surface')
+        return next
+          ? document.querySelector<HTMLElement>(
+              `[data-question-id="${next}"] .pending-question-trigger`,
+            )
+          : questionReturnFocus();
+      return next ? document.getElementById(`answer-${next}`) : inputRef.current;
+    });
+  };
   const answerQuestion = (id: string) => {
     setPane('conversation');
     setActiveQuestionId(id);
-    requestAnimationFrame(() => document.getElementById(`answer-${id}`)?.focus());
+    focusAfterReveal(() => document.getElementById(`answer-${id}`));
   };
-  const sendingRef = useRef(false);
   const preferences = useChatPreferences(thread, data);
   const { conversation, participants, roleId, role } = chatRole(data, thread, recipient);
   const attachments = useChatAttachments(thread, setError);
@@ -140,15 +169,14 @@ export const useChatView = (props: ChatViewProps) => {
     }
   };
   const applyStarter = (prompt: string) => {
-    setDrafts((current) => ({ ...current, [thread]: prompt }));
-    setDraftReferences([]);
+    composerDraft.offerDraft(thread, prompt);
     inputRef.current?.focus();
   };
   const send = async (text: string, intent: 'queue' | 'interrupt' = 'queue') => {
     if (
       (!text.trim() && !attachments.files.length) ||
       working ||
-      sendingRef.current ||
+      composerDraft.sending ||
       readOnly ||
       !available
     )
@@ -157,61 +185,28 @@ export const useChatView = (props: ChatViewProps) => {
       setError('Messages can contain at most 8,000 characters.');
       return;
     }
-    const sentThread = thread;
     setPane('conversation');
     setError('');
-    sendingRef.current = true;
-    try {
-      await action(`/conversations/${thread}/messages`, 'POST', {
-        content: text.trim(),
-        references: trimmedReferences(text, referenceDrafts[thread] ?? []).map(
-          ({ kind, id, token, start, end, revision }) => ({
-            kind,
-            id,
-            token,
-            start,
-            end,
-            revision,
-          }),
-        ),
-        attachments: await Promise.all(attachments.files.map(encodeAttachment)),
-        intent,
-      });
-      setDrafts((current) => ({ ...current, [sentThread]: '' }));
-      setReferenceDrafts((current) => ({ ...current, [sentThread]: [] }));
-      attachments.clearFiles(sentThread);
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not send the message.');
-    } finally {
-      sendingRef.current = false;
-    }
+    await sendComposerDraft(thread, action, { intent });
   };
 
   const sendDelegation = async (text: string, roleIds: string[]) => {
-    if (!text.trim() || !roleIds.length || working || sendingRef.current || readOnly || !available)
+    if (
+      !text.trim() ||
+      !roleIds.length ||
+      working ||
+      composerDraft.sending ||
+      readOnly ||
+      !available
+    )
       return false;
     if (text.trim().length > 8000) {
       setError('Messages can contain at most 8,000 characters.');
       return false;
     }
-    const sentThread = thread;
     setPane('conversation');
     setError('');
-    sendingRef.current = true;
-    try {
-      await action(`/conversations/${thread}/delegate`, 'POST', {
-        content: text.trim(),
-        roleIds,
-      });
-      setDrafts((current) => ({ ...current, [sentThread]: '' }));
-      setReferenceDrafts((current) => ({ ...current, [sentThread]: [] }));
-      return true;
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not delegate the message.');
-      return false;
-    } finally {
-      sendingRef.current = false;
-    }
+    return sendComposerDraft(thread, action, { roleIds });
   };
 
   return {
@@ -222,13 +217,13 @@ export const useChatView = (props: ChatViewProps) => {
     activeQuestionId,
     setActiveQuestionId,
     answerQuestion,
+    writeMessage,
+    questionResolved,
     ...attachments,
     ...preferences,
     reduced,
     inputRef,
-    setDrafts,
-    draftReferences: referenceDrafts[thread] ?? [],
-    setDraftReferences,
+    ...composerDraft,
     recipient: roleId,
     setRecipient,
     pane,
@@ -244,7 +239,6 @@ export const useChatView = (props: ChatViewProps) => {
     busy,
     busyElsewhere,
     available,
-    draft: drafts[thread] ?? '',
     cardId,
     proposals,
     skillProposals,

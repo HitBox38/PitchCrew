@@ -10,7 +10,7 @@ export const BackgroundServiceSettings = () => {
     <SettingsSection
       id="background-service-heading"
       title="Background service"
-      description="Starts the daemon when you log in, so routines run without an open window."
+      description="Starts Pitchcrew when you log in, so routines run without an open window."
       actions={
         <Button variant="ghost" size="sm" disabled={loading || installing} onClick={checkAgain}>
           <RefreshCw size={14} aria-hidden="true" /> Check again

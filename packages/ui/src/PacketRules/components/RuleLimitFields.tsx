@@ -1,24 +1,18 @@
 import { Input } from '@pitchcrew/design-system/input';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { fieldNumber, fieldText, ruleFormKey } from '../form-helpers.ts';
+import { fieldText, ruleFormKey } from '../form-helpers.ts';
+import { NumericRuleField } from './NumericRuleField.tsx';
 import type { RuleFormProps } from './RuleFormBasics.tsx';
 
 export const RuleLimitFields = ({ rule, index, change }: RuleFormProps) => (
   <div className="settings-field-grid">
-    <label htmlFor={ruleFormKey(index, 'max')}>
-      {rule.kind === 'word_limit' ? 'Maximum words' : 'Maximum bullets per section'}
-      <Input
-        id={ruleFormKey(index, 'max')}
-        type="number"
-        min={rule.kind === 'word_limit' ? 1 : 0}
-        max={rule.kind === 'word_limit' ? 100000 : 1000}
-        step={1}
-        value={fieldNumber(rule.max)}
-        onChange={(event) =>
-          change({ max: event.target.value === '' ? null : Number(event.target.value) })
-        }
-      />
-    </label>
+    <NumericRuleField
+      rule={rule}
+      index={index}
+      change={change}
+      field="max"
+      label={rule.kind === 'word_limit' ? 'Maximum words' : 'Maximum bullets per section'}
+    />
     {rule.kind === 'word_limit' ? (
       <FormSelect
         id={ruleFormKey(index, 'count')}

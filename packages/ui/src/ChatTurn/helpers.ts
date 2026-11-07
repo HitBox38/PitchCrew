@@ -1,6 +1,9 @@
 import { turnPresentation } from './constants.ts';
 import { runtimeLabels } from '../lib/labels.ts';
 import { reasoningLabels } from '../lib/reasoning.ts';
+import { transcriptOrder } from '@pitchcrew/core/transcript-order';
+import { visibleTranscriptMessages } from './transcript-messages.ts';
+import type { AgentTask, ChatRequest } from '@pitchcrew/core';
 import type { ChatMessage, Run, RunActivity, RuntimeModel, TranscriptItem } from '@pitchcrew/core';
 export type { TranscriptItem } from '@pitchcrew/core';
 
@@ -8,41 +11,69 @@ export const transcriptItems = (
   messages: ChatMessage[],
   runs: Run[],
   thread: string,
+  context: {
+    requests?: ChatRequest[];
+    tasks?: AgentTask[];
+    positions?: ReadonlyMap<string, string>;
+    dispatchRuns?: Run[];
+  } = {},
 ): TranscriptItem[] => {
-  const items: TranscriptItem[] = messages.map((message) => ({
-    kind: 'message',
-    id: message.id,
-    createdAt: message.createdAt,
-    message,
-  }));
-  const triggers = new Map<string, ChatMessage>();
-  for (const message of messages) {
-    if (message.runId && (message.from === 'user' || message.from === 'system'))
-      if (!triggers.has(message.runId)) triggers.set(message.runId, message);
-  }
-  for (const run of runs) {
-    if (
-      run.threadId !== thread ||
-      !['chat', 'workflow'].includes(run.mode ?? '') ||
-      run.reviewSeatReservation ||
-      (!run.activity?.length && !['running', 'waiting'].includes(run.status))
-    )
-      continue;
-    const trigger = triggers.get(run.id);
-    items.push({
-      kind: 'turn',
-      id: `turn-${run.id}`,
-      run,
-      createdAt: trigger?.createdAt ?? run.startedAt,
-    });
-  }
-  const rank = (item: TranscriptItem) =>
-    item.kind === 'turn'
-      ? 1
-      : item.message.from === 'user' || item.message.from === 'system'
-        ? 0
-        : 2;
-  return items.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || rank(a) - rank(b));
+  const dispatchRuns = (context.dispatchRuns ?? runs).filter(
+    (run) =>
+      run.threadId === thread &&
+      ['chat', 'workflow'].includes(run.mode ?? '') &&
+      !run.reviewSeatReservation,
+  );
+  const startedRequests = new Set(
+    dispatchRuns.flatMap((run) => (run.requestId ? [run.requestId] : [])),
+  );
+  const visible = visibleTranscriptMessages(
+    messages,
+    context.requests,
+    context.tasks,
+    startedRequests,
+  );
+  const displayedRuns = runs.filter(
+    (run) =>
+      run.threadId === thread &&
+      ['chat', 'workflow'].includes(run.mode ?? '') &&
+      !run.reviewSeatReservation &&
+      (run.activity?.length || ['running', 'waiting', 'failed', 'cancelled'].includes(run.status)),
+  );
+  const byMessage = new Map(visible.map((message) => [message.id, message]));
+  const byRun = new Map(displayedRuns.map((run) => [run.id, run]));
+  return transcriptOrder(
+    visible.map((message) => ({
+      id: message.id,
+      createdAt: message.createdAt,
+      sender: message.from,
+      recipient: message.to,
+      runId: message.runId,
+      notification: message.notification,
+      userInput: message.userInput?.kind,
+      content: message.content,
+      positionedAt: context.positions?.get(message.id),
+    })),
+    displayedRuns,
+    {
+      requests: context.requests,
+      dispatchRuns,
+    },
+  ).map((item) =>
+    item.kind === 'message'
+      ? {
+          kind: 'message',
+          id: item.id,
+          createdAt: item.createdAt,
+          message: byMessage.get(item.id)!,
+        }
+      : {
+          kind: 'turn',
+          id: item.id,
+          createdAt: item.createdAt,
+          run: byRun.get(item.runId!)!,
+        },
+  );
 };
 
 export const activityGroups = (entries: RunActivity[]) => {
@@ -58,10 +89,10 @@ export const activityGroups = (entries: RunActivity[]) => {
 };
 
 export const durationLabel = (startedAt: string, finishedAt: string | null, now: number) => {
-  const elapsed = Math.max(
-    0,
-    Math.floor(((finishedAt ? Date.parse(finishedAt) : now) - Date.parse(startedAt)) / 1000),
-  );
+  return elapsedLabel((finishedAt ? Date.parse(finishedAt) : now) - Date.parse(startedAt));
+};
+export const elapsedLabel = (milliseconds: number) => {
+  const elapsed = Math.max(0, Math.floor(milliseconds / 1000));
   if (!Number.isFinite(elapsed)) return '0s';
   return elapsed < 60 ? `${elapsed}s` : `${Math.floor(elapsed / 60)}m ${elapsed % 60}s`;
 };

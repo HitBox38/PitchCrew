@@ -71,6 +71,9 @@ export interface CrewContext {
   deciding: Set<string>;
   runtimes: RuntimeInfo[];
   runtimeMaintenance: import('../runtime-maintenance/index.ts').RuntimeMaintenance;
+  runtimeSetup: import('../runtime-setup/index.ts').RuntimeSetupManager;
+  runtimeAuth: import('../runtime-setup/auth.ts').RuntimeAuthManager;
+  runtimeConnections: import('../runtime-connections/index.ts').RuntimeConnections;
   modelCatalogs: Map<RuntimeId, { catalog: RuntimeModelCatalog; expiresAt: number }>;
   modelRequests: Map<RuntimeId, Promise<RuntimeModelCatalog>>;
   modelController: AbortController;
@@ -90,7 +93,12 @@ export interface CrewContext {
   previewSkill(url: string): Promise<SkillPreview>;
   saveSkill(data: unknown, id?: string, actor?: 'user' | 'system'): Skill;
   deleteSkill(id: string): { ok: boolean };
-  writeRunInstructions(dir: string, role: Role, skills: Skill[]): Promise<void>;
+  writeRunInstructions(
+    dir: string,
+    role: Role,
+    skills: Skill[],
+    selectedSkills?: Skill[],
+  ): Promise<void>;
   writeRole(role: Role): Promise<void>;
   createRole(data: unknown): Promise<Role>;
   retireRole(id: RoleId): Promise<Role>;

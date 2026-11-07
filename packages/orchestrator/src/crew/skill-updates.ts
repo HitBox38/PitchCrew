@@ -1,4 +1,5 @@
 import type { Skill, SkillUpdatePreview } from '@pitchcrew/core';
+import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import type { CrewContext } from './types.ts';
@@ -53,6 +54,7 @@ export class SkillUpdates {
         ...review.latest,
         scope: current.scope,
         roleIds: current.roleIds,
+        includeInEveryRun: skillIncludedEveryRun(current),
         ...(current.bundledId ? { bundledId: current.bundledId } : {}),
       },
       id,

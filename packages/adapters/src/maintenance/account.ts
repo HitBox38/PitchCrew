@@ -2,6 +2,7 @@ import { spawn } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { cliEnvironment } from '../process/environment.ts';
 import { terminateCli } from '../process/launch.ts';
+import { runtimeCommand } from '../process/executable.ts';
 
 /** Account metadata only: no thread, session, model request or user turn is created. */
 export const readCodexAccount = (
@@ -11,28 +12,24 @@ export const readCodexAccount = (
 ): Promise<{ account: unknown; requiresOpenaiAuth: boolean }> => {
   signal?.throwIfAborted();
   return new Promise((resolve, reject) => {
-    const child = spawn(
-      command,
-      [
-        ...prefix,
-        'app-server',
-        '--listen',
-        'stdio://',
-        '--ignore-user-config',
-        '-c',
-        'features.apps=false',
-        '-c',
-        'features.hooks=false',
-        '-c',
-        'analytics.enabled=false',
-      ],
-      {
-        cwd: tmpdir(),
-        env: cliEnvironment(),
-        windowsHide: true,
-        stdio: ['pipe', 'pipe', 'pipe'],
-      },
-    );
+    const invocation = runtimeCommand(command, [
+      ...prefix,
+      'app-server',
+      '--listen',
+      'stdio://',
+      '-c',
+      'features.apps=false',
+      '-c',
+      'features.hooks=false',
+      '-c',
+      'analytics.enabled=false',
+    ]);
+    const child = spawn(invocation.file, invocation.args, {
+      cwd: tmpdir(),
+      env: cliEnvironment(),
+      windowsHide: true,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
     let buffer = '',
       bytes = 0,
       finished = false;

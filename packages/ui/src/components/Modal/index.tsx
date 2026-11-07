@@ -12,6 +12,7 @@ export const Modal = ({
   className = '',
   initialFocus,
   finalFocus,
+  closeDisabled = false,
 }: ModalProps) => {
   if (drawer)
     return (
@@ -34,6 +35,7 @@ export const Modal = ({
               className="icon-button"
               onClick={onClose}
               aria-label="Close dialog"
+              disabled={closeDisabled}
             >
               <X size={20} />
             </Button>
@@ -62,6 +64,7 @@ export const Modal = ({
             className="icon-button"
             onClick={onClose}
             aria-label="Close dialog"
+            disabled={closeDisabled}
           >
             <X size={20} />
           </Button>

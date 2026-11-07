@@ -40,7 +40,7 @@ export const DecisionHeading = ({
       <span className="decide-kind" data-kind={decision.kind} aria-hidden="true">
         <Icon size={15} />
       </span>
-      <h2>
+      <h2 tabIndex={-1} data-decision-focus="">
         {packet && packet.status !== 'pending' && card
           ? `Apply to ${card.company}`
           : decisionTitle(decision, data).replace(/\?$/u, '')}

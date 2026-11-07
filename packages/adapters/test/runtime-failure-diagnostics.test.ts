@@ -1,12 +1,48 @@
-import { afterEach, expect, it } from 'vitest';
+import { afterEach, expect, it, vi } from 'vitest';
 import { failureCategory } from '@pitchcrew/core/operational-logs';
 import { beginAiRun } from '../../orchestrator/src/telemetry/ai.ts';
 import { sanitizeAiObservation } from '@pitchcrew/core/telemetry-ai';
 import { runAcpText } from '../src/acp.ts';
 import { runCli, runCliText } from '../src/process.ts';
 import { cleanup, contextFor } from './helpers/runtime.ts';
+import { withRuntimeConnection } from '../src/process/runtime-connection.ts';
 
 afterEach(cleanup);
+
+it.each(['cli', 'acp'] as const)(
+  '%s redacts scoped secrets before truncating split stderr and preserves exit metadata',
+  async (transport) => {
+    const context = await contextFor('kiro-cli');
+    vi.stubEnv('OPENAI_API_KEY', 'fictional-inherited-runtime-key');
+    for (const secret of ['abc', 'fictional-private-key', 'long-private-key-'.repeat(700)]) {
+      const script = `const key=process.env.KIRO_API_KEY; const mid=Math.floor(key.length/2); process.stderr.write('prefix '+key.slice(0,mid)); setTimeout(()=>{process.stderr.write('\\x1b[31m'+key.slice(mid)+' suffix inherited '+process.env.OPENAI_API_KEY);process.exit(7)},20)`;
+      const error = await withRuntimeConnection('kiro-cli', { KIRO_API_KEY: secret }, () =>
+        (transport === 'cli'
+          ? runCliText(process.execPath, ['--eval', script], context, '', () => null)
+          : runAcpText(process.execPath, ['--eval', script], context, '')
+        ).catch((failure: unknown) => failure),
+      );
+      expect(error).toMatchObject({
+        message: expect.stringContaining('prefix [redacted] suffix'),
+        code: 'PITCHCREW_RUNTIME_EXIT',
+        exitCode: 7,
+      });
+      expect((error as Error).stack).not.toContain(secret);
+      expect((error as Error).message).toContain('inherited [redacted]');
+      expect((error as Error).stack).not.toContain('fictional-inherited-runtime-key');
+    }
+  },
+);
+
+it('redacts a scoped credential in an ACP protocol error before the failure can be persisted', async () => {
+  const context = await contextFor('kiro-cli');
+  const script = `process.stdin.once('data',()=>{process.stdout.write(JSON.stringify({jsonrpc:'2.0',id:1,error:{code:-1,message:'Provider rejected '+process.env.KIRO_API_KEY}})+'\\n')})`;
+  await expect(
+    withRuntimeConnection('kiro-cli', { KIRO_API_KEY: 'fictional-protocol-secret' }, () =>
+      runAcpText(process.execPath, ['--eval', script], context, ''),
+    ),
+  ).rejects.toThrow('Provider rejected [redacted]');
+});
 
 it.each([
   ['cli', 7],

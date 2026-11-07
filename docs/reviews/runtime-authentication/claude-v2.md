@@ -1,0 +1,108 @@
+# Runtime authentication — independent design and functionality review (Claude, v2)
+
+Date: 2026-11-07
+Scope: the current uncommitted runtime authentication and credential work, re-checked against [claude-v1.md](claude-v1.md), which scored it 6/10. I read `AGENTS.md`, `docs/runtime-authentication.md`, every file under `packages/ui/src/RuntimeConnectionSettings`, and the relevant files under `packages/ui/src/RuntimeSetup`: `index.tsx`, `sections.ts`, `terminal-links.ts`, `terminal-theme.ts`, the terminal hooks, `AuthOpenLink`, `NativeSignIn`, `AuthStart`, `AuthLogout`, `RuntimeSignIn`, `TerminalActions`, `AuthTerminal`, `AuthCode` and `AuthCredentialField`. On the server side I read `crew/models.ts` (detect), `runtime-maintenance/index.ts` (`scope`/`metadata`), `runtime-connections/index.ts` (status/recover/configure), the connection routes, the global error handler, `adapters/src/process/runtime-connection.ts`, `environment.ts` and `runtime-connection-fields.ts`. I also read the capture helper and the consent, sign-out and unreadable cases in `packages/ui/test/runtime-connections.test.ts`. I opened every PNG in `%TEMP%/pitchcrew-runtime-auth-review-20261107` with the image tool. I made no changes outside this file.
+
+## Score: 7.5/10
+
+All five v1 must-fix findings have been fixed in the source. Each fix is mechanically sound and most have test assertions. Most should-fix items are also done.
+
+The score stays below 8 for three reasons:
+
+- The fix for v1 #1 introduced a new editing problem in the non-secret text fields.
+- The desktop consent path still gives the user no sign that anything happened.
+- Several of the screenshots offered as evidence are older than the fixes and still show the old, broken state. The recovery fix, the most important visual change, is therefore not confirmed by any screenshot; only test assertions cover it.
+
+## v1 findings: status after reading the source
+
+| v1                                    | Claim         | Verified in source                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | Visual evidence                                                                                                                                                                                                 |
+| ------------------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Empty value becomes Disable         | Fixed         | `useRuntimeConnection.ts:119`: `typeValue('')` → `undo`. Only the button calls `change(name, '')` (`ConnectionField.tsx:63`). A per-field **Undo this change** button exists (`:67-71`).                                                                                                                                                                                                                                                                                                                                                          | `credentials-phone-dark-draft-part2/3` (15:23) show Undo                                                                                                                                                        |
+| 2 Validation copy / choices           | Fixed         | `helpers.ts:20-30` allowlists the exact server strings. They match `runtime-connection-fields.ts:131-154` and route `:33`. Plain `Error`s become 400 through `server.ts:121-141`. Choices render through `FormSelect` (`ConnectionValue.tsx:21-37`). The Goose description lists the allowed values.                                                                                                                                                                                                                                              | `credentials-provider-choice-desktop*` (15:22)                                                                                                                                                                  |
+| 3 Unreadable shown as "Install first" | Fixed in code | Typed `configurationError{code,installationAvailable}` (`core/runtime.ts:31-36`), set in `crew/models.ts:14-31` with `available:false`. `initialSetupSection` opens Sign-in (`sections.ts:4-11`); tabs say **Recover settings**; the "Finish installing" line is hidden during recovery (`RuntimeSignIn.tsx:69`). `NativeSignIn` is not mounted during recovery, so only one alert appears. The row shows **Recover authentication settings** (`RuntimeMaintenance/helpers.ts:68`). The test asserts no "Install first" text (`test.ts:953-955`). | **Not verified.** `authentication-settings-unreadable.png` is from 15:14 and still shows Installation **Needs setup**, Sign-in **Install first**, "Finish installing…", two alerts and a **Set up** row action. |
+| 4 Desktop consent `about:blank`       | Fixed         | `AuthOpenLink.tsx:27-41`: on desktop it opens no placeholder window and opens the real URL only after the server acknowledges consent. On the web it uses a placeholder, then replaces its location or shows a "Browser blocked the window" label. The test holds the POST and checks that nothing opens before the response (`test.ts:614-631`).                                                                                                                                                                                                 | Partly. The two consent PNGs are byte-identical (same MD5), so the "acknowledged" image shows no change. See S2.                                                                                                |
+| 5 Terminal links / codes / Ctrl+C     | Fixed         | `terminal-links.ts` keeps HTTPS links only on per-runtime allowlisted hosts, with no user info and no port, and shows at most 4. Code patterns are limited. `TerminalActions` shows **Open host sign-in** and **Copy code** buttons and **Copy terminal text**. With a selection, Ctrl/Cmd+C copies and does not send `\x03` (`useAuthTerminalSurface.ts:38-48`).                                                                                                                                                                                 | Copy-text button and hint are visible (phone dark and real PTY, 15:23). No screenshot shows link or code buttons, although the test transcript includes both.                                                   |
+| 6 Terminal contrast / theme           | Fixed         | `minimumContrastRatio: 4.5`, all 16 ANSI colors mapped to tokens, theme re-applied when the root attributes or `prefers-color-scheme` change. The scrollbar seam is gone.                                                                                                                                                                                                                                                                                                                                                                         | `native-signin-real-pty-desktop*` (15:23) has no seam. `native-signin-terminal-desktop*` (15:13) still shows the old seam and red text.                                                                         |
+| 7 Recovery feedback                   | Fixed in code | Confirmation says "Daemon environment values will apply again." The success notice names the backup filename (a basename, not a full path) and asks for **Recheck sign-in** (`useRuntimeConnection.ts:120-125`).                                                                                                                                                                                                                                                                                                                                  | **Not verified.** `authentication-settings-recovered*` (15:14) shows no notice.                                                                                                                                 |
+| 8 State and pending summary           | Fixed         | Option labels read "label · Source · Pending change" (`helpers.ts:15-16`). A **Changes to save** list appears above Save.                                                                                                                                                                                                                                                                                                                                                                                                                         | Phone and Goose screenshots (15:22–15:23)                                                                                                                                                                       |
+| 9 "Use daemon value" misleading       | Fixed         | Shown only for saved or disabled fields (`ConnectionField.tsx:57`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Only the old `recovered-part2` (15:14) shows it on an Inherited field.                                                                                                                                          |
+| 10 Recheck emphasis                   | Fixed         | `RuntimeSignIn.tsx:58`, `AuthStart.tsx:52`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | `authentication-completed-unverified.png`, phone dark                                                                                                                                                           |
+| 11 Accessibility                      | Mostly fixed  | The fieldset has `aria-label` and `aria-describedby`; the input is described by the source text. Recovery shows why it is blocked. The sign-out title names the runtime and the Grok copy mentions the API key. **The choice `FormSelect` is not passed `describedBy`** (`ConnectionValue.tsx:23-36`).                                                                                                                                                                                                                                            | Sign-out title visible                                                                                                                                                                                          |
+| 12 Polish                             | Mostly fixed  | `AuthCode` actions now use `settings-row-actions`. `AuthCredentialField` has a hint and a reveal toggle. A hairline now separates field actions from form actions.                                                                                                                                                                                                                                                                                                                                                                                | Phone part3 shows a double hairline (see L5)                                                                                                                                                                    |
+
+## Remaining findings
+
+### Must fix
+
+**M1. Medium — Clearing a non-secret text field snaps back to the stored value.**
+`ConnectionField.tsx:43` and `useRuntimeConnection.ts:119`. Affected fields: `OPENAI_BASE_URL`, `ANTHROPIC_BASE_URL`, `GOOGLE_CLOUD_PROJECT`, `GOOGLE_CLOUD_LOCATION`, `GOOSE_MODEL` and `OLLAMA_HOST`.
+
+- For a non-secret field that is Saved or Inherited, the input shows `field.value` whenever there is no draft.
+- Backspacing to empty calls `typeValue('')`, which calls `undo`. The draft disappears and the input immediately shows the full stored URL again.
+- A user who backspaces an endpoint to retype it cannot get an empty field. Only select-all-and-type-over works.
+
+This was introduced by the v1 #1 fix, and the user-visible result is confusing.
+
+Fix: keep a local "editing" draft so an empty input stays empty in the UI while no change is recorded. For example, set empty-but-touched as the field's display state, and turn it into "no change" only on blur or Save.
+
+### Should fix
+
+**S1. Low-medium — Inherited non-secret values are returned without checking them.**
+`runtime-connections/index.ts:109-117` returns `process.env[field.name]` exactly as it is for non-secret fields. Saved endpoints must pass the no-credentials/no-query rule, but an inherited `OPENAI_BASE_URL=https://user:token@host/…` is still sent to the renderer. It is shown in the input, and for choice fields as "Current daemon value: …". Fix: run the same endpoint check on inherited values and report them as configured-but-hidden when they fail.
+
+**S2. Low-medium — On desktop, consent gives no feedback after the page opens.**
+Once the server acknowledges consent, the button becomes an `<a>` with the same label and the same primary style (`AuthOpenLink.tsx:47-60`). The two consent screenshots are byte-identical. The user gets no sign that the system browser opened, and the same primary button suggests nothing happened. Fix: after `accepted`, show "Sign-in page opened in your browser. Return here when finished." and make the link a secondary **Open again**.
+
+The test replaces `window.open` and fakes `window.pitchcrewBrowser`, so the real Electron path is still not tested. That includes whether `setWindowOpenHandler` accepts a `window.open` after an asynchronous request, outside the click's user activation.
+
+**S3. Low-medium — "Copy terminal text" copies the raw stream, not the screen.**
+`terminal-links.ts:21-23` strips only CSI sequences. `\r`, charset/keypad escapes (`ESC (`, `ESC =`, `ESC 7/8`) and the full redraw history of TUI choosers stay in the copied text. OpenCode's provider chooser redraws with cursor movement, so the copy will be a jumble of earlier frames. Link and code extraction work on the same stream. Fix: copy from the xterm buffer (`buffer.active` lines, translated to string), and look for links in that same buffer.
+
+**S4. Low — Busy-runtime errors are hidden behind generic copy.**
+`configure` throws "Wait for runtime setup or maintenance to finish." and "Wait for this runtime to become idle. …" (`runtime-connections/index.ts:185-187`). Both become 400 responses but are not on the allowlist, so a race with a starting run shows "could not be saved". These are fixed, non-secret messages; allowlist the prefix or add a typed error code.
+
+**S5. Low — The installation-only check is not limited to the executable.**
+`metadata(..., {installationOnly:true})` only skips `withEnvironment`. `runtimeConnectionEnvironment()` then falls back to the full daemon `process.env`, inherited provider keys included (`runtime-connection.ts:28-31`, `environment.ts:11-19`). The impact is small because `detect()` has no side effects. Still, the doc's "without adopting another authentication environment" is only half true: the probe runs with the daemon's environment. Either scope the probe to an environment without credentials or change the doc.
+
+**S6. Low — The model-refresh detect ignores the configuration error.**
+`crew/models.ts:62-65` calls `adapters[id].detect()` directly, not through `runtimeMaintenance.metadata`. It then spreads the result over the runtime, which keeps any stale `configurationError`. When credentials are unreadable the refresh fails without the typed state, and the saved overrides scope is not applied to that health probe. I did not check whether the caller already wraps it in a scope.
+
+### Low / polish
+
+- **L1. The Cmd+C hint is inaccurate on macOS.** `AuthTerminal.tsx:31-32` says "without a selection it interrupts the CLI". On macOS xterm does not send Cmd+C to the CLI; only Ctrl+C interrupts.
+- **L2. Recovery only expands when it is present on first mount.** `RuntimeConnectionSettings/index.tsx:14,18` reads `recovery` once. If the credentials file becomes unreadable while the dialog is open, the editor stays collapsed. The heading copy does change.
+- **L3.** **Disable for this runtime** is offered for Unset fields, where it does nothing useful (`ConnectionField.tsx:62`).
+- **L4.** The fixed `id="runtime-connection-value"` works only because one field renders at a time.
+- **L5.** On phone, the field's `border-b` and the summary's `border-t` draw a double hairline (`credentials-phone-dark-draft-part3.png`).
+- **L6.** In `native-signout-confirmation-desktop.png` the confirmation is see-through: the parent's buttons and accordion text show through it, and there is no backdrop dimming. The capture helper (`test.ts:74-97`) waits only for `document.fonts.ready`, not for dialog transitions, so this is probably a mid-transition frame rather than a product bug. Recapture after `getAnimations()` settle before treating it as evidence either way.
+
+## Evidence problems (not product bugs, but they block a higher score)
+
+- **Stale screenshots still show pre-fix behavior.** These were taken at 15:13–15:14, before the 15:22–15:23 run:
+  - `authentication-settings-unreadable.png`
+  - `authentication-settings-recovered*.png`
+  - `credentials-desktop-saved*.png`
+  - `native-signin-terminal-desktop*.png`
+
+  They show "Install first", duplicate alerts, a **Set up** row action, **Use daemon value** on an Inherited field, no recovery notice, and the old terminal seam. Either the unreadable/recovered cases did not write images in the latest run, or that run never reached them. They need to be regenerated before the recovery fix counts as visually verified.
+
+- The two consent PNGs are identical, so there is no image of the state after acknowledgment.
+- No screenshot shows terminal link or code buttons.
+
+## What is now good (verified)
+
+- Fixed server validation copy reaches the user through an exact-string allowlist, so arbitrary diagnostics cannot leak.
+- Declared choices use selects with their allowed values listed.
+- The pending-change summary, per-field Undo and source-in-option labels make multi-variable editing understandable on phone.
+- Typed unreadable-credentials state, kept separate from installation (by code and tests), opens Sign-in with one recovery path. Recovery shows why it is blocked, warns that the backup contains secrets, says that daemon values apply again, and confirms with the backup's filename.
+- Terminal links are opened only by explicit clicks on allowlisted HTTPS hosts. Copy with a selection does not interrupt the CLI. ANSI colors are adjusted for contrast in both themes and update when the theme changes.
+- When a sign-in completes but is not verified, Recheck becomes the primary action.
+- The sign-out confirmation is named and scoped by runtime, and its Grok copy says the API key will apply.
+
+## Verification limits
+
+- I reviewed by reading source and inspecting the provided PNGs. I did not run the app, tests or a browser preview. I did not perform any actual OAuth, login, logout or inference, used no real credentials and did not use Demo.
+- I did not see results from the "new browser final run" or the independent Codex review. The backend figure of 452 passed / 2 skipped across 41 files was reported to me and not re-run.
+- The desktop consent finding relies on a mocked `window.pitchcrewBrowser` and `window.open`. Electron's real `setWindowOpenHandler` and user-activation behavior for a `window.open` made after an asynchronous request were not observed.
+- I did not verify real Copilot, Grok or OpenCode output formats against the code patterns and link hosts. Hosts such as `microsoft.com` and `github.com` come from the source, not from captured CLI output.
+- I did not check S6 against its callers. There was no screen-reader, physical-phone or Windows PTY verification.

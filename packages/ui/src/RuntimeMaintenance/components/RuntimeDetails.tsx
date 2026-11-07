@@ -5,6 +5,7 @@ import { Button } from '@pitchcrew/design-system/button';
 import { RuntimeAuthentication } from './RuntimeAuthentication.tsx';
 import { RefreshCw } from 'lucide-react';
 import { runtimeLabels } from '@/lib/labels.ts';
+import { settingsTime } from '@/lib/settings-time.ts';
 
 export const RuntimeDetails = ({
   runtime,
@@ -22,23 +23,30 @@ export const RuntimeDetails = ({
     update?.operation?.stage === 'failed' || update?.operation?.stage === 'interrupted';
   return (
     <div className="settings-runtime-details wrap-anywhere">
+      {authentication
+        .filter((entry) => entry.result.status === 'missing')
+        .map((entry) => (
+          <RuntimeAuthentication key={entry.model} model={entry.model} result={entry.result} />
+        ))}
       <div>
         <h4>Installation</h4>
         <p className="quiet">{runtime.detail}</p>
         {update ? <p className="quiet mt-1">{update.detail}</p> : null}
         {update?.checkedAt ? (
           <p className="quiet mt-1">
-            Last checked {new Date(update.checkedAt).toLocaleString()}
+            Last checked {settingsTime(update.checkedAt)}
             {update.lastSuccessAt && update.lastSuccessAt !== update.checkedAt
-              ? `. Last verified ${new Date(update.lastSuccessAt).toLocaleString()}`
+              ? `. Last verified ${settingsTime(update.lastSuccessAt)}`
               : ''}
             .
           </p>
         ) : null}
       </div>
-      {authentication.map((entry) => (
-        <RuntimeAuthentication key={entry.model} model={entry.model} result={entry.result} />
-      ))}
+      {authentication
+        .filter((entry) => entry.result.status !== 'missing')
+        .map((entry) => (
+          <RuntimeAuthentication key={entry.model} model={entry.model} result={entry.result} />
+        ))}
       {!authentication.length && runtime.available && runtime.id !== 'demo' ? (
         <p className="quiet">Sign-in has not been checked. Recheck after signing in to your CLI.</p>
       ) : null}

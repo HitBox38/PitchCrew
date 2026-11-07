@@ -23,10 +23,27 @@ export const smokeAttachments = `(async () => {
   document.querySelector('.chat-rich-input').dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData: transfer('pasted.txt') }));
   const pasted = await waitFor(() => selected()?.textContent.includes('pasted.txt'));
   const fetchOriginal = window.fetch;
-  window.fetch = (url, options) => String(url).endsWith('/conversations/scout/messages') ? Promise.resolve(new Response(JSON.stringify({ error: 'Fixture send failure.' }), { status: 400, headers: { 'content-type': 'application/json' } })) : fetchOriginal(url, options);
-  document.querySelector('.chat-prompt').requestSubmit();
-  const failureRetained = await waitFor(() => document.querySelector('.chat-compose [role="alert"]')?.textContent.includes('Fixture send failure.') && selected()?.children.length === 2 && !document.querySelector('button[aria-label="Send message"]').disabled);
-  window.fetch = fetchOriginal;
+  let attempts = 0, failureRetained = false, keptFiles = false, failureDetails = false, restored = false, noAutoResend = false;
+  window.fetch = (url, options) => {
+    if (!String(url).endsWith('/conversations/scout/messages')) return fetchOriginal(url, options);
+    attempts++;
+    return Promise.resolve(new Response(JSON.stringify({ error: 'Fixture send failure.' }), { status: 400, headers: { 'content-type': 'application/json' } }));
+  };
+  try {
+    document.querySelector('.chat-prompt').requestSubmit();
+    const review = () => [...document.querySelectorAll('.chat-compose button')].find(button => button.textContent === 'Review 1 kept draft');
+    failureRetained = await waitFor(() => !!review() && !selected() && document.querySelector('.chat-composer-recovery')?.textContent.includes('Could not confirm the send.'));
+    review()?.click();
+    const kept = () => document.querySelector('.chat-kept-draft');
+    keptFiles = await waitFor(() => kept()?.querySelectorAll('li').length === 2 && kept()?.textContent.includes('dropped.txt') && kept()?.textContent.includes('pasted.txt'));
+    kept()?.querySelector('.chat-queue-details-trigger')?.click();
+    failureDetails = await waitFor(() => kept()?.querySelector('pre')?.textContent === 'Fixture send failure.');
+    kept()?.querySelector('[data-kept-draft-use]')?.click();
+    restored = await waitFor(() => !document.querySelector('.chat-draft-recovery') && selected()?.children.length === 2 && !document.querySelector('button[aria-label="Send message"]').disabled);
+    noAutoResend = attempts === 1;
+  } finally {
+    window.fetch = fetchOriginal;
+  }
   document.querySelector('.chat-prompt').requestSubmit();
   const sent = await waitFor(() => !selected() && !!document.querySelector('button[aria-label="Download dropped.txt"]') && !!document.querySelector('button[aria-label="Download pasted.txt"]'));
   await waitFor(() => document.querySelector('.chat-rich-input').getAttribute('contenteditable') === 'true');
@@ -35,7 +52,7 @@ export const smokeAttachments = `(async () => {
   const file = message?.attachments?.find((file) => file.name === 'dropped.txt');
   const response = file && await fetch('/api/chat/messages/' + message.id + '/attachments/' + file.id, { headers: { 'x-pitchcrew-client': 'ui' } });
   const downloaded = response?.ok && await response.text() === 'Fictional chat attachment.';
-  const checks = { contextReady, validation, picked, isolated, retained, removed, dropped, pasted, failureRetained, sent, fileOnly: message?.content === '', downloaded };
+  const checks = { contextReady, validation, picked, isolated, retained, removed, dropped, pasted, failureRetained, keptFiles, failureDetails, restored, noAutoResend, sent, fileOnly: message?.content === '', downloaded };
   if (!Object.values(checks).every(Boolean)) throw new Error('Composer attachment checks: ' + JSON.stringify(checks));
   return true;
 })()`;

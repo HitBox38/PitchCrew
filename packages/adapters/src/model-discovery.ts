@@ -4,16 +4,19 @@ import { tmpdir } from 'node:os';
 import { promisify, stripVTControlCharacters } from 'node:util';
 import { modelReasoning, piReasoning } from './reasoning.ts';
 import { cliEnvironment } from './process.ts';
+import { runtimeCommand } from './process/executable.ts';
 
 // Only native model-list operations belong here. Never start a turn or inspect auth files.
 export const modelListCommand = async (
   command: string,
   args: string[],
   signal?: AbortSignal,
+  environment: Record<string, string | undefined> = {},
 ): Promise<string> => {
-  const result = exec(command, args, {
+  const invocation = runtimeCommand(command, args);
+  const result = exec(invocation.file, invocation.args, {
     cwd: tmpdir(),
-    env: cliEnvironment({ NO_COLOR: '1', FORCE_COLOR: '0' }),
+    env: cliEnvironment({ ...environment, NO_COLOR: '1', FORCE_COLOR: '0' }),
     timeout: modelDiscoveryTimeout,
     killSignal: 'SIGKILL',
     maxBuffer: modelDiscoveryMaxBytes,

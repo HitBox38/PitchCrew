@@ -2,6 +2,7 @@ import { Link } from '@tanstack/react-router';
 import type { Snapshot, UserInputRequest } from '@pitchcrew/core';
 import { Button } from '@pitchcrew/design-system/button';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
+import { useQuestionDock } from '../QuestionDockProvider.tsx';
 
 const beads = { pending: 'waiting', answered: 'completed', cancelled: 'cancelled' } as const;
 export const QuestionMessage = ({
@@ -13,6 +14,24 @@ export const QuestionMessage = ({
   data: Snapshot;
   onAnswer: (id: string) => void;
 }) => {
+  const dock = useQuestionDock(question.id);
+  if (question.status === 'pending' && dock.open) return null;
+  if (question.status === 'pending' && dock.present) {
+    const name = data.roles.find((role) => role.id === question.roleId)?.name ?? question.roleId;
+    return (
+      <div className="user-question-record">
+        <StatusBead status="waiting" />
+        <p title={question.question}>
+          <strong>{name} asked:</strong> {question.question}
+        </p>
+        {!dock.open ? (
+          <Button variant="ghost" size="sm" onClick={() => onAnswer(question.id)}>
+            Answer question
+          </Button>
+        ) : null}
+      </div>
+    );
+  }
   const continuation = data.chatRequests?.find(
     (request) => request.id === question.continuationRequestId,
   );

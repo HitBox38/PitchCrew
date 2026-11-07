@@ -1,5 +1,16 @@
 type AnswerKey = { key: string; shiftKey: boolean; altKey: boolean; isComposing: boolean };
 
+/** An explicit collapse persists; removed or newly arrived questions select the first pending one. */
+export const activeQuestion = (
+  questions: readonly { id: string }[],
+  selected: string | undefined,
+) =>
+  selected === ''
+    ? ''
+    : questions.some((question) => question.id === selected)
+      ? selected
+      : questions[0]?.id;
+
 /** Enter answers, as in the message box; Shift+Enter adds a line and IME composition is left alone. */
 export const submitsAnswer = ({ key, shiftKey, altKey, isComposing }: AnswerKey) =>
   key === 'Enter' && !shiftKey && !altKey && !isComposing;
@@ -17,5 +28,5 @@ export const optionShortcut = (event: ShortcutKey, count: number): number | null
 export const ownsNumberKeys = (target: EventTarget | null) =>
   target instanceof HTMLElement &&
   !!target.closest(
-    'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="dialog"], [role="menu"], [role="listbox"]',
+    'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role="textbox"], [role="spinbutton"], [role="combobox"], [role="dialog"], [role="menu"], [role="listbox"]',
   );

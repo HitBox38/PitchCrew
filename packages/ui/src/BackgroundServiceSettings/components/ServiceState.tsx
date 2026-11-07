@@ -41,8 +41,12 @@ export const ServiceState = ({
                 {note}
               </p>
             ))}
-            {info.status.platform ? (
-              <output className="quiet block">{info.status.detail}</output>
+            {info.status.installed && !info.matches ? (
+              <p className="quiet mt-2">
+                {info.status.running
+                  ? 'Using it here stops the running service for the other workspace now and interrupts its work. Open that workspace again to resume its routines; it will no longer start at login.'
+                  : 'Using it here moves the service from the other workspace. That workspace will no longer start at login; open it to run its routines.'}
+              </p>
             ) : null}
           </div>
           {canInstall ? (
@@ -60,11 +64,9 @@ export const ServiceState = ({
             </Button>
           ) : null}
         </div>
-        {canInstall ? (
+        {installing ? (
           <output className="quiet block">
-            {installing
-              ? 'Preparing the production UI and installing the service. This may take a few minutes.'
-              : 'Pitchcrew builds the production UI if needed and installs the service. No administrator rights are needed.'}
+            Preparing the production UI and installing the service. This may take a few minutes.
           </output>
         ) : null}
       </div>

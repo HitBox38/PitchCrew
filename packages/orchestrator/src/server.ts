@@ -1,4 +1,7 @@
 import { registerRuntimeMaintenanceRoutes } from './http/routes/runtime-maintenance.ts';
+import { registerRuntimeSetupRoutes } from './http/routes/runtime-setup.ts';
+import { registerRuntimeConnectionRoutes } from './http/routes/runtime-connections.ts';
+import { registerRuntimeModelPreferenceRoutes } from './http/routes/runtime-model-preferences.ts';
 import { registerSnapshot } from './http/snapshot.ts';
 import { registerExternalMcpRoutes } from './http/routes/external-mcp.ts';
 import { failureCategory } from '@pitchcrew/core/operational-logs';
@@ -172,6 +175,9 @@ const startDaemon = async (options: DaemonOptions, releaseLock: () => Promise<vo
       registerJobSourcesRoutes,
       registerCrewRoutes,
       registerRuntimeMaintenanceRoutes,
+      registerRuntimeSetupRoutes,
+      registerRuntimeConnectionRoutes,
+      registerRuntimeModelPreferenceRoutes,
       registerSkillsRoutes,
       registerRoutinesRoutes,
       registerConnectorsRoutes,

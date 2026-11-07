@@ -18,24 +18,26 @@ export const UpdateReviews = () => {
   const dismissedSkills = availableSkillUpdates(data).length - skills;
   return (
     <SettingsSection id="agent-instruction-updates-heading" title="Updates to review">
-      <Link className="settings-row settings-link-row" to="/crew" search={{ updates: true }}>
-        <span>
-          <strong>Default instructions</strong>
-          <span className="quiet block">
-            {count(instructions, dismissedInstructions, 'update')}
+      <div className="settings-list settings-preferences">
+        <Link className="settings-row settings-link-row" to="/crew" search={{ updates: true }}>
+          <span>
+            <strong>Default instructions</strong>
+            <span className="quiet block">
+              {count(instructions, dismissedInstructions, 'update')}
+            </span>
           </span>
-        </span>
-        <ArrowRight size={16} aria-hidden="true" />
-      </Link>
-      <Link className="settings-row settings-link-row" to="/skills" search={{ updates: true }}>
-        <span>
-          <strong>Imported skills</strong>
-          <span className="quiet block">
-            {count(skills, Math.max(0, dismissedSkills), 'update')}
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+        <Link className="settings-row settings-link-row" to="/skills" search={{ updates: true }}>
+          <span>
+            <strong>Imported skills</strong>
+            <span className="quiet block">
+              {count(skills, Math.max(0, dismissedSkills), 'update')}
+            </span>
           </span>
-        </span>
-        <ArrowRight size={16} aria-hidden="true" />
-      </Link>
+          <ArrowRight size={16} aria-hidden="true" />
+        </Link>
+      </div>
     </SettingsSection>
   );
 };

@@ -14,7 +14,16 @@ export const GroupAttention = ({ rows }: { rows: ConversationNavigationRow[] }) 
           <span className="sr-only">Unread</span>
         </>
       ) : (
-        <StatusBead status={state} label={state === 'waiting' ? 'Waiting for you' : 'Working'} />
+        <StatusBead
+          status={state}
+          label={
+            state === 'failed'
+              ? 'Message failed'
+              : state === 'waiting'
+                ? 'Waiting for you'
+                : 'Working'
+          }
+        />
       )}
     </span>
   );

@@ -8,11 +8,14 @@
     "./isolated-worker": "./src/isolated-worker.ts",
     "./deep-review-labels": "./src/deep-review-labels.ts",
     "./skill-updates": "./src/skill-updates.ts",
+    "./skill-delivery": "./src/skill-delivery.ts",
     "./states": "./src/states.ts",
     "./desktop-links": "./src/desktop-links.ts",
     "./job-link-recognition": "./src/job-link-recognition.ts",
     "./public-job-links": "./src/public-job-links.ts",
     "./chat-references": "./src/chat-references.ts",
+    "./transcript-order": "./src/transcript-order.ts",
+    "./transcript-visibility": "./src/transcript-visibility.ts",
     "./delegation-rounds": "./src/delegation-rounds.ts",
     "./chat-attachments": "./src/chat-attachments.ts",
     "./insights": "./src/insights.ts",
@@ -23,7 +26,9 @@
     "./telemetry-errors": "./src/telemetry-errors.ts",
     "./message-notifications": "./src/message-notifications.ts",
     "./chat-citations": "./src/chat-citations.ts",
-    "./browser-errors": "./src/browser-errors.ts"
+    "./browser-errors": "./src/browser-errors.ts",
+    "./runtime-model-preferences": "./src/runtime-model-preferences-helpers.ts",
+    "./reasoning": "./src/reasoning.ts"
   },
   "dependencies": {
     "strip-ansi": "^7.2.0",

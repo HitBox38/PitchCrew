@@ -1,6 +1,20 @@
-import type { RuntimeAuthentication, RuntimeInfo, RuntimeUpdateInfo, Run } from '@pitchcrew/core';
+import type {
+  RuntimeAuthentication,
+  RuntimeInfo,
+  RuntimeUpdateInfo,
+  RuntimeMaintenanceState,
+  Run,
+} from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { authenticationNotice, lastRuntimeCheck, runtimeStatus, signInStatus } from '../helpers.ts';
+import {
+  authenticationNotice,
+  lastRuntimeCheck,
+  runtimeStatus,
+  signInStatus,
+  runtimeNeedsAttention,
+  runtimeOverview,
+  runtimeVersionLabel,
+} from '../helpers.ts';
 
 const unknown: RuntimeAuthentication = {
   status: 'unknown',
@@ -66,4 +80,37 @@ it('finds the latest runtime update check', () => {
       { checkedAt: '2026-10-23T10:00:00Z' },
     ] as RuntimeUpdateInfo[]),
   ).toBe('2026-10-23T10:00:00Z');
+});
+
+it('summarizes unique actionable installations separately from optional available updates', () => {
+  const runtime = { id: 'codex', available: true, version: '1.0.0', detail: '' } as RuntimeInfo;
+  const runtimes: RuntimeInfo[] = [
+    runtime,
+    { ...runtime, id: 'opencode', available: false },
+    { ...runtime, id: 'claude-code' },
+    { ...runtime, id: 'gemini-cli', available: false, version: '' },
+  ];
+  const state = {
+    authentication: [{ runtime: 'codex', model: '', result: { ...unknown, status: 'missing' } }],
+    updates: [
+      { id: 'codex', status: 'available', operation: { stage: 'failed' } },
+      { id: 'claude-code', status: 'current', operation: { stage: 'interrupted' } },
+    ],
+  } as RuntimeMaintenanceState;
+  expect(runtimeNeedsAttention(runtimes[3], state)).toBe(false);
+  expect(runtimeOverview(runtimes, state)).toBe('3 runtimes need attention · 1 update available.');
+  expect(runtimeOverview([runtime], { ...state, updates: [] })).toBe('1 runtime needs attention.');
+  expect(runtimeOverview([runtime])).toBeUndefined();
+});
+
+it('shows readable versions while preserving the original provider metadata', () => {
+  const original = 'codex-cli 0.210.0';
+  expect(runtimeVersionLabel(original)).toBe('0.210.0');
+  expect(original).toBe('codex-cli 0.210.0');
+  expect(runtimeVersionLabel('OpenCode v2.4.0-beta.1+build.12')).toBe('2.4.0-beta.1+build.12');
+  expect(runtimeVersionLabel('2026.09.26-fixture')).toBe('2026.09.26-fixture');
+  expect(runtimeVersionLabel('unrecognized banner\nInstall directory: fixture')).toBe(
+    'unrecognized banner',
+  );
+  expect(runtimeVersionLabel('')).toBe('Not installed');
 });

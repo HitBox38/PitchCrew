@@ -16,6 +16,24 @@ import { pi } from './pi/index.ts';
 export { discoverModels, suggestedModels } from './model-discovery.ts';
 export { hasRuntimeRecommendation, recommendRuntime } from './recommendations/index.ts';
 export * from './maintenance/index.ts';
+export * from './runtime-auth/index.ts';
+export {
+  runtimeConnectionFields,
+  validateRuntimeConnectionValue,
+} from './process/runtime-connection-fields.ts';
+export {
+  withRuntimeConnection,
+  runtimeConnectionEnvironment,
+  runtimeConnectionDirectory,
+  redactRuntimeConnectionSecrets,
+} from './process/runtime-connection.ts';
+export { skillInstructions } from './process/skill-instructions.ts';
+export {
+  withRuntimeExecutables,
+  runtimeExecutable,
+  runtimeCommand,
+  type RuntimeExecutables,
+} from './process/executable.ts';
 export const adapters: Record<RuntimeId, RuntimeAdapter> = {
   demo,
   'claude-code': claudeCode,

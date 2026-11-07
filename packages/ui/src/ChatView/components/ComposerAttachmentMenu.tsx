@@ -25,7 +25,7 @@ export const ComposerAttachmentMenu = (
   useImperativeHandle(
     props.contextActions,
     () => (action) => {
-      if (action === 'attach' && props.available && !props.working) input.current?.click();
+      if (action === 'attach' && props.available) input.current?.click();
       if (action === 'job' && !jobLocked && !props.working) setChoosingJob(true);
       if (action === 'delegate' && canDelegate) setDelegating(true);
     },
@@ -40,7 +40,7 @@ export const ComposerAttachmentMenu = (
         aria-label="Choose chat attachments"
         multiple
         accept={chatAttachmentAccept}
-        disabled={props.working || !props.available}
+        disabled={!props.available}
         onChange={(event) => {
           props.addFiles(Array.from(event.target.files ?? []));
           event.target.value = '';
@@ -54,7 +54,7 @@ export const ComposerAttachmentMenu = (
               variant="ghost"
               size="sm"
               className="chat-add-context"
-              disabled={props.working}
+              disabled={!props.available}
             />
           }
           aria-label="Add context"
@@ -64,7 +64,7 @@ export const ComposerAttachmentMenu = (
         <ComposerContextItems
           attached={!!props.attached}
           available={props.available}
-          jobLocked={jobLocked}
+          jobLocked={jobLocked || props.working}
           canDelegate={canDelegate}
           onFiles={() => input.current?.click()}
           onJob={() => setChoosingJob(true)}

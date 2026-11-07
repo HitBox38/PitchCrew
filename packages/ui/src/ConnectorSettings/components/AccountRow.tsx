@@ -24,7 +24,7 @@ export const AccountRow = ({
         />
         <div className="min-w-0 flex-1 basis-56">
           <div className="settings-list-title">
-            <h3>{name}</h3>
+            <h4>{name}</h4>
             <span className="ui-row-meta">{state}</span>
           </div>
           <p className="quiet wrap-anywhere">{description}</p>

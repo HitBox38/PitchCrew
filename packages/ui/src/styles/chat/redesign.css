@@ -18,14 +18,113 @@
   padding: 24px 20px 32px;
   gap: 24px;
 }
+.chat-transcript > [data-slot='message-scroller-item'] {
+  /* Keep virtualized paint containment without slicing the bubble's clay edge. */
+  overflow-clip-margin: 8px;
+}
 .chat-message-content {
   max-width: 100%;
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+.chat-message-content .markdown-content {
+  line-height: 20px;
+}
+.chat-message-content .markdown-content :is(ul, ol) {
+  list-style-position: outside;
+  padding-inline-start: 1.25rem;
+}
+.chat-message-content .markdown-content ul {
+  list-style-type: disc;
+}
+.chat-message-content .markdown-content ol {
+  list-style-type: decimal;
+  padding-inline-start: calc(var(--chat-list-digits, 2) * 1ch + 0.9rem);
+}
+.chat-markdown-list-item {
+  margin-block: 0.25rem;
+}
+.chat-message-content .markdown-content li:has(> input[type='checkbox']) {
+  list-style-type: none;
+}
+.chat-message-content
+  .markdown-content
+  :is([data-streamdown='table-wrapper'], [data-streamdown='code-block']) {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
 }
 .chat-message.is-assistant:not(.chat-system) .chat-message-content {
   max-width: calc(100% - 30px);
 }
+.chat-markdown-table {
+  min-width: 0;
+  max-width: 100%;
+  margin: 12px 0;
+}
+.chat-table-viewport {
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+.chat-table-viewport:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+.chat-table-viewport table {
+  width: 100%;
+}
+.chat-table-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px 12px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 18px;
+}
+.chat-table-scroll-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-inline-end: auto;
+}
+.chat-table-scroll-hint svg {
+  flex-shrink: 0;
+}
+.chat-table-copy-status:not([data-error]) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.chat-table-copy-status[data-error] {
+  flex-basis: 100%;
+  order: 1;
+}
+.chat-table-copy {
+  flex-shrink: 0;
+  min-width: 32px;
+  min-height: 32px;
+  height: 32px;
+  padding-inline: 7px;
+  border-radius: 8px;
+}
+@media (width < 768px), (pointer: coarse) {
+  .chat-table-copy {
+    min-width: 44px;
+    min-height: 44px;
+    height: 44px;
+  }
+}
+/* The desk stays wide for files, tables and code; prose keeps a reading measure. */
+.chat-message.is-assistant .chat-message-content :is(p, ul, ol, blockquote),
+.chat-turn-commentary {
+  max-width: 76ch;
+}
 .chat-message.is-user {
-  max-width: 85%;
+  max-width: min(85%, calc(76ch + 32px));
 }
 .chat-message.is-user .chat-message-content {
   box-shadow: var(--clay);
@@ -161,6 +260,9 @@
   }
   .chat-compose {
     padding: 11px 12px;
+  }
+  .chat-textarea {
+    min-height: 44px;
   }
   .chat-context-select {
     max-width: 190px;

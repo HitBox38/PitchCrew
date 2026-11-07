@@ -10,8 +10,14 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
   const { thread, data, messages } = props;
   const remote = data.messageHistory !== undefined;
   const localItems = useMemo(
-    () => (remote ? [] : transcriptItems(messages, data.runs, thread)),
-    [remote, messages, data.runs, thread],
+    () =>
+      remote
+        ? []
+        : transcriptItems(messages, data.runs, thread, {
+            requests: data.chatRequests,
+            tasks: data.tasks,
+          }),
+    [remote, messages, data.runs, data.chatRequests, data.tasks, thread],
   );
   const local = useHistoryWindow(localItems, props.focusRunId);
   const [anchor, selectAnchor] = useState<string | null>(
@@ -63,10 +69,13 @@ export const useConversationHistory = (props: MessageTranscriptProps) => {
     () =>
       saved
         ? following
-          ? liveHistoryItems(saved, data.streamingMessages, data.runs, thread)
+          ? liveHistoryItems(saved, data.streamingMessages, data.runs, thread, {
+              requests: data.chatRequests,
+              tasks: data.tasks,
+            })
           : saved.items
         : [],
-    [saved, following, data.streamingMessages, data.runs, thread],
+    [saved, following, data.streamingMessages, data.runs, data.chatRequests, data.tasks, thread],
   );
   const total = saved ? Math.max(saved.total, saved.start + items.length) : 0;
   return remote

@@ -5,7 +5,7 @@ import {
   workspaceMessages,
 } from '../src/index.ts';
 import { transcriptItems } from '../../ui/src/ChatTurn/helpers.ts';
-import type { ChatMessage, Conversation, Run } from '@pitchcrew/core';
+import type { AgentTask, ChatRequest, ChatMessage, Conversation, Run } from '@pitchcrew/core';
 import { randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -169,4 +169,147 @@ it('replaces a turn’s configuration snapshot with the model and reasoning it r
   const [item] = conversationHistory(board, 'scout').items;
   expect(item).toMatchObject({ kind: 'turn', run: { model: 'sonnet', reasoning: 'high' } });
   expect(JSON.stringify(item)).not.toContain('PRIVATE');
+});
+
+it('projects one logical group reply and excludes never-started requests without altering saved records', () => {
+  const at = '2026-11-06T12:00:00.000Z';
+  const run: Run = {
+    id: 'scout-run',
+    roleId: 'scout',
+    runtime: 'codex',
+    mode: 'chat',
+    threadId: 'group',
+    cardId: null,
+    status: 'completed',
+    message: '',
+    startedAt: at,
+    finishedAt: at,
+    activity: [
+      {
+        id: 'step',
+        kind: 'tool',
+        label: 'Done',
+        status: 'completed',
+        startedAt: at,
+        finishedAt: at,
+      },
+    ],
+  };
+  const canonical = message(1, {
+    id: 'canonical',
+    threadId: 'group',
+    from: 'scout',
+    to: 'user',
+    runId: run.id,
+    content: '@coach Here is my answer.',
+    references: [{ kind: 'agent', id: 'coach', label: 'Coach', token: '@coach', start: 0, end: 6 }],
+    createdAt: at,
+  });
+  const forward = message(2, {
+    ...canonical,
+    id: 'forward',
+    to: 'coach',
+    createdAt: '2026-11-06T12:00:00.001Z',
+  });
+  const repeated = message(3, {
+    ...canonical,
+    id: 'later-answer',
+    runId: 'later-run',
+    createdAt: '2026-11-06T12:00:01.000Z',
+  });
+  const unsent = message(4, {
+    id: 'unsent',
+    threadId: 'group',
+    from: 'user',
+    content: 'Unsent follow-up',
+    createdAt: at,
+  });
+  const partial = message(5, { id: 'partial', threadId: 'group', from: 'user', createdAt: at });
+  const request: ChatRequest = {
+    id: 'pending',
+    threadId: 'group',
+    messageId: unsent.id,
+    content: unsent.content,
+    attachments: [],
+    createdAt: at,
+    order: 0,
+    deliveries: [{ roleId: 'coach', status: 'paused', runId: null, error: '' }],
+  };
+  const delivered = {
+    ...request,
+    id: 'delivered',
+    messageId: partial.id,
+    deliveries: [
+      { roleId: 'coach', status: 'completed' as const, runId: 'coach-run', error: '' },
+      ...request.deliveries,
+    ],
+  };
+  const task: AgentTask = {
+    id: 'task',
+    parentRunId: run.id,
+    rootRunId: run.id,
+    roleId: 'coach',
+    threadId: 'group',
+    content: canonical.content,
+    cardId: null,
+    mode: 'chat',
+    trigger: 'message',
+    status: 'queued',
+    runId: null,
+    error: '',
+    createdAt: forward.createdAt,
+  };
+  board.record('run', run, 'scout', 'Fixture');
+  board.record('task', task, 'scout', 'Fixture');
+  board.record('chat_request', request, 'user', 'Fixture');
+  board.record('chat_request', delivered, 'user', 'Fixture');
+  const messages = [canonical, forward, repeated, unsent, partial];
+  const expected = transcriptItems(messages, [run], 'group', {
+    requests: [request, delivered],
+    tasks: [task],
+  });
+  expect(conversationHistory(board, 'group').items).toEqual(expected);
+  expect(expected.map((item) => item.id)).toEqual([
+    'partial',
+    'turn-scout-run',
+    'canonical',
+    'later-answer',
+  ]);
+  expect(board.list<ChatMessage>('message')).toHaveLength(5);
+  expect(board.get<AgentTask>('task', task.id)).toEqual(task);
+  expect(searchConversationMessages(board, 'Unsent follow-up')).toEqual(['group']);
+});
+
+it('keeps settled turns beside their answer across history page boundaries and includes silent failures', () => {
+  const messages = Array.from({ length: 54 }, (_, index) =>
+    message(index, {
+      from: 'user',
+      createdAt: new Date(Date.UTC(2026, 10, 6, 12, 0, index)).toISOString(),
+    }),
+  );
+  const run: Run = {
+    id: 'paired',
+    roleId: 'scout',
+    runtime: 'codex',
+    mode: 'chat',
+    threadId: 'scout',
+    cardId: null,
+    status: 'failed',
+    startedAt: messages[0].createdAt,
+    finishedAt: null,
+    message: 'Runtime exited.',
+  };
+  const reply = message(49, { ...messages[49], from: 'scout', to: 'user', runId: run.id });
+  messages[49] = reply;
+  board.record('run', run, 'scout', 'Fixture');
+  const expected = transcriptItems(messages, [run], 'scout');
+  const first = conversationHistory(board, 'scout', messages[0].id);
+  expect(first.items).toEqual(expected.slice(0, 51));
+  expect(first.items.slice(-2).map((item) => item.id)).toEqual(['turn-paired', reply.id]);
+  const second = conversationHistory(board, 'scout', first.newer!);
+  expect([...first.items, ...second.items]).toEqual(expected);
+  board.record('run', { ...run, id: 'silent-failure' }, 'scout', 'Fixture');
+  expect(conversationHistory(board, 'scout', 'turn-silent-failure').items).toContainEqual(
+    expect.objectContaining({ id: 'turn-silent-failure' }),
+  );
 });

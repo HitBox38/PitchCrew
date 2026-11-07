@@ -1,6 +1,12 @@
 import type { BackgroundServiceInfo } from '@pitchcrew/core';
 import { expect, it } from 'vitest';
-import { serviceBadges, serviceCommands, serviceNotes, serviceRunning } from '../helpers.ts';
+import {
+  serviceBadges,
+  serviceCommands,
+  serviceDiagnostics,
+  serviceNotes,
+  serviceRunning,
+} from '../helpers.ts';
 
 const info = (overrides: Partial<BackgroundServiceInfo> = {}): BackgroundServiceInfo => ({
   status: {
@@ -34,7 +40,9 @@ it('shows an installed service that started this daemon with removal commands', 
     { label: 'Installed', success: true },
     { label: 'Running', success: true },
   ]);
-  expect(serviceNotes(value)[0]).toContain('The background service started this daemon');
+  expect(serviceNotes(value)).toEqual([
+    'This workspace’s background service keeps routines running after you close the window.',
+  ]);
   expect(serviceCommands(value)).toEqual([
     'bun run service status',
     'bun run service logs',
@@ -51,13 +59,18 @@ it('offers install for a missing service and explains a service for another fold
   });
   expect(serviceBadges(missing)).toEqual([{ label: 'Not installed', success: false }]);
   expect(serviceCommands(missing)).toEqual([]);
-  expect(serviceNotes(missing).join(' ')).toContain('data folder and port automatically');
+  expect(serviceNotes(missing)).toHaveLength(1);
+  expect(serviceNotes(missing)[0]).toContain('Install the service');
+  expect(serviceDiagnostics(missing).join(' ')).toContain('data folder and port automatically');
   const elsewhere = info({ matches: false, startedByService: false });
   expect(serviceBadges(elsewhere)[0]).toEqual({
-    label: 'Installed for another folder',
+    label: 'Installed for another workspace',
     success: false,
   });
-  expect(serviceNotes(elsewhere).join(' ')).toContain('on port 4417');
+  expect(serviceNotes(elsewhere)).toHaveLength(1);
+  expect(serviceNotes(elsewhere)[0]).toContain('running for another workspace');
+  expect(serviceDiagnostics(elsewhere).join(' ')).toContain('on port 4417');
+  expect(serviceBadges(elsewhere)[1]).toEqual({ label: 'Running elsewhere', success: false });
   expect(serviceCommands(elsewhere)).toEqual(['bun run service uninstall']);
 });
 
@@ -74,4 +87,24 @@ it('shows a running bead only for this workspace’s running service', () => {
   expect(serviceRunning(info())).toBe(true);
   expect(serviceRunning(info({ matches: false }))).toBe(false);
   expect(serviceRunning(info({ status: { ...info().status, running: false } }))).toBe(false);
+});
+
+it('keeps the service explanation scoped to the current workspace without dumping diagnostics', () => {
+  const elsewhere = info({ matches: false, startedByService: false });
+  expect(serviceNotes(elsewhere)[0]).not.toContain('4417');
+  expect(serviceNotes(elsewhere)[0]).not.toContain('Task Scheduler');
+  expect(serviceDiagnostics(elsewhere)).toContain('Task Scheduler has the task.');
+  const ownManual = info({ startedByService: false });
+  expect(serviceNotes(ownManual)).toEqual([
+    'The service will start this workspace at login; the current workspace was opened separately.',
+  ]);
+  expect(
+    serviceNotes(
+      info({
+        matches: false,
+        startedByService: false,
+        status: { ...info().status, running: false },
+      }),
+    )[0],
+  ).toContain('set up for another workspace');
 });

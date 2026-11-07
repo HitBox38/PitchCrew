@@ -9,7 +9,11 @@ export const useModelField = ({
   value,
   onValueChange,
 }: ModelFieldProps) => {
-  const { catalog, loading, error, refreshModels } = useModelCatalog(runtime, initialCatalog);
+  const { catalog, loading, error, refreshModels } = useModelCatalog(
+    runtime,
+    initialCatalog,
+    value,
+  );
   return {
     id,
     runtime,

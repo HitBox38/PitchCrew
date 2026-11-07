@@ -1,7 +1,8 @@
 import { Input } from '@pitchcrew/design-system/input';
 import { Textarea } from '@pitchcrew/design-system/textarea';
 import { FormSelect } from '@/FormSelect/index.tsx';
-import { fieldNumber, fieldText, ruleFormKey } from '../form-helpers.ts';
+import { fieldText, ruleFormKey } from '../form-helpers.ts';
+import { NumericRuleField } from './NumericRuleField.tsx';
 import type { RuleFormProps } from './RuleFormBasics.tsx';
 
 export const RulePatternFields = ({ rule, index, change }: RuleFormProps) => {
@@ -65,22 +66,13 @@ export const RulePatternFields = ({ rule, index, change }: RuleFormProps) => {
               />
             </label>
           ) : (
-            <label htmlFor={ruleFormKey(index, 'maxCount')}>
-              Maximum matches
-              <Input
-                id={ruleFormKey(index, 'maxCount')}
-                type="number"
-                min={0}
-                max={1000}
-                step={1}
-                value={rule.maxCount === undefined ? 0 : fieldNumber(rule.maxCount)}
-                onChange={(event) =>
-                  change({
-                    maxCount: event.target.value === '' ? null : Number(event.target.value),
-                  })
-                }
-              />
-            </label>
+            <NumericRuleField
+              rule={{ ...rule, maxCount: rule.maxCount === undefined ? 0 : rule.maxCount }}
+              index={index}
+              change={change}
+              field="maxCount"
+              label="Maximum matches"
+            />
           )}
         </div>
       )}

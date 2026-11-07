@@ -10,48 +10,54 @@ import { QuestionAnswerForm } from './components/QuestionAnswerForm.tsx';
 import { QuestionToaster } from './components/QuestionToaster.tsx';
 import type { PendingQuestionsProps } from './types.ts';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
+import { activeQuestion } from './helpers.ts';
+import { useQuestionReveal } from './hooks/useQuestionReveal.ts';
+import { QuestionResponseRecoveries } from './components/QuestionResponseRecoveries.tsx';
 export const PendingQuestions = (props: PendingQuestionsProps) => {
-  const active =
-    props.activeQuestionId === ''
-      ? ''
-      : props.questions.some((q) => q.id === props.activeQuestionId)
-        ? props.activeQuestionId
-        : props.questions[0]?.id;
+  const active = activeQuestion(props.questions, props.activeQuestionId);
+  useQuestionReveal(active || undefined);
   return (
-    <AnimatePresence initial={false} key={props.thread}>
-      {props.questions.length ? (
-        <QuestionToaster key="questions" reduced={props.reduced}>
-          {props.questions.map((question) => (
-            <Collapsible
-              key={question.id}
-              open={active === question.id}
-              onOpenChange={(open) => props.setActiveQuestionId(open ? question.id : '')}
-              className="pending-user-question"
-            >
-              <CollapsibleTrigger className="pending-question-trigger">
-                <RoleAvatar agentRole={question.roleId} size="small" />
-                <span className="pending-question-label">
-                  <strong>
-                    {props.data.roles.find((role) => role.id === question.roleId)?.name ??
-                      question.roleId}
-                  </strong>{' '}
-                  is waiting for you
-                </span>
-                <StatusBead status="waiting" />
-                <ChevronDown className="pending-question-chevron" size={15} />
-              </CollapsibleTrigger>
-              <CollapsibleContent keepMounted>
-                <QuestionAnswerForm
-                  question={question}
-                  action={props.action}
-                  working={props.working}
-                  active={active === question.id}
-                />
-              </CollapsibleContent>
-            </Collapsible>
-          ))}
-        </QuestionToaster>
-      ) : null}
-    </AnimatePresence>
+    <>
+      <QuestionResponseRecoveries thread={props.thread} />
+      <AnimatePresence initial={false} key={props.thread}>
+        {props.questions.length ? (
+          <QuestionToaster key="questions" reduced={props.reduced}>
+            {props.questions.map((question) => (
+              <Collapsible
+                key={question.id}
+                open={active === question.id}
+                onOpenChange={(open) => props.setActiveQuestionId(open ? question.id : '')}
+                className="pending-user-question"
+                data-question-id={question.id}
+              >
+                <CollapsibleTrigger className="pending-question-trigger">
+                  <RoleAvatar agentRole={question.roleId} size="small" />
+                  <span className="pending-question-label">
+                    <strong>
+                      {props.data.roles.find((role) => role.id === question.roleId)?.name ??
+                        question.roleId}
+                    </strong>{' '}
+                    asks{' '}
+                    <span className="pending-question-preview" title={question.question}>
+                      {question.question}
+                    </span>
+                  </span>
+                  <StatusBead status="waiting" />
+                  <ChevronDown className="pending-question-chevron" size={15} />
+                </CollapsibleTrigger>
+                <CollapsibleContent keepMounted>
+                  <QuestionAnswerForm
+                    question={question}
+                    action={props.action}
+                    working={props.working}
+                    active={active === question.id}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            ))}
+          </QuestionToaster>
+        ) : null}
+      </AnimatePresence>
+    </>
   );
 };

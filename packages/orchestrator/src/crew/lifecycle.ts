@@ -283,6 +283,7 @@ export const close = async (context: CrewContext): Promise<void> => {
       });
   }
   for (const controller of context.controllers.values()) controller.abort();
+  await Promise.allSettled([context.runtimeAuth.close(), context.runtimeSetup.close()]);
   await Promise.allSettled([
     ...context.modelRequests.values(),
     context.skillUpdateChecks.close(),

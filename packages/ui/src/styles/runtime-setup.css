@@ -1,0 +1,160 @@
+/* One workspace-scoped setup sheet; diagnostics and native sign-in never enter agent chat. */
+.modal.runtime-setup-dialog {
+  display: flex;
+  width: min(760px, calc(100vw - 32px));
+  height: min(740px, calc(100dvh - var(--desktop-titlebar-height, 0px) - 32px));
+  max-width: none;
+  flex-direction: column;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+.runtime-setup-dialog > .modal-heading {
+  flex: none;
+  padding: 14px 20px 0;
+}
+.runtime-setup-dialog .runtime-setup-intro {
+  flex: none;
+  padding: 8px 20px 16px;
+}
+.runtime-setup-tabs {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+.runtime-setup-sections {
+  width: auto;
+  align-self: stretch;
+  margin: 0 20px 16px;
+  flex: none;
+}
+.runtime-setup-sections > button {
+  flex: 1;
+  min-width: 0;
+  min-height: 60px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+.runtime-step-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 var(--text-caption) / var(--text-caption--line-height) var(--font-sans);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.runtime-step-status .clay-bead[data-empty] {
+  border: 1px solid var(--muted);
+}
+.runtime-setup-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 20px 20px;
+}
+.runtime-setup-dialog h3 {
+  font: 600 var(--text-section) / var(--text-section--line-height) var(--font-sans);
+}
+.runtime-setup-footer {
+  display: flex;
+  flex: none;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+}
+.runtime-location {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 16px;
+  font: var(--text-caption) / var(--text-caption--line-height) var(--font-sans);
+}
+.runtime-location dt {
+  color: var(--muted);
+}
+.runtime-location dd {
+  overflow-wrap: anywhere;
+  user-select: text;
+}
+.runtime-setup-operation {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+.runtime-setup-operation[data-failed] {
+  color: var(--rose);
+}
+.runtime-model-notice {
+  border-left: 3px solid var(--ochre);
+}
+.runtime-auth-terminal {
+  height: 200px;
+  min-width: 0;
+  overflow: hidden;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: var(--clay-sunken);
+}
+.runtime-installer-output {
+  max-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: var(--text-caption) / var(--text-caption--line-height) var(--font-mono);
+}
+.runtime-sign-in-link {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 44px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.runtime-assignments {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .runtime-terminal-keyboard-hint {
+    display: none;
+  }
+  .runtime-auth-terminal {
+    height: 180px;
+  }
+  .runtime-model-basics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .runtime-setup-dialog button,
+  .runtime-setup-dialog [data-slot='button'] {
+    min-height: 44px;
+  }
+  .runtime-setup-dialog button[data-size^='icon'] {
+    min-width: 44px;
+  }
+  .runtime-setup-footer {
+    flex-wrap: wrap;
+  }
+  .runtime-setup-footer > button {
+    margin-left: auto;
+  }
+  .runtime-location {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
+  .runtime-location dd {
+    margin-bottom: 8px;
+  }
+}

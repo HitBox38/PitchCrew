@@ -138,10 +138,15 @@ test('keeps history and the answer footer reachable beside an expanded long ques
   await answer.fill('Keep my answer draft.');
   await expect.poll(() => page.locator('html').getAttribute('data-question-entered')).toBe('true');
   // Keep the entrance visibly in flight even when draft entry has already waited for stability.
-  await page.locator('.pending-user-questions-lane').evaluate((lane) => {
-    lane.animate([{ transform: 'translateY(40px)' }, { transform: 'translateY(0px)' }], {
-      duration: 1200,
-    });
+  await page.locator('.pending-user-questions-lane').evaluate(async (lane) => {
+    const animation = lane.animate(
+      [{ transform: 'translateY(40px)' }, { transform: 'translateY(0px)' }],
+      {
+        duration: 1200,
+      },
+    );
+    await animation.finished;
+    animation.cancel();
   });
   // The entrance deliberately passes behind the composer. Measure its resting layout only
   // after the lane reaches its final position, without weakening any of the bounds below.
@@ -172,6 +177,9 @@ test('keeps history and the answer footer reachable beside an expanded long ques
         expect(await answer.inputValue()).toBe('Keep my answer draft.');
         continue;
       }
+      const submit = page.locator('.pending-user-question button[type="submit"]');
+      // Short columns may scroll as a whole; reveal the actions through that scroll owner.
+      await submit.scrollIntoViewIfNeeded();
       const measure = () =>
         page.evaluate(() => {
           const measure = (selector: string) => {
@@ -182,40 +190,74 @@ test('keeps history and the answer footer reachable beside an expanded long ques
               height: rect.height,
               bottom: rect.bottom,
               scroll: element.scrollHeight,
+              scrollTop: element.scrollTop,
               overflow: getComputedStyle(element).overflowY,
+              hidden: element instanceof HTMLElement && element.hidden,
+              transform: getComputedStyle(element).transform,
             };
           };
           return {
             panel: measure('.chat-panel'),
             history: measure('[data-slot="message-scroller-viewport"]'),
             dock: measure('.pending-user-questions'),
+            stage: measure('.pending-question-stage'),
             fields: measure('.user-question-fields'),
             lane: measure('.pending-user-questions-lane'),
             composer: measure('.chat-compose'),
             answer: measure('.user-question-custom'),
             actions: measure('.user-question-actions'),
+            content: measure('.pending-user-question [data-slot="collapsible-content"]'),
+            form: measure('.user-question-form'),
           };
         });
-      await expect.poll(async () => (await measure()).history.height).toBeGreaterThan(100);
+      await expect
+        .poll(async () => {
+          const current = await measure();
+          // Four 20px body lines remain readable beside the long question and the pager.
+          expect(
+            current.history.height,
+            JSON.stringify({ size, open, layout: current }),
+          ).toBeGreaterThanOrEqual(80);
+          return true;
+        })
+        .toBe(true);
       const layout = await measure();
       expect(layout.fields.height, JSON.stringify({ size, open, layout })).toBeGreaterThan(20);
       expect(layout.fields.scroll).toBeGreaterThan(layout.fields.height);
       expect(layout.answer.top).toBeGreaterThanOrEqual(layout.fields.bottom);
       expect(layout.actions.top).toBeGreaterThanOrEqual(layout.answer.bottom);
+      // Native scrollTop is integral while layout rectangles may end on a fractional CSS pixel.
       expect(layout.actions.bottom, JSON.stringify({ size, open, layout })).toBeLessThanOrEqual(
-        layout.composer.top,
+        (layout.composer.hidden ? layout.panel.bottom : layout.composer.top) + 1,
       );
-      expect(layout.lane.scroll).toBeLessThanOrEqual(layout.lane.height + 2);
-      if (size.height >= 900)
+      if (layout.composer.hidden) expect(layout.composer.height).toBe(0);
+      expect(layout.stage.scrollTop, JSON.stringify({ size, open, layout })).toBe(0);
+      // The transformed Motion wrapper's scrollHeight includes non-visible overflow. Check the
+      // actual visible surface and its content against the clip, not that synthetic scroll area.
+      expect(layout.lane.top).toBeGreaterThanOrEqual(layout.stage.top);
+      expect(layout.lane.bottom).toBeLessThanOrEqual(layout.stage.bottom + 1);
+      for (const part of [layout.content, layout.form, layout.answer, layout.actions]) {
+        expect(part.top, JSON.stringify({ size, open, layout })).toBeGreaterThanOrEqual(
+          layout.lane.top,
+        );
+        expect(part.bottom, JSON.stringify({ size, open, layout })).toBeLessThanOrEqual(
+          layout.lane.bottom + 1,
+        );
+      }
+      if (!layout.composer.hidden && size.height >= 900)
         expect(layout.composer.bottom, JSON.stringify({ size, open, layout })).toBeLessThanOrEqual(
           size.height,
         );
-      const submit = page.locator('.pending-user-question button[type="submit"]');
-      await submit.scrollIntoViewIfNeeded();
       const submitBounds = (await submit.boundingBox())!;
-      expect(submitBounds.y).toBeGreaterThanOrEqual(0);
-      expect(submitBounds.y + submitBounds.height).toBeLessThanOrEqual(size.height);
+      expect(submitBounds.y).toBeGreaterThanOrEqual(layout.panel.top);
+      expect(submitBounds.y + submitBounds.height).toBeLessThanOrEqual(
+        Math.min(size.height, layout.panel.bottom) + 1,
+      );
       const history = page.locator('[data-slot="message-scroller-viewport"]');
+      // Return the scrollable chat column to its reading position before using its inner history.
+      await page.locator('.chat-heading').hover();
+      await page.mouse.wheel(0, -100000);
+      await expect.poll(() => page.locator('.chat-panel').evaluate((el) => el.scrollTop)).toBe(0);
       await history.hover();
       await page.mouse.wheel(0, -100000);
       await expect.poll(() => history.evaluate((el) => el.scrollTop)).toBe(0);
@@ -226,7 +268,11 @@ test('keeps history and the answer footer reachable beside an expanded long ques
         })
         .waitFor();
       await page.getByRole('button', { name: 'Latest', exact: true }).click();
-      await page.locator('.user-question-message[data-status="pending"]').waitFor();
+      await expect
+        .poll(() => page.getByRole('button', { name: 'Latest', exact: true }).isDisabled())
+        .toBe(true);
+      expect(await page.locator('.user-question-record').count()).toBe(0);
+      expect(await answer.isVisible()).toBe(true);
       expect(await answer.inputValue()).toBe('Keep my answer draft.');
       if (size.width === 1442 && open && process.env.PITCHCREW_TEST_ARTIFACTS)
         await page.screenshot({
@@ -237,11 +283,12 @@ test('keeps history and the answer footer reachable beside an expanded long ques
   }
   await page.locator('.pending-question-trigger').click();
   await expect.poll(() => answer.isVisible()).toBe(false);
+  await page.locator('.user-question-record').waitFor();
+  const composer = page.locator('.chat-textarea');
+  await composer.fill('A separate composer draft.');
   await page.getByRole('button', { name: 'Answer question', exact: true }).click();
   await expect.poll(() => answer.evaluate((el) => document.activeElement === el)).toBe(true);
   expect(await answer.inputValue()).toBe('Keep my answer draft.');
-  const composer = page.locator('.chat-textarea');
-  await composer.fill('A separate composer draft.');
   const fields = page.locator('.user-question-fields');
   await fields.hover();
   await page.mouse.wheel(0, 10000);
