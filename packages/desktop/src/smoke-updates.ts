@@ -1,4 +1,6 @@
 /** Real renderer checks using only the fixture daemon's injected release responses. */
+export const smokeAutomaticUpdatesSelector =
+  '[role="switch"][aria-labelledby~="automatic-updates-label"]';
 export const smokeUpdates = `(async () => {
   const updateSelector = '.app-update-button';
   const notice = await waitFor(() => !!document.querySelector(updateSelector));
@@ -9,9 +11,7 @@ export const smokeUpdates = `(async () => {
   const compactIndicator = !!updateBounds && updateBounds.width > 0 && updateBounds.width <= 44 && updateBounds.height >= 32;
   const sameRow = !!updateBounds && !!settingsBounds && Math.abs(updateBounds.top + updateBounds.height / 2 - (settingsBounds.top + settingsBounds.height / 2)) < 1;
   const noPageBanner = !document.querySelector('.page')?.textContent.includes('A newer Pitchcrew build is available.');
-  document.querySelector('.workspace-settings')?.click();
-  if (!await waitFor(() => !!document.querySelector('.settings-tabs'))) throw new Error('Settings navigation missing.');
-  [...document.querySelectorAll('.settings-tabs [role="tab"]')].find(tab => tab.textContent.startsWith('Updates'))?.click();
+  await openSettingsSection('updates', 'Updates');
   const settings = await waitFor(() => !!document.querySelector('#updates-heading'));
   const retained = document.querySelector(updateSelector) === indicator;
   document.querySelector('button[aria-label="Hide sidebar"]')?.click();
@@ -30,14 +30,14 @@ export const smokeUpdates = `(async () => {
   const version = section?.textContent.includes('Version 0.1.0') && section?.textContent.includes('Build aaaaaaaaaaaa');
   const release = section?.querySelector('a[aria-label="View release and download"]');
   const link = release?.getAttribute('href') === 'https://github.com/HitBox38/PitchCrew/releases/tag/build-' + 'b'.repeat(40) && release?.getAttribute('target') === '_blank';
-  const preference = section?.querySelector('[role="switch"][aria-label="Check automatically"]');
+  const preference = section?.querySelector(${JSON.stringify(smokeAutomaticUpdatesSelector)});
   const enabled = preference?.getAttribute('aria-checked') === 'true';
   const bounds = preference?.getBoundingClientRect();
   const compactControl = bounds && bounds.width > 0 && bounds.width <= 42 && bounds.height <= 24;
   preference?.click();
-  const disabled = await waitFor(() => localStorage.getItem('pitchcrew-automatic-updates-v1') === 'false');
+  const disabled = await waitFor(() => localStorage.getItem('pitchcrew-automatic-updates-v1') === 'false' && preference?.getAttribute('aria-checked') === 'false');
   preference?.click();
-  const restored = await waitFor(() => localStorage.getItem('pitchcrew-automatic-updates-v1') === 'true');
+  const restored = await waitFor(() => localStorage.getItem('pitchcrew-automatic-updates-v1') === 'true' && preference?.getAttribute('aria-checked') === 'true');
   const button = [...section?.querySelectorAll('button') ?? []].find((button) => button.textContent.includes('Check for updates'));
   button?.click();
   await new Promise((resolve) => setTimeout(resolve, 0));

@@ -2,6 +2,8 @@ import { chromium, type Browser, type Page } from 'playwright';
 import { afterAll, afterEach, beforeAll, beforeEach, expect, test, vi } from 'vitest';
 import type { ConnectorStatus, ExternalMcpInfo, PacketRules, Role } from '@pitchcrew/core';
 import { cleanup, setup } from './helpers/daemon.ts';
+import { smokeSettingsNavigation } from '../../desktop/src/smoke-settings.ts';
+import { smokeAutomaticUpdatesSelector } from '../../desktop/src/smoke-updates.ts';
 
 let host: Awaited<ReturnType<typeof setup>>;
 let browser: Browser;
@@ -55,6 +57,45 @@ beforeEach(async () => {
   page.setDefaultTimeout(10000);
   page.on('pageerror', (error) => errors.push(error.message));
 });
+test.each([1440, 860])(
+  'desktop smoke selects actual settings sections at %ipx',
+  async (width) => {
+    await page.setViewportSize({ width, height: 900 });
+    await open('updates');
+    const navigation = page.getByRole('navigation', { name: 'Settings', exact: true });
+    await (
+      width === 860
+        ? navigation.getByRole('combobox', { name: 'Settings section', exact: true })
+        : navigation.getByRole('tab', { name: 'Updates', exact: true })
+    ).waitFor();
+    for (const [section, label, selector] of [
+      ['updates', 'Updates', '#updates-heading'],
+      ['runtimes', 'Runtimes', '#runtime-heading'],
+      ['accounts', 'Accounts', '#external-mcp-enabled-label'],
+    ]) {
+      await page.evaluate(`(async () => {
+      const waitFor = async (test) => {
+        for (let i = 0; i < 80; i++) {
+          if (test()) return true;
+          await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        return false;
+      };
+      ${smokeSettingsNavigation}
+      await openSettingsSection(${JSON.stringify(section)}, ${JSON.stringify(label)});
+    })()`);
+      expect(new URL(page.url()).searchParams.get('section')).toBe(section);
+      await page.locator(selector).waitFor();
+      if (section === 'updates') {
+        const preference = page.locator(smokeAutomaticUpdatesSelector);
+        expect(await preference.count()).toBe(1);
+        expect(await preference.getAttribute('role')).toBe('switch');
+        expect(await preference.isVisible()).toBe(true);
+      }
+    }
+  },
+  30000,
+);
 afterEach(async () => {
   await page?.close();
   vi.restoreAllMocks();
