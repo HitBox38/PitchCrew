@@ -181,7 +181,7 @@ it('latches a cleared Lexical draft through blur until question collapse/reopen'
   await draft.fill('abc');
   await page.evaluate(() => window.fixture.setOpen(true));
   await draft.focus();
-  await page.keyboard.press('Control+A');
+  await page.keyboard.press('ControlOrMeta+A');
   await page.keyboard.press('Backspace');
   await page.keyboard.type('a b', { delay: 25 });
   expect(await draft.innerText()).toBe('a b');

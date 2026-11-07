@@ -259,8 +259,15 @@ test('keeps history and the answer footer reachable beside an expanded long ques
       await page.mouse.wheel(0, -100000);
       await expect.poll(() => page.locator('.chat-panel').evaluate((el) => el.scrollTop)).toBe(0);
       await history.hover();
+      // Chromium on macOS can latch adjacent wheel events to the previous scroll owner.
+      // End that gesture before testing the nested history viewport.
+      if (process.platform === 'darwin') await page.waitForTimeout(350);
       await page.mouse.wheel(0, -100000);
-      await expect.poll(() => history.evaluate((el) => el.scrollTop)).toBe(0);
+      await expect
+        .poll(() => history.evaluate((el) => el.scrollTop), {
+          message: JSON.stringify({ size, open }),
+        })
+        .toBe(0);
       await page.getByRole('button', { name: 'Older', exact: true }).click();
       await page
         .getByText('Earlier application message 0. Keep this available while answering.', {
