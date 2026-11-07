@@ -19,11 +19,12 @@ export const ComposerFooter = (
       className="chat-prompt-footer"
       data-follow-up={props.busy && (!!props.draft.trim() || !!props.files.length)}
       data-held={
-        !props.busy &&
-        (!!props.questions.length ||
-          queueNeedsResume(
-            conversationQueue(props.data.queue, props.thread, props.data.conversations),
-          )) &&
+        (!!props.retryMode ||
+          (!props.busy &&
+            (!!props.questions.length ||
+              queueNeedsResume(
+                conversationQueue(props.data.queue, props.thread, props.data.conversations),
+              )))) &&
         (!!props.draft.trim() || !!props.files.length)
       }
       data-group={props.participants.length > 1 ? '' : undefined}

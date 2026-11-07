@@ -73,6 +73,9 @@ describe('event-sourced board', () => {
       .prepare('INSERT INTO events(json) VALUES (?)')
       .run(JSON.stringify({ ...legacy, version: 9 }));
     board.record('message', message, 'user', 'Fixture chat');
+    board.db
+      .prepare('INSERT INTO events(json) VALUES (?)')
+      .run(JSON.stringify({ ...legacy, version: 35 }));
     const events = board.events();
     board.rebuild();
     expect(board.get('card', id)).toEqual(original);
@@ -85,6 +88,7 @@ describe('event-sourced board', () => {
     expect(events.some((e) => e.version === 5)).toBe(true);
     expect(events.some((e) => e.version === 6)).toBe(true);
     expect(events.some((e) => e.version === 9)).toBe(true);
+    expect(events.some((e) => e.version === 35)).toBe(true);
     expect(events.some((e) => e.version === currentEventVersion)).toBe(true);
     expect(() => decodeEvent(JSON.stringify({ version: currentEventVersion + 1 }))).toThrow(
       'Unsupported',

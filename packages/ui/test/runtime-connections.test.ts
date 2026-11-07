@@ -582,7 +582,12 @@ test('an acknowledged credential save survives a failed workspace refresh withou
   await open();
   await value().fill(secret);
   await save().click();
-  await sheet().getByRole('alert').filter({ hasText: 'Settings were saved' }).waitFor();
+  await sheet()
+    .getByRole('alert')
+    .filter({
+      hasText: /^Settings were saved, but account status could not refresh\. Recheck sign-in\.$/,
+    })
+    .waitFor();
   expect(await value().inputValue()).toBe('');
   expect(await save().isDisabled()).toBe(true);
   await sheet().getByRole('button', { name: 'Close dialog', exact: true }).click();

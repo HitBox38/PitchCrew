@@ -3,6 +3,7 @@ import { PromptInputSubmit } from '@/components/ai-elements/prompt-input/compone
 import { Send } from 'lucide-react';
 import { nameList, queueHoldWording } from '../composer-status.ts';
 import { conversationQueueHold } from '../queue-recovery-plan.ts';
+import { composerRetryLabel, composerRetryNote } from '../composer-retry.ts';
 
 export const ComposerSubmit = ({
   hasInput,
@@ -23,32 +24,36 @@ export const ComposerSubmit = ({
     <PromptInputSubmit
       className="button primary chat-send"
       aria-label={
-        held
-          ? wording
-            ? `Queue message until you answer and ${wording.conjunction}`
-            : 'Queue message for after your answer'
-          : wording
-            ? `Queue message for after ${wording.after}`
-            : props.busy && props.sendMode === 'queue'
-              ? 'Queue follow-up'
-              : props.busy
-                ? interruptLabel
-                : 'Send message'
+        props.retryMode
+          ? composerRetryLabel(props.retryMode)
+          : held
+            ? wording
+              ? `Queue message until you answer and ${wording.conjunction}`
+              : 'Queue message for after your answer'
+            : wording
+              ? `Queue message for after ${wording.after}`
+              : props.busy && props.sendMode === 'queue'
+                ? 'Queue follow-up'
+                : props.busy
+                  ? interruptLabel
+                  : 'Send message'
       }
       title={
-        held
-          ? `Sends after you answer ${asking}${wording ? ` and ${wording.conjunction}` : ''} · Enter to queue`
-          : wording
-            ? `Sends after ${wording.after} · Enter to queue`
-            : props.busy && props.sendMode === 'interrupt'
-              ? interruptLabel
-              : 'Enter to send · Shift + Enter for a new line'
+        props.retryMode
+          ? composerRetryNote(props.retryMode)
+          : held
+            ? `Sends after you answer ${asking}${wording ? ` and ${wording.conjunction}` : ''} · Enter to queue`
+            : wording
+              ? `Sends after ${wording.after} · Enter to queue`
+              : props.busy && props.sendMode === 'interrupt'
+                ? interruptLabel
+                : 'Enter to send · Shift + Enter for a new line'
       }
       status={props.sending ? 'submitted' : 'ready'}
       disabled={!hasInput || props.working || props.sending || !props.available}
     >
       <Send size={15} />
-      <span>Send</span>
+      <span>{props.retryMode ? 'Retry' : 'Send'}</span>
     </PromptInputSubmit>
   );
 };

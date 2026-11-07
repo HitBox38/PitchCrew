@@ -53,6 +53,7 @@ export const chatReferenceInput = z
   .strict();
 export const chatInput = z
   .object({
+    clientRequestId: z.uuid().optional(),
     content: z.string().trim().max(8000).default(''),
     references: z.array(chatReferenceInput).max(32).optional(),
     attachments: z

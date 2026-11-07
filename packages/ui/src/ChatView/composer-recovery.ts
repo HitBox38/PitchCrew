@@ -1,5 +1,6 @@
 import { discardComposerDraft, updateComposer } from './composer-state.ts';
 import { questionReturnFocus } from '@/UserQuestions/focus.ts';
+import { reconcileComposerReceipts } from './composer-receipts.ts';
 
 const available = (element: HTMLElement | null | undefined): element is HTMLElement =>
   !!element?.isConnected &&
@@ -60,6 +61,7 @@ export const refreshComposerReceipt = async (
   reload: () => Promise<void>,
 ) => {
   await reload();
+  await reconcileComposerReceipts(thread);
   if (receipt)
     updateComposer(thread, (current) =>
       current.receipt !== receipt

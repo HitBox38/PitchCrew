@@ -8,6 +8,7 @@ import type { ChatComposerProps } from '@/ChatView/types.ts';
 import { PromptInput } from '@/components/ai-elements/prompt-input/components/PromptInput.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
 import { ComposerRecovery } from './ComposerRecovery.tsx';
+import { composerSubmitMode } from '../composer-retry.ts';
 
 export const ChatComposer = ({
   composerRef,
@@ -44,7 +45,7 @@ export const ChatComposer = ({
       ) : null}
       <ComposerRecovery key={props.thread} thread={props.thread} />
       <PromptInput
-        onSubmit={({ text }) => send(text, props.busy ? props.sendMode : 'queue')}
+        onSubmit={({ text }) => send(text, composerSubmitMode(props))}
         className="chat-prompt"
         onDragOver={(event) => {
           if (event.dataTransfer.types.includes('Files')) event.preventDefault();

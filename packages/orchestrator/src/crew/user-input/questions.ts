@@ -10,7 +10,12 @@ import { assertConfirmedContext } from '@pitchcrew/board';
 import { canReadConversation, conversations, relatedConversation } from '../conversations.ts';
 import type { CrewContext, RunCapability } from '../types.ts';
 
-export const askUser = (context: CrewContext, capability: RunCapability, data: unknown) => {
+export const askUser = (
+  context: CrewContext,
+  capability: RunCapability,
+  data: unknown,
+  effect: (action: () => void) => void = (action) => action(),
+) => {
   const input = userQuestionInput.parse(data);
   const run = context.board.get<Run>('run', capability.runId);
   if (run.status !== 'running') throw new Error('This execution is no longer active.');
@@ -87,6 +92,9 @@ export const askUser = (context: CrewContext, capability: RunCapability, data: u
       run.id,
       question.messageId,
       'attention',
+      undefined,
+      undefined,
+      false,
     );
     context.board.record(
       'message',
@@ -95,13 +103,15 @@ export const askUser = (context: CrewContext, capability: RunCapability, data: u
       'Linked the user question',
     );
   })();
-  context.publishChat(true);
+  effect(() => context.publishChat(true));
   // Give the MCP response time to flush, then end execution even if the CLI keeps working.
-  const controller = context.controllers.get(run.id);
-  const timer = setTimeout(() => {
-    if (controller && context.controllers.get(run.id) === controller) controller.abort();
-  }, 250);
-  timer.unref();
+  effect(() => {
+    const controller = context.controllers.get(run.id);
+    const timer = setTimeout(() => {
+      if (controller && context.controllers.get(run.id) === controller) controller.abort();
+    }, 250);
+    timer.unref();
+  });
   return {
     question,
     instruction:

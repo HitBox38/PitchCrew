@@ -4,6 +4,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  realpath,
   readdir,
   rm,
   stat,
@@ -68,7 +69,7 @@ test('binds only workspace auth.json outside job run folders and saves native to
   const result = await scoped(() =>
     withWorkspaceGrokCredentials(fallback, undefined, async (home) => {
       operationHome = home!;
-      expect(dirname(home!)).toBe(base);
+      expect(dirname(home!)).toBe(await realpath(base));
       expect(home).not.toContain(join('runs', 'fixture-job'));
       expect(await readdir(home!)).toEqual(['auth.json']);
       expect(await readFile(join(home!, 'auth.json'), 'utf8')).toBe(
@@ -277,7 +278,7 @@ test('keeps the Grok tool and configuration boundary while using a private OAuth
   vi.mocked(runCliText).mockImplementationOnce(
     async (_command, args, actualContext, _prompt, _extract, environment) => {
       operationHome = environment!.GROK_HOME!;
-      expect(dirname(operationHome)).toBe(base);
+      expect(dirname(operationHome)).toBe(await realpath(base));
       expect(operationHome.startsWith(context.directory)).toBe(false);
       expect(actualContext.mcp).toEqual(context.mcp);
       expect(args[args.indexOf('--tools') + 1]).toBe('GrokBuild:search_tool,GrokBuild:use_tool');

@@ -4,6 +4,7 @@ import { ConversationSelect } from './ConversationSelect.tsx';
 import { ComposerSubmit } from './ComposerSubmit.tsx';
 import { followUpLabels, queueHoldWording, sendNote } from '../composer-status.ts';
 import { conversationQueueHold } from '../queue-recovery-plan.ts';
+import { composerRetryNote } from '../composer-retry.ts';
 
 export const ComposerSendActions = (props: ChatComposerProps) => {
   const hasInput = !!props.draft.trim() || !!props.files.length;
@@ -21,10 +22,10 @@ export const ComposerSendActions = (props: ChatComposerProps) => {
     queueHold: conversationQueueHold(props.data, props.thread),
   };
   const labels = followUpLabels(status);
-  const note = props.busy ? '' : sendNote(status);
+  const note = composerRetryNote(props.retryMode) || (props.busy ? '' : sendNote(status));
   return (
     <div className="chat-send-actions">
-      {props.busy && hasInput ? (
+      {props.busy && hasInput && !props.retryMode ? (
         <ConversationSelect
           label="Follow-up action"
           displayValue={

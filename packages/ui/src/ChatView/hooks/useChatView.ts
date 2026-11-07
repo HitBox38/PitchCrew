@@ -21,6 +21,7 @@ import { useQuestionLifecycle } from '@/UserQuestions/hooks/useQuestionLifecycle
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
 import { useComposerDraft } from './useComposerDraft.ts';
 import { sendComposerDraft } from '../composer-send.ts';
+import { effectiveComposerMode } from '../composer-retry.ts';
 
 export const useChatView = (props: ChatViewProps) => {
   const { thread, action, working } = props;
@@ -224,6 +225,10 @@ export const useChatView = (props: ChatViewProps) => {
     reduced,
     inputRef,
     ...composerDraft,
+    sendMode: effectiveComposerMode(preferences.sendMode, composerDraft.retryMode),
+    setSendMode: (mode: 'queue' | 'interrupt') => {
+      if (!composerDraft.retryMode) preferences.setSendMode(mode);
+    },
     recipient: roleId,
     setRecipient,
     pane,

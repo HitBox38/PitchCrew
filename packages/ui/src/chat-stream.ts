@@ -4,15 +4,31 @@ import type { ChatStreamState, ChatStreamUpdate } from '@pitchcrew/core';
 export const readChatStream = async (
   body: ReadableStream<Uint8Array>,
   onState: (state: ChatStreamState) => void,
+  signal?: AbortSignal,
 ) => {
   const reader = body.getReader();
   const decoder = new TextDecoder();
+  let watchdog: ReturnType<typeof setTimeout> | undefined;
+  const cancel = () => {
+    // Do not wait for the underlying source's cancellation hook: a broken transport
+    // must not keep the read loop or subscription shutdown waiting indefinitely.
+    void reader.cancel().catch(() => {});
+  };
+  const received = () => {
+    clearTimeout(watchdog);
+    // The daemon sends a heartbeat every 15 seconds, even with no agent activity.
+    watchdog = setTimeout(cancel, 45_000);
+  };
   let buffer = '';
   let state: ChatStreamState = { messages: [], streamingMessages: [] };
+  signal?.addEventListener('abort', cancel, { once: true });
   try {
+    if (signal?.aborted) return;
+    received();
     for (;;) {
       const { value, done } = await reader.read();
-      if (done) return;
+      if (done || signal?.aborted) return;
+      if (value.byteLength) received();
       buffer += decoder.decode(value, { stream: true });
       let end: number;
       while ((end = buffer.indexOf('\n\n')) >= 0) {
@@ -38,7 +54,9 @@ export const readChatStream = async (
       }
     }
   } finally {
-    await reader.cancel().catch(() => {});
+    clearTimeout(watchdog);
+    signal?.removeEventListener('abort', cancel);
+    cancel();
     reader.releaseLock();
   }
 };
@@ -52,19 +70,33 @@ export const subscribeChatStream = (
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const connect = async () => {
+    const connection = new AbortController();
+    const abortConnection = () => connection.abort();
+    controller.signal.addEventListener('abort', abortConnection, { once: true });
+    // A local SSE route should establish promptly. Bound only response headers;
+    // after that, readChatStream supervises the daemon's ongoing heartbeats.
+    const establishment = setTimeout(abortConnection, 15_000);
     try {
+      if (controller.signal.aborted) return;
       const response = await fetch('/api/chat/stream?view=workspace', {
-        signal: controller.signal,
+        signal: connection.signal,
         headers: { 'x-pitchcrew-client': 'ui', ...diagnosticRequestHeaders() },
       });
-      if (!response.ok || !response.body) throw new Error('Chat stream unavailable.');
-      await readChatStream(response.body, onState);
+      clearTimeout(establishment);
+      if (!response.ok || !response.body) {
+        void response.body?.cancel().catch(() => {});
+        throw new Error('Chat stream unavailable.');
+      }
+      await readChatStream(response.body, onState, connection.signal);
     } catch {
       // Snapshot polling still provides saved messages while the stream reconnects.
     } finally {
+      clearTimeout(establishment);
+      controller.signal.removeEventListener('abort', abortConnection);
+      connection.abort();
       if (!controller.signal.aborted) {
         onDisconnect();
-        timer = setTimeout(connect, 1000);
+        if (!controller.signal.aborted) timer = setTimeout(connect, 1000);
       }
     }
   };

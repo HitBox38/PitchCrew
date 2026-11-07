@@ -11,6 +11,7 @@ import {
 } from '@pitchcrew/core';
 import type { CrewContext } from '../types.ts';
 import { taskParentReady } from '../delegation-rounds.ts';
+import { activeRuns, tasksWithStatus } from './queries.ts';
 
 export const concurrency = (context: CrewContext): number => {
   return context.board.list<QueueSettings>('queue_settings')[0]?.concurrency ?? 5;
@@ -68,14 +69,19 @@ export const nextOrder = (context: CrewContext): number => {
     ...context.board.list<WorkQueue>('work_queue').map((q) => q.order + 1),
   );
 };
-export const patchQueue = (context: CrewContext, id: string, patch: Partial<WorkQueue>): void => {
+export const patchQueue = (
+  context: CrewContext,
+  id: string,
+  patch: Partial<WorkQueue>,
+  effect: (action: () => void) => void = (action) => action(),
+): void => {
   const current = context.board.list<WorkQueue>('work_queue').find((q) => q.id === id);
   if (
     !current ||
     Object.entries(patch).every(([key, value]) => current[key as keyof WorkQueue] === value)
   )
     return;
-  if (patch.paused) context.queueChains.delete(id);
+  if (patch.paused) effect(() => context.queueChains.delete(id));
   context.board.record(
     'work_queue',
     { ...current, ...patch, updatedAt: new Date().toISOString() },
@@ -123,13 +129,10 @@ export const activeQueues = (context: CrewContext): Map<string, Set<string>> => 
     roots.add(root);
     active.set(id, roots);
   };
-  const runs = context.board.list<Run>('run');
-  for (const run of runs)
-    if (run.status === 'running' || context.controllers.has(run.id))
-      add(runLane(context, run), run.rootRunId ?? run.id);
+  for (const run of activeRuns(context)) add(runLane(context, run), run.rootRunId ?? run.id);
   for (const reservation of context.queueReservations.values())
     add(reservation.lane, reservation.root);
-  const tasks = context.board.list<AgentTask>('task');
+  const tasks = tasksWithStatus(context, ['queued']);
   for (const [id, root] of context.queueChains) {
     const queue = context.board.list<WorkQueue>('work_queue').find((q) => q.id === id);
     if (
@@ -138,9 +141,7 @@ export const activeQueues = (context: CrewContext): Map<string, Set<string>> => 
       !queueWaiting(context, id) &&
       tasks.some(
         (task) =>
-          task.rootRunId === root &&
-          task.status === 'queued' &&
-          taskParentReady(context, task, runs),
+          task.rootRunId === root && task.status === 'queued' && taskParentReady(context, task),
       )
     )
       add(id, root);

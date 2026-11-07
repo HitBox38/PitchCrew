@@ -2,7 +2,7 @@ import { workspaceQueue } from './queue/projection.ts';
 import { ensureQueue, patchQueue } from './queue/state.ts';
 import { workspaceCards, workspaceRuns, workspaceEvents } from './workspace-projection.ts';
 import { workspaceMessages } from '@pitchcrew/board';
-import { activityRuns } from './chat-activity.ts';
+import { activityRuns, finishChatActivity, restoreActivityCheckpoints } from './chat-activity.ts';
 import { recordOperationalLog } from '../telemetry/logs.ts';
 import { endQuestionTurn } from './user-input/lifecycle.ts';
 import {
@@ -56,6 +56,7 @@ export const initialize = async (
       );
     for (const folder of ['profile', 'roles', 'packets'])
       await mkdir(join(context.directory, folder), { recursive: true });
+    for (const runId of restoreActivityCheckpoints(context)) finishChatActivity(context, runId);
     for (const run of context.board.list<Run>('run').filter((r) => r.status === 'running')) {
       recordOperationalLog(context.diagnostics, { code: 'daemon_run_recovered', area: 'daemon' });
       for (const session of context.board.list<ConversationSession>('conversation_session'))
@@ -78,6 +79,7 @@ export const initialize = async (
           'system',
           'Recovered interrupted run',
         );
+      finishChatActivity(context, run.id);
       if (!run.cardId || run.mode === 'chat') continue;
       const card = context.board.get<Card>('card', run.cardId);
       if (card.owner)
