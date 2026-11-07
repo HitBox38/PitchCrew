@@ -1,5 +1,6 @@
 /* Hit areas. Desktop controls are at least 32×32: small icon buttons keep their look and gain an
- * invisible margin. Phones and coarse pointers get 44×44 on every control, visuals included. The
+ * invisible margin. Phones and coarse pointers get 44×44 on controls. Inline prose references
+ * keep text-height visuals with an expanded hit area. The
  * zero-specificity :where() keeps feature positioning (absolute menu triggers) intact. */
 :where(
   .icon-button,
@@ -35,7 +36,13 @@
     [data-slot='input'],
     .button,
     .ui-segment > a
-  ):not([data-slot='switch'], [data-slot='checkbox'], [data-sidebar='rail'], .skip-link) {
+  ):not(
+    [data-slot='switch'],
+    [data-slot='checkbox'],
+    [data-sidebar='rail'],
+    .skip-link,
+    .chat-reference
+  ) {
     min-height: 44px !important;
   }
   :is(button, [data-slot='button'], .icon-button, .ui-segment > a):not(

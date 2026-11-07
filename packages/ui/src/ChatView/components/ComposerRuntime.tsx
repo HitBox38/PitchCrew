@@ -6,9 +6,18 @@ import { ChevronDown, Cpu } from 'lucide-react';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 
 /** The clay composer names the model the next turn uses and opens Conversation runtime. */
-export const ComposerRuntime = ({ role, setDialog, working, participants }: ChatComposerProps) => {
+export const ComposerRuntime = ({
+  role,
+  setDialog,
+  working,
+  participants,
+  data,
+}: ChatComposerProps) => {
+  const model = data.runtimes
+    .find((runtime) => runtime.id === role.runtime)
+    ?.models?.find((item) => item.value === role.model)?.label;
   const label = [
-    role.model || runtimeLabels[role.runtime],
+    model || role.model || runtimeLabels[role.runtime],
     role.reasoning && reasoningLabels[role.reasoning],
   ]
     .filter(Boolean)
@@ -20,7 +29,7 @@ export const ComposerRuntime = ({ role, setDialog, working, participants }: Chat
       size="sm"
       className="chat-composer-runtime"
       aria-label={`Conversation runtime${group ? ` for ${role.name}` : ''}: ${label}`}
-      title={group ? `${role.name} runtime` : undefined}
+      title={`${group ? `${role.name}: ` : ''}${runtimeLabels[role.runtime]} · ${label}`}
       disabled={working}
       onClick={() => setDialog('runtime')}
     >

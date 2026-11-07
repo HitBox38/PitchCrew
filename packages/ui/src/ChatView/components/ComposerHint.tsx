@@ -1,6 +1,6 @@
 import type { ComposerHintProps } from '@/ChatView/types.ts';
 
-/** Only the demo runtime gets a note under the composer; the placeholder covers the rest. */
+/** Development-only scripted runtimes retain their explicit provenance note. */
 export const ComposerHint = ({ role }: ComposerHintProps) =>
   role.runtime === 'demo' ? (
     <p className="chat-compose-hint">

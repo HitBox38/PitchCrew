@@ -181,7 +181,11 @@ test('agent replies render mentions and file citations during streaming and open
   );
   await page.keyboard.press('Escape');
   await sent.getByRole('button', { name: 'Agent: Writer', exact: true }).click();
-  await page.getByText('An agent mentioned in this message.', { exact: false }).waitFor();
+  const mention = page.locator('.chat-reference-details');
+  await mention.getByText('An agent mentioned in this reply.', { exact: false }).waitFor();
+  expect(
+    await mention.getByRole('button', { name: 'Agent settings', exact: true }).isVisible(),
+  ).toBe(true);
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Toggle streaming' }).click();
   await expect.poll(() => sent.locator('.chat-reference').count()).toBe(5);

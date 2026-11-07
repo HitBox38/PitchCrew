@@ -150,6 +150,18 @@ export { mcpGatewayTools, mcpConnectorTools, sanitizeMcpToolCall } from './telem
 
 export type { ProfileOrganization } from './profile-organization.ts';
 export type { TranscriptItem, ConversationHistoryPage, WorkspaceMessages } from './chat-history.ts';
+export { transcriptOrder, transcriptWindow } from './transcript-order.ts';
+export type {
+  TranscriptMessagePosition,
+  TranscriptRunPosition,
+  TranscriptRequestPosition,
+} from './transcript-order.ts';
+export { hiddenTranscriptMessageIds } from './transcript-visibility.ts';
+export type {
+  TranscriptVisibilityMessage,
+  TranscriptVisibilityTask,
+  TranscriptVisibilityRequest,
+} from './transcript-visibility.ts';
 export { isNotificationMessage } from './message-notifications.ts';
 
 export * from './deep-reviews.ts';

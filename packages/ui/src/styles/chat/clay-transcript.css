@@ -67,3 +67,58 @@
     display: none;
   }
 }
+
+/* Answers lead; copying and the incidental timestamp share one quiet footer. */
+.chat-reply-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: 30px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.chat-copy-reply {
+  gap: 6px;
+  min-height: 32px;
+  padding-inline: 7px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+.chat-copy-reply:hover {
+  color: var(--ink);
+}
+.chat-message-delivery {
+  align-self: flex-end;
+  color: var(--muted);
+  font-size: var(--text-detail);
+}
+@media (hover: hover) and (pointer: fine) {
+  .chat-reply-actions {
+    /* Keep a metadata line rather than an empty button-height band. The hit area extends
+     * into the transcript gap and stays visible when reached with the keyboard. */
+    height: 18px;
+    opacity: 0;
+  }
+  .chat-copy-reply {
+    height: 32px;
+  }
+  .chat-message:hover .chat-reply-actions,
+  .chat-message:focus-within .chat-reply-actions {
+    opacity: 1;
+  }
+}
+@media (max-width: 767px), (pointer: coarse) {
+  .chat-copy-reply {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  [data-interface='clay'] .chat-workspace .chat-message.is-assistant .chat-message-content,
+  [data-interface='clay'] .chat-workspace .chat-reply-actions,
+  [data-interface='clay'] .chat-workspace .chat-memory-used,
+  [data-interface='clay'] .chat-workspace .chat-turn-body {
+    margin-left: 20px;
+  }
+  [data-interface='clay'] .chat-workspace .chat-message.is-assistant .chat-message-content {
+    max-width: calc(100% - 20px);
+  }
+}

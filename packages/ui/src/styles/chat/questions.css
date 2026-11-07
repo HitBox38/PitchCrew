@@ -12,7 +12,8 @@
   width: 100%;
   max-width: var(--chat-content-width);
   margin-inline: auto;
-  overflow: hidden;
+  /* Clip the entrance without becoming a focus-scroll owner while the card is translated. */
+  overflow: clip;
   padding: 8px 8px 0;
 }
 .pending-user-questions + .chat-compose {
@@ -22,16 +23,24 @@
   padding-top: 0;
   background: transparent;
 }
+.chat-compose[hidden] {
+  display: none;
+}
+.chat-question-compose-switch {
+  flex: none;
+  padding: 12px 20px;
+  text-align: center;
+}
+.chat-question-compose-switch > button {
+  min-height: 44px;
+  color: var(--muted);
+}
 .pending-user-questions-lane {
   width: 100%;
-  /* Share the page's viewport budget after the app bar and phone page bar. */
-  max-height: calc(
-    (100dvh - var(--desktop-titlebar-height, 0px) - var(--shell-bar-height, 0px)) * 0.42
-  );
   /* Keep actions above the composer and contain the accordion's two-pixel closing edge. */
   padding-bottom: calc(var(--question-composer-overlap) + 2px);
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  /* The answer area owns its natural height. Only long question/choice content scrolls. */
+  overflow: visible;
 }
 .pending-user-questions-lane,
 .user-question-message {
@@ -42,6 +51,14 @@
 }
 .pending-user-questions-lane {
   border-radius: 22px 24px 9px 10px;
+}
+.chat-panel:has(.chat-compose[hidden]) .pending-user-questions {
+  --question-composer-overlap: 0px;
+  margin-bottom: 0;
+}
+.chat-panel:has(.chat-compose[hidden]) .pending-user-questions-lane {
+  border-radius: 22px 24px 22px 24px;
+  padding-bottom: 0;
 }
 .pending-user-question {
   container-type: inline-size;
@@ -65,6 +82,19 @@
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.pending-question-preview {
+  color: var(--muted);
+  font-weight: 400;
+}
+.pending-question-preview::before {
+  content: ': ';
+}
+.pending-question-trigger[data-panel-open] .pending-question-preview {
+  display: none;
 }
 .pending-question-trigger > .role-avatar {
   flex: 0 0 22px;
@@ -84,20 +114,42 @@
   line-height: 20px;
 }
 .user-question-fields {
+  /* Short questions show every choice. Long content yields to the pinned answer and actions,
+   * with a keyboard-focusable viewport and an explicit scroll hint. */
+  max-height: clamp(12rem, 35dvh, 22rem);
+  overflow-y: auto;
+  overscroll-behavior-y: auto;
+  scrollbar-gutter: auto;
+  padding: 0;
+}
+.user-question-fields[data-overflow] {
+  scrollbar-gutter: stable;
+}
+.user-question-fields-content {
   display: grid;
   gap: 7px;
-  /* Leave reading space when the split pane wraps the heading and composer into more rows.
-   * Only the question and choices scroll; the answer and actions retain their natural height. */
-  max-height: clamp(
-    48px,
-    calc(
-      (100dvh - var(--desktop-titlebar-height, 0px) - var(--shell-bar-height, 0px)) * 0.32 - 220px
-    ),
-    120px
-  );
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 2px 3px 4px;
+}
+.user-question-fields:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.user-question-scroll-hint {
+  padding-top: 4px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 18px;
+}
+.user-question-fields[data-more-below] {
+  box-shadow: inset 0 -8px 8px -8px var(--ink-soft);
+}
+.user-question-fields[data-more-above] {
+  box-shadow: inset 0 8px 8px -8px var(--ink-soft);
+}
+.user-question-fields[data-more-below][data-more-above] {
+  box-shadow:
+    inset 0 -8px 8px -8px var(--ink-soft),
+    inset 0 8px 8px -8px var(--ink-soft);
 }
 .user-question-title {
   font-size: 14px;
@@ -105,7 +157,7 @@
   overflow-wrap: anywhere;
 }
 .user-question-reason,
-.user-question-fields > small {
+.user-question-fields-content > small {
   color: var(--muted);
   font-size: 12px;
   line-height: 18px;
@@ -122,6 +174,56 @@
   font-size: 14px;
   font-weight: 500;
   line-height: 20px;
+}
+.user-question-answer-input {
+  field-sizing: content;
+  min-height: 44px;
+  max-height: min(16rem, 38dvh);
+  overflow-y: auto;
+}
+.user-question-answer-input::placeholder {
+  color: var(--muted);
+  opacity: 1;
+}
+.user-question-status-note {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 20px;
+}
+.question-status-check {
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+}
+.question-response-recovery {
+  display: grid;
+  gap: 8px;
+  flex: none;
+  min-width: 0;
+  margin: 8px 20px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  font-size: 14px;
+  line-height: 20px;
+}
+.question-response-recovery blockquote {
+  max-height: 10rem;
+  overflow-y: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.question-response-recovery > div {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.question-response-recovery:focus-visible,
+.chat-compose:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
 }
 .user-question-options {
   display: grid;
@@ -165,7 +267,7 @@
   outline: 2px solid var(--primary);
   outline-offset: 1px;
 }
-.user-question-option > span {
+.user-question-option-label {
   flex: 1;
   min-width: 0;
   overflow-wrap: anywhere;
@@ -183,10 +285,15 @@
   font: 600 var(--text-detail) / 1 var(--font-sans);
 }
 .user-question-option > [data-slot='checkbox'] {
-  flex-shrink: 0;
+  flex: none;
 }
 .user-question-option:has([data-slot='checkbox']) {
   justify-content: flex-start;
+  min-height: 44px;
+}
+.user-question-options:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
 }
 .user-question-option[aria-pressed='true'],
 .user-question-option[data-selected='true'] {
@@ -209,8 +316,6 @@
   line-height: 18px;
 }
 .user-question-form textarea {
-  min-height: 40px;
-  max-height: 100px;
   font-size: 14px;
   line-height: 20px;
   padding: 7px 9px;
@@ -232,6 +337,11 @@
   gap: 8px;
   flex-wrap: wrap;
 }
+@container (width < 19rem) {
+  .user-question-actions > button[type='submit'] {
+    width: 100%;
+  }
+}
 .user-question-message {
   display: grid;
   justify-items: start;
@@ -243,6 +353,29 @@
 }
 .user-question-message small {
   color: var(--muted);
+}
+.user-question-record {
+  display: flex;
+  align-items: center;
+  gap: 4px 7px;
+  color: var(--muted);
+  font-size: var(--text-detail);
+  line-height: 18px;
+}
+.user-question-record > p {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.user-question-record > .clay-bead {
+  flex: none;
+}
+.user-question-record [data-slot='button'] {
+  min-height: 32px;
+  margin-left: auto;
+  font-size: var(--text-detail);
 }
 .user-question-status {
   display: inline-flex;
@@ -274,15 +407,15 @@
   .user-question-form {
     padding-bottom: 4px;
   }
-  .user-question-fields {
-    max-height: clamp(72px, calc(100dvh - 674px - var(--desktop-titlebar-height, 0px)), 190px);
-  }
   .user-question-form textarea {
     min-height: 44px;
     font-size: 16px;
     line-height: 22px;
   }
   .user-question-actions > [data-slot='button'] {
+    min-height: 44px;
+  }
+  .user-question-record [data-slot='button'] {
     min-height: 44px;
   }
 }

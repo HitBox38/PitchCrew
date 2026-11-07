@@ -24,9 +24,11 @@ interface ChatPreferences {
   setDmsOpen: (open: boolean) => void;
 }
 export const useChatPreferenceStore = create<ChatPreferences>((set, get) => ({
-  width: ['comfortable', 'wide', 'full'].includes(read<string>('pitchcrew.chat.width', 'wide'))
-    ? read<string>('pitchcrew.chat.width', 'wide')
-    : 'wide',
+  width: ['comfortable', 'wide', 'full'].includes(
+    read<string>('pitchcrew.chat.width', 'comfortable'),
+  )
+    ? read<string>('pitchcrew.chat.width', 'comfortable')
+    : 'comfortable',
   sendMode:
     read<string>('pitchcrew.chat.sendMode', 'queue') === 'interrupt' ? 'interrupt' : 'queue',
   readAt: read('pitchcrew.chat.read', {}),

@@ -19,3 +19,5 @@
 @import './chat/clay-composer.css' layer(components);
 @import './chat/clay-work.css' layer(components);
 @import './chat/clay-panels.css' layer(components);
+@import './chat/short-window.css' layer(components);
+@import './chat/draft-recovery.css' layer(components);

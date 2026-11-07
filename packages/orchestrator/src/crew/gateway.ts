@@ -43,6 +43,7 @@ import { jobSourceAction } from './gateway/job-sources.ts';
 import type { CrewContext } from './types.ts';
 import { beginMcpToolCall } from '../telemetry/mcp.ts';
 import { reportTechnicalProblem } from './gateway/diagnostics.ts';
+import { canReadRunSkills, readRunSkill } from './gateway/skills.ts';
 
 export const agentCall = async (
   context: CrewContext,
@@ -89,6 +90,10 @@ const dispatchAgentCall = async (
     return {
       purpose: activeRun.purpose ?? null,
       delegate: runIsDelegate(context, activeRun),
+      readSkills:
+        activeRun.roleId === capability.roleId &&
+        activeRun.cardId === capability.cardId &&
+        canReadRunSkills(context, activeRun),
       reviewMode: activeRun.deepReviewId
         ? activeRun.reviewSubagentId
           ? 'subagent'
@@ -151,7 +156,9 @@ const dispatchAgentCall = async (
     return reviewAgentAction(context, capability, action, data.input ?? data);
   if (
     isolated &&
-    !['card', 'profile', 'packet_rules', 'lint', 'ask_user', 'notify_user'].includes(action)
+    !['card', 'profile', 'packet_rules', 'lint', 'ask_user', 'notify_user', 'read_skill'].includes(
+      action,
+    )
   )
     throw new Error('This tool is not available in an isolated application run.');
   if (isolated) {
@@ -189,6 +196,7 @@ const dispatchAgentCall = async (
     ].includes(action)
   )
     throw new Error('This turn is waiting for user input. End the turn now.');
+  if (action === 'read_skill') return readRunSkill(context, capability, activeRun, data.input);
   if (action === 'check_linkedin_draft') {
     if (activeRun?.mode !== 'chat' || activeRun.status !== 'running')
       throw new Error('LinkedIn draft checks require an active chat turn.');

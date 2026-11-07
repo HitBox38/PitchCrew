@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, type RefObject } from 'react';
 import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
 import { ComposerInput } from './ComposerInput.tsx';
 import { ComposerFooter } from './ComposerFooter.tsx';
@@ -7,15 +7,27 @@ import { ComposerHint } from '@/ChatView/components/ComposerHint.tsx';
 import type { ChatComposerProps } from '@/ChatView/types.ts';
 import { PromptInput } from '@/components/ai-elements/prompt-input/components/PromptInput.tsx';
 import { runtimeLabels } from '@/lib/labels.ts';
+import { ComposerRecovery } from './ComposerRecovery.tsx';
 
-export const ChatComposer = (props: ChatComposerProps) => {
-  const { role, available, error, send, working, addFiles } = props;
-  const disabled = working || !available;
+export const ChatComposer = ({
+  composerRef,
+  ...props
+}: ChatComposerProps & { hidden?: boolean; composerRef: RefObject<HTMLElement | null> }) => {
+  const { role, available, error, send, addFiles } = props;
+  const disabled = !available;
   const contextActions = useRef<
     ((action: NonNullable<ComposerSuggestion['action']>) => void) | null
   >(null);
   return (
-    <div className="chat-compose">
+    <section
+      className="chat-compose"
+      tabIndex={-1}
+      aria-label="Message composer"
+      data-shortcut-scope="input"
+      ref={composerRef}
+      hidden={props.hidden}
+      inert={props.hidden || undefined}
+    >
       {props.participants.length === 1 && (!role.enabled || !available) ? (
         <p className="form-error">
           {role.retiredAt
@@ -30,6 +42,7 @@ export const ChatComposer = (props: ChatComposerProps) => {
           {error}
         </p>
       ) : null}
+      <ComposerRecovery key={props.thread} thread={props.thread} />
       <PromptInput
         onSubmit={({ text }) => send(text, props.busy ? props.sendMode : 'queue')}
         className="chat-prompt"
@@ -51,6 +64,6 @@ export const ChatComposer = (props: ChatComposerProps) => {
         <ComposerFooter {...props} contextActions={contextActions} />
       </PromptInput>
       <ComposerHint role={role} />
-    </div>
+    </section>
   );
 };

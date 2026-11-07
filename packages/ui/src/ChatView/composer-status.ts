@@ -1,4 +1,16 @@
 import { chatTokens } from '@pitchcrew/core/chat-references';
+import type { QueueHold } from './queue-recovery-plan.ts';
+
+export const queueHoldWording = (hold: QueueHold) =>
+  hold === 'retry'
+    ? { after: 'you retry', conjunction: 'retry unfinished work', short: 'After retry' }
+    : hold === 'review'
+      ? {
+          after: 'this queue continues',
+          conjunction: 'this queue continues',
+          short: 'After recovery',
+        }
+      : { after: 'you resume', conjunction: 'resume the queue', short: 'After resume' };
 
 /** Joins agent names as readable prose, collapsing long lists to a count. */
 export const nameList = (names: string[]) => {
@@ -41,13 +53,32 @@ export interface SendNoteInput {
   running: string[];
   /** Agents whose pending question holds this conversation's queue. */
   asking: string[];
+  queuePaused?: boolean;
+  queueHold?: QueueHold;
 }
 
 /** The two follow-up choices offered while a turn runs, worded for what each actually does. */
 export const followUpLabels = ({
   busyElsewhere,
   running,
-}: Pick<SendNoteInput, 'busyElsewhere' | 'running'>) => {
+  asking = [],
+  queuePaused = false,
+  queueHold,
+}: Pick<SendNoteInput, 'busyElsewhere' | 'running'> &
+  Partial<Pick<SendNoteInput, 'asking' | 'queuePaused' | 'queueHold'>>) => {
+  const hold = queueHold ?? (queuePaused ? 'resume' : undefined);
+  if (hold)
+    return {
+      queue: asking.length
+        ? `Sends after you answer ${nameList(asking)} and ${queueHoldWording(hold).conjunction}`
+        : `Sends after ${queueHoldWording(hold).after}`,
+      interrupt: 'Stops current work and resumes the queue to send',
+    };
+  if (asking.length)
+    return {
+      queue: `Sends after you answer ${nameList(asking)} and current work finishes`,
+      interrupt: 'Stops current work, cancels pending questions and sends',
+    };
   const names = nameList(running);
   return busyElsewhere || !names
     ? { queue: 'Sends after current job work finishes', interrupt: 'Stops current work and sends' }
@@ -60,6 +91,8 @@ export const followUpLabels = ({
 /** What happens to the drafted message right now, or nothing when it simply sends. */
 export const sendNote = (input: SendNoteInput) => {
   if (!input.hasInput) return '';
+  if ((input.queuePaused || input.queueHold) && (!input.busy || input.sendMode === 'queue'))
+    return followUpLabels(input).queue;
   if (input.busy) return followUpLabels(input)[input.sendMode];
   if (input.asking.length) return `Sends after you answer ${nameList(input.asking)}`;
   return '';

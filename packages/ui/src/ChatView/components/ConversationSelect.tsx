@@ -17,6 +17,8 @@ export const ConversationSelect = ({
   compact = true,
   className,
   icon,
+  displayValue,
+  description,
 }: {
   label: string;
   id?: string;
@@ -29,6 +31,8 @@ export const ConversationSelect = ({
   className?: string;
   /** Leading trigger icon. */
   icon?: ReactNode;
+  displayValue?: ReactNode;
+  description?: string;
 }) => {
   return (
     <Select
@@ -42,11 +46,13 @@ export const ConversationSelect = ({
       <SelectTrigger
         id={id}
         aria-label={label}
+        aria-description={description}
+        title={description}
         className={cn(compact && 'chat-context-select', className) || undefined}
         size={compact ? 'sm' : 'default'}
       >
         {icon}
-        <SelectValue />
+        <SelectValue>{displayValue}</SelectValue>
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>
         {items.map((item) => (

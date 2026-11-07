@@ -1,14 +1,8 @@
 import { requireRole } from './roles.ts';
 import type { SkillPreview } from '@pitchcrew/core';
-import {
-  type Role,
-  skillInput,
-  skillsShUrl,
-  type RoleId,
-  type Skill,
-  type Snapshot,
-} from '@pitchcrew/core';
+import { skillInput, skillsShUrl, type RoleId, type Skill, type Snapshot } from '@pitchcrew/core';
 import { baseSkills, baseSkillUrl, type BaseSkill } from '@pitchcrew/core/base-skills';
+import { skillIncludedEveryRun } from '@pitchcrew/core/skill-delivery';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { skillDirectory } from '../skills-directory.ts';
@@ -72,6 +66,7 @@ export const seedStarterSkills = async (
                   preview.description === '>' ? starter.description : preview.description,
                 scope: starter.defaultScope ?? 'roles',
                 roleIds: starter.defaultScope === 'all' ? [] : starter.defaultRoles,
+                includeInEveryRun: starter.includeInEveryRun ?? false,
               },
               undefined,
               'system',
@@ -122,6 +117,13 @@ export const saveSkill = (
   const now = new Date().toISOString();
   const skill: Skill = {
     ...parsed,
+    includeInEveryRun:
+      parsed.includeInEveryRun ??
+      (current
+        ? skillIncludedEveryRun(current)
+        : bundledId
+          ? (baseSkills.find((starter) => starter.name === bundledId)?.includeInEveryRun ?? false)
+          : !parsed.source),
     ...(bundledId ? { bundledId } : {}),
     ...(current?.source && !parsed.source ? { source: current.source } : {}),
     id: current?.id ?? randomUUID(),
@@ -131,15 +133,6 @@ export const saveSkill = (
   };
   const next = [...context.skills().filter((item) => item.id !== skill.id), skill];
   if (next.length > 100) throw new Error('You can store up to 100 skills.');
-  for (const { id: roleId } of context.board.list<Role>('role').filter((role) => !role.retiredAt)) {
-    const size = next
-      .filter((item) => item.scope === 'all' || item.roleIds.includes(roleId))
-      .reduce(
-        (total, item) => total + item.name.length + item.description.length + item.content.length,
-        0,
-      );
-    if (size > 60000) throw new Error(`Skills for ${roleId} must total at most 60,000 characters.`);
-  }
   context.board.record(
     'skill',
     skill,

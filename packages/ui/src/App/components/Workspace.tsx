@@ -15,6 +15,7 @@ import { AgentUpdates } from '@/AgentUpdates/index.tsx';
 import { DesktopBrowserHost } from '@/DesktopBrowserHost/index.tsx';
 import { NotificationCenter } from '@/Notifications/index.tsx';
 import type { ReadyWorkspaceProps } from '../types.ts';
+import { useShortCoarseChatRail } from '../hooks/useShortCoarseChatRail.ts';
 
 /** The sidebar shares the paper: 276 wide, a 56 rail when collapsed. */
 const shellWidths = { '--sidebar-width': '276px', '--sidebar-width-icon': '56px' } as CSSProperties;
@@ -23,9 +24,10 @@ export const Workspace = (props: ReadyWorkspaceProps) => {
   useAutomaticUpdates();
   const controller = getWorkspaceModel(props);
   const { sidebarOpen, paletteMounted } = controller;
+  const preferRail = useShortCoarseChatRail(controller.view);
   return (
     <AppContextMenu {...controller}>
-      <SidebarProvider defaultOpen={sidebarOpen} style={shellWidths}>
+      <SidebarProvider defaultOpen={sidebarOpen} preferRail={preferRail} style={shellWidths}>
         <DesktopBrowserHost>
           <AgentUpdates />
           <RuntimeMaintenance />

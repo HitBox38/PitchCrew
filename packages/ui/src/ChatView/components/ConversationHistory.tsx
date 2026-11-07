@@ -47,9 +47,9 @@ export const ConversationHistory = ({
         autoScroll={page.latest}
         defaultScrollPosition={page.latest ? 'end' : 'start'}
         className="chat-conversation flex min-h-0 flex-1 flex-col"
-        aria-label={label}
       >
         <ConversationContent
+          aria-live="off"
           aria-label={label}
           className="chat-transcript"
           scrollClassName="min-h-0 flex-1"

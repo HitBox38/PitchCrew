@@ -5,13 +5,16 @@ import { Button } from '@pitchcrew/design-system/button';
 import { Checkbox } from '@pitchcrew/design-system/checkbox';
 import { RoleAvatar } from '@/components/RoleAvatar/index.tsx';
 import { delegationRoundLimits } from '@pitchcrew/core/delegation-rounds';
+import { ComposerRecovery } from './ComposerRecovery.tsx';
 
 export const ComposerDelegatePicker = ({
   data,
+  thread,
   conversation,
   participants,
   draft,
   working,
+  sending,
   error,
   sendDelegation,
   onClose,
@@ -74,13 +77,14 @@ export const ComposerDelegatePicker = ({
           {error}
         </p>
       ) : null}
+      <ComposerRecovery key={thread} thread={thread} />
       <div className="chat-panel-actions">
         <Button variant="ghost" onClick={onClose}>
           Cancel
         </Button>
         <Button
           ref={first}
-          disabled={working || !text || !chosen.length}
+          disabled={working || sending || !text || !chosen.length}
           onClick={() => {
             void sendDelegation(text, chosen).then((sent) => {
               if (sent) onClose();

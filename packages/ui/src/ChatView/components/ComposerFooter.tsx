@@ -1,12 +1,13 @@
 import type { RefObject } from 'react';
 import type { ComposerSuggestion } from '@/ChatComposer/types.ts';
-import { BrowserModePicker } from '@/AgentBrowser/components/BrowserModePicker.tsx';
 import { ComposerAttachmentMenu } from './ComposerAttachmentMenu.tsx';
 import type { ChatComposerProps } from '../types.ts';
 import { PromptInputFooter } from '@/components/ai-elements/prompt-input/components/PromptInputFooter.tsx';
 import { ComposerSendActions } from './ComposerSendActions.tsx';
 import { ComposerRuntime } from './ComposerRuntime.tsx';
 import { ComposerRecipient } from './ComposerRecipient.tsx';
+import { ComposerOptions } from './ComposerOptions.tsx';
+import { conversationQueue, queueNeedsResume } from '../queue-presentation.ts';
 
 export const ComposerFooter = (
   props: ChatComposerProps & {
@@ -17,18 +18,24 @@ export const ComposerFooter = (
     <PromptInputFooter
       className="chat-prompt-footer"
       data-follow-up={props.busy && (!!props.draft.trim() || !!props.files.length)}
+      data-held={
+        !props.busy &&
+        (!!props.questions.length ||
+          queueNeedsResume(
+            conversationQueue(props.data.queue, props.thread, props.data.conversations),
+          )) &&
+        (!!props.draft.trim() || !!props.files.length)
+      }
+      data-group={props.participants.length > 1 ? '' : undefined}
     >
-      <ComposerAttachmentMenu key={props.thread} {...props} />
-      <ComposerRecipient {...props} />
-      <ComposerRuntime {...props} />
-      {props.role.capabilities?.computerUse ? (
-        <BrowserModePicker
-          role={props.browserPanel.roles.find((role) => role.id === props.role.id) ?? props.role}
-          conversation={props.conversation}
-          disabled={props.working}
-          save={(patch) => void props.patchConversation(patch)}
-        />
-      ) : null}
+      <div className="chat-composer-controls">
+        <div className="chat-composer-routing">
+          <ComposerRecipient {...props} />
+        </div>
+        <ComposerAttachmentMenu key={props.thread} {...props} />
+        <ComposerRuntime {...props} />
+        <ComposerOptions {...props} />
+      </div>
       <ComposerSendActions {...props} />
     </PromptInputFooter>
   );

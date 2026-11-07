@@ -78,9 +78,14 @@ export const updateQueue = (context: CrewContext, id: string, data: unknown) => 
   } else {
     if (
       input.action === 'resume' &&
-      (queue.pauseKind === 'failed' || queue.pauseKind === 'interrupted') &&
       (queueRequests(context, id).some((r) =>
-        r.deliveries.some((d) => d.status === 'failed' || (d.status === 'paused' && d.runId)),
+        r.deliveries.some(
+          (d) =>
+            d.status === 'failed' ||
+            ((queue.pauseKind === 'failed' || queue.pauseKind === 'interrupted') &&
+              d.status === 'paused' &&
+              d.runId),
+        ),
       ) ||
         context.board
           .list<AgentTask>('task')

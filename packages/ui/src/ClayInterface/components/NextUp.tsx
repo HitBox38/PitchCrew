@@ -6,7 +6,7 @@ export const NextUp = ({ card, data }: { card: Card; data: Snapshot }) => {
   const next = nextUp(card, data);
   if (!next) return null;
   return (
-    <p className="clay-job-now" data-tone={next.tone}>
+    <p className="clay-job-now" data-tone={next.tone} title={next.text}>
       {next.tone === 'working' ? (
         <span className="clay-job-spinner" aria-hidden="true" />
       ) : next.tone === 'asks' ? (

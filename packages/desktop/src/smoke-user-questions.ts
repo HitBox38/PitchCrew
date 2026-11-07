@@ -16,7 +16,7 @@ export const smokeUserQuestions = `(async () => {
     body: JSON.stringify({ content: 'Fixture: ask for a cover-letter focus.' }),
   });
   if (response.status !== 202) throw new Error('Question fixture request was rejected.');
-  const pending = await waitFor(() => !!document.querySelector('.pending-user-question') && !!document.querySelector('.user-question-message[data-status="pending"]'));
+  const pending = await waitFor(() => !!document.querySelector('.pending-user-question .pending-question-trigger[aria-expanded="true"]') && !document.querySelector('.user-question-message[data-status="pending"], .user-question-record'));
   const docked = await waitFor(() => {
     const card = document.querySelector('.pending-user-questions-lane');
     return !!card && Math.abs(new DOMMatrixReadOnly(getComputedStyle(card).transform).m42) < 0.1;
@@ -27,8 +27,8 @@ export const smokeUserQuestions = `(async () => {
   const question = document.querySelector('.pending-user-question');
   const trigger = question?.querySelector('.pending-question-trigger');
   const card = document.querySelector('.pending-user-questions-lane');
-  const composerInput = document.querySelector('.chat-prompt [data-slot="input-group"]');
-  const composerIsToaster = !document.querySelector('.pending-question-slot') && card.getBoundingClientRect().bottom > composerInput.getBoundingClientRect().top;
+  const composer = document.querySelector('.chat-compose');
+  const composerYields = await waitFor(() => composer.hidden && composer.inert);
   const collapseCheck = (async () => {
     const end = performance.now() + 400;
     while (performance.now() < end) {
@@ -40,18 +40,24 @@ export const smokeUserQuestions = `(async () => {
   trigger?.click();
   const scrollbarStable = await collapseCheck;
   const collapsed = await waitFor(() => trigger?.getAttribute('aria-expanded') === 'false');
-  [...document.querySelectorAll('.user-question-message button')].find(button => button.textContent === 'Answer question')?.click();
+  const collapsedRecord = await waitFor(() => !!document.querySelector('.user-question-record button'));
+  document.querySelector('.user-question-record button')?.click();
   const focused = await waitFor(() => document.activeElement === question?.querySelector('textarea'));
   const choices = question?.querySelectorAll('[role="checkbox"]');
   choices?.[0]?.click(); choices?.[1]?.click();
   const custom = question?.querySelector('textarea');
   Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(custom, 'Mention the scheduling project.');
   custom.dispatchEvent(new Event('input', { bubbles: true }));
+  [...document.querySelectorAll('.chat-question-compose-switch button')].find(button => button.textContent === 'Write a message for later')?.click();
   const compose = document.querySelector('.chat-textarea');
-  await waitFor(() => compose.getAttribute('contenteditable') === 'true');
+  if (!await waitFor(() => !composer.hidden && !composer.inert && compose.getAttribute('contenteditable') === 'true')) throw new Error('Separate message composer did not open.');
   compose.focus();
   console.info(${JSON.stringify(smokeDraftRequest)});
   if (!await waitFor(() => document.querySelector('.chat-prompt input[name="message"]')?.value === ${JSON.stringify(smokeDraftText)})) throw new Error('Could not insert the separate composer draft.');
+  trigger?.click();
+  const answerRetained = await waitFor(() => trigger?.getAttribute('aria-expanded') === 'true' && !custom.closest('[hidden], [inert]') && custom.value === 'Mention the scheduling project.' && question.querySelectorAll('[role="checkbox"][aria-checked="true"]').length === 2);
+  const composerInput = document.querySelector('.chat-prompt [data-slot="input-group"]');
+  const composerIsToaster = !document.querySelector('.pending-question-slot') && !composer.hidden && card.getBoundingClientRect().bottom > composerInput.getBoundingClientRect().top;
   const submit = question?.querySelector('button[type="submit"]');
   if (!await waitFor(() => !submit?.disabled)) throw new Error('Answer submission did not enable.');
   submit.click();
@@ -67,7 +73,7 @@ export const smokeUserQuestions = `(async () => {
     await new Promise(resolve => setTimeout(resolve, 100));
   }
   const draftKept = compose.textContent === 'Keep this separate draft.';
-  const checks = { pending, motionReady, docked, exitInert, composerIsToaster, scrollbarStable, waiting, collapsed, focused, answered, continued, draftKept };
+  const checks = { pending, motionReady, docked, exitInert, composerYields, composerIsToaster, scrollbarStable, waiting, collapsed, collapsedRecord, focused, answerRetained, answered, continued, draftKept };
   if (!Object.values(checks).every(Boolean)) throw new Error('User question checks: ' + JSON.stringify({ ...checks, waitingRow }));
   return true;
 })()`;

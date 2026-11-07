@@ -16,6 +16,7 @@ type QuestionSheetProps = {
   action: Action;
   working: boolean;
   openCard: (id: string, section?: 'application') => void;
+  onResolved?: () => void;
 };
 
 /** A question in the decision sheet; its answer and cancel buttons sit in the pinned footer. */
@@ -24,13 +25,20 @@ export const QuestionSheet = (props: QuestionSheetProps) => {
   const form = useQuestionAnswer({ ...props, active: true });
   const formId = `decision-question-${question.id}`;
   return (
-    <article className="decide-sheet" data-kind="question" aria-label="Decision">
+    <article
+      className="decide-sheet"
+      data-kind="question"
+      data-decision-id={decision.id}
+      aria-label="Decision"
+    >
       <div className="decide-sheet-scroll">
         <div className="decide-main">
           <DecisionHeading {...props} />
           <form
             id={formId}
             className="user-question-form decide-question"
+            aria-labelledby={`question-title-${question.id}`}
+            aria-busy={form.submitting}
             onSubmit={(event) => {
               event.preventDefault();
               void form.respond();
@@ -50,10 +58,11 @@ export const QuestionSheet = (props: QuestionSheetProps) => {
             <Button
               variant="outline"
               aria-label="Cancel question"
+              form={formId}
               disabled={form.disabled}
               onClick={() => void form.respond(true)}
             >
-              Cancel
+              Cancel question
             </Button>
           </div>
           <div className="decide-footer-aside">

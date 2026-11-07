@@ -5,11 +5,13 @@ import { AgentBrowser } from '@/AgentBrowser/index.tsx';
 import { validateAttachments } from './attachment-helpers.ts';
 import type { CSSProperties } from 'react';
 import { PendingQuestions } from '@/UserQuestions/index.tsx';
+import { QuestionDockProvider } from '@/UserQuestions/QuestionDockProvider.tsx';
+import { ConversationAnnouncer } from './components/ConversationAnnouncer.tsx';
 import { ChatSettingsPanels } from './components/ChatSettingsPanels.tsx';
 import { RelatedConversations } from './components/RelatedConversations.tsx';
 import { ContinuationNotice } from './components/ContinuationNotice.tsx';
 import { ConversationQueue } from './components/ConversationQueue.tsx';
-import { ChatComposer } from '@/ChatView/components/ChatComposer.tsx';
+import { ConversationInput } from './components/ConversationInput.tsx';
 import { ConversationHeading } from '@/ChatView/components/ConversationHeading.tsx';
 import { ConversationPanel } from '@/ChatView/components/ConversationPanel.tsx';
 import { CrewWorkPanel } from '@/ChatView/components/CrewWorkPanel.tsx';
@@ -28,30 +30,30 @@ export const ChatView = (props: ChatViewProps) => {
       style={{ '--browser-width': `${controller.browserPanel.width}px` } as CSSProperties}
       aria-label="Agent conversations"
     >
-      <Tabs
-        value={pane}
-        onValueChange={(value) => setPane(value as 'conversation' | 'work')}
-        className="chat-panel"
+      <ConversationAnnouncer key={controller.thread} {...controller} />
+      <QuestionDockProvider
+        questions={controller.questions}
+        activeQuestionId={controller.activeQuestionId}
+        onWriteMessage={controller.writeMessage}
+        onQuestionResolved={controller.questionResolved}
       >
-        <ConversationHeading {...controller} />
-        <RelatedConversations {...controller} />
-        <SubmissionVerification {...controller} />
-        {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
-        {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
-        <RuntimeReadinessNotice {...controller} />
-        <ContinuationNotice {...controller} />
-        <ConversationQueue {...controller} />
-        <PendingQuestions {...controller} />
-        {controller.readOnly ? (
-          <div className="chat-readonly">
-            {controller.conversation?.kind === 'agent_dm'
-              ? 'Agent DM · read-only. Start a separate conversation to give either agent direction.'
-              : 'Crew history · read-only. Start a new conversation to continue working.'}
-          </div>
-        ) : (
-          <ChatComposer {...controller} />
-        )}
-      </Tabs>
+        <Tabs
+          value={pane}
+          onValueChange={(value) => setPane(value as 'conversation' | 'work')}
+          className="chat-panel"
+        >
+          <ConversationHeading {...controller} />
+          <RelatedConversations {...controller} />
+          <SubmissionVerification {...controller} />
+          {pane === 'conversation' ? <ConversationPanel {...controller} /> : null}
+          {pane === 'work' ? <CrewWorkPanel {...controller} /> : null}
+          <RuntimeReadinessNotice {...controller} />
+          <ContinuationNotice {...controller} />
+          <ConversationQueue {...controller} />
+          <PendingQuestions {...controller} />
+          <ConversationInput {...controller} />
+        </Tabs>
+      </QuestionDockProvider>
       <ChatSettingsPanels {...controller} />
       <AgentBrowser
         {...controller}

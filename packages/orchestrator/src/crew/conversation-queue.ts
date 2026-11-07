@@ -1,4 +1,5 @@
 import { queueMayStart } from './queue/dispatch.ts';
+import { pauseForUnfinishedHead, resumeHeadRequest } from './queue/recovery.ts';
 import { QueueBusyError, launchProblem } from './queue/admission.ts';
 import {
   ensureQueue,
@@ -188,7 +189,11 @@ export const drainConversationQueue = async (context: CrewContext): Promise<void
           }
         }
         const queue = ensureQueue(context, current.threadId, current.rootRunId);
-        if (!requestIsHead(context, current)) continue;
+        if (!requestIsHead(context, current)) {
+          const head = queueRequests(context, queue.id)[0];
+          if (head && !queue.paused) pauseForUnfinishedHead(context, head);
+          continue;
+        }
         // Avoid reading Profile files for every queued action while its lane or all slots are busy.
         // Recheck admission after asynchronous validation below before reserving the delivery.
         if (
@@ -371,6 +376,8 @@ export const finishDelivery = (context: CrewContext, run: Run): void => {
             : 'failed';
     delivery.error = finished.status === 'failed' ? finished.message : '';
     saveRequest(context, request);
+    const head = queueRequests(context, laneId(context, request.threadId, request.rootRunId))[0];
+    if (head) pauseForUnfinishedHead(context, head);
   }
 };
 const stopConversationBranch = (
@@ -596,6 +603,8 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
     .parse(data);
   if (['up', 'down', 'next'].includes(input.action)) {
     const request = context.board.get<ChatRequest>('chat_request', id);
+    if (input.action === 'next' && ensureQueue(context, request.threadId, request.rootRunId).paused)
+      throw new Error('Resume the queue first, or choose Send now and resume queue.');
     const entries = queueRequests(context, laneId(context, request.threadId, request.rootRunId));
     const index = entries.findIndex((r) => r.id === id);
     const before =
@@ -613,6 +622,11 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
   );
   if (!pending.length && input.action !== 'remove')
     throw new Error('This request has no pending deliveries.');
+  if (input.action === 'resume') {
+    resumeHeadRequest(context, request);
+    void drainConversationQueue(context);
+    return context.board.get<ChatRequest>('chat_request', id);
+  }
   if (input.action === 'edit') {
     if (request.userInputId)
       throw new Error('Your answer is already saved. Send a correction instead.');
@@ -667,14 +681,14 @@ export const updateRequest = (context: CrewContext, id: string, data: unknown): 
         ...context.board.list<ChatRequest>('chat_request').map((entry) => entry.order),
       ) - 1;
   }
-  if (input.action === 'resume' || input.action === 'interrupt')
+  if (input.action === 'interrupt')
     for (const delivery of request.deliveries)
       if (
         ['paused', 'failed'].includes(delivery.status) &&
         canReadConversation(context, delivery.roleId, request.threadId)
       )
         delivery.status = 'queued';
-  if (input.action === 'resume' || input.action === 'interrupt') {
+  if (input.action === 'interrupt') {
     patchQueue(context, laneId(context, request.threadId, request.rootRunId), {
       paused: false,
       pauseKind: undefined,

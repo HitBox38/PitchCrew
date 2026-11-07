@@ -32,7 +32,12 @@ export const BrowserRunActivity = ({
           {active ? 'working' : run ? run.status : 'No active turn'}
         </span>
         {run ? (
-          <TurnDuration startedAt={run.startedAt} finishedAt={run.finishedAt} active={active} />
+          <TurnDuration
+            runId={run.id}
+            startedAt={run.startedAt}
+            finishedAt={run.finishedAt}
+            active={active}
+          />
         ) : null}
         {active ? (
           <Button
