@@ -524,14 +524,28 @@ export const createNativeGroup = (
         };
       });
       pendingNavigations.set(id, cancel);
+      let committed = () => {};
+      const commit = new Promise<void>((resolve) => {
+        committed = resolve;
+      });
+      const inPage = (_event: Electron.Event, nextUrl: string, mainFrame: boolean) => {
+        if (mainFrame && nextUrl === url.href) committed();
+      };
       try {
         await Promise.race([
           (async () => {
             await assertPublicUrl(value);
             if (stopped) throw new Error('Navigation stopped (ERR_ABORTED).');
             if (group.manualUntil <= Date.now()) throw new Error('Browser control changed.');
+            // The command is complete once the main document commits. loadURL
+            // waits for the full load, which can outlive the host request even
+            // while a page is already visible and usable. Persistent page event
+            // listeners continue reporting loading and later failures.
+            page.contents.once('did-navigate', committed);
+            page.contents.on('did-navigate-in-page', inPage);
             await page.contents.loadURL(value);
           })(),
+          commit,
           cancellation,
         ]);
       } catch (error) {
@@ -543,6 +557,8 @@ export const createNativeGroup = (
         errorDetails.set(id, error instanceof Error ? error.message : 'Navigation failed.');
         group.changed();
       } finally {
+        page.contents.removeListener('did-navigate', committed);
+        page.contents.removeListener('did-navigate-in-page', inPage);
         if (pendingNavigations.get(id) === cancel) pendingNavigations.delete(id);
         group.changed();
       }

@@ -201,7 +201,9 @@ export class ComputerManager {
   takeControl = (roleId: string) => {
     const session = this.browsers.forRole(roleId);
     roleId = this.browsers.key(session.info.roleId, session.info.threadId, session.info.cardId);
-    if (this.busyRoles.has(roleId))
+    // An expired manual lease keeps the page private. Its pending viewport update
+    // must not prevent recovery; retain the busy lock until that update finishes.
+    if (this.busyRoles.has(roleId) && !session.info.manual)
       throw new Error('An agent action is in progress. Try taking control again shortly.');
     const leaseId = this.browsers.take(roleId);
     if (session.info.runId)
