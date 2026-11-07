@@ -287,10 +287,10 @@ it('restores a local file-reading failure only when the replacement draft was ne
   expect(composerState('a').kept[0]?.payload.submission).toBeUndefined();
 });
 
-it.each([403, 422])(
+it.each([400, 403, 422])(
   'shows a definitive %s rejection with an unlocked draft and no receipt lookup',
   async (status) => {
-    initial();
+    const file = initial();
     const action = vi.fn<Action>(async () => {
       throw new ApiHttpError(status, 'Role is unavailable');
     });
@@ -299,6 +299,9 @@ it.each([403, 422])(
       notice: 'Not sent: Role is unavailable',
       draft: { text: '  @scout hello' },
     });
+    expect(composerState('a').draft.files[0]).toBe(file);
+    expect(composerState('a').draft.references).toEqual([reference]);
+    expect(composerState('a').kept).toEqual([]);
     expect(composerState('a').draft.submission).toBeUndefined();
     expect(findComposerReceipt).not.toHaveBeenCalled();
   },
