@@ -1,3 +1,4 @@
+import { cancelPick } from './pick.ts';
 import { guestAutomation } from './automation.ts';
 import { browserWindowOpenAction } from './window-open.ts';
 import { browserFavicon } from './favicon.ts';
@@ -21,6 +22,22 @@ import type { RelayGroup, RelayPage } from './cdp.ts';
 import type { createDomBrowserHost } from './dom-host.ts';
 
 const configured = new WeakSet<Session>();
+
+/** A plain sentence for a Chromium main-frame failure; the raw code stays in the details. */
+export const navigationFailure = (code: number) => {
+  if (code === -105 || code === -137) return 'The address couldn’t be found. Check it for typos.';
+  if (code === -106) return 'You appear to be offline. Check your connection, then try again.';
+  if (code === -102) return 'The site refused the connection. Try again later.';
+  if (code === -7 || code === -118) return 'The site took too long to respond. Try again.';
+  if (code === -100 || code === -101 || code === -21)
+    return 'The connection was interrupted. Try again.';
+  if (code === -310) return 'The page redirected too many times. Try opening it again.';
+  if (code === -20)
+    return 'Pitchcrew blocked this address. Local and private network pages aren’t available.';
+  if (code <= -200 && code > -300)
+    return 'The site’s security certificate isn’t trusted, so the page wasn’t opened.';
+  return 'Check the address and your connection, then try again.';
+};
 
 export interface NativeGroup extends RelayGroup {
   create(existingContents?: WebContents, select?: boolean): Promise<RelayPage>;
@@ -48,6 +65,7 @@ export interface NativeGroup extends RelayGroup {
   relays: Set<{ announce(page: RelayPage): void; closed(id: string): void; disconnect(): void }>;
   mount(bounds: Electron.Rectangle | null): void;
   select(id: string): void;
+  move(id: string, index: number): void;
   state(): NativeBrowserState;
   destroy(): Promise<void>;
 }
@@ -214,6 +232,7 @@ export const createNativeGroup = (
             const window = group.popupWindows.get(contents.id) ?? getWindow();
             return window ? screen.getDisplayMatching(window.getBounds()).scaleFactor : 1;
           },
+          (point) => dom.pointer(contents.id, point),
         );
         const page: RelayPage = {
           id: pageId,
@@ -253,6 +272,8 @@ export const createNativeGroup = (
             return;
           }
           if (!canUse() || input.type !== 'keyDown' || input.isComposing) return;
+          // Escape on the page ends a pending element pick, as in DevTools' inspect mode.
+          if (input.key === 'Escape') cancelPick(contents.id);
           const key = input.key.toLowerCase();
           const primary =
             process.platform === 'darwin'
@@ -425,6 +446,7 @@ export const createNativeGroup = (
           if (mainFrame) {
             navigationUrls.set(pageId, nativeBrowserPageUrl(url));
             if (!inPlace) {
+              dom.pointer(contents.id, 'navigated');
               favicons.delete(pageId);
               iconRequests.get(pageId)?.abort();
             }
@@ -434,14 +456,18 @@ export const createNativeGroup = (
         contents.on('did-fail-load', (_event, code, description, url, mainFrame) => {
           if (mainFrame && code !== -3) {
             navigationUrls.set(pageId, nativeBrowserPageUrl(url));
-            errors.set(pageId, 'Check the address and your connection, then try again.');
+            errors.set(pageId, navigationFailure(code));
             errorDetails.set(pageId, `${description} (${code})`);
           }
           group.changed();
         });
         contents.on('render-process-gone', () => {
           crashed.add(pageId);
-          errors.set(pageId, 'This browser tab stopped responding. Reload to recover it.');
+          // The heading already says it stopped responding; the body says what to do.
+          errors.set(
+            pageId,
+            'Reload to bring the page back. Anything typed on it may need re-entering.',
+          );
           group.changed();
         });
         contents.on('will-attach-webview', (event) => event.preventDefault());
@@ -553,8 +579,31 @@ export const createNativeGroup = (
         // Stop/replacement is an intentional cancellation, not a failed page.
         if (stopped || (error instanceof Error && 'code' in error && error.code === 'ERR_ABORTED'))
           throw error;
-        errors.set(id, 'Check the address and your connection, then try again.');
-        errorDetails.set(id, error instanceof Error ? error.message : 'Navigation failed.');
+        const message = error instanceof Error ? error.message : 'Navigation failed.';
+        // Electron rejects loadURL with the Chromium code; keep its specific sentence (the same
+        // failure's did-fail-load already recorded it) rather than a generic one.
+        // Only Chromium's ERR_* codes are navigation codes; Node DNS errors carry their own errno.
+        const errno =
+          error &&
+          typeof error === 'object' &&
+          'errno' in error &&
+          typeof error.errno === 'number' &&
+          'code' in error &&
+          typeof error.code === 'string' &&
+          error.code.startsWith('ERR_')
+            ? error.errno
+            : undefined;
+        errors.set(
+          id,
+          errno !== undefined
+            ? navigationFailure(errno)
+            : /private network/i.test(message)
+              ? navigationFailure(-20)
+              : /ENOTFOUND|EAI_AGAIN/.test(message)
+                ? navigationFailure(-105)
+                : navigationFailure(0),
+        );
+        if (errno === undefined || !errorDetails.has(id)) errorDetails.set(id, message);
         group.changed();
       } finally {
         page.contents.removeListener('did-navigate', committed);
@@ -576,11 +625,14 @@ export const createNativeGroup = (
       if (url !== 'about:blank') await assertPublicUrl(url);
       const selected = group.active === id;
       const logicalId = logicalTabs.get(id) ?? id;
+      const position = group.state().tabs.findIndex((tab) => tab.id === id);
       // A crashed Playwright Page and its OOPIF sessions are terminal. Follow
       // T3's guest generation recovery instead of reviving that debugger state.
       await group.close(id);
       const replacement = await group.create(undefined, selected);
       logicalTabs.set(replacement.id, logicalId);
+      // The recovered page keeps the crashed tab's place in the strip.
+      if (position >= 0) group.move(replacement.id, position);
       if (url !== 'about:blank') await replacement.contents.loadURL(url);
       group.changed();
       return true;
@@ -593,6 +645,17 @@ export const createNativeGroup = (
       const popup = group.popupWindows.get(group.pages.get(id)!.contents.id);
       if (group.manualUntil > Date.now() && getWindow()?.isVisible() && popup?.isVisible())
         popup.focus();
+    },
+    move: (id, index) => {
+      const page = group.pages.get(id);
+      if (!page || page.ready === false) throw new Error('Browser tab is closed.');
+      // Order among visible tabs; tabs still being created stay at the end, where they appear.
+      const entries = [...group.pages].filter(([key, item]) => key !== id && item.ready !== false);
+      const pending = [...group.pages].filter(([, item]) => item.ready === false);
+      entries.splice(Math.min(index, entries.length), 0, [id, page]);
+      group.pages.clear();
+      for (const [key, item] of [...entries, ...pending]) group.pages.set(key, item);
+      group.changed();
     },
     paint: (id, active) => {
       if (disposed) return;

@@ -85,7 +85,19 @@ export const useBrowserPanel = (
     width: state.width,
     /** Whether the shared right panel shows the browser or the packet. */
     view: state.view,
-    activity: status.sessions.some((item) => item.runId || item.manual),
+    /**
+     * An agent run is using a browser (plum). The user's own browsing is not activity, and nor
+     * is a run paused while the user holds its page.
+     */
+    activity: status.sessions.some((item) => !!item.runId && !item.manual),
+    /** A run is paused because the user holds its page: it waits on them (ochre). */
+    held: status.sessions.some((item) => !!item.runId && item.manual),
+    /** An agent run waits for the user's decision on a browser action (ochre). */
+    waiting: data.computerApprovals.some(
+      (approval) =>
+        approval.status === 'pending' &&
+        status.sessions.some((item) => item.runId && item.runId === approval.runId),
+    ),
     show: () =>
       setPreference({
         ...state,

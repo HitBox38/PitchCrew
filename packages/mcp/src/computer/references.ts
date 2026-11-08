@@ -5,7 +5,10 @@ import { credentialSelector, redactCredentials } from './credentials.ts';
 
 const candidates = 'body,a,button,input,textarea,select,[role],[tabindex]';
 export const browserReferences = () => {
-  const entries = new Map<string, { selector: string; frame?: string; handle: ElementHandle }>();
+  const entries = new Map<
+    string,
+    { selector: string; frame?: string; handle: ElementHandle; tag: string; name: string }
+  >();
   const clear = () => {
     for (const entry of entries.values()) void entry.handle.dispose().catch(() => {});
     entries.clear();
@@ -42,11 +45,12 @@ export const browserReferences = () => {
             .slice(0, 120),
         }));
         const ref = `ref:${generation}:${result.length + 1}`;
-        entries.set(ref, { selector, frame: frameSelector, handle });
+        const name = redactCredentials(element.name, secrets);
+        entries.set(ref, { selector, frame: frameSelector, handle, tag: element.tag, name });
         result.push({
           ref,
           ...element,
-          name: redactCredentials(element.name, secrets),
+          name,
           ...(frameSelector ? { frame: frameSelector } : {}),
         });
       }
@@ -77,6 +81,77 @@ export const browserReferences = () => {
     clear,
     capture,
     target,
+    /**
+     * The tag, redacted accessible name and box of the element an action targets, as it is now,
+     * for the user's view of the request: a snapshot reference or the agent's own selector. Read
+     * at request time, since the element may have been relabelled since inspection.
+     */
+    describe: async (page: Page, value: string, frameSelector?: string) => {
+      const entry = value.startsWith('ref:') ? entries.get(value) : undefined;
+      const frameName = entry ? entry.frame : frameSelector;
+      try {
+        const frame = frameName ? page.frameLocator(frameName) : page;
+        const handle =
+          entry?.handle ??
+          (value.startsWith('ref:')
+            ? null
+            : await frame.locator(value).first().elementHandle({ timeout: 1000 }));
+        if (!handle) return undefined;
+        const secrets = await frame
+          .locator(credentialSelector)
+          .evaluateAll((fields) => fields.map((field) => (field as HTMLInputElement).value));
+        const current = await handle.evaluate((node) => {
+          const el = node as HTMLElement;
+          const field = /^(input|textarea|select)$/i.test(el.tagName);
+          const labelled = (el.getAttribute('aria-labelledby') ?? '')
+            .split(/\s+/)
+            .map((id) => (id ? (el.ownerDocument.getElementById(id)?.textContent ?? '') : ''))
+            .join(' ');
+          const labels =
+            'labels' in el && (el as HTMLInputElement).labels
+              ? [...(el as HTMLInputElement).labels!].map((label) => label.textContent).join(' ')
+              : '';
+          const name = [
+            el.getAttribute('aria-label'),
+            labelled,
+            labels,
+            // A field's text is its value or options, never its name.
+            field ? '' : el.textContent,
+            el.getAttribute('placeholder'),
+            el.getAttribute('title'),
+            el.getAttribute('alt'),
+            el.getAttribute('name'),
+          ].find((candidate) => candidate?.trim());
+          return {
+            tag: el.tagName.toLowerCase(),
+            // A generous window: redaction runs before the short cut below, so a credential
+            // crossing the 120-character boundary is removed whole rather than split.
+            name: (name ?? '').slice(0, 4000),
+          };
+        });
+        const name = redactCredentials(current.name, secrets)
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/\s*[:：]$/, '')
+          .slice(0, 120);
+        const box = await handle.boundingBox().catch(() => null);
+        if (!entry) await handle.dispose().catch(() => {});
+        const bounds =
+          box && box.width > 0 && box.height > 0
+            ? {
+                x: Math.round(box.x),
+                y: Math.round(box.y),
+                width: Math.round(box.width),
+                height: Math.round(box.height),
+              }
+            : undefined;
+        return name || bounds
+          ? { tag: current.tag, name, ...(bounds ? { bounds } : {}) }
+          : undefined;
+      } catch {
+        return undefined;
+      }
+    },
     resolve: async (page: Page, action: BrowserAction): Promise<BrowserAction> => {
       if (!('selector' in action)) return action;
       const resolved = await target(page, action.selector, action.frame);

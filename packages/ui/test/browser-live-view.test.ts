@@ -70,8 +70,15 @@ const marker = () =>
     return Math.round(context.getImageData(8, 8, 1, 1).data[0] / 10);
   });
 
+/** Explicit takeover while the agent is idle lives under Browser options. */
+const takeControl = async () => {
+  await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+  await page.getByRole('menuitem', { name: 'Keep control until I return it', exact: true }).click();
+};
+const controlReleased = () => page.locator('.browser-state-chip[data-tone="idle"]').waitFor();
+
 test('takes private control, presents typed changes through the real HTTP stream and resumes cleanly', async () => {
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   await vi.waitFor(() => expect(website.viewportSize()!.width).toBeLessThan(1000));
   const target = (await website.locator('#name').boundingBox())!;
@@ -104,13 +111,13 @@ test('takes private control, presents typed changes through the real HTTP stream
   );
   expect(JSON.stringify(host.daemon.service.board.events())).not.toContain('xxxxxxxxxxxx');
   await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
-  await page.getByRole('button', { name: 'Take control', exact: true }).waitFor();
+  await controlReleased();
   expect(host.daemon.service.computer.browsers.list()[0].manual).toBe(false);
   expect(errors).toEqual([]);
 });
 
 test('unsubscribes when the panel is hidden and reconnects without changing manual pause', async () => {
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   await page.locator('button[aria-controls="agent-browser-panel"]').click();
   await vi.waitFor(() => expect(subscriptions).toBe(0));
@@ -123,7 +130,7 @@ test('unsubscribes when the panel is hidden and reconnects without changing manu
 });
 
 test('suspends viewing while the app document is hidden without releasing private control', async () => {
-  await page.getByRole('button', { name: 'Take control', exact: true }).click();
+  await takeControl();
   await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
   await page.evaluate(() => {
     Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => 'hidden' });
@@ -146,15 +153,17 @@ test('suspends viewing while the app document is hidden without releasing privat
 
 test('shows blank-page guidance over an empty streamed tab', async () => {
   await website.goto('about:blank');
-  await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
+  await page.getByRole('heading', { name: 'New tab', exact: true }).waitFor();
   expect(await page.locator('.browser-screen').count()).toBe(0);
   const placeholder = page.locator('.browser-placeholder');
-  await placeholder.getByRole('button', { name: 'Take control', exact: true }).click();
-  await placeholder.getByRole('button', { name: 'Enter an address', exact: true }).click();
+  // The agent is idle, so the address works without a separate takeover step.
+  expect(await placeholder.getByRole('button', { name: 'Take control', exact: true }).count()).toBe(
+    0,
+  );
+  // The address field above is the action; no button repeats it.
+  expect(await placeholder.getByRole('button').count()).toBe(0);
   expect(
-    await page
-      .getByRole('textbox', { name: 'Browser address' })
-      .evaluate((element) => document.activeElement === element),
-  ).toBe(true);
+    await page.getByRole('textbox', { name: 'Browser address' }).getAttribute('readonly'),
+  ).toBeNull();
   expect(errors).toEqual([]);
 });

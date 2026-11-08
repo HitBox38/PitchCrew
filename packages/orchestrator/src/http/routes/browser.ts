@@ -119,12 +119,14 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
       return { leaseId };
     }
     const leaseId = z.uuid().parse(input.leaseId);
-    if (input.operation === 'release') await service.computer.returnControl(sessionKey, leaseId);
-    else {
-      service.computer.browsers.renew(sessionKey, leaseId);
-      await service.computer.syncNativeControl(sessionKey, leaseId);
+    if (input.operation === 'release') {
+      await service.computer.returnControl(sessionKey, leaseId);
+      return { ok: true };
     }
-    return { ok: true };
+    service.computer.browsers.renew(sessionKey, leaseId);
+    await service.computer.syncNativeControl(sessionKey, leaseId);
+    // Lets the renderer hand back control it took implicitly once an agent run uses the browser.
+    return { ok: true, agentRun: !!service.computer.browsers.forRole(sessionKey).info.runId };
   });
   app.post<Route>('/api/browser/:id/viewport', async (req) => {
     const thread = authorize(req.query.threadId, req.params.id);

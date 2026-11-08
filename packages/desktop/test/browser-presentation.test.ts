@@ -120,6 +120,7 @@ const enrollmentFixture = (visible = false) => {
   const dom = {
     present: vi.fn(),
     forget: vi.fn(),
+    pointer: vi.fn(),
     create: vi.fn<ReturnType<typeof createDomBrowserHost>['create']>(),
   };
   const window = { isVisible: () => visible } as BrowserWindow;
@@ -140,6 +141,7 @@ const fixture = () => {
   const dom = {
     present: vi.fn(),
     forget: vi.fn(),
+    pointer: vi.fn(),
     create: vi.fn<ReturnType<typeof createDomBrowserHost>['create']>(),
   };
   const window = { isVisible: () => false } as BrowserWindow;

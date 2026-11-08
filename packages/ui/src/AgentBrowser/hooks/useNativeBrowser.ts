@@ -41,7 +41,7 @@ export const useNativeBrowser = (
   }, []);
   const active = !!identity && identity.ownerId === owner;
   const nativeId = identity?.id;
-  const { command: runCommand, leaseId } = control;
+  const { command: runCommand, leaseId, ensure } = control;
   const current = state?.id === nativeId ? state : null;
   const history = useBrowserHistory(roleId, thread, current, !!leaseId);
   useEffect(() => {
@@ -97,10 +97,12 @@ export const useNativeBrowser = (
   const command = useCallback(
     (value: NativeBrowserCommand) =>
       runCommand(async () => {
-        if (!leaseId) return;
+        // Browsing while the agent is idle takes control on the first page command.
+        const lease = await ensure();
+        if (!lease) return;
         const revision = eventRevision.current;
         const next = await browserCommand<NativeBrowserState>(roleId, thread, 'native', {
-          leaseId,
+          leaseId: lease,
           command: value,
         });
         setState((previous) =>
@@ -109,39 +111,52 @@ export const useNativeBrowser = (
             : { ...previous, dialog: next.dialog, warning: next.warning },
         );
       }),
-    [leaseId, runCommand, roleId, thread],
+    [ensure, runCommand, roleId, thread],
   );
   const navigate = useCallback(
     async (url: string, newTab = false) => {
       let succeeded = false;
       await runCommand(async () => {
-        if (!leaseId) return;
+        const lease = await ensure();
+        if (!lease) return;
         if (newTab)
           setState(
             await browserCommand(roleId, thread, 'native', {
-              leaseId,
+              leaseId: lease,
               command: { kind: 'new-tab' },
             }),
           );
-        await browserInput(roleId, thread, leaseId, { kind: 'navigate', url });
+        await browserInput(roleId, thread, lease, { kind: 'navigate', url });
         succeeded = true;
         void window.pitchcrewBrowser?.focusPage(nativeId!).catch(() => {});
       });
       return succeeded;
     },
-    [leaseId, runCommand, roleId, thread, nativeId],
+    [ensure, runCommand, roleId, thread, nativeId],
   );
   const { closedTabs, forgetClosed } = history;
   const restoreClosed = useCallback(async () => {
     const tab = closedTabs[0];
     if (tab && (await navigate(tab.url, true))) forgetClosed(tab.url);
   }, [closedTabs, forgetClosed, navigate]);
+  // Native Find needs control in the desktop host, so opening it while idle takes control.
+  const openFind = useCallback(
+    (open: boolean) => {
+      if (!open) return setFindOpen(false);
+      // Searching needs control in the desktop host: open only once it is held.
+      void ensure().then(
+        (lease) => setFindOpen(!!lease),
+        () => setFindOpen(false),
+      );
+    },
+    [ensure],
+  );
   useNativeShortcuts(
     active && enabled ? nativeId : undefined,
-    leaseId,
+    control.available,
     state,
     command,
-    setFindOpen,
+    openFind,
     control.working,
     restoreClosed,
   );
@@ -151,8 +166,10 @@ export const useNativeBrowser = (
     identity,
     state: current,
     findOpen,
-    setFindOpen,
+    setFindOpen: openFind,
     command,
+    /** Takes control first while the agent is idle; resolves undefined when it cannot. */
+    ensure,
     navigate,
     history,
   };

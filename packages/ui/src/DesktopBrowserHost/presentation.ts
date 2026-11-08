@@ -1,8 +1,52 @@
 import type { CSSProperties } from 'react';
 import type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
 
+/** Fired on a press over a read-only page so its panel can offer or take manual control. */
+export const browserGuardPressEvent = 'pitchcrew:browser-guard-press';
+
 export const initialBrowserSize = { width: 1280, height: 800 };
 export type BrowserViewSize = typeof initialBrowserSize;
+
+/** Maps a page CSS-pixel point to window coordinates for a presented guest, or null if hidden. */
+/** The scale and top-left of the displayed page: a fixed viewport is centred and scaled to fit. */
+const pageTransform = (view: DesktopBrowserView) => {
+  if (!view.bounds) return null;
+  const page = view.viewport ?? { width: view.bounds.width, height: view.bounds.height };
+  const scale = Math.min(1, view.bounds.width / page.width, view.bounds.height / page.height);
+  return {
+    scale,
+    x: view.bounds.x + (view.bounds.width - page.width * scale) / 2,
+    y: view.bounds.y,
+  };
+};
+
+export const browserPagePoint = (view: DesktopBrowserView, point: { x: number; y: number }) => {
+  const transform = pageTransform(view);
+  if (!transform || !view.bounds) return null;
+  const x = transform.x + point.x * transform.scale;
+  const y = transform.y + point.y * transform.scale;
+  const inside =
+    x >= view.bounds.x &&
+    y >= view.bounds.y &&
+    x <= view.bounds.x + view.bounds.width &&
+    y <= view.bounds.y + view.bounds.height;
+  return inside ? { x, y } : null;
+};
+
+/** A page box in window coordinates; callers clip it to the page frame. */
+export const browserPageRect = (
+  view: DesktopBrowserView,
+  rect: { x: number; y: number; width: number; height: number },
+) => {
+  const transform = pageTransform(view);
+  if (!transform) return null;
+  return {
+    x: transform.x + rect.x * transform.scale,
+    y: transform.y + rect.y * transform.scale,
+    width: rect.width * transform.scale,
+    height: rect.height * transform.scale,
+  };
+};
 
 export const browserViewStyle = (
   view: DesktopBrowserView,
@@ -39,9 +83,25 @@ export const browserViewStyle = (
     visibility: inactive && !keepPaintableWhenInactive ? 'hidden' : 'visible',
     display: 'flex',
     border: 0,
+    // A guest is transparent where a page paints no background; like any browser, show white
+    // there, never the app's paper (black text on dark paper in the dark theme). Pages that
+    // declare a dark colour scheme paint their own canvas over it.
+    background: '#fff',
     // An entirely off-window guest stops compositing in Electron. Fit background
     // surfaces on screen without changing the page's layout viewport or evidence.
     transform: view.bounds && scale === 1 ? 'none' : `scale(${scale})`,
     transformOrigin: 'top left',
   };
+};
+
+/** Which edge a mostly hidden target lies past, so the page can point to it; null when in view. */
+export const targetEdge = (
+  frame: { y: number; height: number },
+  rect: { y: number; height: number },
+): 'above' | 'below' | null => {
+  const top = Math.max(rect.y, frame.y);
+  const bottom = Math.min(rect.y + rect.height, frame.y + frame.height);
+  const visible = Math.max(0, bottom - top);
+  if (visible >= Math.min(rect.height, 24) * 0.5) return null;
+  return rect.y + rect.height / 2 < frame.y + frame.height / 2 ? 'above' : 'below';
 };

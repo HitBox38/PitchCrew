@@ -162,10 +162,14 @@
   white-space: nowrap;
   padding-left: 29px;
 }
+/* One line in every state, so a request arriving never pushes the turn down: the counts give
+ * way first (the expanded log has them all), then the request's words. */
 .chat-turn-disclosure {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  white-space: nowrap;
   gap: 4px 7px;
   min-height: 32px;
   padding: 4px 6px;
@@ -190,6 +194,10 @@
   transform: rotate(90deg);
 }
 .chat-turn-counts {
+  flex: 0 1000 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-variant-numeric: tabular-nums;
 }
 .chat-turn-counts[data-failed],
@@ -198,6 +206,12 @@
 }
 .chat-turn-disclosure[data-status='waiting'] {
   color: var(--ochre);
+}
+/* What the waiting browser request will do, in the tray's words. */
+.chat-turn-wait {
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 500;
 }
 .chat-turn-disclosure[data-status='running'] {
   color: var(--plum);

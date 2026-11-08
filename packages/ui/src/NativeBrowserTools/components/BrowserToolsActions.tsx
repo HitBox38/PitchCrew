@@ -10,7 +10,7 @@ export const BrowserToolsActions = ({
   model: ReturnType<typeof useNativeBrowserTools>;
   device: ReturnType<typeof useBrowserDevice>;
 }) => {
-  const { disabled, recording, tab, screenshot, floating } = model;
+  const { disabled, recordable, recording, tab, screenshot, floating } = model;
   return (
     <div className="browser-tools-actions" data-recording={recording.recording || undefined}>
       <Button
@@ -49,7 +49,10 @@ export const BrowserToolsActions = ({
         title={recording.recording ? 'Stop recording' : 'Record'}
         disabled={
           !recording.recording &&
-          (disabled || typeof MediaRecorder === 'undefined' || !window.pitchcrewBrowser?.capture)
+          (disabled ||
+            !recordable ||
+            typeof MediaRecorder === 'undefined' ||
+            !window.pitchcrewBrowser?.capture)
         }
         onClick={() => {
           if (recording.recording) recording.stop();

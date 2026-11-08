@@ -79,6 +79,7 @@ const fixture = async () => {
       create: async () => guest() as unknown as WebContents,
       present: vi.fn(),
       forget: vi.fn(),
+      pointer: vi.fn(),
     } as unknown as Parameters<typeof createNativeGroup>[4],
   );
   cleanups.push(group.destroy);
@@ -298,3 +299,87 @@ test.each(['resolve', 'reject'])(
     await cancelled;
   },
 );
+
+test('returns from manual navigation at commit while a slow page keeps loading', async () => {
+  const { group, guests, tab } = await fixture();
+  const contents = guests.get(group.active)!;
+  vi.mocked(assertPublicUrl).mockResolvedValue();
+  let finish!: () => void;
+  // Commit arrives, but the full load (subresources) never finishes during this test.
+  contents.loadURL.mockImplementationOnce(
+    (next: string) =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+        contents.emit('did-start-navigation', {}, next, false, true);
+        contents.emit('did-navigate', {}, next);
+      }),
+  );
+  await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://example.com/slow' });
+  expect(tab().error).toBeUndefined();
+  expect(contents.listenerCount('did-navigate')).toBeGreaterThan(0);
+  finish();
+});
+
+test('names common Chromium failures in plain words and keeps the raw code', async () => {
+  const { group, guests, tab } = await fixture();
+  const contents = guests.get(group.active)!;
+  contents.emit('did-fail-load', {}, -105, 'ERR_NAME_NOT_RESOLVED', failedUrl, true);
+  expect(tab().error).toBe('The address couldn’t be found. Check it for typos.');
+  contents.emit('did-fail-load', {}, -202, 'ERR_CERT_AUTHORITY_INVALID', failedUrl, true);
+  expect(tab().error).toMatch(/certificate/);
+  expect(tab().errorDetails).toBe('ERR_CERT_AUTHORITY_INVALID (-202)');
+});
+
+test('keeps the specific Chromium failure when loadURL rejects after did-fail-load', async () => {
+  const { group, guests, tab } = await fixture();
+  const contents = guests.get(group.active)!;
+  vi.mocked(assertPublicUrl).mockResolvedValue();
+  contents.loadURL.mockImplementationOnce(async (next: string) => {
+    contents.emit('did-fail-load', {}, -202, 'ERR_CERT_AUTHORITY_INVALID', next, true);
+    throw Object.assign(new Error(`ERR_CERT_AUTHORITY_INVALID (-202) loading '${next}'`), {
+      errno: -202,
+      code: 'ERR_CERT_AUTHORITY_INVALID',
+    });
+  });
+  await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://cert.example/' });
+  expect(tab().error).toMatch(/certificate/);
+  expect(tab().errorDetails).toBe('ERR_CERT_AUTHORITY_INVALID (-202)');
+});
+
+test('names a DNS preflight failure as an address that could not be found', async () => {
+  const { group, tab } = await fixture();
+  vi.mocked(assertPublicUrl).mockRejectedValue(
+    Object.assign(new Error('getaddrinfo ENOTFOUND missing.example'), {
+      errno: -3008,
+      code: 'ENOTFOUND',
+    }),
+  );
+  await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://missing.example/' });
+  expect(tab().error).toBe('The address couldn’t be found. Check it for typos.');
+});
+
+test('moves a tab among visible tabs without changing the selection or tab identities', async () => {
+  const { group } = await fixture();
+  const first = group.active;
+  await runNativeBrowserCommand(group, { kind: 'new-tab' });
+  const second = group.active;
+  await runNativeBrowserCommand(group, { kind: 'new-tab' });
+  const third = group.active;
+  const order = () => group.state().tabs.map((tab) => tab.id);
+  expect(order()).toEqual([first, second, third]);
+  await runNativeBrowserCommand(group, { kind: 'move-tab', tabId: third, index: 0 });
+  expect(order()).toEqual([third, first, second]);
+  expect(group.active).toBe(third);
+  // Past the end clamps to the last position.
+  await runNativeBrowserCommand(group, { kind: 'move-tab', tabId: third, index: 99 });
+  expect(order()).toEqual([first, second, third]);
+  await expect(
+    runNativeBrowserCommand(group, { kind: 'move-tab', tabId: 'gone', index: 0 }),
+  ).rejects.toThrow('Browser tab is closed.');
+  // Moving is a user command: an agent holding the browser cannot reorder through it.
+  group.manualUntil = 0;
+  await expect(
+    runNativeBrowserCommand(group, { kind: 'move-tab', tabId: first, index: 2 }),
+  ).rejects.toThrow('Browser control changed.');
+  expect(order()).toEqual([first, second, third]);
+});

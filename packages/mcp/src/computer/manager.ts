@@ -11,6 +11,8 @@ import {
   type BrowserViewport,
   type ComputerApproval,
   type RoleId,
+  publicText,
+  userDeclinedError,
 } from '@pitchcrew/core';
 import { assertReviewedContext, digestPacket, digestArtifacts } from '@pitchcrew/board';
 import { digestBytes, verifiedArtifact } from '@pitchcrew/packet';
@@ -32,7 +34,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { automaticNavigation, explorationNavigation } from './form-policy.ts';
 import { BrowserSessions } from './sessions.ts';
 import { hash } from './helpers.ts';
-import type { BrowserDriver } from './types.ts';
+import type { BrowserDriver, BrowserTarget } from './types.ts';
 
 export class ComputerManager {
   private readonly sessions = new Map<string, Promise<BrowserDriver>>();
@@ -41,6 +43,14 @@ export class ComputerManager {
   private readonly busy = new Set<string>();
   private readonly busyRoles = new Set<RoleId>();
   private readonly stopped = new Set<string>();
+  /** Where each waiting request's element sits, for the user's ring; memory only, never stored. */
+  private readonly targets = new Map<string, NonNullable<BrowserTarget['bounds']>>();
+  /**
+   * Requests the user rejected through a decision, in memory only. Invalidation (job or form
+   * changes, takeover, resize) also leaves an approval rejected, often without a reason, so only
+   * these are reported to the agent as the user's choice; anything else stays neutral.
+   */
+  private readonly declined = new Set<string>();
   constructor(
     private readonly board: Board,
     private readonly directory: string,
@@ -325,11 +335,30 @@ export class ComputerManager {
     try {
       this.browsers.assertAgent(scope.runId);
       const driver = await this.session(scope.runId);
+      // Resolve first: it selects the action's tab, so the element named below is the one on the
+      // page the action and its fingerprint belong to.
       action = (await driver.resolveAction?.(action)) ?? action;
-      const { diagnostics: _diagnostics, ...page } = await this.inspect(scope.runId, {
+      // Name the element for the user's summary ("Click “Learn more”"). It is presentation: the
+      // digest binds the resolved action and page, not this name.
+      const target =
+        'selector' in action
+          ? await driver
+              .describeTarget?.(action.selector, 'frame' in action ? action.frame : undefined)
+              .catch(() => undefined)
+          : undefined;
+      const { diagnostics: _diagnostics, ...inspected } = await this.inspect(scope.runId, {
         includeImage: true,
         references: false,
       });
+      const page = target?.name
+        ? {
+            ...inspected,
+            // Sanitized before the cut, so no secret survives as a kept fragment of a long name.
+            elements: [
+              { ref: 'target', tag: target.tag, name: publicText(target.name).slice(0, 80) },
+            ],
+          }
+        : inspected;
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)
         throw new Error('Submission continuation requires an inspected browser dialog.');
       if (this.stopped.has(scope.runId)) throw new Error('Browser session has ended.');
@@ -387,6 +416,11 @@ export class ComputerManager {
         createdAt: new Date().toISOString(),
         decidedAt: automatic ? new Date().toISOString() : null,
       };
+      if (!automatic && target?.bounds) {
+        this.targets.set(approval.id, target.bounds);
+        // Requests are decided one at a time; a few stale entries are all that can build up.
+        for (const id of [...this.targets.keys()].slice(0, -20)) this.targets.delete(id);
+      }
       this.board.record(
         'computer_approval',
         approval,
@@ -401,7 +435,19 @@ export class ComputerManager {
       this.busyRoles.delete(this.browsers.keyForRun(scope.runId));
     }
   };
+  /** The waiting request's element box, or null once it is decided, expired or unknown. */
+  target = (id: string) => {
+    const approval = this.board
+      .list<ComputerApproval>('computer_approval')
+      .find((a) => a.id === id);
+    if (approval?.status !== 'pending') {
+      this.targets.delete(id);
+      return null;
+    }
+    return this.targets.get(id) ?? null;
+  };
   decide = (id: string, approved: boolean) => {
+    this.targets.delete(id);
     const current = this.board.get<ComputerApproval>('computer_approval', id);
     if (current.status !== 'pending' || this.stopped.has(current.runId))
       throw new Error('This browser action is no longer pending.');
@@ -410,6 +456,11 @@ export class ComputerManager {
       status: approved ? 'approved' : 'rejected',
       decidedAt: new Date().toISOString(),
     };
+    if (!approved) {
+      this.declined.add(id);
+      // Requests are decided one at a time; a bounded window covers any run still asking.
+      for (const key of [...this.declined].slice(0, -200)) this.declined.delete(key);
+    }
     this.board.record(
       'computer_approval',
       next,
@@ -442,6 +493,7 @@ export class ComputerManager {
         message:
           'Awaiting user approval. Call execute again to wait; do not finish the run while waiting.',
       };
+    if (approval.status === 'rejected' && this.declined.has(id)) throw new Error(userDeclinedError);
     if (approval.status !== 'approved')
       throw new Error(
         `Browser action is ${approval.status}.${approval.error ? ` ${browserErrorText(approval.error)}` : ''}`,
@@ -450,6 +502,7 @@ export class ComputerManager {
       throw new Error('A browser action is in progress.');
     this.busy.add(runId);
     this.busyRoles.add(this.browsers.keyForRun(runId));
+    let performed = false;
     try {
       this.browsers.assertAgent(runId);
       const driver = await this.session(runId);
@@ -527,14 +580,40 @@ export class ComputerManager {
       })();
       if (approval.automatic) await driver.perform(approval.action, file, true);
       else await driver.perform(approval.action, file);
+      performed = true;
       authorize();
       signal.throwIfAborted();
       if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
-      const result = await this.inspect(runId);
+      // The action already ran. A click that starts a cross-site navigation can make the
+      // first capture fail while the new renderer settles; that must not report the
+      // action itself as failed (the agent would then claim it was blocked).
+      let result: Awaited<ReturnType<typeof this.inspect>> | null = null;
+      let inspectionError = '';
+      for (let attempt = 0; attempt < 2 && !result; attempt++) {
+        try {
+          if (attempt) await delay(600, undefined, { signal });
+          result = await this.inspect(runId);
+        } catch (cause) {
+          signal.throwIfAborted();
+          if (this.stopped.has(runId)) throw cause;
+          inspectionError = browserErrorText(
+            cause instanceof Error ? cause.message : 'The page could not be inspected.',
+          );
+        }
+      }
       authorize();
       signal.throwIfAborted();
+      if (!result)
+        return {
+          approvalId: id,
+          status: 'consumed',
+          page: null,
+          message: `The action ran, but the page could not be inspected afterwards (${inspectionError}). Inspect the page again before describing the result or requesting another action.`,
+        };
       return { approvalId: id, status: 'consumed', page: result };
     } catch (error) {
+      // After the side effect the approval stays consumed; only the follow-up failed.
+      if (performed) throw error;
       const current = this.board.get<ComputerApproval>('computer_approval', id);
       const message = browserErrorText(
         error instanceof Error ? error.message : 'Browser action failed.',

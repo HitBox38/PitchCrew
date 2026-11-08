@@ -1,0 +1,699 @@
+/* Clay browser chrome (v2). Imported after the other browser sheets and wins over them.
+ * Two rows on one paper: [agent · state chip · tabs · actions] and [navigation · address ·
+ * tools], one hairline under the toolbar, no sunken tab well and no extra status strips. */
+
+[data-interface='clay'] .agent-browser-panel {
+  background: var(--paper);
+  box-shadow: none;
+}
+/* The resize handle is an invisible hit area; the panel's own border is the hairline. */
+[data-interface='clay'] .browser-resizer {
+  background: transparent;
+}
+[data-interface='clay'] .browser-resizer:hover,
+[data-interface='clay'] .browser-resizer:focus-visible {
+  background: color-mix(in oklab, var(--primary) 18%, transparent);
+  outline: 0;
+}
+
+/* Row 1: identity, the state chip, inline tabs and the panel's actions. */
+[data-interface='clay'] .browser-panel-heading {
+  flex-wrap: nowrap;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 8px 2px 10px;
+  border-bottom: 0;
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-heading-identity {
+  flex: none;
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+/* A hairline after the state chip keeps it from reading as a tab. */
+[data-interface='clay'] .browser-heading-tabs {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow: hidden;
+}
+[data-interface='clay'] .browser-heading-tabs::before {
+  content: '';
+  flex: none;
+  width: 1px;
+  height: 16px;
+  background: var(--border);
+}
+[data-interface='clay'] .browser-tab-strip {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs {
+  flex: 0 1 auto;
+  gap: 2px;
+  min-width: 0;
+  padding: 0 16px 0 0;
+  overflow-x: auto;
+  background: none;
+  box-shadow: none;
+  scrollbar-width: none;
+}
+/* Tabs that overflow fade out only at the edge with more beyond it; New tab sits outside,
+ * always visible. */
+[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-end] {
+  mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-start] {
+  mask-image: linear-gradient(to right, transparent, #000 16px);
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-start][data-overflow-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent
+  );
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs::-webkit-scrollbar {
+  display: none;
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tab-new {
+  flex: none;
+}
+/* Tabs shrink toward 96px before the strip scrolls, as in a desktop browser. */
+[data-interface='clay'] .browser-heading-tabs .browser-tab {
+  flex: 0 1 180px;
+  min-width: 96px;
+  max-width: 180px;
+  border-radius: 9px;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab-select {
+  height: 30px;
+  font-weight: 500;
+}
+/* A tab being moved lifts as a raised pebble while its neighbours make room. */
+[data-interface='clay'] .browser-heading-tabs .browser-tab[data-dragging] {
+  z-index: 1;
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  cursor: grabbing;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab[data-active='true'] .browser-tab-select {
+  font-weight: 600;
+}
+/* A lone tab is the page's title as plain muted text: no pill, no close. */
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type {
+  min-width: 0;
+  background: none;
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-select {
+  color: var(--muted);
+  font-size: var(--text-label);
+  font-weight: 500;
+  cursor: default;
+}
+[data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-close {
+  display: none;
+}
+/* Narrow panels give the tabs their own line under the identity and actions. */
+/* Narrow panels keep one fixed shape so a state change never reflows the page under review:
+ * identity (the chip truncates) and actions on row one, the tabs always on row two. */
+@container browser-panel (max-width: 30rem) {
+  [data-interface='clay'] .browser-panel-heading {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  [data-interface='clay'] .browser-heading-identity {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  [data-interface='clay'] .browser-heading-identity > .browser-state-slot {
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  [data-interface='clay'] .browser-heading-actions {
+    flex-wrap: nowrap;
+  }
+  [data-interface='clay'] .browser-heading-tabs {
+    order: 3;
+    flex-basis: 100%;
+  }
+  [data-interface='clay'] .browser-heading-tabs::before {
+    display: none;
+  }
+}
+
+/* The state chip: who has the page, as a bead and a label. Opens task details. One pill shape
+ * and a fixed minimum width in every state, so a state change never moves the tabs beside it. */
+[data-interface='clay'] .browser-state-chip {
+  position: relative;
+  justify-content: flex-start;
+  gap: 6px;
+  height: 28px;
+  max-width: 13rem;
+  padding: 0 10px 0 8px;
+  border-radius: 999px;
+  background: var(--sunken-fill);
+  box-shadow: none;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+/* A 32px hit area around the 28px chip. */
+[data-interface='clay'] .browser-state-chip::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+}
+[data-interface='clay']
+  .browser-state-chip:is(
+    [data-tone='idle'],
+    [data-tone='closed'],
+    [data-tone='opening'],
+    [data-tone='browsing']
+  ):not([data-nudged]) {
+  background: transparent;
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-state-chip[data-tone='browsing']:not([data-nudged]) {
+  color: var(--primary-deep);
+}
+[data-interface='clay'] .browser-state-chip[data-tone='working'] {
+  background: var(--plum-soft);
+  color: var(--plum);
+}
+[data-interface='clay'] .browser-state-chip[data-tone='control'] {
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+}
+[data-interface='clay']
+  .browser-state-chip:is([data-tone='waiting'], [data-tone='held'], [data-tone='paused']),
+[data-interface='clay'] .browser-state-chip[data-nudged] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
+}
+[data-interface='clay'] .browser-state-chip[data-nudged] {
+  animation: browser-chip-nudge 600ms ease-out 2;
+}
+@keyframes browser-chip-nudge {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ochre) 30%, transparent);
+  }
+}
+[data-interface='clay'] .browser-state-chip > .clay-job-spinner {
+  width: 10px;
+  height: 10px;
+  border-width: 1.5px;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-interface='clay'] .browser-state-chip[data-nudged],
+  [data-interface='clay'] .browser-handoff[data-nudged] {
+    animation: none;
+  }
+}
+/* The tray's control action ends its line; a press on a page the agent is using points at it. */
+[data-interface='clay'] .clay-tray-line > .browser-handoff,
+[data-interface='clay'] .clay-tray-state > .browser-handoff,
+[data-interface='clay'] .browser-pending-action > .browser-handoff {
+  flex-shrink: 0;
+  height: 32px;
+  padding-inline: 10px;
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .clay-tray-line > .browser-handoff {
+  margin-left: auto;
+}
+/* Beside a request the control action is an icon in narrow panels and labelled in wide ones,
+ * except beside a typed, chosen or uploaded value, which keeps the room so it reads whole. */
+[data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+[data-interface='clay'] .browser-handoff[data-compact] > .browser-handoff-label {
+  display: none;
+}
+@container browser-panel (min-width: 36rem) {
+  [data-interface='clay']
+    .browser-pending-action:not([data-value])
+    > .browser-handoff[data-compact] {
+    width: auto;
+    padding-inline: 10px;
+  }
+  [data-interface='clay']
+    .browser-pending-action:not([data-value])
+    > .browser-handoff[data-compact]
+    > .browser-handoff-label {
+    display: inline;
+  }
+}
+[data-interface='clay'] .browser-handoff[data-nudged] {
+  box-shadow:
+    var(--clay),
+    0 0 0 3px color-mix(in oklab, var(--ochre) 35%, transparent);
+  animation: browser-chip-nudge 600ms ease-out 2;
+}
+
+/* Row 2: the toolbar on the same paper, with the only hairline in the chrome. */
+[data-interface='clay'] .browser-chrome {
+  border-bottom: 1px solid var(--border);
+  background: var(--paper);
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-chrome > .browser-toolbar {
+  min-height: 40px;
+  padding: 2px 4px 4px 6px;
+}
+[data-interface='clay'] .browser-toolbar > [data-slot='button'] {
+  box-shadow: none;
+}
+
+/* The page runs flush under the toolbar's hairline in both the split and expanded views: one
+ * frame, not three. The 1px border stays (transparent) so the page box and its viewport keep
+ * their sizing. */
+[data-interface='clay'] .agent-browser-panel .browser-panel-body {
+  padding: 0;
+  background: var(--paper);
+}
+[data-interface='clay'] .agent-browser-panel .browser-page-region .browser-live-view {
+  border-color: transparent;
+  border-radius: 0;
+  background: var(--paper);
+  box-shadow: none;
+}
+/* Blank, failed and crashed pages fill the same flush frame as a live page. */
+[data-interface='clay'] .agent-browser-panel .browser-page-error.clay-browser-state {
+  border-radius: 0;
+}
+
+/* Approval tray: a 56px reservation. A waiting request reads as two short lines (what will
+ * happen, then the agent's reason) on an ochre tint; the working tray is one plain line.
+ * Autonomous preparation keeps its taller step list. */
+[data-interface='clay'] .browser-approvals[data-reserved] {
+  height: 3.5rem;
+}
+[data-interface='clay'] .browser-approvals[data-reserved][data-mode='autonomous'] {
+  height: min(6.75rem, calc(var(--browser-viewport-height, 100dvh) * 0.3));
+}
+[data-interface='clay'] .browser-pending-action {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  padding: 0 10px 0 14px;
+  /* --clay-fill is a gradient, so the ochre wash is layered over it rather than mixed in. */
+  background:
+    linear-gradient(color-mix(in oklab, var(--ochre-soft) 55%, transparent) 0 0), var(--clay-fill);
+}
+[data-interface='clay'] .browser-pending-action .browser-approval-body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  justify-content: center;
+  gap: 0;
+  min-width: 0;
+  max-height: none;
+  padding: 0;
+  overflow: hidden;
+}
+[data-interface='clay'] .browser-pending-action .browser-approval-body > * {
+  flex: 0 0 auto;
+  min-width: 0;
+  margin: 0;
+}
+[data-interface='clay'] .browser-approval-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+/* Verb and target never shorten; only the value gives way when the line runs out of room. */
+[data-interface='clay'] .browser-approval-title {
+  display: flex;
+  gap: 0.28em;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: var(--text-label);
+  font-weight: 600;
+  line-height: 20px;
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-approval-title > span {
+  flex: none;
+}
+[data-interface='clay']
+  .browser-approval-title
+  > :is(.browser-approval-value, .browser-approval-object) {
+  display: inline-flex;
+  min-width: 0;
+}
+[data-interface='clay'] .browser-approval-title .browser-approval-text {
+  min-width: 1.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The value gives way first, down to a few letters inside its quotes. */
+/* The value gives way first: its shrink weight dwarfs the target's, so the target only shortens
+ * once the value is down to a few letters, and nothing shortens while the line has room. */
+[data-interface='clay'] .browser-approval-title > .browser-approval-value {
+  flex: 0 1000 auto;
+  font-weight: 500;
+}
+[data-interface='clay'] .browser-approval-title > .browser-approval-object {
+  flex: 0 1 auto;
+}
+/* The request's two lines open its Details: a quiet row, not a button shape. */
+[data-interface='clay'] .browser-evidence-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+[data-interface='clay'] .browser-evidence-trigger:hover {
+  background: color-mix(in oklab, var(--ochre) 8%, transparent);
+}
+[data-interface='clay'] .browser-evidence-trigger:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+[data-interface='clay'] .browser-approval-more {
+  flex: none;
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-pending-action .browser-approval-reason {
+  overflow: hidden;
+  padding-left: 15px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-approval-lock {
+  flex: none;
+  color: var(--ochre);
+}
+[data-interface='clay'] .browser-pending-action > :not(.browser-approval-body) {
+  flex: none;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer {
+  position: static;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+[data-interface='clay'] .browser-pending-action .approval-footer > [data-slot='button'] {
+  height: 32px;
+}
+[data-interface='clay'] .clay-tray-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  padding: 0 10px 0 14px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+@container browser-panel (max-width: 34rem) {
+  [data-interface='clay'] .browser-approvals[data-reserved] {
+    height: 6rem;
+  }
+  [data-interface='clay'] .browser-pending-action {
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 6px;
+    padding-block: 6px;
+  }
+  [data-interface='clay'] .browser-pending-action .browser-approval-body {
+    flex-basis: 100%;
+  }
+  [data-interface='clay'] .browser-pending-action .approval-footer {
+    margin-left: auto;
+  }
+}
+
+/* Failure orbs are round like every other state orb. */
+[data-interface='clay'] .clay-browser-orb[data-tone='rose'] {
+  border-radius: 999px;
+}
+/* The expanded activity column uses the app's sans heading type. */
+[data-interface='clay'] .browser-run-heading > strong {
+  font-family: var(--font-sans);
+  font-size: var(--text-label);
+  font-weight: 600;
+}
+
+/* Find: a pill under the Find button, over the page's top-right corner. */
+[data-interface='clay'] .browser-find-popover {
+  width: min(20rem, calc(100vw - 24px));
+  border-radius: 999px;
+}
+[data-interface='clay'] .browser-find {
+  gap: 2px;
+  height: 36px;
+  padding: 0 2px 0 10px;
+  border-bottom: 0;
+  background: none;
+}
+[data-interface='clay'] .browser-find > svg {
+  flex: none;
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-find > input {
+  flex: 1;
+  min-width: 0;
+  height: 30px;
+  padding: 0 6px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-label);
+  outline: none;
+}
+[data-interface='clay'] .browser-find > input::placeholder {
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-find-count {
+  flex: none;
+  min-width: 0;
+  white-space: nowrap;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+[data-interface='clay'] .browser-find > [data-slot='button'] {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+}
+[data-interface='clay'] .browser-find:focus-within {
+  outline: 0;
+}
+[data-interface='clay'] .browser-find-popover:has(input:focus-visible) {
+  box-shadow:
+    var(--pop, 0 8px 24px rgb(0 0 0 / 0.18)),
+    0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent);
+}
+[data-interface='clay'] .browser-find-count[data-empty] {
+  color: var(--rose);
+}
+
+/* A menu row can end with its current value and a chevron (Profile · Default ›). */
+[data-interface='clay'] .browser-menu-row-value {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-menu-row > svg:last-child:not(:first-child) {
+  color: var(--muted);
+}
+
+/* Small visual close buttons keep a 32px target. */
+[data-interface='clay'] .browser-tab .browser-tab-close {
+  position: relative;
+}
+[data-interface='clay'] .browser-tab .browser-tab-close::before {
+  content: '';
+  position: absolute;
+  inset: -5px;
+}
+
+/* The chat header's Browser button reads as pressed while the panel shows the page. */
+[data-interface='clay'] .chat-browser[data-open] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+  color: var(--ink);
+}
+
+/* A three-way segment in a menu row (website appearance): recessed track, raised choice. */
+[data-interface='clay'] .browser-menu-segment {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+[data-interface='clay'] .browser-menu-segment > [data-slot='button'] {
+  height: 26px;
+  padding: 0 8px;
+  border-radius: 7px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 500;
+}
+[data-interface='clay'] .browser-menu-segment > [aria-pressed='true'] {
+  background: var(--clay-fill);
+  box-shadow: var(--clay);
+  color: var(--ink);
+  font-weight: 600;
+}
+/* History rows: title, then host and path; a quiet destructive clear that asks first. */
+[data-interface='clay'] .browser-history-heading {
+  margin: 0;
+  padding: 6px 8px 2px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+[data-interface='clay'] .browser-history-entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
+  justify-items: start;
+  gap: 0;
+  width: 100%;
+  height: auto;
+  padding: 6px 8px;
+  font-weight: 400;
+  text-align: left;
+}
+[data-interface='clay'] .browser-history-title {
+  max-width: 100%;
+  color: var(--ink);
+  font-size: var(--text-label);
+  line-height: 20px;
+}
+[data-interface='clay'] .browser-history-where {
+  max-width: 100%;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 18px;
+}
+[data-interface='clay'] .browser-history-empty {
+  margin: 8px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-history-clear-start {
+  margin-top: 4px;
+  color: var(--rose);
+  font-weight: 500;
+}
+[data-interface='clay'] .browser-history-clear {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding-left: 8px;
+  color: var(--ink);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-history-clear > span {
+  flex: 1;
+}
+[data-interface='clay'] .browser-history-clear-confirm {
+  color: var(--rose);
+}
+
+/* Narrow panels keep the agent's face and drop its name, leaving the row to the chip and tabs. */
+@container browser-panel (max-width: 40rem) {
+  [data-interface='clay'] :is(.browser-agent-name, .browser-agent-picker) > .truncate {
+    display: none;
+  }
+}
+
+/* At rest the tray is a recessed line on the paper; it rises as a clay card only for a decision. */
+[data-interface='clay'] .browser-approvals[data-idle] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
+}
+
+/* A steady slot for the state chip while a run can change its state on its own, wide enough for
+ * every run state ("You have control" is the widest) plus the hairline inside it, so Working,
+ * Needs your OK and a takeover never move the tabs. The tabs shift once when a run starts or ends;
+ * at rest the chip hugs its label. Narrow panels, whose tabs have their own row, give the room
+ * back. */
+[data-interface='clay'] .browser-state-slot {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+}
+@container browser-panel (width > 30rem) {
+  [data-interface='clay'] .browser-state-slot[data-reserve] {
+    min-width: calc(7.5rem + 12px);
+  }
+  /* The hairline follows the chip itself, so the reserved width reads as the tabs' indent. */
+  [data-interface='clay'] .browser-state-slot::after {
+    content: '';
+    flex: none;
+    width: 1px;
+    height: 16px;
+    margin-left: 10px;
+    background: var(--border);
+  }
+  [data-interface='clay'] .browser-heading-tabs::before {
+    display: none;
+  }
+}
+/* The address keeps room for a host however many tools share the row (in panels wide enough
+ * for both; a phone sheet shares the row more evenly). */
+@container browser-panel (min-width: 30rem) {
+  [data-interface='clay'] .browser-toolbar > .browser-address {
+    min-width: 9rem;
+  }
+}
+/* Beside the browser the chat header's rule would sit 21px above the toolbar's: one rule only. */
+[data-interface='clay']
+  .chat-page
+  .chat-workspace[data-browser-open='true']:has(> .agent-browser-panel)
+  .chat-heading {
+  border-bottom-color: transparent;
+}
+/* The narrow sheet's own message box, with the expanded column's gutter and recessed field. */
+[data-interface='clay'] .agent-browser-panel > .browser-reply {
+  padding: 8px 8px 4px;
+  border-top: 1px solid var(--border);
+}

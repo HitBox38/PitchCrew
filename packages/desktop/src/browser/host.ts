@@ -13,6 +13,7 @@ import { createNativeGroup, type NativeGroup } from './pages.ts';
 import { connectBrowserRelay } from './cdp.ts';
 import { runNativeBrowserCommand } from './commands.ts';
 import { installBrowserArtifactIpc } from './artifacts.ts';
+import { installBrowserPickIpc } from './pick.ts';
 import { installFloatingBrowserIpc } from './floating.ts';
 import { createDomBrowserHost } from './dom-host.ts';
 
@@ -280,6 +281,7 @@ export const installNativeBrowserIpc = (
   };
   installNativeProfileIpc(host, authorize, getWindow);
   installBrowserArtifactIpc(host.groups, authorize, getWindow);
+  installBrowserPickIpc(host.groups, authorize, getWindow);
   installFloatingBrowserIpc(host.groups, authorize, getWindow);
   ipcMain.handle('pitchcrew:browser:identity', (event) => {
     authorize(event);
@@ -311,8 +313,28 @@ export const installNativeBrowserIpc = (
       const page = group?.pages.get(group.active)?.contents;
       if (!group || !page || (query && group.manualUntil <= Date.now()))
         throw new Error('Take control first.');
-      if (query) page.findInPage(query, { forward: z.boolean().parse(forward), findNext: true });
-      else page.stopFindInPage('clearSelection');
+      if (!query) {
+        page.stopFindInPage('clearSelection');
+        return null;
+      }
+      const requestId = page.findInPage(query, {
+        forward: z.boolean().parse(forward),
+        findNext: true,
+      });
+      // Resolve with Chromium's match count so the find bar can say "3 of 12".
+      return new Promise<{ active: number; total: number } | null>((resolve) => {
+        const timer = setTimeout(() => {
+          page.removeListener('found-in-page', found);
+          resolve(null);
+        }, 1500);
+        const found = (_event: Electron.Event, result: Electron.Result) => {
+          if (result.requestId !== requestId || !result.finalUpdate) return;
+          clearTimeout(timer);
+          page.removeListener('found-in-page', found);
+          resolve({ active: result.activeMatchOrdinal, total: result.matches });
+        };
+        page.on('found-in-page', found);
+      });
     },
   );
 };

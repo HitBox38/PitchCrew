@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { BrowserSessionInfo, RunActivity } from '@pitchcrew/core';
-import { browserModeChip, runActivitySummary, shownPanelView } from '../layout.ts';
+import type { BrowserSessionInfo, Run, RunActivity } from '@pitchcrew/core';
+import {
+  browserState,
+  browserTrayLine,
+  runActivitySummary,
+  shownBrowserRun,
+  shownPanelView,
+} from '../layout.ts';
 
 const session = (patch: Partial<BrowserSessionInfo> = {}): BrowserSessionInfo => ({
   roleId: 'submitter',
@@ -27,21 +33,42 @@ describe('browser panel view', () => {
   });
 });
 
-describe('browser mode chip', () => {
-  it('names the captured task permission while an agent turn runs', () => {
-    expect(browserModeChip(session(), false)?.label).toBe('Supervised');
-    expect(browserModeChip(session({ mode: 'autonomous' }), false)).toMatchObject({
-      tone: 'autonomous',
-      label: 'Autonomous preparation',
+describe('browser state chip', () => {
+  const state = (patch: Partial<Parameters<typeof browserState>[0]> = {}) =>
+    browserState({
+      session: session({ runId: null }),
+      implicit: false,
+      waiting: false,
+      opening: false,
+      name: 'Scout',
+      elsewhere: false,
+      ...patch,
     });
+  it('names who has the page with one label and bead tone', () => {
+    expect(state()).toMatchObject({ tone: 'idle', label: 'Idle' });
+    expect(state({ leaseId: 'lease', implicit: true })).toMatchObject({
+      tone: 'browsing',
+      label: 'You’re browsing',
+    });
+    expect(state({ leaseId: 'lease' })).toMatchObject({
+      tone: 'control',
+      label: 'You have control',
+    });
+    expect(state({ session: session(), leaseId: 'lease' })).toMatchObject({
+      tone: 'held',
+      label: 'You have control',
+    });
+    expect(state({ session: session() })).toMatchObject({ tone: 'working', label: 'Working' });
+    expect(state({ session: session(), waiting: true })).toMatchObject({ tone: 'waiting' });
+    expect(state({ session: session({ manual: true }) })).toMatchObject({ tone: 'paused' });
   });
-  it('shows Private whenever the user holds or has kept control', () => {
-    expect(browserModeChip(session({ mode: 'autonomous' }), true)?.tone).toBe('private');
-    expect(browserModeChip(session({ manual: true, runId: null }), false)?.label).toBe('Private');
-  });
-  it('has no chip without an active turn or takeover', () => {
-    expect(browserModeChip(session({ runId: null }), false)).toBeNull();
-    expect(browserModeChip(undefined, false)).toBeNull();
+  it('keeps the permission mode as detail and marks another conversation', () => {
+    expect(state({ session: session({ mode: 'autonomous' }) }).detail).toContain(
+      'Autonomous preparation',
+    );
+    expect(state({ elsewhere: true }).label).toBe('In another chat');
+    expect(state({ session: undefined, opening: true })).toMatchObject({ tone: 'opening' });
+    expect(state({ session: undefined })).toMatchObject({ tone: 'closed' });
   });
 });
 
@@ -65,5 +92,47 @@ describe('expanded activity summary', () => {
     ]);
     expect(summary.steps.map((step) => step.id)).toEqual(['b', 'd']);
     expect(summary.commentary?.id).toBe('c');
+  });
+});
+
+describe('tray line', () => {
+  it('says who has the page in the chip’s words, with an empty socket when idle', () => {
+    const line = (overrides: Partial<Parameters<typeof browserTrayLine>[0]>) =>
+      browserTrayLine({
+        name: 'Scout',
+        held: false,
+        implicit: false,
+        manual: false,
+        working: false,
+        ...overrides,
+      });
+    expect(line({}).tone).toBeNull();
+    expect(line({ working: true })).toMatchObject({ tone: 'plum' });
+    expect(line({ held: true, implicit: true }).text).toBe(
+      'Scout gets the page back when it starts working.',
+    );
+    expect(line({ held: true, implicit: true, working: true }).text).toBe(
+      'Scout waits until you return the page.',
+    );
+    // While working, the line narrates the latest step instead of a placeholder.
+    expect(line({ working: true, step: 'Clicked “Learn more”' }).text).toBe(
+      'Scout: Clicked “Learn more”',
+    );
+    expect(line({ manual: true })).toMatchObject({ tone: 'ochre' });
+  });
+});
+
+describe('shown run', () => {
+  it('keeps the latest run in this conversation after the browser run ends', () => {
+    const run = (id: string, startedAt: string, threadId = 'chat') =>
+      ({ id, roleId: 'scout', threadId, mode: 'chat', startedAt }) as Run;
+    const runs = [
+      run('a', '2026-11-08T01:00:00Z'),
+      run('b', '2026-11-08T02:00:00Z'),
+      run('c', '2026-11-08T03:00:00Z', 'other'),
+    ];
+    expect(shownBrowserRun(runs, 'scout', 'chat', null)?.id).toBe('b');
+    expect(shownBrowserRun(runs, 'scout', 'chat', 'a')?.id).toBe('a');
+    expect(shownBrowserRun(runs, 'writer', 'chat', null)).toBeUndefined();
   });
 });

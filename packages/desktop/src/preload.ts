@@ -25,6 +25,8 @@ const startup: DesktopStartupBridge = {
 contextBridge.exposeInMainWorld('pitchcrewStartup', startup);
 const browser: DesktopBrowserBridge = {
   capture: (id) => ipcRenderer.invoke('pitchcrew:browser:capture', id),
+  pickElement: (id) => ipcRenderer.invoke('pitchcrew:browser:pick', id),
+  cancelPick: (id) => ipcRenderer.invoke('pitchcrew:browser:pick-cancel', id),
   saveArtifact: (kind, data) => ipcRenderer.invoke('pitchcrew:browser:save-artifact', kind, data),
   copyCapture: (data) => ipcRenderer.invoke('pitchcrew:browser:copy-capture', data),
   revealArtifact: (path) => ipcRenderer.invoke('pitchcrew:browser:reveal-artifact', path),

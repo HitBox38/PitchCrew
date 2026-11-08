@@ -15,6 +15,16 @@ import {
   type BrowserViewport,
 } from '@pitchcrew/core';
 
+/**
+ * A referenced element as it is now, for the user's view of a request: its tag, redacted visible
+ * name and box in page CSS pixels. Presentation only; the approval digest never includes it.
+ */
+export interface BrowserTarget {
+  tag: string;
+  name: string;
+  bounds?: { x: number; y: number; width: number; height: number };
+}
+
 export type BrowserFrameEvent = BrowserFrame | { error: string };
 export type BrowserFrameListener = (event: BrowserFrameEvent) => void;
 
@@ -34,6 +44,8 @@ export interface BrowserDriver {
   tabs?(command: BrowserTabsCommand): Promise<BrowserTab[]>;
   targetTab?(id: string): Promise<void>;
   resolveAction?(action: BrowserAction): Promise<BrowserAction>;
+  /** The visible name of an inspected element reference, before the action resolves it. */
+  describeTarget?(selector: string, frame?: string): Promise<BrowserTarget | undefined>;
   matches?(condition: BrowserWait): Promise<boolean>;
   snapshot(options?: { includeImage?: boolean; references?: boolean }): Promise<BrowserSnapshot>;
   getViewport?(): BrowserViewport;

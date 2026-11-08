@@ -348,9 +348,7 @@ test.each([
     expect(await source.textContent()).toBe(diagnostics);
     expect(await source.textContent()).not.toContain('\u001b');
     expect(await source.textContent()).not.toMatch(/\[2m|\[22m/);
-    expect(
-      await sheet.getByRole('button', { name: 'Approve interaction', exact: true }).count(),
-    ).toBe(0);
+    expect(await sheet.getByRole('button', { name: /^Approve / }).count()).toBe(0);
     expect(host.daemon.service.board.get<ComputerApproval>('computer_approval', saved.id)).toEqual(
       saved,
     );

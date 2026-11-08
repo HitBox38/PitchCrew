@@ -213,7 +213,9 @@
 
 /* Off beads read as hollow rings inside recessed trays, where a sunken bead would disappear. */
 [data-interface='clay'] .chat-workspace .clay-proposal-tray .clay-bead[data-empty],
-[data-interface='clay'] .chat-workspace .chat-role-summary ul .clay-bead[data-empty] {
+[data-interface='clay'] .chat-workspace .chat-role-summary ul .clay-bead[data-empty],
+[data-interface='clay'] .browser-approvals[data-idle] .clay-bead[data-empty],
+[data-interface='clay'] .browser-state-chip .clay-bead[data-empty] {
   background: transparent;
   box-shadow: inset 0 0 0 1.5px var(--border-strong);
 }

@@ -9,7 +9,17 @@ import {
 import { TraceLine, TraceIcon, TraceTitle, TraceDescription } from '@pitchcrew/design-system/trace';
 import { TurnDuration } from './TurnDuration.tsx';
 import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
-export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
+/**
+ * One step. A step blocked on the user (a browser request awaiting their OK, a page they hold)
+ * reads as waiting: an ochre bead and no running timer, never a plum "working" spinner.
+ */
+export const ActivityStep = ({
+  entry,
+  waiting = false,
+}: {
+  entry: RunActivity;
+  waiting?: boolean;
+}) => {
   const { status } = activityPresentation[entry.status];
   const Root = entry.kind === 'reasoning' ? Reasoning : Tool;
   const Trigger = entry.kind === 'reasoning' ? ReasoningTrigger : ToolTrigger;
@@ -19,16 +29,18 @@ export const ActivityStep = ({ entry }: { entry: RunActivity }) => {
       <Trigger className="chat-activity-step-trigger">
         <TraceLine className="flex-1" status={status}>
           <TraceIcon>
-            <StatusBead status={entry.status} />
+            <StatusBead status={waiting ? 'waiting' : entry.status} />
           </TraceIcon>
           <TraceTitle className="flex-1 whitespace-normal">{entry.label}</TraceTitle>
-          <span className="sr-only">{outcomes[entry.status]}</span>
+          <span className="sr-only">{waiting ? 'Waiting for you' : outcomes[entry.status]}</span>
           <TraceDescription>
-            <TurnDuration
-              startedAt={entry.startedAt}
-              finishedAt={entry.finishedAt}
-              active={entry.status === 'running'}
-            />
+            {waiting ? null : (
+              <TurnDuration
+                startedAt={entry.startedAt}
+                finishedAt={entry.finishedAt}
+                active={entry.status === 'running'}
+              />
+            )}
           </TraceDescription>
         </TraceLine>
       </Trigger>

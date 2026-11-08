@@ -29,9 +29,20 @@ export const BrowserToolbar = ({
         size="icon-sm"
         variant="ghost"
         aria-label="Reopen current page"
-        title={control.leaseId ? 'Reopen the current address' : 'Take control to navigate'}
-        disabled={!control.leaseId || control.inputPending > 0 || !address.startsWith('http')}
-        onClick={() => control.input({ kind: 'navigate', url: address })}
+        title={control.available ? 'Reopen the current address' : 'Take control to navigate'}
+        disabled={
+          !control.available ||
+          control.working ||
+          control.inputPending > 0 ||
+          !address.startsWith('http')
+        }
+        onClick={() =>
+          // While the agent is idle, reopening is browsing: it takes control first.
+          void control.command(async () => {
+            const lease = await control.ensure();
+            if (lease) control.input({ kind: 'navigate', url: address }, lease);
+          })
+        }
       >
         <RotateCw size={15} />
       </Button>

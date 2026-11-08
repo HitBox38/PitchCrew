@@ -1,7 +1,8 @@
 import { AccordionSection } from '@pitchcrew/design-system/accordion';
 import { SourceBlock } from '@/components/SourceBlock/index.tsx';
 import type { ComputerApproval } from '@pitchcrew/core';
-import { browserActionTitles, browserStatusLabels } from '../helpers.ts';
+import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { approvalSummary, browserStatusLabels } from '../helpers.ts';
 import { BrowserActionSummary } from './BrowserActionSummary.tsx';
 import { BrowserApprovalActions } from './BrowserApprovalActions.tsx';
 import { BrowserApprovalError } from './BrowserApprovalError.tsx';
@@ -17,12 +18,15 @@ export const BrowserApprovalContent = ({
   working,
   showActions = true,
 }: Props) => {
-  const role = approval.roleId[0].toUpperCase() + approval.roleId.slice(1);
+  const role =
+    useWorkspaceStore(
+      (state) => state.data?.roles.find((item) => item.id === approval.roleId)?.name,
+    ) ?? approval.roleId;
   return (
     <>
       <div className="approval-heading">
         <div>
-          <h2>{browserActionTitles[approval.action.kind]}</h2>
+          <h2>{approvalSummary(approval.action, approval.page)}</h2>
           <p>
             {role} · {approval.page.title || 'New browser'}
           </p>
@@ -36,7 +40,7 @@ export const BrowserApprovalContent = ({
       <BrowserActionSummary action={approval.action} />
       {approval.uploadDigest ? (
         <p className="quiet break-all">
-          Exact upload SHA-256: {approval.uploadDigest} ?{' '}
+          Exact upload SHA-256: {approval.uploadDigest} ·{' '}
           {approval.uploadMimeType || 'text/markdown'}
         </p>
       ) : null}

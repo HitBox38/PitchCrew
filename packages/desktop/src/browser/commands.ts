@@ -21,6 +21,9 @@ export const runNativeBrowserCommand = async (
       case 'select-tab':
         group.select(command.tabId);
         break;
+      case 'move-tab':
+        group.move(command.tabId, command.index);
+        break;
       case 'close-tab':
         await group.close(command.tabId);
         if (!group.pages.size) await group.create();

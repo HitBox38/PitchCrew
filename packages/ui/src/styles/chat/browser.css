@@ -74,30 +74,14 @@
   font-size: var(--text-caption);
   white-space: nowrap;
 }
-.browser-state-dot {
-  width: 5px;
-  height: 5px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--faint);
-}
-.browser-panel-heading .browser-owner-manual,
 .browser-task-elsewhere {
   color: var(--teal);
-}
-.browser-owner-manual .browser-state-dot {
-  background: var(--teal);
 }
 .browser-heading-actions {
   display: flex;
   flex-shrink: 0;
   align-items: center;
   gap: 2px;
-}
-.browser-handoff {
-  height: 30px;
-  padding-inline: 6px;
-  font-size: var(--text-caption);
 }
 .browser-task-details .browser-sites {
   padding-inline: 0;
@@ -181,7 +165,7 @@
   border-radius: 0;
   background: transparent;
   box-shadow: none;
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
 }
 .browser-address input:focus-visible {
   outline: none;
@@ -374,14 +358,6 @@
 .browser-history-entry span {
   width: 100%;
 }
-.browser-control-hint {
-  flex-shrink: 0;
-  margin: 0;
-  padding: 7px 12px;
-  color: var(--muted);
-  font-size: var(--text-caption);
-  line-height: 1.5;
-}
 .browser-page-error {
   position: absolute;
   z-index: 2;
@@ -464,13 +440,6 @@
   }
 }
 @container (max-width: 460px) {
-  .browser-control-label {
-    display: none;
-  }
-  .browser-handoff {
-    min-width: 32px;
-    padding: 0;
-  }
   .browser-panel-heading {
     padding-inline: 8px;
   }
@@ -486,10 +455,7 @@
   background: var(--surface);
   overscroll-behavior: contain;
 }
-/* Approval presentation must not reflow the native page whose evidence it reviews. */
-.browser-approvals[data-reserved] {
-  height: min(18rem, calc(var(--browser-viewport-height, 100dvh) * 0.4));
-}
+/* Approval presentation must not reflow the page it reviews; the clay chrome sets the height. */
 .browser-approvals[data-reserved] .browser-pending-action {
   height: 100%;
 }
@@ -501,14 +467,6 @@
 .browser-approvals[data-reserved] .approval-footer {
   flex-shrink: 0;
 }
-.browser-approval-empty {
-  display: grid;
-  place-items: center;
-  height: 100%;
-  margin: 0;
-  padding: 12px;
-  text-align: center;
-}
 .browser-pending-action {
   display: flex;
   flex-direction: column;
@@ -518,10 +476,6 @@
   overflow-y: auto;
   max-height: min(32dvh, calc(var(--browser-viewport-height, 100dvh) * 0.32));
   overscroll-behavior: contain;
-}
-.browser-pending-action h3 {
-  margin: 0 0 4px;
-  font-size: 16px;
 }
 .browser-approval-reason {
   margin: 0 0 6px;
@@ -533,23 +487,6 @@
   margin: 0;
   padding: 8px 12px;
   background: var(--surface);
-}
-.browser-action-brief {
-  margin: 6px 0;
-  font-size: var(--text-caption);
-}
-.browser-action-brief div {
-  display: flex;
-  gap: 6px;
-}
-.browser-action-brief dt {
-  flex-shrink: 0;
-  color: var(--muted);
-}
-.browser-action-brief dd {
-  margin: 0;
-  min-width: 0;
-  overflow-wrap: anywhere;
 }
 .browser-evidence {
   margin: 8px 0;
@@ -640,13 +577,8 @@
     min-width: 36px;
     min-height: 36px;
   }
-  .browser-control-label {
-    display: none;
-  }
   .browser-handoff {
-    min-width: 36px;
     min-height: 36px;
-    padding: 0;
   }
   .browser-agent-picker,
   .browser-agent-name {
@@ -659,4 +591,7 @@
   .browser-address input {
     font-size: 16px;
   }
+}
+.browser-tab-failed {
+  color: var(--rose);
 }

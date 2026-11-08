@@ -67,3 +67,11 @@ export const browserInput = (
   leaseId: string,
   input: BrowserInput,
 ) => browserCommand(roleId, threadId, 'input', { leaseId, input });
+/** Where a waiting request's element sits on the page, in page CSS pixels; null once decided. */
+export const approvalTarget = (approvalId: string, signal?: AbortSignal) =>
+  api<{ bounds: { x: number; y: number; width: number; height: number } | null }>(
+    `/computer-approvals/${encodeURIComponent(approvalId)}/target`,
+    'GET',
+    undefined,
+    signal,
+  );

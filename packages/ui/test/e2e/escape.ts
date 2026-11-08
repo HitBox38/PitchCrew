@@ -169,15 +169,14 @@ export const checkExpandedEscape = async (app: DesktopE2E) => {
     assert.equal(await guest.read('document.querySelector("#name").value'), draft);
     assert.equal(
       await page
-        .locator('.browser-panel-heading')
-        .getByRole('button', { name: 'Return to agent', exact: true })
+        .locator('.browser-state-chip:is([data-tone="browsing"], [data-tone="control"])')
         .isVisible(),
       true,
     );
 
     // The original renderer path still works with focus in the activity panel.
     await expand.click();
-    await page.locator('.browser-run-heading').click();
+    await page.locator('.browser-expanded-side .clay-tray-line').click();
     await page.keyboard.press('Escape');
     await expand.waitFor();
     await until(

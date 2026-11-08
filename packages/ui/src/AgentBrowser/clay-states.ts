@@ -18,7 +18,7 @@ export const closedPageTime = (visitedAt: number, now = Date.now()) => {
   const date = new Date(visitedAt);
   const today = new Date(now);
   if (sameDay(date, today))
-    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
   if (now - visitedAt < 6 * 24 * 60 * 60 * 1000)
     return date.toLocaleDateString(undefined, { weekday: 'short' });
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });

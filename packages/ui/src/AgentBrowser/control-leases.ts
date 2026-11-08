@@ -2,6 +2,11 @@ export interface BrowserControlLease {
   roleId: string;
   threadId: string;
   id: string;
+  /**
+   * Taken by browsing while the agent was idle rather than by Take control. The panel hands an
+   * implicit lease back when an agent run starts using this browser.
+   */
+  implicit?: boolean;
 }
 
 interface BrowserControlLeaseSnapshot {
@@ -9,15 +14,36 @@ interface BrowserControlLeaseSnapshot {
   errors: Readonly<Record<string, string>>;
 }
 
+/**
+ * Whether a panel should return control it took implicitly: an agent run is using the browser,
+ * no page command is still in flight, and this lease has not already been handed back.
+ */
+export const shouldHandBack = (state: {
+  runId: string | null;
+  leaseId?: string;
+  implicit: boolean;
+  working: boolean;
+  handedBack?: string;
+}) =>
+  !!state.runId &&
+  !!state.leaseId &&
+  state.implicit &&
+  !state.working &&
+  state.handedBack !== state.leaseId;
+
 export const browserControlScopeKey = (roleId: string, threadId: string, cardId?: string | null) =>
   cardId ? `${roleId}:job:${cardId}` : `${roleId}:conversation:${threadId}`;
 
 /** Renderer-session control survives route unmounts; the daemon remains the lease authority. */
 export const createBrowserControlLeases = (
   renew: (lease: BrowserControlLease) => Promise<unknown>,
+  /** Returns an implicit lease once renewal reports an agent run, even with no panel mounted. */
+  handBack?: (lease: BrowserControlLease) => Promise<unknown>,
 ) => {
   let snapshot: BrowserControlLeaseSnapshot = { leases: {}, errors: {} };
   const listeners = new Set<() => void>();
+  // Scopes with a mounted panel: that panel hands back after its in-flight commands finish.
+  const mounted = new Map<string, number>();
   const pending = new Map<string, { id: string }>();
   const deadlines = new Map<string, number>();
   let renewAt = Date.now() + 20_000;
@@ -55,7 +81,7 @@ export const createBrowserControlLeases = (
           pending.set(key, request);
           void Promise.resolve()
             .then(() => renew(lease))
-            .then(() => {
+            .then(async (result) => {
               if (closed || snapshot.leases[key]?.id !== lease.id) return;
               deadlines.set(key, startedAt + 45_000);
               if (snapshot.errors[key]) {
@@ -63,6 +89,27 @@ export const createBrowserControlLeases = (
                 delete errors[key];
                 publish({ ...snapshot, errors });
               }
+              reconcileTimer();
+              if (
+                !handBack ||
+                !lease.implicit ||
+                mounted.get(key) ||
+                !(result as { agentRun?: boolean } | undefined)?.agentRun
+              )
+                return;
+              // Re-read the live lease: Keep control may have made it explicit meanwhile.
+              const live = snapshot.leases[key];
+              if (closed || live?.id !== lease.id || !live.implicit) return;
+              // Keep the token unless the daemon confirmed the release; renewal retries.
+              const released = await handBack(lease).then(
+                () => true,
+                () => false,
+              );
+              if (!released || closed || snapshot.leases[key]?.id !== lease.id) return;
+              const leases = { ...snapshot.leases };
+              delete leases[key];
+              deadlines.delete(key);
+              publish({ ...snapshot, leases });
               reconcileTimer();
             })
             .catch((cause: unknown) => {
@@ -99,6 +146,15 @@ export const createBrowserControlLeases = (
   };
   return {
     read: () => snapshot,
+    /** Marks a panel mounted for a scope; returns its unmount. */
+    attach: (key: string) => {
+      mounted.set(key, (mounted.get(key) ?? 0) + 1);
+      return () => {
+        const count = (mounted.get(key) ?? 1) - 1;
+        if (count > 0) mounted.set(key, count);
+        else mounted.delete(key);
+      };
+    },
     subscribe: (listener: () => void) => {
       listeners.add(listener);
       return () => listeners.delete(listener);
@@ -106,9 +162,12 @@ export const createBrowserControlLeases = (
     remember: (key: string, lease: BrowserControlLease, acquiredAt = Date.now()) => {
       if (closed) return;
       if (!Object.keys(snapshot.leases).length) renewAt = Date.now() + 20_000;
-      deadlines.set(key, acquiredAt + 45_000);
+      // Keep control changes metadata on the same token; only server acknowledgements
+      // establish a new deadline or clear a renewal error.
+      const existing = snapshot.leases[key]?.id === lease.id;
+      if (!existing) deadlines.set(key, acquiredAt + 45_000);
       const errors = { ...snapshot.errors };
-      delete errors[key];
+      if (!existing) delete errors[key];
       publish({ leases: { ...snapshot.leases, [key]: { ...lease } }, errors });
       reconcileTimer();
     },

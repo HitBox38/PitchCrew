@@ -11,6 +11,7 @@ import {
 import { browserCommand } from '../api.ts';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserReset } from './BrowserReset.tsx';
+import { BrowserControlItems } from './BrowserControlItems.tsx';
 
 export const BrowserMaintenance = ({
   browserPanel,
@@ -28,6 +29,7 @@ export const BrowserMaintenance = ({
               size="icon-sm"
               variant="ghost"
               aria-label="Browser options"
+              title="Browser options"
               disabled={control.working}
             />
           }
@@ -35,6 +37,7 @@ export const BrowserMaintenance = ({
           <Ellipsis size={18} />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
+          <BrowserControlItems browserPanel={browserPanel} control={control} />
           <DropdownMenuGroup>
             {browserPanel.session?.status === 'open' ? (
               <DropdownMenuItem

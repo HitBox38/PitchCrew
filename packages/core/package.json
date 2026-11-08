@@ -27,6 +27,7 @@
     "./message-notifications": "./src/message-notifications.ts",
     "./chat-citations": "./src/chat-citations.ts",
     "./browser-errors": "./src/browser-errors.ts",
+    "./browser-action-labels": "./src/browser-action-labels.ts",
     "./runtime-model-preferences": "./src/runtime-model-preferences-helpers.ts",
     "./reasoning": "./src/reasoning.ts"
   },
