@@ -2,18 +2,22 @@ import { useState } from 'react';
 import type { Run } from '@pitchcrew/core';
 import { Collapsible, CollapsibleContent } from '@pitchcrew/design-system/collapsible';
 import { ActivityEntries } from './ActivityEntries.tsx';
-import { activityPreview, activitySummary } from '../activity-summary.ts';
+import { activityPreview, activitySummary, blockedSteps } from '../activity-summary.ts';
 import { TurnActivityTrigger } from './TurnActivityTrigger.tsx';
 import { useRunWait } from '../hooks/useRunWait.ts';
 
 /** One disclosure per turn; completed operational chatter yields to the answer. */
 export const TurnActivity = ({ run }: { run: Run }) => {
   const [open, setOpen] = useState(false);
-  const { waiting, blocked } = useRunWait(run);
+  const { approval, waiting, blocked } = useRunWait(run);
   const entries = run.activity ?? [];
   const summary = activitySummary(entries);
   if (!summary && !run.activityTruncated) return null;
-  const preview = activityPreview(run, waiting);
+  const preview = activityPreview(
+    run,
+    waiting,
+    approval ? blockedSteps(entries, blocked) : undefined,
+  );
   return (
     <div className="chat-turn-body ml-7.5" data-active={run.status === 'running' || undefined}>
       <Collapsible open={open} onOpenChange={setOpen} className="chat-turn-activity">
@@ -29,7 +33,7 @@ export const TurnActivity = ({ run }: { run: Run }) => {
       </Collapsible>
       {!open && preview.length ? (
         <div className="chat-turn-preview">
-          <ActivityEntries entries={preview} />
+          <ActivityEntries entries={preview} blocked={blocked} />
         </div>
       ) : null}
     </div>

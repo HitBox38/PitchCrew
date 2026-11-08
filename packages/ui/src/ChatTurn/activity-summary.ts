@@ -5,7 +5,16 @@ import { isUserControlPause } from '@pitchcrew/core/browser-errors';
  * Keep live context bounded across alternating commentary and tool batches. While the run waits
  * on the user, the step shown is the last one that finished: the call blocked on them is not work.
  */
-export const activityPreview = (run: Run, waiting = false): RunActivity[] => {
+/**
+ * The collapsed turn's commentary and one step. A request awaiting the user's OK shows its own
+ * step (`asked`: the ids blockedSteps found), so the preview reads the same whether or not the
+ * agent has started waiting on it; while the user holds the page, the last finished step.
+ */
+export const activityPreview = (
+  run: Run,
+  waiting = false,
+  asked?: ReadonlySet<string>,
+): RunActivity[] => {
   const entries = run.activity ?? [];
   if (run.status !== 'running') {
     const issue =
@@ -14,10 +23,13 @@ export const activityPreview = (run: Run, waiting = false): RunActivity[] => {
     return issue ? [issue] : [];
   }
   const commentary = entries.findLast((entry) => entry.kind === 'commentary' && entry.text?.trim());
-  const step = waiting
-    ? entries.findLast((entry) => entry.kind !== 'commentary' && entry.status !== 'running')
-    : (entries.findLast((entry) => entry.kind !== 'commentary' && entry.status === 'running') ??
-      entries.findLast((entry) => entry.kind !== 'commentary'));
+  const request = asked?.size ? entries.findLast((entry) => asked.has(entry.id)) : undefined;
+  const step = request
+    ? request
+    : waiting
+      ? entries.findLast((entry) => entry.kind !== 'commentary' && entry.status !== 'running')
+      : (entries.findLast((entry) => entry.kind !== 'commentary' && entry.status === 'running') ??
+        entries.findLast((entry) => entry.kind !== 'commentary'));
   const ids = new Set([commentary?.id, step?.id]);
   return entries.filter((entry) => ids.has(entry.id));
 };
