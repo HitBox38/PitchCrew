@@ -329,7 +329,9 @@ export class ComputerManager {
       // presentation: the digest binds the resolved action and page, not this name.
       const target =
         'selector' in action
-          ? await driver.describeTarget?.(action.selector).catch(() => undefined)
+          ? await driver
+              .describeTarget?.(action.selector, 'frame' in action ? action.frame : undefined)
+              .catch(() => undefined)
           : undefined;
       action = (await driver.resolveAction?.(action)) ?? action;
       const { diagnostics: _diagnostics, ...inspected } = await this.inspect(scope.runId, {

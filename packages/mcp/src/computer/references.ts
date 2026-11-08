@@ -82,33 +82,60 @@ export const browserReferences = () => {
     capture,
     target,
     /**
-     * The tag and redacted visible name of a referenced element as it is now, for the approval
-     * summary. Read at request time: the element may have been relabelled since inspection.
+     * The tag, redacted accessible name and box of the element an action targets, as it is now,
+     * for the user's view of the request: a snapshot reference or the agent's own selector. Read
+     * at request time, since the element may have been relabelled since inspection.
      */
-    describe: async (page: Page, value: string) => {
+    describe: async (page: Page, value: string, frameSelector?: string) => {
       const entry = value.startsWith('ref:') ? entries.get(value) : undefined;
-      if (!entry) return undefined;
+      const frameName = entry ? entry.frame : frameSelector;
       try {
-        const frame = entry.frame ? page.frameLocator(entry.frame) : page;
+        const frame = frameName ? page.frameLocator(frameName) : page;
+        const handle =
+          entry?.handle ??
+          (value.startsWith('ref:')
+            ? null
+            : await frame.locator(value).first().elementHandle({ timeout: 1000 }));
+        if (!handle) return undefined;
         const secrets = await frame
           .locator(credentialSelector)
           .evaluateAll((fields) => fields.map((field) => (field as HTMLInputElement).value));
-        const current = await entry.handle.evaluate((node) => {
-          const el = node as Element;
+        const current = await handle.evaluate((node) => {
+          const el = node as HTMLElement;
+          const field = /^(input|textarea|select)$/i.test(el.tagName);
+          const labelled = (el.getAttribute('aria-labelledby') ?? '')
+            .split(/\s+/)
+            .map((id) => (id ? (el.ownerDocument.getElementById(id)?.textContent ?? '') : ''))
+            .join(' ');
+          const labels =
+            'labels' in el && (el as HTMLInputElement).labels
+              ? [...(el as HTMLInputElement).labels!].map((label) => label.textContent).join(' ')
+              : '';
+          const name = [
+            el.getAttribute('aria-label'),
+            labelled,
+            labels,
+            // A field's text is its value or options, never its name.
+            field ? '' : el.textContent,
+            el.getAttribute('placeholder'),
+            el.getAttribute('title'),
+            el.getAttribute('alt'),
+            el.getAttribute('name'),
+          ].find((candidate) => candidate?.trim());
           return {
             tag: el.tagName.toLowerCase(),
             // A generous window: redaction runs before the short cut below, so a credential
             // crossing the 120-character boundary is removed whole rather than split.
-            name: (
-              el.getAttribute('aria-label') ||
-              el.textContent ||
-              el.getAttribute('name') ||
-              ''
-            ).slice(0, 4000),
+            name: (name ?? '').slice(0, 4000),
           };
         });
-        const name = redactCredentials(current.name, secrets).trim().slice(0, 120);
-        const box = await entry.handle.boundingBox().catch(() => null);
+        const name = redactCredentials(current.name, secrets)
+          .replace(/\s+/g, ' ')
+          .trim()
+          .replace(/\s*[:：]$/, '')
+          .slice(0, 120);
+        const box = await handle.boundingBox().catch(() => null);
+        if (!entry) await handle.dispose().catch(() => {});
         const bounds =
           box && box.width > 0 && box.height > 0
             ? {

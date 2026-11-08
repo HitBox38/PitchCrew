@@ -28,6 +28,17 @@ it('returns optional screenshots and snapshot references, rejects replaced eleme
     expect(relabelled!.name).not.toContain('fictional');
     expect(relabelled!.name.length).toBeLessThanOrEqual(120);
     await page.locator('button').evaluate((element) => (element.textContent = 'Continue'));
+    // The agent's own selector works too, and a field is named by its label, not its value.
+    await page.evaluate(() => {
+      document.body.insertAdjacentHTML(
+        'beforeend',
+        '<label>Customer name: <input name="custname" value="private draft"></label>',
+      );
+    });
+    expect(await driver.describeTarget!('input[name="custname"]')).toMatchObject({
+      tag: 'input',
+      name: 'Customer name',
+    });
     expect(await driver.resolveAction!({ kind: 'click', selector: button.ref })).toMatchObject({
       kind: 'click',
       selector: expect.stringContaining(':nth-match'),
