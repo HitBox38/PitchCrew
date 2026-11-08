@@ -208,6 +208,7 @@
 }
 /* The tray's control action ends its line; a press on a page the agent is using points at it. */
 [data-interface='clay'] .clay-tray-line > .browser-handoff,
+[data-interface='clay'] .clay-tray-state > .browser-handoff,
 [data-interface='clay'] .browser-pending-action > .browser-handoff {
   flex-shrink: 0;
   height: 30px;

@@ -25,11 +25,15 @@ export const pickedText = (node: PickedNode): string =>
     .join(' ')
     .slice(0, 400);
 
-/** Pending picks by guest contents id, so Escape on the page or a renderer cancel can end one. */
-const picks = new Map<number, () => void>();
+/**
+ * The pending pick per guest contents id, so Escape on the page or a renderer cancel can end it.
+ * `done` settles once its cleanup (inspect mode off, listener removed) has finished.
+ */
+const picks = new Map<number, { serial: number; cancel: () => void; done: Promise<void> }>();
+let serials = 0;
 
 /** Ends a pick on this guest, e.g. on Escape; resolves the pick with null. */
-export const cancelPick = (contentsId: number) => picks.get(contentsId)?.();
+export const cancelPick = (contentsId: number) => picks.get(contentsId)?.cancel();
 
 /** The element's own visible label from its attributes and direct text, never a field value. */
 export const pickedName = (attributes: string[], text: string) => {
@@ -63,8 +67,9 @@ export const pickedBox = (quad: number[], viewport: { width: number; height: num
  * User-only element picking on the selected page, like DevTools' inspect: Chromium highlights
  * what the pointer is over, a click picks it, and the element comes back as a cropped PNG with
  * its tag and visible name for the user to review before attaching. It needs held control,
- * ends on Escape, a renderer cancel, a minute without a pick, or the page or control changing.
- * Reads go through CDP's DOM domain only; no page script runs.
+ * ends on Escape, a renderer cancel, a minute without a pick, or the page, its presentation or
+ * control changing. A new pick waits for the previous one's cleanup. Reads go through CDP's DOM
+ * domain only; no page script runs.
  */
 export const installBrowserPickIpc = (
   groups: Map<string, NativeGroup>,
@@ -86,10 +91,19 @@ export const installBrowserPickIpc = (
       if (!group || !page || !group.bounds || group.manualUntil <= Date.now())
         throw new Error('Take control to pick an element on this page.');
       const contents = page.contents;
-      const owner = `pick:${contents.id}`;
+      const previous = picks.get(contents.id);
+      if (previous) {
+        previous.cancel();
+        await previous.done;
+      }
+      const serial = ++serials;
+      const owner = `pick:${contents.id}:${serial}`;
       const send = <T>(method: string, params: Record<string, unknown> = {}) =>
         page.send(method, params, undefined, owner) as Promise<T>;
-      picks.get(contents.id)?.();
+      let cleaned: () => void = () => {};
+      const done = new Promise<void>((resolve) => {
+        cleaned = resolve;
+      });
       let finish: (node: number | null) => void = () => {};
       const picked = new Promise<number | null>((resolve) => {
         finish = resolve;
@@ -102,12 +116,13 @@ export const installBrowserPickIpc = (
         if (
           group.manualUntil <= Date.now() ||
           group.pages.get(group.active) !== page ||
+          !group.bounds ||
           contents.isDestroyed()
         )
           finish(null);
       }, 300);
       const timeout = setTimeout(() => finish(null), 60_000);
-      picks.set(contents.id, () => finish(null));
+      picks.set(contents.id, { serial, cancel: () => finish(null), done });
       contents.debugger.on('message', message);
       try {
         await send('DOM.enable');
@@ -160,7 +175,6 @@ export const installBrowserPickIpc = (
       } finally {
         clearInterval(watch);
         clearTimeout(timeout);
-        picks.delete(contents.id);
         contents.debugger.removeListener('message', message);
         if (!contents.isDestroyed()) {
           await send('Overlay.setInspectMode', { mode: 'none', highlightConfig: {} }).catch(
@@ -169,6 +183,9 @@ export const installBrowserPickIpc = (
           await send('Overlay.hideHighlight').catch(() => {});
         }
         page.releaseAutomation?.(owner);
+        // Only this pick's own entry: a newer pick may already be waiting on `done`.
+        if (picks.get(contents.id)?.serial === serial) picks.delete(contents.id);
+        cleaned();
         // The click landed in the page; give the keyboard back to the app for the review dialog.
         const window = getWindow();
         if (window && !window.isDestroyed() && window.isFocused()) window.webContents.focus();

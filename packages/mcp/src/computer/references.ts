@@ -97,12 +97,17 @@ export const browserReferences = () => {
           const el = node as Element;
           return {
             tag: el.tagName.toLowerCase(),
-            name: (el.getAttribute('aria-label') || el.textContent || el.getAttribute('name') || '')
-              .trim()
-              .slice(0, 120),
+            // A generous window: redaction runs before the short cut below, so a credential
+            // crossing the 120-character boundary is removed whole rather than split.
+            name: (
+              el.getAttribute('aria-label') ||
+              el.textContent ||
+              el.getAttribute('name') ||
+              ''
+            ).slice(0, 4000),
           };
         });
-        const name = redactCredentials(current.name, secrets);
+        const name = redactCredentials(current.name, secrets).trim().slice(0, 120);
         const box = await entry.handle.boundingBox().catch(() => null);
         const bounds =
           box && box.width > 0 && box.height > 0

@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '@/AgentBrowser/types.ts';
 import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
@@ -21,6 +21,17 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
   useLayoutEffect(() => {
     current.current = owner;
   }, [owner]);
+  // A pick belongs to this panel and tab: switching tabs or unmounting ends it in the host,
+  // so inspect mode never outlives the review that would receive it.
+  const pickingFor = useRef<string | null>(null);
+  useEffect(
+    () => () => {
+      const id = pickingFor.current;
+      pickingFor.current = null;
+      if (id) void window.pitchcrewBrowser?.cancelPick?.(id).catch(() => {});
+    },
+    [owner],
+  );
   const recording = useBrowserRecording(model.identity!.id, tab?.id ?? '', control.leaseId);
   const capture = snapshot?.owner === owner ? snapshot.capture : null;
   // Capture works while the agent is idle; recording is bound to a held control lease.
@@ -57,11 +68,13 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
         .getState()
         .setToast('Click an element on the page to attach it. Press Escape to cancel.');
       await bridge.focusPage(model.identity.id).catch(() => {});
+      pickingFor.current = model.identity.id;
       const next = await bridge.pickElement(model.identity.id);
       if (next && current.current === requested) setSnapshot({ owner: requested, capture: next });
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : 'Could not pick an element.');
     } finally {
+      pickingFor.current = null;
       setBusy(false);
       setPicking(false);
     }

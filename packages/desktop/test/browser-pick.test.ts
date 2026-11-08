@@ -72,7 +72,7 @@ const fixture = () => {
         'Overlay.setInspectMode',
         expect.objectContaining({ mode: 'searchForNode' }),
         undefined,
-        'pick:7',
+        expect.stringMatching(/^pick:7:/),
       ),
     );
   return { id, call, send, page, group, debug, inspecting };
@@ -94,15 +94,15 @@ it('returns the clicked element cropped, labelled from its own text and never a 
     'Page.captureScreenshot',
     { format: 'png', clip: { x: 12, y: 22, width: 136, height: 56, scale: 1 } },
     undefined,
-    'pick:7',
+    expect.stringMatching(/^pick:7:/),
   );
   expect(send).toHaveBeenCalledWith(
     'Overlay.setInspectMode',
     { mode: 'none', highlightConfig: {} },
     undefined,
-    'pick:7',
+    expect.stringMatching(/^pick:7:/),
   );
-  expect(page.releaseAutomation).toHaveBeenCalledWith('pick:7');
+  expect(page.releaseAutomation).toHaveBeenCalledWith(expect.stringMatching(/^pick:7:/));
   expect(debug.listenerCount('message')).toBe(0);
 });
 
@@ -152,4 +152,25 @@ it('names, measures and reads picked elements conservatively', () => {
       ],
     }).replace(/\s+/g, ' '),
   ).toBe('Learn more');
+});
+
+it('replaces a pick only after its cleanup, keeps Escape working and ends when the page is unpresented', async () => {
+  const { id, call, group, debug, inspecting, send } = fixture();
+  const first = call('pick', id);
+  await inspecting();
+  const second = call('pick', id);
+  expect(await first).toBeNull();
+  await vi.waitFor(() =>
+    expect(
+      send.mock.calls.filter(([method]) => method === 'Overlay.setInspectMode').length,
+    ).toBeGreaterThanOrEqual(3),
+  );
+  // Escape still reaches the replacement, whose cleanup the first pick did not remove.
+  cancelPick(7);
+  expect(await second).toBeNull();
+  expect(debug.listenerCount('message')).toBe(0);
+  const third = call('pick', id);
+  await vi.waitFor(() => expect(debug.listenerCount('message')).toBe(1));
+  group.bounds = null as never;
+  expect(await third).toBeNull();
 });
