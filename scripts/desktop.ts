@@ -51,7 +51,9 @@ const desktop = spawn(electronExecutable, [resolve(root, 'packages/desktop/dist/
   cwd: root,
   stdio: 'inherit',
   env: desktopEnv,
-  windowsHide: true,
+  // Electron is a GUI app with no console to hide; on Windows windowsHide would pass SW_HIDE in
+  // its startup info, which overrides the window's first show() and leaves it invisible.
+  windowsHide: false,
 });
 const cleanup = () => {
   desktop.kill();
