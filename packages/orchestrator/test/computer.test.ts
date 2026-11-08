@@ -248,4 +248,20 @@ it('keeps each browser action in one latest row through intervening calls and du
     service.agentCall('rows-token', 'computer_execute', { approvalId: declined.id }),
   ).rejects.toThrow('The user declined this browser action.');
   expect(rows().at(-1)).toEqual(['You declined to click “Submit”', 'completed']);
+  // Invalidation (here as a job-details change records it: rejected, no reason) is not the
+  // user's decision: the agent hears the neutral wording and the step is not "You declined".
+  const { approval: invalidated } = (await service.agentCall('rows-token', 'computer_request', {
+    input: { kind: 'click', selector: '#submit' },
+    reason: 'Submit fixture a third time',
+  })) as { approval: import('@pitchcrew/core').ComputerApproval };
+  service.board.record(
+    'computer_approval',
+    { ...invalidated, status: 'rejected', decidedAt: new Date().toISOString() },
+    'user',
+    'Invalidated browser approval after job details changed',
+  );
+  await expect(
+    service.agentCall('rows-token', 'computer_execute', { approvalId: invalidated.id }),
+  ).rejects.toThrow('Browser action is rejected.');
+  expect(rows().at(-1)).toEqual(['Click “Submit”', 'failed']);
 });

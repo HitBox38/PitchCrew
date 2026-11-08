@@ -5,6 +5,7 @@ import { runActivitySummary, shownBrowserRun } from '../layout.ts';
 import type { AgentBrowserProps } from '../types.ts';
 import { BrowserRunHeading } from './BrowserRunHeading.tsx';
 import { useRunWait } from '@/ChatTurn/hooks/useRunWait.ts';
+import { blockedSteps } from '@/ChatTurn/activity-summary.ts';
 
 /**
  * Clay expanded browser: the browsing agent's public activity for the run using the browser, or
@@ -54,7 +55,9 @@ export const BrowserRunActivity = ({
             {commentary.text}
           </MessageResponse>
         ) : null}
-        {steps.length ? <ClaySteps entries={steps} blocked={wait.blocked} /> : null}
+        {steps.length ? (
+          <ClaySteps entries={steps} waiting={blockedSteps(steps, wait.blocked)} />
+        ) : null}
         {reply ? (
           <MessageResponse mode="static" components={noRemoteImages}>
             {reply.content}

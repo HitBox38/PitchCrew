@@ -20,7 +20,8 @@ export const isUserControlPause = (entry: { status: string; label: string }) =>
   entry.status === 'interrupted' && entry.label === userControlPauseLabel;
 
 /**
- * The user rejected a browser request (an expired or invalidated one carries its own reason).
+ * The user rejected a browser request through a decision (invalidated requests, which can also be
+ * rejected without a reason, keep the neutral "Browser action is rejected." wording).
  * The agent is told plainly so it neither blames the browser nor retries unasked, and chat shows
  * the decision ("You declined to …") instead of a failed step.
  */

@@ -13,17 +13,14 @@ export const TurnActivity = ({ run }: { run: Run }) => {
   const entries = run.activity ?? [];
   const summary = activitySummary(entries);
   if (!summary && !run.activityTruncated) return null;
-  const preview = activityPreview(
-    run,
-    waiting,
-    approval ? blockedSteps(entries, blocked) : undefined,
-  );
+  const waitingSteps = blockedSteps(entries, blocked);
+  const preview = activityPreview(run, waiting, approval ? waitingSteps : undefined);
   return (
     <div className="chat-turn-body ml-7.5" data-active={run.status === 'running' || undefined}>
       <Collapsible open={open} onOpenChange={setOpen} className="chat-turn-activity">
         <TurnActivityTrigger run={run} open={open} />
         <CollapsibleContent className="chat-turn-log">
-          <ActivityEntries entries={entries} blocked={blocked} />
+          <ActivityEntries entries={entries} waiting={waitingSteps} />
           {run.activityTruncated ? (
             <p className="text-detail text-muted-foreground">
               Activity is limited to 80 entries; some steps are omitted.
@@ -33,7 +30,7 @@ export const TurnActivity = ({ run }: { run: Run }) => {
       </Collapsible>
       {!open && preview.length ? (
         <div className="chat-turn-preview">
-          <ActivityEntries entries={preview} blocked={blocked} />
+          <ActivityEntries entries={preview} waiting={waitingSteps} />
         </div>
       ) : null}
     </div>

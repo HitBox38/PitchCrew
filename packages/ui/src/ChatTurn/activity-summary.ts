@@ -62,18 +62,22 @@ export const activitySummary = (entries: RunActivity[]) => {
  * (the waiting request's own call, or every browser call while they hold the page). Matched
  * exactly, never guessed from order, so a parallel non-browser call keeps its own state. A
  * request that has been asked ("Asked to click …") but not yet carried out waits too, whatever
- * the agent does next: only its latest row, since an earlier identical request may have lapsed.
+ * the agent does next. Once its call runs, that running row is the one waiting; until then only
+ * the turn's single latest asked row, since an earlier identical request may have lapsed.
+ * Computed once over the whole turn and passed down, never per group of steps.
  */
-export const blockedSteps = (entries: RunActivity[], labels: readonly string[] | undefined) => {
+export const blockedSteps = (
+  entries: RunActivity[],
+  labels: readonly string[] | undefined,
+): ReadonlySet<string> => {
   const tools = entries.filter((entry) => entry.kind === 'tool');
   const running = tools.filter(
     (entry) => entry.status === 'running' && labels?.includes(entry.label),
   );
-  const asked = (labels ?? [])
-    .filter((label) => label.startsWith('Asked to '))
-    .map((label) =>
-      tools.findLast((entry) => entry.label === label && entry.status === 'completed'),
-    )
-    .filter((entry) => !!entry);
-  return new Set([...running, ...asked].map((entry) => entry.id));
+  if (running.length) return new Set(running.map((entry) => entry.id));
+  const asked = (labels ?? []).filter((label) => label.startsWith('Asked to '));
+  const latest = tools.findLast(
+    (entry) => entry.status === 'completed' && asked.includes(entry.label),
+  );
+  return new Set(latest ? [latest.id] : []);
 };

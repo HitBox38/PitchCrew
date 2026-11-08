@@ -124,6 +124,15 @@ it('finds the call blocked on the user by its exact label, leaving parallel call
     ['Click “Learn more”', 'Asked to click “Learn more”'],
   );
   expect([...askedIds]).toEqual(['asked']);
+  // Once the current request's call runs, only that running row waits; the lapsed identical
+  // "Asked to …" row never regains the waiting state, wherever commentary splits the steps.
+  const running = { ...entry('current', 'tool', 'running'), label: 'Click “Learn more”' };
+  expect([
+    ...blockedSteps(
+      [lapsed, entry('note', 'commentary'), running],
+      ['Click “Learn more”', 'Asked to click “Learn more”'],
+    ),
+  ]).toEqual(['current']);
   // The collapsed turn previews that waiting request, not a later finished step.
   expect(
     activityPreview(run('running', [lapsed, asked, connector]), true, askedIds).map(

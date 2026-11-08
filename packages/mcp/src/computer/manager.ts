@@ -45,6 +45,12 @@ export class ComputerManager {
   private readonly stopped = new Set<string>();
   /** Where each waiting request's element sits, for the user's ring; memory only, never stored. */
   private readonly targets = new Map<string, NonNullable<BrowserTarget['bounds']>>();
+  /**
+   * Requests the user rejected through a decision, in memory only. Invalidation (job or form
+   * changes, takeover, resize) also leaves an approval rejected, often without a reason, so only
+   * these are reported to the agent as the user's choice; anything else stays neutral.
+   */
+  private readonly declined = new Set<string>();
   constructor(
     private readonly board: Board,
     private readonly directory: string,
@@ -448,6 +454,11 @@ export class ComputerManager {
       status: approved ? 'approved' : 'rejected',
       decidedAt: new Date().toISOString(),
     };
+    if (!approved) {
+      this.declined.add(id);
+      // Requests are decided one at a time; a bounded window covers any run still asking.
+      for (const key of [...this.declined].slice(0, -200)) this.declined.delete(key);
+    }
     this.board.record(
       'computer_approval',
       next,
@@ -480,7 +491,7 @@ export class ComputerManager {
         message:
           'Awaiting user approval. Call execute again to wait; do not finish the run while waiting.',
       };
-    if (approval.status === 'rejected' && !approval.error) throw new Error(userDeclinedError);
+    if (approval.status === 'rejected' && this.declined.has(id)) throw new Error(userDeclinedError);
     if (approval.status !== 'approved')
       throw new Error(
         `Browser action is ${approval.status}.${approval.error ? ` ${browserErrorText(approval.error)}` : ''}`,
