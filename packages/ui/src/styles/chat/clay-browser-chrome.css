@@ -486,6 +486,8 @@
 }
 [data-interface='clay'] .browser-history-entry {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-content: stretch;
   justify-items: start;
   gap: 0;
   width: 100%;

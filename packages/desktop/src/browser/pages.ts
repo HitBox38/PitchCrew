@@ -477,7 +477,8 @@ export const createNativeGroup = (
         });
         contents.on('render-process-gone', () => {
           crashed.add(pageId);
-          errors.set(pageId, 'This browser tab stopped responding. Reload to recover it.');
+          // The heading already says it stopped responding; the body says what to do.
+          errors.set(pageId, 'Reload to bring the page back. Anything typed on it may need re-entering.');
           group.changed();
         });
         contents.on('will-attach-webview', (event) => event.preventDefault());
