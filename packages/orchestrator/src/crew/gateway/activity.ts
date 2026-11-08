@@ -1,9 +1,62 @@
-import { isUserControlError, userControlPauseLabel, type Run } from '@pitchcrew/core';
+import {
+  isUserControlError,
+  userControlPauseLabel,
+  type ComputerApproval,
+  type Run,
+} from '@pitchcrew/core';
+import {
+  browserActionAsked,
+  browserActionDone,
+  browserActionParts,
+  joinBrowserActionParts,
+} from '@pitchcrew/core/browser-action-labels';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
 import type { CrewContext } from '../types.ts';
 
-export const observeChatTool = (context: CrewContext, token: string, action: string) => {
+/**
+ * Browser steps in the words of the tray instead of "Performing browser action": "Asked to click
+ * “Learn more”", "Clicked “Learn more”", "Read the page". Labels name elements, never typed or
+ * chosen values (activity carries no browser inputs).
+ */
+const browserStep = (
+  context: CrewContext,
+  action: string,
+  data: Record<string, unknown> | undefined,
+): { start: string; done: (result: unknown) => string | undefined } | undefined => {
+  if (action === 'computer_inspect')
+    return { start: 'Reading the page', done: () => 'Read the page' };
+  if (action === 'computer_request')
+    return {
+      start: 'Requesting browser action',
+      done: (result) => {
+        const approval = (result as { approval?: ComputerApproval } | undefined)?.approval;
+        return approval ? browserActionAsked(approval.action, approval.page) : undefined;
+      },
+    };
+  if (action !== 'computer_execute' || typeof data?.approvalId !== 'string') return undefined;
+  const approval = context.board
+    .list<ComputerApproval>('computer_approval')
+    .find((item) => item.id === data.approvalId);
+  if (!approval) return undefined;
+  const plain = joinBrowserActionParts(
+    browserActionParts(approval.action, approval.page, { values: false, path: false }),
+  );
+  return {
+    start: plain,
+    done: (result) =>
+      (result as { status?: string } | undefined)?.status === 'pending'
+        ? `Waited for your OK to ${plain.charAt(0).toLowerCase()}${plain.slice(1)}`
+        : browserActionDone(approval.action, approval.page),
+  };
+};
+
+export const observeChatTool = (
+  context: CrewContext,
+  token: string,
+  action: string,
+  data?: Record<string, unknown>,
+) => {
   try {
     const capability = context.capabilities.get(token);
     // Discovery/bootstrap and non-chat capabilities have no transcript activity.
@@ -16,17 +69,20 @@ export const observeChatTool = (context: CrewContext, token: string, action: str
         .some((run) => run.id === capability.runId && (run.mode === 'chat' || !!run.deepReviewId))
     )
       return () => {};
-    const label = labels[action] ?? 'Using a crew tool';
+    const step = browserStep(context, action, data);
+    const label = step?.start ?? labels[action] ?? 'Using a crew tool';
     const id = `tool-${randomUUID()}`;
     recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
-    return (failed: boolean, error?: unknown) => {
+    return (failed: boolean, error?: unknown, result?: unknown) => {
       try {
         // A takeover stops the agent's browser call: it paused for the user, it did not fail.
         const paused = failed && error instanceof Error && isUserControlError(error.message);
         recordChatActivity(context, capability.runId, {
           id,
           kind: 'tool',
-          label: paused ? userControlPauseLabel : label,
+          label: paused
+            ? userControlPauseLabel
+            : ((!failed && step?.done(result)) || label).slice(0, 160),
           status: paused ? 'interrupted' : failed ? 'failed' : 'completed',
         });
       } catch {

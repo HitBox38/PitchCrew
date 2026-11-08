@@ -89,3 +89,15 @@ export const browserViewStyle = (
     transformOrigin: 'top left',
   };
 };
+
+/** Which edge a mostly hidden target lies past, so the page can point to it; null when in view. */
+export const targetEdge = (
+  frame: { y: number; height: number },
+  rect: { y: number; height: number },
+): 'above' | 'below' | null => {
+  const top = Math.max(rect.y, frame.y);
+  const bottom = Math.min(rect.y + rect.height, frame.y + frame.height);
+  const visible = Math.max(0, bottom - top);
+  if (visible >= Math.min(rect.height, 24) * 0.5) return null;
+  return rect.y + rect.height / 2 < frame.y + frame.height / 2 ? 'above' : 'below';
+};

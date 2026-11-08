@@ -1,6 +1,11 @@
 import { expect, it } from 'vitest';
 import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
-import { browserPagePoint, browserPageRect, browserViewStyle } from '../presentation.ts';
+import {
+  browserPagePoint,
+  browserPageRect,
+  browserViewStyle,
+  targetEdge,
+} from '../presentation.ts';
 
 const view: DesktopBrowserView = {
   token: 'guest',
@@ -133,4 +138,14 @@ it('maps a waiting request target box onto the presented page at the same scale'
   const scaled = { ...view, viewport: { width: 1400, height: 1000 } };
   expect(browserPageRect(scaled, box)).toEqual({ x: 450, y: 250, width: 100, height: 20 });
   expect(browserPageRect({ ...view, bounds: null }, box)).toBeNull();
+});
+
+it('points past the page edge only when a target is mostly hidden', () => {
+  const frame = { y: 100, height: 500 };
+  expect(targetEdge(frame, { y: 300, height: 40 })).toBeNull();
+  // Half of a 40px link still shows at the bottom edge: the ring is enough.
+  expect(targetEdge(frame, { y: 580, height: 40 })).toBeNull();
+  expect(targetEdge(frame, { y: 595, height: 40 })).toBe('below');
+  expect(targetEdge(frame, { y: 900, height: 40 })).toBe('below');
+  expect(targetEdge(frame, { y: 20, height: 40 })).toBe('above');
 });

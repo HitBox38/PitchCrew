@@ -59,7 +59,7 @@ it('writes the tray title itself, with the exact value and a named or located ta
       },
       page,
     ),
-  ).toBe('Type “A long answer that spans lines…” into a field');
+  ).toBe('Type “A long answe…ps going on” into a field');
   expect(approvalSummary({ kind: 'select', selector: email, value: 'Israel' }, page)).toBe(
     'Choose “Israel” in “Email”',
   );
@@ -74,6 +74,6 @@ it('writes the tray title itself, with the exact value and a named or located ta
     ),
   ).toBe('Click “Learn more”');
   expect(approvalSummary({ kind: 'navigate', url: 'https://www.iana.org/help' })).toBe(
-    'Open www.iana.org',
+    'Open www.iana.org/help',
   );
 });

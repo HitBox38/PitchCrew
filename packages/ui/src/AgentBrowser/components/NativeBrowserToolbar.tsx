@@ -1,3 +1,4 @@
+import { BrowserPickTool } from '@/NativeBrowserTools/components/BrowserPickTool.tsx';
 import { NativeBrowserSettings } from './NativeBrowserSettings.tsx';
 import { ArrowLeft, ArrowRight, RotateCw, Square } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
@@ -68,6 +69,7 @@ export const NativeBrowserToolbar = ({
         }}
         onOpenExternal={() => void model.command({ kind: 'open-external' })}
       />
+      <BrowserPickTool model={tools} />
       <NativeBrowserFindPopover model={model} manual={manual} />
       <NativeBrowserHistory model={model} manual={manual} />
       <NativeBrowserSettings model={model} manual={manual} tools={tools} device={device} />

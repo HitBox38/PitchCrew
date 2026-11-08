@@ -33,7 +33,7 @@ export const activitySummary = (entries: RunActivity[]) => {
     updates ? `${updates} ${updates === 1 ? 'update' : 'updates'}` : '',
     failed ? `${failed} failed` : '',
     interrupted ? `${interrupted} interrupted` : '',
-    paused ? 'paused for you' : '',
+    paused === 1 ? 'you took over once' : paused > 1 ? `you took over ${paused} times` : '',
   ]
     .filter(Boolean)
     .join(' · ');

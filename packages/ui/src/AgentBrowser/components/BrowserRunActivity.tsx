@@ -34,6 +34,11 @@ export const BrowserRunActivity = ({
 }: Pick<AgentBrowserProps, 'browserPanel' | 'data' | 'thread' | 'action' | 'working'>) => {
   const role = browserPanel.role!;
   const run = shownBrowserRun(data.runs, role.id, thread, browserPanel.session?.runId);
+  // A finished run ends on its answer (the thread's latest message preview), not its plan.
+  const reply =
+    run && run.status !== 'running'
+      ? data.messages.findLast((message) => message.runId === run.id && message.from === role.id)
+      : undefined;
   const active = run?.status === 'running';
   const { steps, commentary } = runActivitySummary(run?.activity ?? []);
   return (
@@ -67,7 +72,11 @@ export const BrowserRunActivity = ({
       </header>
       <div className="browser-run-body">
         {steps.length ? <ClaySteps entries={steps} /> : null}
-        {commentary?.text ? (
+        {reply ? (
+          <MessageResponse mode="static" components={noRemoteImages}>
+            {reply.content}
+          </MessageResponse>
+        ) : commentary?.text ? (
           <MessageResponse
             mode={commentary.status === 'running' ? 'streaming' : 'static'}
             components={noRemoteImages}

@@ -7,9 +7,11 @@ export interface BrowserPresence {
   working: boolean;
   /** The element a waiting request would act on, in page CSS pixels. */
   target: { x: number; y: number; width: number; height: number } | null;
+  /** The native browser whose page the user is picking an element on. */
+  picking: string | null;
 }
 
-let presence: BrowserPresence = { name: '', working: false, target: null };
+let presence: BrowserPresence = { name: '', working: false, target: null, picking: null };
 const listeners = new Set<() => void>();
 
 const sameTarget = (a: BrowserPresence['target'], b: BrowserPresence['target']) =>
@@ -21,6 +23,7 @@ export const setBrowserPresence = (next: Partial<BrowserPresence>) => {
   if (
     merged.name === presence.name &&
     merged.working === presence.working &&
+    merged.picking === presence.picking &&
     sameTarget(merged.target, presence.target)
   )
     return;

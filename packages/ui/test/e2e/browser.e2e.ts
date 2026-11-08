@@ -309,22 +309,25 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
   it('picks a real page element through inspect mode without pressing it', async () => {
     const guest = await activeGuest(app);
     const before = await guest.read('document.querySelector("#result").textContent');
-    await app.page.getByRole('button', { name: 'Browser page settings', exact: true }).click();
+    await app.page.getByRole('button', { name: 'Pick an element to attach', exact: true }).click();
+    // Inspect mode starts after control and focus settle; the tray says so just before it.
     await app.page
-      .locator('.browser-settings-tools')
-      .getByRole('button', { name: 'Pick an element to attach', exact: true })
-      .click();
-    // Inspect mode starts after control and focus settle; the toast is shown just before it.
-    await app.page
+      .locator('.browser-approvals')
       .getByText('Click an element on the page to attach it.', { exact: false })
       .waitFor();
+    assert.equal(
+      await app.page
+        .getByRole('button', { name: 'Cancel picking (Esc)', exact: true })
+        .getAttribute('aria-pressed'),
+      'true',
+    );
     await new Promise((resolve) => setTimeout(resolve, 1000));
     const point = await guestPoint(app, '#continue');
     await app.page.mouse.move(point.x, point.y, { steps: 4 });
     await app.page.mouse.click(point.x, point.y);
     const dialog = app.page.getByRole('dialog', { name: 'Picked element', exact: true });
     await dialog.waitFor();
-    assert.match(await dialog.innerText(), /<button> “Continue”/);
+    assert.match(await dialog.innerText(), /Button “Continue”/);
     assert.equal(
       await app.page.locator('.browser-settings-menu').count(),
       0,

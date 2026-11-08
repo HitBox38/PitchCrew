@@ -2,6 +2,7 @@ import { LockKeyhole } from 'lucide-react';
 import { BrowserApprovalActions } from '@/ComputerApprovals/components/BrowserApprovalActions.tsx';
 import { BrowserApprovalError } from '@/ComputerApprovals/components/BrowserApprovalError.tsx';
 import { approvalSummary } from '@/ComputerApprovals/helpers.ts';
+import { BrowserApprovalTitle } from './BrowserApprovalTitle.tsx';
 import type { ComputerApproval } from '@pitchcrew/core';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserSiteRequest } from './BrowserSiteRequest.tsx';
@@ -44,7 +45,7 @@ export const BrowserPendingAction = ({
           ) : (
             <span className="clay-bead" data-size="sm" data-tone="ochre" aria-hidden="true" />
           )}
-          <strong title={summary}>{summary}</strong>
+          <BrowserApprovalTitle approval={approval} summary={summary} />
         </p>
         <p className="browser-approval-reason" title={reason}>
           {reason}

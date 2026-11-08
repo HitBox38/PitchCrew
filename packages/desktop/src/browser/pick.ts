@@ -51,6 +51,44 @@ export const pickedName = (attributes: string[], text: string) => {
   ).slice(0, 120);
 };
 
+const roles: Record<string, string> = {
+  a: 'Link',
+  button: 'Button',
+  h1: 'Heading',
+  h2: 'Heading',
+  h3: 'Heading',
+  h4: 'Heading',
+  h5: 'Heading',
+  h6: 'Heading',
+  input: 'Field',
+  textarea: 'Field',
+  select: 'List box',
+  img: 'Image',
+  svg: 'Image',
+  picture: 'Image',
+  ul: 'List',
+  ol: 'List',
+  li: 'List item',
+  p: 'Paragraph',
+  table: 'Table',
+  nav: 'Navigation',
+  form: 'Form',
+  label: 'Label',
+  section: 'Section',
+  article: 'Article',
+};
+
+/** "Heading “Open Roles”": what a picked element is, in words rather than its tag. */
+export const pickedLabel = (node: Pick<PickedNode, 'localName' | 'attributes'>, name: string) => {
+  const attributes = node.attributes ?? [];
+  const index = attributes.findIndex((value, position) => position % 2 === 0 && value === 'role');
+  const role = index >= 0 ? (attributes[index + 1] ?? '').trim() : '';
+  const kind = role
+    ? `${role.charAt(0).toUpperCase()}${role.slice(1)}`
+    : (roles[node.localName] ?? 'Element');
+  return name ? `${kind} “${name}”` : kind;
+};
+
 /** The border quad's bounding box, padded and clipped to the viewport, in CSS pixels. */
 export const pickedBox = (quad: number[], viewport: { width: number; height: number }) => {
   const xs = [quad[0], quad[2], quad[4], quad[6]];
@@ -121,21 +159,29 @@ export const installBrowserPickIpc = (
         )
           finish(null);
       }, 300);
-      const timeout = setTimeout(() => finish(null), 60_000);
+      let expired = false;
+      const timeout = setTimeout(() => {
+        expired = true;
+        finish(null);
+      }, 60_000);
       picks.set(contents.id, { serial, cancel: () => finish(null), done });
       contents.debugger.on('message', message);
       try {
         await send('DOM.enable');
         await send('Overlay.enable');
+        // The app's own highlight (primary: the user holds the page), without DevTools' box of
+        // class names and sizes.
         await send('Overlay.setInspectMode', {
           mode: 'searchForNode',
           highlightConfig: {
-            showInfo: true,
-            contentColor: { r: 111, g: 168, b: 220, a: 0.25 },
-            borderColor: { r: 111, g: 168, b: 220, a: 0.9 },
+            showInfo: false,
+            showAccessibilityInfo: false,
+            contentColor: { r: 87, g: 106, b: 139, a: 0.16 },
+            borderColor: { r: 87, g: 106, b: 139, a: 0.95 },
           },
         });
         const backendNodeId = await picked;
+        if (expired) throw new Error('Picking ended after a minute without a click.');
         if (!backendNodeId || contents.isDestroyed()) return null;
         const { model } = await send<{ model: { border: number[] } }>('DOM.getBoxModel', {
           backendNodeId,
@@ -170,7 +216,7 @@ export const installBrowserPickIpc = (
           height: bytes.readUInt32BE(20),
           url: contents.getURL(),
           title: contents.getTitle(),
-          label: name ? `<${node.localName}> “${name}”` : `<${node.localName}>`,
+          label: pickedLabel(node, name),
         };
       } finally {
         clearInterval(watch);

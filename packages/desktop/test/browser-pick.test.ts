@@ -87,7 +87,7 @@ it('returns the clicked element cropped, labelled from its own text and never a 
     width: 136,
     height: 56,
     url: 'https://jobs.example/apply',
-    label: '<button> “Apply now”',
+    label: 'Button “Apply now”',
   });
   // The element's box, padded by 8px, is what the screenshot clips to.
   expect(send).toHaveBeenCalledWith(

@@ -229,7 +229,7 @@ beforeAll(async () => {
             height: canvas.height,
             url: 'https://example.com/apply',
             title: 'Fictional application',
-            label: '<button> “Apply now”',
+            label: 'Button “Apply now”',
           };
         },
         saveArtifact: async (kind: 'png' | 'webm', data: string) => {
@@ -815,10 +815,10 @@ test('captures, annotates and saves the page and adds the reviewed PNG to the cu
 });
 test('picks an element into a labelled review and attaches it to the draft by name', async () => {
   const messages = host.daemon.service.board.list('message').length;
-  await pageTool('Pick an element to attach');
+  await page.getByRole('button', { name: 'Pick an element to attach', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Picked element', exact: true });
   await dialog.waitFor();
-  expect(await dialog.innerText()).toContain('<button> “Apply now” on Fictional application.');
+  expect(await dialog.innerText()).toContain('Button “Apply now” on Fictional application.');
   await vi.waitFor(async () =>
     expect(await dialog.getByRole('button', { name: 'Attach to message' }).isEnabled()).toBe(true),
   );

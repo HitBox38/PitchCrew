@@ -151,7 +151,10 @@ export const useChatView = (props: ChatViewProps) => {
     skillProposals.length +
     tasks.filter((task) => ['queued', 'running'].includes(task.status)).length +
     rounds.filter((round) => !['completed', 'cancelled'].includes(round.status)).length;
-  const roleState = chatRoleState(data, role, questions, busy);
+  const approving = data.computerApprovals.some(
+    (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
+  );
+  const roleState = chatRoleState(data, role, questions, busy, approving);
   const name = (id: ChatMessage['from'] | ChatMessage['to']) =>
     id === 'user'
       ? 'You'

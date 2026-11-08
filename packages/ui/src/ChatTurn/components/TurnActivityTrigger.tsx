@@ -5,6 +5,7 @@ import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { TurnDuration } from './TurnDuration.tsx';
 import { activitySummary } from '../activity-summary.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { approvalSummary } from '@/ComputerApprovals/helpers.ts';
 
 const outcomes = {
   completed: 'Worked',
@@ -21,22 +22,36 @@ export const TurnActivityTrigger = ({ run, open }: { run: Run; open: boolean }) 
     ),
   );
   const handedOff = run.status === 'waiting' && answered;
+  // A browser action waiting on the user: the turn says so in the tray's words, not "Working".
+  const approval = useWorkspaceStore((state) =>
+    run.status === 'running'
+      ? state.data?.computerApprovals.find(
+          (item) => item.runId === run.id && item.status === 'pending',
+        )
+      : undefined,
+  );
+  const status = handedOff ? 'queued' : approval ? 'waiting' : run.status;
   const entries = run.activity ?? [];
   const failed = entries.some((entry) => entry.status === 'failed');
   return (
-    <CollapsibleTrigger
-      className="chat-turn-disclosure"
-      data-status={handedOff ? 'queued' : run.status}
-    >
+    <CollapsibleTrigger className="chat-turn-disclosure" data-status={status}>
       <ChevronRight size={14} aria-hidden="true" />
-      <StatusBead status={handedOff ? 'queued' : run.status} />
-      <span>{handedOff ? 'Answer saved' : outcomes[run.status]}</span>
-      <TurnDuration
-        runId={run.id}
-        startedAt={run.startedAt}
-        finishedAt={run.finishedAt}
-        active={run.status === 'running'}
-      />
+      <StatusBead status={status} />
+      <span>
+        {handedOff ? 'Answer saved' : approval ? 'Waiting for your OK' : outcomes[run.status]}
+      </span>
+      {approval ? (
+        <span className="chat-turn-wait truncate">
+          {approvalSummary(approval.action, approval.page)}
+        </span>
+      ) : (
+        <TurnDuration
+          runId={run.id}
+          startedAt={run.startedAt}
+          finishedAt={run.finishedAt}
+          active={run.status === 'running'}
+        />
+      )}
       <span className="chat-turn-counts" data-failed={failed || undefined}>
         {activitySummary(entries)}
       </span>

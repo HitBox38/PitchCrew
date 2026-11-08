@@ -237,12 +237,15 @@ test('lists the page tools in Page settings and keeps only a running recording o
   const tools = [
     'Toggle browser device toolbar',
     'Capture browser screenshot',
-    'Pick an element to attach',
     'Record browser page',
     'Open separate browser window',
   ];
   for (const name of tools)
     expect(await chrome().getByRole('button', { name, exact: true }).count()).toBe(0);
+  // Picking an element is a toolbar toggle beside Find.
+  expect(
+    await chrome().getByRole('button', { name: 'Pick an element to attach', exact: true }).count(),
+  ).toBe(1);
   await takeControl();
   const settings = page.getByRole('button', { name: 'Browser page settings', exact: true });
   const panel = page.locator('.browser-settings-tools');

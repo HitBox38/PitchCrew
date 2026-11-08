@@ -9,6 +9,7 @@ import { BrowserExpandButton } from './BrowserExpandButton.tsx';
 import { BrowserViewSwitch } from './BrowserViewSwitch.tsx';
 import { NativeBrowserTabs } from './NativeBrowserTabs.tsx';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { useBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
 
 /**
  * One header row: who and which state, the page's tabs, then the panel's actions. The control
@@ -35,7 +36,8 @@ export const BrowserPanelHeading = (
       approval.runId === session?.runId &&
       approval.status === 'pending',
   );
-  const state = browserState({
+  const { picking } = useBrowserPresence();
+  const current = browserState({
     session,
     leaseId: control.leaseId,
     implicit: control.implicit,
@@ -44,6 +46,13 @@ export const BrowserPanelHeading = (
     name: browserPanel.role?.name ?? 'The agent',
     elsewhere: !!session?.threadId && session.threadId !== thread,
   });
+  const state = picking
+    ? {
+        tone: 'control' as const,
+        label: 'Picking',
+        detail: 'Click an element on the page to attach it to your message. Esc cancels.',
+      }
+    : current;
   return (
     <header className="browser-panel-heading" data-expanded={expanded || undefined}>
       <div className="browser-heading-identity">

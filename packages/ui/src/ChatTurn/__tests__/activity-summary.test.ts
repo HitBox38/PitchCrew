@@ -60,7 +60,7 @@ it('treats a pause for a user takeover as neither a failure nor a settled issue'
   };
   const entries = [entry('inspect', 'tool'), paused, entry('click', 'tool')];
   expect(activityPreview(run('completed', entries))).toEqual([]);
-  expect(activitySummary(entries)).toBe('3 steps · paused for you');
+  expect(activitySummary(entries)).toBe('3 steps · you took over once');
 });
 
 it('keeps an ongoing parallel tool visible when a later quick tool finishes first', () => {

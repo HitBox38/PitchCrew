@@ -30,6 +30,7 @@ it('enforces computer capability and user-only decisions and expires approvals o
     roleId: 'writer',
     runtime: 'demo',
     mode: 'chat',
+    threadId: 'writer',
     status: 'running',
     message: '',
     startedAt: '',
@@ -66,6 +67,13 @@ it('enforces computer capability and user-only decisions and expires approvals o
     reason: 'Submit fixture',
   });
   const approval = response.approval as import('@pitchcrew/core').ComputerApproval;
+  // Chat activity names the step like the tray does, without values.
+  expect(
+    service
+      .chatState()
+      .activityRuns?.find((item) => item.id === run.id)
+      ?.activity?.map((entry) => entry.label),
+  ).toContain('Asked to click “Submit”');
   const unauthenticated = await fetch(
     `${daemon.url}/api/computer-approvals/${approval.id}/decide`,
     {

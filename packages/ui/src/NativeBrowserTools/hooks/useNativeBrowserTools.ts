@@ -4,6 +4,7 @@ import type { BrowserControl } from '@/AgentBrowser/types.ts';
 import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
 import { useBrowserRecording } from './useBrowserRecording.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
+import { setBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
 
 export const useNativeBrowserTools = (model: NativeBrowserModel, control: BrowserControl) => {
   const [error, setError] = useState('');
@@ -64,16 +65,19 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
     setError('');
     try {
       if (!(await control.ensure())) return;
-      useWorkspaceStore
-        .getState()
-        .setToast('Click an element on the page to attach it. Press Escape to cancel.');
+      // The tray and chip say "Picking" with a Cancel; the page takes the click.
+      setBrowserPresence({ picking: model.identity.id });
       await bridge.focusPage(model.identity.id).catch(() => {});
       pickingFor.current = model.identity.id;
       const next = await bridge.pickElement(model.identity.id);
       if (next && current.current === requested) setSnapshot({ owner: requested, capture: next });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : 'Could not pick an element.');
+      // Page settings is closed while picking, so the outcome is a toast rather than its error row.
+      useWorkspaceStore
+        .getState()
+        .setToast(cause instanceof Error ? cause.message : 'Could not pick an element.');
     } finally {
+      setBrowserPresence({ picking: null });
       pickingFor.current = null;
       setBusy(false);
       setPicking(false);

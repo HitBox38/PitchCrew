@@ -199,6 +199,12 @@
 .chat-turn-disclosure[data-status='waiting'] {
   color: var(--ochre);
 }
+/* What the waiting browser request will do, in the tray's words. */
+.chat-turn-wait {
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 500;
+}
 .chat-turn-disclosure[data-status='running'] {
   color: var(--plum);
 }

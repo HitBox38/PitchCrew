@@ -1,4 +1,5 @@
 import type { BrowserAction, BrowserSnapshot, ComputerApproval } from '@pitchcrew/core';
+import { browserActionParts, browserActionSummary } from '@pitchcrew/core/browser-action-labels';
 
 /**
  * A page element in words for the compact tray: an inspected form control's label, or a plain
@@ -79,49 +80,11 @@ export const approveLabel = (action: BrowserAction) =>
     : approveVerbs[action.kind];
 
 /**
- * What the request will do, in words for the compact tray: "Open example.com", "Click “Learn more”",
- * "Type into Email". Empty when the page gave no name; the tray then leads with the agent's reason.
- */
-const quote = (value: string, limit: number) => {
-  const flat = value.replace(/\s+/g, ' ').trim();
-  return `“${flat.length > limit ? `${flat.slice(0, limit - 1).trimEnd()}…` : flat}”`;
-};
-
-const pageHost = (url: string | undefined) => {
-  try {
-    return url ? new URL(url).host : '';
-  } catch {
-    return '';
-  }
-};
-
-/**
  * What an approval will do, written by Pitchcrew rather than the agent: the verb, the exact value
  * typed, chosen or uploaded, and the inspected element's visible name. Without a name it says
  * where on the page, so the agent's own reason never stands in as the title.
  */
-export const approvalSummary = (action: BrowserAction, page?: BrowserSnapshot) => {
-  if (action.kind === 'navigate') {
-    const host = pageHost(action.url);
-    return host ? `Open ${host}` : browserActionTitles.navigate;
-  }
-  if (action.kind === 'dialog')
-    return action.decision === 'accept'
-      ? 'Accept the website dialog'
-      : 'Dismiss the website dialog';
-  if (action.kind === 'scroll') return 'Scroll the page';
-  if (action.kind === 'press') return `Press ${action.key}`;
-  const label =
-    page?.controls?.find((item) => item.selector === action.selector)?.label.trim() ||
-    page?.elements?.find((item) => item.ref === 'target')?.name.trim();
-  const host = pageHost(page?.url);
-  const target = label ? quote(label, 40) : '';
-  const somewhere = host ? `an element on ${host}` : 'a page element';
-  if (action.kind === 'fill') return `Type ${quote(action.value, 32)} into ${target || 'a field'}`;
-  if (action.kind === 'select')
-    return `Choose ${quote(action.value, 32)}${target ? ` in ${target}` : ''}`;
-  if (action.kind === 'upload') return `Upload ${action.file}${target ? ` to ${target}` : ''}`;
-  if (action.kind === 'click') return `Click ${target || somewhere}`;
-  if (action.kind === 'hover') return `Hover over ${target || somewhere}`;
-  return `Drag ${target || somewhere}`;
-};
+export const approvalSummary = browserActionSummary;
+/** The same title in parts, so a narrow tray shortens the value and never the target. */
+export const approvalParts = (action: BrowserAction, page?: BrowserSnapshot) =>
+  browserActionParts(action, page);

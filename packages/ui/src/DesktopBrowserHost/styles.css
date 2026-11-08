@@ -50,6 +50,28 @@
   border-radius: 6px;
   box-shadow: 0 0 0 3px color-mix(in oklab, var(--ochre) 22%, transparent);
 }
+/* Points past the page edge at a request's element that is mostly out of view. */
+.browser-approval-target-edge {
+  position: absolute;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px 3px 8px;
+  border: 1.5px dashed var(--ochre);
+  border-radius: 999px;
+  background: var(--ochre-soft);
+  color: var(--ochre);
+  font: 600 12px / 18px var(--font-sans);
+  transform: translateX(-50%);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.18);
+}
+.browser-approval-target-edge[data-edge='below'] {
+  bottom: 10px;
+}
+.browser-approval-target-edge[data-edge='above'] {
+  top: 10px;
+}
 .agent-browser-cursor-body {
   position: relative;
   display: block;

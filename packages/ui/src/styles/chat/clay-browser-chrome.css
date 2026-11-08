@@ -301,15 +301,34 @@
   gap: 7px;
   min-width: 0;
 }
-[data-interface='clay'] .browser-approval-line > strong {
+/* Verb and target never shorten; only the value gives way when the line runs out of room. */
+[data-interface='clay'] .browser-approval-title {
+  display: flex;
+  gap: 0.28em;
   min-width: 0;
   overflow: hidden;
   color: var(--ink);
   font-size: var(--text-label);
   font-weight: 600;
   line-height: 20px;
-  text-overflow: ellipsis;
   white-space: nowrap;
+}
+[data-interface='clay'] .browser-approval-title > span {
+  flex: none;
+}
+[data-interface='clay'] .browser-approval-title > .browser-approval-value {
+  /* Gives way first: the target only shortens once the value is down to a few letters. */
+  flex: 0 100 auto;
+  min-width: 2.5em;
+  overflow: hidden;
+  font-weight: 500;
+  text-overflow: ellipsis;
+}
+[data-interface='clay'] .browser-approval-title > .browser-approval-object {
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 [data-interface='clay'] .browser-pending-action .browser-approval-reason {
   overflow: hidden;

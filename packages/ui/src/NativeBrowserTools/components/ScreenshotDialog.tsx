@@ -34,13 +34,13 @@ export const ScreenshotDialog = ({
         <DialogTitle>{capture.label ? 'Picked element' : 'Browser screenshot'}</DialogTitle>
         <DialogDescription>
           {capture.label ? `${capture.label} on ${capture.title || capture.url}. ` : ''}
-          Draw on it or add a note, then save it or attach it to your message draft.
+          Drag on the image to mark something or add a note, then attach it to your message draft.
         </DialogDescription>
         <div className="browser-screenshot-editor">
           <canvas
             ref={canvas}
             aria-label="Annotate browser screenshot"
-            className="w-full touch-none rounded border border-border"
+            className="w-full cursor-crosshair touch-none rounded border border-border"
             onPointerDown={editor.begin}
             onPointerMove={editor.move}
             onPointerUp={editor.end}

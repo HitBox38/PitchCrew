@@ -20,7 +20,11 @@ export const ChatParticipants = ({
   questions: UserInputRequest[];
   data: Snapshot;
 }) => {
-  const states = participantStates(participants, running, questions);
+  // A browser request waiting on the user counts like a question: the bead turns ochre.
+  const approvals = data.computerApprovals.filter(
+    (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
+  );
+  const states = participantStates(participants, running, [...questions, ...approvals]);
   const name = (id: string) => data.roles.find((role) => role.id === id)?.name ?? id;
   const extra = states.length - shown;
   return (
