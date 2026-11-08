@@ -34,10 +34,11 @@ export const useBrowserControl = (
   };
   const take = () =>
     command(async () => {
+      const startedAt = Date.now();
       const result = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
         operation: 'take',
       });
-      leases.remember(key, { roleId, threadId, id: result.leaseId });
+      leases.remember(key, { roleId, threadId, id: result.leaseId }, startedAt);
     });
   const release = () =>
     command(
@@ -82,10 +83,11 @@ export const useBrowserControl = (
     command(async () => {
       const result = await browserCommand<{ native?: boolean }>(roleId, threadId, 'open');
       if (result.native) {
+        const startedAt = Date.now();
         const control = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
           operation: 'take',
         });
-        leases.remember(key, { roleId, threadId, id: control.leaseId });
+        leases.remember(key, { roleId, threadId, id: control.leaseId }, startedAt);
       }
     });
   return {

@@ -7,7 +7,7 @@ const identity = {
   ownerId: '82c426cd-12d2-480e-acd3-dab28bd2fe71',
 };
 const fixture = async (port: number) => {
-  const setManual = vi.fn(async () => {});
+  const setManual = vi.fn(async (_manual: boolean) => {});
   const nativeCommand = vi.fn(async () => ({ ...identity, activeTab: 'tab', tabs: [] }));
   let closed = () => {};
   const driver = {
@@ -73,6 +73,28 @@ it('uses the user session and manual lease for native commands and synchronizes 
     leaseId: take.result.leaseId,
   });
   expect(driver.setManual).toHaveBeenLastCalledWith(false);
+});
+it('keeps a failed native control recovery private and permits another recovery attempt', async () => {
+  const { service, request, driver } = await fixture(14537);
+  const scope = { runId: 'private-recovery-run', roleId: 'writer', cardId: null };
+  service.computer.bindBrowser({ ...scope, threadId: 'writer' });
+  const path = '/browser/writer/control?threadId=writer';
+  const initial = await request<{ leaseId: string }>(path, 'POST', { operation: 'take' });
+  const session = service.computer.browsers.forRole('writer');
+  session.lease!.until = Date.now() - 1;
+  driver.setManual.mockRejectedValueOnce(
+    new DOMException('Native sync timed out.', 'TimeoutError'),
+  );
+  expect((await request(path, 'POST', { operation: 'take' })).response.status).toBe(400);
+  expect(session.info.manual).toBe(true);
+  expect(session.lease).toBeUndefined();
+  await expect(service.computer.inspect(scope.runId)).rejects.toThrow('Manual control');
+  expect(driver.setManual.mock.calls.every(([manual]) => manual)).toBe(true);
+  const recovered = await request<{ leaseId: string }>(path, 'POST', { operation: 'take' });
+  expect(recovered.response.status).toBe(200);
+  expect(recovered.result.leaseId).not.toBe(initial.result.leaseId);
+  await request(path, 'POST', { operation: 'release', leaseId: recovered.result.leaseId });
+  expect(session.info.manual).toBe(false);
 });
 it('expires unused approvals on native reflow and terminates browser access after host loss', async () => {
   const { service, request, driver, close } = await fixture(14535);

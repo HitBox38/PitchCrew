@@ -260,6 +260,13 @@ export class BrowserSessions {
   renew = (roleId: string, id: string) => {
     this.lease(roleId, id).lease!.until = Date.now() + 45_000;
   };
+  abandonControl = (roleId: string, id: string) => {
+    const session = this.forRole(roleId);
+    if (session.lease?.id !== id) return;
+    session.lease = undefined;
+    session.observationGeneration++;
+    this.touch(session);
+  };
   release = (roleId: string, id: string) => {
     const session = this.lease(roleId, id);
     session.info.manual = false;

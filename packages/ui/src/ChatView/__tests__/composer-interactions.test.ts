@@ -99,15 +99,19 @@ beforeAll(async () => {
   if (!address || typeof address === 'string') throw Error('No fixture port');
   url = `http://127.0.0.1:${address.port}`;
   browser = await chromium.launch();
+  // Compile the cold Vite module graph inside the setup budget, not the
+  // first composer's five-second interaction deadline. Each test stays isolated.
+  const warmup = await fresh(30000);
+  await warmup.close();
 }, 60000);
 afterAll(async () => {
   await browser?.close();
   await server?.close();
   if (cache) await rm(cache, { recursive: true, force: true });
 });
-const fresh = async () => {
+const fresh = async (timeout = 5000) => {
   const page = await browser.newPage();
-  page.setDefaultTimeout(5000);
+  page.setDefaultTimeout(timeout);
   await page.route('**/api/**', (route) => route.abort('blockedbyclient'));
   await page.goto(url + '/chat/a');
   await page.waitForFunction(() => !!window.composerFixture);
