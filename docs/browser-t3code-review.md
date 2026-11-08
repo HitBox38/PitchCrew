@@ -91,6 +91,18 @@ The fifth design review scored 8.1/10. It asked for one story when the user hold
 - Narrates the agent's latest step in the working tray, stops repeating the chip at rest, wraps tray text to two lines, frames and captions a held page with the ring and edge pill clipped to it, strengthens the pick highlight and writes "Show N earlier steps ›".
 - Sanitizes every public label, approves only from non-field controls on unused keystrokes, describes a target after switching to its tab, shares one decision guard, records manual waits as pauses and serializes picks with owned state.
 
+### Seventh to tenth passes
+
+Design reviews (Claude Opus 5.5, real Codex runs, light and dark captures) scored the passes 5, 6.5, 7, 7.6, 8.1, 8.6, 9.0, 9.0 and 9.2; Codex code reviews ran alongside each pass. These passes:
+
+- Keep request titles whole: the value gives way before the target by shrink weight, nothing shortens while the line has room, and beside a typed, chosen or uploaded value Take over stays an icon so "Type “Ada Lovelace” into “Customer name”" reads whole at the default width.
+- Hold the header still: tabs shrink toward 96px before the strip scrolls and fade only edges with more tabs beyond; inactive tabs fold their close slot until hover; the state chip's slot reserves the widest run state in every panel wider than 30rem, so Working, Needs your OK and a takeover never move the tabs; at rest the chip hugs its label.
+- Tell one waiting story: a request reads waiting (ochre bead, no timer) from the moment it is asked, in the chat log, the collapsed turn and the expanded column, whatever the agent does next; while the user holds a running agent's page the chip, tray, turn, header and Browser button are ochre; a takeover is summarized as "paused while you had control".
+- Keep each browser action one activity row ("Asked to click …" → "Click …" → "Clicked …") that moves to the latest position when carried out, while an overlapping duplicate call gets its own row and cannot overwrite the outcome.
+- Sanitize public labels word by word: web addresses keep only their host, every other address or path form is dropped, prose survives, and a label made only of addresses falls back to "an element on host".
+- Put blank, failed and crashed pages flush on paper like live pages, show the agent's full reason on hover, give tray buttons 32px targets and ask agents for one short user-facing reason.
+- Fix test realism gaps found along the way: a request made while a reloaded panel still settles its size is voided by design, so tests wait for the panel to settle; E2E reaches an inactive tab's close button by hovering as a person would.
+
 ## Still behind T3
 
 - **Region and drawing picks.** Pitchcrew now picks single elements into the composer (DevTools-style highlight, padded crop, tag and visible name, reviewed before attaching), but T3 also picks free regions and drawings in one step.
@@ -99,3 +111,8 @@ The fifth design review scored 8.1/10. It asked for one story when the user hold
 - **Web streaming.** Base64 JPEG over HTTP versus T3's binary WebSocket frames with client acknowledgements, half-resolution motion mode and a settle still.
 - **Sign-in portability.** T3 imports cookies from installed Chrome, Firefox and Safari; Pitchcrew accepts only reviewed JSON/Netscape exports. No passkey bridge.
 - **Test realism.** The E2E fixture should add one real-network path (or an intercepted hostname that resolves through DNS) so request interception and public-address checks are exercised.
+- **Chrome economy.** T3's preview is one 40px row (navigation, address, pick, capture, picture-in-picture, more). Pitchcrew spends two rows plus a 56px decision tray; the tray is the price of exact approvals that never resize the page, but the header could still fold into one row in wide panels.
+- **Tooltips.** T3 gives every icon a styled tooltip that also appears on keyboard focus; Pitchcrew's icon-only controls still rely on the native `title` tooltip, which keyboard users never see.
+- **Nothing moves.** T3 has fewer states, so nothing in its chrome ever shifts. Pitchcrew now holds the tabs, page and tray still across run states, but the chat turn heading still grows a line when a request arrives, and the hairline after the chip follows its label.
+
+Where Pitchcrew is ahead: T3 has no approvals, no handover of control and no notion of who holds the page. Pitchcrew shows who holds the page at every moment, asks for exact approvals with their values, rings the target on the live page, freezes the page at its inspected size while a request waits, supports private takeover and handback, and tells the same story in the panel, the chat and the chat header.
