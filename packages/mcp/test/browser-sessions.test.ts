@@ -177,6 +177,37 @@ it('expires controller leases without silently returning observation to the agen
   manager.browsers.release('writer', replacement);
   expect(manager.browsers.list()[0].manual).toBe(false);
 });
+it('recovers private control during a pending viewport update without releasing its action lock', async () => {
+  const { manager, scope, drivers } = await fixture();
+  await manager.inspect(scope.runId);
+  let finish!: (applied: boolean) => void;
+  const resize = vi.fn(
+    () =>
+      new Promise<boolean>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  Object.assign(drivers[0], { resize });
+  vi.useFakeTimers();
+  const lease = manager.takeControl('writer');
+  const pending = manager.resizeBrowser('writer', { width: 900, height: 700 }, lease);
+  await vi.waitFor(() => expect(resize).toHaveBeenCalledOnce());
+  expect(() => manager.takeControl('writer')).toThrow('another view');
+  await vi.advanceTimersByTimeAsync(45_001);
+  const replacement = manager.takeControl('writer');
+  expect(replacement).not.toBe(lease);
+  await expect(manager.inspect(scope.runId)).rejects.toThrow('Manual control');
+  await manager.manualInput('writer', replacement, { kind: 'text', text: 'Private input' });
+  await manager.returnControl('writer', replacement);
+  await expect(
+    manager.request(scope, { kind: 'click', selector: '#next' }, 'Next'),
+  ).rejects.toThrow('in progress');
+  finish(true);
+  await expect(pending).resolves.toBe(true);
+  expect((await manager.request(scope, { kind: 'click', selector: '#next' }, 'Next')).status).toBe(
+    'pending',
+  );
+});
 it('closes idle browsers and opens the same profile again', async () => {
   const directory = await mkdtemp(join(tmpdir(), 'pitchcrew-browser-idle-'));
   const close = vi.fn(async () => {});

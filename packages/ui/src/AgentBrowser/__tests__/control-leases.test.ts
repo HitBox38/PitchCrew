@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
+import { ApiHttpError } from '../../api-errors.ts';
 import {
   browserControlScopeKey,
   createBrowserControlLeases,
@@ -112,9 +113,9 @@ test('does not overlap renewal of one token or let an old completion erase the n
   expect(vi.getTimerCount()).toBe(0);
 });
 
-test('retains a failed renewal error for the returning view without revoking another session', async () => {
+test('discards a rejected renewal promptly without revoking another session', async () => {
   const store = fixture(async (current) => {
-    if (current.roleId === 'writer') throw new Error('Fictional connection lost.');
+    if (current.roleId === 'writer') throw new ApiHttpError(400, 'Fictional connection lost.');
   });
   const other = browserControlScopeKey('scout', 'conversation-b', null);
   store.remember(key, lease);
@@ -157,6 +158,11 @@ test('hands back an implicit lease once renewal reports an agent run, but keeps 
   // A handback is not a renewal failure; explicit control keeps renewing.
   expect(store.read().errors[key]).toBeUndefined();
   expect(store.read().leases[explicitKey]).toBeDefined();
+  // Removing the implicit scope must also remove its deadline, so another scope
+  // keeps renewing beyond that deadline without a zero-delay timer loop.
+  await vi.advanceTimersByTimeAsync(60_000);
+  expect(handBack).toHaveBeenCalledOnce();
+  expect(store.read().leases[explicitKey]).toBeDefined();
 });
 
 test('hands back implicit control whenever a run is active, after in-flight commands, once per lease', () => {
@@ -190,4 +196,74 @@ test('leaves handback to a mounted panel and keeps the token when a release fail
   // An unconfirmed release keeps the token so renewal and a later handback can retry.
   expect(store.read().leases[key]).toEqual(implicit);
   expect(store.read().errors[key]).toBeUndefined();
+});
+
+test('retains an ambiguous renewal inside the known window and clears its error after retry succeeds', async () => {
+  const renew = vi
+    .fn<(lease: BrowserControlLease) => Promise<unknown>>()
+    .mockRejectedValueOnce(new DOMException('Renewal timed out.', 'TimeoutError'))
+    .mockResolvedValue(undefined);
+  const store = fixture(renew);
+  store.remember(key, lease);
+  await vi.advanceTimersByTimeAsync(20_000);
+  expect(store.read().leases[key]).toEqual(lease);
+  expect(store.read().errors[key]).toBe('Renewal timed out.');
+  await vi.advanceTimersByTimeAsync(20_000);
+  expect(renew).toHaveBeenCalledTimes(2);
+  expect(store.read().leases[key]).toEqual(lease);
+  expect(store.read().errors[key]).toBeUndefined();
+});
+
+test('expires at the known deadline during a stalled renewal and ignores its late success', async () => {
+  const stalled = pending();
+  const store = fixture(() => stalled.promise);
+  const acquiredAt = Date.now() - 10_000;
+  store.remember(key, lease, acquiredAt);
+  await vi.advanceTimersByTimeAsync(34_999);
+  expect(store.read().leases[key]).toEqual(lease);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(store.read().leases[key]).toBeUndefined();
+  expect(store.read().errors[key]).toContain('expired');
+  expect(vi.getTimerCount()).toBe(0);
+  stalled.resolve(undefined);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(store.read().leases[key]).toBeUndefined();
+});
+
+test('starts an acknowledged renewal window at request dispatch instead of its delayed response', async () => {
+  const delayed = pending();
+  const stalled = pending();
+  const store = fixture(
+    vi.fn().mockReturnValueOnce(delayed.promise).mockReturnValue(stalled.promise),
+  );
+  store.remember(key, lease);
+  await vi.advanceTimersByTimeAsync(30_000);
+  delayed.resolve(undefined);
+  await vi.advanceTimersByTimeAsync(34_999);
+  expect(store.read().leases[key]).toEqual(lease);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(store.read().leases[key]).toBeUndefined();
+});
+
+test('keeping implicit control preserves its acknowledged deadline and renewal error', async () => {
+  const stalled = pending();
+  const renew = vi
+    .fn<(lease: BrowserControlLease) => Promise<unknown>>()
+    .mockRejectedValueOnce(new DOMException('Renewal timed out.', 'TimeoutError'))
+    .mockReturnValue(stalled.promise);
+  const store = fixture(renew);
+  const implicit = { ...lease, implicit: true };
+  store.remember(key, implicit);
+  await vi.advanceTimersByTimeAsync(30_000);
+  store.remember(key, { ...implicit, implicit: false });
+  expect(store.read().errors[key]).toBe('Renewal timed out.');
+  await vi.advanceTimersByTimeAsync(14_999);
+  expect(store.read().leases[key]?.implicit).toBe(false);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(store.read().leases[key]).toBeUndefined();
+  expect(store.read().errors[key]).toContain('expired');
+  stalled.resolve({ ok: true, agentRun: true });
+  await vi.advanceTimersByTimeAsync(0);
+  expect(store.read().leases[key]).toBeUndefined();
+  expect(vi.getTimerCount()).toBe(0);
 });

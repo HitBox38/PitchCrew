@@ -39,24 +39,6 @@ export const navigationFailure = (code: number) => {
   return 'Check the address and your connection, then try again.';
 };
 
-/**
- * Settles when the main frame commits (or the load ends first). A failure before commit
- * rejects; a later failure is reported through the tab's own did-fail-load state.
- */
-export const untilCommitted = (contents: WebContents, start: () => Promise<void>) =>
-  new Promise<void>((resolve, reject) => {
-    const committed = () => {
-      contents.removeListener('did-navigate', committed);
-      resolve();
-    };
-    // Listen before starting, so a commit reported during the call is not missed.
-    contents.on('did-navigate', committed);
-    start().then(committed, (error: unknown) => {
-      contents.removeListener('did-navigate', committed);
-      reject(error);
-    });
-  });
-
 export interface NativeGroup extends RelayGroup {
   create(existingContents?: WebContents, select?: boolean): Promise<RelayPage>;
   changed(): void;
@@ -568,17 +550,28 @@ export const createNativeGroup = (
         };
       });
       pendingNavigations.set(id, cancel);
+      let committed = () => {};
+      const commit = new Promise<void>((resolve) => {
+        committed = resolve;
+      });
+      const inPage = (_event: Electron.Event, nextUrl: string, mainFrame: boolean) => {
+        if (mainFrame && nextUrl === url.href) committed();
+      };
       try {
         await Promise.race([
           (async () => {
             await assertPublicUrl(value);
             if (stopped) throw new Error('Navigation stopped (ERR_ABORTED).');
             if (group.manualUntil <= Date.now()) throw new Error('Browser control changed.');
-            // Resolve once the main frame commits. A slow site keeps loading in the
-            // background with its own progress and failure state instead of timing
-            // out the caller (and its control renewal) after many seconds.
-            await untilCommitted(page.contents, () => page.contents.loadURL(value));
+            // The command is complete once the main document commits. loadURL
+            // waits for the full load, which can outlive the host request even
+            // while a page is already visible and usable. Persistent page event
+            // listeners continue reporting loading and later failures.
+            page.contents.once('did-navigate', committed);
+            page.contents.on('did-navigate-in-page', inPage);
+            await page.contents.loadURL(value);
           })(),
+          commit,
           cancellation,
         ]);
       } catch (error) {
@@ -613,6 +606,8 @@ export const createNativeGroup = (
         if (errno === undefined || !errorDetails.has(id)) errorDetails.set(id, message);
         group.changed();
       } finally {
+        page.contents.removeListener('did-navigate', committed);
+        page.contents.removeListener('did-navigate-in-page', inPage);
         if (pendingNavigations.get(id) === cancel) pendingNavigations.delete(id);
         group.changed();
       }

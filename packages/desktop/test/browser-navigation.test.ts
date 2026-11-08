@@ -44,7 +44,7 @@ const fixture = async () => {
       isDestroyed: () => destroyed,
       getURL: () => url,
       getTitle: () => '',
-      isLoadingMainFrame: () => false,
+      isLoadingMainFrame: (): boolean => false,
       getZoomFactor: () => 1,
       isAudioMuted: () => false,
       isCurrentlyAudible: () => false,
@@ -192,6 +192,83 @@ test('shows preflight as loading and stops without loading after DNS validation 
   await Promise.resolve();
   expect(tab().loading).toBe(false);
   expect(guests.get(group.active)!.loadURL).toHaveBeenCalledTimes(1);
+});
+
+test.each(['resolve', 'reject'])(
+  'returns at main-document commit while the full load remains pending, then %s',
+  async (outcome) => {
+    const { group, guests, tab } = await fixture();
+    const contents = guests.get(group.active)!;
+    const baseline = contents.listenerCount('did-navigate');
+    let finish: () => void = () => {};
+    let fail: (error: Error) => void = () => {};
+    contents.loadURL.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve, reject) => {
+          finish = resolve;
+          fail = reject;
+        }),
+    );
+    vi.spyOn(contents, 'isLoadingMainFrame').mockReturnValue(true);
+    const navigation = runNativeBrowserCommand(group, { kind: 'navigate', url: failedUrl });
+    await vi.waitFor(() => expect(contents.loadURL).toHaveBeenCalledWith(failedUrl));
+    contents.emit('did-navigate', {}, failedUrl);
+    await navigation;
+    expect(tab().loading).toBe(true);
+    expect(contents.listenerCount('did-navigate')).toBe(baseline);
+    expect(contents.listenerCount('did-navigate-in-page')).toBe(1);
+    await runNativeBrowserCommand(group, { kind: 'stop' });
+    expect(contents.stop).toHaveBeenCalledOnce();
+    if (outcome === 'resolve') finish();
+    else {
+      contents.emit('did-fail-load', {}, -101, 'ERR_CONNECTION_RESET', failedUrl, true);
+      fail(new Error('ERR_CONNECTION_RESET'));
+    }
+    await Promise.resolve();
+    if (outcome === 'reject') expect(tab().errorDetails).toBe('ERR_CONNECTION_RESET (-101)');
+    else expect(tab().error).toBeUndefined();
+  },
+);
+
+test('waits through subframe navigation and accepts a main-frame same-document commit', async () => {
+  const { group, guests } = await fixture();
+  const contents = guests.get(group.active)!;
+  contents.loadURL.mockImplementationOnce(() => new Promise<void>(() => {}));
+  let finished = false;
+  const navigation = runNativeBrowserCommand(group, { kind: 'navigate', url: failedUrl }).then(
+    () => {
+      finished = true;
+    },
+  );
+  await vi.waitFor(() => expect(contents.loadURL).toHaveBeenCalledWith(failedUrl));
+  contents.emit('did-navigate-in-page', {}, 'https://example.com/frame#anchor', false);
+  contents.emit('did-navigate-in-page', {}, 'https://example.com/old-page#anchor', true);
+  await Promise.resolve();
+  expect(finished).toBe(false);
+  contents.emit('did-navigate-in-page', {}, failedUrl, true);
+  await navigation;
+  expect(contents.listenerCount('did-navigate')).toBe(1);
+  expect(contents.listenerCount('did-navigate-in-page')).toBe(1);
+});
+
+test('removes commit listeners when a pending navigation is replaced or its tab closes', async () => {
+  const { group, guests } = await fixture();
+  const contents = guests.get(group.active)!;
+  contents.loadURL.mockImplementationOnce(() => new Promise<void>(() => {}));
+  const navigation = runNativeBrowserCommand(group, { kind: 'navigate', url: failedUrl });
+  const cancelled = expect(navigation).rejects.toThrow('ERR_ABORTED');
+  await vi.waitFor(() => expect(contents.loadURL).toHaveBeenCalledWith(failedUrl));
+  await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://example.com/' });
+  await cancelled;
+  expect(contents.listenerCount('did-navigate')).toBe(1);
+  expect(contents.listenerCount('did-navigate-in-page')).toBe(1);
+  contents.loadURL.mockImplementationOnce(() => new Promise<void>(() => {}));
+  const closing = runNativeBrowserCommand(group, { kind: 'navigate', url: failedUrl });
+  await vi.waitFor(() => expect(contents.loadURL).toHaveBeenCalledTimes(4));
+  await runNativeBrowserCommand(group, { kind: 'close-tab', tabId: group.active });
+  await closing;
+  expect(contents.listenerCount('did-navigate')).toBe(1);
+  expect(contents.listenerCount('did-navigate-in-page')).toBe(1);
 });
 
 test.each(['resolve', 'reject'])(

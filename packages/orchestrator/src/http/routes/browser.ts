@@ -111,7 +111,9 @@ export const registerBrowserRoutes = (app: FastifyInstance, service: CrewService
       try {
         await service.computer.syncNativeControl(sessionKey, leaseId);
       } catch (error) {
-        await service.computer.returnControl(sessionKey, leaseId);
+        // Native sync may have applied before its response failed. Keep the page
+        // private and let the user recover, rather than returning it to an agent.
+        service.computer.browsers.abandonControl(sessionKey, leaseId);
         throw error;
       }
       return { leaseId };

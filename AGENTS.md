@@ -213,6 +213,8 @@ Browser panels share sculpted clay chrome, raised active tabs, recessed address 
 
 ## Invariants
 
+Manual desktop navigation acknowledges main-document commit instead of waiting for the full page load. Private-control recovery may replace an expired lease during a pending viewport update without clearing its browser-action lock. Renderer renewal transport failures retain the token only through the last confirmed lease deadline; rejected or expired leases still require explicit recovery.
+
 Deep-review stages retain local `deep-review-input.json` and `deep-review-output.json` run artifacts before semantic quotation validation. Exact resume Markdown quotation checks remain strict. Invalid parent quotations get at most one isolated repair per stage against current provenance gates; rejected stages remain failed and never populate successful before/after assessments. See [deep resume review](docs/deep-resume-review.md).
 
 These must stay true. A change that breaks one is a bug even if tests pass.

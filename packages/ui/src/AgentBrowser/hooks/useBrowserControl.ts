@@ -37,10 +37,11 @@ export const useBrowserControl = (
   const { remember } = leases;
   const acquire = useCallback(
     async (implicit: boolean) => {
+      const startedAt = Date.now();
       const result = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
         operation: 'take',
       });
-      remember(key, { roleId, threadId, id: result.leaseId, implicit });
+      remember(key, { roleId, threadId, id: result.leaseId, implicit }, startedAt);
       return result.leaseId;
     },
     [key, remember, roleId, threadId],
