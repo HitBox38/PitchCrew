@@ -1,5 +1,6 @@
 import { Button } from '@pitchcrew/design-system/button';
 import { useId } from 'react';
+import { Code2, ExternalLink, Volume2, VolumeX } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -25,9 +26,41 @@ export const NativeBrowserPageOptions = ({
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
   const appearanceId = useId();
   return (
-    <div className="mt-3 grid gap-2">
-      <label className="grid gap-1 text-xs" htmlFor={appearanceId}>
-        Website appearance
+    <>
+      <fieldset className="browser-menu-group" aria-label="Page options">
+        <Button
+          className="browser-menu-row"
+          size="sm"
+          variant="ghost"
+          disabled={!manual}
+          onClick={() => void model.command({ kind: 'mute', muted: !tab?.muted })}
+        >
+          {tab?.muted ? <Volume2 size={14} /> : <VolumeX size={14} />}
+          {tab?.muted ? 'Unmute page' : 'Mute page'}
+        </Button>
+        <Button
+          className="browser-menu-row"
+          size="sm"
+          variant="ghost"
+          disabled={!manual || !/^https?:\/\//i.test(tab?.url ?? '')}
+          onClick={() => void model.command({ kind: 'open-external' })}
+        >
+          <ExternalLink size={14} />
+          Open in system browser
+        </Button>
+        <Button
+          className="browser-menu-row"
+          size="sm"
+          variant="ghost"
+          disabled={!manual}
+          onClick={() => void model.command({ kind: 'devtools' })}
+        >
+          <Code2 size={14} />
+          Open developer tools
+        </Button>
+      </fieldset>
+      <div className="browser-menu-group browser-menu-field">
+        <label htmlFor={appearanceId}>Website appearance</label>
         <Select
           items={appearances}
           value={tab?.colorScheme ?? 'system'}
@@ -47,31 +80,7 @@ export const NativeBrowserPageOptions = ({
             ))}
           </SelectContent>
         </Select>
-      </label>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!manual}
-        onClick={() => void model.command({ kind: 'mute', muted: !tab?.muted })}
-      >
-        {tab?.muted ? 'Unmute page' : 'Mute page'}
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!manual || !/^https?:\/\//i.test(tab?.url ?? '')}
-        onClick={() => void model.command({ kind: 'open-external' })}
-      >
-        Open in system browser
-      </Button>
-      <Button
-        size="sm"
-        variant="outline"
-        disabled={!manual}
-        onClick={() => void model.command({ kind: 'devtools' })}
-      >
-        Open developer tools
-      </Button>
-    </div>
+      </div>
+    </>
   );
 };

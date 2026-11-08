@@ -70,6 +70,31 @@ it('does not interact until approved, binds one action to one run and consumes i
   expect(board.get<ComputerApproval>('computer_approval', approval.id).status).toBe('consumed');
   expect(board.events()[0].version).toBe(currentEventVersion);
 });
+it('keeps a performed action consumed when the page cannot be inspected right after it', async () => {
+  const { board, manager, driver, scope, signal, authorize } = await setup();
+  const approval = await manager.request(scope, { kind: 'click', selector: '#next' }, 'Next');
+  manager.decide(approval.id, true);
+  // A click that starts a cross-site navigation: the follow-up capture fails twice.
+  driver.perform.mockImplementationOnce(async () => {
+    driver.snapshot.mockRejectedValueOnce(new Error('The native browser viewport changed.'));
+    driver.snapshot.mockRejectedValueOnce(new Error('The native browser viewport changed.'));
+  });
+  const result = await manager.execute(scope.runId, approval.id, signal, authorize, 0);
+  expect(result).toMatchObject({ status: 'consumed', page: null });
+  expect(String(result.message)).toContain('The action ran');
+  expect(driver.perform).toHaveBeenCalledOnce();
+  expect(board.get<ComputerApproval>('computer_approval', approval.id).status).toBe('consumed');
+  // A capture that recovers on the retry returns the page normally.
+  const next = await manager.request(scope, { kind: 'click', selector: '#again' }, 'Again');
+  manager.decide(next.id, true);
+  driver.perform.mockImplementationOnce(async () => {
+    driver.snapshot.mockRejectedValueOnce(new Error('The native browser viewport changed.'));
+  });
+  expect(await manager.execute(scope.runId, next.id, signal, authorize, 0)).toMatchObject({
+    status: 'consumed',
+    page: { url: 'https://example.com/apply' },
+  });
+});
 it('rejects changed pages and revocation, and never reuses a failed action', async () => {
   const { board, manager, driver, scope, page, signal, authorize } = await setup();
   const approval = await manager.request(
@@ -145,9 +170,13 @@ it('rejects arbitrary filesystem/JS actions and local/private navigation', async
     '::1',
     '::ffff:127.0.0.1',
     'fc00::1',
+    '192.0.0.8',
+    '192.0.2.10',
   ])
     expect(publicAddress(address)).toBe(false);
   expect(publicAddress('8.8.8.8')).toBe(true);
+  // Ordinary public space next to the special-use 192.0.0.0/24 and 192.0.2.0/24 blocks.
+  expect(publicAddress('192.0.43.8')).toBe(true);
   expect(publicAddress('2606:4700:4700::1111')).toBe(true);
   await expect(assertPublicUrl('http://127.0.0.1:4417')).rejects.toThrow('private network');
   await expect(assertPublicUrl('http://localhost:4417')).rejects.toThrow('private network');

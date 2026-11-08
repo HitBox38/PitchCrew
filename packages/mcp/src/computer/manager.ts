@@ -448,6 +448,7 @@ export class ComputerManager {
       throw new Error('A browser action is in progress.');
     this.busy.add(runId);
     this.busyRoles.add(this.browsers.keyForRun(runId));
+    let performed = false;
     try {
       this.browsers.assertAgent(runId);
       const driver = await this.session(runId);
@@ -525,14 +526,40 @@ export class ComputerManager {
       })();
       if (approval.automatic) await driver.perform(approval.action, file, true);
       else await driver.perform(approval.action, file);
+      performed = true;
       authorize();
       signal.throwIfAborted();
       if (this.stopped.has(runId)) throw new Error('Browser session has ended.');
-      const result = await this.inspect(runId);
+      // The action already ran. A click that starts a cross-site navigation can make the
+      // first capture fail while the new renderer settles; that must not report the
+      // action itself as failed (the agent would then claim it was blocked).
+      let result: Awaited<ReturnType<typeof this.inspect>> | null = null;
+      let inspectionError = '';
+      for (let attempt = 0; attempt < 2 && !result; attempt++) {
+        try {
+          if (attempt) await delay(600, undefined, { signal });
+          result = await this.inspect(runId);
+        } catch (cause) {
+          signal.throwIfAborted();
+          if (this.stopped.has(runId)) throw cause;
+          inspectionError = browserErrorText(
+            cause instanceof Error ? cause.message : 'The page could not be inspected.',
+          );
+        }
+      }
       authorize();
       signal.throwIfAborted();
+      if (!result)
+        return {
+          approvalId: id,
+          status: 'consumed',
+          page: null,
+          message: `The action ran, but the page could not be inspected afterwards (${inspectionError}). Inspect the page again before describing the result or requesting another action.`,
+        };
       return { approvalId: id, status: 'consumed', page: result };
     } catch (error) {
+      // After the side effect the approval stays consumed; only the follow-up failed.
+      if (performed) throw error;
       const current = this.board.get<ComputerApproval>('computer_approval', id);
       const message = browserErrorText(
         error instanceof Error ? error.message : 'Browser action failed.',

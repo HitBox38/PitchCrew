@@ -20,7 +20,8 @@ export const NativeBrowserToolbar = ({
   device: ReturnType<typeof useBrowserDevice>;
 }) => {
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
-  const manual = !!control.leaseId && !control.working;
+  // Idle browsing: page commands take control on first use. A running agent needs takeover.
+  const manual = control.available && !control.working;
   return (
     <div className="browser-toolbar" data-loading={!!tab?.loading}>
       <Button
@@ -58,6 +59,7 @@ export const NativeBrowserToolbar = ({
         onNavigate={() => {
           void window.pitchcrewBrowser?.focusPage(model.identity!.id).catch(() => {});
         }}
+        onOpenExternal={() => void model.command({ kind: 'open-external' })}
       />
       <Button
         size="icon-sm"

@@ -1,13 +1,13 @@
-import { EyeOff, Hand } from 'lucide-react';
+import { Hand } from 'lucide-react';
 
-/** The strip over a page the user is controlling privately. */
-export const ClayControlBar = ({ name }: { name?: string }) => (
-  <output className="clay-control-bar">
-    <Hand size={15} aria-hidden="true" />
-    <span>You’re controlling. {name ?? 'Your agent'} is paused.</span>
-    <span className="clay-control-private">
-      <EyeOff size={13} aria-hidden="true" />
-      Private
+/** The quiet strip over a page the user is controlling privately. The header carries Private. */
+export const ClayControlBar = ({ name, implicit }: { name?: string; implicit?: boolean }) => (
+  <output className="clay-control-bar" data-implicit={implicit || undefined}>
+    <Hand size={13} aria-hidden="true" />
+    <span>
+      {implicit
+        ? `You’re browsing. ${name ?? 'Your agent'} gets the page back when it starts working.`
+        : `You’re controlling. ${name ?? 'Your agent'} is paused.`}
     </span>
   </output>
 );

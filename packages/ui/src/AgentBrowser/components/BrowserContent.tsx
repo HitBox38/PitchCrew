@@ -24,7 +24,10 @@ export const BrowserContent = ({
   presentation,
   browserPanel,
   onAttachBrowserFile,
+  nudged,
 }: Pick<AgentBrowserProps, 'browserPanel' | 'onAttachBrowserFile'> & {
+  /** A press on the read-only page while the agent works: point at Take control. */
+  nudged: boolean;
   hidden: boolean;
   tabPanel: boolean;
   native: NativeBrowserModel;
@@ -48,6 +51,7 @@ export const BrowserContent = ({
         control={control}
         viewport={viewport}
         device={device}
+        nudged={nudged}
         onAttachBrowserFile={onAttachBrowserFile}
       />
     ) : (

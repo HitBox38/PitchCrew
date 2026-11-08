@@ -63,3 +63,25 @@ export const addressParts = (url: string) => {
     return null;
   }
 };
+
+/** An address bar entry as a URL: web addresses stay, bare hosts get https, the rest searches. */
+export const normalizeAddress = (input: string) => {
+  const value = input.trim();
+  if (/^https?:\/\//i.test(value)) return value;
+  if (/^[^\s/]+\.[^\s]+$/.test(value)) return `https://${value}`;
+  return `https://www.google.com/search?q=${encodeURIComponent(value)}`;
+};
+
+/** A browser shortcut label for this platform, e.g. ⇧⌘R on macOS and Ctrl+Shift+R elsewhere. */
+export const browserShortcut = (key: string, shift = false) => {
+  const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform);
+  const upper = key.toUpperCase();
+  return mac ? `${shift ? '⇧' : ''}⌘${upper}` : `Ctrl+${shift ? 'Shift+' : ''}${upper}`;
+};
+
+/** A tab's label: its page title, else the host it is loading or failed on, else New tab. */
+export const browserTabLabel = (tab: { title?: string; url?: string; navigationUrl?: string }) => {
+  const title = tab.title?.trim();
+  if (title && !title.startsWith('about:blank')) return title;
+  return addressParts(tab.navigationUrl ?? tab.url ?? '')?.host ?? 'New tab';
+};

@@ -2,6 +2,11 @@ export interface BrowserControlLease {
   roleId: string;
   threadId: string;
   id: string;
+  /**
+   * Taken by browsing while the agent was idle rather than by Take control. The panel hands an
+   * implicit lease back when an agent run starts using this browser.
+   */
+  implicit?: boolean;
 }
 
 interface BrowserControlLeaseSnapshot {

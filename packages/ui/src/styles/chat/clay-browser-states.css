@@ -27,42 +27,32 @@
   color: var(--rose);
 }
 
-/* Private control: a primary strip over the page and a ring around the page you control. */
+/* Private control: a quiet primary-tinted strip over the page and a hairline ring around it.
+ * The header already says Private and offers Return to agent, so this stays one calm line. */
 [data-interface='clay'] .clay-control-bar {
   display: flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  margin-bottom: 8px;
-  padding: 0 10px 0 12px;
-  border-radius: 9px;
-  background: var(--primary);
-  box-shadow: var(--clay);
-  color: var(--color-primary-foreground);
-  font-size: var(--text-label);
+  gap: 7px;
+  min-height: 26px;
+  margin-bottom: 6px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--primary-soft);
+  color: var(--primary-deep);
+  font-size: var(--text-caption);
   font-weight: 600;
 }
-[data-interface='clay'] .clay-control-bar > span:first-of-type {
+[data-interface='clay'] .clay-control-bar > span {
   flex: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-[data-interface='clay'] .clay-control-private {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 4px;
-  font-weight: 400;
-  opacity: 0.85;
-}
 [data-interface='clay'] .browser-panel-body:has(> .clay-control-bar) > .browser-live-view {
-  border-color: var(--primary);
-  box-shadow:
-    0 0 0 1px var(--primary),
-    0 0 0 5px color-mix(in oklab, var(--primary) 16%, transparent);
+  border-color: color-mix(in oklab, var(--primary) 55%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--primary) 30%, transparent);
 }
 
 /* Opening, empty, failed and popup pages: one orb, a short heading and a sentence. */

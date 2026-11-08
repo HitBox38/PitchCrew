@@ -11,7 +11,10 @@ export const ClayPageError = ({
   working,
   reload,
   take,
+  host,
 }: {
+  /** The site the tab was loading, named in the heading when known. */
+  host?: string;
   error: string;
   details?: string;
   crashed: boolean;
@@ -25,7 +28,13 @@ export const ClayPageError = ({
     <div className="clay-browser-orb" data-tone="rose" aria-hidden="true">
       <TriangleAlert />
     </div>
-    <h3>{crashed ? 'This page stopped responding' : 'This page didn’t load'}</h3>
+    <h3>
+      {crashed
+        ? 'This page stopped responding'
+        : host
+          ? `Can’t reach ${host}`
+          : 'This page didn’t load'}
+    </h3>
     <p>{error}</p>
     {details ? (
       <AccordionSection heading="Technical details" className="text-left break-words">

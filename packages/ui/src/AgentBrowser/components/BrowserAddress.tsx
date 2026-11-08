@@ -1,41 +1,55 @@
 import { useBrowserAddress } from '../hooks/useBrowserAddress.ts';
-import { ArrowRight, Globe } from 'lucide-react';
-import { Button } from '@pitchcrew/design-system/button';
+import { Globe, Lock } from 'lucide-react';
+import { BrowserAddressAction } from './BrowserAddressAction.tsx';
 import { Input } from '@pitchcrew/design-system/input';
 import type { BrowserFrame } from '@pitchcrew/core';
 import type { BrowserControl } from '../types.ts';
-import { addressParts } from '../helpers.ts';
+import { addressParts, normalizeAddress } from '../helpers.ts';
 export const BrowserAddress = ({
   frame,
   control,
   url,
   contextId,
   onNavigate,
+  onOpenExternal,
 }: {
   frame: BrowserFrame | null;
   control: BrowserControl;
   url: string;
   contextId?: string;
   onNavigate?: () => void;
+  /** Offered beside an unedited web address; hidden while typing. */
+  onOpenExternal?: () => void;
 }) => {
   const address = url === 'about:blank' ? '' : url;
   const { input, ...model } = useBrowserAddress(address, control.leaseId, contextId);
   // The field shows the saved address as host and path until the field is edited.
   const parts = model.value === address ? addressParts(address) : null;
+  const editing = model.value !== address && !!model.value.trim();
+  const usable = control.available && !control.working;
   return (
     <form
       className="browser-address"
       data-display={parts ? '' : undefined}
       onSubmit={(event) => {
         event.preventDefault();
-        if (!control.leaseId) return;
-        if (!model.draft.trim()) return;
-        control.input({ kind: 'navigate', url: normalizeAddress(model.draft) });
+        if (!usable || !model.draft.trim()) return;
+        const target = normalizeAddress(model.draft);
         input.current?.blur();
-        onNavigate?.();
+        // While the agent is idle, navigating is browsing: it takes control first.
+        void control.command(async () => {
+          const lease = await control.ensure();
+          if (!lease) return;
+          control.input({ kind: 'navigate', url: target }, lease);
+          onNavigate?.();
+        });
       }}
     >
-      <Globe size={14} aria-hidden="true" />
+      {parts && address.startsWith('https:') ? (
+        <Lock size={13} aria-label="Secure connection" />
+      ) : (
+        <Globe size={14} aria-hidden="true" />
+      )}
       {parts ? (
         <span className="browser-address-display" aria-hidden="true">
           <strong>{parts.host}</strong>
@@ -63,28 +77,15 @@ export const BrowserAddress = ({
           model.reset();
           onNavigate?.();
         }}
-        readOnly={!control.leaseId || control.working}
-        placeholder={control.leaseId ? 'Enter a URL or search…' : 'No page open'}
+        readOnly={!usable}
+        placeholder={control.available ? 'Search or enter an address' : 'No page open'}
       />
-      {control.leaseId ? (
-        <Button
-          type="submit"
-          size="icon-sm"
-          variant="ghost"
-          aria-label="Go to address"
-          title="Go to address"
-          disabled={control.inputPending > 0 || control.working}
-        >
-          <ArrowRight size={15} />
-        </Button>
-      ) : null}
+      <BrowserAddressAction
+        editing={editing}
+        usable={usable}
+        pending={control.inputPending > 0}
+        onOpenExternal={parts ? onOpenExternal : undefined}
+      />
     </form>
   );
-};
-
-const normalizeAddress = (input: string) => {
-  const value = input.trim();
-  if (/^https?:\/\//i.test(value)) return value;
-  if (/^[^\s/]+\.[^\s]+$/.test(value)) return `https://${value}`;
-  return `https://www.google.com/search?q=${encodeURIComponent(value)}`;
 };

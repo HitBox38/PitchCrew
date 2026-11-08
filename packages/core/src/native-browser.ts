@@ -80,6 +80,12 @@ export interface DesktopBrowserView {
   viewport?: { width: number; height: number };
   painting: boolean;
   manual: boolean;
+  /**
+   * Where automation last moved or pressed the pointer, in page CSS pixels. It outlives a
+   * navigation the click started, so the user sees where the agent acted; the app fades it.
+   * Presentation only; never approval evidence.
+   */
+  agentPointer?: { x: number; y: number; pressed: boolean; sequence: number };
 }
 export interface DesktopBrowserBridge {
   capture(id: string): Promise<DesktopBrowserCapture>;

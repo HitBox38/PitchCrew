@@ -1,6 +1,7 @@
 import { NativeBrowserProfiles } from './NativeBrowserProfiles.tsx';
 import { NativeBrowserPageOptions } from './NativeBrowserPageOptions.tsx';
-import { Settings2, Minus, Plus, RotateCcw } from 'lucide-react';
+import { NativeBrowserZoom } from './NativeBrowserZoom.tsx';
+import { Settings2, RefreshCcwDot, Eraser } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import {
   Popover,
@@ -9,9 +10,12 @@ import {
   PopoverTitle,
 } from '@pitchcrew/design-system/popover';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
+import { browserShortcut } from '../helpers.ts';
 import { BrowserToolsActions } from '@/NativeBrowserTools/components/BrowserToolsActions.tsx';
 import type { useNativeBrowserTools } from '@/NativeBrowserTools/hooks/useNativeBrowserTools.ts';
 import type { useBrowserDevice } from '@/BrowserDeviceToolbar/useBrowserDevice.ts';
+
+/** Page tools and per-page options as one quiet menu: rows, not a stack of outlined buttons. */
 export const NativeBrowserSettings = ({
   model,
   manual,
@@ -22,79 +26,59 @@ export const NativeBrowserSettings = ({
   manual: boolean;
   tools: ReturnType<typeof useNativeBrowserTools>;
   device: ReturnType<typeof useBrowserDevice>;
-}) => {
-  const zoom = model.state?.tabs.find((tab) => tab.id === model.state?.activeTab)?.zoomFactor ?? 1;
-  // Pending commands disable the buttons; retain focus so Escape stays in this popover.
-  const setZoom = (factor: number) => void model.command({ kind: 'zoom', factor });
-  return (
-    <Popover>
-      <PopoverTrigger
-        render={<Button size="icon-sm" variant="ghost" aria-label="Browser page settings" />}
-      >
-        <Settings2 size={15} />
-      </PopoverTrigger>
-      <PopoverContent className="max-h-[min(80dvh,42rem)] w-64 overflow-y-auto p-3 font-sans text-sm">
-        <PopoverTitle>Page settings</PopoverTitle>
-        <div className="browser-settings-tools">
-          <BrowserToolsActions model={tools} device={device} />
-        </div>
-        <div className="my-3 flex items-center justify-between gap-2" aria-label="Page zoom">
-          <Button
-            size="icon-sm"
-            aria-label="Zoom out"
-            focusableWhenDisabled
-            disabled={!manual || zoom <= 0.25}
-            onClick={() => setZoom(Math.max(0.25, zoom - 0.25))}
-          >
-            <Minus size={14} />
-          </Button>
-          <output>{Math.round(zoom * 100)}%</output>
-          <Button
-            size="icon-sm"
-            aria-label="Zoom in"
-            focusableWhenDisabled
-            disabled={!manual || zoom >= 5}
-            onClick={() => setZoom(Math.min(5, zoom + 0.25))}
-          >
-            <Plus size={14} />
-          </Button>
-          <Button
-            size="icon-sm"
-            aria-label="Reset page zoom"
-            focusableWhenDisabled
-            disabled={!manual || zoom === 1}
-            onClick={() => setZoom(1)}
-          >
-            <RotateCcw size={14} />
-          </Button>
-        </div>
+}) => (
+  <Popover>
+    <PopoverTrigger
+      render={
         <Button
-          className="w-full"
+          size="icon-sm"
+          variant="ghost"
+          aria-label="Browser page settings"
+          title="Page settings"
+        />
+      }
+    >
+      <Settings2 size={15} />
+    </PopoverTrigger>
+    <PopoverContent className="browser-settings-menu max-h-[min(80dvh,42rem)] w-72 overflow-y-auto p-1.5 font-sans text-sm">
+      <PopoverTitle className="browser-menu-label">Page settings</PopoverTitle>
+      <div className="browser-settings-tools">
+        <BrowserToolsActions model={tools} device={device} />
+      </div>
+      <NativeBrowserZoom model={model} manual={manual} />
+      <fieldset className="browser-menu-group" aria-label="Page">
+        <Button
+          className="browser-menu-row"
           size="sm"
-          variant="outline"
+          variant="ghost"
           disabled={!manual}
           onClick={() => void model.command({ kind: 'hard-reload' })}
         >
+          <RefreshCcwDot size={14} aria-hidden="true" />
           Hard reload
+          <kbd aria-hidden="true">{browserShortcut('r', true)}</kbd>
         </Button>
         <Button
-          className="mt-2 w-full"
+          className="browser-menu-row"
           size="sm"
-          variant="outline"
+          variant="ghost"
           disabled={!manual}
           onClick={() => void model.command({ kind: 'clear-cache' })}
         >
+          <Eraser size={14} aria-hidden="true" />
           Clear cached website files
         </Button>
-        <p className="quiet mt-2">Clearing the cache keeps saved sign-ins.</p>
-        <NativeBrowserPageOptions model={model} manual={manual} />
-        <p className="quiet mt-2">Profile: {model.state?.profile?.name ?? 'Default'}</p>
+        <p className="browser-menu-note">Clearing the cache keeps saved sign-ins.</p>
+      </fieldset>
+      <NativeBrowserPageOptions model={model} manual={manual} />
+      <fieldset className="browser-menu-group" aria-label="Browser profile">
+        <p className="browser-menu-label">Profile: {model.state?.profile?.name ?? 'Default'}</p>
         <NativeBrowserProfiles
           key={model.identity!.id}
           id={model.identity!.id}
           disabled={!manual}
         />
-      </PopoverContent>
-    </Popover>
-  );
-};
+      </fieldset>
+    </PopoverContent>
+  </Popover>
+);

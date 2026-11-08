@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
-import { browserViewStyle } from '../presentation.ts';
+import { browserPagePoint, browserViewStyle } from '../presentation.ts';
 
 const view: DesktopBrowserView = {
   token: 'guest',
@@ -116,4 +116,13 @@ it('fits device presentation to the available space while preserving the inspect
   expect(fixed.width).toBe(390);
   expect(fixed.height).toBe(844);
   expect(fixed.transform).toBe(`scale(${500 / 844})`);
+});
+
+it('places the agent cursor on the presented page, including a scaled fixed viewport', () => {
+  expect(browserPagePoint(view, { x: 10, y: 20 })).toEqual({ x: 410, y: 220 });
+  // A 1400x1000 device page fits a 700x500 slot at half scale, centred horizontally.
+  const scaled = { ...view, viewport: { width: 1400, height: 1000 } };
+  expect(browserPagePoint(scaled, { x: 100, y: 100 })).toEqual({ x: 450, y: 250 });
+  expect(browserPagePoint({ ...view, bounds: null }, { x: 1, y: 1 })).toBeNull();
+  expect(browserPagePoint(view, { x: 5000, y: 10 })).toBeNull();
 });

@@ -1,8 +1,27 @@
 import type { CSSProperties } from 'react';
 import type { DesktopBrowserView } from '../../../core/src/native-browser.ts';
 
+/** Fired on a press over a read-only page so its panel can offer or take manual control. */
+export const browserGuardPressEvent = 'pitchcrew:browser-guard-press';
+
 export const initialBrowserSize = { width: 1280, height: 800 };
 export type BrowserViewSize = typeof initialBrowserSize;
+
+/** Maps a page CSS-pixel point to window coordinates for a presented guest, or null if hidden. */
+export const browserPagePoint = (view: DesktopBrowserView, point: { x: number; y: number }) => {
+  if (!view.bounds) return null;
+  // Mirrors browserViewStyle: a fixed page viewport is centred and scaled down to fit.
+  const page = view.viewport ?? { width: view.bounds.width, height: view.bounds.height };
+  const scale = Math.min(1, view.bounds.width / page.width, view.bounds.height / page.height);
+  const x = view.bounds.x + (view.bounds.width - page.width * scale) / 2 + point.x * scale;
+  const y = view.bounds.y + point.y * scale;
+  const inside =
+    x >= view.bounds.x &&
+    y >= view.bounds.y &&
+    x <= view.bounds.x + view.bounds.width &&
+    y <= view.bounds.y + view.bounds.height;
+  return inside ? { x, y } : null;
+};
 
 export const browserViewStyle = (
   view: DesktopBrowserView,

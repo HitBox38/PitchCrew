@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { addressParts, remotePoint, touchScroll } from '../helpers.ts';
+import {
+  addressParts,
+  browserTabLabel,
+  normalizeAddress,
+  remotePoint,
+  touchScroll,
+} from '../helpers.ts';
 
 describe('manual browser coordinates', () => {
   const frame = { width: 1280, height: 800 };
@@ -44,5 +50,28 @@ describe('address display', () => {
     expect(addressParts('')).toBeNull();
     expect(addressParts('about:blank')).toBeNull();
     expect(addressParts('file:///etc/hosts')).toBeNull();
+  });
+});
+
+describe('browser chrome labels', () => {
+  it('labels a tab by title, then the host it loads or failed on, then New tab', () => {
+    expect(browserTabLabel({ title: 'Jobs at Fictional Co', url: 'https://jobs.example' })).toBe(
+      'Jobs at Fictional Co',
+    );
+    expect(
+      browserTabLabel({
+        title: 'about:blank',
+        url: 'about:blank',
+        navigationUrl: 'https://missing.example/path',
+      }),
+    ).toBe('missing.example');
+    expect(browserTabLabel({ title: '', url: 'about:blank' })).toBe('New tab');
+  });
+  it('keeps web addresses, adds https to bare hosts and searches everything else', () => {
+    expect(normalizeAddress(' https://example.com/a ')).toBe('https://example.com/a');
+    expect(normalizeAddress('example.com/jobs')).toBe('https://example.com/jobs');
+    expect(normalizeAddress('fictional co careers')).toBe(
+      'https://www.google.com/search?q=fictional%20co%20careers',
+    );
   });
 });

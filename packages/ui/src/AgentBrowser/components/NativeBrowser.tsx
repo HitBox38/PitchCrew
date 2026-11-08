@@ -14,6 +14,7 @@ import type { useBrowserSize } from '../hooks/useBrowserSize.ts';
 import { isBlankBrowserPage } from '../page-state.ts';
 import { NativeBrowserBody } from './NativeBrowserBody.tsx';
 import { BrowserWarning } from './BrowserWarning.tsx';
+import { BrowserControlHint } from './BrowserControlHint.tsx';
 export const NativeBrowser = ({
   model,
   control,
@@ -21,14 +22,17 @@ export const NativeBrowser = ({
   device,
   onAttachBrowserFile,
   name,
+  nudged = false,
 }: {
   model: NativeBrowserModel;
   control: BrowserControl;
   viewport: ReturnType<typeof useBrowserSize>;
   device: ReturnType<typeof useBrowserDevice>;
   onAttachBrowserFile?: (file: File) => void;
-  /** The agent's name for the control strip and empty page. */
+  /** The agent's name for the control hint and empty page. */
   name?: string;
+  /** The user pressed the page while the agent works; point them at Take control. */
+  nudged?: boolean;
 }) => {
   const id = model.identity!.id;
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
@@ -37,16 +41,21 @@ export const NativeBrowser = ({
   const attachViewport = viewport.attach;
   const attach = useCallback(
     (element: HTMLDivElement | null) => {
-      mount(element);
-      attachViewport(element);
+      const unmount = mount(element);
+      const detach = attachViewport(element);
+      return () => {
+        unmount?.();
+        detach?.();
+      };
     },
     [mount, attachViewport],
   );
-  const manual = !!control.leaseId;
+  // Usable while holding control, or while the agent is idle (the first action takes control).
+  const usable = control.available && !control.working;
   const tools = useNativeBrowserTools(model, control);
   return (
     <>
-      <NativeBrowserTabs model={model} manual={manual && !control.working} />
+      <NativeBrowserTabs model={model} manual={usable} />
       {/* Toolbar and tools share one row; Page settings holds the page tools. */}
       <div className="browser-chrome">
         <NativeBrowserToolbar model={model} control={control} tools={tools} device={device} />
@@ -61,17 +70,13 @@ export const NativeBrowser = ({
           setting={device.setting}
           change={device.setSetting}
           close={() => device.setOpen(false)}
-          disabled={!manual || control.working}
+          disabled={!usable}
         />
       ) : null}
       {model.findOpen ? (
         <NativeBrowserFind key={id} id={id} close={() => model.setFindOpen(false)} />
       ) : null}
-      {!manual ? (
-        <p className="browser-control-hint">
-          Take control to browse. Your agent pauses while you use the page.
-        </p>
-      ) : null}
+      {!control.available ? <BrowserControlHint name={name} nudged={nudged} /> : null}
       <BrowserWarning warning={model.state?.warning} control={control} />
       {model.state?.dialog ? (
         <BrowserDialog

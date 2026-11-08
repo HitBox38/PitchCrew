@@ -407,7 +407,33 @@
 /* Browser chrome stays in two rows (tabs, then address with tools) and approvals reserve only
  * what a request needs, so the page keeps most of the panel's height. */
 [data-interface='clay'] .browser-tabs {
-  padding: 5px 8px;
+  gap: 4px;
+  padding: 4px 8px;
+}
+[data-interface='clay'] .browser-tab .browser-tab-select {
+  height: 28px;
+}
+[data-interface='clay'] .browser-tab .browser-tab-close {
+  width: 22px;
+  height: 22px;
+}
+/* Inactive tabs show their close button on hover or focus, like other browsers. */
+[data-interface='clay'] .browser-tab:not([data-active='true']) .browser-tab-close {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+[data-interface='clay']
+  .browser-tab:not([data-active='true']):is(:hover, :focus-within)
+  .browser-tab-close {
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  [data-interface='clay'] .browser-tab:not([data-active='true']) .browser-tab-close {
+    opacity: 1;
+  }
+}
+[data-interface='clay'] .browser-tab-select > svg.browser-tab-failed {
+  color: var(--rose);
 }
 [data-interface='clay'] .browser-chrome {
   display: flex;
@@ -447,22 +473,117 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+/* Page settings is a quiet menu: a tools row, a zoom row and grouped icon rows separated by
+ * hairlines, with small labels. No outlined full-width buttons. */
+[data-interface='clay'] .browser-settings-menu {
+  display: grid;
+  gap: 0;
+}
+[data-interface='clay'] .browser-menu-label {
+  margin: 0;
+  padding: 6px 8px 4px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
 [data-interface='clay'] .browser-settings-tools {
   display: block;
-  margin-block: 10px 12px;
-  padding-bottom: 12px;
+  padding: 2px 0 6px;
   border-bottom: 1px solid var(--border);
 }
 [data-interface='clay'] .browser-settings-tools .browser-tools-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 2px;
 }
 [data-interface='clay'] .browser-settings-tools [data-slot='button'] {
-  justify-content: flex-start;
+  flex-direction: column;
+  gap: 4px;
+  height: auto;
+  min-height: 52px;
+  padding: 6px 2px;
+  font-weight: 500;
+  font-size: var(--text-caption);
 }
+[data-interface='clay'] .browser-settings-tools .browser-tool-label {
+  white-space: nowrap;
+}
+[data-interface='clay'] .browser-menu-zoom {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 4px 4px 8px;
+  border-bottom: 1px solid var(--border);
+}
+[data-interface='clay'] .browser-menu-zoom-label {
+  flex: 1;
+  color: var(--ink);
+}
+[data-interface='clay'] .browser-menu-zoom output {
+  min-width: 3.25rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+[data-interface='clay'] .browser-menu-group {
+  display: grid;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+[data-interface='clay'] .browser-menu-group:last-child {
+  border-bottom: 0;
+}
+[data-interface='clay'] .browser-menu-row {
+  justify-content: flex-start;
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  color: var(--ink);
+  font-weight: 400;
+}
+[data-interface='clay'] .browser-menu-row > svg {
+  color: var(--muted);
+}
+[data-interface='clay'] .browser-menu-row > kbd {
+  margin-left: auto;
+  color: var(--muted);
+  font: 500 var(--text-caption) / 1 var(--font-sans);
+}
+[data-interface='clay'] .browser-menu-note {
+  margin: -2px 0 2px;
+  padding: 0 8px 0 30px;
+  color: var(--muted);
+  font-size: var(--text-caption);
+}
+[data-interface='clay'] .browser-menu-field {
+  gap: 6px;
+  padding: 8px;
+}
+[data-interface='clay'] .browser-menu-field > label {
+  color: var(--muted);
+  font-size: var(--text-caption);
+  font-weight: 600;
+}
+[data-interface='clay'] .browser-menu-group .browser-profiles {
+  padding: 0 4px 4px;
+}
+/* Shown only while an agent run is using the page; a press on the page flashes it ochre. */
 [data-interface='clay'] .browser-control-hint {
-  display: none;
+  flex-shrink: 0;
+  margin: 6px 10px 0;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--sunken-fill);
+  color: var(--muted);
+  font-size: var(--text-caption);
+  line-height: 1.4;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+[data-interface='clay'] .browser-control-hint[data-nudged] {
+  background: var(--ochre-soft);
+  color: var(--ochre);
 }
 
 /* Compact approval tray: title and status on one line, the reason under it, the action's target
@@ -575,4 +696,26 @@
     align-items: stretch;
     gap: 8px;
   }
+}
+
+/* The address bar's lock marks HTTPS; its system-browser action appears on hover or focus. */
+[data-interface='clay'] .browser-address > svg[aria-label='Secure connection'] {
+  color: var(--moss, var(--muted));
+}
+[data-interface='clay'] .browser-address-external {
+  opacity: 0;
+  transition: opacity 120ms ease;
+}
+[data-interface='clay'] .browser-address:is(:hover, :focus-within) .browser-address-external,
+[data-interface='clay'] .browser-address-external:focus-visible {
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  [data-interface='clay'] .browser-address-external {
+    opacity: 1;
+  }
+}
+[data-interface='clay'] .browser-settings-menu fieldset {
+  min-inline-size: 0;
+  margin: 0;
 }

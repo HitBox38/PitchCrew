@@ -792,7 +792,7 @@ test('changes the actual browser viewport with device presets, rotation and fill
     });
   });
 });
-test('blocks human clicks on the painting readonly guest while app menus stay usable, then admits private input', async () => {
+test('blocks human clicks on the painting readonly guest, takes control from that press while idle, keeps app menus usable and admits private input', async () => {
   await page.getByRole('button', { name: 'Return to agent', exact: true }).click();
   await page.getByRole('button', { name: 'Take control', exact: true }).waitFor();
   const bounds = await page
@@ -844,6 +844,8 @@ test('blocks human clicks on the painting readonly guest while app menus stay us
     const before = await clicks();
     await page.mouse.click(point.x, point.y);
     expect(await clicks()).toEqual({ guest: before.guest, guarded: before.guarded + 1 });
+    // The agent is idle: the press starts browsing by taking control, never by clicking the page.
+    await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
     await page.getByRole('button', { name: 'Browser history', exact: true }).click();
     const search = page.getByRole('textbox', { name: 'Search browser history', exact: true });
     await search.fill('Human menu remains interactive');
@@ -857,7 +859,6 @@ test('blocks human clicks on the painting readonly guest while app menus stay us
       }),
     ).toBe(true);
     await page.keyboard.press('Escape');
-    await page.getByRole('button', { name: 'Take control', exact: true }).click();
     await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
     const manualBounds = await page
       .getByLabel('Native browser page', { exact: true })

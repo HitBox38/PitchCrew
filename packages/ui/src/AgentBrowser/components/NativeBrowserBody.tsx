@@ -22,10 +22,11 @@ export const NativeBrowserBody = ({
 }) => {
   const tab = model.state?.tabs.find((item) => item.id === model.state?.activeTab);
   const manual = !!control.leaseId;
-  const ready = manual && !control.working;
+  // Idle browsing can start from these actions; the first one takes control.
+  const ready = control.available && !control.working;
   return (
     <div className="browser-panel-body">
-      {manual ? <ClayControlBar name={name} /> : null}
+      {manual ? <ClayControlBar name={name} implicit={control.implicit} /> : null}
       <div className="browser-live-view" ref={attach} aria-label="Native browser page">
         <NativeBrowserStatus model={model} manual={ready} control={control} />
         {tab?.window ? (

@@ -1,6 +1,8 @@
 import { createElement, useLayoutEffect, useState } from 'react';
 import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
 import { browserViewStyle, initialBrowserSize, type BrowserViewSize } from '../presentation.ts';
+import { AgentCursor } from './AgentCursor.tsx';
+import { BrowserInputGuard } from './BrowserInputGuard.tsx';
 
 type GuestElement = HTMLElement & { getWebContentsId(): number };
 
@@ -70,21 +72,8 @@ export const BrowserGuest = ({
         tabIndex: view.bounds && view.manual ? 0 : -1,
         style: browserViewStyle(view, size, viewport, /mac/i.test(navigator.platform)),
       })}
-      {view.bounds && !view.manual ? (
-        <div
-          data-browser-input-guard={view.token}
-          aria-hidden="true"
-          style={{
-            position: 'fixed',
-            left: view.bounds.x,
-            top: view.bounds.y,
-            width: view.bounds.width,
-            height: view.bounds.height,
-            zIndex: 2,
-            pointerEvents: 'auto',
-          }}
-        />
-      ) : null}
+      <BrowserInputGuard view={view} />
+      <AgentCursor view={view} />
     </>
   );
 };

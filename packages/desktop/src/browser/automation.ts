@@ -2,11 +2,26 @@ import { captureNativePage } from './capture.ts';
 import { sendGuestCommand } from './input.ts';
 import type { WebContents } from 'electron';
 
+/**
+ * Browser-process commands that resolve something the page is waiting on. They never need a
+ * focused or painted guest, and must not queue behind focus emulation.
+ */
+export const unblocksPage = (method: string) =>
+  method === 'Page.handleJavaScriptDialog' ||
+  method === 'Fetch.continueRequest' ||
+  method === 'Fetch.continueWithAuth' ||
+  method === 'Fetch.failRequest' ||
+  method === 'Fetch.fulfillRequest' ||
+  method === 'Fetch.continueResponse' ||
+  method === 'Fetch.getResponseBody';
+
 /** Keep inactive DOM guests painting below the app; native overlay views are never used. Never show/focus a window. */
 export const guestAutomation = (
   contents: WebContents,
   paint: (active: boolean) => void,
   displayScale = () => 1,
+  /** Reports where automation moves or presses the pointer, in page CSS pixels. */
+  pointer?: (point: { x: number; y: number; pressed: boolean }) => void,
 ) => {
   const pending = new Map<object, { owner?: string; paints: boolean }>();
   const streams = new Map<string | undefined, Set<string | undefined>>();
@@ -98,10 +113,21 @@ export const guestAutomation = (
           !['Target.setAutoAttach', 'Target.detachFromTarget'].includes(method))
       )
         throw new Error('This operation cannot access other browser targets.');
-      // A JavaScript modal can block focus-emulation commands; resolve it directly.
-      if (method === 'Page.handleJavaScriptDialog')
-        return contents.debugger.sendCommand(method, params, child);
+      // These commands unblock the page itself: a JavaScript modal, or a request paused by
+      // interception. Chromium cannot answer renderer-side focus emulation while either waits,
+      // so routing them through focus/paint holds deadlocks every intercepted navigation.
+      if (unblocksPage(method)) return contents.debugger.sendCommand(method, params, child);
       if (method === 'Target.setAutoAttach') params = { ...params, waitForDebuggerOnStart: false };
+      // Automation input is the only Input.* traffic on this relay: human input goes
+      // straight to the guest. Report it so the app can draw where the agent acts.
+      if (
+        !child &&
+        method === 'Input.dispatchMouseEvent' &&
+        typeof params.x === 'number' &&
+        typeof params.y === 'number' &&
+        params.type !== 'mouseWheel'
+      )
+        pointer?.({ x: params.x, y: params.y, pressed: params.type === 'mousePressed' });
       const streamKey = child;
       if (method === 'Page.startScreencast') {
         const existing = streaming(streamKey);

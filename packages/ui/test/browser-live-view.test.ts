@@ -149,7 +149,10 @@ test('shows blank-page guidance over an empty streamed tab', async () => {
   await page.getByRole('heading', { name: 'No page open', exact: true }).waitFor();
   expect(await page.locator('.browser-screen').count()).toBe(0);
   const placeholder = page.locator('.browser-placeholder');
-  await placeholder.getByRole('button', { name: 'Take control', exact: true }).click();
+  // The agent is idle, so the address works without a separate takeover step.
+  expect(await placeholder.getByRole('button', { name: 'Take control', exact: true }).count()).toBe(
+    0,
+  );
   await placeholder.getByRole('button', { name: 'Enter an address', exact: true }).click();
   expect(
     await page

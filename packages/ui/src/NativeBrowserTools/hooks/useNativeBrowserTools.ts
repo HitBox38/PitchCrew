@@ -19,7 +19,8 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
   }, [owner]);
   const recording = useBrowserRecording(model.identity!.id, tab?.id ?? '', control.leaseId);
   const capture = snapshot?.owner === owner ? snapshot.capture : null;
-  const disabled = !control.leaseId || control.working || busy || recording.busy;
+  // Capture works while the agent is idle; recording is bound to a held control lease.
+  const disabled = !control.available || control.working || busy || recording.busy;
   const screenshot = async () => {
     const bridge = window.pitchcrewBrowser;
     if (!bridge?.capture || !model.identity) return;
@@ -51,6 +52,7 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
     tab,
     recording,
     disabled,
+    recordable: !!control.leaseId,
     screenshot,
     floating,
   };

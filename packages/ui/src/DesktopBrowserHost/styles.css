@@ -19,3 +19,69 @@
 :root[data-desktop]:has(.desktop-browser-layer[data-expanded]) .desktop-titlebar {
   z-index: 60;
 }
+
+/* The agent's pointer over a page it drives. Plum follows the bead law: an agent is executing. */
+.agent-browser-cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  pointer-events: none;
+  transition: transform 150ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: transform;
+}
+.agent-browser-cursor-body {
+  position: relative;
+  display: block;
+  /* Rests faintly after a move, then fades away; the next move re-keys it into view. */
+  animation: agent-cursor-rest 4.5s ease-out 0.7s forwards;
+}
+.agent-browser-cursor svg {
+  display: block;
+  margin: -3px 0 0 -3px;
+  fill: var(--plum);
+  stroke: #fff;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 1px 1.5px rgb(0 0 0 / 0.35));
+}
+.agent-browser-cursor-ping {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 2px solid var(--plum);
+  animation: agent-cursor-ping 520ms ease-out forwards;
+}
+@keyframes agent-cursor-rest {
+  15% {
+    opacity: 0.55;
+  }
+  70% {
+    opacity: 0.55;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes agent-cursor-ping {
+  from {
+    transform: scale(0.4);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-browser-cursor {
+    transition: none;
+  }
+  .agent-browser-cursor-ping {
+    animation: none;
+    opacity: 0.6;
+  }
+}

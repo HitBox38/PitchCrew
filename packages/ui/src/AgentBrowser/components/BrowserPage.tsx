@@ -27,7 +27,9 @@ export const BrowserPage = ({
       {frame?.status === 'fallback' ? (
         <output className="quiet block px-4">Browser view is updating at a reduced rate.</output>
       ) : null}
-      {control.leaseId ? <ClayControlBar name={browserPanel.role?.name} /> : null}
+      {control.leaseId ? (
+        <ClayControlBar name={browserPanel.role?.name} implicit={control.implicit} />
+      ) : null}
       <div className="browser-live-view" ref={attach}>
         {frame?.screenshot && !isBlankBrowserPage(frame.url, frame.title) ? (
           <BrowserView

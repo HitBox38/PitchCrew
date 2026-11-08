@@ -14,22 +14,27 @@ import { useBrowserPresentation } from './hooks/useBrowserPresentation.ts';
 import type { AgentBrowserProps } from './types.ts';
 import { useBrowserApprovalVisibility } from './hooks/useBrowserApprovalVisibility.ts';
 import { useBrowserLayout } from './hooks/useBrowserLayout.ts';
+import { useBrowserHandback } from './hooks/useBrowserHandback.ts';
 
 export const AgentBrowser = (props: AgentBrowserProps) => {
   useBrowserApprovalVisibility(props);
   const { browserPanel, thread } = props;
   const roleId = browserPanel.role?.id ?? '';
+  const session = browserPanel.session;
   const control = useBrowserControl(
     roleId,
     thread,
     browserPanel.refresh,
     props.conversation?.cardId,
+    // No agent run is using this browser: the user can browse without Take control first.
+    session?.status === 'open' && !session.runId,
   );
   const presentation = useBrowserPresentation();
   const layout = useBrowserLayout(props, presentation);
   const { packet, view, switchable, sideColumn, modal, toggleExpanded } = layout;
   const enabled = browserPanel.open && browserPanel.session?.status === 'open';
   const native = useNativeBrowser(roleId, thread, browserPanel.session?.native, enabled, control);
+  const { nudged } = useBrowserHandback(control, session, native.identity?.id);
   const selectedTab = native.state?.tabs.find((tab) => tab.id === native.state?.activeTab);
   const device = useBrowserDevice(
     `${native.identity?.id}:${selectedTab?.logicalId ?? native.state?.activeTab}`,
@@ -83,6 +88,7 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
         device={device}
         frame={stream.frame}
         presentation={presentation}
+        nudged={nudged}
       />
       {view === 'packet' && packet ? <BrowserPacketView {...packet} /> : null}
       {sideColumn ? <BrowserExpandedSide {...props} approvals={approvals} /> : approvals}

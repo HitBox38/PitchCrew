@@ -307,6 +307,28 @@ export const createDomBrowserHost = (
       request.view = structuredClone(next);
       publish();
     },
+    /** The agent's latest pointer on this guest, for the app's cursor overlay; null clears it. */
+    pointer: (contentsId: number, point: { x: number; y: number; pressed: boolean } | null) => {
+      const request = [...requests.values()].find((item) => item.guest?.id === contentsId);
+      if (!request) return;
+      if (!point) {
+        if (!request.view.agentPointer) return;
+        const { agentPointer: _cleared, ...view } = request.view;
+        request.view = view;
+      } else {
+        const sequence = (request.view.agentPointer?.sequence ?? 0) + 1;
+        request.view = {
+          ...request.view,
+          agentPointer: {
+            x: Math.round(point.x),
+            y: Math.round(point.y),
+            pressed: point.pressed,
+            sequence,
+          },
+        };
+      }
+      publish();
+    },
     resize: (contentsId: number, viewport: { width: number; height: number }) => {
       const request = [...requests.values()].find((item) => item.guest?.id === contentsId);
       if (

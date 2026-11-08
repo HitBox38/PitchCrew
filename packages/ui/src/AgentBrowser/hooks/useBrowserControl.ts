@@ -9,6 +9,8 @@ export const useBrowserControl = (
   threadId: string,
   refresh: () => Promise<void>,
   cardId?: string | null,
+  /** No agent run is using this browser, so the user may browse without Take control first. */
+  idle = false,
 ) => {
   const key = browserControlScopeKey(roleId, threadId, cardId);
   const leases = useBrowserControlLease(key);
@@ -32,13 +34,24 @@ export const useBrowserControl = (
       setWorking(false);
     }
   };
-  const take = () =>
-    command(async () => {
+  const { remember } = leases;
+  const acquire = useCallback(
+    async (implicit: boolean) => {
       const result = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
         operation: 'take',
       });
-      leases.remember(key, { roleId, threadId, id: result.leaseId });
-    });
+      remember(key, { roleId, threadId, id: result.leaseId, implicit });
+      return result.leaseId;
+    },
+    [key, remember, roleId, threadId],
+  );
+  const take = () => command(() => acquire(false));
+  /** The current lease, or an implicit one while the agent is idle; undefined otherwise. */
+  const ensure = useCallback(async () => {
+    if (leaseId) return leaseId;
+    if (!idle) return undefined;
+    return acquire(true);
+  }, [acquire, idle, leaseId]);
   const release = () =>
     command(
       async () => {
@@ -48,11 +61,11 @@ export const useBrowserControl = (
       () => forget(),
     );
   const input = useCallback(
-    (value: BrowserInput) => {
-      if (!leaseId) return;
+    (value: BrowserInput, lease = leaseId) => {
+      if (!lease) return;
       setInputPending((count) => count + 1);
       queue.current = (queue.current ?? Promise.resolve())
-        .then(() => browserInput(roleId, threadId, leaseId, value))
+        .then(() => browserInput(roleId, threadId, lease, value))
         .then(() => {})
         .catch((error) => setError(error.message))
         .finally(() => setInputPending((count) => count - 1));
@@ -81,20 +94,20 @@ export const useBrowserControl = (
   const open = () =>
     command(async () => {
       const result = await browserCommand<{ native?: boolean }>(roleId, threadId, 'open');
-      if (result.native) {
-        const control = await browserCommand<{ leaseId: string }>(roleId, threadId, 'control', {
-          operation: 'take',
-        });
-        leases.remember(key, { roleId, threadId, id: control.leaseId });
-      }
+      // Opening is browsing: it leaves the lease implicit so a later agent run gets it back.
+      if (result.native) await acquire(true);
     });
   return {
     leaseId,
+    /** The user may operate page controls now (holding control, or the agent is idle). */
+    available: !!leaseId || idle,
+    implicit: !!leases.lease?.implicit,
     error: error || leases.renewalError,
     working,
     inputPending,
     open,
     take,
+    ensure,
     release,
     input,
     resize,

@@ -660,3 +660,6 @@
     font-size: 16px;
   }
 }
+.browser-tab-failed {
+  color: var(--rose);
+}

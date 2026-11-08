@@ -22,6 +22,40 @@ import type { createDomBrowserHost } from './dom-host.ts';
 
 const configured = new WeakSet<Session>();
 
+/** A plain sentence for a Chromium main-frame failure; the raw code stays in the details. */
+export const navigationFailure = (code: number) => {
+  if (code === -105 || code === -137) return 'The address couldn’t be found. Check it for typos.';
+  if (code === -106) return 'You appear to be offline. Check your connection, then try again.';
+  if (code === -102) return 'The site refused the connection. Try again later.';
+  if (code === -7 || code === -118) return 'The site took too long to respond. Try again.';
+  if (code === -100 || code === -101 || code === -21)
+    return 'The connection was interrupted. Try again.';
+  if (code === -310) return 'The page redirected too many times. Try opening it again.';
+  if (code === -20)
+    return 'Pitchcrew blocked this address. Local and private network pages aren’t available.';
+  if (code <= -200 && code > -300)
+    return 'The site’s security certificate isn’t trusted, so the page wasn’t opened.';
+  return 'Check the address and your connection, then try again.';
+};
+
+/**
+ * Settles when the main frame commits (or the load ends first). A failure before commit
+ * rejects; a later failure is reported through the tab's own did-fail-load state.
+ */
+export const untilCommitted = (contents: WebContents, start: () => Promise<void>) =>
+  new Promise<void>((resolve, reject) => {
+    const committed = () => {
+      contents.removeListener('did-navigate', committed);
+      resolve();
+    };
+    // Listen before starting, so a commit reported during the call is not missed.
+    contents.on('did-navigate', committed);
+    start().then(committed, (error: unknown) => {
+      contents.removeListener('did-navigate', committed);
+      reject(error);
+    });
+  });
+
 export interface NativeGroup extends RelayGroup {
   create(existingContents?: WebContents, select?: boolean): Promise<RelayPage>;
   changed(): void;
@@ -214,6 +248,7 @@ export const createNativeGroup = (
             const window = group.popupWindows.get(contents.id) ?? getWindow();
             return window ? screen.getDisplayMatching(window.getBounds()).scaleFactor : 1;
           },
+          (point) => dom.pointer(contents.id, point),
         );
         const page: RelayPage = {
           id: pageId,
@@ -434,7 +469,7 @@ export const createNativeGroup = (
         contents.on('did-fail-load', (_event, code, description, url, mainFrame) => {
           if (mainFrame && code !== -3) {
             navigationUrls.set(pageId, nativeBrowserPageUrl(url));
-            errors.set(pageId, 'Check the address and your connection, then try again.');
+            errors.set(pageId, navigationFailure(code));
             errorDetails.set(pageId, `${description} (${code})`);
           }
           group.changed();
@@ -530,7 +565,10 @@ export const createNativeGroup = (
             await assertPublicUrl(value);
             if (stopped) throw new Error('Navigation stopped (ERR_ABORTED).');
             if (group.manualUntil <= Date.now()) throw new Error('Browser control changed.');
-            await page.contents.loadURL(value);
+            // Resolve once the main frame commits. A slow site keeps loading in the
+            // background with its own progress and failure state instead of timing
+            // out the caller (and its control renewal) after many seconds.
+            await untilCommitted(page.contents, () => page.contents.loadURL(value));
           })(),
           cancellation,
         ]);
@@ -539,8 +577,16 @@ export const createNativeGroup = (
         // Stop/replacement is an intentional cancellation, not a failed page.
         if (stopped || (error instanceof Error && 'code' in error && error.code === 'ERR_ABORTED'))
           throw error;
-        errors.set(id, 'Check the address and your connection, then try again.');
-        errorDetails.set(id, error instanceof Error ? error.message : 'Navigation failed.');
+        const message = error instanceof Error ? error.message : 'Navigation failed.';
+        errors.set(
+          id,
+          /private network/i.test(message)
+            ? navigationFailure(-20)
+            : /ENOTFOUND|EAI_AGAIN/.test(message)
+              ? navigationFailure(-105)
+              : navigationFailure(0),
+        );
+        errorDetails.set(id, message);
         group.changed();
       } finally {
         if (pendingNavigations.get(id) === cancel) pendingNavigations.delete(id);

@@ -32,7 +32,7 @@ export const BrowserPendingAction = ({
         <h3>{browserActionTitles[approval.action.kind]}</h3>
         <p className="browser-approval-reason">{approval.reason}</p>
         <dl className="browser-action-brief">
-          {actionFields(approval.action)
+          {actionFields(approval.action, approval.page)
             .filter(([label]) => label !== 'Frame' && label !== 'Submission attempt')
             .map(([label, value]) => (
               <div key={label}>
