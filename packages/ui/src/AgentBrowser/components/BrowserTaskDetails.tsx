@@ -15,7 +15,7 @@ export const BrowserTaskDetails = (
   return (
     <Popover>
       {/* The slot keeps the width steady across states; the chip itself hugs its label. */}
-      <span className="browser-state-slot">
+      <span className="browser-state-slot" data-reserve={session?.runId ? '' : undefined}>
         <BrowserTaskTrigger state={props.state} nudged={props.nudged} />
       </span>
       <PopoverContent className="browser-task-details w-72 max-w-[calc(100vw-24px)] p-3 font-sans text-sm leading-5">

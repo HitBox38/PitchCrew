@@ -227,14 +227,15 @@
 [data-interface='clay'] .clay-tray-state > .browser-handoff,
 [data-interface='clay'] .browser-pending-action > .browser-handoff {
   flex-shrink: 0;
-  height: 30px;
+  height: 32px;
   padding-inline: 10px;
   font-size: var(--text-caption);
 }
 [data-interface='clay'] .clay-tray-line > .browser-handoff {
   margin-left: auto;
 }
-/* Beside a request the control action is an icon in narrow panels and labelled in wide ones. */
+/* Beside a request the control action is an icon in narrow panels and labelled in wide ones,
+ * except beside a typed, chosen or uploaded value, which keeps the room so it reads whole. */
 [data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
   width: 32px;
   height: 32px;
@@ -244,11 +245,16 @@
   display: none;
 }
 @container browser-panel (min-width: 36rem) {
-  [data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
+  [data-interface='clay']
+    .browser-pending-action:not([data-value])
+    > .browser-handoff[data-compact] {
     width: auto;
     padding-inline: 10px;
   }
-  [data-interface='clay'] .browser-handoff[data-compact] > .browser-handoff-label {
+  [data-interface='clay']
+    .browser-pending-action:not([data-value])
+    > .browser-handoff[data-compact]
+    > .browser-handoff-label {
     display: inline;
   }
 }
@@ -283,7 +289,12 @@
 [data-interface='clay'] .agent-browser-panel .browser-page-region .browser-live-view {
   border-color: transparent;
   border-radius: 0;
+  background: var(--paper);
   box-shadow: none;
+}
+/* Blank, failed and crashed pages fill the same flush frame as a live page. */
+[data-interface='clay'] .agent-browser-panel .browser-page-error.clay-browser-state {
+  border-radius: 0;
 }
 
 /* Approval tray: a 56px reservation. A waiting request reads as two short lines (what will
@@ -639,15 +650,15 @@
   box-shadow: var(--clay-sunken);
 }
 
-/* A steady slot for the state chip: states change its label, never the tabs beside it. Narrow
- * panels give that room back to the address and tabs. */
+/* A steady slot for the state chip while a run can change its state on its own (narrow panels give
+ * that room back to the address and tabs); at rest the chip hugs its label. */
 [data-interface='clay'] .browser-state-slot {
   display: inline-flex;
   flex: none;
   align-items: center;
 }
 @container browser-panel (min-width: 40rem) {
-  [data-interface='clay'] .browser-state-slot {
+  [data-interface='clay'] .browser-state-slot[data-reserve] {
     min-width: 8.75rem;
   }
   /* The hairline follows the chip itself, so the reserved width reads as the tabs' indent. */

@@ -388,18 +388,24 @@
   width: 22px;
   height: 22px;
 }
-/* Inactive tabs show their close button on hover or focus, like other browsers. */
+/* Inactive tabs show their close button on hover or focus, like other browsers; until then its
+ * slot folds away so the title uses the room. */
 [data-interface='clay'] .browser-tab:not([data-active='true']) .browser-tab-close {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
   opacity: 0;
   transition: opacity 120ms ease;
 }
 [data-interface='clay']
   .browser-tab:not([data-active='true']):is(:hover, :focus-within)
   .browser-tab-close {
+  width: 22px;
   opacity: 1;
 }
 @media (pointer: coarse) {
   [data-interface='clay'] .browser-tab:not([data-active='true']) .browser-tab-close {
+    width: 22px;
     opacity: 1;
   }
 }

@@ -39,6 +39,8 @@ export const BrowserPendingAction = ({
       aria-label="Pending browser action"
       data-browser-approval-id={approval.id}
       data-submission={submission || undefined}
+      // A typed, chosen or uploaded value takes the line's room; Take over stays an icon then.
+      data-value={'value' in approval.action || approval.action.kind === 'upload' || undefined}
     >
       <div className="browser-approval-body">
         {/* The two lines are the Details trigger: the evidence is one click on the request. */}

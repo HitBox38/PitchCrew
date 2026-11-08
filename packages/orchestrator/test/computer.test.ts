@@ -119,6 +119,14 @@ it('enforces computer capability and user-only decisions and expires approvals o
   await expect(
     service.agentCall('computer-token', 'computer_execute', { approvalId: approval.id }),
   ).rejects.toThrow('disabled');
+  // The row that asked for the approval is the row that carried it out: one row per action.
+  expect(
+    service
+      .chatState()
+      .activityRuns?.find((item) => item.id === run.id)
+      ?.activity?.map((entry) => entry.label)
+      .filter((label) => label.includes('“Submit”')),
+  ).toEqual(['Click “Submit”']);
   await service.initialize(false);
   expect(
     (await service.snapshot()).computerApprovals.find((a) => a.id === approval.id),

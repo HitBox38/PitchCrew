@@ -19,11 +19,31 @@ import type { CrewContext } from '../types.ts';
  * “Learn more”", "Clicked “Learn more”", "Read the page". Labels name elements, never typed or
  * chosen values (activity carries no browser inputs).
  */
+/**
+ * Each browser action is one row: the row that asked for an approval becomes the row that carries
+ * it out ("Asked to click …" → "Click …" → "Clicked …"), keyed by approval in memory only.
+ */
+const actionRows = new WeakMap<CrewContext, Map<string, string>>();
+const rowsFor = (context: CrewContext) => {
+  let rows = actionRows.get(context);
+  if (!rows) actionRows.set(context, (rows = new Map()));
+  return rows;
+};
+
 const browserStep = (
   context: CrewContext,
   action: string,
   data: Record<string, unknown> | undefined,
-): { start: string; done: (result: unknown) => string | undefined } | undefined => {
+):
+  | {
+      start: string;
+      done: (result: unknown) => string | undefined;
+      /** An existing row this call continues. */
+      row?: string;
+      /** Called with the result and row once the call succeeds. */
+      settled?: (result: unknown, row: string) => void;
+    }
+  | undefined => {
   if (action === 'computer_inspect')
     return { start: browserStepLabels.inspect, done: () => browserStepLabels.inspected };
   if (action === 'computer_request')
@@ -32,6 +52,14 @@ const browserStep = (
       done: (result) => {
         const approval = (result as { approval?: ComputerApproval } | undefined)?.approval;
         return approval ? browserActionAsked(approval.action, approval.page) : undefined;
+      },
+      settled: (result, row) => {
+        const approval = (result as { approval?: ComputerApproval } | undefined)?.approval;
+        if (!approval) return;
+        const rows = rowsFor(context);
+        rows.set(approval.id, row);
+        // Requests are decided one at a time; a few stale entries are all that can build up.
+        for (const key of [...rows.keys()].slice(0, -50)) rows.delete(key);
       },
     };
   if (action !== 'computer_execute' || typeof data?.approvalId !== 'string') return undefined;
@@ -42,6 +70,11 @@ const browserStep = (
   const plain = browserActionPublic(approval.action, approval.page);
   return {
     start: plain,
+    row: rowsFor(context).get(approval.id),
+    settled: (result) => {
+      if ((result as { status?: string } | undefined)?.status !== 'pending')
+        rowsFor(context).delete(approval.id);
+    },
     done: (result) =>
       (result as { status?: string } | undefined)?.status === 'pending'
         ? `Waited for your OK to ${plain.charAt(0).toLowerCase()}${plain.slice(1)}`
@@ -69,7 +102,7 @@ export const observeChatTool = (
       return () => {};
     const step = browserStep(context, action, data);
     const label = step?.start ?? labels[action] ?? 'Using a crew tool';
-    const id = `tool-${randomUUID()}`;
+    const id = step?.row ?? `tool-${randomUUID()}`;
     recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
     return (failed: boolean, error?: unknown, result?: unknown) => {
       try {
@@ -86,6 +119,7 @@ export const observeChatTool = (
             : ((!failed && step?.done(result)) || label).slice(0, 160),
           status: paused ? 'interrupted' : failed ? 'failed' : 'completed',
         });
+        if (!failed && !paused) step?.settled?.(result, id);
       } catch {
         /* Activity must never change a tool's result or error. */
       }
