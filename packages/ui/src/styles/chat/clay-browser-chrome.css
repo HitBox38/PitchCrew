@@ -63,8 +63,23 @@
   background: none;
   box-shadow: none;
   scrollbar-width: none;
-  /* Tabs that overflow fade out at the edge; New tab sits outside, always visible. */
+}
+/* Tabs that overflow fade out only at the edge with more beyond it; New tab sits outside,
+ * always visible. */
+[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-end] {
   mask-image: linear-gradient(to right, #000 calc(100% - 16px), transparent);
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-start] {
+  mask-image: linear-gradient(to right, transparent, #000 16px);
+}
+[data-interface='clay'] .browser-tab-strip > .browser-tabs[data-overflow-start][data-overflow-end] {
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 16px,
+    #000 calc(100% - 16px),
+    transparent
+  );
 }
 [data-interface='clay'] .browser-tab-strip > .browser-tabs::-webkit-scrollbar {
   display: none;
@@ -72,7 +87,9 @@
 [data-interface='clay'] .browser-tab-strip > .browser-tab-new {
   flex: none;
 }
+/* Tabs shrink toward 96px before the strip scrolls, as in a desktop browser. */
 [data-interface='clay'] .browser-heading-tabs .browser-tab {
+  flex: 0 1 180px;
   min-width: 96px;
   max-width: 180px;
   border-radius: 9px;
@@ -226,7 +243,7 @@
 [data-interface='clay'] .browser-handoff[data-compact] > .browser-handoff-label {
   display: none;
 }
-@container browser-panel (min-width: 44rem) {
+@container browser-panel (min-width: 36rem) {
   [data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
     width: auto;
     padding-inline: 10px;
@@ -632,6 +649,18 @@
 @container browser-panel (min-width: 40rem) {
   [data-interface='clay'] .browser-state-slot {
     min-width: 8.75rem;
+  }
+  /* The hairline follows the chip itself, so the reserved width reads as the tabs' indent. */
+  [data-interface='clay'] .browser-state-slot::after {
+    content: '';
+    flex: none;
+    width: 1px;
+    height: 16px;
+    margin-left: 10px;
+    background: var(--border);
+  }
+  [data-interface='clay'] .browser-heading-tabs::before {
+    display: none;
   }
 }
 /* The address keeps room for a host however many tools share the row (in panels wide enough

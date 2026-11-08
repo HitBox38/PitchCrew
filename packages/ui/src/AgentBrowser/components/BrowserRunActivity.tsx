@@ -29,6 +29,7 @@ export const BrowserRunActivity = ({
   const approving =
     active &&
     data.computerApprovals.some((item) => item.runId === run.id && item.status === 'pending');
+  const held = active && !!browserPanel.session?.manual && browserPanel.session.runId === run?.id;
   const { steps, commentary } = runActivitySummary(run?.activity ?? []);
   return (
     <section className="browser-run-activity" aria-label={`${role.name} activity`}>
@@ -36,7 +37,7 @@ export const BrowserRunActivity = ({
         role={role}
         run={run}
         approving={approving}
-        held={active && !!browserPanel.session?.manual && browserPanel.session.runId === run?.id}
+        held={held}
         working={working}
         action={action}
       />
@@ -50,7 +51,7 @@ export const BrowserRunActivity = ({
             {commentary.text}
           </MessageResponse>
         ) : null}
-        {steps.length ? <ClaySteps entries={steps} /> : null}
+        {steps.length ? <ClaySteps entries={steps} waiting={approving || held} /> : null}
         {reply ? (
           <MessageResponse mode="static" components={noRemoteImages}>
             {reply.content}

@@ -55,7 +55,10 @@ export const BrowserControls = ({
       }}
     >
       <Icon size={15} aria-hidden="true" />
-      <span className="browser-handoff-label">{label}</span>
+      {/* Beside a request the short form fits the line: "Take over" says the same thing. */}
+      <span className="browser-handoff-label">
+        {compact && label === 'Take control' ? 'Take over' : label}
+      </span>
     </Button>
   );
 };

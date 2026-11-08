@@ -57,7 +57,9 @@ export const BrowserPendingAction = ({
             <BrowserApprovalTitle approval={approval} summary={summary} />
             <ChevronRight size={14} className="browser-approval-more" aria-hidden="true" />
           </span>
-          <span className="browser-approval-reason">{reason}</span>
+          <span className="browser-approval-reason" title={reason}>
+            {reason}
+          </span>
         </BrowserApprovalEvidence>
         <BrowserApprovalError approval={approval} />
       </div>

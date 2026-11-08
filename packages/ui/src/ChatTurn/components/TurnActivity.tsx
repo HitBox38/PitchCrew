@@ -19,7 +19,7 @@ export const TurnActivity = ({ run }: { run: Run }) => {
       <Collapsible open={open} onOpenChange={setOpen} className="chat-turn-activity">
         <TurnActivityTrigger run={run} open={open} />
         <CollapsibleContent className="chat-turn-log">
-          <ActivityEntries entries={entries} />
+          <ActivityEntries entries={entries} waiting={waiting} />
           {run.activityTruncated ? (
             <p className="text-detail text-muted-foreground">
               Activity is limited to 80 entries; some steps are omitted.
