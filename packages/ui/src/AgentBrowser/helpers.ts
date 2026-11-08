@@ -85,3 +85,25 @@ export const browserTabLabel = (tab: { title?: string; url?: string; navigationU
   if (title && !title.startsWith('about:blank')) return title;
   return addressParts(tab.navigationUrl ?? tab.url ?? '')?.host ?? 'New tab';
 };
+
+/** Arrow keys, Home and End move focus between visible tabs of a tab list (roving focus). */
+export const moveTabFocus = (event: {
+  key: string;
+  currentTarget: HTMLElement;
+  preventDefault: () => void;
+}) => {
+  if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+  const tabs = [...event.currentTarget.querySelectorAll<HTMLElement>('[role="tab"]')].filter(
+    (tab) => tab.getClientRects().length > 0,
+  );
+  const index = tabs.indexOf(document.activeElement as HTMLElement);
+  if (index < 0 || !tabs.length) return;
+  event.preventDefault();
+  const next =
+    event.key === 'Home'
+      ? 0
+      : event.key === 'End'
+        ? tabs.length - 1
+        : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+  tabs[next].focus();
+};

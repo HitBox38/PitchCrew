@@ -170,3 +170,24 @@ test('hands back implicit control whenever a run is active, after in-flight comm
   expect(shouldHandBack({ ...base, runId: null })).toBe(false);
   expect(shouldHandBack({ ...base, leaseId: undefined })).toBe(false);
 });
+
+test('leaves handback to a mounted panel and keeps the token when a release fails', async () => {
+  const handBack = vi.fn(async (_lease: BrowserControlLease) => {
+    throw new Error('Daemon unavailable');
+  });
+  const store = createBrowserControlLeases(async () => ({ ok: true, agentRun: true }), handBack);
+  stores.push(store);
+  const implicit = { ...lease, id: 'implicit-mounted', implicit: true };
+  store.remember(key, implicit);
+  // A mounted panel waits for its in-flight commands, so renewal must not race it.
+  const detach = store.attach(key);
+  await vi.advanceTimersByTimeAsync(20_000);
+  expect(handBack).not.toHaveBeenCalled();
+  expect(store.read().leases[key]).toEqual(implicit);
+  detach();
+  await vi.advanceTimersByTimeAsync(20_000);
+  expect(handBack).toHaveBeenCalledOnce();
+  // An unconfirmed release keeps the token so renewal and a later handback can retry.
+  expect(store.read().leases[key]).toEqual(implicit);
+  expect(store.read().errors[key]).toBeUndefined();
+});

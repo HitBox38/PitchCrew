@@ -42,6 +42,8 @@ export const createBrowserControlLeases = (
 ) => {
   let snapshot: BrowserControlLeaseSnapshot = { leases: {}, errors: {} };
   const listeners = new Set<() => void>();
+  // Scopes with a mounted panel: that panel hands back after its in-flight commands finish.
+  const mounted = new Map<string, number>();
   const pending = new Map<string, { id: string }>();
   let timer: ReturnType<typeof setInterval> | undefined;
   let closed = false;
@@ -59,10 +61,19 @@ export const createBrowserControlLeases = (
           void Promise.resolve()
             .then(() => renew(lease))
             .then(async (result) => {
-              if (!lease.implicit || !(result as { agentRun?: boolean } | undefined)?.agentRun)
+              if (
+                !handBack ||
+                !lease.implicit ||
+                mounted.get(key) ||
+                !(result as { agentRun?: boolean } | undefined)?.agentRun
+              )
                 return;
-              await handBack?.(lease)?.catch(() => {});
-              if (closed || snapshot.leases[key]?.id !== lease.id) return;
+              // Keep the token unless the daemon confirmed the release; renewal retries.
+              const released = await handBack(lease).then(
+                () => true,
+                () => false,
+              );
+              if (!released || closed || snapshot.leases[key]?.id !== lease.id) return;
               const leases = { ...snapshot.leases };
               delete leases[key];
               publish({ ...snapshot, leases });
@@ -96,6 +107,15 @@ export const createBrowserControlLeases = (
   };
   return {
     read: () => snapshot,
+    /** Marks a panel mounted for a scope; returns its unmount. */
+    attach: (key: string) => {
+      mounted.set(key, (mounted.get(key) ?? 0) + 1);
+      return () => {
+        const count = (mounted.get(key) ?? 1) - 1;
+        if (count > 0) mounted.set(key, count);
+        else mounted.delete(key);
+      };
+    },
     subscribe: (listener: () => void) => {
       listeners.add(listener);
       return () => listeners.delete(listener);

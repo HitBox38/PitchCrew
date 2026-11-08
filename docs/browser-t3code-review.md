@@ -50,7 +50,7 @@ An independent design review scored the first pass 5/10: the control vocabulary 
 
 - **Element pick and annotate into the composer.** T3's best browser feature: select an element, region or drawing and attach it with a cropped screenshot. Pitchcrew only annotates whole screenshots.
 - **In-app floating player.** T3 floats the page over the chat and auto-shows it when an agent opens a browser; Pitchcrew's float is a separate OS window.
-- **Tab management.** No drag-reorder, tab context menu (close others/right), or reopen-closed shortcut feedback in the strip.
+- **Tab management.** No drag-reorder or reopen-closed feedback in the strip.
 - **Request round trips.** Every native request is checked twice: once by the main-process `webRequest` DNS check and again by the daemon's Playwright route over the relay. T3 does neither for desktop tabs. Heavy pages pay a WebSocket round trip and a DNS lookup per subresource.
 - **Web streaming.** Base64 JPEG over HTTP versus T3's binary WebSocket frames with client acknowledgements, half-resolution motion mode and a settle still.
 - **Sign-in portability.** T3 imports cookies from installed Chrome, Firefox and Safari; Pitchcrew accepts only reviewed JSON/Netscape exports. No passkey bridge.

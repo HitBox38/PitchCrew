@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react';
 import type { BrowserInput, BrowserViewport } from '@pitchcrew/core';
 import { browserCommand, browserInput } from '../api.ts';
 import { browserControlScopeKey } from '../control-leases.ts';
-import { useBrowserControlLease } from './useBrowserControlLease.ts';
+import { readBrowserControlLease, useBrowserControlLease } from './useBrowserControlLease.ts';
 
 export const useBrowserControl = (
   roleId: string,
@@ -48,10 +48,12 @@ export const useBrowserControl = (
   const take = () => command(() => acquire(false));
   /** The current lease, or an implicit one while the agent is idle; undefined otherwise. */
   const ensure = useCallback(async () => {
-    if (leaseId) return leaseId;
+    // Read the store, not this render: a batch (close other tabs) acquires once, then reuses it.
+    const current = readBrowserControlLease(key)?.id;
+    if (current) return current;
     if (!idle) return undefined;
     return acquire(true);
-  }, [acquire, idle, leaseId]);
+  }, [acquire, idle, key]);
   const release = () =>
     command(
       async () => {

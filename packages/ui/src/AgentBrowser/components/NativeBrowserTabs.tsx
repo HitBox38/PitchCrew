@@ -1,7 +1,7 @@
 import { Plus, Volume2, VolumeX, X } from 'lucide-react';
 import { Button } from '@pitchcrew/design-system/button';
 import type { NativeBrowserModel } from '../hooks/useNativeBrowser.ts';
-import { browserTabLabel } from '../helpers.ts';
+import { browserTabLabel, moveTabFocus } from '../helpers.ts';
 import { BrowserTabIcon } from './BrowserTabIcon.tsx';
 import { NativeBrowserTabMenu } from './NativeBrowserTabMenu.tsx';
 export const NativeBrowserTabs = ({
@@ -11,7 +11,13 @@ export const NativeBrowserTabs = ({
   model: NativeBrowserModel;
   manual: boolean;
 }) => (
-  <div className="browser-tabs" role="tablist" aria-label="Browser tabs">
+  <div
+    className="browser-tabs"
+    role="tablist"
+    aria-label="Browser tabs"
+    tabIndex={-1}
+    onKeyDown={moveTabFocus}
+  >
     {model.state?.tabs.map((item) => {
       const label = browserTabLabel(item);
       const close = () => void model.command({ kind: 'close-tab', tabId: item.id });
@@ -34,6 +40,7 @@ export const NativeBrowserTabs = ({
               title={item.url && item.url !== 'about:blank' ? `${label}\n${item.url}` : label}
               role="tab"
               aria-selected={item.id === model.state?.activeTab}
+              tabIndex={item.id === model.state?.activeTab ? 0 : -1}
               onClick={() => void model.command({ kind: 'select-tab', tabId: item.id })}
             >
               <BrowserTabIcon loading={item.loading} favicon={item.favicon} failed={!!item.error} />

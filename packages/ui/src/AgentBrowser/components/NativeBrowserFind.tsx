@@ -12,17 +12,27 @@ export const NativeBrowserFind = ({ id, close }: { id: string; close: () => void
   const [text, setText] = useState('');
   const [matches, setMatches] = useState<Matches>(null);
   const input = useRef<HTMLInputElement>(null);
+  // Only the newest search may update the count; superseded or late results are dropped.
+  const sequence = useRef(0);
   useEffect(() => {
     input.current?.focus();
+    const searches = sequence;
     return () => {
+      searches.current++;
       void window.pitchcrewBrowser?.find(id, '', true).catch(() => {});
     };
   }, [id]);
-  const find = (query: string, forward: boolean) =>
+  const find = (query: string, forward: boolean) => {
+    const request = ++sequence.current;
     void window.pitchcrewBrowser
       ?.find(id, query, forward)
-      .then((result) => setMatches(query ? (result ?? null) : null))
-      .catch(() => setMatches(null));
+      .then((result) => {
+        if (request === sequence.current) setMatches(query ? (result ?? null) : null);
+      })
+      .catch(() => {
+        if (request === sequence.current) setMatches(null);
+      });
+  };
   const finish = () => {
     close();
     void window.pitchcrewBrowser?.focusPage(id).catch(() => {});

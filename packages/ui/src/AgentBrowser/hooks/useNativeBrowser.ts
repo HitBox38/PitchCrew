@@ -142,8 +142,12 @@ export const useNativeBrowser = (
   // Native Find needs control in the desktop host, so opening it while idle takes control.
   const openFind = useCallback(
     (open: boolean) => {
-      if (open) void ensure().catch(() => {});
-      setFindOpen(open);
+      if (!open) return setFindOpen(false);
+      // Searching needs control in the desktop host: open only once it is held.
+      void ensure().then(
+        (lease) => setFindOpen(!!lease),
+        () => setFindOpen(false),
+      );
     },
     [ensure],
   );

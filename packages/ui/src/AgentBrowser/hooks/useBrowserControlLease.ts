@@ -1,4 +1,4 @@
-import { useSyncExternalStore } from 'react';
+import { useEffect, useSyncExternalStore } from 'react';
 import { browserCommand } from '../api.ts';
 import { createBrowserControlLeases } from '../control-leases.ts';
 
@@ -21,8 +21,12 @@ const leases = createBrowserControlLeases(
     }),
 );
 
+/** The scope's lease as stored now, for callers holding an older render's closure. */
+export const readBrowserControlLease = (key: string) => leases.read().leases[key];
+
 export const useBrowserControlLease = (key: string) => {
   const snapshot = useSyncExternalStore(leases.subscribe, leases.read);
+  useEffect(() => leases.attach(key), [key]);
   return {
     lease: snapshot.leases[key],
     renewalError: snapshot.errors[key] ?? '',
