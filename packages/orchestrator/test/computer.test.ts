@@ -136,3 +136,92 @@ it('enforces computer capability and user-only decisions and expires approvals o
     (await service.snapshot()).computerApprovals.find((a) => a.id === approval.id)?.status,
   ).toBe('rejected');
 });
+it('keeps each browser action in one latest row through intervening calls and duplicate executions', async () => {
+  const { daemon } = await setup(14468, false, {
+    browserLaunch: async () => ({
+      snapshot: async () => ({
+        url: 'https://example.com',
+        title: 'Fixture',
+        text: 'Application form',
+        screenshot: '',
+        digest: 'page-digest',
+      }),
+      perform: async () => {},
+      describeTarget: async () => ({ tag: 'button', name: 'Submit' }),
+      close: async () => {},
+    }),
+  });
+  const service = daemon.service;
+  const role = service.board.get<Role>('role', 'writer');
+  service.board.record(
+    'role',
+    {
+      ...role,
+      capabilities: {
+        messageAgents: true,
+        invokeAgents: true,
+        manageWorkflow: true,
+        computerUse: true,
+      },
+    },
+    'user',
+    'Enable computer fixture',
+  );
+  const run: Run = {
+    id: 'computer-rows',
+    cardId: null,
+    roleId: 'writer',
+    runtime: 'demo',
+    mode: 'chat',
+    threadId: 'writer',
+    status: 'running',
+    message: '',
+    startedAt: '',
+    finishedAt: null,
+  };
+  service.board.record('run', run, 'user', 'Fixture computer run');
+  service.capabilities.set('rows-token', { runId: run.id, roleId: role.id, cardId: null });
+  const page = {
+    url: 'https://example.com',
+    title: 'Fixture',
+    text: 'Application form',
+    screenshot: '',
+    digest: 'page-digest',
+  };
+  vi.spyOn(service.computer, 'inspect').mockResolvedValue(page);
+  const { approval } = (await service.agentCall('rows-token', 'computer_request', {
+    input: { kind: 'click', selector: '#submit' },
+    reason: 'Submit fixture',
+  })) as { approval: import('@pitchcrew/core').ComputerApproval };
+  await service.agentCall('rows-token', 'computer_inspect', {});
+  const rows = () =>
+    service
+      .chatState()
+      .activityRuns?.find((item) => item.id === run.id)
+      ?.activity?.map((entry) => [entry.label, entry.status]) ?? [];
+  // The successful execution finishes after a duplicate call for the same approval started.
+  let finish!: () => void;
+  vi.spyOn(service.computer, 'execute')
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          finish = () => resolve({ approvalId: approval.id, status: 'consumed', page });
+        }),
+    )
+    .mockRejectedValueOnce(new Error('Approval was already used.'));
+  const first = service.agentCall('rows-token', 'computer_execute', { approvalId: approval.id });
+  // Carried out after an inspection, the action is the latest step while it runs.
+  expect(rows().at(-1)).toEqual(['Click “Submit”', 'running']);
+  const duplicate = service.agentCall('rows-token', 'computer_execute', {
+    approvalId: approval.id,
+  });
+  await expect(duplicate).rejects.toThrow('already used');
+  finish();
+  await first;
+  // The duplicate's failure is its own row; it never overwrites the action's outcome.
+  expect(rows()).toEqual([
+    ['Read the page', 'completed'],
+    ['Clicked “Submit”', 'completed'],
+    ['Click “Submit”', 'failed'],
+  ]);
+});

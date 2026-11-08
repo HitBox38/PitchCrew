@@ -21,7 +21,9 @@ import type { CrewContext } from '../types.ts';
  */
 /**
  * Each browser action is one row: the row that asked for an approval becomes the row that carries
- * it out ("Asked to click …" → "Click …" → "Clicked …"), keyed by approval in memory only.
+ * it out ("Asked to click …" → "Click …" → "Clicked …"), keyed by approval in memory only. An
+ * execution claims the row while it runs, so an overlapping duplicate call gets its own row and
+ * cannot overwrite the outcome; the row returns only if the call ends still waiting for the user.
  */
 const actionRows = new WeakMap<CrewContext, Map<string, string>>();
 const rowsFor = (context: CrewContext) => {
@@ -68,12 +70,15 @@ const browserStep = (
     .find((item) => item.id === data.approvalId);
   if (!approval) return undefined;
   const plain = browserActionPublic(approval.action, approval.page);
+  const rows = rowsFor(context);
+  const row = rows.get(approval.id);
+  rows.delete(approval.id);
   return {
     start: plain,
-    row: rowsFor(context).get(approval.id),
-    settled: (result) => {
-      if ((result as { status?: string } | undefined)?.status !== 'pending')
-        rowsFor(context).delete(approval.id);
+    row,
+    settled: (result, id) => {
+      if ((result as { status?: string } | undefined)?.status === 'pending')
+        rows.set(approval.id, id);
     },
     done: (result) =>
       (result as { status?: string } | undefined)?.status === 'pending'
@@ -103,7 +108,12 @@ export const observeChatTool = (
     const step = browserStep(context, action, data);
     const label = step?.start ?? labels[action] ?? 'Using a crew tool';
     const id = step?.row ?? `tool-${randomUUID()}`;
-    recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
+    recordChatActivity(
+      context,
+      capability.runId,
+      { id, kind: 'tool', label, status: 'running' },
+      { latest: !!step?.row },
+    );
     return (failed: boolean, error?: unknown, result?: unknown) => {
       try {
         // A takeover stops the agent's browser call, or the gateway waited out the user's control
