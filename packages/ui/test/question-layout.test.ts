@@ -171,7 +171,7 @@ test('keeps history and the answer footer reachable beside an expanded long ques
     for (const open of [false, true]) {
       if ((await toggleBrowser.getAttribute('aria-expanded')) !== String(open))
         await toggleBrowser.click();
-      if (open && size.width < 1101) {
+      if (open && size.width < 900) {
         await page.getByRole('dialog', { name: /browser/i }).waitFor();
         await page.getByRole('button', { name: 'Hide browser', exact: true }).click();
         expect(await answer.inputValue()).toBe('Keep my answer draft.');
