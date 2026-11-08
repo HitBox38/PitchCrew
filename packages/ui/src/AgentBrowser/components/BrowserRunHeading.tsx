@@ -22,29 +22,34 @@ export const BrowserRunHeading = ({
   role,
   run,
   approving,
+  held,
   working,
   action,
 }: Pick<AgentBrowserProps, 'action' | 'working'> & {
   role: Role;
   run: Run | undefined;
   approving: boolean;
+  /** The user holds the page the run uses: it is paused for them, not working. */
+  held: boolean;
 }) => {
   const active = run?.status === 'running';
   return (
     <header className="browser-run-heading">
       <RoleAvatar agentRole={role.id} size="small" />
       <strong className="truncate">{role.name}</strong>
-      {run ? <StatusBead status={approving ? 'waiting' : run.status} /> : null}
+      {run ? <StatusBead status={approving || held ? 'waiting' : run.status} /> : null}
       <span className="browser-run-state">
         {approving
           ? 'Needs your OK'
-          : active
-            ? 'Working'
-            : run
-              ? runStateLabels[run.status]
-              : 'Idle'}
+          : held
+            ? 'Paused · you have control'
+            : active
+              ? 'Working'
+              : run
+                ? runStateLabels[run.status]
+                : 'Idle'}
       </span>
-      {run && !approving ? (
+      {run && !approving && !held ? (
         <TurnDuration
           runId={run.id}
           startedAt={run.startedAt}

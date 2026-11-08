@@ -92,3 +92,13 @@ it('shows the last finished step while the run waits on the user, not the blocke
   expect(activityPreview(run('running', entries)).map((item) => item.id)).toEqual(['blocked']);
   expect(activityPreview(run('running', entries), true).map((item) => item.id)).toEqual(['asked']);
 });
+
+it('counts one takeover once even when the agent waited for the user several times', () => {
+  const pause = (id: string) => ({
+    ...entry(id, 'tool', 'interrupted'),
+    label: 'Paused while you had control',
+  });
+  const entries = [entry('read', 'tool'), pause('wait-1'), pause('wait-2'), entry('click', 'tool')];
+  expect(activitySummary(entries)).toBe('4 steps · you took over once');
+  expect(activitySummary([...entries, pause('later')])).toBe('5 steps · you took over 2 times');
+});

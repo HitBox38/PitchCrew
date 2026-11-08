@@ -22,11 +22,11 @@ export const ChatParticipants = ({
   data: Snapshot;
 }) => {
   // A browser request waiting on the user, or a page they hold, counts like a question: ochre.
-  const heldRun = useBrowserPresenceField('heldRun');
+  const heldRuns = useBrowserPresenceField('heldRuns');
   const approvals = data.computerApprovals.filter(
     (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
   );
-  const held = running.filter((run) => run.id === heldRun);
+  const held = running.filter((run) => heldRuns.includes(run.id));
   const states = participantStates(participants, running, [...questions, ...approvals, ...held]);
   const name = (id: string) => data.roles.find((role) => role.id === id)?.name ?? id;
   const extra = states.length - shown;

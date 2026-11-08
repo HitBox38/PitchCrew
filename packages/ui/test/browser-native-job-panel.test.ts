@@ -334,9 +334,19 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
       await new Promise((resolve) => setTimeout(resolve, 600));
       expect(viewport).toEqual(inspected);
       expect(approvalStatus(approval.id)).toBe('pending');
+      // Approving while expanded keeps that size until the agent carries the action out.
+      await page
+        .locator('.browser-expanded-side')
+        .getByRole('button', { name: 'Approve opening', exact: true })
+        .click();
+      await vi.waitFor(() => expect(approvalStatus(approval.id)).toBe('approved'));
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      expect(viewport).toEqual(inspected);
+      expect(approvalStatus(approval.id)).toBe('approved');
+      await consume(approval.id);
       await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
-      await review.waitFor();
       await steady();
+      continue;
     }
     expect(
       await review

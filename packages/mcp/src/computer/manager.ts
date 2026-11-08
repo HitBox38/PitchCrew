@@ -11,6 +11,7 @@ import {
   type BrowserViewport,
   type ComputerApproval,
   type RoleId,
+  publicText,
 } from '@pitchcrew/core';
 import { assertReviewedContext, digestPacket, digestArtifacts } from '@pitchcrew/board';
 import { digestBytes, verifiedArtifact } from '@pitchcrew/packet';
@@ -343,7 +344,10 @@ export class ComputerManager {
       const page = target?.name
         ? {
             ...inspected,
-            elements: [{ ref: 'target', tag: target.tag, name: target.name.slice(0, 80) }],
+            // Sanitized before the cut, so no secret survives as a kept fragment of a long name.
+            elements: [
+              { ref: 'target', tag: target.tag, name: publicText(target.name).slice(0, 80) },
+            ],
           }
         : inspected;
       if (action.kind === 'dialog' && action.submissionAttemptId && !page.dialog)

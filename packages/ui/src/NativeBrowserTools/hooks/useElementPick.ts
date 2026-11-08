@@ -3,7 +3,7 @@ import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.t
 import type { BrowserControl } from '@/AgentBrowser/types.ts';
 import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { setBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
+import { browserCancelPickEvent, setBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
 
 /**
  * Element picking as one operation at a time. Cancel, a tab change and unmount end the current
@@ -37,6 +37,12 @@ export const useElementPick = (
     latestCancel.current = cancel;
   });
   useEffect(() => () => latestCancel.current(), [owner]);
+  // The tray's Cancel reaches the owner, never only the host.
+  useEffect(() => {
+    const cancelled = () => latestCancel.current();
+    window.addEventListener(browserCancelPickEvent, cancelled);
+    return () => window.removeEventListener(browserCancelPickEvent, cancelled);
+  }, []);
   const pick = async () => {
     const bridge = window.pitchcrewBrowser;
     const id = model.identity?.id;

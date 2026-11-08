@@ -31,7 +31,11 @@ export const activitySummary = (entries: RunActivity[]) => {
   const interrupted = entries.filter(
     (entry) => entry.status === 'interrupted' && !isUserControlPause(entry),
   ).length;
-  const paused = entries.filter(isUserControlPause).length;
+  // One takeover can span several waits for the user; count takeovers, not waits.
+  const tools = entries.filter((entry) => entry.kind !== 'commentary');
+  const paused = tools.filter(
+    (entry, index) => isUserControlPause(entry) && !(index && isUserControlPause(tools[index - 1])),
+  ).length;
   return [
     steps ? `${steps} ${steps === 1 ? 'step' : 'steps'}` : '',
     updates ? `${updates} ${updates === 1 ? 'update' : 'updates'}` : '',

@@ -155,8 +155,8 @@ export const useChatView = (props: ChatViewProps) => {
   const approving = data.computerApprovals.some(
     (approval) => approval.status === 'pending' && running.some((run) => run.id === approval.runId),
   );
-  const heldRun = useBrowserPresenceField('heldRun');
-  const held = running.some((run) => run.id === heldRun);
+  const heldRuns = useBrowserPresenceField('heldRuns');
+  const held = running.some((run) => heldRuns.includes(run.id));
   const roleState = chatRoleState(data, role, questions, busy, approving, held);
   const name = (id: ChatMessage['from'] | ChatMessage['to']) =>
     id === 'user'

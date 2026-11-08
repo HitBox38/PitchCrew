@@ -37,13 +37,19 @@ const where = (url: string | undefined, path: boolean) => {
 };
 
 /**
- * Text that may leave the approval review (chat activity, the chat heading): URLs lose their
- * query and fragment, and long token-like runs are dropped, before anything is shortened, so a
- * secret can never survive as a kept suffix.
+ * Text that may leave the approval review (chat activity, the chat heading, the tray's narration):
+ * URLs shrink to their hostname (no userinfo, path, query or fragment) and long token-like runs
+ * are dropped, before anything is shortened, so a secret can never survive as a kept part.
  */
 export const publicText = (value: string) =>
   flat(value)
-    .replace(/\b(https?:\/\/[^\s?#]+)[?#]\S*/gi, '$1')
+    .replace(/\bhttps?:\/\/\S+/gi, (url) => {
+      try {
+        return new URL(url).hostname;
+      } catch {
+        return '…';
+      }
+    })
     .replace(/[A-Za-z0-9+/_=-]{24,}/g, '…');
 
 /**

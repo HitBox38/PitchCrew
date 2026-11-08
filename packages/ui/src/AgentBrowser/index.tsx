@@ -35,7 +35,9 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
   const { packet, view, switchable, sideColumn, modal, toggleExpanded } = layout;
   useBrowserPanelPresence(
     browserPanel.open && browserPanel.available && !presentation.narrow,
-    session?.runId && (session.manual || control.leaseId) ? session.runId : null,
+    browserPanel.sessions.flatMap((item) =>
+      item.runId && (item.manual || (item === session && control.leaseId)) ? [item.runId] : [],
+    ),
   );
   const enabled = browserPanel.open && browserPanel.session?.status === 'open';
   const native = useNativeBrowser(roleId, thread, browserPanel.session?.native, enabled, control);

@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from 'react';
 
+/** Asks the panel that owns the current element pick to cancel it (the tray's Cancel). */
+export const browserCancelPickEvent = 'pitchcrew:browser-cancel-pick';
+
 /** The agent shown in the browser panel, for the page overlay's cursor and request ring. */
 export interface BrowserPresence {
   name: string;
@@ -11,8 +14,8 @@ export interface BrowserPresence {
   picking: string | null;
   /** The browser panel is open beside the chat (not as a sheet). */
   panelOpen: boolean;
-  /** The agent run paused because the user holds its page, so chat can say so. */
-  heldRun: string | null;
+  /** Agent runs paused because the user holds their pages, so chat can say so. */
+  heldRuns: string[];
 }
 
 let presence: BrowserPresence = {
@@ -21,7 +24,7 @@ let presence: BrowserPresence = {
   target: null,
   picking: null,
   panelOpen: false,
-  heldRun: null,
+  heldRuns: [],
 };
 const listeners = new Set<() => void>();
 
@@ -36,7 +39,7 @@ export const setBrowserPresence = (next: Partial<BrowserPresence>) => {
     merged.working === presence.working &&
     merged.picking === presence.picking &&
     merged.panelOpen === presence.panelOpen &&
-    merged.heldRun === presence.heldRun &&
+    merged.heldRuns.join(',') === presence.heldRuns.join(',') &&
     sameTarget(merged.target, presence.target)
   )
     return;

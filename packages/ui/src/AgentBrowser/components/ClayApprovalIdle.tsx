@@ -22,7 +22,7 @@ export const ClayApprovalIdle = ({
   const name = browserPanel.role?.name ?? 'Your agent';
   const session = browserPanel.session;
   const picking = useBrowserPresenceField('picking');
-  if (picking) return <ClayPickingLine picking={picking} />;
+  if (picking) return <ClayPickingLine />;
   if (!control.leaseId && !session?.manual && session?.mode === 'autonomous' && session.runId)
     return <ClayAutomaticSteps {...props} name={name} control={control} nudged={nudged} />;
   const line = browserTrayLine({

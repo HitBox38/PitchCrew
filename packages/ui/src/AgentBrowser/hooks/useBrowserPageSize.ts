@@ -4,9 +4,10 @@ import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import type { NativeBrowserModel } from './useNativeBrowser.ts';
 
 /**
- * The page's device setting and viewport. While a request waits, the page keeps the size it was
- * inspected at: expanding or resizing the panel shows it centred instead of resizing it, which
- * would void the request. It follows the panel again once the request is decided.
+ * The page's device setting and viewport. While a request waits, or is approved but not yet
+ * carried out, the page keeps the size it was inspected at: expanding or resizing the panel shows
+ * it centred instead of resizing it, which would void the request. It follows the panel again once
+ * the request is carried out, rejected or expires.
  */
 export const useBrowserPageSize = (
   { browserPanel, data }: Pick<AgentBrowserProps, 'browserPanel' | 'data'>,
@@ -21,7 +22,7 @@ export const useBrowserPageSize = (
   );
   const waiting = data.computerApprovals.some(
     (approval) =>
-      approval.status === 'pending' &&
+      (approval.status === 'pending' || approval.status === 'approved') &&
       approval.roleId === browserPanel.role?.id &&
       approval.runId === session?.runId,
   );

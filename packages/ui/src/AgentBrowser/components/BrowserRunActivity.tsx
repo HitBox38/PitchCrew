@@ -36,6 +36,7 @@ export const BrowserRunActivity = ({
         role={role}
         run={run}
         approving={approving}
+        held={active && !!browserPanel.session?.manual && browserPanel.session.runId === run?.id}
         working={working}
         action={action}
       />

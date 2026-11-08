@@ -14,6 +14,6 @@ export const useRunWait = (run: Run) => {
         )
       : undefined,
   );
-  const held = useBrowserPresenceField('heldRun') === run.id && run.status === 'running';
+  const held = useBrowserPresenceField('heldRuns').includes(run.id) && run.status === 'running';
   return { approval, held, waiting: !!approval || held };
 };

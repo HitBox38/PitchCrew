@@ -7,6 +7,7 @@ import {
   browserActionPublic,
   browserActionSummary,
   middleTruncate,
+  publicText,
 } from '../src/browser-action-labels.ts';
 
 const page: BrowserSnapshot = {
@@ -88,12 +89,17 @@ it('keeps public labels to redacted element names, without URL secrets or raw co
       { ref: 'target', tag: 'a', name: 'https://example.com/reset?token=FICTITIOUS_SECRET_VALUE' },
     ],
   };
-  expect(browserActionDone({ kind: 'click', selector: 'a' }, link)).toBe(
-    'Clicked “https://example.com/reset”',
-  );
+  expect(browserActionDone({ kind: 'click', selector: 'a' }, link)).toBe('Clicked “example.com”');
   const token: BrowserSnapshot = {
     ...page,
     elements: [{ ref: 'target', tag: 'span', name: 'Code abcdefghijklmnopqrstuvwxyz0123456789' }],
   };
   expect(browserActionPublic({ kind: 'click', selector: 'span' }, token)).toBe('Click “Code …”');
+});
+
+it('reduces URLs in public text to their hostname, dropping userinfo, paths and short tokens', () => {
+  expect(publicText('Reset at https://alice:pw123@example.com/reset/abc123?token=short')).toBe(
+    'Reset at example.com',
+  );
+  expect(publicText(`Code ${'a'.repeat(70)}abcdefghij`)).toBe('Code …');
 });
