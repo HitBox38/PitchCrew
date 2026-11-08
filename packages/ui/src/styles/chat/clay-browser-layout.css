@@ -261,5 +261,4 @@
 }
 [data-interface='clay'] .browser-expanded-side[data-empty] .browser-expanded-activity {
   flex: 0 0 auto;
-  margin-top: auto;
 }

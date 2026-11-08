@@ -1354,6 +1354,19 @@ test('keeps native approval evidence stable while requests appear, expand and re
       );
       const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
       await review.waitFor();
+      // A short title is never shortened while the line has room, and its chevron follows it.
+      const title = await review.evaluate((element) => {
+        const parts = [...element.querySelectorAll<HTMLElement>('.browser-approval-text')];
+        const text = element.querySelector('.browser-approval-title')!.getBoundingClientRect();
+        const last = parts.at(-1)!.getBoundingClientRect();
+        const more = element.querySelector('.browser-approval-more')!.getBoundingClientRect();
+        return {
+          clipped: parts.some((part) => part.scrollWidth > part.clientWidth),
+          gap: more.left - Math.max(last.right, text.right - 16),
+        };
+      });
+      expect(title.clipped).toBe(false);
+      expect(title.gap).toBeLessThanOrEqual(24);
       if (!index) {
         // Present the guest at the page's place so the overlay can ring the element on it.
         const box = (await body.boundingBox())!;

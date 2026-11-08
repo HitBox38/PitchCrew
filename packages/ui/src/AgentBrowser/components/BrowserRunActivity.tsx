@@ -41,17 +41,19 @@ export const BrowserRunActivity = ({
         action={action}
       />
       <div className="browser-run-body">
-        {steps.length ? <ClaySteps entries={steps} /> : null}
-        {reply ? (
-          <MessageResponse mode="static" components={noRemoteImages}>
-            {reply.content}
-          </MessageResponse>
-        ) : commentary?.text ? (
+        {/* During a run its latest update leads; once finished, the steps lead to the answer. */}
+        {!reply && commentary?.text ? (
           <MessageResponse
             mode={commentary.status === 'running' ? 'streaming' : 'static'}
             components={noRemoteImages}
           >
             {commentary.text}
+          </MessageResponse>
+        ) : null}
+        {steps.length ? <ClaySteps entries={steps} /> : null}
+        {reply ? (
+          <MessageResponse mode="static" components={noRemoteImages}>
+            {reply.content}
           </MessageResponse>
         ) : null}
         {!run ? (

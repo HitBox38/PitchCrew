@@ -340,14 +340,14 @@
   text-overflow: ellipsis;
 }
 /* The value gives way first, down to a few letters inside its quotes. */
+/* The value gives way first: its shrink weight dwarfs the target's, so the target only shortens
+ * once the value is down to a few letters, and nothing shortens while the line has room. */
 [data-interface='clay'] .browser-approval-title > .browser-approval-value {
-  flex: 0 1 auto;
+  flex: 0 1000 auto;
   font-weight: 500;
 }
-/* The target keeps its whole name unless it alone would fill most of the line. */
 [data-interface='clay'] .browser-approval-title > .browser-approval-object {
-  flex: 0 0 auto;
-  max-width: 60%;
+  flex: 0 1 auto;
 }
 /* The request's two lines open its Details: a quiet row, not a button shape. */
 [data-interface='clay'] .browser-evidence-trigger {
@@ -622,12 +622,17 @@
   box-shadow: var(--clay-sunken);
 }
 
-/* A steady slot for the state chip: states change its label, never the tabs beside it. */
+/* A steady slot for the state chip: states change its label, never the tabs beside it. Narrow
+ * panels give that room back to the address and tabs. */
 [data-interface='clay'] .browser-state-slot {
   display: inline-flex;
   flex: none;
   align-items: center;
-  min-width: 8.75rem;
+}
+@container browser-panel (min-width: 40rem) {
+  [data-interface='clay'] .browser-state-slot {
+    min-width: 8.75rem;
+  }
 }
 /* The address keeps room for a host however many tools share the row (in panels wide enough
  * for both; a phone sheet shares the row more evenly). */
@@ -645,6 +650,6 @@
 }
 /* The narrow sheet's own message box, with the expanded column's gutter and recessed field. */
 [data-interface='clay'] .agent-browser-panel > .browser-reply {
-  padding: 8px 12px 4px;
+  padding: 8px 8px 4px;
   border-top: 1px solid var(--border);
 }

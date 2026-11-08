@@ -38,7 +38,9 @@ export const BrowserRunHeading = ({
       <RoleAvatar agentRole={role.id} size="small" />
       <strong className="truncate">{role.name}</strong>
       {run ? <StatusBead status={approving || held ? 'waiting' : run.status} /> : null}
-      <span className="browser-run-state">
+      {/* While the run is live the header chip already names its state; the line keeps the bead,
+       time and Stop. Finished runs say how they ended. */}
+      <span className={active ? 'sr-only' : 'browser-run-state'}>
         {approving
           ? 'Needs your OK'
           : held

@@ -139,20 +139,16 @@ export const browserTrayLine = ({
   // The chip already says who has the page; the line adds what that means or what is happening.
   if (held && implicit && !working)
     return { tone: 'primary', text: `${name} gets the page back when it starts working.` };
-  if (held)
-    return {
-      tone: 'primary',
-      text: working
-        ? `${name} waits until you return the page.`
-        : `${name} can’t use this page until you return it.`,
-    };
+  // A run paused for the user waits on them: ochre, like the chat turn and header.
+  if (held && working) return { tone: 'ochre', text: `${name} waits until you return the page.` };
+  if (held) return { tone: 'primary', text: `${name} can’t use this page until you return it.` };
   if (manual) return { tone: 'ochre', text: `${name} is paused until you recover control.` };
   if (working)
     return {
       tone: 'plum',
       text: step ? `${name}: ${step}` : `${name}’s clicks, typing and submissions appear here.`,
     };
-  return { tone: null, text: `Browse freely. ${name} takes the page back when it starts.` };
+  return { tone: null, text: `Browse freely. ${name} gets the page back when it starts working.` };
 };
 
 /**
