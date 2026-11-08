@@ -23,6 +23,7 @@ export const BrowserApprovals = (
     <footer
       className="browser-approvals"
       data-reserved={reserveSpace || undefined}
+      data-idle={approvals.length ? undefined : ''}
       data-mode={session?.mode}
       aria-label="Browser action review"
     >

@@ -15,6 +15,8 @@ import type { AgentBrowserProps } from './types.ts';
 import { useBrowserApprovalVisibility } from './hooks/useBrowserApprovalVisibility.ts';
 import { useBrowserLayout } from './hooks/useBrowserLayout.ts';
 import { useBrowserHandback } from './hooks/useBrowserHandback.ts';
+import { useBrowserPanelPresence } from './hooks/useBrowserPanelPresence.ts';
+import { BrowserReply } from './components/BrowserReply.tsx';
 
 export const AgentBrowser = (props: AgentBrowserProps) => {
   useBrowserApprovalVisibility(props);
@@ -32,6 +34,7 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
   const presentation = useBrowserPresentation();
   const layout = useBrowserLayout(props, presentation);
   const { packet, view, switchable, sideColumn, modal, toggleExpanded } = layout;
+  useBrowserPanelPresence(browserPanel.open && browserPanel.available && !presentation.narrow);
   const enabled = browserPanel.open && browserPanel.session?.status === 'open';
   const native = useNativeBrowser(roleId, thread, browserPanel.session?.native, enabled, control);
   const { nudged } = useBrowserHandback(
@@ -89,6 +92,8 @@ export const AgentBrowser = (props: AgentBrowserProps) => {
         presentation={presentation}
       />
       {view === 'packet' && packet ? <BrowserPacketView {...packet} /> : null}
+      {/* The narrow sheet covers the chat, so it carries the message box too. */}
+      {presentation.narrow ? <BrowserReply {...props} name={browserPanel.role.name} /> : null}
       {sideColumn ? <BrowserExpandedSide {...props} approvals={approvals} /> : approvals}
     </BrowserSurface>
   );

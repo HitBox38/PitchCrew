@@ -9,9 +9,17 @@ export interface BrowserPresence {
   target: { x: number; y: number; width: number; height: number } | null;
   /** The native browser whose page the user is picking an element on. */
   picking: string | null;
+  /** The browser panel is open beside the chat (not as a sheet). */
+  panelOpen: boolean;
 }
 
-let presence: BrowserPresence = { name: '', working: false, target: null, picking: null };
+let presence: BrowserPresence = {
+  name: '',
+  working: false,
+  target: null,
+  picking: null,
+  panelOpen: false,
+};
 const listeners = new Set<() => void>();
 
 const sameTarget = (a: BrowserPresence['target'], b: BrowserPresence['target']) =>
@@ -24,6 +32,7 @@ export const setBrowserPresence = (next: Partial<BrowserPresence>) => {
     merged.name === presence.name &&
     merged.working === presence.working &&
     merged.picking === presence.picking &&
+    merged.panelOpen === presence.panelOpen &&
     sameTarget(merged.target, presence.target)
   )
     return;

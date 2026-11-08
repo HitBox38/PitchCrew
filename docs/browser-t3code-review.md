@@ -70,6 +70,17 @@ The third design review scored 7/10. Its blockers were approvals that hid the ty
 - Adds element picking under Page settings: Chromium's inspect highlight follows the pointer, a click returns the element as a padded crop with its tag and visible name, and the user reviews it in the screenshot dialog before attaching it to the draft. Picking needs held control and never presses the element.
 - Adds tab reordering by drag, Control+Shift+Page Up/Down and the tab menu, keeps a recovered crashed tab in place, and fixes smaller copy: "New tab" and "Browser not open" placeholders, "In another chat", "Edit address" first for addresses that can't be found, a role's real name in Details and numeric hours.
 
+### Fifth pass
+
+The fourth design review scored 7.6/10. Inside the panel most v3 blockers were fixed; what remained was around it: chat said "Working" while the browser waited for the user, every step was "Performing browser action", the expanded column ended on the agent's plan, the approval title cut off the target, off-screen targets had no marker, picking looked like DevTools buried in a menu, and windows under 1101px lost the chat to a sheet. A Codex review (7/10) found a credential fragment surviving redaction at the name cut, no Take control during automatic preparation, and pick lifecycles that could outlive their panel or delete a newer pick's registration. The fifth pass:
+
+- Gives chat and browser one waiting story: an ochre "Waiting for your OK" turn with the request's title and no running timer, the same words in the chat header and an ochre participant bead.
+- Names browser steps like the tray from a shared types-only labels module ("Asked to click “Learn more”", "Clicked “Learn more”", "Typed into “Customer name”"), never with typed or chosen values, and summarizes takeovers as "you took over once".
+- Ends the expanded column on the agent's reply, builds request titles from parts (value shortens first; target stays), opens with host and path, and points at mostly hidden targets with an ochre edge pill.
+- Makes picking a toolbar toggle with a "Picking" chip, a tray line with Cancel, the app's own highlight without DevTools' info box, role names ("Heading “Open Roles”"), a toast when a minute passes, and a review dialog with one glaze action.
+- Keeps the split view down to 900px (the sidebar folds to its rail below 980px while the browser is open) and gives the narrow sheet a message box.
+- Redacts target names before cutting them, adds Take control to automatic preparation, serializes picks with owned cleanup, names label-wrapped fields ("Customer name") for any selector, recesses the resting tray, sets tabs and the address at 14px, lets Details decide, adds Control/Command+Enter to approve and labels Take control in wide panels.
+
 ## Still behind T3
 
 - **Region and drawing picks.** Pitchcrew now picks single elements into the composer (DevTools-style highlight, padded crop, tag and visible name, reviewed before attaching), but T3 also picks free regions and drawings in one step.

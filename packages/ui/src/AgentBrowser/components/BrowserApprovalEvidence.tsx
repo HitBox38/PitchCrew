@@ -8,21 +8,15 @@ const heading = 'Review exact action and page evidence';
 
 /**
  * The exact action and page evidence behind a browser request. The tray keeps a fixed small
- * height, so the evidence opens over the page instead of growing the tray.
+ * height, so the evidence opens over the page instead of growing the tray; the decision is
+ * available here too, so reviewing the evidence never means closing it to approve.
  */
 export const BrowserApprovalEvidence = ({
   approval,
   action,
   working,
 }: Pick<AgentBrowserProps, 'action' | 'working'> & { approval: ComputerApproval }) => {
-  const content = (
-    <BrowserApprovalContent
-      approval={approval}
-      action={action}
-      working={working}
-      showActions={false}
-    />
-  );
+  const content = <BrowserApprovalContent approval={approval} action={action} working={working} />;
   return (
     <Popover>
       <PopoverTrigger

@@ -71,6 +71,7 @@ export const BrowserPendingAction = ({
         action={action}
         working={working || paused || control.working}
         quiet
+        shortcut
       />
     </section>
   );

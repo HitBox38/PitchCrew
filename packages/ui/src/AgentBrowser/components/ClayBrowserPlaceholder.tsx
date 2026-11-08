@@ -47,7 +47,7 @@ export const ClayBrowserPlaceholder = ({
       </p>
       {/* A usable blank tab needs no button: the address field above is the action. */}
       {!loading && !(opened && manual) ? (
-        <Button size="sm" variant="outline" disabled={working} onClick={act}>
+        <Button size="sm" variant={opened ? 'outline' : 'default'} disabled={working} onClick={act}>
           <Icon size={15} />
           {opened ? 'Take control' : 'Open browser'}
         </Button>

@@ -103,7 +103,7 @@
 }
 [data-interface='clay'] .browser-heading-tabs .browser-tab:only-of-type .browser-tab-select {
   color: var(--muted);
-  font-size: var(--text-caption);
+  font-size: var(--text-label);
   font-weight: 500;
   cursor: default;
 }
@@ -169,7 +169,7 @@
     [data-tone='browsing']
   ):not([data-nudged]) {
   background: transparent;
-  box-shadow: inset 0 0 0 1px var(--border);
+  box-shadow: none;
 }
 [data-interface='clay'] .browser-state-chip[data-tone='browsing']:not([data-nudged]) {
   color: var(--primary-deep);
@@ -218,10 +218,23 @@
 [data-interface='clay'] .clay-tray-line > .browser-handoff {
   margin-left: auto;
 }
-[data-interface='clay'] .browser-pending-action > .browser-handoff[data-size='icon-sm'] {
+/* Beside a request the control action is an icon in narrow panels and labelled in wide ones. */
+[data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
   width: 32px;
   height: 32px;
   padding: 0;
+}
+[data-interface='clay'] .browser-handoff[data-compact] > .browser-handoff-label {
+  display: none;
+}
+@container browser-panel (min-width: 44rem) {
+  [data-interface='clay'] .browser-pending-action > .browser-handoff[data-compact] {
+    width: auto;
+    padding-inline: 10px;
+  }
+  [data-interface='clay'] .browser-handoff[data-compact] > .browser-handoff-label {
+    display: inline;
+  }
 }
 [data-interface='clay'] .browser-handoff[data-nudged] {
   box-shadow:
@@ -567,4 +580,10 @@
   [data-interface='clay'] :is(.browser-agent-name, .browser-agent-picker) > .truncate {
     display: none;
   }
+}
+
+/* At rest the tray is a recessed line on the paper; it rises as a clay card only for a decision. */
+[data-interface='clay'] .browser-approvals[data-idle] {
+  background: var(--sunken-fill);
+  box-shadow: var(--clay-sunken);
 }

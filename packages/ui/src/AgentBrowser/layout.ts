@@ -136,7 +136,12 @@ export const browserTrayLine = ({
   if (held && implicit && !working)
     return { tone: 'primary', text: `You’re browsing. ${name} gets the page back when it starts.` };
   if (held)
-    return { tone: 'primary', text: `You have control. ${name} waits until you return it.` };
+    return {
+      tone: 'primary',
+      text: working
+        ? `You have control. ${name} waits until you return it.`
+        : `You have control. ${name} can’t use this page until you return it.`,
+    };
   if (manual) return { tone: 'ochre', text: `${name} is paused until you recover control.` };
   if (working)
     return {
