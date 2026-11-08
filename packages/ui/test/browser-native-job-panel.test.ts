@@ -362,6 +362,30 @@ test('keeps the compact approval tray and page box fixed while requests appear, 
   await page.setViewportSize({ width: 1440, height: 1000 });
 }, 30000);
 
+test('approves on Control/Command+Enter from the panel, never from a field that used the keystroke', async () => {
+  await bindRun();
+  await settled();
+  const shortcut = (await page.evaluate(() => /Mac|iPhone|iPad/.test(navigator.platform)))
+    ? 'Meta+Enter'
+    : 'Control+Enter';
+  const first = await request();
+  const review = tray().getByRole('region', { name: 'Pending browser action', exact: true });
+  await review.waitFor();
+  // In the expanded view's message box the keystroke is the box's; the request stays waiting.
+  await page.getByRole('button', { name: 'Expand browser', exact: true }).click();
+  const box = page.locator('.browser-expanded-side .browser-reply-input');
+  await box.fill('Fictional note for later');
+  await box.press(shortcut);
+  await new Promise((resolve) => setTimeout(resolve, 400));
+  expect(approvalStatus(first.id)).toBe('pending');
+  await box.fill('');
+  await page.getByRole('button', { name: 'Back to chat', exact: true }).click();
+  // From a non-field control in the panel, it approves the waiting request.
+  await review.getByRole('button', { name: 'Details', exact: true }).focus();
+  await page.keyboard.press(shortcut);
+  await vi.waitFor(() => expect(approvalStatus(first.id)).toBe('approved'));
+  await consume(first.id);
+}, 30000);
 test('offers task site grants from a Site access popover without growing the tray', async () => {
   await bindRun('autonomous');
   await settled();

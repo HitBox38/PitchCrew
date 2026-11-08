@@ -7,8 +7,7 @@ import {
 import {
   browserActionAsked,
   browserActionDone,
-  browserActionParts,
-  joinBrowserActionParts,
+  browserActionPublic,
 } from '@pitchcrew/core/browser-action-labels';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
@@ -39,9 +38,7 @@ const browserStep = (
     .list<ComputerApproval>('computer_approval')
     .find((item) => item.id === data.approvalId);
   if (!approval) return undefined;
-  const plain = joinBrowserActionParts(
-    browserActionParts(approval.action, approval.page, { values: false, path: false }),
-  );
+  const plain = browserActionPublic(approval.action, approval.page);
   return {
     start: plain,
     done: (result) =>
@@ -75,8 +72,11 @@ export const observeChatTool = (
     recordChatActivity(context, capability.runId, { id, kind: 'tool', label, status: 'running' });
     return (failed: boolean, error?: unknown, result?: unknown) => {
       try {
-        // A takeover stops the agent's browser call: it paused for the user, it did not fail.
-        const paused = failed && error instanceof Error && isUserControlError(error.message);
+        // A takeover stops the agent's browser call, or the gateway waited out the user's control
+        // without acting ({ status: 'manual' }): it paused for the user, it neither failed nor ran.
+        const paused =
+          (failed && error instanceof Error && isUserControlError(error.message)) ||
+          (!failed && (result as { status?: string } | undefined)?.status === 'manual');
         recordChatActivity(context, capability.runId, {
           id,
           kind: 'tool',

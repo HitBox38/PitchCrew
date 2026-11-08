@@ -4,6 +4,7 @@ import {
   browserActionAsked,
   browserActionDone,
   browserActionParts,
+  browserActionPublic,
   browserActionSummary,
   middleTruncate,
 } from '../src/browser-action-labels.ts';
@@ -58,4 +59,41 @@ it('labels chat steps without the values the action typed or chose', () => {
   ).toBe('Clicked “Learn more”');
   for (const label of [browserActionDone(fill, page), browserActionAsked(fill, page)])
     expect(label).not.toContain('private');
+});
+
+it('keeps public labels to redacted element names, without URL secrets or raw control labels', () => {
+  const fill = { kind: 'fill', selector: '#pw', value: 'x' } as const;
+  // An inspected control's label is for the approval review only, never chat activity.
+  const withControl: BrowserSnapshot = {
+    ...page,
+    elements: [{ ref: 'target', tag: 'input', name: '[hidden]' }],
+    controls: [
+      {
+        selector: '#pw',
+        label: 'FICTIONAL_CREDENTIAL',
+        type: 'text',
+        required: false,
+        visible: true,
+        disabled: false,
+        accept: '',
+        options: [],
+      },
+    ],
+  };
+  expect(browserActionAsked(fill, withControl)).toBe('Asked to type into a field');
+  expect(browserActionSummary(fill, withControl)).toContain('FICTIONAL_CREDENTIAL');
+  const link: BrowserSnapshot = {
+    ...page,
+    elements: [
+      { ref: 'target', tag: 'a', name: 'https://example.com/reset?token=FICTITIOUS_SECRET_VALUE' },
+    ],
+  };
+  expect(browserActionDone({ kind: 'click', selector: 'a' }, link)).toBe(
+    'Clicked “https://example.com/reset”',
+  );
+  const token: BrowserSnapshot = {
+    ...page,
+    elements: [{ ref: 'target', tag: 'span', name: 'Code abcdefghijklmnopqrstuvwxyz0123456789' }],
+  };
+  expect(browserActionPublic({ kind: 'click', selector: 'span' }, token)).toBe('Click “Code …”');
 });

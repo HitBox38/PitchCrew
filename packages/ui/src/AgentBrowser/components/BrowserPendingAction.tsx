@@ -31,6 +31,8 @@ export const BrowserPendingAction = ({
   const summary = approvalSummary(approval.action, approval.page);
   const reason = paused ? 'Return control before deciding.' : approval.reason;
   useApprovalTarget(approval.id, approval.status === 'pending' && !paused);
+  // One condition for every decision surface (the tray and Details), including a takeover in flight.
+  const blocked = working || paused || control.working;
   return (
     <section
       className="browser-pending-action"
@@ -65,11 +67,11 @@ export const BrowserPendingAction = ({
         thread={thread}
         control={control}
       />
-      <BrowserApprovalEvidence approval={approval} action={action} working={working || paused} />
+      <BrowserApprovalEvidence approval={approval} action={action} working={blocked} />
       <BrowserApprovalActions
         approval={approval}
         action={action}
-        working={working || paused || control.working}
+        working={blocked}
         quiet
         shortcut
       />

@@ -36,18 +36,41 @@ const where = (url: string | undefined, path: boolean) => {
   }
 };
 
-/** The element a request names: an inspected control's label or the referenced element's name. */
-export const browserActionTargetName = (action: BrowserAction, page?: BrowserSnapshot) =>
-  'selector' in action
-    ? page?.controls?.find((item) => item.selector === action.selector)?.label.trim() ||
-      page?.elements?.find((item) => item.ref === 'target')?.name.trim() ||
-      ''
-    : '';
+/**
+ * Text that may leave the approval review (chat activity, the chat heading): URLs lose their
+ * query and fragment, and long token-like runs are dropped, before anything is shortened, so a
+ * secret can never survive as a kept suffix.
+ */
+export const publicText = (value: string) =>
+  flat(value)
+    .replace(/\b(https?:\/\/[^\s?#]+)[?#]\S*/gi, '$1')
+    .replace(/[A-Za-z0-9+/_=-]{24,}/g, '…');
+
+/**
+ * The element a request names. The approval review may use an inspected control's label; public
+ * labels use only the referenced element's name, which the daemon read with credential redaction.
+ */
+export const browserActionTargetName = (
+  action: BrowserAction,
+  page?: BrowserSnapshot,
+  publicLabel = false,
+) => {
+  if (!('selector' in action)) return '';
+  const redacted = page?.elements?.find((item) => item.ref === 'target')?.name.trim() ?? '';
+  if (publicLabel) return redacted.includes('[hidden]') ? '' : publicText(redacted);
+  return (
+    page?.controls?.find((item) => item.selector === action.selector)?.label.trim() || redacted
+  );
+};
 
 export const browserActionParts = (
   action: BrowserAction,
   page?: BrowserSnapshot,
-  { values = true, path = true }: { values?: boolean; path?: boolean } = {},
+  {
+    values = true,
+    path = true,
+    publicLabel = false,
+  }: { values?: boolean; path?: boolean; publicLabel?: boolean } = {},
 ): BrowserActionParts => {
   if (action.kind === 'navigate')
     return { verb: 'Open', target: where(action.url, path) || 'a web page' };
@@ -58,7 +81,7 @@ export const browserActionParts = (
     };
   if (action.kind === 'scroll') return { verb: 'Scroll', target: 'the page' };
   if (action.kind === 'press') return { verb: 'Press', target: action.key };
-  const name = browserActionTargetName(action, page);
+  const name = browserActionTargetName(action, page, publicLabel);
   const host = where(page?.url, false);
   const target = name ? quoted(name, 40) : '';
   const element = target || (host ? `an element on ${host}` : 'a page element');
@@ -113,14 +136,18 @@ const pastVerbs: Record<string, string> = {
  * never carries browser inputs): "Clicked “Learn more”", "Typed into “Customer name”".
  */
 export const browserActionDone = (action: BrowserAction, page?: BrowserSnapshot) => {
-  const parts = browserActionParts(action, page, { values: false, path: false });
+  const parts = browserActionParts(action, page, { values: false, path: false, publicLabel: true });
   return joinBrowserActionParts({ ...parts, verb: pastVerbs[parts.verb] ?? parts.verb });
 };
 
 /** A request the agent made, for chat activity: "Asked to click “Learn more”". */
 export const browserActionAsked = (action: BrowserAction, page?: BrowserSnapshot) => {
-  const text = joinBrowserActionParts(
-    browserActionParts(action, page, { values: false, path: false }),
-  );
+  const text = browserActionPublic(action, page);
   return `Asked to ${text.charAt(0).toLowerCase()}${text.slice(1)}`;
 };
+
+/** What a request will do, safe outside the approval review: no values, paths or raw labels. */
+export const browserActionPublic = (action: BrowserAction, page?: BrowserSnapshot) =>
+  joinBrowserActionParts(
+    browserActionParts(action, page, { values: false, path: false, publicLabel: true }),
+  );

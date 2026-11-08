@@ -23,6 +23,14 @@ export const BrowserApprovalActions = ({ approval, action, working, quiet, short
     const keydown = (event: KeyboardEvent) => {
       if (event.key !== 'Enter' || event.shiftKey || event.altKey || event.repeat) return;
       if (!(mac() ? event.metaKey : event.ctrlKey)) return;
+      // A keystroke something else already used (the message box sends on it) or one typed into
+      // a field never also approves: one action per keystroke.
+      if (event.defaultPrevented || event.isComposing) return;
+      const target = event.target instanceof Element ? event.target : null;
+      if (
+        target?.closest('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+      )
+        return;
       if (!document.activeElement?.closest('#agent-browser-panel')) return;
       event.preventDefault();
       approve.current?.click();

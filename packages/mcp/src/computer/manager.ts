@@ -325,15 +325,17 @@ export class ComputerManager {
     try {
       this.browsers.assertAgent(scope.runId);
       const driver = await this.session(scope.runId);
-      // Name the referenced element for the user's summary ("Click “Learn more”"). It is
-      // presentation: the digest binds the resolved action and page, not this name.
+      // Resolve first: it selects the action's tab, so the element named below is the one on the
+      // page the action and its fingerprint belong to.
+      action = (await driver.resolveAction?.(action)) ?? action;
+      // Name the element for the user's summary ("Click “Learn more”"). It is presentation: the
+      // digest binds the resolved action and page, not this name.
       const target =
         'selector' in action
           ? await driver
               .describeTarget?.(action.selector, 'frame' in action ? action.frame : undefined)
               .catch(() => undefined)
           : undefined;
-      action = (await driver.resolveAction?.(action)) ?? action;
       const { diagnostics: _diagnostics, ...inspected } = await this.inspect(scope.runId, {
         includeImage: true,
         references: false,

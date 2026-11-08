@@ -5,7 +5,7 @@ import { StatusBead } from '@/ClayInterface/components/StatusBead.tsx';
 import { TurnDuration } from './TurnDuration.tsx';
 import { activitySummary } from '../activity-summary.ts';
 import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { approvalSummary } from '@/ComputerApprovals/helpers.ts';
+import { browserActionPublic } from '@pitchcrew/core/browser-action-labels';
 
 const outcomes = {
   completed: 'Worked',
@@ -42,7 +42,7 @@ export const TurnActivityTrigger = ({ run, open }: { run: Run; open: boolean }) 
       </span>
       {approval ? (
         <span className="chat-turn-wait truncate">
-          {approvalSummary(approval.action, approval.page)}
+          {browserActionPublic(approval.action, approval.page)}
         </span>
       ) : (
         <TurnDuration

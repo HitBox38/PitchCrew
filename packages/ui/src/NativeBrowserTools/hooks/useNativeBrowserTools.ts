@@ -1,15 +1,13 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import type { NativeBrowserModel } from '@/AgentBrowser/hooks/useNativeBrowser.ts';
 import type { BrowserControl } from '@/AgentBrowser/types.ts';
 import type { DesktopBrowserCapture } from '../../../../core/src/native-browser.ts';
 import { useBrowserRecording } from './useBrowserRecording.ts';
-import { useWorkspaceStore } from '@/WorkspaceStore/index.ts';
-import { setBrowserPresence } from '@/DesktopBrowserHost/presence.ts';
+import { useElementPick } from './useElementPick.ts';
 
 export const useNativeBrowserTools = (model: NativeBrowserModel, control: BrowserControl) => {
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [picking, setPicking] = useState(false);
   // Page settings, which holds these tools; picking closes it so the whole page is clickable.
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<{
@@ -22,21 +20,15 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
   useLayoutEffect(() => {
     current.current = owner;
   }, [owner]);
-  // A pick belongs to this panel and tab: switching tabs or unmounting ends it in the host,
-  // so inspect mode never outlives the review that would receive it.
-  const pickingFor = useRef<string | null>(null);
-  useEffect(
-    () => () => {
-      const id = pickingFor.current;
-      pickingFor.current = null;
-      if (id) void window.pitchcrewBrowser?.cancelPick?.(id).catch(() => {});
-    },
-    [owner],
+  // A pick belongs to this panel and tab: switching tabs or unmounting ends it in the host.
+  const element = useElementPick(model, control, owner, current, (capture) =>
+    setSnapshot({ owner: current.current, capture }),
   );
   const recording = useBrowserRecording(model.identity!.id, tab?.id ?? '', control.leaseId);
   const capture = snapshot?.owner === owner ? snapshot.capture : null;
   // Capture works while the agent is idle; recording is bound to a held control lease.
-  const disabled = !control.available || control.working || busy || recording.busy;
+  const disabled =
+    !control.available || control.working || busy || element.picking || recording.busy;
   const screenshot = async () => {
     const bridge = window.pitchcrewBrowser;
     if (!bridge?.capture || !model.identity) return;
@@ -55,33 +47,10 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
     }
   };
   // Pick one element on the page (DevTools-style highlight), then review it like a screenshot.
-  const pick = async () => {
-    const bridge = window.pitchcrewBrowser;
-    if (!bridge?.pickElement || !model.identity) return;
-    const requested = owner;
+  const pick = () => {
     setSettingsOpen(false);
-    setBusy(true);
-    setPicking(true);
     setError('');
-    try {
-      if (!(await control.ensure())) return;
-      // The tray and chip say "Picking" with a Cancel; the page takes the click.
-      setBrowserPresence({ picking: model.identity.id });
-      await bridge.focusPage(model.identity.id).catch(() => {});
-      pickingFor.current = model.identity.id;
-      const next = await bridge.pickElement(model.identity.id);
-      if (next && current.current === requested) setSnapshot({ owner: requested, capture: next });
-    } catch (cause) {
-      // Page settings is closed while picking, so the outcome is a toast rather than its error row.
-      useWorkspaceStore
-        .getState()
-        .setToast(cause instanceof Error ? cause.message : 'Could not pick an element.');
-    } finally {
-      setBrowserPresence({ picking: null });
-      pickingFor.current = null;
-      setBusy(false);
-      setPicking(false);
-    }
+    return element.pick();
   };
   const floating = async () => {
     try {
@@ -103,10 +72,10 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
     recordable: !!control.leaseId,
     screenshot,
     pick,
-    picking,
+    picking: element.picking,
     settingsOpen,
     setSettingsOpen,
-    cancelPick: () => void window.pitchcrewBrowser?.cancelPick?.(model.identity!.id),
+    cancelPick: element.cancel,
     floating,
   };
 };
