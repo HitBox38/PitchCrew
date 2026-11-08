@@ -237,9 +237,19 @@
 [data-interface='clay'] .browser-expanded-side .clay-tray-line {
   min-height: 3.5rem;
 }
+/* Beside the page a request reads top to bottom: its two lines, then one row of actions with
+ * the decision at the end (wrapping in a narrow column). */
 [data-interface='clay'] .browser-expanded-side .browser-pending-action {
-  flex-direction: column;
-  align-items: stretch;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 8px;
+  padding: 12px 14px;
+}
+[data-interface='clay'] .browser-expanded-side .browser-pending-action > .browser-approval-body {
+  flex-basis: 100%;
+}
+[data-interface='clay'] .browser-expanded-side .browser-pending-action > .approval-footer {
+  margin-left: auto;
 }
 
 /* Before the agent's first run here the column is just the message box and tray. */
