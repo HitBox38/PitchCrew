@@ -364,9 +364,16 @@ const takeControl = async () => {
   const header = page
     .locator('.browser-approvals')
     .getByRole('button', { name: 'Take control', exact: true });
-  if (await header.isVisible()) return header.click();
-  await page.getByRole('button', { name: 'Browser options', exact: true }).click();
-  await page.getByRole('menuitem', { name: 'Keep control until I return it', exact: true }).click();
+  if (await header.isVisible()) await header.click();
+  else {
+    await page.getByRole('button', { name: 'Browser options', exact: true }).click();
+    await page
+      .getByRole('menuitem', { name: 'Keep control until I return it', exact: true })
+      .click();
+  }
+  // A menu click precedes the asynchronous lease acquisition. Do not let the next
+  // journey decide how to return control until explicit takeover has actually arrived.
+  await page.getByRole('button', { name: 'Return to agent', exact: true }).waitFor();
 };
 /** Control is held, explicitly (Return to agent) or by browsing (the chip says so). */
 const controlHeld = () =>
@@ -698,10 +705,18 @@ test('uses native appearance, per-tab audio and external-browser developer contr
 });
 test('moves tabs by drag, keyboard and the tab menu without selecting them', async () => {
   if (state.tabs.length < 2) {
-    await page.getByRole('button', { name: 'New tab', exact: true }).click();
+    await page.getByRole('button', { name: 'New browser tab', exact: true }).click();
     await vi.waitFor(() => expect(state.tabs.length).toBeGreaterThan(1));
   }
   const strip = page.getByRole('tablist', { name: 'Browser tabs' });
+  // The fixture records commands before their response and refresh finish. The
+  // close button shares the sortable sensor's manual/working gate, even while
+  // visually hidden until hover. Wait without selecting or closing a tab.
+  const tabsReady = () =>
+    expect
+      .poll(() => strip.locator('.browser-tab-close').first().isEnabled(), { timeout: 5000 })
+      .toBe(true);
+  await tabsReady();
   const order = async () =>
     (await strip
       .locator('.browser-tab')
@@ -720,6 +735,7 @@ test('moves tabs by drag, keyboard and the tab menu without selecting them', asy
   await vi.waitFor(async () => expect((await order()).length).toBe(state.tabs.length));
   expect(ids().slice(0, 2)).toEqual([second, first]);
   expect(state.activeTab).toBe(active);
+  await tabsReady();
   // Control+Shift+Page Down moves the focused tab right.
   await strip.locator('.browser-tab[data-active="true"] [role="tab"]').focus();
   const focusedId = state.activeTab;
@@ -738,6 +754,7 @@ test('moves tabs by drag, keyboard and the tab menu without selecting them', asy
   await expect
     .poll(() => page.locator('output[aria-live="polite"]').filter({ hasText: 'Position' }).count())
     .toBeGreaterThan(0);
+  await tabsReady();
   // Whole-tab dragging past its neighbour moves it there.
   const before = ids();
   const source = (await strip.locator('.browser-tab').nth(0).boundingBox())!;
@@ -747,6 +764,7 @@ test('moves tabs by drag, keyboard and the tab menu without selecting them', asy
   await page.mouse.move(source.x + source.width / 3 + 12, source.y + source.height / 2, {
     steps: 4,
   });
+  await strip.locator('.browser-tab[data-dragging="true"]:not([aria-hidden="true"])').waitFor();
   await page.mouse.move(target.x + target.width - 4, target.y + target.height / 2, { steps: 12 });
   await page.mouse.up();
   await vi.waitFor(() => expect(ids().slice(0, 2)).toEqual([before[1], before[0]]));
