@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Button } from '@pitchcrew/design-system/button';
 import { Trace } from '@pitchcrew/design-system/trace';
 import { ActivityStep } from './ActivityStep.tsx';
-import { blockedStep } from '../activity-summary.ts';
+import { blockedSteps } from '../activity-summary.ts';
 
 // Long turns show their latest steps; earlier ones stay one click away.
 const shown = 4;
@@ -14,13 +14,10 @@ export const ClaySteps = ({
   blocked,
 }: {
   entries: RunActivity[];
-  /**
-   * The label of the browser call blocked on the user's OK. The gateway names that call with the
-   * request's own public summary, so the step is matched exactly, never guessed from order.
-   */
-  blocked?: string;
+  /** The labels of browser calls waiting on the user, matched exactly (see blockedSteps). */
+  blocked?: readonly string[];
 }) => {
-  const waitingId = blockedStep(entries, blocked);
+  const waiting = blockedSteps(entries, blocked);
   const [all, setAll] = useState(false);
   const hidden = all ? 0 : Math.max(0, entries.length - shown);
   return (
@@ -31,7 +28,7 @@ export const ClaySteps = ({
         </Button>
       ) : null}
       {entries.slice(hidden).map((entry) => (
-        <ActivityStep key={entry.id} entry={entry} waiting={entry.id === waitingId} />
+        <ActivityStep key={entry.id} entry={entry} waiting={waiting.has(entry.id)} />
       ))}
     </Trace>
   );

@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { Run, RunActivity } from '@pitchcrew/core';
-import { activityPreview, activitySummary, blockedStep } from '../activity-summary.ts';
+import { activityPreview, activitySummary, blockedSteps } from '../activity-summary.ts';
 
 const at = '2026-11-06T16:00:00.000Z';
 const entry = (
@@ -112,7 +112,12 @@ it('finds the call blocked on the user by its exact label, leaving parallel call
     ...entry('connector', 'tool', 'running'),
     label: 'Reading connected sources',
   };
-  expect(blockedStep([browser, connector], 'Click “Learn more”')).toBe('browser');
-  expect(blockedStep([browser, connector], undefined)).toBeUndefined();
-  expect(blockedStep([connector], 'Click “Learn more”')).toBeUndefined();
+  expect([...blockedSteps([browser, connector], ['Click “Learn more”'])]).toEqual(['browser']);
+  expect(blockedSteps([browser, connector], undefined).size).toBe(0);
+  expect(blockedSteps([connector], ['Click “Learn more”']).size).toBe(0);
+  // While the user holds the page, every browser call waits (a page read included).
+  const read = { ...entry('read', 'tool', 'running'), label: 'Reading the page' };
+  expect([...blockedSteps([read, connector], ['Reading the page', 'Click “Learn more”'])]).toEqual([
+    'read',
+  ]);
 });

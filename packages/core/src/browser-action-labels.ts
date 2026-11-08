@@ -49,21 +49,30 @@ const hostOf = (url: string) => {
 const hostLike =
   /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.(?:\p{L}{2,}|xn--[a-z0-9-]+))(?=[:/?#])/iu;
 
+// Slashes that are prose, not paths: "24/7", "2026/11", "and/or".
+const proseSlash = /^(?:\d+(?:\/\d+)+|[A-Za-z]{1,8}\/[A-Za-z]{1,8})$/;
+
 /**
- * One word of public text. Web addresses keep only their host, which names the site without its
- * paths, queries, ports or sign-in details; every other address-like form (other schemes, local or
- * relative paths, Windows paths, emails, user@host) is dropped outright.
+ * One word of public text, conservatively. A web address found anywhere in the word keeps only
+ * its host (naming the site without paths, queries, ports or sign-in details). Any other word that
+ * looks like an address or path (another scheme, IPv6, local, relative or home paths, Windows or
+ * network paths, emails, user@host, query fragments) is dropped outright; prose survives.
  */
 const publicWord = (word: string) => {
-  const lead = /^[“"'([<]*/.exec(word)![0];
+  const lead = /^[^\p{L}\p{N}/\\~.[]*/u.exec(word)![0];
   const rest = word.slice(lead.length);
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(rest))
-    return /^(https?|wss?|ftp):/i.test(rest) ? lead + hostOf(rest) : lead + '…';
+  const scheme = /[a-z][a-z0-9+.-]*:\/\//i.exec(rest);
+  if (scheme) {
+    const url = rest.slice(scheme.index);
+    return lead + (/^(https?|wss?|ftp):/i.test(url) ? hostOf(url) : '…');
+  }
   if (rest.startsWith('//')) return lead + hostOf(`https:${rest}`);
-  // A scheme needs something after its colon: "Customer name:" is a label, "tel:+1…" is not.
-  if (/^[a-z][a-z0-9+.-]*:\S/i.test(rest) && !hostLike.test(rest)) return lead + '…';
-  if (rest.startsWith('/') || rest.includes('\\') || rest.includes('@')) return lead + '…';
+  if (rest.startsWith('[')) return lead + '…';
   if (hostLike.test(rest)) return lead + hostOf(`https://${rest}`);
+  const core = rest.replace(/[.,;:!?)\]»”"']+$/u, '');
+  if (proseSlash.test(core)) return word;
+  // A scheme needs something after its colon: "Customer name:" is a label, "tel:+1…" is not.
+  if (/[/\\@?=~[\]]/.test(core) || /^[a-z][a-z0-9+.-]*:\S/i.test(core)) return lead + '…';
   return word;
 };
 
@@ -187,3 +196,18 @@ export const browserActionPublic = (action: BrowserAction, page?: BrowserSnapsho
   joinBrowserActionParts(
     browserActionParts(action, page, { values: false, path: false, publicLabel: true }),
   );
+
+/**
+ * The start labels of browser tool calls in chat activity, shared by the gateway that writes them
+ * and the chat that shows which of them wait on the user (every browser call waits while the user
+ * holds the page).
+ */
+export const browserStepLabels = {
+  inspect: 'Reading the page',
+  inspected: 'Read the page',
+  request: 'Requesting browser action',
+  wait: 'Waiting for browser content',
+  tabs: 'Managing browser tabs',
+  assess: 'Assessing application form',
+  capture: 'Checking submission confirmation',
+} as const;

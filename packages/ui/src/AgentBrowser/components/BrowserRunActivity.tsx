@@ -4,7 +4,7 @@ import { ClaySteps } from '@/ChatTurn/components/ClaySteps.tsx';
 import { runActivitySummary, shownBrowserRun } from '../layout.ts';
 import type { AgentBrowserProps } from '../types.ts';
 import { BrowserRunHeading } from './BrowserRunHeading.tsx';
-import { browserActionPublic } from '@pitchcrew/core/browser-action-labels';
+import { useRunWait } from '@/ChatTurn/hooks/useRunWait.ts';
 
 /**
  * Clay expanded browser: the browsing agent's public activity for the run using the browser, or
@@ -27,11 +27,12 @@ export const BrowserRunActivity = ({
       : undefined;
   const active = run?.status === 'running';
   // A waiting request is the run's state here too, in the chip's words.
-  const pending = active
-    ? data.computerApprovals.find((item) => item.runId === run.id && item.status === 'pending')
-    : undefined;
-  const approving = !!pending;
-  const held = active && !!browserPanel.session?.manual && browserPanel.session.runId === run?.id;
+  // The same wait story as the chat turn: a request awaiting OK, or a page the user holds.
+  const wait = useRunWait(run);
+  const approving = !!wait.approval;
+  const held =
+    wait.held ||
+    (active && !!browserPanel.session?.manual && browserPanel.session.runId === run?.id);
   const { steps, commentary } = runActivitySummary(run?.activity ?? []);
   return (
     <section className="browser-run-activity" aria-label={`${role.name} activity`}>
@@ -53,12 +54,7 @@ export const BrowserRunActivity = ({
             {commentary.text}
           </MessageResponse>
         ) : null}
-        {steps.length ? (
-          <ClaySteps
-            entries={steps}
-            blocked={pending ? browserActionPublic(pending.action, pending.page) : undefined}
-          />
-        ) : null}
+        {steps.length ? <ClaySteps entries={steps} blocked={wait.blocked} /> : null}
         {reply ? (
           <MessageResponse mode="static" components={noRemoteImages}>
             {reply.content}

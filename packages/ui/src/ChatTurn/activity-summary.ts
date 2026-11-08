@@ -46,13 +46,18 @@ export const activitySummary = (entries: RunActivity[]) => {
 };
 
 /**
- * The step blocked on the user's OK: the running tool call the gateway labelled with the waiting
- * request's own public summary. Matched exactly, never guessed from order, so a parallel call
- * keeps its own state.
+ * The steps blocked on the user: running tool calls whose labels are the ones that wait on them
+ * (the waiting request's own call, or every browser call while they hold the page). Matched
+ * exactly, never guessed from order, so a parallel non-browser call keeps its own state.
  */
-export const blockedStep = (entries: RunActivity[], label: string | undefined) =>
-  label
-    ? entries.findLast(
-        (entry) => entry.kind === 'tool' && entry.status === 'running' && entry.label === label,
-      )?.id
-    : undefined;
+export const blockedSteps = (entries: RunActivity[], labels: readonly string[] | undefined) =>
+  new Set(
+    labels?.length
+      ? entries
+          .filter(
+            (entry) =>
+              entry.kind === 'tool' && entry.status === 'running' && labels.includes(entry.label),
+          )
+          .map((entry) => entry.id)
+      : [],
+  );

@@ -8,6 +8,7 @@ import {
   browserActionAsked,
   browserActionDone,
   browserActionPublic,
+  browserStepLabels,
 } from '@pitchcrew/core/browser-action-labels';
 import { randomUUID } from 'node:crypto';
 import { recordChatActivity } from '../chat-activity.ts';
@@ -24,10 +25,10 @@ const browserStep = (
   data: Record<string, unknown> | undefined,
 ): { start: string; done: (result: unknown) => string | undefined } | undefined => {
   if (action === 'computer_inspect')
-    return { start: 'Reading the page', done: () => 'Read the page' };
+    return { start: browserStepLabels.inspect, done: () => browserStepLabels.inspected };
   if (action === 'computer_request')
     return {
-      start: 'Requesting browser action',
+      start: browserStepLabels.request,
       done: (result) => {
         const approval = (result as { approval?: ComputerApproval } | undefined)?.approval;
         return approval ? browserActionAsked(approval.action, approval.page) : undefined;
@@ -116,12 +117,12 @@ const labels: Record<string, string> = {
   import_job_link: 'Reading job link and saving job details',
   job_sources: 'Reading job sources',
   computer_inspect: 'Inspecting browser',
-  computer_wait: 'Waiting for browser content',
-  computer_tabs: 'Managing browser tabs',
-  computer_request: 'Requesting browser action',
+  computer_wait: browserStepLabels.wait,
+  computer_tabs: browserStepLabels.tabs,
+  computer_request: browserStepLabels.request,
   computer_execute: 'Performing browser action',
-  assess_form: 'Assessing application form',
-  capture_submission: 'Checking submission confirmation',
+  assess_form: browserStepLabels.assess,
+  capture_submission: browserStepLabels.capture,
   connector: 'Reading connected sources',
   lint: 'Checking packet',
   packet_rules: 'Reading packet rules',

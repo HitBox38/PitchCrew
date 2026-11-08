@@ -9,8 +9,8 @@ export const ActivityEntries = ({
   blocked,
 }: {
   entries: RunActivity[];
-  /** The label of the browser call blocked on the user's OK, if any. */
-  blocked?: string;
+  /** The labels of browser calls waiting on the user. */
+  blocked?: readonly string[];
 }) =>
   activityGroups(entries).map((group) =>
     group.kind === 'work' ? (

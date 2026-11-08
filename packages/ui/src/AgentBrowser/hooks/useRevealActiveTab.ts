@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react';
+import { revealScroll } from '../helpers.ts';
 
 /** The strip's fade width: a tab under it is not readable, so reveal clears it too. */
 const fade = 16;
@@ -23,14 +24,19 @@ export const useRevealActiveTab = (activeTab: string | undefined, order: string)
     const reveal = () => {
       const tab = lane.querySelector<HTMLElement>('.browser-tab[data-active="true"]');
       if (tab) {
-        const bounds = lane.getBoundingClientRect();
-        const selected = tab.getBoundingClientRect();
-        // The readable area excludes the fade on any edge that has tabs beyond it.
-        const left = bounds.left + (lane.scrollLeft > 1 ? fade : 0);
-        const right =
-          bounds.right - (lane.scrollLeft + lane.clientWidth < lane.scrollWidth - 1 ? fade : 0);
-        if (selected.right > right) lane.scrollLeft += selected.right - right + fade;
-        else if (selected.left < left) lane.scrollLeft -= left - selected.left + fade;
+        // In content coordinates: the tab's span, and the readable span for a scroll position
+        // (excluding the fade on any edge that has tabs beyond it).
+        const start =
+          tab.getBoundingClientRect().left - lane.getBoundingClientRect().left + lane.scrollLeft;
+        const next = revealScroll({
+          start,
+          end: start + tab.getBoundingClientRect().width,
+          scroll: lane.scrollLeft,
+          width: lane.clientWidth,
+          content: lane.scrollWidth,
+          fade,
+        });
+        if (next !== lane.scrollLeft) lane.scrollLeft = next;
       }
       edges();
     };

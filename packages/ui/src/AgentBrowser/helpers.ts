@@ -107,3 +107,32 @@ export const moveTabFocus = (event: {
         : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
   tabs[next].focus();
 };
+
+/**
+ * The scroll position that shows a tab wholly readable in a strip whose edges fade when there is
+ * more beyond them: in content coordinates, the tab's span and the strip's width and content width.
+ * It moves as little as possible and leaves a fade's width of the neighbour visible.
+ */
+export const revealScroll = ({
+  start,
+  end,
+  scroll,
+  width,
+  content,
+  fade,
+}: {
+  start: number;
+  end: number;
+  scroll: number;
+  width: number;
+  content: number;
+  fade: number;
+}) => {
+  const max = Math.max(0, content - width);
+  const readableStart = (at: number) => at + (at > 1 ? fade : 0);
+  const readableEnd = (at: number) => at + width - (at < max - 1 ? fade : 0);
+  let next = scroll;
+  if (end > readableEnd(next)) next = Math.min(max, end + fade - width);
+  if (start < readableStart(next)) next = Math.max(0, start - fade);
+  return next;
+};

@@ -5,13 +5,11 @@ import { ActivityEntries } from './ActivityEntries.tsx';
 import { activityPreview, activitySummary } from '../activity-summary.ts';
 import { TurnActivityTrigger } from './TurnActivityTrigger.tsx';
 import { useRunWait } from '../hooks/useRunWait.ts';
-import { browserActionPublic } from '@pitchcrew/core/browser-action-labels';
 
 /** One disclosure per turn; completed operational chatter yields to the answer. */
 export const TurnActivity = ({ run }: { run: Run }) => {
   const [open, setOpen] = useState(false);
-  const { waiting, approval } = useRunWait(run);
-  const blocked = approval ? browserActionPublic(approval.action, approval.page) : undefined;
+  const { waiting, blocked } = useRunWait(run);
   const entries = run.activity ?? [];
   const summary = activitySummary(entries);
   if (!summary && !run.activityTruncated) return null;

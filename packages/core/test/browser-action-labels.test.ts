@@ -143,7 +143,17 @@ it('drops every other address form and falls back to a generic label when nothin
     ['Customer name:', 'Customer name:'],
     ['Step 2: confirm', 'Step 2: confirm'],
     ['Ratio 3:2 and/or 24/7', 'Ratio 3:2 and/or 24/7'],
-    ['v1.2/3 e.g./i.e. Q4/2026 1.2.3.4', 'v1.2/3 e.g./i.e. Q4/2026 1.2.3.4'],
+    // Public labels prefer safety: slash forms that are not plain prose are dropped.
+    ['v1.2/3 e.g./i.e. Q4/2026 1.2.3.4', '… … … 1.2.3.4'],
+    ['[::1]:3000/x?token=x', ''],
+    ['~/secret/file', ''],
+    ['./relative/path?x=1', ''],
+    ['../reset/abc123?token=x', ''],
+    ['!//example.com/x?token=x', '!example.com'],
+    ['prefix=https://example.com/x?token=x', 'example.com'],
+    ['«https://example.com/x?token=x»', '«example.com'],
+    ['user@localhost', ''],
+    ['Rank #1 Why? $100', 'Rank #1 Why? $100'],
   ])
     expect(publicText(input)).toBe(output);
   // End to end through the chat activity label: a path-only name gives the generic fallback.
