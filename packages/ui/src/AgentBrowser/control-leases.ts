@@ -14,12 +14,31 @@ interface BrowserControlLeaseSnapshot {
   errors: Readonly<Record<string, string>>;
 }
 
+/**
+ * Whether a panel should return control it took implicitly: an agent run is using the browser,
+ * no page command is still in flight, and this lease has not already been handed back.
+ */
+export const shouldHandBack = (state: {
+  runId: string | null;
+  leaseId?: string;
+  implicit: boolean;
+  working: boolean;
+  handedBack?: string;
+}) =>
+  !!state.runId &&
+  !!state.leaseId &&
+  state.implicit &&
+  !state.working &&
+  state.handedBack !== state.leaseId;
+
 export const browserControlScopeKey = (roleId: string, threadId: string, cardId?: string | null) =>
   cardId ? `${roleId}:job:${cardId}` : `${roleId}:conversation:${threadId}`;
 
 /** Renderer-session control survives route unmounts; the daemon remains the lease authority. */
 export const createBrowserControlLeases = (
   renew: (lease: BrowserControlLease) => Promise<unknown>,
+  /** Returns an implicit lease once renewal reports an agent run, even with no panel mounted. */
+  handBack?: (lease: BrowserControlLease) => Promise<unknown>,
 ) => {
   let snapshot: BrowserControlLeaseSnapshot = { leases: {}, errors: {} };
   const listeners = new Set<() => void>();
@@ -39,6 +58,16 @@ export const createBrowserControlLeases = (
           pending.set(key, request);
           void Promise.resolve()
             .then(() => renew(lease))
+            .then(async (result) => {
+              if (!lease.implicit || !(result as { agentRun?: boolean } | undefined)?.agentRun)
+                return;
+              await handBack?.(lease)?.catch(() => {});
+              if (closed || snapshot.leases[key]?.id !== lease.id) return;
+              const leases = { ...snapshot.leases };
+              delete leases[key];
+              publish({ ...snapshot, leases });
+              reconcileTimer();
+            })
             .catch((cause: unknown) => {
               if (closed || snapshot.leases[key]?.id !== lease.id) return;
               const leases = { ...snapshot.leases };

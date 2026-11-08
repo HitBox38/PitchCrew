@@ -2,17 +2,23 @@ import { useSyncExternalStore } from 'react';
 import { browserCommand } from '../api.ts';
 import { createBrowserControlLeases } from '../control-leases.ts';
 
-const leases = createBrowserControlLeases((lease) =>
-  browserCommand(
-    lease.roleId,
-    lease.threadId,
-    'control',
-    {
-      operation: 'renew',
+const leases = createBrowserControlLeases(
+  (lease) =>
+    browserCommand(
+      lease.roleId,
+      lease.threadId,
+      'control',
+      {
+        operation: 'renew',
+        leaseId: lease.id,
+      },
+      AbortSignal.timeout(10_000),
+    ),
+  (lease) =>
+    browserCommand(lease.roleId, lease.threadId, 'control', {
+      operation: 'release',
       leaseId: lease.id,
-    },
-    AbortSignal.timeout(10_000),
-  ),
+    }),
 );
 
 export const useBrowserControlLease = (key: string) => {

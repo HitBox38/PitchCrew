@@ -578,15 +578,23 @@ export const createNativeGroup = (
         if (stopped || (error instanceof Error && 'code' in error && error.code === 'ERR_ABORTED'))
           throw error;
         const message = error instanceof Error ? error.message : 'Navigation failed.';
+        // Electron rejects loadURL with the Chromium code; keep its specific sentence (the same
+        // failure's did-fail-load already recorded it) rather than a generic one.
+        const errno =
+          error && typeof error === 'object' && 'errno' in error && typeof error.errno === 'number'
+            ? error.errno
+            : undefined;
         errors.set(
           id,
-          /private network/i.test(message)
-            ? navigationFailure(-20)
-            : /ENOTFOUND|EAI_AGAIN/.test(message)
-              ? navigationFailure(-105)
-              : navigationFailure(0),
+          errno !== undefined
+            ? navigationFailure(errno)
+            : /private network/i.test(message)
+              ? navigationFailure(-20)
+              : /ENOTFOUND|EAI_AGAIN/.test(message)
+                ? navigationFailure(-105)
+                : navigationFailure(0),
         );
-        errorDetails.set(id, message);
+        if (errno === undefined || !errorDetails.has(id)) errorDetails.set(id, message);
         group.changed();
       } finally {
         if (pendingNavigations.get(id) === cancel) pendingNavigations.delete(id);

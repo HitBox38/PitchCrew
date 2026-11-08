@@ -2,6 +2,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import {
   browserControlScopeKey,
   createBrowserControlLeases,
+  shouldHandBack,
   type BrowserControlLease,
 } from '../control-leases.ts';
 
@@ -140,4 +141,32 @@ test('a delayed release cannot forget a replacement controller', () => {
   store.forget(key, 'replacement-controller');
   expect(store.read().leases[key]).toBeUndefined();
   expect(vi.getTimerCount()).toBe(0);
+});
+
+test('hands back an implicit lease once renewal reports an agent run, but keeps explicit control', async () => {
+  const handBack = vi.fn(async (_lease: BrowserControlLease) => {});
+  const store = createBrowserControlLeases(async () => ({ ok: true, agentRun: true }), handBack);
+  stores.push(store);
+  const implicit = { ...lease, id: 'implicit-controller', implicit: true };
+  store.remember(key, implicit);
+  const explicitKey = browserControlScopeKey(lease.roleId, 'conversation-b', null);
+  store.remember(explicitKey, { ...lease, threadId: 'conversation-b' });
+  await vi.advanceTimersByTimeAsync(20_000);
+  expect(handBack).toHaveBeenCalledExactlyOnceWith(implicit);
+  expect(store.read().leases[key]).toBeUndefined();
+  // A handback is not a renewal failure; explicit control keeps renewing.
+  expect(store.read().errors[key]).toBeUndefined();
+  expect(store.read().leases[explicitKey]).toBeDefined();
+});
+
+test('hands back implicit control whenever a run is active, after in-flight commands, once per lease', () => {
+  const base = { runId: 'run-1', leaseId: 'implicit-a', implicit: true, working: false };
+  expect(shouldHandBack(base)).toBe(true);
+  // Acquired after the run began, or mounted mid-run: still reconciled.
+  expect(shouldHandBack({ ...base, handedBack: undefined })).toBe(true);
+  expect(shouldHandBack({ ...base, working: true })).toBe(false);
+  expect(shouldHandBack({ ...base, handedBack: 'implicit-a' })).toBe(false);
+  expect(shouldHandBack({ ...base, implicit: false })).toBe(false);
+  expect(shouldHandBack({ ...base, runId: null })).toBe(false);
+  expect(shouldHandBack({ ...base, leaseId: undefined })).toBe(false);
 });

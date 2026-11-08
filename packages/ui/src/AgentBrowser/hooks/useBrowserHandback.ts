@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { BrowserSessionInfo } from '@pitchcrew/core';
 import { browserGuardPressEvent } from '@/DesktopBrowserHost/presentation.ts';
 import type { BrowserControl } from '../types.ts';
+import { shouldHandBack } from '../control-leases.ts';
 
 /**
  * Idle browsing without a separate takeover step:
@@ -21,13 +22,17 @@ export const useBrowserHandback = (
   });
   const [nudged, setNudged] = useState(false);
   const runId = session?.runId ?? null;
-  const previousRun = useRef(runId);
+  const { leaseId, implicit, working } = control;
+  const handedBack = useRef<string>(undefined);
+  // Reconcile rather than react to a transition: a lease acquired after the run started, or a
+  // panel mounted mid-run, still hands back. Wait for in-flight page commands (a restored tab's
+  // create-then-navigate) so the handback never revokes the lease underneath them.
   useEffect(() => {
-    const started = !!runId && runId !== previousRun.current;
-    previousRun.current = runId;
-    const current = latest.current;
-    if (started && current.leaseId && current.implicit) void current.release();
-  }, [runId]);
+    if (!shouldHandBack({ runId, leaseId, implicit, working, handedBack: handedBack.current }))
+      return;
+    handedBack.current = leaseId;
+    void latest.current.release();
+  }, [runId, leaseId, implicit, working]);
   useEffect(() => {
     if (!nudged) return;
     const timer = setTimeout(() => setNudged(false), 4000);

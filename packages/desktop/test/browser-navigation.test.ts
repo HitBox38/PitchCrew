@@ -252,3 +252,19 @@ test('names common Chromium failures in plain words and keeps the raw code', asy
   expect(tab().error).toMatch(/certificate/);
   expect(tab().errorDetails).toBe('ERR_CERT_AUTHORITY_INVALID (-202)');
 });
+
+test('keeps the specific Chromium failure when loadURL rejects after did-fail-load', async () => {
+  const { group, guests, tab } = await fixture();
+  const contents = guests.get(group.active)!;
+  vi.mocked(assertPublicUrl).mockResolvedValue();
+  contents.loadURL.mockImplementationOnce(async (next: string) => {
+    contents.emit('did-fail-load', {}, -202, 'ERR_CERT_AUTHORITY_INVALID', next, true);
+    throw Object.assign(new Error(`ERR_CERT_AUTHORITY_INVALID (-202) loading '${next}'`), {
+      errno: -202,
+      code: 'ERR_CERT_AUTHORITY_INVALID',
+    });
+  });
+  await runNativeBrowserCommand(group, { kind: 'navigate', url: 'https://cert.example/' });
+  expect(tab().error).toMatch(/certificate/);
+  expect(tab().errorDetails).toBe('ERR_CERT_AUTHORITY_INVALID (-202)');
+});

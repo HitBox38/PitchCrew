@@ -77,6 +77,7 @@ export const NativeBrowserSettings = ({
           key={model.identity!.id}
           id={model.identity!.id}
           disabled={!manual}
+          prepare={model.ensure}
         />
       </fieldset>
     </PopoverContent>

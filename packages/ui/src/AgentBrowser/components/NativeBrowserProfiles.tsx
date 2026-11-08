@@ -10,9 +10,17 @@ import { useNativeProfiles } from '../hooks/useNativeProfiles.ts';
 import { NativeProfileRow } from './NativeProfileRow.tsx';
 import { NativeProfileCreate } from './NativeProfileCreate.tsx';
 import { NativeProfileImport } from './NativeProfileImport.tsx';
-export const NativeBrowserProfiles = ({ id, disabled }: { id: string; disabled: boolean }) => {
+export const NativeBrowserProfiles = ({
+  id,
+  disabled,
+  prepare,
+}: {
+  id: string;
+  disabled: boolean;
+  prepare?: () => Promise<unknown>;
+}) => {
   const [open, setOpen] = useState(false);
-  const model = useNativeProfiles(id);
+  const model = useNativeProfiles(id, prepare);
   const close = (value: boolean) => {
     if (model.working) return;
     if (!value && model.state?.preview)

@@ -28,6 +28,8 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
     setBusy(true);
     setError('');
     try {
+      // The desktop host captures only under control; idle browsing takes it here.
+      if (!(await control.ensure())) return;
       const next = await bridge.capture(model.identity.id);
       if (current.current === requested) setSnapshot({ owner: requested, capture: next });
     } catch (cause) {
@@ -38,6 +40,7 @@ export const useNativeBrowserTools = (model: NativeBrowserModel, control: Browse
   };
   const floating = async () => {
     try {
+      if (!tab?.floating && !(await control.ensure())) return;
       await window.pitchcrewBrowser!.floating(model.identity!.id, !tab?.floating);
     } catch (cause) {
       setError(

@@ -56,7 +56,17 @@ export const useBrowserInput = (
     }
   };
   const click = (event: React.MouseEvent<HTMLButtonElement>) => {
-    if (!manual || touch.shouldIgnoreClick()) return;
+    if (touch.shouldIgnoreClick()) return;
+    if (!manual) {
+      // Idle browsing, as on desktop: the press takes control and is not replayed onto the page.
+      if (!control.leaseId && control.available && !control.working && !props.panView) {
+        const screen = event.currentTarget;
+        void control.command(async () => {
+          if (await control.ensure()) screen.focus();
+        });
+      }
+      return;
+    }
     event.currentTarget.focus();
     const bounds = event.currentTarget.getBoundingClientRect();
     control.input({

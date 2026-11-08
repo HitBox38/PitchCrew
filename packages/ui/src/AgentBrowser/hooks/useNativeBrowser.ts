@@ -139,12 +139,20 @@ export const useNativeBrowser = (
     const tab = closedTabs[0];
     if (tab && (await navigate(tab.url, true))) forgetClosed(tab.url);
   }, [closedTabs, forgetClosed, navigate]);
+  // Native Find needs control in the desktop host, so opening it while idle takes control.
+  const openFind = useCallback(
+    (open: boolean) => {
+      if (open) void ensure().catch(() => {});
+      setFindOpen(open);
+    },
+    [ensure],
+  );
   useNativeShortcuts(
     active && enabled ? nativeId : undefined,
     control.available,
     state,
     command,
-    setFindOpen,
+    openFind,
     control.working,
     restoreClosed,
   );
@@ -154,8 +162,10 @@ export const useNativeBrowser = (
     identity,
     state: current,
     findOpen,
-    setFindOpen,
+    setFindOpen: openFind,
     command,
+    /** Takes control first while the agent is idle; resolves undefined when it cannot. */
+    ensure,
     navigate,
     history,
   };
