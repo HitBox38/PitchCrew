@@ -6,14 +6,15 @@ import { noRemoteImages } from '@/components/ai-elements/message/constants.tsx';
 
 export const ActivityEntries = ({
   entries,
-  waiting = false,
+  blocked,
 }: {
   entries: RunActivity[];
-  waiting?: boolean;
+  /** The label of the browser call blocked on the user's OK, if any. */
+  blocked?: string;
 }) =>
   activityGroups(entries).map((group) =>
     group.kind === 'work' ? (
-      <ClaySteps key={group.id} entries={group.entries} waiting={waiting} />
+      <ClaySteps key={group.id} entries={group.entries} blocked={blocked} />
     ) : (
       <div key={group.id} className="chat-turn-commentary">
         <MessageResponse

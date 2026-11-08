@@ -19,7 +19,11 @@ export const NativeBrowserTabs = ({
   const order = useBrowserTabOrder(model);
   const [announcement, setAnnouncement] = useState('');
   const count = order.tabs.length;
-  const strip = useRevealActiveTab(model.state?.activeTab, count);
+  // Re-reveal on reorder too: a move can carry the selected tab under an edge.
+  const strip = useRevealActiveTab(
+    model.state?.activeTab,
+    order.tabs.map((tab) => tab.id).join(','),
+  );
   return (
     <div className="browser-tab-strip">
       <DragDropProvider

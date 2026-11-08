@@ -111,7 +111,7 @@ it('reduces scheme-less addresses too: protocol-relative URLs, bare hosts, IPs a
     ['Open jobs.example.org:8443/apply/123', 'Open jobs.example.org'],
     ['127.0.0.1:8080/reset/abc123?token=short', '127.0.0.1'],
     ['Write to alice@example.com today', 'Write to … today'],
-    ['alice:pw123@example.com/reset', '…'],
+    ['alice:pw123@example.com/reset', ''],
     ['HTTPS://Example.com/x?y=1', 'example.com'],
     ['Learn more', 'Learn more'],
     ['Version 1.2 notes', 'Version 1.2 notes'],
@@ -126,4 +126,31 @@ it('reduces scheme-less addresses too: protocol-relative URLs, bare hosts, IPs a
       },
     ),
   ).toBe('Asked to click “www.example.com”');
+});
+
+it('drops every other address form and falls back to a generic label when nothing else is left', () => {
+  for (const [input, output] of [
+    ['localhost:3000/x?token=x', 'localhost'],
+    ['例子.公司/reset/abc123?token=x', 'xn--fsqu00a.xn--55qx5d'],
+    ['xn--fsqu00a.xn--55qx5d/reset/abc123?token=x', 'xn--fsqu00a.xn--55qx5d'],
+    ['tel:+972501234567', ''],
+    ['javascript:alert(secret)', ''],
+    [String.raw`C:\Users\name\secret.txt`, ''],
+    ['/reset/abc123?token=x', ''],
+    ['/reset/abc123', ''],
+    ['mailto:user@example.com?subject=secret', ''],
+    ['“//internal/reset/abc123?token=x”', '“internal'],
+    ['Customer name:', 'Customer name:'],
+    ['Step 2: confirm', 'Step 2: confirm'],
+    ['Ratio 3:2 and/or 24/7', 'Ratio 3:2 and/or 24/7'],
+    ['v1.2/3 e.g./i.e. Q4/2026 1.2.3.4', 'v1.2/3 e.g./i.e. Q4/2026 1.2.3.4'],
+  ])
+    expect(publicText(input)).toBe(output);
+  // End to end through the chat activity label: a path-only name gives the generic fallback.
+  expect(
+    browserActionAsked(
+      { kind: 'click', selector: 'a' },
+      { ...page, elements: [{ ref: 'target', tag: 'a', name: '/reset/abc123?token=x' }] },
+    ),
+  ).toBe('Asked to click an element on httpbin.org');
 });

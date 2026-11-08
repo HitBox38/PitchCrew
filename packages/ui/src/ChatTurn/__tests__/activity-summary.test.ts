@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { Run, RunActivity } from '@pitchcrew/core';
-import { activityPreview, activitySummary } from '../activity-summary.ts';
+import { activityPreview, activitySummary, blockedStep } from '../activity-summary.ts';
 
 const at = '2026-11-06T16:00:00.000Z';
 const entry = (
@@ -104,4 +104,15 @@ it('says a takeover happened without claiming a count it cannot know', () => {
   expect(activitySummary([...entries, pause('later')])).toBe(
     '5 steps · paused while you had control',
   );
+});
+
+it('finds the call blocked on the user by its exact label, leaving parallel calls working', () => {
+  const browser = { ...entry('browser', 'tool', 'running'), label: 'Click “Learn more”' };
+  const connector = {
+    ...entry('connector', 'tool', 'running'),
+    label: 'Reading connected sources',
+  };
+  expect(blockedStep([browser, connector], 'Click “Learn more”')).toBe('browser');
+  expect(blockedStep([browser, connector], undefined)).toBeUndefined();
+  expect(blockedStep([connector], 'Click “Learn more”')).toBeUndefined();
 });

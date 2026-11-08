@@ -36,35 +36,51 @@ const where = (url: string | undefined, path: boolean) => {
   }
 };
 
-/**
- * Text that may leave the approval review (chat activity, the chat heading, the tray's narration):
- * URLs shrink to their hostname (no userinfo, path, query or fragment) and long token-like runs
- * are dropped, before anything is shortened, so a secret can never survive as a kept part.
- */
 const hostOf = (url: string) => {
   try {
-    return new URL(url).hostname;
+    return new URL(url).hostname || '…';
   } catch {
     return '…';
   }
 };
 
-export const publicText = (value: string) =>
-  flat(value)
-    // Full URLs, any scheme case: hostname only.
-    .replace(/\b[a-z][a-z0-9+.-]*:\/\/\S+/gi, hostOf)
-    // Protocol-relative URLs.
-    .replace(
-      /(^|\s)\/\/\S+/g,
-      (_match, lead: string) => `${lead}${hostOf(`https:${_match.trim()}`)}`,
-    )
-    // Emails and user:password@host forms: nothing of them is needed in a label.
-    .replace(/[^\s@]+@[^\s@]+/g, '…')
-    // IP addresses with a port, path or query: the address alone.
-    .replace(/\b(\d{1,3}(?:\.\d{1,3}){3})(?::\d+|[/?#])\S*/g, '$1')
-    // Bare hosts (www.example.com, jobs.example.org) followed by a port, path or query: the host.
-    .replace(/\b((?:[a-z0-9-]+\.)+[a-z]{2,})(?::\d+|[/?#])\S*/gi, '$1')
+// A host followed by a port, path, query or fragment: dotted names ending in a 2+ letter label
+// (Unicode or punycode included), localhost, or an IPv4 address. "v1.2/3" and "e.g." are not.
+const hostLike =
+  /^(?:localhost|\d{1,3}(?:\.\d{1,3}){3}|[\p{L}\p{N}-]+(?:\.[\p{L}\p{N}-]+)*\.(?:\p{L}{2,}|xn--[a-z0-9-]+))(?=[:/?#])/iu;
+
+/**
+ * One word of public text. Web addresses keep only their host, which names the site without its
+ * paths, queries, ports or sign-in details; every other address-like form (other schemes, local or
+ * relative paths, Windows paths, emails, user@host) is dropped outright.
+ */
+const publicWord = (word: string) => {
+  const lead = /^[“"'([<]*/.exec(word)![0];
+  const rest = word.slice(lead.length);
+  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(rest))
+    return /^(https?|wss?|ftp):/i.test(rest) ? lead + hostOf(rest) : lead + '…';
+  if (rest.startsWith('//')) return lead + hostOf(`https:${rest}`);
+  // A scheme needs something after its colon: "Customer name:" is a label, "tel:+1…" is not.
+  if (/^[a-z][a-z0-9+.-]*:\S/i.test(rest) && !hostLike.test(rest)) return lead + '…';
+  if (rest.startsWith('/') || rest.includes('\\') || rest.includes('@')) return lead + '…';
+  if (hostLike.test(rest)) return lead + hostOf(`https://${rest}`);
+  return word;
+};
+
+/**
+ * Text that may leave the approval review (chat activity, the chat heading, the tray's narration):
+ * addresses shrink to a host or disappear and long token-like runs are dropped, before anything
+ * is shortened, so no secret survives as a kept part. A name made only of addresses comes back
+ * empty, and callers fall back to a generic label ("an element on example.com").
+ */
+export const publicText = (value: string) => {
+  const text = flat(value)
+    .split(' ')
+    .map(publicWord)
+    .join(' ')
     .replace(/[A-Za-z0-9+/_=-]{24,}/g, '…');
+  return /[\p{L}\p{N}]/u.test(text.replace(/…/g, '')) ? text : '';
+};
 
 /**
  * The element a request names. The approval review may use an inspected control's label; public

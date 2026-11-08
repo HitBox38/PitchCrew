@@ -32,6 +32,8 @@ export const BrowserControls = ({
         ? 'Take control'
         : null;
   if (!label) return null;
+  // Beside a request the short form fits the line; the shown words are also the accessible name.
+  const shown = compact && label === 'Take control' ? 'Take over' : label;
   const Icon = control.leaseId ? Bot : Hand;
   return (
     <Button
@@ -40,7 +42,7 @@ export const BrowserControls = ({
       variant={label === 'Take control' ? 'outline' : 'secondary'}
       className="browser-handoff"
       data-nudged={nudged || undefined}
-      aria-label={label}
+      aria-label={shown}
       title={
         label === 'Take control'
           ? `Use the page yourself. ${name} pauses until you return it.`
@@ -55,10 +57,7 @@ export const BrowserControls = ({
       }}
     >
       <Icon size={15} aria-hidden="true" />
-      {/* Beside a request the short form fits the line: "Take over" says the same thing. */}
-      <span className="browser-handoff-label">
-        {compact && label === 'Take control' ? 'Take over' : label}
-      </span>
+      <span className="browser-handoff-label">{shown}</span>
     </Button>
   );
 };

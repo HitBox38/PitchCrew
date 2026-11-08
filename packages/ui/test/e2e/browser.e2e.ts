@@ -368,7 +368,7 @@ describe('Production UI → daemon → Electron browser E2E', { concurrency: fal
       assert.equal(
         await app.page
           .locator('.browser-approvals')
-          .getByRole('button', { name: 'Take control', exact: true })
+          .getByRole('button', { name: 'Take over', exact: true })
           .isVisible(),
         true,
       );

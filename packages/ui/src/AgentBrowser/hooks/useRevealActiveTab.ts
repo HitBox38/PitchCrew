@@ -1,11 +1,14 @@
 import { useLayoutEffect, useRef } from 'react';
 
+/** The strip's fade width: a tab under it is not readable, so reveal clears it too. */
+const fade = 16;
+
 /**
- * A ref for the scrolling tab strip that keeps the selected tab wholly in view (never leaving a
- * sliver of its neighbour at the edge) whenever it, or the tab count, changes, and marks which
- * edges have more tabs beyond them so only those fade.
+ * A ref for the scrolling tab strip that keeps the selected tab wholly readable (clear of the edge
+ * fades, never leaving a sliver of its neighbour) whenever it, the tab order or the strip's size
+ * changes, and marks which edges have more tabs beyond them so only those fade.
  */
-export const useRevealActiveTab = (activeTab: string | undefined, count: number) => {
+export const useRevealActiveTab = (activeTab: string | undefined, order: string) => {
   const strip = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const lane = strip.current;
@@ -22,9 +25,12 @@ export const useRevealActiveTab = (activeTab: string | undefined, count: number)
       if (tab) {
         const bounds = lane.getBoundingClientRect();
         const selected = tab.getBoundingClientRect();
-        // Past the neighbour's edge too: a partly hidden tab reads as a clipped title.
-        if (selected.right > bounds.right) lane.scrollLeft += selected.right - bounds.right + 16;
-        else if (selected.left < bounds.left) lane.scrollLeft -= bounds.left - selected.left + 16;
+        // The readable area excludes the fade on any edge that has tabs beyond it.
+        const left = bounds.left + (lane.scrollLeft > 1 ? fade : 0);
+        const right =
+          bounds.right - (lane.scrollLeft + lane.clientWidth < lane.scrollWidth - 1 ? fade : 0);
+        if (selected.right > right) lane.scrollLeft += selected.right - right + fade;
+        else if (selected.left < left) lane.scrollLeft -= left - selected.left + fade;
       }
       edges();
     };
@@ -36,6 +42,6 @@ export const useRevealActiveTab = (activeTab: string | undefined, count: number)
       observer.disconnect();
       lane.removeEventListener('scroll', edges);
     };
-  }, [activeTab, count]);
+  }, [activeTab, order]);
   return strip;
 };
