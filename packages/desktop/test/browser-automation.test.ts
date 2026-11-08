@@ -331,5 +331,10 @@ it('reports automation pointer moves and presses on the owned page only', async 
     [{ x: 40, y: 50, pressed: false }],
     [{ x: 41, y: 51, pressed: true }],
   ]);
+  // A floating mirror letting go keeps the pointer; the automation connection letting go clears it.
+  automation.release('floating:mirror');
+  expect(pointer).toHaveBeenCalledTimes(2);
+  automation.release('relay:session');
+  expect(pointer).toHaveBeenLastCalledWith(null);
   events.emit('destroyed');
 });

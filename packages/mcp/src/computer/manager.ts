@@ -32,7 +32,7 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { automaticNavigation, explorationNavigation } from './form-policy.ts';
 import { BrowserSessions } from './sessions.ts';
 import { hash } from './helpers.ts';
-import type { BrowserDriver } from './types.ts';
+import type { BrowserDriver, BrowserTarget } from './types.ts';
 
 export class ComputerManager {
   private readonly sessions = new Map<string, Promise<BrowserDriver>>();
@@ -41,6 +41,8 @@ export class ComputerManager {
   private readonly busy = new Set<string>();
   private readonly busyRoles = new Set<RoleId>();
   private readonly stopped = new Set<string>();
+  /** Where each waiting request's element sits, for the user's ring; memory only, never stored. */
+  private readonly targets = new Map<string, NonNullable<BrowserTarget['bounds']>>();
   constructor(
     private readonly board: Board,
     private readonly directory: string,
@@ -334,7 +336,7 @@ export class ComputerManager {
         includeImage: true,
         references: false,
       });
-      const page = target
+      const page = target?.name
         ? {
             ...inspected,
             elements: [{ ref: 'target', tag: target.tag, name: target.name.slice(0, 80) }],
@@ -397,6 +399,11 @@ export class ComputerManager {
         createdAt: new Date().toISOString(),
         decidedAt: automatic ? new Date().toISOString() : null,
       };
+      if (!automatic && target?.bounds) {
+        this.targets.set(approval.id, target.bounds);
+        // Requests are decided one at a time; a few stale entries are all that can build up.
+        for (const id of [...this.targets.keys()].slice(0, -20)) this.targets.delete(id);
+      }
       this.board.record(
         'computer_approval',
         approval,
@@ -411,7 +418,19 @@ export class ComputerManager {
       this.busyRoles.delete(this.browsers.keyForRun(scope.runId));
     }
   };
+  /** The waiting request's element box, or null once it is decided, expired or unknown. */
+  target = (id: string) => {
+    const approval = this.board
+      .list<ComputerApproval>('computer_approval')
+      .find((a) => a.id === id);
+    if (approval?.status !== 'pending') {
+      this.targets.delete(id);
+      return null;
+    }
+    return this.targets.get(id) ?? null;
+  };
   decide = (id: string, approved: boolean) => {
+    this.targets.delete(id);
     const current = this.board.get<ComputerApproval>('computer_approval', id);
     if (current.status !== 'pending' || this.stopped.has(current.runId))
       throw new Error('This browser action is no longer pending.');

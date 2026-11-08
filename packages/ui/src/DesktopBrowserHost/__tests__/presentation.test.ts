@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest';
 import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
-import { browserPagePoint, browserViewStyle } from '../presentation.ts';
+import { browserPagePoint, browserPageRect, browserViewStyle } from '../presentation.ts';
 
 const view: DesktopBrowserView = {
   token: 'guest',
@@ -125,4 +125,12 @@ it('places the agent cursor on the presented page, including a scaled fixed view
   expect(browserPagePoint(scaled, { x: 100, y: 100 })).toEqual({ x: 450, y: 250 });
   expect(browserPagePoint({ ...view, bounds: null }, { x: 1, y: 1 })).toBeNull();
   expect(browserPagePoint(view, { x: 5000, y: 10 })).toBeNull();
+});
+
+it('maps a waiting request target box onto the presented page at the same scale', () => {
+  const box = { x: 100, y: 100, width: 200, height: 40 };
+  expect(browserPageRect(view, box)).toEqual({ x: 500, y: 300, width: 200, height: 40 });
+  const scaled = { ...view, viewport: { width: 1400, height: 1000 } };
+  expect(browserPageRect(scaled, box)).toEqual({ x: 450, y: 250, width: 100, height: 20 });
+  expect(browserPageRect({ ...view, bounds: null }, box)).toBeNull();
 });

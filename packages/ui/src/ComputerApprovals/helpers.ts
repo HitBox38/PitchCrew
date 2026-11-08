@@ -82,13 +82,28 @@ export const approveLabel = (action: BrowserAction) =>
  * What the request will do, in words for the compact tray: "Open example.com", "Click “Learn more”",
  * "Type into Email". Empty when the page gave no name; the tray then leads with the agent's reason.
  */
+const quote = (value: string, limit: number) => {
+  const flat = value.replace(/\s+/g, ' ').trim();
+  return `“${flat.length > limit ? `${flat.slice(0, limit - 1).trimEnd()}…` : flat}”`;
+};
+
+const pageHost = (url: string | undefined) => {
+  try {
+    return url ? new URL(url).host : '';
+  } catch {
+    return '';
+  }
+};
+
+/**
+ * What an approval will do, written by Pitchcrew rather than the agent: the verb, the exact value
+ * typed, chosen or uploaded, and the inspected element's visible name. Without a name it says
+ * where on the page, so the agent's own reason never stands in as the title.
+ */
 export const approvalSummary = (action: BrowserAction, page?: BrowserSnapshot) => {
   if (action.kind === 'navigate') {
-    try {
-      return `Open ${new URL(action.url).host}`;
-    } catch {
-      return browserActionTitles.navigate;
-    }
+    const host = pageHost(action.url);
+    return host ? `Open ${host}` : browserActionTitles.navigate;
   }
   if (action.kind === 'dialog')
     return action.decision === 'accept'
@@ -99,12 +114,14 @@ export const approvalSummary = (action: BrowserAction, page?: BrowserSnapshot) =
   const label =
     page?.controls?.find((item) => item.selector === action.selector)?.label.trim() ||
     page?.elements?.find((item) => item.ref === 'target')?.name.trim();
-  if (!label) return '';
-  const quoted = `“${label.length > 48 ? `${label.slice(0, 47)}…` : label}”`;
-  if (action.kind === 'click') return `Click ${quoted}`;
-  if (action.kind === 'hover') return `Hover over ${quoted}`;
-  if (action.kind === 'drag') return `Drag ${quoted}`;
-  if (action.kind === 'fill') return `Type into ${quoted}`;
-  if (action.kind === 'select') return `Choose in ${quoted}`;
-  return `Upload to ${quoted}`;
+  const host = pageHost(page?.url);
+  const target = label ? quote(label, 40) : '';
+  const somewhere = host ? `an element on ${host}` : 'a page element';
+  if (action.kind === 'fill') return `Type ${quote(action.value, 32)} into ${target || 'a field'}`;
+  if (action.kind === 'select')
+    return `Choose ${quote(action.value, 32)}${target ? ` in ${target}` : ''}`;
+  if (action.kind === 'upload') return `Upload ${action.file}${target ? ` to ${target}` : ''}`;
+  if (action.kind === 'click') return `Click ${target || somewhere}`;
+  if (action.kind === 'hover') return `Hover over ${target || somewhere}`;
+  return `Drag ${target || somewhere}`;
 };

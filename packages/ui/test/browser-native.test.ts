@@ -1271,6 +1271,21 @@ test('keeps popup ownership visible and can bring its separate window forward', 
     .getByRole('heading', { name: 'Page open in a separate window' })
     .waitFor({ state: 'hidden' });
 });
+const publishGuest = (bounds: DesktopBrowserView['bounds']) =>
+  page.evaluate((bounds) => {
+    (
+      window as unknown as { publishBrowserViews: (next: DesktopBrowserView[]) => void }
+    ).publishBrowserViews([
+      {
+        token: 'fixture-guest',
+        partition: 'persist:fixture',
+        contentsId: 99,
+        bounds,
+        painting: !!bounds,
+        manual: false,
+      },
+    ]);
+  }, bounds);
 test('keeps native approval evidence stable while requests appear, expand and resolve', async () => {
   const release = page.getByRole('button', { name: 'Return to agent', exact: true });
   if (await release.isVisible()) await release.click();
@@ -1280,6 +1295,10 @@ test('keeps native approval evidence stable while requests appear, expand and re
   await page.reload({ waitUntil: 'domcontentloaded' });
   const body = page.getByLabel('Native browser page', { exact: true });
   await body.waitFor();
+  // The daemon serves each waiting request's element box; the overlay rings it on the page.
+  const target = vi
+    .spyOn(service.computer, 'target')
+    .mockReturnValue({ x: 20, y: 30, width: 120, height: 32 });
   for (const size of [
     { width: 1440, height: 1000 },
     { width: 390, height: 844 },
@@ -1301,6 +1320,16 @@ test('keeps native approval evidence stable while requests appear, expand and re
       );
       const review = page.getByRole('region', { name: 'Pending browser action', exact: true });
       await review.waitFor();
+      if (!index) {
+        // Present the guest at the page's place so the overlay can ring the element on it.
+        const box = (await body.boundingBox())!;
+        await publishGuest({ x: box.x, y: box.y, width: box.width, height: box.height });
+        const ring = page.locator('.browser-approval-target');
+        await ring.waitFor();
+        const placed = (await ring.boundingBox())!;
+        expect(Math.round(placed.x - box.x)).toBe(16);
+        expect(Math.round(placed.width)).toBe(128);
+      }
       expect(
         await page
           .locator('[data-slot="toast-title"]')
@@ -1325,6 +1354,8 @@ test('keeps native approval evidence stable while requests appear, expand and re
       );
       await review.getByRole('button', { name: 'Approve opening', exact: true }).click();
       await review.waitFor({ state: 'hidden' });
+      await page.locator('.browser-approval-target').waitFor({ state: 'detached' });
+      if (!index) await publishGuest(null);
       // The tray shows the outcome; no toast covers the next request's decision.
       expect(
         await page
@@ -1341,6 +1372,7 @@ test('keeps native approval evidence stable while requests appear, expand and re
       expect((await body.boundingBox())?.height).toBe(before?.height);
     }
   }
+  target.mockRestore();
   await page.setViewportSize({ width: 1440, height: 1000 });
   await service.computer.stop(scope.runId);
   // Let the header settle on Idle so explicit control comes from Browser options.

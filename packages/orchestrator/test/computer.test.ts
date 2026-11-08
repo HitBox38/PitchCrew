@@ -14,6 +14,11 @@ it('enforces computer capability and user-only decisions and expires approvals o
         digest: 'page-digest',
       }),
       perform: async () => {},
+      describeTarget: async () => ({
+        tag: 'button',
+        name: 'Submit',
+        bounds: { x: 10, y: 20, width: 80, height: 30 },
+      }),
       close: async () => {},
     }),
   });
@@ -70,6 +75,15 @@ it('enforces computer capability and user-only decisions and expires approvals o
     },
   );
   expect(unauthenticated.status).toBe(403);
+  // The element is named in the stored request; its box is served only to the user, from memory.
+  expect(approval.page.elements).toEqual([{ ref: 'target', tag: 'button', name: 'Submit' }]);
+  const agentTarget = await fetch(`${daemon.url}/api/computer-approvals/${approval.id}/target`, {
+    headers: { authorization: 'Bearer computer-token' },
+  });
+  expect(agentTarget.status).toBe(403);
+  expect((await request(`/computer-approvals/${approval.id}/target`)).result).toEqual({
+    bounds: { x: 10, y: 20, width: 80, height: 30 },
+  });
   await expect(
     service.agentCall('computer-token', 'computer_decide', { approvalId: approval.id }),
   ).rejects.toThrow();
@@ -77,6 +91,9 @@ it('enforces computer capability and user-only decisions and expires approvals o
     (await request(`/computer-approvals/${approval.id}/decide`, 'POST', { approved: true }))
       .response.status,
   ).toBe(200);
+  expect((await request(`/computer-approvals/${approval.id}/target`)).result).toEqual({
+    bounds: null,
+  });
   service.board.record(
     'role',
     {

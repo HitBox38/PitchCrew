@@ -27,7 +27,7 @@ export const useBrowserHandback = (
   const [attempt, setAttempt] = useState(0);
   const working = !!session?.runId;
   useEffect(() => setBrowserPresence({ name, working }), [name, working]);
-  useEffect(() => () => setBrowserPresence({ name: '', working: false }), []);
+  useEffect(() => () => setBrowserPresence({ name: '', working: false, target: null }), []);
   const runId = session?.runId ?? null;
   const { leaseId, implicit } = control;
   const handedBack = useRef<string>(undefined);

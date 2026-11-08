@@ -20,8 +20,8 @@ export const guestAutomation = (
   contents: WebContents,
   paint: (active: boolean) => void,
   displayScale = () => 1,
-  /** Reports where automation moves or presses the pointer, in page CSS pixels. */
-  pointer?: (point: { x: number; y: number; pressed: boolean }) => void,
+  /** Reports where automation moves or presses the pointer, in page CSS pixels; null clears it. */
+  pointer?: (point: { x: number; y: number; pressed: boolean } | null) => void,
 ) => {
   const pending = new Map<object, { owner?: string; paints: boolean }>();
   const streams = new Map<string | undefined, Set<string | undefined>>();
@@ -67,6 +67,9 @@ export const guestAutomation = (
     else streams.delete(owner);
     if (owner === undefined) inputGrace.clear();
     else inputGrace.delete(owner);
+    // An automation connection let go of the page: no agent pointer should linger over it.
+    // A floating mirror's input is the user's, so its release leaves the pointer alone.
+    if (!owner?.startsWith('floating:')) pointer?.(null);
     for (const child of previousStreams)
       if (!streaming(child) && !contents.isDestroyed())
         void contents.debugger.sendCommand('Page.stopScreencast', {}, child).catch(() => {});

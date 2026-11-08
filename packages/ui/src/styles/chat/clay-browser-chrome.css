@@ -263,7 +263,9 @@
   gap: 8px;
   height: 100%;
   padding: 0 10px 0 14px;
-  background: color-mix(in oklab, var(--ochre-soft) 55%, var(--clay-fill));
+  /* --clay-fill is a gradient, so the ochre wash is layered over it rather than mixed in. */
+  background:
+    linear-gradient(color-mix(in oklab, var(--ochre-soft) 55%, transparent) 0 0), var(--clay-fill);
 }
 [data-interface='clay'] .browser-pending-action .browser-approval-body {
   display: flex;

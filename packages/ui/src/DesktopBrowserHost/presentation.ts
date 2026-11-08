@@ -8,19 +8,44 @@ export const initialBrowserSize = { width: 1280, height: 800 };
 export type BrowserViewSize = typeof initialBrowserSize;
 
 /** Maps a page CSS-pixel point to window coordinates for a presented guest, or null if hidden. */
-export const browserPagePoint = (view: DesktopBrowserView, point: { x: number; y: number }) => {
+/** The scale and top-left of the displayed page: a fixed viewport is centred and scaled to fit. */
+const pageTransform = (view: DesktopBrowserView) => {
   if (!view.bounds) return null;
-  // Mirrors browserViewStyle: a fixed page viewport is centred and scaled down to fit.
   const page = view.viewport ?? { width: view.bounds.width, height: view.bounds.height };
   const scale = Math.min(1, view.bounds.width / page.width, view.bounds.height / page.height);
-  const x = view.bounds.x + (view.bounds.width - page.width * scale) / 2 + point.x * scale;
-  const y = view.bounds.y + point.y * scale;
+  return {
+    scale,
+    x: view.bounds.x + (view.bounds.width - page.width * scale) / 2,
+    y: view.bounds.y,
+  };
+};
+
+export const browserPagePoint = (view: DesktopBrowserView, point: { x: number; y: number }) => {
+  const transform = pageTransform(view);
+  if (!transform || !view.bounds) return null;
+  const x = transform.x + point.x * transform.scale;
+  const y = transform.y + point.y * transform.scale;
   const inside =
     x >= view.bounds.x &&
     y >= view.bounds.y &&
     x <= view.bounds.x + view.bounds.width &&
     y <= view.bounds.y + view.bounds.height;
   return inside ? { x, y } : null;
+};
+
+/** A page box in window coordinates; callers clip it to the page frame. */
+export const browserPageRect = (
+  view: DesktopBrowserView,
+  rect: { x: number; y: number; width: number; height: number },
+) => {
+  const transform = pageTransform(view);
+  if (!transform) return null;
+  return {
+    x: transform.x + rect.x * transform.scale,
+    y: transform.y + rect.y * transform.scale,
+    width: rect.width * transform.scale,
+    height: rect.height * transform.scale,
+  };
 };
 
 export const browserViewStyle = (

@@ -103,7 +103,19 @@ export const browserReferences = () => {
           };
         });
         const name = redactCredentials(current.name, secrets);
-        return name ? { tag: current.tag, name } : undefined;
+        const box = await entry.handle.boundingBox().catch(() => null);
+        const bounds =
+          box && box.width > 0 && box.height > 0
+            ? {
+                x: Math.round(box.x),
+                y: Math.round(box.y),
+                width: Math.round(box.width),
+                height: Math.round(box.height),
+              }
+            : undefined;
+        return name || bounds
+          ? { tag: current.tag, name, ...(bounds ? { bounds } : {}) }
+          : undefined;
       } catch {
         return undefined;
       }

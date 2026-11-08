@@ -2,6 +2,7 @@ import { createElement, useLayoutEffect, useState } from 'react';
 import type { DesktopBrowserView } from '../../../../core/src/native-browser.ts';
 import { browserViewStyle, initialBrowserSize, type BrowserViewSize } from '../presentation.ts';
 import { AgentCursor } from './AgentCursor.tsx';
+import { ApprovalTargetRing } from './ApprovalTargetRing.tsx';
 import { BrowserInputGuard } from './BrowserInputGuard.tsx';
 
 type GuestElement = HTMLElement & { getWebContentsId(): number };
@@ -73,6 +74,7 @@ export const BrowserGuest = ({
         style: browserViewStyle(view, size, viewport, /mac/i.test(navigator.platform)),
       })}
       <BrowserInputGuard view={view} />
+      <ApprovalTargetRing view={view} />
       <AgentCursor view={view} />
     </>
   );

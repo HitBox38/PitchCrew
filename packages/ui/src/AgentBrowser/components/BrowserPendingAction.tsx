@@ -6,10 +6,12 @@ import type { ComputerApproval } from '@pitchcrew/core';
 import type { AgentBrowserProps, BrowserControl } from '../types.ts';
 import { BrowserSiteRequest } from './BrowserSiteRequest.tsx';
 import { BrowserApprovalEvidence } from './BrowserApprovalEvidence.tsx';
+import { useApprovalTarget } from '../hooks/useApprovalTarget.ts';
 
 /**
- * One waiting request in two short lines: what will happen (bead or lock, semibold) and the
- * agent's reason (muted, one line). Site access, Details and the decision sit on the right.
+ * One waiting request in two short lines: what will happen, written by Pitchcrew with the exact
+ * value (bead or lock, semibold), and the agent's reason (muted, one line). Site access, Details
+ * and the decision sit on the right.
  */
 export const BrowserPendingAction = ({
   approval,
@@ -26,6 +28,7 @@ export const BrowserPendingAction = ({
   const submission = 'purpose' in approval.action && approval.action.purpose === 'submission';
   const summary = approvalSummary(approval.action, approval.page);
   const reason = paused ? 'Return control before deciding.' : approval.reason;
+  useApprovalTarget(approval.id, approval.status === 'pending' && !paused);
   return (
     <section
       className="browser-pending-action"
@@ -40,13 +43,11 @@ export const BrowserPendingAction = ({
           ) : (
             <span className="clay-bead" data-size="sm" data-tone="ochre" aria-hidden="true" />
           )}
-          <strong title={summary || reason}>{summary || reason}</strong>
+          <strong title={summary}>{summary}</strong>
         </p>
-        {summary ? (
-          <p className="browser-approval-reason" title={reason}>
-            {reason}
-          </p>
-        ) : null}
+        <p className="browser-approval-reason" title={reason}>
+          {reason}
+        </p>
         <BrowserApprovalError approval={approval} />
       </div>
       <BrowserSiteRequest

@@ -14,6 +14,11 @@ it('returns optional screenshots and snapshot references, rejects replaced eleme
     expect(first.screenshot).toBe('');
     expect(first.text).not.toContain('fictional-secret');
     const button = first.elements!.find((element) => element.tag === 'button')!;
+    // The user's view of a request names the element as it is now and knows where it sits.
+    const target = await driver.describeTarget!(button.ref);
+    expect(target).toMatchObject({ tag: 'button', name: 'Continue' });
+    expect(target!.bounds!.width).toBeGreaterThan(0);
+    expect(await driver.describeTarget!('#not-a-reference')).toBeUndefined();
     expect(await driver.resolveAction!({ kind: 'click', selector: button.ref })).toMatchObject({
       kind: 'click',
       selector: expect.stringContaining(':nth-match'),
